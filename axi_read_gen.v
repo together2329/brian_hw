@@ -117,50 +117,50 @@ output reg  rready
             // ====================================
             // 2. Read Data Phase
             // ====================================
-            for (beat = 0; beat < total_beats; beat = beat + 1) begin
-                // Wait for rvalid
+            beat = 0;
+            while (beat < total_beats) begin
                 @(posedge i_clk);
-                while (!rvalid) begin
-                    @(posedge i_clk);
-                end
+                #1;  // Small delay to let signals settle
 
-                #1;  // Small delay after clock edge
+                if (rvalid && rready) begin
+                    // Capture data immediately
+                    data_beat = rdata;
+                    read_data_mem[beat] = data_beat;
 
-                // Capture data
-                data_beat = rdata;
-                read_data_mem[beat] = data_beat;
+                    $display("[%0t] [READ_GEN] Read Data Beat %0d: data=0x%h, last=%0b, resp=%0d",
+                             $time, beat, data_beat, rlast, rresp);
 
-                $display("[%0t] [READ_GEN] Read Data Beat %0d: data=0x%h, last=%0b, resp=%0d",
-                         $time, beat, data_beat, rlast, rresp);
+                    // Verify first beat contains expected header
+                    if (beat == 0) begin
+                        received_header = data_beat[127:0];
+                        if (received_header == expected_header) begin
+                            $display("[%0t] [READ_GEN] *** HEADER MATCH *** ", $time);
+                            $display("  Expected: 0x%h", expected_header);
+                            $display("  Received: 0x%h", received_header);
+                        end else begin
+                            $display("[%0t] [READ_GEN] *** HEADER MISMATCH *** ", $time);
+                            $display("  Expected: 0x%h", expected_header);
+                            $display("  Received: 0x%h", received_header);
+                            verification_pass = 1'b0;
+                        end
+                    end
 
-                // Verify first beat contains expected header
-                if (beat == 0) begin
-                    received_header = data_beat[127:0];
-                    if (received_header == expected_header) begin
-                        $display("[%0t] [READ_GEN] *** HEADER MATCH *** ", $time);
-                        $display("  Expected: 0x%h", expected_header);
-                        $display("  Received: 0x%h", received_header);
-                    end else begin
-                        $display("[%0t] [READ_GEN] *** HEADER MISMATCH *** ", $time);
-                        $display("  Expected: 0x%h", expected_header);
-                        $display("  Received: 0x%h", received_header);
+                    // Check response
+                    if (rresp != 2'b00) begin
+                        $display("[%0t] [READ_GEN] WARNING: Non-OKAY response: %0d", $time, rresp);
                         verification_pass = 1'b0;
                     end
-                end
 
-                // Check response
-                if (rresp != 2'b00) begin
-                    $display("[%0t] [READ_GEN] WARNING: Non-OKAY response: %0d", $time, rresp);
-                    verification_pass = 1'b0;
-                end
+                    // Check if this is the last beat
+                    if (rlast && (beat != total_beats - 1)) begin
+                        $display("[%0t] [READ_GEN] WARNING: Unexpected RLAST at beat %0d", $time, beat);
+                        verification_pass = 1'b0;
+                    end else if (!rlast && (beat == total_beats - 1)) begin
+                        $display("[%0t] [READ_GEN] WARNING: RLAST not asserted at last beat %0d", $time, beat);
+                        verification_pass = 1'b0;
+                    end
 
-                // Check if this is the last beat
-                if (rlast && (beat != total_beats - 1)) begin
-                    $display("[%0t] [READ_GEN] WARNING: Unexpected RLAST at beat %0d", $time, beat);
-                    verification_pass = 1'b0;
-                end else if (!rlast && (beat == total_beats - 1)) begin
-                    $display("[%0t] [READ_GEN] WARNING: RLAST not asserted at last beat %0d", $time, beat);
-                    verification_pass = 1'b0;
+                    beat = beat + 1;
                 end
             end
 

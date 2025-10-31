@@ -85,13 +85,10 @@ module pcie_axi_to_sram (
                 end
 
                 R_DATA: begin
-                    // Output data from SRAM (rdata is combinational from sram_rdata)
+                    // Set rvalid and rlast
                     axi_rvalid <= 1'b1;
                     axi_rresp <= 2'b00;
                     axi_rlast <= (beat_count == total_beats - 1);
-
-                    $display("[%0t] [AXI_SRAM] R_DATA: rvalid=%0b, rready=%0b, rlast=%0b, beat=%0d/%0d",
-                             $time, axi_rvalid, axi_rready, axi_rlast, beat_count, total_beats);
 
                     if (axi_rvalid && axi_rready) begin
                         $display("[%0t] [AXI_SRAM] Read beat %0d: sram[%0d] = 0x%h, last=%0b",
@@ -109,6 +106,7 @@ module pcie_axi_to_sram (
                             sram_addr_cnt <= sram_addr_cnt + 1;
                             sram_ren <= 1'b1;
                             sram_raddr <= sram_addr_cnt + 1;
+                            axi_rvalid <= 1'b0;  // Deassert for next beat
                             state <= R_ADDR;
                         end
                     end
