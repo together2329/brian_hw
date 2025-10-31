@@ -68,6 +68,38 @@ output reg   O_BREADY
         tlp_header[99:96] = 4'b0001;        // header version
         tlp_header[119:112] = 8'h0;         // source endpoint id
         tlp_header[31:24] = 8'h20;          // 128B, length
+
+        // Wait for reset
+        wait(i_reset_n);
+        #200;
+
+        // Test Case 1: Single beat
+        SEND_WRITE(
+            128'hDEADBEEF_CAFEBABE_12345678_ABCDEF01,
+            8'd0,       // awlen = 0 (1 beat)
+            3'd5,       // 32 bytes
+            2'b01,      // INCR
+            {256'h0, 256'h0, 256'h0, 256'h0},
+            64'h0       // address
+        );
+
+        #200;
+
+        // Test Case 2: Multi-beat
+        SEND_WRITE(
+            128'h1111_2222_3333_4444_5555_6666_7777_8888,
+            8'd3,       // awlen = 3 (4 beats)
+            3'd5,       // 32 bytes
+            2'b01,      // INCR
+            {256'h3333_3333_3333_3333_3333_3333_3333_3333,
+             256'h2222_2222_2222_2222_2222_2222_2222_2222,
+             256'h1111_1111_1111_1111_1111_1111_1111_1111,
+             256'h0000_0000_0000_0000_0000_0000_0000_0000},
+            64'h10      // address
+        );
+
+        #200;
+        $display("\n[WRITE_GEN] All writes completed\n");
     end
 
     // ========================================

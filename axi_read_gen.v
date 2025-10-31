@@ -26,6 +26,37 @@ output reg  rready
     // Internal storage for read data verification
     reg [255:0] read_data_mem [0:15];
 
+    initial begin
+        // Wait for reset
+        wait(i_reset_n);
+        #400;  // Wait for first write to complete
+
+        // Test Case 1: Read and verify single beat
+        READ_AND_CHECK(
+            32'h0,      // address
+            8'd0,       // arlen = 0 (1 beat)
+            3'd5,       // 32 bytes
+            2'b01,      // INCR
+            128'hDEADBEEF_CAFEBABE_12345678_ABCDEF01  // expected header
+        );
+
+        #200;
+
+        // Test Case 2: Read and verify multi-beat
+        READ_AND_CHECK(
+            32'h10,     // address
+            8'd3,       // arlen = 3 (4 beats)
+            3'd5,       // 32 bytes
+            2'b01,      // INCR
+            128'h1111_2222_3333_4444_5555_6666_7777_8888  // expected header
+        );
+
+        #200;
+        $display("\n[READ_GEN] All reads and verifications completed\n");
+        #200;
+        $finish;
+    end
+
     // ========================================
     // AXI Read Task with Internal Verification
     // ========================================
