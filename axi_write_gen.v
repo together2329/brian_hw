@@ -57,6 +57,7 @@ output reg   O_BREADY
     reg [127:0] tlp_header;
 
     initial begin
+
         tlp_header = 128'h0;
 
         tlp_header[7:5] = 3'b011;           // fmt input
@@ -162,7 +163,7 @@ output reg   O_BREADY
             O_AWPROT  = 3'h0;
 
             // Wait for awready
-            @(posedge i_clk);
+            //@(posedge i_clk);
             while (!I_AWREADY) begin
                 @(posedge i_clk);
             end
