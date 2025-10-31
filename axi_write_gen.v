@@ -72,6 +72,8 @@ output reg   O_BREADY
 
         // Wait for reset
         wait(i_reset_n);
+        wait(!i_reset_n);
+        wait(i_reset_n);
         #200;
 
         // Assemble Condition 
