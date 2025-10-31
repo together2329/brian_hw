@@ -73,7 +73,21 @@ output reg   O_BREADY
         wait(i_reset_n);
         #200;
 
-        // Test Case 1: Single beat
+        // Assemble Condition 
+        // S_PKT + multi M_PKT + last L_PKT with same MSG_T6, incremented PKT_SN# 
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
+        SEND_WRITE({M_PKT, PKT_SN1, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
+        SEND_WRITE({M_PKT, PKT_SN2, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
+        SEND_WRITE({L_PKT, PKT_SN3, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
+
+        // Assemble Condition 
+        // S_PKT + multi M_PKT + last L_PKT with same MSG_T6, incremented PKT_SN# 
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
+        SEND_WRITE({M_PKT, PKT_SN1, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
+        SEND_WRITE({M_PKT, PKT_SN2, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
+        SEND_WRITE({L_PKT, PKT_SN3, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
+
+/*        // Test Case 1: Single beat
         SEND_WRITE(
             128'hDEADBEEF_CAFEBABE_12345678_ABCDEF01,
             8'd0,       // awlen = 0 (1 beat)
@@ -97,7 +111,7 @@ output reg   O_BREADY
              256'h0000_0000_0000_0000_0000_0000_0000_0000},
             64'h10      // address
         );
-
+*/
         #200;
         $display("\n[WRITE_GEN] All writes completed\n");
     end
