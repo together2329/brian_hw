@@ -70,25 +70,72 @@ output reg   O_BREADY
         tlp_header[119:112] = 8'h0;         // source endpoint id
         tlp_header[31:24] = 8'h20;          // 128B, length
 
-        // Wait for reset
+        // Wait for reset sequence: 1 -> 0 -> 1
         wait(i_reset_n);
         wait(!i_reset_n);
         wait(i_reset_n);
         #200;
 
-        // Assemble Condition 
-        // S_PKT + multi M_PKT + last L_PKT with same MSG_T6, incremented PKT_SN# 
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
-        SEND_WRITE({M_PKT, PKT_SN1, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
-        SEND_WRITE({M_PKT, PKT_SN2, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
-        SEND_WRITE({L_PKT, PKT_SN3, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
+        $display("\n========================================");
+        $display("TEST 1: S->L (2 fragments) with MSG_T0");
+        $display("========================================\n");
+        // S->L assembly (2 fragments)
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
+                   {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
+                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
+                    256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
+                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h0);
+        SEND_WRITE({L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
+                   {256'hEEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE,
+                    256'hFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
+                    256'h1111_1111_1111_1111_1111_1111_1111_1111,
+                    256'h2222_2222_2222_2222_2222_2222_2222_2222}, 64'h0);
+        #200;
 
-        // Assemble Condition 
-        // S_PKT + multi M_PKT + last L_PKT with same MSG_T6, incremented PKT_SN# 
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
-        SEND_WRITE({M_PKT, PKT_SN1, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
-        SEND_WRITE({M_PKT, PKT_SN2, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
-        SEND_WRITE({L_PKT, PKT_SN3, MSG_T6, tlp_header[119:0]}, 8'h3, 3, 1, {256'h4, 256'h3, 256'h2, 256'h1}, 64'h8c20000);
+        $display("\n========================================");
+        $display("TEST 2: S->M->L (3 fragments) with MSG_T1");
+        $display("========================================\n");
+        // S->M->L assembly (3 fragments)
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
+                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
+                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h100);
+        SEND_WRITE({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
+                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
+                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h100);
+        SEND_WRITE({L_PKT, PKT_SN2, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
+                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
+                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
+        #200;
+
+        $display("\n========================================");
+        $display("TEST 3: S->M->M->L (4 fragments) with MSG_T2");
+        $display("========================================\n");
+        // S->M->M->L assembly (4 fragments)
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1,
+                   {256'h0, 256'h0, 256'hDEAD_BEEF_DEAD_BEEF_DEAD_BEEF_DEAD_BEEF,
+                    256'hCAFE_BABE_CAFE_BABE_CAFE_BABE_CAFE_BABE}, 64'h200);
+        SEND_WRITE({M_PKT, PKT_SN1, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1,
+                   {256'h0, 256'h0, 256'h1234_5678_1234_5678_1234_5678_1234_5678,
+                    256'hABCD_EF01_ABCD_EF01_ABCD_EF01_ABCD_EF01}, 64'h200);
+        SEND_WRITE({M_PKT, PKT_SN2, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1,
+                   {256'h0, 256'h0, 256'hFEDC_BA98_FEDC_BA98_FEDC_BA98_FEDC_BA98,
+                    256'h7654_3210_7654_3210_7654_3210_7654_3210}, 64'h200);
+        SEND_WRITE({L_PKT, PKT_SN3, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1,
+                   {256'h0, 256'h0, 256'h1111_2222_3333_4444_5555_6666_7777_8888,
+                    256'h9999_AAAA_BBBB_CCCC_DDDD_EEEE_FFFF_0000}, 64'h200);
+        #200;
+
+        $display("\n========================================");
+        $display("TEST 4: Single packet (SG_PKT) with MSG_T3");
+        $display("========================================\n");
+        // Single packet (no assembly)
+        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T3, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'hAAAA_5555_AAAA_5555_AAAA_5555_AAAA_5555,
+                    256'h5555_AAAA_5555_AAAA_5555_AAAA_5555_AAAA,
+                    256'hFFFF_0000_FFFF_0000_FFFF_0000_FFFF_0000}, 64'h300);
 
 /*        // Test Case 1: Single beat
         SEND_WRITE(

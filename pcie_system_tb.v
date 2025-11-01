@@ -61,6 +61,8 @@ module pcie_system_tb;
     wire [127:0] msg_header;
     wire         msg_valid;
     wire [11:0]  msg_length;
+    wire         assembled_valid;
+    wire [3:0]   assembled_tag;
 
     // Module instantiations
 
@@ -133,7 +135,9 @@ module pcie_system_tb;
         .sram_wdata(sram_wdata),
         .msg_header(msg_header),
         .msg_valid(msg_valid),
-        .msg_length(msg_length)
+        .msg_length(msg_length),
+        .assembled_valid(assembled_valid),
+        .assembled_tag(assembled_tag)
     );
 
     // 4. SRAM
@@ -184,21 +188,23 @@ module pcie_system_tb;
     // Reset and test control
     initial begin
         $display("\n[%0t] [TB] ========================================", $time);
-        $display("[%0t] [TB] PCIe System Test Started", $time);
+        $display("[%0t] [TB] PCIe Assembly System Test Started", $time);
         $display("[%0t] [TB] ========================================\n", $time);
 
-        // Initialize
+        // Reset sequence: 1 -> 0 -> 1 (as required)
+        rst_n = 1;
+        #100;
         rst_n = 0;
-
-        // Reset
+        $display("[%0t] [TB] Reset asserted", $time);
         #100;
         rst_n = 1;
         $display("[%0t] [TB] Reset released", $time);
         $display("[%0t] [TB] Modules will now execute their internal tasks\n", $time);
 
         // All tests are now run by the modules' internal initial blocks
-        // axi_write_gen will write data
-        // axi_read_gen will read and verify data
+        // axi_write_gen will send fragmented messages
+        // pcie_msg_receiver will assemble them
+        // axi_read_gen will read and verify assembled messages
     end
 
     // Timeout
@@ -219,9 +225,15 @@ module pcie_system_tb;
     // Monitor message reception
     always @(posedge clk) begin
         if (msg_valid) begin
-            $display("\n[%0t] [TB] *** MESSAGE RECEIVED ***", $time);
+            $display("\n[%0t] [TB] *** FRAGMENT RECEIVED ***", $time);
             $display("[%0t] [TB]   Header: 0x%h", $time, msg_header);
             $display("[%0t] [TB]   Length: %0d beats\n", $time, msg_length);
+        end
+
+        if (assembled_valid) begin
+            $display("\n[%0t] [TB] *** ASSEMBLY COMPLETE ***", $time);
+            $display("[%0t] [TB]   MSG_TAG: 0x%h", $time, assembled_tag);
+            $display("[%0t] [TB]   Assembled message written to SRAM\n", $time);
         end
     end
 
