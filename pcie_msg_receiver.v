@@ -213,8 +213,8 @@ module pcie_msg_receiver (
                                          $time, PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] + 1);
                             end
 
-                            // Check unknown destination ID (if control bit is enabled)
-                            if (PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15[8]) begin
+                            // Check unknown destination ID (if control bit is disabled)
+                            if (!PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15[8]) begin
                                 reg [7:0] dest_id;
                                 dest_id = axi_wdata[111:104];
                                 if (dest_id != 8'h00 && dest_id != 8'hFF &&
