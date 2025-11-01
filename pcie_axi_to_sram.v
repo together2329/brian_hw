@@ -15,7 +15,7 @@ module pcie_axi_to_sram (
 
     // AXI Read Data Channel
     output reg         axi_rvalid,
-    output wire [255:0] axi_rdata,
+    output reg [255:0] axi_rdata,
     output reg  [1:0]  axi_rresp,
     output reg         axi_rlast,
     input wire         axi_rready,
@@ -28,7 +28,7 @@ module pcie_axi_to_sram (
 
     // State machine
     localparam IDLE   = 2'b00;
-    localparam R_ADDR = 2'b01;
+    localparam R_WAIT = 2'b01;
     localparam R_DATA = 2'b10;
 
     reg [1:0] state;
@@ -37,14 +37,12 @@ module pcie_axi_to_sram (
     reg [11:0] total_beats;
     reg [9:0] sram_addr_cnt;
 
-    // Combinational rdata assignment
-    assign axi_rdata = sram_rdata;
-
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             state <= IDLE;
             axi_arready <= 1'b0;
             axi_rvalid <= 1'b0;
+            axi_rdata <= 256'h0;
             axi_rresp <= 2'b00;
             axi_rlast <= 1'b0;
             read_addr <= 64'h0;
@@ -75,28 +73,31 @@ module pcie_axi_to_sram (
                         // Start SRAM read
                         sram_ren <= 1'b1;
                         sram_raddr <= axi_araddr[9:0];
-                        state <= R_ADDR;
+                        state <= R_WAIT;
                     end
                 end
 
-                R_ADDR: begin
+                R_WAIT: begin
                     // Wait 1 cycle for SRAM read latency
                     state <= R_DATA;
                 end
 
                 R_DATA: begin
-                    // Set rvalid and rlast
+                    // Always set up signals every cycle (continuously drive)
+                    axi_rdata <= sram_rdata;
                     axi_rvalid <= 1'b1;
                     axi_rresp <= 2'b00;
                     axi_rlast <= (beat_count == total_beats - 1);
 
+                    // Check for handshake
                     if (axi_rvalid && axi_rready) begin
                         $display("[%0t] [AXI_SRAM] Read beat %0d: sram[%0d] = 0x%h, last=%0b",
                                  $time, beat_count, sram_addr_cnt, axi_rdata, axi_rlast);
 
+                        axi_rvalid <= 1'b0;
+
                         if (axi_rlast) begin
                             // Last beat completed
-                            axi_rvalid <= 1'b0;
                             axi_rlast <= 1'b0;
                             state <= IDLE;
                             $display("[%0t] [AXI_SRAM] Read complete\n", $time);
@@ -106,8 +107,7 @@ module pcie_axi_to_sram (
                             sram_addr_cnt <= sram_addr_cnt + 1;
                             sram_ren <= 1'b1;
                             sram_raddr <= sram_addr_cnt + 1;
-                            axi_rvalid <= 1'b0;  // Deassert for next beat
-                            state <= R_ADDR;
+                            state <= R_WAIT;
                         end
                     end
                 end

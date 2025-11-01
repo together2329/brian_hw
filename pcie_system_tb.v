@@ -209,7 +209,7 @@ module pcie_system_tb;
 
     // Timeout
     initial begin
-        #10000;
+        #200000;
         $display("\n[%0t] [TB] ========================================", $time);
         $display("[%0t] [TB] Simulation timeout - ending", $time);
         $display("[%0t] [TB] ========================================\n", $time);

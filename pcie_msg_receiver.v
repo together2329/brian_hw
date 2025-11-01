@@ -305,16 +305,22 @@ module pcie_msg_receiver (
                 end
 
                 SRAM_WR: begin
-                    // Write assembled message to SRAM
-                    if (asm_beat_count < asm_total_beats) begin
+                    // Write assembled payload to SRAM (skip header beat 0)
+                    if (asm_beat_count == 12'h0) begin
+                        // Display assembled header (not stored in SRAM)
+                        $display("[%0t] [SRAM_WR] Assembled Header (not stored): 0x%h",
+                                 $time, queue_data[current_queue_idx][0]);
+                    end
+
+                    if (asm_beat_count < asm_total_beats - 1) begin
                         sram_wen <= 1'b1;
                         sram_waddr <= write_addr[9:0] + asm_beat_count;
-                        sram_wdata <= queue_data[current_queue_idx][asm_beat_count];
+                        sram_wdata <= queue_data[current_queue_idx][asm_beat_count + 1];  // +1 to skip header
 
-                        $display("[%0t] [SRAM_WR] Beat %0d/%0d: addr=%0h, data=0x%h",
-                                 $time, asm_beat_count, asm_total_beats-1,
+                        $display("[%0t] [SRAM_WR] Payload beat %0d/%0d: addr=%0h, data=0x%h",
+                                 $time, asm_beat_count, asm_total_beats-2,
                                  write_addr[9:0] + asm_beat_count,
-                                 queue_data[current_queue_idx][asm_beat_count]);
+                                 queue_data[current_queue_idx][asm_beat_count + 1]);
 
                         asm_beat_count <= asm_beat_count + 1;
                     end else begin

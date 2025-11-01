@@ -58,20 +58,20 @@ output reg  rready
         tlp_base[119:112] = 8'h0;         // source endpoint id
 
         $display("\n========================================");
-        $display("VERIFY TEST 1: S->L assembly (MSG_T0, 7 beats)");
+        $display("VERIFY TEST 1: S->L assembly (MSG_T0, 6 payload beats)");
         $display("========================================\n");
-        // Test 1: S->L assembly (7 beats total: header + 6 payload)
-        // Assembled header is from L_PKT
-        // SRAM order: L_header, CCCC, BBBB, AAAA, 1111, FFFF, EEEE
+        // Test 1: S->L assembly (6 payload beats, header not stored in SRAM)
+        // SRAM order: CCCC, BBBB, AAAA, 1111, FFFF, EEEE
         expected_header = {L_PKT, 2'b01, MSG_T0, tlp_base};
         READ_AND_CHECK_ASSEMBLY(
             32'h0,      // address
-            8'd6,       // arlen = 6 (7 beats)
+            8'd5,       // arlen = 5 (6 beats)
             3'd5,       // 32 bytes
             2'b01,      // INCR
             expected_header,
-            7,          // total beats
+            6,          // payload beats only
             {256'h0,  // Padding (MSB)
+             256'h0,
              256'h00000000000000000000000000000000EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE,
              256'h00000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,
              256'h0000000000000000000000000000000011111111111111111111111111111111,
@@ -83,19 +83,20 @@ output reg  rready
         #200;
 
         $display("\n========================================");
-        $display("VERIFY TEST 2: S->M->L assembly (MSG_T1, 7 beats)");
+        $display("VERIFY TEST 2: S->M->L assembly (MSG_T1, 6 payload beats)");
         $display("========================================\n");
-        // Test 2: S->M->L assembly (7 beats total: header + 6 payload)
-        // SRAM order: L_header, 4444, 3333, 7777, 6666, AAAA, 9999
+        // Test 2: S->M->L assembly (6 payload beats, header not stored in SRAM)
+        // SRAM order: 4444, 3333, 7777, 6666, AAAA, 9999
         expected_header = {L_PKT, 2'b10, MSG_T1, tlp_base};
         READ_AND_CHECK_ASSEMBLY(
             32'h100,    // address
-            8'd6,       // arlen = 6 (7 beats)
+            8'd5,       // arlen = 5 (6 beats)
             3'd5,       // 32 bytes
             2'b01,      // INCR
             expected_header,
-            7,          // total beats
+            6,          // payload beats only
             {256'h0,  // Padding (MSB)
+             256'h0,
              256'h0000000000000000000000000000000099999999999999999999999999999999,
              256'h00000000000000000000000000000000AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,
              256'h0000000000000000000000000000000066666666666666666666666666666666,
@@ -107,19 +108,22 @@ output reg  rready
         #200;
 
         $display("\n========================================");
-        $display("VERIFY TEST 3: S->M->M->L assembly (MSG_T2, 5 beats)");
+        $display("VERIFY TEST 3: S->M->M->L assembly (MSG_T2, 4 payload beats)");
         $display("========================================\n");
-        // Test 3: S->M->M->L assembly (5 beats total: header + 4 payload)
-        // SRAM order: L_header, DEADBEEF, 12345678, FEDCBA98, 11112222...
+        // Test 3: S->M->M->L assembly (4 payload beats, header not stored in SRAM)
+        // SRAM order: DEADBEEF, 12345678, FEDCBA98, 11112222...
         expected_header = {L_PKT, 2'b11, MSG_T2, tlp_base};
         READ_AND_CHECK_ASSEMBLY(
             32'h200,    // address
-            8'd4,       // arlen = 4 (5 beats)
+            8'd3,       // arlen = 3 (4 beats)
             3'd5,       // 32 bytes
             2'b01,      // INCR
             expected_header,
-            5,          // total beats
+            4,          // payload beats only
             {256'h0,  // Padding (MSB)
+             256'h0,
+             256'h0,
+             256'h0,
              256'h0000000000000000000000000000000011112222333344445555666677778888,
              256'h00000000000000000000000000000000FEDCBA98FEDCBA98FEDCBA98FEDCBA98,
              256'h0000000000000000000000000000000012345678123456781234567812345678,
@@ -129,19 +133,24 @@ output reg  rready
         #200;
 
         $display("\n========================================");
-        $display("VERIFY TEST 4: Single packet (MSG_T3, 3 beats)");
+        $display("VERIFY TEST 4: Single packet (MSG_T3, 2 payload beats)");
         $display("========================================\n");
-        // Test 4: Single packet (3 beats: header + 2 payload)
-        // SRAM order: SG_header, 5555AAAA..., AAAA5555...
+        // Test 4: Single packet (2 payload beats, header not stored in SRAM)
+        // SRAM order: 5555AAAA..., AAAA5555...
         expected_header = {SG_PKT, 2'b00, MSG_T3, tlp_base};
         READ_AND_CHECK_ASSEMBLY(
             32'h300,    // address
-            8'd2,       // arlen = 2 (3 beats)
+            8'd1,       // arlen = 1 (2 beats)
             3'd5,       // 32 bytes
             2'b01,      // INCR
             expected_header,
-            3,          // total beats
+            2,          // payload beats only
             {256'h0,  // Padding (MSB)
+             256'h0,
+             256'h0,
+             256'h0,
+             256'h0,
+             256'h0,
              256'h00000000000000000000000000000000AAAA5555AAAA5555AAAA5555AAAA5555,
              256'h000000000000000000000000000000005555AAAA5555AAAA5555AAAA5555AAAA}  // First payload (LSB)
         );
@@ -177,8 +186,8 @@ output reg  rready
             $display("\n========================================");
             $display("[%0t] [READ_GEN] READ_AND_CHECK_ASSEMBLY START", $time);
             $display("  Address: 0x%h", read_araddr);
-            $display("  Length:  %0d beats", total_beats);
-            $display("  Expected Header: 0x%h", expected_header);
+            $display("  Length:  %0d payload beats", total_beats);
+            $display("  (Header assembled but not stored in SRAM)");
             $display("========================================");
 
             verification_pass = 1'b1;
@@ -201,7 +210,6 @@ output reg  rready
             $display("[%0t] [READ_GEN] Read Address Sent", $time);
 
             @(posedge i_clk);
-            #1;
             arvalid = 1'b0;
             rready  = 1'b1;
 
@@ -215,25 +223,12 @@ output reg  rready
                     data_beat = rdata;
                     read_data_mem[beat] = data_beat;
 
-                    // Verify first beat header
-                    if (beat == 0) begin
-                        received_header = data_beat[127:0];
-                        if (received_header == expected_header) begin
-                            $display("[%0t] [READ_GEN] *** HEADER MATCH ***", $time);
-                            $display("  Expected: 0x%h", expected_header);
-                            $display("  Received: 0x%h", received_header);
-                        end else begin
-                            $display("[%0t] [READ_GEN] *** HEADER MISMATCH ***", $time);
-                            $display("  Expected: 0x%h", expected_header);
-                            $display("  Received: 0x%h", received_header);
-                            verification_pass = 1'b0;
-                        end
-                    end
+                    $display("[%0t] [READ_GEN] Sampled beat %0d: data=0x%h", $time, beat, data_beat);
 
-                    // Verify payload data (beat 1 onwards)
-                    if (beat > 0 && beat < exp_beats) begin
+                    // Verify payload data (all beats are payload, header not stored in SRAM)
+                    if (beat < exp_beats) begin
                         // Expected data: first payload beat is at lowest address
-                        exp_beat_data = expected_payload[(beat - 1) * 256 +: 256];
+                        exp_beat_data = expected_payload[beat * 256 +: 256];
                         if (data_beat == exp_beat_data) begin
                             $display("[%0t] [READ_GEN] Beat %0d: PAYLOAD MATCH (0x%h)",
                                      $time, beat, data_beat);
@@ -263,6 +258,10 @@ output reg  rready
                     beat = beat + 1;
                 end
             end
+
+            // Wait one more cycle for AXI slave to see the last handshake
+            @(posedge i_clk);
+            #1;
 
             rready = 1'b0;
 
