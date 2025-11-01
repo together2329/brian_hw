@@ -52,6 +52,10 @@ output reg   O_BREADY
     localparam MSG_T5 = 4'b1101;
     localparam MSG_T6 = 4'b1110;
     localparam MSG_T7 = 4'b1111;
+    localparam MSG_T7_TO_ZERO = 4'b0111;
+
+    localparam TO_0   = 1'b0;
+    localparam TO_1   = 1'b1;
 
     reg [127:0] tlp_header;
 
@@ -66,14 +70,199 @@ output reg   O_BREADY
         tlp_header[87:80] = 8'h1A;          // vendor id input
         tlp_header[95:88] = 8'hB4;          // vendor id input
         tlp_header[99:96] = 4'b0001;        // header version
+        tlp_header[111:104] = 8'h0;         // destination endpoint id
         tlp_header[119:112] = 8'h0;         // source endpoint id
-        tlp_header[31:24] = 8'h20;          // 128B, length
+        tlp_header[31:24]   = 8'h20;          // 128B, length
+        tlp_header[122:120] = 3'b0; // Msg tag
+        tlp_header[123]     = 1'b0; // TO
+        tlp_header[125:124] = 1'b0; // Pkt Seq #
+        tlp_header[126]     = 1'b0; // EOM
+        tlp_header[127]     = 1'b0; // SOM
 
         // Wait for reset sequence: 1 -> 0 -> 1
         wait(i_reset_n);
         wait(!i_reset_n);
         wait(i_reset_n);
         #200;
+
+        $display("\n========================================");
+        $display("TEST 5: Bad Header Version Test");
+        $display("========================================\n");
+        // Send fragment with bad header version (0x2 instead of 0x1)
+        // This should increment the bad header version error counter
+        tlp_header[99:96] = 4'b0010;  // Bad version
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1,
+                   {256'h0, 256'h0, 256'hBAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0,
+                    256'hBAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1}, 64'h400);
+        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] == 8'h1);
+        // Restore correct header version
+        tlp_header[99:96] = 4'b0001;
+        #200;
+
+        // known dst id 0x0, 0xFF, 0x10, 0x10
+        // others is unknown
+        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15[8] = 1'b0;
+        tlp_header[111:104] = 8'h20;         // destination endpoint id
+        $display("\n========================================");
+        $display("TEST 5: Bad Header Version Test");
+        $display("========================================\n");
+        // Send fragment with bad header version (0x2 instead of 0x1)
+        // This should increment the bad header version error counter
+        tlp_header[99:96] = 4'b0010;  // Bad version
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1,
+                   {256'h0, 256'h0, 256'hBAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0,
+                    256'hBAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1}, 64'h400);
+        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[23:16] == 8'h1);
+        // Restore correct header version
+        tlp_header[111:104] = 8'h10;         // destination endpoint id
+        #200;
+
+        // Tag Owner Error TO != 1
+        $display("\n========================================");
+        $display("TEST 5: Bad Header Version Test");
+        $display("========================================\n");
+        // Send fragment with bad header version (0x2 instead of 0x1)
+        // This should increment the bad header version error counter
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T7_TO_ZERO, tlp_header[119:0]}, 8'h1, 3, 1,
+                   {256'h0, 256'h0, 256'hBAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0,
+                    256'hBAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1}, 64'h400);
+        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[15:8] == 8'h1);
+        #200;
+
+        // Middle or Last without First Test
+        SEND_WRITE({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
+                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
+                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h100);
+        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] == 8'h1);
+        SEND_WRITE({L_PKT, PKT_SN2, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
+                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
+                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
+        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] == 8'h2);
+
+        $display("\n========================================");
+        $display("TEST 5: Unsupported Transmission unit Version Test");
+        $display("========================================\n");
+        // Send fragment with bad header version (0x2 instead of 0x1)
+        // This should increment the bad header version error counter
+        tlp_header[31:24] = 8'h8;  // 32B
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1,
+                   {256'h0, 256'h0, 256'hBAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0,
+                    256'hBAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1}, 64'h400);
+        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30[7:0] == 8'h1);
+        // Restore correct header version
+        tlp_header[31:24] = 8'h20;
+        #200;
+ 
+        $display("\n========================================");
+        $display("TEST incorrect transmission size
+        $display("========================================\n");
+        // S->L assembly (2 fragments)
+        tlp_header[31:24] = 8'h10; // 64B
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
+                   {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
+                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
+                    256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
+                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h0);
+        tlp_header[31:24] = 8'h20; // 128B
+        SEND_WRITE({L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
+                   {256'hEEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE,
+                    256'hFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
+                    256'h1111_1111_1111_1111_1111_1111_1111_1111,
+                    256'h2222_2222_2222_2222_2222_2222_2222_2222}, 64'h0);
+        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] == 8'h1);
+        #200;
+
+        // Restart Test
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
+                   {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
+                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
+                    256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
+                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h0);
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
+                   {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
+                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
+                    256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
+                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h0);
+        SEND_WRITE({L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
+                   {256'hEEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE,
+                    256'hFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
+                    256'h1111_1111_1111_1111_1111_1111_1111_1111,
+                    256'h2222_2222_2222_2222_2222_2222_2222_2222}, 64'h0);
+        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[15:8] == 8'h1);
+        #200;
+
+        // Timeout Test
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
+                   {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
+                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
+                    256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
+                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h0);
+        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[23:16] == 8'h1);
+        #200;
+        
+        // Out-of-seq test
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
+                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
+                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h100);
+        SEND_WRITE({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
+                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
+                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h100);
+        SEND_WRITE({L_PKT, PKT_SN3, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
+                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
+                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
+        #200;
+    
+        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] == 8'h1);
+
+        // Padding Test
+        tlp_header[53:52] = 2'b10 // 2B padding
+        tlp_header[31:24] = 8'h2; // 8B
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1,
+                   {256'h0, 256'h0, 256'hBAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0,
+                    256'hBAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1}, 64'h400);
+        tlp_header[53:52] = 2'b0 // 2B padding
+        tlp_header[31:24] = 8'h10; // 64BB
+
+        // Multi Packet 64B, 68B (unaligned)
+        tlp_header[31:24] = 8'h11; // 68B
+        // S->M->L assembly (3 fragments)
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
+                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
+                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h100);
+        SEND_WRITE({M_PKT, PKT_SN1, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
+                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
+                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h100);
+
+        tlp_header[31:24] = 8'h10; // 64B
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
+                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
+                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h100);
+
+        tlp_header[31:24] = 8'h11; // 68B
+        SEND_WRITE({L_PKT, PKT_SN2, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
+                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
+                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
+
+        tlp_header[31:24] = 8'h10; // 64B
+        SEND_WRITE({M_PKT, PKT_SN1, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
+                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
+                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h100);
+        SEND_WRITE({L_PKT, PKT_SN2, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
+                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
+                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
+        #200;
+
 
         $display("\n========================================");
         $display("TEST 1: S->L (2 fragments) with MSG_T0");
