@@ -64,8 +64,13 @@ module pcie_system_tb;
     wire         assembled_valid;
     wire [3:0]   assembled_tag;
 
-    // SFR Debug Register
+    // SFR Debug Registers
     wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31;
+    wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30;
+    wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29;
+
+    // SFR Control Register
+    wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15;
 
     // Module instantiations
 
@@ -141,7 +146,10 @@ module pcie_system_tb;
         .msg_length(msg_length),
         .assembled_valid(assembled_valid),
         .assembled_tag(assembled_tag),
-        .PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31)
+        .PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31),
+        .PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30),
+        .PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29),
+        .PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15(PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15)
     );
 
     // 4. SRAM
@@ -183,6 +191,15 @@ module pcie_system_tb;
     assign axi_bid = 7'h0;
     assign axi_rid = 7'h0;
 
+    // Create tb_pcie_sub_msg module wrapper for hierarchical signal access
+    tb_pcie_sub_msg_wrapper tb_pcie_sub_msg (
+        .DEBUG_31_in(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31),
+        .DEBUG_30_in(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30),
+        .DEBUG_29_in(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29),
+        .CONTROL15_in(PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15),
+        .CONTROL15_out(PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15)
+    );
+
     // Clock generation (100MHz)
     initial begin
         clk = 0;
@@ -194,6 +211,7 @@ module pcie_system_tb;
         $display("\n[%0t] [TB] ========================================", $time);
         $display("[%0t] [TB] PCIe Assembly System Test Started", $time);
         $display("[%0t] [TB] ========================================\n", $time);
+
 
         // Reset sequence: 1 -> 0 -> 1 (as required)
         rst_n = 1;

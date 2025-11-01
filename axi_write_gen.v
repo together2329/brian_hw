@@ -101,7 +101,7 @@ output reg   O_BREADY
 
         // known dst id 0x0, 0xFF, 0x10, 0x10
         // others is unknown
-        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15[8] = 1'b0;
+        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15[8] = 1'b1;
         tlp_header[111:104] = 8'h20;         // destination endpoint id
         $display("\n========================================");
         $display("TEST 5: Bad Header Version Test");
@@ -156,7 +156,7 @@ output reg   O_BREADY
         #200;
  
         $display("\n========================================");
-        $display("TEST incorrect transmission size
+        $display("TEST incorrect transmission size");
         $display("========================================\n");
         // S->L assembly (2 fragments)
         tlp_header[31:24] = 8'h10; // 64B
@@ -215,18 +215,17 @@ output reg   O_BREADY
                    {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
                     256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
                     256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
-        #200;
-    
         wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] == 8'h1);
+        #200;
 
         // Padding Test
-        tlp_header[53:52] = 2'b10 // 2B padding
+        tlp_header[53:52] = 2'b10; // 2B padding
         tlp_header[31:24] = 8'h2; // 8B
         SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1,
                    {256'h0, 256'h0, 256'hBAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0,
                     256'hBAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1}, 64'h400);
-        tlp_header[53:52] = 2'b0 // 2B padding
-        tlp_header[31:24] = 8'h10; // 64BB
+        tlp_header[53:52] = 2'b0; // 2B padding
+        tlp_header[31:24] = 8'h10; // 64B
 
         // Multi Packet 64B, 68B (unaligned)
         tlp_header[31:24] = 8'h11; // 68B

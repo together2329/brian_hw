@@ -38,8 +38,13 @@ module pcie_msg_receiver (
     output reg         assembled_valid,
     output reg [3:0]   assembled_tag,
 
-    // SFR Debug Register
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31
+    // SFR Debug Registers
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29,
+
+    // SFR Control Register
+    input wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15
 );
 
     // Fragment type definitions
@@ -77,6 +82,7 @@ module pcie_msg_receiver (
     reg [1:0]  queue_expected_sn [0:14]; // Next expected PKT_SN
     reg [7:0]  queue_frag_count [0:14];  // Number of fragments
     reg [11:0] queue_total_beats [0:14]; // Total beats across all fragments
+    reg [31:0] queue_timeout [0:14];     // Timeout counter for each queue
 
     // Fragment data storage: 15 queues x 16 fragments x 16 beats
     reg [255:0] queue_data [0:14] [0:255];
@@ -113,8 +119,10 @@ module pcie_msg_receiver (
             assembled_valid <= 1'b0;
             assembled_tag <= 4'h0;
 
-            // Initialize SFR register
+            // Initialize SFR registers
             PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29 <= 32'h0;
 
             // Initialize assembly queues
             queue_valid <= 15'h0;
@@ -124,6 +132,7 @@ module pcie_msg_receiver (
                 queue_frag_count[i] <= 8'h0;
                 queue_total_beats[i] <= 12'h0;
                 queue_write_ptr[i] <= 12'h0;
+                queue_timeout[i] <= 32'h0;
             end
 
             current_frag_beats <= 12'h0;
@@ -136,6 +145,24 @@ module pcie_msg_receiver (
             sram_wen <= 1'b0;
             msg_valid <= 1'b0;
             assembled_valid <= 1'b0;
+
+            // Timeout monitoring for all active queues
+            for (i = 0; i < 15; i = i + 1) begin
+                if (queue_valid[i] && queue_state[i] != 2'b00) begin
+                    queue_timeout[i] <= queue_timeout[i] + 1;
+                    // Timeout threshold: 10000 cycles (~100us at 100MHz)
+                    if (queue_timeout[i] >= 32'd10000) begin
+                        PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[23:16] <=
+                            PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[23:16] + 1;
+                        $display("[%0t] [TIMEOUT] ERROR: Queue %0d timeout (counter=%0d)",
+                                 $time, i, queue_timeout[i]);
+                        // Clear the timed-out queue
+                        queue_valid[i] <= 1'b0;
+                        queue_state[i] <= 2'b00;
+                        queue_timeout[i] <= 32'h0;
+                    end
+                end
+            end
 
             case (state)
                 IDLE: begin
@@ -185,6 +212,51 @@ module pcie_msg_receiver (
                                 $display("[%0t] [MSG_RX] Bad header version counter: %0d",
                                          $time, PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] + 1);
                             end
+
+                            // Check unknown destination ID (if control bit is enabled)
+                            if (PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15[8]) begin
+                                reg [7:0] dest_id;
+                                dest_id = axi_wdata[111:104];
+                                if (dest_id != 8'h00 && dest_id != 8'hFF &&
+                                    dest_id != 8'h10 && dest_id != 8'h11) begin
+                                    PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[23:16] <=
+                                        PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[23:16] + 1;
+                                    $display("[%0t] [MSG_RX] ERROR: Unknown destination ID=0x%h",
+                                             $time, dest_id);
+                                end
+                            end
+
+                            // Check tag owner error (TAG=7 with TO=0)
+                            if (axi_wdata[123:120] == 4'h7 && axi_wdata[100] == 1'b0) begin
+                                PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[15:8] <=
+                                    PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[15:8] + 1;
+                                $display("[%0t] [MSG_RX] ERROR: Tag owner error (TAG=7, TO=0)", $time);
+                            end
+
+                            // Check unsupported TX unit (TLP length field [31:24])
+                            // 32B = 8 DW = 0x08
+                            if (axi_wdata[31:24] == 8'h08) begin
+                                PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30[7:0] <=
+                                    PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30[7:0] + 1;
+                                $display("[%0t] [MSG_RX] ERROR: Unsupported TX unit (32B detected)", $time);
+                            end
+
+                            // Check size mismatch (compare axi_awsize with TLP length)
+                            // Expected: 2^axi_awsize bytes per beat
+                            // TLP length is in DW (4 bytes), so TLP_len*4 = expected total bytes
+                            // For size=5 (32B per beat), we expect specific beat counts
+                            if (axi_awsize == 3'd5) begin  // 32B per beat
+                                reg [11:0] expected_beats;
+                                reg [31:0] total_bytes;
+                                total_bytes = {24'h0, axi_wdata[31:24]} * 4;  // DW to bytes
+                                expected_beats = (total_bytes + 31) / 32;  // Round up
+                                if (total_beats != expected_beats) begin
+                                    PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] <=
+                                        PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] + 1;
+                                    $display("[%0t] [MSG_RX] ERROR: Size mismatch (TLP_len=%0d DW, beats=%0d, expected=%0d)",
+                                             $time, axi_wdata[31:24], total_beats, expected_beats);
+                                end
+                            end
                         end
 
                         // Store fragment data in temporary buffer
@@ -218,6 +290,13 @@ module pcie_msg_receiver (
                                 $display("[%0t] [ASSEMBLE] START: TAG=%0h, SN=%0d",
                                          $time, msg_tag, pkt_sn);
 
+                                // Check restart error (S_PKT received while queue is still active)
+                                if (queue_valid[msg_tag] && queue_state[msg_tag] != 2'b00) begin
+                                    PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[15:8] <=
+                                        PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[15:8] + 1;
+                                    $display("[%0t] [ASSEMBLE] ERROR: Restart error (S_PKT while queue active)", $time);
+                                end
+
                                 if (pkt_sn == 2'b00) begin
                                     // Valid start
                                     queue_valid[msg_tag] <= 1'b1;
@@ -225,6 +304,7 @@ module pcie_msg_receiver (
                                     queue_expected_sn[msg_tag] <= 2'b01;  // Next SN
                                     queue_frag_count[msg_tag] <= 8'h1;
                                     queue_write_ptr[msg_tag] <= 12'h0;
+                                    queue_timeout[msg_tag] <= 32'h0;  // Reset timeout
 
                                     // Store header (will be replaced by last fragment's header)
                                     queue_data[msg_tag][0] <= current_frag[0];
@@ -250,10 +330,26 @@ module pcie_msg_receiver (
                                 $display("[%0t] [ASSEMBLE] MIDDLE: TAG=%0h, SN=%0d (expected=%0d)",
                                          $time, msg_tag, pkt_sn, queue_expected_sn[msg_tag]);
 
+                                // Check middle/last without first
+                                if (!queue_valid[msg_tag]) begin
+                                    PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] <=
+                                        PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] + 1;
+                                    $display("[%0t] [ASSEMBLE] ERROR: Middle without first (TAG=%0h)", $time, msg_tag);
+                                end
+
+                                // Check out-of-sequence
+                                if (queue_valid[msg_tag] && (pkt_sn != queue_expected_sn[msg_tag])) begin
+                                    PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] <=
+                                        PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] + 1;
+                                    $display("[%0t] [ASSEMBLE] ERROR: Out-of-sequence (expected SN=%0d, got SN=%0d)",
+                                             $time, queue_expected_sn[msg_tag], pkt_sn);
+                                end
+
                                 if (queue_valid[msg_tag] && (pkt_sn == queue_expected_sn[msg_tag])) begin
                                     // Valid middle fragment
                                     queue_expected_sn[msg_tag] <= pkt_sn + 1;
                                     queue_frag_count[msg_tag] <= queue_frag_count[msg_tag] + 1;
+                                    queue_timeout[msg_tag] <= 32'h0;  // Reset timeout
 
                                     // Append payload only (skip first beat which is header)
                                     for (i = 1; i < 16; i = i + 1) begin
@@ -276,9 +372,25 @@ module pcie_msg_receiver (
                                 $display("[%0t] [ASSEMBLE] LAST: TAG=%0h, SN=%0d (expected=%0d)",
                                          $time, msg_tag, pkt_sn, queue_expected_sn[msg_tag]);
 
+                                // Check middle/last without first
+                                if (!queue_valid[msg_tag]) begin
+                                    PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] <=
+                                        PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] + 1;
+                                    $display("[%0t] [ASSEMBLE] ERROR: Last without first (TAG=%0h)", $time, msg_tag);
+                                end
+
+                                // Check out-of-sequence
+                                if (queue_valid[msg_tag] && (pkt_sn != queue_expected_sn[msg_tag])) begin
+                                    PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] <=
+                                        PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] + 1;
+                                    $display("[%0t] [ASSEMBLE] ERROR: Out-of-sequence (expected SN=%0d, got SN=%0d)",
+                                             $time, queue_expected_sn[msg_tag], pkt_sn);
+                                end
+
                                 if (queue_valid[msg_tag] && (pkt_sn == queue_expected_sn[msg_tag])) begin
                                     // Valid last fragment
                                     queue_frag_count[msg_tag] <= queue_frag_count[msg_tag] + 1;
+                                    queue_timeout[msg_tag] <= 32'h0;  // Reset timeout
 
                                     // Update header with L_PKT header (replaces S_PKT header)
                                     queue_data[msg_tag][0] <= current_frag[0];
