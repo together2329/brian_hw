@@ -101,7 +101,7 @@ output reg   O_BREADY
 
         // known dst id 0x0, 0xFF, 0x10, 0x10
         // others is unknown
-        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15[8] = 1'b1;
+        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15[8] = 1'b0;
         tlp_header[111:104] = 8'h20;         // destination endpoint id
         $display("\n========================================");
         $display("TEST 5: Bad Header Version Test");
