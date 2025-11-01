@@ -64,6 +64,9 @@ module pcie_system_tb;
     wire         assembled_valid;
     wire [3:0]   assembled_tag;
 
+    // SFR Debug Register
+    wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31;
+
     // Module instantiations
 
     // 1. AXI Write Generator (with internal initial block that calls task)
@@ -137,7 +140,8 @@ module pcie_system_tb;
         .msg_valid(msg_valid),
         .msg_length(msg_length),
         .assembled_valid(assembled_valid),
-        .assembled_tag(assembled_tag)
+        .assembled_tag(assembled_tag),
+        .PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31)
     );
 
     // 4. SRAM
@@ -207,6 +211,20 @@ module pcie_system_tb;
         // axi_read_gen will read and verify assembled messages
     end
 
+    // Bad header version test monitoring
+    initial begin
+        // Wait for reset
+        wait(rst_n);
+
+        $display("\n[%0t] [TB] Waiting for bad header version error...", $time);
+        wait(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] == 8'h1);  // bad header version error counter
+
+        $display("\n[%0t] [TB] ========================================", $time);
+        $display("[%0t] [TB] *** BAD HEADER VERSION DETECTED ***", $time);
+        $display("[%0t] [TB] Error Counter: %0d", $time, PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24]);
+        $display("[%0t] [TB] ========================================\n", $time);
+    end
+
     // Timeout
     initial begin
         #200000;
@@ -234,6 +252,20 @@ module pcie_system_tb;
             $display("\n[%0t] [TB] *** ASSEMBLY COMPLETE ***", $time);
             $display("[%0t] [TB]   MSG_TAG: 0x%h", $time, assembled_tag);
             $display("[%0t] [TB]   Assembled message written to SRAM\n", $time);
+        end
+    end
+
+    // Monitor SFR register (display only on change)
+    reg [7:0] prev_bad_hdr_count;
+    initial prev_bad_hdr_count = 8'h0;
+
+    always @(posedge clk) begin
+        if (PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] != prev_bad_hdr_count) begin
+            prev_bad_hdr_count <= PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24];
+            if (PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] != 8'h0) begin
+                $display("[%0t] [TB] SFR Debug Register [31:24] = %0d (Bad Header Version Count)",
+                         $time, PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24]);
+            end
         end
     end
 

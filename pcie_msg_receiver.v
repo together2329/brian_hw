@@ -36,7 +36,10 @@ module pcie_msg_receiver (
     output reg         msg_valid,
     output reg [11:0]  msg_length,  // in beats
     output reg         assembled_valid,
-    output reg [3:0]   assembled_tag
+    output reg [3:0]   assembled_tag,
+
+    // SFR Debug Register
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31
 );
 
     // Fragment type definitions
@@ -63,6 +66,10 @@ module pcie_msg_receiver (
     reg [1:0]  pkt_sn;
     reg [3:0]  msg_tag;
     reg [119:0] tlp_header;
+    reg [3:0]  header_version;
+
+    // Expected header version
+    localparam EXPECTED_HDR_VER = 4'b0001;
 
     // Assembly Queue (15 queues, index 0-14)
     reg [14:0] queue_valid;              // Queue in use
@@ -105,6 +112,9 @@ module pcie_msg_receiver (
             sram_addr_cnt <= 10'h0;
             assembled_valid <= 1'b0;
             assembled_tag <= 4'h0;
+
+            // Initialize SFR register
+            PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31 <= 32'h0;
 
             // Initialize assembly queues
             queue_valid <= 15'h0;
@@ -156,13 +166,25 @@ module pcie_msg_receiver (
                             msg_tag    <= axi_wdata[123:120];
                             tlp_header <= axi_wdata[119:0];
                             msg_header <= axi_wdata[127:0];
+                            header_version <= axi_wdata[99:96];  // Extract header version
 
-                            $display("[%0t] [MSG_RX] Header: Type=%0s, SN=%0d, TAG=%0h, TLP=0x%h",
+                            $display("[%0t] [MSG_RX] Header: Type=%0s, SN=%0d, TAG=%0h, Ver=%0h, TLP=0x%h",
                                      $time,
                                      (axi_wdata[127:126] == S_PKT) ? "S" :
                                      (axi_wdata[127:126] == M_PKT) ? "M" :
                                      (axi_wdata[127:126] == L_PKT) ? "L" : "SG",
-                                     axi_wdata[125:124], axi_wdata[123:120], axi_wdata[119:0]);
+                                     axi_wdata[125:124], axi_wdata[123:120],
+                                     axi_wdata[99:96], axi_wdata[119:0]);
+
+                            // Check header version
+                            if (axi_wdata[99:96] != EXPECTED_HDR_VER) begin
+                                PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] <=
+                                    PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] + 1;
+                                $display("[%0t] [MSG_RX] ERROR: Bad header version! Expected=0x%h, Received=0x%h",
+                                         $time, EXPECTED_HDR_VER, axi_wdata[99:96]);
+                                $display("[%0t] [MSG_RX] Bad header version counter: %0d",
+                                         $time, PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] + 1);
+                            end
                         end
 
                         // Store fragment data in temporary buffer
@@ -181,8 +203,13 @@ module pcie_msg_receiver (
                 end
 
                 ASSEMBLE: begin
-                    // Process the received fragment
-                    if (msg_tag < 15) begin
+                    // Check header version first
+                    if (header_version != EXPECTED_HDR_VER) begin
+                        // Skip this fragment due to bad header version
+                        $display("[%0t] [ASSEMBLE] Skipping fragment due to bad header version", $time);
+                        state <= W_RESP;
+                    end else if (msg_tag < 15) begin
+                        // Process the received fragment
                         current_queue_idx <= msg_tag;
 
                         case (frag_type)

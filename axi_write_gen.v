@@ -52,7 +52,6 @@ output reg   O_BREADY
     localparam MSG_T5 = 4'b1101;
     localparam MSG_T6 = 4'b1110;
     localparam MSG_T7 = 4'b1111;
-    localparam MSG_T7_TO_ZERO = 4'b0111;
 
     reg [127:0] tlp_header;
 
@@ -136,6 +135,21 @@ output reg   O_BREADY
                    {256'h0, 256'hAAAA_5555_AAAA_5555_AAAA_5555_AAAA_5555,
                     256'h5555_AAAA_5555_AAAA_5555_AAAA_5555_AAAA,
                     256'hFFFF_0000_FFFF_0000_FFFF_0000_FFFF_0000}, 64'h300);
+        #200;
+
+        $display("\n========================================");
+        $display("TEST 5: Bad Header Version Test");
+        $display("========================================\n");
+        // Send fragment with bad header version (0x2 instead of 0x1)
+        // This should increment the bad header version error counter
+        tlp_header[99:96] = 4'b0010;  // Bad version
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1,
+                   {256'h0, 256'h0, 256'hBAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0,
+                    256'hBAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1}, 64'h400);
+
+        // Restore correct header version
+        tlp_header[99:96] = 4'b0001;
+        #200;
 
 /*        // Test Case 1: Single beat
         SEND_WRITE(

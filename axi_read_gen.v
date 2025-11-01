@@ -43,7 +43,7 @@ output reg  rready
     initial begin
         // Wait for reset
         wait(i_reset_n);
-        #6000;  // Wait for all assembly operations to complete
+        #6500;  // Wait for all assembly operations to complete (including bad header test)
 
         // TLP header base (same as write gen)
         tlp_base = 120'h0;
