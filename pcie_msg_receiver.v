@@ -113,6 +113,7 @@ module pcie_msg_receiver (
     reg [7:0]  queue_source_id [0:14];   // Source ID for each queue
     reg        queue_tag_owner [0:14];   // Tag Owner bit for each queue
     reg [7:0]  queue_tx_size [0:14];     // Transmission size (TLP length field) for S/M packets
+    reg [15:0] queue_accumulated_tlp_bytes [0:14]; // Accumulated TLP payload bytes
 
     // Fragment data storage: 15 queues x 16 fragments x 16 beats
     reg [255:0] queue_data [0:14] [0:255];
@@ -127,6 +128,9 @@ module pcie_msg_receiver (
     reg [11:0] asm_beat_count;
     reg [11:0] asm_total_beats;
     reg [1:0] asm_padding_bytes;  // Padding bytes from L_PKT header[53:52]
+    reg [7:0] asm_tlp_length_dw;  // TLP length in DW for SG_PKT
+    reg asm_is_sg_pkt;  // Flag to indicate SG_PKT (for WPTR calculation)
+    reg [15:0] asm_accumulated_tlp_bytes;  // Accumulated TLP length for multi-fragment
 
     // Temporary variables for error checking
     reg [7:0] dest_id;
@@ -202,6 +206,7 @@ module pcie_msg_receiver (
                 queue_source_id[i] <= 8'h0;
                 queue_tag_owner[i] <= 1'b0;
                 queue_tx_size[i] <= 8'h0;
+                queue_accumulated_tlp_bytes[i] <= 16'h0;
             end
 
             current_frag_beats <= 12'h0;
@@ -209,6 +214,9 @@ module pcie_msg_receiver (
             asm_beat_count <= 12'h0;
             asm_total_beats <= 12'h0;
             asm_padding_bytes <= 2'h0;
+            asm_tlp_length_dw <= 8'h0;
+            asm_is_sg_pkt <= 1'b0;
+            asm_accumulated_tlp_bytes <= 16'h0;
 
         end else begin
             // Default
@@ -439,6 +447,9 @@ module pcie_msg_receiver (
                                     // Save current queue index for use in SRAM write
                                     current_queue_idx <= msg_tag;
 
+                                    // Start TLP length accumulation (for WPTR calculation)
+                                    queue_accumulated_tlp_bytes[msg_tag] <= current_frag[0][31:24] * 4;
+
                                     // Store header (will be replaced by last fragment's header)
                                     queue_data[msg_tag][0] <= current_frag[0];
 
@@ -450,8 +461,9 @@ module pcie_msg_receiver (
                                     queue_write_ptr[msg_tag] <= current_frag_beats;
                                     queue_total_beats[msg_tag] <= current_frag_beats;
 
-                                    $display("[%0t] [ASSEMBLE] Stored S fragment: %0d beats (%0d payload)",
-                                             $time, current_frag_beats, current_frag_beats - 1);
+                                    $display("[%0t] [ASSEMBLE] Stored S fragment: %0d beats (%0d payload), TLP_len=%0d DW (%0d bytes)",
+                                             $time, current_frag_beats, current_frag_beats - 1,
+                                             current_frag[0][31:24], current_frag[0][31:24] * 4);
                                 end else begin
                                     $display("[%0t] [ASSEMBLE] ERROR: S fragment with SN != 0", $time);
                                 end
@@ -492,6 +504,9 @@ module pcie_msg_receiver (
                                     queue_frag_count[msg_tag] <= queue_frag_count[msg_tag] + 1;
                                     queue_timeout[msg_tag] <= 32'h0;  // Reset timeout
 
+                                    // Accumulate TLP length
+                                    queue_accumulated_tlp_bytes[msg_tag] <= queue_accumulated_tlp_bytes[msg_tag] + (current_frag[0][31:24] * 4);
+
                                     // Append payload only (skip first beat which is header)
                                     for (i = 1; i < 16; i = i + 1) begin
                                         if (i < current_frag_beats)
@@ -503,8 +518,9 @@ module pcie_msg_receiver (
                                     // Save current queue index for use in SRAM write
                                     current_queue_idx <= msg_tag;
 
-                                    $display("[%0t] [ASSEMBLE] Appended M fragment: %0d payload beats (total=%0d)",
-                                             $time, current_frag_beats - 1, queue_total_beats[msg_tag] + current_frag_beats - 1);
+                                    $display("[%0t] [ASSEMBLE] Appended M fragment: %0d payload beats (total=%0d), TLP_len=%0d DW (accum=%0d bytes)",
+                                             $time, current_frag_beats - 1, queue_total_beats[msg_tag] + current_frag_beats - 1,
+                                             current_frag[0][31:24], queue_accumulated_tlp_bytes[msg_tag] + (current_frag[0][31:24] * 4));
                                 end else begin
                                     $display("[%0t] [ASSEMBLE] ERROR: Invalid M fragment (SN mismatch or invalid queue)", $time);
                                 end
@@ -539,6 +555,10 @@ module pcie_msg_receiver (
                                     // Extract padding from header[53:52]
                                     padding_bytes = current_frag[0][53:52];
                                     asm_padding_bytes <= current_frag[0][53:52];  // Save for WPTR calculation
+                                    asm_is_sg_pkt <= 1'b0;  // This is L_PKT (multi-fragment)
+
+                                    // Accumulate final TLP length and save for WPTR calculation
+                                    asm_accumulated_tlp_bytes <= queue_accumulated_tlp_bytes[msg_tag] + (current_frag[0][31:24] * 4);
 
                                     // Calculate payload beats accounting for padding
                                     // current_frag_beats includes header (beat 0)
@@ -608,12 +628,17 @@ module pcie_msg_receiver (
                                 padding_bytes = current_frag[0][53:52];
                                 asm_padding_bytes <= current_frag[0][53:52];
 
+                                // Extract TLP length for SG_PKT
+                                asm_tlp_length_dw <= current_frag[0][31:24];
+                                asm_is_sg_pkt <= 1'b1;
+
                                 // Write directly to SRAM
                                 asm_total_beats <= current_frag_beats;
                                 asm_beat_count <= 12'h0;
 
-                                $display("[%0t] [ASSEMBLE] SG_PKT padding: %0d bytes (header[53:52]=%0b)",
-                                         $time, current_frag[0][53:52], current_frag[0][53:52]);
+                                $display("[%0t] [ASSEMBLE] SG_PKT padding: %0d bytes, TLP_len=%0d DW (header[53:52]=%0b, [31:24]=%0d)",
+                                         $time, current_frag[0][53:52], current_frag[0][31:24],
+                                         current_frag[0][53:52], current_frag[0][31:24]);
 
                                 // Copy to queue temporarily
                                 for (i = 0; i < 16; i = i + 1) begin
@@ -687,16 +712,23 @@ module pcie_msg_receiver (
                             PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[0] <= 1'b1;
 
                             // Update write pointer (byte count)
-                            // WPTR = TLP_length (in DW) × 4 bytes - padding_bytes
-                            // TLP length is in header[31:24] from queue_data[current_queue_idx][0]
-                            PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] <= (queue_data[current_queue_idx][0][31:24] * 4) - asm_padding_bytes;
+                            // Two calculation methods:
+                            // 1. SG_PKT: Use TLP length field (WPTR = TLP_length × 4 - padding)
+                            // 2. L_PKT (multi-fragment): Use accumulated TLP length (WPTR = accumulated_bytes - padding)
+                            if (asm_is_sg_pkt) begin
+                                PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] <= (asm_tlp_length_dw * 4) - asm_padding_bytes;
+                                $display("[%0t] [SRAM_WR] SG_PKT WPTR=%0d bytes (TLP_len=%0d DW, padding=%0d)",
+                                         $time, (asm_tlp_length_dw * 4) - asm_padding_bytes,
+                                         asm_tlp_length_dw, asm_padding_bytes);
+                            end else begin
+                                PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
+                                $display("[%0t] [SRAM_WR] L_PKT WPTR=%0d bytes (accumulated_tlp=%0d, padding=%0d)",
+                                         $time, asm_accumulated_tlp_bytes - asm_padding_bytes,
+                                         asm_accumulated_tlp_bytes, asm_padding_bytes);
+                            end
 
                             // Assert interrupt signal
                             o_msg_interrupt <= 1'b1;
-
-                            $display("[%0t] [SRAM_WR] Interrupt asserted - Assembly complete, WPTR=%0d bytes (TLP_len=%0d DW, padding=%0d)",
-                                     $time, (queue_data[current_queue_idx][0][31:24] * 4) - asm_padding_bytes,
-                                     queue_data[current_queue_idx][0][31:24], asm_padding_bytes);
                         end
 
                         state <= W_RESP;

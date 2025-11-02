@@ -183,7 +183,7 @@ output reg  rready
         #200;
         $display("\n[READ_GEN] All assembly verifications completed\n");
         #200;
-        $finish;
+        // $finish; // Commented out to allow write_gen tests to complete
     end
 
     // ========================================

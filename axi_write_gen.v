@@ -308,7 +308,7 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Test 1: SG_PKT with 0 byte padding, TLP_len=16 DW (64B)", $time);
         tlp_header[53:52] = 2'b00; // 0B padding
         tlp_header[31:24] = 8'h10; // 64B = 16 DW
-        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 2, 1,
+        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h2, 2, 1,
                    {256'h0, 256'hAA00_AA00_AA00_AA00_AA00_AA00_AA00_AA00,
                     256'hBB00_BB00_BB00_BB00_BB00_BB00_BB00_BB00,
                     256'hCC00_CC00_CC00_CC00_CC00_CC00_CC00_CC00}, 64'h2000);
@@ -320,7 +320,7 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Test 2: SG_PKT with 1 byte padding, TLP_len=16 DW (64B - 1B = 63B)", $time);
         tlp_header[53:52] = 2'b01; // 1B padding
         tlp_header[31:24] = 8'h10; // 64B = 16 DW
-        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 2, 1,
+        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h2, 2, 1,
                    {256'h0, 256'hAA01_AA01_AA01_AA01_AA01_AA01_AA01_AA01,
                     256'hBB01_BB01_BB01_BB01_BB01_BB01_BB01_BB01,
                     256'hCC01_CC01_CC01_CC01_CC01_CC01_CC01_CC01}, 64'h2100);
@@ -333,7 +333,7 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Test 3: SG_PKT with 2 byte padding, TLP_len=2 DW (8B - 2B = 6B)", $time);
         tlp_header[53:52] = 2'b10; // 2B padding
         tlp_header[31:24] = 8'h02; // 8B = 2 DW
-        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 0, 1,
+        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h0, 2, 1,
                    {256'h0, 256'h0, 256'h0, 256'h0}, 64'h2200);
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Test 3: Expected WPTR=%0d, Actual WPTR=%0d",
@@ -343,7 +343,7 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Test 4: SG_PKT with 3 byte padding, TLP_len=2 DW (8B - 3B = 5B)", $time);
         tlp_header[53:52] = 2'b11; // 3B padding
         tlp_header[31:24] = 8'h02; // 8B = 2 DW
-        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 0, 1,
+        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h0, 2, 1,
                    {256'h0, 256'h0, 256'h0, 256'h0}, 64'h2300);
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Test 4: Expected WPTR=%0d, Actual WPTR=%0d",
@@ -352,6 +352,61 @@ output reg   O_BREADY
         // Reset padding for subsequent tests
         tlp_header[53:52] = 2'b00; // 0B padding
         tlp_header[31:24] = 8'h10; // 64B
+
+        // ========================================
+        // 68B Unaligned Payload Test
+        // ========================================
+        $display("\n========================================");
+        $display("TEST: 68B Unaligned Multi-Fragment Assembly");
+        $display("========================================\n");
+
+        // MSG_T6: 68B x 3 fragments = 204B total
+        $display("[%0t] [WRITE_GEN] MSG_T6: Sending S_PKT (68B)...", $time);
+        tlp_header[31:24] = 8'h11; // 68B = 17 DW
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
+                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
+                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h100);
+
+        $display("[%0t] [WRITE_GEN] MSG_T6: Sending M_PKT (68B)...", $time);
+        SEND_WRITE({M_PKT, PKT_SN1, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
+                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
+                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h100);
+
+        $display("[%0t] [WRITE_GEN] MSG_T6: Sending L_PKT (68B)...", $time);
+        SEND_WRITE({L_PKT, PKT_SN2, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
+                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
+                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
+
+        repeat(50) @(posedge i_clk);
+        $display("[%0t] [WRITE_GEN] MSG_T6: Expected WPTR=%0d bytes (68B x 3), Actual WPTR=%0d bytes",
+                 $time, 204, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
+
+        // MSG_T2: 64B x 3 fragments = 192B total
+        $display("[%0t] [WRITE_GEN] MSG_T2: Sending S_PKT (64B)...", $time);
+        tlp_header[31:24] = 8'h10; // 64B = 16 DW
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
+                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
+                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h100);
+
+        $display("[%0t] [WRITE_GEN] MSG_T2: Sending M_PKT (64B)...", $time);
+        SEND_WRITE({M_PKT, PKT_SN1, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
+                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
+                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h100);
+
+        $display("[%0t] [WRITE_GEN] MSG_T2: Sending L_PKT (64B)...", $time);
+        SEND_WRITE({L_PKT, PKT_SN2, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1,
+                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
+                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
+                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
+
+        repeat(50) @(posedge i_clk);
+        $display("[%0t] [WRITE_GEN] MSG_T2: Expected WPTR=%0d bytes (64B x 3), Actual WPTR=%0d bytes",
+                 $time, 192, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
 
         $display("\n========================================");
         $display("TEST: Restart Error Test");
@@ -440,41 +495,6 @@ output reg   O_BREADY
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Out-of-sequence error counter = 0x%h", $time,
                  tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24]);
-
-        // Multi Packet 64B, 68B (unaligned)
-        tlp_header[31:24] = 8'h11; // 68B
-        // S->M->L assembly (3 fragments)
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
-                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
-                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h100);
-        SEND_WRITE({M_PKT, PKT_SN1, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
-                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
-                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h100);
-
-        tlp_header[31:24] = 8'h10; // 64B
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
-                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
-                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h100);
-
-        tlp_header[31:24] = 8'h11; // 68B
-        SEND_WRITE({L_PKT, PKT_SN2, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
-                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
-                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
-
-        tlp_header[31:24] = 8'h10; // 64B
-        SEND_WRITE({M_PKT, PKT_SN1, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
-                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
-                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h100);
-        SEND_WRITE({L_PKT, PKT_SN2, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
-                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
-                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
-        #200;
 
 
         $display("\n========================================");
