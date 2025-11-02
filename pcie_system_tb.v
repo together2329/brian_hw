@@ -72,6 +72,16 @@ module pcie_system_tb;
     // SFR Control Register
     wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15;
 
+    // SFR Interrupt Registers
+    wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0;
+    wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0;
+
+    // Queue Write Pointer Register
+    wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0;
+
+    // Interrupt signal
+    wire         o_msg_interrupt;
+
     // Module instantiations
 
     // 1. AXI Write Generator (with internal initial block that calls task)
@@ -149,7 +159,11 @@ module pcie_system_tb;
         .PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31),
         .PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30),
         .PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29),
-        .PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15(PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15)
+        .PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15(PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15),
+        .PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0(PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0),
+        .PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0(PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0),
+        .PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0(PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0),
+        .o_msg_interrupt(o_msg_interrupt)
     );
 
     // 4. SRAM
@@ -197,7 +211,11 @@ module pcie_system_tb;
         .DEBUG_30_in(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30),
         .DEBUG_29_in(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29),
         .CONTROL15_in(PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15),
-        .CONTROL15_out(PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15)
+        .CONTROL15_out(PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15),
+        .INTR_STATUS_0_in(PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0),
+        .INTR_CLEAR_0_in(PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0),
+        .WPTR_0_in(PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0),
+        .MSG_INTR_in(o_msg_interrupt)
     );
 
     // Clock generation (100MHz)

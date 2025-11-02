@@ -44,7 +44,17 @@ module pcie_msg_receiver (
     output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29,
 
     // SFR Control Register
-    input wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15
+    input wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15,
+
+    // SFR Interrupt Registers (Queue 0)
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0,
+
+    // Queue Write Pointer Register (Queue 0)
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0,
+
+    // Interrupt signal
+    output reg         o_msg_interrupt
 );
 
     // Fragment type definitions
@@ -123,6 +133,16 @@ module pcie_msg_receiver (
             PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31 <= 32'h0;
             PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30 <= 32'h0;
             PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29 <= 32'h0;
+
+            // Initialize Interrupt registers
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0 <= 32'h0;
+
+            // Initialize Queue Write Pointer
+            PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0 <= 32'h0;
+
+            // Initialize interrupt signal
+            o_msg_interrupt <= 1'b0;
 
             // Initialize assembly queues
             queue_valid <= 15'h0;
@@ -211,6 +231,10 @@ module pcie_msg_receiver (
                                          $time, EXPECTED_HDR_VER, axi_wdata[99:96]);
                                 $display("[%0t] [MSG_RX] Bad header version counter: %0d",
                                          $time, PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] + 1);
+
+                                // Set error interrupt (INTR_STATUS[3] = all queue error)
+                                PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[3] <= 1'b1;
+                                o_msg_interrupt <= 1'b1;
                             end
 
                             // Check unknown destination ID (if control bit is disabled)
@@ -466,11 +490,24 @@ module pcie_msg_receiver (
                         // Done writing to SRAM
                         sram_wen <= 1'b0;
 
-                        // Clear the queue if it was L_PKT
+                        // Clear the queue if it was L_PKT or SG_PKT
                         if (frag_type == L_PKT || frag_type == SG_PKT) begin
                             queue_valid[current_queue_idx] <= 1'b0;
                             queue_state[current_queue_idx] <= 2'b00;
                             $display("[%0t] [SRAM_WR] Queue %0h cleared", $time, current_queue_idx);
+
+                            // Set interrupt status - completion of assembly (L_PKT or SG_PKT)
+                            // INTR_STATUS[0] = completion of queue
+                            PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[0] <= 1'b1;
+
+                            // Update write pointer (total beats written to SRAM)
+                            PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] <= asm_total_beats - 1;
+
+                            // Assert interrupt signal
+                            o_msg_interrupt <= 1'b1;
+
+                            $display("[%0t] [SRAM_WR] Interrupt asserted - Assembly complete, WPTR=%0d",
+                                     $time, asm_total_beats - 1);
                         end
 
                         state <= W_RESP;

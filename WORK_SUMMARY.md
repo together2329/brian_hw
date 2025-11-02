@@ -459,8 +459,50 @@ axi_read_gen.v:161: $finish called at 8116000 (1ps)
 
 ---
 
+## 추가 구현 - Interrupt 및 Write Pointer (최신)
+
+### 추가된 포트 (pcie_msg_receiver.v)
+
+```verilog
+// SFR Interrupt Registers (Queue 0)
+output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0,
+output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0,
+
+// Queue Write Pointer Register (Queue 0)
+output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0,
+
+// Interrupt signal
+output reg         o_msg_interrupt
+```
+
+### Interrupt 로직
+
+#### INTR_STATUS[0] - Assembly Completion
+- L_PKT 또는 SG_PKT으로 assembly 완료 시 발생
+- SRAM_WR 상태에서 마지막 beat 기록 후 설정
+
+#### INTR_STATUS[3] - All Queue Error
+- 에러 감지 시 발생 (예: Bad Header Version)
+- 현재는 Bad Header Version에만 구현됨
+
+#### Write Pointer (WPTR[15:0])
+- Assembly 완료 시 SRAM에 기록된 payload beat 수
+- `asm_total_beats - 1` 값으로 설정 (헤더는 제외)
+
+#### Interrupt Signal (o_msg_interrupt)
+- Assembly 완료 또는 에러 발생 시 활성화
+- axi_read_gen의 WAIT_INTR/WAIT_INTR_ERR task에서 대기 가능
+
+### tb_pcie_sub_msg_wrapper 확장
+- INTR_STATUS_0, INTR_CLEAR_0, WPTR_0, o_msg_interrupt 신호 노출
+- axi_read_gen에서 `tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0` 경로로 접근 가능
+
+---
+
 ## 작업자 노트
 - tb_pcie_sub_msg 경로는 사용자 요청에 따라 유지됨
 - wrapper 모듈을 통해 계층 구조 해결
 - 모든 에러 감지 로직은 pcie_msg_receiver.v에 집중됨
 - SFR 레지스터는 모두 32비트로 통일
+- Interrupt 및 Write Pointer 기능 구현 완료
+- CONTROL15[8] = 0일 때 unknown destination check 활성화
