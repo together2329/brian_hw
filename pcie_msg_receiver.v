@@ -128,6 +128,8 @@ module pcie_msg_receiver (
     reg [7:0] dest_id;
     reg [11:0] expected_beats;
     reg [31:0] total_bytes;
+    reg [7:0] tx_size_dw;
+    reg [31:0] tx_size_bytes;
 
     integer i;
 
@@ -299,18 +301,27 @@ module pcie_msg_receiver (
                             end
 
                             // Check tag owner error (TAG=7 with TO=0)
-                            if (axi_wdata[123:120] == 4'h7 && axi_wdata[100] == 1'b0) begin
+                            // Header: [123]=TO, [122:120]=TAG
+                            if (axi_wdata[122:120] == 3'h7 && axi_wdata[123] == 1'b0) begin
                                 PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[15:8] <=
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[15:8] + 1;
                                 $display("[%0t] [MSG_RX] ERROR: Tag owner error (TAG=7, TO=0)", $time);
+                                $display("[%0t] [MSG_RX]   TAG=%0d, TO=%0b (expected TO=1 for TAG=7)",
+                                         $time, axi_wdata[122:120], axi_wdata[123]);
                             end
 
                             // Check unsupported TX unit (TLP length field [31:24])
-                            // 32B = 8 DW = 0x08
-                            if (axi_wdata[31:24] == 8'h08) begin
+                            // Valid range: 64B ~ 1024B
+                            // TLP length is in DW (4 bytes): 64B=16 DW=0x10, 1024B=256 DW=0x100
+                            // Since field is 8-bit, max is 0xFF (1020B), so we check < 0x10 or == 0xFF+
+                            tx_size_dw = axi_wdata[31:24];
+                            tx_size_bytes = {24'h0, tx_size_dw} * 4;
+
+                            if (tx_size_bytes < 64 || tx_size_bytes > 1024) begin
                                 PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30[7:0] <=
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30[7:0] + 1;
-                                $display("[%0t] [MSG_RX] ERROR: Unsupported TX unit (32B detected)", $time);
+                                $display("[%0t] [MSG_RX] ERROR: Unsupported TX unit size (%0dB, valid: 64B-1024B)",
+                                         $time, tx_size_bytes);
                             end
 
                             // Check size mismatch (compare axi_awsize with TLP length)
