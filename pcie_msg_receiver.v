@@ -175,21 +175,22 @@ module pcie_msg_receiver (
             PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0 <= 32'h0;
 
             // Initialize Queue Initial Address Registers (all 15 queues)
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14 <= 32'h0;
+            // Queue N address = N * 64 beats * 32 bytes
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0 <= (0 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1 <= (1 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2 <= (2 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3 <= (3 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4 <= (4 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5 <= (5 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6 <= (6 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7 <= (7 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8 <= (8 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9 <= (9 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10 <= (10 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11 <= (11 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12 <= (12 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13 <= (13 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14 <= (14 * 64 * 32);
 
             // Initialize interrupt signal
             o_msg_interrupt <= 1'b0;

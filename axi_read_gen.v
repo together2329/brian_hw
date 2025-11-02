@@ -57,6 +57,149 @@ output reg  rready
     reg [127:0] expected_header;
     reg [119:0] tlp_base;
 
+    // Interrupt monitor variables
+    integer intr_count;
+    reg [3:0] completed_queue;
+    reg [31:0] queue_base_addr;
+    reg [15:0] wptr_bytes;
+    reg [7:0] arlen_val;
+
+    // ========================================
+    // Interrupt Monitor (Parallel Thread)
+    // ========================================
+    initial begin
+        intr_count = 0;
+
+        // Wait for reset
+        wait(i_reset_n);
+        #100;
+
+        $display("\n[READ_GEN] Interrupt monitor started");
+
+        forever begin
+            // Poll for any interrupt by checking INTR_STATUS register
+            @(posedge i_clk);
+            #1; // Small delay to let signals settle
+
+            // Check for error interrupt (priority: handle errors first)
+            if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED ***", $time);
+                $display("[%0t] [READ_GEN] INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0);
+                $display("========================================\n");
+
+                // Clear error interrupt
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0[3] = 1'b1;
+                @(posedge i_clk);
+                #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0;
+                @(posedge i_clk);
+            end
+
+            // Check for completion interrupt
+            if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[0]) begin
+                intr_count = intr_count + 1;
+
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** COMPLETION INTERRUPT #%0d ***", $time, intr_count);
+
+                // Get WPTR to determine data size
+                wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0];
+                $display("[%0t] [READ_GEN] WPTR = %0d bytes", $time, wptr_bytes);
+
+                // Map interrupt count to queue and init address
+                // Based on write_gen test sequence
+                case (intr_count)
+                    1: begin  // S->L test (MSG_T0 = Queue 8)
+                        completed_queue = 4'h8;
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8[31:0];
+                        $display("[%0t] [READ_GEN] S->L assembly (MSG_T0, Queue %0d)", $time, completed_queue);
+                    end
+                    2: begin  // S->M->L test (MSG_T1 = Queue 9)
+                        completed_queue = 4'h9;
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9[31:0];
+                        $display("[%0t] [READ_GEN] S->M->L assembly (MSG_T1, Queue %0d)", $time, completed_queue);
+                    end
+                    3: begin  // S->M->M->L test (MSG_T2 = Queue 10)
+                        completed_queue = 4'hA;
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10[31:0];
+                        $display("[%0t] [READ_GEN] S->M->M->L assembly (MSG_T2, Queue %0d)", $time, completed_queue);
+                    end
+                    4: begin  // SG_PKT test (MSG_T3 = Queue 11)
+                        completed_queue = 4'hB;
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11[31:0];
+                        $display("[%0t] [READ_GEN] Single packet (MSG_T3, Queue %0d)", $time, completed_queue);
+                    end
+                    5: begin  // Padding Test 1 (MSG_T4 = Queue 12)
+                        completed_queue = 4'hC;
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[31:0];
+                        $display("[%0t] [READ_GEN] Padding Test 1 (MSG_T4, Queue %0d)", $time, completed_queue);
+                    end
+                    6: begin  // Padding Test 2 (MSG_T4 = Queue 12)
+                        completed_queue = 4'hC;
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[31:0];
+                        $display("[%0t] [READ_GEN] Padding Test 2 (MSG_T4, Queue %0d)", $time, completed_queue);
+                    end
+                    7: begin  // Padding Test 3 (MSG_T4 = Queue 12)
+                        completed_queue = 4'hC;
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[31:0];
+                        $display("[%0t] [READ_GEN] Padding Test 3 (MSG_T4, Queue %0d)", $time, completed_queue);
+                    end
+                    8: begin  // Padding Test 4 (MSG_T4 = Queue 12)
+                        completed_queue = 4'hC;
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[31:0];
+                        $display("[%0t] [READ_GEN] Padding Test 4 (MSG_T4, Queue %0d)", $time, completed_queue);
+                    end
+                    9: begin  // 68B test (MSG_T6 = Queue 14)
+                        completed_queue = 4'hE;
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14[31:0];
+                        $display("[%0t] [READ_GEN] 68B MSG_T6 (Queue %0d)", $time, completed_queue);
+                    end
+                    10: begin  // 68B test (MSG_T2 = Queue 10)
+                        completed_queue = 4'hA;
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10[31:0];
+                        $display("[%0t] [READ_GEN] 68B MSG_T2 (Queue %0d)", $time, completed_queue);
+                    end
+                    default: begin
+                        completed_queue = 4'hF;  // Unknown
+                        queue_base_addr = 32'h0;
+                        $display("[%0t] [READ_GEN] Unknown test - Queue unknown", $time);
+                    end
+                endcase
+
+                $display("[%0t] [READ_GEN] Queue %0d Init Address: 0x%h",
+                         $time, completed_queue, queue_base_addr);
+
+                // Read and verify data if valid (queue 0 has addr 0x0, so don't skip it)
+                if (wptr_bytes > 0 && completed_queue != 4'hF) begin
+                    arlen_val = (wptr_bytes + 31) / 32 - 1;  // Round up and convert to arlen
+                    $display("[%0t] [READ_GEN] Reading %0d beats (%0d bytes) from address 0x%h",
+                             $time, arlen_val + 1, wptr_bytes, queue_base_addr);
+
+                    // Perform AXI read
+                    READ_COMPLETION_DATA(completed_queue, queue_base_addr, arlen_val, wptr_bytes);
+                end else begin
+                    $display("[%0t] [READ_GEN] Skip reading (WPTR=%0d, addr=0x%h)",
+                             $time, wptr_bytes, queue_base_addr);
+                end
+
+                $display("========================================\n");
+
+                // Clear completion interrupt
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0[0] = 1'b1;
+                @(posedge i_clk);
+                #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0;
+            end
+
+            @(posedge i_clk);
+        end
+    end
+
+    // ========================================
+    // Legacy Read Verification Tests
+    // ========================================
     initial begin
         // Wait for reset
         wait(i_reset_n);
@@ -476,6 +619,64 @@ output reg  rready
             end
             $display("[%0t] [READ_GEN] READ_AND_CHECK COMPLETE", $time);
             $display("========================================\n");
+        end
+    endtask
+
+    // ========================================
+    // Read Completion Data Task (Called from Interrupt Monitor)
+    // ========================================
+    task READ_COMPLETION_DATA;
+        input [3:0] queue_id;
+        input [31:0] base_addr;
+        input [7:0] arlen_beats;
+        input [15:0] expected_wptr;
+
+        integer beat_num;
+        reg [255:0] rdata_beat;
+
+        begin
+            $display("[%0t] [READ_GEN] === Reading Queue %0d Data ===", $time, queue_id);
+            $display("[%0t] [READ_GEN] Base Address: 0x%h, Beats: %0d, WPTR: %0d bytes",
+                     $time, base_addr, arlen_beats + 1, expected_wptr);
+
+            // Set up AXI read
+            @(posedge i_clk);
+            #1;
+            arvalid = 1'b1;
+            araddr = base_addr;
+            arlen = arlen_beats;
+            arsize = 3'd5;  // 32 bytes
+            arburst = 2'b01;  // INCR
+            arid = 7'h0;
+
+            // Wait for address handshake
+            @(posedge i_clk);
+            while (!arready) @(posedge i_clk);
+            $display("[%0t] [READ_GEN] Address phase complete", $time);
+
+            @(posedge i_clk);
+            #1;
+            arvalid = 1'b0;
+            rready = 1'b1;
+
+            // Read data beats
+            beat_num = 0;
+            while (beat_num <= arlen_beats) begin
+                @(posedge i_clk);
+                #1;
+                if (rvalid && rready) begin
+                    rdata_beat = rdata;
+                    $display("[%0t] [READ_GEN] Beat %0d: 0x%h",
+                             $time, beat_num, rdata_beat);
+                    beat_num = beat_num + 1;
+                end
+            end
+
+            @(posedge i_clk);
+            #1;
+            rready = 1'b0;
+
+            $display("[%0t] [READ_GEN] === Read Complete ===\n", $time);
         end
     endtask
 
