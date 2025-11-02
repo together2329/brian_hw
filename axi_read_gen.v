@@ -26,6 +26,23 @@ output reg  rready
     // Internal storage for read data verification
     reg [255:0] read_data_mem [0:15];
 
+    // Queue initial addresses for all 15 queues
+    reg [31:0] Q_ADDR_0;
+    reg [31:0] Q_ADDR_1;
+    reg [31:0] Q_ADDR_2;
+    reg [31:0] Q_ADDR_3;
+    reg [31:0] Q_ADDR_4;
+    reg [31:0] Q_ADDR_5;
+    reg [31:0] Q_ADDR_6;
+    reg [31:0] Q_ADDR_7;
+    reg [31:0] Q_ADDR_8;
+    reg [31:0] Q_ADDR_9;
+    reg [31:0] Q_ADDR_10;
+    reg [31:0] Q_ADDR_11;
+    reg [31:0] Q_ADDR_12;
+    reg [31:0] Q_ADDR_13;
+    reg [31:0] Q_ADDR_14;
+
     // Fragment type definitions (must match write gen)
     localparam S_PKT  = 2'b10;
     localparam M_PKT  = 2'b00;
@@ -64,7 +81,8 @@ output reg  rready
         // SRAM order: CCCC, BBBB, AAAA, 1111, FFFF, EEEE
         expected_header = {L_PKT, 2'b01, MSG_T0, tlp_base};
         READ_AND_CHECK_ASSEMBLY(
-            32'h0,      // address
+            4'h0,       // queue_tag = 0
+            32'h0,      // address (queue 0 init addr)
             8'd5,       // arlen = 5 (6 beats)
             3'd5,       // 32 bytes
             2'b01,      // INCR
@@ -77,7 +95,8 @@ output reg  rready
              256'h0000000000000000000000000000000011111111111111111111111111111111,
              256'h00000000000000000000000000000000AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,
              256'h00000000000000000000000000000000BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB,
-             256'h00000000000000000000000000000000CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC}  // First payload (LSB)
+             256'h00000000000000000000000000000000CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC},  // First payload (LSB)
+            32'd192    // expected_wptr_bytes = (6 beats) * 32 bytes
         );
 
         #200;
@@ -89,7 +108,8 @@ output reg  rready
         // SRAM order: 4444, 3333, 7777, 6666, AAAA, 9999
         expected_header = {L_PKT, 2'b10, MSG_T1, tlp_base};
         READ_AND_CHECK_ASSEMBLY(
-            32'h100,    // address
+            4'h1,       // queue_tag = 1
+            32'h800,    // address (queue 1 init addr = 1*64*32 = 2048 = 0x800)
             8'd5,       // arlen = 5 (6 beats)
             3'd5,       // 32 bytes
             2'b01,      // INCR
@@ -102,7 +122,8 @@ output reg  rready
              256'h0000000000000000000000000000000066666666666666666666666666666666,
              256'h0000000000000000000000000000000077777777777777777777777777777777,
              256'h0000000000000000000000000000000033333333333333333333333333333333,
-             256'h0000000000000000000000000000000044444444444444444444444444444444}  // First payload (LSB)
+             256'h0000000000000000000000000000000044444444444444444444444444444444},  // First payload (LSB)
+            32'd192    // expected_wptr_bytes = (6 beats) * 32 bytes
         );
 
         #200;
@@ -114,7 +135,8 @@ output reg  rready
         // SRAM order: DEADBEEF, 12345678, FEDCBA98, 11112222...
         expected_header = {L_PKT, 2'b11, MSG_T2, tlp_base};
         READ_AND_CHECK_ASSEMBLY(
-            32'h200,    // address
+            4'h2,       // queue_tag = 2
+            32'h1000,   // address (queue 2 init addr = 2*64*32 = 4096 = 0x1000)
             8'd3,       // arlen = 3 (4 beats)
             3'd5,       // 32 bytes
             2'b01,      // INCR
@@ -127,7 +149,8 @@ output reg  rready
              256'h0000000000000000000000000000000011112222333344445555666677778888,
              256'h00000000000000000000000000000000FEDCBA98FEDCBA98FEDCBA98FEDCBA98,
              256'h0000000000000000000000000000000012345678123456781234567812345678,
-             256'h00000000000000000000000000000000DEADBEEFDEADBEEFDEADBEEFDEADBEEF}  // First payload (LSB)
+             256'h00000000000000000000000000000000DEADBEEFDEADBEEFDEADBEEFDEADBEEF},  // First payload (LSB)
+            32'd128    // expected_wptr_bytes = (4 beats) * 32 bytes
         );
 
         #200;
@@ -139,7 +162,8 @@ output reg  rready
         // SRAM order: 5555AAAA..., AAAA5555...
         expected_header = {SG_PKT, 2'b00, MSG_T3, tlp_base};
         READ_AND_CHECK_ASSEMBLY(
-            32'h300,    // address
+            4'h3,       // queue_tag = 3
+            32'h1800,   // address (queue 3 init addr = 3*64*32 = 6144 = 0x1800)
             8'd1,       // arlen = 1 (2 beats)
             3'd5,       // 32 bytes
             2'b01,      // INCR
@@ -152,7 +176,8 @@ output reg  rready
              256'h0,
              256'h0,
              256'h00000000000000000000000000000000AAAA5555AAAA5555AAAA5555AAAA5555,
-             256'h000000000000000000000000000000005555AAAA5555AAAA5555AAAA5555AAAA}  // First payload (LSB)
+             256'h000000000000000000000000000000005555AAAA5555AAAA5555AAAA5555AAAA},  // First payload (LSB)
+            32'd64     // expected_wptr_bytes = (2 beats) * 32 bytes
         );
 
         #200;
@@ -165,6 +190,7 @@ output reg  rready
     // AXI Read Task with Assembly Payload Verification
     // ========================================
     task automatic READ_AND_CHECK_ASSEMBLY;
+        input [3:0]       queue_tag;
         input [31:0]      read_araddr;
         input [7:0]       read_arlen;
         input [2:0]       read_arsize;
@@ -172,6 +198,7 @@ output reg  rready
         input [127:0]     expected_header;
         input integer     exp_beats;
         input [256*16-1:0] expected_payload;  // Up to 16 beats
+        input [31:0]      expected_wptr_bytes;  // Expected write pointer in bytes
 
         integer beat;
         reg [255:0] data_beat;
@@ -179,14 +206,17 @@ output reg  rready
         reg verification_pass;
         integer total_beats;
         reg [255:0] exp_beat_data;
+        reg [31:0] queue_init_addr;
 
         begin
             total_beats = read_arlen + 1;
 
             $display("\n========================================");
             $display("[%0t] [READ_GEN] READ_AND_CHECK_ASSEMBLY START", $time);
+            $display("  Queue Tag: %0d", queue_tag);
             $display("  Address: 0x%h", read_araddr);
             $display("  Length:  %0d payload beats", total_beats);
+            $display("  Expected WPTR: %0d bytes", expected_wptr_bytes);
             $display("  (Header assembled but not stored in SRAM)");
             $display("========================================");
 
@@ -265,7 +295,60 @@ output reg  rready
 
             rready = 1'b0;
 
+            // Now verify WPTR and queue address
+            #10;  // Wait for any pending signals
+
             $display("\n========================================");
+            $display("[%0t] [READ_GEN] WPTR and Queue Address Verification", $time);
+
+            // Check write pointer
+            $display("[%0t] [READ_GEN] Actual WPTR: %0d bytes",
+                     $time,
+                     tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0]);
+
+            if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] != expected_wptr_bytes) begin
+                $display("[%0t] [READ_GEN] ERROR: WPTR mismatch! (expected %0d, got %0d)",
+                         $time, expected_wptr_bytes,
+                         tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0]);
+                verification_pass = 1'b0;
+            end else begin
+                $display("[%0t] [READ_GEN] WPTR verified correctly (%0d bytes)",
+                         $time, expected_wptr_bytes);
+            end
+
+            // Get and display queue init address
+            case (queue_tag)
+                4'h0: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0[31:0];
+                4'h1: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1[31:0];
+                4'h2: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2[31:0];
+                4'h3: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3[31:0];
+                4'h4: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4[31:0];
+                4'h5: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5[31:0];
+                4'h6: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6[31:0];
+                4'h7: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7[31:0];
+                4'h8: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8[31:0];
+                4'h9: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9[31:0];
+                4'hA: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10[31:0];
+                4'hB: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11[31:0];
+                4'hC: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[31:0];
+                4'hD: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13[31:0];
+                4'hE: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14[31:0];
+                default: queue_init_addr = 32'h0;
+            endcase
+
+            $display("[%0t] [READ_GEN] Queue %0d Init Address: 0x%h",
+                     $time, queue_tag, queue_init_addr);
+            $display("[%0t] [READ_GEN] Read Address: 0x%h (should match Q init addr)",
+                     $time, read_araddr);
+
+            if (read_araddr == queue_init_addr) begin
+                $display("[%0t] [READ_GEN] Address verified correctly", $time);
+            end else begin
+                $display("[%0t] [READ_GEN] WARNING: Address mismatch! (init_addr=0x%h, read_addr=0x%h)",
+                         $time, queue_init_addr, read_araddr);
+            end
+
+            $display("========================================");
             if (verification_pass) begin
                 $display("[%0t] [READ_GEN] *** ASSEMBLY VERIFICATION PASSED ***", $time);
             end else begin
@@ -412,24 +495,56 @@ output reg  rready
     endtask
 
     task WAIT_INTR;
-      input [31:0] expected_wptr;
+      input [3:0] queue_tag;  // Which queue completed
       begin
         // Wait for completion interrupt (INTR_STATUS[0])
         wait(tb_pcie_sub_msg.o_msg_interrupt == 1);
-        $display("[%0t] [READ_GEN] Completion interrupt detected", $time);
+        $display("[%0t] [READ_GEN] Completion interrupt detected for Queue %0d", $time, queue_tag);
 
-        // Check write pointer
-        $display("[%0t] [READ_GEN] Write Pointer: 0x%h (expected: 0x%h)",
-                 $time,
-                 tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0],
-                 expected_wptr);
+        // Read all 15 queue initial addresses
+        Q_ADDR_0 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0[31:0];
+        Q_ADDR_1 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1[31:0];
+        Q_ADDR_2 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2[31:0];
+        Q_ADDR_3 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3[31:0];
+        Q_ADDR_4 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4[31:0];
+        Q_ADDR_5 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5[31:0];
+        Q_ADDR_6 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6[31:0];
+        Q_ADDR_7 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7[31:0];
+        Q_ADDR_8 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8[31:0];
+        Q_ADDR_9 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9[31:0];
+        Q_ADDR_10 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10[31:0];
+        Q_ADDR_11 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11[31:0];
+        Q_ADDR_12 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[31:0];
+        Q_ADDR_13 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13[31:0];
+        Q_ADDR_14 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14[31:0];
 
-        // Verify write pointer matches expected value
-        if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] != expected_wptr) begin
-          $display("[%0t] [READ_GEN] ERROR: WPTR mismatch!", $time);
-        end else begin
-          $display("[%0t] [READ_GEN] WPTR verified correctly", $time);
-        end
+        // Display all queue addresses
+        $display("[%0t] [READ_GEN] Queue Initial Addresses:", $time);
+        $display("[%0t] [READ_GEN]   Q0: 0x%h  Q1: 0x%h  Q2: 0x%h  Q3: 0x%h  Q4: 0x%h",
+                 $time, Q_ADDR_0, Q_ADDR_1, Q_ADDR_2, Q_ADDR_3, Q_ADDR_4);
+        $display("[%0t] [READ_GEN]   Q5: 0x%h  Q6: 0x%h  Q7: 0x%h  Q8: 0x%h  Q9: 0x%h",
+                 $time, Q_ADDR_5, Q_ADDR_6, Q_ADDR_7, Q_ADDR_8, Q_ADDR_9);
+        $display("[%0t] [READ_GEN]   Q10: 0x%h  Q11: 0x%h  Q12: 0x%h  Q13: 0x%h  Q14: 0x%h",
+                 $time, Q_ADDR_10, Q_ADDR_11, Q_ADDR_12, Q_ADDR_13, Q_ADDR_14);
+
+        // Get the base address for this queue
+        case (queue_tag)
+          4'h0: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_0); end
+          4'h1: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_1); end
+          4'h2: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_2); end
+          4'h3: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_3); end
+          4'h4: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_4); end
+          4'h5: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_5); end
+          4'h6: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_6); end
+          4'h7: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_7); end
+          4'h8: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_8); end
+          4'h9: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_9); end
+          4'hA: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_10); end
+          4'hB: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_11); end
+          4'hC: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_12); end
+          4'hD: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_13); end
+          4'hE: begin $display("[%0t] [READ_GEN] Queue %0d init address: 0x%h", $time, queue_tag, Q_ADDR_14); end
+        endcase
 
         // Clear the completion interrupt by writing to INTR_CLEAR[0]
         force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0[0] = 1'b1;

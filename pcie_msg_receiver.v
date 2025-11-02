@@ -53,6 +53,23 @@ module pcie_msg_receiver (
     // Queue Write Pointer Register (Queue 0)
     output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0,
 
+    // Queue Initial Address Registers (15 queues)
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14,
+
     // Interrupt signal
     output reg         o_msg_interrupt
 );
@@ -107,6 +124,11 @@ module pcie_msg_receiver (
     reg [11:0] asm_beat_count;
     reg [11:0] asm_total_beats;
 
+    // Temporary variables for error checking
+    reg [7:0] dest_id;
+    reg [11:0] expected_beats;
+    reg [31:0] total_bytes;
+
     integer i;
 
     always @(posedge clk or negedge rst_n) begin
@@ -139,6 +161,23 @@ module pcie_msg_receiver (
 
             // Initialize Queue Write Pointer
             PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0 <= 32'h0;
+
+            // Initialize Queue Initial Address Registers (all 15 queues)
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13 <= 32'h0;
+            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14 <= 32'h0;
 
             // Initialize interrupt signal
             o_msg_interrupt <= 1'b0;
@@ -185,26 +224,27 @@ module pcie_msg_receiver (
 
             case (state)
                 IDLE: begin
-                    axi_awready <= 1'b1;
                     axi_bvalid <= 1'b0;
 
-                    if (axi_awvalid && axi_awready) begin
+                    if (axi_awvalid) begin
+                        axi_awready <= 1'b0;
                         write_addr <= axi_awaddr;
                         total_beats <= axi_awlen + 1;
                         beat_count <= 12'h0;
                         current_frag_beats <= axi_awlen + 1;
-                        axi_awready <= 1'b0;
                         state <= W_DATA;
 
                         $display("[%0t] [MSG_RX] Received write addr: 0x%h, len=%0d beats",
                                  $time, axi_awaddr, axi_awlen + 1);
+                    end else begin
+                        axi_awready <= 1'b1;
                     end
                 end
 
                 W_DATA: begin
                     axi_wready <= 1'b1;
 
-                    if (axi_wvalid && axi_wready) begin
+                    if (axi_wvalid) begin  // axi_wready is always 1 in W_DATA state
                         // First beat: extract header
                         if (beat_count == 0) begin
                             frag_type  <= axi_wdata[127:126];
@@ -238,7 +278,6 @@ module pcie_msg_receiver (
 
                             // Check unknown destination ID (if control bit is disabled)
                             if (!PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15[8]) begin
-                                reg [7:0] dest_id;
                                 dest_id = axi_wdata[111:104];
                                 if (dest_id != 8'h00 && dest_id != 8'hFF &&
                                     dest_id != 8'h10 && dest_id != 8'h11) begin
@@ -269,8 +308,6 @@ module pcie_msg_receiver (
                             // TLP length is in DW (4 bytes), so TLP_len*4 = expected total bytes
                             // For size=5 (32B per beat), we expect specific beat counts
                             if (axi_awsize == 3'd5) begin  // 32B per beat
-                                reg [11:0] expected_beats;
-                                reg [31:0] total_bytes;
                                 total_bytes = {24'h0, axi_wdata[31:24]} * 4;  // DW to bytes
                                 expected_beats = (total_bytes + 31) / 32;  // Round up
                                 if (total_beats != expected_beats) begin
@@ -329,6 +366,30 @@ module pcie_msg_receiver (
                                     queue_write_ptr[msg_tag] <= 12'h0;
                                     queue_timeout[msg_tag] <= 32'h0;  // Reset timeout
 
+                                    // Set Queue Initial Address based on tag
+                                    // Each queue gets 64 beats (2KB = 256 bits * 64 beats) starting from tag*64
+                                    case (msg_tag)
+                                        4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0 <= (4'h0 * 12'd64) * 32;  // Queue 0: address 0
+                                        4'h1: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1 <= (4'h1 * 12'd64) * 32;  // Queue 1: address 2048
+                                        4'h2: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2 <= (4'h2 * 12'd64) * 32;  // Queue 2: address 4096
+                                        4'h3: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3 <= (4'h3 * 12'd64) * 32;
+                                        4'h4: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4 <= (4'h4 * 12'd64) * 32;
+                                        4'h5: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5 <= (4'h5 * 12'd64) * 32;
+                                        4'h6: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6 <= (4'h6 * 12'd64) * 32;
+                                        4'h7: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7 <= (4'h7 * 12'd64) * 32;
+                                        4'h8: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8 <= (4'h8 * 12'd64) * 32;
+                                        4'h9: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9 <= (4'h9 * 12'd64) * 32;
+                                        4'hA: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10 <= (4'hA * 12'd64) * 32;
+                                        4'hB: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11 <= (4'hB * 12'd64) * 32;
+                                        4'hC: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12 <= (4'hC * 12'd64) * 32;
+                                        4'hD: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13 <= (4'hD * 12'd64) * 32;
+                                        4'hE: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14 <= (4'hE * 12'd64) * 32;
+                                        default: begin end
+                                    endcase
+
+                                    // Save current queue index for use in SRAM write
+                                    current_queue_idx <= msg_tag;
+
                                     // Store header (will be replaced by last fragment's header)
                                     queue_data[msg_tag][0] <= current_frag[0];
 
@@ -382,6 +443,9 @@ module pcie_msg_receiver (
                                     queue_write_ptr[msg_tag] <= queue_write_ptr[msg_tag] + current_frag_beats - 1;
                                     queue_total_beats[msg_tag] <= queue_total_beats[msg_tag] + current_frag_beats - 1;
 
+                                    // Save current queue index for use in SRAM write
+                                    current_queue_idx <= msg_tag;
+
                                     $display("[%0t] [ASSEMBLE] Appended M fragment: %0d payload beats (total=%0d)",
                                              $time, current_frag_beats - 1, queue_total_beats[msg_tag] + current_frag_beats - 1);
                                 end else begin
@@ -426,6 +490,9 @@ module pcie_msg_receiver (
                                     asm_total_beats <= queue_total_beats[msg_tag] + current_frag_beats - 1;
                                     asm_beat_count <= 12'h0;
 
+                                    // Save current queue index for use in SRAM write
+                                    current_queue_idx <= msg_tag;
+
                                     $display("[%0t] [ASSEMBLE] COMPLETE: %0d fragments, %0d total beats (including header)",
                                              $time, queue_frag_count[msg_tag] + 1,
                                              queue_total_beats[msg_tag] + current_frag_beats - 1);
@@ -445,6 +512,26 @@ module pcie_msg_receiver (
                                 $display("[%0t] [ASSEMBLE] SINGLE: TAG=%0h, direct to SRAM",
                                          $time, msg_tag);
 
+                                // Set Queue Initial Address based on tag (same as S_PKT)
+                                case (msg_tag)
+                                    4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0 <= (4'h0 * 12'd64) * 32;
+                                    4'h1: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1 <= (4'h1 * 12'd64) * 32;
+                                    4'h2: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2 <= (4'h2 * 12'd64) * 32;
+                                    4'h3: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3 <= (4'h3 * 12'd64) * 32;
+                                    4'h4: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4 <= (4'h4 * 12'd64) * 32;
+                                    4'h5: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5 <= (4'h5 * 12'd64) * 32;
+                                    4'h6: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6 <= (4'h6 * 12'd64) * 32;
+                                    4'h7: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7 <= (4'h7 * 12'd64) * 32;
+                                    4'h8: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8 <= (4'h8 * 12'd64) * 32;
+                                    4'h9: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9 <= (4'h9 * 12'd64) * 32;
+                                    4'hA: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10 <= (4'hA * 12'd64) * 32;
+                                    4'hB: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11 <= (4'hB * 12'd64) * 32;
+                                    4'hC: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12 <= (4'hC * 12'd64) * 32;
+                                    4'hD: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13 <= (4'hD * 12'd64) * 32;
+                                    4'hE: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14 <= (4'hE * 12'd64) * 32;
+                                    default: begin end
+                                endcase
+
                                 // Write directly to SRAM
                                 asm_total_beats <= current_frag_beats;
                                 asm_beat_count <= 12'h0;
@@ -454,6 +541,9 @@ module pcie_msg_receiver (
                                     if (i < current_frag_beats)
                                         queue_data[msg_tag][i] <= current_frag[i];
                                 end
+
+                                // Save current queue index for use in SRAM write
+                                current_queue_idx <= msg_tag;
 
                                 assembled_valid <= 1'b1;
                                 assembled_tag <= msg_tag;
@@ -476,12 +566,30 @@ module pcie_msg_receiver (
 
                     if (asm_beat_count < asm_total_beats - 1) begin
                         sram_wen <= 1'b1;
-                        sram_waddr <= write_addr[9:0] + asm_beat_count;
+                        // Calculate base address from Q_INIT_ADDR based on current_queue_idx
+                        case (current_queue_idx)
+                            4'h0: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0[9:0] + asm_beat_count;
+                            4'h1: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1[9:0] + asm_beat_count;
+                            4'h2: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2[9:0] + asm_beat_count;
+                            4'h3: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3[9:0] + asm_beat_count;
+                            4'h4: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4[9:0] + asm_beat_count;
+                            4'h5: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5[9:0] + asm_beat_count;
+                            4'h6: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6[9:0] + asm_beat_count;
+                            4'h7: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7[9:0] + asm_beat_count;
+                            4'h8: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8[9:0] + asm_beat_count;
+                            4'h9: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9[9:0] + asm_beat_count;
+                            4'hA: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10[9:0] + asm_beat_count;
+                            4'hB: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11[9:0] + asm_beat_count;
+                            4'hC: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[9:0] + asm_beat_count;
+                            4'hD: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13[9:0] + asm_beat_count;
+                            4'hE: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14[9:0] + asm_beat_count;
+                            default: sram_waddr <= asm_beat_count;
+                        endcase
                         sram_wdata <= queue_data[current_queue_idx][asm_beat_count + 1];  // +1 to skip header
 
                         $display("[%0t] [SRAM_WR] Payload beat %0d/%0d: addr=%0h, data=0x%h",
                                  $time, asm_beat_count, asm_total_beats-2,
-                                 write_addr[9:0] + asm_beat_count,
+                                 sram_waddr,
                                  queue_data[current_queue_idx][asm_beat_count + 1]);
 
                         asm_beat_count <= asm_beat_count + 1;
@@ -499,14 +607,15 @@ module pcie_msg_receiver (
                             // INTR_STATUS[0] = completion of queue
                             PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[0] <= 1'b1;
 
-                            // Update write pointer (total beats written to SRAM)
-                            PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] <= asm_total_beats - 1;
+                            // Update write pointer (byte count: each beat is 32 bytes = 256 bits)
+                            // Total payload bytes = (asm_total_beats - 1) * 32
+                            PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] <= (asm_total_beats - 1) * 32;
 
                             // Assert interrupt signal
                             o_msg_interrupt <= 1'b1;
 
-                            $display("[%0t] [SRAM_WR] Interrupt asserted - Assembly complete, WPTR=%0d",
-                                     $time, asm_total_beats - 1);
+                            $display("[%0t] [SRAM_WR] Interrupt asserted - Assembly complete, WPTR=%0d bytes",
+                                     $time, (asm_total_beats - 1) * 32);
                         end
 
                         state <= W_RESP;
