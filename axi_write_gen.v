@@ -263,42 +263,64 @@ output reg   O_BREADY
         tlp_header[31:24] = 8'h20;
  
         $display("\n========================================");
-        $display("TEST incorrect transmission size");
+        $display("TEST: Incorrect Transmission Size (Size Mismatch)");
         $display("========================================\n");
-        // S->L assembly (2 fragments)
+        // S->L assembly (2 fragments) with mismatched sizes
+        $display("[%0t] [WRITE_GEN] Sending S_PKT with 64B size...", $time);
         tlp_header[31:24] = 8'h10; // 64B
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1,
                    {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
                     256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
                     256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
-                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h0);
-        tlp_header[31:24] = 8'h20; // 128B
-        SEND_WRITE({L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
-                   {256'hEEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE,
-                    256'hFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-                    256'h1111_1111_1111_1111_1111_1111_1111_1111,
-                    256'h2222_2222_2222_2222_2222_2222_2222_2222}, 64'h0);
-        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] == 8'h1);
-        #200;
+                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h1000);
 
-        // Restart Test
+        $display("[%0t] [WRITE_GEN] Sending L_PKT with 128B size (mismatch)...", $time);
+        tlp_header[31:24] = 8'h20; // 128B (different size)
+        SEND_WRITE({L_PKT, PKT_SN1, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1,
+                   {256'hEEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE,
+                    256'hFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
+                    256'h1111_1111_1111_1111_1111_1111_1111_1111,
+                    256'h2222_2222_2222_2222_2222_2222_2222_2222}, 64'h1100);
+
+        repeat(50) @(posedge i_clk);
+        $display("[%0t] [WRITE_GEN] Size mismatch error counter = 0x%h", $time,
+                 tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0]);
+
+        $display("\n========================================");
+        $display("TEST: Restart Error Test");
+        $display("========================================\n");
+        // Restart Test: Send S_PKT twice with same source ID, tag, and tag owner
+        // First S_PKT starts assembly
+        $display("[%0t] [WRITE_GEN] Sending first S_PKT (TAG=0, SRC_ID=0x0, TO=1)...", $time);
         SEND_WRITE({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
                    {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
                     256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
                     256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
-                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h0);
+                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'hD00);
+
+        // Second S_PKT with same context (should trigger restart error)
+        $display("[%0t] [WRITE_GEN] Sending second S_PKT (same context, should trigger restart error)...", $time);
         SEND_WRITE({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
                    {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
                     256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
                     256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
-                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h0);
+                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'hE00);
+
+        // Wait for restart error detection
+        $display("[%0t] [WRITE_GEN] Waiting for restart error detection...", $time);
+        repeat(50) @(posedge i_clk);
+        $display("[%0t] [WRITE_GEN] Restart error counter = 0x%h", $time,
+                 tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[15:8]);
+
+        // Complete the assembly with L_PKT
+        $display("[%0t] [WRITE_GEN] Completing assembly with L_PKT...", $time);
         SEND_WRITE({L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
                    {256'hEEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE,
                     256'hFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
                     256'h1111_1111_1111_1111_1111_1111_1111_1111,
-                    256'h2222_2222_2222_2222_2222_2222_2222_2222}, 64'h0);
-        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[15:8] == 8'h1);
-        #200;
+                    256'h2222_2222_2222_2222_2222_2222_2222_2222}, 64'hF00);
+
+        repeat(50) @(posedge i_clk);
 
         // Timeout Test
         SEND_WRITE({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,

@@ -110,6 +110,8 @@ module pcie_msg_receiver (
     reg [7:0]  queue_frag_count [0:14];  // Number of fragments
     reg [11:0] queue_total_beats [0:14]; // Total beats across all fragments
     reg [31:0] queue_timeout [0:14];     // Timeout counter for each queue
+    reg [7:0]  queue_source_id [0:14];   // Source ID for each queue
+    reg        queue_tag_owner [0:14];   // Tag Owner bit for each queue
 
     // Fragment data storage: 15 queues x 16 fragments x 16 beats
     reg [255:0] queue_data [0:14] [0:255];
@@ -193,6 +195,8 @@ module pcie_msg_receiver (
                 queue_total_beats[i] <= 12'h0;
                 queue_write_ptr[i] <= 12'h0;
                 queue_timeout[i] <= 32'h0;
+                queue_source_id[i] <= 8'h0;
+                queue_tag_owner[i] <= 1'b0;
             end
 
             current_frag_beats <= 12'h0;
@@ -368,14 +372,29 @@ module pcie_msg_receiver (
                         case (frag_type)
                             S_PKT: begin
                                 // Start new assembly
-                                $display("[%0t] [ASSEMBLE] START: TAG=%0h, SN=%0d",
-                                         $time, msg_tag, pkt_sn);
+                                $display("[%0t] [ASSEMBLE] START: TAG=%0h, SN=%0d, SRC_ID=0x%h, TO=%0b",
+                                         $time, msg_tag, pkt_sn, axi_wdata[119:112], axi_wdata[123]);
 
                                 // Check restart error (S_PKT received while queue is still active)
+                                // Restart error occurs when:
+                                // 1. Queue is valid and active (state != IDLE)
+                                // 2. Same source ID, msg tag, and tag owner
                                 if (queue_valid[msg_tag] && queue_state[msg_tag] != 2'b00) begin
-                                    PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[15:8] <=
-                                        PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[15:8] + 1;
-                                    $display("[%0t] [ASSEMBLE] ERROR: Restart error (S_PKT while queue active)", $time);
+                                    // Check if source ID and tag owner match (same assembly context)
+                                    if (queue_source_id[msg_tag] == axi_wdata[119:112] &&
+                                        queue_tag_owner[msg_tag] == axi_wdata[123]) begin
+                                        PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[15:8] <=
+                                            PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[15:8] + 1;
+                                        $display("[%0t] [ASSEMBLE] ERROR: Restart error (S_PKT while queue active)", $time);
+                                        $display("[%0t] [ASSEMBLE]   Same context: SRC_ID=0x%h, TAG=%0h, TO=%0b",
+                                                 $time, axi_wdata[119:112], msg_tag, axi_wdata[123]);
+                                    end else begin
+                                        $display("[%0t] [ASSEMBLE] WARNING: Different context on same tag (allowed)", $time);
+                                        $display("[%0t] [ASSEMBLE]   Old: SRC_ID=0x%h, TO=%0b",
+                                                 $time, queue_source_id[msg_tag], queue_tag_owner[msg_tag]);
+                                        $display("[%0t] [ASSEMBLE]   New: SRC_ID=0x%h, TO=%0b",
+                                                 $time, axi_wdata[119:112], axi_wdata[123]);
+                                    end
                                 end
 
                                 if (pkt_sn == 2'b00) begin
@@ -386,6 +405,8 @@ module pcie_msg_receiver (
                                     queue_frag_count[msg_tag] <= 8'h1;
                                     queue_write_ptr[msg_tag] <= 12'h0;
                                     queue_timeout[msg_tag] <= 32'h0;  // Reset timeout
+                                    queue_source_id[msg_tag] <= axi_wdata[119:112];  // Save source ID
+                                    queue_tag_owner[msg_tag] <= axi_wdata[123];      // Save tag owner
 
                                     // Set Queue Initial Address based on tag
                                     // Each queue gets 64 beats (2KB = 256 bits * 64 beats) starting from tag*64
