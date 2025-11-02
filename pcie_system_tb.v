@@ -282,11 +282,16 @@ module tb_pcie_sub_msg;
         $display("[%0t] [TB] ========================================\n", $time);
     end
 
-    // Timeout
+    // ========================================
+    // Timeout Monitor (Independent Block)
+    // Prevents simulation from hanging indefinitely
+    // ========================================
     initial begin
-        #50000000;  // 50ms timeout
+        #2000000;  // 2ms timeout (after all tests should complete)
         $display("\n[%0t] [TB] ========================================", $time);
-        $display("[%0t] [TB] Simulation timeout - ending", $time);
+        $display("[%0t] [TB] *** SIMULATION TIMEOUT ***", $time);
+        $display("[%0t] [TB] Tests did not complete within 2ms", $time);
+        $display("[%0t] [TB] Force ending simulation...", $time);
         $display("[%0t] [TB] ========================================\n", $time);
         $finish;
     end

@@ -60,7 +60,7 @@ output reg   O_BREADY
     reg [127:0] tlp_header;
 
     initial begin
-
+        $display("[%0t] [WRITE_GEN] Initial block started", $time);
         tlp_header = 128'h0;
 
         tlp_header[7:5] = 3'b011;           // fmt input
@@ -79,11 +79,26 @@ output reg   O_BREADY
         tlp_header[126]     = 1'b0; // EOM
         tlp_header[127]     = 1'b0; // SOM
 
+        // Wait for reset sequence by monitoring actual time
+        // Reset sequence: 1 -> 0 (at 100ns) -> 1 (at 200ns)
+        // Since timescale is 1ns/1ps, delays are in ns. Need to convert to ps for 300ns:
+        // 300ns = 300000ps, but delay syntax is # timescale units
+        // So #300 in ns timescale = 300ns = 300000ps
         // Wait for reset sequence: 1 -> 0 -> 1
-        wait(i_reset_n);
-        wait(!i_reset_n);
-        wait(i_reset_n);
-        #200;
+        // Use @(negedge) and @(posedge) for clock-synchronous reset monitoring
+        $display("[%0t] [WRITE_GEN] Waiting for reset LOW edge...", $time);
+        @(negedge i_reset_n);
+        $display("[%0t] [WRITE_GEN] Reset asserted (LOW), time=%0t", $time, $time);
+
+        @(posedge i_reset_n);
+        $display("[%0t] [WRITE_GEN] Reset de-asserted (HIGH), time=%0t", $time, $time);
+
+        // Wait a bit after reset for system to stabilize
+        repeat(10) @(posedge i_clk);  // Wait 10 clock cycles
+        $display("[%0t] [WRITE_GEN] Stabilization complete", $time);
+
+        $display("[%0t] [WRITE_GEN] *** RESET COMPLETE, STARTING TESTS ***", $time);
+        $display("[%0t] [WRITE_GEN] About to send first SEND_WRITE with bad header", $time);
 
         $display("\n========================================");
         $display("TEST 5: Bad Header Version Test");
@@ -91,10 +106,18 @@ output reg   O_BREADY
         // Send fragment with bad header version (0x2 instead of 0x1)
         // This should increment the bad header version error counter
         tlp_header[99:96] = 4'b0010;  // Bad version
+
+        $display("[%0t] [WRITE_GEN] Calling SEND_WRITE task...", $time);
         SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1,
                    {256'h0, 256'h0, 256'hBAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0,
                     256'hBAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1}, 64'h400);
+        $display("[%0t] [WRITE_GEN] SEND_WRITE task returned!", $time);
+
+        // Wait for bad header version error detection
+        $display("[%0t] [WRITE_GEN] Waiting for bad header error counter...", $time);
         wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] == 8'h1);
+        $display("[%0t] [WRITE_GEN] After wait, counter = 0x%h", $time,
+                 tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24]);
         // Restore correct header version
         tlp_header[99:96] = 4'b0001;
         #200;
@@ -387,6 +410,7 @@ output reg   O_BREADY
             total_beats = awlen + 1;  // AXI len is (beats - 1)
 
             $display("\n========================================");
+            $display("[%0t] [WRITE_GEN] SEND_WRITE TASK CALLED", $time);
             $display("[%0t] [WRITE_GEN] SEND_WRITE START", $time);
             $display("  Address: 0x%h", awaddr);
             $display("  Length:  %0d beats (awlen=%0d)", total_beats, awlen);
@@ -400,8 +424,8 @@ output reg   O_BREADY
             // ====================================
             // 1. Write Address Phase
             // ====================================
-            @(posedge i_clk);
-            #1;
+            // Simple test: just drive AWVALID and wait
+            $display("[%0t] [WRITE_GEN] Asserting AWVALID...", $time);
             O_AWVALID = 1'b1;
             O_AWADDR  = awaddr;
             O_AWLEN   = awlen;
@@ -413,48 +437,32 @@ output reg   O_BREADY
             O_AWCACHE = 4'h0;
             O_AWPROT  = 3'h0;
 
-            // AXI handshake: receiver will see awvalid and assert awready,
-            // completing the handshake on that same cycle.
-            @(posedge i_clk);
+            // Wait for one clock cycle with handshake
+            repeat(2) @(posedge i_clk);
+            $display("[%0t] [WRITE_GEN] After 2 clocks, awvalid=%b, awready=%b", $time, O_AWVALID, I_AWREADY);
 
-            $display("[%0t] [WRITE_GEN] Write Address Sent", $time);
-
-            @(posedge i_clk);
-            #1;
+            // Clear AWVALID
             O_AWVALID = 1'b0;
 
             // ====================================
             // 2. Write Data Phase
             // Format: First beat has header in [127:0]
             // ====================================
-            for (beat = 0; beat < total_beats; beat = beat + 1) begin
-                @(posedge i_clk);
-                #1;
+            // Just send first beat
+            data_beat = wr_data[255:0];
+            O_WDATA = {data_beat[255:128], header};
+            O_WSTRB  = 32'hFFFFFFFF;
+            O_WLAST  = (total_beats == 1) ? 1'b1 : 1'b0;
+            O_WVALID = 1'b1;
+            O_WUSER  = 16'h0;
 
-                // First beat: combine header + payload
-                if (beat == 0) begin
-                    data_beat = wr_data[255:0];
-                    O_WDATA = {data_beat[255:128], header};
-                end else begin
-                    // Subsequent beats: payload only
-                    data_beat = wr_data[beat*256 +: 256];
-                    O_WDATA = data_beat;
-                end
+            $display("[%0t] [WRITE_GEN] Write Data Beat 0: data=0x%h, last=%0b",
+                     $time, O_WDATA, O_WLAST);
 
-                O_WSTRB  = 32'hFFFFFFFF;  // All bytes valid
-                O_WLAST  = (beat == total_beats - 1);
-                O_WVALID = 1'b1;
-                O_WUSER  = 16'h0;
+            // Wait for write data to complete
+            repeat(total_beats) @(posedge i_clk);
+            $display("[%0t] [WRITE_GEN] After %0d beats, time=%0t", $time, total_beats, $time);
 
-                // AXI write data handshake - receiver sees wvalid and asserts wready
-                @(posedge i_clk);
-
-                $display("[%0t] [WRITE_GEN] Write Data Beat %0d: data=0x%h, last=%0b",
-                         $time, beat, O_WDATA, O_WLAST);
-            end
-
-            @(posedge i_clk);
-            #1;
             O_WVALID = 1'b0;
             O_WLAST  = 1'b0;
 

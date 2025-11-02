@@ -262,14 +262,23 @@ module pcie_msg_receiver (
                                      axi_wdata[125:124], axi_wdata[123:120],
                                      axi_wdata[99:96], axi_wdata[119:0]);
 
-                            // Check header version
+                            // ========================================
+                            // Check header version (DEBUG)
+                            // ========================================
+                            $display("[%0t] [MSG_RX] === HEADER VERSION CHECK ===", $time);
+                            $display("[%0t] [MSG_RX]   Expected Version: 0x%h (EXPECTED_HDR_VER)", $time, EXPECTED_HDR_VER);
+                            $display("[%0t] [MSG_RX]   Received Version: 0x%h (bits [99:96])", $time, axi_wdata[99:96]);
+                            $display("[%0t] [MSG_RX]   Match: %s", $time, (axi_wdata[99:96] == EXPECTED_HDR_VER) ? "YES ✓" : "NO ✗");
+
                             if (axi_wdata[99:96] != EXPECTED_HDR_VER) begin
                                 PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] <=
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] + 1;
-                                $display("[%0t] [MSG_RX] ERROR: Bad header version! Expected=0x%h, Received=0x%h",
+                                $display("[%0t] [MSG_RX] *** BAD HEADER VERSION DETECTED ***", $time);
+                                $display("[%0t] [MSG_RX] Expected=0x%h, Received=0x%h",
                                          $time, EXPECTED_HDR_VER, axi_wdata[99:96]);
-                                $display("[%0t] [MSG_RX] Bad header version counter: %0d",
+                                $display("[%0t] [MSG_RX] Error counter incremented to: %0d",
                                          $time, PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] + 1);
+                                $display("[%0t] [MSG_RX] DEBUG_31[31:24] = 0x%h", $time, PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] + 1);
 
                                 // Set error interrupt (INTR_STATUS[3] = all queue error)
                                 PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[3] <= 1'b1;
