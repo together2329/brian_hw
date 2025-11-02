@@ -126,6 +126,7 @@ module pcie_msg_receiver (
     // Assembly write control
     reg [11:0] asm_beat_count;
     reg [11:0] asm_total_beats;
+    reg [1:0] asm_padding_bytes;  // Padding bytes from L_PKT header[53:52]
 
     // Temporary variables for error checking
     reg [7:0] dest_id;
@@ -133,6 +134,8 @@ module pcie_msg_receiver (
     reg [31:0] total_bytes;
     reg [7:0] tx_size_dw;
     reg [31:0] tx_size_bytes;
+    reg [1:0] padding_bytes;
+    reg [11:0] payload_beats_with_padding;
 
     integer i;
 
@@ -205,6 +208,7 @@ module pcie_msg_receiver (
             current_queue_idx <= 4'h0;
             asm_beat_count <= 12'h0;
             asm_total_beats <= 12'h0;
+            asm_padding_bytes <= 2'h0;
 
         end else begin
             // Default
@@ -532,6 +536,18 @@ module pcie_msg_receiver (
                                     queue_frag_count[msg_tag] <= queue_frag_count[msg_tag] + 1;
                                     queue_timeout[msg_tag] <= 32'h0;  // Reset timeout
 
+                                    // Extract padding from header[53:52]
+                                    padding_bytes = current_frag[0][53:52];
+                                    asm_padding_bytes <= current_frag[0][53:52];  // Save for WPTR calculation
+
+                                    // Calculate payload beats accounting for padding
+                                    // current_frag_beats includes header (beat 0)
+                                    // For L_PKT, we need to subtract padding from the last payload beat
+                                    // Each beat is 32 bytes, so if padding < 32, it affects only the beat count
+                                    // Actual implementation: payload_beats = current_frag_beats - 1 (same as before)
+                                    // But we track that the last fragment has 'padding_bytes' of padding
+                                    payload_beats_with_padding = current_frag_beats - 1;
+
                                     // Update header with L_PKT header (replaces S_PKT header)
                                     queue_data[msg_tag][0] <= current_frag[0];
 
@@ -540,8 +556,11 @@ module pcie_msg_receiver (
                                         if (i < current_frag_beats)
                                             queue_data[msg_tag][queue_write_ptr[msg_tag] + i - 1] <= current_frag[i];
                                     end
-                                    asm_total_beats <= queue_total_beats[msg_tag] + current_frag_beats - 1;
+                                    asm_total_beats <= queue_total_beats[msg_tag] + payload_beats_with_padding;
                                     asm_beat_count <= 12'h0;
+
+                                    $display("[%0t] [ASSEMBLE] L_PKT padding: %0d bytes (header[53:52]=%0b)",
+                                             $time, padding_bytes, current_frag[0][53:52]);
 
                                     // Save current queue index for use in SRAM write
                                     current_queue_idx <= msg_tag;
@@ -585,9 +604,16 @@ module pcie_msg_receiver (
                                     default: begin end
                                 endcase
 
+                                // Extract padding from header[53:52] for SG_PKT
+                                padding_bytes = current_frag[0][53:52];
+                                asm_padding_bytes <= current_frag[0][53:52];
+
                                 // Write directly to SRAM
                                 asm_total_beats <= current_frag_beats;
                                 asm_beat_count <= 12'h0;
+
+                                $display("[%0t] [ASSEMBLE] SG_PKT padding: %0d bytes (header[53:52]=%0b)",
+                                         $time, current_frag[0][53:52], current_frag[0][53:52]);
 
                                 // Copy to queue temporarily
                                 for (i = 0; i < 16; i = i + 1) begin
@@ -660,15 +686,17 @@ module pcie_msg_receiver (
                             // INTR_STATUS[0] = completion of queue
                             PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[0] <= 1'b1;
 
-                            // Update write pointer (byte count: each beat is 32 bytes = 256 bits)
-                            // Total payload bytes = (asm_total_beats - 1) * 32
-                            PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] <= (asm_total_beats - 1) * 32;
+                            // Update write pointer (byte count)
+                            // WPTR = TLP_length (in DW) × 4 bytes - padding_bytes
+                            // TLP length is in header[31:24] from queue_data[current_queue_idx][0]
+                            PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] <= (queue_data[current_queue_idx][0][31:24] * 4) - asm_padding_bytes;
 
                             // Assert interrupt signal
                             o_msg_interrupt <= 1'b1;
 
-                            $display("[%0t] [SRAM_WR] Interrupt asserted - Assembly complete, WPTR=%0d bytes",
-                                     $time, (asm_total_beats - 1) * 32);
+                            $display("[%0t] [SRAM_WR] Interrupt asserted - Assembly complete, WPTR=%0d bytes (TLP_len=%0d DW, padding=%0d)",
+                                     $time, (queue_data[current_queue_idx][0][31:24] * 4) - asm_padding_bytes,
+                                     queue_data[current_queue_idx][0][31:24], asm_padding_bytes);
                         end
 
                         state <= W_RESP;

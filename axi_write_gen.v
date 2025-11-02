@@ -294,6 +294,65 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Size mismatch error counter = 0x%h", $time,
                  tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0]);
 
+        // ========================================
+        // Padding Test
+        // ========================================
+        $display("\n========================================");
+        $display("TEST: Padding Test (0, 1, 2, 3 bytes)");
+        $display("========================================\n");
+
+        // Test 1: No padding (padding = 0)
+        // TLP: 16 DW = 64B payload
+        // Beat 0: 16B header + 16B payload, Beat 1: 32B payload, Beat 2: 16B payload
+        // awlen = 2 (3 beats total)
+        $display("[%0t] [WRITE_GEN] Test 1: SG_PKT with 0 byte padding, TLP_len=16 DW (64B)", $time);
+        tlp_header[53:52] = 2'b00; // 0B padding
+        tlp_header[31:24] = 8'h10; // 64B = 16 DW
+        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 2, 1,
+                   {256'h0, 256'hAA00_AA00_AA00_AA00_AA00_AA00_AA00_AA00,
+                    256'hBB00_BB00_BB00_BB00_BB00_BB00_BB00_BB00,
+                    256'hCC00_CC00_CC00_CC00_CC00_CC00_CC00_CC00}, 64'h2000);
+        repeat(50) @(posedge i_clk);
+        $display("[%0t] [WRITE_GEN] Test 1: Expected WPTR=%0d, Actual WPTR=%0d",
+                 $time, 64, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
+
+        // Test 2: 1 byte padding
+        $display("[%0t] [WRITE_GEN] Test 2: SG_PKT with 1 byte padding, TLP_len=16 DW (64B - 1B = 63B)", $time);
+        tlp_header[53:52] = 2'b01; // 1B padding
+        tlp_header[31:24] = 8'h10; // 64B = 16 DW
+        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 2, 1,
+                   {256'h0, 256'hAA01_AA01_AA01_AA01_AA01_AA01_AA01_AA01,
+                    256'hBB01_BB01_BB01_BB01_BB01_BB01_BB01_BB01,
+                    256'hCC01_CC01_CC01_CC01_CC01_CC01_CC01_CC01}, 64'h2100);
+        repeat(50) @(posedge i_clk);
+        $display("[%0t] [WRITE_GEN] Test 2: Expected WPTR=%0d, Actual WPTR=%0d",
+                 $time, 63, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
+
+        // Test 3: 2 byte padding
+        // TLP: 2 DW = 8B, Total with header = 24B, awlen = 0 (1 beat, all in first beat)
+        $display("[%0t] [WRITE_GEN] Test 3: SG_PKT with 2 byte padding, TLP_len=2 DW (8B - 2B = 6B)", $time);
+        tlp_header[53:52] = 2'b10; // 2B padding
+        tlp_header[31:24] = 8'h02; // 8B = 2 DW
+        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 0, 1,
+                   {256'h0, 256'h0, 256'h0, 256'h0}, 64'h2200);
+        repeat(50) @(posedge i_clk);
+        $display("[%0t] [WRITE_GEN] Test 3: Expected WPTR=%0d, Actual WPTR=%0d",
+                 $time, 6, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
+
+        // Test 4: 3 byte padding
+        $display("[%0t] [WRITE_GEN] Test 4: SG_PKT with 3 byte padding, TLP_len=2 DW (8B - 3B = 5B)", $time);
+        tlp_header[53:52] = 2'b11; // 3B padding
+        tlp_header[31:24] = 8'h02; // 8B = 2 DW
+        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 0, 1,
+                   {256'h0, 256'h0, 256'h0, 256'h0}, 64'h2300);
+        repeat(50) @(posedge i_clk);
+        $display("[%0t] [WRITE_GEN] Test 4: Expected WPTR=%0d, Actual WPTR=%0d",
+                 $time, 5, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
+
+        // Reset padding for subsequent tests
+        tlp_header[53:52] = 2'b00; // 0B padding
+        tlp_header[31:24] = 8'h10; // 64B
+
         $display("\n========================================");
         $display("TEST: Restart Error Test");
         $display("========================================\n");
@@ -381,15 +440,6 @@ output reg   O_BREADY
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Out-of-sequence error counter = 0x%h", $time,
                  tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24]);
-
-        // Padding Test
-        tlp_header[53:52] = 2'b10; // 2B padding
-        tlp_header[31:24] = 8'h2; // 8B
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1,
-                   {256'h0, 256'h0, 256'hBAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0,
-                    256'hBAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1}, 64'h400);
-        tlp_header[53:52] = 2'b0; // 2B padding
-        tlp_header[31:24] = 8'h10; // 64B
 
         // Multi Packet 64B, 68B (unaligned)
         tlp_header[31:24] = 8'h11; // 68B
