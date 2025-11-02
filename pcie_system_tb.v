@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module pcie_system_tb;
+module tb_pcie_sub_msg;
 
     // Clock and Reset
     reg clk;
@@ -74,7 +74,7 @@ module pcie_system_tb;
 
     // SFR Interrupt Registers
     wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0;
-    wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0;
+    reg  [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0;
 
     // Queue Write Pointer Register
     wire [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0;
@@ -205,19 +205,6 @@ module pcie_system_tb;
     assign axi_bid = 7'h0;
     assign axi_rid = 7'h0;
 
-    // Create tb_pcie_sub_msg module wrapper for hierarchical signal access
-    tb_pcie_sub_msg_wrapper tb_pcie_sub_msg (
-        .DEBUG_31_in(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31),
-        .DEBUG_30_in(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30),
-        .DEBUG_29_in(PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29),
-        .CONTROL15_in(PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15),
-        .CONTROL15_out(PCIE_SFR_AXI_MSG_HANDLER_RX_CONTROL15),
-        .INTR_STATUS_0_in(PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0),
-        .INTR_CLEAR_0_in(PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0),
-        .WPTR_0_in(PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0),
-        .MSG_INTR_in(o_msg_interrupt)
-    );
-
     // Clock generation (100MHz)
     initial begin
         clk = 0;
@@ -230,6 +217,8 @@ module pcie_system_tb;
         $display("[%0t] [TB] PCIe Assembly System Test Started", $time);
         $display("[%0t] [TB] ========================================\n", $time);
 
+        // Initialize interrupt clear register
+        PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0 = 32'h0;
 
         // Reset sequence: 1 -> 0 -> 1 (as required)
         rst_n = 1;
@@ -273,7 +262,7 @@ module pcie_system_tb;
     // Waveform dump
     initial begin
         $dumpfile("pcie_system.vcd");
-        $dumpvars(0, pcie_system_tb);
+        $dumpvars(0, tb_pcie_sub_msg);
     end
 
     // Monitor message reception

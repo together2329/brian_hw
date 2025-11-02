@@ -48,7 +48,7 @@ module pcie_msg_receiver (
 
     // SFR Interrupt Registers (Queue 0)
     output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0,
+    input  wire [31:0] PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0,
 
     // Queue Write Pointer Register (Queue 0)
     output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0,
@@ -136,7 +136,6 @@ module pcie_msg_receiver (
 
             // Initialize Interrupt registers
             PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0 <= 32'h0;
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0 <= 32'h0;
 
             // Initialize Queue Write Pointer
             PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0 <= 32'h0;
@@ -527,6 +526,19 @@ module pcie_msg_receiver (
 
                 default: state <= IDLE;
             endcase
+
+            // Handle INTR_CLEAR register writes
+            // When software writes 1 to INTR_CLEAR[bit], clear corresponding INTR_STATUS[bit]
+            for (i = 0; i < 32; i = i + 1) begin
+                if (PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0[i]) begin
+                    PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[i] <= 1'b0;
+                    if (i == 0) begin
+                        $display("[%0t] [MSG_RX] INTR_STATUS[0] cleared (Assembly completion)", $time);
+                    end else if (i == 3) begin
+                        $display("[%0t] [MSG_RX] INTR_STATUS[3] cleared (Error)", $time);
+                    end
+                end
+            end
         end
     end
 

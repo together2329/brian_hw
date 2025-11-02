@@ -398,19 +398,45 @@ output reg  rready
 
     task WAIT_INTR_ERR;
       begin
-        // TODO: Implement interrupt error wait logic
-        // wait(tb_pcie_sub_msg.o_msg_interrupt == 1);
-        // force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0[3] = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[3];
+        // Wait for error interrupt
+        wait(tb_pcie_sub_msg.o_msg_interrupt == 1);
+        $display("[%0t] [READ_GEN] Error interrupt detected", $time);
+
+        // Clear the error interrupt by writing to INTR_CLEAR[3]
+        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0[3] = 1'b1;
+        #10;
+        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0;
+
+        $display("[%0t] [READ_GEN] Error interrupt cleared", $time);
       end
     endtask
 
     task WAIT_INTR;
       input [31:0] expected_wptr;
       begin
-        // TODO: Implement interrupt wait logic
-        // PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[0];
-        // PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0[15:0];
-        // PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0];
+        // Wait for completion interrupt (INTR_STATUS[0])
+        wait(tb_pcie_sub_msg.o_msg_interrupt == 1);
+        $display("[%0t] [READ_GEN] Completion interrupt detected", $time);
+
+        // Check write pointer
+        $display("[%0t] [READ_GEN] Write Pointer: 0x%h (expected: 0x%h)",
+                 $time,
+                 tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0],
+                 expected_wptr);
+
+        // Verify write pointer matches expected value
+        if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] != expected_wptr) begin
+          $display("[%0t] [READ_GEN] ERROR: WPTR mismatch!", $time);
+        end else begin
+          $display("[%0t] [READ_GEN] WPTR verified correctly", $time);
+        end
+
+        // Clear the completion interrupt by writing to INTR_CLEAR[0]
+        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0[0] = 1'b1;
+        #10;
+        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0;
+
+        $display("[%0t] [READ_GEN] Completion interrupt cleared", $time);
       end
     endtask
 
