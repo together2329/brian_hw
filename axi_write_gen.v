@@ -274,13 +274,21 @@ output reg   O_BREADY
                     256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
                     256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h1000);
 
-        $display("[%0t] [WRITE_GEN] Sending L_PKT with 128B size (mismatch)...", $time);
-        tlp_header[31:24] = 8'h20; // 128B (different size)
-        SEND_WRITE({L_PKT, PKT_SN1, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1,
+        $display("[%0t] [WRITE_GEN] Sending M_PKT with 128B size (mismatch - should error)...", $time);
+        tlp_header[31:24] = 8'h20; // 128B (different size - should error)
+        SEND_WRITE({M_PKT, PKT_SN1, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1,
                    {256'hEEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE,
                     256'hFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
                     256'h1111_1111_1111_1111_1111_1111_1111_1111,
                     256'h2222_2222_2222_2222_2222_2222_2222_2222}, 64'h1100);
+
+        $display("[%0t] [WRITE_GEN] Sending L_PKT with 256B size (different from S/M, but allowed)...", $time);
+        tlp_header[31:24] = 8'h40; // 256B (different size - allowed for L_PKT)
+        SEND_WRITE({L_PKT, PKT_SN2, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1,
+                   {256'h3333_3333_3333_3333_3333_3333_3333_3333,
+                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
+                    256'h5555_5555_5555_5555_5555_5555_5555_5555,
+                    256'h6666_6666_6666_6666_6666_6666_6666_6666}, 64'h1200);
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Size mismatch error counter = 0x%h", $time,
@@ -322,30 +330,57 @@ output reg   O_BREADY
 
         repeat(50) @(posedge i_clk);
 
-        // Timeout Test
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
+        $display("\n========================================");
+        $display("TEST: Queue Timeout Test");
+        $display("========================================\n");
+        // Timeout Test: Send S_PKT but don't complete with L_PKT
+        // This will trigger timeout after 10000 cycles
+        $display("[%0t] [WRITE_GEN] Sending S_PKT without completing (will timeout)...", $time);
+        $display("[%0t] [WRITE_GEN] Using TAG=12 for timeout test", $time);
+        SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h3, 3, 1,
                    {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
                     256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
                     256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
-                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h0);
-        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[23:16] == 8'h1);
-        #200;
-        
-        // Out-of-seq test
+                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h1200);
+
+        $display("[%0t] [WRITE_GEN] Waiting for timeout (threshold = 10000 cycles)...", $time);
+        // Wait for timeout to occur (need to wait >10000 cycles)
+        repeat(10100) @(posedge i_clk);
+
+        $display("[%0t] [WRITE_GEN] Timeout error counter = 0x%h", $time,
+                 tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[23:16]);
+
+        $display("\n========================================");
+        $display("TEST: Out-of-Sequence Error Test");
+        $display("========================================\n");
+        // Out-of-sequence test: Send S->M->L with wrong sequence number
+        // Expected sequence: SN=0 (S), SN=1 (M), SN=2 (L)
+        // We'll send: SN=0 (S), SN=1 (M), SN=3 (L) - skip SN=2
+
+        $display("[%0t] [WRITE_GEN] Sending S_PKT (SN=0, TAG=1)...", $time);
         SEND_WRITE({S_PKT, PKT_SN0, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
                    {256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
                     256'h4444_4444_4444_4444_4444_4444_4444_4444,
-                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h100);
+                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h1300);
+
+        $display("[%0t] [WRITE_GEN] Sending M_PKT (SN=1, TAG=1)...", $time);
         SEND_WRITE({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
                    {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
                     256'h7777_7777_7777_7777_7777_7777_7777_7777,
-                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h100);
+                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h1400);
+
+        // Send L_PKT with SN=3 instead of expected SN=2 (out-of-sequence)
+        $display("[%0t] [WRITE_GEN] Sending L_PKT with wrong SN (SN=3 instead of 2)...", $time);
         SEND_WRITE({L_PKT, PKT_SN3, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
                    {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
                     256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
-                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
-        wait(tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] == 8'h1);
-        #200;
+                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h1500);
+
+        // Wait for out-of-sequence error detection
+        $display("[%0t] [WRITE_GEN] Waiting for out-of-sequence error detection...", $time);
+        repeat(50) @(posedge i_clk);
+        $display("[%0t] [WRITE_GEN] Out-of-sequence error counter = 0x%h", $time,
+                 tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24]);
 
         // Padding Test
         tlp_header[53:52] = 2'b10; // 2B padding

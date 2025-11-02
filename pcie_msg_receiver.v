@@ -112,6 +112,7 @@ module pcie_msg_receiver (
     reg [31:0] queue_timeout [0:14];     // Timeout counter for each queue
     reg [7:0]  queue_source_id [0:14];   // Source ID for each queue
     reg        queue_tag_owner [0:14];   // Tag Owner bit for each queue
+    reg [7:0]  queue_tx_size [0:14];     // Transmission size (TLP length field) for S/M packets
 
     // Fragment data storage: 15 queues x 16 fragments x 16 beats
     reg [255:0] queue_data [0:14] [0:255];
@@ -197,6 +198,7 @@ module pcie_msg_receiver (
                 queue_timeout[i] <= 32'h0;
                 queue_source_id[i] <= 8'h0;
                 queue_tag_owner[i] <= 1'b0;
+                queue_tx_size[i] <= 8'h0;
             end
 
             current_frag_beats <= 12'h0;
@@ -405,8 +407,9 @@ module pcie_msg_receiver (
                                     queue_frag_count[msg_tag] <= 8'h1;
                                     queue_write_ptr[msg_tag] <= 12'h0;
                                     queue_timeout[msg_tag] <= 32'h0;  // Reset timeout
-                                    queue_source_id[msg_tag] <= axi_wdata[119:112];  // Save source ID
-                                    queue_tag_owner[msg_tag] <= axi_wdata[123];      // Save tag owner
+                                    queue_source_id[msg_tag] <= current_frag[0][119:112];  // Save source ID
+                                    queue_tag_owner[msg_tag] <= current_frag[0][123];      // Save tag owner
+                                    queue_tx_size[msg_tag] <= current_frag[0][31:24];      // Save transmission size (TLP length)
 
                                     // Set Queue Initial Address based on tag
                                     // Each queue gets 64 beats (2KB = 256 bits * 64 beats) starting from tag*64
@@ -461,6 +464,14 @@ module pcie_msg_receiver (
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] <=
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] + 1;
                                     $display("[%0t] [ASSEMBLE] ERROR: Middle without first (TAG=%0h)", $time, msg_tag);
+                                end
+
+                                // Check transmission size mismatch (M_PKT must match S_PKT size)
+                                if (queue_valid[msg_tag] && (current_frag[0][31:24] != queue_tx_size[msg_tag])) begin
+                                    PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] <=
+                                        PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] + 1;
+                                    $display("[%0t] [ASSEMBLE] ERROR: Size mismatch (S_PKT=%0dB, M_PKT=%0dB)",
+                                             $time, queue_tx_size[msg_tag] * 4, current_frag[0][31:24] * 4);
                                 end
 
                                 // Check out-of-sequence
