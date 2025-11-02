@@ -238,6 +238,7 @@ module pcie_msg_receiver (
                                  $time, axi_awaddr, axi_awlen + 1);
                     end else begin
                         axi_awready <= 1'b1;
+                        $display("[%0t] [MSG_RX] IDLE: awready=1, waiting for awvalid", $time);
                     end
                 end
 
@@ -632,6 +633,7 @@ module pcie_msg_receiver (
                 end
 
                 W_RESP: begin
+                    $display("[%0t] [MSG_RX] W_RESP state: bvalid=%b, bready=%b", $time, axi_bvalid, axi_bready);
                     axi_bvalid <= 1'b1;
                     axi_bresp <= 2'b00;  // OKAY
 
@@ -639,6 +641,8 @@ module pcie_msg_receiver (
                         $display("[%0t] [MSG_RX] Response sent: OKAY\n", $time);
                         axi_bvalid <= 1'b0;
                         state <= IDLE;
+                    end else begin
+                        $display("[%0t] [MSG_RX] Waiting for handshake (bvalid=%b, bready=%b)", $time, axi_bvalid, axi_bready);
                     end
                 end
 

@@ -61,6 +61,13 @@ output reg   O_BREADY
 
     initial begin
         $display("[%0t] [WRITE_GEN] Initial block started", $time);
+
+        // Initialize all output signals
+        O_AWVALID = 1'b0;
+        O_WVALID = 1'b0;
+        O_WLAST = 1'b0;
+        O_BREADY = 1'b1;  // Keep BREADY always high
+
         tlp_header = 128'h0;
 
         tlp_header[7:5] = 3'b011;           // fmt input
@@ -431,8 +438,15 @@ output reg   O_BREADY
             // ====================================
             // 1. Write Address Phase
             // ====================================
-            // Simple test: just drive AWVALID and wait
-            $display("[%0t] [WRITE_GEN] Asserting AWVALID...", $time);
+            $display("[%0t] [WRITE_GEN] Starting address phase...", $time);
+
+            // Wait for AWREADY to be ready first
+            while (!I_AWREADY) begin
+                @(posedge i_clk);
+            end
+            $display("[%0t] [WRITE_GEN] AWREADY is high, asserting AWVALID...", $time);
+
+            // Now assert AWVALID along with address signals
             O_AWVALID = 1'b1;
             O_AWADDR  = awaddr;
             O_AWLEN   = awlen;
@@ -444,9 +458,9 @@ output reg   O_BREADY
             O_AWCACHE = 4'h0;
             O_AWPROT  = 3'h0;
 
-            // Wait for one clock cycle with handshake
-            repeat(2) @(posedge i_clk);
-            $display("[%0t] [WRITE_GEN] After 2 clocks, awvalid=%b, awready=%b", $time, O_AWVALID, I_AWREADY);
+            // Wait one clock for handshake to complete
+            @(posedge i_clk);
+            $display("[%0t] [WRITE_GEN] Address handshake complete", $time);
 
             // Clear AWVALID
             O_AWVALID = 1'b0;
@@ -455,20 +469,31 @@ output reg   O_BREADY
             // 2. Write Data Phase
             // Format: First beat has header in [127:0]
             // ====================================
-            // Just send first beat
-            data_beat = wr_data[255:0];
-            O_WDATA = {data_beat[255:128], header};
-            O_WSTRB  = 32'hFFFFFFFF;
-            O_WLAST  = (total_beats == 1) ? 1'b1 : 1'b0;
-            O_WVALID = 1'b1;
-            O_WUSER  = 16'h0;
+            // Send all beats
+            for (beat = 0; beat < total_beats; beat = beat + 1) begin
+                if (beat == 0) begin
+                    // First beat: header in lower 128 bits
+                    data_beat = wr_data[255:0];
+                    O_WDATA = {data_beat[255:128], header};
+                end else begin
+                    // Subsequent beats: just data
+                    data_beat = wr_data[(beat * 256) +: 256];
+                    O_WDATA = data_beat;
+                end
 
-            $display("[%0t] [WRITE_GEN] Write Data Beat 0: data=0x%h, last=%0b",
-                     $time, O_WDATA, O_WLAST);
+                O_WSTRB  = 32'hFFFFFFFF;
+                O_WLAST  = (beat == total_beats - 1) ? 1'b1 : 1'b0;
+                O_WVALID = 1'b1;
+                O_WUSER  = 16'h0;
 
-            // Wait for write data to complete
-            repeat(total_beats) @(posedge i_clk);
-            $display("[%0t] [WRITE_GEN] After %0d beats, time=%0t", $time, total_beats, $time);
+                $display("[%0t] [WRITE_GEN] Write Data Beat %0d: data=0x%h, last=%0b",
+                         $time, beat, O_WDATA, O_WLAST);
+
+                // Wait for one clock for handshake
+                @(posedge i_clk);
+            end
+
+            $display("[%0t] [WRITE_GEN] All %0d beats sent", $time, total_beats);
 
             O_WVALID = 1'b0;
             O_WLAST  = 1'b0;
@@ -476,18 +501,20 @@ output reg   O_BREADY
             // ====================================
             // 3. Write Response Phase
             // ====================================
-            O_BREADY = 1'b1;
+            // BREADY is always high, just wait for BVALID
+            $display("[%0t] [WRITE_GEN] Waiting for write response...", $time);
 
-            // AXI write response handshake - receiver asserts bvalid
-            repeat(2) @(posedge i_clk);
+            // Wait for BVALID
+            while (!I_BVALID) begin
+                @(posedge i_clk);
+            end
+            $display("[%0t] [WRITE_GEN] BVALID received", $time);
 
             $display("[%0t] [WRITE_GEN] Write Response: bresp=%0d (%s)",
                      $time, I_BRESP,
                      (I_BRESP == 2'b00) ? "OKAY" :
                      (I_BRESP == 2'b01) ? "EXOKAY" :
                      (I_BRESP == 2'b10) ? "SLVERR" : "DECERR");
-
-            O_BREADY = 1'b0;
 
             $display("[%0t] [WRITE_GEN] SEND_WRITE COMPLETE", $time);
             $display("========================================\n");
