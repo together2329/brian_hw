@@ -54,21 +54,21 @@ module pcie_msg_receiver (
     output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0,
 
     // Queue Initial Address Registers (15 queues)
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13,
-    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_2,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_3,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_4,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_5,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_6,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_7,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_8,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_9,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_11,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_13,
+    output reg [31:0]  PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_14,
 
     // Interrupt signal
     output reg         o_msg_interrupt
@@ -110,8 +110,8 @@ module pcie_msg_receiver (
     reg [7:0]  queue_frag_count [0:14];  // Number of fragments
     reg [11:0] queue_total_beats [0:14]; // Total beats across all fragments
     reg [31:0] queue_timeout [0:14];     // Timeout counter for each queue
-    reg [7:0]  queue_source_id [0:14];   // Source ID for each queue
-    reg        queue_tag_owner [0:14];   // Tag Owner bit for each queue
+    reg [7:0]  src_endpoint_id [0:14];   // Source ID for each queue
+    reg        tag_owner [0:14];   // Tag Owner bit for each queue
     reg [2:0]  queue_tag [0:14];         // TAG (3 bits) for each queue
     reg [7:0]  queue_tx_size [0:14];     // Transmission size (TLP length field) for S/M packets
     reg [15:0] queue_accumulated_tlp_bytes [0:14]; // Accumulated TLP payload bytes
@@ -162,8 +162,8 @@ module pcie_msg_receiver (
             for (k = 0; k < 15; k = k + 1) begin
                 if (queue_valid[k] && queue_state[k] != 2'b00 &&
                     queue_tag[k] == tag &&
-                    queue_tag_owner[k] == to &&
-                    queue_source_id[k] == src_id) begin
+                    tag_owner[k] == to &&
+                    src_endpoint_id[k] == src_id) begin
                     find_queue = k[3:0];
                 end
             end
@@ -212,21 +212,21 @@ module pcie_msg_receiver (
 
             // Initialize Queue Initial Address Registers (all 15 queues)
             // Queue N address = N * 64 beats * 32 bytes
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0 <= (0 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1 <= (1 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2 <= (2 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3 <= (3 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4 <= (4 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5 <= (5 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6 <= (6 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7 <= (7 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8 <= (8 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9 <= (9 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10 <= (10 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11 <= (11 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12 <= (12 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13 <= (13 * 64 * 32);
-            PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14 <= (14 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0 <= (0 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1 <= (1 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_2 <= (2 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_3 <= (3 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_4 <= (4 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_5 <= (5 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_6 <= (6 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_7 <= (7 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_8 <= (8 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_9 <= (9 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10 <= (10 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_11 <= (11 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12 <= (12 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_13 <= (13 * 64 * 32);
+            PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_14 <= (14 * 64 * 32);
 
             // Initialize interrupt signal
             o_msg_interrupt <= 1'b0;
@@ -240,8 +240,8 @@ module pcie_msg_receiver (
                 queue_total_beats[i] <= 12'h0;
                 queue_write_ptr[i] <= 12'h0;
                 queue_timeout[i] <= 32'h0;
-                queue_source_id[i] <= 8'h0;
-                queue_tag_owner[i] <= 1'b0;
+                src_endpoint_id[i] <= 8'h0;
+                tag_owner[i] <= 1'b0;
                 queue_tag[i] <= 3'h0;
                 queue_tx_size[i] <= 8'h0;
                 queue_accumulated_tlp_bytes[i] <= 16'h0;
@@ -449,8 +449,8 @@ module pcie_msg_receiver (
                                 // 2. Same source ID, tag, and tag owner
                                 if (queue_valid[allocated_queue_idx] && queue_state[allocated_queue_idx] != 2'b00) begin
                                     // Check if source ID and tag owner match (same assembly context)
-                                    if (queue_source_id[allocated_queue_idx] == src_id_field &&
-                                        queue_tag_owner[allocated_queue_idx] == to_field &&
+                                    if (src_endpoint_id[allocated_queue_idx] == src_id_field &&
+                                        tag_owner[allocated_queue_idx] == to_field &&
                                         queue_tag[allocated_queue_idx] == tag_field) begin
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[15:8] <=
                                             PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[15:8] + 1;
@@ -460,7 +460,7 @@ module pcie_msg_receiver (
                                     end else begin
                                         $display("[%0t] [ASSEMBLE] WARNING: Different context (allowed)", $time);
                                         $display("[%0t] [ASSEMBLE]   Old: SRC_ID=0x%h, TAG=%0d, TO=%0b",
-                                                 $time, queue_source_id[allocated_queue_idx], queue_tag[allocated_queue_idx], queue_tag_owner[allocated_queue_idx]);
+                                                 $time, src_endpoint_id[allocated_queue_idx], queue_tag[allocated_queue_idx], tag_owner[allocated_queue_idx]);
                                         $display("[%0t] [ASSEMBLE]   New: SRC_ID=0x%h, TAG=%0d, TO=%0b",
                                                  $time, src_id_field, tag_field, to_field);
                                     end
@@ -474,48 +474,48 @@ module pcie_msg_receiver (
                                     queue_frag_count[allocated_queue_idx] <= 8'h1;
                                     queue_write_ptr[allocated_queue_idx] <= 12'h0;
                                     queue_timeout[allocated_queue_idx] <= 32'h0;  // Reset timeout
-                                    queue_source_id[allocated_queue_idx] <= src_id_field;  // Save source ID
-                                    queue_tag_owner[allocated_queue_idx] <= to_field;      // Save tag owner
+                                    src_endpoint_id[allocated_queue_idx] <= src_id_field;  // Save source ID
+                                    tag_owner[allocated_queue_idx] <= to_field;      // Save tag owner
                                     queue_tag[allocated_queue_idx] <= tag_field;           // Save tag (3 bits)
                                     queue_tx_size[allocated_queue_idx] <= current_frag[0][31:24];      // Save transmission size (TLP length)
 
                                     // Set Queue Initial Address based on allocated queue index
                                     // Each queue gets 64 beats (2KB = 256 bits * 64 beats)
                                     case (allocated_queue_idx)
-                                        4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0 <= (4'h0 * 12'd64) * 32;  // Queue 0: address 0
-                                        4'h1: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1 <= (4'h1 * 12'd64) * 32;  // Queue 1: address 2048
-                                        4'h2: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2 <= (4'h2 * 12'd64) * 32;  // Queue 2: address 4096
-                                        4'h3: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3 <= (4'h3 * 12'd64) * 32;
-                                        4'h4: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4 <= (4'h4 * 12'd64) * 32;
-                                        4'h5: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5 <= (4'h5 * 12'd64) * 32;
-                                        4'h6: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6 <= (4'h6 * 12'd64) * 32;
-                                        4'h7: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7 <= (4'h7 * 12'd64) * 32;
-                                        4'h8: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8 <= (4'h8 * 12'd64) * 32;
-                                        4'h9: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9 <= (4'h9 * 12'd64) * 32;
-                                        4'hA: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10 <= (4'hA * 12'd64) * 32;
-                                        4'hB: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11 <= (4'hB * 12'd64) * 32;
-                                        4'hC: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12 <= (4'hC * 12'd64) * 32;
-                                        4'hD: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13 <= (4'hD * 12'd64) * 32;
-                                        4'hE: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14 <= (4'hE * 12'd64) * 32;
+                                        4'h0: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0 <= (4'h0 * 12'd64) * 32;  // Queue 0: address 0
+                                        4'h1: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1 <= (4'h1 * 12'd64) * 32;  // Queue 1: address 2048
+                                        4'h2: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_2 <= (4'h2 * 12'd64) * 32;  // Queue 2: address 4096
+                                        4'h3: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_3 <= (4'h3 * 12'd64) * 32;
+                                        4'h4: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_4 <= (4'h4 * 12'd64) * 32;
+                                        4'h5: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_5 <= (4'h5 * 12'd64) * 32;
+                                        4'h6: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_6 <= (4'h6 * 12'd64) * 32;
+                                        4'h7: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_7 <= (4'h7 * 12'd64) * 32;
+                                        4'h8: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_8 <= (4'h8 * 12'd64) * 32;
+                                        4'h9: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_9 <= (4'h9 * 12'd64) * 32;
+                                        4'hA: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10 <= (4'hA * 12'd64) * 32;
+                                        4'hB: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_11 <= (4'hB * 12'd64) * 32;
+                                        4'hC: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12 <= (4'hC * 12'd64) * 32;
+                                        4'hD: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_13 <= (4'hD * 12'd64) * 32;
+                                        4'hE: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_14 <= (4'hE * 12'd64) * 32;
                                         default: begin end
                                     endcase
 
                                     // Save current queue index for use in SRAM write
-                                    current_queue_idx <= msg_tag;
+                                    current_queue_idx <= allocated_queue_idx;
 
                                     // Start TLP length accumulation (for WPTR calculation)
-                                    queue_accumulated_tlp_bytes[msg_tag] <= current_frag[0][31:24] * 4;
+                                    queue_accumulated_tlp_bytes[allocated_queue_idx] <= current_frag[0][31:24] * 4;
 
                                     // Store header (will be replaced by last fragment's header)
-                                    queue_data[msg_tag][0] <= current_frag[0];
+                                    queue_data[allocated_queue_idx][0] <= current_frag[0];
 
                                     // Copy payload only (skip first beat which is header)
                                     for (i = 1; i < 16; i = i + 1) begin
                                         if (i < current_frag_beats)
-                                            queue_data[msg_tag][i] <= current_frag[i];
+                                            queue_data[allocated_queue_idx][i] <= current_frag[i];
                                     end
-                                    queue_write_ptr[msg_tag] <= current_frag_beats;
-                                    queue_total_beats[msg_tag] <= current_frag_beats;
+                                    queue_write_ptr[allocated_queue_idx] <= current_frag_beats;
+                                    queue_total_beats[allocated_queue_idx] <= current_frag_beats;
 
                                     $display("[%0t] [ASSEMBLE] Stored S fragment: %0d beats (%0d payload), TLP_len=%0d DW (%0d bytes)",
                                              $time, current_frag_beats, current_frag_beats - 1,
@@ -662,21 +662,21 @@ module pcie_msg_receiver (
 
                                 // Set Queue Initial Address based on tag (same as S_PKT)
                                 case (msg_tag)
-                                    4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0 <= (4'h0 * 12'd64) * 32;
-                                    4'h1: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1 <= (4'h1 * 12'd64) * 32;
-                                    4'h2: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2 <= (4'h2 * 12'd64) * 32;
-                                    4'h3: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3 <= (4'h3 * 12'd64) * 32;
-                                    4'h4: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4 <= (4'h4 * 12'd64) * 32;
-                                    4'h5: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5 <= (4'h5 * 12'd64) * 32;
-                                    4'h6: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6 <= (4'h6 * 12'd64) * 32;
-                                    4'h7: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7 <= (4'h7 * 12'd64) * 32;
-                                    4'h8: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8 <= (4'h8 * 12'd64) * 32;
-                                    4'h9: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9 <= (4'h9 * 12'd64) * 32;
-                                    4'hA: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10 <= (4'hA * 12'd64) * 32;
-                                    4'hB: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11 <= (4'hB * 12'd64) * 32;
-                                    4'hC: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12 <= (4'hC * 12'd64) * 32;
-                                    4'hD: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13 <= (4'hD * 12'd64) * 32;
-                                    4'hE: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14 <= (4'hE * 12'd64) * 32;
+                                    4'h0: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0 <= (4'h0 * 12'd64) * 32;
+                                    4'h1: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1 <= (4'h1 * 12'd64) * 32;
+                                    4'h2: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_2 <= (4'h2 * 12'd64) * 32;
+                                    4'h3: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_3 <= (4'h3 * 12'd64) * 32;
+                                    4'h4: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_4 <= (4'h4 * 12'd64) * 32;
+                                    4'h5: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_5 <= (4'h5 * 12'd64) * 32;
+                                    4'h6: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_6 <= (4'h6 * 12'd64) * 32;
+                                    4'h7: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_7 <= (4'h7 * 12'd64) * 32;
+                                    4'h8: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_8 <= (4'h8 * 12'd64) * 32;
+                                    4'h9: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_9 <= (4'h9 * 12'd64) * 32;
+                                    4'hA: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10 <= (4'hA * 12'd64) * 32;
+                                    4'hB: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_11 <= (4'hB * 12'd64) * 32;
+                                    4'hC: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12 <= (4'hC * 12'd64) * 32;
+                                    4'hD: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_13 <= (4'hD * 12'd64) * 32;
+                                    4'hE: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_14 <= (4'hE * 12'd64) * 32;
                                     default: begin end
                                 endcase
 
@@ -710,11 +710,9 @@ module pcie_msg_receiver (
                                 state <= SRAM_WR;
                             end
                         endcase
-                    end else begin
-                        $display("[%0t] [ASSEMBLE] ERROR: Invalid MSG_TAG=%0h", $time, msg_tag);
-                        state <= W_RESP;
                     end
                 end
+            end
 
                 SRAM_WR: begin
                     // Write assembled payload to SRAM (skip header beat 0)
@@ -728,21 +726,21 @@ module pcie_msg_receiver (
                         sram_wen <= 1'b1;
                         // Calculate base address from Q_INIT_ADDR based on current_queue_idx
                         case (current_queue_idx)
-                            4'h0: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0[9:0] + asm_beat_count;
-                            4'h1: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1[9:0] + asm_beat_count;
-                            4'h2: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2[9:0] + asm_beat_count;
-                            4'h3: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3[9:0] + asm_beat_count;
-                            4'h4: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4[9:0] + asm_beat_count;
-                            4'h5: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5[9:0] + asm_beat_count;
-                            4'h6: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6[9:0] + asm_beat_count;
-                            4'h7: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7[9:0] + asm_beat_count;
-                            4'h8: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8[9:0] + asm_beat_count;
-                            4'h9: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9[9:0] + asm_beat_count;
-                            4'hA: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10[9:0] + asm_beat_count;
-                            4'hB: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11[9:0] + asm_beat_count;
-                            4'hC: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[9:0] + asm_beat_count;
-                            4'hD: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13[9:0] + asm_beat_count;
-                            4'hE: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14[9:0] + asm_beat_count;
+                            4'h0: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0[9:0] + asm_beat_count;
+                            4'h1: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1[9:0] + asm_beat_count;
+                            4'h2: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_2[9:0] + asm_beat_count;
+                            4'h3: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_3[9:0] + asm_beat_count;
+                            4'h4: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_4[9:0] + asm_beat_count;
+                            4'h5: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_5[9:0] + asm_beat_count;
+                            4'h6: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_6[9:0] + asm_beat_count;
+                            4'h7: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_7[9:0] + asm_beat_count;
+                            4'h8: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_8[9:0] + asm_beat_count;
+                            4'h9: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_9[9:0] + asm_beat_count;
+                            4'hA: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10[9:0] + asm_beat_count;
+                            4'hB: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_11[9:0] + asm_beat_count;
+                            4'hC: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[9:0] + asm_beat_count;
+                            4'hD: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_13[9:0] + asm_beat_count;
+                            4'hE: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_14[9:0] + asm_beat_count;
                             default: sram_waddr <= asm_beat_count;
                         endcase
                         sram_wdata <= queue_data[current_queue_idx][asm_beat_count + 1];  // +1 to skip header
