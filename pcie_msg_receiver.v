@@ -159,12 +159,14 @@ module pcie_msg_receiver (
             find_queue = 4'hF;  // Invalid queue by default
 
             // First, try to find existing queue with matching context
+            // Priority: lowest queue number first (Q0, Q1, Q2, ...)
             for (k = 0; k < 15; k = k + 1) begin
                 if (queue_valid[k] && queue_state[k] != 2'b00 &&
                     queue_tag[k] == tag &&
                     tag_owner[k] == to &&
-                    src_endpoint_id[k] == src_id) begin
-                    find_queue = k[3:0];
+                    src_endpoint_id[k] == src_id &&
+                    find_queue == 4'hF) begin
+                    find_queue = k[3:0];  // Use first matching queue
                 end
             end
 
@@ -418,10 +420,10 @@ module pcie_msg_receiver (
                         $display("[%0t] [ASSEMBLE] Skipping fragment due to bad header version", $time);
                         state <= W_RESP;
                     end else begin
-                        // Extract TAG (3 bits), TO (1 bit), SRC_ID from header
-                        tag_field = axi_wdata[122:120];
-                        to_field = axi_wdata[123];
-                        src_id_field = axi_wdata[119:112];
+                        // Extract TAG (3 bits), TO (1 bit), SRC_ID from header stored in current_frag[0]
+                        tag_field = current_frag[0][122:120];
+                        to_field = current_frag[0][123];
+                        src_id_field = current_frag[0][119:112];
 
                         // Find or allocate queue based on TAG, TO, SRC_ID
                         allocated_queue_idx = find_queue(tag_field, to_field, src_id_field);
@@ -528,55 +530,55 @@ module pcie_msg_receiver (
 
                             M_PKT: begin
                                 // Continue assembly
-                                $display("[%0t] [ASSEMBLE] MIDDLE: TAG=%0h, SN=%0d (expected=%0d)",
-                                         $time, msg_tag, pkt_sn, queue_expected_sn[msg_tag]);
+                                $display("[%0t] [ASSEMBLE] MIDDLE: Queue=%0d, TAG=%0d, TO=%0b, SRC_ID=0x%h, SN=%0d (expected=%0d)",
+                                         $time, allocated_queue_idx, tag_field, to_field, src_id_field, pkt_sn, queue_expected_sn[allocated_queue_idx]);
 
                                 // Check middle/last without first
-                                if (!queue_valid[msg_tag]) begin
+                                if (!queue_valid[allocated_queue_idx]) begin
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] <=
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] + 1;
-                                    $display("[%0t] [ASSEMBLE] ERROR: Middle without first (TAG=%0h)", $time, msg_tag);
+                                    $display("[%0t] [ASSEMBLE] ERROR: Middle without first (Queue=%0d)", $time, allocated_queue_idx);
                                 end
 
                                 // Check transmission size mismatch (M_PKT must match S_PKT size)
-                                if (queue_valid[msg_tag] && (current_frag[0][31:24] != queue_tx_size[msg_tag])) begin
+                                if (queue_valid[allocated_queue_idx] && (current_frag[0][31:24] != queue_tx_size[allocated_queue_idx])) begin
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] <=
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] + 1;
                                     $display("[%0t] [ASSEMBLE] ERROR: Size mismatch (S_PKT=%0dB, M_PKT=%0dB)",
-                                             $time, queue_tx_size[msg_tag] * 4, current_frag[0][31:24] * 4);
+                                             $time, queue_tx_size[allocated_queue_idx] * 4, current_frag[0][31:24] * 4);
                                 end
 
                                 // Check out-of-sequence
-                                if (queue_valid[msg_tag] && (pkt_sn != queue_expected_sn[msg_tag])) begin
+                                if (queue_valid[allocated_queue_idx] && (pkt_sn != queue_expected_sn[allocated_queue_idx])) begin
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] <=
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] + 1;
                                     $display("[%0t] [ASSEMBLE] ERROR: Out-of-sequence (expected SN=%0d, got SN=%0d)",
-                                             $time, queue_expected_sn[msg_tag], pkt_sn);
+                                             $time, queue_expected_sn[allocated_queue_idx], pkt_sn);
                                 end
 
-                                if (queue_valid[msg_tag] && (pkt_sn == queue_expected_sn[msg_tag])) begin
+                                if (queue_valid[allocated_queue_idx] && (pkt_sn == queue_expected_sn[allocated_queue_idx])) begin
                                     // Valid middle fragment
-                                    queue_expected_sn[msg_tag] <= pkt_sn + 1;
-                                    queue_frag_count[msg_tag] <= queue_frag_count[msg_tag] + 1;
-                                    queue_timeout[msg_tag] <= 32'h0;  // Reset timeout
+                                    queue_expected_sn[allocated_queue_idx] <= pkt_sn + 1;
+                                    queue_frag_count[allocated_queue_idx] <= queue_frag_count[allocated_queue_idx] + 1;
+                                    queue_timeout[allocated_queue_idx] <= 32'h0;  // Reset timeout
 
                                     // Accumulate TLP length
-                                    queue_accumulated_tlp_bytes[msg_tag] <= queue_accumulated_tlp_bytes[msg_tag] + (current_frag[0][31:24] * 4);
+                                    queue_accumulated_tlp_bytes[allocated_queue_idx] <= queue_accumulated_tlp_bytes[allocated_queue_idx] + (current_frag[0][31:24] * 4);
 
                                     // Append payload only (skip first beat which is header)
                                     for (i = 1; i < 16; i = i + 1) begin
                                         if (i < current_frag_beats)
-                                            queue_data[msg_tag][queue_write_ptr[msg_tag] + i - 1] <= current_frag[i];
+                                            queue_data[allocated_queue_idx][queue_write_ptr[allocated_queue_idx] + i - 1] <= current_frag[i];
                                     end
-                                    queue_write_ptr[msg_tag] <= queue_write_ptr[msg_tag] + current_frag_beats - 1;
-                                    queue_total_beats[msg_tag] <= queue_total_beats[msg_tag] + current_frag_beats - 1;
+                                    queue_write_ptr[allocated_queue_idx] <= queue_write_ptr[allocated_queue_idx] + current_frag_beats - 1;
+                                    queue_total_beats[allocated_queue_idx] <= queue_total_beats[allocated_queue_idx] + current_frag_beats - 1;
 
                                     // Save current queue index for use in SRAM write
-                                    current_queue_idx <= msg_tag;
+                                    current_queue_idx <= allocated_queue_idx;
 
                                     $display("[%0t] [ASSEMBLE] Appended M fragment: %0d payload beats (total=%0d), TLP_len=%0d DW (accum=%0d bytes)",
-                                             $time, current_frag_beats - 1, queue_total_beats[msg_tag] + current_frag_beats - 1,
-                                             current_frag[0][31:24], queue_accumulated_tlp_bytes[msg_tag] + (current_frag[0][31:24] * 4));
+                                             $time, current_frag_beats - 1, queue_total_beats[allocated_queue_idx] + current_frag_beats - 1,
+                                             current_frag[0][31:24], queue_accumulated_tlp_bytes[allocated_queue_idx] + (current_frag[0][31:24] * 4));
                                 end else begin
                                     $display("[%0t] [ASSEMBLE] ERROR: Invalid M fragment (SN mismatch or invalid queue)", $time);
                                 end
@@ -585,28 +587,28 @@ module pcie_msg_receiver (
 
                             L_PKT: begin
                                 // Complete assembly
-                                $display("[%0t] [ASSEMBLE] LAST: TAG=%0h, SN=%0d (expected=%0d)",
-                                         $time, msg_tag, pkt_sn, queue_expected_sn[msg_tag]);
+                                $display("[%0t] [ASSEMBLE] LAST: Queue=%0d, TAG=%0d, TO=%0b, SRC_ID=0x%h, SN=%0d (expected=%0d)",
+                                         $time, allocated_queue_idx, tag_field, to_field, src_id_field, pkt_sn, queue_expected_sn[allocated_queue_idx]);
 
                                 // Check middle/last without first
-                                if (!queue_valid[msg_tag]) begin
+                                if (!queue_valid[allocated_queue_idx]) begin
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] <=
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] + 1;
-                                    $display("[%0t] [ASSEMBLE] ERROR: Last without first (TAG=%0h)", $time, msg_tag);
+                                    $display("[%0t] [ASSEMBLE] ERROR: Last without first (Queue=%0d)", $time, allocated_queue_idx);
                                 end
 
                                 // Check out-of-sequence
-                                if (queue_valid[msg_tag] && (pkt_sn != queue_expected_sn[msg_tag])) begin
+                                if (queue_valid[allocated_queue_idx] && (pkt_sn != queue_expected_sn[allocated_queue_idx])) begin
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] <=
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] + 1;
                                     $display("[%0t] [ASSEMBLE] ERROR: Out-of-sequence (expected SN=%0d, got SN=%0d)",
-                                             $time, queue_expected_sn[msg_tag], pkt_sn);
+                                             $time, queue_expected_sn[allocated_queue_idx], pkt_sn);
                                 end
 
-                                if (queue_valid[msg_tag] && (pkt_sn == queue_expected_sn[msg_tag])) begin
+                                if (queue_valid[allocated_queue_idx] && (pkt_sn == queue_expected_sn[allocated_queue_idx])) begin
                                     // Valid last fragment
-                                    queue_frag_count[msg_tag] <= queue_frag_count[msg_tag] + 1;
-                                    queue_timeout[msg_tag] <= 32'h0;  // Reset timeout
+                                    queue_frag_count[allocated_queue_idx] <= queue_frag_count[allocated_queue_idx] + 1;
+                                    queue_timeout[allocated_queue_idx] <= 32'h0;  // Reset timeout
 
                                     // Extract padding from header[53:52]
                                     padding_bytes = current_frag[0][53:52];
@@ -614,7 +616,7 @@ module pcie_msg_receiver (
                                     asm_is_sg_pkt <= 1'b0;  // This is L_PKT (multi-fragment)
 
                                     // Accumulate final TLP length and save for WPTR calculation
-                                    asm_accumulated_tlp_bytes <= queue_accumulated_tlp_bytes[msg_tag] + (current_frag[0][31:24] * 4);
+                                    asm_accumulated_tlp_bytes <= queue_accumulated_tlp_bytes[allocated_queue_idx] + (current_frag[0][31:24] * 4);
 
                                     // Calculate payload beats accounting for padding
                                     // current_frag_beats includes header (beat 0)
@@ -625,29 +627,29 @@ module pcie_msg_receiver (
                                     payload_beats_with_padding = current_frag_beats - 1;
 
                                     // Update header with L_PKT header (replaces S_PKT header)
-                                    queue_data[msg_tag][0] <= current_frag[0];
+                                    queue_data[allocated_queue_idx][0] <= current_frag[0];
 
                                     // Append payload only (skip first beat which is header)
                                     for (i = 1; i < 16; i = i + 1) begin
                                         if (i < current_frag_beats)
-                                            queue_data[msg_tag][queue_write_ptr[msg_tag] + i - 1] <= current_frag[i];
+                                            queue_data[allocated_queue_idx][queue_write_ptr[allocated_queue_idx] + i - 1] <= current_frag[i];
                                     end
-                                    asm_total_beats <= queue_total_beats[msg_tag] + payload_beats_with_padding;
+                                    asm_total_beats <= queue_total_beats[allocated_queue_idx] + payload_beats_with_padding;
                                     asm_beat_count <= 12'h0;
 
                                     $display("[%0t] [ASSEMBLE] L_PKT padding: %0d bytes (header[53:52]=%0b)",
                                              $time, padding_bytes, current_frag[0][53:52]);
 
                                     // Save current queue index for use in SRAM write
-                                    current_queue_idx <= msg_tag;
+                                    current_queue_idx <= allocated_queue_idx;
 
                                     $display("[%0t] [ASSEMBLE] COMPLETE: %0d fragments, %0d total beats (including header)",
-                                             $time, queue_frag_count[msg_tag] + 1,
-                                             queue_total_beats[msg_tag] + current_frag_beats - 1);
+                                             $time, queue_frag_count[allocated_queue_idx] + 1,
+                                             queue_total_beats[allocated_queue_idx] + current_frag_beats - 1);
 
                                     // Write assembled message to SRAM
                                     assembled_valid <= 1'b1;
-                                    assembled_tag <= msg_tag;
+                                    assembled_tag <= allocated_queue_idx;
                                     state <= SRAM_WR;
                                 end else begin
                                     $display("[%0t] [ASSEMBLE] ERROR: Invalid L fragment", $time);
@@ -657,11 +659,11 @@ module pcie_msg_receiver (
 
                             SG_PKT: begin
                                 // Single packet (no assembly)
-                                $display("[%0t] [ASSEMBLE] SINGLE: TAG=%0h, direct to SRAM",
-                                         $time, msg_tag);
+                                $display("[%0t] [ASSEMBLE] SINGLE: Queue=%0d, TAG=%0d, TO=%0b, SRC_ID=0x%h, direct to SRAM",
+                                         $time, allocated_queue_idx, tag_field, to_field, src_id_field);
 
-                                // Set Queue Initial Address based on tag (same as S_PKT)
-                                case (msg_tag)
+                                // Set Queue Initial Address based on allocated queue index
+                                case (allocated_queue_idx)
                                     4'h0: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0 <= (4'h0 * 12'd64) * 32;
                                     4'h1: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1 <= (4'h1 * 12'd64) * 32;
                                     4'h2: PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_2 <= (4'h2 * 12'd64) * 32;
@@ -699,14 +701,14 @@ module pcie_msg_receiver (
                                 // Copy to queue temporarily
                                 for (i = 0; i < 16; i = i + 1) begin
                                     if (i < current_frag_beats)
-                                        queue_data[msg_tag][i] <= current_frag[i];
+                                        queue_data[allocated_queue_idx][i] <= current_frag[i];
                                 end
 
                                 // Save current queue index for use in SRAM write
-                                current_queue_idx <= msg_tag;
+                                current_queue_idx <= allocated_queue_idx;
 
                                 assembled_valid <= 1'b1;
-                                assembled_tag <= msg_tag;
+                                assembled_tag <= allocated_queue_idx;
                                 state <= SRAM_WR;
                             end
                         endcase

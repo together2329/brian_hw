@@ -113,52 +113,52 @@ output reg  rready
                 case (intr_count)
                     1: begin  // S->L test (MSG_T0 = Queue 8)
                         completed_queue = 4'h8;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8[31:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_8[31:0];
                         $display("[%0t] [READ_GEN] S->L assembly (MSG_T0, Queue %0d)", $time, completed_queue);
                     end
                     2: begin  // S->M->L test (MSG_T1 = Queue 9)
                         completed_queue = 4'h9;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9[31:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_9[31:0];
                         $display("[%0t] [READ_GEN] S->M->L assembly (MSG_T1, Queue %0d)", $time, completed_queue);
                     end
                     3: begin  // S->M->M->L test (MSG_T2 = Queue 10)
                         completed_queue = 4'hA;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10[31:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10[31:0];
                         $display("[%0t] [READ_GEN] S->M->M->L assembly (MSG_T2, Queue %0d)", $time, completed_queue);
                     end
                     4: begin  // SG_PKT test (MSG_T3 = Queue 11)
                         completed_queue = 4'hB;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11[31:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_11[31:0];
                         $display("[%0t] [READ_GEN] Single packet (MSG_T3, Queue %0d)", $time, completed_queue);
                     end
                     5: begin  // Padding Test 1 (MSG_T4 = Queue 12)
                         completed_queue = 4'hC;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[31:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[31:0];
                         $display("[%0t] [READ_GEN] Padding Test 1 (MSG_T4, Queue %0d)", $time, completed_queue);
                     end
                     6: begin  // Padding Test 2 (MSG_T4 = Queue 12)
                         completed_queue = 4'hC;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[31:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[31:0];
                         $display("[%0t] [READ_GEN] Padding Test 2 (MSG_T4, Queue %0d)", $time, completed_queue);
                     end
                     7: begin  // Padding Test 3 (MSG_T4 = Queue 12)
                         completed_queue = 4'hC;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[31:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[31:0];
                         $display("[%0t] [READ_GEN] Padding Test 3 (MSG_T4, Queue %0d)", $time, completed_queue);
                     end
                     8: begin  // Padding Test 4 (MSG_T4 = Queue 12)
                         completed_queue = 4'hC;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[31:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[31:0];
                         $display("[%0t] [READ_GEN] Padding Test 4 (MSG_T4, Queue %0d)", $time, completed_queue);
                     end
                     9: begin  // 68B test (MSG_T6 = Queue 14)
                         completed_queue = 4'hE;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14[31:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_14[31:0];
                         $display("[%0t] [READ_GEN] 68B MSG_T6 (Queue %0d)", $time, completed_queue);
                     end
                     10: begin  // 68B test (MSG_T2 = Queue 10)
                         completed_queue = 4'hA;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10[31:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10[31:0];
                         $display("[%0t] [READ_GEN] 68B MSG_T2 (Queue %0d)", $time, completed_queue);
                     end
                     default: begin
@@ -461,21 +461,21 @@ output reg  rready
 
             // Get and display queue init address
             case (queue_tag)
-                4'h0: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0[31:0];
-                4'h1: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1[31:0];
-                4'h2: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2[31:0];
-                4'h3: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3[31:0];
-                4'h4: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4[31:0];
-                4'h5: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5[31:0];
-                4'h6: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6[31:0];
-                4'h7: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7[31:0];
-                4'h8: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8[31:0];
-                4'h9: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9[31:0];
-                4'hA: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10[31:0];
-                4'hB: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11[31:0];
-                4'hC: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[31:0];
-                4'hD: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13[31:0];
-                4'hE: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14[31:0];
+                4'h0: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0[31:0];
+                4'h1: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1[31:0];
+                4'h2: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_2[31:0];
+                4'h3: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_3[31:0];
+                4'h4: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_4[31:0];
+                4'h5: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_5[31:0];
+                4'h6: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_6[31:0];
+                4'h7: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_7[31:0];
+                4'h8: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_8[31:0];
+                4'h9: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_9[31:0];
+                4'hA: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10[31:0];
+                4'hB: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_11[31:0];
+                4'hC: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[31:0];
+                4'hD: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_13[31:0];
+                4'hE: queue_init_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_14[31:0];
                 default: queue_init_addr = 32'h0;
             endcase
 
@@ -626,7 +626,7 @@ output reg  rready
     // Read Completion Data Task (Called from Interrupt Monitor)
     // ========================================
     task READ_COMPLETION_DATA;
-        input [3:0] queue_id;
+        input [3:0] msg_tag;
         input [31:0] base_addr;
         input [7:0] arlen_beats;
         input [15:0] expected_wptr;
@@ -642,7 +642,7 @@ output reg  rready
         reg data_valid;
 
         begin
-            $display("[%0t] [READ_GEN] === Reading Queue %0d Data ===", $time, queue_id);
+            $display("[%0t] [READ_GEN] === Reading Queue %0d Data ===", $time, msg_tag);
             $display("[%0t] [READ_GEN] Base Address: 0x%h, Beats: %0d, WPTR: %0d bytes",
                      $time, base_addr, arlen_beats + 1, expected_wptr);
 
@@ -650,11 +650,11 @@ output reg  rready
             mismatch_count = 0;
 
             // Get expected metadata
-            if (queue_id < 15) begin
-                exp_msg_tag = tb_pcie_sub_msg.expected_msg_tag[queue_id];
-                exp_tag_owner = tb_pcie_sub_msg.expected_tag_owner[queue_id];
-                exp_source_id = tb_pcie_sub_msg.expected_source_id[queue_id];
-                data_valid = tb_pcie_sub_msg.expected_data_valid[queue_id];
+            if (msg_tag < 15) begin
+                exp_msg_tag = tb_pcie_sub_msg.expected_msg_tag[msg_tag];
+                exp_tag_owner = tb_pcie_sub_msg.expected_tag_owner[msg_tag];
+                exp_source_id = tb_pcie_sub_msg.expected_source_id[msg_tag];
+                data_valid = tb_pcie_sub_msg.expected_data_valid[msg_tag];
 
                 if (data_valid) begin
                     $display("[%0t] [READ_GEN] === Expected Metadata ===", $time);
@@ -696,8 +696,8 @@ output reg  rready
                     rdata_beat = rdata;
 
                     // Get expected data from testbench
-                    if (queue_id < 15 && beat_num < 64) begin
-                        expected_beat = tb_pcie_sub_msg.expected_queue_data[queue_id][beat_num];
+                    if (msg_tag < 15 && beat_num < 64) begin
+                        expected_beat = tb_pcie_sub_msg.expected_queue_data[msg_tag][beat_num];
 
                         // Verify data
                         if (expected_beat == 256'h0) begin
@@ -731,7 +731,7 @@ output reg  rready
             $display("\n[%0t] [READ_GEN] === Verification Summary ===", $time);
 
             // Verify metadata if this is a random data test
-            if (data_valid && queue_id < 15) begin
+            if (data_valid && msg_tag < 15) begin
                 reg [7:0] actual_src_id;
                 reg actual_tag_owner;
                 reg metadata_pass;
@@ -739,20 +739,20 @@ output reg  rready
                 metadata_pass = 1'b1;
 
                 // Read actual values from receiver's queue context
-                actual_src_id = tb_pcie_sub_msg.receiver.queue_source_id[queue_id];
-                actual_tag_owner = tb_pcie_sub_msg.receiver.queue_tag_owner[queue_id];
+                actual_src_id = tb_pcie_sub_msg.u_pcie_msg_receiver.src_endpoint_id[msg_tag];
+                actual_tag_owner = tb_pcie_sub_msg.u_pcie_msg_receiver.tag_owner[msg_tag];
 
                 $display("\n[%0t] [READ_GEN] === Metadata Verification ===", $time);
 
-                // Verify MSG_TAG (4 bits: TO + TAG, where TAG maps to queue_id)
-                // MSG_TAG[2:0] should match queue_id
-                if (exp_msg_tag[2:0] == queue_id[2:0]) begin
+                // Verify MSG_TAG (4 bits: TO + TAG, where TAG maps to msg_tag)
+                // MSG_TAG[2:0] should match msg_tag
+                if (exp_msg_tag[2:0] == msg_tag[2:0]) begin
                     $display("[%0t] [READ_GEN] MSG_TAG: MATCH ✓ (4'b%b = TO=%0b, TAG=%0d -> Queue %0d)",
-                             $time, exp_msg_tag, exp_msg_tag[3], exp_msg_tag[2:0], queue_id);
+                             $time, exp_msg_tag, exp_msg_tag[3], exp_msg_tag[2:0], msg_tag);
                 end else begin
                     $display("[%0t] [READ_GEN] MSG_TAG: MISMATCH ✗", $time);
                     $display("  Expected TAG: %0d (from MSG_TAG 4'b%b)", exp_msg_tag[2:0], exp_msg_tag);
-                    $display("  Queue ID: %0d", queue_id);
+                    $display("  Queue ID: %0d", msg_tag);
                     metadata_pass = 1'b0;
                 end
 
@@ -826,21 +826,21 @@ output reg  rready
         $display("[%0t] [READ_GEN] Completion interrupt detected for Queue %0d", $time, queue_tag);
 
         // Read all 15 queue initial addresses
-        Q_ADDR_0 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0[31:0];
-        Q_ADDR_1 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1[31:0];
-        Q_ADDR_2 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2[31:0];
-        Q_ADDR_3 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_3[31:0];
-        Q_ADDR_4 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_4[31:0];
-        Q_ADDR_5 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_5[31:0];
-        Q_ADDR_6 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_6[31:0];
-        Q_ADDR_7 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_7[31:0];
-        Q_ADDR_8 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_8[31:0];
-        Q_ADDR_9 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_9[31:0];
-        Q_ADDR_10 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_10[31:0];
-        Q_ADDR_11 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_11[31:0];
-        Q_ADDR_12 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_12[31:0];
-        Q_ADDR_13 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_13[31:0];
-        Q_ADDR_14 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_14[31:0];
+        Q_ADDR_0 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0[31:0];
+        Q_ADDR_1 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1[31:0];
+        Q_ADDR_2 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_2[31:0];
+        Q_ADDR_3 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_3[31:0];
+        Q_ADDR_4 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_4[31:0];
+        Q_ADDR_5 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_5[31:0];
+        Q_ADDR_6 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_6[31:0];
+        Q_ADDR_7 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_7[31:0];
+        Q_ADDR_8 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_8[31:0];
+        Q_ADDR_9 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_9[31:0];
+        Q_ADDR_10 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10[31:0];
+        Q_ADDR_11 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_11[31:0];
+        Q_ADDR_12 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[31:0];
+        Q_ADDR_13 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_13[31:0];
+        Q_ADDR_14 = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_14[31:0];
 
         // Display all queue addresses
         $display("[%0t] [READ_GEN] Queue Initial Addresses:", $time);
