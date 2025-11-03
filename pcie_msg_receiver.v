@@ -145,6 +145,18 @@ module pcie_msg_receiver (
     // Expected header version
     localparam EXPECTED_HDR_VER = 4'b0001;
 
+    // Function to calculate OHC size based on OHC field [11:8]
+    function automatic [3:0] calc_ohc_size;
+        input [3:0] ohc_field;  // header[11:8]
+        begin
+            calc_ohc_size = 0;
+            if (ohc_field[0]) calc_ohc_size = calc_ohc_size + 2;  // OHC-A: +2DW
+            if (ohc_field[1]) calc_ohc_size = calc_ohc_size + 2;  // OHC-B: +2DW
+            if (ohc_field[2]) calc_ohc_size = calc_ohc_size + 2;  // OHC-C: +2DW
+            if (ohc_field[3]) calc_ohc_size = calc_ohc_size + 1;  // OHC-E: +1DW
+        end
+    endfunction
+
     // Assembly Queue (15 queues, index 0-14)
     reg [14:0] queue_valid;              // Queue in use
     reg [1:0]  queue_state [0:14];       // 0=IDLE, 1=WAIT_M, 2=WAIT_L, 3=COMPLETE
@@ -452,18 +464,25 @@ module pcie_msg_receiver (
                                          $time, tx_size_bytes);
                             end
 
-                            // Check size mismatch (compare axi_awsize with TLP length)
+                            // Check size mismatch (compare axi_awsize with TLP length + OHC)
                             // Expected: 2^axi_awsize bytes per beat
-                            // TLP length is in DW (4 bytes), so TLP_len*4 = expected total bytes
-                            // For size=5 (32B per beat), we expect specific beat counts
+                            // TLP length is in DW (4 bytes) and represents payload only
+                            // Total AXI transfer = Header(4DW) + OHC + Payload
                             if (axi_awsize == 3'd5) begin  // 32B per beat
-                                total_bytes = {24'h0, axi_wdata[31:24]} * 4;  // DW to bytes
-                                expected_beats = (total_bytes + 31) / 32;  // Round up
+                                reg [3:0] ohc_size_dw;
+                                reg [31:0] total_transfer_dw;
+                                reg [31:0] total_transfer_bytes;
+
+                                ohc_size_dw = calc_ohc_size(axi_wdata[11:8]);
+                                total_transfer_dw = 4 + {28'h0, ohc_size_dw} + {24'h0, axi_wdata[31:24]};
+                                total_transfer_bytes = total_transfer_dw * 4;
+                                expected_beats = (total_transfer_bytes + 31) / 32;  // Round up
+
                                 if (total_beats != expected_beats) begin
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] <=
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] + 1;
-                                    $display("[%0t] [MSG_RX] ERROR: Size mismatch (TLP_len=%0d DW, beats=%0d, expected=%0d)",
-                                             $time, axi_wdata[31:24], total_beats, expected_beats);
+                                    $display("[%0t] [MSG_RX] ERROR: Size mismatch (TLP_len=%0d DW, OHC=%0d DW, beats=%0d, expected=%0d)",
+                                             $time, axi_wdata[31:24], ohc_size_dw, total_beats, expected_beats);
                                 end
                             end
                         end

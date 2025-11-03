@@ -494,52 +494,89 @@ output reg   O_BREADY
     end
 
     // ========================================
+    // OHC (Optional Header Content) Size Calculation
+    // ========================================
+    function automatic [3:0] calc_ohc_size;
+        input [3:0] ohc_field;  // header[11:8]
+        begin
+            calc_ohc_size = 0;
+
+            // OHC-A: bit[8] = 1 → +2DW
+            if (ohc_field[0]) calc_ohc_size = calc_ohc_size + 2;
+
+            // OHC-B: bit[9] = 1 → +2DW
+            if (ohc_field[1]) calc_ohc_size = calc_ohc_size + 2;
+
+            // OHC-C: bit[10] = 1 → +2DW
+            if (ohc_field[2]) calc_ohc_size = calc_ohc_size + 2;
+
+            // OHC-E: bit[11] = 1 → +1DW
+            if (ohc_field[3]) calc_ohc_size = calc_ohc_size + 1;
+        end
+    endfunction
+
+    // ========================================
     // High-Level Message Send (Auto-calculates AXI parameters from header)
+    // Now supports OHC (Optional Header Content)
+    // OHC data is auto-generated randomly based on header[11:8]
     // ========================================
     task automatic SEND_MSG;
-        input [127:0] header;
+        input [127:0] header;           // 4DW base header
 
-        reg [7:0] tlp_length_dw;  // Length in DW (from TLP header)
-        reg [7:0] awlen;           // AXI awlen (beats - 1)
-        reg [2:0] awsize;          // AXI awsize (fixed: 32 bytes = 2^5)
-        reg [1:0] awburst;         // AXI awburst (fixed: INCR)
-        integer total_bytes;
-        integer axi_beat_bytes;
+        reg [3:0]   ohc_field;          // OHC field from header[11:8]
+        reg [3:0]   ohc_size_dw;        // OHC size in DW (0~7)
+        reg [7:0]   payload_length_dw;  // Payload length in DW (from header[31:24])
+        reg [7:0]   total_length_dw;    // Total length in DW
+        reg [7:0]   awlen;              // AXI awlen (beats - 1)
+        reg [2:0]   awsize;             // AXI awsize (fixed: 32 bytes = 2^5)
+        reg [1:0]   awburst;            // AXI awburst (fixed: INCR)
+        integer     total_bytes;
+        integer     axi_beat_bytes;
 
         begin
-            // Extract TLP length from header [31:24] (in DW = 4 bytes)
-            tlp_length_dw = header[31:24];
-            total_bytes = tlp_length_dw * 4;  // Convert DW to bytes
+            // 1. Extract OHC field from header[11:8]
+            ohc_field = header[11:8];
 
-            // AXI parameters (fixed for PCIe message system)
-            awsize = 3'd5;      // 2^5 = 32 bytes per beat
-            awburst = 2'b01;    // INCR burst
+            // 2. Calculate OHC size
+            ohc_size_dw = calc_ohc_size(ohc_field);
+
+            // 3. Extract payload length from header[31:24] (Payload only, no header/OHC)
+            payload_length_dw = header[31:24];
+
+            // 4. Calculate total bytes for AXI transfer
+            // Beat 0 contains: Header(4DW=16B) + OHC + Payload_start
+            // Remaining beats: Rest of payload
+            // Total = (Header + OHC + Payload) bytes
+            total_length_dw = 4 + ohc_size_dw + payload_length_dw;
+            total_bytes = total_length_dw * 4;
+
+            // 5. AXI parameters (fixed for PCIe message system)
+            awsize = 3'd5;       // 2^5 = 32 bytes per beat
+            awburst = 2'b01;     // INCR burst
             axi_beat_bytes = 32; // 2^awsize
 
-            // Calculate awlen (number of beats - 1)
-            // total_bytes includes header (first beat has header + partial payload)
-            // Need ceiling division: (total_bytes + 31) / 32 - 1
+            // 6. Calculate awlen (number of beats - 1)
             awlen = ((total_bytes + axi_beat_bytes - 1) / axi_beat_bytes) - 1;
 
-            // $display("[%0t] [SEND_MSG] Auto-calculated AXI parameters:", $time);
-            // $display("  TLP Length: %0d DW (%0d bytes)", tlp_length_dw, total_bytes);
-            // $display("  AXI Beats:  %0d (awlen=%0d)", awlen + 1, awlen);
-            // $display("  AXI Size:   %0d (2^%0d = %0d bytes)", awsize, awsize, axi_beat_bytes);
+            // 7. Debug output (optional, commented out for clean logs)
+            // $display("[%0t] [SEND_MSG] OHC[11:8]=0x%h, OHC_size=%0dDW, Payload=%0dDW, Total=%0dDW (%0dB), Beats=%0d",
+            //          ohc_field, ohc_size_dw, payload_length_dw, total_length_dw, total_bytes, awlen + 1);
 
-            // Call the low-level task
+            // 8. Call the low-level task (OHC will be auto-generated)
             SEND_WRITE_RANDOM(header, awlen, awsize, awburst, 64'h0);
         end
     endtask
 
     // ========================================
     // AXI Write Task with Random Data (Low-Level)
+    // OHC data auto-generated based on header[11:8]
     // ========================================
     task automatic SEND_WRITE_RANDOM;
-        input [127:0]     header;
-        input [7:0]       awlen;        // AXI len (beats - 1)
+        input [127:0]     header;            // 4DW base header
+        input [7:0]       awlen;             // AXI len (beats - 1)
         input [2:0]       awsize;
         input [1:0]       awburst;
-        input [63:0]      awaddr_unused;  // Unused, will use 0x8C00000 + queue offset
+        input [63:0]      awaddr_unused;     // Unused, will use 0x8C00000 + queue offset
 
         integer beat;
         integer total_beats;
@@ -552,6 +589,13 @@ output reg   O_BREADY
         integer i;
         reg [63:0] final_awaddr;
 
+        // OHC-related variables
+        reg [3:0] ohc_field;          // OHC field from header[11:8]
+        reg [3:0] ohc_size_dw;        // OHC size in DW
+        integer ohc_size_bytes;       // OHC size in bytes
+        integer header_ohc_bytes;     // Total header + OHC size in bytes
+        integer remaining_space;      // Remaining space in beat 0 for payload
+
         begin
             total_beats = awlen + 1;  // AXI len is (beats - 1)
 
@@ -559,6 +603,12 @@ output reg   O_BREADY
             tag = header[122:120];
             to_bit = header[123];
             src_id = header[119:112];
+
+            // Calculate OHC size
+            ohc_field = header[11:8];
+            ohc_size_dw = calc_ohc_size(ohc_field);
+            ohc_size_bytes = ohc_size_dw * 4;
+            header_ohc_bytes = 16 + ohc_size_bytes;  // 4DW header + OHC
 
             // Find available queue based on tag, to, src_id
             queue_idx = -1;
@@ -598,7 +648,7 @@ output reg   O_BREADY
             $display("  TAG=%0d, TO=%0b, SRC_ID=0x%h -> Queue %0d (allocated by receiver)", tag, to_bit, src_id, queue_idx);
             $display("  Address: 0x%h (fixed)", final_awaddr);
             $display("  Length:  %0d beats (awlen=%0d)", total_beats, awlen);
-            $display("  Header:  0x%h", header);
+            $display("  Header:  0x%h (OHC[11:8]=0x%h, OHC_size=%0dDW)", header, ohc_field, ohc_size_dw);
             $display("========================================");
 
             // Store metadata for verification
@@ -641,17 +691,68 @@ output reg   O_BREADY
             payload_beat_idx = 0;
 
             for (beat = 0; beat < total_beats; beat = beat + 1) begin
-                // Generate random data
-                data_beat[255:192] = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
-                data_beat[191:128] = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
-                data_beat[127:64]  = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
-                data_beat[63:0]    = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
-
-                // First beat: Insert header in lower 128 bits
                 if (beat == 0) begin
+                    // ========================================
+                    // Beat 0: Header (4DW) + OHC + Payload
+                    // OHC is auto-generated with random data
+                    // ========================================
+
+                    // 1. Insert header (128 bits = 16 bytes)
                     data_beat[127:0] = header;
+
+                    // 2. Insert OHC data (auto-generated random)
+                    if (ohc_size_bytes > 0) begin
+                        // OHC goes into [255:128], up to 16 bytes max in first beat
+                        for (i = 0; i < ohc_size_bytes && i < 16; i = i + 1) begin
+                            data_beat[128 + i*8 +: 8] = $random(tb_pcie_sub_msg.random_seed);
+                        end
+                    end
+
+                    // 3. Fill remaining space with random payload
+                    remaining_space = 32 - header_ohc_bytes;
+                    if (remaining_space > 0) begin
+                        for (i = header_ohc_bytes; i < 32; i = i + 1) begin
+                            data_beat[i*8 +: 8] = $random(tb_pcie_sub_msg.random_seed);
+                        end
+                    end
+
+                end else if (beat == 1 && header_ohc_bytes > 32) begin
+                    // ========================================
+                    // Beat 1: Remaining OHC + Payload
+                    // (only if header+OHC > 32 bytes)
+                    // ========================================
+
+                    integer remaining_ohc_bytes;
+                    remaining_ohc_bytes = header_ohc_bytes - 32;
+
+                    // Insert remaining OHC data (auto-generated random)
+                    for (i = 0; i < remaining_ohc_bytes && i < 32; i = i + 1) begin
+                        data_beat[i*8 +: 8] = $random(tb_pcie_sub_msg.random_seed);
+                    end
+
+                    // Fill remaining space with random payload
+                    for (i = remaining_ohc_bytes; i < 32; i = i + 1) begin
+                        data_beat[i*8 +: 8] = $random(tb_pcie_sub_msg.random_seed);
+                    end
+
+                    // Store payload data for verification
+                    if (queue_idx < 15 && payload_beat_idx < 64) begin
+                        tb_pcie_sub_msg.expected_queue_data[queue_idx][payload_beat_idx] = data_beat;
+                        $display("[%0t] [WRITE_GEN] Stored Q%0d[%0d] = 0x%h",
+                                 $time, queue_idx, payload_beat_idx, data_beat);
+                    end
+                    payload_beat_idx = payload_beat_idx + 1;
+
                 end else begin
-                    // Store payload data for verification (excluding header beat)
+                    // ========================================
+                    // Beat 2+: Pure random payload
+                    // ========================================
+                    data_beat[255:192] = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
+                    data_beat[191:128] = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
+                    data_beat[127:64]  = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
+                    data_beat[63:0]    = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
+
+                    // Store payload data for verification
                     if (queue_idx < 15 && payload_beat_idx < 64) begin
                         tb_pcie_sub_msg.expected_queue_data[queue_idx][payload_beat_idx] = data_beat;
                         $display("[%0t] [WRITE_GEN] Stored Q%0d[%0d] = 0x%h",
