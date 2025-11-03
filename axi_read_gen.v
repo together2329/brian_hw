@@ -81,19 +81,156 @@ output reg  rready
             @(posedge i_clk);
             #1; // Small delay to let signals settle
 
-            // Check for error interrupt (priority: handle errors first) - Only on Queue 0
+            // Check for error interrupt (priority: handle errors first) - Check all queues
             if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[3]) begin
                 $display("\n========================================");
-                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED ***", $time);
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 0) ***", $time);
                 $display("[%0t] [READ_GEN] Q0 INTR_STATUS = 0x%h",
                          $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0);
                 $display("========================================\n");
-
-                // Clear error interrupt
                 force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0[3] = 1'b1;
-                @(posedge i_clk);
-                #1;
+                @(posedge i_clk); #1;
                 release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_1[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 1) ***", $time);
+                $display("[%0t] [READ_GEN] Q1 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_1);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_1[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_1;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_2[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 2) ***", $time);
+                $display("[%0t] [READ_GEN] Q2 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_2);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_2[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_2;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_3[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 3) ***", $time);
+                $display("[%0t] [READ_GEN] Q3 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_3);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_3[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_3;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_4[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 4) ***", $time);
+                $display("[%0t] [READ_GEN] Q4 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_4);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_4[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_4;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_5[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 5) ***", $time);
+                $display("[%0t] [READ_GEN] Q5 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_5);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_5[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_5;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_6[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 6) ***", $time);
+                $display("[%0t] [READ_GEN] Q6 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_6);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_6[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_6;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_7[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 7) ***", $time);
+                $display("[%0t] [READ_GEN] Q7 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_7);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_7[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_7;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_8[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 8) ***", $time);
+                $display("[%0t] [READ_GEN] Q8 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_8);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_8[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_8;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_9[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 9) ***", $time);
+                $display("[%0t] [READ_GEN] Q9 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_9);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_9[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_9;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_10[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 10) ***", $time);
+                $display("[%0t] [READ_GEN] Q10 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_10);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_10[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_10;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_11[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 11) ***", $time);
+                $display("[%0t] [READ_GEN] Q11 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_11);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_11[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_11;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_12[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 12) ***", $time);
+                $display("[%0t] [READ_GEN] Q12 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_12);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_12[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_12;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_13[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 13) ***", $time);
+                $display("[%0t] [READ_GEN] Q13 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_13);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_13[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_13;
+                @(posedge i_clk);
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_14[3]) begin
+                $display("\n========================================");
+                $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED (Queue 14) ***", $time);
+                $display("[%0t] [READ_GEN] Q14 INTR_STATUS = 0x%h",
+                         $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_14);
+                $display("========================================\n");
+                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_14[3] = 1'b1;
+                @(posedge i_clk); #1;
+                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_14;
                 @(posedge i_clk);
             end
 

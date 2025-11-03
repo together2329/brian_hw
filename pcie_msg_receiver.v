@@ -608,6 +608,26 @@ module pcie_msg_receiver (
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] <=
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] + 1;
                                     $display("[%0t] [ASSEMBLE] ERROR: Middle without first (Queue=%0d)", $time, allocated_queue_idx);
+
+                                    // Set error interrupt for this queue
+                                    case (allocated_queue_idx)
+                                        4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[3] <= 1'b1;
+                                        4'h1: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_1[3] <= 1'b1;
+                                        4'h2: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_2[3] <= 1'b1;
+                                        4'h3: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_3[3] <= 1'b1;
+                                        4'h4: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_4[3] <= 1'b1;
+                                        4'h5: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_5[3] <= 1'b1;
+                                        4'h6: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_6[3] <= 1'b1;
+                                        4'h7: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_7[3] <= 1'b1;
+                                        4'h8: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_8[3] <= 1'b1;
+                                        4'h9: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_9[3] <= 1'b1;
+                                        4'hA: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_10[3] <= 1'b1;
+                                        4'hB: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_11[3] <= 1'b1;
+                                        4'hC: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_12[3] <= 1'b1;
+                                        4'hD: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_13[3] <= 1'b1;
+                                        4'hE: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_14[3] <= 1'b1;
+                                    endcase
+                                    o_msg_interrupt <= 1'b1;
                                 end
 
                                 // Check transmission size mismatch (M_PKT must match S_PKT size)
@@ -616,6 +636,26 @@ module pcie_msg_receiver (
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] + 1;
                                     $display("[%0t] [ASSEMBLE] ERROR: Size mismatch (S_PKT=%0dB, M_PKT=%0dB)",
                                              $time, queue_tx_size[allocated_queue_idx] * 4, current_frag[0][31:24] * 4);
+
+                                    // Set error interrupt for this queue
+                                    case (allocated_queue_idx)
+                                        4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[3] <= 1'b1;
+                                        4'h1: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_1[3] <= 1'b1;
+                                        4'h2: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_2[3] <= 1'b1;
+                                        4'h3: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_3[3] <= 1'b1;
+                                        4'h4: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_4[3] <= 1'b1;
+                                        4'h5: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_5[3] <= 1'b1;
+                                        4'h6: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_6[3] <= 1'b1;
+                                        4'h7: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_7[3] <= 1'b1;
+                                        4'h8: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_8[3] <= 1'b1;
+                                        4'h9: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_9[3] <= 1'b1;
+                                        4'hA: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_10[3] <= 1'b1;
+                                        4'hB: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_11[3] <= 1'b1;
+                                        4'hC: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_12[3] <= 1'b1;
+                                        4'hD: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_13[3] <= 1'b1;
+                                        4'hE: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_14[3] <= 1'b1;
+                                    endcase
+                                    o_msg_interrupt <= 1'b1;
                                 end
 
                                 // Check out-of-sequence
@@ -624,6 +664,26 @@ module pcie_msg_receiver (
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] + 1;
                                     $display("[%0t] [ASSEMBLE] ERROR: Out-of-sequence (expected SN=%0d, got SN=%0d)",
                                              $time, queue_expected_sn[allocated_queue_idx], pkt_sn);
+
+                                    // Set error interrupt for this queue
+                                    case (allocated_queue_idx)
+                                        4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[3] <= 1'b1;
+                                        4'h1: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_1[3] <= 1'b1;
+                                        4'h2: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_2[3] <= 1'b1;
+                                        4'h3: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_3[3] <= 1'b1;
+                                        4'h4: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_4[3] <= 1'b1;
+                                        4'h5: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_5[3] <= 1'b1;
+                                        4'h6: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_6[3] <= 1'b1;
+                                        4'h7: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_7[3] <= 1'b1;
+                                        4'h8: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_8[3] <= 1'b1;
+                                        4'h9: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_9[3] <= 1'b1;
+                                        4'hA: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_10[3] <= 1'b1;
+                                        4'hB: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_11[3] <= 1'b1;
+                                        4'hC: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_12[3] <= 1'b1;
+                                        4'hD: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_13[3] <= 1'b1;
+                                        4'hE: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_14[3] <= 1'b1;
+                                    endcase
+                                    o_msg_interrupt <= 1'b1;
                                 end
 
                                 if (queue_valid[allocated_queue_idx] && (pkt_sn == queue_expected_sn[allocated_queue_idx])) begin
@@ -664,6 +724,27 @@ module pcie_msg_receiver (
                                 if (!queue_valid[allocated_queue_idx]) begin
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] <=
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[7:0] + 1;
+
+                                    // Set error interrupt for the specific queue
+                                    case (allocated_queue_idx)
+                                        4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[3] <= 1'b1;
+                                        4'h1: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_1[3] <= 1'b1;
+                                        4'h2: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_2[3] <= 1'b1;
+                                        4'h3: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_3[3] <= 1'b1;
+                                        4'h4: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_4[3] <= 1'b1;
+                                        4'h5: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_5[3] <= 1'b1;
+                                        4'h6: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_6[3] <= 1'b1;
+                                        4'h7: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_7[3] <= 1'b1;
+                                        4'h8: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_8[3] <= 1'b1;
+                                        4'h9: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_9[3] <= 1'b1;
+                                        4'hA: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_10[3] <= 1'b1;
+                                        4'hB: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_11[3] <= 1'b1;
+                                        4'hC: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_12[3] <= 1'b1;
+                                        4'hD: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_13[3] <= 1'b1;
+                                        4'hE: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_14[3] <= 1'b1;
+                                    endcase
+                                    o_msg_interrupt <= 1'b1;
+
                                     $display("[%0t] [ASSEMBLE] ERROR: Last without first (Queue=%0d)", $time, allocated_queue_idx);
                                 end
 
@@ -671,6 +752,27 @@ module pcie_msg_receiver (
                                 if (queue_valid[allocated_queue_idx] && (pkt_sn != queue_expected_sn[allocated_queue_idx])) begin
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] <=
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[31:24] + 1;
+
+                                    // Set error interrupt for the specific queue
+                                    case (allocated_queue_idx)
+                                        4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[3] <= 1'b1;
+                                        4'h1: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_1[3] <= 1'b1;
+                                        4'h2: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_2[3] <= 1'b1;
+                                        4'h3: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_3[3] <= 1'b1;
+                                        4'h4: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_4[3] <= 1'b1;
+                                        4'h5: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_5[3] <= 1'b1;
+                                        4'h6: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_6[3] <= 1'b1;
+                                        4'h7: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_7[3] <= 1'b1;
+                                        4'h8: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_8[3] <= 1'b1;
+                                        4'h9: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_9[3] <= 1'b1;
+                                        4'hA: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_10[3] <= 1'b1;
+                                        4'hB: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_11[3] <= 1'b1;
+                                        4'hC: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_12[3] <= 1'b1;
+                                        4'hD: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_13[3] <= 1'b1;
+                                        4'hE: PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_14[3] <= 1'b1;
+                                    endcase
+                                    o_msg_interrupt <= 1'b1;
+
                                     $display("[%0t] [ASSEMBLE] ERROR: Out-of-sequence (expected SN=%0d, got SN=%0d)",
                                              $time, queue_expected_sn[allocated_queue_idx], pkt_sn);
                                 end
