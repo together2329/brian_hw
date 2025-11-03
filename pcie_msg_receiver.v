@@ -368,7 +368,7 @@ module pcie_msg_receiver (
                                  $time, axi_awaddr, axi_awlen + 1);
                     end else begin
                         axi_awready <= 1'b1;
-                        $display("[%0t] [MSG_RX] IDLE: awready=1, waiting for awvalid", $time);
+                        // $display("[%0t] [MSG_RX] IDLE: awready=1, waiting for awvalid", $time);
                     end
                 end
 
