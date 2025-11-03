@@ -119,9 +119,7 @@ output reg   O_BREADY
         tlp_header[99:96] = 4'b0010;  // Bad version
 
         $display("[%0t] [WRITE_GEN] Calling SEND_WRITE task...", $time);
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1,
-                   {256'h0, 256'h0, 256'hBAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0,
-                    256'hBAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1}, 64'h400);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1, 64'h400);
         $display("[%0t] [WRITE_GEN] SEND_WRITE task returned!", $time);
 
         // Wait for bad header version error detection - give receiver time to process
@@ -145,9 +143,7 @@ output reg   O_BREADY
         $display("TEST: Unknown Destination ID Test");
         $display("========================================\n");
 
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1,
-                   {256'h0, 256'h0, 256'hCAFE_CAFE_CAFE_CAFE_CAFE_CAFE_CAFE_CAFE,
-                    256'hDEAD_DEAD_DEAD_DEAD_DEAD_DEAD_DEAD_DEAD}, 64'h500);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1, 64'h500);
 
         // Wait for unknown destination error
         $display("[%0t] [WRITE_GEN] Waiting for unknown destination error detection...", $time);
@@ -164,9 +160,7 @@ output reg   O_BREADY
         // Tag=7 requires TO=1, but we send TO=0 to trigger error
         // Header format: [127:126]=FragType, [125:124]=PKT_SN, [123]=TO, [122:120]=TAG
         // MSG_T7_TO_ZERO = 4'b0111 = {TO=0, TAG=7}
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T7_TO_ZERO, tlp_header[119:0]}, 8'h1, 3, 1,
-                   {256'h0, 256'h0, 256'hBAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0,
-                    256'hBAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1}, 64'h600);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T7_TO_ZERO, tlp_header[119:0]}, 8'h1, 3, 1, 64'h600);
 
         // Wait for tag owner error detection
         $display("[%0t] [WRITE_GEN] Waiting for tag owner error detection...", $time);
@@ -180,10 +174,7 @@ output reg   O_BREADY
 
         // Test 1: Send M_PKT without preceding S_PKT (should trigger error)
         $display("[%0t] [WRITE_GEN] Sending M_PKT without S_PKT...", $time);
-        SEND_WRITE({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
-                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
-                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h700);
+        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h700);
 
         // Wait for middle without first error
         $display("[%0t] [WRITE_GEN] Waiting for middle-without-first error detection...", $time);
@@ -193,10 +184,7 @@ output reg   O_BREADY
 
         // Test 2: Send L_PKT without preceding S_PKT (should trigger another error)
         $display("[%0t] [WRITE_GEN] Sending L_PKT without S_PKT...", $time);
-        SEND_WRITE({L_PKT, PKT_SN2, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
-                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
-                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h800);
+        SEND_WRITE_RANDOM({L_PKT, PKT_SN2, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h800);
 
         // Wait for last without first error
         $display("[%0t] [WRITE_GEN] Waiting for last-without-first error detection...", $time);
@@ -211,9 +199,7 @@ output reg   O_BREADY
         // Test 1: 32B (too small, should trigger error)
         $display("[%0t] [WRITE_GEN] Test 1: Sending 32B packet (too small)...", $time);
         tlp_header[31:24] = 8'h08;  // 32B = 8 DW
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1,
-                   {256'h0, 256'h0, 256'hBAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0,
-                    256'hBAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1}, 64'h900);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1, 64'h900);
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] TX unit size error counter = 0x%h", $time,
@@ -230,9 +216,7 @@ output reg   O_BREADY
         // Test 2 revised: 16B (too small)
         $display("[%0t] [WRITE_GEN] Test 2: Sending 16B packet (too small)...", $time);
         tlp_header[31:24] = 8'h04;  // 16B = 4 DW
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T5, tlp_header[119:0]}, 8'h1, 3, 1,
-                   {256'h0, 256'h0, 256'h1111_1111_1111_1111_1111_1111_1111_1111,
-                    256'h2222_2222_2222_2222_2222_2222_2222_2222}, 64'hA00);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T5, tlp_header[119:0]}, 8'h1, 3, 1, 64'hA00);
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] TX unit size error counter = 0x%h", $time,
@@ -241,9 +225,7 @@ output reg   O_BREADY
         // Test 3: 64B (minimum valid size, should NOT trigger error)
         $display("[%0t] [WRITE_GEN] Test 3: Sending 64B packet (valid minimum)...", $time);
         tlp_header[31:24] = 8'h10;  // 64B = 16 DW
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]}, 8'h1, 3, 1,
-                   {256'h0, 256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
-                    256'h4444_4444_4444_4444_4444_4444_4444_4444}, 64'hB00);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]}, 8'h1, 3, 1, 64'hB00);
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] TX unit size error counter = 0x%h (should still be 0x02)", $time,
@@ -255,9 +237,7 @@ output reg   O_BREADY
         // Wait, 256 DW = 0x100, but that's 9 bits. 8-bit max is 0xFF = 255 DW = 1020B
         // So let's use 0xFF for maximum
         tlp_header[31:24] = 8'hFF;  // 1020B = 255 DW (under 1024B, valid)
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1,
-                   {256'h0, 256'h0, 256'h5555_5555_5555_5555_5555_5555_5555_5555,
-                    256'h6666_6666_6666_6666_6666_6666_6666_6666}, 64'hC00);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1, 64'hC00);
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] TX unit size error counter = 0x%h (should still be 0x02)", $time,
@@ -272,27 +252,15 @@ output reg   O_BREADY
         // S->L assembly (2 fragments) with mismatched sizes
         $display("[%0t] [WRITE_GEN] Sending S_PKT with 64B size...", $time);
         tlp_header[31:24] = 8'h10; // 64B
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1,
-                   {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
-                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
-                    256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
-                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h1000);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1, 64'h1000);
 
         $display("[%0t] [WRITE_GEN] Sending M_PKT with 128B size (mismatch - should error)...", $time);
         tlp_header[31:24] = 8'h20; // 128B (different size - should error)
-        SEND_WRITE({M_PKT, PKT_SN1, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1,
-                   {256'hEEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE,
-                    256'hFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-                    256'h1111_1111_1111_1111_1111_1111_1111_1111,
-                    256'h2222_2222_2222_2222_2222_2222_2222_2222}, 64'h1100);
+        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1, 64'h1100);
 
         $display("[%0t] [WRITE_GEN] Sending L_PKT with 256B size (different from S/M, but allowed)...", $time);
         tlp_header[31:24] = 8'h40; // 256B (different size - allowed for L_PKT)
-        SEND_WRITE({L_PKT, PKT_SN2, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1,
-                   {256'h3333_3333_3333_3333_3333_3333_3333_3333,
-                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
-                    256'h5555_5555_5555_5555_5555_5555_5555_5555,
-                    256'h6666_6666_6666_6666_6666_6666_6666_6666}, 64'h1200);
+        SEND_WRITE_RANDOM({L_PKT, PKT_SN2, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1, 64'h1200);
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Size mismatch error counter = 0x%h", $time,
@@ -312,10 +280,7 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Test 1: SG_PKT with 0 byte padding, TLP_len=16 DW (64B)", $time);
         tlp_header[53:52] = 2'b00; // 0B padding
         tlp_header[31:24] = 8'h10; // 64B = 16 DW
-        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h2, 2, 1,
-                   {256'h0, 256'hAA00_AA00_AA00_AA00_AA00_AA00_AA00_AA00,
-                    256'hBB00_BB00_BB00_BB00_BB00_BB00_BB00_BB00,
-                    256'hCC00_CC00_CC00_CC00_CC00_CC00_CC00_CC00}, 64'h2000);
+        SEND_WRITE_RANDOM({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h2, 2, 1, 64'h2000);
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Test 1: Expected WPTR=%0d, Actual WPTR=%0d",
                  $time, 64, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
@@ -324,10 +289,7 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Test 2: SG_PKT with 1 byte padding, TLP_len=16 DW (64B - 1B = 63B)", $time);
         tlp_header[53:52] = 2'b01; // 1B padding
         tlp_header[31:24] = 8'h10; // 64B = 16 DW
-        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h2, 2, 1,
-                   {256'h0, 256'hAA01_AA01_AA01_AA01_AA01_AA01_AA01_AA01,
-                    256'hBB01_BB01_BB01_BB01_BB01_BB01_BB01_BB01,
-                    256'hCC01_CC01_CC01_CC01_CC01_CC01_CC01_CC01}, 64'h2100);
+        SEND_WRITE_RANDOM({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h2, 2, 1, 64'h2100);
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Test 2: Expected WPTR=%0d, Actual WPTR=%0d",
                  $time, 63, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
@@ -337,8 +299,7 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Test 3: SG_PKT with 2 byte padding, TLP_len=2 DW (8B - 2B = 6B)", $time);
         tlp_header[53:52] = 2'b10; // 2B padding
         tlp_header[31:24] = 8'h02; // 8B = 2 DW
-        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h0, 2, 1,
-                   {256'h0, 256'h0, 256'h0, 256'h0}, 64'h2200);
+        SEND_WRITE_RANDOM({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h0, 2, 1, 64'h2200);
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Test 3: Expected WPTR=%0d, Actual WPTR=%0d",
                  $time, 6, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
@@ -347,8 +308,7 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Test 4: SG_PKT with 3 byte padding, TLP_len=2 DW (8B - 3B = 5B)", $time);
         tlp_header[53:52] = 2'b11; // 3B padding
         tlp_header[31:24] = 8'h02; // 8B = 2 DW
-        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h0, 2, 1,
-                   {256'h0, 256'h0, 256'h0, 256'h0}, 64'h2300);
+        SEND_WRITE_RANDOM({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h0, 2, 1, 64'h2300);
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Test 4: Expected WPTR=%0d, Actual WPTR=%0d",
                  $time, 5, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
@@ -367,22 +327,13 @@ output reg   O_BREADY
         // MSG_T6: 68B x 3 fragments = 204B total
         $display("[%0t] [WRITE_GEN] MSG_T6: Sending S_PKT (68B)...", $time);
         tlp_header[31:24] = 8'h11; // 68B = 17 DW
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
-                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
-                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h100);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
 
         $display("[%0t] [WRITE_GEN] MSG_T6: Sending M_PKT (68B)...", $time);
-        SEND_WRITE({M_PKT, PKT_SN1, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
-                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
-                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h100);
+        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
 
         $display("[%0t] [WRITE_GEN] MSG_T6: Sending L_PKT (68B)...", $time);
-        SEND_WRITE({L_PKT, PKT_SN2, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
-                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
-                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
+        SEND_WRITE_RANDOM({L_PKT, PKT_SN2, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] MSG_T6: Expected WPTR=%0d bytes (68B x 3), Actual WPTR=%0d bytes",
@@ -391,22 +342,13 @@ output reg   O_BREADY
         // MSG_T2: 64B x 3 fragments = 192B total
         $display("[%0t] [WRITE_GEN] MSG_T2: Sending S_PKT (64B)...", $time);
         tlp_header[31:24] = 8'h10; // 64B = 16 DW
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
-                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
-                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h100);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
 
         $display("[%0t] [WRITE_GEN] MSG_T2: Sending M_PKT (64B)...", $time);
-        SEND_WRITE({M_PKT, PKT_SN1, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
-                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
-                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h100);
+        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
 
         $display("[%0t] [WRITE_GEN] MSG_T2: Sending L_PKT (64B)...", $time);
-        SEND_WRITE({L_PKT, PKT_SN2, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
-                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
-                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
+        SEND_WRITE_RANDOM({L_PKT, PKT_SN2, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] MSG_T2: Expected WPTR=%0d bytes (64B x 3), Actual WPTR=%0d bytes",
@@ -418,19 +360,11 @@ output reg   O_BREADY
         // Restart Test: Send S_PKT twice with same source ID, tag, and tag owner
         // First S_PKT starts assembly
         $display("[%0t] [WRITE_GEN] Sending first S_PKT (TAG=0, SRC_ID=0x0, TO=1)...", $time);
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
-                   {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
-                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
-                    256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
-                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'hD00);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1, 64'hD00);
 
         // Second S_PKT with same context (should trigger restart error)
         $display("[%0t] [WRITE_GEN] Sending second S_PKT (same context, should trigger restart error)...", $time);
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
-                   {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
-                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
-                    256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
-                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'hE00);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1, 64'hE00);
 
         // Wait for restart error detection
         $display("[%0t] [WRITE_GEN] Waiting for restart error detection...", $time);
@@ -440,11 +374,7 @@ output reg   O_BREADY
 
         // Complete the assembly with L_PKT
         $display("[%0t] [WRITE_GEN] Completing assembly with L_PKT...", $time);
-        SEND_WRITE({L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
-                   {256'hEEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE,
-                    256'hFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-                    256'h1111_1111_1111_1111_1111_1111_1111_1111,
-                    256'h2222_2222_2222_2222_2222_2222_2222_2222}, 64'hF00);
+        SEND_WRITE_RANDOM({L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1, 64'hF00);
 
         repeat(50) @(posedge i_clk);
 
@@ -455,11 +385,7 @@ output reg   O_BREADY
         // This will trigger timeout after 10000 cycles
         $display("[%0t] [WRITE_GEN] Sending S_PKT without completing (will timeout)...", $time);
         $display("[%0t] [WRITE_GEN] Using TAG=12 for timeout test", $time);
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h3, 3, 1,
-                   {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
-                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
-                    256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
-                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h1200);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h3, 3, 1, 64'h1200);
 
         $display("[%0t] [WRITE_GEN] Waiting for timeout (threshold = 10000 cycles)...", $time);
         // Wait for timeout to occur (need to wait >10000 cycles)
@@ -476,23 +402,14 @@ output reg   O_BREADY
         // We'll send: SN=0 (S), SN=1 (M), SN=3 (L) - skip SN=2
 
         $display("[%0t] [WRITE_GEN] Sending S_PKT (SN=0, TAG=1)...", $time);
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
-                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
-                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h1300);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h1300);
 
         $display("[%0t] [WRITE_GEN] Sending M_PKT (SN=1, TAG=1)...", $time);
-        SEND_WRITE({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
-                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
-                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h1400);
+        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h1400);
 
         // Send L_PKT with SN=3 instead of expected SN=2 (out-of-sequence)
         $display("[%0t] [WRITE_GEN] Sending L_PKT with wrong SN (SN=3 instead of 2)...", $time);
-        SEND_WRITE({L_PKT, PKT_SN3, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
-                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
-                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h1500);
+        SEND_WRITE_RANDOM({L_PKT, PKT_SN3, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h1500);
 
         // Wait for out-of-sequence error detection
         $display("[%0t] [WRITE_GEN] Waiting for out-of-sequence error detection...", $time);
@@ -513,46 +430,26 @@ output reg   O_BREADY
         $display("TEST 2: S->M->L (3 fragments) with MSG_T1");
         $display("========================================\n");
         // S->M->L assembly (3 fragments)
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h3333_3333_3333_3333_3333_3333_3333_3333,
-                    256'h4444_4444_4444_4444_4444_4444_4444_4444,
-                    256'h5555_5555_5555_5555_5555_5555_5555_5555}, 64'h100);
-        SEND_WRITE({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h6666_6666_6666_6666_6666_6666_6666_6666,
-                    256'h7777_7777_7777_7777_7777_7777_7777_7777,
-                    256'h8888_8888_8888_8888_8888_8888_8888_8888}, 64'h100);
-        SEND_WRITE({L_PKT, PKT_SN2, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'h9999_9999_9999_9999_9999_9999_9999_9999,
-                    256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
-                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB}, 64'h100);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
+        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
+        SEND_WRITE_RANDOM({L_PKT, PKT_SN2, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
         #200;
 
         $display("\n========================================");
         $display("TEST 3: S->M->M->L (4 fragments) with MSG_T2");
         $display("========================================\n");
         // S->M->M->L assembly (4 fragments)
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1,
-                   {256'h0, 256'h0, 256'hDEAD_BEEF_DEAD_BEEF_DEAD_BEEF_DEAD_BEEF,
-                    256'hCAFE_BABE_CAFE_BABE_CAFE_BABE_CAFE_BABE}, 64'h200);
-        SEND_WRITE({M_PKT, PKT_SN1, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1,
-                   {256'h0, 256'h0, 256'h1234_5678_1234_5678_1234_5678_1234_5678,
-                    256'hABCD_EF01_ABCD_EF01_ABCD_EF01_ABCD_EF01}, 64'h200);
-        SEND_WRITE({M_PKT, PKT_SN2, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1,
-                   {256'h0, 256'h0, 256'hFEDC_BA98_FEDC_BA98_FEDC_BA98_FEDC_BA98,
-                    256'h7654_3210_7654_3210_7654_3210_7654_3210}, 64'h200);
-        SEND_WRITE({L_PKT, PKT_SN3, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1,
-                   {256'h0, 256'h0, 256'h1111_2222_3333_4444_5555_6666_7777_8888,
-                    256'h9999_AAAA_BBBB_CCCC_DDDD_EEEE_FFFF_0000}, 64'h200);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1, 64'h200);
+        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1, 64'h200);
+        SEND_WRITE_RANDOM({M_PKT, PKT_SN2, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1, 64'h200);
+        SEND_WRITE_RANDOM({L_PKT, PKT_SN3, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1, 64'h200);
         #200;
 
         $display("\n========================================");
         $display("TEST 4: Single packet (SG_PKT) with MSG_T3");
         $display("========================================\n");
         // Single packet (no assembly)
-        SEND_WRITE({SG_PKT, PKT_SN0, MSG_T3, tlp_header[119:0]}, 8'h2, 3, 1,
-                   {256'h0, 256'hAAAA_5555_AAAA_5555_AAAA_5555_AAAA_5555,
-                    256'h5555_AAAA_5555_AAAA_5555_AAAA_5555_AAAA,
-                    256'hFFFF_0000_FFFF_0000_FFFF_0000_FFFF_0000}, 64'h300);
+        SEND_WRITE_RANDOM({SG_PKT, PKT_SN0, MSG_T3, tlp_header[119:0]}, 8'h2, 3, 1, 64'h300);
         #200;
 
         $display("\n========================================");
@@ -561,9 +458,7 @@ output reg   O_BREADY
         // Send fragment with bad header version (0x2 instead of 0x1)
         // This should increment the bad header version error counter
         tlp_header[99:96] = 4'b0010;  // Bad version
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1,
-                   {256'h0, 256'h0, 256'hBAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0_BAD0,
-                    256'hBAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1_BAD1}, 64'h400);
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1, 64'h400);
 
         // Restore correct header version
         tlp_header[99:96] = 4'b0001;
@@ -772,165 +667,5 @@ output reg   O_BREADY
         end
     endtask
 
-    // ========================================
-    // AXI Write Task (Original with fixed data)
-    // ========================================
-    task automatic SEND_WRITE;
-        input [127:0]     header;
-        input [7:0]       awlen;        // AXI len (beats - 1)
-        input [2:0]       awsize;
-        input [1:0]       awburst;
-        input [256*4-1:0] wr_data;
-        input [63:0]      awaddr_unused;  // Unused, will use 0x8C00000 + queue offset
-
-        integer beat;
-        integer total_beats;
-        reg [255:0] data_beat;
-        reg [2:0] tag;
-        reg to_bit;
-        reg [7:0] src_id;
-        integer queue_idx;
-        integer i;
-        reg [63:0] final_awaddr;
-
-        begin
-            total_beats = awlen + 1;  // AXI len is (beats - 1)
-
-            // Extract metadata from header
-            tag = header[122:120];
-            to_bit = header[123];
-            src_id = header[119:112];
-
-            // Find available queue based on tag, to, src_id
-            queue_idx = -1;
-
-            // First, check if this context already has a queue
-            for (i = 0; i < 15; i = i + 1) begin
-                if (tb_pcie_sub_msg.queue_allocated[i][12] &&
-                    tb_pcie_sub_msg.queue_allocated[i][11:4] == src_id &&
-                    tb_pcie_sub_msg.queue_allocated[i][3] == to_bit &&
-                    tb_pcie_sub_msg.queue_allocated[i][2:0] == tag) begin
-                    queue_idx = i;
-                end
-            end
-
-            // If no queue found, allocate a new one
-            if (queue_idx == -1) begin
-                for (i = 0; i < 15; i = i + 1) begin
-                    if (!tb_pcie_sub_msg.queue_allocated[i][12] && queue_idx == -1) begin
-                        queue_idx = i;
-                        tb_pcie_sub_msg.queue_allocated[i] = {1'b1, src_id, to_bit, tag};
-                        $display("[%0t] [WRITE_GEN] Allocated Queue %0d for TAG=%0d, TO=%0b, SRC_ID=0x%h",
-                                 $time, queue_idx, tag, to_bit, src_id);
-                    end
-                end
-            end
-
-            if (queue_idx == -1) begin
-                $display("[%0t] [WRITE_GEN] ERROR: No available queue!", $time);
-                queue_idx = 0;  // Fallback
-            end
-
-            // Fixed address: 0x8C20000 (queue address calculated by receiver)
-            final_awaddr = 64'h08C20000;
-
-            $display("\n========================================");
-            $display("[%0t] [WRITE_GEN] SEND_WRITE TASK CALLED", $time);
-            $display("[%0t] [WRITE_GEN] SEND_WRITE START", $time);
-            $display("  TAG=%0d, TO=%0b, SRC_ID=0x%h -> Queue %0d (allocated by receiver)", tag, to_bit, src_id, queue_idx);
-            $display("  Address: 0x%h (fixed)", final_awaddr);
-            $display("  Length:  %0d beats (awlen=%0d)", total_beats, awlen);
-            $display("  Size:    %0d (2^%0d = %0d bytes)", awsize, awsize, 1 << awsize);
-            $display("  Burst:   %0d (%s)", awburst,
-                     (awburst == 2'b00) ? "FIXED" :
-                     (awburst == 2'b01) ? "INCR" : "WRAP");
-            $display("  Header:  0x%h", header);
-            $display("========================================");
-
-            // ====================================
-            // 1. Write Address Phase
-            // ====================================
-            $display("[%0t] [WRITE_GEN] Starting address phase...", $time);
-
-            // Wait for AWREADY to be ready first
-            while (!I_AWREADY) begin
-                @(posedge i_clk);
-            end
-            $display("[%0t] [WRITE_GEN] AWREADY is high, asserting AWVALID...", $time);
-
-            // Now assert AWVALID along with address signals
-            O_AWVALID = 1'b1;
-            O_AWADDR  = final_awaddr;  // Use calculated queue address
-            O_AWLEN   = awlen;
-            O_AWSIZE  = awsize;
-            O_AWBURST = awburst;
-            O_AWID    = 7'h0;
-            O_AWUSER  = 64'h0;
-            O_AWLOCK  = 1'b0;
-            O_AWCACHE = 4'h0;
-            O_AWPROT  = 3'h0;
-
-            // Wait one clock for handshake to complete
-            @(posedge i_clk);
-            $display("[%0t] [WRITE_GEN] Address handshake complete", $time);
-
-            // Clear AWVALID
-            O_AWVALID = 1'b0;
-
-            // ====================================
-            // 2. Write Data Phase
-            // Format: First beat has header in [127:0]
-            // ====================================
-            // Send all beats
-            for (beat = 0; beat < total_beats; beat = beat + 1) begin
-                if (beat == 0) begin
-                    // First beat: header in lower 128 bits
-                    data_beat = wr_data[255:0];
-                    O_WDATA = {data_beat[255:128], header};
-                end else begin
-                    // Subsequent beats: just data
-                    data_beat = wr_data[(beat * 256) +: 256];
-                    O_WDATA = data_beat;
-                end
-
-                O_WSTRB  = 32'hFFFFFFFF;
-                O_WLAST  = (beat == total_beats - 1) ? 1'b1 : 1'b0;
-                O_WVALID = 1'b1;
-                O_WUSER  = 16'h0;
-
-                $display("[%0t] [WRITE_GEN] Write Data Beat %0d: data=0x%h, last=%0b",
-                         $time, beat, O_WDATA, O_WLAST);
-
-                // Wait for one clock for handshake
-                @(posedge i_clk);
-            end
-
-            $display("[%0t] [WRITE_GEN] All %0d beats sent", $time, total_beats);
-
-            O_WVALID = 1'b0;
-            O_WLAST  = 1'b0;
-
-            // ====================================
-            // 3. Write Response Phase
-            // ====================================
-            // BREADY is always high, just wait for BVALID
-            $display("[%0t] [WRITE_GEN] Waiting for write response...", $time);
-
-            // Wait for BVALID
-            while (!I_BVALID) begin
-                @(posedge i_clk);
-            end
-            $display("[%0t] [WRITE_GEN] BVALID received", $time);
-
-            $display("[%0t] [WRITE_GEN] Write Response: bresp=%0d (%s)",
-                     $time, I_BRESP,
-                     (I_BRESP == 2'b00) ? "OKAY" :
-                     (I_BRESP == 2'b01) ? "EXOKAY" :
-                     (I_BRESP == 2'b10) ? "SLVERR" : "DECERR");
-
-            $display("[%0t] [WRITE_GEN] SEND_WRITE COMPLETE", $time);
-            $display("========================================\n");
-        end
-    endtask
 
 endmodule
