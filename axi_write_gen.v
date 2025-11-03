@@ -59,6 +59,10 @@ output reg   O_BREADY
 
     reg [127:0] tlp_header;
 
+    // Queue allocation tracking (shared with testbench)
+    // Access via: tb_pcie_sub_msg.queue_allocated[i]
+    // Format: [12:12]=valid, [11:4]=src_id, [3]=to, [2:0]=tag
+
     initial begin
         $display("[%0t] [WRITE_GEN] Initial block started", $time);
 
@@ -602,39 +606,77 @@ output reg   O_BREADY
         input [7:0]       awlen;        // AXI len (beats - 1)
         input [2:0]       awsize;
         input [1:0]       awburst;
-        input [63:0]      awaddr;
+        input [63:0]      awaddr_unused;  // Unused, will use 0x8C00000 + queue offset
 
         integer beat;
         integer total_beats;
         reg [255:0] data_beat;
-        reg [3:0] msg_tag;
+        reg [2:0] tag;
+        reg to_bit;
+        reg [7:0] src_id;
         integer queue_idx;
         integer payload_beat_idx;
+        integer i;
+        reg [63:0] final_awaddr;
 
         begin
             total_beats = awlen + 1;  // AXI len is (beats - 1)
-            msg_tag = header[122:120];  // Extract TAG (3 bits) from bits [122:120]
-            queue_idx = msg_tag;
+
+            // Extract metadata from header
+            tag = header[122:120];
+            to_bit = header[123];
+            src_id = header[119:112];
+
+            // Find available queue based on tag, to, src_id
+            queue_idx = -1;
+
+            // First, check if this context already has a queue
+            for (i = 0; i < 15; i = i + 1) begin
+                if (tb_pcie_sub_msg.queue_allocated[i][12] &&
+                    tb_pcie_sub_msg.queue_allocated[i][11:4] == src_id &&
+                    tb_pcie_sub_msg.queue_allocated[i][3] == to_bit &&
+                    tb_pcie_sub_msg.queue_allocated[i][2:0] == tag) begin
+                    queue_idx = i;
+                end
+            end
+
+            // If no queue found, allocate a new one
+            if (queue_idx == -1) begin
+                for (i = 0; i < 15; i = i + 1) begin
+                    if (!tb_pcie_sub_msg.queue_allocated[i][12] && queue_idx == -1) begin
+                        queue_idx = i;
+                        tb_pcie_sub_msg.queue_allocated[i] = {1'b1, src_id, to_bit, tag};
+                        $display("[%0t] [WRITE_GEN] Allocated Queue %0d for TAG=%0d, TO=%0b, SRC_ID=0x%h",
+                                 $time, queue_idx, tag, to_bit, src_id);
+                    end
+                end
+            end
+
+            if (queue_idx == -1) begin
+                $display("[%0t] [WRITE_GEN] ERROR: No available queue!", $time);
+                queue_idx = 0;  // Fallback
+            end
+
+            // Fixed address: 0x8C20000 (queue address calculated by receiver)
+            final_awaddr = 64'h08C20000;
 
             $display("\n========================================");
             $display("[%0t] [WRITE_GEN] SEND_WRITE_RANDOM START", $time);
-            $display("  Address: 0x%h", awaddr);
+            $display("  TAG=%0d, TO=%0b, SRC_ID=0x%h -> Queue %0d (allocated by receiver)", tag, to_bit, src_id, queue_idx);
+            $display("  Address: 0x%h (fixed)", final_awaddr);
             $display("  Length:  %0d beats (awlen=%0d)", total_beats, awlen);
-            $display("  TAG: 0x%h (3 bits, Queue %0d)", msg_tag, queue_idx);
-            $display("  TAG_OWNER (TO): %0b (bit [123])", header[123]);
-            $display("  SOURCE_ID: 0x%h (bits [119:112])", header[119:112]);
             $display("  Header:  0x%h", header);
             $display("========================================");
 
             // Store metadata for verification
             if (queue_idx < 15) begin
-                tb_pcie_sub_msg.expected_msg_tag[queue_idx] = {header[123], msg_tag}; // 4 bits: TO + TAG
-                tb_pcie_sub_msg.expected_tag_owner[queue_idx] = header[123];
-                tb_pcie_sub_msg.expected_source_id[queue_idx] = header[119:112];
+                tb_pcie_sub_msg.expected_msg_tag[queue_idx] = {to_bit, tag}; // 4 bits: TO + TAG
+                tb_pcie_sub_msg.expected_tag_owner[queue_idx] = to_bit;
+                tb_pcie_sub_msg.expected_source_id[queue_idx] = src_id;
                 tb_pcie_sub_msg.expected_data_valid[queue_idx] = 1'b1;
                 $display("[%0t] [WRITE_GEN] Stored metadata for Queue %0d:", $time, queue_idx);
                 $display("  MSG_TAG=4'b%b (TO=%0b, TAG=0x%h), SRC_ID=0x%h",
-                         {header[123], msg_tag}, header[123], msg_tag, header[119:112]);
+                         {to_bit, tag}, to_bit, tag, src_id);
             end
 
             // ====================================
@@ -646,7 +688,7 @@ output reg   O_BREADY
             $display("[%0t] [WRITE_GEN] AWREADY is high, asserting AWVALID...", $time);
 
             O_AWVALID = 1'b1;
-            O_AWADDR  = awaddr;
+            O_AWADDR  = final_awaddr;  // Use calculated queue address
             O_AWLEN   = awlen;
             O_AWSIZE  = awsize;
             O_AWBURST = awburst;
@@ -739,19 +781,64 @@ output reg   O_BREADY
         input [2:0]       awsize;
         input [1:0]       awburst;
         input [256*4-1:0] wr_data;
-        input [63:0]      awaddr;
+        input [63:0]      awaddr_unused;  // Unused, will use 0x8C00000 + queue offset
 
         integer beat;
         integer total_beats;
         reg [255:0] data_beat;
+        reg [2:0] tag;
+        reg to_bit;
+        reg [7:0] src_id;
+        integer queue_idx;
+        integer i;
+        reg [63:0] final_awaddr;
 
         begin
             total_beats = awlen + 1;  // AXI len is (beats - 1)
 
+            // Extract metadata from header
+            tag = header[122:120];
+            to_bit = header[123];
+            src_id = header[119:112];
+
+            // Find available queue based on tag, to, src_id
+            queue_idx = -1;
+
+            // First, check if this context already has a queue
+            for (i = 0; i < 15; i = i + 1) begin
+                if (tb_pcie_sub_msg.queue_allocated[i][12] &&
+                    tb_pcie_sub_msg.queue_allocated[i][11:4] == src_id &&
+                    tb_pcie_sub_msg.queue_allocated[i][3] == to_bit &&
+                    tb_pcie_sub_msg.queue_allocated[i][2:0] == tag) begin
+                    queue_idx = i;
+                end
+            end
+
+            // If no queue found, allocate a new one
+            if (queue_idx == -1) begin
+                for (i = 0; i < 15; i = i + 1) begin
+                    if (!tb_pcie_sub_msg.queue_allocated[i][12] && queue_idx == -1) begin
+                        queue_idx = i;
+                        tb_pcie_sub_msg.queue_allocated[i] = {1'b1, src_id, to_bit, tag};
+                        $display("[%0t] [WRITE_GEN] Allocated Queue %0d for TAG=%0d, TO=%0b, SRC_ID=0x%h",
+                                 $time, queue_idx, tag, to_bit, src_id);
+                    end
+                end
+            end
+
+            if (queue_idx == -1) begin
+                $display("[%0t] [WRITE_GEN] ERROR: No available queue!", $time);
+                queue_idx = 0;  // Fallback
+            end
+
+            // Fixed address: 0x8C20000 (queue address calculated by receiver)
+            final_awaddr = 64'h08C20000;
+
             $display("\n========================================");
             $display("[%0t] [WRITE_GEN] SEND_WRITE TASK CALLED", $time);
             $display("[%0t] [WRITE_GEN] SEND_WRITE START", $time);
-            $display("  Address: 0x%h", awaddr);
+            $display("  TAG=%0d, TO=%0b, SRC_ID=0x%h -> Queue %0d (allocated by receiver)", tag, to_bit, src_id, queue_idx);
+            $display("  Address: 0x%h (fixed)", final_awaddr);
             $display("  Length:  %0d beats (awlen=%0d)", total_beats, awlen);
             $display("  Size:    %0d (2^%0d = %0d bytes)", awsize, awsize, 1 << awsize);
             $display("  Burst:   %0d (%s)", awburst,
@@ -773,7 +860,7 @@ output reg   O_BREADY
 
             // Now assert AWVALID along with address signals
             O_AWVALID = 1'b1;
-            O_AWADDR  = awaddr;
+            O_AWADDR  = final_awaddr;  // Use calculated queue address
             O_AWLEN   = awlen;
             O_AWSIZE  = awsize;
             O_AWBURST = awburst;

@@ -111,6 +111,10 @@ module tb_pcie_sub_msg;
     reg [7:0]  expected_source_id [0:14];   // Source Endpoint ID
     reg        expected_data_valid [0:14];  // Flag to indicate if queue has valid test data
 
+    // Queue allocation tracking
+    // [12]=valid, [11:4]=src_id, [3]=to, [2:0]=tag
+    reg [12:0] queue_allocated [0:14];
+
     integer random_seed;
 
     initial begin
@@ -128,6 +132,8 @@ module tb_pcie_sub_msg;
             expected_tag_owner[i] = 1'b0;
             expected_source_id[i] = 8'h0;
             expected_data_valid[i] = 1'b0;
+            // Clear queue allocation
+            queue_allocated[i] = 13'h0;
         end
     end
 

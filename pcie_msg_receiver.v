@@ -112,6 +112,7 @@ module pcie_msg_receiver (
     reg [31:0] queue_timeout [0:14];     // Timeout counter for each queue
     reg [7:0]  queue_source_id [0:14];   // Source ID for each queue
     reg        queue_tag_owner [0:14];   // Tag Owner bit for each queue
+    reg [2:0]  queue_tag [0:14];         // TAG (3 bits) for each queue
     reg [7:0]  queue_tx_size [0:14];     // Transmission size (TLP length field) for S/M packets
     reg [15:0] queue_accumulated_tlp_bytes [0:14]; // Accumulated TLP payload bytes
 
@@ -142,6 +143,41 @@ module pcie_msg_receiver (
     reg [11:0] payload_beats_with_padding;
 
     integer i;
+    integer j;
+    reg [3:0] allocated_queue_idx;
+    reg [2:0] tag_field;
+    reg to_field;
+    reg [7:0] src_id_field;
+
+    // Function to find or allocate queue based on TAG, TO, SRC_ID
+    function [3:0] find_queue;
+        input [2:0] tag;
+        input to;
+        input [7:0] src_id;
+        integer k;
+        begin
+            find_queue = 4'hF;  // Invalid queue by default
+
+            // First, try to find existing queue with matching context
+            for (k = 0; k < 15; k = k + 1) begin
+                if (queue_valid[k] && queue_state[k] != 2'b00 &&
+                    queue_tag[k] == tag &&
+                    queue_tag_owner[k] == to &&
+                    queue_source_id[k] == src_id) begin
+                    find_queue = k[3:0];
+                end
+            end
+
+            // If not found, allocate new queue
+            if (find_queue == 4'hF) begin
+                for (k = 0; k < 15; k = k + 1) begin
+                    if (!queue_valid[k] && find_queue == 4'hF) begin
+                        find_queue = k[3:0];
+                    end
+                end
+            end
+        end
+    endfunction
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -206,6 +242,7 @@ module pcie_msg_receiver (
                 queue_timeout[i] <= 32'h0;
                 queue_source_id[i] <= 8'h0;
                 queue_tag_owner[i] <= 1'b0;
+                queue_tag[i] <= 3'h0;
                 queue_tx_size[i] <= 8'h0;
                 queue_accumulated_tlp_bytes[i] <= 16'h0;
             end
@@ -380,53 +417,71 @@ module pcie_msg_receiver (
                         // Skip this fragment due to bad header version
                         $display("[%0t] [ASSEMBLE] Skipping fragment due to bad header version", $time);
                         state <= W_RESP;
-                    end else if (msg_tag < 15) begin
-                        // Process the received fragment
-                        current_queue_idx <= msg_tag;
+                    end else begin
+                        // Extract TAG (3 bits), TO (1 bit), SRC_ID from header
+                        tag_field = axi_wdata[122:120];
+                        to_field = axi_wdata[123];
+                        src_id_field = axi_wdata[119:112];
 
-                        case (frag_type)
-                            S_PKT: begin
-                                // Start new assembly
-                                $display("[%0t] [ASSEMBLE] START: TAG=%0h, SN=%0d, SRC_ID=0x%h, TO=%0b",
-                                         $time, msg_tag, pkt_sn, axi_wdata[119:112], axi_wdata[123]);
+                        // Find or allocate queue based on TAG, TO, SRC_ID
+                        allocated_queue_idx = find_queue(tag_field, to_field, src_id_field);
+
+                        if (allocated_queue_idx == 4'hF) begin
+                            $display("[%0t] [ASSEMBLE] ERROR: No available queue for TAG=%0d, TO=%0b, SRC_ID=0x%h",
+                                     $time, tag_field, to_field, src_id_field);
+                            state <= W_RESP;
+                        end else begin
+                            // Process the received fragment
+                            current_queue_idx <= allocated_queue_idx;
+
+                            $display("[%0t] [ASSEMBLE] Allocated/Found Queue %0d for TAG=%0d, TO=%0b, SRC_ID=0x%h",
+                                     $time, allocated_queue_idx, tag_field, to_field, src_id_field);
+
+                            case (frag_type)
+                                S_PKT: begin
+                                    // Start new assembly
+                                    $display("[%0t] [ASSEMBLE] START: TAG=%0d, SN=%0d, SRC_ID=0x%h, TO=%0b",
+                                             $time, tag_field, pkt_sn, src_id_field, to_field);
 
                                 // Check restart error (S_PKT received while queue is still active)
                                 // Restart error occurs when:
                                 // 1. Queue is valid and active (state != IDLE)
-                                // 2. Same source ID, msg tag, and tag owner
-                                if (queue_valid[msg_tag] && queue_state[msg_tag] != 2'b00) begin
+                                // 2. Same source ID, tag, and tag owner
+                                if (queue_valid[allocated_queue_idx] && queue_state[allocated_queue_idx] != 2'b00) begin
                                     // Check if source ID and tag owner match (same assembly context)
-                                    if (queue_source_id[msg_tag] == axi_wdata[119:112] &&
-                                        queue_tag_owner[msg_tag] == axi_wdata[123]) begin
+                                    if (queue_source_id[allocated_queue_idx] == src_id_field &&
+                                        queue_tag_owner[allocated_queue_idx] == to_field &&
+                                        queue_tag[allocated_queue_idx] == tag_field) begin
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[15:8] <=
                                             PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[15:8] + 1;
                                         $display("[%0t] [ASSEMBLE] ERROR: Restart error (S_PKT while queue active)", $time);
-                                        $display("[%0t] [ASSEMBLE]   Same context: SRC_ID=0x%h, TAG=%0h, TO=%0b",
-                                                 $time, axi_wdata[119:112], msg_tag, axi_wdata[123]);
+                                        $display("[%0t] [ASSEMBLE]   Same context: SRC_ID=0x%h, TAG=%0d, TO=%0b",
+                                                 $time, src_id_field, tag_field, to_field);
                                     end else begin
-                                        $display("[%0t] [ASSEMBLE] WARNING: Different context on same tag (allowed)", $time);
-                                        $display("[%0t] [ASSEMBLE]   Old: SRC_ID=0x%h, TO=%0b",
-                                                 $time, queue_source_id[msg_tag], queue_tag_owner[msg_tag]);
-                                        $display("[%0t] [ASSEMBLE]   New: SRC_ID=0x%h, TO=%0b",
-                                                 $time, axi_wdata[119:112], axi_wdata[123]);
+                                        $display("[%0t] [ASSEMBLE] WARNING: Different context (allowed)", $time);
+                                        $display("[%0t] [ASSEMBLE]   Old: SRC_ID=0x%h, TAG=%0d, TO=%0b",
+                                                 $time, queue_source_id[allocated_queue_idx], queue_tag[allocated_queue_idx], queue_tag_owner[allocated_queue_idx]);
+                                        $display("[%0t] [ASSEMBLE]   New: SRC_ID=0x%h, TAG=%0d, TO=%0b",
+                                                 $time, src_id_field, tag_field, to_field);
                                     end
                                 end
 
                                 if (pkt_sn == 2'b00) begin
                                     // Valid start
-                                    queue_valid[msg_tag] <= 1'b1;
-                                    queue_state[msg_tag] <= 2'b01;  // WAIT_M or WAIT_L
-                                    queue_expected_sn[msg_tag] <= 2'b01;  // Next SN
-                                    queue_frag_count[msg_tag] <= 8'h1;
-                                    queue_write_ptr[msg_tag] <= 12'h0;
-                                    queue_timeout[msg_tag] <= 32'h0;  // Reset timeout
-                                    queue_source_id[msg_tag] <= current_frag[0][119:112];  // Save source ID
-                                    queue_tag_owner[msg_tag] <= current_frag[0][123];      // Save tag owner
-                                    queue_tx_size[msg_tag] <= current_frag[0][31:24];      // Save transmission size (TLP length)
+                                    queue_valid[allocated_queue_idx] <= 1'b1;
+                                    queue_state[allocated_queue_idx] <= 2'b01;  // WAIT_M or WAIT_L
+                                    queue_expected_sn[allocated_queue_idx] <= 2'b01;  // Next SN
+                                    queue_frag_count[allocated_queue_idx] <= 8'h1;
+                                    queue_write_ptr[allocated_queue_idx] <= 12'h0;
+                                    queue_timeout[allocated_queue_idx] <= 32'h0;  // Reset timeout
+                                    queue_source_id[allocated_queue_idx] <= src_id_field;  // Save source ID
+                                    queue_tag_owner[allocated_queue_idx] <= to_field;      // Save tag owner
+                                    queue_tag[allocated_queue_idx] <= tag_field;           // Save tag (3 bits)
+                                    queue_tx_size[allocated_queue_idx] <= current_frag[0][31:24];      // Save transmission size (TLP length)
 
-                                    // Set Queue Initial Address based on tag
-                                    // Each queue gets 64 beats (2KB = 256 bits * 64 beats) starting from tag*64
-                                    case (msg_tag)
+                                    // Set Queue Initial Address based on allocated queue index
+                                    // Each queue gets 64 beats (2KB = 256 bits * 64 beats)
+                                    case (allocated_queue_idx)
                                         4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_0 <= (4'h0 * 12'd64) * 32;  // Queue 0: address 0
                                         4'h1: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_1 <= (4'h1 * 12'd64) * 32;  // Queue 1: address 2048
                                         4'h2: PCIE_SFR_AXI_MSG_HANDLER_Q_INIT_ADDR_2 <= (4'h2 * 12'd64) * 32;  // Queue 2: address 4096
