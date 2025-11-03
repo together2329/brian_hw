@@ -636,6 +636,10 @@ output reg  rready
         reg [255:0] expected_beat;
         integer match_count;
         integer mismatch_count;
+        reg [3:0] exp_msg_tag;
+        reg exp_tag_owner;
+        reg [7:0] exp_source_id;
+        reg data_valid;
 
         begin
             $display("[%0t] [READ_GEN] === Reading Queue %0d Data ===", $time, queue_id);
@@ -644,6 +648,24 @@ output reg  rready
 
             match_count = 0;
             mismatch_count = 0;
+
+            // Get expected metadata
+            if (queue_id < 15) begin
+                exp_msg_tag = tb_pcie_sub_msg.expected_msg_tag[queue_id];
+                exp_tag_owner = tb_pcie_sub_msg.expected_tag_owner[queue_id];
+                exp_source_id = tb_pcie_sub_msg.expected_source_id[queue_id];
+                data_valid = tb_pcie_sub_msg.expected_data_valid[queue_id];
+
+                if (data_valid) begin
+                    $display("[%0t] [READ_GEN] === Expected Metadata ===", $time);
+                    $display("[%0t] [READ_GEN] MSG_TAG: 0x%h", $time, exp_msg_tag);
+                    $display("[%0t] [READ_GEN] TAG_OWNER: %0b", $time, exp_tag_owner);
+                    $display("[%0t] [READ_GEN] SOURCE_ID: 0x%h", $time, exp_source_id);
+                    $display("[%0t] [READ_GEN] ========================\n", $time);
+                end
+            end else begin
+                data_valid = 1'b0;
+            end
 
             // Set up AXI read
             @(posedge i_clk);
@@ -707,17 +729,75 @@ output reg  rready
 
             // Print verification summary
             $display("\n[%0t] [READ_GEN] === Verification Summary ===", $time);
+
+            // Verify metadata if this is a random data test
+            if (data_valid && queue_id < 15) begin
+                reg [7:0] actual_src_id;
+                reg actual_tag_owner;
+                reg metadata_pass;
+
+                metadata_pass = 1'b1;
+
+                // Read actual values from receiver's queue context
+                actual_src_id = tb_pcie_sub_msg.receiver.queue_source_id[queue_id];
+                actual_tag_owner = tb_pcie_sub_msg.receiver.queue_tag_owner[queue_id];
+
+                $display("\n[%0t] [READ_GEN] === Metadata Verification ===", $time);
+
+                // Verify MSG_TAG (4 bits: TO + TAG, where TAG maps to queue_id)
+                // MSG_TAG[2:0] should match queue_id
+                if (exp_msg_tag[2:0] == queue_id[2:0]) begin
+                    $display("[%0t] [READ_GEN] MSG_TAG: MATCH ✓ (4'b%b = TO=%0b, TAG=%0d -> Queue %0d)",
+                             $time, exp_msg_tag, exp_msg_tag[3], exp_msg_tag[2:0], queue_id);
+                end else begin
+                    $display("[%0t] [READ_GEN] MSG_TAG: MISMATCH ✗", $time);
+                    $display("  Expected TAG: %0d (from MSG_TAG 4'b%b)", exp_msg_tag[2:0], exp_msg_tag);
+                    $display("  Queue ID: %0d", queue_id);
+                    metadata_pass = 1'b0;
+                end
+
+                // Verify TAG_OWNER
+                if (actual_tag_owner == exp_tag_owner) begin
+                    $display("[%0t] [READ_GEN] TAG_OWNER: MATCH ✓ (%0b)", $time, exp_tag_owner);
+                end else begin
+                    $display("[%0t] [READ_GEN] TAG_OWNER: MISMATCH ✗", $time);
+                    $display("  Expected: %0b", exp_tag_owner);
+                    $display("  Actual:   %0b", actual_tag_owner);
+                    metadata_pass = 1'b0;
+                end
+
+                // Verify SOURCE_ID
+                if (actual_src_id == exp_source_id) begin
+                    $display("[%0t] [READ_GEN] SOURCE_ID: MATCH ✓ (0x%h)", $time, exp_source_id);
+                end else begin
+                    $display("[%0t] [READ_GEN] SOURCE_ID: MISMATCH ✗", $time);
+                    $display("  Expected: 0x%h", exp_source_id);
+                    $display("  Actual:   0x%h", actual_src_id);
+                    metadata_pass = 1'b0;
+                end
+
+                $display("[%0t] [READ_GEN] ===========================", $time);
+
+                if (metadata_pass) begin
+                    $display("[%0t] [READ_GEN] Metadata verification: PASSED ✓", $time);
+                end else begin
+                    $display("[%0t] [READ_GEN] Metadata verification: FAILED ✗", $time);
+                end
+            end
+
+            // Data verification summary
             if (match_count > 0 || mismatch_count > 0) begin
+                $display("\n[%0t] [READ_GEN] === Data Verification ===", $time);
                 $display("[%0t] [READ_GEN] Total Beats: %0d", $time, match_count + mismatch_count);
                 $display("[%0t] [READ_GEN] Matches:     %0d", $time, match_count);
                 $display("[%0t] [READ_GEN] Mismatches:  %0d", $time, mismatch_count);
                 if (mismatch_count == 0) begin
-                    $display("[%0t] [READ_GEN] *** VERIFICATION PASSED ***", $time);
+                    $display("[%0t] [READ_GEN] Data verification: PASSED ✓", $time);
                 end else begin
-                    $display("[%0t] [READ_GEN] *** VERIFICATION FAILED ***", $time);
+                    $display("[%0t] [READ_GEN] Data verification: FAILED ✗", $time);
                 end
             end else begin
-                $display("[%0t] [READ_GEN] No verification performed (fixed data test)", $time);
+                $display("[%0t] [READ_GEN] No data verification performed (fixed data test)", $time);
             end
             $display("[%0t] [READ_GEN] === Read Complete ===\n", $time);
         end

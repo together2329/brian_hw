@@ -104,6 +104,13 @@ module tb_pcie_sub_msg;
     // ========================================
     // 15 queues x 64 beats x 256 bits
     reg [255:0] expected_queue_data [0:14] [0:63];
+
+    // Expected metadata for each queue
+    reg [3:0]  expected_msg_tag [0:14];     // MSG_TAG
+    reg        expected_tag_owner [0:14];   // TAG_OWNER (TO bit)
+    reg [7:0]  expected_source_id [0:14];   // Source Endpoint ID
+    reg        expected_data_valid [0:14];  // Flag to indicate if queue has valid test data
+
     integer random_seed;
 
     initial begin
@@ -116,6 +123,11 @@ module tb_pcie_sub_msg;
             for (j = 0; j < 64; j = j + 1) begin
                 expected_queue_data[i][j] = 256'h0;
             end
+            // Clear metadata
+            expected_msg_tag[i] = 4'h0;
+            expected_tag_owner[i] = 1'b0;
+            expected_source_id[i] = 8'h0;
+            expected_data_valid[i] = 1'b0;
         end
     end
 

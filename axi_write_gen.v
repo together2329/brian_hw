@@ -613,16 +613,29 @@ output reg   O_BREADY
 
         begin
             total_beats = awlen + 1;  // AXI len is (beats - 1)
-            msg_tag = header[122:119];  // Extract MSG_TAG
+            msg_tag = header[122:120];  // Extract TAG (3 bits) from bits [122:120]
             queue_idx = msg_tag;
 
             $display("\n========================================");
             $display("[%0t] [WRITE_GEN] SEND_WRITE_RANDOM START", $time);
             $display("  Address: 0x%h", awaddr);
             $display("  Length:  %0d beats (awlen=%0d)", total_beats, awlen);
-            $display("  MSG_TAG: 0x%h (Queue %0d)", msg_tag, queue_idx);
+            $display("  TAG: 0x%h (3 bits, Queue %0d)", msg_tag, queue_idx);
+            $display("  TAG_OWNER (TO): %0b (bit [123])", header[123]);
+            $display("  SOURCE_ID: 0x%h (bits [119:112])", header[119:112]);
             $display("  Header:  0x%h", header);
             $display("========================================");
+
+            // Store metadata for verification
+            if (queue_idx < 15) begin
+                tb_pcie_sub_msg.expected_msg_tag[queue_idx] = {header[123], msg_tag}; // 4 bits: TO + TAG
+                tb_pcie_sub_msg.expected_tag_owner[queue_idx] = header[123];
+                tb_pcie_sub_msg.expected_source_id[queue_idx] = header[119:112];
+                tb_pcie_sub_msg.expected_data_valid[queue_idx] = 1'b1;
+                $display("[%0t] [WRITE_GEN] Stored metadata for Queue %0d:", $time, queue_idx);
+                $display("  MSG_TAG=4'b%b (TO=%0b, TAG=0x%h), SRC_ID=0x%h",
+                         {header[123], msg_tag}, header[123], msg_tag, header[119:112]);
+            end
 
             // ====================================
             // 1. Write Address Phase
