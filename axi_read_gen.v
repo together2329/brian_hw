@@ -81,11 +81,11 @@ output reg  rready
             @(posedge i_clk);
             #1; // Small delay to let signals settle
 
-            // Check for error interrupt (priority: handle errors first)
+            // Check for error interrupt (priority: handle errors first) - Only on Queue 0
             if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[3]) begin
                 $display("\n========================================");
                 $display("[%0t] [READ_GEN] *** ERROR INTERRUPT DETECTED ***", $time);
-                $display("[%0t] [READ_GEN] INTR_STATUS = 0x%h",
+                $display("[%0t] [READ_GEN] Q0 INTR_STATUS = 0x%h",
                          $time, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0);
                 $display("========================================\n");
 
@@ -97,76 +97,117 @@ output reg  rready
                 @(posedge i_clk);
             end
 
-            // Check for completion interrupt
+            // Check for completion interrupt on all queues (Q0-Q14)
+            completed_queue = 4'hF;  // Default: no queue
+
             if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[0]) begin
+                completed_queue = 4'h0;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_1[0]) begin
+                completed_queue = 4'h1;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_2[0]) begin
+                completed_queue = 4'h2;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_3[0]) begin
+                completed_queue = 4'h3;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_4[0]) begin
+                completed_queue = 4'h4;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_5[0]) begin
+                completed_queue = 4'h5;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_6[0]) begin
+                completed_queue = 4'h6;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_7[0]) begin
+                completed_queue = 4'h7;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_8[0]) begin
+                completed_queue = 4'h8;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_9[0]) begin
+                completed_queue = 4'h9;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_10[0]) begin
+                completed_queue = 4'hA;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_11[0]) begin
+                completed_queue = 4'hB;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_12[0]) begin
+                completed_queue = 4'hC;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_13[0]) begin
+                completed_queue = 4'hD;
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_14[0]) begin
+                completed_queue = 4'hE;
+            end
+
+            if (completed_queue != 4'hF) begin
                 intr_count = intr_count + 1;
 
                 $display("\n========================================");
-                $display("[%0t] [READ_GEN] *** COMPLETION INTERRUPT #%0d ***", $time, intr_count);
+                $display("[%0t] [READ_GEN] *** COMPLETION INTERRUPT #%0d (Queue %0d) ***", $time, intr_count, completed_queue);
 
-                // Get WPTR to determine data size
-                wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0];
-                $display("[%0t] [READ_GEN] WPTR = %0d bytes", $time, wptr_bytes);
-
-                // Map interrupt count to queue and init address
-                // Based on write_gen test sequence
-                case (intr_count)
-                    1: begin  // S->L test (MSG_T0 = Queue 8)
-                        completed_queue = 4'h8;
+                // Get WPTR and queue base address based on completed_queue
+                case (completed_queue)
+                    4'h0: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0[31:0];
+                    end
+                    4'h1: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_1[15:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1[31:0];
+                    end
+                    4'h2: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_2[15:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_2[31:0];
+                    end
+                    4'h3: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_3[15:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_3[31:0];
+                    end
+                    4'h4: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_4[15:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_4[31:0];
+                    end
+                    4'h5: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_5[15:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_5[31:0];
+                    end
+                    4'h6: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_6[15:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_6[31:0];
+                    end
+                    4'h7: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_7[15:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_7[31:0];
+                    end
+                    4'h8: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_8[15:0];
                         queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_8[31:0];
-                        $display("[%0t] [READ_GEN] S->L assembly (MSG_T0, Queue %0d)", $time, completed_queue);
                     end
-                    2: begin  // S->M->L test (MSG_T1 = Queue 9)
-                        completed_queue = 4'h9;
+                    4'h9: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_9[15:0];
                         queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_9[31:0];
-                        $display("[%0t] [READ_GEN] S->M->L assembly (MSG_T1, Queue %0d)", $time, completed_queue);
                     end
-                    3: begin  // S->M->M->L test (MSG_T2 = Queue 10)
-                        completed_queue = 4'hA;
+                    4'hA: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_10[15:0];
                         queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10[31:0];
-                        $display("[%0t] [READ_GEN] S->M->M->L assembly (MSG_T2, Queue %0d)", $time, completed_queue);
                     end
-                    4: begin  // SG_PKT test (MSG_T3 = Queue 11)
-                        completed_queue = 4'hB;
+                    4'hB: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_11[15:0];
                         queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_11[31:0];
-                        $display("[%0t] [READ_GEN] Single packet (MSG_T3, Queue %0d)", $time, completed_queue);
                     end
-                    5: begin  // Padding Test 1 (MSG_T4 = Queue 12)
-                        completed_queue = 4'hC;
+                    4'hC: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_12[15:0];
                         queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[31:0];
-                        $display("[%0t] [READ_GEN] Padding Test 1 (MSG_T4, Queue %0d)", $time, completed_queue);
                     end
-                    6: begin  // Padding Test 2 (MSG_T4 = Queue 12)
-                        completed_queue = 4'hC;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[31:0];
-                        $display("[%0t] [READ_GEN] Padding Test 2 (MSG_T4, Queue %0d)", $time, completed_queue);
+                    4'hD: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_13[15:0];
+                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_13[31:0];
                     end
-                    7: begin  // Padding Test 3 (MSG_T4 = Queue 12)
-                        completed_queue = 4'hC;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[31:0];
-                        $display("[%0t] [READ_GEN] Padding Test 3 (MSG_T4, Queue %0d)", $time, completed_queue);
-                    end
-                    8: begin  // Padding Test 4 (MSG_T4 = Queue 12)
-                        completed_queue = 4'hC;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[31:0];
-                        $display("[%0t] [READ_GEN] Padding Test 4 (MSG_T4, Queue %0d)", $time, completed_queue);
-                    end
-                    9: begin  // 68B test (MSG_T6 = Queue 14)
-                        completed_queue = 4'hE;
+                    4'hE: begin
+                        wptr_bytes = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_14[15:0];
                         queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_14[31:0];
-                        $display("[%0t] [READ_GEN] 68B MSG_T6 (Queue %0d)", $time, completed_queue);
-                    end
-                    10: begin  // 68B test (MSG_T2 = Queue 10)
-                        completed_queue = 4'hA;
-                        queue_base_addr = tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10[31:0];
-                        $display("[%0t] [READ_GEN] 68B MSG_T2 (Queue %0d)", $time, completed_queue);
                     end
                     default: begin
-                        completed_queue = 4'hF;  // Unknown
+                        wptr_bytes = 16'h0;
                         queue_base_addr = 32'h0;
-                        $display("[%0t] [READ_GEN] Unknown test - Queue unknown", $time);
                     end
                 endcase
+
+                $display("[%0t] [READ_GEN] Queue %0d: WPTR=%0d bytes, Base Addr=0x%h",
+                         $time, completed_queue, wptr_bytes, queue_base_addr);
 
                 $display("[%0t] [READ_GEN] Queue %0d Init Address: 0x%h",
                          $time, completed_queue, queue_base_addr);
@@ -186,11 +227,84 @@ output reg  rready
 
                 $display("========================================\n");
 
-                // Clear completion interrupt
-                force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0[0] = 1'b1;
-                @(posedge i_clk);
-                #1;
-                release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0;
+                // Clear completion interrupt based on completed_queue
+                case (completed_queue)
+                    4'h0: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0;
+                    end
+                    4'h1: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_1[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_1;
+                    end
+                    4'h2: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_2[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_2;
+                    end
+                    4'h3: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_3[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_3;
+                    end
+                    4'h4: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_4[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_4;
+                    end
+                    4'h5: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_5[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_5;
+                    end
+                    4'h6: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_6[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_6;
+                    end
+                    4'h7: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_7[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_7;
+                    end
+                    4'h8: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_8[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_8;
+                    end
+                    4'h9: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_9[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_9;
+                    end
+                    4'hA: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_10[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_10;
+                    end
+                    4'hB: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_11[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_11;
+                    end
+                    4'hC: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_12[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_12;
+                    end
+                    4'hD: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_13[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_13;
+                    end
+                    4'hE: begin
+                        force tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_14[0] = 1'b1;
+                        @(posedge i_clk); #1;
+                        release tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_14;
+                    end
+                endcase
             end
 
             @(posedge i_clk);
