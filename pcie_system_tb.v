@@ -99,6 +99,26 @@ module tb_pcie_sub_msg;
     // Interrupt signal
     wire         o_msg_interrupt;
 
+    // ========================================
+    // Expected Data Storage (Shared between write_gen and read_gen)
+    // ========================================
+    // 15 queues x 64 beats x 256 bits
+    reg [255:0] expected_queue_data [0:14] [0:63];
+    integer random_seed;
+
+    initial begin
+        integer i, j;
+        // Initialize random seed
+        random_seed = 12345;
+
+        // Clear expected data storage
+        for (i = 0; i < 15; i = i + 1) begin
+            for (j = 0; j < 64; j = j + 1) begin
+                expected_queue_data[i][j] = 256'h0;
+            end
+        end
+    end
+
     // Module instantiations
 
     // 1. AXI Write Generator (with internal initial block that calls task)

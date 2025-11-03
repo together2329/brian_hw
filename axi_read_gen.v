@@ -633,11 +633,17 @@ output reg  rready
 
         integer beat_num;
         reg [255:0] rdata_beat;
+        reg [255:0] expected_beat;
+        integer match_count;
+        integer mismatch_count;
 
         begin
             $display("[%0t] [READ_GEN] === Reading Queue %0d Data ===", $time, queue_id);
             $display("[%0t] [READ_GEN] Base Address: 0x%h, Beats: %0d, WPTR: %0d bytes",
                      $time, base_addr, arlen_beats + 1, expected_wptr);
+
+            match_count = 0;
+            mismatch_count = 0;
 
             // Set up AXI read
             @(posedge i_clk);
@@ -659,15 +665,38 @@ output reg  rready
             arvalid = 1'b0;
             rready = 1'b1;
 
-            // Read data beats
+            // Read data beats and verify
             beat_num = 0;
             while (beat_num <= arlen_beats) begin
                 @(posedge i_clk);
                 #1;
                 if (rvalid && rready) begin
                     rdata_beat = rdata;
-                    $display("[%0t] [READ_GEN] Beat %0d: 0x%h",
-                             $time, beat_num, rdata_beat);
+
+                    // Get expected data from testbench
+                    if (queue_id < 15 && beat_num < 64) begin
+                        expected_beat = tb_pcie_sub_msg.expected_queue_data[queue_id][beat_num];
+
+                        // Verify data
+                        if (expected_beat == 256'h0) begin
+                            // No expected data (not a random write test)
+                            $display("[%0t] [READ_GEN] Beat %0d: 0x%h (no verification data)",
+                                     $time, beat_num, rdata_beat);
+                        end else if (rdata_beat == expected_beat) begin
+                            $display("[%0t] [READ_GEN] Beat %0d: MATCH ✓", $time, beat_num);
+                            $display("  Read: 0x%h", rdata_beat);
+                            match_count = match_count + 1;
+                        end else begin
+                            $display("[%0t] [READ_GEN] Beat %0d: MISMATCH ✗", $time, beat_num);
+                            $display("  Expected: 0x%h", expected_beat);
+                            $display("  Read:     0x%h", rdata_beat);
+                            mismatch_count = mismatch_count + 1;
+                        end
+                    end else begin
+                        $display("[%0t] [READ_GEN] Beat %0d: 0x%h",
+                                 $time, beat_num, rdata_beat);
+                    end
+
                     beat_num = beat_num + 1;
                 end
             end
@@ -676,6 +705,20 @@ output reg  rready
             #1;
             rready = 1'b0;
 
+            // Print verification summary
+            $display("\n[%0t] [READ_GEN] === Verification Summary ===", $time);
+            if (match_count > 0 || mismatch_count > 0) begin
+                $display("[%0t] [READ_GEN] Total Beats: %0d", $time, match_count + mismatch_count);
+                $display("[%0t] [READ_GEN] Matches:     %0d", $time, match_count);
+                $display("[%0t] [READ_GEN] Mismatches:  %0d", $time, mismatch_count);
+                if (mismatch_count == 0) begin
+                    $display("[%0t] [READ_GEN] *** VERIFICATION PASSED ***", $time);
+                end else begin
+                    $display("[%0t] [READ_GEN] *** VERIFICATION FAILED ***", $time);
+                end
+            end else begin
+                $display("[%0t] [READ_GEN] No verification performed (fixed data test)", $time);
+            end
             $display("[%0t] [READ_GEN] === Read Complete ===\n", $time);
         end
     endtask

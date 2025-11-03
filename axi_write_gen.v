@@ -498,19 +498,11 @@ output reg   O_BREADY
 
 
         $display("\n========================================");
-        $display("TEST 1: S->L (2 fragments) with MSG_T0");
+        $display("TEST 1: S->L (2 fragments) with MSG_T0 - RANDOM DATA");
         $display("========================================\n");
-        // S->L assembly (2 fragments)
-        SEND_WRITE({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
-                   {256'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA,
-                    256'hBBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB_BBBB,
-                    256'hCCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC_CCCC,
-                    256'hDDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD_DDDD}, 64'h0);
-        SEND_WRITE({L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1,
-                   {256'hEEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE_EEEE,
-                    256'hFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF,
-                    256'h1111_1111_1111_1111_1111_1111_1111_1111,
-                    256'h2222_2222_2222_2222_2222_2222_2222_2222}, 64'h0);
+        // S->L assembly (2 fragments) with random data
+        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1, 64'h0);
+        SEND_WRITE_RANDOM({L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1, 64'h0);
         #200;
 
         $display("\n========================================");
@@ -603,7 +595,130 @@ output reg   O_BREADY
     end
 
     // ========================================
-    // AXI Write Task
+    // AXI Write Task with Random Data
+    // ========================================
+    task automatic SEND_WRITE_RANDOM;
+        input [127:0]     header;
+        input [7:0]       awlen;        // AXI len (beats - 1)
+        input [2:0]       awsize;
+        input [1:0]       awburst;
+        input [63:0]      awaddr;
+
+        integer beat;
+        integer total_beats;
+        reg [255:0] data_beat;
+        reg [3:0] msg_tag;
+        integer queue_idx;
+        integer payload_beat_idx;
+
+        begin
+            total_beats = awlen + 1;  // AXI len is (beats - 1)
+            msg_tag = header[122:119];  // Extract MSG_TAG
+            queue_idx = msg_tag;
+
+            $display("\n========================================");
+            $display("[%0t] [WRITE_GEN] SEND_WRITE_RANDOM START", $time);
+            $display("  Address: 0x%h", awaddr);
+            $display("  Length:  %0d beats (awlen=%0d)", total_beats, awlen);
+            $display("  MSG_TAG: 0x%h (Queue %0d)", msg_tag, queue_idx);
+            $display("  Header:  0x%h", header);
+            $display("========================================");
+
+            // ====================================
+            // 1. Write Address Phase
+            // ====================================
+            while (!I_AWREADY) begin
+                @(posedge i_clk);
+            end
+            $display("[%0t] [WRITE_GEN] AWREADY is high, asserting AWVALID...", $time);
+
+            O_AWVALID = 1'b1;
+            O_AWADDR  = awaddr;
+            O_AWLEN   = awlen;
+            O_AWSIZE  = awsize;
+            O_AWBURST = awburst;
+            O_AWID    = 7'h0;
+            O_AWUSER  = 64'h0;
+            O_AWLOCK  = 1'b0;
+            O_AWCACHE = 4'h0;
+            O_AWPROT  = 3'h0;
+
+            @(posedge i_clk);
+            $display("[%0t] [WRITE_GEN] Address handshake complete", $time);
+            O_AWVALID = 1'b0;
+
+            // ====================================
+            // 2. Write Data Phase with Random Generation
+            // ====================================
+            payload_beat_idx = 0;
+
+            for (beat = 0; beat < total_beats; beat = beat + 1) begin
+                // Generate random data
+                data_beat[255:192] = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
+                data_beat[191:128] = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
+                data_beat[127:64]  = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
+                data_beat[63:0]    = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
+
+                // First beat: Insert header in lower 128 bits
+                if (beat == 0) begin
+                    data_beat[127:0] = header;
+                end else begin
+                    // Store payload data for verification (excluding header beat)
+                    if (queue_idx < 15 && payload_beat_idx < 64) begin
+                        tb_pcie_sub_msg.expected_queue_data[queue_idx][payload_beat_idx] = data_beat;
+                        $display("[%0t] [WRITE_GEN] Stored Q%0d[%0d] = 0x%h",
+                                 $time, queue_idx, payload_beat_idx, data_beat);
+                    end
+                    payload_beat_idx = payload_beat_idx + 1;
+                end
+
+                // Wait for WREADY
+                while (!I_WREADY) begin
+                    @(posedge i_clk);
+                end
+
+                // Assert WVALID and WDATA
+                O_WVALID = 1'b1;
+                O_WDATA  = data_beat;
+                O_WLAST  = (beat == total_beats - 1) ? 1'b1 : 1'b0;
+                O_WSTRB  = 32'hFFFFFFFF;
+                O_WUSER  = 16'h0;
+
+                $display("[%0t] [WRITE_GEN] Write Data Beat %0d: data=0x%h, last=%0b",
+                         $time, beat, data_beat, O_WLAST);
+
+                @(posedge i_clk);
+            end
+
+            // Clear write signals
+            O_WVALID = 1'b0;
+            O_WLAST  = 1'b0;
+
+            $display("[%0t] [WRITE_GEN] All %0d beats sent", $time, total_beats);
+
+            // ====================================
+            // 3. Write Response Phase
+            // ====================================
+            $display("[%0t] [WRITE_GEN] Waiting for write response...", $time);
+            while (!I_BVALID) begin
+                @(posedge i_clk);
+            end
+
+            $display("[%0t] [WRITE_GEN] BVALID received", $time);
+            $display("[%0t] [WRITE_GEN] Write Response: bresp=%0d (%s)", $time, I_BRESP,
+                     (I_BRESP == 2'b00) ? "  OKAY" :
+                     (I_BRESP == 2'b01) ? "EXOKAY" :
+                     (I_BRESP == 2'b10) ? "SLVERR" : "DECERR");
+
+            @(posedge i_clk);
+
+            $display("[%0t] [WRITE_GEN] SEND_WRITE_RANDOM COMPLETE", $time);
+            $display("========================================\n");
+        end
+    endtask
+
+    // ========================================
+    // AXI Write Task (Original with fixed data)
     // ========================================
     task automatic SEND_WRITE;
         input [127:0]     header;
