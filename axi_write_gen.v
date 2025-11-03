@@ -118,9 +118,9 @@ output reg   O_BREADY
         // This should increment the bad header version error counter
         tlp_header[99:96] = 4'b0010;  // Bad version
 
-        $display("[%0t] [WRITE_GEN] Calling SEND_WRITE task...", $time);
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1, 64'h400);
-        $display("[%0t] [WRITE_GEN] SEND_WRITE task returned!", $time);
+        $display("[%0t] [WRITE_GEN] Calling SEND_MSG task (auto-calculate from header)...", $time);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]});
+        $display("[%0t] [WRITE_GEN] SEND_MSG task returned!", $time);
 
         // Wait for bad header version error detection - give receiver time to process
         $display("[%0t] [WRITE_GEN] Waiting for bad header error detection...", $time);
@@ -143,7 +143,7 @@ output reg   O_BREADY
         $display("TEST: Unknown Destination ID Test");
         $display("========================================\n");
 
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1, 64'h500);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]});
 
         // Wait for unknown destination error
         $display("[%0t] [WRITE_GEN] Waiting for unknown destination error detection...", $time);
@@ -160,7 +160,7 @@ output reg   O_BREADY
         // Tag=7 requires TO=1, but we send TO=0 to trigger error
         // Header format: [127:126]=FragType, [125:124]=PKT_SN, [123]=TO, [122:120]=TAG
         // MSG_T7_TO_ZERO = 4'b0111 = {TO=0, TAG=7}
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T7_TO_ZERO, tlp_header[119:0]}, 8'h1, 3, 1, 64'h600);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T7_TO_ZERO, tlp_header[119:0]});
 
         // Wait for tag owner error detection
         $display("[%0t] [WRITE_GEN] Waiting for tag owner error detection...", $time);
@@ -174,7 +174,7 @@ output reg   O_BREADY
 
         // Test 1: Send M_PKT without preceding S_PKT (should trigger error)
         $display("[%0t] [WRITE_GEN] Sending M_PKT without S_PKT...", $time);
-        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h700);
+        SEND_MSG({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]});
 
         // Wait for middle without first error
         $display("[%0t] [WRITE_GEN] Waiting for middle-without-first error detection...", $time);
@@ -184,7 +184,7 @@ output reg   O_BREADY
 
         // Test 2: Send L_PKT without preceding S_PKT (should trigger another error)
         $display("[%0t] [WRITE_GEN] Sending L_PKT without S_PKT...", $time);
-        SEND_WRITE_RANDOM({L_PKT, PKT_SN2, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h800);
+        SEND_MSG({L_PKT, PKT_SN2, MSG_T1, tlp_header[119:0]});
 
         // Wait for last without first error
         $display("[%0t] [WRITE_GEN] Waiting for last-without-first error detection...", $time);
@@ -199,7 +199,7 @@ output reg   O_BREADY
         // Test 1: 32B (too small, should trigger error)
         $display("[%0t] [WRITE_GEN] Test 1: Sending 32B packet (too small)...", $time);
         tlp_header[31:24] = 8'h08;  // 32B = 8 DW
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1, 64'h900);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]});
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] TX unit size error counter = 0x%h", $time,
@@ -216,7 +216,7 @@ output reg   O_BREADY
         // Test 2 revised: 16B (too small)
         $display("[%0t] [WRITE_GEN] Test 2: Sending 16B packet (too small)...", $time);
         tlp_header[31:24] = 8'h04;  // 16B = 4 DW
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T5, tlp_header[119:0]}, 8'h1, 3, 1, 64'hA00);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T5, tlp_header[119:0]});
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] TX unit size error counter = 0x%h", $time,
@@ -225,7 +225,7 @@ output reg   O_BREADY
         // Test 3: 64B (minimum valid size, should NOT trigger error)
         $display("[%0t] [WRITE_GEN] Test 3: Sending 64B packet (valid minimum)...", $time);
         tlp_header[31:24] = 8'h10;  // 64B = 16 DW
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]}, 8'h1, 3, 1, 64'hB00);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]});
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] TX unit size error counter = 0x%h (should still be 0x02)", $time,
@@ -237,7 +237,7 @@ output reg   O_BREADY
         // Wait, 256 DW = 0x100, but that's 9 bits. 8-bit max is 0xFF = 255 DW = 1020B
         // So let's use 0xFF for maximum
         tlp_header[31:24] = 8'hFF;  // 1020B = 255 DW (under 1024B, valid)
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1, 64'hC00);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]});
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] TX unit size error counter = 0x%h (should still be 0x02)", $time,
@@ -252,15 +252,15 @@ output reg   O_BREADY
         // S->L assembly (2 fragments) with mismatched sizes
         $display("[%0t] [WRITE_GEN] Sending S_PKT with 64B size...", $time);
         tlp_header[31:24] = 8'h10; // 64B
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1, 64'h1000);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T3, tlp_header[119:0]});
 
         $display("[%0t] [WRITE_GEN] Sending M_PKT with 128B size (mismatch - should error)...", $time);
         tlp_header[31:24] = 8'h20; // 128B (different size - should error)
-        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1, 64'h1100);
+        SEND_MSG({M_PKT, PKT_SN1, MSG_T3, tlp_header[119:0]});
 
         $display("[%0t] [WRITE_GEN] Sending L_PKT with 256B size (different from S/M, but allowed)...", $time);
         tlp_header[31:24] = 8'h40; // 256B (different size - allowed for L_PKT)
-        SEND_WRITE_RANDOM({L_PKT, PKT_SN2, MSG_T3, tlp_header[119:0]}, 8'h3, 3, 1, 64'h1200);
+        SEND_MSG({L_PKT, PKT_SN2, MSG_T3, tlp_header[119:0]});
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Size mismatch error counter = 0x%h", $time,
@@ -280,7 +280,7 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Test 1: SG_PKT with 0 byte padding, TLP_len=16 DW (64B)", $time);
         tlp_header[53:52] = 2'b00; // 0B padding
         tlp_header[31:24] = 8'h10; // 64B = 16 DW
-        SEND_WRITE_RANDOM({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h2, 2, 1, 64'h2000);
+        SEND_MSG({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]});
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Test 1: Expected WPTR=%0d, Actual WPTR=%0d",
                  $time, 64, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
@@ -289,7 +289,7 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Test 2: SG_PKT with 1 byte padding, TLP_len=16 DW (64B - 1B = 63B)", $time);
         tlp_header[53:52] = 2'b01; // 1B padding
         tlp_header[31:24] = 8'h10; // 64B = 16 DW
-        SEND_WRITE_RANDOM({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h2, 2, 1, 64'h2100);
+        SEND_MSG({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]});
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Test 2: Expected WPTR=%0d, Actual WPTR=%0d",
                  $time, 63, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
@@ -299,7 +299,7 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Test 3: SG_PKT with 2 byte padding, TLP_len=2 DW (8B - 2B = 6B)", $time);
         tlp_header[53:52] = 2'b10; // 2B padding
         tlp_header[31:24] = 8'h02; // 8B = 2 DW
-        SEND_WRITE_RANDOM({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h0, 2, 1, 64'h2200);
+        SEND_MSG({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]});
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Test 3: Expected WPTR=%0d, Actual WPTR=%0d",
                  $time, 6, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
@@ -308,7 +308,7 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Test 4: SG_PKT with 3 byte padding, TLP_len=2 DW (8B - 3B = 5B)", $time);
         tlp_header[53:52] = 2'b11; // 3B padding
         tlp_header[31:24] = 8'h02; // 8B = 2 DW
-        SEND_WRITE_RANDOM({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h0, 2, 1, 64'h2300);
+        SEND_MSG({SG_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]});
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] Test 4: Expected WPTR=%0d, Actual WPTR=%0d",
                  $time, 5, tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
@@ -327,13 +327,13 @@ output reg   O_BREADY
         // MSG_T6: 68B x 3 fragments = 204B total
         $display("[%0t] [WRITE_GEN] MSG_T6: Sending S_PKT (68B)...", $time);
         tlp_header[31:24] = 8'h11; // 68B = 17 DW
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T6, tlp_header[119:0]});
 
         $display("[%0t] [WRITE_GEN] MSG_T6: Sending M_PKT (68B)...", $time);
-        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
+        SEND_MSG({M_PKT, PKT_SN1, MSG_T6, tlp_header[119:0]});
 
         $display("[%0t] [WRITE_GEN] MSG_T6: Sending L_PKT (68B)...", $time);
-        SEND_WRITE_RANDOM({L_PKT, PKT_SN2, MSG_T6, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
+        SEND_MSG({L_PKT, PKT_SN2, MSG_T6, tlp_header[119:0]});
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] MSG_T6: Expected WPTR=%0d bytes (68B x 3), Actual WPTR=%0d bytes",
@@ -342,13 +342,13 @@ output reg   O_BREADY
         // MSG_T2: 64B x 3 fragments = 192B total
         $display("[%0t] [WRITE_GEN] MSG_T2: Sending S_PKT (64B)...", $time);
         tlp_header[31:24] = 8'h10; // 64B = 16 DW
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]});
 
         $display("[%0t] [WRITE_GEN] MSG_T2: Sending M_PKT (64B)...", $time);
-        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
+        SEND_MSG({M_PKT, PKT_SN1, MSG_T2, tlp_header[119:0]});
 
         $display("[%0t] [WRITE_GEN] MSG_T2: Sending L_PKT (64B)...", $time);
-        SEND_WRITE_RANDOM({L_PKT, PKT_SN2, MSG_T2, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
+        SEND_MSG({L_PKT, PKT_SN2, MSG_T2, tlp_header[119:0]});
 
         repeat(50) @(posedge i_clk);
         $display("[%0t] [WRITE_GEN] MSG_T2: Expected WPTR=%0d bytes (64B x 3), Actual WPTR=%0d bytes",
@@ -360,11 +360,11 @@ output reg   O_BREADY
         // Restart Test: Send S_PKT twice with same source ID, tag, and tag owner
         // First S_PKT starts assembly
         $display("[%0t] [WRITE_GEN] Sending first S_PKT (TAG=0, SRC_ID=0x0, TO=1)...", $time);
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1, 64'hD00);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]});
 
         // Second S_PKT with same context (should trigger restart error)
         $display("[%0t] [WRITE_GEN] Sending second S_PKT (same context, should trigger restart error)...", $time);
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1, 64'hE00);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]});
 
         // Wait for restart error detection
         $display("[%0t] [WRITE_GEN] Waiting for restart error detection...", $time);
@@ -374,7 +374,7 @@ output reg   O_BREADY
 
         // Complete the assembly with L_PKT
         $display("[%0t] [WRITE_GEN] Completing assembly with L_PKT...", $time);
-        SEND_WRITE_RANDOM({L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1, 64'hF00);
+        SEND_MSG({L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]});
 
         repeat(50) @(posedge i_clk);
 
@@ -385,7 +385,7 @@ output reg   O_BREADY
         // This will trigger timeout after 10000 cycles
         $display("[%0t] [WRITE_GEN] Sending S_PKT without completing (will timeout)...", $time);
         $display("[%0t] [WRITE_GEN] Using TAG=12 for timeout test", $time);
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h3, 3, 1, 64'h1200);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]});
 
         $display("[%0t] [WRITE_GEN] Waiting for timeout (threshold = 10000 cycles)...", $time);
         // Wait for timeout to occur (need to wait >10000 cycles)
@@ -402,14 +402,14 @@ output reg   O_BREADY
         // We'll send: SN=0 (S), SN=1 (M), SN=3 (L) - skip SN=2
 
         $display("[%0t] [WRITE_GEN] Sending S_PKT (SN=0, TAG=1)...", $time);
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h1300);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T1, tlp_header[119:0]});
 
         $display("[%0t] [WRITE_GEN] Sending M_PKT (SN=1, TAG=1)...", $time);
-        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h1400);
+        SEND_MSG({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]});
 
         // Send L_PKT with SN=3 instead of expected SN=2 (out-of-sequence)
         $display("[%0t] [WRITE_GEN] Sending L_PKT with wrong SN (SN=3 instead of 2)...", $time);
-        SEND_WRITE_RANDOM({L_PKT, PKT_SN3, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h1500);
+        SEND_MSG({L_PKT, PKT_SN3, MSG_T1, tlp_header[119:0]});
 
         // Wait for out-of-sequence error detection
         $display("[%0t] [WRITE_GEN] Waiting for out-of-sequence error detection...", $time);
@@ -422,34 +422,34 @@ output reg   O_BREADY
         $display("TEST 1: S->L (2 fragments) with MSG_T0 - RANDOM DATA");
         $display("========================================\n");
         // S->L assembly (2 fragments) with random data
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1, 64'h0);
-        SEND_WRITE_RANDOM({L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]}, 8'h3, 3, 1, 64'h0);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]});
+        SEND_MSG({L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]});
         #200;
 
         $display("\n========================================");
         $display("TEST 2: S->M->L (3 fragments) with MSG_T1");
         $display("========================================\n");
         // S->M->L assembly (3 fragments)
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
-        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
-        SEND_WRITE_RANDOM({L_PKT, PKT_SN2, MSG_T1, tlp_header[119:0]}, 8'h2, 3, 1, 64'h100);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T1, tlp_header[119:0]});
+        SEND_MSG({M_PKT, PKT_SN1, MSG_T1, tlp_header[119:0]});
+        SEND_MSG({L_PKT, PKT_SN2, MSG_T1, tlp_header[119:0]});
         #200;
 
         $display("\n========================================");
         $display("TEST 3: S->M->M->L (4 fragments) with MSG_T2");
         $display("========================================\n");
         // S->M->M->L assembly (4 fragments)
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1, 64'h200);
-        SEND_WRITE_RANDOM({M_PKT, PKT_SN1, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1, 64'h200);
-        SEND_WRITE_RANDOM({M_PKT, PKT_SN2, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1, 64'h200);
-        SEND_WRITE_RANDOM({L_PKT, PKT_SN3, MSG_T2, tlp_header[119:0]}, 8'h1, 3, 1, 64'h200);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T2, tlp_header[119:0]});
+        SEND_MSG({M_PKT, PKT_SN1, MSG_T2, tlp_header[119:0]});
+        SEND_MSG({M_PKT, PKT_SN2, MSG_T2, tlp_header[119:0]});
+        SEND_MSG({L_PKT, PKT_SN3, MSG_T2, tlp_header[119:0]});
         #200;
 
         $display("\n========================================");
         $display("TEST 4: Single packet (SG_PKT) with MSG_T3");
         $display("========================================\n");
         // Single packet (no assembly)
-        SEND_WRITE_RANDOM({SG_PKT, PKT_SN0, MSG_T3, tlp_header[119:0]}, 8'h2, 3, 1, 64'h300);
+        SEND_MSG({SG_PKT, PKT_SN0, MSG_T3, tlp_header[119:0]});
         #200;
 
         $display("\n========================================");
@@ -458,7 +458,7 @@ output reg   O_BREADY
         // Send fragment with bad header version (0x2 instead of 0x1)
         // This should increment the bad header version error counter
         tlp_header[99:96] = 4'b0010;  // Bad version
-        SEND_WRITE_RANDOM({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]}, 8'h1, 3, 1, 64'h400);
+        SEND_MSG({S_PKT, PKT_SN0, MSG_T4, tlp_header[119:0]});
 
         // Restore correct header version
         tlp_header[99:96] = 4'b0001;
@@ -494,7 +494,45 @@ output reg   O_BREADY
     end
 
     // ========================================
-    // AXI Write Task with Random Data
+    // High-Level Message Send (Auto-calculates AXI parameters from header)
+    // ========================================
+    task automatic SEND_MSG;
+        input [127:0] header;
+
+        reg [7:0] tlp_length_dw;  // Length in DW (from TLP header)
+        reg [7:0] awlen;           // AXI awlen (beats - 1)
+        reg [2:0] awsize;          // AXI awsize (fixed: 32 bytes = 2^5)
+        reg [1:0] awburst;         // AXI awburst (fixed: INCR)
+        integer total_bytes;
+        integer axi_beat_bytes;
+
+        begin
+            // Extract TLP length from header [31:24] (in DW = 4 bytes)
+            tlp_length_dw = header[31:24];
+            total_bytes = tlp_length_dw * 4;  // Convert DW to bytes
+
+            // AXI parameters (fixed for PCIe message system)
+            awsize = 3'd5;      // 2^5 = 32 bytes per beat
+            awburst = 2'b01;    // INCR burst
+            axi_beat_bytes = 32; // 2^awsize
+
+            // Calculate awlen (number of beats - 1)
+            // total_bytes includes header (first beat has header + partial payload)
+            // Need ceiling division: (total_bytes + 31) / 32 - 1
+            awlen = ((total_bytes + axi_beat_bytes - 1) / axi_beat_bytes) - 1;
+
+            // $display("[%0t] [SEND_MSG] Auto-calculated AXI parameters:", $time);
+            // $display("  TLP Length: %0d DW (%0d bytes)", tlp_length_dw, total_bytes);
+            // $display("  AXI Beats:  %0d (awlen=%0d)", awlen + 1, awlen);
+            // $display("  AXI Size:   %0d (2^%0d = %0d bytes)", awsize, awsize, axi_beat_bytes);
+
+            // Call the low-level task
+            SEND_WRITE_RANDOM(header, awlen, awsize, awburst, 64'h0);
+        end
+    endtask
+
+    // ========================================
+    // AXI Write Task with Random Data (Low-Level)
     // ========================================
     task automatic SEND_WRITE_RANDOM;
         input [127:0]     header;
