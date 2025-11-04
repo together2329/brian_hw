@@ -885,9 +885,11 @@ output reg   O_BREADY
                 $display("[TEST %0d] Size = %0d DW (%0d bytes)", test_count, size_dw, size_dw * 4);
                 $display("----------------------------------------");
 
-                // Build S_PKT header with 16-bit length
-                // Use localparam for fragment type, SN, and MSG_TAG
-                s_header = {S_PKT, PKT_SN0, MSG_T0, tlp_base[119:40], size_dw[15:0], tlp_base[23:0]};
+                // Build TLP header with 16-bit length field
+                tlp_header = {tlp_base[119:40], size_dw[15:0], tlp_base[23:0]};
+
+                // Build S_PKT header using localparam constants
+                s_header = {S_PKT, PKT_SN0, MSG_T0, tlp_header};
 
                 // Read error counter before test
                 error_count_before = tb_pcie_sub_msg.u_pcie_msg_receiver.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0];
@@ -898,9 +900,8 @@ output reg   O_BREADY
 
                 #200;
 
-                // Build L_PKT header with same 16-bit length
-                // Use localparam for fragment type, SN, and MSG_TAG
-                l_header = {L_PKT, PKT_SN1, MSG_T0, tlp_base[119:40], size_dw[15:0], tlp_base[23:0]};
+                // Build L_PKT header using localparam constants
+                l_header = {L_PKT, PKT_SN1, MSG_T0, tlp_header};
 
                 // Send L_PKT
                 $display("[%0t] Sending L_PKT (size=%0d DW)...", $time, size_dw);
