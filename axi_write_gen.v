@@ -3,6 +3,9 @@
 //`define RUN_ORIGINAL_TESTS      // Original comprehensive tests (errors, assembly, etc.)
 `define RUN_MULTI_PACKET_TEST   // Multi-packet size verification test (64B-1024B)
 
+// Debug Control
+//`define DEBUG                   // Enable detailed debug messages
+
 module axi_write_gen
 (
 // Clock
@@ -881,9 +884,11 @@ output reg   O_BREADY
             for (size_dw = 16; size_dw <= 256; size_dw = size_dw + 240) begin
                 test_count = test_count + 1;
 
+`ifdef DEBUG
                 $display("\n----------------------------------------");
                 $display("[TEST %0d] Size = %0d DW (%0d bytes)", test_count, size_dw, size_dw * 4);
                 $display("----------------------------------------");
+`endif
 
                 // Build TLP header with field-by-field assignment
                 tlp_header[7:5] = 3'b011;           // fmt
@@ -905,7 +910,9 @@ output reg   O_BREADY
                 error_count_before = tb_pcie_sub_msg.u_pcie_msg_receiver.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0];
 
                 // Send S_PKT
+`ifdef DEBUG
                 $display("[%0t] Sending S_PKT (size=%0d DW)...", $time, size_dw);
+`endif
                 SEND_MSG(s_header);
 
                 #200;
@@ -914,7 +921,9 @@ output reg   O_BREADY
                 l_header = {L_PKT, PKT_SN1, MSG_T0, tlp_header};
 
                 // Send L_PKT
+`ifdef DEBUG
                 $display("[%0t] Sending L_PKT (size=%0d DW)...", $time, size_dw);
+`endif
                 SEND_MSG(l_header);
 
                 #500;
@@ -923,19 +932,25 @@ output reg   O_BREADY
                 wptr_expected = size_dw * 4;
                 wptr_actual = tb_pcie_sub_msg.u_pcie_msg_receiver.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_4[15:0];
 
+`ifdef DEBUG
                 $display("[VERIFY] WPTR check: expected=%0d bytes, actual=%0d bytes",
                          wptr_expected, wptr_actual);
+`endif
 
                 // Verify error counter
                 error_count_after = tb_pcie_sub_msg.u_pcie_msg_receiver.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0];
+`ifdef DEBUG
                 $display("[VERIFY] Error counter check: before=%0d, after=%0d",
                          error_count_before, error_count_after);
+`endif
 
                 // Calculate expected beats for READ_AND_CHECK
                 expected_beats = (size_dw * 4 + 31) / 32;  // Round up to 32-byte beats
 
                 // Verify SRAM data with READ_AND_CHECK
+`ifdef DEBUG
                 $display("[VERIFY] Reading and checking SRAM data (%0d beats)...", expected_beats);
+`endif
                 tb_pcie_sub_msg.u_axi_read_gen.READ_AND_CHECK(
                     64'h8C00_0400,     // Queue 4 SRAM address
                     expected_beats,     // Number of beats
