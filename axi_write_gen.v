@@ -905,10 +905,10 @@ output reg   O_BREADY
                 tlp_header[111:104] = 8'h10;        // destination endpoint id
                 tlp_header[119:112] = 8'h0;         // source endpoint id
                 tlp_header[31:24] = size_dw[7:0];   // length in DW
-                tlp_header[39:32] = size_dw[15:8];  // length in DW (upper bits)
+                tlp_header[23:16] = size_dw[15:8];  // length in DW (upper bits)
 
                 // Build S_PKT header using localparam constants
-                s_header = {S_PKT, PKT_SN0, MSG_T0, tlp_header};
+                s_header = {S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]};
 
                 // Read error counter before test
                 error_count_before = tb_pcie_sub_msg.u_pcie_msg_receiver.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0];
@@ -922,7 +922,7 @@ output reg   O_BREADY
                 #200;
 
                 // Build L_PKT header using localparam constants (reuse same tlp_header)
-                l_header = {L_PKT, PKT_SN1, MSG_T0, tlp_header};
+                l_header = {L_PKT, PKT_SN1, MSG_T0, tlp_header[119:0]};
 
                 // Send L_PKT
 `ifdef DEBUG
