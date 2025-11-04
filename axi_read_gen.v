@@ -770,6 +770,7 @@ output reg  rready
         reg [127:0] received_header;
         reg verification_pass;
         integer total_beats;
+        integer timeout_cnt;
 
         begin
             total_beats = read_arlen + 1;  // AXI len is (beats - 1)
@@ -799,13 +800,20 @@ output reg  rready
             arburst = read_arburst;
             arid    = 7'h0;
 
-            // Wait for arready
+            // Wait for arready with timeout
             @(posedge i_clk);
-            while (!arready) begin
+            timeout_cnt = 0;
+            while (!arready && timeout_cnt < 1000) begin
                 @(posedge i_clk);
+                timeout_cnt = timeout_cnt + 1;
             end
 
-            $display("[%0t] [READ_GEN] Read Address Sent", $time);
+            if (timeout_cnt >= 1000) begin
+                $display("[%0t] [READ_GEN] *** ERROR: ARREADY TIMEOUT ***", $time);
+                verification_pass = 1'b0;
+            end else begin
+                $display("[%0t] [READ_GEN] Read Address Sent", $time);
+            end
 
             @(posedge i_clk);
             #1;
@@ -816,6 +824,7 @@ output reg  rready
             // 2. Read Data Phase
             // ====================================
             beat = 0;
+            timeout_cnt = 0;
             while (beat < total_beats) begin
                 @(posedge i_clk);
                 #1;  // Small delay to let signals settle
@@ -859,6 +868,16 @@ output reg  rready
                     end
 
                     beat = beat + 1;
+                    timeout_cnt = 0;  // Reset timeout on successful beat
+                end else begin
+                    // No handshake, increment timeout counter
+                    timeout_cnt = timeout_cnt + 1;
+                    if (timeout_cnt >= 1000) begin
+                        $display("[%0t] [READ_GEN] *** ERROR: RVALID TIMEOUT at beat %0d ***", $time, beat);
+                        $display("  rvalid=%0b, rready=%0b", rvalid, rready);
+                        verification_pass = 1'b0;
+                        beat = total_beats;  // Force exit from loop
+                    end
                 end
             end
 
