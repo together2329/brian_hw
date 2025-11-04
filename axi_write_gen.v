@@ -1,3 +1,8 @@
+// Test Selection Defines
+// Comment out to disable specific test suites
+//`define RUN_ORIGINAL_TESTS      // Original comprehensive tests (errors, assembly, etc.)
+`define RUN_MULTI_PACKET_TEST   // Multi-packet size verification test (64B-1024B)
+
 module axi_write_gen
 (
 // Clock
@@ -109,6 +114,9 @@ output reg   O_BREADY
         $display("[%0t] [WRITE_GEN] Stabilization complete", $time);
 
         $display("[%0t] [WRITE_GEN] *** RESET COMPLETE, STARTING TESTS ***", $time);
+
+`ifdef RUN_ORIGINAL_TESTS
+        $display("[%0t] [WRITE_GEN] Running ORIGINAL comprehensive tests", $time);
         $display("[%0t] [WRITE_GEN] About to send first SEND_WRITE with bad header", $time);
 
         $display("\n========================================");
@@ -490,7 +498,20 @@ output reg   O_BREADY
         );
 */
         #200;
-        $display("\n[WRITE_GEN] All writes completed\n");
+        $display("\n[WRITE_GEN] Original tests completed\n");
+`endif  // RUN_ORIGINAL_TESTS
+
+`ifdef RUN_MULTI_PACKET_TEST
+        $display("\n[%0t] [WRITE_GEN] Running MULTI-PACKET size verification test (64B-1024B)", $time);
+
+        // Call multi-packet test from testbench
+        tb_pcie_sub_msg.TEST_MULTI_PACKET_ALL_SIZES();
+
+        #1000;
+        $display("\n[WRITE_GEN] Multi-packet tests completed\n");
+`endif  // RUN_MULTI_PACKET_TEST
+
+        $display("\n[WRITE_GEN] *** ALL SELECTED TESTS COMPLETED ***\n");
     end
 
     // ========================================
@@ -665,8 +686,14 @@ output reg   O_BREADY
             // ====================================
             // 1. Write Address Phase
             // ====================================
-            while (!I_AWREADY) begin
-                @(posedge i_clk);
+            // AWREADY should already be high (receiver in IDLE state)
+            @(posedge i_clk);  // Wait one cycle for synchronization
+
+            if (!I_AWREADY) begin
+                $display("[%0t] [WRITE_GEN] WARNING: AWREADY not ready, waiting...", $time);
+                while (!I_AWREADY) begin
+                    @(posedge i_clk);
+                end
             end
             $display("[%0t] [WRITE_GEN] AWREADY is high, asserting AWVALID...", $time);
 

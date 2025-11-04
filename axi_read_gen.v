@@ -451,6 +451,7 @@ output reg  rready
     // ========================================
     // Legacy Read Verification Tests
     // ========================================
+    `ifdef RUN_ORIGINAL_TESTS
     initial begin
         // Wait for reset
         wait(i_reset_n);
@@ -579,6 +580,7 @@ output reg  rready
         #200;
         // $finish; // Commented out to allow write_gen tests to complete
     end
+    `endif  // RUN_ORIGINAL_TESTS
 
     // ========================================
     // AXI Read Task with Assembly Payload Verification

@@ -167,7 +167,7 @@ module pcie_msg_receiver (
     reg [7:0]  src_endpoint_id [0:14];   // Source ID for each queue
     reg        tag_owner [0:14];   // Tag Owner bit for each queue
     reg [2:0]  queue_tag [0:14];         // TAG (3 bits) for each queue
-    reg [7:0]  queue_tx_size [0:14];     // Transmission size (TLP length field) for S/M packets
+    reg [15:0] queue_tx_size [0:14];     // Transmission size (TLP length field) for S/M packets (16-bit)
     reg [15:0] queue_accumulated_tlp_bytes [0:14]; // Accumulated TLP payload bytes
 
     // Fragment data storage: 15 queues x 16 fragments x 16 beats
@@ -191,7 +191,7 @@ module pcie_msg_receiver (
     reg [7:0] dest_id;
     reg [11:0] expected_beats;
     reg [31:0] total_bytes;
-    reg [7:0] tx_size_dw;
+    reg [15:0] tx_size_dw;       // Extended to 16-bit for 1024B support (256 DW)
     reg [31:0] tx_size_bytes;
     reg [1:0] padding_bytes;
     reg [11:0] payload_beats_with_padding;
@@ -327,7 +327,7 @@ module pcie_msg_receiver (
                 src_endpoint_id[i] <= 8'h0;
                 tag_owner[i] <= 1'b0;
                 queue_tag[i] <= 3'h0;
-                queue_tx_size[i] <= 8'h0;
+                queue_tx_size[i] <= 16'h0;
                 queue_accumulated_tlp_bytes[i] <= 16'h0;
             end
 
@@ -453,9 +453,9 @@ module pcie_msg_receiver (
                             // Check unsupported TX unit (TLP length field [31:24])
                             // Valid range: 64B ~ 1024B
                             // TLP length is in DW (4 bytes): 64B=16 DW=0x10, 1024B=256 DW=0x100
-                            // Since field is 8-bit, max is 0xFF (1020B), so we check < 0x10 or == 0xFF+
-                            tx_size_dw = axi_wdata[31:24];
-                            tx_size_bytes = {24'h0, tx_size_dw} * 4;
+                            // Extended to 16-bit [39:24] to support up to 1024B (256 DW)
+                            tx_size_dw = axi_wdata[39:24];
+                            tx_size_bytes = {16'h0, tx_size_dw} * 4;
 
                             if (tx_size_bytes < 64 || tx_size_bytes > 1024) begin
                                 PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_30[7:0] <=
@@ -474,7 +474,7 @@ module pcie_msg_receiver (
                                 reg [31:0] total_transfer_bytes;
 
                                 ohc_size_dw = calc_ohc_size(axi_wdata[11:8]);
-                                total_transfer_dw = 4 + {28'h0, ohc_size_dw} + {24'h0, axi_wdata[31:24]};
+                                total_transfer_dw = 4 + {28'h0, ohc_size_dw} + {16'h0, axi_wdata[39:24]};
                                 total_transfer_bytes = total_transfer_dw * 4;
                                 expected_beats = (total_transfer_bytes + 31) / 32;  // Round up
 
@@ -482,7 +482,7 @@ module pcie_msg_receiver (
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] <=
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] + 1;
                                     $display("[%0t] [MSG_RX] ERROR: Size mismatch (TLP_len=%0d DW, OHC=%0d DW, beats=%0d, expected=%0d)",
-                                             $time, axi_wdata[31:24], ohc_size_dw, total_beats, expected_beats);
+                                             $time, axi_wdata[39:24], ohc_size_dw, total_beats, expected_beats);
                                 end
                             end
                         end
@@ -568,7 +568,7 @@ module pcie_msg_receiver (
                                     src_endpoint_id[allocated_queue_idx] <= src_id_field;  // Save source ID
                                     tag_owner[allocated_queue_idx] <= to_field;      // Save tag owner
                                     queue_tag[allocated_queue_idx] <= tag_field;           // Save tag (3 bits)
-                                    queue_tx_size[allocated_queue_idx] <= current_frag[0][31:24];      // Save transmission size (TLP length)
+                                    queue_tx_size[allocated_queue_idx] <= current_frag[0][39:24];      // Save transmission size (TLP length)
 
                                     // Set Queue Initial Address based on allocated queue index
                                     // Each queue gets 64 beats (2KB = 256 bits * 64 beats)
@@ -595,7 +595,7 @@ module pcie_msg_receiver (
                                     current_queue_idx <= allocated_queue_idx;
 
                                     // Start TLP length accumulation (for WPTR calculation)
-                                    queue_accumulated_tlp_bytes[allocated_queue_idx] <= current_frag[0][31:24] * 4;
+                                    queue_accumulated_tlp_bytes[allocated_queue_idx] <= current_frag[0][39:24] * 4;
 
                                     // Store header (will be replaced by last fragment's header)
                                     queue_data[allocated_queue_idx][0] <= current_frag[0];
@@ -610,7 +610,7 @@ module pcie_msg_receiver (
 
                                     $display("[%0t] [ASSEMBLE] Stored S fragment: %0d beats (%0d payload), TLP_len=%0d DW (%0d bytes)",
                                              $time, current_frag_beats, current_frag_beats - 1,
-                                             current_frag[0][31:24], current_frag[0][31:24] * 4);
+                                             current_frag[0][39:24], current_frag[0][39:24] * 4);
                                 end else begin
                                     $display("[%0t] [ASSEMBLE] ERROR: S fragment with SN != 0", $time);
                                 end
@@ -650,11 +650,11 @@ module pcie_msg_receiver (
                                 end
 
                                 // Check transmission size mismatch (M_PKT must match S_PKT size)
-                                if (queue_valid[allocated_queue_idx] && (current_frag[0][31:24] != queue_tx_size[allocated_queue_idx])) begin
+                                if (queue_valid[allocated_queue_idx] && (current_frag[0][39:24] != queue_tx_size[allocated_queue_idx])) begin
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] <=
                                         PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0] + 1;
                                     $display("[%0t] [ASSEMBLE] ERROR: Size mismatch (S_PKT=%0dB, M_PKT=%0dB)",
-                                             $time, queue_tx_size[allocated_queue_idx] * 4, current_frag[0][31:24] * 4);
+                                             $time, queue_tx_size[allocated_queue_idx] * 4, current_frag[0][39:24] * 4);
 
                                     // Set error interrupt for this queue
                                     case (allocated_queue_idx)
@@ -712,7 +712,7 @@ module pcie_msg_receiver (
                                     queue_timeout[allocated_queue_idx] <= 32'h0;  // Reset timeout
 
                                     // Accumulate TLP length
-                                    queue_accumulated_tlp_bytes[allocated_queue_idx] <= queue_accumulated_tlp_bytes[allocated_queue_idx] + (current_frag[0][31:24] * 4);
+                                    queue_accumulated_tlp_bytes[allocated_queue_idx] <= queue_accumulated_tlp_bytes[allocated_queue_idx] + (current_frag[0][39:24] * 4);
 
                                     // Append payload only (skip first beat which is header)
                                     for (i = 1; i < 16; i = i + 1) begin
@@ -727,7 +727,7 @@ module pcie_msg_receiver (
 
                                     $display("[%0t] [ASSEMBLE] Appended M fragment: %0d payload beats (total=%0d), TLP_len=%0d DW (accum=%0d bytes)",
                                              $time, current_frag_beats - 1, queue_total_beats[allocated_queue_idx] + current_frag_beats - 1,
-                                             current_frag[0][31:24], queue_accumulated_tlp_bytes[allocated_queue_idx] + (current_frag[0][31:24] * 4));
+                                             current_frag[0][39:24], queue_accumulated_tlp_bytes[allocated_queue_idx] + (current_frag[0][39:24] * 4));
                                 end else begin
                                     $display("[%0t] [ASSEMBLE] ERROR: Invalid M fragment (SN mismatch or invalid queue)", $time);
                                 end
@@ -807,7 +807,7 @@ module pcie_msg_receiver (
                                     asm_is_sg_pkt <= 1'b0;  // This is L_PKT (multi-fragment)
 
                                     // Accumulate final TLP length and save for WPTR calculation
-                                    asm_accumulated_tlp_bytes <= queue_accumulated_tlp_bytes[allocated_queue_idx] + (current_frag[0][31:24] * 4);
+                                    asm_accumulated_tlp_bytes <= queue_accumulated_tlp_bytes[allocated_queue_idx] + (current_frag[0][39:24] * 4);
 
                                     // Calculate payload beats accounting for padding
                                     // current_frag_beats includes header (beat 0)
@@ -878,7 +878,7 @@ module pcie_msg_receiver (
                                 asm_padding_bytes <= current_frag[0][53:52];
 
                                 // Extract TLP length for SG_PKT
-                                asm_tlp_length_dw <= current_frag[0][31:24];
+                                asm_tlp_length_dw <= current_frag[0][39:24];
                                 asm_is_sg_pkt <= 1'b1;
 
                                 // Write directly to SRAM
@@ -886,8 +886,8 @@ module pcie_msg_receiver (
                                 asm_beat_count <= 12'h0;
 
                                 $display("[%0t] [ASSEMBLE] SG_PKT padding: %0d bytes, TLP_len=%0d DW (header[53:52]=%0b, [31:24]=%0d)",
-                                         $time, current_frag[0][53:52], current_frag[0][31:24],
-                                         current_frag[0][53:52], current_frag[0][31:24]);
+                                         $time, current_frag[0][53:52], current_frag[0][39:24],
+                                         current_frag[0][53:52], current_frag[0][39:24]);
 
                                 // Copy to queue temporarily
                                 for (i = 0; i < 16; i = i + 1) begin
@@ -1052,11 +1052,12 @@ module pcie_msg_receiver (
             for (i = 0; i < 32; i = i + 1) begin
                 if (PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_0[i]) begin
                     PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[i] <= 1'b0;
-                    if (i == 0) begin
-                        $display("[%0t] [MSG_RX] Q0 INTR_STATUS[0] cleared (Assembly completion)", $time);
-                    end else if (i == 3) begin
-                        $display("[%0t] [MSG_RX] Q0 INTR_STATUS[3] cleared (Error)", $time);
-                    end
+                    // Commented out to reduce log spam
+                    // if (i == 0) begin
+                    //     $display("[%0t] [MSG_RX] Q0 INTR_STATUS[0] cleared (Assembly completion)", $time);
+                    // end else if (i == 3) begin
+                    //     $display("[%0t] [MSG_RX] Q0 INTR_STATUS[3] cleared (Error)", $time);
+                    // end
                 end
                 if (PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_1[i]) PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_1[i] <= 1'b0;
                 if (PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_CLEAR_2[i]) PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_2[i] <= 1'b0;
