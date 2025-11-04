@@ -887,8 +887,17 @@ output reg   O_BREADY
 
                 // Build TLP header with 16-bit length field
                 tlp_header = {tlp_base[119:40], size_dw[15:0], tlp_base[23:0]};
-
-                // Build S_PKT header using localparam constants
+                tlp_header[7:5] = 3'b011;           // fmt input
+                tlp_header[4:3] = 2'b10;            // type input
+                tlp_header[51:48] = 4'b0000;        // pcie_tag_mctp_vdm_code_input
+                tlp_header[63:56] = 8'b01111111;    // msg code input
+                tlp_header[87:80] = 8'h1A;          // vendor id input
+                tlp_header[95:88] = 8'hB4;          // vendor id input
+                tlp_header[99:96] = 4'b0001;        // header version
+                tlp_header[111:104] = 8'h0;         // destination endpoint id
+                tlp_header[119:112] = 8'h0;         // source endpoint id
+                tlp_header[31:24]   = 8'h20;          // 128B, length
+               // Build S_PKT header using localparam constants
                 s_header = {S_PKT, PKT_SN0, MSG_T0, tlp_header};
 
                 // Read error counter before test
@@ -902,6 +911,16 @@ output reg   O_BREADY
 
                 // Build L_PKT header using localparam constants
                 l_header = {L_PKT, PKT_SN1, MSG_T0, tlp_header};
+                tlp_header[7:5] = 3'b011;           // fmt input
+                tlp_header[4:3] = 2'b10;            // type input
+                tlp_header[51:48] = 4'b0000;        // pcie_tag_mctp_vdm_code_input
+                tlp_header[63:56] = 8'b01111111;    // msg code input
+                tlp_header[87:80] = 8'h1A;          // vendor id input
+                tlp_header[95:88] = 8'hB4;          // vendor id input
+                tlp_header[99:96] = 4'b0001;        // header version
+                tlp_header[111:104] = 8'h0;         // destination endpoint id
+                tlp_header[119:112] = 8'h0;         // source endpoint id
+                tlp_header[31:24]   = 8'h20;          // 128B, length
 
                 // Send L_PKT
                 $display("[%0t] Sending L_PKT (size=%0d DW)...", $time, size_dw);
