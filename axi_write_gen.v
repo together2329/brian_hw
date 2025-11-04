@@ -885,19 +885,20 @@ output reg   O_BREADY
                 $display("[TEST %0d] Size = %0d DW (%0d bytes)", test_count, size_dw, size_dw * 4);
                 $display("----------------------------------------");
 
-                // Build TLP header with 16-bit length field
-                tlp_header = {tlp_base[119:40], size_dw[15:0], tlp_base[23:0]};
-                tlp_header[7:5] = 3'b011;           // fmt input
-                tlp_header[4:3] = 2'b10;            // type input
-                tlp_header[51:48] = 4'b0000;        // pcie_tag_mctp_vdm_code_input
-                tlp_header[63:56] = 8'b01111111;    // msg code input
-                tlp_header[87:80] = 8'h1A;          // vendor id input
-                tlp_header[95:88] = 8'hB4;          // vendor id input
+                // Build TLP header with field-by-field assignment
+                tlp_header[7:5] = 3'b011;           // fmt
+                tlp_header[4:3] = 2'b10;            // type
+                tlp_header[51:48] = 4'b0000;        // pcie_tag_mctp_vdm_code
+                tlp_header[63:56] = 8'b01111111;    // msg code
+                tlp_header[87:80] = 8'h1A;          // vendor id upper
+                tlp_header[95:88] = 8'hB4;          // vendor id lower
                 tlp_header[99:96] = 4'b0001;        // header version
-                tlp_header[111:104] = 8'h0;         // destination endpoint id
+                tlp_header[111:104] = 8'h10;        // destination endpoint id
                 tlp_header[119:112] = 8'h0;         // source endpoint id
-                tlp_header[31:24]   = 8'h20;          // 128B, length
-               // Build S_PKT header using localparam constants
+                tlp_header[31:24] = size_dw[7:0];   // length in DW
+                tlp_header[39:32] = size_dw[15:8];  // length in DW (upper bits)
+
+                // Build S_PKT header using localparam constants
                 s_header = {S_PKT, PKT_SN0, MSG_T0, tlp_header};
 
                 // Read error counter before test
@@ -909,18 +910,8 @@ output reg   O_BREADY
 
                 #200;
 
-                // Build L_PKT header using localparam constants
+                // Build L_PKT header using localparam constants (reuse same tlp_header)
                 l_header = {L_PKT, PKT_SN1, MSG_T0, tlp_header};
-                tlp_header[7:5] = 3'b011;           // fmt input
-                tlp_header[4:3] = 2'b10;            // type input
-                tlp_header[51:48] = 4'b0000;        // pcie_tag_mctp_vdm_code_input
-                tlp_header[63:56] = 8'b01111111;    // msg code input
-                tlp_header[87:80] = 8'h1A;          // vendor id input
-                tlp_header[95:88] = 8'hB4;          // vendor id input
-                tlp_header[99:96] = 4'b0001;        // header version
-                tlp_header[111:104] = 8'h0;         // destination endpoint id
-                tlp_header[119:112] = 8'h0;         // source endpoint id
-                tlp_header[31:24]   = 8'h20;          // 128B, length
 
                 // Send L_PKT
                 $display("[%0t] Sending L_PKT (size=%0d DW)...", $time, size_dw);
