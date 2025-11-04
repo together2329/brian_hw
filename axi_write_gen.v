@@ -504,8 +504,8 @@ output reg   O_BREADY
 `ifdef RUN_MULTI_PACKET_TEST
         $display("\n[%0t] [WRITE_GEN] Running MULTI-PACKET size verification test (64B-1024B)", $time);
 
-        // Call multi-packet test from testbench
-        tb_pcie_sub_msg.TEST_MULTI_PACKET_ALL_SIZES();
+        // Call multi-packet test
+        TEST_MULTI_PACKET_ALL_SIZES();
 
         #1000;
         $display("\n[WRITE_GEN] Multi-packet tests completed\n");
@@ -833,5 +833,137 @@ output reg   O_BREADY
         end
     endtask
 
+    // ========================================
+    // TEST_MULTI_PACKET_ALL_SIZES task
+    // ========================================
+    task automatic TEST_MULTI_PACKET_ALL_SIZES;
+        integer size_dw;
+        integer test_count, pass_count, fail_count;
+        reg [127:0] s_header, l_header;
+        reg [119:0] tlp_base;
+        integer wptr_expected, wptr_actual;
+        reg [31:0] error_count_before, error_count_after;
+        integer expected_beats;
+        reg [127:0] fragtype_pkt_sn_msg_t;
+
+        begin
+            test_count = 0;
+            pass_count = 0;
+            fail_count = 0;
+
+            // Base TLP header (same for all tests)
+            // Note: Version field [99:96] = 4'h1, Dst_ID [111:104] = 8'h10
+            tlp_base = {
+                8'h10,            // [119:112] Dst Endpoint ID = 0x10
+                8'h00,            // [111:104] Reserved
+                8'h01,            // [103:96] Version = 0x1 in bits [99:96] (0000_0001)
+                8'h00,            // [95:88] Reserved
+                8'h00,            // [87:80] Reserved
+                8'h00,            // [79:72] Reserved
+                8'h00,            // [71:64] Reserved
+                8'h00,            // [63:56] Reserved
+                8'h00,            // [55:48] Reserved
+                8'h00,            // [47:40] Reserved
+                8'h00,            // [39:32] Reserved
+                8'h00,            // [31:24] Length (will be overwritten)
+                8'h81,            // [23:16] Message Code
+                8'h1A,            // [15:8] OHC=0x1 [11:8], Vendor ID upper [15:12]
+                8'hBD             // [7:0] Vendor ID lower + Message Code
+            };
+
+            $display("\n========================================");
+            $display("[TEST_MULTI_PACKET_ALL_SIZES] Starting verification");
+            $display("Testing 2 sizes: 64B (16 DW) and 1024B (256 DW)");
+            $display("========================================\n");
+
+            // Test 2 sizes: 64B (16 DW) and 1024B (256 DW)
+            // Loop: size_dw = 16, then size_dw = 256
+            for (size_dw = 16; size_dw <= 256; size_dw = size_dw + 240) begin
+                test_count = test_count + 1;
+
+                $display("\n----------------------------------------");
+                $display("[TEST %0d] Size = %0d DW (%0d bytes)", test_count, size_dw, size_dw * 4);
+                $display("----------------------------------------");
+
+                // Build S_PKT header with 16-bit length
+                // [127:126]=S_PKT(10), [125:124]=SN(00), [123]=TO(1), [122:120]=TAG(000)
+                s_header = {2'b10, 2'b00, 1'b1, 3'b000, tlp_base[119:40], size_dw[15:0], tlp_base[23:0]};
+
+                // Read error counter before test
+                error_count_before = tb_pcie_sub_msg.u_pcie_msg_receiver.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0];
+
+                // Send S_PKT
+                $display("[%0t] Sending S_PKT (size=%0d DW)...", $time, size_dw);
+                SEND_MSG(s_header);
+
+                #200;
+
+                // Build L_PKT header with same 16-bit length
+                // [127:126]=L_PKT(01), [125:124]=SN(01), [123]=TO(1), [122:120]=TAG(000)
+                l_header = {2'b01, 2'b01, 1'b1, 3'b000, tlp_base[119:40], size_dw[15:0], tlp_base[23:0]};
+
+                // Send L_PKT
+                $display("[%0t] Sending L_PKT (size=%0d DW)...", $time, size_dw);
+                SEND_MSG(l_header);
+
+                #500;
+
+                // Verify WPTR (in bytes)
+                wptr_expected = size_dw * 4;
+                wptr_actual = tb_pcie_sub_msg.u_pcie_msg_receiver.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_4[15:0];
+
+                $display("[VERIFY] WPTR check: expected=%0d bytes, actual=%0d bytes",
+                         wptr_expected, wptr_actual);
+
+                // Verify error counter
+                error_count_after = tb_pcie_sub_msg.u_pcie_msg_receiver.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0];
+                $display("[VERIFY] Error counter check: before=%0d, after=%0d",
+                         error_count_before, error_count_after);
+
+                // Calculate expected beats for READ_AND_CHECK
+                expected_beats = (size_dw * 4 + 31) / 32;  // Round up to 32-byte beats
+
+                // Verify SRAM data with READ_AND_CHECK
+                $display("[VERIFY] Reading and checking SRAM data (%0d beats)...", expected_beats);
+                tb_pcie_sub_msg.u_axi_read_gen.READ_AND_CHECK(
+                    64'h8C00_0400,     // Queue 4 SRAM address
+                    expected_beats,     // Number of beats
+                    3'd5,               // Size = 32 bytes
+                    2'b01,              // INCR burst
+                    l_header            // Expected header
+                );
+
+                #200;
+
+                // Check if test passed
+                if (wptr_actual == wptr_expected && error_count_after == error_count_before) begin
+                    $display("[RESULT] TEST %0d: **PASS**\n", test_count);
+                    pass_count = pass_count + 1;
+                end else begin
+                    $display("[RESULT] TEST %0d: **FAIL**", test_count);
+                    if (wptr_actual != wptr_expected)
+                        $display("  - WPTR mismatch: expected %0d, got %0d", wptr_expected, wptr_actual);
+                    if (error_count_after != error_count_before)
+                        $display("  - Error counter increased: %0d -> %0d", error_count_before, error_count_after);
+                    $display("");
+                    fail_count = fail_count + 1;
+                end
+            end
+
+            // Final summary
+            $display("\n========================================");
+            $display("[TEST_MULTI_PACKET_ALL_SIZES] FINAL SUMMARY");
+            $display("========================================");
+            $display("Total tests:  %0d", test_count);
+            $display("Passed:       %0d", pass_count);
+            $display("Failed:       %0d", fail_count);
+            if (fail_count == 0) begin
+                $display("\n*** ALL TESTS PASSED ***\n");
+            end else begin
+                $display("\n*** SOME TESTS FAILED ***\n");
+            end
+            $display("========================================\n");
+        end
+    endtask
 
 endmodule
