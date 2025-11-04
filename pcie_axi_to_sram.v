@@ -67,8 +67,10 @@ module pcie_axi_to_sram (
                         sram_addr_cnt <= axi_araddr[9:0];
                         axi_arready <= 1'b0;
 
+`ifdef DEBUG
                         $display("[%0t] [AXI_SRAM] Read request: addr=0x%h, len=%0d",
                                  $time, axi_araddr, axi_arlen + 1);
+`endif
 
                         // Start SRAM read
                         sram_ren <= 1'b1;
@@ -91,8 +93,10 @@ module pcie_axi_to_sram (
 
                     // Check for handshake
                     if (axi_rvalid && axi_rready) begin
+`ifdef DEBUG
                         $display("[%0t] [AXI_SRAM] Read beat %0d: sram[%0d] = 0x%h, last=%0b",
                                  $time, beat_count, sram_addr_cnt, axi_rdata, axi_rlast);
+`endif
 
                         axi_rvalid <= 1'b0;
 
@@ -100,7 +104,9 @@ module pcie_axi_to_sram (
                             // Last beat completed
                             axi_rlast <= 1'b0;
                             state <= IDLE;
+`ifdef DEBUG
                             $display("[%0t] [AXI_SRAM] Read complete\n", $time);
+`endif
                         end else begin
                             // Continue reading from SRAM
                             beat_count <= beat_count + 1;

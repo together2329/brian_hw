@@ -376,8 +376,10 @@ module pcie_msg_receiver (
                         current_frag_beats <= axi_awlen + 1;
                         state <= W_DATA;
 
+`ifdef DEBUG
                         $display("[%0t] [MSG_RX] Received write addr: 0x%h, len=%0d beats",
                                  $time, axi_awaddr, axi_awlen + 1);
+`endif
                     end else begin
                         axi_awready <= 1'b1;
                         // $display("[%0t] [MSG_RX] IDLE: awready=1, waiting for awvalid", $time);
@@ -397,6 +399,7 @@ module pcie_msg_receiver (
                             msg_header <= axi_wdata[127:0];
                             header_version <= axi_wdata[99:96];  // Extract header version
 
+`ifdef DEBUG
                             $display("[%0t] [MSG_RX] Header: Type=%0s, SN=%0d, TAG=%0h, Ver=%0h, TLP=0x%h",
                                      $time,
                                      (axi_wdata[127:126] == S_PKT) ? "S" :
@@ -412,16 +415,19 @@ module pcie_msg_receiver (
                             $display("[%0t] [MSG_RX]   Expected Version: 0x%h (EXPECTED_HDR_VER)", $time, EXPECTED_HDR_VER);
                             $display("[%0t] [MSG_RX]   Received Version: 0x%h (bits [99:96])", $time, axi_wdata[99:96]);
                             $display("[%0t] [MSG_RX]   Match: %s", $time, (axi_wdata[99:96] == EXPECTED_HDR_VER) ? "YES ✓" : "NO ✗");
+`endif
 
                             if (axi_wdata[99:96] != EXPECTED_HDR_VER) begin
                                 PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] <=
                                     PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] + 1;
-                                $display("[%0t] [MSG_RX] *** BAD HEADER VERSION DETECTED ***", $time);
-                                $display("[%0t] [MSG_RX] Expected=0x%h, Received=0x%h",
+                                $display("[%0t] [MSG_RX] ERROR: BAD HEADER VERSION DETECTED", $time);
+                                $display("[%0t] [MSG_RX] ERROR: Expected=0x%h, Received=0x%h",
                                          $time, EXPECTED_HDR_VER, axi_wdata[99:96]);
+`ifdef DEBUG
                                 $display("[%0t] [MSG_RX] Error counter incremented to: %0d",
                                          $time, PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] + 1);
                                 $display("[%0t] [MSG_RX] DEBUG_31[31:24] = 0x%h", $time, PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24] + 1);
+`endif
 
                                 // Set error interrupt (INTR_STATUS[3] = all queue error)
                                 PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[3] <= 1'b1;
@@ -490,8 +496,10 @@ module pcie_msg_receiver (
                         // Store fragment data in temporary buffer
                         current_frag[beat_count] <= axi_wdata;
 
+`ifdef DEBUG
                         $display("[%0t] [MSG_RX] Beat %0d: data=0x%h, last=%0b",
                                  $time, beat_count, axi_wdata, axi_wlast);
+`endif
 
                         beat_count <= beat_count + 1;
 
@@ -506,7 +514,9 @@ module pcie_msg_receiver (
                     // Check header version first
                     if (header_version != EXPECTED_HDR_VER) begin
                         // Skip this fragment due to bad header version
+`ifdef DEBUG
                         $display("[%0t] [ASSEMBLE] Skipping fragment due to bad header version", $time);
+`endif
                         state <= W_RESP;
                     end else begin
                         // Extract TAG (3 bits), TO (1 bit), SRC_ID from header stored in current_frag[0]
@@ -525,14 +535,18 @@ module pcie_msg_receiver (
                             // Process the received fragment
                             current_queue_idx <= allocated_queue_idx;
 
+`ifdef DEBUG
                             $display("[%0t] [ASSEMBLE] Allocated/Found Queue %0d for TAG=%0d, TO=%0b, SRC_ID=0x%h",
                                      $time, allocated_queue_idx, tag_field, to_field, src_id_field);
+`endif
 
                             case (frag_type)
                                 S_PKT: begin
                                     // Start new assembly
+`ifdef DEBUG
                                     $display("[%0t] [ASSEMBLE] START: TAG=%0d, SN=%0d, SRC_ID=0x%h, TO=%0b",
                                              $time, tag_field, pkt_sn, src_id_field, to_field);
+`endif
 
                                 // Check restart error (S_PKT received while queue is still active)
                                 // Restart error occurs when:
@@ -550,10 +564,12 @@ module pcie_msg_receiver (
                                                  $time, src_id_field, tag_field, to_field);
                                     end else begin
                                         $display("[%0t] [ASSEMBLE] WARNING: Different context (allowed)", $time);
+`ifdef DEBUG
                                         $display("[%0t] [ASSEMBLE]   Old: SRC_ID=0x%h, TAG=%0d, TO=%0b",
                                                  $time, src_endpoint_id[allocated_queue_idx], queue_tag[allocated_queue_idx], tag_owner[allocated_queue_idx]);
                                         $display("[%0t] [ASSEMBLE]   New: SRC_ID=0x%h, TAG=%0d, TO=%0b",
                                                  $time, src_id_field, tag_field, to_field);
+`endif
                                     end
                                 end
 
@@ -608,9 +624,11 @@ module pcie_msg_receiver (
                                     queue_write_ptr[allocated_queue_idx] <= current_frag_beats;
                                     queue_total_beats[allocated_queue_idx] <= current_frag_beats;
 
+`ifdef DEBUG
                                     $display("[%0t] [ASSEMBLE] Stored S fragment: %0d beats (%0d payload), TLP_len=%0d DW (%0d bytes)",
                                              $time, current_frag_beats, current_frag_beats - 1,
                                              current_frag[0][39:24], current_frag[0][39:24] * 4);
+`endif
                                 end else begin
                                     $display("[%0t] [ASSEMBLE] ERROR: S fragment with SN != 0", $time);
                                 end
@@ -619,8 +637,10 @@ module pcie_msg_receiver (
 
                             M_PKT: begin
                                 // Continue assembly
+`ifdef DEBUG
                                 $display("[%0t] [ASSEMBLE] MIDDLE: Queue=%0d, TAG=%0d, TO=%0b, SRC_ID=0x%h, SN=%0d (expected=%0d)",
                                          $time, allocated_queue_idx, tag_field, to_field, src_id_field, pkt_sn, queue_expected_sn[allocated_queue_idx]);
+`endif
 
                                 // Check middle/last without first
                                 if (!queue_valid[allocated_queue_idx]) begin
@@ -725,9 +745,11 @@ module pcie_msg_receiver (
                                     // Save current queue index for use in SRAM write
                                     current_queue_idx <= allocated_queue_idx;
 
+`ifdef DEBUG
                                     $display("[%0t] [ASSEMBLE] Appended M fragment: %0d payload beats (total=%0d), TLP_len=%0d DW (accum=%0d bytes)",
                                              $time, current_frag_beats - 1, queue_total_beats[allocated_queue_idx] + current_frag_beats - 1,
                                              current_frag[0][39:24], queue_accumulated_tlp_bytes[allocated_queue_idx] + (current_frag[0][39:24] * 4));
+`endif
                                 end else begin
                                     $display("[%0t] [ASSEMBLE] ERROR: Invalid M fragment (SN mismatch or invalid queue)", $time);
                                 end
@@ -736,8 +758,10 @@ module pcie_msg_receiver (
 
                             L_PKT: begin
                                 // Complete assembly
+`ifdef DEBUG
                                 $display("[%0t] [ASSEMBLE] LAST: Queue=%0d, TAG=%0d, TO=%0b, SRC_ID=0x%h, SN=%0d (expected=%0d)",
                                          $time, allocated_queue_idx, tag_field, to_field, src_id_field, pkt_sn, queue_expected_sn[allocated_queue_idx]);
+`endif
 
                                 // Check middle/last without first
                                 if (!queue_valid[allocated_queue_idx]) begin
@@ -828,15 +852,19 @@ module pcie_msg_receiver (
                                     asm_total_beats <= queue_total_beats[allocated_queue_idx] + payload_beats_with_padding;
                                     asm_beat_count <= 12'h0;
 
+`ifdef DEBUG
                                     $display("[%0t] [ASSEMBLE] L_PKT padding: %0d bytes (header[53:52]=%0b)",
                                              $time, padding_bytes, current_frag[0][53:52]);
+`endif
 
                                     // Save current queue index for use in SRAM write
                                     current_queue_idx <= allocated_queue_idx;
 
+`ifdef DEBUG
                                     $display("[%0t] [ASSEMBLE] COMPLETE: %0d fragments, %0d total beats (including header)",
                                              $time, queue_frag_count[allocated_queue_idx] + 1,
                                              queue_total_beats[allocated_queue_idx] + current_frag_beats - 1);
+`endif
 
                                     // Write assembled message to SRAM
                                     assembled_valid <= 1'b1;
@@ -850,8 +878,10 @@ module pcie_msg_receiver (
 
                             SG_PKT: begin
                                 // Single packet (no assembly)
+`ifdef DEBUG
                                 $display("[%0t] [ASSEMBLE] SINGLE: Queue=%0d, TAG=%0d, TO=%0b, SRC_ID=0x%h, direct to SRAM",
                                          $time, allocated_queue_idx, tag_field, to_field, src_id_field);
+`endif
 
                                 // Set Queue Initial Address based on allocated queue index
                                 case (allocated_queue_idx)
@@ -885,9 +915,11 @@ module pcie_msg_receiver (
                                 asm_total_beats <= current_frag_beats;
                                 asm_beat_count <= 12'h0;
 
+`ifdef DEBUG
                                 $display("[%0t] [ASSEMBLE] SG_PKT padding: %0d bytes, TLP_len=%0d DW (header[53:52]=%0b, [31:24]=%0d)",
                                          $time, current_frag[0][53:52], current_frag[0][39:24],
                                          current_frag[0][53:52], current_frag[0][39:24]);
+`endif
 
                                 // Copy to queue temporarily
                                 for (i = 0; i < 16; i = i + 1) begin
@@ -911,8 +943,10 @@ module pcie_msg_receiver (
                     // Write assembled payload to SRAM (skip header beat 0)
                     if (asm_beat_count == 12'h0) begin
                         // Display assembled header (not stored in SRAM)
+`ifdef DEBUG
                         $display("[%0t] [SRAM_WR] Assembled Header (not stored): 0x%h",
                                  $time, queue_data[current_queue_idx][0]);
+`endif
                     end
 
                     if (asm_beat_count < asm_total_beats - 1) begin
@@ -938,10 +972,12 @@ module pcie_msg_receiver (
                         endcase
                         sram_wdata <= queue_data[current_queue_idx][asm_beat_count + 1];  // +1 to skip header
 
+`ifdef DEBUG
                         $display("[%0t] [SRAM_WR] Payload beat %0d/%0d: addr=%0h, data=0x%h",
                                  $time, asm_beat_count, asm_total_beats-2,
                                  sram_waddr,
                                  queue_data[current_queue_idx][asm_beat_count + 1]);
+`endif
 
                         asm_beat_count <= asm_beat_count + 1;
                     end else begin
@@ -952,7 +988,9 @@ module pcie_msg_receiver (
                         if (frag_type == L_PKT || frag_type == SG_PKT) begin
                             queue_valid[current_queue_idx] <= 1'b0;
                             queue_state[current_queue_idx] <= 2'b00;
+`ifdef DEBUG
                             $display("[%0t] [SRAM_WR] Queue %0d cleared", $time, current_queue_idx);
+`endif
 
                             // Set interrupt status - completion of assembly (L_PKT or SG_PKT)
                             // INTR_STATUS[0] = completion of queue
@@ -996,9 +1034,11 @@ module pcie_msg_receiver (
                                     4'hD: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_13[15:0] <= (asm_tlp_length_dw * 4) - asm_padding_bytes;
                                     4'hE: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_14[15:0] <= (asm_tlp_length_dw * 4) - asm_padding_bytes;
                                 endcase
+`ifdef DEBUG
                                 $display("[%0t] [SRAM_WR] Queue %0d: SG_PKT WPTR=%0d bytes (TLP_len=%0d DW, padding=%0d)",
                                          $time, current_queue_idx, (asm_tlp_length_dw * 4) - asm_padding_bytes,
                                          asm_tlp_length_dw, asm_padding_bytes);
+`endif
                             end else begin
                                 case (current_queue_idx)
                                     4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
@@ -1017,9 +1057,11 @@ module pcie_msg_receiver (
                                     4'hD: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_13[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
                                     4'hE: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_14[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
                                 endcase
+`ifdef DEBUG
                                 $display("[%0t] [SRAM_WR] Queue %0d: L_PKT WPTR=%0d bytes (accumulated_tlp=%0d, padding=%0d)",
                                          $time, current_queue_idx, asm_accumulated_tlp_bytes - asm_padding_bytes,
                                          asm_accumulated_tlp_bytes, asm_padding_bytes);
+`endif
                             end
 
                             // Assert interrupt signal
@@ -1031,16 +1073,22 @@ module pcie_msg_receiver (
                 end
 
                 W_RESP: begin
+`ifdef DEBUG
                     $display("[%0t] [MSG_RX] W_RESP state: bvalid=%b, bready=%b", $time, axi_bvalid, axi_bready);
+`endif
                     axi_bvalid <= 1'b1;
                     axi_bresp <= 2'b00;  // OKAY
 
                     if (axi_bvalid && axi_bready) begin
+`ifdef DEBUG
                         $display("[%0t] [MSG_RX] Response sent: OKAY\n", $time);
+`endif
                         axi_bvalid <= 1'b0;
                         state <= IDLE;
                     end else begin
+`ifdef DEBUG
                         $display("[%0t] [MSG_RX] Waiting for handshake (bvalid=%b, bready=%b)", $time, axi_bvalid, axi_bready);
+`endif
                     end
                 end
 

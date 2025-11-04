@@ -74,7 +74,9 @@ output reg  rready
         wait(i_reset_n);
         #100;
 
+`ifdef DEBUG
         $display("\n[READ_GEN] Interrupt monitor started");
+`endif
 
         forever begin
             // Poll for any interrupt by checking INTR_STATUS register
@@ -607,6 +609,7 @@ output reg  rready
         begin
             total_beats = read_arlen + 1;
 
+`ifdef DEBUG
             $display("\n========================================");
             $display("[%0t] [READ_GEN] READ_AND_CHECK_ASSEMBLY START", $time);
             $display("  Queue Tag: %0d", queue_tag);
@@ -615,6 +618,7 @@ output reg  rready
             $display("  Expected WPTR: %0d bytes", expected_wptr_bytes);
             $display("  (Header assembled but not stored in SRAM)");
             $display("========================================");
+`endif
 
             verification_pass = 1'b1;
 
@@ -633,7 +637,9 @@ output reg  rready
                 @(posedge i_clk);
             end
 
+`ifdef DEBUG
             $display("[%0t] [READ_GEN] Read Address Sent", $time);
+`endif
 
             @(posedge i_clk);
             arvalid = 1'b0;
@@ -649,15 +655,19 @@ output reg  rready
                     data_beat = rdata;
                     read_data_mem[beat] = data_beat;
 
+`ifdef DEBUG
                     $display("[%0t] [READ_GEN] Sampled beat %0d: data=0x%h", $time, beat, data_beat);
+`endif
 
                     // Verify payload data (all beats are payload, header not stored in SRAM)
                     if (beat < exp_beats) begin
                         // Expected data: first payload beat is at lowest address
                         exp_beat_data = expected_payload[beat * 256 +: 256];
                         if (data_beat == exp_beat_data) begin
+`ifdef DEBUG
                             $display("[%0t] [READ_GEN] Beat %0d: PAYLOAD MATCH (0x%h)",
                                      $time, beat, data_beat);
+`endif
                         end else begin
                             $display("[%0t] [READ_GEN] Beat %0d: PAYLOAD MISMATCH", $time, beat);
                             $display("  Expected: 0x%h", exp_beat_data);
