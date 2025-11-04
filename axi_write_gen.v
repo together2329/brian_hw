@@ -515,6 +515,10 @@ output reg   O_BREADY
 `endif  // RUN_MULTI_PACKET_TEST
 
         $display("\n[WRITE_GEN] *** ALL SELECTED TESTS COMPLETED ***\n");
+
+        // Finish simulation after all tests complete
+        #1000;
+        $finish;
     end
 
     // ========================================
