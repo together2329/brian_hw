@@ -239,35 +239,35 @@ output reg  rready
             // Check for completion interrupt on all queues (Q0-Q14)
             completed_queue = 4'hF;  // Default: no queue
 
-            if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[0]) begin
+            if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[3]) begin
                 completed_queue = 4'h0;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_1[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_1[3]) begin
                 completed_queue = 4'h1;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_2[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_2[3]) begin
                 completed_queue = 4'h2;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_3[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_3[3]) begin
                 completed_queue = 4'h3;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_4[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_4[3]) begin
                 completed_queue = 4'h4;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_5[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_5[3]) begin
                 completed_queue = 4'h5;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_6[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_6[3]) begin
                 completed_queue = 4'h6;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_7[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_7[3]) begin
                 completed_queue = 4'h7;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_8[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_8[3]) begin
                 completed_queue = 4'h8;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_9[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_9[3]) begin
                 completed_queue = 4'h9;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_10[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_10[3]) begin
                 completed_queue = 4'hA;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_11[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_11[3]) begin
                 completed_queue = 4'hB;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_12[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_12[3]) begin
                 completed_queue = 4'hC;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_13[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_13[3]) begin
                 completed_queue = 4'hD;
-            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_14[0]) begin
+            end else if (tb_pcie_sub_msg.PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_14[3]) begin
                 completed_queue = 4'hE;
             end
 
@@ -345,26 +345,34 @@ output reg  rready
                     end
                 endcase
 
+`ifdef DEBUG
                 $display("[%0t] [READ_GEN] Queue %0d: WPTR=%0d bytes, Base Addr=0x%h",
                          $time, completed_queue, wptr_bytes, queue_base_addr);
 
                 $display("[%0t] [READ_GEN] Queue %0d Init Address: 0x%h",
                          $time, completed_queue, queue_base_addr);
+`endif
 
                 // Read and verify data if valid (queue 0 has addr 0x0, so don't skip it)
                 if (wptr_bytes > 0 && completed_queue != 4'hF) begin
                     arlen_val = (wptr_bytes + 31) / 32 - 1;  // Round up and convert to arlen
+`ifdef DEBUG
                     $display("[%0t] [READ_GEN] Reading %0d beats (%0d bytes) from address 0x%h",
                              $time, arlen_val + 1, wptr_bytes, queue_base_addr);
+`endif
 
                     // Perform AXI read
                     READ_COMPLETION_DATA(completed_queue, queue_base_addr, arlen_val, wptr_bytes);
                 end else begin
+`ifdef DEBUG
                     $display("[%0t] [READ_GEN] Skip reading (WPTR=%0d, addr=0x%h)",
                              $time, wptr_bytes, queue_base_addr);
+`endif
                 end
 
+`ifdef DEBUG
                 $display("========================================\n");
+`endif
 
                 // Clear completion interrupt based on completed_queue
                 case (completed_queue)
@@ -785,6 +793,7 @@ output reg  rready
         begin
             total_beats = read_arlen + 1;  // AXI len is (beats - 1)
 
+`ifdef DEBUG
             $display("\n========================================");
             $display("[%0t] [READ_GEN] READ_AND_CHECK START", $time);
             $display("  Address: 0x%h", read_araddr);
@@ -795,6 +804,7 @@ output reg  rready
                      (read_arburst == 2'b01) ? "INCR" : "WRAP");
             $display("  Expected Header: 0x%h", expected_header);
             $display("========================================");
+`endif
 
             verification_pass = 1'b1;
 
@@ -822,7 +832,9 @@ output reg  rready
                 $display("[%0t] [READ_GEN] *** ERROR: ARREADY TIMEOUT ***", $time);
                 verification_pass = 1'b0;
             end else begin
+`ifdef DEBUG
                 $display("[%0t] [READ_GEN] Read Address Sent", $time);
+`endif
             end
 
             @(posedge i_clk);
@@ -844,16 +856,20 @@ output reg  rready
                     data_beat = rdata;
                     read_data_mem[beat] = data_beat;
 
+`ifdef DEBUG
                     $display("[%0t] [READ_GEN] Read Data Beat %0d: data=0x%h, last=%0b, resp=%0d",
                              $time, beat, data_beat, rlast, rresp);
+`endif
 
                     // Verify first beat contains expected header
                     if (beat == 0) begin
                         received_header = data_beat[127:0];
                         if (received_header == expected_header) begin
+`ifdef DEBUG
                             $display("[%0t] [READ_GEN] *** HEADER MATCH *** ", $time);
                             $display("  Expected: 0x%h", expected_header);
                             $display("  Received: 0x%h", received_header);
+`endif
                         end else begin
                             $display("[%0t] [READ_GEN] *** HEADER MISMATCH *** ", $time);
                             $display("  Expected: 0x%h", expected_header);
@@ -899,7 +915,9 @@ output reg  rready
             end else begin
                 $display("[%0t] [READ_GEN] *** VERIFICATION FAILED ***", $time);
             end
+`ifdef DEBUG
             $display("[%0t] [READ_GEN] READ_AND_CHECK COMPLETE", $time);
+`endif
             $display("========================================\n");
         end
     endtask
@@ -924,9 +942,11 @@ output reg  rready
         reg data_valid;
 
         begin
+`ifdef DEBUG
             $display("[%0t] [READ_GEN] === Reading Queue %0d Data ===", $time, msg_tag);
             $display("[%0t] [READ_GEN] Base Address: 0x%h, Beats: %0d, WPTR: %0d bytes",
                      $time, base_addr, arlen_beats + 1, expected_wptr);
+`endif
 
             match_count = 0;
             mismatch_count = 0;
@@ -938,6 +958,7 @@ output reg  rready
                 exp_source_id = tb_pcie_sub_msg.expected_source_id[msg_tag];
                 data_valid = tb_pcie_sub_msg.expected_data_valid[msg_tag];
 
+`ifdef DEBUG
                 if (data_valid) begin
                     $display("[%0t] [READ_GEN] === Expected Metadata ===", $time);
                     $display("[%0t] [READ_GEN] MSG_TAG: 0x%h", $time, exp_msg_tag);
@@ -945,6 +966,7 @@ output reg  rready
                     $display("[%0t] [READ_GEN] SOURCE_ID: 0x%h", $time, exp_source_id);
                     $display("[%0t] [READ_GEN] ========================\n", $time);
                 end
+`endif
             end else begin
                 data_valid = 1'b0;
             end
@@ -962,7 +984,9 @@ output reg  rready
             // Wait for address handshake
             @(posedge i_clk);
             while (!arready) @(posedge i_clk);
+`ifdef DEBUG
             $display("[%0t] [READ_GEN] Address phase complete", $time);
+`endif
 
             @(posedge i_clk);
             #1;
@@ -983,12 +1007,16 @@ output reg  rready
 
                         // Verify data
                         if (expected_beat == 256'h0) begin
+`ifdef DEBUG
                             // No expected data (not a random write test)
                             $display("[%0t] [READ_GEN] Beat %0d: 0x%h (no verification data)",
                                      $time, beat_num, rdata_beat);
+`endif
                         end else if (rdata_beat == expected_beat) begin
+`ifdef DEBUG
                             $display("[%0t] [READ_GEN] Beat %0d: MATCH ✓", $time, beat_num);
                             $display("  Read: 0x%h", rdata_beat);
+`endif
                             match_count = match_count + 1;
                         end else begin
                             $display("[%0t] [READ_GEN] Beat %0d: MISMATCH ✗", $time, beat_num);
@@ -997,8 +1025,10 @@ output reg  rready
                             mismatch_count = mismatch_count + 1;
                         end
                     end else begin
+`ifdef DEBUG
                         $display("[%0t] [READ_GEN] Beat %0d: 0x%h",
                                  $time, beat_num, rdata_beat);
+`endif
                     end
 
                     beat_num = beat_num + 1;
@@ -1009,8 +1039,10 @@ output reg  rready
             #1;
             rready = 1'b0;
 
+`ifdef DEBUG
             // Print verification summary
             $display("\n[%0t] [READ_GEN] === Verification Summary ===", $time);
+`endif
 
             // Verify metadata if this is a random data test
             if (data_valid && msg_tag < 15) begin
@@ -1024,13 +1056,17 @@ output reg  rready
                 actual_src_id = tb_pcie_sub_msg.u_pcie_msg_receiver.src_endpoint_id[msg_tag];
                 actual_tag_owner = tb_pcie_sub_msg.u_pcie_msg_receiver.tag_owner[msg_tag];
 
+`ifdef DEBUG
                 $display("\n[%0t] [READ_GEN] === Metadata Verification ===", $time);
+`endif
 
                 // Verify MSG_TAG (4 bits: TO + TAG, where TAG maps to msg_tag)
                 // MSG_TAG[2:0] should match msg_tag
                 if (exp_msg_tag[2:0] == msg_tag[2:0]) begin
+`ifdef DEBUG
                     $display("[%0t] [READ_GEN] MSG_TAG: MATCH ✓ (4'b%b = TO=%0b, TAG=%0d -> Queue %0d)",
                              $time, exp_msg_tag, exp_msg_tag[3], exp_msg_tag[2:0], msg_tag);
+`endif
                 end else begin
                     $display("[%0t] [READ_GEN] MSG_TAG: MISMATCH ✗", $time);
                     $display("  Expected TAG: %0d (from MSG_TAG 4'b%b)", exp_msg_tag[2:0], exp_msg_tag);
@@ -1040,7 +1076,9 @@ output reg  rready
 
                 // Verify TAG_OWNER
                 if (actual_tag_owner == exp_tag_owner) begin
+`ifdef DEBUG
                     $display("[%0t] [READ_GEN] TAG_OWNER: MATCH ✓ (%0b)", $time, exp_tag_owner);
+`endif
                 end else begin
                     $display("[%0t] [READ_GEN] TAG_OWNER: MISMATCH ✗", $time);
                     $display("  Expected: %0b", exp_tag_owner);
@@ -1050,7 +1088,9 @@ output reg  rready
 
                 // Verify SOURCE_ID
                 if (actual_src_id == exp_source_id) begin
+`ifdef DEBUG
                     $display("[%0t] [READ_GEN] SOURCE_ID: MATCH ✓ (0x%h)", $time, exp_source_id);
+`endif
                 end else begin
                     $display("[%0t] [READ_GEN] SOURCE_ID: MISMATCH ✗", $time);
                     $display("  Expected: 0x%h", exp_source_id);
@@ -1058,10 +1098,14 @@ output reg  rready
                     metadata_pass = 1'b0;
                 end
 
+`ifdef DEBUG
                 $display("[%0t] [READ_GEN] ===========================", $time);
+`endif
 
                 if (metadata_pass) begin
+`ifdef DEBUG
                     $display("[%0t] [READ_GEN] Metadata verification: PASSED ✓", $time);
+`endif
                 end else begin
                     $display("[%0t] [READ_GEN] Metadata verification: FAILED ✗", $time);
                 end
@@ -1074,14 +1118,20 @@ output reg  rready
                 $display("[%0t] [READ_GEN] Matches:     %0d", $time, match_count);
                 $display("[%0t] [READ_GEN] Mismatches:  %0d", $time, mismatch_count);
                 if (mismatch_count == 0) begin
+`ifdef DEBUG
                     $display("[%0t] [READ_GEN] Data verification: PASSED ✓", $time);
+`endif
                 end else begin
                     $display("[%0t] [READ_GEN] Data verification: FAILED ✗", $time);
                 end
             end else begin
+`ifdef DEBUG
                 $display("[%0t] [READ_GEN] No data verification performed (fixed data test)", $time);
+`endif
             end
+`ifdef DEBUG
             $display("[%0t] [READ_GEN] === Read Complete ===\n", $time);
+`endif
         end
     endtask
 

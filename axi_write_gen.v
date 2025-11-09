@@ -553,9 +553,9 @@ output reg   O_BREADY
 
         reg [3:0]   ohc_field;          // OHC field from header[11:8]
         reg [3:0]   ohc_size_dw;        // OHC size in DW (0~7)
-        reg [7:0]   payload_length_dw;  // Payload length in DW (from header[31:24])
-        reg [7:0]   total_length_dw;    // Total length in DW
-        reg [7:0]   awlen;              // AXI awlen (beats - 1)
+        reg [15:0]  payload_length_dw;  // Payload length in DW (from header[39:24]) - 16 bits!
+        integer     total_length_dw;    // Total length in DW
+        reg [11:0]  awlen;              // AXI awlen (beats - 1) - needs to be 12 bits
         reg [2:0]   awsize;             // AXI awsize (fixed: 32 bytes = 2^5)
         reg [1:0]   awburst;            // AXI awburst (fixed: INCR)
         integer     total_bytes;
@@ -568,8 +568,8 @@ output reg   O_BREADY
             // 2. Calculate OHC size
             ohc_size_dw = calc_ohc_size(ohc_field);
 
-            // 3. Extract payload length from header[31:24] (Payload only, no header/OHC)
-            payload_length_dw = header[31:24];
+            // 3. Extract payload length from header[39:24] (16 bits for large payloads)
+            payload_length_dw = header[39:24];
 
             // 4. Calculate total bytes for AXI transfer
             // Beat 0 contains: Header(4DW=16B) + OHC + Payload_start
@@ -657,6 +657,7 @@ output reg   O_BREADY
                     if (!tb_pcie_sub_msg.queue_allocated[i][12] && queue_idx == -1) begin
                         queue_idx = i;
                         tb_pcie_sub_msg.queue_allocated[i] = {1'b1, src_id, to_bit, tag};
+                        tb_pcie_sub_msg.queue_next_payload_idx[i] = 8'h0;  // Initialize cumulative payload index
                         $display("[%0t] [WRITE_GEN] Allocated Queue %0d for TAG=%0d, TO=%0b, SRC_ID=0x%h",
                                  $time, queue_idx, tag, to_bit, src_id);
                     end
@@ -671,6 +672,7 @@ output reg   O_BREADY
             // Fixed address: 0x8C20000 (queue address calculated by receiver)
             final_awaddr = 64'h08C20000;
 
+`ifdef DEBUG
             $display("\n========================================");
             $display("[%0t] [WRITE_GEN] SEND_WRITE_RANDOM START", $time);
             $display("  TAG=%0d, TO=%0b, SRC_ID=0x%h -> Queue %0d (allocated by receiver)", tag, to_bit, src_id, queue_idx);
@@ -678,16 +680,20 @@ output reg   O_BREADY
             $display("  Length:  %0d beats (awlen=%0d)", total_beats, awlen);
             $display("  Header:  0x%h (OHC[11:8]=0x%h, OHC_size=%0dDW)", header, ohc_field, ohc_size_dw);
             $display("========================================");
+`endif
 
             // Store metadata for verification
             if (queue_idx < 15) begin
                 tb_pcie_sub_msg.expected_msg_tag[queue_idx] = {to_bit, tag}; // 4 bits: TO + TAG
                 tb_pcie_sub_msg.expected_tag_owner[queue_idx] = to_bit;
                 tb_pcie_sub_msg.expected_source_id[queue_idx] = src_id;
+                // Enable data validation with cumulative indexing (no overwrite)
                 tb_pcie_sub_msg.expected_data_valid[queue_idx] = 1'b1;
+`ifdef DEBUG
                 $display("[%0t] [WRITE_GEN] Stored metadata for Queue %0d:", $time, queue_idx);
                 $display("  MSG_TAG=4'b%b (TO=%0b, TAG=0x%h), SRC_ID=0x%h",
                          {to_bit, tag}, to_bit, tag, src_id);
+`endif
             end
 
             // ====================================
@@ -702,7 +708,9 @@ output reg   O_BREADY
                     @(posedge i_clk);
                 end
             end
+`ifdef DEBUG
             $display("[%0t] [WRITE_GEN] AWREADY is high, asserting AWVALID...", $time);
+`endif
 
             O_AWVALID = 1'b1;
             O_AWADDR  = final_awaddr;  // Use calculated queue address
@@ -716,13 +724,15 @@ output reg   O_BREADY
             O_AWPROT  = 3'h0;
 
             @(posedge i_clk);
+`ifdef DEBUG
             $display("[%0t] [WRITE_GEN] Address handshake complete", $time);
+`endif
             O_AWVALID = 1'b0;
 
             // ====================================
             // 2. Write Data Phase with Random Generation
             // ====================================
-            payload_beat_idx = 0;
+            payload_beat_idx = tb_pcie_sub_msg.queue_next_payload_idx[queue_idx];
 
             for (beat = 0; beat < total_beats; beat = beat + 1) begin
                 if (beat == 0) begin
@@ -772,8 +782,10 @@ output reg   O_BREADY
                     // Store payload data for verification
                     if (queue_idx < 15 && payload_beat_idx < 64) begin
                         tb_pcie_sub_msg.expected_queue_data[queue_idx][payload_beat_idx] = data_beat;
+`ifdef DEBUG
                         $display("[%0t] [WRITE_GEN] Stored Q%0d[%0d] = 0x%h",
                                  $time, queue_idx, payload_beat_idx, data_beat);
+`endif
                     end
                     payload_beat_idx = payload_beat_idx + 1;
 
@@ -789,8 +801,10 @@ output reg   O_BREADY
                     // Store payload data for verification
                     if (queue_idx < 15 && payload_beat_idx < 64) begin
                         tb_pcie_sub_msg.expected_queue_data[queue_idx][payload_beat_idx] = data_beat;
+`ifdef DEBUG
                         $display("[%0t] [WRITE_GEN] Stored Q%0d[%0d] = 0x%h",
                                  $time, queue_idx, payload_beat_idx, data_beat);
+`endif
                     end
                     payload_beat_idx = payload_beat_idx + 1;
                 end
@@ -807,36 +821,47 @@ output reg   O_BREADY
                 O_WSTRB  = 32'hFFFFFFFF;
                 O_WUSER  = 16'h0;
 
+`ifdef DEBUG
                 $display("[%0t] [WRITE_GEN] Write Data Beat %0d: data=0x%h, last=%0b",
                          $time, beat, data_beat, O_WLAST);
+`endif
 
                 @(posedge i_clk);
             end
+
+            // Update cumulative payload index for this queue
+            tb_pcie_sub_msg.queue_next_payload_idx[queue_idx] = payload_beat_idx;
 
             // Clear write signals
             O_WVALID = 1'b0;
             O_WLAST  = 1'b0;
 
+`ifdef DEBUG
             $display("[%0t] [WRITE_GEN] All %0d beats sent", $time, total_beats);
 
             // ====================================
             // 3. Write Response Phase
             // ====================================
             $display("[%0t] [WRITE_GEN] Waiting for write response...", $time);
+`endif
             while (!I_BVALID) begin
                 @(posedge i_clk);
             end
 
+`ifdef DEBUG
             $display("[%0t] [WRITE_GEN] BVALID received", $time);
             $display("[%0t] [WRITE_GEN] Write Response: bresp=%0d (%s)", $time, I_BRESP,
                      (I_BRESP == 2'b00) ? "  OKAY" :
                      (I_BRESP == 2'b01) ? "EXOKAY" :
                      (I_BRESP == 2'b10) ? "SLVERR" : "DECERR");
+`endif
 
             @(posedge i_clk);
 
+`ifdef DEBUG
             $display("[%0t] [WRITE_GEN] SEND_WRITE_RANDOM COMPLETE", $time);
             $display("========================================\n");
+`endif
         end
     endtask
 
@@ -852,6 +877,9 @@ output reg   O_BREADY
         reg [31:0] error_count_before, error_count_after;
         integer expected_beats;
         reg [127:0] fragtype_pkt_sn_msg_t;
+        integer i;  // Loop variable for clearing arrays
+        integer queue_idx_test;  // Queue index for each test
+        integer payload_idx_before;  // Payload index before test
 
         begin
             test_count = 0;
@@ -880,13 +908,20 @@ output reg   O_BREADY
 
             $display("\n========================================");
             $display("[TEST_MULTI_PACKET_ALL_SIZES] Starting verification");
-            $display("Testing 2 sizes: 64B (16 DW) and 1024B (256 DW)");
+            $display("Testing 4 sizes: 64B, 256B, 512B, 1024B");
             $display("========================================\n");
 
-            // Test 2 sizes: 64B (16 DW) and 1024B (256 DW)
-            // Loop: size_dw = 16, then size_dw = 256
-            for (size_dw = 16; size_dw <= 256; size_dw = size_dw + 240) begin
+            // Test 4 sizes: 64B (16 DW), 256B (64 DW), 512B (128 DW), 1024B (256 DW)
+            // Loop through specific sizes
+            for (size_dw = 16; size_dw <= 256; size_dw = (size_dw == 16) ? 64 :
+                                                         (size_dw == 64) ? 128 :
+                                                         (size_dw == 128) ? 256 : 512) begin
                 test_count = test_count + 1;
+
+                // Clear Queue 0 before each test
+                tb_pcie_sub_msg.queue_allocated[0] = 13'h0;
+                tb_pcie_sub_msg.queue_next_payload_idx[0] = 8'h0;
+                tb_pcie_sub_msg.CLEAR_QUEUE_DATA(4'h0);
 
 `ifdef DEBUG
                 $display("\n----------------------------------------");
@@ -904,8 +939,10 @@ output reg   O_BREADY
                 tlp_header[99:96] = 4'b0001;        // header version
                 tlp_header[111:104] = 8'h10;        // destination endpoint id
                 tlp_header[119:112] = 8'h0;         // source endpoint id
-                tlp_header[31:24] = size_dw[7:0];   // length in DW
-                tlp_header[23:16] = size_dw[15:8];  // length in DW (upper bits)
+                // TLP header uses big-endian byte order for length field
+                // bits [39:32] = MSB, bits [31:24] = LSB (when mapped to current_frag[0])
+                tlp_header[39:32] = size_dw[15:8];  // length in DW (upper byte - MSB)
+                tlp_header[31:24] = size_dw[7:0];   // length in DW (lower byte - LSB)
 
                 // Build S_PKT header using localparam constants
                 s_header = {S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]};
@@ -932,9 +969,10 @@ output reg   O_BREADY
 
                 #500;
 
-                // Verify WPTR (in bytes)
-                wptr_expected = size_dw * 4;
-                wptr_actual = tb_pcie_sub_msg.u_pcie_msg_receiver.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_4[15:0];
+                // Verify WPTR (in bytes) - Queue 0 (MSG_T0 = TAG=0, TO=1)
+                // WPTR = total payload from S_PKT + L_PKT (2 packets of same size)
+                wptr_expected = size_dw * 4 * 2;  // 2 packets
+                wptr_actual = tb_pcie_sub_msg.u_pcie_msg_receiver.PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0];
 
 `ifdef DEBUG
                 $display("[VERIFY] WPTR check: expected=%0d bytes, actual=%0d bytes",
@@ -948,22 +986,22 @@ output reg   O_BREADY
                          error_count_before, error_count_after);
 `endif
 
-                // Calculate expected beats for READ_AND_CHECK
-                expected_beats = (size_dw * 4 + 31) / 32;  // Round up to 32-byte beats
-
-                // Verify SRAM data with READ_AND_CHECK
+                // Perform data verification manually
+                // Use queue_next_payload_idx which now tracks only this test's beats
+                expected_beats = tb_pcie_sub_msg.queue_next_payload_idx[0];
 `ifdef DEBUG
-                $display("[VERIFY] Reading and checking SRAM data (%0d beats)...", expected_beats);
+                $display("[VERIFY] Will verify %0d beats from this test", expected_beats);
 `endif
-                tb_pcie_sub_msg.u_axi_read_gen.READ_AND_CHECK(
-                    64'h8C00_0400,     // Queue 4 SRAM address
-                    expected_beats,     // Number of beats
-                    3'd5,               // Size = 32 bytes
-                    2'b01,              // INCR burst
-                    l_header            // Expected header
-                );
+                if (tb_pcie_sub_msg.expected_data_valid[0] && expected_beats > 0) begin
+                    tb_pcie_sub_msg.u_axi_read_gen.READ_COMPLETION_DATA(
+                        4'h0,                    // Queue 0
+                        64'h00000000,            // Base address
+                        expected_beats - 1,      // arlen (num beats - 1)
+                        wptr_expected            // wptr in bytes
+                    );
+                end
 
-                #200;
+                #500;
 
                 // Check if test passed
                 if (wptr_actual == wptr_expected && error_count_after == error_count_before) begin

@@ -136,6 +136,9 @@ module tb_pcie_sub_msg;
     // [12]=valid, [11:4]=src_id, [3]=to, [2:0]=tag
     reg [12:0] queue_allocated [0:14];
 
+    // Queue payload beat index tracking (for multi-packet data validation)
+    reg [7:0]  queue_next_payload_idx [0:14];
+
     integer random_seed;
 
     initial begin
@@ -155,6 +158,8 @@ module tb_pcie_sub_msg;
             expected_data_valid[i] = 1'b0;
             // Clear queue allocation
             queue_allocated[i] = 13'h0;
+            // Clear payload beat index
+            queue_next_payload_idx[i] = 8'h0;
         end
     end
 
@@ -444,5 +449,16 @@ module tb_pcie_sub_msg;
             end
         end
     end
+
+    // Task to clear expected queue data
+    task CLEAR_QUEUE_DATA;
+        input [3:0] queue_idx;
+        integer i;
+        begin
+            for (i = 0; i < 64; i = i + 1) begin
+                expected_queue_data[queue_idx][i] = 256'h0;
+            end
+        end
+    endtask
 
 endmodule
