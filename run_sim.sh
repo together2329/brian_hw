@@ -16,6 +16,7 @@ echo ""
 # 기존 바이너리 제거
 echo "[1/3] Cleaning old binaries..."
 rm -f sim/pcie_system
+mkdir -p sim
 
 # Verilog 컴파일
 echo "[2/3] Compiling Verilog files..."

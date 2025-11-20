@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 // Test Selection Defines
 // Comment out to disable specific test suites
 //`define RUN_ORIGINAL_TESTS      // Original comprehensive tests (errors, assembly, etc.)
@@ -572,10 +573,14 @@ output reg   O_BREADY
             payload_length_dw = header[39:24];
 
             // 4. Calculate total bytes for AXI transfer
-            // Beat 0 contains: Header(4DW=16B) + OHC + Payload_start
-            // Remaining beats: Rest of payload
-            // Total = (Header + OHC + Payload) bytes
-            total_length_dw = 4 + ohc_size_dw + payload_length_dw;
+            // Align payload to next beat boundary (32 bytes)
+            // Beat 0: Header + OHC + Padding
+            // Beat 1+: Payload
+            if (4 + ohc_size_dw <= 8) begin
+                total_length_dw = 8 + payload_length_dw;
+            end else begin
+                total_length_dw = 4 + ohc_size_dw + payload_length_dw;
+            end
             total_bytes = total_length_dw * 4;
 
             // 5. AXI parameters (fixed for PCIe message system)
@@ -752,11 +757,11 @@ output reg   O_BREADY
                         end
                     end
 
-                    // 3. Fill remaining space with random payload
+                    // 3. Fill remaining space with zero padding (align payload to next beat)
                     remaining_space = 32 - header_ohc_bytes;
                     if (remaining_space > 0) begin
                         for (i = header_ohc_bytes; i < 32; i = i + 1) begin
-                            data_beat[i*8 +: 8] = $random(tb_pcie_sub_msg.random_seed);
+                            data_beat[i*8 +: 8] = 8'h00;
                         end
                     end
 

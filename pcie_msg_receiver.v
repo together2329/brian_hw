@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 // PCIe Message Receiver with Assembly Support
 // Receives AXI write transactions and assembles fragmented messages
 // Header format: [127:126]=FragType, [125:124]=PKT_SN, [123:120]=MSG_TAG, [119:0]=TLP
@@ -175,7 +176,7 @@ module pcie_msg_receiver (
     reg [11:0]  queue_write_ptr [0:14];  // Write pointer for current queue
 
     // Current fragment buffer
-    reg [255:0] current_frag [0:15];
+    reg [255:0] current_frag [0:63];
     reg [11:0] current_frag_beats;
     reg [3:0] current_queue_idx;
 
@@ -617,7 +618,8 @@ module pcie_msg_receiver (
                                     queue_data[allocated_queue_idx][0] <= current_frag[0];
 
                                     // Copy payload only (skip first beat which is header)
-                                    for (i = 1; i < 16; i = i + 1) begin
+                                    // Copy payload only (skip first beat which is header)
+                                    for (i = 1; i < 64; i = i + 1) begin
                                         if (i < current_frag_beats)
                                             queue_data[allocated_queue_idx][i] <= current_frag[i];
                                     end
@@ -735,7 +737,8 @@ module pcie_msg_receiver (
                                     queue_accumulated_tlp_bytes[allocated_queue_idx] <= queue_accumulated_tlp_bytes[allocated_queue_idx] + (current_frag[0][39:24] * 4);
 
                                     // Append payload only (skip first beat which is header)
-                                    for (i = 1; i < 16; i = i + 1) begin
+                                    // Append payload only (skip first beat which is header)
+                                    for (i = 1; i < 64; i = i + 1) begin
                                         if (i < current_frag_beats)
                                             queue_data[allocated_queue_idx][queue_write_ptr[allocated_queue_idx] + i - 1] <= current_frag[i];
                                     end
@@ -845,7 +848,8 @@ module pcie_msg_receiver (
                                     queue_data[allocated_queue_idx][0] <= current_frag[0];
 
                                     // Append payload only (skip first beat which is header)
-                                    for (i = 1; i < 16; i = i + 1) begin
+                                    // Append payload only (skip first beat which is header)
+                                    for (i = 1; i < 64; i = i + 1) begin
                                         if (i < current_frag_beats)
                                             queue_data[allocated_queue_idx][queue_write_ptr[allocated_queue_idx] + i - 1] <= current_frag[i];
                                     end
@@ -922,7 +926,7 @@ module pcie_msg_receiver (
 `endif
 
                                 // Copy to queue temporarily
-                                for (i = 0; i < 16; i = i + 1) begin
+                                for (i = 0; i < 64; i = i + 1) begin
                                     if (i < current_frag_beats)
                                         queue_data[allocated_queue_idx][i] <= current_frag[i];
                                 end
