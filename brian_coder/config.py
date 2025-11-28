@@ -1,4 +1,26 @@
 import os
+from pathlib import Path
+
+# Load .env file if it exists
+def load_env_file():
+    env_path = Path(__file__).parent / '.env'
+    if env_path.exists():
+        with open(env_path) as f:
+            for line in f:
+                line = line.strip()
+                # Skip comments and empty lines
+                if not line or line.startswith('#'):
+                    continue
+                # Parse KEY=VALUE
+                if '=' in line:
+                    key, value = line.split('=', 1)
+                    key = key.strip()
+                    value = value.strip()
+                    # Only set if not already in environment
+                    if key and value and key not in os.environ:
+                        os.environ[key] = value
+
+load_env_file()
 
 # Configuration for the Internal LLM
 # Users can override these via environment variables
@@ -53,7 +75,7 @@ When you have finished the task or need to ask the user a question, respond norm
 
 IMPORTANT - Multi-line Content:
 When writing files with multi-line content (code, scripts, config files, etc.),
-ALWAYS use triple-quoted strings (""" or ''') to preserve formatting and newlines.
+ALWAYS use triple-quoted strings to preserve formatting and newlines.
 This is especially important for:
 - Source code files (.py, .v, .c, .js, etc.)
 - Configuration files (.yaml, .json, .toml, etc.)
@@ -71,7 +93,7 @@ Observation: Successfully wrote to 'hello.py'.
 Example 2 - Multi-line content (ALWAYS use triple quotes):
 User: Create a Verilog counter module.
 Thought: I need to create counter.v with proper Verilog syntax.
-Action: write_file(path="counter.v", content="""module counter(
+Action: write_file(path="counter.v", content=TRIPLE_QUOTE_STARTmodule counter(
     input clk,
     input reset,
     output reg [7:0] count
@@ -83,8 +105,8 @@ Action: write_file(path="counter.v", content="""module counter(
             count <= count + 1;
     end
 endmodule
-""")
+TRIPLE_QUOTE_END)
 Observation: Successfully wrote to 'counter.v'.
 
-Remember: Multi-line content = Triple quotes (""" or ''')
+Note: Replace TRIPLE_QUOTE_START with three quotes and TRIPLE_QUOTE_END with three quotes
 """
