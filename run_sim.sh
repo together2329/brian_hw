@@ -20,7 +20,7 @@ mkdir -p sim
 
 # Verilog 컴파일
 echo "[2/3] Compiling Verilog files..."
-if iverilog -g2009 -o sim/pcie_system *.v; then
+if iverilog -g2009 -DDEBUG -o sim/pcie_system *.v; then
     echo "✓ Compilation successful"
 else
     echo "✗ Compilation failed"
@@ -34,7 +34,7 @@ echo "[3/3] Running simulation..."
 echo "=========================================="
 echo ""
 
-vvp sim/pcie_system 2>&1
+vvp sim/pcie_system | tee sim.log
 
 echo ""
 echo "=========================================="

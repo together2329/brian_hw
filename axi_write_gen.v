@@ -573,14 +573,10 @@ output reg   O_BREADY
             payload_length_dw = header[39:24];
 
             // 4. Calculate total bytes for AXI transfer
-            // Align payload to next beat boundary (32 bytes)
-            // Beat 0: Header + OHC + Padding
-            // Beat 1+: Payload
-            if (4 + ohc_size_dw <= 8) begin
-                total_length_dw = 8 + payload_length_dw;
-            end else begin
-                total_length_dw = 4 + ohc_size_dw + payload_length_dw;
-            end
+            // Beat 0 contains: Header(4DW=16B) + OHC + Payload_start
+            // Remaining beats: Rest of payload
+            // Total = (Header + OHC + Payload) bytes
+            total_length_dw = 4 + ohc_size_dw + payload_length_dw;
             total_bytes = total_length_dw * 4;
 
             // 5. AXI parameters (fixed for PCIe message system)
@@ -628,6 +624,13 @@ output reg   O_BREADY
         integer ohc_size_bytes;       // OHC size in bytes
         integer header_ohc_bytes;     // Total header + OHC size in bytes
         integer remaining_space;      // Remaining space in beat 0 for payload
+        
+        // Accumulator for payload alignment
+        reg [511:0] accumulator;
+        integer accumulator_bytes;
+        integer payload_byte_idx;
+        reg [255:0] aligned_payload;
+        integer timeout_cnt;
 
         begin
             total_beats = awlen + 1;  // AXI len is (beats - 1)
@@ -706,6 +709,7 @@ output reg   O_BREADY
             // ====================================
             // AWREADY should already be high (receiver in IDLE state)
             @(posedge i_clk);  // Wait one cycle for synchronization
+            $display("[%0t] [WRITE_GEN] Checking AWREADY. rst_n=%b, AWREADY=%b", $time, i_reset_n, I_AWREADY);
 
             if (!I_AWREADY) begin
                 $display("[%0t] [WRITE_GEN] WARNING: AWREADY not ready, waiting...", $time);
@@ -738,6 +742,8 @@ output reg   O_BREADY
             // 2. Write Data Phase with Random Generation
             // ====================================
             payload_beat_idx = tb_pcie_sub_msg.queue_next_payload_idx[queue_idx];
+            accumulator = 0;
+            accumulator_bytes = 0;
 
             for (beat = 0; beat < total_beats; beat = beat + 1) begin
                 if (beat == 0) begin
@@ -757,13 +763,25 @@ output reg   O_BREADY
                         end
                     end
 
-                    // 3. Fill remaining space with zero padding (align payload to next beat)
+                    // 3. Fill remaining space with random payload
                     remaining_space = 32 - header_ohc_bytes;
+                    
+                    $display("[%0t] [WRITE_GEN] OHC Debug: Header[11:8]=0x%h, OHC_size=%0d DW, Header+OHC=%0d bytes, Remaining=%0d bytes", 
+                             $time, ohc_field, ohc_size_dw, header_ohc_bytes, remaining_space);
+
                     if (remaining_space > 0) begin
                         for (i = header_ohc_bytes; i < 32; i = i + 1) begin
-                            data_beat[i*8 +: 8] = 8'h00;
+                            data_beat[i*8 +: 8] = $random(tb_pcie_sub_msg.random_seed);
+                            
+                            // Accumulate payload for verification
+                            if (queue_idx < 15) begin
+                                accumulator[accumulator_bytes*8 +: 8] = data_beat[i*8 +: 8];
+                                accumulator_bytes = accumulator_bytes + 1;
+                            end
                         end
                     end
+                    $display("[%0t] [WRITE_GEN] Beat 0 Generated: 0x%h", $time, data_beat);
+                    $display("[%0t] [WRITE_GEN] Beat 0 Accumulator: 0x%h", $time, accumulator);
 
                 end else if (beat == 1 && header_ohc_bytes > 32) begin
                     // ========================================
@@ -782,17 +800,13 @@ output reg   O_BREADY
                     // Fill remaining space with random payload
                     for (i = remaining_ohc_bytes; i < 32; i = i + 1) begin
                         data_beat[i*8 +: 8] = $random(tb_pcie_sub_msg.random_seed);
+                        
+                        // Accumulate payload for verification
+                        if (queue_idx < 15) begin
+                            accumulator[accumulator_bytes*8 +: 8] = data_beat[i*8 +: 8];
+                            accumulator_bytes = accumulator_bytes + 1;
+                        end
                     end
-
-                    // Store payload data for verification
-                    if (queue_idx < 15 && payload_beat_idx < 64) begin
-                        tb_pcie_sub_msg.expected_queue_data[queue_idx][payload_beat_idx] = data_beat;
-`ifdef DEBUG
-                        $display("[%0t] [WRITE_GEN] Stored Q%0d[%0d] = 0x%h",
-                                 $time, queue_idx, payload_beat_idx, data_beat);
-`endif
-                    end
-                    payload_beat_idx = payload_beat_idx + 1;
 
                 end else begin
                     // ========================================
@@ -803,15 +817,29 @@ output reg   O_BREADY
                     data_beat[127:64]  = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
                     data_beat[63:0]    = {$random(tb_pcie_sub_msg.random_seed), $random(tb_pcie_sub_msg.random_seed)};
 
-                    // Store payload data for verification
+                    // Accumulate payload for verification
+                    if (queue_idx < 15) begin
+                        for (i = 0; i < 32; i = i + 1) begin
+                            accumulator[accumulator_bytes*8 +: 8] = data_beat[i*8 +: 8];
+                            accumulator_bytes = accumulator_bytes + 1;
+                        end
+                    end
+                end
+                
+                // Check if we have enough accumulated bytes to store a full beat
+                while (accumulator_bytes >= 32) begin
                     if (queue_idx < 15 && payload_beat_idx < 64) begin
-                        tb_pcie_sub_msg.expected_queue_data[queue_idx][payload_beat_idx] = data_beat;
+                        tb_pcie_sub_msg.expected_queue_data[queue_idx][payload_beat_idx] = accumulator[255:0];
 `ifdef DEBUG
                         $display("[%0t] [WRITE_GEN] Stored Q%0d[%0d] = 0x%h",
-                                 $time, queue_idx, payload_beat_idx, data_beat);
+                                 $time, queue_idx, payload_beat_idx, accumulator[255:0]);
 `endif
+                        payload_beat_idx = payload_beat_idx + 1;
                     end
-                    payload_beat_idx = payload_beat_idx + 1;
+                    
+                    // Shift accumulator
+                    accumulator = accumulator >> 256;
+                    accumulator_bytes = accumulator_bytes - 32;
                 end
 
                 // Wait for WREADY
@@ -834,6 +862,22 @@ output reg   O_BREADY
                 @(posedge i_clk);
             end
 
+            // Store any remaining bytes (partial beat)
+            if (accumulator_bytes > 0) begin
+                if (queue_idx < 15 && payload_beat_idx < 64) begin
+                    // Pad with zeros if needed (though simulation usually checks full beats)
+                    // But for verification, we might just store what we have.
+                    // Since READ_COMPLETION_DATA checks full beats, this partial beat might be ignored or cause mismatch if not handled.
+                    // For now, store it.
+                    tb_pcie_sub_msg.expected_queue_data[queue_idx][payload_beat_idx] = accumulator[255:0];
+`ifdef DEBUG
+                    $display("[%0t] [WRITE_GEN] Stored Q%0d[%0d] (partial) = 0x%h",
+                             $time, queue_idx, payload_beat_idx, accumulator[255:0]);
+`endif
+                    payload_beat_idx = payload_beat_idx + 1;
+                end
+            end
+
             // Update cumulative payload index for this queue
             tb_pcie_sub_msg.queue_next_payload_idx[queue_idx] = payload_beat_idx;
 
@@ -849,8 +893,13 @@ output reg   O_BREADY
             // ====================================
             $display("[%0t] [WRITE_GEN] Waiting for write response...", $time);
 `endif
-            while (!I_BVALID) begin
+            timeout_cnt = 0;
+            while (!I_BVALID && timeout_cnt <= 10000) begin
                 @(posedge i_clk);
+                timeout_cnt = timeout_cnt + 1;
+                if (timeout_cnt > 10000) begin
+                    $display("[%0t] [WRITE_GEN] ERROR: Write response timeout!", $time);
+                end
             end
 
 `ifdef DEBUG
@@ -951,6 +1000,9 @@ output reg   O_BREADY
 
                 // Build S_PKT header using localparam constants
                 s_header = {S_PKT, PKT_SN0, MSG_T0, tlp_header[119:0]};
+                
+                $display("[TEST DEBUG] size_dw=%0d, tlp_header[39:24]=0x%h", size_dw, tlp_header[39:24]);
+                $display("[TEST DEBUG] s_header=0x%h", s_header);
 
                 // Read error counter before test
                 error_count_before = tb_pcie_sub_msg.u_pcie_msg_receiver.PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_29[7:0];

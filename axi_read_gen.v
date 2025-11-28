@@ -941,6 +941,7 @@ output reg  rready
         reg exp_tag_owner;
         reg [7:0] exp_source_id;
         reg data_valid;
+        integer timeout_cnt;
 
         begin
 `ifdef DEBUG
@@ -996,9 +997,23 @@ output reg  rready
 
             // Read data beats and verify
             beat_num = 0;
+            timeout_cnt = 0;
             while (beat_num <= arlen_beats) begin
                 @(posedge i_clk);
                 #1;
+                
+                // Timeout check
+                if (!rvalid) begin
+                    timeout_cnt = timeout_cnt + 1;
+                    if (timeout_cnt > 10000) begin
+                        $display("[%0t] [READ_GEN] ERROR: Read data timeout at beat %0d", $time, beat_num);
+                        mismatch_count = mismatch_count + 1;
+                        beat_num = arlen_beats + 1; // Force loop exit
+                    end
+                end else begin
+                    timeout_cnt = 0;
+                end
+
                 if (rvalid && rready) begin
                     rdata_beat = rdata;
 

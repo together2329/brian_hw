@@ -64,7 +64,7 @@ module pcie_axi_to_sram (
                         read_addr <= axi_araddr;
                         total_beats <= axi_arlen + 1;
                         beat_count <= 12'h0;
-                        sram_addr_cnt <= axi_araddr[9:0];
+                        sram_addr_cnt <= axi_araddr[14:5];
                         axi_arready <= 1'b0;
 
 `ifdef DEBUG
@@ -74,7 +74,7 @@ module pcie_axi_to_sram (
 
                         // Start SRAM read
                         sram_ren <= 1'b1;
-                        sram_raddr <= axi_araddr[9:0];
+                        sram_raddr <= axi_araddr[14:5];
                         state <= R_WAIT;
                     end
                 end
