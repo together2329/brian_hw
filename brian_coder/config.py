@@ -8,10 +8,10 @@ BASE_URL = os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1")
 
 # API Key from .env or env var
 # Note: In a real internal deploy, you might want to remove this default key.
-API_KEY = os.getenv("LLM_API_KEY", "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")
+API_KEY = os.getenv("LLM_API_KEY", "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")
 
-# Model name
-MODEL_NAME = os.getenv("LLM_MODEL_NAME", "qwen/qwen3-coder:free")
+# Model name - using Llama 3.3 (free, verified working)
+MODEL_NAME = os.getenv("LLM_MODEL_NAME", "meta-llama/llama-3.3-70b-instruct:free")
 
 # System Prompt with ReAct instructions
 SYSTEM_PROMPT = """You are an intelligent coding agent named Brian Coder.

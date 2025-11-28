@@ -154,17 +154,43 @@ def chat_loop():
             pass
 
 if __name__ == "__main__":
+    print(f"[DEBUG] sys.argv = {sys.argv}")
     if len(sys.argv) > 1 and sys.argv[1] == "--prompt":
-        # One-shot mode
+        print("[DEBUG] Entering one-shot mode")
+        # One-shot mode with ReAct loop
         prompt = sys.argv[2]
-        client = chat_completion_stream([
+        messages = [
             {"role": "system", "content": config.SYSTEM_PROMPT},
             {"role": "user", "content": prompt}
-        ])
-        print(f"User: {prompt}")
-        print("Agent: ", end="", flush=True)
-        for chunk in client:
-            print(chunk, end="", flush=True)
-        print("\n")
+        ]
+        
+        print(f"User: {prompt}\n")
+        
+        # ReAct loop (max 5 iterations)
+        for _ in range(5):
+            print("Agent: ", end="", flush=True)
+            collected_content = ""
+            for chunk in chat_completion_stream(messages):
+                print(chunk, end="", flush=True)
+                collected_content += chunk
+            print("\n")
+            
+            messages.append({"role": "assistant", "content": collected_content})
+            
+            # Check for Action
+            tool_name, args_str = parse_action(collected_content)
+            
+            if tool_name:
+                print(f"  [System] Executing {tool_name}...")
+                observation = execute_tool(tool_name, args_str)
+                print(f"  [System] Observation: {observation}\n")
+                
+                messages.append({
+                    "role": "user",
+                    "content": f"Observation: {observation}"
+                })
+            else:
+                break
     else:
+        print("[DEBUG] Entering chat_loop mode")
         chat_loop()

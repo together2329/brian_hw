@@ -16,7 +16,7 @@ A lightweight AI agent designed for restricted Linux environments (no `sudo`, no
      ```bash
      export LLM_BASE_URL="https://openrouter.ai/api/v1"
      export LLM_API_KEY="sk-or-v1-..."
-     export LLM_MODEL_NAME="qwen/qwen3-coder:free" 
+     export LLM_MODEL_NAME="meta-llama/llama-3.3-70b-instruct:free" 
      ```
 
 3. **Running**:
