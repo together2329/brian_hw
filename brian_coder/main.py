@@ -12,11 +12,17 @@ import tools
 
 # --- 2. API Client (urllib) ---
 
+import time
+
 def chat_completion_stream(messages):
     """
     Sends a chat completion request to the LLM using urllib.
     Yields content chunks from the SSE stream.
     """
+    # Rate limiting: Wait 5 seconds before each request
+    print("[System] Waiting 5s for rate limit...")
+    time.sleep(5)
+    
     url = f"{config.BASE_URL}/chat/completions"
     headers = {
         "Content-Type": "application/json",
