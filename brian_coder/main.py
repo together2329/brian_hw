@@ -60,11 +60,14 @@ def chat_completion_stream(messages):
 
 def parse_action(text):
     """Parses the last 'Action: Tool(args)' from the text."""
+    print(f"[DEBUG] parse_action input: {text[:200]}...")  # 처음 200자만 출력
     match = re.search(r"Action:\s*(\w+)\((.*)\)", text, re.DOTALL)
     if match:
         tool_name = match.group(1)
         args_str = match.group(2)
+        print(f"[DEBUG] parse_action found: {tool_name}({args_str[:50]}...)")
         return tool_name, args_str
+    print(f"[DEBUG] parse_action: No Action found")
     return None, None
 
 def execute_tool(tool_name, args_str):
@@ -77,12 +80,20 @@ def execute_tool(tool_name, args_str):
         def _proxy(*args, **kwargs):
             return args, kwargs
         
+        # Debug: 파싱 전 출력
+        print(f"[DEBUG] Parsing: tool={tool_name}, args_str='{args_str}'")
+        
         # Eval safely-ish
         parsed_args, parsed_kwargs = eval(f"_proxy({args_str})", {"_proxy": _proxy})
-        return func(*parsed_args, **parsed_kwargs)
+        
+        # Debug: 파싱 후 출력
+        print(f"[DEBUG] Parsed: args={parsed_args}, kwargs={parsed_kwargs}")
+        
+        result = func(*parsed_args, **parsed_kwargs)
+        return result
 
     except Exception as e:
-        return f"Error parsing/executing arguments: {e}"
+        return f"Error parsing/executing arguments: {e}\nargs_str was: {args_str}"
 
 # --- 4. Main Loop ---
 
@@ -120,6 +131,8 @@ def chat_loop():
                 # Check for Action
                 tool_name, args_str = parse_action(collected_content)
                 
+                print(f"[DEBUG] After parse: tool_name={tool_name}, args_str={args_str}")
+                
                 if tool_name:
                     print(f"  [System] Executing {tool_name}...")
                     observation = execute_tool(tool_name, args_str)
@@ -130,6 +143,7 @@ def chat_loop():
                         "content": f"Observation: {observation}"
                     })
                 else:
+                    print(f"[DEBUG] No tool_name, breaking loop")
                     break
             
         except KeyboardInterrupt:
