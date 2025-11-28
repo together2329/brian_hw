@@ -3,15 +3,30 @@ import os
 # Configuration for the Internal LLM
 # Users can override these via environment variables
 
-# Default to OpenRouter for testing (User can override via env vars)
-BASE_URL = os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1")
+# ============================================================
+# OpenAI ChatGPT API Configuration (기본 설정)
+# ============================================================
+BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
+API_KEY = os.getenv("LLM_API_KEY", "your-openai-api-key-here")
+MODEL_NAME = os.getenv("LLM_MODEL_NAME", "gpt-4o-mini")
 
-# API Key from .env or env var
-# Note: In a real internal deploy, you might want to remove this default key.
-API_KEY = os.getenv("LLM_API_KEY", "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")
+# ============================================================
+# OpenRouter Configuration (주석 처리됨)
+# ============================================================
+# BASE_URL = os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1")
+# API_KEY = os.getenv("LLM_API_KEY", "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")
+# MODEL_NAME = os.getenv("LLM_MODEL_NAME", "meta-llama/llama-3.3-70b-instruct:free")
 
-# Model name - using Llama 3.3 (free, verified working)
-MODEL_NAME = os.getenv("LLM_MODEL_NAME", "meta-llama/llama-3.3-70b-instruct:free")
+# Rate limiting (seconds to wait between API calls)
+# Set to 0 to disable rate limiting
+RATE_LIMIT_DELAY = float(os.getenv("RATE_LIMIT_DELAY", "5"))
+
+# Maximum number of ReAct loop iterations
+MAX_ITERATIONS = int(os.getenv("MAX_ITERATIONS", "5"))
+
+# Save conversation history to file
+SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")
+HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")
 
 # System Prompt with ReAct instructions
 SYSTEM_PROMPT = """You are an intelligent coding agent named Brian Coder.
@@ -36,14 +51,40 @@ Observation: [Output of the tool]
 You can then continue with more Thought/Action/Observation steps.
 When you have finished the task or need to ask the user a question, respond normally (without Action:).
 
-EXAMPLE:
+IMPORTANT - Multi-line Content:
+When writing files with multi-line content (code, scripts, config files, etc.),
+ALWAYS use triple-quoted strings (""" or ''') to preserve formatting and newlines.
+This is especially important for:
+- Source code files (.py, .v, .c, .js, etc.)
+- Configuration files (.yaml, .json, .toml, etc.)
+- Scripts (.sh, .bash, etc.)
+- Any content with multiple lines
+
+EXAMPLES:
+
+Example 1 - Single line content:
 User: Create a hello world python file.
 Thought: I need to create a file named hello.py.
 Action: write_file(path="hello.py", content="print('Hello World')")
 Observation: Successfully wrote to 'hello.py'.
-Thought: Now I should verify it exists.
-Action: run_command(command="ls -l hello.py")
-Observation: -rw-r--r-- 1 user user 20 Nov 28 10:00 hello.py
-Thought: The file is created. I am done.
-Done! I have created hello.py.
+
+Example 2 - Multi-line content (ALWAYS use triple quotes):
+User: Create a Verilog counter module.
+Thought: I need to create counter.v with proper Verilog syntax.
+Action: write_file(path="counter.v", content="""module counter(
+    input clk,
+    input reset,
+    output reg [7:0] count
+);
+    always @(posedge clk) begin
+        if (reset)
+            count <= 0;
+        else
+            count <= count + 1;
+    end
+endmodule
+""")
+Observation: Successfully wrote to 'counter.v'.
+
+Remember: Multi-line content = Triple quotes (""" or ''')
 """
