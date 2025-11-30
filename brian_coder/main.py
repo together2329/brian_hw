@@ -482,8 +482,15 @@ def chat_loop():
                 collected_content = ""
                 # Call LLM via urllib
                 for content_chunk in chat_completion_stream(messages):
-                    print(content_chunk, end="", flush=True)
-                collected_content += content_chunk
+                    # Color code Thought and Action
+                    colored_chunk = content_chunk
+                    if "Thought:" in content_chunk:
+                        colored_chunk = content_chunk.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
+                    if "Action:" in content_chunk:
+                        colored_chunk = colored_chunk.replace("Action:", Color.YELLOW + "Action:" + Color.RESET)
+
+                    print(colored_chunk, end="", flush=True)
+                    collected_content += content_chunk
                 print("\n")
 
                 # Add assistant response to history
@@ -572,7 +579,14 @@ if __name__ == "__main__":
             print(Color.agent(f"Agent (Iteration {iteration+1}/{config.MAX_ITERATIONS}): "), end="", flush=True)
             collected_content = ""
             for chunk in chat_completion_stream(messages):
-                print(chunk, end="", flush=True)
+                # Color code Thought and Action
+                colored_chunk = chunk
+                if "Thought:" in chunk:
+                    colored_chunk = chunk.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
+                if "Action:" in chunk:
+                    colored_chunk = colored_chunk.replace("Action:", Color.YELLOW + "Action:" + Color.RESET)
+
+                print(colored_chunk, end="", flush=True)
                 collected_content += chunk
             print("\n")
 
