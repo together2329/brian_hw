@@ -51,6 +51,17 @@ MAX_ITERATIONS = int(os.getenv("MAX_ITERATIONS", "15"))
 SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")
 HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")
 
+# Context Management
+# Approximate token limit (1 token ~= 4 chars)
+# Default: 20000 chars (~5000 tokens)
+MAX_CONTEXT_CHARS = int(os.getenv("MAX_CONTEXT_CHARS", "20000"))
+# Threshold to trigger compression (0.0 to 1.0)
+# Default: 0.8 (80%)
+COMPRESSION_THRESHOLD = float(os.getenv("COMPRESSION_THRESHOLD", "0.8"))
+# Enable/Disable compression
+# Default: True
+ENABLE_COMPRESSION = os.getenv("ENABLE_COMPRESSION", "true").lower() in ("true", "1", "yes")
+
 # System Prompt with ReAct instructions
 SYSTEM_PROMPT = """You are an intelligent coding agent named Brian Coder.
 You can read files, write code, and run terminal commands to help the user.
@@ -96,10 +107,19 @@ Observation: [Output of the tool]
 You can then continue with more Thought/Action/Observation steps.
 When you have finished the task or need to ask the user a question, respond normally (without Action:).
 
-IMPORTANT - Multi-line Content:
-When writing files with multi-line content (code, scripts, config files, etc.),
-ALWAYS use triple-quoted strings to preserve formatting and newlines.
-This is especially important for:
+CRITICAL - Triple-Quoted Strings:
+When writing files with multi-line content, you MUST use actual triple quotes.
+
+DO NOT USE PLACEHOLDERS OR PSEUDO-CODE:
+❌ WRONG: content=TRIPLE_QUOTE_START...TRIPLE_QUOTE_END
+❌ WRONG: content="[your code here]"
+❌ WRONG: content="..." (placeholder)
+
+CORRECT FORMAT - Use actual triple quotes (three double-quotes or three single-quotes):
+✅ CORRECT: content=(three double quotes)actual code here(three double quotes)
+✅ CORRECT: content=(three single quotes)actual code here(three single quotes)
+
+This is MANDATORY for:
 - Source code files (.py, .v, .c, .js, etc.)
 - Configuration files (.yaml, .json, .toml, etc.)
 - Scripts (.sh, .bash, etc.)
@@ -113,10 +133,10 @@ Thought: I need to create a file named hello.py.
 Action: write_file(path="hello.py", content="print('Hello World')")
 Observation: Successfully wrote to 'hello.py'.
 
-Example 2 - Multi-line content (ALWAYS use triple quotes):
+Example 2 - Multi-line content (USE ACTUAL TRIPLE QUOTES):
 User: Create a Verilog counter module.
-Thought: I need to create counter.v with proper Verilog syntax.
-Action: write_file(path="counter.v", content=TRIPLE_QUOTE_STARTmodule counter(
+Thought: I need to create counter.v with proper Verilog syntax. I will use triple quotes.
+Action: write_file(path="counter.v", content=TRIPLE_QUOTEmodule counter(
     input clk,
     input reset,
     output reg [7:0] count
@@ -128,10 +148,10 @@ Action: write_file(path="counter.v", content=TRIPLE_QUOTE_STARTmodule counter(
             count <= count + 1;
     end
 endmodule
-TRIPLE_QUOTE_END)
+TRIPLE_QUOTE)
 Observation: Successfully wrote to 'counter.v'.
 
-Note: Replace TRIPLE_QUOTE_START with three quotes and TRIPLE_QUOTE_END with three quotes
+Note: Replace TRIPLE_QUOTE with three quotes
 
 Example 3 - Complex Task with Planning:
 User: Design a complete UART transmitter with testbench and simulation.
@@ -144,7 +164,7 @@ Action: get_plan()
 Observation: [Plan content showing all 5 steps]
 
 Thought: I'll create the UART transmitter module for step 1.
-Action: write_file(path="uart_tx.v", content=TRIPLE_QUOTE...TRIPLE_QUOTE)
+Action: write_file(path="uart_tx.v", content=TRIPLE_QUOTE[full UART code here]TRIPLE_QUOTE)
 Observation: Successfully wrote to 'uart_tx.v'.
 
 Thought: Step 1 is complete. Let me mark it done.
@@ -231,7 +251,7 @@ Action: read_file(path="fifo_tb.v")
 Observation: [Full file content]
 
 Thought: I need to restructure this file. The initial block should be inside the module.
-Action: write_file(path="fifo_tb.v", content=TRIPLE_QUOTE[corrected full testbench]TRIPLE_QUOTE)
+Action: write_file(path="fifo_tb.v", content=TRIPLE_QUOTE[corrected full testbench code]TRIPLE_QUOTE)
 Observation: Successfully wrote to fifo_tb.v
 
 Thought: Now let me retry compilation.

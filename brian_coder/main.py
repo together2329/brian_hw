@@ -283,7 +283,95 @@ def execute_tool(tool_name, args_str):
         error_detail = traceback.format_exc()
         return f"Error parsing/executing arguments: {e}\n{error_detail}\nargs_str was: {args_str[:200]}"
 
-# --- 5. Main Loop ---
+# --- 5. Context Management ---
+
+def estimate_tokens(messages):
+    """Estimates token count based on characters (4 chars ~= 1 token)."""
+    total_chars = sum(len(str(m.get("content", ""))) for m in messages)
+    return total_chars // 4
+
+def compress_history(messages):
+    """
+    Compresses history if it exceeds the limit.
+    Strategy: Keep System (0) + Last 4 messages. Summarize the middle.
+    """
+    if not config.ENABLE_COMPRESSION:
+        return messages
+
+    current_chars = sum(len(str(m.get("content", ""))) for m in messages)
+    limit = config.MAX_CONTEXT_CHARS
+    threshold = limit * config.COMPRESSION_THRESHOLD
+    
+    if current_chars < threshold:
+        return messages
+        
+    print(f"\n[System] Context size ({current_chars} chars) exceeded threshold ({int(threshold)}). Compressing...")
+    
+    # Keep system prompt
+    if not messages:
+        return messages
+        
+    system_msg = messages[0]
+    
+    # If history is short, don't compress
+    if len(messages) < 6:
+        print("[System] History too short to compress.")
+        return messages
+    
+    # Keep last 4 messages (User-Agent-User-Agent usually)
+    # Ensure we don't cut off in the middle of a tool use if possible, but simple count is safer for now
+    recent_msgs = messages[-4:]
+    
+    # Messages to summarize (exclude system prompt and recent messages)
+    to_summarize = messages[1:-4]
+    
+    if not to_summarize:
+        return messages
+        
+    summary_prompt = "Summarize the following conversation history concisely. Focus on completed tasks, key decisions, and current state. Ignore minor chatter."
+    conversation_text = ""
+    for m in to_summarize:
+        role = m.get("role", "unknown")
+        content = str(m.get("content", ""))[:1000] # Truncate individual messages if too huge
+        conversation_text += f"{role}: {content}\n"
+    
+    # Call LLM for summary
+    summary_request = [
+        {"role": "system", "content": "You are a helpful assistant that summarizes conversation history for an AI agent."},
+        {"role": "user", "content": f"{summary_prompt}\n\n{conversation_text}"}
+    ]
+    
+    print("[System] Generating summary of old history...", end="", flush=True)
+    summary_content = ""
+    try:
+        # We reuse the existing stream function but consume it silently
+        for chunk in chat_completion_stream(summary_request):
+            summary_content += chunk
+        print(" Done.")
+    except Exception as e:
+        print(f"\n[System] Failed to generate summary: {e}")
+        return messages # Abort compression on error
+        
+    # Construct new history
+    new_history = [system_msg]
+    
+    # Check if there was already a summary
+    # If the first message after system was a summary, we might want to include it in the new summary
+    # But for simplicity, we just append the new summary. 
+    # Ideally, the LLM would have summarized the previous summary too if it was in `to_summarize`.
+    
+    new_history.append({
+        "role": "system", 
+        "content": f"[Previous Conversation Summary]: {summary_content}"
+    })
+    new_history.extend(recent_msgs)
+    
+    new_chars = sum(len(str(m.get("content", ""))) for m in new_history)
+    print(f"[System] Compression complete. Size reduced: {current_chars} -> {new_chars} chars")
+    
+    return new_history
+
+# --- 6. Main Loop ---
 
 def chat_loop():
     # Try to load existing conversation history
@@ -316,13 +404,16 @@ def chat_loop():
             MAX_CONSECUTIVE_ERRORS = 3
 
             for iteration in range(config.MAX_ITERATIONS):
+                # Context Management: Compress if needed
+                messages = compress_history(messages)
+                
                 print(f"Agent (Iteration {iteration+1}/{config.MAX_ITERATIONS}): ", end="", flush=True)
 
                 collected_content = ""
                 # Call LLM via urllib
                 for content_chunk in chat_completion_stream(messages):
                     print(content_chunk, end="", flush=True)
-                    collected_content += content_chunk
+                collected_content += content_chunk
                 print("\n")
 
                 # Add assistant response to history
