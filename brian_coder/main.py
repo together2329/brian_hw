@@ -321,10 +321,14 @@ def chat_loop():
             
             messages.append({"role": "user", "content": user_input})
 
-            # ReAct Loop: Configurable max iterations
-            for _ in range(config.MAX_ITERATIONS):
-                print("Agent (Thinking): ", end="", flush=True)
-                
+            # ReAct Loop: Configurable max iterations with error tracking
+            consecutive_errors = 0
+            last_error_observation = None
+            MAX_CONSECUTIVE_ERRORS = 3
+
+            for iteration in range(config.MAX_ITERATIONS):
+                print(f"Agent (Iteration {iteration+1}/{config.MAX_ITERATIONS}): ", end="", flush=True)
+
                 collected_content = ""
                 # Call LLM via urllib
                 for content_chunk in chat_completion_stream(messages):
@@ -337,16 +341,42 @@ def chat_loop():
 
                 # Check for Action
                 tool_name, args_str = parse_action(collected_content)
-                
+
                 print(f"[DEBUG] After parse: tool_name={tool_name}, args_str={args_str}")
-                
+
                 if tool_name:
                     print(f"  [System] Executing {tool_name}...")
                     observation = execute_tool(tool_name, args_str)
                     print(f"  [System] Observation: {observation}\n")
-                    
+
+                    # Error detection: check if observation contains error indicators
+                    is_error = any(indicator in observation.lower() for indicator in
+                                  ['error', 'failed', 'exception', 'traceback', 'syntax error'])
+
+                    if is_error:
+                        # Check if it's the same error repeating
+                        if observation == last_error_observation:
+                            consecutive_errors += 1
+                            print(f"  [System] ⚠️  Consecutive error #{consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}")
+
+                            if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                                print(f"  [System] ❌ Same error occurred {MAX_CONSECUTIVE_ERRORS} times. Stopping to prevent infinite loop.")
+                                messages.append({
+                                    "role": "user",
+                                    "content": f"Observation: {observation}\n\n[System] The same error occurred {MAX_CONSECUTIVE_ERRORS} times consecutively. Please ask the user for help or try a different approach."
+                                })
+                                break
+                        else:
+                            # Different error, reset counter
+                            consecutive_errors = 1
+                            last_error_observation = observation
+                    else:
+                        # Success! Reset error counter
+                        consecutive_errors = 0
+                        last_error_observation = None
+
                     messages.append({
-                        "role": "user", 
+                        "role": "user",
                         "content": f"Observation: {observation}"
                     })
                 else:
@@ -378,24 +408,54 @@ if __name__ == "__main__":
         print(f"User: {prompt}\n")
 
         # ReAct loop (configurable max iterations)
-        for _ in range(config.MAX_ITERATIONS):
-            print("Agent: ", end="", flush=True)
+        consecutive_errors = 0
+        last_error_observation = None
+        MAX_CONSECUTIVE_ERRORS = 3
+
+        for iteration in range(config.MAX_ITERATIONS):
+            print(f"Agent (Iteration {iteration+1}/{config.MAX_ITERATIONS}): ", end="", flush=True)
             collected_content = ""
             for chunk in chat_completion_stream(messages):
                 print(chunk, end="", flush=True)
                 collected_content += chunk
             print("\n")
-            
+
             messages.append({"role": "assistant", "content": collected_content})
-            
+
             # Check for Action
             tool_name, args_str = parse_action(collected_content)
-            
+
             if tool_name:
                 print(f"  [System] Executing {tool_name}...")
                 observation = execute_tool(tool_name, args_str)
                 print(f"  [System] Observation: {observation}\n")
-                
+
+                # Error detection: check if observation contains error indicators
+                is_error = any(indicator in observation.lower() for indicator in
+                              ['error', 'failed', 'exception', 'traceback', 'syntax error'])
+
+                if is_error:
+                    # Check if it's the same error repeating
+                    if observation == last_error_observation:
+                        consecutive_errors += 1
+                        print(f"  [System] ⚠️  Consecutive error #{consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}")
+
+                        if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                            print(f"  [System] ❌ Same error occurred {MAX_CONSECUTIVE_ERRORS} times. Stopping to prevent infinite loop.")
+                            messages.append({
+                                "role": "user",
+                                "content": f"Observation: {observation}\n\n[System] The same error occurred {MAX_CONSECUTIVE_ERRORS} times consecutively. Please ask the user for help or try a different approach."
+                            })
+                            break
+                    else:
+                        # Different error, reset counter
+                        consecutive_errors = 1
+                        last_error_observation = observation
+                else:
+                    # Success! Reset error counter
+                    consecutive_errors = 0
+                    last_error_observation = None
+
                 messages.append({
                     "role": "user",
                     "content": f"Observation: {observation}"
