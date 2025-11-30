@@ -480,18 +480,17 @@ def chat_loop():
                 print(Color.agent(f"Agent (Iteration {iteration+1}/{config.MAX_ITERATIONS}): "), end="", flush=True)
 
                 collected_content = ""
-                # Call LLM via urllib
+                # Call LLM via urllib (collect without printing)
                 for content_chunk in chat_completion_stream(messages):
-                    # Color code Thought and Action
-                    colored_chunk = content_chunk
-                    if "Thought:" in content_chunk:
-                        colored_chunk = content_chunk.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
-                    if "Action:" in content_chunk:
-                        colored_chunk = colored_chunk.replace("Action:", Color.YELLOW + "Action:" + Color.RESET)
-
-                    print(colored_chunk, end="", flush=True)
                     collected_content += content_chunk
-                print("\n")
+
+                # Apply colors to complete text and print
+                colored_output = collected_content
+                colored_output = colored_output.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
+                colored_output = colored_output.replace("Action:", Color.YELLOW + "Action:" + Color.RESET)
+
+                print(colored_output)
+                print()
 
                 # Add assistant response to history
                 messages.append({"role": "assistant", "content": collected_content})
@@ -579,16 +578,15 @@ if __name__ == "__main__":
             print(Color.agent(f"Agent (Iteration {iteration+1}/{config.MAX_ITERATIONS}): "), end="", flush=True)
             collected_content = ""
             for chunk in chat_completion_stream(messages):
-                # Color code Thought and Action
-                colored_chunk = chunk
-                if "Thought:" in chunk:
-                    colored_chunk = chunk.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
-                if "Action:" in chunk:
-                    colored_chunk = colored_chunk.replace("Action:", Color.YELLOW + "Action:" + Color.RESET)
-
-                print(colored_chunk, end="", flush=True)
                 collected_content += chunk
-            print("\n")
+
+            # Apply colors to complete text and print
+            colored_output = collected_content
+            colored_output = colored_output.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
+            colored_output = colored_output.replace("Action:", Color.YELLOW + "Action:" + Color.RESET)
+
+            print(colored_output)
+            print()
 
             messages.append({"role": "assistant", "content": collected_content})
 
