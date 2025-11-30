@@ -51,6 +51,9 @@ MAX_ITERATIONS = int(os.getenv("MAX_ITERATIONS", "15"))
 SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")
 HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")
 
+# Debug mode - show detailed parsing and execution info
+DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() in ("true", "1", "yes")
+
 # Context Management
 # Approximate token limit (1 token ~= 4 chars)
 # Default: 20000 chars (~5000 tokens)

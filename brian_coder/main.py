@@ -158,11 +158,16 @@ def parse_action(text):
     Parses the last 'Action: Tool(args)' from the text.
     Improved to handle triple-quotes and nested parentheses.
     """
+    if config.DEBUG_MODE:
+        print(f"[DEBUG] parse_action input: {text[:200]}...")
+
     # Find "Action: tool_name("
     pattern = r"Action:\s*(\w+)\("
     match = re.search(pattern, text, re.DOTALL)
 
     if not match:
+        if config.DEBUG_MODE:
+            print(f"[DEBUG] parse_action: No Action found")
         return None, None
 
     tool_name = match.group(1)
@@ -215,8 +220,12 @@ def parse_action(text):
 
     if paren_count == 0:
         args_str = text[start_pos:i-1]  # Extract arguments
+        if config.DEBUG_MODE:
+            print(f"[DEBUG] parse_action found: {tool_name}({args_str[:100]}...)")
         return tool_name, args_str
     else:
+        if config.DEBUG_MODE:
+            print(f"[DEBUG] parse_action: Unmatched parentheses")
         return None, None
 
 def parse_tool_arguments(args_str):
@@ -332,6 +341,9 @@ def execute_tool(tool_name, args_str):
     try:
         # Parse arguments safely
         parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
+
+        if config.DEBUG_MODE:
+            print(f"[DEBUG] Parsed args: {parsed_args}, kwargs: {parsed_kwargs}")
 
         result = func(*parsed_args, **parsed_kwargs)
         return result
