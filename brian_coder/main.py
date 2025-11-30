@@ -14,6 +14,64 @@ import tools
 
 import time
 
+# --- Color Utilities (ANSI Escape Codes) ---
+
+class Color:
+    """ANSI color codes for terminal output"""
+    # Basic colors
+    RED = '\033[91m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    BLUE = '\033[94m'
+    MAGENTA = '\033[95m'
+    CYAN = '\033[96m'
+    WHITE = '\033[97m'
+    
+    # Styles
+    BOLD = '\033[1m'
+    DIM = '\033[2m'
+    RESET = '\033[0m'
+    
+    @staticmethod
+    def system(text):
+        """System messages - Cyan"""
+        return f"{Color.CYAN}{text}{Color.RESET}"
+    
+    @staticmethod
+    def user(text):
+        """User messages - Green"""
+        return f"{Color.GREEN}{text}{Color.RESET}"
+    
+    @staticmethod
+    def agent(text):
+        """Agent messages - Blue"""
+        return f"{Color.BLUE}{text}{Color.RESET}"
+    
+    @staticmethod
+    def tool(text):
+        """Tool names - Magenta"""
+        return f"{Color.MAGENTA}{text}{Color.RESET}"
+    
+    @staticmethod
+    def success(text):
+        """Success messages - Green + Bold"""
+        return f"{Color.BOLD}{Color.GREEN}{text}{Color.RESET}"
+    
+    @staticmethod
+    def warning(text):
+        """Warning messages - Yellow"""
+        return f"{Color.YELLOW}{text}{Color.RESET}"
+    
+    @staticmethod
+    def error(text):
+        """Error messages - Red + Bold"""
+        return f"{Color.BOLD}{Color.RED}{text}{Color.RESET}"
+    
+    @staticmethod
+    def info(text):
+        """Info messages - Cyan + Dim"""
+        return f"{Color.DIM}{Color.CYAN}{text}{Color.RESET}"
+
 def chat_completion_stream(messages):
     """
     Sends a chat completion request to the LLM using urllib.
@@ -21,7 +79,7 @@ def chat_completion_stream(messages):
     """
     # Rate limiting: Configurable delay
     if config.RATE_LIMIT_DELAY > 0:
-        print(f"[System] Waiting {config.RATE_LIMIT_DELAY}s for rate limit...")
+        print(Color.info(f"[System] Waiting {config.RATE_LIMIT_DELAY}s for rate limit..."))
         time.sleep(config.RATE_LIMIT_DELAY)
     
     url = f"{config.BASE_URL}/chat/completions"
@@ -73,9 +131,9 @@ def save_conversation_history(messages):
     try:
         with open(config.HISTORY_FILE, 'w', encoding='utf-8') as f:
             json.dump(messages, f, indent=2, ensure_ascii=False)
-        print(f"[System] History saved to {config.HISTORY_FILE}")
+        print(Color.success(f"[System] History saved to {config.HISTORY_FILE}"))
     except Exception as e:
-        print(f"[System] Failed to save history: {e}")
+        print(Color.error(f"[System] Failed to save history: {e}"))
 
 def load_conversation_history():
     """Loads conversation history from JSON file if it exists."""
@@ -86,10 +144,10 @@ def load_conversation_history():
         if os.path.exists(config.HISTORY_FILE):
             with open(config.HISTORY_FILE, 'r', encoding='utf-8') as f:
                 messages = json.load(f)
-                print(f"[System] Loaded {len(messages)} messages from {config.HISTORY_FILE}")
+                print(Color.success(f"[System] Loaded {len(messages)} messages from {config.HISTORY_FILE}"))
                 return messages
     except Exception as e:
-        print(f"[System] Failed to load history: {e}")
+        print(Color.error(f"[System] Failed to load history: {e}"))
 
     return None
 
@@ -305,7 +363,7 @@ def compress_history(messages):
     if current_chars < threshold:
         return messages
         
-    print(f"\n[System] Context size ({current_chars} chars) exceeded threshold ({int(threshold)}). Compressing...")
+    print(Color.warning(f"\n[System] Context size ({current_chars} chars) exceeded threshold ({int(threshold)}). Compressing..."))
     
     # Keep system prompt
     if not messages:
@@ -315,7 +373,7 @@ def compress_history(messages):
     
     # If history is short, don't compress
     if len(messages) < 6:
-        print("[System] History too short to compress.")
+        print(Color.info("[System] History too short to compress."))
         return messages
     
     # Keep last 4 messages (User-Agent-User-Agent usually)
@@ -341,15 +399,15 @@ def compress_history(messages):
         {"role": "user", "content": f"{summary_prompt}\n\n{conversation_text}"}
     ]
     
-    print("[System] Generating summary of old history...", end="", flush=True)
+    print(Color.info("[System] Generating summary of old history..."), end="", flush=True)
     summary_content = ""
     try:
         # We reuse the existing stream function but consume it silently
         for chunk in chat_completion_stream(summary_request):
             summary_content += chunk
-        print(" Done.")
+        print(Color.success(" Done."))
     except Exception as e:
-        print(f"\n[System] Failed to generate summary: {e}")
+        print(Color.error(f"\n[System] Failed to generate summary: {e}"))
         return messages # Abort compression on error
         
     # Construct new history
@@ -367,7 +425,7 @@ def compress_history(messages):
     new_history.extend(recent_msgs)
     
     new_chars = sum(len(str(m.get("content", ""))) for m in new_history)
-    print(f"[System] Compression complete. Size reduced: {current_chars} -> {new_chars} chars")
+    print(Color.success(f"[System] Compression complete. Size reduced: {current_chars} -> {new_chars} chars"))
     
     return new_history
 
@@ -378,21 +436,21 @@ def chat_loop():
     loaded_messages = load_conversation_history()
     if loaded_messages:
         messages = loaded_messages
-        print("[System] Resuming from previous conversation.\n")
+        print(Color.system("[System] Resuming from previous conversation.\n"))
     else:
         messages = [
             {"role": "system", "content": config.SYSTEM_PROMPT}
         ]
 
-    print(f"Brian Coder Agent (Zero-Dependency) initialized.")
-    print(f"Connecting to: {config.BASE_URL}")
-    print(f"Rate Limit: {config.RATE_LIMIT_DELAY}s | Max Iterations: {config.MAX_ITERATIONS}")
-    print(f"History: {'Enabled' if config.SAVE_HISTORY else 'Disabled'}")
-    print("Type 'exit' or 'quit' to stop.\n")
+    print(Color.BOLD + Color.CYAN + f"Brian Coder Agent (Zero-Dependency) initialized." + Color.RESET)
+    print(Color.system(f"Connecting to: {config.BASE_URL}"))
+    print(Color.system(f"Rate Limit: {config.RATE_LIMIT_DELAY}s | Max Iterations: {config.MAX_ITERATIONS}"))
+    print(Color.system(f"History: {'Enabled' if config.SAVE_HISTORY else 'Disabled'}"))
+    print(Color.info("Type 'exit' or 'quit' to stop.\n"))
 
     while True:
         try:
-            user_input = input("You: ")
+            user_input = input(Color.user("You: ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
                 break
             
@@ -407,7 +465,7 @@ def chat_loop():
                 # Context Management: Compress if needed
                 messages = compress_history(messages)
                 
-                print(f"Agent (Iteration {iteration+1}/{config.MAX_ITERATIONS}): ", end="", flush=True)
+                print(Color.agent(f"Agent (Iteration {iteration+1}/{config.MAX_ITERATIONS}): "), end="", flush=True)
 
                 collected_content = ""
                 # Call LLM via urllib
@@ -423,11 +481,11 @@ def chat_loop():
                 tool_name, args_str = parse_action(collected_content)
 
                 if tool_name:
-                    print(f"  🔧 Tool: {tool_name}")
+                    print(Color.tool(f"  🔧 Tool: {tool_name}"))
                     observation = execute_tool(tool_name, args_str)
                     # Show first 200 chars of observation
                     obs_preview = observation[:200] + "..." if len(observation) > 200 else observation
-                    print(f"  ✓ Result: {obs_preview}\n")
+                    print(Color.info(f"  ✓ Result: {obs_preview}\n"))
 
                     # Error detection: check if observation contains error indicators
                     is_error = any(indicator in observation.lower() for indicator in
@@ -437,10 +495,10 @@ def chat_loop():
                         # Check if it's the same error repeating
                         if observation == last_error_observation:
                             consecutive_errors += 1
-                            print(f"  [System] ⚠️  Consecutive error #{consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}")
+                            print(Color.warning(f"  [System] ⚠️  Consecutive error #{consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}"))
 
                             if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
-                                print(f"  [System] ❌ Same error occurred {MAX_CONSECUTIVE_ERRORS} times. Stopping to prevent infinite loop.")
+                                print(Color.error(f"  [System] ❌ Same error occurred {MAX_CONSECUTIVE_ERRORS} times. Stopping to prevent infinite loop."))
                                 messages.append({
                                     "role": "user",
                                     "content": f"Observation: {observation}\n\n[System] The same error occurred {MAX_CONSECUTIVE_ERRORS} times consecutively. Please ask the user for help or try a different approach."
@@ -463,11 +521,11 @@ def chat_loop():
                     break
             
         except KeyboardInterrupt:
-            print("\nExiting...")
+            print(Color.warning("\nExiting..."))
             save_conversation_history(messages)
             break
         except Exception as e:
-            print(f"\nAn error occurred: {e}")
+            print(Color.error(f"\nAn error occurred: {e}"))
             pass
 
     # Save history on normal exit
@@ -482,7 +540,7 @@ if __name__ == "__main__":
             {"role": "user", "content": prompt}
         ]
         
-        print(f"User: {prompt}\n")
+        print(Color.user(f"User: {prompt}\n"))
 
         # ReAct loop (configurable max iterations)
         consecutive_errors = 0
@@ -490,7 +548,7 @@ if __name__ == "__main__":
         MAX_CONSECUTIVE_ERRORS = 3
 
         for iteration in range(config.MAX_ITERATIONS):
-            print(f"Agent (Iteration {iteration+1}/{config.MAX_ITERATIONS}): ", end="", flush=True)
+            print(Color.agent(f"Agent (Iteration {iteration+1}/{config.MAX_ITERATIONS}): "), end="", flush=True)
             collected_content = ""
             for chunk in chat_completion_stream(messages):
                 print(chunk, end="", flush=True)
@@ -503,11 +561,11 @@ if __name__ == "__main__":
             tool_name, args_str = parse_action(collected_content)
 
             if tool_name:
-                print(f"  🔧 Tool: {tool_name}")
+                print(Color.tool(f"  🔧 Tool: {tool_name}"))
                 observation = execute_tool(tool_name, args_str)
                 # Show first 200 chars of observation
                 obs_preview = observation[:200] + "..." if len(observation) > 200 else observation
-                print(f"  ✓ Result: {obs_preview}\n")
+                print(Color.info(f"  ✓ Result: {obs_preview}\n"))
 
                 # Error detection: check if observation contains error indicators
                 is_error = any(indicator in observation.lower() for indicator in
@@ -517,10 +575,10 @@ if __name__ == "__main__":
                     # Check if it's the same error repeating
                     if observation == last_error_observation:
                         consecutive_errors += 1
-                        print(f"  [System] ⚠️  Consecutive error #{consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}")
+                        print(Color.warning(f"  [System] ⚠️  Consecutive error #{consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}"))
 
                         if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
-                            print(f"  [System] ❌ Same error occurred {MAX_CONSECUTIVE_ERRORS} times. Stopping to prevent infinite loop.")
+                            print(Color.error(f"  [System] ❌ Same error occurred {MAX_CONSECUTIVE_ERRORS} times. Stopping to prevent infinite loop."))
                             messages.append({
                                 "role": "user",
                                 "content": f"Observation: {observation}\n\n[System] The same error occurred {MAX_CONSECUTIVE_ERRORS} times consecutively. Please ask the user for help or try a different approach."
