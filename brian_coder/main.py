@@ -498,11 +498,11 @@ def chat_loop():
 
                     # Smart preview based on tool type
                     if tool_name in ['read_file', 'read_lines']:
-                        # For file reads, show first 3 lines
-                        lines = observation.split('\n')[:3]
+                        # For file reads, show first N lines (configurable)
+                        lines = observation.split('\n')[:config.TOOL_RESULT_PREVIEW_LINES]
                         obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
-                    elif len(observation) > 300:
-                        obs_preview = observation[:300] + f"... ({len(observation)} chars total)"
+                    elif len(observation) > config.TOOL_RESULT_PREVIEW_CHARS:
+                        obs_preview = observation[:config.TOOL_RESULT_PREVIEW_CHARS] + f"... ({len(observation)} chars total)"
                     else:
                         obs_preview = observation
 
@@ -587,11 +587,11 @@ if __name__ == "__main__":
 
                 # Smart preview based on tool type
                 if tool_name in ['read_file', 'read_lines']:
-                    # For file reads, show first 3 lines
-                    lines = observation.split('\n')[:3]
+                    # For file reads, show first N lines (configurable)
+                    lines = observation.split('\n')[:config.TOOL_RESULT_PREVIEW_LINES]
                     obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
-                elif len(observation) > 300:
-                    obs_preview = observation[:300] + f"... ({len(observation)} chars total)"
+                elif len(observation) > config.TOOL_RESULT_PREVIEW_CHARS:
+                    obs_preview = observation[:config.TOOL_RESULT_PREVIEW_CHARS] + f"... ({len(observation)} chars total)"
                 else:
                     obs_preview = observation
 

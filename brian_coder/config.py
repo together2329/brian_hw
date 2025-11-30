@@ -54,6 +54,10 @@ HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")
 # Debug mode - show detailed parsing and execution info
 DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() in ("true", "1", "yes")
 
+# Tool result preview settings
+TOOL_RESULT_PREVIEW_LINES = int(os.getenv("TOOL_RESULT_PREVIEW_LINES", "3"))  # For read_file/read_lines
+TOOL_RESULT_PREVIEW_CHARS = int(os.getenv("TOOL_RESULT_PREVIEW_CHARS", "300"))  # For other tools
+
 # Context Management
 # Approximate token limit (1 token ~= 4 chars)
 # Default: 20000 chars (~5000 tokens)
