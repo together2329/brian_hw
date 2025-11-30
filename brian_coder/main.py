@@ -483,8 +483,17 @@ def chat_loop():
                 if tool_name:
                     print(Color.tool(f"  🔧 Tool: {tool_name}"))
                     observation = execute_tool(tool_name, args_str)
-                    # Show first 200 chars of observation
-                    obs_preview = observation[:200] + "..." if len(observation) > 200 else observation
+
+                    # Smart preview based on tool type
+                    if tool_name in ['read_file', 'read_lines']:
+                        # For file reads, show first 3 lines
+                        lines = observation.split('\n')[:3]
+                        obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
+                    elif len(observation) > 300:
+                        obs_preview = observation[:300] + f"... ({len(observation)} chars total)"
+                    else:
+                        obs_preview = observation
+
                     print(Color.info(f"  ✓ Result: {obs_preview}\n"))
 
                     # Error detection: check if observation contains error indicators
@@ -563,8 +572,17 @@ if __name__ == "__main__":
             if tool_name:
                 print(Color.tool(f"  🔧 Tool: {tool_name}"))
                 observation = execute_tool(tool_name, args_str)
-                # Show first 200 chars of observation
-                obs_preview = observation[:200] + "..." if len(observation) > 200 else observation
+
+                # Smart preview based on tool type
+                if tool_name in ['read_file', 'read_lines']:
+                    # For file reads, show first 3 lines
+                    lines = observation.split('\n')[:3]
+                    obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
+                elif len(observation) > 300:
+                    obs_preview = observation[:300] + f"... ({len(observation)} chars total)"
+                else:
+                    obs_preview = observation
+
                 print(Color.info(f"  ✓ Result: {obs_preview}\n"))
 
                 # Error detection: check if observation contains error indicators
