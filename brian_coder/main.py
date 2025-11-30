@@ -100,14 +100,11 @@ def parse_action(text):
     Parses the last 'Action: Tool(args)' from the text.
     Improved to handle triple-quotes and nested parentheses.
     """
-    print(f"[DEBUG] parse_action input: {text[:200]}...")
-
     # Find "Action: tool_name("
     pattern = r"Action:\s*(\w+)\("
     match = re.search(pattern, text, re.DOTALL)
 
     if not match:
-        print(f"[DEBUG] parse_action: No Action found")
         return None, None
 
     tool_name = match.group(1)
@@ -160,10 +157,8 @@ def parse_action(text):
 
     if paren_count == 0:
         args_str = text[start_pos:i-1]  # Extract arguments
-        print(f"[DEBUG] parse_action found: {tool_name}({args_str[:100]}...)")
         return tool_name, args_str
     else:
-        print(f"[DEBUG] parse_action: Unmatched parentheses")
         return None, None
 
 def parse_tool_arguments(args_str):
@@ -277,14 +272,8 @@ def execute_tool(tool_name, args_str):
 
     func = tools.AVAILABLE_TOOLS[tool_name]
     try:
-        # Debug: 파싱 전 출력
-        print(f"[DEBUG] Parsing: tool={tool_name}, args_str='{args_str[:100]}...'")
-
         # Parse arguments safely
         parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
-
-        # Debug: 파싱 후 출력
-        print(f"[DEBUG] Parsed: args={parsed_args}, kwargs={parsed_kwargs}")
 
         result = func(*parsed_args, **parsed_kwargs)
         return result
@@ -342,12 +331,12 @@ def chat_loop():
                 # Check for Action
                 tool_name, args_str = parse_action(collected_content)
 
-                print(f"[DEBUG] After parse: tool_name={tool_name}, args_str={args_str}")
-
                 if tool_name:
-                    print(f"  [System] Executing {tool_name}...")
+                    print(f"  🔧 Tool: {tool_name}")
                     observation = execute_tool(tool_name, args_str)
-                    print(f"  [System] Observation: {observation}\n")
+                    # Show first 200 chars of observation
+                    obs_preview = observation[:200] + "..." if len(observation) > 200 else observation
+                    print(f"  ✓ Result: {obs_preview}\n")
 
                     # Error detection: check if observation contains error indicators
                     is_error = any(indicator in observation.lower() for indicator in
@@ -380,7 +369,6 @@ def chat_loop():
                         "content": f"Observation: {observation}"
                     })
                 else:
-                    print(f"[DEBUG] No tool_name, breaking loop")
                     break
             
         except KeyboardInterrupt:
@@ -395,9 +383,7 @@ def chat_loop():
     save_conversation_history(messages)
 
 if __name__ == "__main__":
-    print(f"[DEBUG] sys.argv = {sys.argv}")
     if len(sys.argv) > 1 and sys.argv[1] == "--prompt":
-        print("[DEBUG] Entering one-shot mode")
         # One-shot mode with ReAct loop
         prompt = sys.argv[2]
         messages = [
@@ -426,9 +412,11 @@ if __name__ == "__main__":
             tool_name, args_str = parse_action(collected_content)
 
             if tool_name:
-                print(f"  [System] Executing {tool_name}...")
+                print(f"  🔧 Tool: {tool_name}")
                 observation = execute_tool(tool_name, args_str)
-                print(f"  [System] Observation: {observation}\n")
+                # Show first 200 chars of observation
+                obs_preview = observation[:200] + "..." if len(observation) > 200 else observation
+                print(f"  ✓ Result: {obs_preview}\n")
 
                 # Error detection: check if observation contains error indicators
                 is_error = any(indicator in observation.lower() for indicator in
@@ -463,5 +451,4 @@ if __name__ == "__main__":
             else:
                 break
     else:
-        print("[DEBUG] Entering chat_loop mode")
         chat_loop()
