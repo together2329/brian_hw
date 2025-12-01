@@ -4,6 +4,7 @@ import json
 import urllib.request
 import urllib.error
 import re
+import copy
 import config
 import tools
 
@@ -76,21 +77,35 @@ def chat_completion_stream(messages):
     """
     Sends a chat completion request to the LLM using urllib.
     Yields content chunks from the SSE stream.
+    Supports Anthropic Prompt Caching when enabled.
     """
     # Rate limiting: Configurable delay
     if config.RATE_LIMIT_DELAY > 0:
         print(Color.info(f"[System] Waiting {config.RATE_LIMIT_DELAY}s for rate limit..."))
         time.sleep(config.RATE_LIMIT_DELAY)
-    
+
+    # Apply prompt caching if enabled (deepcopy to preserve original)
+    processed_messages = messages
+    if config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
+        processed_messages = copy.deepcopy(messages)
+        processed_messages = apply_cache_breakpoints(processed_messages)
+
     url = f"{config.BASE_URL}/chat/completions"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {config.API_KEY}",
         "User-Agent": "BrianCoder/1.0"
     }
+
+    # Add Anthropic-specific headers if caching enabled
+    if config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
+        headers["anthropic-beta"] = "prompt-caching-2024-07-31"
+        if config.DEBUG_MODE:
+            print(Color.info("[System] Prompt caching enabled - added anthropic-beta header"))
+
     data = {
         "model": config.MODEL_NAME,
-        "messages": messages,
+        "messages": processed_messages,
         "stream": True
     }
     
@@ -359,6 +374,179 @@ def estimate_tokens(messages):
     """Estimates token count based on characters (4 chars ~= 1 token)."""
     total_chars = sum(len(str(m.get("content", ""))) for m in messages)
     return total_chars // 4
+
+# ============================================================
+# Prompt Caching Helper Functions
+# ============================================================
+
+def is_anthropic_provider():
+    """
+    Detects if current provider is Anthropic based on BASE_URL or MODEL_NAME.
+
+    Returns:
+        bool: True if Anthropic API is being used
+    """
+    base_url_lower = config.BASE_URL.lower()
+    model_lower = config.MODEL_NAME.lower()
+
+    # Direct Anthropic API
+    if "anthropic.com" in base_url_lower:
+        return True
+
+    # Claude models via OpenRouter or other proxies
+    if "claude" in model_lower:
+        return True
+
+    return False
+
+def estimate_message_tokens(message):
+    """
+    Estimates token count for a single message.
+    Uses 4 chars ≈ 1 token heuristic.
+
+    Args:
+        message: dict with "content" field (str or list)
+
+    Returns:
+        int: estimated token count
+    """
+    content = message.get("content", "")
+
+    # Handle string content
+    if isinstance(content, str):
+        return len(content) // 4
+
+    # Handle structured content (list of blocks)
+    if isinstance(content, list):
+        total_chars = 0
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "text":
+                total_chars += len(block.get("text", ""))
+        return total_chars // 4
+
+    return 0
+
+def _calculate_cache_interval(messages, max_breakpoints):
+    """
+    Dynamically calculates optimal cache interval based on message count.
+
+    Args:
+        messages: list of message dicts
+        max_breakpoints: maximum allowed breakpoints (typically 3)
+
+    Returns:
+        int: interval between cache breakpoints
+    """
+    # Exclude system message from count
+    message_count = len(messages) - 1  # -1 for system message
+
+    if message_count <= 1:
+        return 1
+
+    # Reserve 1 breakpoint for system message
+    available_breakpoints = max_breakpoints - 1
+
+    if available_breakpoints <= 0:
+        return message_count  # No dynamic breakpoints
+
+    # Calculate interval to evenly distribute breakpoints
+    interval = max(1, message_count // available_breakpoints)
+
+    return interval
+
+def convert_to_cache_format(content, add_cache_control=False):
+    """
+    Converts string content to structured format for prompt caching.
+
+    Args:
+        content: str or list (message content)
+        add_cache_control: bool (whether to add cache control marker)
+
+    Returns:
+        list: structured content blocks
+    """
+    # Already in structured format
+    if isinstance(content, list):
+        if add_cache_control and content:
+            # Add cache_control to last block
+            content[-1]["cache_control"] = {"type": "ephemeral"}
+        return content
+
+    # Convert string to structured format
+    block = {
+        "type": "text",
+        "text": content
+    }
+
+    if add_cache_control:
+        block["cache_control"] = {"type": "ephemeral"}
+
+    return [block]
+
+def apply_cache_breakpoints(messages):
+    """
+    Applies cache breakpoints to messages based on configuration.
+
+    Args:
+        messages: list of message dicts (standard format)
+
+    Returns:
+        list: messages with cache_control applied (modified in-place)
+    """
+    if not config.ENABLE_PROMPT_CACHING:
+        return messages
+
+    if not is_anthropic_provider():
+        if config.DEBUG_MODE:
+            print(Color.info("[System] Prompt caching disabled: non-Anthropic provider"))
+        return messages
+
+    max_breakpoints = min(config.MAX_CACHE_BREAKPOINTS, 4)  # Anthropic max = 4
+    breakpoint_count = 0
+
+    # 1. System message always gets cache breakpoint (if exists and meets min tokens)
+    if messages and messages[0].get("role") == "system":
+        tokens = estimate_message_tokens(messages[0])
+        if tokens >= config.MIN_CACHE_TOKENS:
+            messages[0]["content"] = convert_to_cache_format(
+                messages[0]["content"],
+                add_cache_control=True
+            )
+            breakpoint_count += 1
+            if config.DEBUG_MODE:
+                print(Color.info(f"[System] Cache breakpoint 1/{max_breakpoints}: System message ({tokens} tokens)"))
+
+    # 2. Dynamic breakpoints in message history
+    if breakpoint_count < max_breakpoints and len(messages) > 1:
+        # Determine interval
+        if config.CACHE_INTERVAL > 0:
+            interval = config.CACHE_INTERVAL
+        else:
+            interval = _calculate_cache_interval(messages, max_breakpoints)
+
+        if config.DEBUG_MODE:
+            print(Color.info(f"[System] Cache interval: {interval} messages"))
+
+        # Apply breakpoints at intervals (working backwards from recent messages)
+        # This ensures most recent context is cached
+        for i in range(len(messages) - 1, 0, -interval):
+            if breakpoint_count >= max_breakpoints:
+                break
+
+            tokens = estimate_message_tokens(messages[i])
+            if tokens >= config.MIN_CACHE_TOKENS:
+                messages[i]["content"] = convert_to_cache_format(
+                    messages[i]["content"],
+                    add_cache_control=True
+                )
+                breakpoint_count += 1
+                if config.DEBUG_MODE:
+                    print(Color.info(f"[System] Cache breakpoint {breakpoint_count}/{max_breakpoints}: Message {i} ({tokens} tokens)"))
+
+    if config.DEBUG_MODE:
+        print(Color.info(f"[System] Total cache breakpoints applied: {breakpoint_count}/{max_breakpoints}"))
+
+    return messages
 
 def compress_history(messages):
     """

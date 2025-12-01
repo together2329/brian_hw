@@ -69,6 +69,29 @@ COMPRESSION_THRESHOLD = float(os.getenv("COMPRESSION_THRESHOLD", "0.8"))
 # Default: True
 ENABLE_COMPRESSION = os.getenv("ENABLE_COMPRESSION", "true").lower() in ("true", "1", "yes")
 
+# ============================================================
+# Prompt Caching Configuration
+# ============================================================
+# Enable Anthropic Prompt Caching (manual control only)
+# Set to true only when using Anthropic Claude models
+# Cost savings: 90% for cached tokens
+ENABLE_PROMPT_CACHING = os.getenv("ENABLE_PROMPT_CACHING", "false").lower() in ("true", "1", "yes")
+
+# Maximum cache breakpoints (1-4, Anthropic allows up to 4)
+# Default: 3 (System message + 2 dynamic points in history)
+MAX_CACHE_BREAKPOINTS = int(os.getenv("MAX_CACHE_BREAKPOINTS", "3"))
+
+# Cache interval - how often to place breakpoints in message history
+# If 0 or not set: use dynamic calculation based on history length
+# If set to N: place breakpoint every N messages
+# Default: 0 (dynamic calculation)
+CACHE_INTERVAL = int(os.getenv("CACHE_INTERVAL", "0"))
+
+# Minimum tokens required for caching
+# Claude Sonnet/Opus: 1024, Claude Haiku: 2048
+# Default: 1024
+MIN_CACHE_TOKENS = int(os.getenv("MIN_CACHE_TOKENS", "1024"))
+
 # System Prompt with ReAct instructions
 SYSTEM_PROMPT = """You are an intelligent coding agent named Brian Coder.
 You can read files, write code, and run terminal commands to help the user.
