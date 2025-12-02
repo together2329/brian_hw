@@ -90,6 +90,11 @@ COMPRESSION_CHUNK_SIZE = int(os.getenv("COMPRESSION_CHUNK_SIZE", "10"))
 # Recommended: 4-15 messages
 COMPRESSION_KEEP_RECENT = int(os.getenv("COMPRESSION_KEEP_RECENT", "4"))
 
+# Enable Smart Compression (selective preservation based on importance)
+# When enabled, preserves critical messages (user preferences, error solutions)
+# and only summarizes less important messages
+ENABLE_SMART_COMPRESSION = os.getenv("ENABLE_SMART_COMPRESSION", "true").lower() in ("true", "1", "yes")
+
 # ============================================================
 # Prompt Caching Configuration
 # ============================================================
@@ -112,6 +117,32 @@ CACHE_INTERVAL = int(os.getenv("CACHE_INTERVAL", "0"))
 # Claude Sonnet/Opus: 1024, Claude Haiku: 2048
 # Default: 1024
 MIN_CACHE_TOKENS = int(os.getenv("MIN_CACHE_TOKENS", "1024"))
+
+# ============================================================
+# Embedding Configuration (for Memory System)
+# ============================================================
+# Embedding API URL (OpenAI compatible)
+EMBEDDING_BASE_URL = os.getenv("EMBEDDING_BASE_URL", "https://api.openai.com/v1")
+
+# Embedding API Key (fallback to LLM_API_KEY if not set)
+EMBEDDING_API_KEY = os.getenv("EMBEDDING_API_KEY", API_KEY)
+
+# Embedding model name
+# OpenAI: text-embedding-3-small (1536 dim, $0.00002/1K tokens)
+#         text-embedding-3-large (3072 dim, $0.00013/1K tokens)
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+
+# Embedding dimension (auto-detected, optional override)
+EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "1536"))
+
+# ============================================================
+# Memory System Configuration
+# ============================================================
+# Enable/Disable memory system
+ENABLE_MEMORY = os.getenv("ENABLE_MEMORY", "true").lower() in ("true", "1", "yes")
+
+# Memory directory (relative to home directory)
+MEMORY_DIR = os.getenv("MEMORY_DIR", ".brian_memory")
 
 # System Prompt with ReAct instructions
 SYSTEM_PROMPT = """You are an intelligent coding agent named Brian Coder.

@@ -7,6 +7,9 @@ import re
 import copy
 import config
 import tools
+from memory import MemorySystem
+from message_classifier import MessageClassifier
+from iteration_control import IterationTracker, detect_completion_signal, show_iteration_warning
 
 # --- 1. No Vendor Path Needed ---
 # We are using standard libraries only.
@@ -20,6 +23,20 @@ import time
 # Structure: {"message_index": actual_token_count}
 actual_token_cache = {}
 last_input_tokens = 0  # Last reported input tokens from API
+
+# --- Global Memory System ---
+# Initialize memory system if enabled
+memory_system = None
+if config.ENABLE_MEMORY:
+    try:
+        memory_system = MemorySystem(memory_dir=config.MEMORY_DIR)
+    except Exception as e:
+        print(f"Warning: Failed to initialize memory system: {e}")
+        memory_system = None
+
+# --- Global Message Classifier ---
+# Initialize classifier for smart compression
+message_classifier = MessageClassifier() if config.ENABLE_SMART_COMPRESSION else None
 
 # --- Color Utilities (ANSI Escape Codes) ---
 
@@ -724,6 +741,24 @@ def apply_cache_breakpoints(messages):
 
     return messages
 
+def build_system_prompt():
+    """
+    Build system prompt with memory context if available.
+
+    Returns:
+        Complete system prompt string
+    """
+    base_prompt = config.SYSTEM_PROMPT
+
+    # Add memory context if available
+    if memory_system is not None:
+        memory_context = memory_system.format_all_for_prompt()
+        if memory_context:
+            # Insert memory context before the main instructions
+            base_prompt = base_prompt + "\n\n" + memory_context
+
+    return base_prompt
+
 def show_context_usage(messages, use_actual=True):
     """
     Displays current context usage information.
@@ -794,37 +829,78 @@ def compress_history(messages):
     if not messages:
         return messages
 
-    # Separate system messages from regular messages (like Strix)
-    system_msgs = [m for m in messages if m.get("role") == "system"]
-    regular_msgs = [m for m in messages if m.get("role") != "system"]
+    # Smart Compression: Classify messages by importance
+    if config.ENABLE_SMART_COMPRESSION and message_classifier:
+        print(Color.info("[System] Using Smart Compression (selective preservation)..."))
 
-    # Check if history is too short
-    keep_recent = config.COMPRESSION_KEEP_RECENT
-    if len(regular_msgs) <= keep_recent:
-        print(Color.info(f"[System] History too short to compress ({len(regular_msgs)} <= {keep_recent} recent)."))
-        return messages
+        # Partition messages by importance
+        partitions = message_classifier.partition_by_importance(messages, keep_recent=config.COMPRESSION_KEEP_RECENT)
 
-    # Keep last N messages
-    recent_msgs = regular_msgs[-keep_recent:]
-    old_msgs = regular_msgs[:-keep_recent]
+        # Show compression plan
+        if config.DEBUG_MODE:
+            summary = message_classifier.get_compression_summary(partitions)
+            print(Color.info(summary))
 
-    if not old_msgs:
-        return messages
+        # Messages to preserve (no summarization)
+        preserved = partitions["system"] + partitions["critical"] + partitions["high"] + partitions["recent"]
 
-    # Choose compression mode
-    mode = config.COMPRESSION_MODE.lower()
+        # Messages to summarize (medium and low importance)
+        to_summarize = partitions["medium"] + partitions["low"]
 
-    if mode == "chunked":
-        # Chunked compression (like Strix)
-        print(Color.info(f"[System] Using chunked compression (chunk_size={config.COMPRESSION_CHUNK_SIZE})..."))
-        compressed = _compress_chunked(old_msgs)
+        if not to_summarize:
+            print(Color.info("[System] No messages to summarize (all are important)."))
+            return messages
+
+        # Compress only the less important messages
+        mode = config.COMPRESSION_MODE.lower()
+        if mode == "chunked":
+            compressed = _compress_chunked(to_summarize)
+        else:
+            compressed = [_compress_single(to_summarize)]
+
+        # Reconstruct: system + critical + high + compressed + recent
+        # Note: Order matters for conversation flow
+        new_history = partitions["system"] + partitions["critical"] + partitions["high"] + compressed + partitions["recent"]
+
+        preserved_count = len(partitions["critical"]) + len(partitions["high"])
+        summarized_count = len(to_summarize)
+        print(Color.success(f"[System] Preserved {preserved_count} important messages, summarized {summarized_count} less important"))
+
     else:
-        # Single compression (default, faster and cheaper)
-        print(Color.info("[System] Using single compression..."))
-        compressed = [_compress_single(old_msgs)]
+        # Traditional compression (original behavior)
+        print(Color.info("[System] Using traditional compression (all old messages summarized)..."))
 
-    # Construct new history: system messages + compressed + recent
-    new_history = system_msgs + compressed + recent_msgs
+        # Separate system messages from regular messages (like Strix)
+        system_msgs = [m for m in messages if m.get("role") == "system"]
+        regular_msgs = [m for m in messages if m.get("role") != "system"]
+
+        # Check if history is too short
+        keep_recent = config.COMPRESSION_KEEP_RECENT
+        if len(regular_msgs) <= keep_recent:
+            print(Color.info(f"[System] History too short to compress ({len(regular_msgs)} <= {keep_recent} recent)."))
+            return messages
+
+        # Keep last N messages
+        recent_msgs = regular_msgs[-keep_recent:]
+        old_msgs = regular_msgs[:-keep_recent]
+
+        if not old_msgs:
+            return messages
+
+        # Choose compression mode
+        mode = config.COMPRESSION_MODE.lower()
+
+        if mode == "chunked":
+            # Chunked compression (like Strix)
+            print(Color.info(f"[System] Using chunked compression (chunk_size={config.COMPRESSION_CHUNK_SIZE})..."))
+            compressed = _compress_chunked(old_msgs)
+        else:
+            # Single compression (default, faster and cheaper)
+            print(Color.info("[System] Using single compression..."))
+            compressed = [_compress_single(old_msgs)]
+
+        # Construct new history: system messages + compressed + recent
+        new_history = system_msgs + compressed + recent_msgs
 
     # Calculate new token count
     new_tokens = sum(estimate_message_tokens(m) for m in new_history)
@@ -1012,15 +1088,19 @@ def chat_loop():
         print(Color.system("[System] Resuming from previous conversation.\n"))
     else:
         messages = [
-            {"role": "system", "content": config.SYSTEM_PROMPT}
+            {"role": "system", "content": build_system_prompt()}
         ]
 
     print(Color.BOLD + Color.CYAN + f"Brian Coder Agent (Zero-Dependency) initialized." + Color.RESET)
     print(Color.system(f"Connecting to: {config.BASE_URL}"))
     print(Color.system(f"Rate Limit: {config.RATE_LIMIT_DELAY}s | Max Iterations: {config.MAX_ITERATIONS}"))
     print(Color.system(f"History: {'Enabled' if config.SAVE_HISTORY else 'Disabled'}"))
-    print(Color.system(f"Compression: {'Enabled' if config.ENABLE_COMPRESSION else 'Disabled'} (Threshold: {int(config.COMPRESSION_THRESHOLD*100)}%)"))
+
+    compression_mode = "Smart" if config.ENABLE_SMART_COMPRESSION else "Traditional"
+    print(Color.system(f"Compression: {'Enabled' if config.ENABLE_COMPRESSION else 'Disabled'} ({compression_mode}, Threshold: {int(config.COMPRESSION_THRESHOLD*100)}%)"))
+
     print(Color.system(f"Prompt Caching: {'Enabled' if config.ENABLE_PROMPT_CACHING else 'Disabled'}"))
+    print(Color.system(f"Memory: {'Enabled' if config.ENABLE_MEMORY and memory_system else 'Disabled'}"))
 
     # Show initial context usage
     show_context_usage(messages)
@@ -1035,20 +1115,30 @@ def chat_loop():
             
             messages.append({"role": "user", "content": user_input})
 
-            # ReAct Loop: Configurable max iterations with error tracking
+            # ReAct Loop: Smart Iteration Control with progress tracking
             consecutive_errors = 0
             last_error_observation = None
             MAX_CONSECUTIVE_ERRORS = 3
 
-            for iteration in range(config.MAX_ITERATIONS):
+            # Initialize iteration tracker
+            tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
+
+            while True:
+                # Check iteration limit with progressive warning
+                warning_action = show_iteration_warning(tracker, mode='interactive')
+                if warning_action == 'stop':
+                    break
+                elif warning_action == 'extend':
+                    tracker.extend(20)
+
                 # Context Management: Compress if needed
                 messages = compress_history(messages)
 
                 # Show context usage before each iteration
-                if config.DEBUG_MODE or iteration == 0:
+                if config.DEBUG_MODE or tracker.current == 0:
                     show_context_usage(messages)
 
-                print(Color.agent(f"Agent (Iteration {iteration+1}/{config.MAX_ITERATIONS}): "), end="", flush=True)
+                print(Color.agent(f"Agent (Iteration {tracker.current+1}/{tracker.max_iterations}): "), end="", flush=True)
 
                 collected_content = ""
                 # Call LLM via urllib (collect without printing)
@@ -1066,11 +1156,20 @@ def chat_loop():
                 # Add assistant response to history
                 messages.append({"role": "assistant", "content": collected_content})
 
+                # Check for explicit completion signal
+                if detect_completion_signal(collected_content):
+                    print(Color.success("\n[System] ✅ Task completion detected. Ending ReAct loop.\n"))
+                    break
+
                 # Check for Action
                 tool_name, args_str = parse_action(collected_content)
 
                 if tool_name:
                     print(Color.tool(f"  🔧 Tool: {tool_name}"))
+
+                    # Record tool usage for progress tracking
+                    tracker.record_tool(tool_name)
+
                     observation = execute_tool(tool_name, args_str)
 
                     # Smart preview based on tool type
@@ -1113,8 +1212,16 @@ def chat_loop():
 
                     # Process observation (handles large files and context management)
                     messages = process_observation(observation, messages)
+
+                    # Check for stall condition
+                    if tracker.is_stalled():
+                        print(Color.warning(f"  [System] ⚠️  Detected {tracker.consecutive_reads} consecutive read operations. Agent may be stalled."))
                 else:
+                    # No action = natural completion
                     break
+
+                # Increment iteration counter
+                tracker.increment()
             
         except KeyboardInterrupt:
             print(Color.warning("\nExiting..."))
@@ -1132,26 +1239,34 @@ if __name__ == "__main__":
         # One-shot mode with ReAct loop
         prompt = sys.argv[2]
         messages = [
-            {"role": "system", "content": config.SYSTEM_PROMPT},
+            {"role": "system", "content": build_system_prompt()},
             {"role": "user", "content": prompt}
         ]
         
         print(Color.user(f"User: {prompt}\n"))
 
-        # ReAct loop (configurable max iterations)
+        # ReAct loop: Smart Iteration Control with progress tracking
         consecutive_errors = 0
         last_error_observation = None
         MAX_CONSECUTIVE_ERRORS = 3
 
-        for iteration in range(config.MAX_ITERATIONS):
+        # Initialize iteration tracker (oneshot mode)
+        tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
+
+        while True:
+            # Check iteration limit (oneshot mode - no extension)
+            warning_action = show_iteration_warning(tracker, mode='oneshot')
+            if warning_action == 'stop':
+                break
+
             # Context Management: Compress if needed (same as chat_loop)
             messages = compress_history(messages)
-            
+
             # Show context usage before each iteration
-            if config.DEBUG_MODE or iteration == 0:
+            if config.DEBUG_MODE or tracker.current == 0:
                 show_context_usage(messages)
-            
-            print(Color.agent(f"Agent (Iteration {iteration+1}/{config.MAX_ITERATIONS}): "), end="", flush=True)
+
+            print(Color.agent(f"Agent (Iteration {tracker.current+1}/{tracker.max_iterations}): "), end="", flush=True)
             collected_content = ""
             for chunk in chat_completion_stream(messages):
                 collected_content += chunk
@@ -1165,6 +1280,11 @@ if __name__ == "__main__":
             print()
 
             messages.append({"role": "assistant", "content": collected_content})
+
+            # Check for explicit completion signal
+            if detect_completion_signal(collected_content):
+                print(Color.success("\n[System] ✅ Task completion detected. Ending ReAct loop.\n"))
+                break
 
             # Check for Action
             tool_name, args_str = parse_action(collected_content)
@@ -1181,6 +1301,10 @@ if __name__ == "__main__":
 
             if tool_name:
                 print(Color.tool(f"  🔧 Tool: {tool_name}"))
+
+                # Record tool usage for progress tracking
+                tracker.record_tool(tool_name)
+
                 observation = execute_tool(tool_name, args_str)
 
                 # Smart preview based on tool type
@@ -1231,7 +1355,15 @@ if __name__ == "__main__":
 
                     # Process observation (handles large files and context management)
                     messages = process_observation(observation, messages)
+
+                    # Check for stall condition
+                    if tracker.is_stalled():
+                        print(Color.warning(f"  [System] ⚠️  Detected {tracker.consecutive_reads} consecutive read operations. Agent may be stalled."))
             else:
+                # No action = natural completion
                 break
+
+            # Increment iteration counter
+            tracker.increment()
     else:
         chat_loop()
