@@ -183,10 +183,10 @@ def chat_completion_stream(messages):
                 # Display actual token usage in DEBUG mode
                 if config.DEBUG_MODE:
                     total_tokens = input_tokens + output_tokens
-                    yield f"\n{Color.info('[Token Usage]')}\n"
-                    yield f"{Color.info(f'  Input: {input_tokens:,} tokens')}\n"
-                    yield f"{Color.info(f'  Output: {output_tokens:,} tokens')}\n"
-                    yield f"{Color.info(f'  Total: {total_tokens:,} tokens')}\n"
+                    print(f"\n{Color.info('[Token Usage]')}")
+                    print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
+                    print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
+                    print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}\n")
 
             # Display usage information if available and caching is enabled
             if usage_info and config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
@@ -196,14 +196,14 @@ def chat_completion_stream(messages):
                 cache_read_tokens = usage_info.get("cache_read_input_tokens", 0)
 
                 if cache_creation_tokens > 0 or cache_read_tokens > 0:
-                    yield f"\n\n{Color.info('[Token Usage]')}\n"
-                    yield f"{Color.info(f'  Input: {input_tokens:,} tokens')}\n"
-                    yield f"{Color.info(f'  Output: {output_tokens:,} tokens')}\n"
+                    print(f"\n\n{Color.info('[Token Usage]')}")
+                    print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
+                    print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
                     if cache_creation_tokens > 0:
-                        yield f"{Color.info(f'  Cache Created: {cache_creation_tokens:,} tokens')}\n"
+                        print(f"{Color.info(f'  Cache Created: {cache_creation_tokens:,} tokens')}")
                     if cache_read_tokens > 0:
                         savings = int(cache_read_tokens * 0.9)
-                        yield f"{Color.success(f'  Cache Hit: {cache_read_tokens:,} tokens (saved ~{savings:,} tokens worth of cost!)')}\n"
+                        print(f"{Color.success(f'  Cache Hit: {cache_read_tokens:,} tokens (saved ~{savings:,} tokens worth of cost!)')}\n")
     except urllib.error.HTTPError as e:
         error_body = e.read().decode('utf-8')
         yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
@@ -925,7 +925,7 @@ def process_observation(observation, messages):
     observation_msg = {"role": "user", "content": f"Observation: {observation}"}
     observation_tokens = estimate_message_tokens(observation_msg)
 
-    if observation_tokens > limit_tokens * 0.5:  # Observation > 50% of limit
+    if observation_tokens > limit_tokens * 0.3:  # Observation > 30% of limit (stricter)
         original_size = len(observation)
         lines = observation.split('\n')
         total_lines = len(lines)
@@ -983,6 +983,20 @@ To read specific sections:
         # Re-calculate after compression
         current_tokens = sum(estimate_message_tokens(m) for m in messages)
         total_tokens = current_tokens + observation_tokens
+
+        # If still exceeding after compression, force truncate observation
+        if total_tokens > threshold_tokens:
+            print(Color.warning(f"[System] ⚠️  Still exceeding threshold after compression. Force truncating observation..."))
+            original_size = len(observation)
+            # Limit observation to 20% of limit to be safe
+            max_safe_tokens = int(limit_tokens * 0.2)
+            max_safe_chars = max_safe_tokens * 4
+
+            if len(observation) > max_safe_chars:
+                observation = observation[:max_safe_chars] + f"\n\n[Observation truncated: {original_size:,} → {max_safe_chars:,} chars to prevent context overflow]"
+                observation_msg = {"role": "user", "content": f"Observation: {observation}"}
+                observation_tokens = estimate_message_tokens(observation_msg)
+                print(Color.info(f"[System] Observation truncated to {observation_tokens:,} tokens"))
 
     messages.append(observation_msg)
     return messages
