@@ -1169,6 +1169,16 @@ if __name__ == "__main__":
             # Check for Action
             tool_name, args_str = parse_action(collected_content)
 
+            # Check for hallucinated Observation
+            if "Observation:" in collected_content and not tool_name:
+                print(Color.warning("  [System] ⚠️  Agent hallucinated an Observation. Correcting..."))
+                messages.append({"role": "assistant", "content": collected_content})
+                messages.append({
+                    "role": "user", 
+                    "content": "[System] You generated 'Observation:' yourself. PLEASE DO NOT DO THIS. You must output an Action, wait for me to execute it, and then I will give you the Observation. Now, please output the correct Action."
+                })
+                continue
+
             if tool_name:
                 print(Color.tool(f"  🔧 Tool: {tool_name}"))
                 observation = execute_tool(tool_name, args_str)

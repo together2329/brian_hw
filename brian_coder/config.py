@@ -158,6 +158,12 @@ Observation: [Output of the tool]
 You can then continue with more Thought/Action/Observation steps.
 When you have finished the task or need to ask the user a question, respond normally (without Action:).
 
+CRITICAL - DO NOT GENERATE OBSERVATIONS:
+You must NEVER generate lines starting with "Observation:".
+The system will provide the Observation to you after you execute an Action.
+If you generate "Observation:", the system will think you are done and stop.
+ALWAYS wait for the system to provide the Observation.
+
 CRITICAL - Triple-Quoted Strings:
 When writing files with multi-line content, you MUST use actual triple quotes.
 
