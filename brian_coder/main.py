@@ -8,6 +8,7 @@ import copy
 import config
 import tools
 from memory import MemorySystem
+from graph_lite import GraphLite, Node, Edge
 from message_classifier import MessageClassifier
 from iteration_control import IterationTracker, detect_completion_signal, show_iteration_warning
 
@@ -33,6 +34,16 @@ if config.ENABLE_MEMORY:
     except Exception as e:
         print(f"Warning: Failed to initialize memory system: {e}")
         memory_system = None
+
+# --- Global Graph Lite System ---
+# Initialize graph system if enabled
+graph_lite = None
+if config.ENABLE_GRAPH:
+    try:
+        graph_lite = GraphLite(memory_dir=config.MEMORY_DIR)
+    except Exception as e:
+        print(f"Warning: Failed to initialize graph system: {e}")
+        graph_lite = None
 
 # --- Global Message Classifier ---
 # Initialize classifier for smart compression
@@ -741,23 +752,188 @@ def apply_cache_breakpoints(messages):
 
     return messages
 
-def build_system_prompt():
+def call_llm_raw(prompt):
     """
-    Build system prompt with memory context if available.
+    Simple non-streaming LLM call for graph knowledge extraction.
+
+    Args:
+        prompt: Prompt string to send to LLM
+
+    Returns:
+        Complete response text
+    """
+    url = f"{config.BASE_URL}/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {config.API_KEY}",
+        "User-Agent": "BrianCoder/1.0"
+    }
+
+    data = {
+        "model": config.MODEL_NAME,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False,
+        "temperature": 0.3  # Lower temperature for more focused extraction
+    }
+
+    try:
+        req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
+        with urllib.request.urlopen(req, timeout=30) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            return result["choices"][0]["message"]["content"]
+    except Exception as e:
+        raise RuntimeError(f"LLM call failed: {e}")
+
+def build_system_prompt(messages=None):
+    """
+    Build system prompt with memory and graph context if available.
+
+    Args:
+        messages: Optional message history for graph semantic search
 
     Returns:
         Complete system prompt string
     """
     base_prompt = config.SYSTEM_PROMPT
 
-    # Add memory context if available
-    if memory_system is not None:
-        memory_context = memory_system.format_all_for_prompt()
-        if memory_context:
-            # Insert memory context before the main instructions
-            base_prompt = base_prompt + "\n\n" + memory_context
+    # Build context section
+    if memory_system is not None or graph_lite is not None:
+        context_parts = []
+
+        # Add memory preferences
+        if memory_system is not None:
+            memory_context = memory_system.format_all_for_prompt()
+            if memory_context:
+                context_parts.append(memory_context)
+
+        # Add graph knowledge (semantic search based on recent conversation)
+        if graph_lite is not None and messages:
+            # Get recent user messages for context
+            user_messages = [m for m in messages if m.get("role") == "user"]
+            if user_messages:
+                # Use last user message as search query
+                recent_topic = user_messages[-1].get("content", "")[:200]
+
+                try:
+                    # Search for relevant nodes
+                    relevant_results = graph_lite.search(
+                        recent_topic,
+                        limit=config.GRAPH_SEARCH_LIMIT
+                    )
+
+                    if relevant_results:
+                        graph_context = "=== RELEVANT KNOWLEDGE ===\n\n"
+                        for score, node in relevant_results:
+                            # Only include nodes with reasonable similarity (>0.5)
+                            if score > 0.5:
+                                node_desc = node.data.get("description", node.data.get("name", ""))
+                                graph_context += f"- {node.type}: {node_desc}\n"
+
+                        graph_context += "\n=====================\n"
+                        context_parts.append(graph_context)
+
+                except Exception as e:
+                    # Fail silently if graph search fails
+                    pass
+
+        # Combine all context parts
+        if context_parts:
+            base_prompt = base_prompt + "\n\n" + "\n\n".join(context_parts)
 
     return base_prompt
+
+def on_conversation_end(messages):
+    """
+    Extract and save knowledge from conversation to graph.
+    Called at the end of a conversation session.
+
+    Args:
+        messages: Full message history
+    """
+    if not (config.ENABLE_GRAPH and config.GRAPH_AUTO_EXTRACT and graph_lite):
+        return
+
+    print(Color.system("\n[Graph] Extracting knowledge from conversation..."))
+
+    try:
+        # Get last 10 messages for context (skip system message)
+        recent_messages = [m for m in messages if m.get("role") != "system"][-10:]
+
+        if not recent_messages:
+            return
+
+        # Build conversation text
+        conversation_text = "\n".join([
+            f"{m.get('role')}: {m.get('content', '')[:500]}"
+            for m in recent_messages
+        ])
+
+        # Extract entities using LLM
+        print(Color.system("[Graph] Extracting entities..."))
+        entities = graph_lite.extract_entities_from_text(conversation_text)
+
+        if not entities:
+            print(Color.info("[Graph] No entities extracted."))
+            return
+
+        # Create nodes for extracted entities
+        node_map = {}  # Map entity names to node IDs
+        for entity_data in entities:
+            entity_name = entity_data.get("name", "Unknown")
+            entity_desc = entity_data.get("description", "")
+
+            # Generate embedding for entity description
+            try:
+                embedding = graph_lite.get_embedding(f"{entity_name}: {entity_desc}")
+            except Exception:
+                embedding = None
+
+            # Create node
+            node = Node(
+                id=graph_lite.generate_node_id("entity"),
+                type="Entity",
+                data=entity_data,
+                embedding=embedding
+            )
+
+            graph_lite.add_node(node)
+            node_map[entity_name] = node.id
+
+        print(Color.success(f"[Graph] Added {len(entities)} entities"))
+
+        # Extract relations between entities
+        if len(entities) > 1:
+            print(Color.system("[Graph] Extracting relations..."))
+            relations = graph_lite.extract_relations_from_text(conversation_text, entities)
+
+            # Create edges for extracted relations
+            for relation_data in relations:
+                source_name = relation_data.get("source", "")
+                target_name = relation_data.get("target", "")
+
+                # Find node IDs from names
+                source_id = node_map.get(source_name)
+                target_id = node_map.get(target_name)
+
+                if source_id and target_id:
+                    edge = Edge(
+                        source=source_id,
+                        target=target_id,
+                        relation=relation_data.get("relation", "RELATED_TO"),
+                        confidence=relation_data.get("confidence", 0.8)
+                    )
+                    graph_lite.add_edge(edge)
+
+            print(Color.success(f"[Graph] Added {len(relations)} relations"))
+
+        # Save graph to disk
+        graph_lite.save()
+
+        stats = graph_lite.get_stats()
+        print(Color.success(f"[Graph] Knowledge saved. Total nodes: {stats['total_nodes']}, edges: {stats['total_edges']}\n"))
+
+    except Exception as e:
+        print(Color.error(f"[Graph] Failed to extract knowledge: {e}\n"))
 
 def show_context_usage(messages, use_actual=True):
     """
@@ -1101,6 +1277,7 @@ def chat_loop():
 
     print(Color.system(f"Prompt Caching: {'Enabled' if config.ENABLE_PROMPT_CACHING else 'Disabled'}"))
     print(Color.system(f"Memory: {'Enabled' if config.ENABLE_MEMORY and memory_system else 'Disabled'}"))
+    print(Color.system(f"Graph: {'Enabled' if config.ENABLE_GRAPH and graph_lite else 'Disabled'}"))
 
     # Show initial context usage
     show_context_usage(messages)
@@ -1226,6 +1403,7 @@ def chat_loop():
         except KeyboardInterrupt:
             print(Color.warning("\nExiting..."))
             save_conversation_history(messages)
+            on_conversation_end(messages)
             break
         except Exception as e:
             print(Color.error(f"\nAn error occurred: {e}"))
@@ -1233,6 +1411,7 @@ def chat_loop():
 
     # Save history on normal exit
     save_conversation_history(messages)
+    on_conversation_end(messages)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--prompt":
@@ -1365,5 +1544,8 @@ if __name__ == "__main__":
 
             # Increment iteration counter
             tracker.increment()
+
+        # Extract knowledge from conversation at end
+        on_conversation_end(messages)
     else:
         chat_loop()

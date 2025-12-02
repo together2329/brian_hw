@@ -144,6 +144,18 @@ ENABLE_MEMORY = os.getenv("ENABLE_MEMORY", "true").lower() in ("true", "1", "yes
 # Memory directory (relative to home directory)
 MEMORY_DIR = os.getenv("MEMORY_DIR", ".brian_memory")
 
+# ============================================================
+# Graph Lite Configuration (Knowledge Graph)
+# ============================================================
+# Enable/Disable graph system
+ENABLE_GRAPH = os.getenv("ENABLE_GRAPH", "true").lower() in ("true", "1", "yes")
+
+# Auto-extract knowledge from conversations (end of session)
+GRAPH_AUTO_EXTRACT = os.getenv("GRAPH_AUTO_EXTRACT", "true").lower() in ("true", "1", "yes")
+
+# Number of relevant nodes to inject into context (semantic search)
+GRAPH_SEARCH_LIMIT = int(os.getenv("GRAPH_SEARCH_LIMIT", "5"))
+
 # System Prompt with ReAct instructions
 SYSTEM_PROMPT = """You are an intelligent coding agent named Brian Coder.
 You can read files, write code, and run terminal commands to help the user.
