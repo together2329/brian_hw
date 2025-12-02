@@ -146,7 +146,7 @@ def chat_completion_stream(messages):
 
     try:
         req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
-        with urllib.request.urlopen(req, timeout=60) as response:
+        with urllib.request.urlopen(req, timeout=config.API_TIMEOUT) as response:
             # Parse Server-Sent Events (SSE)
             usage_info = None
             for line in response:
