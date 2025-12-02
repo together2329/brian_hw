@@ -176,8 +176,17 @@ def chat_completion_stream(messages):
             if usage_info:
                 # Both OpenAI and Anthropic use "input_tokens" or "prompt_tokens"
                 input_tokens = usage_info.get("input_tokens") or usage_info.get("prompt_tokens", 0)
+                output_tokens = usage_info.get("output_tokens") or usage_info.get("completion_tokens", 0)
                 if input_tokens > 0:
                     last_input_tokens = input_tokens
+
+                # Display actual token usage in DEBUG mode
+                if config.DEBUG_MODE:
+                    total_tokens = input_tokens + output_tokens
+                    yield f"\n{Color.info('[Token Usage]')}\n"
+                    yield f"{Color.info(f'  Input: {input_tokens:,} tokens')}\n"
+                    yield f"{Color.info(f'  Output: {output_tokens:,} tokens')}\n"
+                    yield f"{Color.info(f'  Total: {total_tokens:,} tokens')}\n"
 
             # Display usage information if available and caching is enabled
             if usage_info and config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
@@ -1011,10 +1020,74 @@ def chat_loop():
                         consecutive_errors = 0
                         last_error_observation = None
 
-                    messages.append({
-                        "role": "user",
-                        "content": f"Observation: {observation}"
-                    })
+                    # Check if adding observation would exceed context limit
+                    limit_tokens = config.MAX_CONTEXT_CHARS // 4
+                    threshold_tokens = int(limit_tokens * config.COMPRESSION_THRESHOLD)
+                    
+                    # Step 1: First check if observation itself is too large
+                    observation_msg = {"role": "user", "content": f"Observation: {observation}"}
+                    observation_tokens = estimate_message_tokens(observation_msg)
+
+                    if observation_tokens > limit_tokens * 0.5:  # Observation > 50% of limit
+                        original_size = len(observation)
+                        lines = observation.split('\n')
+                        total_lines = len(lines)
+
+                        # Show first N lines as preview + guidance
+                        PREVIEW_LINES = config.LARGE_FILE_PREVIEW_LINES
+                        preview_lines = lines[:PREVIEW_LINES]
+                        preview = '\n'.join(preview_lines)
+                        
+                        # Safety Truncation: Ensure preview itself isn't too huge (e.g. if lines are very long)
+                        # Limit preview to 50% of MAX_OBSERVATION_CHARS
+                        MAX_PREVIEW_CHARS = config.MAX_OBSERVATION_CHARS // 2
+                        if len(preview) > MAX_PREVIEW_CHARS:
+                            preview = preview[:MAX_PREVIEW_CHARS] + f"\n... [Preview truncated at {MAX_PREVIEW_CHARS} chars] ..."
+
+                        # Calculate max readable lines (based on context limit)
+                        MAX_READABLE_LINES = (config.MAX_OBSERVATION_CHARS // 80)  # Assume ~80 chars per line
+
+                        observation = f"""[File Preview - Too large to display completely]
+
+Showing first {PREVIEW_LINES} lines (Total: {total_lines:,} lines, {original_size:,} characters)
+
+--- BEGIN PREVIEW ---
+{preview}
+--- END PREVIEW ---
+
+💡 File is too large for full display. You can read up to ~{MAX_READABLE_LINES} lines at a time.
+
+To read specific sections:
+1. Use read_lines(path, start_line, end_line)
+   Examples:
+   - read_lines(path, start_line=100, end_line=200)           # Lines 100-200
+   - read_lines(path, start_line={max(1, total_lines-100)}, end_line={total_lines})  # Last 100 lines
+
+2. Use grep_file(pattern, path) to search for patterns
+   Example:
+   - grep_file(pattern="module\\s+\\w+", path)   # Find modules
+   - grep_file(pattern="always.*@", path)        # Find always blocks
+
+3. Ask the user which part they want to see
+"""
+                        observation_msg = {"role": "user", "content": f"Observation: {observation}"}
+                        observation_tokens = estimate_message_tokens(observation_msg)
+                        print(Color.warning(f"[System] ⚠️  Large observation truncated: {original_size:,} chars → {config.MAX_OBSERVATION_CHARS:,} chars ({total_lines:,} lines total)"))
+
+                    # Step 2: Check total context size
+                    current_tokens = sum(estimate_message_tokens(m) for m in messages)
+                    total_tokens = current_tokens + observation_tokens
+
+                    if total_tokens > threshold_tokens and config.ENABLE_COMPRESSION:
+                        print(Color.warning(f"\n[System] ⚠️  Adding observation would exceed threshold ({total_tokens:,} > {threshold_tokens:,} tokens)"))
+                        print(Color.info("[System] Compressing history before adding observation..."))
+                        messages = compress_history(messages)
+
+                        # Re-calculate after compression
+                        current_tokens = sum(estimate_message_tokens(m) for m in messages)
+                        total_tokens = current_tokens + observation_tokens
+
+                    messages.append(observation_msg)
                 else:
                     break
             
