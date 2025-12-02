@@ -60,14 +60,27 @@ TOOL_RESULT_PREVIEW_CHARS = int(os.getenv("TOOL_RESULT_PREVIEW_CHARS", "300"))  
 
 # Context Management
 # Approximate token limit (1 token ~= 4 chars)
-# Default: 20000 chars (~5000 tokens)
-MAX_CONTEXT_CHARS = int(os.getenv("MAX_CONTEXT_CHARS", "20000"))
+# Default: 262144 chars (~65K tokens) - matches Claude's 200K context
+MAX_CONTEXT_CHARS = int(os.getenv("MAX_CONTEXT_CHARS", "262144"))
 # Threshold to trigger compression (0.0 to 1.0)
 # Default: 0.8 (80%)
 COMPRESSION_THRESHOLD = float(os.getenv("COMPRESSION_THRESHOLD", "0.8"))
 # Enable/Disable compression
 # Default: True
 ENABLE_COMPRESSION = os.getenv("ENABLE_COMPRESSION", "true").lower() in ("true", "1", "yes")
+
+# Compression mode: 'single' or 'chunked'
+# single: Summarize all old messages in one go (faster, cheaper)
+# chunked: Summarize in chunks (better for very long histories)
+COMPRESSION_MODE = os.getenv("COMPRESSION_MODE", "single")
+
+# Chunk size for chunked compression (number of messages per chunk)
+# Only used when COMPRESSION_MODE=chunked
+COMPRESSION_CHUNK_SIZE = int(os.getenv("COMPRESSION_CHUNK_SIZE", "10"))
+
+# Number of recent messages to keep unchanged during compression
+# Recommended: 4-15 messages
+COMPRESSION_KEEP_RECENT = int(os.getenv("COMPRESSION_KEEP_RECENT", "4"))
 
 # ============================================================
 # Prompt Caching Configuration
@@ -146,8 +159,8 @@ DO NOT USE PLACEHOLDERS OR PSEUDO-CODE:
 ❌ WRONG: content="..." (placeholder)
 
 CORRECT FORMAT - Use actual triple quotes (three double-quotes or three single-quotes):
-✅ CORRECT: content=(three double quotes)actual code here(three double quotes)
-✅ CORRECT: content=(three single quotes)actual code here(three single quotes)
+✅ CORRECT: content=\"\"\"actual code here\"\"\"
+✅ CORRECT: content='''actual code here'''
 
 This is MANDATORY for:
 - Source code files (.py, .v, .c, .js, etc.)
@@ -166,7 +179,7 @@ Observation: Successfully wrote to 'hello.py'.
 Example 2 - Multi-line content (USE ACTUAL TRIPLE QUOTES):
 User: Create a Verilog counter module.
 Thought: I need to create counter.v with proper Verilog syntax. I will use triple quotes.
-Action: write_file(path="counter.v", content=TRIPLE_QUOTEmodule counter(
+Action: write_file(path="counter.v", content=\"\"\"module counter(
     input clk,
     input reset,
     output reg [7:0] count
@@ -178,10 +191,8 @@ Action: write_file(path="counter.v", content=TRIPLE_QUOTEmodule counter(
             count <= count + 1;
     end
 endmodule
-TRIPLE_QUOTE)
+\"\"\")
 Observation: Successfully wrote to 'counter.v'.
-
-Note: Replace TRIPLE_QUOTE with three quotes
 
 Example 3 - Complex Task with Planning:
 User: Design a complete UART transmitter with testbench and simulation.
@@ -194,7 +205,7 @@ Action: get_plan()
 Observation: [Plan content showing all 5 steps]
 
 Thought: I'll create the UART transmitter module for step 1.
-Action: write_file(path="uart_tx.v", content=TRIPLE_QUOTE[full UART code here]TRIPLE_QUOTE)
+Action: write_file(path="uart_tx.v", content=\"\"\"[full UART code here]\"\"\")
 Observation: Successfully wrote to 'uart_tx.v'.
 
 Thought: Step 1 is complete. Let me mark it done.
@@ -281,7 +292,7 @@ Action: read_file(path="fifo_tb.v")
 Observation: [Full file content]
 
 Thought: I need to restructure this file. The initial block should be inside the module.
-Action: write_file(path="fifo_tb.v", content=TRIPLE_QUOTE[corrected full testbench code]TRIPLE_QUOTE)
+Action: write_file(path="fifo_tb.v", content=\"\"\"[corrected full testbench code]\"\"\")
 Observation: Successfully wrote to fifo_tb.v
 
 Thought: Now let me retry compilation.

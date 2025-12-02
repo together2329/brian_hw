@@ -15,6 +15,12 @@ import tools
 
 import time
 
+# --- Global Token Tracking ---
+# Stores actual token counts from API responses
+# Structure: {"message_index": actual_token_count}
+actual_token_cache = {}
+last_input_tokens = 0  # Last reported input tokens from API
+
 # --- Color Utilities (ANSI Escape Codes) ---
 
 class Color:
@@ -78,7 +84,10 @@ def chat_completion_stream(messages):
     Sends a chat completion request to the LLM using urllib.
     Yields content chunks from the SSE stream.
     Supports Anthropic Prompt Caching when enabled.
+    Updates global actual_token_cache with real token counts from API.
     """
+    global last_input_tokens
+
     # Rate limiting: Configurable delay
     if config.RATE_LIMIT_DELAY > 0:
         print(Color.info(f"[System] Waiting {config.RATE_LIMIT_DELAY}s for rate limit..."))
@@ -106,13 +115,40 @@ def chat_completion_stream(messages):
     data = {
         "model": config.MODEL_NAME,
         "messages": processed_messages,
-        "stream": True
+        "stream": True,
+        "stream_options": {"include_usage": True}  # Request usage data in streaming (OpenAI)
     }
-    
+
+    # Debug: Log request details
+    if config.DEBUG_MODE:
+        print(Color.info(f"\n[Request Debug]"))
+        print(Color.info(f"  URL: {url}"))
+        print(Color.info(f"  Model: {config.MODEL_NAME}"))
+        print(Color.info(f"  Messages count: {len(processed_messages)}"))
+
+        # Estimate total tokens
+        total_chars = sum(len(str(m.get('content', ''))) for m in processed_messages)
+        estimated_tokens = total_chars // 4
+        print(Color.info(f"  Estimated input tokens: {estimated_tokens:,}"))
+
+        # Check if structured content (caching applied)
+        has_structured = any(isinstance(m.get('content'), list) for m in processed_messages)
+        print(Color.info(f"  Structured content (caching): {has_structured}"))
+
+        # Show first message structure
+        if processed_messages:
+            first_content = processed_messages[0].get('content', '')
+            if isinstance(first_content, list):
+                print(Color.info(f"  First message: [list with {len(first_content)} blocks]"))
+            else:
+                print(Color.info(f"  First message: [string, {len(str(first_content))} chars]"))
+        print()
+
     try:
         req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
         with urllib.request.urlopen(req) as response:
             # Parse Server-Sent Events (SSE)
+            usage_info = None
             for line in response:
                 line = line.decode('utf-8').strip()
                 if line.startswith("data: "):
@@ -121,6 +157,11 @@ def chat_completion_stream(messages):
                         break
                     try:
                         chunk_json = json.loads(data_str)
+
+                        # Extract usage information (both OpenAI and Anthropic formats)
+                        if "usage" in chunk_json:
+                            usage_info = chunk_json["usage"]
+
                         # Extract content delta
                         # Structure: choices[0].delta.content
                         if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
@@ -130,11 +171,62 @@ def chat_completion_stream(messages):
                                 yield content
                     except json.JSONDecodeError:
                         continue
+
+            # Update global token tracking with actual values from API
+            if usage_info:
+                # Both OpenAI and Anthropic use "input_tokens" or "prompt_tokens"
+                input_tokens = usage_info.get("input_tokens") or usage_info.get("prompt_tokens", 0)
+                if input_tokens > 0:
+                    last_input_tokens = input_tokens
+
+            # Display usage information if available and caching is enabled
+            if usage_info and config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
+                input_tokens = usage_info.get("input_tokens", 0)
+                output_tokens = usage_info.get("output_tokens", 0)
+                cache_creation_tokens = usage_info.get("cache_creation_input_tokens", 0)
+                cache_read_tokens = usage_info.get("cache_read_input_tokens", 0)
+
+                if cache_creation_tokens > 0 or cache_read_tokens > 0:
+                    yield f"\n\n{Color.info('[Token Usage]')}\n"
+                    yield f"{Color.info(f'  Input: {input_tokens:,} tokens')}\n"
+                    yield f"{Color.info(f'  Output: {output_tokens:,} tokens')}\n"
+                    if cache_creation_tokens > 0:
+                        yield f"{Color.info(f'  Cache Created: {cache_creation_tokens:,} tokens')}\n"
+                    if cache_read_tokens > 0:
+                        savings = int(cache_read_tokens * 0.9)
+                        yield f"{Color.success(f'  Cache Hit: {cache_read_tokens:,} tokens (saved ~{savings:,} tokens worth of cost!)')}\n"
     except urllib.error.HTTPError as e:
         error_body = e.read().decode('utf-8')
-        yield f"\n[HTTP Error {e.code}]: {e.reason}\nBody: {error_body}"
+        yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
+
+        # Try to parse error JSON
+        try:
+            error_json = json.loads(error_body)
+            yield f"{Color.error('Error Details:')}\n"
+            if 'error' in error_json:
+                error_info = error_json['error']
+                if isinstance(error_info, dict):
+                    error_type = error_info.get('type', 'unknown')
+                    error_message = error_info.get('message', 'No message')
+                    yield f"{Color.error(f'  Type: {error_type}')}\n"
+                    yield f"{Color.error(f'  Message: {error_message}')}\n"
+                else:
+                    yield f"{Color.error(f'  {error_info}')}\n"
+            else:
+                yield f"{Color.error(f'  {error_json}')}\n"
+        except:
+            yield f"{Color.error(f'Raw Error Body:')}\n{error_body[:500]}\n"
+
+        # Debug: Show request info that caused error
+        if config.DEBUG_MODE:
+            yield f"\n{Color.info('[Debug Info]')}\n"
+            yield f"{Color.info(f'  Model: {config.MODEL_NAME}')}\n"
+            yield f"{Color.info(f'  Message count: {len(processed_messages)}')}\n"
+            total_chars = sum(len(str(m.get('content', ''))) for m in processed_messages)
+            yield f"{Color.info(f'  Estimated tokens: {total_chars // 4:,}')}\n"
+
     except urllib.error.URLError as e:
-        yield f"\n[Connection Error]: {e}"
+        yield f"\n{Color.error(f'[Connection Error]: {e}')}"
 
 # --- 3. History Management ---
 
@@ -426,6 +518,81 @@ def estimate_message_tokens(message):
 
     return 0
 
+
+def get_actual_tokens(messages):
+    """
+    Gets actual token count using hybrid approach:
+    1. If we have actual token count from last API call, use it
+    2. Otherwise, use estimation
+
+    Args:
+        messages: list of message dicts
+
+    Returns:
+        int: actual or estimated token count
+    """
+    global last_input_tokens
+
+    # If we have recent actual token count from API, use it
+    if last_input_tokens > 0:
+        return last_input_tokens
+
+    # Fallback to estimation
+    return sum(estimate_message_tokens(m) for m in messages)
+
+
+def get_token_count_from_api(messages):
+    """
+    [DEPRECATED - Not used by compress_history anymore]
+    Gets actual token count from API without generating response.
+    Uses max_tokens=1 to minimize cost and get usage info quickly.
+
+    Note: compress_history now uses last_input_tokens from regular API calls
+    instead of making additional API calls. This function is kept for
+    potential future use.
+
+    Args:
+        messages: list of message dicts
+
+    Returns:
+        int: actual input token count, or 0 if failed
+    """
+    try:
+        url = f"{config.BASE_URL}/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {config.API_KEY}",
+        }
+
+        # Non-streaming request with minimal output
+        data = {
+            "model": config.MODEL_NAME,
+            "messages": messages,
+            "max_tokens": 1,  # Minimal output to save cost
+            "stream": False   # Non-streaming to get usage immediately
+        }
+
+        req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            result = json.loads(response.read().decode('utf-8'))
+
+            # Extract token count from usage
+            if "usage" in result:
+                usage = result["usage"]
+                # Both OpenAI and Anthropic formats
+                input_tokens = usage.get("input_tokens") or usage.get("prompt_tokens", 0)
+
+                if config.DEBUG_MODE:
+                    print(Color.info(f"[Token Count API] Got actual count: {input_tokens:,} tokens"))
+
+                return input_tokens
+
+    except Exception as e:
+        if config.DEBUG_MODE:
+            print(Color.warning(f"[Token Count API] Failed: {e}"))
+
+    return 0
+
 def _calculate_cache_interval(messages, max_breakpoints):
     """
     Dynamically calculates optimal cache interval based on message count.
@@ -548,86 +715,192 @@ def apply_cache_breakpoints(messages):
 
     return messages
 
+def show_context_usage(messages, use_actual=True):
+    """
+    Displays current context usage information.
+
+    Args:
+        messages: list of message dicts
+        use_actual: if True, use actual tokens from API (hybrid mode)
+    """
+    if use_actual:
+        current_tokens = get_actual_tokens(messages)
+        source = "actual" if last_input_tokens > 0 else "estimated"
+    else:
+        current_tokens = sum(estimate_message_tokens(m) for m in messages)
+        source = "estimated"
+
+    limit_tokens = config.MAX_CONTEXT_CHARS // 4
+    threshold_tokens = int(limit_tokens * config.COMPRESSION_THRESHOLD)
+
+    usage_pct = int((current_tokens / limit_tokens) * 100) if limit_tokens > 0 else 0
+
+    # Color coding based on usage
+    if usage_pct >= 100:
+        color = Color.error
+        status = "OVER LIMIT"
+    elif usage_pct >= 80:
+        color = Color.warning
+        status = "HIGH"
+    elif usage_pct >= 50:
+        color = Color.info
+        status = "MEDIUM"
+    else:
+        color = Color.success
+        status = "OK"
+
+    bar_length = 20
+    filled = int(bar_length * usage_pct / 100)
+    bar = '█' * filled + '░' * (bar_length - filled)
+
+    # Show source in debug mode
+    if config.DEBUG_MODE:
+        print(color(f"[Context: {current_tokens:,}/{limit_tokens:,} tokens ({usage_pct}%) {bar} {status}] ({source})"))
+    else:
+        print(color(f"[Context: {current_tokens:,}/{limit_tokens:,} tokens ({usage_pct}%) {bar} {status}]"))
+
+
 def compress_history(messages):
     """
-    Compresses history if it exceeds the limit.
-    Strategy: Keep System (0) + Last 4 messages. Summarize the middle.
+    Compresses history if it exceeds the token limit.
+    Strategy: Keep System messages + Last N messages. Summarize the middle.
+    Uses last_input_tokens from API (no additional API call).
+    Supports both single and chunked compression modes.
     """
     if not config.ENABLE_COMPRESSION:
         return messages
 
-    current_chars = sum(len(str(m.get("content", ""))) for m in messages)
-    limit = config.MAX_CONTEXT_CHARS
-    threshold = limit * config.COMPRESSION_THRESHOLD
-    
-    if current_chars < threshold:
+    limit_tokens = config.MAX_CONTEXT_CHARS // 4
+    threshold_tokens = int(limit_tokens * config.COMPRESSION_THRESHOLD)
+
+    # Use last_input_tokens from previous API call (no additional API call)
+    current_tokens = get_actual_tokens(messages)
+    token_source = "actual" if last_input_tokens > 0 else "estimated"
+
+    if current_tokens < threshold_tokens:
         return messages
-        
-    print(Color.warning(f"\n[System] Context size ({current_chars} chars) exceeded threshold ({int(threshold)}). Compressing..."))
-    
-    # Keep system prompt
+
+    print(Color.warning(f"\n[System] Context size ({current_tokens:,} {token_source} tokens) exceeded threshold ({threshold_tokens:,}). Compressing..."))
+
     if not messages:
         return messages
-        
-    system_msg = messages[0]
-    
-    # If history is short, don't compress
-    if len(messages) < 6:
-        print(Color.info("[System] History too short to compress."))
+
+    # Separate system messages from regular messages (like Strix)
+    system_msgs = [m for m in messages if m.get("role") == "system"]
+    regular_msgs = [m for m in messages if m.get("role") != "system"]
+
+    # Check if history is too short
+    keep_recent = config.COMPRESSION_KEEP_RECENT
+    if len(regular_msgs) <= keep_recent:
+        print(Color.info(f"[System] History too short to compress ({len(regular_msgs)} <= {keep_recent} recent)."))
         return messages
-    
-    # Keep last 4 messages (User-Agent-User-Agent usually)
-    # Ensure we don't cut off in the middle of a tool use if possible, but simple count is safer for now
-    recent_msgs = messages[-4:]
-    
-    # Messages to summarize (exclude system prompt and recent messages)
-    to_summarize = messages[1:-4]
-    
-    if not to_summarize:
+
+    # Keep last N messages
+    recent_msgs = regular_msgs[-keep_recent:]
+    old_msgs = regular_msgs[:-keep_recent]
+
+    if not old_msgs:
         return messages
-        
+
+    # Choose compression mode
+    mode = config.COMPRESSION_MODE.lower()
+
+    if mode == "chunked":
+        # Chunked compression (like Strix)
+        print(Color.info(f"[System] Using chunked compression (chunk_size={config.COMPRESSION_CHUNK_SIZE})..."))
+        compressed = _compress_chunked(old_msgs)
+    else:
+        # Single compression (default, faster and cheaper)
+        print(Color.info("[System] Using single compression..."))
+        compressed = [_compress_single(old_msgs)]
+
+    # Construct new history: system messages + compressed + recent
+    new_history = system_msgs + compressed + recent_msgs
+
+    # Calculate new token count
+    new_tokens = sum(estimate_message_tokens(m) for m in new_history)
+    reduction_pct = int((1 - new_tokens / current_tokens) * 100) if current_tokens > 0 else 0
+
+    print(Color.success(f"[System] Compression complete. Tokens reduced: {current_tokens:,} ({token_source}) -> {new_tokens:,} (estimated) = {reduction_pct}% reduction"))
+
+    return new_history
+
+
+def _compress_single(messages):
+    """Single-pass compression: summarize all messages at once"""
     summary_prompt = "Summarize the following conversation history concisely. Focus on completed tasks, key decisions, and current state. Ignore minor chatter."
+
     conversation_text = ""
-    for m in to_summarize:
+    for m in messages:
         role = m.get("role", "unknown")
-        content = str(m.get("content", ""))[:1000] # Truncate individual messages if too huge
+        content = str(m.get("content", ""))[:1000]
         conversation_text += f"{role}: {content}\n"
-    
-    # Call LLM for summary
+
     summary_request = [
         {"role": "system", "content": "You are a helpful assistant that summarizes conversation history for an AI agent."},
         {"role": "user", "content": f"{summary_prompt}\n\n{conversation_text}"}
     ]
-    
-    print(Color.info("[System] Generating summary of old history..."), end="", flush=True)
+
+    print(Color.info("[System] Generating summary..."), end="", flush=True)
     summary_content = ""
     try:
-        # We reuse the existing stream function but consume it silently
         for chunk in chat_completion_stream(summary_request):
             summary_content += chunk
         print(Color.success(" Done."))
+
+        return {
+            "role": "system",
+            "content": f"[Previous Conversation Summary ({len(messages)} messages)]: {summary_content}"
+        }
     except Exception as e:
         print(Color.error(f"\n[System] Failed to generate summary: {e}"))
-        return messages # Abort compression on error
-        
-    # Construct new history
-    new_history = [system_msg]
-    
-    # Check if there was already a summary
-    # If the first message after system was a summary, we might want to include it in the new summary
-    # But for simplicity, we just append the new summary. 
-    # Ideally, the LLM would have summarized the previous summary too if it was in `to_summarize`.
-    
-    new_history.append({
-        "role": "system", 
-        "content": f"[Previous Conversation Summary]: {summary_content}"
-    })
-    new_history.extend(recent_msgs)
-    
-    new_chars = sum(len(str(m.get("content", ""))) for m in new_history)
-    print(Color.success(f"[System] Compression complete. Size reduced: {current_chars} -> {new_chars} chars"))
-    
-    return new_history
+        return messages[0] if messages else {"role": "system", "content": "[Compression failed]"}
+
+
+def _compress_chunked(messages):
+    """Chunked compression: summarize in chunks (like Strix)"""
+    chunk_size = config.COMPRESSION_CHUNK_SIZE
+    compressed = []
+
+    total_chunks = (len(messages) + chunk_size - 1) // chunk_size
+    print(Color.info(f"[System] Compressing {len(messages)} messages in {total_chunks} chunks..."))
+
+    for i in range(0, len(messages), chunk_size):
+        chunk = messages[i:i + chunk_size]
+        chunk_num = i // chunk_size + 1
+
+        print(Color.info(f"[System] Chunk {chunk_num}/{total_chunks}..."), end="", flush=True)
+
+        summary_prompt = "Summarize the following conversation segment concisely. Focus on completed tasks, key decisions, and current state."
+
+        conversation_text = ""
+        for m in chunk:
+            role = m.get("role", "unknown")
+            content = str(m.get("content", ""))[:1000]
+            conversation_text += f"{role}: {content}\n"
+
+        summary_request = [
+            {"role": "system", "content": "You are a helpful assistant that summarizes conversation history for an AI agent."},
+            {"role": "user", "content": f"{summary_prompt}\n\n{conversation_text}"}
+        ]
+
+        try:
+            summary_content = ""
+            for chunk_data in chat_completion_stream(summary_request):
+                summary_content += chunk_data
+
+            compressed.append({
+                "role": "system",
+                "content": f"[Summary chunk {chunk_num}/{total_chunks} ({len(chunk)} messages)]: {summary_content}"
+            })
+            print(Color.success(" Done."))
+        except Exception as e:
+            print(Color.error(f" Failed: {e}"))
+            # Keep original first message as fallback
+            if chunk:
+                compressed.append(chunk[0])
+
+    return compressed
 
 # --- 6. Main Loop ---
 
@@ -646,7 +919,13 @@ def chat_loop():
     print(Color.system(f"Connecting to: {config.BASE_URL}"))
     print(Color.system(f"Rate Limit: {config.RATE_LIMIT_DELAY}s | Max Iterations: {config.MAX_ITERATIONS}"))
     print(Color.system(f"History: {'Enabled' if config.SAVE_HISTORY else 'Disabled'}"))
-    print(Color.info("Type 'exit' or 'quit' to stop.\n"))
+    print(Color.system(f"Compression: {'Enabled' if config.ENABLE_COMPRESSION else 'Disabled'} (Threshold: {int(config.COMPRESSION_THRESHOLD*100)}%)"))
+    print(Color.system(f"Prompt Caching: {'Enabled' if config.ENABLE_PROMPT_CACHING else 'Disabled'}"))
+
+    # Show initial context usage
+    show_context_usage(messages)
+
+    print(Color.info("\nType 'exit' or 'quit' to stop.\n"))
 
     while True:
         try:
@@ -664,7 +943,11 @@ def chat_loop():
             for iteration in range(config.MAX_ITERATIONS):
                 # Context Management: Compress if needed
                 messages = compress_history(messages)
-                
+
+                # Show context usage before each iteration
+                if config.DEBUG_MODE or iteration == 0:
+                    show_context_usage(messages)
+
                 print(Color.agent(f"Agent (Iteration {iteration+1}/{config.MAX_ITERATIONS}): "), end="", flush=True)
 
                 collected_content = ""
