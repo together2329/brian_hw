@@ -1196,8 +1196,16 @@ if __name__ == "__main__":
                 print(Color.info(f"  ✓ Result: {obs_preview}\n"))
 
                 # Error detection: check if observation contains error indicators
-                is_error = any(indicator in observation.lower() for indicator in
-                              ['error', 'failed', 'exception', 'traceback', 'syntax error'])
+                # More robust check: look for "error:" or "exception:" pattern, or "failed"
+                obs_lower = observation.lower()
+                is_error = any(indicator in obs_lower for indicator in
+                              ['error:', 'exception:', 'traceback', 'syntax error', 'compilation failed'])
+                
+                # Special case: if it's just a file content read that happens to contain "error", it's not an execution error
+                if tool_name in ['read_file', 'read_lines', 'grep_file', 'get_plan'] and "error" in obs_lower:
+                    # For these tools, unless it starts with "Error:", it's likely just content
+                    if not observation.strip().lower().startswith("error:"):
+                        is_error = False
 
                 if is_error:
                     # Check if it's the same error repeating
