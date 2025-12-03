@@ -156,6 +156,26 @@ GRAPH_AUTO_EXTRACT = os.getenv("GRAPH_AUTO_EXTRACT", "true").lower() in ("true",
 # Number of relevant nodes to inject into context (semantic search)
 GRAPH_SEARCH_LIMIT = int(os.getenv("GRAPH_SEARCH_LIMIT", "5"))
 
+# Similarity threshold for graph search results (0.0-1.0)
+# Only nodes with similarity >= this value will be included in context
+GRAPH_SIMILARITY_THRESHOLD = float(os.getenv("GRAPH_SIMILARITY_THRESHOLD", "0.5"))
+
+# Number of recent messages to use for knowledge extraction
+GRAPH_EXTRACTION_MESSAGES = int(os.getenv("GRAPH_EXTRACTION_MESSAGES", "10"))
+
+# ============================================================
+# A-MEM Configuration (Auto-Linking)
+# ============================================================
+# Similarity threshold for finding candidate notes to link (0.0-1.0)
+AMEM_SIMILARITY_THRESHOLD = float(os.getenv("AMEM_SIMILARITY_THRESHOLD", "0.5"))
+
+# Maximum number of candidate notes to send to LLM for linking decision
+AMEM_MAX_CANDIDATES = int(os.getenv("AMEM_MAX_CANDIDATES", "10"))
+
+# LLM temperature for linking decisions (lower = more logical/deterministic)
+AMEM_LINK_TEMPERATURE = float(os.getenv("AMEM_LINK_TEMPERATURE", "0.3"))
+
+
 # System Prompt with ReAct instructions
 SYSTEM_PROMPT = """You are an intelligent coding agent named Brian Coder.
 You can read files, write code, and run terminal commands to help the user.

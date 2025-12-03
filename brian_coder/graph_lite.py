@@ -135,6 +135,65 @@ class GraphLite:
         """
         self.nodes[node.id] = node
 
+    def find_node_by_name(self, name: str, node_type: Optional[str] = None) -> Optional[Node]:
+        """
+        Find a node by its name (case-insensitive search).
+
+        Args:
+            name: Node name to search for (in node.data["name"])
+            node_type: Optional node type filter
+
+        Returns:
+            First matching node, or None if not found
+        """
+        name_lower = name.lower()
+        
+        for node in self.nodes.values():
+            # Check type filter
+            if node_type is not None and node.type != node_type:
+                continue
+            
+            # Check name match (case-insensitive)
+            node_name = node.data.get("name", "").lower()
+            if node_name == name_lower:
+                return node
+        
+        return None
+
+    def add_or_update_node(self, node: Node) -> str:
+        """
+        Add a new node or update existing one if duplicate found.
+        
+        Uses name-based deduplication to prevent duplicate entities.
+        If an existing node with the same name is found, merges the data
+        and updates the embedding.
+
+        Args:
+            node: Node to add or merge
+
+        Returns:
+            Node ID (existing or new)
+        """
+        # Check for existing node with same name
+        node_name = node.data.get("name", "")
+        
+        if node_name:
+            existing = self.find_node_by_name(node_name, node_type=node.type)
+            
+            if existing:
+                # Update existing node's data (merge)
+                existing.data.update(node.data)
+                
+                # Update embedding if provided
+                if node.embedding:
+                    existing.embedding = node.embedding
+                
+                return existing.id
+        
+        # No duplicate found, add as new node
+        self.add_node(node)
+        return node.id
+
     def add_edge(self, edge: Edge) -> None:
         """
         Add an edge to the graph.
@@ -219,6 +278,170 @@ class GraphLite:
         ]
 
         return True
+
+    # ==================== A-MEM Auto-Linking ====================
+
+    def add_note_with_auto_linking(self, content: str, context: dict = None) -> str:
+        """
+        A-MEM style: Add free-form note with automatic linking.
+        
+        Uses 2-step process:
+        1. Embedding-based candidate filtering (fast)
+        2. LLM-based linking decision (accurate)
+        
+        Args:
+            content: Free-form note content
+            context: Optional context dict (e.g., {"topic": "debugging", "file": "..."})
+        
+        Returns:
+            Node ID of created note
+        """
+        # Create note with embedding
+        note = Node(
+            id=self.generate_node_id("note"),
+            type="Note",
+            data={
+                "content": content,
+                "context": context or {},
+                "timestamp": datetime.now().isoformat()
+            },
+            embedding=self.get_embedding(content)
+        )
+        
+        # Step 1: Find candidates via embedding similarity
+        candidates = []
+        for existing in self.nodes.values():
+            if existing.embedding is None:
+                continue
+            
+            # Skip self-comparison
+            if existing.id == note.id:
+                continue
+            
+            score = self.cosine_similarity(note.embedding, existing.embedding)
+            
+            # Import config at runtime to avoid circular dependency
+            try:
+                import config
+                threshold = config.AMEM_SIMILARITY_THRESHOLD
+            except:
+                threshold = 0.6
+            
+            # Debug: print all similarities
+            print(f"[Graph] Similarity to {existing.id[:12]}: {score:.3f} (threshold: {threshold})")
+            
+            if score >= threshold:
+                candidates.append((score, existing))
+                print(f"[Graph] → Added as candidate!")
+        
+        print(f"[Graph] Total candidates after filtering: {len(candidates)}")
+        
+        # Sort by similarity and limit
+        candidates.sort(reverse=True, key=lambda x: x[0])
+        
+        try:
+            import config
+            max_candidates = config.AMEM_MAX_CANDIDATES
+        except:
+            max_candidates = 10
+        
+        candidates = candidates[:max_candidates]
+        
+        # Step 2: LLM decides which to link
+        if candidates:
+            linked_ids = self._llm_link_decision(note, candidates)
+            
+            # Create edges
+            for target_id in linked_ids:
+                edge = Edge(
+                    source=note.id,
+                    target=target_id,
+                    relation="RELATED_TO",
+                    confidence=0.9  # High confidence from LLM decision
+                )
+                self.add_edge(edge)
+        
+        # Add node to graph
+        self.add_node(note)
+        
+        return note.id
+    
+    def _llm_link_decision(self, new_note: Node, candidates: List[Tuple[float, Node]]) -> List[str]:
+        """
+        Use LLM to decide which candidate notes should be linked.
+        
+        Args:
+            new_note: The new note to link
+            candidates: List of (score, node) tuples from embedding search
+        
+        Returns:
+            List of node IDs to link to
+        """
+        # Prepare candidate descriptions
+        candidate_descriptions = []
+        for i, (score, node) in enumerate(candidates):
+            content = node.data.get("content", node.data.get("description", node.data.get("name", "")))
+            candidate_descriptions.append(f"{i}. [{node.type}] {content[:100]}")
+        
+        # Build prompt
+        prompt = f"""You are analyzing memory connections for a knowledge graph.
+
+New memory note:
+"{new_note.data['content']}"
+
+Candidate notes to potentially link (sorted by similarity):
+{chr(10).join(candidate_descriptions)}
+
+For EACH candidate, decide if it should be linked based on:
+- EQUIVALENCE: Same concept, different wording → LINK
+- CAUSAL: One causes or affects the other → LINK
+- COMPLEMENTARY: Provides additional context → LINK
+- CONTRADICTORY: Conflicts with new note → DON'T LINK
+- IRRELEVANT: No meaningful connection → DON'T LINK
+
+Return ONLY the indices to link as comma-separated numbers (e.g., "0,2,3").
+If no links are appropriate, return "NONE".
+
+Indices to link:"""
+        
+        try:
+            # Use existing LLM call pattern from extract_entities
+            from main import call_llm_raw
+            
+            # Get temperature from config
+            try:
+                import config
+                temperature = config.AMEM_LINK_TEMPERATURE
+            except:
+                temperature = 0.3
+            
+            print(f"[Graph] Calling LLM for linking decision (temp={temperature})...")
+            response = call_llm_raw(prompt, temperature=temperature).strip()
+            print(f"[Graph] LLM response: {response}")
+            
+            # Parse response
+            if response.upper() == "NONE" or not response:
+                print(f"[Graph] No links suggested by LLM")
+                return []
+            
+            # Extract indices
+            indices = []
+            for part in response.split(','):
+                part = part.strip()
+                if part.isdigit():
+                    idx = int(part)
+                    if 0 <= idx < len(candidates):
+                        indices.append(candidates[idx][1].id)
+                        print(f"[Graph] Linking to candidate {idx}: {candidates[idx][1].id}")
+            
+            print(f"[Graph] Total links created: {len(indices)}")
+            return indices
+            
+        except Exception as e:
+            print(f"[Graph] LLM linking decision failed: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
 
     # ==================== Embedding & Search ====================
 

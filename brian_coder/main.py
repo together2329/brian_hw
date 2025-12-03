@@ -31,8 +31,11 @@ memory_system = None
 if config.ENABLE_MEMORY:
     try:
         memory_system = MemorySystem(memory_dir=config.MEMORY_DIR)
+        # Success message will be shown during chat_loop startup
     except Exception as e:
-        print(f"Warning: Failed to initialize memory system: {e}")
+        # Use basic print since Color class not yet defined
+        print(f"\033[91m[System] ❌ Memory system initialization failed: {e}\033[0m")
+        print(f"\033[93m[System] ⚠️  Continuing without memory system...\033[0m")
         memory_system = None
 
 # --- Global Graph Lite System ---
@@ -41,8 +44,10 @@ graph_lite = None
 if config.ENABLE_GRAPH:
     try:
         graph_lite = GraphLite(memory_dir=config.MEMORY_DIR)
+        # Success message will be shown during chat_loop startup
     except Exception as e:
-        print(f"Warning: Failed to initialize graph system: {e}")
+        print(f"\033[91m[System] ❌ Graph system initialization failed: {e}\033[0m")
+        print(f"\033[93m[System] ⚠️  Continuing without graph system...\033[0m")
         graph_lite = None
 
 # --- Global Message Classifier ---
@@ -747,42 +752,45 @@ def apply_cache_breakpoints(messages):
                 if config.DEBUG_MODE:
                     print(Color.info(f"[System] Cache breakpoint {breakpoint_count}/{max_breakpoints}: Message {i} ({tokens} tokens)"))
 
-    if config.DEBUG_MODE:
-        print(Color.info(f"[System] Total cache breakpoints applied: {breakpoint_count}/{max_breakpoints}"))
-
     return messages
 
-def call_llm_raw(prompt):
+def call_llm_raw(prompt, temperature=0.7):
     """
-    Simple non-streaming LLM call for graph knowledge extraction.
-
+    Call LLM without streaming (for extraction tasks).
+    
     Args:
-        prompt: Prompt string to send to LLM
-
+        prompt: The prompt to send
+        temperature: Sampling temperature (default: 0.7)
+    
     Returns:
         Complete response text
     """
     url = f"{config.BASE_URL}/chat/completions"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {config.API_KEY}",
-        "User-Agent": "BrianCoder/1.0"
+        "Authorization": f"Bearer {config.API_KEY}"
     }
-
+    
     data = {
         "model": config.MODEL_NAME,
         "messages": [{"role": "user", "content": prompt}],
-        "stream": False,
-        "temperature": 0.3  # Lower temperature for more focused extraction
+        "temperature": temperature,
+        "stream": False
     }
-
+    
     try:
-        req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
-        with urllib.request.urlopen(req, timeout=30) as response:
+        request = urllib.request.Request(
+            url,
+            data=json.dumps(data).encode('utf-8'),
+            headers=headers
+        )
+        
+        with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
             result = json.loads(response.read().decode('utf-8'))
             return result["choices"][0]["message"]["content"]
+            
     except Exception as e:
-        raise RuntimeError(f"LLM call failed: {e}")
+        return f"Error calling LLM: {e}"
 
 def build_system_prompt(messages=None):
     """
@@ -824,8 +832,8 @@ def build_system_prompt(messages=None):
                     if relevant_results:
                         graph_context = "=== RELEVANT KNOWLEDGE ===\n\n"
                         for score, node in relevant_results:
-                            # Only include nodes with reasonable similarity (>0.5)
-                            if score > 0.5:
+                            # Only include nodes with reasonable similarity
+                            if score > config.GRAPH_SIMILARITY_THRESHOLD:
                                 node_desc = node.data.get("description", node.data.get("name", ""))
                                 graph_context += f"- {node.type}: {node_desc}\n"
 
@@ -845,8 +853,8 @@ def build_system_prompt(messages=None):
 def on_conversation_end(messages):
     """
     Extract and save knowledge from conversation to graph.
-    Called at the end of a conversation session.
-
+    Now uses A-MEM auto-linking for intelligent connections.
+    
     Args:
         messages: Full message history
     """
@@ -856,84 +864,77 @@ def on_conversation_end(messages):
     print(Color.system("\n[Graph] Extracting knowledge from conversation..."))
 
     try:
-        # Get last 10 messages for context (skip system message)
-        recent_messages = [m for m in messages if m.get("role") != "system"][-10:]
+        # Get recent messages for context (skip system message)
+        recent_messages = [m for m in messages if m.get("role") != "system"][-config.GRAPH_EXTRACTION_MESSAGES:]
 
         if not recent_messages:
             return
 
-        # Build conversation text
+        # Build conversation summary
         conversation_text = "\n".join([
             f"{m.get('role')}: {m.get('content', '')[:500]}"
             for m in recent_messages
         ])
 
-        # Extract entities using LLM
-        print(Color.system("[Graph] Extracting entities..."))
-        entities = graph_lite.extract_entities_from_text(conversation_text)
+        # A-MEM: Create free-form notes with auto-linking
+        # Instead of extracting entities/relations separately, we create rich notes
+        # that automatically link to relevant existing knowledge
+        
+        print(Color.system("[Graph] Creating memory notes with auto-linking..."))
+        
+        # Extract key insights/learnings from conversation
+        prompt = f"""Extract 2-3 key learnings or insights from this conversation.
+        
+Conversation:
+{conversation_text}
 
-        if not entities:
-            print(Color.info("[Graph] No entities extracted."))
+For each learning, provide a concise statement (1-2 sentences).
+Return as JSON array: [{{"learning": "..."}}]
+
+Learnings (JSON only):"""
+
+        try:
+            response = call_llm_raw(prompt)
+            
+            # Parse JSON
+            start_idx = response.find('[')
+            end_idx = response.rfind(']') + 1
+            
+            if start_idx != -1 and end_idx > start_idx:
+                json_str = response[start_idx:end_idx]
+                learnings = json.loads(json_str)
+                
+                # Add each learning as a note with auto-linking
+                notes_added = 0
+                for item in learnings:
+                    learning = item.get('learning', '')
+                    if learning:
+                        # A-MEM auto-linking!
+                        node_id = graph_lite.add_note_with_auto_linking(
+                            content=learning,
+                            context={
+                                'source': 'conversation',
+                                'timestamp': datetime.now().isoformat()
+                            }
+                        )
+                        notes_added += 1
+                
+                print(Color.success(f"[Graph] Added {notes_added} notes with auto-linking"))
+                
+                # Save graph
+                graph_lite.save()
+                
+                # Display stats
+                stats = graph_lite.get_stats()
+                print(Color.info(f"[Graph] Total: {stats['total_nodes']} nodes, {stats['total_edges']} edges"))
+                
+        except Exception as e:
+            print(Color.error(f"[Graph] Failed to extract learnings: {e}"))
             return
 
-        # Create nodes for extracted entities
-        node_map = {}  # Map entity names to node IDs
-        for entity_data in entities:
-            entity_name = entity_data.get("name", "Unknown")
-            entity_desc = entity_data.get("description", "")
-
-            # Generate embedding for entity description
-            try:
-                embedding = graph_lite.get_embedding(f"{entity_name}: {entity_desc}")
-            except Exception:
-                embedding = None
-
-            # Create node
-            node = Node(
-                id=graph_lite.generate_node_id("entity"),
-                type="Entity",
-                data=entity_data,
-                embedding=embedding
-            )
-
-            graph_lite.add_node(node)
-            node_map[entity_name] = node.id
-
-        print(Color.success(f"[Graph] Added {len(entities)} entities"))
-
-        # Extract relations between entities
-        if len(entities) > 1:
-            print(Color.system("[Graph] Extracting relations..."))
-            relations = graph_lite.extract_relations_from_text(conversation_text, entities)
-
-            # Create edges for extracted relations
-            for relation_data in relations:
-                source_name = relation_data.get("source", "")
-                target_name = relation_data.get("target", "")
-
-                # Find node IDs from names
-                source_id = node_map.get(source_name)
-                target_id = node_map.get(target_name)
-
-                if source_id and target_id:
-                    edge = Edge(
-                        source=source_id,
-                        target=target_id,
-                        relation=relation_data.get("relation", "RELATED_TO"),
-                        confidence=relation_data.get("confidence", 0.8)
-                    )
-                    graph_lite.add_edge(edge)
-
-            print(Color.success(f"[Graph] Added {len(relations)} relations"))
-
-        # Save graph to disk
-        graph_lite.save()
-
-        stats = graph_lite.get_stats()
-        print(Color.success(f"[Graph] Knowledge saved. Total nodes: {stats['total_nodes']}, edges: {stats['total_edges']}\n"))
-
     except Exception as e:
-        print(Color.error(f"[Graph] Failed to extract knowledge: {e}\n"))
+        print(Color.error(f"[Graph] Knowledge extraction failed: {e}"))
+
 
 def show_context_usage(messages, use_actual=True):
     """
