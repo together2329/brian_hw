@@ -103,6 +103,9 @@ ENABLE_SMART_COMPRESSION = os.getenv("ENABLE_SMART_COMPRESSION", "true").lower()
 # Cost savings: 90% for cached tokens
 ENABLE_PROMPT_CACHING = os.getenv("ENABLE_PROMPT_CACHING", "false").lower() in ("true", "1", "yes")
 
+# Feature Flags
+ENABLE_VERILOG_TOOLS = os.getenv("ENABLE_VERILOG_TOOLS", "false").lower() in ("true", "1", "yes")
+
 # Maximum cache breakpoints (1-4, Anthropic allows up to 4)
 # Default: 3 (System message + 2 dynamic points in history)
 MAX_CACHE_BREAKPOINTS = int(os.getenv("MAX_CACHE_BREAKPOINTS", "3"))

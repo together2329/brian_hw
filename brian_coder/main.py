@@ -20,6 +20,15 @@ from procedural_memory import ProceduralMemory, Action, Trajectory
 from message_classifier import MessageClassifier
 from iteration_control import IterationTracker, detect_completion_signal, show_iteration_warning
 
+# --- Dynamic Plugin Loading ---
+if config.ENABLE_VERILOG_TOOLS:
+    try:
+        import tools_verilog
+        tools.AVAILABLE_TOOLS.update(tools_verilog.VERILOG_TOOLS)
+        print(Color.system("[System] Verilog tools plugin loaded successfully 🔌"))
+    except ImportError as e:
+        print(Color.warning(f"[System] Failed to load Verilog tools: {e}"))
+
 # --- 1. No Vendor Path Needed ---
 # We are using standard libraries only.
 
