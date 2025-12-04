@@ -1,6 +1,7 @@
 import os
 import subprocess
 import json
+import shlex
 
 def read_file(path):
     """Reads the content of a file."""
@@ -29,9 +30,11 @@ def run_command(command):
     try:
         # Security Note: In a real production agent, you'd want to sandbox this.
         # Since this is for internal use by a developer, we use subprocess directly.
+        # Updated to use shell=False for better security
+        args = shlex.split(command)
         result = subprocess.run(
-            command, 
-            shell=True, 
+            args, 
+            shell=False, 
             capture_output=True, 
             text=True, 
             timeout=30

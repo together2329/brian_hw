@@ -5,10 +5,18 @@ import urllib.request
 import urllib.error
 import re
 import copy
+import time
+from datetime import datetime
+import config
 import config
 import tools
+import display
+import llm_client
+from display import Color
+from llm_client import chat_completion_stream, call_llm_raw, estimate_message_tokens, get_actual_tokens
 from memory import MemorySystem
 from graph_lite import GraphLite, Node, Edge
+from procedural_memory import ProceduralMemory, Action, Trajectory
 from message_classifier import MessageClassifier
 from iteration_control import IterationTracker, detect_completion_signal, show_iteration_warning
 
@@ -16,14 +24,7 @@ from iteration_control import IterationTracker, detect_completion_signal, show_i
 # We are using standard libraries only.
 
 # --- 2. API Client (urllib) ---
-
-import time
-
-# --- Global Token Tracking ---
-# Stores actual token counts from API responses
-# Structure: {"message_index": actual_token_count}
-actual_token_cache = {}
-last_input_tokens = 0  # Last reported input tokens from API
+# Moved to llm_client.py
 
 # --- Global Memory System ---
 # Initialize memory system if enabled
@@ -50,225 +51,26 @@ if config.ENABLE_GRAPH:
         print(f"\033[93m[System] ⚠️  Continuing without graph system...\033[0m")
         graph_lite = None
 
+# --- Global Procedural Memory System ---
+# Initialize procedural memory if enabled
+procedural_memory = None
+if config.ENABLE_PROCEDURAL_MEMORY:
+    try:
+        procedural_memory = ProceduralMemory(memory_dir=config.MEMORY_DIR)
+        # Success message will be shown during chat_loop startup
+    except Exception as e:
+        print(f"\033[91m[System] ❌ Procedural memory initialization failed: {e}\033[0m")
+        print(f"\033[93m[System] ⚠️  Continuing without procedural memory...\033[0m")
+        procedural_memory = None
+
 # --- Global Message Classifier ---
 # Initialize classifier for smart compression
 message_classifier = MessageClassifier() if config.ENABLE_SMART_COMPRESSION else None
 
 # --- Color Utilities (ANSI Escape Codes) ---
+# Moved to display.py
 
-class Color:
-    """ANSI color codes for terminal output"""
-    # Basic colors
-    RED = '\033[91m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    MAGENTA = '\033[95m'
-    CYAN = '\033[96m'
-    WHITE = '\033[97m'
-    
-    # Styles
-    BOLD = '\033[1m'
-    DIM = '\033[2m'
-    RESET = '\033[0m'
-    
-    @staticmethod
-    def system(text):
-        """System messages - Cyan"""
-        return f"{Color.CYAN}{text}{Color.RESET}"
-    
-    @staticmethod
-    def user(text):
-        """User messages - Green"""
-        return f"{Color.GREEN}{text}{Color.RESET}"
-    
-    @staticmethod
-    def agent(text):
-        """Agent messages - Blue"""
-        return f"{Color.BLUE}{text}{Color.RESET}"
-    
-    @staticmethod
-    def tool(text):
-        """Tool names - Magenta"""
-        return f"{Color.MAGENTA}{text}{Color.RESET}"
-    
-    @staticmethod
-    def success(text):
-        """Success messages - Green + Bold"""
-        return f"{Color.BOLD}{Color.GREEN}{text}{Color.RESET}"
-    
-    @staticmethod
-    def warning(text):
-        """Warning messages - Yellow"""
-        return f"{Color.YELLOW}{text}{Color.RESET}"
-    
-    @staticmethod
-    def error(text):
-        """Error messages - Red + Bold"""
-        return f"{Color.BOLD}{Color.RED}{text}{Color.RESET}"
-    
-    @staticmethod
-    def info(text):
-        """Info messages - Cyan + Dim"""
-        return f"{Color.DIM}{Color.CYAN}{text}{Color.RESET}"
-
-def chat_completion_stream(messages):
-    """
-    Sends a chat completion request to the LLM using urllib.
-    Yields content chunks from the SSE stream.
-    Supports Anthropic Prompt Caching when enabled.
-    Updates global actual_token_cache with real token counts from API.
-    """
-    global last_input_tokens
-
-    # Rate limiting: Configurable delay
-    if config.RATE_LIMIT_DELAY > 0:
-        print(Color.info(f"[System] Waiting {config.RATE_LIMIT_DELAY}s for rate limit..."))
-        time.sleep(config.RATE_LIMIT_DELAY)
-
-    # Apply prompt caching if enabled (deepcopy to preserve original)
-    processed_messages = messages
-    if config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
-        processed_messages = copy.deepcopy(messages)
-        processed_messages = apply_cache_breakpoints(processed_messages)
-
-    url = f"{config.BASE_URL}/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {config.API_KEY}",
-        "User-Agent": "BrianCoder/1.0"
-    }
-
-    # Add Anthropic-specific headers if caching enabled
-    if config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
-        headers["anthropic-beta"] = "prompt-caching-2024-07-31"
-        if config.DEBUG_MODE:
-            print(Color.info("[System] Prompt caching enabled - added anthropic-beta header"))
-
-    data = {
-        "model": config.MODEL_NAME,
-        "messages": processed_messages,
-        "stream": True,
-        "stream_options": {"include_usage": True}  # Request usage data in streaming (OpenAI)
-    }
-
-    # Debug: Log request details
-    if config.DEBUG_MODE:
-        print(Color.info(f"\n[Request Debug]"))
-        print(Color.info(f"  URL: {url}"))
-        print(Color.info(f"  Model: {config.MODEL_NAME}"))
-        print(Color.info(f"  Messages count: {len(processed_messages)}"))
-
-        # Estimate total tokens
-        total_chars = sum(len(str(m.get('content', ''))) for m in processed_messages)
-        estimated_tokens = total_chars // 4
-        print(Color.info(f"  Estimated input tokens: {estimated_tokens:,}"))
-
-        # Check if structured content (caching applied)
-        has_structured = any(isinstance(m.get('content'), list) for m in processed_messages)
-        print(Color.info(f"  Structured content (caching): {has_structured}"))
-
-        # Show first message structure
-        if processed_messages:
-            first_content = processed_messages[0].get('content', '')
-            if isinstance(first_content, list):
-                print(Color.info(f"  First message: [list with {len(first_content)} blocks]"))
-            else:
-                print(Color.info(f"  First message: [string, {len(str(first_content))} chars]"))
-        print()
-
-    try:
-        req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
-        with urllib.request.urlopen(req, timeout=config.API_TIMEOUT) as response:
-            # Parse Server-Sent Events (SSE)
-            usage_info = None
-            for line in response:
-                line = line.decode('utf-8').strip()
-                if line.startswith("data: "):
-                    data_str = line[6:] # Remove "data: " prefix
-                    if data_str == "[DONE]":
-                        break
-                    try:
-                        chunk_json = json.loads(data_str)
-
-                        # Extract usage information (both OpenAI and Anthropic formats)
-                        if "usage" in chunk_json:
-                            usage_info = chunk_json["usage"]
-
-                        # Extract content delta
-                        # Structure: choices[0].delta.content
-                        if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
-                            delta = chunk_json["choices"][0].get("delta", {})
-                            content = delta.get("content", "")
-                            if content:
-                                yield content
-                    except json.JSONDecodeError:
-                        continue
-
-            # Update global token tracking with actual values from API
-            if usage_info:
-                # Both OpenAI and Anthropic use "input_tokens" or "prompt_tokens"
-                input_tokens = usage_info.get("input_tokens") or usage_info.get("prompt_tokens", 0)
-                output_tokens = usage_info.get("output_tokens") or usage_info.get("completion_tokens", 0)
-                if input_tokens > 0:
-                    last_input_tokens = input_tokens
-
-                # Display actual token usage in DEBUG mode
-                if config.DEBUG_MODE:
-                    total_tokens = input_tokens + output_tokens
-                    print(f"\n{Color.info('[Token Usage]')}")
-                    print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
-                    print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
-                    print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}\n")
-
-            # Display usage information if available and caching is enabled
-            if usage_info and config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
-                input_tokens = usage_info.get("input_tokens", 0)
-                output_tokens = usage_info.get("output_tokens", 0)
-                cache_creation_tokens = usage_info.get("cache_creation_input_tokens", 0)
-                cache_read_tokens = usage_info.get("cache_read_input_tokens", 0)
-
-                if cache_creation_tokens > 0 or cache_read_tokens > 0:
-                    print(f"\n\n{Color.info('[Token Usage]')}")
-                    print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
-                    print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
-                    if cache_creation_tokens > 0:
-                        print(f"{Color.info(f'  Cache Created: {cache_creation_tokens:,} tokens')}")
-                    if cache_read_tokens > 0:
-                        savings = int(cache_read_tokens * 0.9)
-                        print(f"{Color.success(f'  Cache Hit: {cache_read_tokens:,} tokens (saved ~{savings:,} tokens worth of cost!)')}\n")
-    except urllib.error.HTTPError as e:
-        error_body = e.read().decode('utf-8')
-        yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
-
-        # Try to parse error JSON
-        try:
-            error_json = json.loads(error_body)
-            yield f"{Color.error('Error Details:')}\n"
-            if 'error' in error_json:
-                error_info = error_json['error']
-                if isinstance(error_info, dict):
-                    error_type = error_info.get('type', 'unknown')
-                    error_message = error_info.get('message', 'No message')
-                    yield f"{Color.error(f'  Type: {error_type}')}\n"
-                    yield f"{Color.error(f'  Message: {error_message}')}\n"
-                else:
-                    yield f"{Color.error(f'  {error_info}')}\n"
-            else:
-                yield f"{Color.error(f'  {error_json}')}\n"
-        except:
-            yield f"{Color.error(f'Raw Error Body:')}\n{error_body[:500]}\n"
-
-        # Debug: Show request info that caused error
-        if config.DEBUG_MODE:
-            yield f"\n{Color.info('[Debug Info]')}\n"
-            yield f"{Color.info(f'  Model: {config.MODEL_NAME}')}\n"
-            yield f"{Color.info(f'  Message count: {len(processed_messages)}')}\n"
-            total_chars = sum(len(str(m.get('content', ''))) for m in processed_messages)
-            yield f"{Color.info(f'  Estimated tokens: {total_chars // 4:,}')}\n"
-
-    except urllib.error.URLError as e:
-        yield f"\n{Color.error(f'[Connection Error]: {e}')}"
+# LLM Client functions moved to llm_client.py
 
 # --- 3. History Management ---
 
@@ -504,300 +306,14 @@ def execute_tool(tool_name, args_str):
 
 # --- 5. Context Management ---
 
-def estimate_tokens(messages):
-    """Estimates token count based on characters (4 chars ~= 1 token)."""
-    total_chars = sum(len(str(m.get("content", ""))) for m in messages)
-    return total_chars // 4
-
-# ============================================================
-# Prompt Caching Helper Functions
-# ============================================================
-
-def is_anthropic_provider():
-    """
-    Detects if current provider is Anthropic based on BASE_URL or MODEL_NAME.
-
-    Returns:
-        bool: True if Anthropic API is being used
-    """
-    base_url_lower = config.BASE_URL.lower()
-    model_lower = config.MODEL_NAME.lower()
-
-    # Direct Anthropic API
-    if "anthropic.com" in base_url_lower:
-        return True
-
-    # Claude models via OpenRouter or other proxies
-    if "claude" in model_lower:
-        return True
-
-    return False
-
-def estimate_message_tokens(message):
-    """
-    Estimates token count for a single message.
-    Uses 4 chars ≈ 1 token heuristic.
-
-    Args:
-        message: dict with "content" field (str or list)
-
-    Returns:
-        int: estimated token count
-    """
-    content = message.get("content", "")
-
-    # Handle string content
-    if isinstance(content, str):
-        return len(content) // 4
-
-    # Handle structured content (list of blocks)
-    if isinstance(content, list):
-        total_chars = 0
-        for block in content:
-            if isinstance(block, dict) and block.get("type") == "text":
-                total_chars += len(block.get("text", ""))
-        return total_chars // 4
-
-    return 0
-
-
-def get_actual_tokens(messages):
-    """
-    Gets actual token count using hybrid approach:
-    1. If we have actual token count from last API call, use it
-    2. Otherwise, use estimation
-
-    Args:
-        messages: list of message dicts
-
-    Returns:
-        int: actual or estimated token count
-    """
-    global last_input_tokens
-
-    # If we have recent actual token count from API, use it
-    if last_input_tokens > 0:
-        return last_input_tokens
-
-    # Fallback to estimation
-    return sum(estimate_message_tokens(m) for m in messages)
-
-
-def get_token_count_from_api(messages):
-    """
-    [DEPRECATED - Not used by compress_history anymore]
-    Gets actual token count from API without generating response.
-    Uses max_tokens=1 to minimize cost and get usage info quickly.
-
-    Note: compress_history now uses last_input_tokens from regular API calls
-    instead of making additional API calls. This function is kept for
-    potential future use.
-
-    Args:
-        messages: list of message dicts
-
-    Returns:
-        int: actual input token count, or 0 if failed
-    """
-    try:
-        url = f"{config.BASE_URL}/chat/completions"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {config.API_KEY}",
-        }
-
-        # Non-streaming request with minimal output
-        data = {
-            "model": config.MODEL_NAME,
-            "messages": messages,
-            "max_tokens": 1,  # Minimal output to save cost
-            "stream": False   # Non-streaming to get usage immediately
-        }
-
-        req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
-        with urllib.request.urlopen(req, timeout=10) as response:
-            result = json.loads(response.read().decode('utf-8'))
-
-            # Extract token count from usage
-            if "usage" in result:
-                usage = result["usage"]
-                # Both OpenAI and Anthropic formats
-                input_tokens = usage.get("input_tokens") or usage.get("prompt_tokens", 0)
-
-                if config.DEBUG_MODE:
-                    print(Color.info(f"[Token Count API] Got actual count: {input_tokens:,} tokens"))
-
-                return input_tokens
-
-    except Exception as e:
-        if config.DEBUG_MODE:
-            print(Color.warning(f"[Token Count API] Failed: {e}"))
-
-    return 0
-
-def _calculate_cache_interval(messages, max_breakpoints):
-    """
-    Dynamically calculates optimal cache interval based on message count.
-
-    Args:
-        messages: list of message dicts
-        max_breakpoints: maximum allowed breakpoints (typically 3)
-
-    Returns:
-        int: interval between cache breakpoints
-    """
-    # Exclude system message from count
-    message_count = len(messages) - 1  # -1 for system message
-
-    if message_count <= 1:
-        return 1
-
-    # Reserve 1 breakpoint for system message
-    available_breakpoints = max_breakpoints - 1
-
-    if available_breakpoints <= 0:
-        return message_count  # No dynamic breakpoints
-
-    # Calculate interval to evenly distribute breakpoints
-    interval = max(1, message_count // available_breakpoints)
-
-    return interval
-
-def convert_to_cache_format(content, add_cache_control=False):
-    """
-    Converts string content to structured format for prompt caching.
-
-    Args:
-        content: str or list (message content)
-        add_cache_control: bool (whether to add cache control marker)
-
-    Returns:
-        list: structured content blocks
-    """
-    # Already in structured format
-    if isinstance(content, list):
-        if add_cache_control and content:
-            # Add cache_control to last block
-            content[-1]["cache_control"] = {"type": "ephemeral"}
-        return content
-
-    # Convert string to structured format
-    block = {
-        "type": "text",
-        "text": content
-    }
-
-    if add_cache_control:
-        block["cache_control"] = {"type": "ephemeral"}
-
-    return [block]
-
-def apply_cache_breakpoints(messages):
-    """
-    Applies cache breakpoints to messages based on configuration.
-
-    Args:
-        messages: list of message dicts (standard format)
-
-    Returns:
-        list: messages with cache_control applied (modified in-place)
-    """
-    if not config.ENABLE_PROMPT_CACHING:
-        return messages
-
-    if not is_anthropic_provider():
-        if config.DEBUG_MODE:
-            print(Color.info("[System] Prompt caching disabled: non-Anthropic provider"))
-        return messages
-
-    max_breakpoints = min(config.MAX_CACHE_BREAKPOINTS, 4)  # Anthropic max = 4
-    breakpoint_count = 0
-
-    # 1. System message always gets cache breakpoint (if exists and meets min tokens)
-    if messages and messages[0].get("role") == "system":
-        tokens = estimate_message_tokens(messages[0])
-        if tokens >= config.MIN_CACHE_TOKENS:
-            messages[0]["content"] = convert_to_cache_format(
-                messages[0]["content"],
-                add_cache_control=True
-            )
-            breakpoint_count += 1
-            if config.DEBUG_MODE:
-                print(Color.info(f"[System] Cache breakpoint 1/{max_breakpoints}: System message ({tokens} tokens)"))
-
-    # 2. Dynamic breakpoints in message history
-    if breakpoint_count < max_breakpoints and len(messages) > 1:
-        # Determine interval
-        if config.CACHE_INTERVAL > 0:
-            interval = config.CACHE_INTERVAL
-        else:
-            interval = _calculate_cache_interval(messages, max_breakpoints)
-
-        if config.DEBUG_MODE:
-            print(Color.info(f"[System] Cache interval: {interval} messages"))
-
-        # Apply breakpoints at intervals (working backwards from recent messages)
-        # This ensures most recent context is cached
-        for i in range(len(messages) - 1, 0, -interval):
-            if breakpoint_count >= max_breakpoints:
-                break
-
-            tokens = estimate_message_tokens(messages[i])
-            if tokens >= config.MIN_CACHE_TOKENS:
-                messages[i]["content"] = convert_to_cache_format(
-                    messages[i]["content"],
-                    add_cache_control=True
-                )
-                breakpoint_count += 1
-                if config.DEBUG_MODE:
-                    print(Color.info(f"[System] Cache breakpoint {breakpoint_count}/{max_breakpoints}: Message {i} ({tokens} tokens)"))
-
-    return messages
-
-def call_llm_raw(prompt, temperature=0.7):
-    """
-    Call LLM without streaming (for extraction tasks).
-    
-    Args:
-        prompt: The prompt to send
-        temperature: Sampling temperature (default: 0.7)
-    
-    Returns:
-        Complete response text
-    """
-    url = f"{config.BASE_URL}/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {config.API_KEY}"
-    }
-    
-    data = {
-        "model": config.MODEL_NAME,
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": temperature,
-        "stream": False
-    }
-    
-    try:
-        request = urllib.request.Request(
-            url,
-            data=json.dumps(data).encode('utf-8'),
-            headers=headers
-        )
-        
-        with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            return result["choices"][0]["message"]["content"]
-            
-    except Exception as e:
-        return f"Error calling LLM: {e}"
+# Helper functions moved to llm_client.py
 
 def build_system_prompt(messages=None):
     """
-    Build system prompt with memory and graph context if available.
+    Build system prompt with memory, graph context, and procedural guidance if available.
 
     Args:
-        messages: Optional message history for graph semantic search
+        messages: Optional message history for graph semantic search and procedural retrieval
 
     Returns:
         Complete system prompt string
@@ -805,7 +321,7 @@ def build_system_prompt(messages=None):
     base_prompt = config.SYSTEM_PROMPT
 
     # Build context section
-    if memory_system is not None or graph_lite is not None:
+    if memory_system is not None or graph_lite is not None or procedural_memory is not None:
         context_parts = []
 
         # Add memory preferences
@@ -813,6 +329,58 @@ def build_system_prompt(messages=None):
             memory_context = memory_system.format_all_for_prompt()
             if memory_context:
                 context_parts.append(memory_context)
+
+        # Add procedural guidance (from past similar tasks)
+        if procedural_memory is not None and config.PROCEDURAL_INJECT_GUIDANCE and messages:
+            # Get recent user messages to understand current task
+            user_messages = [m for m in messages if m.get("role") == "user"]
+            if user_messages:
+                # Use last user message as current task
+                current_task = user_messages[-1].get("content", "")[:200]
+
+                try:
+                    # Retrieve similar past trajectories
+                    similar_trajs = procedural_memory.retrieve(
+                        current_task,
+                        limit=config.PROCEDURAL_RETRIEVE_LIMIT
+                    )
+
+                    # Filter by threshold
+                    similar_trajs = [(score, traj) for score, traj in similar_trajs
+                                    if score >= config.PROCEDURAL_SIMILARITY_THRESHOLD]
+
+                    if similar_trajs:
+                        guidance = "=== PAST EXPERIENCE ===\n\n"
+                        guidance += "You have similar past experiences that may help:\n\n"
+
+                        for i, (score, traj) in enumerate(similar_trajs, 1):
+                            guidance += f"{i}. Task: {traj.task_description}\n"
+                            guidance += f"   Outcome: {traj.outcome.upper()} ({traj.iterations} iterations)\n"
+
+                            # Show key actions for successful trajectories
+                            if traj.outcome == "success":
+                                guidance += "   Successful approach:\n"
+                                for action in traj.actions[:3]:  # Show first 3 actions
+                                    guidance += f"     - {action.tool}({action.args[:50]}...)\n"
+
+                            # Show errors for failed trajectories
+                            elif traj.errors_encountered:
+                                guidance += f"   Errors encountered: {', '.join(traj.errors_encountered[:2])}\n"
+
+                            guidance += "\n"
+
+                        guidance += "Use this experience to avoid past mistakes and follow proven approaches.\n"
+                        guidance += "=====================\n"
+
+                        context_parts.append(guidance)
+
+                        # Increment usage count for retrieved trajectories
+                        for score, traj in similar_trajs:
+                            procedural_memory.increment_usage(traj.id)
+
+                except Exception as e:
+                    # Fail silently if procedural retrieval fails
+                    pass
 
         # Add graph knowledge (semantic search based on recent conversation)
         if graph_lite is not None and messages:
@@ -849,6 +417,37 @@ def build_system_prompt(messages=None):
             base_prompt = base_prompt + "\n\n" + "\n\n".join(context_parts)
 
     return base_prompt
+
+def save_procedural_trajectory(task_description, actions_taken, outcome, iterations):
+    """
+    Save completed task as a trajectory in procedural memory.
+
+    Args:
+        task_description: Description of the task
+        actions_taken: List of Action objects
+        outcome: "success" or "failure"
+        iterations: Number of iterations taken
+    """
+    if not procedural_memory:
+        return
+
+    try:
+        trajectory_id = procedural_memory.build(
+            task_description=task_description,
+            actions=actions_taken,
+            outcome=outcome,
+            iterations=iterations
+        )
+
+        # Save to disk
+        procedural_memory.save()
+
+        print(Color.success(f"[Procedural Memory] Saved trajectory: {trajectory_id}"))
+        print(Color.info(f"  Task type: {procedural_memory.trajectories[trajectory_id].task_type}"))
+        print(Color.info(f"  Outcome: {outcome}, Iterations: {iterations}"))
+
+    except Exception as e:
+        print(Color.error(f"[Procedural Memory] Failed to save trajectory: {e}"))
 
 def on_conversation_end(messages):
     """
@@ -946,7 +545,7 @@ def show_context_usage(messages, use_actual=True):
     """
     if use_actual:
         current_tokens = get_actual_tokens(messages)
-        source = "actual" if last_input_tokens > 0 else "estimated"
+        source = "actual" if llm_client.last_input_tokens > 0 else "estimated"
     else:
         current_tokens = sum(estimate_message_tokens(m) for m in messages)
         source = "estimated"
@@ -996,7 +595,7 @@ def compress_history(messages):
 
     # Use last_input_tokens from previous API call (no additional API call)
     current_tokens = get_actual_tokens(messages)
-    token_source = "actual" if last_input_tokens > 0 else "estimated"
+    token_source = "actual" if llm_client.last_input_tokens > 0 else "estimated"
 
     if current_tokens < threshold_tokens:
         return messages
@@ -1255,7 +854,174 @@ To read specific sections:
     return messages
 
 
-# --- 6. Main Loop ---
+# --- 6. ReAct Agent Logic ---
+
+def run_react_agent(messages, tracker, task_description, mode='interactive'):
+    """
+    Executes the ReAct agent loop for a given task.
+    
+    Args:
+        messages: List of message dicts (context)
+        tracker: IterationTracker instance
+        task_description: Description of the task (for procedural memory)
+        mode: 'interactive' or 'oneshot'
+        
+    Returns:
+        Updated messages list
+    """
+    consecutive_errors = 0
+    last_error_observation = None
+    MAX_CONSECUTIVE_ERRORS = 3
+    
+    # Initialize action tracking for procedural memory
+    actions_taken = []
+    
+    while True:
+        # Check iteration limit with progressive warning
+        warning_action = show_iteration_warning(tracker, mode=mode)
+        if warning_action == 'stop':
+            break
+        elif warning_action == 'extend':
+            tracker.extend(20)
+
+        # Context Management: Compress if needed
+        messages = compress_history(messages)
+
+        # Show context usage before each iteration
+        if config.DEBUG_MODE or tracker.current == 0:
+            show_context_usage(messages)
+
+        print(Color.agent(f"Agent (Iteration {tracker.current+1}/{tracker.max_iterations}): "), end="", flush=True)
+
+        collected_content = ""
+        # Call LLM via urllib (collect without printing)
+        for content_chunk in chat_completion_stream(messages):
+            collected_content += content_chunk
+
+        # Apply colors to complete text and print
+        colored_output = collected_content
+        colored_output = colored_output.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
+        colored_output = colored_output.replace("Action:", Color.YELLOW + "Action:" + Color.RESET)
+
+        print(colored_output)
+        print()
+
+        # Add assistant response to history
+        messages.append({"role": "assistant", "content": collected_content})
+
+        # Check for explicit completion signal
+        if detect_completion_signal(collected_content):
+            print(Color.success("\n[System] ✅ Task completion detected. Ending ReAct loop.\n"))
+            break
+
+        # Check for Action
+        tool_name, args_str = parse_action(collected_content)
+
+        # Check for hallucinated Observation
+        if "Observation:" in collected_content and not tool_name:
+            print(Color.warning("  [System] ⚠️  Agent hallucinated an Observation. Correcting..."))
+            # We already appended the assistant message above.
+            # Now append the correction user message.
+            messages.append({
+                "role": "user", 
+                "content": "[System] You generated 'Observation:' yourself. PLEASE DO NOT DO THIS. You must output an Action, wait for me to execute it, and then I will give you the Observation. Now, please output the correct Action."
+            })
+            continue
+
+        if tool_name:
+            print(Color.tool(f"  🔧 Tool: {tool_name}"))
+
+            # Record tool usage for progress tracking
+            tracker.record_tool(tool_name)
+
+            observation = execute_tool(tool_name, args_str)
+
+            # Error detection: check if observation contains error indicators
+            obs_lower = observation.lower()
+            is_error = any(indicator in obs_lower for indicator in
+                          ['error:', 'exception:', 'traceback', 'syntax error', 'compilation failed'])
+
+            # Record action for procedural memory
+            if procedural_memory is not None:
+                action_result = "error" if is_error else "success"
+                action_obj = Action(
+                    tool=tool_name,
+                    args=args_str[:100],  # Truncate args
+                    result=action_result,
+                    observation=observation[:200]  # Truncate observation
+                )
+                actions_taken.append(action_obj)
+
+            # Smart preview based on tool type
+            if tool_name in ['read_file', 'read_lines']:
+                # For file reads, show first N lines (configurable)
+                lines = observation.split('\n')[:config.TOOL_RESULT_PREVIEW_LINES]
+                obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
+            elif len(observation) > config.TOOL_RESULT_PREVIEW_CHARS:
+                obs_preview = observation[:config.TOOL_RESULT_PREVIEW_CHARS] + f"... ({len(observation)} chars total)"
+            else:
+                obs_preview = observation
+
+            print(Color.info(f"  ✓ Result: {obs_preview}\n"))
+            
+            # Special case: if it's just a file content read that happens to contain "error", it's not an execution error
+            if tool_name in ['read_file', 'read_lines', 'grep_file', 'get_plan'] and "error" in obs_lower:
+                # For these tools, unless it starts with "Error:", it's likely just content
+                if not observation.strip().lower().startswith("error:"):
+                    is_error = False
+
+            if is_error:
+                # Check if it's the same error repeating
+                if observation == last_error_observation:
+                    consecutive_errors += 1
+                    print(Color.warning(f"  [System] ⚠️  Consecutive error #{consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}"))
+
+                    if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                        print(Color.error(f"  [System] ❌ Same error occurred {MAX_CONSECUTIVE_ERRORS} times. Stopping to prevent infinite loop."))
+                        messages.append({
+                            "role": "user",
+                            "content": f"Observation: {observation}\n\n[System] The same error occurred {MAX_CONSECUTIVE_ERRORS} times consecutively. Please ask the user for help or try a different approach."
+                        })
+                        break
+                else:
+                    # Different error, reset counter
+                    consecutive_errors = 1
+                    last_error_observation = observation
+            else:
+                # Success! Reset error counter
+                consecutive_errors = 0
+                last_error_observation = None
+
+            # Process observation (handles large files and context management)
+            messages = process_observation(observation, messages)
+
+            # Check for stall condition
+            if tracker.is_stalled():
+                print(Color.warning(f"  [System] ⚠️  Detected {tracker.consecutive_reads} consecutive read operations. Agent may be stalled."))
+        else:
+            # No action = natural completion
+            break
+
+        # Increment iteration counter
+        tracker.increment()
+
+    # Save trajectory after task completion
+    if procedural_memory is not None and actions_taken:
+        # Determine outcome
+        has_errors = any(a.result == "error" for a in actions_taken)
+        outcome = "failure" if has_errors else "success"
+
+        save_procedural_trajectory(
+            task_description=task_description,
+            actions_taken=actions_taken,
+            outcome=outcome,
+            iterations=tracker.current
+        )
+        
+    return messages
+
+
+# --- 7. Main Loop ---
 
 def chat_loop():
     # Try to load existing conversation history
@@ -1279,6 +1045,7 @@ def chat_loop():
     print(Color.system(f"Prompt Caching: {'Enabled' if config.ENABLE_PROMPT_CACHING else 'Disabled'}"))
     print(Color.system(f"Memory: {'Enabled' if config.ENABLE_MEMORY and memory_system else 'Disabled'}"))
     print(Color.system(f"Graph: {'Enabled' if config.ENABLE_GRAPH and graph_lite else 'Disabled'}"))
+    print(Color.system(f"Procedural Memory: {'Enabled' if config.ENABLE_PROCEDURAL_MEMORY and procedural_memory else 'Disabled'}"))
 
     # Show initial context usage
     show_context_usage(messages)
@@ -1290,121 +1057,45 @@ def chat_loop():
             user_input = input(Color.user("You: ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
                 break
-            
+
+            # Auto-extract preferences from user input (Mem0-style)
+            if memory_system is not None and config.ENABLE_MEMORY and config.ENABLE_AUTO_EXTRACT:
+                try:
+                    result = memory_system.auto_extract_and_update(user_input)
+                    if result.get("actions"):
+                        for action in result["actions"]:
+                            if action["action"] == "ADD":
+                                print(Color.success(f"  [Memory] ✅ Learned new preference: {action['key']} = {action['value']}"))
+                            elif action["action"] == "UPDATE":
+                                print(Color.info(f"  [Memory] 🔄 Updated preference: {action['key']} = {action['new_value']} (was: {action['old_value']})"))
+                            elif action["action"] == "DELETE":
+                                print(Color.warning(f"  [Memory] ❌ Removed preference: {action['key']}"))
+                except Exception as e:
+                    # Fail silently if extraction fails
+                    pass
+
             messages.append({"role": "user", "content": user_input})
 
             # ReAct Loop: Smart Iteration Control with progress tracking
-            consecutive_errors = 0
-            last_error_observation = None
-            MAX_CONSECUTIVE_ERRORS = 3
-
             # Initialize iteration tracker
             tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
-
-            while True:
-                # Check iteration limit with progressive warning
-                warning_action = show_iteration_warning(tracker, mode='interactive')
-                if warning_action == 'stop':
-                    break
-                elif warning_action == 'extend':
-                    tracker.extend(20)
-
-                # Context Management: Compress if needed
-                messages = compress_history(messages)
-
-                # Show context usage before each iteration
-                if config.DEBUG_MODE or tracker.current == 0:
-                    show_context_usage(messages)
-
-                print(Color.agent(f"Agent (Iteration {tracker.current+1}/{tracker.max_iterations}): "), end="", flush=True)
-
-                collected_content = ""
-                # Call LLM via urllib (collect without printing)
-                for content_chunk in chat_completion_stream(messages):
-                    collected_content += content_chunk
-
-                # Apply colors to complete text and print
-                colored_output = collected_content
-                colored_output = colored_output.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
-                colored_output = colored_output.replace("Action:", Color.YELLOW + "Action:" + Color.RESET)
-
-                print(colored_output)
-                print()
-
-                # Add assistant response to history
-                messages.append({"role": "assistant", "content": collected_content})
-
-                # Check for explicit completion signal
-                if detect_completion_signal(collected_content):
-                    print(Color.success("\n[System] ✅ Task completion detected. Ending ReAct loop.\n"))
-                    break
-
-                # Check for Action
-                tool_name, args_str = parse_action(collected_content)
-
-                if tool_name:
-                    print(Color.tool(f"  🔧 Tool: {tool_name}"))
-
-                    # Record tool usage for progress tracking
-                    tracker.record_tool(tool_name)
-
-                    observation = execute_tool(tool_name, args_str)
-
-                    # Smart preview based on tool type
-                    if tool_name in ['read_file', 'read_lines']:
-                        # For file reads, show first N lines (configurable)
-                        lines = observation.split('\n')[:config.TOOL_RESULT_PREVIEW_LINES]
-                        obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
-                    elif len(observation) > config.TOOL_RESULT_PREVIEW_CHARS:
-                        obs_preview = observation[:config.TOOL_RESULT_PREVIEW_CHARS] + f"... ({len(observation)} chars total)"
-                    else:
-                        obs_preview = observation
-
-                    print(Color.info(f"  ✓ Result: {obs_preview}\n"))
-
-                    # Error detection: check if observation contains error indicators
-                    is_error = any(indicator in observation.lower() for indicator in
-                                  ['error', 'failed', 'exception', 'traceback', 'syntax error'])
-
-                    if is_error:
-                        # Check if it's the same error repeating
-                        if observation == last_error_observation:
-                            consecutive_errors += 1
-                            print(Color.warning(f"  [System] ⚠️  Consecutive error #{consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}"))
-
-                            if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
-                                print(Color.error(f"  [System] ❌ Same error occurred {MAX_CONSECUTIVE_ERRORS} times. Stopping to prevent infinite loop."))
-                                messages.append({
-                                    "role": "user",
-                                    "content": f"Observation: {observation}\n\n[System] The same error occurred {MAX_CONSECUTIVE_ERRORS} times consecutively. Please ask the user for help or try a different approach."
-                                })
-                                break
-                        else:
-                            # Different error, reset counter
-                            consecutive_errors = 1
-                            last_error_observation = observation
-                    else:
-                        # Success! Reset error counter
-                        consecutive_errors = 0
-                        last_error_observation = None
-
-                    # Process observation (handles large files and context management)
-                    messages = process_observation(observation, messages)
-
-                    # Check for stall condition
-                    if tracker.is_stalled():
-                        print(Color.warning(f"  [System] ⚠️  Detected {tracker.consecutive_reads} consecutive read operations. Agent may be stalled."))
-                else:
-                    # No action = natural completion
-                    break
-
-                # Increment iteration counter
-                tracker.increment()
             
+            # Run ReAct Agent
+            messages = run_react_agent(messages, tracker, user_input, mode='interactive')
+
+            # Extract knowledge from conversation at end
+            try:
+                on_conversation_end(messages)
+            except Exception as e:
+                print(Color.warning(f"[Warning] Failed to save knowledge: {e}"))
+                print(Color.warning("[Warning] Conversation will continue normally"))
         except KeyboardInterrupt:
             print(Color.warning("\nExiting..."))
             save_conversation_history(messages)
-            on_conversation_end(messages)
+            try:
+                on_conversation_end(messages)
+            except Exception as e:
+                print(Color.warning(f"[Warning] Failed to save knowledge: {e}"))
             break
         except Exception as e:
             print(Color.error(f"\nAn error occurred: {e}"))
@@ -1412,7 +1103,10 @@ def chat_loop():
 
     # Save history on normal exit
     save_conversation_history(messages)
-    on_conversation_end(messages)
+    try:
+        on_conversation_end(messages)
+    except Exception as e:
+        print(Color.warning(f"[Warning] Failed to save knowledge: {e}"))
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--prompt":
@@ -1426,127 +1120,16 @@ if __name__ == "__main__":
         print(Color.user(f"User: {prompt}\n"))
 
         # ReAct loop: Smart Iteration Control with progress tracking
-        consecutive_errors = 0
-        last_error_observation = None
-        MAX_CONSECUTIVE_ERRORS = 3
-
         # Initialize iteration tracker (oneshot mode)
         tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
 
-        while True:
-            # Check iteration limit (oneshot mode - no extension)
-            warning_action = show_iteration_warning(tracker, mode='oneshot')
-            if warning_action == 'stop':
-                break
-
-            # Context Management: Compress if needed (same as chat_loop)
-            messages = compress_history(messages)
-
-            # Show context usage before each iteration
-            if config.DEBUG_MODE or tracker.current == 0:
-                show_context_usage(messages)
-
-            print(Color.agent(f"Agent (Iteration {tracker.current+1}/{tracker.max_iterations}): "), end="", flush=True)
-            collected_content = ""
-            for chunk in chat_completion_stream(messages):
-                collected_content += chunk
-
-            # Apply colors to complete text and print
-            colored_output = collected_content
-            colored_output = colored_output.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
-            colored_output = colored_output.replace("Action:", Color.YELLOW + "Action:" + Color.RESET)
-
-            print(colored_output)
-            print()
-
-            messages.append({"role": "assistant", "content": collected_content})
-
-            # Check for explicit completion signal
-            if detect_completion_signal(collected_content):
-                print(Color.success("\n[System] ✅ Task completion detected. Ending ReAct loop.\n"))
-                break
-
-            # Check for Action
-            tool_name, args_str = parse_action(collected_content)
-
-            # Check for hallucinated Observation
-            if "Observation:" in collected_content and not tool_name:
-                print(Color.warning("  [System] ⚠️  Agent hallucinated an Observation. Correcting..."))
-                messages.append({"role": "assistant", "content": collected_content})
-                messages.append({
-                    "role": "user", 
-                    "content": "[System] You generated 'Observation:' yourself. PLEASE DO NOT DO THIS. You must output an Action, wait for me to execute it, and then I will give you the Observation. Now, please output the correct Action."
-                })
-                continue
-
-            if tool_name:
-                print(Color.tool(f"  🔧 Tool: {tool_name}"))
-
-                # Record tool usage for progress tracking
-                tracker.record_tool(tool_name)
-
-                observation = execute_tool(tool_name, args_str)
-
-                # Smart preview based on tool type
-                if tool_name in ['read_file', 'read_lines']:
-                    # For file reads, show first N lines (configurable)
-                    lines = observation.split('\n')[:config.TOOL_RESULT_PREVIEW_LINES]
-                    obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
-                elif len(observation) > config.TOOL_RESULT_PREVIEW_CHARS:
-                    obs_preview = observation[:config.TOOL_RESULT_PREVIEW_CHARS] + f"... ({len(observation)} chars total)"
-                else:
-                    obs_preview = observation
-
-                print(Color.info(f"  ✓ Result: {obs_preview}\n"))
-
-                # Error detection: check if observation contains error indicators
-                # More robust check: look for "error:" or "exception:" pattern, or "failed"
-                obs_lower = observation.lower()
-                is_error = any(indicator in obs_lower for indicator in
-                              ['error:', 'exception:', 'traceback', 'syntax error', 'compilation failed'])
-                
-                # Special case: if it's just a file content read that happens to contain "error", it's not an execution error
-                if tool_name in ['read_file', 'read_lines', 'grep_file', 'get_plan'] and "error" in obs_lower:
-                    # For these tools, unless it starts with "Error:", it's likely just content
-                    if not observation.strip().lower().startswith("error:"):
-                        is_error = False
-
-                if is_error:
-                    # Check if it's the same error repeating
-                    if observation == last_error_observation:
-                        consecutive_errors += 1
-                        print(Color.warning(f"  [System] ⚠️  Consecutive error #{consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}"))
-
-                        if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
-                            print(Color.error(f"  [System] ❌ Same error occurred {MAX_CONSECUTIVE_ERRORS} times. Stopping to prevent infinite loop."))
-                            messages.append({
-                                "role": "user",
-                                "content": f"Observation: {observation}\n\n[System] The same error occurred {MAX_CONSECUTIVE_ERRORS} times consecutively. Please ask the user for help or try a different approach."
-                            })
-                            break
-                    else:
-                        # Different error, reset counter
-                        consecutive_errors = 1
-                        last_error_observation = observation
-                else:
-                    # Success! Reset error counter
-                    consecutive_errors = 0
-                    last_error_observation = None
-
-                    # Process observation (handles large files and context management)
-                    messages = process_observation(observation, messages)
-
-                    # Check for stall condition
-                    if tracker.is_stalled():
-                        print(Color.warning(f"  [System] ⚠️  Detected {tracker.consecutive_reads} consecutive read operations. Agent may be stalled."))
-            else:
-                # No action = natural completion
-                break
-
-            # Increment iteration counter
-            tracker.increment()
+        # Run ReAct Agent
+        messages = run_react_agent(messages, tracker, prompt, mode='oneshot')
 
         # Extract knowledge from conversation at end
-        on_conversation_end(messages)
+        try:
+            on_conversation_end(messages)
+        except Exception as e:
+            print(Color.warning(f"[Warning] Failed to save knowledge: {e}"))
     else:
         chat_loop()

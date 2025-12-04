@@ -1,0 +1,494 @@
+"""
+LLM Client for Brian Coder.
+Handles API communication, streaming, token counting, and prompt caching.
+Zero-dependency (uses urllib).
+"""
+import json
+import urllib.request
+import urllib.error
+import time
+import copy
+import config
+from display import Color
+
+# --- Global Token Tracking ---
+# Stores actual token counts from API responses
+# Structure: {"message_index": actual_token_count}
+actual_token_cache = {}
+last_input_tokens = 0  # Last reported input tokens from API
+
+def chat_completion_stream(messages):
+    """
+    Sends a chat completion request to the LLM using urllib.
+    Yields content chunks from the SSE stream.
+    Supports Anthropic Prompt Caching when enabled.
+    Updates global actual_token_cache with real token counts from API.
+    """
+    global last_input_tokens
+
+    # Rate limiting: Configurable delay
+    if config.RATE_LIMIT_DELAY > 0:
+        print(Color.info(f"[System] Waiting {config.RATE_LIMIT_DELAY}s for rate limit..."))
+        time.sleep(config.RATE_LIMIT_DELAY)
+
+    # Apply prompt caching if enabled (deepcopy to preserve original)
+    processed_messages = messages
+    if config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
+        processed_messages = copy.deepcopy(messages)
+        processed_messages = apply_cache_breakpoints(processed_messages)
+
+    url = f"{config.BASE_URL}/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {config.API_KEY}",
+        "User-Agent": "BrianCoder/1.0"
+    }
+
+    # Add Anthropic-specific headers if caching enabled
+    if config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
+        headers["anthropic-beta"] = "prompt-caching-2024-07-31"
+        if config.DEBUG_MODE:
+            print(Color.info("[System] Prompt caching enabled - added anthropic-beta header"))
+
+    data = {
+        "model": config.MODEL_NAME,
+        "messages": processed_messages,
+        "stream": True,
+        "stream_options": {"include_usage": True}  # Request usage data in streaming (OpenAI)
+    }
+
+    # Debug: Log request details
+    if config.DEBUG_MODE:
+        print(Color.info(f"\n[Request Debug]"))
+        print(Color.info(f"  URL: {url}"))
+        print(Color.info(f"  Model: {config.MODEL_NAME}"))
+        print(Color.info(f"  Messages count: {len(processed_messages)}"))
+
+        # Estimate total tokens
+        total_chars = sum(len(str(m.get('content', ''))) for m in processed_messages)
+        estimated_tokens = total_chars // 4
+        print(Color.info(f"  Estimated input tokens: {estimated_tokens:,}"))
+
+        # Check if structured content (caching applied)
+        has_structured = any(isinstance(m.get('content'), list) for m in processed_messages)
+        print(Color.info(f"  Structured content (caching): {has_structured}"))
+
+        # Show first message structure
+        if processed_messages:
+            first_content = processed_messages[0].get('content', '')
+            if isinstance(first_content, list):
+                print(Color.info(f"  First message: [list with {len(first_content)} blocks]"))
+            else:
+                print(Color.info(f"  First message: [string, {len(str(first_content))} chars]"))
+        print()
+
+    # Retry logic for transient errors
+    max_retries = 3
+    initial_delay = 2  # seconds
+    
+    for retry_count in range(max_retries):
+        try:
+            req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
+            with urllib.request.urlopen(req, timeout=config.API_TIMEOUT) as response:
+                # Parse Server-Sent Events (SSE)
+                usage_info = None
+                for line in response:
+                    line = line.decode('utf-8').strip()
+                    if line.startswith("data: "):
+                        data_str = line[6:] # Remove "data: " prefix
+                        if data_str == "[DONE]":
+                            break
+                        try:
+                            chunk_json = json.loads(data_str)
+
+                            # Extract usage information (both OpenAI and Anthropic formats)
+                            if "usage" in chunk_json:
+                                usage_info = chunk_json["usage"]
+
+                            # Extract content delta
+                            # Structure: choices[0].delta.content
+                            if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
+                                delta = chunk_json["choices"][0].get("delta", {})
+                                content = delta.get("content", "")
+                                if content:
+                                    yield content
+                        except json.JSONDecodeError:
+                            continue
+
+                # Update global token tracking with actual values from API
+                if usage_info:
+                    # Both OpenAI and Anthropic use "input_tokens" or "prompt_tokens"
+                    input_tokens = usage_info.get("input_tokens") or usage_info.get("prompt_tokens", 0)
+                    output_tokens = usage_info.get("output_tokens") or usage_info.get("completion_tokens", 0)
+                    if input_tokens > 0:
+                        last_input_tokens = input_tokens
+
+                    # Display actual token usage in DEBUG mode
+                    if config.DEBUG_MODE:
+                        total_tokens = input_tokens + output_tokens
+                        print(f"\n{Color.info('[Token Usage]')}")
+                        print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
+                        print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
+                        print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}\n")
+
+                # Display usage information if available and caching is enabled
+                if usage_info and config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
+                    input_tokens = usage_info.get("input_tokens", 0)
+                    output_tokens = usage_info.get("output_tokens", 0)
+                    cache_creation_tokens = usage_info.get("cache_creation_input_tokens", 0)
+                    cache_read_tokens = usage_info.get("cache_read_input_tokens", 0)
+
+                    if cache_creation_tokens > 0 or cache_read_tokens > 0:
+                        print(f"\n\n{Color.info('[Token Usage]')}")
+                        print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
+                        print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
+                        if cache_creation_tokens > 0:
+                            print(f"{Color.info(f'  Cache Created: {cache_creation_tokens:,} tokens')}")
+                        if cache_read_tokens > 0:
+                            savings = int(cache_read_tokens * 0.9)
+                            print(f"{Color.success(f'  Cache Hit: {cache_read_tokens:,} tokens (saved ~{savings:,} tokens worth of cost!)')}\n")
+                
+                # Success! Exit retry loop
+                return
+                
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8')
+            
+            # Check if error is retryable
+            is_retryable = e.code == 429 or (500 <= e.code < 600)
+            
+            if is_retryable and retry_count < max_retries - 1:
+                # Calculate exponential backoff delay
+                delay = initial_delay * (2 ** retry_count)
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] HTTP {e.code}: {e.reason}"))
+                print(Color.warning(f"Waiting {delay}s before retry...\n"))
+                time.sleep(delay)
+                continue
+            
+            # Non-retryable error or max retries reached
+            yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
+
+            # Try to parse error JSON
+            try:
+                error_json = json.loads(error_body)
+                yield f"{Color.error('Error Details:')}\n"
+                if 'error' in error_json:
+                    error_info = error_json['error']
+                    if isinstance(error_info, dict):
+                        error_type = error_info.get('type', 'unknown')
+                        error_message = error_info.get('message', 'No message')
+                        yield f"{Color.error(f'  Type: {error_type}')}\n"
+                        yield f"{Color.error(f'  Message: {error_message}')}\n"
+                    else:
+                        yield f"{Color.error(f'  {error_info}')}\n"
+                else:
+                    yield f"{Color.error(f'  {error_json}')}\n"
+            except:
+                yield f"{Color.error(f'Raw Error Body:')}\n{error_body[:500]}\n"
+
+            # Debug: Show request info that caused error
+            if config.DEBUG_MODE:
+                yield f"\n{Color.info('[Debug Info]')}\n"
+                yield f"{Color.info(f'  Model: {config.MODEL_NAME}')}\n"
+                yield f"{Color.info(f'  Message count: {len(processed_messages)}')}\n"
+                total_chars = sum(len(str(m.get('content', ''))) for m in processed_messages)
+                yield f"{Color.info(f'  Estimated tokens: {total_chars // 4:,}')}\n"
+            
+            return
+
+        except urllib.error.URLError as e:
+            # Connection error - retry
+            if retry_count < max_retries - 1:
+                delay = initial_delay * (2 ** retry_count)
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] Connection Error: {e}"))
+                print(Color.warning(f"Waiting {delay}s before retry...\n"))
+                time.sleep(delay)
+                continue
+            
+            # Max retries reached
+            yield f"\n{Color.error(f'[Connection Error]: {e}')}"
+            return
+
+def call_llm_raw(prompt, temperature=0.7):
+    """
+    Call LLM without streaming (for extraction tasks).
+    
+    Args:
+        prompt: The prompt to send
+        temperature: Sampling temperature (default: 0.7)
+    
+    Returns:
+        Complete response text
+    """
+    url = f"{config.BASE_URL}/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {config.API_KEY}"
+    }
+    
+    data = {
+        "model": config.MODEL_NAME,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": temperature,
+        "stream": False
+    }
+    
+    try:
+        request = urllib.request.Request(
+            url,
+            data=json.dumps(data).encode('utf-8'),
+            headers=headers
+        )
+        
+        with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            return result["choices"][0]["message"]["content"]
+            
+    except Exception as e:
+        return f"Error calling LLM: {e}"
+
+def estimate_tokens(messages):
+    """Estimates token count based on characters (4 chars ~= 1 token)."""
+    total_chars = sum(len(str(m.get("content", ""))) for m in messages)
+    return total_chars // 4
+
+def is_anthropic_provider():
+    """
+    Detects if current provider is Anthropic based on BASE_URL or MODEL_NAME.
+
+    Returns:
+        bool: True if Anthropic API is being used
+    """
+    base_url_lower = config.BASE_URL.lower()
+    model_lower = config.MODEL_NAME.lower()
+
+    # Direct Anthropic API
+    if "anthropic.com" in base_url_lower:
+        return True
+
+    # Claude models via OpenRouter or other proxies
+    if "claude" in model_lower:
+        return True
+
+    return False
+
+def estimate_message_tokens(message):
+    """
+    Estimates token count for a single message.
+    Uses 4 chars ≈ 1 token heuristic.
+
+    Args:
+        message: dict with "content" field (str or list)
+
+    Returns:
+        int: estimated token count
+    """
+    content = message.get("content", "")
+
+    # Handle string content
+    if isinstance(content, str):
+        return len(content) // 4
+
+    # Handle structured content (list of blocks)
+    if isinstance(content, list):
+        total_chars = 0
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "text":
+                total_chars += len(block.get("text", ""))
+        return total_chars // 4
+
+    return 0
+
+
+def get_actual_tokens(messages):
+    """
+    Gets actual token count using hybrid approach:
+    1. If we have actual token count from last API call, use it
+    2. Otherwise, use estimation
+
+    Args:
+        messages: list of message dicts
+
+    Returns:
+        int: actual or estimated token count
+    """
+    global last_input_tokens
+
+    # If we have recent actual token count from API, use it
+    if last_input_tokens > 0:
+        return last_input_tokens
+
+    # Fallback to estimation
+    return sum(estimate_message_tokens(m) for m in messages)
+
+
+def get_token_count_from_api(messages):
+    """
+    [DEPRECATED - Not used by compress_history anymore]
+    Gets actual token count from API without generating response.
+    Uses max_tokens=1 to minimize cost and get usage info quickly.
+
+    Note: compress_history now uses last_input_tokens from regular API calls
+    instead of making additional API calls. This function is kept for
+    potential future use.
+
+    Args:
+        messages: list of message dicts
+
+    Returns:
+        int: actual input token count, or 0 if failed
+    """
+    try:
+        url = f"{config.BASE_URL}/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {config.API_KEY}",
+        }
+
+        # Non-streaming request with minimal output
+        data = {
+            "model": config.MODEL_NAME,
+            "messages": messages,
+            "max_tokens": 1,  # Minimal output to save cost
+            "stream": False   # Non-streaming to get usage immediately
+        }
+
+        req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            result = json.loads(response.read().decode('utf-8'))
+
+            # Extract token count from usage
+            if "usage" in result:
+                usage = result["usage"]
+                # Both OpenAI and Anthropic formats
+                input_tokens = usage.get("input_tokens") or usage.get("prompt_tokens", 0)
+
+                if config.DEBUG_MODE:
+                    print(Color.info(f"[Token Count API] Got actual count: {input_tokens:,} tokens"))
+
+                return input_tokens
+
+    except Exception as e:
+        if config.DEBUG_MODE:
+            print(Color.warning(f"[Token Count API] Failed: {e}"))
+
+    return 0
+
+def _calculate_cache_interval(messages, max_breakpoints):
+    """
+    Dynamically calculates optimal cache interval based on message count.
+
+    Args:
+        messages: list of message dicts
+        max_breakpoints: maximum allowed breakpoints (typically 3)
+
+    Returns:
+        int: interval between cache breakpoints
+    """
+    # Exclude system message from count
+    message_count = len(messages) - 1  # -1 for system message
+
+    if message_count <= 1:
+        return 1
+
+    # Reserve 1 breakpoint for system message
+    available_breakpoints = max_breakpoints - 1
+
+    if available_breakpoints <= 0:
+        return message_count  # No dynamic breakpoints
+
+    # Calculate interval to evenly distribute breakpoints
+    interval = max(1, message_count // available_breakpoints)
+
+    return interval
+
+def convert_to_cache_format(content, add_cache_control=False):
+    """
+    Converts string content to structured format for prompt caching.
+
+    Args:
+        content: str or list (message content)
+        add_cache_control: bool (whether to add cache control marker)
+
+    Returns:
+        list: structured content blocks
+    """
+    # Already in structured format
+    if isinstance(content, list):
+        if add_cache_control and content:
+            # Add cache_control to last block
+            content[-1]["cache_control"] = {"type": "ephemeral"}
+        return content
+
+    # Convert string to structured format
+    block = {
+        "type": "text",
+        "text": content
+    }
+
+    if add_cache_control:
+        block["cache_control"] = {"type": "ephemeral"}
+
+    return [block]
+
+def apply_cache_breakpoints(messages):
+    """
+    Applies cache breakpoints to messages based on configuration.
+
+    Args:
+        messages: list of message dicts (standard format)
+
+    Returns:
+        list: messages with cache_control applied (modified in-place)
+    """
+    if not config.ENABLE_PROMPT_CACHING:
+        return messages
+
+    if not is_anthropic_provider():
+        if config.DEBUG_MODE:
+            print(Color.info("[System] Prompt caching disabled: non-Anthropic provider"))
+        return messages
+
+    max_breakpoints = min(config.MAX_CACHE_BREAKPOINTS, 4)  # Anthropic max = 4
+    breakpoint_count = 0
+
+    # 1. System message always gets cache breakpoint (if exists and meets min tokens)
+    if messages and messages[0].get("role") == "system":
+        tokens = estimate_message_tokens(messages[0])
+        if tokens >= config.MIN_CACHE_TOKENS:
+            messages[0]["content"] = convert_to_cache_format(
+                messages[0]["content"],
+                add_cache_control=True
+            )
+            breakpoint_count += 1
+            if config.DEBUG_MODE:
+                print(Color.info(f"[System] Cache breakpoint 1/{max_breakpoints}: System message ({tokens} tokens)"))
+
+    # 2. Dynamic breakpoints in message history
+    if breakpoint_count < max_breakpoints and len(messages) > 1:
+        # Determine interval
+        if config.CACHE_INTERVAL > 0:
+            interval = config.CACHE_INTERVAL
+        else:
+            interval = _calculate_cache_interval(messages, max_breakpoints)
+
+        if config.DEBUG_MODE:
+            print(Color.info(f"[System] Cache interval: {interval} messages"))
+
+        # Apply breakpoints at intervals (working backwards from recent messages)
+        # This ensures most recent context is cached
+        for i in range(len(messages) - 1, 0, -interval):
+            if breakpoint_count >= max_breakpoints:
+                break
+
+            tokens = estimate_message_tokens(messages[i])
+            if tokens >= config.MIN_CACHE_TOKENS:
+                messages[i]["content"] = convert_to_cache_format(
+                    messages[i]["content"],
+                    add_cache_control=True
+                )
+                breakpoint_count += 1
+                if config.DEBUG_MODE:
+                    print(Color.info(f"[System] Cache breakpoint {breakpoint_count}/{max_breakpoints}: Message {i} ({tokens} tokens)"))
+
+    return messages

@@ -246,6 +246,189 @@ class MemorySystem:
             self._project_context = data["project_context"]
             self._save_project_context()
 
+    # ========== Mem0-style Auto Update ==========
+
+    def auto_extract_and_update(self, user_message: str, llm_call_func=None) -> Dict[str, Any]:
+        """
+        Mem0-style automatic fact extraction and update.
+
+        Extracts preferences from user messages and automatically updates memory.
+        Uses LLM to detect preference changes and resolve conflicts.
+
+        Args:
+            user_message: User's message
+            llm_call_func: LLM call function (if None, will try to import from main)
+
+        Returns:
+            Dictionary with extraction results
+        """
+        if llm_call_func is None:
+            try:
+                from main import call_llm_raw
+                llm_call_func = call_llm_raw
+            except ImportError:
+                return {"error": "No LLM call function available"}
+
+        try:
+            # Extract facts using LLM
+            facts = self._llm_extract_facts(user_message, llm_call_func)
+
+            if not facts:
+                return {"extracted": 0, "actions": []}
+
+            actions_taken = []
+
+            # Process each extracted fact
+            for fact in facts:
+                key = fact.get("key", "")
+                value = fact.get("value", "")
+                confidence = fact.get("confidence", 0.5)
+
+                if not key or not value:
+                    continue
+
+                # Check if fact already exists
+                existing_value = self.get_preference(key)
+
+                if existing_value is None:
+                    # ADD: New preference
+                    self.update_preference(key, value)
+                    actions_taken.append({
+                        "action": "ADD",
+                        "key": key,
+                        "value": value,
+                        "confidence": confidence
+                    })
+
+                elif existing_value != value:
+                    # CONFLICT: Decide whether to update
+                    decision = self._llm_resolve_conflict(
+                        key, existing_value, value, llm_call_func
+                    )
+
+                    if decision == "UPDATE":
+                        self.update_preference(key, value)
+                        actions_taken.append({
+                            "action": "UPDATE",
+                            "key": key,
+                            "old_value": existing_value,
+                            "new_value": value,
+                            "confidence": confidence
+                        })
+                    elif decision == "DELETE":
+                        self.remove_preference(key)
+                        actions_taken.append({
+                            "action": "DELETE",
+                            "key": key,
+                            "old_value": existing_value
+                        })
+                    else:
+                        # KEEP: No action
+                        actions_taken.append({
+                            "action": "KEEP",
+                            "key": key,
+                            "value": existing_value
+                        })
+                else:
+                    # SAME: Already have this preference
+                    pass
+
+            return {
+                "extracted": len(facts),
+                "actions": actions_taken
+            }
+
+        except Exception as e:
+            return {"error": str(e)}
+
+    def _llm_extract_facts(self, message: str, llm_call_func) -> list:
+        """
+        Extract preference facts from message using LLM.
+
+        Args:
+            message: User message
+            llm_call_func: LLM call function
+
+        Returns:
+            List of extracted facts
+        """
+        prompt = f"""Extract user preferences from this message.
+Look for:
+- Coding style preferences (snake_case, camelCase, etc.)
+- Language preferences (Korean, English, etc.)
+- Tool preferences (which tools to use/avoid)
+- Response format preferences
+- Any explicit "from now on" or "always" statements
+
+Message: "{message}"
+
+Return JSON array with format:
+[{{"key": "preference_name", "value": "preference_value", "confidence": 0.0-1.0}}]
+
+If no preferences found, return empty array: []
+
+Preferences (JSON only):"""
+
+        try:
+            response = llm_call_func(prompt)
+
+            # Parse JSON from response
+            start_idx = response.find('[')
+            end_idx = response.rfind(']') + 1
+
+            if start_idx != -1 and end_idx > start_idx:
+                json_str = response[start_idx:end_idx]
+                facts = json.loads(json_str)
+                return facts if isinstance(facts, list) else []
+
+            return []
+
+        except Exception:
+            return []
+
+    def _llm_resolve_conflict(self, key: str, old_value: Any, new_value: Any,
+                             llm_call_func) -> str:
+        """
+        Resolve conflict between old and new preference values using LLM.
+
+        Args:
+            key: Preference key
+            old_value: Existing value
+            new_value: New value
+            llm_call_func: LLM call function
+
+        Returns:
+            Decision: "UPDATE", "DELETE", or "KEEP"
+        """
+        prompt = f"""Resolve preference conflict.
+
+Preference: {key}
+Current value: {old_value}
+New value: {new_value}
+
+Decide what to do:
+- UPDATE: Replace old value with new value (user changed their mind)
+- DELETE: Remove this preference (user wants to disable it)
+- KEEP: Keep old value (new value is not a replacement)
+
+Return ONLY one word: UPDATE, DELETE, or KEEP
+
+Decision:"""
+
+        try:
+            response = llm_call_func(prompt).strip().upper()
+
+            if "UPDATE" in response:
+                return "UPDATE"
+            elif "DELETE" in response:
+                return "DELETE"
+            else:
+                return "KEEP"
+
+        except Exception:
+            # Default to UPDATE on error
+            return "UPDATE"
+
 
 # Convenience function for quick access
 def get_memory_system(memory_dir: str = ".brian_memory") -> MemorySystem:

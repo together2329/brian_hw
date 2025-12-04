@@ -14,6 +14,7 @@ import json
 import math
 import uuid
 from dataclasses import dataclass, asdict, field
+from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Optional, Any, Tuple
@@ -109,7 +110,7 @@ class GraphLite:
         self.edges_file = self.memory_dir / "graph_edges.json"
 
         # Embedding cache to avoid redundant API calls
-        self._embedding_cache: Dict[str, List[float]] = {}
+        self._embedding_cache: OrderedDict[str, List[float]] = OrderedDict()
 
         self._ensure_initialized()
         self._load()
@@ -461,8 +462,10 @@ Indices to link:"""
             Embedding vector (list of floats)
         """
         # Check cache first
+        # Check cache first
         cache_key = f"{model}:{text[:100]}"  # Use first 100 chars as key
         if cache_key in self._embedding_cache:
+            self._embedding_cache.move_to_end(cache_key)
             return self._embedding_cache[cache_key]
 
         # Load API key from config if not provided
@@ -497,11 +500,19 @@ Indices to link:"""
 
                 # Cache the result
                 self._embedding_cache[cache_key] = embedding
+                
+                # Enforce LRU limit (e.g., 1000 items)
+                if len(self._embedding_cache) > 1000:
+                    self._embedding_cache.popitem(last=False)
 
                 return embedding
 
         except Exception as e:
-            raise RuntimeError(f"Failed to get embedding: {e}")
+            # Log warning but return zero vector to allow agent to continue
+            print(f"[Warning] Embedding API failed: {e}")
+            print("[Warning] Continuing without embeddings for this text")
+            # Return zero vector as fallback (text-embedding-3-small dimension)
+            return [0.0] * 1536
 
     def cosine_similarity(self, v1: List[float], v2: List[float]) -> float:
         """

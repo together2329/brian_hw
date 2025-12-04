@@ -144,6 +144,12 @@ ENABLE_MEMORY = os.getenv("ENABLE_MEMORY", "true").lower() in ("true", "1", "yes
 # Memory directory (relative to home directory)
 MEMORY_DIR = os.getenv("MEMORY_DIR", ".brian_memory")
 
+# Enable automatic preference extraction from user messages (Mem0-style)
+# When enabled, Brian Coder will detect preferences in user messages
+# and automatically learn them without explicit instruction
+# Default: true
+ENABLE_AUTO_EXTRACT = os.getenv("ENABLE_AUTO_EXTRACT", "true").lower() in ("true", "1", "yes")
+
 # ============================================================
 # Graph Lite Configuration (Knowledge Graph)
 # ============================================================
@@ -175,6 +181,20 @@ AMEM_MAX_CANDIDATES = int(os.getenv("AMEM_MAX_CANDIDATES", "10"))
 # LLM temperature for linking decisions (lower = more logical/deterministic)
 AMEM_LINK_TEMPERATURE = float(os.getenv("AMEM_LINK_TEMPERATURE", "0.3"))
 
+# ============================================================
+# Procedural Memory Configuration (Memp)
+# ============================================================
+# Enable/Disable procedural memory system (learning from past experiences)
+ENABLE_PROCEDURAL_MEMORY = os.getenv("ENABLE_PROCEDURAL_MEMORY", "true").lower() in ("true", "1", "yes")
+
+# Maximum number of similar trajectories to retrieve for guidance
+PROCEDURAL_RETRIEVE_LIMIT = int(os.getenv("PROCEDURAL_RETRIEVE_LIMIT", "3"))
+
+# Minimum similarity score to use a trajectory (0.0-1.0)
+PROCEDURAL_SIMILARITY_THRESHOLD = float(os.getenv("PROCEDURAL_SIMILARITY_THRESHOLD", "0.5"))
+
+# Enable trajectory guidance injection into prompts
+PROCEDURAL_INJECT_GUIDANCE = os.getenv("PROCEDURAL_INJECT_GUIDANCE", "true").lower() in ("true", "1", "yes")
 
 # System Prompt with ReAct instructions
 SYSTEM_PROMPT = """You are an intelligent coding agent named Brian Coder.
