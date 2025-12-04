@@ -447,34 +447,41 @@ Indices to link:"""
     # ==================== Embedding & Search ====================
 
     def get_embedding(self, text: str, api_key: Optional[str] = None,
-                     base_url: str = "https://api.openai.com/v1",
-                     model: str = "text-embedding-3-small") -> List[float]:
+                     base_url: Optional[str] = None,
+                     model: Optional[str] = None) -> List[float]:
         """
         Get embedding for text using OpenAI API via urllib (zero-dependency).
 
         Args:
             text: Text to embed
             api_key: API key (if None, will try to load from config)
-            base_url: API base URL
-            model: Embedding model name
+            base_url: API base URL (if None, uses config.EMBEDDING_BASE_URL)
+            model: Embedding model name (if None, uses config.EMBEDDING_MODEL)
 
         Returns:
             Embedding vector (list of floats)
         """
-        # Check cache first
+        # Load config values if not provided
+        try:
+            import config
+            if api_key is None:
+                api_key = config.EMBEDDING_API_KEY
+            if base_url is None:
+                base_url = config.EMBEDDING_BASE_URL
+            if model is None:
+                model = config.EMBEDDING_MODEL
+        except (ImportError, AttributeError) as e:
+            if api_key is None:
+                raise ValueError("API key not provided and not found in config")
+            # Fallback defaults if config not available
+            base_url = base_url or "https://api.openai.com/v1"
+            model = model or "text-embedding-3-small"
+
         # Check cache first
         cache_key = f"{model}:{text[:100]}"  # Use first 100 chars as key
         if cache_key in self._embedding_cache:
             self._embedding_cache.move_to_end(cache_key)
             return self._embedding_cache[cache_key]
-
-        # Load API key from config if not provided
-        if api_key is None:
-            try:
-                import config
-                api_key = config.EMBEDDING_API_KEY
-            except (ImportError, AttributeError):
-                raise ValueError("API key not provided and not found in config")
 
         # Prepare API request
         url = f"{base_url}/embeddings"
