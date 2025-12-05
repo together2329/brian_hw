@@ -18,6 +18,10 @@ from memory import MemorySystem
 from graph_lite import GraphLite, Node, Edge
 from procedural_memory import ProceduralMemory, Action, Trajectory
 from message_classifier import MessageClassifier
+
+# Deep Think (optional - only import if enabled)
+if config.ENABLE_DEEP_THINK:
+    from deep_think import DeepThinkEngine, DeepThinkResult, format_deep_think_output
 from iteration_control import IterationTracker, detect_completion_signal, show_iteration_warning
 
 # --- Dynamic Plugin Loading ---
@@ -900,7 +904,60 @@ def run_react_agent(messages, tracker, task_description, mode='interactive'):
     
     # Initialize action tracking for procedural memory
     actions_taken = []
-    
+
+    # ============================================================
+    # Deep Think Integration (Hypothesis Branching)
+    # ============================================================
+    if config.ENABLE_DEEP_THINK:
+        print(Color.system("\n[Deep Think] Analyzing task and generating strategies..."))
+
+        try:
+            # Build context from recent messages
+            context_parts = []
+            for msg in messages[-5:]:
+                if msg.get("role") != "system":
+                    content = str(msg.get("content", ""))[:200]
+                    context_parts.append(f"{msg['role']}: {content}")
+
+            # Add current directory info
+            try:
+                files = os.listdir(".")[:20]
+                context_parts.append(f"Current directory: {', '.join(files)}")
+            except:
+                pass
+
+            context = "\n".join(context_parts)
+
+            # Initialize Deep Think engine
+            engine = DeepThinkEngine(
+                procedural_memory=procedural_memory,
+                graph_lite=graph_lite,
+                llm_call_func=call_llm_raw,
+                execute_tool_func=tools.execute_tool
+            )
+
+            # Run Deep Think pipeline
+            deep_think_result = engine.think(
+                task=task_description,
+                context=context
+            )
+
+            # Display result
+            print(format_deep_think_output(deep_think_result, verbose=config.DEBUG_MODE))
+
+            # Inject selected strategy into messages
+            strategy_guidance = engine.format_strategy_guidance(deep_think_result)
+            messages.append({"role": "system", "content": strategy_guidance})
+
+            print(Color.success(f"[Deep Think] Selected: {deep_think_result.selected_hypothesis.strategy_name}"))
+            print(Color.info(f"  First action: {deep_think_result.selected_hypothesis.first_action}"))
+            print()
+
+        except Exception as e:
+            print(Color.warning(f"[Deep Think] Analysis failed: {e}"))
+            print(Color.info("[Deep Think] Continuing with standard approach..."))
+            print()
+
     while True:
         # Check iteration limit with progressive warning
         warning_action = show_iteration_warning(tracker, mode=mode)
