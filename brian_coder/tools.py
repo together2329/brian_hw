@@ -468,6 +468,158 @@ def replace_lines(path, start_line, end_line, new_content):
     except Exception as e:
         return f"Error replacing lines: {e}"
 
+# ==================== RAG Tools ====================
+
+def rag_search(query, categories="all", limit=5):
+    """
+    Semantic search across indexed Verilog/Testbench/Spec documents.
+    
+    Args:
+        query: Natural language search query (e.g., "AXI burst error handling")
+        categories: Category filter - "verilog", "testbench", "spec", "verilog,testbench", or "all"
+        limit: Maximum number of results (default: 5)
+    
+    Returns:
+        Formatted search results with code snippets and similarity scores
+    
+    Example:
+        rag_search("FIFO overflow handling", categories="verilog,testbench", limit=3)
+    """
+    try:
+        from rag_db import get_rag_db
+        
+        db = get_rag_db()
+        results = db.search(query, categories=categories, limit=int(limit))
+        
+        if not results:
+            return f"No results found for '{query}' in categories: {categories}\n\nTip: Run rag_index() first to index files."
+        
+        output = f"Found {len(results)} result(s) for '{query}':\n\n"
+        
+        for i, (score, chunk) in enumerate(results, 1):
+            output += f"[{i}] {chunk.category.upper()} | {os.path.basename(chunk.source_file)}"
+            output += f" (L{chunk.start_line}-{chunk.end_line}) | Score: {score:.2f}\n"
+            
+            # Add summary/metadata
+            if chunk.metadata.get("summary"):
+                output += f"    📝 {chunk.metadata['summary']}\n"
+            if chunk.metadata.get("module_name"):
+                output += f"    📦 Module: {chunk.metadata['module_name']}\n"
+            
+            # Show content preview (first 200 chars)
+            preview = chunk.content[:200].replace('\n', ' ').strip()
+            if len(chunk.content) > 200:
+                preview += "..."
+            output += f"    ```\n    {preview}\n    ```\n\n"
+        
+        return output
+    except Exception as e:
+        return f"Error in rag_search: {e}"
+
+def rag_index(path=".", category=None, pattern=None, fine_grained=False):
+    """
+    Index files for RAG search.
+    
+    Args:
+        path: File or directory path to index (default: current directory)
+        category: Force category - "verilog", "testbench", "spec" (auto-detect if None)
+        pattern: File pattern for directories (e.g., "*.v", "*.sv")
+        fine_grained: If True, create detailed chunks for individual signals/case statements
+                     (more precise search but 10x more chunks). Default: False
+    
+    Returns:
+        Indexing summary with chunk counts
+    
+    Example:
+        rag_index("src/", category="verilog")
+        rag_index(".", fine_grained=True)  # Detailed chunking
+    """
+    try:
+        import rag_db as rag_module
+        
+        # Create DB with fine_grained option
+        db = rag_module.RAGDatabase(fine_grained=fine_grained)
+        
+        # Update global instance so rag_search/rag_status see new index
+        rag_module._rag_db = db
+        
+        if os.path.isfile(path):
+            # Index single file
+            chunks = db.index_file(path, category=category)
+            db.save()
+            mode = "(fine-grained)" if fine_grained else ""
+            return f"Indexed {path}: {chunks} chunks created {mode}"
+        
+        elif os.path.isdir(path):
+            # Index directory
+            patterns = [pattern] if pattern else ["*.v", "*.sv", "*.md"]
+            total = db.index_directory(path, patterns=patterns, category=category)
+            mode = "(fine-grained)" if fine_grained else ""
+            return f"Indexed {path}: {total} total chunks created {mode}"
+        
+        else:
+            return f"Error: Path '{path}' not found"
+    except Exception as e:
+        return f"Error in rag_index: {e}"
+
+def rag_status():
+    """
+    Show RAG database status and statistics.
+    
+    Returns:
+        Summary of indexed files, chunks, and categories
+    """
+    try:
+        from rag_db import get_rag_db
+        
+        db = get_rag_db()
+        stats = db.get_stats()
+        
+        output = "=== RAG Database Status ===\n\n"
+        output += f"📁 Indexed files: {stats['indexed_files']}\n"
+        output += f"📦 Total chunks: {stats['total_chunks']}\n\n"
+        
+        if stats['by_category']:
+            output += "By category:\n"
+            for cat, count in stats['by_category'].items():
+                output += f"  • {cat}: {count} chunks\n"
+        
+        if stats['by_level']:
+            output += "\nBy level (Verilog hierarchy):\n"
+            level_names = {
+                "level_1": "Module (full)",
+                "level_2": "Ports",
+                "level_3": "Wire/Reg",
+                "level_4": "Always blocks",
+                "level_5": "Assigns"
+            }
+            for lvl, count in sorted(stats['by_level'].items()):
+                name = level_names.get(lvl, lvl)
+                output += f"  • {name}: {count}\n"
+        
+        # Show category info for agent
+        output += "\n" + db.get_categories_info()
+        
+        return output
+    except Exception as e:
+        return f"Error in rag_status: {e}"
+
+def rag_clear():
+    """
+    Clear all indexed RAG data.
+    
+    Returns:
+        Confirmation message
+    """
+    try:
+        from rag_db import get_rag_db
+        
+        db = get_rag_db()
+        db.clear()
+        return "RAG database cleared. Run rag_index() to re-index files."
+    except Exception as e:
+        return f"Error in rag_clear: {e}"
+
 # Registry of available tools
 AVAILABLE_TOOLS = {
     "read_file": read_file,
@@ -485,5 +637,27 @@ AVAILABLE_TOOLS = {
     "git_diff": git_diff,
     "git_status": git_status,
     "replace_in_file": replace_in_file,
-    "replace_lines": replace_lines
+    "replace_lines": replace_lines,
+    # RAG Tools
+    "rag_search": rag_search,
+    "rag_index": rag_index,
+    "rag_status": rag_status,
+    "rag_clear": rag_clear,
 }
+
+# Import and register Verilog analysis tools
+try:
+    import tools_verilog
+    AVAILABLE_TOOLS.update({
+        "analyze_verilog_module": tools_verilog.analyze_verilog_module,
+        "find_signal_usage": tools_verilog.find_signal_usage,
+        "find_module_definition": tools_verilog.find_module_definition,
+        "extract_module_hierarchy": tools_verilog.extract_module_hierarchy,
+        "generate_module_testbench": tools_verilog.generate_module_testbench,
+        "find_potential_issues": tools_verilog.find_potential_issues,
+        "analyze_timing_paths": tools_verilog.analyze_timing_paths,
+        "generate_module_docs": tools_verilog.generate_module_docs,
+        "suggest_optimizations": tools_verilog.suggest_optimizations,
+    })
+except ImportError:
+    pass  # tools_verilog not available

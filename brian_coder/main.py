@@ -400,10 +400,11 @@ def build_system_prompt(messages=None):
                 recent_topic = user_messages[-1].get("content", "")[:200]
 
                 try:
-                    # Search for relevant nodes
-                    relevant_results = graph_lite.search(
+                    # Graph RAG: Search with graph traversal for richer context
+                    relevant_results = graph_lite.graph_rag_search(
                         recent_topic,
-                        limit=config.GRAPH_SEARCH_LIMIT
+                        limit=config.GRAPH_SEARCH_LIMIT,
+                        hop=1  # Follow 1 hop of edges
                     )
 
                     if relevant_results:
@@ -420,6 +421,21 @@ def build_system_prompt(messages=None):
                 except Exception as e:
                     # Fail silently if graph search fails
                     pass
+
+        # Add RAG tool guidance for Verilog analysis
+        rag_guidance = """=== VERILOG CODE ANALYSIS ===
+
+For Verilog/SystemVerilog code analysis, use these RAG tools (much faster than grep):
+- rag_search(query, categories, limit): Semantic search for Verilog code
+  Example: rag_search("axi_awready signal", categories="verilog", limit=5)
+- rag_index(path, fine_grained): Index Verilog files (run once)
+- rag_status(): Check indexed files count
+- read_lines(file, start, end): Read specific lines after finding location
+
+Workflow: rag_search() → find location → read_lines() → analyze
+==============================
+"""
+        context_parts.append(rag_guidance)
 
         # Combine all context parts
         if context_parts:

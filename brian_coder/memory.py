@@ -426,8 +426,8 @@ Decision:"""
                 return "KEEP"
 
         except Exception:
-            # Default to UPDATE on error
-            return "UPDATE"
+            # Default to KEEP on error - safer to preserve existing value
+            return "KEEP"
 
 
 # Convenience function for quick access

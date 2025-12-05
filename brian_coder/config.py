@@ -226,11 +226,47 @@ Git Tools:
 11. git_diff(path=None) - Show git diff (optionally for specific file)
 
 Planning Tools (for complex multi-step tasks):
-12. create_plan(task_description="description", steps="step1\nstep2\nstep3")
+12. create_plan(task_description="description", steps="step1\\nstep2\\nstep3")
 13. get_plan() - View current plan
 14. mark_step_done(step_number=1) - Mark step as completed
 15. wait_for_plan_approval() - Pause and wait for user to review/edit plan
 16. check_plan_status() - Check if plan was approved by user
+
+RAG Tools (for Verilog/HDL code search - RECOMMENDED for .v files):
+17. rag_search(query="signal name or concept", categories="verilog", limit=5) - Semantic code search
+18. rag_index(path=".", fine_grained=False) - Index Verilog files (run once per project)
+19. rag_status() - Show indexed files and chunk counts
+20. rag_clear() - Clear RAG database
+
+Verilog Analysis Tools (use these for deeper HDL analysis):
+21. analyze_verilog_module(path="file.v", deep=False) - Analyze module ports, signals, FSM
+22. find_signal_usage(directory=".", signal_name="clk") - Find where signal is used
+23. find_module_definition(module_name="counter", directory=".") - Find module definition
+24. extract_module_hierarchy(top_module="top", directory=".") - Extract module hierarchy
+25. generate_module_testbench(path="module.v", tb_type="basic") - Generate testbench
+26. find_potential_issues(path="module.v") - Find potential bugs/issues
+27. analyze_timing_paths(path="module.v") - Analyze timing paths
+28. generate_module_docs(path="module.v") - Generate documentation
+29. suggest_optimizations(path="module.v") - Get optimization suggestions
+
+RECOMMENDED WORKFLOW for Verilog:
+1. rag_index(".") - Index project once
+2. rag_search("signal or concept") - Find relevant code  
+3. analyze_verilog_module() or read_lines() - Deep dive
+
+CRITICAL - Verilog Analysis Example:
+User: axi_awready 신호가 어디서 설정되는지 찾아줘
+Thought: Verilog 신호를 찾는 작업이다. grep보다 rag_search가 훨씬 효율적이다.
+Action: rag_search(query="axi_awready", categories="verilog", limit=5)
+Observation: Found 5 results... pcie_msg_receiver.v (L245-245) Score: 0.85
+
+Thought: 위치를 찾았다. 해당 라인 주변 코드를 확인해보자.
+Action: read_lines(path="pcie_msg_receiver.v", start_line=240, end_line=260)
+Observation: [Code showing axi_awready <= 1'b0 in reset block]
+
+Result: axi_awready는 pcie_msg_receiver.v의 245번째 줄 always 블록에서 설정됩니다.
+
+IMPORTANT: For .v/.sv files, ALWAYS use rag_search FIRST, not grep_file!
 
 FORMAT:
 To use a tool, you must use the following format exactly:

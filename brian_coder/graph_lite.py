@@ -328,14 +328,11 @@ class GraphLite:
             except:
                 threshold = 0.6
             
-            # Debug: print all similarities
-            print(f"[Graph] Similarity to {existing.id[:12]}: {score:.3f} (threshold: {threshold})")
-            
             if score >= threshold:
                 candidates.append((score, existing))
-                print(f"[Graph] → Added as candidate!")
         
-        print(f"[Graph] Total candidates after filtering: {len(candidates)}")
+        if candidates:
+            print(f"[Graph] Found {len(candidates)} link candidates (threshold: {threshold})")
         
         # Sort by similarity and limit
         candidates.sort(reverse=True, key=lambda x: x[0])
@@ -585,6 +582,96 @@ Indices to link:"""
         # Sort by score (descending)
         results.sort(reverse=True, key=lambda x: x[0])
 
+        return results[:limit]
+
+    def graph_rag_search(self, query: str, limit: int = 10,
+                         node_type: Optional[str] = None,
+                         hop: int = 1,
+                         neighbor_boost: float = 0.8) -> List[Tuple[float, Node]]:
+        """
+        Graph RAG: Embedding search + Graph traversal for richer context.
+        
+        Combines semantic similarity with graph structure:
+        1. Find seed nodes via embedding similarity
+        2. Expand to connected neighbors (follow edges)
+        3. Re-rank combined results
+        
+        Args:
+            query: Search query
+            limit: Maximum number of results
+            node_type: Optional node type filter
+            hop: Number of edge hops to follow (default: 1)
+            neighbor_boost: Score multiplier for neighbor nodes (0.0-1.0)
+        
+        Returns:
+            List of (score, node) tuples, sorted by score (descending)
+        """
+        # Step 1: Initial embedding search (get more seeds for expansion)
+        seed_limit = max(limit // 2, 3)
+        seed_results = self.search(query, limit=seed_limit, node_type=node_type)
+        
+        if not seed_results:
+            return []
+        
+        # Track all nodes and their best scores
+        node_scores: Dict[str, Tuple[float, Node]] = {}
+        
+        # Add seed nodes
+        for score, node in seed_results:
+            node_scores[node.id] = (score, node)
+        
+        # Step 2: Graph expansion - follow edges
+        current_frontier = [node for _, node in seed_results]
+        visited = set(node.id for node in current_frontier)
+        
+        for hop_num in range(hop):
+            next_frontier = []
+            decay = neighbor_boost ** (hop_num + 1)  # Score decays with distance
+            
+            for node in current_frontier:
+                # Get connected neighbors via edges
+                neighbors = self.find_neighbors(node.id)
+                
+                # Also check reverse edges (target -> source)
+                for edge in self.edges:
+                    if edge.target == node.id:
+                        source_node = self.get_node(edge.source)
+                        if source_node:
+                            neighbors.append(source_node)
+                
+                for neighbor in neighbors:
+                    if neighbor.id in visited:
+                        continue
+                    
+                    # Apply type filter
+                    if node_type is not None and neighbor.type != node_type:
+                        continue
+                    
+                    visited.add(neighbor.id)
+                    
+                    # Calculate score: base it on parent's score * decay
+                    parent_score = node_scores.get(node.id, (0.5, node))[0]
+                    neighbor_score = parent_score * decay
+                    
+                    # If neighbor has embedding, also consider direct similarity
+                    if neighbor.embedding is not None:
+                        try:
+                            query_embedding = self.get_embedding(query)
+                            direct_score = self.cosine_similarity(query_embedding, neighbor.embedding)
+                            # Combine: weighted average favoring direct similarity
+                            neighbor_score = max(neighbor_score, direct_score * decay)
+                        except:
+                            pass
+                    
+                    node_scores[neighbor.id] = (neighbor_score, neighbor)
+                    next_frontier.append(neighbor)
+            
+            current_frontier = next_frontier
+        
+        # Step 3: Sort by score and return top results
+        results = list(node_scores.values())
+        results.sort(reverse=True, key=lambda x: x[0])
+        
         return results[:limit]
 
     # ==================== LLM Integration ====================

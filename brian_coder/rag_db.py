@@ -1,0 +1,961 @@
+"""
+Verilog Agentic RAG Database
+
+Zero-Dependency RAG system for Verilog/Testbench/Spec documents.
+Features:
+- Hierarchical chunking (Module → Ports → Wires → Always → Assign)
+- Category-based indexing with descriptions
+- Hash-based incremental re-indexing
+- Semantic search via embeddings
+
+Storage: JSON files in ~/.brian_rag/
+"""
+import json
+import hashlib
+import re
+import os
+from dataclasses import dataclass, asdict, field
+from datetime import datetime
+from pathlib import Path
+from typing import List, Dict, Optional, Any, Tuple
+
+
+@dataclass
+class Chunk:
+    """
+    A chunk of code/document for RAG search.
+    
+    Attributes:
+        id: Unique identifier
+        source_file: Path to original file
+        category: "verilog", "testbench", or "spec"
+        level: Hierarchical level (1-5 for Verilog)
+        chunk_type: "module", "port", "wire", "always", "assign", "section"
+        content: Actual code/text content
+        start_line: Starting line in source file
+        end_line: Ending line in source file
+        embedding: Vector embedding for semantic search
+        metadata: Additional info (module_name, etc.)
+    """
+    id: str
+    source_file: str
+    category: str
+    level: int
+    chunk_type: str
+    content: str
+    start_line: int
+    end_line: int
+    embedding: Optional[List[float]] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat())
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'Chunk':
+        return cls(**data)
+
+
+@dataclass
+class CategoryConfig:
+    """Configuration for a RAG category."""
+    name: str
+    enabled: bool
+    description: str
+    include: List[str]
+    exclude: List[str]
+
+
+class RAGDatabase:
+    """
+    Zero-Dependency RAG Database for Verilog projects.
+    
+    Features:
+    - Hierarchical Verilog chunking
+    - Category-based organization
+    - Hash-based incremental indexing
+    - Semantic search via embeddings
+    """
+
+    def __init__(self, rag_dir: str = ".brian_rag", fine_grained: bool = False):
+        """
+        Initialize RAG Database.
+        
+        Args:
+            rag_dir: Directory for RAG storage (relative to home)
+            fine_grained: If True, create more detailed chunks (individual signals, 
+                         case statements, etc.) for precise search. Default is False.
+        """
+        self.rag_dir = Path.home() / rag_dir
+        self.index_path = self.rag_dir / "rag_index.json"
+        self.config_file = self.rag_dir / ".ragconfig"
+        self.fine_grained = fine_grained
+        
+        self.chunks: Dict[str, Chunk] = {}
+        self.file_hashes: Dict[str, str] = {}
+        self.categories: Dict[str, CategoryConfig] = {}
+        
+        self._ensure_initialized()
+        self._load()
+
+    def _ensure_initialized(self):
+        """Create RAG directory and files if needed."""
+        self.rag_dir.mkdir(parents=True, exist_ok=True)
+        
+        if not self.index_path.exists():
+            self.index_path.write_text('{"chunks": {}, "file_hashes": {}}')
+        
+        # Create default .ragconfig if not exists
+        if not self.config_file.exists():
+            self._create_default_config()
+
+    def _create_default_config(self):
+        """Create default category configuration."""
+        default_config = """# .ragconfig - RAG Category Configuration
+version: 1
+
+verilog:
+  enabled: true
+  description: "RTL 소스 코드. 모듈 구현, 신호 정의, 상태머신 분석 시 검색"
+  include:
+    - "*.v"
+    - "*.sv"
+  exclude:
+    - "*_backup.v"
+    - "*_old.v"
+
+testbench:
+  enabled: true
+  description: "테스트벤치. 시뮬레이션 시나리오, 테스트 케이스, expected 동작 확인 시 검색"
+  include:
+    - "*_tb.v"
+    - "*_test.v"
+  exclude: []
+
+spec:
+  enabled: true
+  description: "프로토콜 스펙, 설계 문서. 프로토콜 규칙, 타이밍 요구사항 확인 시 검색"
+  include:
+    - "*.md"
+    - "*.txt"
+  exclude:
+    - "README.md"
+"""
+        self.config_file.write_text(default_config)
+
+    # ==================== Hierarchical Verilog Chunking ====================
+
+    def chunk_verilog_hierarchical(self, content: str, file_path: str) -> List[Chunk]:
+        """
+        Hierarchical chunking for Verilog files.
+        
+        Levels:
+        1. Module 전체 (개요용)
+        2. Port declarations
+        3. Wire/Reg declarations
+        4. Always blocks
+        5. Assign statements
+        
+        Args:
+            content: Verilog file content
+            file_path: Path to source file
+            
+        Returns:
+            List of Chunk objects
+        """
+        chunks = []
+        lines = content.split('\n')
+        
+        # Level 1: Extract full modules
+        # Pattern handles:
+        # - module name (...);  (with ports, multi-line)
+        # - module name;        (no ports, testbench style)
+        # - module name #(...) (...); (with parameters)
+        module_pattern = re.compile(
+            r'module\s+(\w+)\s*(?:#\s*\([^)]*\))?\s*(?:\([^;]*\))?\s*;.*?endmodule',
+            re.DOTALL
+        )
+        
+        for match in module_pattern.finditer(content):
+            module_name = match.group(1)
+            module_content = match.group(0)
+            start_pos = match.start()
+            end_pos = match.end()
+            
+            # Calculate line numbers
+            start_line = content[:start_pos].count('\n') + 1
+            end_line = content[:end_pos].count('\n') + 1
+            
+            # Level 1: Full module
+            chunks.append(Chunk(
+                id=self._generate_chunk_id(),
+                source_file=file_path,
+                category="verilog",
+                level=1,
+                chunk_type="module",
+                content=module_content,
+                start_line=start_line,
+                end_line=end_line,
+                metadata={
+                    "module_name": module_name,
+                    "summary": f"Module {module_name} - full implementation"
+                }
+            ))
+            
+            # Level 2: Port declarations
+            port_chunks = self._extract_ports(module_content, file_path, module_name, start_line)
+            chunks.extend(port_chunks)
+            
+            # Level 3: Wire/Reg declarations
+            wire_chunks = self._extract_wires(module_content, file_path, module_name, start_line)
+            chunks.extend(wire_chunks)
+            
+            # Level 4: Always blocks
+            always_chunks = self._extract_always_blocks(module_content, file_path, module_name, start_line)
+            chunks.extend(always_chunks)
+            
+            # Level 5: Assign statements
+            assign_chunks = self._extract_assigns(module_content, file_path, module_name, start_line)
+            chunks.extend(assign_chunks)
+        
+        return chunks
+
+    def _extract_ports(self, module_content: str, file_path: str, 
+                       module_name: str, base_line: int) -> List[Chunk]:
+        """Extract port declarations (Level 2)."""
+        chunks = []
+        
+        # Match input/output/inout declarations with position tracking
+        port_pattern = re.compile(
+            r'(input|output|inout)\s+(?:wire|reg)?\s*(?:\[[^\]]+\])?\s*(\w+)',
+            re.MULTILINE
+        )
+        
+        ports = []
+        first_line = None
+        last_line = None
+        
+        for match in port_pattern.finditer(module_content):
+            ports.append(f"{match.group(1)} {match.group(2)}")
+            # Track actual line numbers
+            line_num = module_content[:match.start()].count('\n') + 1
+            if first_line is None:
+                first_line = line_num
+            last_line = line_num
+        
+        if ports:
+            # Group all ports into one chunk with accurate line numbers
+            port_content = "// Port declarations\n" + "\n".join(ports)
+            chunks.append(Chunk(
+                id=self._generate_chunk_id(),
+                source_file=file_path,
+                category="verilog",
+                level=2,
+                chunk_type="port",
+                content=port_content,
+                start_line=base_line + (first_line - 1) if first_line else base_line,
+                end_line=base_line + (last_line - 1) if last_line else base_line,
+                metadata={
+                    "module_name": module_name,
+                    "port_count": len(ports),
+                    "summary": f"Port declarations for {module_name}"
+                }
+            ))
+        
+        return chunks
+
+    def _extract_wires(self, module_content: str, file_path: str,
+                       module_name: str, base_line: int) -> List[Chunk]:
+        """Extract wire/reg declarations (Level 3)."""
+        chunks = []
+        
+        # Match wire and reg declarations with position tracking
+        wire_pattern = re.compile(
+            r'^[ \t]*(wire|reg)\s+(?:\[[^\]]+\])?\s*(\w+)',
+            re.MULTILINE
+        )
+        
+        wires = []
+        wire_lines = []  # Track line number for each wire
+        first_line = None
+        last_line = None
+        
+        for match in wire_pattern.finditer(module_content):
+            wires.append(f"{match.group(1)} {match.group(2)}")
+            line_num = module_content[:match.start()].count('\n') + 1
+            wire_lines.append(line_num)
+            if first_line is None:
+                first_line = line_num
+            last_line = line_num
+        
+        if wires:
+            wire_content = "// Wire/Reg declarations\n" + "\n".join(wires)
+            chunks.append(Chunk(
+                id=self._generate_chunk_id(),
+                source_file=file_path,
+                category="verilog",
+                level=3,
+                chunk_type="wire",
+                content=wire_content,
+                start_line=base_line + (first_line - 1) if first_line else base_line,
+                end_line=base_line + (last_line - 1) if last_line else base_line,
+                metadata={
+                    "module_name": module_name,
+                    "wire_count": len(wires),
+                    "summary": f"Wire/Reg declarations for {module_name}"
+                }
+            ))
+        
+        # Fine-grained: individual wire/reg declarations with correct line numbers
+        if self.fine_grained:
+            for wire_decl, line_num in zip(wires, wire_lines):
+                signal_name = wire_decl.split()[-1] if wire_decl else "unknown"
+                actual_line = base_line + line_num - 1
+                chunks.append(Chunk(
+                    id=self._generate_chunk_id(),
+                    source_file=file_path,
+                    category="verilog",
+                    level=6,  # Level 6: individual signals
+                    chunk_type="signal",
+                    content=wire_decl,
+                    start_line=actual_line,
+                    end_line=actual_line,
+                    metadata={
+                        "module_name": module_name,
+                        "signal_name": signal_name,
+                        "summary": f"Signal: {signal_name} in {module_name}"
+                    }
+                ))
+        
+        return chunks
+
+    def _extract_always_blocks(self, module_content: str, file_path: str,
+                                module_name: str, base_line: int) -> List[Chunk]:
+        """Extract always blocks (Level 4), case statements (Level 7), and if-else (Level 9).
+        
+        Supports:
+        - always @(...) begin...end
+        - always @(*) single_statement;
+        - always_comb begin...end
+        - always_ff @(...) begin...end
+        - always_latch begin...end
+        """
+        chunks = []
+        
+        # Pattern 1: always blocks with begin...end
+        always_starts = list(re.finditer(
+            r'(always\s*@\s*\([^)]+\)|always_comb|always_ff\s*@\s*\([^)]+\)|always_latch)\s*begin', 
+            module_content
+        ))
+        
+        block_num = 0
+        for start_match in always_starts:
+            block_num += 1
+            start_pos = start_match.start()
+            
+            # Find matching end by counting begin/end with word boundaries
+            # Skip: endcase, endfunction, endmodule, etc.
+            content_after = module_content[start_match.end():]
+            depth = 1
+            pos = 0
+            
+            while depth > 0 and pos < len(content_after):
+                # Use regex to find begin/end with word boundaries
+                remaining = content_after[pos:]
+                
+                begin_match = re.search(r'\bbegin\b', remaining)
+                end_match = re.search(r'\bend\b(?!case|function|module|task|generate|primitive)', remaining)
+                
+                next_begin = begin_match.start() + pos if begin_match else -1
+                next_end = end_match.start() + pos if end_match else -1
+                
+                if next_end == -1:
+                    break
+                
+                if next_begin != -1 and next_begin < next_end:
+                    depth += 1
+                    pos = next_begin + 5
+                else:
+                    depth -= 1
+                    if depth == 0:
+                        end_pos = start_match.end() + next_end + 3
+                        break
+                    pos = next_end + 3
+            else:
+                end_pos = len(module_content)
+            
+            always_content = module_content[start_pos:end_pos]
+            always_body = always_content[len(start_match.group(0)):-3]  # Remove "always @(...) begin" and "end"
+            
+            # Calculate line numbers
+            start_offset = module_content[:start_pos].count('\n')
+            end_offset = module_content[:end_pos].count('\n')
+            
+            # Determine block type
+            if 'posedge' in always_content or 'negedge' in always_content:
+                block_type = "sequential"
+            else:
+                block_type = "combinational"
+            
+            chunks.append(Chunk(
+                id=self._generate_chunk_id(),
+                source_file=file_path,
+                category="verilog",
+                level=4,
+                chunk_type="always",
+                content=always_content,
+                start_line=base_line + start_offset,
+                end_line=base_line + end_offset,
+                metadata={
+                    "module_name": module_name,
+                    "block_number": block_num,
+                    "block_type": block_type,
+                    "summary": f"Always block #{block_num} ({block_type}) in {module_name}"
+                }
+            ))
+            
+            # Fine-grained: extract case statements and if-else
+            if self.fine_grained:
+                # Extract case statements (Level 7)
+                case_pattern = re.compile(
+                    r'case\s*\(([^)]+)\)(.*?)endcase',
+                    re.DOTALL
+                )
+                case_num = 0
+                for case_match in case_pattern.finditer(always_body):
+                    case_num += 1
+                    case_var = case_match.group(1).strip()
+                    case_content = case_match.group(0)
+                    
+                    # Extract individual case branches
+                    case_body = case_match.group(2)
+                    
+                    chunks.append(Chunk(
+                        id=self._generate_chunk_id(),
+                        source_file=file_path,
+                        category="verilog",
+                        level=7,
+                        chunk_type="case",
+                        content=case_content[:1500],  # Limit size
+                        start_line=base_line + start_offset,
+                        end_line=base_line + end_offset,
+                        metadata={
+                            "module_name": module_name,
+                            "case_variable": case_var,
+                            "summary": f"case({case_var}) in {module_name}"
+                        }
+                    ))
+                
+                # Extract if-else blocks (Level 9)
+                if_pattern = re.compile(
+                    r'if\s*\(([^)]+)\)\s*begin',
+                    re.MULTILINE
+                )
+                for if_match in if_pattern.finditer(always_body):
+                    condition = if_match.group(1).strip()[:60]  # Truncate long conditions
+                    
+                    chunks.append(Chunk(
+                        id=self._generate_chunk_id(),
+                        source_file=file_path,
+                        category="verilog",
+                        level=9,
+                        chunk_type="if_block",
+                        content=f"if ({if_match.group(1)})",
+                        start_line=base_line + start_offset,
+                        end_line=base_line + start_offset,
+                        metadata={
+                            "module_name": module_name,
+                            "condition": condition,
+                            "summary": f"if({condition}) in {module_name}"
+                        }
+                    ))
+                
+                # Extract signal assignments (<= and =)
+                assign_pattern = re.compile(r'(\w+)\s*<=\s*([^;]+);')
+                for asgn_match in assign_pattern.finditer(always_body):
+                    signal = asgn_match.group(1)
+                    value = asgn_match.group(2).strip()[:50]
+                    
+                    chunks.append(Chunk(
+                        id=self._generate_chunk_id(),
+                        source_file=file_path,
+                        category="verilog",
+                        level=8,
+                        chunk_type="nb_assign",
+                        content=asgn_match.group(0),
+                        start_line=base_line + start_offset,
+                        end_line=base_line + start_offset,
+                        metadata={
+                            "module_name": module_name,
+                            "signal_name": signal,
+                            "summary": f"{signal} <= {value}... in {module_name}"
+                        }
+                    ))
+        
+        # Pattern 2: Single-statement always blocks (without begin...end)
+        # e.g., always @(*) foo = bar;  or  always_comb out = in1 & in2;
+        single_stmt_pattern = re.compile(
+            r'(always\s*@\s*\([^)]+\)|always_comb|always_ff\s*@\s*\([^)]+\)|always_latch)\s+(?!begin)(\w+\s*[<]?=\s*[^;]+;)',
+            re.MULTILINE
+        )
+        
+        for match in single_stmt_pattern.finditer(module_content):
+            block_num += 1
+            always_type = match.group(1).strip()
+            statement = match.group(2).strip()
+            
+            start_offset = module_content[:match.start()].count('\n')
+            end_offset = module_content[:match.end()].count('\n')
+            
+            if 'posedge' in always_type or 'negedge' in always_type or 'always_ff' in always_type:
+                block_type = "sequential"
+            else:
+                block_type = "combinational"
+            
+            chunks.append(Chunk(
+                id=self._generate_chunk_id(),
+                source_file=file_path,
+                category="verilog",
+                level=4,
+                chunk_type="always",
+                content=match.group(0),
+                start_line=base_line + start_offset,
+                end_line=base_line + end_offset,
+                metadata={
+                    "module_name": module_name,
+                    "block_number": block_num,
+                    "block_type": block_type,
+                    "single_statement": True,
+                    "summary": f"Always block #{block_num} ({block_type}, single-stmt) in {module_name}"
+                }
+            ))
+        
+        return chunks
+
+    def _extract_assigns(self, module_content: str, file_path: str,
+                         module_name: str, base_line: int) -> List[Chunk]:
+        """Extract assign statements (Level 5)."""
+        chunks = []
+        
+        # Match assign statements with position tracking
+        assign_pattern = re.compile(
+            r'assign\s+(\w+)\s*=\s*([^;]+);',
+            re.MULTILINE
+        )
+        
+        assigns = []
+        first_line = None
+        last_line = None
+        
+        for match in assign_pattern.finditer(module_content):
+            assigns.append(f"assign {match.group(1)} = {match.group(2)};")
+            line_num = module_content[:match.start()].count('\n') + 1
+            if first_line is None:
+                first_line = line_num
+            last_line = line_num
+        
+        if assigns:
+            assign_content = "// Assign statements\n" + "\n".join(assigns)
+            chunks.append(Chunk(
+                id=self._generate_chunk_id(),
+                source_file=file_path,
+                category="verilog",
+                level=5,
+                chunk_type="assign",
+                content=assign_content,
+                start_line=base_line + (first_line - 1) if first_line else base_line,
+                end_line=base_line + (last_line - 1) if last_line else base_line,
+                metadata={
+                    "module_name": module_name,
+                    "assign_count": len(assigns),
+                    "summary": f"Assign statements for {module_name}"
+                }
+            ))
+        
+        return chunks
+
+    # ==================== Testbench Chunking ====================
+
+    def chunk_testbench(self, content: str, file_path: str) -> List[Chunk]:
+        """Chunk testbench files (simpler than RTL)."""
+        chunks = []
+        
+        # Use same hierarchical approach as verilog
+        chunks.extend(self.chunk_verilog_hierarchical(content, file_path))
+        
+        # Update category to testbench
+        for chunk in chunks:
+            chunk.category = "testbench"
+        
+        return chunks
+
+    # ==================== Spec/Doc Chunking ====================
+
+    def chunk_spec(self, content: str, file_path: str) -> List[Chunk]:
+        """Chunk specification/documentation files (Markdown)."""
+        chunks = []
+        
+        # Split by headers (## or ###)
+        sections = re.split(r'\n(#{1,3}\s+[^\n]+)\n', content)
+        
+        current_section = ""
+        section_num = 0
+        
+        for i, part in enumerate(sections):
+            if part.startswith('#'):
+                current_section = part.strip('# \n')
+            elif part.strip():
+                section_num += 1
+                section_content = part.strip()
+                
+                if len(section_content) > 50:  # Skip very short sections
+                    chunks.append(Chunk(
+                        id=self._generate_chunk_id(),
+                        source_file=file_path,
+                        category="spec",
+                        level=1,
+                        chunk_type="section",
+                        content=section_content[:2000],  # Limit size
+                        start_line=1,
+                        end_line=1,
+                        metadata={
+                            "section_title": current_section,
+                            "summary": f"Section: {current_section}"
+                        }
+                    ))
+        
+        return chunks
+
+    # ==================== Indexing ====================
+
+    def index_file(self, file_path: str, category: str = None) -> int:
+        """
+        Index a single file.
+        
+        Args:
+            file_path: Path to file
+            category: Override category (auto-detect if None)
+            
+        Returns:
+            Number of chunks created
+        """
+        path = Path(file_path)
+        if not path.exists():
+            print(f"[RAG] File not found: {file_path}")
+            return 0
+        
+        # Check if reindex needed (hash comparison)
+        current_hash = self._get_file_hash(file_path)
+        stored_hash = self.file_hashes.get(str(path.absolute()))
+        
+        if current_hash == stored_hash:
+            print(f"[RAG] Skipping (unchanged): {path.name}")
+            return 0
+        
+        # Read content
+        content = path.read_text(encoding='utf-8', errors='ignore')
+        
+        # Auto-detect category
+        if category is None:
+            if path.suffix in ['.v', '.sv']:
+                if '_tb' in path.name or '_test' in path.name:
+                    category = "testbench"
+                else:
+                    category = "verilog"
+            elif path.suffix in ['.md', '.txt']:
+                category = "spec"
+            else:
+                category = "verilog"  # Default
+        
+        # Remove old chunks from this file
+        old_chunks = [cid for cid, c in self.chunks.items() 
+                      if c.source_file == str(path.absolute())]
+        for cid in old_chunks:
+            del self.chunks[cid]
+        
+        # Chunk based on category
+        if category in ["verilog"]:
+            new_chunks = self.chunk_verilog_hierarchical(content, str(path.absolute()))
+        elif category == "testbench":
+            new_chunks = self.chunk_testbench(content, str(path.absolute()))
+        elif category == "spec":
+            new_chunks = self.chunk_spec(content, str(path.absolute()))
+        else:
+            new_chunks = []
+        
+        # Generate embeddings for chunks
+        for chunk in new_chunks:
+            try:
+                chunk.embedding = self._get_embedding(chunk.content[:1000])
+            except Exception as e:
+                print(f"[RAG] Embedding failed: {e}")
+                chunk.embedding = None
+            
+            self.chunks[chunk.id] = chunk
+        
+        # Update hash
+        self.file_hashes[str(path.absolute())] = current_hash
+        
+        print(f"[RAG] Indexed: {path.name} ({len(new_chunks)} chunks)")
+        return len(new_chunks)
+
+    def index_directory(self, dir_path: str, patterns: List[str] = None,
+                        category: str = None) -> int:
+        """
+        Index all matching files in a directory.
+        
+        Args:
+            dir_path: Directory path
+            patterns: File patterns (e.g., ["*.v", "*.sv"])
+            category: Category for all files (auto-detect if None)
+            
+        Returns:
+            Total chunks created
+        """
+        import fnmatch
+        
+        if patterns is None:
+            patterns = ["*.v", "*.sv", "*.md"]
+        
+        path = Path(dir_path)
+        if not path.exists():
+            print(f"[RAG] Directory not found: {dir_path}")
+            return 0
+        
+        total_chunks = 0
+        
+        for pattern in patterns:
+            for file_path in path.rglob(pattern):
+                if file_path.is_file():
+                    total_chunks += self.index_file(str(file_path), category)
+        
+        self.save()
+        return total_chunks
+
+    # ==================== Search ====================
+
+    def search(self, query: str, categories: str = "all", 
+               limit: int = 5, level: int = None) -> List[Tuple[float, Chunk]]:
+        """
+        Semantic search across indexed chunks.
+        
+        Args:
+            query: Search query (natural language)
+            categories: "verilog", "testbench", "spec", "verilog,testbench", "all"
+            limit: Maximum results
+            level: Filter by hierarchical level (1-5)
+            
+        Returns:
+            List of (score, chunk) tuples, sorted by score
+        """
+        # Check for changes before searching
+        self._smart_reindex()
+        
+        # Get query embedding
+        try:
+            query_embedding = self._get_embedding(query)
+        except Exception as e:
+            print(f"[RAG] Query embedding failed: {e}")
+            return []
+        
+        # Parse categories
+        if categories == "all":
+            allowed_categories = ["verilog", "testbench", "spec"]
+        else:
+            allowed_categories = [c.strip() for c in categories.split(',')]
+        
+        results = []
+        
+        for chunk in self.chunks.values():
+            # Filter by category
+            if chunk.category not in allowed_categories:
+                continue
+            
+            # Filter by level
+            if level is not None and chunk.level != level:
+                continue
+            
+            # Skip chunks without embeddings
+            if chunk.embedding is None:
+                continue
+            
+            # Calculate similarity
+            try:
+                score = self._cosine_similarity(query_embedding, chunk.embedding)
+                results.append((score, chunk))
+            except Exception:
+                continue
+        
+        # Sort by score
+        results.sort(reverse=True, key=lambda x: x[0])
+        
+        return results[:limit]
+
+    def _smart_reindex(self):
+        """Check for file changes and reindex if needed."""
+        for file_path, stored_hash in list(self.file_hashes.items()):
+            if Path(file_path).exists():
+                current_hash = self._get_file_hash(file_path)
+                if current_hash != stored_hash:
+                    print(f"[RAG] Change detected: {Path(file_path).name}")
+                    self.index_file(file_path)
+
+    # ==================== Embedding (reuse from graph_lite) ====================
+
+    def _get_embedding(self, text: str) -> List[float]:
+        """Get embedding using existing graph_lite infrastructure."""
+        try:
+            # Try to use graph_lite's embedding function
+            from graph_lite import GraphLite
+            graph = GraphLite()
+            return graph.get_embedding(text)
+        except Exception as e:
+            # Fallback: direct API call
+            return self._get_embedding_direct(text)
+
+    def _get_embedding_direct(self, text: str) -> List[float]:
+        """Direct embedding API call (fallback)."""
+        import urllib.request
+        
+        try:
+            # Try relative import first (when imported as package)
+            try:
+                from . import config
+            except ImportError:
+                import config
+            api_key = config.EMBEDDING_API_KEY
+            base_url = config.EMBEDDING_BASE_URL
+            model = config.EMBEDDING_MODEL
+        except Exception as e:
+            raise ValueError(f"Embedding config not found: {e}")
+        
+        url = f"{base_url}/embeddings"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+        data = {
+            "input": text[:8000],  # Limit text length
+            "model": model
+        }
+        
+        request = urllib.request.Request(
+            url,
+            data=json.dumps(data).encode('utf-8'),
+            headers=headers
+        )
+        
+        with urllib.request.urlopen(request, timeout=30) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            return result["data"][0]["embedding"]
+
+    def _cosine_similarity(self, v1: List[float], v2: List[float]) -> float:
+        """Calculate cosine similarity (pure Python)."""
+        import math
+        
+        if len(v1) != len(v2):
+            return 0.0
+        
+        dot_product = sum(a * b for a, b in zip(v1, v2))
+        norm_a = math.sqrt(sum(a * a for a in v1))
+        norm_b = math.sqrt(sum(b * b for b in v2))
+        
+        if norm_a == 0 or norm_b == 0:
+            return 0.0
+        
+        return dot_product / (norm_a * norm_b)
+
+    # ==================== Utilities ====================
+
+    def _generate_chunk_id(self) -> str:
+        """Generate unique chunk ID."""
+        import uuid
+        return f"chunk_{uuid.uuid4().hex[:8]}"
+
+    def _get_file_hash(self, file_path: str) -> str:
+        """Calculate MD5 hash of file content."""
+        with open(file_path, 'rb') as f:
+            return hashlib.md5(f.read()).hexdigest()
+
+    def get_stats(self) -> Dict[str, Any]:
+        """Get RAG database statistics."""
+        stats = {
+            "total_chunks": len(self.chunks),
+            "indexed_files": len(self.file_hashes),
+            "by_category": {},
+            "by_level": {}
+        }
+        
+        for chunk in self.chunks.values():
+            cat = chunk.category
+            stats["by_category"][cat] = stats["by_category"].get(cat, 0) + 1
+            
+            lvl = f"level_{chunk.level}"
+            stats["by_level"][lvl] = stats["by_level"].get(lvl, 0) + 1
+        
+        return stats
+
+    def get_categories_info(self) -> str:
+        """Get category descriptions for system prompt."""
+        info = "=== RAG Categories ===\n"
+        info += "Available categories for rag_search():\n"
+        
+        # Default descriptions
+        categories = {
+            "verilog": "RTL 소스 코드. 모듈 구현, 신호 정의, 상태머신 분석 시 검색",
+            "testbench": "테스트벤치. 시뮬레이션 시나리오, expected 동작 확인 시 검색",
+            "spec": "프로토콜 스펙, 설계 문서. 프로토콜 규칙, 타이밍 요구사항 확인 시 검색"
+        }
+        
+        for name, desc in categories.items():
+            info += f"• {name}: {desc}\n"
+        
+        info += "\nChoose relevant categories based on user's question.\n"
+        return info
+
+    # ==================== Persistence ====================
+
+    def save(self):
+        """Save RAG index to JSON file."""
+        try:
+            data = {
+                "chunks": {cid: c.to_dict() for cid, c in self.chunks.items()},
+                "file_hashes": self.file_hashes
+            }
+            self.index_path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+        except Exception as e:
+            print(f"[RAG] Save failed: {e}")
+
+    def _load(self):
+        """Load RAG index from JSON file."""
+        try:
+            data = json.loads(self.index_path.read_text())
+            self.chunks = {
+                cid: Chunk.from_dict(cdata) 
+                for cid, cdata in data.get("chunks", {}).items()
+            }
+            self.file_hashes = data.get("file_hashes", {})
+        except Exception as e:
+            self.chunks = {}
+            self.file_hashes = {}
+
+    def clear(self):
+        """Clear all indexed data."""
+        self.chunks.clear()
+        self.file_hashes.clear()
+        self.save()
+        print("[RAG] Database cleared")
+
+
+# ==================== Convenience Functions ====================
+
+# Global RAG instance (lazy initialization)
+_rag_db = None
+
+def get_rag_db() -> RAGDatabase:
+    """Get or create global RAG database instance."""
+    global _rag_db
+    if _rag_db is None:
+        _rag_db = RAGDatabase()
+    return _rag_db
