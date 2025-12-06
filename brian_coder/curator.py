@@ -164,8 +164,8 @@ class KnowledgeCurator:
         """
         Find and merge similar nodes (Phase 4 implementation).
 
-        Uses embedding similarity to find groups of similar nodes,
-        then merges them pairwise.
+        Uses embedding similarity to find pairs of similar nodes,
+        then merges them.
 
         Returns:
             Number of merge operations performed
@@ -174,32 +174,30 @@ class KnowledgeCurator:
             return 0
 
         threshold = getattr(config, 'MERGE_SIMILARITY_THRESHOLD', 0.85)
-        groups = self.graph.find_similar_nodes(threshold=threshold)
+        # find_similar_nodes returns List[Tuple[Node, Node, float]]
+        similar_pairs = self.graph.find_similar_nodes(threshold=threshold)
 
         merged_count = 0
-        for group in groups:
-            if len(group) >= 2:
-                # Get actual Node objects from IDs
-                nodes = []
-                for node_id in group:
-                    node = self.graph.nodes.get(node_id)
-                    if node:
-                        nodes.append(node)
-                
-                if len(nodes) < 2:
-                    continue
-                
-                # Merge pairwise: merge all into the first node
-                base_node = nodes[0]
-                for other_node in nodes[1:]:
-                    try:
-                        base_node = self.graph.merge_nodes(base_node, other_node)
-                        merged_count += 1
-                        if config.DEBUG_MODE:
-                            print(f"  [Curator] Merged {other_node.id} into {base_node.id}")
-                    except Exception as e:
-                        if config.DEBUG_MODE:
-                            print(f"  [Curator] Merge failed: {e}")
+        merged_node_ids = set()  # Track already merged nodes to avoid double-merge
+        
+        for node_a, node_b, similarity in similar_pairs:
+            # Skip if either node was already merged
+            if node_a.id in merged_node_ids or node_b.id in merged_node_ids:
+                continue
+            
+            # Skip if either node no longer exists
+            if node_a.id not in self.graph.nodes or node_b.id not in self.graph.nodes:
+                continue
+            
+            try:
+                merged_node = self.graph.merge_nodes(node_a, node_b)
+                merged_count += 1
+                merged_node_ids.add(node_b.id)  # node_b is deleted
+                if config.DEBUG_MODE:
+                    print(f"  [Curator] Merged {node_b.id} into {node_a.id} (similarity={similarity:.2f})")
+            except Exception as e:
+                if config.DEBUG_MODE:
+                    print(f"  [Curator] Merge failed: {e}")
 
         return merged_count
 

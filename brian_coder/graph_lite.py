@@ -1176,7 +1176,7 @@ Relations (JSON only):"""
         return similar_pairs
 
     def merge_nodes(self, node_a: Node, node_b: Node, 
-                    merged_label: Optional[str] = None,
+                    merged_type: Optional[str] = None,
                     merged_content: Optional[str] = None) -> Node:
         """
         Merge two nodes into one, combining their credits and edges.
@@ -1184,7 +1184,7 @@ Relations (JSON only):"""
         Args:
             node_a: First node
             node_b: Second node (will be deleted)
-            merged_label: Optional new label (defaults to node_a's label)
+            merged_type: Optional new type (defaults to node_a's type)
             merged_content: Optional merged content
         
         Returns:
@@ -1199,40 +1199,37 @@ Relations (JSON only):"""
             merged_data['content'] = f"{node_a.data['content']}\n---\n{node_b.data['content']}"
         
         # Keep node_a as the merged node
-        node_a.label = merged_label or node_a.label
+        node_a.type = merged_type or node_a.type
         node_a.data = merged_data
         
         # Combine credit scores (ACE integration)
         node_a.helpful_count += node_b.helpful_count
         node_a.harmful_count += node_b.harmful_count
         
-        # Update last_referenced to the more recent one
-        if node_b.last_referenced:
-            if not node_a.last_referenced or node_b.last_referenced > node_a.last_referenced:
-                node_a.last_referenced = node_b.last_referenced
+        # Update last_used_at to the more recent one
+        if node_b.last_used_at:
+            if not node_a.last_used_at or node_b.last_used_at > node_a.last_used_at:
+                node_a.last_used_at = node_b.last_used_at
         
-        # Transfer edges from node_b to node_a
-        edges_to_update = []
-        for edge_id, edge in list(self.edges.items()):
+        # Combine usage counts
+        node_a.usage_count += node_b.usage_count
+        
+        # Transfer edges from node_b to node_a (self.edges is a List[Edge])
+        for edge in self.edges:
             if edge.source == node_b.id:
                 edge.source = node_a.id
-                edges_to_update.append(edge)
             elif edge.target == node_b.id:
                 edge.target = node_a.id
-                edges_to_update.append(edge)
         
         # Remove duplicate edges (same source-target pair)
         seen_pairs = set()
-        edges_to_remove = []
-        for edge in self.edges.values():
+        unique_edges = []
+        for edge in self.edges:
             pair = (edge.source, edge.target)
-            if pair in seen_pairs:
-                edges_to_remove.append(edge.id)
-            else:
+            if pair not in seen_pairs:
                 seen_pairs.add(pair)
-        
-        for edge_id in edges_to_remove:
-            del self.edges[edge_id]
+                unique_edges.append(edge)
+        self.edges = unique_edges
         
         # Delete node_b
         del self.nodes[node_b.id]
@@ -1244,7 +1241,7 @@ Relations (JSON only):"""
         self._bm25_dirty = True
         
         # Save changes
-        self._save_to_file()
+        self.save()
         
         return node_a
 
