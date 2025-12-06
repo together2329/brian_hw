@@ -377,7 +377,7 @@ def git_status():
     except Exception as e:
         return f"Error running git status: {e}"
 
-def replace_in_file(path, old_text, new_text, count=-1):
+def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_line=None):
     """
     Replaces occurrences of text in a file.
     Args:
@@ -385,6 +385,8 @@ def replace_in_file(path, old_text, new_text, count=-1):
         old_text: Text to find and replace
         new_text: Text to replace with
         count: Maximum number of replacements (-1 for all occurrences)
+        start_line: Optional starting line number (1-indexed, inclusive)
+        end_line: Optional ending line number (1-indexed, inclusive)
     Returns:
         Success message with number of replacements made
     """
@@ -393,25 +395,49 @@ def replace_in_file(path, old_text, new_text, count=-1):
             return f"Error: File '{path}' does not exist."
         
         with open(path, 'r', encoding='utf-8') as f:
-            content = f.read()
+            lines = f.readlines()
+        
+        # Determine working range
+        start_idx = 0
+        end_idx = len(lines)
+        
+        if start_line is not None:
+            start_idx = max(0, int(start_line) - 1)
+        if end_line is not None:
+            end_idx = min(len(lines), int(end_line))
+            
+        target_lines = lines[start_idx:end_idx]
+        target_content = "".join(target_lines)
         
         # Count occurrences before replacement
-        occurrences = content.count(old_text)
+        occurrences = target_content.count(old_text)
         
         if occurrences == 0:
-            return f"No occurrences of '{old_text[:50]}...' found in {path}"
+            range_msg = f" in lines {start_line}-{end_line}" if start_line is not None else ""
+            return f"No occurrences of '{old_text[:50]}...' found in {path}{range_msg}"
+        
+        # IMPROVEMENT: Uniqueness Safety Check
+        # Strict logic: range required for multi-match unless count is specified.
+        if start_line is None and end_line is None and occurrences > 1 and count == -1:
+             return f"Error: Found {occurrences} occurrences of '{old_text[:30]}...' in {path}. " \
+                   f"To prevent accidental edits, please specify start_line/end_line OR provide a more unique text context."
         
         # Perform replacement
         if count == -1:
-            new_content = content.replace(old_text, new_text)
+            new_target_content = target_content.replace(old_text, new_text)
             replacements = occurrences
         else:
-            new_content = content.replace(old_text, new_text, count)
+            new_target_content = target_content.replace(old_text, new_text, count)
             replacements = min(count, occurrences)
+            
+        # Reconstruct full content
+        full_prefix = "".join(lines[:start_idx])
+        full_suffix = "".join(lines[end_idx:])
+        new_full_content = full_prefix + new_target_content + full_suffix
         
         # Write back
         with open(path, 'w', encoding='utf-8') as f:
-            f.write(new_content)
+            f.write(new_full_content)
         
         return f"Replaced {replacements} occurrence(s) in {path}"
     except Exception as e:
