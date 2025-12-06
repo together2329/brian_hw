@@ -2,6 +2,7 @@ import os
 import subprocess
 import json
 import shlex
+from display import format_diff
 
 def read_file(path):
     """Reads the content of a file."""
@@ -435,11 +436,18 @@ def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_lin
         full_suffix = "".join(lines[end_idx:])
         new_full_content = full_prefix + new_target_content + full_suffix
         
+        # Generate visual diff before writing
+        old_full_content = "".join(lines)
+        diff_output = format_diff(old_full_content, new_full_content, context_lines=2)
+        
         # Write back
         with open(path, 'w', encoding='utf-8') as f:
             f.write(new_full_content)
         
-        return f"Replaced {replacements} occurrence(s) in {path}"
+        result = f"Replaced {replacements} occurrence(s) in {path}\n\n"
+        result += "=== Visual Diff ==="
+        result += f"\n{diff_output}"
+        return result
     except Exception as e:
         return f"Error replacing text: {e}"
 
@@ -485,12 +493,20 @@ def replace_lines(path, start_line, end_line, new_content):
             lines[end_line:]           # Lines after replacement
         )
         
+        # Generate visual diff before writing
+        old_content = "".join(lines)
+        new_content_full = "".join(new_lines)
+        diff_output = format_diff(old_content, new_content_full, context_lines=2)
+        
         # Write back
         with open(path, 'w', encoding='utf-8') as f:
             f.writelines(new_lines)
         
         lines_removed = end_line - start_line + 1
-        return f"Replaced lines {start_line}-{end_line} ({lines_removed} lines) in {path}"
+        result = f"Replaced lines {start_line}-{end_line} ({lines_removed} lines) in {path}\n\n"
+        result += "=== Visual Diff ==="
+        result += f"\n{diff_output}"
+        return result
     except Exception as e:
         return f"Error replacing lines: {e}"
 

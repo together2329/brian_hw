@@ -165,7 +165,7 @@ class KnowledgeCurator:
         Find and merge similar nodes (Phase 4 implementation).
 
         Uses embedding similarity to find groups of similar nodes,
-        then merges them using LLM if available.
+        then merges them pairwise.
 
         Returns:
             Number of merge operations performed
@@ -179,11 +179,27 @@ class KnowledgeCurator:
         merged_count = 0
         for group in groups:
             if len(group) >= 2:
-                merged_id = self.graph.merge_nodes(group, llm_func=self.llm_call_func)
-                if merged_id:
-                    merged_count += 1
-                    if config.DEBUG_MODE:
-                        print(f"  [Curator] Merged {len(group)} nodes -> {merged_id}")
+                # Get actual Node objects from IDs
+                nodes = []
+                for node_id in group:
+                    node = self.graph.nodes.get(node_id)
+                    if node:
+                        nodes.append(node)
+                
+                if len(nodes) < 2:
+                    continue
+                
+                # Merge pairwise: merge all into the first node
+                base_node = nodes[0]
+                for other_node in nodes[1:]:
+                    try:
+                        base_node = self.graph.merge_nodes(base_node, other_node)
+                        merged_count += 1
+                        if config.DEBUG_MODE:
+                            print(f"  [Curator] Merged {other_node.id} into {base_node.id}")
+                    except Exception as e:
+                        if config.DEBUG_MODE:
+                            print(f"  [Curator] Merge failed: {e}")
 
         return merged_count
 

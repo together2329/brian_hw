@@ -129,11 +129,35 @@ def load_conversation_history():
 # --- 4. ReAct Logic ---
 
 
+def sanitize_action_text(text):
+    """
+    Sanitize common LLM output errors in Action calls.
+    Fixes patterns like: end_line=26") -> end_line=26)
+    """
+    import re
+    
+    # Pattern: number followed by quote then closing paren/comma
+    # e.g., =26") or =26", -> =26) or =26,
+    text = re.sub(r'=(\d+)"([,\)])', r'=\1\2', text)
+    
+    # Pattern: number followed by single quote then closing paren/comma  
+    text = re.sub(r"=(\d+)'([,\)])", r'=\1\2', text)
+    
+    return text
+
+
 def parse_all_actions(text):
     """
     Parses ALL 'Action: Tool(args)' occurrences from the text.
     Returns a list of (tool_name, args_str) tuples.
+    
+    Improvements:
+    - Sanitizes common LLM output errors (like end_line=26")
+    - On parse failure, skips to next Action instead of stopping
     """
+    # Sanitize common errors first
+    text = sanitize_action_text(text)
+    
     actions = []
     start_pos = 0
     pattern = r"Action:\s*(\w+)\("
@@ -202,11 +226,17 @@ def parse_all_actions(text):
             actions.append((tool_name, args_str))
             start_pos = i  # Continue searching after this action
         else:
-            # Unmatched parentheses, likely incomplete or malformed.
-            # Stop to prevent infinite loop
+            # Unmatched parentheses - skip this action and try next one
             if config.DEBUG_MODE:
-                print(f"[DEBUG] parse_all_actions: Unmatched parentheses for {tool_name}")
-            break
+                print(f"[DEBUG] parse_all_actions: Unmatched parentheses for {tool_name}, skipping to next Action")
+            
+            # Find next "Action:" and continue from there instead of breaking
+            next_action = re.search(r"Action:\s*\w+\(", text[match_start:])
+            if next_action:
+                start_pos = match_start + next_action.start()
+                continue
+            else:
+                break  # No more Actions found
             
     if config.DEBUG_MODE:
         print(f"[DEBUG] parse_all_actions found {len(actions)} actions")
