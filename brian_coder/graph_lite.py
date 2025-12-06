@@ -1167,7 +1167,7 @@ Relations (JSON only):"""
         
         for i, node_a in enumerate(nodes_with_embedding):
             for node_b in nodes_with_embedding[i + 1:]:
-                similarity = self._cosine_similarity(node_a.embedding, node_b.embedding)
+                similarity = self.cosine_similarity(node_a.embedding, node_b.embedding)
                 if similarity >= threshold:
                     similar_pairs.append((node_a, node_b, similarity))
         

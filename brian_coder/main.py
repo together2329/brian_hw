@@ -159,24 +159,26 @@ def parse_all_actions(text):
         i = match_start
         
         while i < len(text) and paren_count > 0:
-            # Check for triple quotes first
-            if i + 2 < len(text):
-                if text[i:i+3] == '"""':
-                    if not in_single_quote and not in_triple_single:
-                        in_triple_double = not in_triple_double
-                        i += 3
-                        continue
-                elif text[i:i+3] == "'''":
-                    if not in_double_quote and not in_triple_double:
-                        in_triple_single = not in_triple_single
-                        i += 3
-                        continue
+            # Check for triple quotes first (only if not inside single/double quotes)
+            if not in_single_quote and not in_double_quote:
+                if i + 2 < len(text):
+                    if text[i:i+3] == '"""':
+                        if not in_triple_single:
+                            in_triple_double = not in_triple_double
+                            i += 3
+                            continue
+                    elif text[i:i+3] == "'''":
+                        if not in_triple_double:
+                            in_triple_single = not in_triple_single
+                            i += 3
+                            continue
 
             char = text[i]
 
             # Handle escape sequences
-            if i > 0 and text[i-1] == '\\':
-                i += 1
+            if char == '\\':
+                # Skip the backslash and the next character (it is escaped)
+                i += 2
                 continue
 
             # Track quotes (only if not in triple quotes)

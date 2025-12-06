@@ -291,7 +291,7 @@ File Search & Navigation:
 7. find_files(pattern="*.py", directory=".", max_depth=None) - Find files matching pattern
 
 File Editing:
-8. replace_in_file(path="path/to/file", old_text="old", new_text="new", count=-1) - Replace text occurrences
+8. replace_in_file(path="path/to/file", old_text="old", new_text="new", count=-1, start_line=None, end_line=None) - Replace text occurrences (optionally within specific lines)
 9. replace_lines(path="path/to/file", start_line=10, end_line=20, new_content="new code") - Replace line range
 
 Git Tools:
@@ -406,7 +406,7 @@ Observation: Successfully wrote to 'counter.v'.
 Example 3 - Complex Task with Planning:
 User: Design a complete UART transmitter with testbench and simulation.
 Thought: This is a complex multi-step task. I should create a plan first.
-Action: create_plan(task_description="UART Transmitter Design", steps="Create uart_tx.v module\nCreate uart_tx_tb.v testbench\nCompile with iverilog\nRun simulation\nAnalyze results")
+Action: create_plan(task_description="UART Transmitter Design", steps="Create uart_tx.v module\\nCreate uart_tx_tb.v testbench\\nCompile with iverilog\\nRun simulation\\nAnalyze results")
 Observation: Plan created successfully in 'current_plan.md' with 5 steps.
 
 Thought: Now I'll start with step 1. Let me check the plan.
@@ -448,7 +448,7 @@ Option B - Interactive Planning (User-approved, RECOMMENDED):
 
 Example Interactive Workflow:
 Thought: This is complex. I should get user approval first.
-Action: create_plan(task_description="UART Design", steps="Create module\nCreate testbench\nSimulate")
+Action: create_plan(task_description="UART Design", steps="Create module\\nCreate testbench\\nSimulate")
 Observation: Plan created.
 Action: wait_for_plan_approval()
 Observation: Plan saved. Waiting for user approval...
@@ -481,7 +481,7 @@ Observation: 3: input reset,
 5: );
 
 Thought: I see the problem - missing closing bracket on line 4. Let me fix it.
-Action: replace_in_file(path="counter.v", old_text="output reg [7:0 count", new_text="output reg [7:0] count")
+Action: replace_in_file(path="counter.v", old_text="output reg [7:0 count", new_text="output reg [7:0] count", start_line=4, end_line=4)
 Observation: Replaced 1 occurrence in counter.v
 
 Thought: Now let me retry the compilation.
@@ -526,4 +526,3 @@ Action: read_file(path="file2.py")
 
 The system will execute them sequentially and provide all observations.
 """
-
