@@ -185,6 +185,54 @@ AMEM_MAX_CANDIDATES = int(os.getenv("AMEM_MAX_CANDIDATES", "10"))
 AMEM_LINK_TEMPERATURE = float(os.getenv("AMEM_LINK_TEMPERATURE", "0.3"))
 
 # ============================================================
+# ACE Credit Assignment Configuration
+# ============================================================
+# Enable credit tracking for graph nodes (ACE-style feedback)
+# When enabled, tracks which knowledge nodes helped or harmed task completion
+ENABLE_CREDIT_TRACKING = os.getenv("ENABLE_CREDIT_TRACKING", "true").lower() in ("true", "1", "yes")
+
+# Minimum quality score to include a node in search results (-1.0 to 1.0)
+# Nodes with quality below this will be excluded/deprioritized
+# Quality = (helpful - harmful) / (helpful + harmful + 1)
+NODE_QUALITY_THRESHOLD = float(os.getenv("NODE_QUALITY_THRESHOLD", "-0.3"))
+
+# ============================================================
+# Knowledge Curator Configuration (ACE-style)
+# ============================================================
+# Enable/Disable knowledge curator (automatic node cleanup)
+ENABLE_CURATOR = os.getenv("ENABLE_CURATOR", "true").lower() in ("true", "1", "yes")
+
+# Run curation every N conversations
+CURATOR_INTERVAL = int(os.getenv("CURATOR_INTERVAL", "10"))
+
+# Days of inactivity before pruning unused nodes
+CURATOR_PRUNE_DAYS = int(os.getenv("CURATOR_PRUNE_DAYS", "30"))
+
+# Minimum harmful count before considering deletion
+# Node deleted if: harmful > helpful AND harmful >= this threshold
+CURATOR_HARMFUL_THRESHOLD = int(os.getenv("CURATOR_HARMFUL_THRESHOLD", "2"))
+
+# ============================================================
+# Hybrid Search Configuration (BM25 + Embedding)
+# ============================================================
+# Search method: "embedding", "bm25", or "hybrid"
+# hybrid uses RRF (Reciprocal Rank Fusion) to combine both
+SEARCH_METHOD = os.getenv("SEARCH_METHOD", "hybrid")
+
+# Alpha weight for hybrid search (0.0-1.0)
+# Higher = more weight on embedding similarity
+# Lower = more weight on BM25 keyword matching
+HYBRID_ALPHA = float(os.getenv("HYBRID_ALPHA", "0.7"))
+
+# Enable/Disable Node Merge (Phase 4)
+# When enabled, Curator will merge similar nodes to reduce redundancy
+ENABLE_NODE_MERGE = os.getenv("ENABLE_NODE_MERGE", "false").lower() in ("true", "1", "yes")
+
+# Similarity threshold for node merging (0.0-1.0)
+# Only nodes with similarity >= this value will be merged
+MERGE_SIMILARITY_THRESHOLD = float(os.getenv("MERGE_SIMILARITY_THRESHOLD", "0.85"))
+
+# ============================================================
 # Procedural Memory Configuration (Memp)
 # ============================================================
 # Enable/Disable procedural memory system (learning from past experiences)
@@ -203,7 +251,7 @@ PROCEDURAL_INJECT_GUIDANCE = os.getenv("PROCEDURAL_INJECT_GUIDANCE", "true").low
 # Deep Think Configuration (Hypothesis Branching)
 # ============================================================
 # Enable/Disable Deep Think system (parallel hypothesis reasoning)
-ENABLE_DEEP_THINK = os.getenv("ENABLE_DEEP_THINK", "false").lower() in ("true", "1", "yes")
+ENABLE_DEEP_THINK = os.getenv("ENABLE_DEEP_THINK", "true").lower() in ("true", "1", "yes")
 
 # Number of hypotheses to generate per task
 DEEP_THINK_NUM_HYPOTHESES = int(os.getenv("DEEP_THINK_NUM_HYPOTHESES", "3"))
@@ -468,4 +516,14 @@ PERSISTENCE RULES:
 - Use write_file for major restructuring
 - After fixing, ALWAYS retry the failed command
 - Keep trying until success or 3 failed fix attempts
+IMPORTANT: You can execute MULTIPLE actions in a single turn.
+If you need to run multiple commands or read multiple files, list them one after another.
+
+Example of Multi-Action:
+Thought: I need to check two files.
+Action: read_file(path="file1.py")
+Action: read_file(path="file2.py")
+
+The system will execute them sequentially and provide all observations.
 """
+

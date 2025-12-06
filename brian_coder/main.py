@@ -18,6 +18,7 @@ from memory import MemorySystem
 from graph_lite import GraphLite, Node, Edge
 from procedural_memory import ProceduralMemory, Action, Trajectory
 from message_classifier import MessageClassifier
+from curator import KnowledgeCurator
 
 # Deep Think (optional - only import if enabled)
 if config.ENABLE_DEEP_THINK:
@@ -76,6 +77,16 @@ if config.ENABLE_PROCEDURAL_MEMORY:
         print(f"\033[93m[System] ⚠️  Continuing without procedural memory...\033[0m")
         procedural_memory = None
 
+# --- Global Knowledge Curator ---
+# Initialize curator if graph and curator are enabled
+curator = None
+if config.ENABLE_GRAPH and config.ENABLE_CURATOR and graph_lite is not None:
+    try:
+        curator = KnowledgeCurator(graph_lite, llm_call_func=call_llm_raw)
+    except Exception as e:
+        print(f"\033[91m[System] ❌ Curator initialization failed: {e}\033[0m")
+        curator = None
+
 # --- Global Message Classifier ---
 # Initialize classifier for smart compression
 message_classifier = MessageClassifier() if config.ENABLE_SMART_COMPRESSION else None
@@ -117,80 +128,88 @@ def load_conversation_history():
 
 # --- 4. ReAct Logic ---
 
-def parse_action(text):
-    """
-    Parses the last 'Action: Tool(args)' from the text.
-    Improved to handle triple-quotes and nested parentheses.
-    """
-    if config.DEBUG_MODE:
-        print(f"[DEBUG] parse_action input: {text[:200]}...")
 
-    # Find "Action: tool_name("
+def parse_all_actions(text):
+    """
+    Parses ALL 'Action: Tool(args)' occurrences from the text.
+    Returns a list of (tool_name, args_str) tuples.
+    """
+    actions = []
+    start_pos = 0
     pattern = r"Action:\s*(\w+)\("
-    match = re.search(pattern, text, re.DOTALL)
+    
+    if config.DEBUG_MODE:
+        print(f"[DEBUG] parse_all_actions input length: {len(text)}")
 
-    if not match:
-        if config.DEBUG_MODE:
-            print(f"[DEBUG] parse_action: No Action found")
-        return None, None
+    while True:
+        match = re.search(pattern, text[start_pos:], re.DOTALL)
+        if not match:
+            break
+            
+        tool_name = match.group(1)
+        # Absolute match position (after "tool_name(")
+        match_start = start_pos + match.end()
+        
+        # Find matching closing parenthesis
+        paren_count = 1
+        in_single_quote = False
+        in_double_quote = False
+        in_triple_single = False
+        in_triple_double = False
+        i = match_start
+        
+        while i < len(text) and paren_count > 0:
+            # Check for triple quotes first
+            if i + 2 < len(text):
+                if text[i:i+3] == '"""':
+                    if not in_single_quote and not in_triple_single:
+                        in_triple_double = not in_triple_double
+                        i += 3
+                        continue
+                elif text[i:i+3] == "'''":
+                    if not in_double_quote and not in_triple_double:
+                        in_triple_single = not in_triple_single
+                        i += 3
+                        continue
 
-    tool_name = match.group(1)
-    start_pos = match.end()  # Position after "tool_name("
+            char = text[i]
 
-    # Find matching closing parenthesis
-    paren_count = 1
-    in_single_quote = False
-    in_double_quote = False
-    in_triple_single = False
-    in_triple_double = False
-    i = start_pos
+            # Handle escape sequences
+            if i > 0 and text[i-1] == '\\':
+                i += 1
+                continue
 
-    while i < len(text) and paren_count > 0:
-        # Check for triple quotes first
-        if i + 2 < len(text):
-            if text[i:i+3] == '"""':
-                if not in_single_quote and not in_triple_single:
-                    in_triple_double = not in_triple_double
-                    i += 3
-                    continue
-            elif text[i:i+3] == "'''":
-                if not in_double_quote and not in_triple_double:
-                    in_triple_single = not in_triple_single
-                    i += 3
-                    continue
+            # Track quotes (only if not in triple quotes)
+            if not in_triple_single and not in_triple_double:
+                if char == '"' and not in_single_quote:
+                    in_double_quote = not in_double_quote
+                elif char == "'" and not in_double_quote:
+                    in_single_quote = not in_single_quote
 
-        char = text[i]
+            # Count parentheses (only if not in any quotes)
+            if not (in_single_quote or in_double_quote or in_triple_single or in_triple_double):
+                if char == '(':
+                    paren_count += 1
+                elif char == ')':
+                    paren_count -= 1
 
-        # Handle escape sequences
-        if i > 0 and text[i-1] == '\\':
             i += 1
-            continue
-
-        # Track quotes (only if not in triple quotes)
-        if not in_triple_single and not in_triple_double:
-            if char == '"' and not in_single_quote:
-                in_double_quote = not in_double_quote
-            elif char == "'" and not in_double_quote:
-                in_single_quote = not in_single_quote
-
-        # Count parentheses (only if not in any quotes)
-        if not (in_single_quote or in_double_quote or in_triple_single or in_triple_double):
-            if char == '(':
-                paren_count += 1
-            elif char == ')':
-                paren_count -= 1
-
-        i += 1
-
-    if paren_count == 0:
-        args_str = text[start_pos:i-1]  # Extract arguments
-        if config.DEBUG_MODE:
-            print(f"[DEBUG] parse_action found: {tool_name}({args_str[:100]}...)")
-        return tool_name, args_str
-    else:
-        if config.DEBUG_MODE:
-            print(f"[DEBUG] parse_action: Unmatched parentheses")
-        return None, None
+            
+        if paren_count == 0:
+            args_str = text[match_start:i-1]
+            actions.append((tool_name, args_str))
+            start_pos = i  # Continue searching after this action
+        else:
+            # Unmatched parentheses, likely incomplete or malformed.
+            # Stop to prevent infinite loop
+            if config.DEBUG_MODE:
+                print(f"[DEBUG] parse_all_actions: Unmatched parentheses for {tool_name}")
+            break
+            
+    if config.DEBUG_MODE:
+        print(f"[DEBUG] parse_all_actions found {len(actions)} actions")
+        
+    return actions
 
 def parse_tool_arguments(args_str):
     """
@@ -905,6 +924,9 @@ def run_react_agent(messages, tracker, task_description, mode='interactive'):
     # Initialize action tracking for procedural memory
     actions_taken = []
 
+    # ACE Credit Assignment: Track referenced node IDs from Deep Think
+    referenced_node_ids = []
+
     # ============================================================
     # Deep Think Integration (Hypothesis Branching)
     # ============================================================
@@ -933,7 +955,7 @@ def run_react_agent(messages, tracker, task_description, mode='interactive'):
                 procedural_memory=procedural_memory,
                 graph_lite=graph_lite,
                 llm_call_func=call_llm_raw,
-                execute_tool_func=tools.execute_tool
+                execute_tool_func=execute_tool
             )
 
             # Run Deep Think pipeline
@@ -943,7 +965,7 @@ def run_react_agent(messages, tracker, task_description, mode='interactive'):
             )
 
             # Display result
-            print(format_deep_think_output(deep_think_result, verbose=config.DEBUG_MODE))
+            print(format_deep_think_output(deep_think_result, verbose=True))
 
             # Inject selected strategy into messages
             strategy_guidance = engine.format_strategy_guidance(deep_think_result)
@@ -951,6 +973,11 @@ def run_react_agent(messages, tracker, task_description, mode='interactive'):
 
             print(Color.success(f"[Deep Think] Selected: {deep_think_result.selected_hypothesis.strategy_name}"))
             print(Color.info(f"  First action: {deep_think_result.selected_hypothesis.first_action}"))
+
+            # ACE Credit Assignment: Extract referenced node IDs
+            referenced_node_ids = deep_think_result.referenced_node_ids
+            if referenced_node_ids:
+                print(Color.info(f"  [ACE] Tracking {len(referenced_node_ids)} knowledge nodes for credit"))
             print()
 
         except Exception as e:
@@ -997,10 +1024,11 @@ def run_react_agent(messages, tracker, task_description, mode='interactive'):
             break
 
         # Check for Action
-        tool_name, args_str = parse_action(collected_content)
+        # Check for Action
+        actions = parse_all_actions(collected_content)
 
         # Check for hallucinated Observation
-        if "Observation:" in collected_content and not tool_name:
+        if "Observation:" in collected_content and not actions:
             print(Color.warning("  [System] ⚠️  Agent hallucinated an Observation. Correcting..."))
             # We already appended the assistant message above.
             # Now append the correction user message.
@@ -1010,69 +1038,75 @@ def run_react_agent(messages, tracker, task_description, mode='interactive'):
             })
             continue
 
-        if tool_name:
-            print(Color.tool(f"  🔧 Tool: {tool_name}"))
-
-            # Record tool usage for progress tracking
-            tracker.record_tool(tool_name)
-
-            observation = execute_tool(tool_name, args_str)
-
-            # Error detection: check if observation contains error indicators
-            obs_lower = observation.lower()
-            is_error = any(indicator in obs_lower for indicator in
-                          ['error:', 'exception:', 'traceback', 'syntax error', 'compilation failed'])
-
-            # Record action for procedural memory
-            if procedural_memory is not None:
-                action_result = "error" if is_error else "success"
-                action_obj = Action(
-                    tool=tool_name,
-                    args=args_str[:100],  # Truncate args
-                    result=action_result,
-                    observation=observation[:200]  # Truncate observation
-                )
-                actions_taken.append(action_obj)
-
-            # Smart preview based on tool type
-            if tool_name in ['read_file', 'read_lines']:
-                # For file reads, show first N lines (configurable)
-                lines = observation.split('\n')[:config.TOOL_RESULT_PREVIEW_LINES]
-                obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
-            elif len(observation) > config.TOOL_RESULT_PREVIEW_CHARS:
-                obs_preview = observation[:config.TOOL_RESULT_PREVIEW_CHARS] + f"... ({len(observation)} chars total)"
-            else:
-                obs_preview = observation
-
-            print(Color.info(f"  ✓ Result: {obs_preview}\n"))
+        if actions:
+            combined_results = []
             
-            # Special case: if it's just a file content read that happens to contain "error", it's not an execution error
-            if tool_name in ['read_file', 'read_lines', 'grep_file', 'get_plan'] and "error" in obs_lower:
-                # For these tools, unless it starts with "Error:", it's likely just content
-                if not observation.strip().lower().startswith("error:"):
-                    is_error = False
+            for i, (tool_name, args_str) in enumerate(actions):
+                # Visual separator for multi-action (except first)
+                if i > 0:
+                    print(Color.system(f"  {'-'*40}"))
+                    
+                print(Color.tool(f"  🔧 Tool {i+1}/{len(actions)}: {tool_name}"))
 
-            if is_error:
-                # Check if it's the same error repeating
-                if observation == last_error_observation:
-                    consecutive_errors += 1
-                    print(Color.warning(f"  [System] ⚠️  Consecutive error #{consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}"))
+                # Record tool usage for progress tracking
+                tracker.record_tool(tool_name)
 
-                    if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
-                        print(Color.error(f"  [System] ❌ Same error occurred {MAX_CONSECUTIVE_ERRORS} times. Stopping to prevent infinite loop."))
-                        messages.append({
-                            "role": "user",
-                            "content": f"Observation: {observation}\n\n[System] The same error occurred {MAX_CONSECUTIVE_ERRORS} times consecutively. Please ask the user for help or try a different approach."
-                        })
-                        break
+                # Execute
+                observation = execute_tool(tool_name, args_str)
+
+                # Error detection: check if observation contains error indicators
+                obs_lower = observation.lower()
+                is_error = any(indicator in obs_lower for indicator in
+                              ['error:', 'exception:', 'traceback', 'syntax error', 'compilation failed'])
+
+                # Special case: ignore "error" in file content reads
+                if tool_name in ['read_file', 'read_lines', 'grep_file', 'get_plan'] and "error" in obs_lower:
+                    if not observation.strip().lower().startswith("error:"):
+                        is_error = False
+
+                # Record action for procedural memory
+                if procedural_memory is not None:
+                    action_result = "error" if is_error else "success"
+                    action_obj = Action(
+                        tool=tool_name,
+                        args=args_str[:100],  # Truncate args
+                        result=action_result,
+                        observation=observation[:200]  # Truncate observation
+                    )
+                    actions_taken.append(action_obj)
+
+                # Smart preview based on tool type
+                if tool_name in ['read_file', 'read_lines']:
+                    lines = observation.split('\n')[:config.TOOL_RESULT_PREVIEW_LINES]
+                    obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
+                elif len(observation) > config.TOOL_RESULT_PREVIEW_CHARS:
+                    obs_preview = observation[:config.TOOL_RESULT_PREVIEW_CHARS] + f"... ({len(observation)} chars total)"
                 else:
-                    # Different error, reset counter
-                    consecutive_errors = 1
-                    last_error_observation = observation
+                    obs_preview = observation
+
+                print(Color.info(f"  ✓ Result: {obs_preview}\n"))
+                
+                # Format for combined output
+                combined_results.append(f"--- [Action {i+1}] {tool_name} ---\n{observation}")
+
+            # Combine all observations
+            observation = "\n\n".join(combined_results)
+
+            # Check consecutive errors using the combined observation
+            if observation == last_error_observation:
+                consecutive_errors += 1
+                print(Color.warning(f"  [System] ⚠️  Consecutive error #{consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}"))
+
+                if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                    print(Color.error(f"  [System] ❌ Same error occurred {MAX_CONSECUTIVE_ERRORS} times. Stopping to prevent infinite loop."))
+                    messages.append({
+                        "role": "user",
+                        "content": f"Observation: {observation}\n\n[System] The same error occurred {MAX_CONSECUTIVE_ERRORS} times consecutively. Please ask the user for help or try a different approach."
+                    })
+                    break
             else:
-                # Success! Reset error counter
                 consecutive_errors = 0
-                last_error_observation = None
+                last_error_observation = observation if "error" in observation.lower() else None
 
             # Process observation (handles large files and context management)
             messages = process_observation(observation, messages)
@@ -1099,7 +1133,22 @@ def run_react_agent(messages, tracker, task_description, mode='interactive'):
             outcome=outcome,
             iterations=tracker.current
         )
-        
+
+    # ============================================================
+    # ACE Credit Assignment: Update node credits based on outcome
+    # ============================================================
+    if graph_lite and referenced_node_ids and config.ENABLE_CREDIT_TRACKING:
+        # Determine outcome tag
+        has_errors = any(a.result == "error" for a in actions_taken) if actions_taken else False
+        tag = 'harmful' if has_errors else 'helpful'
+
+        # Update node credits
+        updated = graph_lite.update_node_credits(referenced_node_ids, tag)
+
+        if updated > 0:
+            print(Color.info(f"[ACE] Updated {updated} knowledge nodes with tag '{tag}'"))
+            graph_lite.save()
+
     return messages
 
 
@@ -1128,10 +1177,15 @@ def chat_loop():
     print(Color.system(f"Memory: {'Enabled' if config.ENABLE_MEMORY and memory_system else 'Disabled'}"))
     print(Color.system(f"Graph: {'Enabled' if config.ENABLE_GRAPH and graph_lite else 'Disabled'}"))
     print(Color.system(f"Procedural Memory: {'Enabled' if config.ENABLE_PROCEDURAL_MEMORY and procedural_memory else 'Disabled'}"))
+    print(Color.system(f"Curator: {'Enabled' if config.ENABLE_CURATOR and curator else 'Disabled'}"))
 
     # Show initial context usage
     show_context_usage(messages)
 
+    # ACE Credit Assignment: Track conversation count for periodic curation
+    conversation_count = 0
+
+    print(Color.system(f"Deep Think: {'Enabled' if config.ENABLE_DEEP_THINK else 'Disabled'}"))
     print(Color.info("\nType 'exit' or 'quit' to stop.\n"))
 
     while True:
@@ -1171,6 +1225,22 @@ def chat_loop():
             except Exception as e:
                 print(Color.warning(f"[Warning] Failed to save knowledge: {e}"))
                 print(Color.warning("[Warning] Conversation will continue normally"))
+
+            # ACE Credit Assignment: Run periodic curation
+            conversation_count += 1
+            if curator and conversation_count % config.CURATOR_INTERVAL == 0:
+                print(Color.system("\n[Curator] Running periodic knowledge curation..."))
+                try:
+                    stats = curator.curate()
+                    if stats['deleted_harmful'] > 0 or stats['pruned_unused'] > 0:
+                        print(Color.info(f"[Curator] Cleaned up: {stats['deleted_harmful']} harmful, "
+                                       f"{stats['pruned_unused']} unused nodes"))
+                        print(Color.info(f"[Curator] Graph size: {stats['total_before']} → {stats['total_after']} nodes"))
+                    else:
+                        print(Color.info("[Curator] No cleanup needed. Graph is healthy."))
+                except Exception as e:
+                    print(Color.warning(f"[Curator] Curation failed: {e}"))
+
         except KeyboardInterrupt:
             print(Color.warning("\nExiting..."))
             save_conversation_history(messages)

@@ -66,11 +66,13 @@ class DeepThinkResult:
         all_hypotheses: All generated hypotheses with scores
         reasoning_log: Log of the reasoning process
         total_time_ms: Total execution time in milliseconds
+        referenced_node_ids: ACE-style credit - node IDs used during scoring (NEW)
     """
     selected_hypothesis: Hypothesis
     all_hypotheses: List[Hypothesis]
     reasoning_log: List[str]
     total_time_ms: int
+    referenced_node_ids: List[str] = field(default_factory=list)  # ACE Credit Assignment
 
 
 # ============================================================
@@ -341,15 +343,15 @@ class HypothesisScorer:
         except Exception as e:
             return 0.5
 
-    def score_knowledge(self, hypothesis: Hypothesis) -> float:
+    def score_knowledge(self, hypothesis: Hypothesis) -> Tuple[float, List[str]]:
         """
         Score based on related knowledge in the graph.
 
         Returns:
-            float: Knowledge score (0.0-1.0)
+            Tuple[float, List[str]]: (Knowledge score 0.0-1.0, List of referenced node IDs)
         """
         if not self.graph_lite:
-            return 0.5
+            return 0.5, []
 
         try:
             # Search knowledge graph
@@ -357,14 +359,17 @@ class HypothesisScorer:
             results = self.graph_lite.search(query, limit=5)
 
             if not results:
-                return 0.5
+                return 0.5, []
+
+            # ACE Credit Assignment: Track referenced node IDs
+            referenced_ids = [node.id for score, node in results[:5]]
 
             # Average similarity of top results
             scores = [score for score, _ in results[:5]]
-            return sum(scores) / len(scores)
+            return sum(scores) / len(scores), referenced_ids
 
         except Exception as e:
-            return 0.5
+            return 0.5, []
 
     def score_coherence(self, hypothesis: Hypothesis, task: str) -> float:
         """
@@ -430,17 +435,24 @@ Return ONLY a decimal number between 0.0 and 1.0:"""
 
         return 0.5
 
-    def score_all(self, hypotheses: List[Hypothesis], task: str) -> List[Hypothesis]:
+    def score_all(self, hypotheses: List[Hypothesis], task: str) -> Tuple[List[Hypothesis], List[str]]:
         """
         Calculate all dimension scores and final weighted score.
 
         Returns:
-            List of hypotheses with scores filled
+            Tuple[List[Hypothesis], List[str]]: (Hypotheses with scores, All referenced node IDs)
         """
+        all_referenced_ids = []  # ACE Credit Assignment
+
         for h in hypotheses:
             # Calculate each dimension
             h.scores['experience'] = self.score_experience(h, task)
-            h.scores['knowledge'] = self.score_knowledge(h)
+
+            # ACE: score_knowledge now returns (score, node_ids)
+            knowledge_score, node_ids = self.score_knowledge(h)
+            h.scores['knowledge'] = knowledge_score
+            all_referenced_ids.extend(node_ids)
+
             h.scores['coherence'] = self.score_coherence(h, task)
             h.scores['simulation'] = self.score_simulation(h)
             h.scores['confidence'] = h.confidence
@@ -454,7 +466,11 @@ Return ONLY a decimal number between 0.0 and 1.0:"""
                 config.DEEP_THINK_WEIGHT_CONFIDENCE * h.scores['confidence']
             )
 
-        return hypotheses
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_ids = [x for x in all_referenced_ids if not (x in seen or seen.add(x))]
+
+        return hypotheses, unique_ids
 
 
 # ============================================================
@@ -576,11 +592,16 @@ class DeepThinkEngine:
 
         # ========== PHASE 3: SCORING ==========
         reasoning_log.append("\n[Phase 3] Scoring hypotheses...")
-        hypotheses = self.scorer.score_all(hypotheses, task)
+        # ACE Credit Assignment: score_all now returns (hypotheses, referenced_node_ids)
+        hypotheses, referenced_node_ids = self.scorer.score_all(hypotheses, task)
 
         for h in hypotheses:
             scores_str = ", ".join([f"{k}={v:.2f}" for k, v in h.scores.items()])
             reasoning_log.append(f"  - {h.strategy_name}: final={h.final_score:.3f} ({scores_str})")
+
+        # Log referenced nodes for credit assignment
+        if referenced_node_ids:
+            reasoning_log.append(f"  [ACE] Referenced {len(referenced_node_ids)} knowledge nodes")
 
         # ========== PHASE 4: SELECTION ==========
         reasoning_log.append("\n[Phase 4] Selecting best hypothesis...")
@@ -595,7 +616,8 @@ class DeepThinkEngine:
             selected_hypothesis=selected,
             all_hypotheses=hypotheses,
             reasoning_log=reasoning_log,
-            total_time_ms=elapsed_ms
+            total_time_ms=elapsed_ms,
+            referenced_node_ids=referenced_node_ids  # ACE Credit Assignment
         )
 
     def format_strategy_guidance(self, result: DeepThinkResult) -> str:
