@@ -697,6 +697,9 @@ spec:
         # Update hash
         self.file_hashes[str(path.resolve())] = current_hash
         
+        # Incremental save after each file (prevents data loss on Ctrl+C)
+        self.save()
+        
         print(f"[RAG] Indexed: {path.name} ({len(new_chunks)} chunks)")
         return len(new_chunks)
 
