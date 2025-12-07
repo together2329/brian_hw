@@ -647,7 +647,7 @@ spec:
         
         # Check if reindex needed (hash comparison)
         current_hash = self._get_file_hash(file_path)
-        stored_hash = self.file_hashes.get(str(path.absolute()))
+        stored_hash = self.file_hashes.get(str(path.resolve()))
         
         if current_hash == stored_hash:
             print(f"[RAG] Skipping (unchanged): {path.name}")
@@ -670,17 +670,17 @@ spec:
         
         # Remove old chunks from this file
         old_chunks = [cid for cid, c in self.chunks.items() 
-                      if c.source_file == str(path.absolute())]
+                      if c.source_file == str(path.resolve())]
         for cid in old_chunks:
             del self.chunks[cid]
         
         # Chunk based on category
         if category in ["verilog"]:
-            new_chunks = self.chunk_verilog_hierarchical(content, str(path.absolute()))
+            new_chunks = self.chunk_verilog_hierarchical(content, str(path.resolve()))
         elif category == "testbench":
-            new_chunks = self.chunk_testbench(content, str(path.absolute()))
+            new_chunks = self.chunk_testbench(content, str(path.resolve()))
         elif category == "spec":
-            new_chunks = self.chunk_spec(content, str(path.absolute()))
+            new_chunks = self.chunk_spec(content, str(path.resolve()))
         else:
             new_chunks = []
         
@@ -695,7 +695,7 @@ spec:
             self.chunks[chunk.id] = chunk
         
         # Update hash
-        self.file_hashes[str(path.absolute())] = current_hash
+        self.file_hashes[str(path.resolve())] = current_hash
         
         print(f"[RAG] Indexed: {path.name} ({len(new_chunks)} chunks)")
         return len(new_chunks)
