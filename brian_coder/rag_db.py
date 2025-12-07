@@ -143,6 +143,61 @@ spec:
     - "README.md"
 """
         self.config_file.write_text(default_config)
+    
+    def _load_config_patterns(self) -> dict:
+        """
+        Load patterns from .ragconfig file.
+        Returns dict with 'include' and 'exclude' patterns per category.
+        """
+        patterns = {'include': [], 'exclude': []}
+        
+        try:
+            content = self.config_file.read_text()
+            
+            # Simple YAML-like parsing (no external dependencies)
+            current_category = None
+            current_section = None
+            
+            for line in content.split('\n'):
+                stripped = line.strip()
+                
+                # Skip comments and empty lines
+                if not stripped or stripped.startswith('#'):
+                    continue
+                
+                # Category header (verilog:, testbench:, spec:)
+                if stripped.endswith(':') and not stripped.startswith('-'):
+                    if '  ' not in line:  # Top-level key
+                        current_category = stripped[:-1]
+                        current_section = None
+                    else:  # Nested key (enabled:, include:, exclude:, etc.)
+                        key = stripped[:-1]
+                        if key in ['include', 'exclude']:
+                            current_section = key
+                        elif key == 'enabled' or key == 'description':
+                            current_section = None
+                        
+                # List item (  - "*.v")
+                elif stripped.startswith('-') and current_category and current_section:
+                    # Check if this category is commented out
+                    # by looking at original line indentation
+                    pattern = stripped[1:].strip().strip('"').strip("'")
+                    if pattern:
+                        if current_section == 'include':
+                            patterns['include'].append(pattern)
+                        elif current_section == 'exclude':
+                            patterns['exclude'].append(pattern)
+                            
+        except Exception as e:
+            print(f"[RAG] Config parse error: {e}, using defaults")
+            patterns = {'include': ["*.v", "*.sv", "*.md"], 'exclude': []}
+        
+        # Fallback if empty
+        if not patterns['include']:
+            patterns = {'include': ["*.v", "*.sv", "*.md"], 'exclude': []}
+            
+        return patterns
+
 
     # ==================== Hierarchical Verilog Chunking ====================
 
@@ -710,7 +765,7 @@ spec:
         
         Args:
             dir_path: Directory path
-            patterns: File patterns (e.g., ["*.v", "*.sv"])
+            patterns: File patterns (e.g., ["*.v", "*.sv"]) - reads from .ragconfig if None
             category: Category for all files (auto-detect if None)
             
         Returns:
@@ -718,8 +773,13 @@ spec:
         """
         import fnmatch
         
+        # Load patterns from .ragconfig if not specified
+        config_patterns = self._load_config_patterns()
+        
         if patterns is None:
-            patterns = ["*.v", "*.sv", "*.md"]
+            patterns = config_patterns['include']
+        
+        exclude_patterns = config_patterns['exclude']
         
         path = Path(dir_path)
         if not path.exists():
@@ -731,10 +791,19 @@ spec:
         for pattern in patterns:
             for file_path in path.rglob(pattern):
                 if file_path.is_file():
-                    total_chunks += self.index_file(str(file_path), category)
+                    # Check exclude patterns
+                    skip = False
+                    for excl in exclude_patterns:
+                        if fnmatch.fnmatch(file_path.name, excl):
+                            skip = True
+                            break
+                    
+                    if not skip:
+                        total_chunks += self.index_file(str(file_path), category)
         
         self.save()
         return total_chunks
+
 
     # ==================== Search ====================
 
