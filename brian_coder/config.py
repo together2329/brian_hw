@@ -232,6 +232,11 @@ HYBRID_ALPHA = float(os.getenv("HYBRID_ALPHA", "0.7"))
 # Uses hash-based comparison to skip unchanged files (very fast on re-runs)
 ENABLE_RAG_AUTO_INDEX = os.getenv("ENABLE_RAG_AUTO_INDEX", "true").lower() in ("true", "1", "yes")
 
+# Fine-grained chunking for Verilog files
+# When enabled, creates detailed chunks for individual signals, case statements, if-else blocks
+# More precise search but ~10x more chunks (and embeddings)
+RAG_FINE_GRAINED = os.getenv("RAG_FINE_GRAINED", "false").lower() in ("true", "1", "yes")
+
 # Enable/Disable Node Merge (Phase 4)
 # When enabled, Curator will merge similar nodes to reduce redundancy
 ENABLE_NODE_MERGE = os.getenv("ENABLE_NODE_MERGE", "false").lower() in ("true", "1", "yes")

@@ -1301,8 +1301,9 @@ def chat_loop():
     if config.ENABLE_RAG_AUTO_INDEX:
         try:
             from tools import rag_index
-            print(Color.system("[RAG] Checking for Verilog files to index..."))
-            result = rag_index(".")
+            mode_str = "(fine-grained)" if config.RAG_FINE_GRAINED else ""
+            print(Color.system(f"[RAG] Checking for Verilog files to index... {mode_str}"))
+            result = rag_index(".", fine_grained=config.RAG_FINE_GRAINED)
             # Result contains indexing info (files indexed or skipped via hash)
             if "Indexed" in result or "chunks" in result.lower():
                 print(Color.success(f"[RAG] {result}"))
