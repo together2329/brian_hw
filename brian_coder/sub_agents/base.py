@@ -11,10 +11,106 @@ Sub-Agent Base Classes
 import re
 import json
 import time
+import os
 from abc import ABC, abstractmethod
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional, Callable, Tuple, Set
+from functools import wraps
+
+
+# ============================================================
+# Debug Utilities
+# ============================================================
+
+# DEBUG 환경 변수로 디버깅 활성화 (DEBUG_SUBAGENT=true)
+DEBUG_SUBAGENT = os.getenv('DEBUG_SUBAGENT', 'false').lower() in ('true', '1', 'yes')
+
+
+def debug_log(component: str, message: str, data: Any = None):
+    """
+    DEBUG 모드에서만 로그 출력 (컬러 지원)
+
+    Args:
+        component: 컴포넌트 이름 (예: "SubAgent", "ActionPlan")
+        message: 로그 메시지
+        data: 추가 데이터 (dict, list 등)
+    """
+    if not DEBUG_SUBAGENT:
+        return
+
+    # Color import (lazy to avoid circular imports)
+    try:
+        from display import Color
+    except ImportError:
+        # Fallback if display module not available
+        class Color:
+            DIM = CYAN = MAGENTA = YELLOW = GREEN = RED = RESET = BOLD = ''
+            @staticmethod
+            def info(t): return t
+            @staticmethod
+            def warning(t): return t
+            @staticmethod
+            def success(t): return t
+
+    timestamp = time.strftime("%H:%M:%S")
+    
+    # Colorized prefix
+    time_str = f"{Color.DIM}[{timestamp}]{Color.RESET}"
+    debug_str = f"{Color.MAGENTA}[DEBUG]{Color.RESET}"
+    comp_str = f"{Color.CYAN}[{component}]{Color.RESET}"
+    prefix = f"{time_str}{debug_str}{comp_str}"
+
+    # Colorize special symbols in message
+    colored_msg = message
+    colored_msg = colored_msg.replace("═══", f"{Color.YELLOW}═══{Color.RESET}")
+    colored_msg = colored_msg.replace("───", f"{Color.DIM}───{Color.RESET}")
+    colored_msg = colored_msg.replace("╔", f"{Color.YELLOW}╔{Color.RESET}")
+    colored_msg = colored_msg.replace("╚", f"{Color.YELLOW}╚{Color.RESET}")
+    colored_msg = colored_msg.replace("║", f"{Color.YELLOW}║{Color.RESET}")
+    colored_msg = colored_msg.replace("▶", f"{Color.GREEN}▶{Color.RESET}")
+    colored_msg = colored_msg.replace("✓", f"{Color.GREEN}✓{Color.RESET}")
+    colored_msg = colored_msg.replace("✗", f"{Color.RED}✗{Color.RESET}")
+    colored_msg = colored_msg.replace("⚠", f"{Color.YELLOW}⚠{Color.RESET}")
+    colored_msg = colored_msg.replace("→", f"{Color.CYAN}→{Color.RESET}")
+    colored_msg = colored_msg.replace("←", f"{Color.CYAN}←{Color.RESET}")
+    colored_msg = colored_msg.replace("[Phase", f"{Color.BOLD}[Phase{Color.RESET}")
+    colored_msg = colored_msg.replace("[Step", f"{Color.BOLD}[Step{Color.RESET}")
+    colored_msg = colored_msg.replace("[Tool", f"{Color.MAGENTA}[Tool{Color.RESET}")
+    colored_msg = colored_msg.replace("[Iteration", f"{Color.DIM}[Iteration{Color.RESET}")
+
+    if data is not None:
+        if isinstance(data, (dict, list)):
+            data_str = json.dumps(data, ensure_ascii=False, indent=2, default=str)
+            # Color the data output
+            data_colored = f"{Color.DIM}{data_str}{Color.RESET}"
+            print(f"{prefix} {colored_msg}\n{data_colored}")
+        else:
+            print(f"{prefix} {colored_msg}: {Color.DIM}{data}{Color.RESET}")
+    else:
+        print(f"{prefix} {colored_msg}")
+
+
+def debug_method(method_name: str = None):
+    """
+    메소드 호출/반환을 로깅하는 데코레이터
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            name = method_name or func.__name__
+            if DEBUG_SUBAGENT:
+                class_name = args[0].__class__.__name__ if args else "Unknown"
+                debug_log(class_name, f"→ {name}() called", {"kwargs": kwargs} if kwargs else None)
+
+            result = func(*args, **kwargs)
+
+            if DEBUG_SUBAGENT:
+                debug_log(class_name, f"← {name}() returned", {"result_type": type(result).__name__})
+
+            return result
+        return wrapper
+    return decorator
 
 
 # ============================================================
@@ -183,23 +279,48 @@ class SubAgent(ABC):
         self._status = AgentStatus.PLANNING
         self._reset_state()
 
+        debug_log(self.name, f"═══════════ RUN START ═══════════")
+        debug_log(self.name, f"Task: {task[:200]}..." if len(task) > 200 else f"Task: {task}")
+        debug_log(self.name, "Context keys", list(context.keys()) if context else [])
+
         try:
             # Step 1: 컨텍스트 초기화
+            debug_log(self.name, "[Phase 1/4] Initializing context...")
             self._initialize_context(task, context)
 
             # Step 2: 동작 계획 생성
+            debug_log(self.name, "[Phase 2/4] Creating action plan...")
             self._action_plan = self._create_action_plan(task)
+            debug_log(self.name, "Action plan created", {
+                "task_understanding": self._action_plan.task_understanding[:100] if self._action_plan.task_understanding else "",
+                "strategy": self._action_plan.strategy[:100] if self._action_plan.strategy else "",
+                "steps_count": len(self._action_plan.steps),
+                "estimated_tools": self._action_plan.estimated_tools
+            })
 
             # Step 3: 계획 실행
+            debug_log(self.name, "[Phase 3/4] Executing plan...")
             self._status = AgentStatus.RUNNING
             output = self._execute_plan()
 
             # Step 4: 결과 수집
+            debug_log(self.name, "[Phase 4/4] Building result...")
             self._status = AgentStatus.COMPLETED
-            return self._build_result(output, start_time)
+            result = self._build_result(output, start_time)
+
+            debug_log(self.name, f"═══════════ RUN COMPLETE ═══════════")
+            debug_log(self.name, "Execution summary", {
+                "status": result.status.value,
+                "output_length": len(result.output),
+                "tool_calls_count": len(result.tool_calls),
+                "execution_time_ms": result.execution_time_ms
+            })
+            return result
 
         except Exception as e:
             self._status = AgentStatus.FAILED
+            debug_log(self.name, f"═══════════ RUN FAILED ═══════════")
+            debug_log(self.name, f"Error", str(e))
             return SubAgentResult(
                 status=AgentStatus.FAILED,
                 output="",
@@ -249,6 +370,9 @@ class SubAgent(ABC):
         2. 필요한 도구 식별
         3. 단계별 프롬프트 생성
         """
+        debug_log(self.name, "Creating action plan via LLM...")
+        debug_log(self.name, "Allowed tools", list(self.ALLOWED_TOOLS))
+
         planning_prompt = self._get_planning_prompt()
 
         messages = [
@@ -327,12 +451,16 @@ Output as JSON:
         - 결과를 다음 단계에 전달
         """
         if not self._action_plan:
+            debug_log(self.name, "No action plan to execute")
             return ""
+
+        debug_log(self.name, f"─── Executing plan with {len(self._action_plan.steps)} steps ───")
 
         # C4 Fix: 순환 의존성 감지
         cycle = self._detect_circular_dependency()
         if cycle:
             error_msg = f"Circular dependency detected: {' -> '.join(map(str, cycle))}"
+            debug_log(self.name, f"ERROR: {error_msg}")
             self._errors.append(error_msg)
             return f"[ERROR] {error_msg}"
 
@@ -340,12 +468,20 @@ Output as JSON:
         step_outputs = {}  # step_number -> output
 
         for step in self._action_plan.steps:
+            debug_log(self.name, f"\n▶ Step {step.step_number}: {step.description}")
+            debug_log(self.name, "Step details", {
+                "required_tools": step.required_tools,
+                "depends_on": step.depends_on,
+                "expected_output": step.expected_output[:80] if step.expected_output else ""
+            })
+
             # 의존성 체크
             deps_satisfied = all(
                 dep in step_outputs for dep in step.depends_on
             )
             if not deps_satisfied:
                 missing = [dep for dep in step.depends_on if dep not in step_outputs]
+                debug_log(self.name, f"⚠ Step {step.step_number} SKIPPED - missing deps: {missing}")
                 results.append(f"### Step {step.step_number}: SKIPPED (missing deps: {missing})")
                 continue
 
@@ -360,8 +496,12 @@ Output as JSON:
             # 단계 실행
             step_output = self._execute_step(step, context_from_deps)
             step_outputs[step.step_number] = step_output
+            debug_log(self.name, f"✓ Step {step.step_number} completed", {
+                "output_length": len(step_output)
+            })
             results.append(f"### Step {step.step_number}: {step.description}\n{step_output}")
 
+        debug_log(self.name, f"─── Plan execution finished: {len(results)} steps ───")
         return "\n\n".join(results)
 
     def _detect_circular_dependency(self) -> Optional[List[int]]:
@@ -413,6 +553,9 @@ Output as JSON:
         """
         단일 단계 실행 (미니 ReAct 루프)
         """
+        debug_log(self.name, f"\n  → Executing step {step.step_number} with ReAct loop")
+        debug_log(self.name, f"  Max iterations: {self.max_iterations}")
+
         messages = [
             {"role": "system", "content": self._get_execution_prompt()},
             {"role": "user", "content": f"""
@@ -435,29 +578,37 @@ Result: [your final answer]
 
         # 미니 ReAct 루프
         for i in range(self.max_iterations):
+            debug_log(self.name, f"  [Iteration {i+1}/{self.max_iterations}] Calling LLM...")
             response = self.llm_call_func(messages)
             messages.append({"role": "assistant", "content": response})
 
             # 완료 체크 (Result: 가 있으면 완료)
             if "Result:" in response and "Action:" not in response.split("Result:")[-1]:
+                debug_log(self.name, f"  [Iteration {i+1}] ✓ Found Result:, completing step")
                 return response
 
             # Action 파싱
             actions = self._parse_actions(response)
+            debug_log(self.name, f"  [Iteration {i+1}] Parsed actions: {len(actions)}")
 
             if not actions:
-                # 액션 없음 = 완료
+                debug_log(self.name, f"  [Iteration {i+1}] No actions found, completing step")
                 return response
 
             # 도구 실행 (허용된 도구만)
             observations = []
             for tool_name, args in actions:
+                debug_log(self.name, f"  [Tool Call] {tool_name}({args[:100]}...)" if len(args) > 100 else f"  [Tool Call] {tool_name}({args})")
+
                 if tool_name not in self.ALLOWED_TOOLS:
+                    debug_log(self.name, f"  [Tool Error] {tool_name} not in ALLOWED_TOOLS")
                     observations.append(f"[{tool_name}]: Error - Tool not allowed for this agent")
                     continue
 
                 try:
                     result = self.execute_tool_func(tool_name, args)
+                    result_preview = str(result)[:200] if result else "(empty)"
+                    debug_log(self.name, f"  [Tool Result] {result_preview}...")
                     observations.append(f"[{tool_name}]: {result}")
 
                     # 파일 읽기/수정 추적
@@ -473,6 +624,7 @@ Result: [your final answer]
                         "result": str(result)[:500]  # 결과 요약
                     })
                 except Exception as e:
+                    debug_log(self.name, f"  [Tool Error] {tool_name}: {str(e)}")
                     observations.append(f"[{tool_name}]: Error - {str(e)}")
 
             messages.append({
@@ -480,6 +632,7 @@ Result: [your final answer]
                 "content": f"Observation:\n" + "\n".join(observations)
             })
 
+        debug_log(self.name, f"  Max iterations reached for step {step.step_number}")
         return messages[-1]["content"] if messages else ""
 
     def _parse_actions(self, response: str) -> List[Tuple[str, str]]:

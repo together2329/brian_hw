@@ -12,7 +12,11 @@ from .base import (
     SubAgent,
     PipelineStep,
     ExecutionPlan,
-    OrchestratorResult
+    OrchestratorResult,
+    # Debug utilities
+    DEBUG_SUBAGENT,
+    debug_log,
+    debug_method
 )
 
 from .orchestrator import Orchestrator
@@ -32,6 +36,10 @@ __all__ = [
     'PipelineStep',
     'ExecutionPlan',
     'OrchestratorResult',
+    # Debug utilities
+    'DEBUG_SUBAGENT',
+    'debug_log',
+    'debug_method',
     # Orchestrator
     'Orchestrator',
     # Agents
@@ -40,3 +48,4 @@ __all__ = [
     'ExecuteAgent',
     'CodeReviewAgent',
 ]
+

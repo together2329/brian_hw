@@ -22,7 +22,9 @@ from .base import (
     SubAgentResult,
     PipelineStep,
     ExecutionPlan,
-    OrchestratorResult
+    OrchestratorResult,
+    DEBUG_SUBAGENT,
+    debug_log
 )
 
 
@@ -102,25 +104,61 @@ class Orchestrator:
         """
         start_time = time.time()
 
+        debug_log("Orchestrator", "╔═══════════════════════════════════════════╗")
+        debug_log("Orchestrator", "║         ORCHESTRATOR RUN START         ║")
+        debug_log("Orchestrator", "╚═══════════════════════════════════════════╝")
+        debug_log("Orchestrator", f"Task: {task[:300]}..." if len(task) > 300 else f"Task: {task}")
+        debug_log("Orchestrator", "Input context", context if context else {})
+
         print(f"[Orchestrator] Analyzing task...")
 
         # Step 1: 작업 분석 및 실행 계획 생성
+        debug_log("Orchestrator", "[Step 1/5] Analyzing task and creating execution plan...")
         execution_plan = self._analyze_and_plan(task)
+        debug_log("Orchestrator", "Execution plan created", {
+            "task_type": execution_plan.task_type,
+            "complexity_score": execution_plan.complexity_score,
+            "agents_needed": execution_plan.agents_needed,
+            "execution_mode": execution_plan.execution_mode,
+            "pipeline_steps": len(execution_plan.pipeline),
+            "reasoning": execution_plan.reasoning[:150] if execution_plan.reasoning else ""
+        })
         print(f"[Orchestrator] Plan: {execution_plan.agents_needed} ({execution_plan.execution_mode})")
 
         # Step 2: 컨텍스트 강화 (메모리 검색)
+        debug_log("Orchestrator", "[Step 2/5] Enriching context from memory...")
         enriched_context = self._enrich_context(task, context)
+        debug_log("Orchestrator", "Enriched context keys", list(enriched_context.keys()))
 
         # Step 3: 에이전트 파이프라인 실행
+        debug_log("Orchestrator", "[Step 3/5] Executing agent pipeline...")
         results = self._execute_pipeline(execution_plan, enriched_context)
+        debug_log("Orchestrator", f"Pipeline completed with {len(results)} agent results")
 
         # Step 4: 결과 통합
+        debug_log("Orchestrator", "[Step 4/5] Integrating results...")
         final_result = self._integrate_results(results, task)
+        debug_log("Orchestrator", "Integration result", {
+            "status": final_result.status.value,
+            "output_length": len(final_result.output),
+            "artifacts_count": len(final_result.artifacts),
+            "errors_count": len(final_result.errors)
+        })
 
         # Step 5: 메모리 업데이트
+        debug_log("Orchestrator", "[Step 5/5] Updating memory...")
         self._update_memory(task, final_result)
 
         execution_time = int((time.time() - start_time) * 1000)
+
+        debug_log("Orchestrator", "╔═══════════════════════════════════════════╗")
+        debug_log("Orchestrator", "║        ORCHESTRATOR RUN COMPLETE        ║")
+        debug_log("Orchestrator", "╚═══════════════════════════════════════════╝")
+        debug_log("Orchestrator", "Final summary", {
+            "execution_time_ms": execution_time,
+            "agents_executed": len(results),
+            "final_status": final_result.status.value
+        })
         print(f"[Orchestrator] Completed in {execution_time}ms")
 
         return OrchestratorResult(
@@ -223,7 +261,14 @@ Output JSON only:
         all_results = []
         accumulated_context = context.copy()
 
+        debug_log("Orchestrator", f"\n═══ Pipeline execution started ({len(plan.pipeline)} steps) ═══")
+
         for step in plan.pipeline:
+            debug_log("Orchestrator", f"\n▶ Pipeline Step {step.step}: {step.description}")
+            debug_log("Orchestrator", "Step config", {
+                "agents": step.agents,
+                "parallel": step.parallel
+            })
             print(f"[Orchestrator] Step {step.step}: {step.agents}")
 
             # 병렬 실행 여부 결정
@@ -232,6 +277,8 @@ Output JSON only:
                 step.parallel and
                 len(step.agents) > 1
             )
+
+            debug_log("Orchestrator", f"Execution mode: {'PARALLEL' if use_parallel else 'SEQUENTIAL'}")
 
             if use_parallel:
                 step_results = self._execute_parallel(step.agents, accumulated_context)
@@ -247,6 +294,9 @@ Output JSON only:
                     # 이전 출력도 전달
                     accumulated_context["previous_output"] = result.output
 
+            debug_log("Orchestrator", f"✓ Step {step.step} completed with {len(step_results)} results")
+
+        debug_log("Orchestrator", f"\n═══ Pipeline execution finished ({len(all_results)} total results) ═══")
         return all_results
 
     def _execute_parallel(
@@ -306,12 +356,16 @@ Output JSON only:
         results = []
         current_context = context.copy()
 
+        debug_log("Orchestrator", f"Sequential execution: {agent_types}")
+
         for agent_type in agent_types:
             agent = self._create_agent(agent_type)
             if not agent:
+                debug_log("Orchestrator", f"⚠ Unknown agent type: {agent_type}")
                 print(f"[Orchestrator] Unknown agent type: {agent_type}")
                 continue
 
+            debug_log("Orchestrator", f"\n  → Spawning {agent_type} agent...")
             print(f"[Orchestrator] Running {agent_type}...")
             result = agent.run(current_context.get("task", ""), current_context)
             results.append(result)
@@ -320,8 +374,10 @@ Output JSON only:
             if result.status == AgentStatus.COMPLETED:
                 current_context.update(result.context_updates)
                 current_context["previous_output"] = result.output
+                debug_log("Orchestrator", f"  ✓ {agent_type} completed")
                 print(f"[Orchestrator] {agent_type} completed")
             else:
+                debug_log("Orchestrator", f"  ✗ {agent_type} failed", result.errors)
                 print(f"[Orchestrator] {agent_type} failed: {result.errors}")
 
         return results
