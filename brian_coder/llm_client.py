@@ -8,6 +8,7 @@ import urllib.request
 import urllib.error
 import time
 import copy
+import re
 import config
 from display import Color
 
@@ -249,8 +250,17 @@ def call_llm_raw(prompt, temperature=0.7):
         
         with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
             result = json.loads(response.read().decode('utf-8'))
-            return result["choices"][0]["message"]["content"]
-            
+            content = result["choices"][0]["message"]["content"]
+            # Sanitize: Remove OpenRouter/provider metadata tokens
+            # Patterns like <|start|>, <|channel|>, <|message|>, <|final<|...|>
+            # First handle nested patterns like <|final<|message|>
+            content = re.sub(r'<\|final<\|[^>]*\|>', '', content)
+            # Then handle simple patterns like <|start|>, <|end|>, etc.
+            content = re.sub(r'<\|[^|<>]+\|>', '', content)
+            # Clean up any remaining <| or |> artifacts
+            content = re.sub(r'<\|[a-z_]+$', '', content)  # Trailing <|word
+            return content.strip()
+
     except Exception as e:
         return f"Error calling LLM: {e}"
 

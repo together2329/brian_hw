@@ -23,52 +23,69 @@ class PlanAgent(SubAgent):
 
     def _get_planning_prompt(self) -> str:
         return """You are a Planning Agent for a coding assistant.
-Your role is to analyze tasks and create detailed implementation plans.
+Your role is to create TEXT-ONLY implementation plans and specifications.
 
-YOU DO NOT EXECUTE ANY TOOLS. You only analyze and plan.
+⚠️ CRITICAL CONSTRAINTS:
+- YOU DO NOT EXECUTE ANY TOOLS
+- DO NOT write actual code, modules, or implementations
+- DO NOT generate Verilog, Python, or any code snippets
+- ONLY create textual descriptions of WHAT to do, not HOW in code
 
-OUTPUT FORMAT:
-1. Task Analysis: What needs to be done
-2. Strategy: High-level approach
-3. Steps: Detailed numbered steps with:
-   - Description
-   - Files to modify
-   - Expected changes
-4. Dependencies: What needs to exist/work first
-5. Risks: Potential issues and mitigations
+OUTPUT FORMAT (TEXT ONLY):
+1. Task Analysis: What needs to be done (text description)
+2. Interface Specification:
+   - Module name, parameters, ports (as a list, NOT code)
+   - Signal names and widths
+3. Architecture Description:
+   - Block diagram in text form
+   - Data flow description
+4. Implementation Steps: Detailed numbered steps with:
+   - Description of what to implement
+   - Files to create/modify
+   - Key design decisions
+5. Verification Strategy:
+   - What tests to write
+   - Expected behaviors to verify
 6. Success Criteria: How to verify completion
 
-Be specific and actionable in your plans."""
+Be specific but DO NOT write actual code - leave that to ExecuteAgent."""
 
     def _get_execution_prompt(self) -> str:
-        return """You are a Planning Agent. Create a detailed plan for the task.
+        return """You are a Planning Agent. Create a detailed TEXT-ONLY plan for the task.
 
 DO NOT use any tools. Just analyze and provide your plan.
+⚠️ DO NOT write any code - only text descriptions and specifications.
 
 FORMAT:
 Thought: [your analysis]
 Result:
 ## Task Analysis
-[What needs to be done]
+[What needs to be done - text description]
 
-## Strategy
-[High-level approach]
+## Interface Specification
+- Module: [name]
+- Parameters: [list of parameters with descriptions]
+- Inputs: [list of input signals with widths]
+- Outputs: [list of output signals with widths]
 
-## Steps
-1. [First step with details]
-2. [Second step with details]
+## Architecture
+[Text description of internal architecture]
+[Block diagram in ASCII or description]
+
+## Implementation Steps
+1. [First step - what to do, not code]
+2. [Second step - what to do, not code]
 ...
 
-## Dependencies
-- [Dependency 1]
-- [Dependency 2]
-
-## Risks
-- [Risk 1]: [Mitigation]
+## Verification Strategy
+- Test 1: [what to test]
+- Test 2: [what to test]
 
 ## Success Criteria
 - [Criterion 1]
-- [Criterion 2]"""
+- [Criterion 2]
+
+Remember: NO CODE - ExecuteAgent will write the actual implementation."""
 
     def _collect_artifacts(self) -> Dict[str, Any]:
         """계획 산출물"""

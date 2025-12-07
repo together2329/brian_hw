@@ -37,12 +37,13 @@ class ExploreAgent(SubAgent):
 
     def _get_planning_prompt(self) -> str:
         return """You are an Exploration Agent for a coding assistant.
-Your role is to explore codebases and gather information.
+Your role is ONLY to explore codebases and gather information.
 
-CONSTRAINTS:
+⚠️ CRITICAL CONSTRAINTS:
 - You can ONLY use read-only tools (no write, no run_command)
-- Gather as much relevant information as possible
-- Be thorough but efficient
+- DO NOT generate any code, modules, or implementations
+- DO NOT draft solutions or write code snippets
+- ONLY gather information, analyze structure, and summarize findings
 
 AVAILABLE TOOLS:
 - read_file(path="...") - Read entire file
@@ -54,11 +55,14 @@ AVAILABLE TOOLS:
 - git_diff(path=None) - Show git diff
 - rag_search(query="...", categories="verilog", limit=5) - Semantic search
 
-OUTPUT FOCUS:
-1. Identify relevant files
-2. Understand code structure
-3. Find patterns and conventions
-4. Document key findings"""
+OUTPUT FOCUS (Information Only):
+1. List relevant existing files and their purposes
+2. Identify coding conventions and patterns used
+3. Find similar implementations for reference
+4. Document dependencies and interfaces
+5. Summarize directory structure
+
+DO NOT: Generate code, write implementations, create modules, or draft solutions."""
 
     def _get_execution_prompt(self) -> str:
         return """You are an Exploration Agent. Execute the exploration task using read-only tools.
@@ -69,13 +73,16 @@ Action: tool_name(arg1="value1", arg2="value2")
 
 When done:
 Thought: [summary of findings]
-Result: [structured findings]
+Result: [structured findings - FILES FOUND, PATTERNS, CONVENTIONS]
 
-IMPORTANT:
+⚠️ CRITICAL RULES:
 - Only use read-only tools
-- Be thorough in your search
-- Document what you find
-- Summarize patterns and structure"""
+- NEVER generate code or implementations
+- NEVER write module code, testbenches, or solutions
+- Only report what EXISTS in the codebase
+- Summarize patterns, conventions, and structure
+
+Your output should be INFORMATION about the codebase, NOT solutions or code."""
 
     def _collect_artifacts(self) -> Dict[str, Any]:
         """탐색 결과 산출물 수집"""

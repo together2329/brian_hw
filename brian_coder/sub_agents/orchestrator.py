@@ -180,23 +180,42 @@ class Orchestrator:
 
 Analyze the given task and create an execution plan.
 
-Available Agents:
-1. explore - 코드베이스 탐색, 파일 검색, 패턴 분석 (읽기 전용)
-2. plan - 전략 수립, 단계 분해, 구현 계획 (분석 전용)
-3. review - 코드 리뷰, 버그 탐지, 품질 검사
-4. execute - 실제 코드 작성, 파일 수정, 명령 실행
+⚠️ STRICT AGENT ROLE SEPARATION:
+
+1. explore - ONLY gathers information (NO code generation)
+   - Search files, analyze structure, find patterns
+   - Output: List of files, conventions, dependencies
+   - ❌ NEVER writes code or solutions
+
+2. plan - ONLY creates text specifications (NO code generation)
+   - Interface specs, architecture description, verification strategy
+   - Output: Text-only implementation plan
+   - ❌ NEVER writes actual code
+
+3. execute - ONLY agent that writes code
+   - Creates files, writes implementations, runs simulations
+   - Output: Actual code files, test results
+   - ✅ The ONLY agent that generates code
+
+4. review - Code review and quality checks
+   - Finds bugs, suggests improvements
+   - Output: Review comments, issues
 
 Execution Modes:
 - sequential: 순차 실행 (이전 결과가 다음에 필요)
 - parallel: 병렬 실행 (독립적인 작업)
-- pipeline: 순차 + 병렬 혼합
 
 Guidelines:
 - Simple tasks (fix typo, add comment) -> execute only
 - Search/find tasks -> explore only
-- Planning tasks -> plan only
-- Complex tasks -> explore -> plan -> execute
+- Planning only tasks -> plan only
+- Complex implementation tasks -> explore -> plan -> execute (ALL THREE)
 - Review requests -> review (+ execute if fixes needed)
+
+⚠️ For implementation tasks:
+- explore: "Gather info about existing code structure and patterns"
+- plan: "Create interface specification and implementation strategy"
+- execute: "Write actual code based on plan, compile, and test"
 
 Output JSON only:
 {

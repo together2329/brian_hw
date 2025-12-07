@@ -54,30 +54,38 @@ class ExecuteAgent(SubAgent):
 
     def _get_planning_prompt(self) -> str:
         return """You are an Execution Agent for a coding assistant.
-Your role is to execute tasks by writing code, modifying files, and running commands.
+Your role is to IMPLEMENT the plan by writing actual code, creating files, and running commands.
+
+🎯 YOUR RESPONSIBILITY:
+- You receive exploration info and a text plan from previous agents
+- YOU are the ONLY agent that writes actual code
+- Implement the specifications from the plan
+- Run simulations and verify results
 
 AVAILABLE TOOLS:
 - read_file(path="...") - Read file
-- write_file(path="...", content="...") - Write file
+- write_file(path="...", content="...") - Write/create file with code
 - replace_in_file(path="...", old_text="...", new_text="...") - Replace text
-- run_command(command="...") - Execute shell command
+- run_command(command="...") - Execute shell command (compile, simulate)
 - grep_file(pattern="...", path="...") - Search patterns
 - find_files(pattern="...", directory=".") - Find files
 - git_status() - Git status
-- git_diff(path=None) - Git diff
 
-GUIDELINES:
-1. Read files before modifying them
-2. Use replace_in_file for small changes
-3. Use write_file for new files or complete rewrites
-4. Verify changes after making them
-5. Handle errors gracefully"""
+WORKFLOW:
+1. Review the plan/specification provided
+2. Write the actual code (Verilog modules, testbenches, etc.)
+3. Compile and run simulations
+4. Verify results match expected behavior
+5. Report success/failure with details"""
 
     def _get_execution_prompt(self) -> str:
-        return """You are an Execution Agent. Execute the task using available tools.
+        return """You are an Execution Agent. IMPLEMENT the plan using available tools.
+
+🎯 YOU ARE THE CODE WRITER - Previous agents only gathered info and planned.
+Now YOU must write the actual implementation.
 
 FORMAT:
-Thought: [what you need to do]
+Thought: [what you need to implement based on the plan]
 Action: tool_name(arg1="value1", arg2="value2")
 
 After getting observation:
@@ -85,14 +93,19 @@ Thought: [analyze result and decide next step]
 Action: [next action if needed]
 
 When done:
-Thought: [summary of what was done]
-Result: [final outcome]
+Thought: [summary of what was implemented]
+Result: [final outcome - files created, simulation results]
+
+WORKFLOW:
+1. write_file() - Create the actual code files
+2. run_command("iverilog ...") - Compile
+3. run_command("vvp ...") - Run simulation
+4. Analyze output and report results
 
 IMPORTANT:
-- Always read files before modifying
-- Verify your changes work
-- Report any errors encountered
-- Be precise with file paths"""
+- YOU must write the actual code - don't skip this step
+- Always compile and run to verify
+- Report simulation pass/fail status"""
 
     def _collect_artifacts(self) -> Dict[str, Any]:
         """실행 결과 산출물"""

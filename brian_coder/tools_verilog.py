@@ -377,20 +377,27 @@ def generate_module_testbench(path: str, tb_type: str = "basic") -> str:
         if "clk" not in clean_name:
             lines.append(f"        {clean_name} = 0;")
             
-    # Reset sequence
-    has_rst = any("rst" in p or "reset" in p for p in inputs)
-    if has_rst:
-        rst_name = next(p for p in inputs if "rst" in p or "reset" in p)
-        clean_rst = re.sub(r'\[.*?\]', '', rst_name).strip()
-        is_active_low = "_n" in clean_rst or "_b" in clean_rst
-        
-        lines.append(f"\n        // Reset Sequence")
-        if is_active_low:
-            lines.append(f"        {clean_rst} = 0;")
-            lines.append(f"        #20 {clean_rst} = 1;")
-        else:
-            lines.append(f"        {clean_rst} = 1;")
-            lines.append(f"        #20 {clean_rst} = 0;")
+    # Reset sequence - handle ALL reset signals (not just first one)
+    rst_names = [p for p in inputs if "rst" in p.lower() or "reset" in p.lower()]
+    if rst_names:
+        lines.append(f"\n        // Reset Sequence (handling {len(rst_names)} reset signal(s))")
+        # First, assert all resets
+        for rst_name in rst_names:
+            clean_rst = re.sub(r'\[.*?\]', '', rst_name).strip()
+            is_active_low = "_n" in clean_rst.lower() or "_b" in clean_rst.lower()
+            if is_active_low:
+                lines.append(f"        {clean_rst} = 0;  // Assert active-low reset")
+            else:
+                lines.append(f"        {clean_rst} = 1;  // Assert active-high reset")
+        lines.append(f"        #20;")
+        # Then, de-assert all resets
+        for rst_name in rst_names:
+            clean_rst = re.sub(r'\[.*?\]', '', rst_name).strip()
+            is_active_low = "_n" in clean_rst.lower() or "_b" in clean_rst.lower()
+            if is_active_low:
+                lines.append(f"        {clean_rst} = 1;  // De-assert active-low reset")
+            else:
+                lines.append(f"        {clean_rst} = 0;  // De-assert active-high reset")
             
     lines.append("\n        // Add test cases here")
     lines.append("        #100;")

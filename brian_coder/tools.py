@@ -203,10 +203,12 @@ def grep_file(pattern, path, context_lines=2):
     try:
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
-        
+        if os.path.isdir(path):
+            return f"Error: '{path}' is a directory. Use find_files() or list_dir() for directories."
+
         with open(path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
-        
+
         matches = []
         regex = re.compile(pattern)
         
