@@ -158,8 +158,14 @@ def sanitize_action_text(text):
     """
     Sanitize common LLM output errors in Action calls.
     Fixes patterns like: end_line=26") -> end_line=26)
+    Also handles markdown formatting like **Action:** -> Action:
     """
     import re
+    
+    # Remove markdown bold around "Action:" (common LLM behavior)
+    # e.g., **Action:** spawn_plan(...) -> Action: spawn_plan(...)
+    text = re.sub(r'\*\*Action:\*\*', 'Action:', text)
+    text = re.sub(r'\*\*Action\*\*:', 'Action:', text)  # Alternate format
     
     # Pattern: number followed by quote then closing paren/comma
     # e.g., =26") or =26", -> =26) or =26,

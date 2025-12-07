@@ -664,6 +664,87 @@ def rag_clear():
     except Exception as e:
         return f"Error in rag_clear: {e}"
 
+# ============================================================
+# On-Demand Sub-Agent Tools (Claude Code Style)
+# ============================================================
+
+def spawn_explore(query):
+    """
+    Spawn an explore agent to search the codebase.
+    Use this when you need to find files, understand structure, or gather information.
+
+    Args:
+        query: What to explore/find (e.g., "find all FIFO implementations", "understand AXI protocol usage")
+
+    Returns:
+        Exploration results - files found, patterns identified, structure analysis
+    """
+    try:
+        from sub_agents.explore_agent import ExploreAgent
+        from llm_client import call_llm_raw
+
+        # Create a simple execute_tool wrapper
+        def execute_tool(tool_name, args):
+            if tool_name in AVAILABLE_TOOLS:
+                # Parse args if string
+                if isinstance(args, str):
+                    import re
+                    kwargs = {}
+                    for match in re.finditer(r'(\w+)\s*=\s*["\']([^"\']*)["\']', args):
+                        kwargs[match.group(1)] = match.group(2)
+                    for match in re.finditer(r'(\w+)\s*=\s*(\d+)', args):
+                        kwargs[match.group(1)] = int(match.group(2))
+                    return AVAILABLE_TOOLS[tool_name](**kwargs) if kwargs else AVAILABLE_TOOLS[tool_name](args)
+                return AVAILABLE_TOOLS[tool_name](**args) if isinstance(args, dict) else AVAILABLE_TOOLS[tool_name](args)
+            return f"Tool {tool_name} not found"
+
+        agent = ExploreAgent(
+            name="explore",
+            llm_call_func=call_llm_raw,
+            execute_tool_func=execute_tool
+        )
+
+        result = agent.run(query, {"task": query})
+
+        if result.status.value == "completed":
+            return f"=== EXPLORATION RESULTS ===\n{result.output}\n==========================="
+        else:
+            return f"Exploration failed: {result.errors}"
+
+    except Exception as e:
+        return f"Error spawning explore agent: {e}"
+
+def spawn_plan(task_description):
+    """
+    Spawn a planning agent to create an implementation plan.
+    Use this for complex tasks that need architectural planning before implementation.
+
+    Args:
+        task_description: What to plan (e.g., "design async FIFO with CDC", "implement AXI master")
+
+    Returns:
+        Text-only implementation plan with interface specs and steps
+    """
+    try:
+        from sub_agents.plan_agent import PlanAgent
+        from llm_client import call_llm_raw
+
+        agent = PlanAgent(
+            name="plan",
+            llm_call_func=call_llm_raw,
+            execute_tool_func=lambda t, a: "Plan agent does not execute tools"
+        )
+
+        result = agent.run(task_description, {"task": task_description})
+
+        if result.status.value == "completed":
+            return f"=== IMPLEMENTATION PLAN ===\n{result.output}\n==========================="
+        else:
+            return f"Planning failed: {result.errors}"
+
+    except Exception as e:
+        return f"Error spawning plan agent: {e}"
+
 # Registry of available tools
 AVAILABLE_TOOLS = {
     "read_file": read_file,
@@ -687,6 +768,9 @@ AVAILABLE_TOOLS = {
     "rag_index": rag_index,
     "rag_status": rag_status,
     "rag_clear": rag_clear,
+    # On-Demand Sub-Agent Tools
+    "spawn_explore": spawn_explore,
+    "spawn_plan": spawn_plan,
 }
 
 # Import and register Verilog analysis tools

@@ -325,6 +325,10 @@ Planning Tools (for complex multi-step tasks):
 15. wait_for_plan_approval() - Pause and wait for user to review/edit plan
 16. check_plan_status() - Check if plan was approved by user
 
+On-Demand Sub-Agent Tools (use sparingly, only when needed):
+30. spawn_explore(query="find FIFO implementations") - Spawn explore agent for deep codebase search
+31. spawn_plan(task_description="design async FIFO") - Spawn planning agent for complex task planning
+
 RAG Tools (for Verilog/HDL code search - RECOMMENDED for .v files):
 17. rag_search(query="signal name or concept", categories="verilog", limit=5) - Semantic code search
 18. rag_index(path=".", fine_grained=False) - Index Verilog files (run once per project)
