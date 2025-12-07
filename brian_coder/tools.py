@@ -385,7 +385,7 @@ def git_status():
     except Exception as e:
         return f"Error running git status: {e}"
 
-def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_line=None):
+def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_line=None, fuzzy_whitespace=True):
     """
     Replaces occurrences of text in a file.
     Args:
@@ -395,6 +395,8 @@ def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_lin
         count: Maximum number of replacements (-1 for all occurrences)
         start_line: Optional starting line number (1-indexed, inclusive)
         end_line: Optional ending line number (1-indexed, inclusive)
+        fuzzy_whitespace: If True (default), normalize leading whitespace for matching
+                         This helps when LLM provides slightly wrong indentation
     Returns:
         Success message with number of replacements made
     """
@@ -420,9 +422,20 @@ def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_lin
         # Count occurrences before replacement
         occurrences = target_content.count(old_text)
         
+        # Fuzzy whitespace matching: if exact match fails, try normalized matching
+        actual_old_text = old_text
+        if occurrences == 0 and fuzzy_whitespace:
+            # Try to find a fuzzy match by normalizing leading whitespace
+            matched_text = _fuzzy_find_text(target_content, old_text)
+            if matched_text:
+                actual_old_text = matched_text
+                occurrences = target_content.count(actual_old_text)
+        
         if occurrences == 0:
             range_msg = f" in lines {start_line}-{end_line}" if start_line is not None else ""
-            return f"No occurrences of '{old_text[:50]}...' found in {path}{range_msg}"
+            # Provide helpful hint
+            hint = "\nHint: Check exact whitespace/indentation. Use read_lines() first to see actual content."
+            return f"No occurrences of '{old_text[:50]}...' found in {path}{range_msg}{hint}"
         
         # IMPROVEMENT: Uniqueness Safety Check
         # Strict logic: range required for multi-match unless count is specified.
@@ -432,10 +445,10 @@ def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_lin
         
         # Perform replacement
         if count == -1:
-            new_target_content = target_content.replace(old_text, new_text)
+            new_target_content = target_content.replace(actual_old_text, new_text)
             replacements = occurrences
         else:
-            new_target_content = target_content.replace(old_text, new_text, count)
+            new_target_content = target_content.replace(actual_old_text, new_text, count)
             replacements = min(count, occurrences)
             
         # Reconstruct full content
@@ -452,11 +465,50 @@ def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_lin
             f.write(new_full_content)
         
         result = f"Replaced {replacements} occurrence(s) in {path}\n\n"
+        if actual_old_text != old_text:
+            result += f"(Fuzzy matched: adjusted whitespace)\n"
         result += "=== Visual Diff ==="
         result += f"\n{diff_output}"
         return result
     except Exception as e:
         return f"Error replacing text: {e}"
+
+def _fuzzy_find_text(content, pattern):
+    """
+    Find pattern in content with fuzzy whitespace matching.
+    Returns the actual text found in content, or None if not found.
+    """
+    import re
+    
+    # Split pattern into lines
+    pattern_lines = pattern.split('\n')
+    if not pattern_lines:
+        return None
+    
+    # Create regex pattern that matches any leading whitespace
+    # For each line, escape special chars but allow flexible leading whitespace
+    regex_parts = []
+    for line in pattern_lines:
+        stripped = line.lstrip()
+        if stripped:
+            # Allow any amount of leading whitespace
+            escaped = re.escape(stripped)
+            regex_parts.append(r'[ \t]*' + escaped)
+        else:
+            # Empty or whitespace-only line
+            regex_parts.append(r'[ \t]*')
+    
+    # Join with newline matching (allow \n or \r\n)
+    full_regex = r'\n'.join(regex_parts)
+    
+    try:
+        match = re.search(full_regex, content)
+        if match:
+            return match.group(0)
+    except re.error:
+        pass
+    
+    return None
 
 def replace_lines(path, start_line, end_line, new_content):
     """
