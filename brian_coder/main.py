@@ -1300,25 +1300,17 @@ def chat_loop():
     # Auto RAG Indexing on startup
     if config.ENABLE_RAG_AUTO_INDEX:
         try:
-            from tools import rag_status, rag_index
-            import glob
-            
-            # Check if Verilog files exist in current directory
-            verilog_files = []
-            for pattern in config.RAG_AUTO_INDEX_PATTERNS:
-                verilog_files.extend(glob.glob(f"**/{pattern.strip()}", recursive=True))
-            
-            if verilog_files:
-                # Check if already indexed
-                status = rag_status()
-                if "Indexed files: 0" in status or "total_chunks: 0" in status.lower():
-                    print(Color.system(f"[RAG] Auto-indexing {len(verilog_files)} Verilog files..."))
-                    result = rag_index(".", pattern="*.v")
-                    print(Color.success(f"[RAG] {result}"))
-                else:
-                    print(Color.system(f"[RAG] Index ready ({len(verilog_files)} files in project)"))
+            from tools import rag_index
+            print(Color.system("[RAG] Checking for Verilog files to index..."))
+            result = rag_index(".")
+            # Result contains indexing info (files indexed or skipped via hash)
+            if "Indexed" in result or "chunks" in result.lower():
+                print(Color.success(f"[RAG] {result}"))
+            else:
+                print(Color.system(f"[RAG] {result}"))
         except Exception as e:
             print(Color.warning(f"[RAG] Auto-index skipped: {e}"))
+
 
     print(Color.system(f"Deep Think: {'Enabled' if config.ENABLE_DEEP_THINK else 'Disabled'}"))
     print(Color.info("\nType 'exit' or 'quit' to stop.\n"))
