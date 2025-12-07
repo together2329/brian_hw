@@ -276,18 +276,23 @@ def read_lines(path, start_line, end_line):
     except Exception as e:
         return f"Error reading lines: {e}"
 
-def find_files(pattern, directory=".", max_depth=None):
+def find_files(pattern, directory=".", max_depth=None, path=None):
     """
     Finds files matching a pattern in a directory.
     Args:
         pattern: Filename pattern (supports wildcards: *.py, test_*.v, etc.)
         directory: Directory to search in (default: current directory)
         max_depth: Maximum depth to search (None for unlimited)
+        path: Alias for 'directory' (for LLM compatibility)
     Returns:
         List of matching file paths
     """
     import fnmatch
     try:
+        # Support 'path' as alias for 'directory'
+        if path is not None:
+            directory = path
+        
         if not os.path.exists(directory):
             return f"Error: Directory '{directory}' does not exist."
         
