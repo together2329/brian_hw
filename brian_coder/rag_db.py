@@ -526,9 +526,9 @@ spec:
                         }
                     ))
                 
-                # Extract signal assignments (<= and =)
-                assign_pattern = re.compile(r'(\w+)\s*<=\s*([^;]+);')
-                for asgn_match in assign_pattern.finditer(always_body):
+                # Extract non-blocking assignments (<=) - Level 8
+                nb_assign_pattern = re.compile(r'(\w+)\s*<=\s*([^;]+);')
+                for asgn_match in nb_assign_pattern.finditer(always_body):
                     signal = asgn_match.group(1)
                     value = asgn_match.group(2).strip()[:50]
                     
@@ -545,6 +545,33 @@ spec:
                             "module_name": module_name,
                             "signal_name": signal,
                             "summary": f"{signal} <= {value}... in {module_name}"
+                        }
+                    ))
+                
+                # Extract blocking assignments (=) - Level 10
+                # Careful: exclude <=, ==, !=, >=, ===, !==
+                b_assign_pattern = re.compile(r'(\w+)\s*(?<![<>=!])=(?![=])\s*([^;]+);')
+                for asgn_match in b_assign_pattern.finditer(always_body):
+                    signal = asgn_match.group(1)
+                    value = asgn_match.group(2).strip()[:50]
+                    
+                    # Skip false positives (case labels, etc.)
+                    if signal in ['default', 'begin', 'end']:
+                        continue
+                    
+                    chunks.append(Chunk(
+                        id=self._generate_chunk_id(),
+                        source_file=file_path,
+                        category="verilog",
+                        level=10,
+                        chunk_type="b_assign",
+                        content=asgn_match.group(0),
+                        start_line=base_line + start_offset,
+                        end_line=base_line + start_offset,
+                        metadata={
+                            "module_name": module_name,
+                            "signal_name": signal,
+                            "summary": f"{signal} = {value}... in {module_name}"
                         }
                     ))
         
@@ -590,7 +617,7 @@ spec:
 
     def _extract_assigns(self, module_content: str, file_path: str,
                          module_name: str, base_line: int) -> List[Chunk]:
-        """Extract assign statements (Level 5)."""
+        """Extract assign statements (Level 5, and Level 11 for fine-grained)."""
         chunks = []
         
         # Match assign statements with position tracking
@@ -600,17 +627,22 @@ spec:
         )
         
         assigns = []
+        assign_data = []  # Store (signal, value, line_num) for fine-grained
         first_line = None
         last_line = None
         
         for match in assign_pattern.finditer(module_content):
-            assigns.append(f"assign {match.group(1)} = {match.group(2)};")
+            signal = match.group(1)
+            value = match.group(2).strip()
+            assigns.append(f"assign {signal} = {value};")
             line_num = module_content[:match.start()].count('\n') + 1
+            assign_data.append((signal, value, line_num, match.group(0)))
             if first_line is None:
                 first_line = line_num
             last_line = line_num
         
         if assigns:
+            # Level 5: Group all assigns
             assign_content = "// Assign statements\n" + "\n".join(assigns)
             chunks.append(Chunk(
                 id=self._generate_chunk_id(),
@@ -627,8 +659,29 @@ spec:
                     "summary": f"Assign statements for {module_name}"
                 }
             ))
+            
+            # Level 11: Individual continuous assigns (fine-grained)
+            if self.fine_grained:
+                for signal, value, line_num, full_stmt in assign_data:
+                    actual_line = base_line + line_num - 1
+                    chunks.append(Chunk(
+                        id=self._generate_chunk_id(),
+                        source_file=file_path,
+                        category="verilog",
+                        level=11,
+                        chunk_type="cont_assign",
+                        content=full_stmt,
+                        start_line=actual_line,
+                        end_line=actual_line,
+                        metadata={
+                            "module_name": module_name,
+                            "signal_name": signal,
+                            "summary": f"assign {signal} = {value[:30]}... in {module_name}"
+                        }
+                    ))
         
         return chunks
+
 
     # ==================== Testbench Chunking ====================
 
