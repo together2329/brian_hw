@@ -12,7 +12,8 @@ Orchestrator - 서브 에이전트 조율
 import re
 import json
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import copy
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeoutError
 from typing import List, Dict, Any, Optional, Callable, Type
 
 from .base import (
@@ -261,12 +262,16 @@ Output JSON only:
             for agent_type in agent_types:
                 agent = self._create_agent(agent_type)
                 if agent:
+                    # C2 Fix: 각 에이전트에 독립적인 context 사본 전달 (race condition 방지)
+                    context_copy = copy.deepcopy(context)
                     future = executor.submit(
                         agent.run,
                         context.get("task", ""),
-                        context
+                        context_copy
                     )
                     futures[future] = agent_type
+                else:
+                    print(f"[Orchestrator] Warning: Unknown agent type '{agent_type}' skipped")
 
             for future in as_completed(futures):
                 agent_type = futures[future]
@@ -274,6 +279,14 @@ Output JSON only:
                     result = future.result(timeout=self.timeout)
                     results.append(result)
                     print(f"[Orchestrator] {agent_type} completed")
+                except FuturesTimeoutError:
+                    # H3 Fix: 타임아웃과 일반 예외 구분
+                    print(f"[Orchestrator] {agent_type} timeout after {self.timeout}s")
+                    results.append(SubAgentResult(
+                        status=AgentStatus.FAILED,
+                        output="",
+                        errors=[f"{agent_type}: Timeout after {self.timeout}s"]
+                    ))
                 except Exception as e:
                     print(f"[Orchestrator] {agent_type} failed: {e}")
                     results.append(SubAgentResult(

@@ -329,6 +329,13 @@ Output as JSON:
         if not self._action_plan:
             return ""
 
+        # C4 Fix: 순환 의존성 감지
+        cycle = self._detect_circular_dependency()
+        if cycle:
+            error_msg = f"Circular dependency detected: {' -> '.join(map(str, cycle))}"
+            self._errors.append(error_msg)
+            return f"[ERROR] {error_msg}"
+
         results = []
         step_outputs = {}  # step_number -> output
 
@@ -338,7 +345,8 @@ Output as JSON:
                 dep in step_outputs for dep in step.depends_on
             )
             if not deps_satisfied:
-                results.append(f"### Step {step.step_number}: SKIPPED (dependency not met)")
+                missing = [dep for dep in step.depends_on if dep not in step_outputs]
+                results.append(f"### Step {step.step_number}: SKIPPED (missing deps: {missing})")
                 continue
 
             # 이전 단계 결과 주입
@@ -355,6 +363,51 @@ Output as JSON:
             results.append(f"### Step {step.step_number}: {step.description}\n{step_output}")
 
         return "\n\n".join(results)
+
+    def _detect_circular_dependency(self) -> Optional[List[int]]:
+        """
+        순환 의존성 감지 (DFS 기반)
+
+        Returns:
+            순환 경로 리스트 (없으면 None)
+        """
+        if not self._action_plan or not self._action_plan.steps:
+            return None
+
+        # 그래프 구성
+        steps = {step.step_number: step for step in self._action_plan.steps}
+        visited = set()
+        rec_stack = set()
+        path = []
+
+        def dfs(node: int) -> Optional[List[int]]:
+            visited.add(node)
+            rec_stack.add(node)
+            path.append(node)
+
+            step = steps.get(node)
+            if step:
+                for dep in step.depends_on:
+                    if dep not in visited:
+                        result = dfs(dep)
+                        if result:
+                            return result
+                    elif dep in rec_stack:
+                        # 순환 발견
+                        cycle_start = path.index(dep)
+                        return path[cycle_start:] + [dep]
+
+            path.pop()
+            rec_stack.remove(node)
+            return None
+
+        for step_num in steps:
+            if step_num not in visited:
+                result = dfs(step_num)
+                if result:
+                    return result
+
+        return None
 
     def _execute_step(self, step: ActionStep, context: str) -> str:
         """
@@ -430,11 +483,66 @@ Result: [your final answer]
         return messages[-1]["content"] if messages else ""
 
     def _parse_actions(self, response: str) -> List[Tuple[str, str]]:
-        """응답에서 Action 파싱"""
-        # Action: tool_name(args) 패턴
-        pattern = r'Action:\s*(\w+)\(([^)]*)\)'
-        matches = re.findall(pattern, response)
-        return matches
+        """
+        응답에서 Action 파싱 (C3 Fix: 괄호 매칭 알고리즘)
+
+        기존 정규식은 중첩 괄호를 처리하지 못함.
+        예: write_file(content="def foo():\n    pass") → 실패
+        """
+        actions = []
+
+        # 모든 "Action:" 시작점 찾기
+        action_pattern = r'Action:\s*(\w+)\('
+        for match in re.finditer(action_pattern, response):
+            tool_name = match.group(1)
+            start_paren = match.end() - 1  # '(' 위치
+
+            # 괄호 균형 추적으로 종료 위치 찾기
+            args = self._extract_balanced_parens(response, start_paren)
+            if args is not None:
+                actions.append((tool_name, args))
+
+        return actions
+
+    def _extract_balanced_parens(self, text: str, start_pos: int) -> Optional[str]:
+        """괄호 균형을 추적하여 내용 추출"""
+        if start_pos >= len(text) or text[start_pos] != '(':
+            return None
+
+        depth = 0
+        in_string = False
+        string_char = None
+        escape_next = False
+
+        for i in range(start_pos, len(text)):
+            char = text[i]
+
+            if escape_next:
+                escape_next = False
+                continue
+
+            if char == '\\':
+                escape_next = True
+                continue
+
+            # 문자열 시작/종료 감지
+            if char in ('"', "'") and not in_string:
+                in_string = True
+                string_char = char
+            elif char == string_char and in_string:
+                in_string = False
+                string_char = None
+
+            # 괄호 추적 (문자열 밖에서만)
+            if not in_string:
+                if char == '(':
+                    depth += 1
+                elif char == ')':
+                    depth -= 1
+                    if depth == 0:
+                        return text[start_pos + 1:i]
+
+        return None
 
     # ============ 결과 빌드 ============
 

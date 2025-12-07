@@ -212,11 +212,12 @@ def chat_completion_stream(messages):
 def call_llm_raw(prompt, temperature=0.7):
     """
     Call LLM without streaming (for extraction tasks).
-    
+
     Args:
-        prompt: The prompt to send
+        prompt: Either a string prompt OR a list of message dicts
+                e.g., [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}]
         temperature: Sampling temperature (default: 0.7)
-    
+
     Returns:
         Complete response text
     """
@@ -225,10 +226,16 @@ def call_llm_raw(prompt, temperature=0.7):
         "Content-Type": "application/json",
         "Authorization": f"Bearer {config.API_KEY}"
     }
-    
+
+    # Support both string prompt and messages list
+    if isinstance(prompt, list):
+        messages = prompt
+    else:
+        messages = [{"role": "user", "content": prompt}]
+
     data = {
         "model": config.MODEL_NAME,
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": messages,
         "temperature": temperature,
         "stream": False
     }
