@@ -652,8 +652,8 @@ def rag_index(path=".", category=None, pattern=None, fine_grained=False):
             return f"Indexed {path}: {chunks} chunks created {mode}"
         
         elif os.path.isdir(path):
-            # Index directory
-            patterns = [pattern] if pattern else ["*.v", "*.sv", "*.md"]
+            # Index directory - patterns from .ragconfig if not specified
+            patterns = [pattern] if pattern else None
             total = db.index_directory(path, patterns=patterns, category=category)
             mode = "(fine-grained)" if fine_grained else ""
             return f"Indexed {path}: {total} total chunks created {mode}"
