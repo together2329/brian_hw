@@ -224,6 +224,16 @@ SEARCH_METHOD = os.getenv("SEARCH_METHOD", "hybrid")
 # Lower = more weight on BM25 keyword matching
 HYBRID_ALPHA = float(os.getenv("HYBRID_ALPHA", "0.7"))
 
+# ============================================================
+# RAG Auto-Indexing Configuration
+# ============================================================
+# Enable/Disable automatic RAG indexing on startup
+# When enabled, automatically indexes .v/.sv files if not already indexed
+ENABLE_RAG_AUTO_INDEX = os.getenv("ENABLE_RAG_AUTO_INDEX", "true").lower() in ("true", "1", "yes")
+
+# Patterns to auto-index on startup
+RAG_AUTO_INDEX_PATTERNS = os.getenv("RAG_AUTO_INDEX_PATTERNS", "*.v,*.sv").split(",")
+
 # Enable/Disable Node Merge (Phase 4)
 # When enabled, Curator will merge similar nodes to reduce redundancy
 ENABLE_NODE_MERGE = os.getenv("ENABLE_NODE_MERGE", "false").lower() in ("true", "1", "yes")
