@@ -272,6 +272,26 @@ DEEP_THINK_TEMPERATURE = float(os.getenv("DEEP_THINK_TEMPERATURE", "0.7"))
 # Timeout for parallel tool execution (seconds)
 DEEP_THINK_TOOL_TIMEOUT = int(os.getenv("DEEP_THINK_TOOL_TIMEOUT", "10"))
 
+# ============================================================
+# Sub-Agent Configuration (Claude Code Style)
+# ============================================================
+# Enable/Disable Sub-Agent system (replaces Deep Think when enabled)
+# When enabled, Orchestrator analyzes tasks and spawns specialized agents
+ENABLE_SUB_AGENTS = os.getenv("ENABLE_SUB_AGENTS", "false").lower() in ("true", "1", "yes")
+
+# Enable parallel execution of sub-agents
+# Default: false (sequential execution for stability)
+SUB_AGENT_PARALLEL_ENABLED = os.getenv("SUB_AGENT_PARALLEL_ENABLED", "false").lower() in ("true", "1", "yes")
+
+# Maximum iterations per sub-agent
+SUB_AGENT_MAX_ITERATIONS = int(os.getenv("SUB_AGENT_MAX_ITERATIONS", "10"))
+
+# Maximum parallel workers when parallel execution is enabled
+SUB_AGENT_MAX_WORKERS = int(os.getenv("SUB_AGENT_MAX_WORKERS", "3"))
+
+# Timeout for each sub-agent (seconds)
+SUB_AGENT_TIMEOUT = int(os.getenv("SUB_AGENT_TIMEOUT", "60"))
+
 # System Prompt with ReAct instructions
 SYSTEM_PROMPT = """You are an intelligent coding agent named Brian Coder.
 You can read files, write code, and run terminal commands to help the user.

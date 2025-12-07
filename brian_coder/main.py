@@ -21,8 +21,13 @@ from message_classifier import MessageClassifier
 from curator import KnowledgeCurator
 
 # Deep Think (optional - only import if enabled)
-if config.ENABLE_DEEP_THINK:
+if config.ENABLE_DEEP_THINK and not config.ENABLE_SUB_AGENTS:
     from deep_think import DeepThinkEngine, DeepThinkResult, format_deep_think_output
+
+# Sub-Agent System (optional - replaces Deep Think when enabled)
+if config.ENABLE_SUB_AGENTS:
+    from sub_agents import Orchestrator
+
 from iteration_control import IterationTracker, detect_completion_signal, show_iteration_warning
 
 # --- Dynamic Plugin Loading ---
@@ -86,6 +91,26 @@ if config.ENABLE_GRAPH and config.ENABLE_CURATOR and graph_lite is not None:
     except Exception as e:
         print(f"\033[91m[System] ❌ Curator initialization failed: {e}\033[0m")
         curator = None
+
+# --- Global Sub-Agent Orchestrator ---
+# Initialize orchestrator if sub-agents are enabled (replaces Deep Think)
+orchestrator = None
+if config.ENABLE_SUB_AGENTS:
+    try:
+        # Note: execute_tool is defined later in this file (line ~374)
+        # Use lambda for lazy evaluation to avoid NameError
+        orchestrator = Orchestrator(
+            llm_call_func=call_llm_raw,
+            execute_tool_func=lambda tool_name, args: execute_tool(tool_name, args),
+            graph_lite=graph_lite,
+            procedural_memory=procedural_memory,
+            parallel_enabled=config.SUB_AGENT_PARALLEL_ENABLED,
+            max_workers=config.SUB_AGENT_MAX_WORKERS,
+            timeout=config.SUB_AGENT_TIMEOUT
+        )
+    except Exception as e:
+        print(f"\033[91m[System] ❌ Sub-Agent Orchestrator initialization failed: {e}\033[0m")
+        orchestrator = None
 
 # --- Global Message Classifier ---
 # Initialize classifier for smart compression
@@ -960,9 +985,58 @@ def run_react_agent(messages, tracker, task_description, mode='interactive'):
     referenced_node_ids = []
 
     # ============================================================
-    # Deep Think Integration (Hypothesis Branching)
+    # Sub-Agent System (Claude Code Style) - Replaces Deep Think
     # ============================================================
-    if config.ENABLE_DEEP_THINK:
+    if config.ENABLE_SUB_AGENTS and orchestrator:
+        print(Color.system("\n[Sub-Agent] Orchestrator analyzing task..."))
+
+        try:
+            # Build context from recent messages
+            context = {}
+            context_parts = []
+            for msg in messages[-5:]:
+                if msg.get("role") != "system":
+                    content = str(msg.get("content", ""))[:200]
+                    context_parts.append(f"{msg['role']}: {content}")
+
+            # Add current directory info
+            try:
+                files = os.listdir(".")[:20]
+                context_parts.append(f"Current directory: {', '.join(files)}")
+            except:
+                pass
+
+            context["recent_messages"] = "\n".join(context_parts)
+
+            # Run Orchestrator
+            result = orchestrator.run(task=task_description, context=context)
+
+            # Display result summary
+            print(Color.success(f"[Sub-Agent] Completed in {result.execution_time_ms}ms"))
+            print(Color.info(f"  Agents: {result.execution_plan.agents_needed}"))
+            print(Color.info(f"  Mode: {result.execution_plan.execution_mode}"))
+
+            # Inject orchestrator result into messages
+            if result.final_output:
+                guidance = f"""=== SUB-AGENT ANALYSIS ===
+{result.final_output[:2000]}
+===========================
+
+Use the above analysis to guide your response. Continue with the ReAct loop if more actions are needed."""
+                messages.append({"role": "system", "content": guidance})
+                print(Color.info(f"  Result injected into context"))
+
+            print()
+
+        except Exception as e:
+            print(Color.warning(f"[Sub-Agent] Orchestrator failed: {e}"))
+            print(Color.info("[Sub-Agent] Continuing with standard ReAct..."))
+            print()
+
+    # ============================================================
+    # Deep Think Integration (Hypothesis Branching) - Legacy
+    # ============================================================
+    elif config.ENABLE_DEEP_THINK and not config.ENABLE_SUB_AGENTS:
         print(Color.system("\n[Deep Think] Analyzing task and generating strategies..."))
 
         try:
