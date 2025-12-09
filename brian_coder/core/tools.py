@@ -2,7 +2,11 @@ import os
 import subprocess
 import json
 import shlex
-from display import format_diff
+import sys
+
+# Add lib path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'lib'))
+from lib.display import format_diff
 
 def read_file(path):
     """Reads the content of a file."""
