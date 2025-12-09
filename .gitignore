@@ -21,12 +21,14 @@ conversation_history.json
 # Verilog simulation files
 *.vcd
 *.vvp
-*_sim
+*_sim*
 *.out
 sim/
 sim.log
 simulation_report.txt
 *.log
+pcie_sim*
+*_layer_sim
 
 # Verilog test/duplicate files
 asyn_fifo_tb.v
