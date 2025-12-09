@@ -842,17 +842,35 @@ spec:
         total_chunks = 0
         
         for pattern in patterns:
-            for file_path in path.rglob(pattern):
-                if file_path.is_file():
+            # Check if pattern is an absolute path (starts with /)
+            if pattern.startswith('/'):
+                # Treat as absolute file path
+                abs_path = Path(pattern)
+                if abs_path.exists() and abs_path.is_file():
                     # Check exclude patterns
                     skip = False
                     for excl in exclude_patterns:
-                        if fnmatch.fnmatch(file_path.name, excl):
+                        if fnmatch.fnmatch(abs_path.name, excl):
                             skip = True
                             break
                     
                     if not skip:
-                        total_chunks += self.index_file(str(file_path), category)
+                        total_chunks += self.index_file(str(abs_path), category)
+                else:
+                    print(f"[RAG] Absolute path not found or not a file: {pattern}")
+            else:
+                # Normal glob pattern
+                for file_path in path.rglob(pattern):
+                    if file_path.is_file():
+                        # Check exclude patterns
+                        skip = False
+                        for excl in exclude_patterns:
+                            if fnmatch.fnmatch(file_path.name, excl):
+                                skip = True
+                                break
+                        
+                        if not skip:
+                            total_chunks += self.index_file(str(file_path), category)
         
         self.save()
         return total_chunks

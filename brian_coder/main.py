@@ -508,13 +508,16 @@ def build_system_prompt(messages=None):
                     # Fail silently if graph search fails
                     pass
 
-        # Add RAG tool guidance for Verilog analysis
-        rag_guidance = """=== VERILOG CODE ANALYSIS ===
+        # Add RAG tool guidance for Verilog and Spec analysis
+        rag_guidance = """=== RAG CODE & SPEC SEARCH ===
 
-For Verilog/SystemVerilog code analysis, use these RAG tools (much faster than grep):
-- rag_search(query, categories, limit): Semantic search for Verilog code
+Use RAG tools for semantic search (much faster than grep):
+- rag_search(query, categories, limit): Semantic search
+  Categories: "verilog", "testbench", "spec", "all" (default: "all")
   Example: rag_search("axi_awready signal", categories="verilog", limit=5)
-- rag_index(path, fine_grained): Index Verilog files (run once)
+  Example: rag_search("TDISP state machine", categories="spec", limit=5)
+  Example: rag_search("CONFIG_LOCKED transition", categories="all", limit=5)
+- rag_index(path, fine_grained): Index files (run once)
 - rag_status(): Check indexed files count
 - read_lines(file, start, end): Read specific lines after finding location
 
