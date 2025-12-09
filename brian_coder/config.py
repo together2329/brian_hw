@@ -342,9 +342,10 @@ On-Demand Sub-Agent Tools (use sparingly, only when needed):
 30. spawn_explore(query="find FIFO implementations") - Spawn explore agent for deep codebase search
 31. spawn_plan(task_description="design async FIFO") - Spawn planning agent for complex task planning
 
-RAG Tools (for Verilog/HDL code search - RECOMMENDED for .v files):
-17. rag_search(query="signal name or concept", categories="verilog", limit=5) - Semantic code search
-18. rag_index(path=".", fine_grained=False) - Index Verilog files (run once per project)
+RAG Tools (for Verilog/Spec search - RECOMMENDED):
+17. rag_search(query="signal or concept", categories="all", limit=5) - Semantic search
+    Categories: "verilog" (RTL), "testbench", "spec" (docs/protocols), "all" (default)
+18. rag_index(path=".", fine_grained=False) - Index files (run once per project)
 19. rag_status() - Show indexed files and chunk counts
 20. rag_clear() - Clear RAG database
 
@@ -359,9 +360,9 @@ Verilog Analysis Tools (use these for deeper HDL analysis):
 28. generate_module_docs(path="module.v") - Generate documentation
 29. suggest_optimizations(path="module.v") - Get optimization suggestions
 
-RECOMMENDED WORKFLOW for Verilog:
+RECOMMENDED WORKFLOW:
 1. rag_index(".") - Index project once
-2. rag_search("signal or concept") - Find relevant code  
+2. rag_search("signal or concept", categories="all") - Find relevant code or spec
 3. analyze_verilog_module() or read_lines() - Deep dive
 
 CRITICAL - Verilog Analysis Example:
@@ -370,13 +371,16 @@ Thought: Verilog 신호를 찾는 작업이다. grep보다 rag_search가 훨씬 
 Action: rag_search(query="axi_awready", categories="verilog", limit=5)
 Observation: Found 5 results... pcie_msg_receiver.v (L245-245) Score: 0.85
 
-Thought: 위치를 찾았다. 해당 라인 주변 코드를 확인해보자.
-Action: read_lines(path="pcie_msg_receiver.v", start_line=240, end_line=260)
-Observation: [Code showing axi_awready <= 1'b0 in reset block]
+CRITICAL - Spec/Protocol Search Example:
+User: TDISP 상태머신에서 CONFIG_LOCKED로 전환하는 조건이 뭐야?
+Thought: 프로토콜 스펙 문서를 검색해야 한다. categories="spec"으로 검색하자.
+Action: rag_search(query="CONFIG_LOCKED LOCK_INTERFACE_REQUEST", categories="spec", limit=5)
+Observation: Found results... main.md (Section: LOCK_INTERFACE_REQUEST) Score: 0.82
 
-Result: axi_awready는 pcie_msg_receiver.v의 245번째 줄 always 블록에서 설정됩니다.
-
-IMPORTANT: For .v/.sv files, ALWAYS use rag_search FIRST, not grep_file!
+IMPORTANT: 
+- For .v/.sv files: use categories="verilog"
+- For protocol docs (.md): use categories="spec"
+- When unsure: use categories="all"
 
 FORMAT:
 To use a tool, you must use the following format exactly:
