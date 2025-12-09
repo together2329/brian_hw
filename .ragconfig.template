@@ -1,0 +1,53 @@
+# .ragconfig - RAG Category Configuration
+version: 1
+
+verilog:
+  enabled: true
+  description: "RTL 소스 코드. 모듈 구현, 신호 정의, 상태머신 분석 시 검색"
+  include:
+    # Main project directory
+    - "/Users/brian/Desktop/Project/brian_hw/*.v"
+    - "/Users/brian/Desktop/Project/brian_hw/*.sv"
+    # brian_coder subdirectory
+    - "/Users/brian/Desktop/Project/brian_hw/brian_coder/*.v"
+    - "/Users/brian/Desktop/Project/brian_hw/brian_coder/*.sv"
+    # verilog subdirectory
+    - "/Users/brian/Desktop/Project/brian_hw/brian_coder/verilog/*.v"
+    - "/Users/brian/Desktop/Project/brian_hw/brian_coder/verilog/*.sv"
+  exclude:
+    - "*_backup.v"
+    - "*_old.v"
+
+testbench:
+  enabled: true
+  description: "테스트벤치. 시뮬레이션 시나리오, 테스트 케이스, expected 동작 확인 시 검색"
+  include:
+    - "/Users/brian/Desktop/Project/brian_hw/*_tb.v"
+    - "/Users/brian/Desktop/Project/brian_hw/brian_coder/*_tb.v"
+    - "/Users/brian/Desktop/Project/brian_hw/*_test.v"
+    - "/Users/brian/Desktop/Project/brian_hw/brian_coder/*_test.v"
+  exclude: []
+
+spec:
+  enabled: true
+  description: "프로토콜 스펙, 설계 문서. 프로토콜 규칙, 타이밍 요구사항 확인 시 검색"
+  include:
+    # PCIe Core Specifications
+    - "/Users/brian/Desktop/Project/brian_hw/PCIe/00_Contents/contents.md"
+    - "/Users/brian/Desktop/Project/brian_hw/PCIe/01_Introduction/introduction.md"
+    - "/Users/brian/Desktop/Project/brian_hw/PCIe/02_Transaction Layer/transaction_layer.md"
+    - "/Users/brian/Desktop/Project/brian_hw/PCIe/03_Data_Link_Layer/data_link_layer.md"
+    - "/Users/brian/Desktop/Project/brian_hw/PCIe/04_Physical_Layer/physical_layer.md"
+    - "/Users/brian/Desktop/Project/brian_hw/PCIe/05_Power_Management/power_management.md"
+    - "/Users/brian/Desktop/Project/brian_hw/PCIe/06_System_Architecture/system_architecture.md"
+    - "/Users/brian/Desktop/Project/brian_hw/PCIe/07_Software/software.md"
+    # Security & Management
+    - "/Users/brian/Desktop/Project/brian_hw/PCIe/11_TDISP/tdisp.md"
+    # Additional Specs
+    - "/Users/brian/Desktop/Project/brian_hw/PCIe/Ordering.md"
+    - "/Users/brian/Desktop/Project/brian_hw/PCIe/PCIe Speed Bandwidth.md"
+    # General documentation
+    - "/Users/brian/Desktop/Project/brian_hw/*.md"
+  exclude:
+    - "README.md"
+    - "*_main.md"
