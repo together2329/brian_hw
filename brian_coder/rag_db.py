@@ -81,21 +81,35 @@ class RAGDatabase:
     def __init__(self, rag_dir: str = ".brian_rag", fine_grained: bool = False):
         """
         Initialize RAG Database.
-        
+
         Args:
             rag_dir: Directory for RAG storage (relative to home)
-            fine_grained: If True, create more detailed chunks (individual signals, 
+            fine_grained: If True, create more detailed chunks (individual signals,
                          case statements, etc.) for precise search. Default is False.
         """
         self.rag_dir = Path.home() / rag_dir
         self.index_path = self.rag_dir / "rag_index.json"
         self.config_file = self.rag_dir / ".ragconfig"
         self.fine_grained = fine_grained
-        
+
         self.chunks: Dict[str, Chunk] = {}
         self.file_hashes: Dict[str, str] = {}
         self.categories: Dict[str, CategoryConfig] = {}
-        
+
+        # Rate limiting settings (load from config, convert ms to seconds)
+        self.api_call_count = 0
+        self.last_api_call_time = 0
+        try:
+            from . import config
+        except ImportError:
+            import config
+        # RAG_RATE_LIMIT_DELAY_MS is in milliseconds, convert to seconds
+        rate_limit_ms = config.RAG_RATE_LIMIT_DELAY_MS
+        self.rate_limit_delay = rate_limit_ms / 1000.0  # Convert ms to seconds
+
+        # Auto-detected embedding dimension (None = not yet detected)
+        self.embedding_dimension = None
+
         self._ensure_initialized()
         self._load()
 
@@ -794,12 +808,8 @@ spec:
         
         # Generate embeddings for chunks
         for chunk in new_chunks:
-            try:
-                chunk.embedding = self._get_embedding(chunk.content[:1000])
-            except Exception as e:
-                print(f"[RAG] Embedding failed: {e}")
-                chunk.embedding = None
-            
+            # _get_embedding() handles failures internally by returning zero vector
+            chunk.embedding = self._get_embedding(chunk.content[:1000])
             self.chunks[chunk.id] = chunk
         
         # Update hash
@@ -815,63 +825,105 @@ spec:
                         category: str = None) -> int:
         """
         Index all matching files in a directory.
-        
+
         Args:
-            dir_path: Directory path
-            patterns: File patterns (e.g., ["*.v", "*.sv"]) - reads from .ragconfig if None
+            dir_path: Directory path (treated as root for relative patterns)
+            patterns: File patterns - supports both:
+                     - Absolute paths: "/Users/.../file.v", "/Users/.../dir/*.v"
+                     - Relative patterns: "*.v", "*.sv"
+                     Reads from .ragconfig if None
             category: Category for all files (auto-detect if None)
-            
+
         Returns:
             Total chunks created
         """
         import fnmatch
-        
+        import glob as glob_module
+
         # Load patterns from .ragconfig if not specified
         config_patterns = self._load_config_patterns()
-        
+
         if patterns is None:
             patterns = config_patterns['include']
-        
+
         exclude_patterns = config_patterns['exclude']
-        
+
         path = Path(dir_path)
         if not path.exists():
             print(f"[RAG] Directory not found: {dir_path}")
             return 0
-        
+
         total_chunks = 0
-        
+        indexed_files = set()  # Track indexed files to avoid duplicates
+
         for pattern in patterns:
-            # Check if pattern is an absolute path (starts with /)
-            if pattern.startswith('/'):
-                # Treat as absolute file path
-                abs_path = Path(pattern)
-                if abs_path.exists() and abs_path.is_file():
-                    # Check exclude patterns
-                    skip = False
-                    for excl in exclude_patterns:
-                        if fnmatch.fnmatch(abs_path.name, excl):
-                            skip = True
-                            break
-                    
-                    if not skip:
-                        total_chunks += self.index_file(str(abs_path), category)
+            # Normalize pattern and handle both absolute and relative paths
+            pattern = pattern.strip()
+
+            # Check if pattern contains glob wildcards
+            if '*' in pattern or '?' in pattern:
+                # Glob pattern - use glob.glob() for absolute paths
+                if pattern.startswith('/'):
+                    # Absolute glob pattern (e.g., "/Users/.../dir/*.v")
+                    matching_files = glob_module.glob(pattern)
+                    for file_path in matching_files:
+                        file_path_obj = Path(file_path)
+                        if file_path_obj.is_file():
+                            # Check exclude patterns
+                            skip = False
+                            for excl in exclude_patterns:
+                                if fnmatch.fnmatch(file_path_obj.name, excl):
+                                    skip = True
+                                    break
+
+                            if not skip and str(file_path_obj.resolve()) not in indexed_files:
+                                total_chunks += self.index_file(str(file_path_obj), category)
+                                indexed_files.add(str(file_path_obj.resolve()))
                 else:
-                    print(f"[RAG] Absolute path not found or not a file: {pattern}")
+                    # Relative glob pattern - relative to dir_path
+                    for file_path in path.rglob(pattern):
+                        if file_path.is_file():
+                            # Check exclude patterns
+                            skip = False
+                            for excl in exclude_patterns:
+                                if fnmatch.fnmatch(file_path.name, excl):
+                                    skip = True
+                                    break
+
+                            if not skip and str(file_path.resolve()) not in indexed_files:
+                                total_chunks += self.index_file(str(file_path), category)
+                                indexed_files.add(str(file_path.resolve()))
             else:
-                # Normal glob pattern
-                for file_path in path.rglob(pattern):
-                    if file_path.is_file():
-                        # Check exclude patterns
+                # No wildcards - treat as file path (absolute or relative)
+                if pattern.startswith('/'):
+                    # Absolute file path
+                    abs_path = Path(pattern)
+                    if abs_path.exists() and abs_path.is_file():
                         skip = False
                         for excl in exclude_patterns:
-                            if fnmatch.fnmatch(file_path.name, excl):
+                            if fnmatch.fnmatch(abs_path.name, excl):
                                 skip = True
                                 break
-                        
-                        if not skip:
-                            total_chunks += self.index_file(str(file_path), category)
-        
+
+                        if not skip and str(abs_path.resolve()) not in indexed_files:
+                            total_chunks += self.index_file(str(abs_path), category)
+                            indexed_files.add(str(abs_path.resolve()))
+                    else:
+                        print(f"[RAG] File not found: {pattern}")
+                else:
+                    # Relative file path
+                    rel_path = path / pattern
+                    if rel_path.exists() and rel_path.is_file():
+                        skip = False
+                        for excl in exclude_patterns:
+                            if fnmatch.fnmatch(rel_path.name, excl):
+                                skip = True
+                                break
+
+                        if not skip and str(rel_path.resolve()) not in indexed_files:
+                            total_chunks += self.index_file(str(rel_path), category)
+                            indexed_files.add(str(rel_path.resolve()))
+
         self.save()
         return total_chunks
 
@@ -909,24 +961,22 @@ spec:
             allowed_categories = [c.strip() for c in categories.split(',')]
         
         results = []
-        
+
         for chunk in self.chunks.values():
             # Filter by category
             if chunk.category not in allowed_categories:
                 continue
-            
+
             # Filter by level
             if level is not None and chunk.level != level:
                 continue
-            
-            # Skip chunks without embeddings
-            if chunk.embedding is None:
-                continue
-            
-            # Calculate similarity
+
+            # Calculate similarity (embedding is never None now)
             try:
                 score = self._cosine_similarity(query_embedding, chunk.embedding)
-                results.append((score, chunk))
+                # Filter out zero-score results (from failed embeddings)
+                if score > 0.0:
+                    results.append((score, chunk))
             except Exception:
                 continue
         
@@ -947,20 +997,48 @@ spec:
     # ==================== Embedding (reuse from graph_lite) ====================
 
     def _get_embedding(self, text: str) -> List[float]:
-        """Get embedding using existing graph_lite infrastructure."""
+        """
+        Get embedding using existing graph_lite infrastructure.
+
+        Auto-detects embedding dimension from first successful API call.
+        Returns zero vector with correct dimension on failure.
+        """
         try:
             # Try to use graph_lite's embedding function
             from graph_lite import GraphLite
             graph = GraphLite()
             return graph.get_embedding(text)
         except Exception as e:
-            # Fallback: direct API call
-            return self._get_embedding_direct(text)
+            try:
+                # Fallback: direct API call with retry logic
+                return self._get_embedding_direct(text)
+            except Exception as e2:
+                # Final fallback: return zero vector (allows search to continue)
+                # Dimension is auto-detected from API responses, with fallback to config
+                if self.embedding_dimension is None:
+                    try:
+                        from . import config
+                    except ImportError:
+                        import config
+                    embedding_dim = config.EMBEDDING_DIMENSION
+                else:
+                    embedding_dim = self.embedding_dimension
+
+                print(f"[RAG] Embedding failed (using zero vector, dim={embedding_dim}): {e2}")
+                return [0.0] * embedding_dim
 
     def _get_embedding_direct(self, text: str) -> List[float]:
-        """Direct embedding API call (fallback)."""
+        """
+        Direct embedding API call with retry logic and rate limiting.
+
+        Handles:
+        - Rate limiting (429 Too Many Requests)
+        - Network errors and timeouts
+        - Exponential backoff retry
+        """
         import urllib.request
-        
+        import time
+
         try:
             # Try relative import first (when imported as package)
             try:
@@ -972,7 +1050,7 @@ spec:
             model = config.EMBEDDING_MODEL
         except Exception as e:
             raise ValueError(f"Embedding config not found: {e}")
-        
+
         url = f"{base_url}/embeddings"
         headers = {
             "Content-Type": "application/json",
@@ -982,16 +1060,68 @@ spec:
             "input": text[:8000],  # Limit text length
             "model": model
         }
-        
-        request = urllib.request.Request(
-            url,
-            data=json.dumps(data).encode('utf-8'),
-            headers=headers
-        )
-        
-        with urllib.request.urlopen(request, timeout=30) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            return result["data"][0]["embedding"]
+
+        # Retry configuration
+        max_retries = 3
+        base_backoff = 1.0  # Start with 1 second
+
+        for attempt in range(max_retries):
+            # Rate limiting: enforce minimum delay between API calls
+            current_time = time.time()
+            time_since_last_call = current_time - self.last_api_call_time
+            if time_since_last_call < self.rate_limit_delay:
+                sleep_time = self.rate_limit_delay - time_since_last_call
+                time.sleep(sleep_time)
+
+            self.last_api_call_time = time.time()
+            self.api_call_count += 1
+
+            try:
+                request = urllib.request.Request(
+                    url,
+                    data=json.dumps(data).encode('utf-8'),
+                    headers=headers
+                )
+
+                with urllib.request.urlopen(request, timeout=30) as response:
+                    result = json.loads(response.read().decode('utf-8'))
+                    embedding = result["data"][0]["embedding"]
+
+                    # Auto-detect embedding dimension from first successful API call
+                    if self.embedding_dimension is None:
+                        self.embedding_dimension = len(embedding)
+                        print(f"[RAG] Auto-detected embedding dimension: {self.embedding_dimension}")
+
+                    return embedding
+
+            except urllib.error.HTTPError as e:
+                if e.code == 429:  # Too Many Requests
+                    if attempt < max_retries - 1:
+                        # Exponential backoff: 1s, 2s, 4s...
+                        backoff_time = base_backoff * (2 ** attempt)
+                        print(f"[RAG] Rate limited (429). Retrying in {backoff_time:.1f}s... (attempt {attempt + 1}/{max_retries})")
+                        time.sleep(backoff_time)
+                    else:
+                        raise ValueError(f"API rate limit exceeded after {max_retries} retries")
+                else:
+                    # Other HTTP errors (400, 401, 403, etc.)
+                    raise ValueError(f"API error {e.code}: {e.read().decode('utf-8')}")
+
+            except urllib.error.URLError as e:
+                if attempt < max_retries - 1:
+                    # Network error, retry with backoff
+                    backoff_time = base_backoff * (2 ** attempt)
+                    print(f"[RAG] Network error: {e.reason}. Retrying in {backoff_time:.1f}s...")
+                    time.sleep(backoff_time)
+                else:
+                    raise ValueError(f"Network error after {max_retries} retries: {e.reason}")
+
+            except urllib.error.HTTPException as e:
+                if attempt < max_retries - 1:
+                    backoff_time = base_backoff * (2 ** attempt)
+                    time.sleep(backoff_time)
+                else:
+                    raise ValueError(f"HTTP error after {max_retries} retries: {e}")
 
     def _cosine_similarity(self, v1: List[float], v2: List[float]) -> float:
         """Calculate cosine similarity (pure Python)."""

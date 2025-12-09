@@ -574,90 +574,117 @@ def replace_lines(path, start_line, end_line, new_content):
 def rag_search(query, categories="all", limit=5):
     """
     Semantic search across indexed Verilog/Testbench/Spec documents.
-    
+
     Args:
         query: Natural language search query (e.g., "AXI burst error handling")
         categories: Category filter - "verilog", "testbench", "spec", "verilog,testbench", or "all"
         limit: Maximum number of results (default: 5)
-    
+
     Returns:
         Formatted search results with code snippets and similarity scores
-    
+
     Example:
         rag_search("FIFO overflow handling", categories="verilog,testbench", limit=3)
     """
     try:
         from rag_db import get_rag_db
-        
+
         db = get_rag_db()
         results = db.search(query, categories=categories, limit=int(limit))
-        
+
         if not results:
             return f"No results found for '{query}' in categories: {categories}\n\nTip: Run rag_index() first to index files."
-        
+
         output = f"Found {len(results)} result(s) for '{query}':\n\n"
-        
+
+        # Track if any results have low scores
+        low_score_count = 0
         for i, (score, chunk) in enumerate(results, 1):
             output += f"[{i}] {chunk.category.upper()} | {os.path.basename(chunk.source_file)}"
-            output += f" (L{chunk.start_line}-{chunk.end_line}) | Score: {score:.2f}\n"
-            
+            output += f" (L{chunk.start_line}-{chunk.end_line}) | Score: {score:.3f}\n"
+
             # Add summary/metadata
             if chunk.metadata.get("summary"):
                 output += f"    📝 {chunk.metadata['summary']}\n"
             if chunk.metadata.get("module_name"):
                 output += f"    📦 Module: {chunk.metadata['module_name']}\n"
-            
+
             # Show content preview (first 200 chars)
             preview = chunk.content[:200].replace('\n', ' ').strip()
             if len(chunk.content) > 200:
                 preview += "..."
             output += f"    ```\n    {preview}\n    ```\n\n"
-        
+
+            # Track low scores (weak matches)
+            if score < 0.3:
+                low_score_count += 1
+
+        # Add warning if scores are generally low
+        if low_score_count == len(results):
+            output += "⚠️  All results have low similarity scores. Consider:\n"
+            output += "  - Refining your search query\n"
+            output += "  - Checking if files are indexed (use rag_status())\n"
+            output += "  - Using more specific terms\n\n"
+
         return output
     except Exception as e:
         return f"Error in rag_search: {e}"
 
-def rag_index(path=".", category=None, pattern=None, fine_grained=False):
+def rag_index(path=".", category=None, pattern=None, fine_grained=False, rate_limit_delay_ms=None):
     """
     Index files for RAG search.
-    
+
     Args:
         path: File or directory path to index (default: current directory)
         category: Force category - "verilog", "testbench", "spec" (auto-detect if None)
         pattern: File pattern for directories (e.g., "*.v", "*.sv")
         fine_grained: If True, create detailed chunks for individual signals/case statements
                      (more precise search but 10x more chunks). Default: False
-    
+        rate_limit_delay_ms: Delay between API calls in milliseconds. Default: uses config
+                            Higher values help with rate limiting in corporate networks
+                            Example: 100 (10 calls/sec), 500 (2 calls/sec), 1000 (1 call/sec)
+
     Returns:
-        Indexing summary with chunk counts
-    
+        Indexing summary with chunk counts and stats
+
     Example:
         rag_index("src/", category="verilog")
         rag_index(".", fine_grained=True)  # Detailed chunking
+        rag_index(".", rate_limit_delay_ms=500)  # For rate-limited environments
     """
     try:
         import rag_db as rag_module
-        
+        import config
+
         # Create DB with fine_grained option
         db = rag_module.RAGDatabase(fine_grained=fine_grained)
-        
+
+        # Adjust rate limiting for network conditions (use provided value or config)
+        if rate_limit_delay_ms is not None:
+            db.rate_limit_delay = float(rate_limit_delay_ms) / 1000.0  # ms to seconds
+        # else: use the value already loaded from config in RAGDatabase.__init__
+
         # Update global instance so rag_search/rag_status see new index
         rag_module._rag_db = db
-        
+
         if os.path.isfile(path):
             # Index single file
             chunks = db.index_file(path, category=category)
             db.save()
             mode = "(fine-grained)" if fine_grained else ""
             return f"Indexed {path}: {chunks} chunks created {mode}"
-        
+
         elif os.path.isdir(path):
             # Index directory - patterns from .ragconfig if not specified
             patterns = [pattern] if pattern else None
             total = db.index_directory(path, patterns=patterns, category=category)
             mode = "(fine-grained)" if fine_grained else ""
-            return f"Indexed {path}: {total} total chunks created {mode}"
-        
+
+            output = f"Indexed {path}: {total} total chunks created {mode}\n"
+            output += f"  API calls: {db.api_call_count}\n"
+            output += f"  Rate limit: {db.rate_limit_delay * 1000:.0f}ms between calls\n"
+            return output
+
         else:
             return f"Error: Path '{path}' not found"
     except Exception as e:
