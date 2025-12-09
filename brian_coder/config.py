@@ -237,6 +237,11 @@ ENABLE_RAG_AUTO_INDEX = os.getenv("ENABLE_RAG_AUTO_INDEX", "true").lower() in ("
 # More precise search but ~10x more chunks (and embeddings)
 RAG_FINE_GRAINED = os.getenv("RAG_FINE_GRAINED", "false").lower() in ("true", "1", "yes")
 
+# RAG API rate limiting delay (milliseconds)
+# Prevents "Too Many Requests" (429) errors when indexing
+# Default: 100ms (10 API calls/sec)
+RAG_RATE_LIMIT_DELAY_MS = int(os.getenv("RAG_RATE_LIMIT_DELAY_MS", "100"))
+
 # Enable/Disable Node Merge (Phase 4)
 # When enabled, Curator will merge similar nodes to reduce redundancy
 ENABLE_NODE_MERGE = os.getenv("ENABLE_NODE_MERGE", "false").lower() in ("true", "1", "yes")
