@@ -7,33 +7,38 @@ import re
 import copy
 import time
 from datetime import datetime
-import config
+
+# Add paths for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'core'))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'lib'))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'agents'))
+
 import config
 import tools
-import display
 import llm_client
-from display import Color
+from lib.display import Color
 from llm_client import chat_completion_stream, call_llm_raw, estimate_message_tokens, get_actual_tokens
-from memory import MemorySystem
-from graph_lite import GraphLite, Node, Edge
-from procedural_memory import ProceduralMemory, Action, Trajectory
-from message_classifier import MessageClassifier
-from curator import KnowledgeCurator
+from lib.memory import MemorySystem
+from core.graph_lite import GraphLite, Node, Edge
+from lib.procedural_memory import ProceduralMemory, Action, Trajectory
+from lib.message_classifier import MessageClassifier
+from lib.curator import KnowledgeCurator
 
 # Deep Think (optional - only import if enabled)
 if config.ENABLE_DEEP_THINK and not config.ENABLE_SUB_AGENTS:
-    from deep_think import DeepThinkEngine, DeepThinkResult, format_deep_think_output
+    from lib.deep_think import DeepThinkEngine, DeepThinkResult, format_deep_think_output
 
 # Sub-Agent System (optional - replaces Deep Think when enabled)
 if config.ENABLE_SUB_AGENTS:
     from sub_agents import Orchestrator
 
-from iteration_control import IterationTracker, detect_completion_signal, show_iteration_warning
+from lib.iteration_control import IterationTracker, detect_completion_signal, show_iteration_warning
 
 # --- Dynamic Plugin Loading ---
 if config.ENABLE_VERILOG_TOOLS:
     try:
-        import tools_verilog
+        from core import tools_verilog
         tools.AVAILABLE_TOOLS.update(tools_verilog.VERILOG_TOOLS)
         print(Color.system("[System] Verilog tools plugin loaded successfully 🔌"))
     except ImportError as e:
