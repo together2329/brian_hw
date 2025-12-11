@@ -3,22 +3,34 @@ from pathlib import Path
 
 # Load .env file if it exists
 def load_env_file():
-    env_path = Path(__file__).parent / '.env'
-    if env_path.exists():
-        with open(env_path) as f:
-            for line in f:
-                line = line.strip()
-                # Skip comments and empty lines
-                if not line or line.startswith('#'):
-                    continue
-                # Parse KEY=VALUE
-                if '=' in line:
-                    key, value = line.split('=', 1)
-                    key = key.strip()
-                    value = value.strip()
-                    # Only set if not already in environment
-                    if key and value and key not in os.environ:
-                        os.environ[key] = value
+    # Try multiple locations: src/.env, ../.env, ../../.env
+    search_paths = [
+        Path(__file__).parent / '.env',  # src/.env
+        Path(__file__).parent.parent / '.env',  # brian_coder/.env
+    ]
+
+    for env_path in search_paths:
+        if env_path.exists():
+            with open(env_path) as f:
+                for line in f:
+                    line = line.strip()
+                    # Skip comments and empty lines
+                    if not line or line.startswith('#'):
+                        continue
+                    # Parse KEY=VALUE
+                    if '=' in line:
+                        key, value = line.split('=', 1)
+                        key = key.strip()
+                        value = value.strip()
+
+                        # Remove inline comments (e.g., "value    # comment")
+                        if '#' in value:
+                            value = value.split('#')[0].strip()
+
+                        # Only set if not already in environment
+                        if key and value and key not in os.environ:
+                            os.environ[key] = value
+            break
 
 load_env_file()
 

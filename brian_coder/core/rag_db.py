@@ -751,28 +751,31 @@ spec:
 
     # ==================== Indexing ====================
 
-    def index_file(self, file_path: str, category: str = None) -> int:
+    def index_file(self, file_path: str, category: str = None, quiet: bool = False, skip_embeddings: bool = False) -> int:
         """
         Index a single file.
-        
+
         Args:
             file_path: Path to file
             category: Override category (auto-detect if None)
-            
+            quiet: If True, suppress verbose output (for use in progress bars)
+
         Returns:
             Number of chunks created
         """
         path = Path(file_path)
         if not path.exists():
-            print(f"[RAG] File not found: {file_path}")
+            if not quiet:
+                print(f"[RAG] File not found: {file_path}")
             return 0
-        
+
         # Check if reindex needed (hash comparison)
         current_hash = self._get_file_hash(file_path)
         stored_hash = self.file_hashes.get(str(path.resolve()))
-        
+
         if current_hash == stored_hash:
-            print(f"[RAG] Skipping (unchanged): {path.name}")
+            if not quiet:
+                print(f"[RAG] Skipping (unchanged): {path.name}")
             return 0
         
         # Read content
@@ -806,19 +809,65 @@ spec:
         else:
             new_chunks = []
         
-        # Generate embeddings for chunks
-        for chunk in new_chunks:
-            # _get_embedding() handles failures internally by returning zero vector
-            chunk.embedding = self._get_embedding(chunk.content[:1000])
-            self.chunks[chunk.id] = chunk
+        # Generate embeddings for chunks (skip if requested)
+        if new_chunks and not skip_embeddings:
+            total = len(new_chunks)
+            import sys
+            import threading
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+            
+            # Prepare texts for embedding
+            texts = [chunk.content[:1000] for chunk in new_chunks]
+            embeddings = [None] * total
+            completed = [0]  # Use list to allow modification in closure
+            api_calls = [0]  # Track API calls in parallel
+            lock = threading.Lock()
+            
+            def embed_one(idx_text):
+                idx, text = idx_text
+                embedding = self._get_embedding(text)
+                with lock:
+                    api_calls[0] += 1
+                return idx, embedding
+            
+            # Parallel embedding with progress
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                futures = {executor.submit(embed_one, (i, t)): i for i, t in enumerate(texts)}
+                
+                for future in as_completed(futures):
+                    idx, embedding = future.result()
+                    embeddings[idx] = embedding
+                    completed[0] += 1
+                    
+                    # Update progress (on same line)
+                    pct = int(completed[0] * 100 / total)
+                    sys.stderr.write(f"\r[RAG]   Embedding: {completed[0]}/{total} ({pct}%)   ")
+                    sys.stderr.flush()
+            
+            # Update API call count
+            self.api_call_count += api_calls[0]
+            
+            # Assign embeddings to chunks
+            for i, chunk in enumerate(new_chunks):
+                chunk.embedding = embeddings[i]
+                self.chunks[chunk.id] = chunk
+            
+            # Clear progress line and move to next
+            sys.stderr.write(f"\r[RAG]   Embedding: {total}/{total} (100%) ✅               \n")
+            sys.stderr.flush()
+        elif new_chunks:
+            # Skip embeddings - just add chunks without embeddings
+            for chunk in new_chunks:
+                self.chunks[chunk.id] = chunk
         
         # Update hash
         self.file_hashes[str(path.resolve())] = current_hash
-        
+
         # Incremental save after each file (prevents data loss on Ctrl+C)
         self.save()
-        
-        print(f"[RAG] Indexed: {path.name} ({len(new_chunks)} chunks)")
+
+        if not quiet:
+            print(f"[RAG] Indexed: {path.name} ({len(new_chunks)} chunks)")
         return len(new_chunks)
 
     def index_directory(self, dir_path: str, patterns: List[str] = None,
@@ -853,50 +902,39 @@ spec:
             print(f"[RAG] Directory not found: {dir_path}")
             return 0
 
-        total_chunks = 0
+        # First pass: collect all matching files to show progress
+        all_files = []
         indexed_files = set()  # Track indexed files to avoid duplicates
 
+        # First pass: collect all files
         for pattern in patterns:
-            # Normalize pattern and handle both absolute and relative paths
             pattern = pattern.strip()
 
-            # Check if pattern contains glob wildcards
             if '*' in pattern or '?' in pattern:
-                # Glob pattern - use glob.glob() for absolute paths
                 if pattern.startswith('/'):
-                    # Absolute glob pattern (e.g., "/Users/.../dir/*.v")
                     matching_files = glob_module.glob(pattern)
                     for file_path in matching_files:
                         file_path_obj = Path(file_path)
                         if file_path_obj.is_file():
-                            # Check exclude patterns
                             skip = False
                             for excl in exclude_patterns:
                                 if fnmatch.fnmatch(file_path_obj.name, excl):
                                     skip = True
                                     break
-
-                            if not skip and str(file_path_obj.resolve()) not in indexed_files:
-                                total_chunks += self.index_file(str(file_path_obj), category)
-                                indexed_files.add(str(file_path_obj.resolve()))
+                            if not skip:
+                                all_files.append(str(file_path_obj.resolve()))
                 else:
-                    # Relative glob pattern - relative to dir_path
                     for file_path in path.rglob(pattern):
                         if file_path.is_file():
-                            # Check exclude patterns
                             skip = False
                             for excl in exclude_patterns:
                                 if fnmatch.fnmatch(file_path.name, excl):
                                     skip = True
                                     break
-
-                            if not skip and str(file_path.resolve()) not in indexed_files:
-                                total_chunks += self.index_file(str(file_path), category)
-                                indexed_files.add(str(file_path.resolve()))
+                            if not skip:
+                                all_files.append(str(file_path.resolve()))
             else:
-                # No wildcards - treat as file path (absolute or relative)
                 if pattern.startswith('/'):
-                    # Absolute file path
                     abs_path = Path(pattern)
                     if abs_path.exists() and abs_path.is_file():
                         skip = False
@@ -904,14 +942,9 @@ spec:
                             if fnmatch.fnmatch(abs_path.name, excl):
                                 skip = True
                                 break
-
-                        if not skip and str(abs_path.resolve()) not in indexed_files:
-                            total_chunks += self.index_file(str(abs_path), category)
-                            indexed_files.add(str(abs_path.resolve()))
-                    else:
-                        print(f"[RAG] File not found: {pattern}")
+                        if not skip:
+                            all_files.append(str(abs_path.resolve()))
                 else:
-                    # Relative file path
                     rel_path = path / pattern
                     if rel_path.exists() and rel_path.is_file():
                         skip = False
@@ -919,10 +952,44 @@ spec:
                             if fnmatch.fnmatch(rel_path.name, excl):
                                 skip = True
                                 break
+                        if not skip:
+                            all_files.append(str(rel_path.resolve()))
 
-                        if not skip and str(rel_path.resolve()) not in indexed_files:
-                            total_chunks += self.index_file(str(rel_path), category)
-                            indexed_files.add(str(rel_path.resolve()))
+        # Remove duplicates while preserving order
+        all_files = list(dict.fromkeys(all_files))
+
+        if not all_files:
+            print(f"[RAG] No files found matching patterns")
+            return 0
+
+        # Second pass: index files with progress
+        print(f"[RAG] Indexing {len(all_files)} file(s)...")
+        total_chunks = 0
+
+        for idx, file_path in enumerate(all_files, 1):
+            file_name = Path(file_path).name
+
+            # Check if file needs reindexing
+            path = Path(file_path)
+            current_hash = self._get_file_hash(str(file_path))
+            stored_hash = self.file_hashes.get(str(path.resolve()))
+
+            if current_hash == stored_hash:
+                # File unchanged - skip
+                print(f"[RAG] ({idx}/{len(all_files)}) Skipping {file_name}... ⏭️  (unchanged)", flush=True)
+                continue
+
+            print(f"[RAG] ({idx}/{len(all_files)}) Indexing {file_name}...", flush=True)
+
+            # Index the file with embeddings
+            chunks = self.index_file(str(file_path), category, quiet=True, skip_embeddings=False)
+            total_chunks += chunks
+
+            print(f"[RAG]   ✅ {chunks} chunks", flush=True)
+
+        print(f"[RAG] ✅ Indexed {len(all_files)} file(s), {total_chunks} chunks created")
+        print(f"[RAG]   📊 API calls: {self.api_call_count}")
+        print(f"[RAG]   ⏱️  Rate limit: {self.rate_limit_delay * 1000:.0f}ms between calls")
 
         self.save()
         return total_chunks

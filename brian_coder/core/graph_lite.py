@@ -626,6 +626,7 @@ Indices to link:"""
             Embedding vector (list of floats)
         """
         # Load config values if not provided
+        embedding_dim = 1536  # Default fallback dimension
         try:
             import config
             if api_key is None:
@@ -634,6 +635,8 @@ Indices to link:"""
                 base_url = config.EMBEDDING_BASE_URL
             if model is None:
                 model = config.EMBEDDING_MODEL
+            # Store embedding dimension for use in fallback
+            embedding_dim = config.EMBEDDING_DIMENSION
         except (ImportError, AttributeError) as e:
             if api_key is None:
                 raise ValueError("API key not provided and not found in config")
@@ -651,39 +654,61 @@ Indices to link:"""
         url = f"{base_url}/embeddings"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
+            "Authorization": f"Bearer {api_key}",
+            "HTTP-Referer": "https://github.com/together2329/brian_hw",
+            "X-Title": "Brian Coder"
         }
         data = {
             "input": text,
-            "model": model
+            "model": model,
+            "encoding_format": "float"
         }
 
-        try:
-            request = urllib.request.Request(
-                url,
-                data=json.dumps(data).encode('utf-8'),
-                headers=headers
-            )
+        # Retry logic for embedding API
+        max_retries = 3
+        last_error = None
 
-            with urllib.request.urlopen(request, timeout=30) as response:
-                result = json.loads(response.read().decode('utf-8'))
-                embedding = result["data"][0]["embedding"]
+        for attempt in range(max_retries):
+            try:
+                import time
+                if attempt > 0:
+                    wait_time = 2 ** attempt  # exponential backoff: 2s, 4s
+                    print(f"[RAG] Retrying embedding ({attempt + 1}/{max_retries})...", end=' ', flush=True)
+                    time.sleep(wait_time)
 
-                # Cache the result
-                self._embedding_cache[cache_key] = embedding
-                
-                # Enforce LRU limit (e.g., 1000 items)
-                if len(self._embedding_cache) > 1000:
-                    self._embedding_cache.popitem(last=False)
+                request = urllib.request.Request(
+                    url,
+                    data=json.dumps(data).encode('utf-8'),
+                    headers=headers
+                )
 
-                return embedding
+                # Increased timeout from 30s to 60s
+                with urllib.request.urlopen(request, timeout=60) as response:
+                    response_data = response.read().decode('utf-8')
+                    result = json.loads(response_data)
+                    embedding = result["data"][0]["embedding"]
 
-        except Exception as e:
-            # Log warning but return zero vector to allow agent to continue
-            print(f"[Warning] Embedding API failed: {e}")
-            print("[Warning] Continuing without embeddings for this text")
-            # Return zero vector as fallback (text-embedding-3-small dimension)
-            return [0.0] * 1536
+                    # Cache the result
+                    self._embedding_cache[cache_key] = embedding
+
+                    # Enforce LRU limit (e.g., 1000 items)
+                    if len(self._embedding_cache) > 1000:
+                        self._embedding_cache.popitem(last=False)
+
+                    if attempt > 0:
+                        print("✅")
+                    return embedding
+
+            except Exception as e:
+                last_error = e
+                if attempt < max_retries - 1:
+                    continue
+                else:
+                    # All retries failed
+                    print(f"[Warning] Embedding API failed after {max_retries} attempts: {e}")
+                    print("[Warning] Continuing without embeddings for this text")
+                    # Return zero vector with correct dimension
+                    return [0.0] * embedding_dim
 
     def cosine_similarity(self, v1: List[float], v2: List[float]) -> float:
         """

@@ -9,13 +9,18 @@ import time
 from datetime import datetime
 
 # Add paths for imports
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'core'))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'lib'))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'agents'))
+# Get the directory containing this script (src directory)
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+# Get the project root (parent of src directory)
+_project_root = os.path.dirname(_script_dir)
+
+# Add paths: project root first, then src
+# This allows imports like: from lib.display import Color, from core.tools import ...
+sys.path.insert(0, _script_dir)  # src directory (highest priority for src modules)
+sys.path.insert(0, _project_root)  # brian_coder directory (for lib, core, agents)
 
 import config
-import tools
+from core import tools
 import llm_client
 from lib.display import Color
 from llm_client import chat_completion_stream, call_llm_raw, estimate_message_tokens, get_actual_tokens

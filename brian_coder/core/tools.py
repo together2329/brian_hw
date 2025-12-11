@@ -4,9 +4,24 @@ import json
 import shlex
 import sys
 
-# Add lib path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'lib'))
-from lib.display import format_diff
+# Try to import format_diff with fallback mechanism
+try:
+    from lib.display import format_diff
+except ModuleNotFoundError:
+    # Fallback: Add lib path and try again
+    _core_dir = os.path.dirname(os.path.abspath(__file__))
+    _project_root = os.path.dirname(_core_dir)
+    sys.path.insert(0, os.path.join(_project_root, 'lib'))
+    try:
+        from lib.display import format_diff
+    except ModuleNotFoundError:
+        # Last resort: try without lib prefix (display might be directly in sys.path)
+        try:
+            from display import format_diff
+        except ModuleNotFoundError:
+            # If all imports fail, create a stub function
+            def format_diff(*args, **kwargs):
+                return ""
 
 def read_file(path):
     """Reads the content of a file."""
