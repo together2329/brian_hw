@@ -48,7 +48,7 @@ MODEL_NAME = os.getenv("LLM_MODEL_NAME", "gpt-4o-mini")
 # OpenRouter Configuration (주석 처리됨)
 # ============================================================
 # BASE_URL = os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1")
-# API_KEY = os.getenv("LLM_API_KEY", "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")
+# API_KEY = os.getenv("LLM_API_KEY", "sk-or-v1-...")
 # MODEL_NAME = os.getenv("LLM_MODEL_NAME", "meta-llama/llama-3.3-70b-instruct:free")
 
 # Rate limiting (seconds to wait between API calls)
@@ -344,6 +344,70 @@ SUB_AGENT_MAX_WORKERS = int(os.getenv("SUB_AGENT_MAX_WORKERS", "3"))
 # Timeout for each sub-agent (seconds)
 SUB_AGENT_TIMEOUT = int(os.getenv("SUB_AGENT_TIMEOUT", "60"))
 
+# ============================================================
+# ReAct Parallel Execution Configuration
+# ============================================================
+# Enable parallel execution of multiple Actions in the ReAct loop.
+# When LLM outputs multiple Actions, eligible read-only tools can run concurrently.
+ENABLE_REACT_PARALLEL = os.getenv("ENABLE_REACT_PARALLEL", "true").lower() in ("true", "1", "yes")
+
+# Enhanced parallel execution using ActionDependencyAnalyzer (Claude Code style)
+# - Automatic dependency analysis
+# - Intelligent batching (read-only → parallel, write → barrier)
+# - File conflict detection
+# Set to False to use legacy simple allowlist-based parallelism
+ENABLE_ENHANCED_PARALLEL = os.getenv("ENABLE_ENHANCED_PARALLEL", "true").lower() in ("true", "1", "yes")
+
+# Maximum parallel workers for ReAct actions
+REACT_MAX_WORKERS = int(os.getenv("REACT_MAX_WORKERS", "5"))
+
+# Timeout for a parallel action batch (seconds)
+REACT_ACTION_TIMEOUT = int(os.getenv("REACT_ACTION_TIMEOUT", "30"))
+
+# ============================================================
+# Todo Tracking System (Phase 2 - Claude Code Style)
+# ============================================================
+# Enable todo tracking for multi-step tasks
+# Displays real-time progress with ✅ ▶️ ⏸️ icons
+ENABLE_TODO_TRACKING = os.getenv("ENABLE_TODO_TRACKING", "true").lower() in ("true", "1", "yes")
+
+# Auto-advance to next todo when current step completes
+# If False, todos stay in_progress until manually completed
+TODO_AUTO_ADVANCE = os.getenv("TODO_AUTO_ADVANCE", "true").lower() in ("true", "1", "yes")
+
+# ============================================================
+# Claude Code Flow (Plan → Approve → Execute)
+# ============================================================
+# Flow modes:
+# - "off": 기존 ReAct 동작
+# - "auto": 복잡한 요청만 자동으로 Plan 모드 진입 (기본)
+# - "always": 모든 요청에서 Plan 모드 진입
+CLAUDE_FLOW_MODE = os.getenv("CLAUDE_FLOW_MODE", "auto").strip().lower()
+if CLAUDE_FLOW_MODE not in ("off", "auto", "always"):
+    CLAUDE_FLOW_MODE = "auto"
+
+# Plan 승인 전에는 실행(파일쓰기/명령)을 하지 않도록 가드
+CLAUDE_FLOW_REQUIRE_APPROVAL = os.getenv("CLAUDE_FLOW_REQUIRE_APPROVAL", "true").lower() in ("true", "1", "yes")
+
+# 사용자가 "execute plan"/"계획 실행"을 입력하면 남은 step을 자동 진행
+CLAUDE_FLOW_AUTO_EXECUTE = os.getenv("CLAUDE_FLOW_AUTO_EXECUTE", "true").lower() in ("true", "1", "yes")
+
+# 복잡도 판정(자동 Plan 진입) 임계값
+CLAUDE_FLOW_COMPLEX_TASK_CHAR_THRESHOLD = int(os.getenv("CLAUDE_FLOW_COMPLEX_TASK_CHAR_THRESHOLD", "120"))
+
+# Plan step 실행 시 step별 최대 반복 횟수 (무한 루프 방지)
+CLAUDE_FLOW_STEP_MAX_ITERATIONS = int(os.getenv("CLAUDE_FLOW_STEP_MAX_ITERATIONS", "25"))
+
+# ============================================================
+# Phase 3: Claude Flow Complete Implementation
+# ============================================================
+
+# Explore agent 개수 (Plan Mode에서 병렬 탐색)
+PLAN_MODE_EXPLORE_COUNT = int(os.getenv("PLAN_MODE_EXPLORE_COUNT", "3"))
+
+# Explore agents를 병렬로 실행할지 여부
+PLAN_MODE_PARALLEL_EXPLORE = os.getenv("PLAN_MODE_PARALLEL_EXPLORE", "true").lower() in ("true", "1", "yes")
+
 # System Prompt with ReAct instructions
 SYSTEM_PROMPT = """You are an intelligent coding agent named Brian Coder.
 You can read files, write code, and run terminal commands to help the user.
@@ -412,6 +476,15 @@ Observation: Found 5 results... pcie_msg_receiver.v (L245-245) Score: 0.85
 
 CRITICAL - Spec/Protocol Search Example:
 User: TDISP 상태머신에서 CONFIG_LOCKED로 전환하는 조건이 뭐야?
+Thought: 스펙 관련 질문이다. rag_search를 spec 카테고리로 제한하여 검색한다.
+Action: rag_search(query="TDISP CONFIG_LOCKED", categories="spec", limit=3)
+
+ANSWER STYLE GUIDELINES:
+1. When asked about an acronym or technical term (e.g., "OHC"), ALWAYS start with its full expansion and definition found in the provided contexts.
+   - Example: "OHC stands for Orthogonal Header Content. It is a..."
+2. Be concise and professional. Avoid "I checked the documents and..." unless necessary.
+3. Structure: Definition -> Context (e.g., "In PCIe 6.0...") -> Details.
+4. If RAG results contain the answer, use them directly. Don't say "I couldn't find exact match" if partial matches strongly suggest the answer.
 Thought: 프로토콜 스펙 문서를 검색해야 한다. categories="spec"으로 검색하자.
 Action: rag_search(query="CONFIG_LOCKED LOCK_INTERFACE_REQUEST", categories="spec", limit=5)
 Observation: Found results... main.md (Section: LOCK_INTERFACE_REQUEST) Score: 0.82
@@ -605,4 +678,33 @@ Action: read_file(path="file1.py")
 Action: read_file(path="file2.py")
 
 The system will execute them sequentially and provide all observations.
+
+TASK TRACKING (for complex multi-step tasks):
+When working on complex tasks with multiple steps, use TodoWrite to track progress:
+
+TodoWrite:
+- [ ] Step 1: Explore existing implementations
+- [ ] Step 2: Design interface specification
+- [ ] Step 3: Implement RTL
+- [ ] Step 4: Create testbench
+- [ ] Step 5: Run simulation
+
+The system will automatically:
+1. Mark current step as "in progress" (▶️)
+2. Mark completed steps as "done" (✅)
+3. Show progress visualization
+
+Only ONE step can be in_progress at a time.
+Mark steps complete IMMEDIATELY after finishing them.
+
+Example with TodoWrite:
+Thought: This task requires multiple steps. Let me create a todo list.
+TodoWrite:
+- [ ] Explore codebase for similar modules
+- [ ] Design the interface
+- [ ] Write the implementation
+- [ ] Test the module
+
+Thought: Now let me start with the first step.
+Action: grep_file(pattern="module.*fifo", path="*.v")
 """
