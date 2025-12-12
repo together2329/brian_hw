@@ -120,6 +120,16 @@ def chat_completion_stream(messages):
                             # Structure: choices[0].delta.content
                             if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
                                 delta = chunk_json["choices"][0].get("delta", {})
+                                
+                                # Handle "reasoning_content" (DeepSeek/Reasoning models)
+                                reasoning = delta.get("reasoning_content", "")
+                                if reasoning:
+                                    if config.DEBUG_MODE:
+                                        # Print reasoning in cyan/italic (using direct ANSI for italic if supported, or just cyan)
+                                        # We'll use Color.debug but with a customized prefix to make it distinct
+                                        sys.stdout.write(f"\033[36m{reasoning}\033[0m") 
+                                        sys.stdout.flush()
+                                
                                 content = delta.get("content", "")
                                 if content:
                                     yield content
@@ -134,7 +144,7 @@ def chat_completion_stream(messages):
                     if input_tokens > 0:
                         last_input_tokens = input_tokens
 
-                    # Display actual token usage in DEBUG mode
+                    # Display actual token usage (always show for visibility)
                     if config.DEBUG_MODE:
                         total_tokens = input_tokens + output_tokens
                         print(f"\n{Color.info('[Token Usage]')}")
@@ -519,3 +529,122 @@ def apply_cache_breakpoints(messages):
                     print(Color.info(f"[System] Cache breakpoint {breakpoint_count}/{max_breakpoints}: Message {i} ({tokens} tokens)"))
 
     return messages
+    return structured_content
+
+# =========================================================================
+# Embedding Utilities (Centralized)
+# =========================================================================
+
+# Cache for embedding dimension
+_cached_embedding_dim = None
+
+# Cache for embeddings (LRU)
+# Key: {model}:{text_hash}, Value: list[float]
+_embedding_cache = {}
+
+def get_embedding(text: str, model: str = None) -> list[float]:
+    """
+    Get embedding for text using configured API.
+    Handles caching and retries.
+    
+    Args:
+        text: Text to embed
+        model: Model name override (optional)
+        
+    Returns:
+        List of floats (embedding vector)
+    """
+    if model is None:
+        model = config.EMBEDDING_MODEL
+        
+    # Check cache
+    cache_key = f"{model}:{hash(text)}"
+    if cache_key in _embedding_cache:
+        # Simple LRU: re-insert to move to end (Python 3.7+ dicts preserve order)
+        val = _embedding_cache.pop(cache_key)
+        _embedding_cache[cache_key] = val
+        return val
+        
+    # Prepare API request
+    url = f"{config.EMBEDDING_BASE_URL}/embeddings"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {config.EMBEDDING_API_KEY or config.API_KEY}",
+        "User-Agent": "BrianCoder-Embedding"
+    }
+    data = {
+        "input": text,
+        "model": model,
+        "encoding_format": "float"
+    }
+    
+    # Retry logic
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            req = urllib.request.Request(
+                url, 
+                data=json.dumps(data).encode('utf-8'),
+                headers=headers
+            )
+            with urllib.request.urlopen(req, timeout=30) as response:
+                result = json.loads(response.read().decode('utf-8'))
+                embedding = result["data"][0]["embedding"]
+                
+                # Cache result
+                _embedding_cache[cache_key] = embedding
+                # Maintain cache size (max 1000)
+                if len(_embedding_cache) > 1000:
+                    try:
+                        # Remove first item (oldest)
+                        _embedding_cache.pop(next(iter(_embedding_cache)))
+                    except StopIteration:
+                        pass
+                        
+                return embedding
+        except Exception as e:
+            if attempt < max_retries - 1:
+                time.sleep(1)
+                continue
+            if config.DEBUG_MODE:
+                print(Color.warning(f"[Embedding] Failed: {e}"))
+            raise e
+            
+    # Should not reach here
+    return []
+
+def get_embedding_dimension() -> int:
+    """
+    Get the embedding dimension.
+    If config.EMBEDDING_DIMENSION is set, returns it.
+    Otherwise, auto-detects by making a test API call.
+    """
+    global _cached_embedding_dim
+    
+    # 1. Check runtime cache
+    if _cached_embedding_dim is not None:
+        return _cached_embedding_dim
+        
+    # Try to detect from API first (Prioritize reality over config)
+    try:
+        if config.DEBUG_MODE:
+            print(f"{Color.info('[System] Probing embedding dimension...')}")
+            
+        test_emb = get_embedding("test")
+        if test_emb and len(test_emb) > 0:
+            _cached_embedding_dim = len(test_emb)
+            if config.DEBUG_MODE:
+                print(f"{Color.success(f'[System] Detected embedding dimension: {_cached_embedding_dim}')}")
+            return _cached_embedding_dim
+    except Exception as e:
+        if config.DEBUG_MODE:
+            print(f"{Color.warning(f'[System] Dimension probe failed: {e}')}")
+
+    # Fallback: If manually configured, use that
+    if config.EMBEDDING_DIMENSION is not None and config.EMBEDDING_DIMENSION > 0:
+        _cached_embedding_dim = config.EMBEDDING_DIMENSION
+        return _cached_embedding_dim
+
+    # Final fallback
+    _cached_embedding_dim = 1536
+    return 1536

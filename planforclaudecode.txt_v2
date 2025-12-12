@@ -1,0 +1,4126 @@
+▗ ▗   ▖ ▖  Claude Code v2.0.65
+           Haiku 4.5 · Claude Pro
+  ▘▘ ▝▝    ~/Desktop/Project/brian_hw
+
+> I need to know how you run claude code. 
+
+∴ Thinking…
+
+  The user is asking how to run Claude Code. This is a question about Claude Code (the CLI tool) itself. According to my instructions, when the user asks about:
+  - how to use Claude Code (eg. "can Claude Code do...", "does Claude Code have...")
+  - what I'm able to do as Claude Code in second person (eg. "are you able...", "can you do...")
+  - about how they might do something with Claude Code (eg. "how do I...", "how can I...")
+  - how to use a specific Claude Code feature
+  - how to use the Claude Agent SDK, or asks me to write code that uses the Claude Agent SDK
+
+  I should use the Task tool with subagent_type='claude-code-guide' to get accurate information from the official Claude Code and Claude Agent SDK documentation.
+
+  This question "how you run claude code" seems to be asking "how do I run Claude Code" or "how do I use Claude Code", which falls under questions about how to use Claude Code. So I should use the claude-code-guide agent.
+
+⏺ claude-code-guide(How to run Claude Code)
+  ⎿  Prompt:
+       The user is asking how to run Claude Code. Please provide information about how to get started with Claude Code, including installation, basic command structure, and how to run it.
+
+     > The user is asking how to run Claude Code. Please provide information about how to get started with Claude Code, including installation, basic command structure, and how to run it. 
+     Fetch(url: "https://code.claude.com/docs/en/claude_code_docs_map.md", prompt: "How to install and run Claude Code, basic command structure and getting started")
+     # nulled 25.7KB (200 OK)
+     Fetch(url: "https://code.claude.com/docs/en/quickstart.md", prompt: "Installation steps and how to run Claude Code for the first time")
+     Fetch(url: "https://code.claude.com/docs/en/setup.md", prompt: "System requirements and installation instructions for Claude Code")
+     # QuickstartKB (200 OK)
+     # Set up Claude CodeOK)
+  ⎿  Interrupted · What should Claude do instead?
+
+> 한글로 대답해줘 
+
+∴ Thinking…
+
+  사용자가 한글로 대답해달라고 요청했습니다. 사용자의 전역 지침에서 "think with english and reply with korean"라고 명시되어 있습니다.
+
+  사용자가 "Claude Code를 어떻게 실행하는가"에 대해 묻고 있습니다. 이는 Claude Code 도구 사용에 대한 질문입니다.
+
+  이미 claude-code-guide 에이전트를 시작하려고 했는데 사용자가 요청을 중단했습니다. 이제 사용자가 한글 응답을 원하고 있습니다.
+
+  Claude Code에 대해 기본적인 정보를 제공하면:
+  1. Claude Code는 Anthropic의 공식 CLI 도구
+  2. 명령어 라인에서 실행
+  3. 기본 사용법
+
+  사용자의 지침에 따라 한글로 응답해야 합니다.
+  ⎿  Interrupted · What should Claude do instead?
+
+> 아니 내부적으로 동작하는 방식 말이야 질문을 받고 툴을 쓰고 하는 
+
+∴ Thinking…
+
+  사용자가 Claude Code가 내부적으로 어떻게 동작하는지를 묻고 있습니다. 질문을 받고 어떻게 도구를 사용하고 응답하는 메커니즘에 대해 알고 싶어합니다. 
+
+  사용자의 지시사항에 따르면:
+  - 영어로 생각하고 한글로 답변
+  - 이 프로젝트 내용은 시스템 리마인더이므로 별도 언급하지 말 것
+
+  Claude Code의 작동 방식에 대해 설명해야 합니다.
+
+⏺ Claude Code의 내부 동작 방식을 설명하겠습니다.
+
+  Claude Code의 작동 흐름
+
+  1. 사용자 입력 수신
+    - CLI를 통해 질문이나 작업 요청이 들어옵니다
+  2. 컨텍스트 분석
+    - 요청의 유형을 파악합니다 (코드 작성, 파일 읽기, 검색 등)
+    - 현재 프로젝트의 구조를 이해합니다
+  3. 적절한 도구 선택
+    - 읽기: Read, Glob, Grep - 파일/코드 검색
+    - 작성: Edit, Write - 파일 수정/생성
+    - 실행: Bash - 터미널 명령어 (빌드, 테스트, git 등)
+    - 계획: Task, EnterPlanMode - 복잡한 작업 설계
+    - 질문: AskUserQuestion - 사용자 선택지 제공
+  4. 도구 실행
+    - 필요한 도구들을 병렬 또는 순차로 실행합니다
+    - 독립적인 작업은 동시 실행으로 효율화
+  5. 결과 분석 및 다음 단계 결정
+    - 도구 실행 결과를 검토합니다
+    - 필요하면 추가 도구 실행 또는 코드 수정을 진행합니다
+  6. 사용자에게 응답
+    - 텍스트로 결과를 설명하고 완료된 작업을 요약합니다
+
+  이 과정이 반복되면서 복잡한 작업도 단계별로 완료합니다.
+
+> 나도 비슷한거 만들었거든 프로젝트로 
+
+∴ Thinking…
+
+  사용자가 비슷한 시스템을 자신의 프로젝트로 만들었다고 말하고 있습니다. git status를 보니 brian_coder라는 프로젝트가 있고, 여러 파일들이 수정되어 있습니다. 
+
+  사용자는 아마도 자신이 만든 이 프로젝트에 대해 이야기하고 싶어하는 것 같습니다. 프로젝트의 구조를 보면:
+  - brian_coder/core/ - 핵심 로직
+  - brian_coder/src/ - 소스 파일
+  - brian_coder/tests/ - 테스트
+
+  특히 다음 파일들이 새로 추가되어 있습니다:
+  - brian_coder/core/smart_rag.py
+  - 여러 테스트 파일들
+
+  사용자가 이 프로젝트에 대해 도움을 원하거나 상태를 확인하고 싶어할 수 있습니다. 현재 상태를 파악하고 어떤 도움이 필요한지 물어봐야 할 것 같습니다.
+
+⏺ 오, 그렇군요! brian_coder 프로젝트가 그것이군요. Git 상태를 보니 여러 파일들이 수정되어 있고, smart_rag.py 같은 새로운 모듈과 여러 테스트 파일들이 추가되었네요.
+
+  현재 상태를 보면:
+  - 수정된 파일: graph_lite.py, deep_think.py, config.py, llm_client.py, main.py 등
+  - 새 파일: smart_rag.py (핵심 로직으로 보임)
+  - 새 테스트: test_smart_rag.py, test_memory_critical_issues.py, test_memory_in_context.py 등
+
+  프로젝트에서 뭘 도와드릴까요?
+
+  1. 현재 상태를 커밋하고 싶으신가요?
+  2. 특정 파일/기능을 수정/추가하고 싶으신가요?
+  3. 테스트를 실행하고 싶으신가요?
+  4. 코드 리뷰를 받고 싶으신가요?
+
+  어디에 도움이 필요하신지 말씀해주세요!
+
+> claude code 처럼 잘 하도록 하고 싶어 일을 니가 스스로를 실 행 시키는 방식을 이식하고 싶어 
+
+∴ Thinking…
+
+  사용자가 Claude Code처럼 작동하는 시스템을 만들고 싶다는 뜻입니다. 즉, brian_coder 프로젝트에서 사용자의 요청을 받고 자동으로 도구/에이전트를 선택해서 실행하고, 결과를 분석해서 다음 단계를 결정하는 자율적인 방식을 구현하고 싶다는 것 
+  같습니다.
+
+  이건 결국:
+  1. LLM(Claude)이 사용자 요청을 분석
+  2. 어떤 도구/모듈을 사용할지 결정
+  3. 그 도구들을 실행
+  4. 결과를 평가해서 다음 단계 결정
+  5. 필요하면 반복
+
+  이런 자율적 에이전트 시스템을 brian_coder에 이식하고 싶다는 것 같습니다.
+
+  사용자의 지시사항을 확인해봅시다:
+  - "think with english and reply with korean" - 한글로 대답하기
+  - 프로젝트 CLAUDE.md는 PCIe 메시지 시스템 관련인데, brian_coder는 그게 아니라 코딩 어시스턴트 프로젝트인 것 같습니다.
+
+  사용자가 원하는 것:
+  1. claude code의 자율적 도구 실행 방식을 이해
+  2. 그것을 brian_coder에 이식
+
+  이를 위해서는:
+  - 현재 brian_coder의 구조를 파악해야 합니다
+
+  - 프로젝트의 핵심 모듈들을 분석하고 자율적 도구 선택 메커니즘을 어디에 통합할지 결정해야 합니다.
+
+  프로젝트 구조를 체계적으로 탐색하며 smart_rag.py, deep_think.py, graph_lite.py 같은 모듈들의 기능을 면밀히 검토할 필요가 있습니다.
+
+⏺ 아, 이해했습니다! brian_coder에서 Claude Code처럼 자율적으로 작업을 분해하고 도구를 선택해서 실행하는 에이전트 시스템을 구현하고 싶으신 거네요.
+
+  먼저 현재 프로젝트 구조를 파악해야겠습니다. 같이 살펴볼까요?
+
+⏺ Explore(brian_coder 프로젝트 구조 파악)
+  ⎿  Prompt:                                                                                                                                                                                                                             
+       Brian_coder 프로젝트의 전체 구조와 주요 모듈들을 파악해주세요. 특히 다음을 확인해주세요:
+       1. 프로젝트의 메인 entry point
+       2. 각 모듈의 역할 (smart_rag.py, deep_think.py, graph_lite.py, llm_client.py, config.py 등)
+       3. 현재 어떤 방식으로 사용자 요청을 처리하는지
+       4. 어디에 자율적 도구 선택 로직이 있는지
+
+       전체적인 아키텍처를 파악해주세요.
+  ⎿  > Brian_coder 프로젝트의 전체 구조와 주요 모듈들을 파악해주세요. 특히 다음을 확인해주세요:
+     1. 프로젝트의 메인 entry point
+     2. 각 모듈의 역할 (smart_rag.py, deep_think.py, graph_lite.py, llm_client.py, config.py 등)
+     3. 현재 어떤 방식으로 사용자 요청을 처리하는지
+     4. 어디에 자율적 도구 선택 로직이 있는지
+
+     전체적인 아키텍처를 파악해주세요. 
+  ⎿  Search(pattern: "**/*.py", path: "/Users/brian/Desktop/Project/brian_hw")
+
+  ⎿    ⎿  Found 57 files                                                                                         
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/message_classifier.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/iteration_control.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/procedural_memory.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/memory.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/curator.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/display.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/code_review_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_sub_agents.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/__init__.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/base.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/core/tools_verilog.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/explore_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/plan_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/execute_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/orchestrator.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/core/tools.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_main_unit.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_embedding_model.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/core/rag_db.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/__init__.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_rag_db.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_graph_lite.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_tools.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_lib/__init__.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_lib/test_procedural_memory.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_lib/test_memory.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_lib/test_curator.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_agents/__init__.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/conftest.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_agents/test_sub_agents.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/__init__.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_rag_graph.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_procedural.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_deep_think_pipeline.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_subagent_pipeline.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_subagent_deep.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_e2e.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_llm_api.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_performance.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_verilog_rag.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_agent_pipeline.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_pcie_spec_code.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_llm_tool_use.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/core/smart_rag.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/src/config.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_user_experience.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_smart_rag.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_smart_rag_flow.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_works.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_in_context.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_tool_call_flow.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_critical_issues.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/core/graph_lite.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/src/main.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/src/llm_client.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/deep_think.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_lib/test_deep_think.py
+  ⎿  Read(brian_coder/src/main.py)
+
+  ⎿  Read(brian_coder/src/config.py)
+
+  ⎿  Read(brian_coder/src/llm_client.py)
+
+  ⎿  Read(brian_coder/core/smart_rag.py)
+
+  ⎿  Read 522 lines
+
+  ⎿  Read 246 lines
+
+  ⎿  Read 607 lines
+
+  ⎿  Read 1611 lines
+
+  ⎿  Read(brian_coder/lib/deep_think.py · lines 1-150)
+
+  ⎿  Read(brian_coder/core/graph_lite.py · lines 1-150)
+
+  ⎿  Search(pattern: "brian_coder/agents/**/*.py", path: "/Users/brian/Desktop/Project/brian_hw")
+
+  ⎿  Read 150 lines
+
+  ⎿  Read 150 lines
+
+  ⎿    ⎿  Found 7 files                                                                           
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/code_review_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/__init__.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/base.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/explore_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/plan_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/execute_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/orchestrator.py
+  ⎿  Read(brian_coder/agents/sub_agents/orchestrator.py · lines 1-200)
+
+  ⎿  Read(brian_coder/agents/sub_agents/base.py · lines 1-100)
+
+  ⎿  Read(brian_coder/core/tools.py · lines 1-150)
+
+  ⎿  Read 200 lines
+
+  ⎿  Read 100 lines
+
+  ⎿  Read 150 lines
+
+  ⎿  Read(brian_coder/lib/memory.py · lines 1-100)
+
+  ⎿  Read(brian_coder/lib/procedural_memory.py · lines 1-100)
+
+  ⎿  Bash(find /Users/brian/Desktop/Project/brian_hw/brian_coder -type f -name "*.py" | head -20 | xargs wc -l | tail -1)
+     Waiting…
+  ⎿  Read 100 lines
+
+  ⎿  Read 100 lines
+
+  ⎿      9258 total
+
+  ⎿  Response:
+       완벽합니다! 이제 종합적인 아키텍처 문서를 작성하겠습니다:
+
+       ---
+       Brian_Coder 프로젝트 아키텍처 종합 분석
+
+       1. 프로젝트 개요
+
+       Brian Coder는 자율적인 AI 코딩 에이전트 프레임워크로, 다음과 같은 특징을 가집니다:
+
+       - 총 코드량: ~9,258줄의 Python 코드
+       - 의존성 최소화: urllib만 사용하는 제로-의존성 설계
+       - 다중 지능 시스템: 메모리, 그래프, 절차적 학습 능력 통합
+       - 서브-에이전트 시스템: 작업 유형별 전문화된 에이전트 오케스트레이션
+       - 자율적 도구 선택: LLM이 자동으로 도구를 선택하여 실행하는 ReAct 패턴
+
+       ---
+       2. 핵심 아키텍처 다이어그램
+
+       ┌────────────────────────────────────────────────────────────────┐
+       │                    MAIN ENTRY POINT                            │
+       │                    main.py (chat_loop)                         │
+       └─────────────────┬──────────────────────────────────────────────┘
+                         │
+               ┌─────────┴──────────┐
+               │                    │
+          ┌────▼────┐       ┌──────▼──────┐
+          │ Config  │       │  LLM Client │
+          │ System  │       │  (urllib)   │
+          └─────────┘       └──────┬──────┘
+                                   │
+                           ┌───────┴────────┐
+                           │                │
+                   ┌───────▼────────┐  ┌────▼────────────┐
+                   │ Memory System  │  │ Graph Lite      │
+                   ├────────────────┤  ├─────────────────┤
+                   │ Preferences    │  │ Knowledge Graph │
+                   │ Context        │  │ Auto-Linking    │
+                   └────────────────┘  └─────────────────┘
+                           │
+               ┌───────────┼───────────┐
+               │           │           │
+          ┌────▼──────┐ ┌─▼──────────┐ ┌─▼──────────────┐
+          │ Deep Think│ │ Procedural │ │ Smart RAG      │
+          │ Engine    │ │ Memory     │ │ Decision       │
+          │ (Legacy)  │ │            │ │                │
+          └───────────┘ └────────────┘ └────────────────┘
+               │
+               ▼
+       ┌─────────────────────────────────────────────────────┐
+       │         SUB-AGENT SYSTEM (NEW)                      │
+       │         Orchestrator                                │
+       │  ┌──────────┬──────────┬──────────┬──────────┐     │
+       │  │ Explore  │ Plan     │ Execute  │ Review   │     │
+       │  │ Agent    │ Agent    │ Agent    │ Agent    │     │
+       │  └──────────┴──────────┴──────────┴──────────┘     │
+       └─────────────────────────────────────────────────────┘
+               │
+               ▼
+       ┌─────────────────────────────────────────────────────┐
+       │         ReAct Agent Loop                            │
+       │  1. LLM Call → Generate Thought + Action           │
+       │  2. Parse Action (도구 선택 자동화)                │
+       │  3. Execute Tool                                    │
+       │  4. Add Observation to Context                      │
+       │  5. Loop until completion                           │
+       └─────────────────────────────────────────────────────┘
+               │
+               ▼
+       ┌─────────────────────────────────────────────────────┐
+       │         Tool Ecosystem                              │
+       │  ├─ File Tools (read, write, replace)              │
+       │  ├─ Search Tools (grep, find)                      │
+       │  ├─ RAG Tools (semantic search, indexing)          │
+       │  ├─ Git Tools (status, diff)                       │
+       │  ├─ Planning Tools (create_plan, mark_step)        │
+       │  ├─ Sub-Agent Tools (spawn_explore, spawn_plan)    │
+       │  └─ Verilog Tools (analyze, timing, docs)          │
+       └─────────────────────────────────────────────────────┘
+
+       ---
+       3. 메인 엔트리 포인트: main.py
+
+       3.1 초기화 흐름
+
+       # 단계별 초기화 순서
+       1. Config 로드        → config.py (환경변수 기반)
+       2. LLM Client 초기화  → llm_client.py (urllib 기반)
+       3. 메모리 시스템 초기화
+          ├─ MemorySystem (사용자 선호도 저장)
+          ├─ GraphLite (지식 그래프 - 실시간 학습)
+          ├─ ProceduralMemory (과거 경험 학습)
+          └─ KnowledgeCurator (그래프 정리 및 최적화)
+       4. Sub-Agent 시스템 초기화 (선택적)
+          └─ Orchestrator (작업 분석 및 에이전트 조율)
+       5. RAG 시스템 초기화 (자동 인덱싱)
+
+       3.2 주요 함수들
+
+       | 함수                  | 역할                 | 특징                            |
+       |-----------------------|----------------------|---------------------------------|
+       | chat_loop()           | 메인 대화 루프       | 사용자 입력 처리, 히스토리 관리 |
+       | run_react_agent()     | ReAct 루프 실행      | 반복적 사고-행동-관찰           |
+       | parse_all_actions()   | 액션 파싱            | 여러 Action 추출 지원           |
+       | execute_tool()        | 도구 실행            | 안전한 도구 호출 및 에러 처리   |
+       | build_system_prompt() | 시스템 프롬프트 생성 | 메모리/그래프 컨텍스트 주입     |
+       | compress_history()    | 메시지 압축          | Smart/Traditional 모드 지원     |
+
+       ---
+       4. 자율적 도구 선택 로직 (ReAct)
+
+       4.1 ReAct 루프 흐름 (run_react_agent)
+
+       반복:
+         1. [Deep Think 또는 Sub-Agent 실행] (선택적)
+            └─ 작업 분석 및 전략 수립
+
+         2. [LLM 호출]
+            └─ Thought: 다음 단계 생각
+            └─ Action: 실행할 도구 (자동 선택!)
+
+         3. [액션 파싱]
+            └─ parse_all_actions()로 도구명과 인자 추출
+            └─ 여러 액션 동시 처리 가능
+
+         4. [도구 실행]
+            └─ execute_tool(tool_name, args_str)
+            └─ 안전한 인자 파싱 및 에러 처리
+
+         5. [옵저베이션 추가]
+            └─ 결과를 메시지에 추가
+            └─ 컨텍스트 오버플로우 감지 및 압축
+
+         6. [완료 검사]
+            └─ 완료 신호 감지 → 루프 종료
+            └─ 에러 연속 감지 → 루프 종료
+
+       4.2 액션 파싱 예시
+
+       # LLM 응답 예시
+       """
+       Thought: I need to find the configuration file first.
+       Action: find_files(pattern="*.config", directory=".", max_depth=2)
+
+       Thought: Now let me read the configuration.
+       Action: read_file(path="config/app.config")
+       """
+
+       # 파싱 결과
+       [
+         ("find_files", "pattern=\"*.config\", directory=\".\", max_depth=2"),
+         ("read_file", "path=\"config/app.config\"")
+       ]
+
+       4.3 도구 실행 및 에러 처리
+
+       def execute_tool(tool_name, args_str):
+           # 1. 도구 존재 검증
+           if tool_name not in tools.AVAILABLE_TOOLS:
+               return f"Error: Tool '{tool_name}' not found."
+
+           # 2. 안전한 인자 파싱
+           #    - 문자열, 숫자, 불린 지원
+           #    - 이스케이프 시퀀스 처리
+           #    - 삼중 인용부호 처리
+           parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
+
+           # 3. 도구 실행
+           result = func(*parsed_args, **parsed_kwargs)
+
+           # 4. 에러 감지 및 기록
+           #    - Procedural Memory에 기록
+           #    - 연속 에러 감지 (3회 이상)
+
+           return result
+
+       ---
+       5. 각 핵심 모듈 상세 설명
+
+       5.1 config.py - 설정 시스템
+
+       # 주요 설정 항목
+       ├─ LLM 설정
+       │  ├─ BASE_URL, API_KEY, MODEL_NAME
+       │  └─ RATE_LIMIT_DELAY, API_TIMEOUT
+       │
+       ├─ 컨텍스트 관리
+       │  ├─ MAX_CONTEXT_CHARS (262K 기본)
+       │  ├─ COMPRESSION_THRESHOLD (0.8)
+       │  ├─ ENABLE_SMART_COMPRESSION
+       │  └─ COMPRESSION_MODE (single/chunked)
+       │
+       ├─ 메모리 시스템
+       │  ├─ ENABLE_MEMORY
+       │  ├─ ENABLE_GRAPH
+       │  ├─ ENABLE_PROCEDURAL_MEMORY
+       │  └─ ENABLE_CURATOR
+       │
+       ├─ Deep Think / Sub-Agents
+       │  ├─ ENABLE_DEEP_THINK
+       │  ├─ ENABLE_SUB_AGENTS
+       │  └─ 가중치 및 파라미터
+       │
+       └─ RAG & Smart RAG
+          ├─ ENABLE_RAG_AUTO_INDEX
+          ├─ ENABLE_SMART_RAG
+          └─ 임계값 설정
+
+       5.2 llm_client.py - LLM 통신
+
+       def chat_completion_stream(messages):
+           """
+           스트리밍 채팅 완료
+           
+           Features:
+           - urllib 기반 SSE 처리
+           - 프롬프트 캐싱 (Anthropic)
+           - 토큰 추적
+           - 재시도 로직 (exponential backoff)
+           """
+
+       def call_llm_raw(prompt, temperature=0.7):
+           """
+           비스트리밍 LLM 호출 (추출 작업용)
+           - 엔티티 추출, 분류 등에 사용
+           """
+
+       def estimate_message_tokens(message):
+           """토큰 수 추정 (4 chars ≈ 1 token)"""
+
+       def apply_cache_breakpoints(messages):
+           """Anthropic 프롬프트 캐싱 적용"""
+
+       5.3 smart_rag.py - 스마트 RAG 결정
+
+       class SmartRAGDecision:
+           """
+           2단계 RAG 결정:
+           1. 항상 검색 수행 (빠르고 저렴)
+           2. 점수 기반 결정
+              - HIGH (>0.8): 직접 사용
+              - MID (0.5-0.8): LLM에 판단 요청
+              - LOW (<0.5): 무시
+           """
+
+       5.4 graph_lite.py - 지식 그래프
+
+       class GraphLite:
+           """
+           Graphiti 영감의 경량 그래프
+           
+           Features:
+           ├─ Node (엔티티, 에피소딕, 커뮤니티)
+           ├─ Edge (관계 추적)
+           ├─ 임베딩 기반 검색 (urllib API)
+           ├─ A-MEM 자동 링킹
+           ├─ ACE 신용 추적 (helpful/harmful)
+           └─ JSON 지속성
+           
+           메모리 구조:
+           {
+               "nodes": [{"id": "node_1", "type": "Entity", "data": {...}, "helpful_count": 0, ...}],
+               "edges": [{"source": "node_1", "target": "node_2", "relation": "WORKS_ON"}]
+           }
+           """
+
+       5.5 deep_think.py - 깊은 사고 엔진 (레거시)
+
+       class DeepThinkEngine:
+           """
+           Gemini Deep Think 영감
+           
+           Pipeline:
+           1. BRANCHING: 다중 가설 생성 (LLM)
+           2. PARALLEL REASONING: 각 가설의 첫 액션 시뮬레이션
+           3. SCORING: 다차원 평가
+              - Experience (경험: ProceduralMemory)
+              - Knowledge (지식: GraphLite)
+              - Coherence (일관성)
+              - Simulation (시뮬레이션 결과)
+              - Confidence (신뢰도)
+           4. CONVERGENCE: 최고 점수 가설 선택
+           
+           결과를 시스템 프롬프트에 주입하여 전략 가이드
+           """
+
+       5.6 procedural_memory.py - 절차적 메모리
+
+       class ProceduralMemory:
+           """
+           과거 경험으로부터 학습
+           
+           Data Structure:
+           Trajectory = {
+               "id": "traj_1",
+               "task_type": "compile_verilog",
+               "task_description": "사용자 요청",
+               "actions": [
+                   {"tool": "read_file", "args": "...", "result": "success", "observation": "..."},
+                   ...
+               ],
+               "outcome": "success",
+               "iterations": 5
+           }
+           
+           Workflow:
+           1. Build: 새로운 경험 저장
+           2. Retrieve: 유사한 과거 경험 검색 (임베딩 기반)
+           3. Update: 실패 반영 및 개선
+           """
+
+       5.7 memory.py - 선언적 메모리
+
+       class MemorySystem:
+           """
+           사용자 선호도 및 프로젝트 컨텍스트 저장
+           
+           저장소:
+           - ~/.brian_memory/preferences.json
+           - ~/.brian_memory/project_context.json
+           
+           자동 추출:
+           - auto_extract_and_update(): 사용자 입력에서 자동 학습
+           """
+
+       5.8 sub_agents/orchestrator.py - 서브-에이전트 시스템
+
+       class Orchestrator:
+           """
+           작업 유형 분석 → 에이전트 선택 → 결과 통합
+           
+           Registration:
+           1. ExploreAgent - 정보 수집 (검색, 분석, 패턴 발견)
+           2. PlanAgent - 사양 작성 (아키텍처, 인터페이스)
+           3. ExecuteAgent - 코드 작성 (유일한 작성 권한)
+           4. CodeReviewAgent - 품질 검사
+           
+           Execution Flow:
+           1. _analyze_and_plan() - TaskAnalyzer LLM 호출
+           2. _enrich_context() - 메모리에서 관련 컨텍스트 검색
+           3. _execute_pipeline() - 병렬/순차 실행
+           4. _integrate_results() - 결과 통합
+           5. _update_memory() - 메모리 업데이트
+           """
+
+       ---
+       6. 도구 선택 메커니즘의 상세 분석
+
+       6.1 자동 도구 선택이 작동하는 방식
+
+       [사용자 요청]
+           │
+           ▼
+       [시스템 프롬프트 주입]
+         └─ 사용 가능한 도구 목록 (SYSTEM_PROMPT)
+         └─ 이전 메모리/그래프/절차적 가이드
+         └─ 현재 컨텍스트
+           │
+           ▼
+       [LLM이 도구 선택]
+         └─ Thought: 다음 단계 추론
+         └─ Action: Tool(arguments)  ← LLM이 자동으로 도구 선택!
+           │
+           ▼
+       [파싱 엔진]
+         └─ parse_all_actions()
+         └─ 정규식: r"Action:\s*(\w+)\("
+         └─ 중괄호 매칭으로 인자 추출
+           │
+           ▼
+       [도구 검증 및 실행]
+         └─ tool_name in AVAILABLE_TOOLS 확인
+         └─ parse_tool_arguments() - 안전한 인자 파싱
+         └─ func(*args, **kwargs) 실행
+           │
+           ▼
+       [옵저베이션 반환]
+         └─ 결과를 메시지에 추가
+         └─ 루프 계속
+
+       6.2 도구 레지스트리 (tools.AVAILABLE_TOOLS)
+
+       AVAILABLE_TOOLS = {
+           # 파일 도구
+           "read_file": read_file,
+           "write_file": write_file,
+           "replace_in_file": replace_in_file,
+           "replace_lines": replace_lines,
+
+           # 검색 도구
+           "grep_file": grep_file,
+           "find_files": find_files,
+           "read_lines": read_lines,
+
+           # 시스템 도구
+           "run_command": run_command,
+           "list_dir": list_dir,
+
+           # 계획 도구
+           "create_plan": create_plan,
+           "get_plan": get_plan,
+           "mark_step_done": mark_step_done,
+
+           # Git 도구
+           "git_status": git_status,
+           "git_diff": git_diff,
+
+           # RAG 도구
+           "rag_search": rag_search,
+           "rag_index": rag_index,
+           "rag_status": rag_status,
+
+           # 서브-에이전트 도구
+           "spawn_explore": spawn_explore,
+           "spawn_plan": spawn_plan,
+
+           # Verilog 도구 (플러그인)
+           "analyze_verilog_module": analyze_verilog_module,
+           "find_signal_usage": find_signal_usage,
+           ...
+       }
+
+       # 동적 도구 확장 (플러그인 시스템)
+       if config.ENABLE_VERILOG_TOOLS:
+           tools.AVAILABLE_TOOLS.update(tools_verilog.VERILOG_TOOLS)
+
+       6.3 인자 안전 파싱 (parse_tool_arguments)
+
+       # 지원하는 포맷
+       파일 = "my file.txt"          # 문자열 (큰따옴표)
+       파일 = 'config.json'          # 문자열 (작은따옴표)
+       경로 = """multi-line
+       content"""                     # 삼중 인용부호
+       숫자 = 42 또는 3.14           # 숫자
+       표현식 = some_identifier      # 식별자
+
+       # 변환 과정
+       "pattern=\"error.*\", path=\"./src\""
+           ↓
+       parse_tool_arguments()
+           ↓
+       kwargs = {
+           "pattern": "error.*",
+           "path": "./src"
+       }
+
+       6.4 에러 처리 및 회복
+
+       # 연속 에러 감지
+       MAX_CONSECUTIVE_ERRORS = 3
+
+       if observation == last_error_observation:
+           consecutive_errors += 1
+           if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+               # 강제 종료 및 사용자 도움 요청
+               break
+
+       # 에러 분류
+       if is_error in tool_result:
+           # Procedural Memory에 기록
+           action_obj = Action(
+               tool=tool_name,
+               args=args_str[:100],
+               result="error",  # ← 실패 기록
+               observation=observation[:200]
+           )
+           actions_taken.append(action_obj)
+
+       ---
+       7. 메모리 및 학습 시스템
+
+       7.1 메모리 스택
+
+       [선언적 메모리 (Declarative)]
+         - 사용자 선호도 (이름 규칙, 스타일 등)
+         - 프로젝트 컨텍스트
+         └─ 저장소: ~/.brian_memory/preferences.json
+
+       [지식 그래프 (Semantic)]
+         - 엔티티, 관계, 커뮤니티
+         - 자동 링킹 (A-MEM)
+         - ACE 신용 추적
+         └─ 저장소: ~/.brian_memory/graph.json
+
+       [절차적 메모리 (Procedural)]
+         - 과거 경험 (Trajectories)
+         - 성공/실패 패턴
+         - 도구 사용 순서
+         └─ 저장소: ~/.brian_memory/trajectories.json
+
+       7.2 컨텍스트 주입 흐름
+
+       def build_system_prompt(messages=None):
+           """
+           기본 프롬프트 + 컨텍스트 주입
+           """
+           base_prompt = config.SYSTEM_PROMPT
+
+           # 1단계: 선언적 메모리
+           if memory_system:
+               context_parts.append(memory_system.format_all_for_prompt())
+
+           # 2단계: 절차적 메모리 (유사 경험)
+           if procedural_memory and messages:
+               current_task = 마지막_사용자_메시지
+               similar_trajs = procedural_memory.retrieve(current_task, limit=3)
+               context_parts.append(포맷_경험_가이드(similar_trajs))
+
+           # 3단계: 지식 그래프 (의미 검색)
+           if graph_lite and messages:
+               recent_topic = 마지막_사용자_메시지
+               relevant_nodes = graph_lite.graph_rag_search(recent_topic, hop=1)
+               context_parts.append(포맷_그래프_컨텍스트(relevant_nodes))
+
+           # 4단계: Smart RAG (코드/스펙 검색)
+           if config.ENABLE_SMART_RAG:
+               should_use, rag_results = smart_rag.decide(query)
+               if should_use:
+                   context_parts.append(rag_결과_포맷)
+
+           # 통합
+           return base_prompt + "\n\n" + "\n\n".join(context_parts)
+
+       ---
+       8. Sub-Agent 시스템 상세 동작
+
+       8.1 Orchestrator 파이프라인
+
+       [작업 수신]
+         "Verilog AXI 모듈 설계해주세요"
+         │
+         ▼
+       [Step 1: 분석 및 계획]
+         TaskAnalyzer LLM
+         → 작업 유형: "verilog_design"
+         → 복잡도: 8/10
+         → 필요 에이전트: ["explore", "plan", "execute", "review"]
+         → 실행 모드: "sequential" (의존성 있음)
+         │
+         ▼
+       [Step 2: 컨텍스트 강화]
+         메모리 검색:
+         - ProceduralMemory: 유사한 설계 경험
+         - GraphLite: Verilog AXI 관련 지식
+         → enriched_context 생성
+         │
+         ▼
+       [Step 3: 파이프라인 실행]
+
+         [explore_agent] → 정보 수집
+         └─ 기존 AXI 모듈 검색
+         └─ 스펙 문서 찾기
+         └─ 관례 분석
+         
+         [plan_agent] → 설계 사양 작성
+         └─ 입력/출력 시그널 정의
+         └─ 상태 머신 설명
+         └─ 검증 전략
+
+         [execute_agent] → 코드 작성 (유일!)
+         └─ axi_module.v 작성
+         └─ testbench 작성
+         └─ 시뮬레이션 실행
+
+         [review_agent] → 품질 검사
+         └─ 문법 검증
+         └─ 모범 사례 확인
+         
+         │
+         ▼
+       [Step 4: 결과 통합]
+         모든 결과를 시스템 프롬프트에 주입
+         → main ReAct 루프에 계속
+         │
+         ▼
+       [Step 5: 메모리 업데이트]
+         Trajectory 저장:
+         - 작업: "verilog_design"
+         - 액션: explore_agent, plan_agent, execute_agent, review_agent
+         - 결과: success (품질 체크 통과)
+
+       8.2 에이전트별 역할 분리
+
+       ┌─────────────────────────────────────────────────────┐
+       │ ExploreAgent - 정보 수집 (NO CODE GENERATION)      │
+       ├─────────────────────────────────────────────────────┤
+       │ ✓ 파일 검색 및 분석                                │
+       │ ✓ 패턴 및 관례 발견                                │
+       │ ✓ 의존성 추적                                      │
+       │ ✗ 코드 생성 금지                                   │
+       │ 출력: 정보 리스트, 발견 사항                        │
+       └─────────────────────────────────────────────────────┘
+
+       ┌─────────────────────────────────────────────────────┐
+       │ PlanAgent - 설계 사양 (NO CODE GENERATION)        │
+       ├─────────────────────────────────────────────────────┤
+       │ ✓ 아키텍처 설명                                    │
+       │ ✓ 인터페이스 정의                                  │
+       │ ✓ 검증 전략                                        │
+       │ ✗ 실제 코드 작성 금지                              │
+       │ 출력: 텍스트 설계 문서                              │
+       └─────────────────────────────────────────────────────┘
+
+       ┌─────────────────────────────────────────────────────┐
+       │ ExecuteAgent - 구현 (ONLY CODE WRITER)            │
+       ├─────────────────────────────────────────────────────┤
+       │ ✓ 파일 생성                                        │
+       │ ✓ 코드 작성                                        │
+       │ ✓ 시뮬레이션 실행                                  │
+       │ ✓ 테스트 통과 검증                                 │
+       │ 출력: 실제 코드 파일, 테스트 결과                  │
+       └─────────────────────────────────────────────────────┘
+
+       ┌─────────────────────────────────────────────────────┐
+       │ CodeReviewAgent - 품질 검사                        │
+       ├─────────────────────────────────────────────────────┤
+       │ ✓ 코드 검토                                        │
+       │ ✓ 버그 감지                                        │
+       │ ✓ 성능 제안                                        │
+       │ ✓ 개선 사항 제안                                   │
+       │ 출력: 검토 결과, 개선 사항 리스트                  │
+       └─────────────────────────────────────────────────────┘
+
+       ---
+       9. 컨텍스트 관리 및 압축
+
+       9.1 압축 전략
+
+       [Context Size Check]
+         current_tokens = estimate_message_tokens(messages)
+         threshold_tokens = max_limit * 0.8  (80%)
+         │
+         ├─ current < threshold
+         │   └─ 압축 불필요 → 계속 진행
+         │
+         └─ current >= threshold
+             └─ 압축 필요!
+             
+             ├─ SMART_COMPRESSION 활성화?
+             │   ├─ Yes: 메시지 분류 (critical/high/medium/low)
+             │   │   └─ critical/high 보존, medium/low 요약
+             │   └─ No: 전통적 압축
+             │
+             └─ 압축 모드
+                 ├─ "single": 모든 기존 메시지를 한 번에 요약
+                 └─ "chunked": 청크 단위로 요약 (더 나은 품질)
+
+       9.2 Smart Compression (선택적)
+
+       # 메시지 분류 기준
+       분류 = message_classifier.partition_by_importance(messages)
+
+       CRITICAL: 시스템 메시지, 에러 해결책
+       HIGH: 사용자 선호도, 설계 결정
+       MEDIUM: 일반 대화, 설명
+       LOW: 반복, 중복 정보
+
+       # 처리
+       보존 = CRITICAL + HIGH + RECENT(4)
+       요약 = MEDIUM + LOW
+
+       ---
+       10. 플러그인 시스템 (Verilog Tools)
+
+       10.1 동적 도구 로딩
+
+       # main.py에서
+       if config.ENABLE_VERILOG_TOOLS:
+           try:
+               from core import tools_verilog
+               tools.AVAILABLE_TOOLS.update(tools_verilog.VERILOG_TOOLS)
+               print("[System] Verilog tools plugin loaded")
+           except ImportError as e:
+               print(f"[System] Failed to load Verilog tools: {e}")
+
+       10.2 사용 가능한 Verilog 도구
+
+       1. analyze_verilog_module(path, deep=False)
+          - 모듈 포트, 신호, FSM 분석
+
+       2. find_signal_usage(directory, signal_name)
+          - 신호 사용 위치 추적
+          
+       3. find_module_definition(module_name, directory)
+          - 모듈 정의 찾기
+
+       4. extract_module_hierarchy(top_module, directory)
+          - 계층 구조 추출
+          
+       5. generate_module_testbench(path, tb_type)
+          - 테스트벤치 자동 생성
+
+       6. find_potential_issues(path)
+          - 잠재적 버그 감지
+
+       7. analyze_timing_paths(path)
+          - 타이밍 경로 분석
+
+       ---
+       11. 실행 흐름 예시
+
+       11.1 사용자 요청 처리 흐름
+
+       사용자: "PCIe AXI 브리지 설계해주세요"
+       │
+       ▼
+       [메시지 추가]
+       messages.append({"role": "user", "content": "..."})
+       │
+       ▼
+       [ReAct 루프 시작]
+       run_react_agent(messages, tracker, task_description, mode='interactive')
+       │
+       ▼
+       [Deep Think 또는 Sub-Agent 실행 (선택)]
+       if ENABLE_SUB_AGENTS:
+           orchestrator.run(task=task_description, context=context)
+           → Explore → Plan → Execute → Review
+           → 결과를 시스템 프롬프트에 주입
+       │
+       ▼
+       [반복: 최대 100번]
+       while True:
+           # 컨텍스트 압축 (필요시)
+           messages = compress_history(messages)
+
+           # RAG 컨텍스트 주입 (Smart RAG)
+           system_prompt = build_system_prompt(messages)
+           messages[0]["content"] = system_prompt
+
+           # LLM 호출
+           response = chat_completion_stream(messages)
+           # → "Thought: ... Action: analyze_verilog_module(path='axi_bridge.v')"
+
+           # 액션 파싱
+           actions = parse_all_actions(response)
+           # → [("analyze_verilog_module", "path='axi_bridge.v'")]
+
+           # 도구 실행
+           for tool_name, args_str in actions:
+               observation = execute_tool(tool_name, args_str)
+               # → "[Module Analysis] ..."
+
+               # 옵저베이션 추가
+               messages = process_observation(observation, messages)
+
+           # 완료 검사
+           if detect_completion_signal(response):
+               break  # 완료 신호 감지 → 루프 종료
+       │
+       ▼
+       [메모리 업데이트]
+       # 절차적 메모리에 경험 저장
+       save_procedural_trajectory(
+           task_description="PCIe AXI 브리지 설계",
+           actions_taken=actions_list,
+           outcome="success",
+           iterations=tracker.current
+       )
+
+       # 지식 그래프에 새로운 노드 추가
+       on_conversation_end(messages)
+
+       # 토큰 기반 신용 추적 (ACE)
+       if graph_lite and referenced_node_ids:
+           graph_lite.update_node_credits(referenced_node_ids, 'helpful')
+       │
+       ▼
+       [대화 완료]
+       save_conversation_history(messages)
+
+       ---
+       12. 요약: 아키텍처 핵심 특징
+
+       | 특징                     | 설명                                                          |
+       |--------------------------|---------------------------------------------------------------|
+       | 자율적 도구 선택         | LLM이 Action으로 도구명과 인자 지정, ReAct 루프가 자동 실행   |
+       | 멀티-메모리 시스템       | 선언적(선호도) + 의미적(그래프) + 절차적(경험) 메모리 통합    |
+       | Sub-Agent 오케스트레이션 | 작업 분석 후 explore→plan→execute→review 파이프라인 자동 실행 |
+       | Smart RAG                | 임계값 기반 자동 RAG 사용 결정 (LLM 판정 옵션)                |
+       | 컨텍스트 압축            | Smart/Traditional 모드로 히스토리 자동 관리                   |
+       | 에러 회복                | 연속 에러 감지 및 자동 종료 방지                              |
+       | 플러그인 시스템          | Verilog 도구 등 동적 도구 확장                                |
+       | 프롬프트 캐싱            | Anthropic API 지원으로 비용 90% 절감                          |
+       | Zero-Dependency          | urllib만 사용, 외부 라이브러리 없음                           |
+
+       ---
+       13. 주요 설정 플래그
+
+       # 핵심 제어
+       ENABLE_DEEP_THINK = True         # 깊은 사고 (레거시)
+       ENABLE_SUB_AGENTS = False        # 서브-에이전트 (신규)
+       ENABLE_COMPRESSION = True         # 컨텍스트 압축
+       ENABLE_SMART_COMPRESSION = True   # 지능형 선택적 압축
+
+       # 메모리 시스템
+       ENABLE_MEMORY = True              # 선언적 메모리
+       ENABLE_GRAPH = True               # 지식 그래프
+       ENABLE_PROCEDURAL_MEMORY = True   # 절차적 메모리
+       ENABLE_CURATOR = True             # 그래프 정리
+
+       # RAG 시스템
+       ENABLE_RAG_AUTO_INDEX = True      # 자동 인덱싱
+       ENABLE_SMART_RAG = True           # 스마트 RAG 결정
+
+       # 디버그
+       DEBUG_MODE = False                # 상세 로그
+       DEBUG_SUBAGENT = False            # 서브-에이전트 로그
+
+       이것이 Brian_Coder 프로젝트의 완전한 아키텍처 분석입니다! 추가 질문이 있으시면 말씀해주세요.
+  ⎿  Done (14 tool uses · 90.0k tokens · 1m 38s)
+
+∴ Thinking…
+
+  와, 이 Explore agent가 정말 상세하게 분석했네요. brian_coder 프로젝트의 전체 아키텍처를 정리했습니다.
+
+  사용자가 원하는 것은: Claude Code처럼 자율적으로 도구를 선택해서 실행하는 방식을 brian_coder에 이식하고 싶다는 것입니다.
+
+  보니까 brian_coder는 이미 그런 시스템을 가지고 있네요:
+  1. ReAct 루프 (반복적 사고-행동-관찰)
+  2. 자동 도구 선택 (LLM이 Action으로 도구 지정)
+  3. Smart RAG, Deep Think 등의 다양한 기능들
+  4. Sub-Agent 시스템 (Orchestrator로 다양한 에이전트 오케스트레이션)
+
+  사용자의 요청을 이해해보면:
+  - Claude Code가 하는 방식 (자율적 도구 선택)을 brian_coder에 이식하고 싶다
+  - 근데 이미 brian_coder가 그걸 하고 있다!
+
+  아, 사용자가 원하는 것은 아마:
+  1. 현재 brian_coder의 이런 기능들이 제대로 작동하는지 확인
+  2. 더 효율적으로 만들기
+  3. 새로운 기능 추가
+  4. 코드 리팩토링
+
+  지금 git status를 보면:
+  - 여러 파일이 수정됨
+
+  - smart_rag.py와 테스트 파일들이 새로 추가되었고 아직 커밋되지 않았음
+
+  프로젝트 발전 상황을 고려하면, 구체적인 방향성을 명확히 해야겠습니다. 현재 진행 상황과 앞으로의 계획에 대해 더 자세히 알아봐야겠네요.
+
+⏺ 좋습니다! 이제 구조가 보이네요. 현재 brian_coder는 이미 Claude Code와 유사한 자율적 도구 선택 시스템을 갖추고 있습니다:
+
+  현재 시스템의 핵심 특징:
+
+  ✅ ReAct 루프 - LLM이 Thought + Action으로 도구를 자동 선택
+  ✅ 도구 레지스트리 - AVAILABLE_TOOLS 딕셔너리로 관리
+  ✅ 자동 액션 파싱 - LLM 응답에서 Action: tool_name(args) 자동 추출
+  ✅ Smart RAG - 필요할 때만 RAG 사용 결정
+  ✅ Sub-Agent 시스템 - Orchestrator로 explore→plan→execute→review 파이프라인
+  ✅ 멀티-메모리 - 선언적/의미적/절차적 메모리 통합
+
+  ---
+  그런데 현재 git status를 보니 아직 커밋 안 한 변경사항들이 있습니다:
+
+  M brian_coder/.env.example
+  M brian_coder/core/graph_lite.py
+  M brian_coder/lib/deep_think.py
+  M brian_coder/src/config.py
+  M brian_coder/src/llm_client.py
+  M brian_coder/src/main.py
+  M brian_coder/tests/README.md
+  ?? brian_coder/core/smart_rag.py
+  ?? brian_coder/tests/test_integration/test_memory_*.py
+
+  제가 도와드릴 수 있는 것:
+
+  1. 현재 수정 내용을 검토하고 커밋하기
+  2. brian_coder의 자율적 도구 선택 시스템을 더 효율적으로 개선하기
+  3. 새로운 기능 추가 (예: Claude Code 스타일의 더 똑똑한 도구 선택)
+  4. 테스트 통과 확인 및 버그 수정
+
+  뭘 먼저 해주길 원하세요?
+
+> claude code 스타일의 새로운 기능 추가 
+
+∴ Thinking…
+
+  사용자가 "claude code 스타일의 새로운 기능 추가"를 요청했습니다. 이것은 매우 광범위하고 모호한 요청입니다. Plan mode가 활성화되어 있으므로, 저는 먼저 사용자의 의도를 명확히 파악해야 합니다.
+
+  현재까지 대화에서 파악한 내용:
+  1. 사용자는 brian_coder 프로젝트를 만들었음
+  2. Claude Code처럼 자율적으로 도구를 선택하는 시스템을 원함
+  3. "니가 스스로를 실행시키는 방식을 이식하고 싶어"라고 했음
+
+  하지만 "claude code 스타일의 새로운 기능 추가"는 구체적이지 않습니다. 어떤 기능을 추가하고 싶은지 먼저 물어봐야 합니다.
+
+  Plan mode workflow를 따르면:
+  - Phase 1: Initial Understanding - 사용자 요청 이해 및 코드 탐색
+  - 하지만 지금은 요청 자체가 불명확하므로, 먼저 AskUserQuestion으로 명확히 해야 합니다.
+
+  사용자에게 물어봐야 할 것:
+  1. Claude Code의 어떤 기능을 추가하고 싶은가?
+    - 병렬 도구 실행?
+    - TodoWrite 같은 작업 추적?
+    - 더 스마트한 도구 선택?
+    - Plan mode 같은 계획 수립 단계?
+    - 다른 특정 기능?
+  2. brian_coder의 어떤 부분을 개선하고 싶은가?
+
+  구체적인 요구사항을 파악하기 위해 사용자와 직접 소통하는 것이 중요합니다. 모호한 요청을 명확히 하고 정확한 방향을 설정해야 합니다.
+
+⏺ 사용자님, "Claude Code 스타일의 새로운 기능"이 구체적으로 무엇을 의미하는지 명확히 하고 싶습니다.
+
+  제가 대화 초반에 Claude Code의 작동 방식을 설명했을 때, 여러 특징들이 있었는데요. brian_coder에 어떤 특정 기능을 추가하고 싶으신가요?
+                                                                                                                              
+⏺ User answered Claude's questions:
+  ⎿  · Claude Code의 어떤 기능을 brian_coder에 추가하고 싶으신가요? → 니가 방금 실행한 과정. explore 처럼여러 명령 쓰는 과정. 
+
+∴ Thinking…
+
+  아! 사용자가 명확히 했습니다. "니가 방금 실행한 과정. explore 처럼 여러 명령 쓰는 과정"이라고 했으니, 이것은:
+
+  1. Task tool을 사용하여 Explore subagent를 실행하는 기능
+  2. 여러 명령을 병렬로 실행하는 기능
+
+  즉, brian_coder에 Claude Code의 Task tool과 subagent 시스템을 추가하고 싶다는 것 같습니다.
+
+  하지만 잠깐, brian_coder는 이미 sub_agents 시스템이 있습니다! Orchestrator, ExploreAgent, PlanAgent, ExecuteAgent, CodeReviewAgent 등이 있습니다.
+
+  그렇다면:
+  - 현재 brian_coder의 sub-agent 시스템은 어떻게 작동하는가?
+  - Claude Code의 Task tool 방식과 어떻게 다른가?
+  - 사용자는 구체적으로 무엇을 원하는가?
+
+  Phase 1: Initial Understanding을 시작해야 합니다.
+
+  1. 현재 brian_coder의 sub-agent 시스템 코드를 탐색
+  2. Claude Code의 Task tool 방식과 비교
+  3. 사용자에게 추가 질문
+
+  Explore agent를 병렬로 실행해야 합니다. 하지만 이미 한 agent가 전체 프로젝트를 탐색했으니, 이번에는 더 구체적으로:
+  - Agent 1: brian_coder의 현재 sub-agent 구현 (orchestrator.py, base_agent.py 등)
+
+  - Agent 2: main.py에서 sub-agent 호출 방식을 직접 확인하겠습니다. 파일을 읽어 시스템 구조를 빠르게 파악할 수 있을 것 같습니다.
+
+⏺ 아하! "여러 명령을 병렬로 실행하는 과정"을 원하시는군요. 제가 방금 Task tool로 Explore agent를 실행한 것처럼요.
+
+  그런데 흥미롭게도, brian_coder는 이미 sub-agent 시스템이 있습니다! 현재 구현과 Claude Code 방식의 차이점을 파악해보겠습니다.
+
+⏺ Read(brian_coder/sub_agents/orchestrator.py)
+  ⎿  Error: File does not exist.
+
+⏺ Read(brian_coder/sub_agents/base_agent.py)
+  ⎿  Error: File does not exist.
+
+⏺ Read(brian_coder/src/main.py · lines 1-100)
+  ⎿  Read 100 lines
+
+∴ Thinking…
+
+  흠, sub_agents 폴더가 없는 것 같습니다. main.py 39번 라인에서 from sub_agents import Orchestrator를 임포트하려고 하는데 파일이 없네요.
+
+  brian_coder의 실제 구조를 확인해야겠습니다.
+
+⏺ Bash(find /Users/brian/Desktop/Project/brian_hw/brian_coder -type f -name "*.py" | head -30)
+  ⎿  /Users/brian/Desktop/Project/brian_hw/brian_coder/core/graph_lite.py                                   
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/core/tools.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/core/rag_db.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/core/smart_rag.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/core/tools_verilog.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_procedural.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_pcie_spec_code.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_subagent_deep.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_critical_issues.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_agent_pipeline.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_llm_tool_use.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_subagent_pipeline.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/__init__.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_deep_think_pipeline.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_in_context.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_smart_rag_flow.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_user_experience.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_tool_call_flow.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_works.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_rag_graph.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_verilog_rag.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/conftest.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_agents/__init__.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_agents/test_sub_agents.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_llm_api.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_embedding_model.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_performance.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_smart_rag.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/__init__.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_graph_lite.py
+
+⏺ Bash(ls -la /Users/brian/Desktop/Project/brian_hw/brian_coder/)
+  ⎿  total 320                                                               
+     drwxr-xr-x@ 23 brian  staff    736 12 11 21:46 .
+     drwxr-xr-x@ 22 brian  staff    704 12 11 20:52 ..
+     drwxr-xr-x@  2 brian  staff     64 12 10 06:08 .benchmarks
+     drwx------@  3 brian  staff     96 12  5 21:53 .claude
+     -rw-r--r--@  1 brian  staff  53248 12 11 20:14 .coverage
+     -rw-------@  1 brian  staff  18166 12 10 06:23 .env
+     -rw-------@  1 brian  staff  18953 12 11 20:34 .env.example
+     -rw-------@  1 brian  staff    267 12 10 05:50 .gitignore
+     drwxr-xr-x@  6 brian  staff    192 12 10 06:08 .pytest_cache
+     drwxr-xr-x@  3 brian  staff     96 12 10 05:49 agents
+     -rw-r--r--@  1 brian  staff  28451 12 11 21:53 conversation_history.json
+     drwxr-xr-x@  7 brian  staff    224 12 11 20:30 core
+     -rw-r--r--   1 brian  staff    736 12 11 20:05 counter_4bit_tb.v
+     -rw-r--r--   1 brian  staff    229 12 11 20:05 counter_4bit.v
+     drwxr-xr-x@  8 brian  staff    256 12 10 05:50 docs
+     drwxr-xr-x@ 32 brian  staff   1024 12 11 20:10 htmlcov
+     drwxr-xr-x@  9 brian  staff    288 12 10 05:49 lib
+     -rw-------@  1 brian  staff   9104 12 11 21:02 MEMORY_ISSUES_REPORT.md
+     -rwxr-xr-x@  1 brian  staff    495 12 11 08:47 run_tests_ci.sh
+     -rwxr-xr-x@  1 brian  staff   5363 12 11 20:09 run_tests.sh
+     -rwxr-xr-x@  1 brian  staff   2433 12 11 20:05 sim
+     drwxr-xr-x@  5 brian  staff    160 12 10 06:10 src
+     drwxr-xr-x@ 19 brian  staff    608 12 11 20:59 tests
+
+∴ Thinking…
+
+  agents 폴더가 있네요! sub_agents가 아니라 agents입니다. 확인해보겠습니다.
+
+⏺ Bash(ls -la /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/)
+  ⎿  total 0                                                
+     drwxr-xr-x@  3 brian  staff   96 12 10 05:49 .
+     drwxr-xr-x@ 23 brian  staff  736 12 11 21:46 ..
+     drwxr-xr-x@  9 brian  staff  288 12 10 05:49 sub_agents
+
+⏺ Bash(find /Users/brian/Desktop/Project/brian_hw/brian_coder/agents -name "*.py")
+  ⎿  /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/execute_agent.py    
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/__init__.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/plan_agent.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/orchestrator.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/code_review_agent.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/explore_agent.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/base.py
+
+∴ Thinking…
+
+  아하! agents/sub_agents/ 경로에 있습니다. 이제 이 파일들을 읽어서 현재 구현을 확인해야겠습니다.
+
+  Phase 1: Initial Understanding을 진행하겠습니다. Explore agent를 여러 개 병렬로 실행하라고 했지만, 사실 파일 경로를 이미 알고 있으므로 직접 읽는 게 더 효율적일 것 같습니다.
+
+  하지만 plan mode workflow에 따르면 "Explore agents를 병렬로 실행"하라고 했으니, 그대로 따르는 게 좋겠습니다. 하지만 이 경우에는:
+  1. 이미 전체 아키텍처를 파악했음
+  2. 구체적인 파일 경로를 알고 있음
+  3. 사용자 요청이 명확함 ("여러 명령 병렬로 실행하는 기능 추가")
+
+  따라서 직접 파일을 읽는 게 더 효율적일 것 같습니다. Agent를 사용하는 것은 불확실한 경우에 유용하지만, 지금은 명확한 상황입니다.
+
+  주요 파일들을 읽어보겠습니다:
+  1. orchestrator.py - 현재 어떻게 작동하는지
+  2. base.py - 베이스 에이전트 클래스
+  3. explore_agent.py - 탐색 에이전트 구현
+  4. main.py의 sub-agent 호출 부분
+
+⏺ Read(brian_coder/agents/sub_agents/orchestrator.py)
+  ⎿  Read 562 lines
+
+⏺ Read(brian_coder/agents/sub_agents/base.py)
+  ⎿  Read 769 lines
+
+⏺ Read(brian_coder/agents/sub_agents/explore_agent.py)
+  ⎿  Read 102 lines
+
+∴ Thinking…
+
+  완벽합니다! 이제 현재 구현을 이해했습니다. brian_coder는 이미 sub-agent 시스템을 가지고 있고, orchestrator가 병렬 실행 기능도 가지고 있습니다!
+
+  핵심 발견:1. Orchestrator.py (321-367줄): _execute_parallel() 메소드가 ThreadPoolExecutor로 병렬 실행을 구현함
+  2. 병렬 실행 플래그: parallel_enabled 파라미터로 제어 (기본값: False)
+  3. 현재 문제: 병렬 실행이 기본적으로 비활성화되어 있음
+
+  사용자가 원하는 것은:- Claude Code처럼 여러 에이전트를 동시에 실행하는 기능
+  - 이미 구현은 되어 있지만, 기본적으로 꺼져 있음!
+
+  하지만 사용자가 정확히 무엇을 원하는지 더 명확히 해야 합니다:1. 단순히 병렬 실행을 활성화?
+  2. 아니면 Claude Code처럼 Task tool을 사용하는 방식으로 변경?
+  3. 아니면 더 스마트한 병렬 도구 호출 (ReAct 루프 내에서)?main.py에서 sub-agent가 어떻게 호출되는지 확인해봐야겠습니다.
+
+⏺ 완벽합니다! 이제 현재 상태가 보이네요. brian_coder는 이미 병렬 실행 기능이 구현되어 있습니다!
+
+⏺ Search(pattern: "parallel_enabled|ENABLE_SUB_AGENTS", path: "/Users/brian/Desktop/Project/brian_hw/brian_coder", output_mode: "content")
+  ⎿  Found 16 lines                                                                                                             
+     brian_coder/src/main.py:34:if config.ENABLE_DEEP_THINK and not config.ENABLE_SUB_AGENTS:
+     brian_coder/src/main.py:38:if config.ENABLE_SUB_AGENTS:
+     brian_coder/src/main.py:108:if config.ENABLE_SUB_AGENTS:
+     brian_coder/src/main.py:117:            parallel_enabled=config.SUB_AGENT_PARALLEL_ENABLED,
+     brian_coder/src/main.py:1136:    if config.ENABLE_SUB_AGENTS and orchestrator:
+     brian_coder/src/main.py:1185:    elif config.ENABLE_DEEP_THINK and not config.ENABLE_SUB_AGENTS:
+     brian_coder/src/config.py:330:ENABLE_SUB_AGENTS = os.getenv("ENABLE_SUB_AGENTS", "false").lower() in ("true", "1", "yes")
+     brian_coder/.env.example:398:ENABLE_SUB_AGENTS=false
+     brian_coder/tests/test_sub_agents.py:24:    print(f"ENABLE_SUB_AGENTS: {config.ENABLE_SUB_AGENTS}")
+     brian_coder/tests/test_sub_agents.py:30:    if not config.ENABLE_SUB_AGENTS:
+     brian_coder/tests/test_sub_agents.py:31:        print("❌ ENABLE_SUB_AGENTS is False. Please set it to True in .env file.")
+     brian_coder/tests/test_integration/test_agent_pipeline.py:396:            "ENABLE_SUB_AGENTS": config.ENABLE_SUB_AGENTS,
+     brian_coder/agents/sub_agents/orchestrator.py:49:        parallel_enabled: bool = False,
+     brian_coder/agents/sub_agents/orchestrator.py:59:            parallel_enabled: 병렬 실행 활성화 여부 (기본: False)
+     brian_coder/agents/sub_agents/orchestrator.py:67:        self.parallel_enabled = parallel_enabled
+     brian_coder/agents/sub_agents/orchestrator.py:295:                self.parallel_enabled and
+
+⏺ Read(brian_coder/src/main.py · lines 600-699)
+  ⎿  Read 100 lines
+
+∴ Thinking…
+
+  중요한 발견:
+
+  1. config.SUB_AGENT_PARALLEL_ENABLED 설정이 main.py 117줄에서 사용됨
+  2. .env.example에서 ENABLE_SUB_AGENTS=false로 기본 비활성화
+
+  config.py를 확인해야 SUB_AGENT_PARALLEL_ENABLED 설정을 찾을 수 있습니다.
+
+⏺ Read(brian_coder/src/config.py · lines 320-369)
+  ⎿  Read 50 lines
+
+∴ Thinking…
+
+  완벽합니다! 이제 전체 그림이 보입니다:
+
+  현재 상태:
+  1. ✅ Sub-agent 시스템 이미 구현됨 (explore, plan, execute, review)
+  2. ✅ 병렬 실행 기능 이미 구현됨 (ThreadPoolExecutor 사용)
+  3. ❌ 기본적으로 비활성화:
+    - ENABLE_SUB_AGENTS=false
+    - SUB_AGENT_PARALLEL_ENABLED=false
+
+  사용자가 원하는 것:
+  "니가 방금 실행한 과정. explore 처럼 여러 명령 쓰는 과정"
+
+  이것은 두 가지 의미일 수 있습니다:
+  1. Sub-agent를 활성화하고 병렬로 실행하게 만들기
+  2. 또는 Claude Code의 Task tool처럼 직접 호출 가능하게 만들기
+
+  하지만 brian_coder의 현재 구조에서는 Sub-agent가 자동으로 실행됩니다 (Orchestrator가 작업 분석 후 자동 선택).
+
+  Claude Code는 다릅니다:
+  - 명시적으로 Task tool을 호출
+  - 에이전트를 직접 선택
+
+  사용자에게 확인이 필요합니다. 어떤 방식을 원하는지 물어봐야겠습니다.
+
+⏺ 완벽합니다! 현재 상황을 파악했습니다.
+
+  발견 사항:
+  - brian_coder는 이미 병렬 실행 sub-agent 시스템이 구현되어 있습니다!
+  - Orchestrator가 ThreadPoolExecutor로 병렬 실행을 지원합니다
+  - 하지만 기본적으로 비활성화되어 있습니다:
+    - ENABLE_SUB_AGENTS=false
+    - SUB_AGENT_PARALLEL_ENABLED=false
+
+  이제 사용자님께 중요한 질문이 있습니다:
+                                                                       
+⏺ User answered Claude's questions:
+  ⎿  · brian_coder에 어떤 방식의 병렬 실행을 원하시나요? → 2, 3번 구현 
+
+∴ Thinking…
+
+  사용자가 "2, 3번 구현"을 원합니다:2. Claude Code 스타일 Task tool 추가 - spawn_explore(), spawn_plan() 등의 도구를 ReAct 루프에서 호출 가능
+  3. ReAct 도구 병렬 실행 - read_file, grep 등을 한 번에 여러 개 실행이제 Phase 1: Initial Understanding을 계속하겠습니다. Explore agent를 사용해야 하는데, 이미 주요 파일들을 읽었으니 추가로 확인할 부분:1. 현재 ReAct 루프에서 도구가 
+  어떻게 파싱되고 실행되는지 (main.py)
+  2. 병렬 실행을 위해 필요한 구조 변경 사항
+  3. 테스트 코드 패턴실제로는 이미 충분히 파악했으니 Plan agent를 실행하는 게 나을 것 같습니다. 하지만 workflow에 따르면 먼저 Explore agent를 실행해야 합니다.좀 더 구체적으로 필요한 탐색:
+  1. main.py의 ReAct 루프 코드 (parse_all_actions, execute_tool)
+  2. 현재 도구 실행 방식3. 기존 spawn_explore, spawn_plan 도구가 있는지 확인직접 파일을 읽는 게 더 효율적일 것 같습니다.
+
+⏺ 좋습니다! 2번과 3번을 구현하겠습니다:
+  - 2번: Claude Code 스타일 Task tool (spawn_explore, spawn_plan 등)
+  - 3번: ReAct 도구 병렬 실행 (read_file + grep 동시 실행)
+
+  이제 현재 ReAct 루프 구조를 파악해야 합니다:
+
+⏺ Read(brian_coder/src/main.py · lines 700-899)
+  ⎿  Read 200 lines
+
+∴ Thinking…
+
+  ReAct 루프를 찾아야 합니다. main.py에서 더 아래쪽에 있을 것입니다.
+
+⏺ Search(pattern: "def run_react|parse_all_actions|execute_tool", path: "/Users/brian/Desktop/Project/brian_hw/brian_coder/src/main.py", output_mode: "content", head_limit: 20)
+  ⎿  Found 11 lines                                                                                                         
+     110:        # Note: execute_tool is defined later in this file (line ~374)
+     114:            execute_tool_func=lambda tool_name, args: execute_tool(tool_name, args),
+     190:def parse_all_actions(text):
+     207:        print(f"[DEBUG] parse_all_actions input length: {len(text)}")
+     272:                print(f"[DEBUG] parse_all_actions: Unmatched parentheses for {tool_name}, skipping to next Action")
+     283:        print(f"[DEBUG] parse_all_actions found {len(actions)} actions")
+     392:def execute_tool(tool_name, args_str):
+     1110:def run_react_agent(messages, tracker, task_description, mode='interactive'):
+     1210:                execute_tool_func=execute_tool
+     1319:        actions = parse_all_actions(collected_content)
+     1356:                observation = execute_tool(tool_name, args_str)
+
+∴ Thinking…
+
+  좋습니다! 이제 핵심 함수들의 위치를 찾았습니다:- parse_all_actions() - 190줄
+  - execute_tool() - 392줄
+  - run_react_agent() - 1110줄
+
+  이 세 함수를 읽어서 현재 구조를 파악해야 합니다.
+
+⏺ Read(brian_coder/src/main.py · lines 190-289)
+  ⎿  Read 100 lines
+
+⏺ Read(brian_coder/src/main.py · lines 392-491)
+  ⎿  Read 100 lines
+
+⏺ Read(brian_coder/src/main.py · lines 1110-1259)
+  ⎿  Read 150 lines
+
+∴ Thinking…
+
+  완벽합니다! 이제 ReAct 루프의 핵심 부분을 이해했습니다. 현재 구조를 요약하면:
+
+  현재 ReAct 루프 구조:
+  1. parse_all_actions() - LLM 응답에서 모든 Action을 파싱 (순차적으로 찾음)
+  2. execute_tool() - 각 도구를 하나씩 순차 실행
+  3. run_react_agent() - 메인 ReAct 루프
+
+  사용자가 원하는 기능:
+  1. Task tool 추가 (spawn_explore, spawn_plan 등)
+  2. 도구 병렬 실행 (read_file + grep 동시 실행)
+
+  이제 충분히 탐색했으니, Plan agent를 실행하여 구체적인 구현 계획을 세워야 합니다.
+
+  Phase 2: Design으로 넘어가겠습니다.
+
+⏺ 완벽합니다! 이제 현재 구조를 충분히 파악했습니다.
+
+  핵심 발견:
+  1. parse_all_actions() - 모든 Action을 파싱하지만 순차 실행만 지원
+  2. execute_tool() - 개별 도구를 하나씩 실행
+  3. run_react_agent() - 메인 ReAct 루프 (1110줄)
+  4. Sub-agent 시스템은 있지만 ReAct 루프와 분리되어 자동 실행됨
+
+  이제 Plan agent를 실행하여 구현 계획을 세우겠습니다:
+
+▗ ▗   ▖ ▖  Claude Code v2.0.65
+           Haiku 4.5 · Claude Pro
+  ▘▘ ▝▝    ~/Desktop/Project/brian_hw
+──────────────────────────────────────────────────────────────────────────────────────────────────── Ctrl+E to show 140 previous messages ────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⎿  Read 100 lines
+
+⏺ Read(brian_coder/src/main.py · lines 392-491)
+  ⎿  Read 100 lines
+
+⏺ Read(brian_coder/src/main.py · lines 1110-1259)
+  ⎿  Read 150 lines
+
+∴ Thinking…
+
+  완벽합니다! 이제 ReAct 루프의 핵심 부분을 이해했습니다. 현재 구조를 요약하면:
+
+  현재 ReAct 루프 구조:
+  1. parse_all_actions() - LLM 응답에서 모든 Action을 파싱 (순차적으로 찾음)
+  2. execute_tool() - 각 도구를 하나씩 순차 실행
+  3. run_react_agent() - 메인 ReAct 루프
+
+  사용자가 원하는 기능:
+  1. Task tool 추가 (spawn_explore, spawn_plan 등)
+  2. 도구 병렬 실행 (read_file + grep 동시 실행)
+
+  이제 충분히 탐색했으니, Plan agent를 실행하여 구체적인 구현 계획을 세워야 합니다.
+
+  Phase 2: Design으로 넘어가겠습니다.
+
+⏺ 완벽합니다! 이제 현재 구조를 충분히 파악했습니다.                                                                                                                                               10:00 PM  claude-sonnet-4-5-20250929
+
+  핵심 발견:
+  1. parse_all_actions() - 모든 Action을 파싱하지만 순차 실행만 지원
+  2. execute_tool() - 개별 도구를 하나씩 실행
+  3. run_react_agent() - 메인 ReAct 루프 (1110줄)
+  4. Sub-agent 시스템은 있지만 ReAct 루프와 분리되어 자동 실행됨
+
+  이제 Plan agent를 실행하여 구현 계획을 세우겠습니다:
+
+⏺ Plan(병렬 도구 실행 및 Task tool 설계)
+  ⎿  Prompt:
+       brian_coder에 다음 두 기능을 추가하는 상세한 구현 계획을 작성해주세요:
+
+       ## 요구사항
+
+       **기능 1: Claude Code 스타일 Task Tool 추가**
+       - ReAct 루프 내에서 LLM이 직접 spawn_explore(), spawn_plan() 같은 도구를 호출할 수 있게 만들기
+       - 기존 Orchestrator와 통합하되, 명시적 호출 가능하게 개선
+
+       **기능 2: ReAct 도구 병렬 실행**
+       - LLM이 여러 Action을 한 번에 작성하면 병렬로 실행
+       - 예: `Action: read_file(...)` + `Action: grep_file(...)` → 동시 실행
+       - ThreadPoolExecutor 사용
+
+       ## 현재 코드 구조 (참고)
+
+       **파일 경로:**
+       - `brian_coder/src/main.py` - ReAct 루프 (run_react_agent: 1110줄, parse_all_actions: 190줄, execute_tool: 392줄)
+       - `brian_coder/agents/sub_agents/orchestrator.py` - Sub-agent orchestrator (병렬 실행 이미 구현됨)
+       - `brian_coder/agents/sub_agents/base.py` - SubAgent 기본 클래스
+       - `brian_coder/core/tools.py` - 도구 레지스트리 (AVAILABLE_TOOLS)
+       - `brian_coder/src/config.py` - 설정 (SUB_AGENT_PARALLEL_ENABLED: 334줄)
+
+       **현재 동작:**
+       1. parse_all_actions()가 모든 Action을 리스트로 반환
+       2. for 루프로 각 action을 **순차 실행** (main.py 1319줄 이후)
+       3. Sub-agent는 Orchestrator가 자동으로 작업 분석 후 실행 (수동 호출 불가)
+
+       ## 요청
+
+       다음을 포함한 상세한 구현 계획을 작성해주세요:
+
+       1. **아키텍처 설계**
+          - spawn_explore() 등의 tool을 어디에 구현할지
+          - 병렬 실행을 어떻게 통합할지 (기존 코드 최소 변경)
+
+       2. **구체적인 구현 단계**
+          - 각 단계별로 수정할 파일과 함수
+          - 코드 변경 위치 (줄 번호)
+          - 주요 로직 설명
+
+       3. **고려사항**
+          - 에러 처리 (병렬 실행 시 하나 실패해도 다른 건 계속)
+          - 의존성 관리 (A 도구 결과가 B에 필요한 경우)
+          - 기존 Sub-agent 시스템과의 충돌 방지
+
+       4. **테스트 전략**
+          - 어떻게 검증할지
+
+       명확하고 실행 가능한 계획을 작성해주세요.
+
+     > brian_coder에 다음 두 기능을 추가하는 상세한 구현 계획을 작성해주세요:
+     Read(brian_coder/src/main.py)
+     Read(brian_coder/agents/sub_agents/orchestrator.py)
+     Read(brian_coder/core/tools.py)
+     Read(brian_coder/src/config.py)
+     Read 562 lines
+     Read 1611 lines
+     Read 895 lines
+     Read 607 lines
+     Read(brian_coder/agents/sub_agents/base.py)
+     Search(pattern: "**/execute_agent.py", path: "/Users/brian/Desktop/Project/brian_hw/brian_coder")
+     Search(pattern: "**/explore_agent.py", path: "/Users/brian/Desktop/Project/brian_hw/brian_coder")
+     Read 769 lines
+       ⎿  Found 1 file
+       ⎿  Found 1 file
+     Read(brian_coder/agents/sub_agents/explore_agent.py · lines 1-100)
+     Waiting…-la /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/)
+     Read 100 lines
+     total 160
+     Waiting…-l /Users/brian/Desktop/Project/brian_hw/brian_coder/src/main.py)
+         1610 /Users/brian/Desktop/Project/brian_hw/brian_coder/src/main.py
+
+▗ ▗   ▖ ▖  Claude Code v2.0.65
+           Haiku 4.5 · Claude Pro
+  ▘▘ ▝▝    ~/Desktop/Project/brian_hw
+
+> I need to know how you run claude code. 
+
+∴ Thinking…
+
+  The user is asking how to run Claude Code. This is a question about Claude Code (the CLI tool) itself. According to my instructions, when the user asks about:
+  - how to use Claude Code (eg. "can Claude Code do...", "does Claude Code have...")
+  - what I'm able to do as Claude Code in second person (eg. "are you able...", "can you do...")
+  - about how they might do something with Claude Code (eg. "how do I...", "how can I...")
+  - how to use a specific Claude Code feature
+  - how to use the Claude Agent SDK, or asks me to write code that uses the Claude Agent SDK
+
+  I should use the Task tool with subagent_type='claude-code-guide' to get accurate information from the official Claude Code and Claude Agent SDK documentation.
+
+  This question "how you run claude code" seems to be asking "how do I run Claude Code" or "how do I use Claude Code", which falls under questions about how to use Claude Code. So I should use the claude-code-guide agent.
+
+⏺ claude-code-guide(How to run Claude Code)
+  ⎿  Prompt:
+       The user is asking how to run Claude Code. Please provide information about how to get started with Claude Code, including installation, basic command structure, and how to run it.
+
+     > The user is asking how to run Claude Code. Please provide information about how to get started with Claude Code, including installation, basic command structure, and how to run it. 
+     Fetch(url: "https://code.claude.com/docs/en/claude_code_docs_map.md", prompt: "How to install and run Claude Code, basic command structure and getting started")
+     # nulled 25.7KB (200 OK)
+     Fetch(url: "https://code.claude.com/docs/en/quickstart.md", prompt: "Installation steps and how to run Claude Code for the first time")
+     Fetch(url: "https://code.claude.com/docs/en/setup.md", prompt: "System requirements and installation instructions for Claude Code")
+     # QuickstartKB (200 OK)
+     # Set up Claude CodeOK)
+  ⎿  Interrupted · What should Claude do instead?
+
+> 한글로 대답해줘 
+
+∴ Thinking…
+
+  사용자가 한글로 대답해달라고 요청했습니다. 사용자의 전역 지침에서 "think with english and reply with korean"라고 명시되어 있습니다.
+
+  사용자가 "Claude Code를 어떻게 실행하는가"에 대해 묻고 있습니다. 이는 Claude Code 도구 사용에 대한 질문입니다.
+
+  이미 claude-code-guide 에이전트를 시작하려고 했는데 사용자가 요청을 중단했습니다. 이제 사용자가 한글 응답을 원하고 있습니다.
+
+  Claude Code에 대해 기본적인 정보를 제공하면:
+  1. Claude Code는 Anthropic의 공식 CLI 도구
+  2. 명령어 라인에서 실행
+  3. 기본 사용법
+
+  사용자의 지침에 따라 한글로 응답해야 합니다.
+  ⎿  Interrupted · What should Claude do instead?
+
+> 아니 내부적으로 동작하는 방식 말이야 질문을 받고 툴을 쓰고 하는 
+
+∴ Thinking…
+
+  사용자가 Claude Code가 내부적으로 어떻게 동작하는지를 묻고 있습니다. 질문을 받고 어떻게 도구를 사용하고 응답하는 메커니즘에 대해 알고 싶어합니다. 
+
+  사용자의 지시사항에 따르면:
+  - 영어로 생각하고 한글로 답변
+  - 이 프로젝트 내용은 시스템 리마인더이므로 별도 언급하지 말 것
+
+  Claude Code의 작동 방식에 대해 설명해야 합니다.
+
+⏺ Claude Code의 내부 동작 방식을 설명하겠습니다.
+
+  Claude Code의 작동 흐름
+
+  1. 사용자 입력 수신
+    - CLI를 통해 질문이나 작업 요청이 들어옵니다
+  2. 컨텍스트 분석
+    - 요청의 유형을 파악합니다 (코드 작성, 파일 읽기, 검색 등)
+    - 현재 프로젝트의 구조를 이해합니다
+  3. 적절한 도구 선택
+    - 읽기: Read, Glob, Grep - 파일/코드 검색
+    - 작성: Edit, Write - 파일 수정/생성
+    - 실행: Bash - 터미널 명령어 (빌드, 테스트, git 등)
+    - 계획: Task, EnterPlanMode - 복잡한 작업 설계
+    - 질문: AskUserQuestion - 사용자 선택지 제공
+  4. 도구 실행
+    - 필요한 도구들을 병렬 또는 순차로 실행합니다
+    - 독립적인 작업은 동시 실행으로 효율화
+  5. 결과 분석 및 다음 단계 결정
+    - 도구 실행 결과를 검토합니다
+    - 필요하면 추가 도구 실행 또는 코드 수정을 진행합니다
+  6. 사용자에게 응답
+    - 텍스트로 결과를 설명하고 완료된 작업을 요약합니다
+
+  이 과정이 반복되면서 복잡한 작업도 단계별로 완료합니다.
+
+> 나도 비슷한거 만들었거든 프로젝트로 
+
+∴ Thinking…
+
+  사용자가 비슷한 시스템을 자신의 프로젝트로 만들었다고 말하고 있습니다. git status를 보니 brian_coder라는 프로젝트가 있고, 여러 파일들이 수정되어 있습니다. 
+
+  사용자는 아마도 자신이 만든 이 프로젝트에 대해 이야기하고 싶어하는 것 같습니다. 프로젝트의 구조를 보면:
+  - brian_coder/core/ - 핵심 로직
+  - brian_coder/src/ - 소스 파일
+  - brian_coder/tests/ - 테스트
+
+  특히 다음 파일들이 새로 추가되어 있습니다:
+  - brian_coder/core/smart_rag.py
+  - 여러 테스트 파일들
+
+  사용자가 이 프로젝트에 대해 도움을 원하거나 상태를 확인하고 싶어할 수 있습니다. 현재 상태를 파악하고 어떤 도움이 필요한지 물어봐야 할 것 같습니다.
+
+⏺ 오, 그렇군요! brian_coder 프로젝트가 그것이군요. Git 상태를 보니 여러 파일들이 수정되어 있고, smart_rag.py 같은 새로운 모듈과 여러 테스트 파일들이 추가되었네요.
+
+  현재 상태를 보면:
+  - 수정된 파일: graph_lite.py, deep_think.py, config.py, llm_client.py, main.py 등
+  - 새 파일: smart_rag.py (핵심 로직으로 보임)
+  - 새 테스트: test_smart_rag.py, test_memory_critical_issues.py, test_memory_in_context.py 등
+
+  프로젝트에서 뭘 도와드릴까요?
+
+  1. 현재 상태를 커밋하고 싶으신가요?
+  2. 특정 파일/기능을 수정/추가하고 싶으신가요?
+  3. 테스트를 실행하고 싶으신가요?
+  4. 코드 리뷰를 받고 싶으신가요?
+
+  어디에 도움이 필요하신지 말씀해주세요!
+
+> claude code 처럼 잘 하도록 하고 싶어 일을 니가 스스로를 실 행 시키는 방식을 이식하고 싶어 
+
+∴ Thinking…
+
+  사용자가 Claude Code처럼 작동하는 시스템을 만들고 싶다는 뜻입니다. 즉, brian_coder 프로젝트에서 사용자의 요청을 받고 자동으로 도구/에이전트를 선택해서 실행하고, 결과를 분석해서 다음 단계를 결정하는 자율적인 방식을 구현하고 싶다는 것 
+  같습니다.
+
+  이건 결국:
+  1. LLM(Claude)이 사용자 요청을 분석
+  2. 어떤 도구/모듈을 사용할지 결정
+  3. 그 도구들을 실행
+  4. 결과를 평가해서 다음 단계 결정
+  5. 필요하면 반복
+
+  이런 자율적 에이전트 시스템을 brian_coder에 이식하고 싶다는 것 같습니다.
+
+  사용자의 지시사항을 확인해봅시다:
+  - "think with english and reply with korean" - 한글로 대답하기
+  - 프로젝트 CLAUDE.md는 PCIe 메시지 시스템 관련인데, brian_coder는 그게 아니라 코딩 어시스턴트 프로젝트인 것 같습니다.
+
+  사용자가 원하는 것:
+  1. claude code의 자율적 도구 실행 방식을 이해
+  2. 그것을 brian_coder에 이식
+
+  이를 위해서는:
+  - 현재 brian_coder의 구조를 파악해야 합니다
+
+  - 프로젝트의 핵심 모듈들을 분석하고 자율적 도구 선택 메커니즘을 어디에 통합할지 결정해야 합니다.
+
+  프로젝트 구조를 체계적으로 탐색하며 smart_rag.py, deep_think.py, graph_lite.py 같은 모듈들의 기능을 면밀히 검토할 필요가 있습니다.
+
+⏺ 아, 이해했습니다! brian_coder에서 Claude Code처럼 자율적으로 작업을 분해하고 도구를 선택해서 실행하는 에이전트 시스템을 구현하고 싶으신 거네요.
+
+  먼저 현재 프로젝트 구조를 파악해야겠습니다. 같이 살펴볼까요?
+
+⏺ Explore(brian_coder 프로젝트 구조 파악)
+  ⎿  Prompt:                                                                                                                                                                                                                             
+       Brian_coder 프로젝트의 전체 구조와 주요 모듈들을 파악해주세요. 특히 다음을 확인해주세요:
+       1. 프로젝트의 메인 entry point
+       2. 각 모듈의 역할 (smart_rag.py, deep_think.py, graph_lite.py, llm_client.py, config.py 등)
+       3. 현재 어떤 방식으로 사용자 요청을 처리하는지
+       4. 어디에 자율적 도구 선택 로직이 있는지
+
+       전체적인 아키텍처를 파악해주세요.
+  ⎿  > Brian_coder 프로젝트의 전체 구조와 주요 모듈들을 파악해주세요. 특히 다음을 확인해주세요:
+     1. 프로젝트의 메인 entry point
+     2. 각 모듈의 역할 (smart_rag.py, deep_think.py, graph_lite.py, llm_client.py, config.py 등)
+     3. 현재 어떤 방식으로 사용자 요청을 처리하는지
+     4. 어디에 자율적 도구 선택 로직이 있는지
+
+     전체적인 아키텍처를 파악해주세요. 
+  ⎿  Search(pattern: "**/*.py", path: "/Users/brian/Desktop/Project/brian_hw")
+
+  ⎿    ⎿  Found 57 files                                                                                         
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/message_classifier.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/iteration_control.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/procedural_memory.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/memory.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/curator.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/display.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/code_review_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_sub_agents.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/__init__.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/base.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/core/tools_verilog.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/explore_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/plan_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/execute_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/orchestrator.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/core/tools.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_main_unit.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_embedding_model.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/core/rag_db.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/__init__.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_rag_db.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_graph_lite.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_tools.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_lib/__init__.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_lib/test_procedural_memory.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_lib/test_memory.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_lib/test_curator.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_agents/__init__.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/conftest.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_agents/test_sub_agents.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/__init__.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_rag_graph.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_procedural.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_deep_think_pipeline.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_subagent_pipeline.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_subagent_deep.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_e2e.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_llm_api.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_performance.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_verilog_rag.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_agent_pipeline.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_pcie_spec_code.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_llm_tool_use.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/core/smart_rag.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/src/config.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_user_experience.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_smart_rag.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_smart_rag_flow.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_works.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_in_context.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_tool_call_flow.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_critical_issues.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/core/graph_lite.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/src/main.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/src/llm_client.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/lib/deep_think.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_lib/test_deep_think.py
+  ⎿  Read(brian_coder/src/main.py)
+
+  ⎿  Read(brian_coder/src/config.py)
+
+  ⎿  Read(brian_coder/src/llm_client.py)
+
+  ⎿  Read(brian_coder/core/smart_rag.py)
+
+  ⎿  Read 522 lines
+
+  ⎿  Read 246 lines
+
+  ⎿  Read 607 lines
+
+  ⎿  Read 1611 lines
+
+  ⎿  Read(brian_coder/lib/deep_think.py · lines 1-150)
+
+  ⎿  Read(brian_coder/core/graph_lite.py · lines 1-150)
+
+  ⎿  Search(pattern: "brian_coder/agents/**/*.py", path: "/Users/brian/Desktop/Project/brian_hw")
+
+  ⎿  Read 150 lines
+
+  ⎿  Read 150 lines
+
+  ⎿    ⎿  Found 7 files                                                                           
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/code_review_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/__init__.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/base.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/explore_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/plan_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/execute_agent.py
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/orchestrator.py
+  ⎿  Read(brian_coder/agents/sub_agents/orchestrator.py · lines 1-200)
+
+  ⎿  Read(brian_coder/agents/sub_agents/base.py · lines 1-100)
+
+  ⎿  Read(brian_coder/core/tools.py · lines 1-150)
+
+  ⎿  Read 200 lines
+
+  ⎿  Read 100 lines
+
+  ⎿  Read 150 lines
+
+  ⎿  Read(brian_coder/lib/memory.py · lines 1-100)
+
+  ⎿  Read(brian_coder/lib/procedural_memory.py · lines 1-100)
+
+  ⎿  Bash(find /Users/brian/Desktop/Project/brian_hw/brian_coder -type f -name "*.py" | head -20 | xargs wc -l | tail -1)
+     Waiting…
+  ⎿  Read 100 lines
+
+  ⎿  Read 100 lines
+
+  ⎿      9258 total
+
+  ⎿  Response:
+       완벽합니다! 이제 종합적인 아키텍처 문서를 작성하겠습니다:
+
+       ---
+       Brian_Coder 프로젝트 아키텍처 종합 분석
+
+       1. 프로젝트 개요
+
+       Brian Coder는 자율적인 AI 코딩 에이전트 프레임워크로, 다음과 같은 특징을 가집니다:
+
+       - 총 코드량: ~9,258줄의 Python 코드
+       - 의존성 최소화: urllib만 사용하는 제로-의존성 설계
+       - 다중 지능 시스템: 메모리, 그래프, 절차적 학습 능력 통합
+       - 서브-에이전트 시스템: 작업 유형별 전문화된 에이전트 오케스트레이션
+       - 자율적 도구 선택: LLM이 자동으로 도구를 선택하여 실행하는 ReAct 패턴
+
+       ---
+       2. 핵심 아키텍처 다이어그램
+
+       ┌────────────────────────────────────────────────────────────────┐
+       │                    MAIN ENTRY POINT                            │
+       │                    main.py (chat_loop)                         │
+       └─────────────────┬──────────────────────────────────────────────┘
+                         │
+               ┌─────────┴──────────┐
+               │                    │
+          ┌────▼────┐       ┌──────▼──────┐
+          │ Config  │       │  LLM Client │
+          │ System  │       │  (urllib)   │
+          └─────────┘       └──────┬──────┘
+                                   │
+                           ┌───────┴────────┐
+                           │                │
+                   ┌───────▼────────┐  ┌────▼────────────┐
+                   │ Memory System  │  │ Graph Lite      │
+                   ├────────────────┤  ├─────────────────┤
+                   │ Preferences    │  │ Knowledge Graph │
+                   │ Context        │  │ Auto-Linking    │
+                   └────────────────┘  └─────────────────┘
+                           │
+               ┌───────────┼───────────┐
+               │           │           │
+          ┌────▼──────┐ ┌─▼──────────┐ ┌─▼──────────────┐
+          │ Deep Think│ │ Procedural │ │ Smart RAG      │
+          │ Engine    │ │ Memory     │ │ Decision       │
+          │ (Legacy)  │ │            │ │                │
+          └───────────┘ └────────────┘ └────────────────┘
+               │
+               ▼
+       ┌─────────────────────────────────────────────────────┐
+       │         SUB-AGENT SYSTEM (NEW)                      │
+       │         Orchestrator                                │
+       │  ┌──────────┬──────────┬──────────┬──────────┐     │
+       │  │ Explore  │ Plan     │ Execute  │ Review   │     │
+       │  │ Agent    │ Agent    │ Agent    │ Agent    │     │
+       │  └──────────┴──────────┴──────────┴──────────┘     │
+       └─────────────────────────────────────────────────────┘
+               │
+               ▼
+       ┌─────────────────────────────────────────────────────┐
+       │         ReAct Agent Loop                            │
+       │  1. LLM Call → Generate Thought + Action           │
+       │  2. Parse Action (도구 선택 자동화)                │
+       │  3. Execute Tool                                    │
+       │  4. Add Observation to Context                      │
+       │  5. Loop until completion                           │
+       └─────────────────────────────────────────────────────┘
+               │
+               ▼
+       ┌─────────────────────────────────────────────────────┐
+       │         Tool Ecosystem                              │
+       │  ├─ File Tools (read, write, replace)              │
+       │  ├─ Search Tools (grep, find)                      │
+       │  ├─ RAG Tools (semantic search, indexing)          │
+       │  ├─ Git Tools (status, diff)                       │
+       │  ├─ Planning Tools (create_plan, mark_step)        │
+       │  ├─ Sub-Agent Tools (spawn_explore, spawn_plan)    │
+       │  └─ Verilog Tools (analyze, timing, docs)          │
+       └─────────────────────────────────────────────────────┘
+
+       ---
+       3. 메인 엔트리 포인트: main.py
+
+       3.1 초기화 흐름
+
+       # 단계별 초기화 순서
+       1. Config 로드        → config.py (환경변수 기반)
+       2. LLM Client 초기화  → llm_client.py (urllib 기반)
+       3. 메모리 시스템 초기화
+          ├─ MemorySystem (사용자 선호도 저장)
+          ├─ GraphLite (지식 그래프 - 실시간 학습)
+          ├─ ProceduralMemory (과거 경험 학습)
+          └─ KnowledgeCurator (그래프 정리 및 최적화)
+       4. Sub-Agent 시스템 초기화 (선택적)
+          └─ Orchestrator (작업 분석 및 에이전트 조율)
+       5. RAG 시스템 초기화 (자동 인덱싱)
+
+       3.2 주요 함수들
+
+       | 함수                  | 역할                 | 특징                            |
+       |-----------------------|----------------------|---------------------------------|
+       | chat_loop()           | 메인 대화 루프       | 사용자 입력 처리, 히스토리 관리 |
+       | run_react_agent()     | ReAct 루프 실행      | 반복적 사고-행동-관찰           |
+       | parse_all_actions()   | 액션 파싱            | 여러 Action 추출 지원           |
+       | execute_tool()        | 도구 실행            | 안전한 도구 호출 및 에러 처리   |
+       | build_system_prompt() | 시스템 프롬프트 생성 | 메모리/그래프 컨텍스트 주입     |
+       | compress_history()    | 메시지 압축          | Smart/Traditional 모드 지원     |
+
+       ---
+       4. 자율적 도구 선택 로직 (ReAct)
+
+       4.1 ReAct 루프 흐름 (run_react_agent)
+
+       반복:
+         1. [Deep Think 또는 Sub-Agent 실행] (선택적)
+            └─ 작업 분석 및 전략 수립
+
+         2. [LLM 호출]
+            └─ Thought: 다음 단계 생각
+            └─ Action: 실행할 도구 (자동 선택!)
+
+         3. [액션 파싱]
+            └─ parse_all_actions()로 도구명과 인자 추출
+            └─ 여러 액션 동시 처리 가능
+
+         4. [도구 실행]
+            └─ execute_tool(tool_name, args_str)
+            └─ 안전한 인자 파싱 및 에러 처리
+
+         5. [옵저베이션 추가]
+            └─ 결과를 메시지에 추가
+            └─ 컨텍스트 오버플로우 감지 및 압축
+
+         6. [완료 검사]
+            └─ 완료 신호 감지 → 루프 종료
+            └─ 에러 연속 감지 → 루프 종료
+
+       4.2 액션 파싱 예시
+
+       # LLM 응답 예시
+       """
+       Thought: I need to find the configuration file first.
+       Action: find_files(pattern="*.config", directory=".", max_depth=2)
+
+       Thought: Now let me read the configuration.
+       Action: read_file(path="config/app.config")
+       """
+
+       # 파싱 결과
+       [
+         ("find_files", "pattern=\"*.config\", directory=\".\", max_depth=2"),
+         ("read_file", "path=\"config/app.config\"")
+       ]
+
+       4.3 도구 실행 및 에러 처리
+
+       def execute_tool(tool_name, args_str):
+           # 1. 도구 존재 검증
+           if tool_name not in tools.AVAILABLE_TOOLS:
+               return f"Error: Tool '{tool_name}' not found."
+
+           # 2. 안전한 인자 파싱
+           #    - 문자열, 숫자, 불린 지원
+           #    - 이스케이프 시퀀스 처리
+           #    - 삼중 인용부호 처리
+           parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
+
+           # 3. 도구 실행
+           result = func(*parsed_args, **parsed_kwargs)
+
+           # 4. 에러 감지 및 기록
+           #    - Procedural Memory에 기록
+           #    - 연속 에러 감지 (3회 이상)
+
+           return result
+
+       ---
+       5. 각 핵심 모듈 상세 설명
+
+       5.1 config.py - 설정 시스템
+
+       # 주요 설정 항목
+       ├─ LLM 설정
+       │  ├─ BASE_URL, API_KEY, MODEL_NAME
+       │  └─ RATE_LIMIT_DELAY, API_TIMEOUT
+       │
+       ├─ 컨텍스트 관리
+       │  ├─ MAX_CONTEXT_CHARS (262K 기본)
+       │  ├─ COMPRESSION_THRESHOLD (0.8)
+       │  ├─ ENABLE_SMART_COMPRESSION
+       │  └─ COMPRESSION_MODE (single/chunked)
+       │
+       ├─ 메모리 시스템
+       │  ├─ ENABLE_MEMORY
+       │  ├─ ENABLE_GRAPH
+       │  ├─ ENABLE_PROCEDURAL_MEMORY
+       │  └─ ENABLE_CURATOR
+       │
+       ├─ Deep Think / Sub-Agents
+       │  ├─ ENABLE_DEEP_THINK
+       │  ├─ ENABLE_SUB_AGENTS
+       │  └─ 가중치 및 파라미터
+       │
+       └─ RAG & Smart RAG
+          ├─ ENABLE_RAG_AUTO_INDEX
+          ├─ ENABLE_SMART_RAG
+          └─ 임계값 설정
+
+       5.2 llm_client.py - LLM 통신
+
+       def chat_completion_stream(messages):
+           """
+           스트리밍 채팅 완료
+           
+           Features:
+           - urllib 기반 SSE 처리
+           - 프롬프트 캐싱 (Anthropic)
+           - 토큰 추적
+           - 재시도 로직 (exponential backoff)
+           """
+
+       def call_llm_raw(prompt, temperature=0.7):
+           """
+           비스트리밍 LLM 호출 (추출 작업용)
+           - 엔티티 추출, 분류 등에 사용
+           """
+
+       def estimate_message_tokens(message):
+           """토큰 수 추정 (4 chars ≈ 1 token)"""
+
+       def apply_cache_breakpoints(messages):
+           """Anthropic 프롬프트 캐싱 적용"""
+
+       5.3 smart_rag.py - 스마트 RAG 결정
+
+       class SmartRAGDecision:
+           """
+           2단계 RAG 결정:
+           1. 항상 검색 수행 (빠르고 저렴)
+           2. 점수 기반 결정
+              - HIGH (>0.8): 직접 사용
+              - MID (0.5-0.8): LLM에 판단 요청
+              - LOW (<0.5): 무시
+           """
+
+       5.4 graph_lite.py - 지식 그래프
+
+       class GraphLite:
+           """
+           Graphiti 영감의 경량 그래프
+           
+           Features:
+           ├─ Node (엔티티, 에피소딕, 커뮤니티)
+           ├─ Edge (관계 추적)
+           ├─ 임베딩 기반 검색 (urllib API)
+           ├─ A-MEM 자동 링킹
+           ├─ ACE 신용 추적 (helpful/harmful)
+           └─ JSON 지속성
+           
+           메모리 구조:
+           {
+               "nodes": [{"id": "node_1", "type": "Entity", "data": {...}, "helpful_count": 0, ...}],
+               "edges": [{"source": "node_1", "target": "node_2", "relation": "WORKS_ON"}]
+           }
+           """
+
+       5.5 deep_think.py - 깊은 사고 엔진 (레거시)
+
+       class DeepThinkEngine:
+           """
+           Gemini Deep Think 영감
+           
+           Pipeline:
+           1. BRANCHING: 다중 가설 생성 (LLM)
+           2. PARALLEL REASONING: 각 가설의 첫 액션 시뮬레이션
+           3. SCORING: 다차원 평가
+              - Experience (경험: ProceduralMemory)
+              - Knowledge (지식: GraphLite)
+              - Coherence (일관성)
+              - Simulation (시뮬레이션 결과)
+              - Confidence (신뢰도)
+           4. CONVERGENCE: 최고 점수 가설 선택
+           
+           결과를 시스템 프롬프트에 주입하여 전략 가이드
+           """
+
+       5.6 procedural_memory.py - 절차적 메모리
+
+       class ProceduralMemory:
+           """
+           과거 경험으로부터 학습
+           
+           Data Structure:
+           Trajectory = {
+               "id": "traj_1",
+               "task_type": "compile_verilog",
+               "task_description": "사용자 요청",
+               "actions": [
+                   {"tool": "read_file", "args": "...", "result": "success", "observation": "..."},
+                   ...
+               ],
+               "outcome": "success",
+               "iterations": 5
+           }
+           
+           Workflow:
+           1. Build: 새로운 경험 저장
+           2. Retrieve: 유사한 과거 경험 검색 (임베딩 기반)
+           3. Update: 실패 반영 및 개선
+           """
+
+       5.7 memory.py - 선언적 메모리
+
+       class MemorySystem:
+           """
+           사용자 선호도 및 프로젝트 컨텍스트 저장
+           
+           저장소:
+           - ~/.brian_memory/preferences.json
+           - ~/.brian_memory/project_context.json
+           
+           자동 추출:
+           - auto_extract_and_update(): 사용자 입력에서 자동 학습
+           """
+
+       5.8 sub_agents/orchestrator.py - 서브-에이전트 시스템
+
+       class Orchestrator:
+           """
+           작업 유형 분석 → 에이전트 선택 → 결과 통합
+           
+           Registration:
+           1. ExploreAgent - 정보 수집 (검색, 분석, 패턴 발견)
+           2. PlanAgent - 사양 작성 (아키텍처, 인터페이스)
+           3. ExecuteAgent - 코드 작성 (유일한 작성 권한)
+           4. CodeReviewAgent - 품질 검사
+           
+           Execution Flow:
+           1. _analyze_and_plan() - TaskAnalyzer LLM 호출
+           2. _enrich_context() - 메모리에서 관련 컨텍스트 검색
+           3. _execute_pipeline() - 병렬/순차 실행
+           4. _integrate_results() - 결과 통합
+           5. _update_memory() - 메모리 업데이트
+           """
+
+       ---
+       6. 도구 선택 메커니즘의 상세 분석
+
+       6.1 자동 도구 선택이 작동하는 방식
+
+       [사용자 요청]
+           │
+           ▼
+       [시스템 프롬프트 주입]
+         └─ 사용 가능한 도구 목록 (SYSTEM_PROMPT)
+         └─ 이전 메모리/그래프/절차적 가이드
+         └─ 현재 컨텍스트
+           │
+           ▼
+       [LLM이 도구 선택]
+         └─ Thought: 다음 단계 추론
+         └─ Action: Tool(arguments)  ← LLM이 자동으로 도구 선택!
+           │
+           ▼
+       [파싱 엔진]
+         └─ parse_all_actions()
+         └─ 정규식: r"Action:\s*(\w+)\("
+         └─ 중괄호 매칭으로 인자 추출
+           │
+           ▼
+       [도구 검증 및 실행]
+         └─ tool_name in AVAILABLE_TOOLS 확인
+         └─ parse_tool_arguments() - 안전한 인자 파싱
+         └─ func(*args, **kwargs) 실행
+           │
+           ▼
+       [옵저베이션 반환]
+         └─ 결과를 메시지에 추가
+         └─ 루프 계속
+
+       6.2 도구 레지스트리 (tools.AVAILABLE_TOOLS)
+
+       AVAILABLE_TOOLS = {
+           # 파일 도구
+           "read_file": read_file,
+           "write_file": write_file,
+           "replace_in_file": replace_in_file,
+           "replace_lines": replace_lines,
+
+           # 검색 도구
+           "grep_file": grep_file,
+           "find_files": find_files,
+           "read_lines": read_lines,
+
+           # 시스템 도구
+           "run_command": run_command,
+           "list_dir": list_dir,
+
+           # 계획 도구
+           "create_plan": create_plan,
+           "get_plan": get_plan,
+           "mark_step_done": mark_step_done,
+
+           # Git 도구
+           "git_status": git_status,
+           "git_diff": git_diff,
+
+           # RAG 도구
+           "rag_search": rag_search,
+           "rag_index": rag_index,
+           "rag_status": rag_status,
+
+           # 서브-에이전트 도구
+           "spawn_explore": spawn_explore,
+           "spawn_plan": spawn_plan,
+
+           # Verilog 도구 (플러그인)
+           "analyze_verilog_module": analyze_verilog_module,
+           "find_signal_usage": find_signal_usage,
+           ...
+       }
+
+       # 동적 도구 확장 (플러그인 시스템)
+       if config.ENABLE_VERILOG_TOOLS:
+           tools.AVAILABLE_TOOLS.update(tools_verilog.VERILOG_TOOLS)
+
+       6.3 인자 안전 파싱 (parse_tool_arguments)
+
+       # 지원하는 포맷
+       파일 = "my file.txt"          # 문자열 (큰따옴표)
+       파일 = 'config.json'          # 문자열 (작은따옴표)
+       경로 = """multi-line
+       content"""                     # 삼중 인용부호
+       숫자 = 42 또는 3.14           # 숫자
+       표현식 = some_identifier      # 식별자
+
+       # 변환 과정
+       "pattern=\"error.*\", path=\"./src\""
+           ↓
+       parse_tool_arguments()
+           ↓
+       kwargs = {
+           "pattern": "error.*",
+           "path": "./src"
+       }
+
+       6.4 에러 처리 및 회복
+
+       # 연속 에러 감지
+       MAX_CONSECUTIVE_ERRORS = 3
+
+       if observation == last_error_observation:
+           consecutive_errors += 1
+           if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+               # 강제 종료 및 사용자 도움 요청
+               break
+
+       # 에러 분류
+       if is_error in tool_result:
+           # Procedural Memory에 기록
+           action_obj = Action(
+               tool=tool_name,
+               args=args_str[:100],
+               result="error",  # ← 실패 기록
+               observation=observation[:200]
+           )
+           actions_taken.append(action_obj)
+
+       ---
+       7. 메모리 및 학습 시스템
+
+       7.1 메모리 스택
+
+       [선언적 메모리 (Declarative)]
+         - 사용자 선호도 (이름 규칙, 스타일 등)
+         - 프로젝트 컨텍스트
+         └─ 저장소: ~/.brian_memory/preferences.json
+
+       [지식 그래프 (Semantic)]
+         - 엔티티, 관계, 커뮤니티
+         - 자동 링킹 (A-MEM)
+         - ACE 신용 추적
+         └─ 저장소: ~/.brian_memory/graph.json
+
+       [절차적 메모리 (Procedural)]
+         - 과거 경험 (Trajectories)
+         - 성공/실패 패턴
+         - 도구 사용 순서
+         └─ 저장소: ~/.brian_memory/trajectories.json
+
+       7.2 컨텍스트 주입 흐름
+
+       def build_system_prompt(messages=None):
+           """
+           기본 프롬프트 + 컨텍스트 주입
+           """
+           base_prompt = config.SYSTEM_PROMPT
+
+           # 1단계: 선언적 메모리
+           if memory_system:
+               context_parts.append(memory_system.format_all_for_prompt())
+
+           # 2단계: 절차적 메모리 (유사 경험)
+           if procedural_memory and messages:
+               current_task = 마지막_사용자_메시지
+               similar_trajs = procedural_memory.retrieve(current_task, limit=3)
+               context_parts.append(포맷_경험_가이드(similar_trajs))
+
+           # 3단계: 지식 그래프 (의미 검색)
+           if graph_lite and messages:
+               recent_topic = 마지막_사용자_메시지
+               relevant_nodes = graph_lite.graph_rag_search(recent_topic, hop=1)
+               context_parts.append(포맷_그래프_컨텍스트(relevant_nodes))
+
+           # 4단계: Smart RAG (코드/스펙 검색)
+           if config.ENABLE_SMART_RAG:
+               should_use, rag_results = smart_rag.decide(query)
+               if should_use:
+                   context_parts.append(rag_결과_포맷)
+
+           # 통합
+           return base_prompt + "\n\n" + "\n\n".join(context_parts)
+
+       ---
+       8. Sub-Agent 시스템 상세 동작
+
+       8.1 Orchestrator 파이프라인
+
+       [작업 수신]
+         "Verilog AXI 모듈 설계해주세요"
+         │
+         ▼
+       [Step 1: 분석 및 계획]
+         TaskAnalyzer LLM
+         → 작업 유형: "verilog_design"
+         → 복잡도: 8/10
+         → 필요 에이전트: ["explore", "plan", "execute", "review"]
+         → 실행 모드: "sequential" (의존성 있음)
+         │
+         ▼
+       [Step 2: 컨텍스트 강화]
+         메모리 검색:
+         - ProceduralMemory: 유사한 설계 경험
+         - GraphLite: Verilog AXI 관련 지식
+         → enriched_context 생성
+         │
+         ▼
+       [Step 3: 파이프라인 실행]
+
+         [explore_agent] → 정보 수집
+         └─ 기존 AXI 모듈 검색
+         └─ 스펙 문서 찾기
+         └─ 관례 분석
+         
+         [plan_agent] → 설계 사양 작성
+         └─ 입력/출력 시그널 정의
+         └─ 상태 머신 설명
+         └─ 검증 전략
+
+         [execute_agent] → 코드 작성 (유일!)
+         └─ axi_module.v 작성
+         └─ testbench 작성
+         └─ 시뮬레이션 실행
+
+         [review_agent] → 품질 검사
+         └─ 문법 검증
+         └─ 모범 사례 확인
+         
+         │
+         ▼
+       [Step 4: 결과 통합]
+         모든 결과를 시스템 프롬프트에 주입
+         → main ReAct 루프에 계속
+         │
+         ▼
+       [Step 5: 메모리 업데이트]
+         Trajectory 저장:
+         - 작업: "verilog_design"
+         - 액션: explore_agent, plan_agent, execute_agent, review_agent
+         - 결과: success (품질 체크 통과)
+
+       8.2 에이전트별 역할 분리
+
+       ┌─────────────────────────────────────────────────────┐
+       │ ExploreAgent - 정보 수집 (NO CODE GENERATION)      │
+       ├─────────────────────────────────────────────────────┤
+       │ ✓ 파일 검색 및 분석                                │
+       │ ✓ 패턴 및 관례 발견                                │
+       │ ✓ 의존성 추적                                      │
+       │ ✗ 코드 생성 금지                                   │
+       │ 출력: 정보 리스트, 발견 사항                        │
+       └─────────────────────────────────────────────────────┘
+
+       ┌─────────────────────────────────────────────────────┐
+       │ PlanAgent - 설계 사양 (NO CODE GENERATION)        │
+       ├─────────────────────────────────────────────────────┤
+       │ ✓ 아키텍처 설명                                    │
+       │ ✓ 인터페이스 정의                                  │
+       │ ✓ 검증 전략                                        │
+       │ ✗ 실제 코드 작성 금지                              │
+       │ 출력: 텍스트 설계 문서                              │
+       └─────────────────────────────────────────────────────┘
+
+       ┌─────────────────────────────────────────────────────┐
+       │ ExecuteAgent - 구현 (ONLY CODE WRITER)            │
+       ├─────────────────────────────────────────────────────┤
+       │ ✓ 파일 생성                                        │
+       │ ✓ 코드 작성                                        │
+       │ ✓ 시뮬레이션 실행                                  │
+       │ ✓ 테스트 통과 검증                                 │
+       │ 출력: 실제 코드 파일, 테스트 결과                  │
+       └─────────────────────────────────────────────────────┘
+
+       ┌─────────────────────────────────────────────────────┐
+       │ CodeReviewAgent - 품질 검사                        │
+       ├─────────────────────────────────────────────────────┤
+       │ ✓ 코드 검토                                        │
+       │ ✓ 버그 감지                                        │
+       │ ✓ 성능 제안                                        │
+       │ ✓ 개선 사항 제안                                   │
+       │ 출력: 검토 결과, 개선 사항 리스트                  │
+       └─────────────────────────────────────────────────────┘
+
+       ---
+       9. 컨텍스트 관리 및 압축
+
+       9.1 압축 전략
+
+       [Context Size Check]
+         current_tokens = estimate_message_tokens(messages)
+         threshold_tokens = max_limit * 0.8  (80%)
+         │
+         ├─ current < threshold
+         │   └─ 압축 불필요 → 계속 진행
+         │
+         └─ current >= threshold
+             └─ 압축 필요!
+             
+             ├─ SMART_COMPRESSION 활성화?
+             │   ├─ Yes: 메시지 분류 (critical/high/medium/low)
+             │   │   └─ critical/high 보존, medium/low 요약
+             │   └─ No: 전통적 압축
+             │
+             └─ 압축 모드
+                 ├─ "single": 모든 기존 메시지를 한 번에 요약
+                 └─ "chunked": 청크 단위로 요약 (더 나은 품질)
+
+       9.2 Smart Compression (선택적)
+
+       # 메시지 분류 기준
+       분류 = message_classifier.partition_by_importance(messages)
+
+       CRITICAL: 시스템 메시지, 에러 해결책
+       HIGH: 사용자 선호도, 설계 결정
+       MEDIUM: 일반 대화, 설명
+       LOW: 반복, 중복 정보
+
+       # 처리
+       보존 = CRITICAL + HIGH + RECENT(4)
+       요약 = MEDIUM + LOW
+
+       ---
+       10. 플러그인 시스템 (Verilog Tools)
+
+       10.1 동적 도구 로딩
+
+       # main.py에서
+       if config.ENABLE_VERILOG_TOOLS:
+           try:
+               from core import tools_verilog
+               tools.AVAILABLE_TOOLS.update(tools_verilog.VERILOG_TOOLS)
+               print("[System] Verilog tools plugin loaded")
+           except ImportError as e:
+               print(f"[System] Failed to load Verilog tools: {e}")
+
+       10.2 사용 가능한 Verilog 도구
+
+       1. analyze_verilog_module(path, deep=False)
+          - 모듈 포트, 신호, FSM 분석
+
+       2. find_signal_usage(directory, signal_name)
+          - 신호 사용 위치 추적
+          
+       3. find_module_definition(module_name, directory)
+          - 모듈 정의 찾기
+
+       4. extract_module_hierarchy(top_module, directory)
+          - 계층 구조 추출
+          
+       5. generate_module_testbench(path, tb_type)
+          - 테스트벤치 자동 생성
+
+       6. find_potential_issues(path)
+          - 잠재적 버그 감지
+
+       7. analyze_timing_paths(path)
+          - 타이밍 경로 분석
+
+       ---
+       11. 실행 흐름 예시
+
+       11.1 사용자 요청 처리 흐름
+
+       사용자: "PCIe AXI 브리지 설계해주세요"
+       │
+       ▼
+       [메시지 추가]
+       messages.append({"role": "user", "content": "..."})
+       │
+       ▼
+       [ReAct 루프 시작]
+       run_react_agent(messages, tracker, task_description, mode='interactive')
+       │
+       ▼
+       [Deep Think 또는 Sub-Agent 실행 (선택)]
+       if ENABLE_SUB_AGENTS:
+           orchestrator.run(task=task_description, context=context)
+           → Explore → Plan → Execute → Review
+           → 결과를 시스템 프롬프트에 주입
+       │
+       ▼
+       [반복: 최대 100번]
+       while True:
+           # 컨텍스트 압축 (필요시)
+           messages = compress_history(messages)
+
+           # RAG 컨텍스트 주입 (Smart RAG)
+           system_prompt = build_system_prompt(messages)
+           messages[0]["content"] = system_prompt
+
+           # LLM 호출
+           response = chat_completion_stream(messages)
+           # → "Thought: ... Action: analyze_verilog_module(path='axi_bridge.v')"
+
+           # 액션 파싱
+           actions = parse_all_actions(response)
+           # → [("analyze_verilog_module", "path='axi_bridge.v'")]
+
+           # 도구 실행
+           for tool_name, args_str in actions:
+               observation = execute_tool(tool_name, args_str)
+               # → "[Module Analysis] ..."
+
+               # 옵저베이션 추가
+               messages = process_observation(observation, messages)
+
+           # 완료 검사
+           if detect_completion_signal(response):
+               break  # 완료 신호 감지 → 루프 종료
+       │
+       ▼
+       [메모리 업데이트]
+       # 절차적 메모리에 경험 저장
+       save_procedural_trajectory(
+           task_description="PCIe AXI 브리지 설계",
+           actions_taken=actions_list,
+           outcome="success",
+           iterations=tracker.current
+       )
+
+       # 지식 그래프에 새로운 노드 추가
+       on_conversation_end(messages)
+
+       # 토큰 기반 신용 추적 (ACE)
+       if graph_lite and referenced_node_ids:
+           graph_lite.update_node_credits(referenced_node_ids, 'helpful')
+       │
+       ▼
+       [대화 완료]
+       save_conversation_history(messages)
+
+       ---
+       12. 요약: 아키텍처 핵심 특징
+
+       | 특징                     | 설명                                                          |
+       |--------------------------|---------------------------------------------------------------|
+       | 자율적 도구 선택         | LLM이 Action으로 도구명과 인자 지정, ReAct 루프가 자동 실행   |
+       | 멀티-메모리 시스템       | 선언적(선호도) + 의미적(그래프) + 절차적(경험) 메모리 통합    |
+       | Sub-Agent 오케스트레이션 | 작업 분석 후 explore→plan→execute→review 파이프라인 자동 실행 |
+       | Smart RAG                | 임계값 기반 자동 RAG 사용 결정 (LLM 판정 옵션)                |
+       | 컨텍스트 압축            | Smart/Traditional 모드로 히스토리 자동 관리                   |
+       | 에러 회복                | 연속 에러 감지 및 자동 종료 방지                              |
+       | 플러그인 시스템          | Verilog 도구 등 동적 도구 확장                                |
+       | 프롬프트 캐싱            | Anthropic API 지원으로 비용 90% 절감                          |
+       | Zero-Dependency          | urllib만 사용, 외부 라이브러리 없음                           |
+
+       ---
+       13. 주요 설정 플래그
+
+       # 핵심 제어
+       ENABLE_DEEP_THINK = True         # 깊은 사고 (레거시)
+       ENABLE_SUB_AGENTS = False        # 서브-에이전트 (신규)
+       ENABLE_COMPRESSION = True         # 컨텍스트 압축
+       ENABLE_SMART_COMPRESSION = True   # 지능형 선택적 압축
+
+       # 메모리 시스템
+       ENABLE_MEMORY = True              # 선언적 메모리
+       ENABLE_GRAPH = True               # 지식 그래프
+       ENABLE_PROCEDURAL_MEMORY = True   # 절차적 메모리
+       ENABLE_CURATOR = True             # 그래프 정리
+
+       # RAG 시스템
+       ENABLE_RAG_AUTO_INDEX = True      # 자동 인덱싱
+       ENABLE_SMART_RAG = True           # 스마트 RAG 결정
+
+       # 디버그
+       DEBUG_MODE = False                # 상세 로그
+       DEBUG_SUBAGENT = False            # 서브-에이전트 로그
+
+       이것이 Brian_Coder 프로젝트의 완전한 아키텍처 분석입니다! 추가 질문이 있으시면 말씀해주세요.
+  ⎿  Done (14 tool uses · 90.0k tokens · 1m 38s)
+
+∴ Thinking…
+
+  와, 이 Explore agent가 정말 상세하게 분석했네요. brian_coder 프로젝트의 전체 아키텍처를 정리했습니다.
+
+  사용자가 원하는 것은: Claude Code처럼 자율적으로 도구를 선택해서 실행하는 방식을 brian_coder에 이식하고 싶다는 것입니다.
+
+  보니까 brian_coder는 이미 그런 시스템을 가지고 있네요:
+  1. ReAct 루프 (반복적 사고-행동-관찰)
+  2. 자동 도구 선택 (LLM이 Action으로 도구 지정)
+  3. Smart RAG, Deep Think 등의 다양한 기능들
+  4. Sub-Agent 시스템 (Orchestrator로 다양한 에이전트 오케스트레이션)
+
+  사용자의 요청을 이해해보면:
+  - Claude Code가 하는 방식 (자율적 도구 선택)을 brian_coder에 이식하고 싶다
+  - 근데 이미 brian_coder가 그걸 하고 있다!
+
+  아, 사용자가 원하는 것은 아마:
+  1. 현재 brian_coder의 이런 기능들이 제대로 작동하는지 확인
+  2. 더 효율적으로 만들기
+  3. 새로운 기능 추가
+  4. 코드 리팩토링
+
+  지금 git status를 보면:
+  - 여러 파일이 수정됨
+
+  - smart_rag.py와 테스트 파일들이 새로 추가되었고 아직 커밋되지 않았음
+
+  프로젝트 발전 상황을 고려하면, 구체적인 방향성을 명확히 해야겠습니다. 현재 진행 상황과 앞으로의 계획에 대해 더 자세히 알아봐야겠네요.
+
+⏺ 좋습니다! 이제 구조가 보이네요. 현재 brian_coder는 이미 Claude Code와 유사한 자율적 도구 선택 시스템을 갖추고 있습니다:
+
+  현재 시스템의 핵심 특징:
+
+  ✅ ReAct 루프 - LLM이 Thought + Action으로 도구를 자동 선택
+  ✅ 도구 레지스트리 - AVAILABLE_TOOLS 딕셔너리로 관리
+  ✅ 자동 액션 파싱 - LLM 응답에서 Action: tool_name(args) 자동 추출
+  ✅ Smart RAG - 필요할 때만 RAG 사용 결정
+  ✅ Sub-Agent 시스템 - Orchestrator로 explore→plan→execute→review 파이프라인
+  ✅ 멀티-메모리 - 선언적/의미적/절차적 메모리 통합
+
+  ---
+  그런데 현재 git status를 보니 아직 커밋 안 한 변경사항들이 있습니다:
+
+  M brian_coder/.env.example
+  M brian_coder/core/graph_lite.py
+  M brian_coder/lib/deep_think.py
+  M brian_coder/src/config.py
+  M brian_coder/src/llm_client.py
+  M brian_coder/src/main.py
+  M brian_coder/tests/README.md
+  ?? brian_coder/core/smart_rag.py
+  ?? brian_coder/tests/test_integration/test_memory_*.py
+
+  제가 도와드릴 수 있는 것:
+
+  1. 현재 수정 내용을 검토하고 커밋하기
+  2. brian_coder의 자율적 도구 선택 시스템을 더 효율적으로 개선하기
+  3. 새로운 기능 추가 (예: Claude Code 스타일의 더 똑똑한 도구 선택)
+  4. 테스트 통과 확인 및 버그 수정
+
+  뭘 먼저 해주길 원하세요?
+
+> claude code 스타일의 새로운 기능 추가 
+
+∴ Thinking…
+
+  사용자가 "claude code 스타일의 새로운 기능 추가"를 요청했습니다. 이것은 매우 광범위하고 모호한 요청입니다. Plan mode가 활성화되어 있으므로, 저는 먼저 사용자의 의도를 명확히 파악해야 합니다.
+
+  현재까지 대화에서 파악한 내용:
+  1. 사용자는 brian_coder 프로젝트를 만들었음
+  2. Claude Code처럼 자율적으로 도구를 선택하는 시스템을 원함
+  3. "니가 스스로를 실행시키는 방식을 이식하고 싶어"라고 했음
+
+  하지만 "claude code 스타일의 새로운 기능 추가"는 구체적이지 않습니다. 어떤 기능을 추가하고 싶은지 먼저 물어봐야 합니다.
+
+  Plan mode workflow를 따르면:
+  - Phase 1: Initial Understanding - 사용자 요청 이해 및 코드 탐색
+  - 하지만 지금은 요청 자체가 불명확하므로, 먼저 AskUserQuestion으로 명확히 해야 합니다.
+
+  사용자에게 물어봐야 할 것:
+  1. Claude Code의 어떤 기능을 추가하고 싶은가?
+    - 병렬 도구 실행?
+    - TodoWrite 같은 작업 추적?
+    - 더 스마트한 도구 선택?
+    - Plan mode 같은 계획 수립 단계?
+    - 다른 특정 기능?
+  2. brian_coder의 어떤 부분을 개선하고 싶은가?
+
+  구체적인 요구사항을 파악하기 위해 사용자와 직접 소통하는 것이 중요합니다. 모호한 요청을 명확히 하고 정확한 방향을 설정해야 합니다.
+
+⏺ 사용자님, "Claude Code 스타일의 새로운 기능"이 구체적으로 무엇을 의미하는지 명확히 하고 싶습니다.
+
+  제가 대화 초반에 Claude Code의 작동 방식을 설명했을 때, 여러 특징들이 있었는데요. brian_coder에 어떤 특정 기능을 추가하고 싶으신가요?
+                                                                                                                              
+⏺ User answered Claude's questions:
+  ⎿  · Claude Code의 어떤 기능을 brian_coder에 추가하고 싶으신가요? → 니가 방금 실행한 과정. explore 처럼여러 명령 쓰는 과정. 
+
+∴ Thinking…
+
+  아! 사용자가 명확히 했습니다. "니가 방금 실행한 과정. explore 처럼 여러 명령 쓰는 과정"이라고 했으니, 이것은:
+
+  1. Task tool을 사용하여 Explore subagent를 실행하는 기능
+  2. 여러 명령을 병렬로 실행하는 기능
+
+  즉, brian_coder에 Claude Code의 Task tool과 subagent 시스템을 추가하고 싶다는 것 같습니다.
+
+  하지만 잠깐, brian_coder는 이미 sub_agents 시스템이 있습니다! Orchestrator, ExploreAgent, PlanAgent, ExecuteAgent, CodeReviewAgent 등이 있습니다.
+
+  그렇다면:
+  - 현재 brian_coder의 sub-agent 시스템은 어떻게 작동하는가?
+  - Claude Code의 Task tool 방식과 어떻게 다른가?
+  - 사용자는 구체적으로 무엇을 원하는가?
+
+  Phase 1: Initial Understanding을 시작해야 합니다.
+
+  1. 현재 brian_coder의 sub-agent 시스템 코드를 탐색
+  2. Claude Code의 Task tool 방식과 비교
+  3. 사용자에게 추가 질문
+
+  Explore agent를 병렬로 실행해야 합니다. 하지만 이미 한 agent가 전체 프로젝트를 탐색했으니, 이번에는 더 구체적으로:
+  - Agent 1: brian_coder의 현재 sub-agent 구현 (orchestrator.py, base_agent.py 등)
+
+  - Agent 2: main.py에서 sub-agent 호출 방식을 직접 확인하겠습니다. 파일을 읽어 시스템 구조를 빠르게 파악할 수 있을 것 같습니다.
+
+⏺ 아하! "여러 명령을 병렬로 실행하는 과정"을 원하시는군요. 제가 방금 Task tool로 Explore agent를 실행한 것처럼요.
+
+  그런데 흥미롭게도, brian_coder는 이미 sub-agent 시스템이 있습니다! 현재 구현과 Claude Code 방식의 차이점을 파악해보겠습니다.
+
+⏺ Read(brian_coder/sub_agents/orchestrator.py)
+  ⎿  Error: File does not exist.
+
+⏺ Read(brian_coder/sub_agents/base_agent.py)
+  ⎿  Error: File does not exist.
+
+⏺ Read(brian_coder/src/main.py · lines 1-100)
+  ⎿  Read 100 lines
+
+∴ Thinking…
+
+  흠, sub_agents 폴더가 없는 것 같습니다. main.py 39번 라인에서 from sub_agents import Orchestrator를 임포트하려고 하는데 파일이 없네요.
+
+  brian_coder의 실제 구조를 확인해야겠습니다.
+
+⏺ Bash(find /Users/brian/Desktop/Project/brian_hw/brian_coder -type f -name "*.py" | head -30)
+  ⎿  /Users/brian/Desktop/Project/brian_hw/brian_coder/core/graph_lite.py                                   
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/core/tools.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/core/rag_db.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/core/smart_rag.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/core/tools_verilog.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_procedural.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_pcie_spec_code.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_subagent_deep.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_critical_issues.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_agent_pipeline.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_llm_tool_use.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_subagent_pipeline.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/__init__.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_deep_think_pipeline.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_in_context.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_smart_rag_flow.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_user_experience.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_tool_call_flow.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_memory_works.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_rag_graph.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_verilog_rag.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/conftest.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_agents/__init__.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_agents/test_sub_agents.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_llm_api.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_embedding_model.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_performance.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_smart_rag.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/__init__.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_graph_lite.py
+
+⏺ Bash(ls -la /Users/brian/Desktop/Project/brian_hw/brian_coder/)
+  ⎿  total 320                                                               
+     drwxr-xr-x@ 23 brian  staff    736 12 11 21:46 .
+     drwxr-xr-x@ 22 brian  staff    704 12 11 20:52 ..
+     drwxr-xr-x@  2 brian  staff     64 12 10 06:08 .benchmarks
+     drwx------@  3 brian  staff     96 12  5 21:53 .claude
+     -rw-r--r--@  1 brian  staff  53248 12 11 20:14 .coverage
+     -rw-------@  1 brian  staff  18166 12 10 06:23 .env
+     -rw-------@  1 brian  staff  18953 12 11 20:34 .env.example
+     -rw-------@  1 brian  staff    267 12 10 05:50 .gitignore
+     drwxr-xr-x@  6 brian  staff    192 12 10 06:08 .pytest_cache
+     drwxr-xr-x@  3 brian  staff     96 12 10 05:49 agents
+     -rw-r--r--@  1 brian  staff  28451 12 11 21:53 conversation_history.json
+     drwxr-xr-x@  7 brian  staff    224 12 11 20:30 core
+     -rw-r--r--   1 brian  staff    736 12 11 20:05 counter_4bit_tb.v
+     -rw-r--r--   1 brian  staff    229 12 11 20:05 counter_4bit.v
+     drwxr-xr-x@  8 brian  staff    256 12 10 05:50 docs
+     drwxr-xr-x@ 32 brian  staff   1024 12 11 20:10 htmlcov
+     drwxr-xr-x@  9 brian  staff    288 12 10 05:49 lib
+     -rw-------@  1 brian  staff   9104 12 11 21:02 MEMORY_ISSUES_REPORT.md
+     -rwxr-xr-x@  1 brian  staff    495 12 11 08:47 run_tests_ci.sh
+     -rwxr-xr-x@  1 brian  staff   5363 12 11 20:09 run_tests.sh
+     -rwxr-xr-x@  1 brian  staff   2433 12 11 20:05 sim
+     drwxr-xr-x@  5 brian  staff    160 12 10 06:10 src
+     drwxr-xr-x@ 19 brian  staff    608 12 11 20:59 tests
+
+∴ Thinking…
+
+  agents 폴더가 있네요! sub_agents가 아니라 agents입니다. 확인해보겠습니다.
+
+⏺ Bash(ls -la /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/)
+  ⎿  total 0                                                
+     drwxr-xr-x@  3 brian  staff   96 12 10 05:49 .
+     drwxr-xr-x@ 23 brian  staff  736 12 11 21:46 ..
+     drwxr-xr-x@  9 brian  staff  288 12 10 05:49 sub_agents
+
+⏺ Bash(find /Users/brian/Desktop/Project/brian_hw/brian_coder/agents -name "*.py")
+  ⎿  /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/execute_agent.py    
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/__init__.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/plan_agent.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/orchestrator.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/code_review_agent.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/explore_agent.py
+     /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/base.py
+
+∴ Thinking…
+
+  아하! agents/sub_agents/ 경로에 있습니다. 이제 이 파일들을 읽어서 현재 구현을 확인해야겠습니다.
+
+  Phase 1: Initial Understanding을 진행하겠습니다. Explore agent를 여러 개 병렬로 실행하라고 했지만, 사실 파일 경로를 이미 알고 있으므로 직접 읽는 게 더 효율적일 것 같습니다.
+
+  하지만 plan mode workflow에 따르면 "Explore agents를 병렬로 실행"하라고 했으니, 그대로 따르는 게 좋겠습니다. 하지만 이 경우에는:
+  1. 이미 전체 아키텍처를 파악했음
+  2. 구체적인 파일 경로를 알고 있음
+  3. 사용자 요청이 명확함 ("여러 명령 병렬로 실행하는 기능 추가")
+
+  따라서 직접 파일을 읽는 게 더 효율적일 것 같습니다. Agent를 사용하는 것은 불확실한 경우에 유용하지만, 지금은 명확한 상황입니다.
+
+  주요 파일들을 읽어보겠습니다:
+  1. orchestrator.py - 현재 어떻게 작동하는지
+  2. base.py - 베이스 에이전트 클래스
+  3. explore_agent.py - 탐색 에이전트 구현
+  4. main.py의 sub-agent 호출 부분
+
+⏺ Read(brian_coder/agents/sub_agents/orchestrator.py)
+  ⎿  Read 562 lines
+
+⏺ Read(brian_coder/agents/sub_agents/base.py)
+  ⎿  Read 769 lines
+
+⏺ Read(brian_coder/agents/sub_agents/explore_agent.py)
+  ⎿  Read 102 lines
+
+∴ Thinking…
+
+  완벽합니다! 이제 현재 구현을 이해했습니다. brian_coder는 이미 sub-agent 시스템을 가지고 있고, orchestrator가 병렬 실행 기능도 가지고 있습니다!
+
+  핵심 발견:1. Orchestrator.py (321-367줄): _execute_parallel() 메소드가 ThreadPoolExecutor로 병렬 실행을 구현함
+  2. 병렬 실행 플래그: parallel_enabled 파라미터로 제어 (기본값: False)
+  3. 현재 문제: 병렬 실행이 기본적으로 비활성화되어 있음
+
+  사용자가 원하는 것은:- Claude Code처럼 여러 에이전트를 동시에 실행하는 기능
+  - 이미 구현은 되어 있지만, 기본적으로 꺼져 있음!
+
+  하지만 사용자가 정확히 무엇을 원하는지 더 명확히 해야 합니다:1. 단순히 병렬 실행을 활성화?
+  2. 아니면 Claude Code처럼 Task tool을 사용하는 방식으로 변경?
+  3. 아니면 더 스마트한 병렬 도구 호출 (ReAct 루프 내에서)?main.py에서 sub-agent가 어떻게 호출되는지 확인해봐야겠습니다.
+
+⏺ 완벽합니다! 이제 현재 상태가 보이네요. brian_coder는 이미 병렬 실행 기능이 구현되어 있습니다!
+
+⏺ Search(pattern: "parallel_enabled|ENABLE_SUB_AGENTS", path: "/Users/brian/Desktop/Project/brian_hw/brian_coder", output_mode: "content")
+  ⎿  Found 16 lines                                                                                                             
+     brian_coder/src/main.py:34:if config.ENABLE_DEEP_THINK and not config.ENABLE_SUB_AGENTS:
+     brian_coder/src/main.py:38:if config.ENABLE_SUB_AGENTS:
+     brian_coder/src/main.py:108:if config.ENABLE_SUB_AGENTS:
+     brian_coder/src/main.py:117:            parallel_enabled=config.SUB_AGENT_PARALLEL_ENABLED,
+     brian_coder/src/main.py:1136:    if config.ENABLE_SUB_AGENTS and orchestrator:
+     brian_coder/src/main.py:1185:    elif config.ENABLE_DEEP_THINK and not config.ENABLE_SUB_AGENTS:
+     brian_coder/src/config.py:330:ENABLE_SUB_AGENTS = os.getenv("ENABLE_SUB_AGENTS", "false").lower() in ("true", "1", "yes")
+     brian_coder/.env.example:398:ENABLE_SUB_AGENTS=false
+     brian_coder/tests/test_sub_agents.py:24:    print(f"ENABLE_SUB_AGENTS: {config.ENABLE_SUB_AGENTS}")
+     brian_coder/tests/test_sub_agents.py:30:    if not config.ENABLE_SUB_AGENTS:
+     brian_coder/tests/test_sub_agents.py:31:        print("❌ ENABLE_SUB_AGENTS is False. Please set it to True in .env file.")
+     brian_coder/tests/test_integration/test_agent_pipeline.py:396:            "ENABLE_SUB_AGENTS": config.ENABLE_SUB_AGENTS,
+     brian_coder/agents/sub_agents/orchestrator.py:49:        parallel_enabled: bool = False,
+     brian_coder/agents/sub_agents/orchestrator.py:59:            parallel_enabled: 병렬 실행 활성화 여부 (기본: False)
+     brian_coder/agents/sub_agents/orchestrator.py:67:        self.parallel_enabled = parallel_enabled
+     brian_coder/agents/sub_agents/orchestrator.py:295:                self.parallel_enabled and
+
+⏺ Read(brian_coder/src/main.py · lines 600-699)
+  ⎿  Read 100 lines
+
+∴ Thinking…
+
+  중요한 발견:
+
+  1. config.SUB_AGENT_PARALLEL_ENABLED 설정이 main.py 117줄에서 사용됨
+  2. .env.example에서 ENABLE_SUB_AGENTS=false로 기본 비활성화
+
+  config.py를 확인해야 SUB_AGENT_PARALLEL_ENABLED 설정을 찾을 수 있습니다.
+
+⏺ Read(brian_coder/src/config.py · lines 320-369)
+  ⎿  Read 50 lines
+
+∴ Thinking…
+
+  완벽합니다! 이제 전체 그림이 보입니다:
+
+  현재 상태:
+  1. ✅ Sub-agent 시스템 이미 구현됨 (explore, plan, execute, review)
+  2. ✅ 병렬 실행 기능 이미 구현됨 (ThreadPoolExecutor 사용)
+  3. ❌ 기본적으로 비활성화:
+    - ENABLE_SUB_AGENTS=false
+    - SUB_AGENT_PARALLEL_ENABLED=false
+
+  사용자가 원하는 것:
+  "니가 방금 실행한 과정. explore 처럼 여러 명령 쓰는 과정"
+
+  이것은 두 가지 의미일 수 있습니다:
+  1. Sub-agent를 활성화하고 병렬로 실행하게 만들기
+  2. 또는 Claude Code의 Task tool처럼 직접 호출 가능하게 만들기
+
+  하지만 brian_coder의 현재 구조에서는 Sub-agent가 자동으로 실행됩니다 (Orchestrator가 작업 분석 후 자동 선택).
+
+  Claude Code는 다릅니다:
+  - 명시적으로 Task tool을 호출
+  - 에이전트를 직접 선택
+
+  사용자에게 확인이 필요합니다. 어떤 방식을 원하는지 물어봐야겠습니다.
+
+⏺ 완벽합니다! 현재 상황을 파악했습니다.
+
+  발견 사항:
+  - brian_coder는 이미 병렬 실행 sub-agent 시스템이 구현되어 있습니다!
+  - Orchestrator가 ThreadPoolExecutor로 병렬 실행을 지원합니다
+  - 하지만 기본적으로 비활성화되어 있습니다:
+    - ENABLE_SUB_AGENTS=false
+    - SUB_AGENT_PARALLEL_ENABLED=false
+
+  이제 사용자님께 중요한 질문이 있습니다:
+                                                                       
+⏺ User answered Claude's questions:
+  ⎿  · brian_coder에 어떤 방식의 병렬 실행을 원하시나요? → 2, 3번 구현 
+
+∴ Thinking…
+
+  사용자가 "2, 3번 구현"을 원합니다:2. Claude Code 스타일 Task tool 추가 - spawn_explore(), spawn_plan() 등의 도구를 ReAct 루프에서 호출 가능
+  3. ReAct 도구 병렬 실행 - read_file, grep 등을 한 번에 여러 개 실행이제 Phase 1: Initial Understanding을 계속하겠습니다. Explore agent를 사용해야 하는데, 이미 주요 파일들을 읽었으니 추가로 확인할 부분:1. 현재 ReAct 루프에서 도구가 
+  어떻게 파싱되고 실행되는지 (main.py)
+  2. 병렬 실행을 위해 필요한 구조 변경 사항
+  3. 테스트 코드 패턴실제로는 이미 충분히 파악했으니 Plan agent를 실행하는 게 나을 것 같습니다. 하지만 workflow에 따르면 먼저 Explore agent를 실행해야 합니다.좀 더 구체적으로 필요한 탐색:
+  1. main.py의 ReAct 루프 코드 (parse_all_actions, execute_tool)
+  2. 현재 도구 실행 방식3. 기존 spawn_explore, spawn_plan 도구가 있는지 확인직접 파일을 읽는 게 더 효율적일 것 같습니다.
+
+⏺ 좋습니다! 2번과 3번을 구현하겠습니다:
+  - 2번: Claude Code 스타일 Task tool (spawn_explore, spawn_plan 등)
+  - 3번: ReAct 도구 병렬 실행 (read_file + grep 동시 실행)
+
+  이제 현재 ReAct 루프 구조를 파악해야 합니다:
+
+⏺ Read(brian_coder/src/main.py · lines 700-899)
+  ⎿  Read 200 lines
+
+∴ Thinking…
+
+  ReAct 루프를 찾아야 합니다. main.py에서 더 아래쪽에 있을 것입니다.
+
+⏺ Search(pattern: "def run_react|parse_all_actions|execute_tool", path: "/Users/brian/Desktop/Project/brian_hw/brian_coder/src/main.py", output_mode: "content", head_limit: 20)
+  ⎿  Found 11 lines                                                                                                         
+     110:        # Note: execute_tool is defined later in this file (line ~374)
+     114:            execute_tool_func=lambda tool_name, args: execute_tool(tool_name, args),
+     190:def parse_all_actions(text):
+     207:        print(f"[DEBUG] parse_all_actions input length: {len(text)}")
+     272:                print(f"[DEBUG] parse_all_actions: Unmatched parentheses for {tool_name}, skipping to next Action")
+     283:        print(f"[DEBUG] parse_all_actions found {len(actions)} actions")
+     392:def execute_tool(tool_name, args_str):
+     1110:def run_react_agent(messages, tracker, task_description, mode='interactive'):
+     1210:                execute_tool_func=execute_tool
+     1319:        actions = parse_all_actions(collected_content)
+     1356:                observation = execute_tool(tool_name, args_str)
+
+∴ Thinking…
+
+  좋습니다! 이제 핵심 함수들의 위치를 찾았습니다:- parse_all_actions() - 190줄
+  - execute_tool() - 392줄
+  - run_react_agent() - 1110줄
+
+  이 세 함수를 읽어서 현재 구조를 파악해야 합니다.
+
+⏺ Read(brian_coder/src/main.py · lines 190-289)
+  ⎿  Read 100 lines
+
+⏺ Read(brian_coder/src/main.py · lines 392-491)
+  ⎿  Read 100 lines
+
+⏺ Read(brian_coder/src/main.py · lines 1110-1259)
+  ⎿  Read 150 lines
+
+∴ Thinking…
+
+  완벽합니다! 이제 ReAct 루프의 핵심 부분을 이해했습니다. 현재 구조를 요약하면:
+
+  현재 ReAct 루프 구조:
+  1. parse_all_actions() - LLM 응답에서 모든 Action을 파싱 (순차적으로 찾음)
+  2. execute_tool() - 각 도구를 하나씩 순차 실행
+  3. run_react_agent() - 메인 ReAct 루프
+
+  사용자가 원하는 기능:
+  1. Task tool 추가 (spawn_explore, spawn_plan 등)
+  2. 도구 병렬 실행 (read_file + grep 동시 실행)
+
+  이제 충분히 탐색했으니, Plan agent를 실행하여 구체적인 구현 계획을 세워야 합니다.
+
+  Phase 2: Design으로 넘어가겠습니다.
+
+⏺ 완벽합니다! 이제 현재 구조를 충분히 파악했습니다.
+
+  핵심 발견:
+  1. parse_all_actions() - 모든 Action을 파싱하지만 순차 실행만 지원
+  2. execute_tool() - 개별 도구를 하나씩 실행
+  3. run_react_agent() - 메인 ReAct 루프 (1110줄)
+  4. Sub-agent 시스템은 있지만 ReAct 루프와 분리되어 자동 실행됨
+
+  이제 Plan agent를 실행하여 구현 계획을 세우겠습니다:
+
+⏺ Plan(병렬 도구 실행 및 Task tool 설계)
+  ⎿  Prompt:                                                                                                                                                                                                                             
+       brian_coder에 다음 두 기능을 추가하는 상세한 구현 계획을 작성해주세요:
+
+       요구사항
+
+       기능 1: Claude Code 스타일 Task Tool 추가
+       - ReAct 루프 내에서 LLM이 직접 spawn_explore(), spawn_plan() 같은 도구를 호출할 수 있게 만들기
+       - 기존 Orchestrator와 통합하되, 명시적 호출 가능하게 개선
+
+       기능 2: ReAct 도구 병렬 실행
+       - LLM이 여러 Action을 한 번에 작성하면 병렬로 실행
+       - 예: Action: read_file(...) + Action: grep_file(...) → 동시 실행
+       - ThreadPoolExecutor 사용
+
+       현재 코드 구조 (참고)
+
+       파일 경로:
+       - brian_coder/src/main.py - ReAct 루프 (run_react_agent: 1110줄, parse_all_actions: 190줄, execute_tool: 392줄)
+       - brian_coder/agents/sub_agents/orchestrator.py - Sub-agent orchestrator (병렬 실행 이미 구현됨)
+       - brian_coder/agents/sub_agents/base.py - SubAgent 기본 클래스
+       - brian_coder/core/tools.py - 도구 레지스트리 (AVAILABLE_TOOLS)
+       - brian_coder/src/config.py - 설정 (SUB_AGENT_PARALLEL_ENABLED: 334줄)
+
+       현재 동작:
+       1. parse_all_actions()가 모든 Action을 리스트로 반환
+       2. for 루프로 각 action을 순차 실행 (main.py 1319줄 이후)
+       3. Sub-agent는 Orchestrator가 자동으로 작업 분석 후 실행 (수동 호출 불가)
+
+       요청
+
+       다음을 포함한 상세한 구현 계획을 작성해주세요:
+
+       1. 아키텍처 설계
+         - spawn_explore() 등의 tool을 어디에 구현할지
+         - 병렬 실행을 어떻게 통합할지 (기존 코드 최소 변경)
+       2. 구체적인 구현 단계
+         - 각 단계별로 수정할 파일과 함수
+         - 코드 변경 위치 (줄 번호)
+         - 주요 로직 설명
+       3. 고려사항
+         - 에러 처리 (병렬 실행 시 하나 실패해도 다른 건 계속)
+         - 의존성 관리 (A 도구 결과가 B에 필요한 경우)
+         - 기존 Sub-agent 시스템과의 충돌 방지
+       4. 테스트 전략
+         - 어떻게 검증할지
+
+       명확하고 실행 가능한 계획을 작성해주세요.
+  ⎿  > brian_coder에 다음 두 기능을 추가하는 상세한 구현 계획을 작성해주세요:
+
+     ## 요구사항
+
+     **기능 1: Claude Code 스타일 Task Tool 추가**
+     - ReAct 루프 내에서 LLM이 직접 spawn_explore(), spawn_plan() 같은 도구를 호출할 수 있게 만들기
+     - 기존 Orchestrator와 통합하되, 명시적 호출 가능하게 개선
+
+     **기능 2: ReAct 도구 병렬 실행**
+     - LLM이 여러 Action을 한 번에 작성하면 병렬로 실행
+     - 예: `Action: read_file(...)` + `Action: grep_file(...)` → 동시 실행
+     - ThreadPoolExecutor 사용
+
+     ## 현재 코드 구조 (참고)
+
+     **파일 경로:**
+     - `brian_coder/src/main.py` - ReAct 루프 (run_react_agent: 1110줄, parse_all_actions: 190줄, execute_tool: 392줄)
+     - `brian_coder/agents/sub_agents/orchestrator.py` - Sub-agent orchestrator (병렬 실행 이미 구현됨)
+     - `brian_coder/agents/sub_agents/base.py` - SubAgent 기본 클래스
+     - `brian_coder/core/tools.py` - 도구 레지스트리 (AVAILABLE_TOOLS)
+     - `brian_coder/src/config.py` - 설정 (SUB_AGENT_PARALLEL_ENABLED: 334줄)
+
+     **현재 동작:**
+     1. parse_all_actions()가 모든 Action을 리스트로 반환
+     2. for 루프로 각 action을 **순차 실행** (main.py 1319줄 이후)
+     3. Sub-agent는 Orchestrator가 자동으로 작업 분석 후 실행 (수동 호출 불가)
+
+     ## 요청
+
+     다음을 포함한 상세한 구현 계획을 작성해주세요:
+
+     1. **아키텍처 설계**
+        - spawn_explore() 등의 tool을 어디에 구현할지
+        - 병렬 실행을 어떻게 통합할지 (기존 코드 최소 변경)
+
+     2. **구체적인 구현 단계**
+        - 각 단계별로 수정할 파일과 함수
+        - 코드 변경 위치 (줄 번호)
+        - 주요 로직 설명
+
+     3. **고려사항**
+        - 에러 처리 (병렬 실행 시 하나 실패해도 다른 건 계속)
+        - 의존성 관리 (A 도구 결과가 B에 필요한 경우)
+        - 기존 Sub-agent 시스템과의 충돌 방지
+
+     4. **테스트 전략**
+        - 어떻게 검증할지
+
+     명확하고 실행 가능한 계획을 작성해주세요. 
+  ⎿  Read(brian_coder/src/main.py)
+
+  ⎿  Read(brian_coder/agents/sub_agents/orchestrator.py)
+
+  ⎿  Read(brian_coder/core/tools.py)
+
+  ⎿  Read(brian_coder/src/config.py)
+
+  ⎿  Read 562 lines
+
+  ⎿  Read 1611 lines
+
+  ⎿  Read 895 lines
+
+  ⎿  Read 607 lines
+
+  ⎿  Read(brian_coder/agents/sub_agents/base.py)
+
+  ⎿  Search(pattern: "**/execute_agent.py", path: "/Users/brian/Desktop/Project/brian_hw/brian_coder")
+
+  ⎿  Search(pattern: "**/explore_agent.py", path: "/Users/brian/Desktop/Project/brian_hw/brian_coder")
+
+  ⎿  Read 769 lines
+
+  ⎿    ⎿  Found 1 file                                                                        
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/explore_agent.py
+  ⎿    ⎿  Found 1 file                                                                        
+          /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/execute_agent.py
+  ⎿  Read(brian_coder/agents/sub_agents/explore_agent.py · lines 1-100)
+
+  ⎿  Bash(ls -la /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/)
+     Waiting…
+  ⎿  Read 100 lines
+
+  ⎿  total 160                                                             
+     drwxr-xr-x@ 19 brian  staff    608 12 11 20:59 .
+     drwxr-xr-x@ 22 brian  staff    704 12 11 21:57 ..
+     drwxr-xr-x@  2 brian  staff     64 12 11 10:23 .benchmarks
+     drwxr-xr-x@  6 brian  staff    192 12 11 10:24 .pytest_cache
+     -rw-r--r--@  1 brian  staff    870 12 10 17:56 conftest.py
+     drwxr-xr-x@  2 brian  staff     64 12 10 05:49 examples
+     -rw-r--r--@  1 brian  staff   8830 12 11 20:59 README.md
+     drwxr-xr-x@  2 brian  staff     64 12 10 05:49 results
+     drwxr-xr-x@  4 brian  staff    128 12 10 17:56 test_agents
+     drwxr-xr-x@  7 brian  staff    224 12 11 20:32 test_core
+     -rw-r--r--@  1 brian  staff  13251 12 10 23:13 test_e2e.py
+     -rw-------@  1 brian  staff   9147 12 10 06:11 test_embedding_model.py
+     drwxr-xr-x@ 18 brian  staff    576 12 11 21:01 test_integration
+     drwxr-xr-x@  7 brian  staff    224 12 10 17:55 test_lib
+     -rw-------@  1 brian  staff   4482 12 10 23:14 test_llm_api.py
+     -rw-------@  1 brian  staff   8491 12 10 06:07 test_main_unit.py
+     -rw-r--r--@  1 brian  staff   9073 12 10 23:15 test_performance.py
+     -rw-------@  1 brian  staff   2986 12  7 10:00 test_sub_agents.py
+     drwxr-xr-x@  2 brian  staff     64 12 10 05:49 unit_tests
+  ⎿  Bash(wc -l /Users/brian/Desktop/Project/brian_hw/brian_coder/src/main.py)
+     Waiting…
+  ⎿      1610 /Users/brian/Desktop/Project/brian_hw/brian_coder/src/main.py
+
+  ⎿  Response:
+       Brian Coder 구현 계획: Claude Code 스타일 Task Tool 및 병렬 실행
+
+       요약
+
+       두 가지 주요 기능을 추가합니다:
+       1. Claude Code 스타일 Task Tool: LLM이 ReAct 루프에서 spawn_explore(), spawn_plan()을 직접 호출 가능하게 만들기
+       2. ReAct 도구 병렬 실행: 여러 Action을 동시에 실행하여 성능 향상
+
+       현재 아키텍처 분석
+
+       핵심 구성 요소
+
+       1. main.py (1610줄)
+         - run_react_agent() (1110줄): 메인 ReAct 루프
+         - parse_all_actions() (190줄): Action 파싱 (이미 여러 Action 지원)
+         - execute_tool() (392줄): 도구 실행
+         - 현재 실행 방식: 순차 실행 (1319줄 이후 for 루프)
+       2. orchestrator.py
+         - 이미 병렬 실행 구현됨 (_execute_parallel(): 321줄)
+         - ThreadPoolExecutor 사용
+         - 타임아웃, 에러 처리 완비
+       3. tools.py (877줄)
+         - spawn_explore() (774줄): 이미 구현됨! ✅
+         - spawn_plan() (820줄): 이미 구현됨! ✅
+         - AVAILABLE_TOOLS 딕셔너리에 등록됨 (852줄)
+
+       주요 발견사항
+
+       기능 1은 이미 90% 구현되어 있습니다!
+       - spawn_explore(), spawn_plan()이 tools.py에 존재
+       - AVAILABLE_TOOLS에 등록되어 있어 LLM이 호출 가능
+       - 단, 현재 Sub-Agent 시스템은 ENABLE_SUB_AGENTS=false로 비활성화됨
+
+       기능 2는 완전히 새로운 기능입니다.
+       - 현재 main.py는 순차 실행만 지원
+       - Orchestrator의 병렬 실행 로직을 참고 가능
+
+       ---
+       구현 계획
+
+       Phase 1: Sub-Agent Tool 개선 (기능 1)
+
+       목표
+
+       - 기존 spawn_explore(), spawn_plan()을 독립 실행 가능하게 개선
+       - Orchestrator 의존성 제거 (경량화)
+       - 에러 처리 강화
+
+       수정 파일: /Users/brian/Desktop/Project/brian_hw/brian_coder/core/tools.py
+
+       위치: 774-876줄 (spawn_explore, spawn_plan 함수)
+
+       변경 사항:
+
+       1. Import 개선 (상단에 추가)
+       # 조건부 import (ENABLE_SUB_AGENTS와 무관하게 사용 가능)
+       try:
+           from sub_agents.explore_agent import ExploreAgent
+           from sub_agents.plan_agent import PlanAgent
+           SUB_AGENTS_AVAILABLE = True
+       except ImportError:
+           SUB_AGENTS_AVAILABLE = False
+
+       2. spawn_explore() 개선 (774-818줄)
+       def spawn_explore(query):
+           """
+           Spawn an explore agent to search the codebase.
+           
+           Use Cases:
+           - Finding specific implementations (e.g., "find all FIFO modules")
+           - Understanding architecture (e.g., "analyze AXI interface structure")
+           - Discovering patterns (e.g., "how are state machines implemented?")
+           
+           Args:
+               query: Exploration task description
+               
+           Returns:
+               Structured findings: files found, patterns, conventions
+               
+           Example:
+               spawn_explore("find all async FIFO implementations and their testbenches")
+           """
+           if not SUB_AGENTS_AVAILABLE:
+               return "Error: Sub-agent system not available. Install required dependencies."
+
+           try:
+               from llm_client import call_llm_raw
+
+               # Execute tool wrapper (simplified)
+               def execute_tool_wrapper(tool_name, args):
+                   if tool_name in AVAILABLE_TOOLS:
+                       func = AVAILABLE_TOOLS[tool_name]
+                       # Simple argument parsing
+                       if isinstance(args, str):
+                           # Parse "key=value" style args
+                           kwargs = {}
+                           import re
+                           for match in re.finditer(r'(\w+)\s*=\s*"([^"]*)"', args):
+                               kwargs[match.group(1)] = match.group(2)
+                           return func(**kwargs) if kwargs else func(args)
+                       return func(**args) if isinstance(args, dict) else func(args)
+                   return f"Tool '{tool_name}' not found"
+
+               # Create and run agent
+               agent = ExploreAgent(
+                   name="explore",
+                   llm_call_func=call_llm_raw,
+                   execute_tool_func=execute_tool_wrapper
+               )
+
+               result = agent.run(query, {"task": query})
+
+               # Format result
+               if result.status.value == "completed":
+                   output = f"=== EXPLORATION RESULTS ===\n\n"
+                   output += f"{result.output}\n\n"
+                   output += f"Files examined: {len(result.artifacts.get('files_read', []))}\n"
+                   output += f"Tool calls: {result.artifacts.get('tool_calls_count', 0)}\n"
+                   output += f"Execution time: {result.execution_time_ms}ms\n"
+                   output += f"\n==========================="
+                   return output
+               else:
+                   errors = ", ".join(result.errors) if result.errors else "Unknown error"
+                   return f"Exploration failed: {errors}"
+
+           except Exception as e:
+               import traceback
+               return f"Error spawning explore agent: {e}\n{traceback.format_exc()}"
+
+       3. spawn_plan() 개선 (820-849줄)
+       def spawn_plan(task_description):
+           """
+           Spawn a planning agent to create implementation plan.
+           
+           Use Cases:
+           - Complex implementations (e.g., "design async FIFO with CDC")
+           - Multi-module systems (e.g., "implement PCIe TLP parser")
+           - Architecture planning (e.g., "plan AXI interconnect design")
+           
+           Args:
+               task_description: Task to plan
+               
+           Returns:
+               Text-only implementation plan with specs and steps
+               
+           Example:
+               spawn_plan("design 64-entry async FIFO with gray code pointers")
+           """
+           if not SUB_AGENTS_AVAILABLE:
+               return "Error: Sub-agent system not available. Install required dependencies."
+
+           try:
+               from llm_client import call_llm_raw
+
+               agent = PlanAgent(
+                   name="plan",
+                   llm_call_func=call_llm_raw,
+                   execute_tool_func=lambda t, a: "Plan agent does not execute tools"
+               )
+
+               result = agent.run(task_description, {"task": task_description})
+
+               if result.status.value == "completed":
+                   output = f"=== IMPLEMENTATION PLAN ===\n\n"
+                   output += f"{result.output}\n\n"
+                   if result.action_plan:
+                       output += f"Strategy: {result.action_plan.strategy}\n"
+                       output += f"Steps: {len(result.action_plan.steps)}\n"
+                   output += f"Execution time: {result.execution_time_ms}ms\n"
+                   output += f"\n==========================="
+                   return output
+               else:
+                   errors = ", ".join(result.errors) if result.errors else "Unknown error"
+                   return f"Planning failed: {errors}"
+
+           except Exception as e:
+               import traceback
+               return f"Error spawning plan agent: {e}\n{traceback.format_exc()}"
+
+       테스트 방법:
+       # tests/test_core/test_spawn_tools.py (새 파일)
+       def test_spawn_explore():
+           result = spawn_explore("find all .py files")
+           assert "EXPLORATION RESULTS" in result
+           assert "Files examined:" in result
+
+       def test_spawn_plan():
+           result = spawn_plan("implement counter module")
+           assert "IMPLEMENTATION PLAN" in result
+           assert "Strategy:" in result
+
+       ---
+       Phase 2: ReAct 병렬 실행 구현 (기능 2)
+
+       목표
+
+       - 여러 Action을 동시에 실행
+       - 의존성이 없는 Action만 병렬 실행
+       - 에러 격리 (하나 실패해도 다른 것은 계속)
+
+       수정 파일: /Users/brian/Desktop/Project/brian_hw/brian_coder/src/main.py
+
+       위치: 1317-1425줄 (Action 실행 부분)
+
+       현재 코드 (1332-1400줄):
+       if actions:
+           combined_results = []
+
+           for i, (tool_name, args_str) in enumerate(actions):
+               # 순차 실행
+               print(Color.tool(f"  🔧 Tool {i+1}/{len(actions)}: {tool_name}"))
+               observation = execute_tool(tool_name, args_str)
+               combined_results.append(f"--- [Action {i+1}] {tool_name} ---\n{observation}")
+
+           observation = "\n\n".join(combined_results)
+
+       변경 후 (병렬 실행 추가):
+
+       1. Config 추가 (/Users/brian/Desktop/Project/brian_hw/brian_coder/src/config.py - 상단에 추가)
+
+       # ============================================================
+       # ReAct Parallel Execution Configuration
+       # ============================================================
+       # Enable parallel execution of multiple Actions in ReAct loop
+       # When LLM outputs multiple Actions, run them concurrently
+       ENABLE_REACT_PARALLEL = os.getenv("ENABLE_REACT_PARALLEL", "true").lower() in ("true", "1", "yes")
+
+       # Maximum parallel workers for ReAct actions
+       REACT_MAX_WORKERS = int(os.getenv("REACT_MAX_WORKERS", "5"))
+
+       # Timeout for each action execution (seconds)
+       REACT_ACTION_TIMEOUT = int(os.getenv("REACT_ACTION_TIMEOUT", "30"))
+
+       2. Import 추가 (main.py 상단 - 16줄 근처)
+       from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeoutError
+
+       3. 병렬 실행 함수 추가 (main.py 1100줄 근처, run_react_agent 함수 바로 위)
+
+       def execute_actions_parallel(actions, tracker):
+           """
+           Execute multiple actions in parallel with error isolation.
+           
+           Args:
+               actions: List of (tool_name, args_str) tuples
+               tracker: IterationTracker instance
+               
+           Returns:
+               List of (index, tool_name, observation) tuples
+           """
+           results = []
+
+           # 의존성 분석 (간단한 휴리스틱)
+           independent_actions = []
+           dependent_actions = []
+
+           # 휴리스틱: write/replace는 의존성 있음 (순차 실행)
+           # read/search는 독립적 (병렬 실행 가능)
+           write_tools = {'write_file', 'replace_in_file', 'replace_lines', 'run_command'}
+
+           for i, (tool_name, args_str) in enumerate(actions):
+               if tool_name in write_tools:
+                   dependent_actions.append((i, tool_name, args_str))
+               else:
+                   independent_actions.append((i, tool_name, args_str))
+
+           # 병렬 실행 가능한 액션
+           if independent_actions and config.ENABLE_REACT_PARALLEL:
+               print(Color.system(f"  [Parallel] Executing {len(independent_actions)} independent actions..."))
+
+               with ThreadPoolExecutor(max_workers=min(len(independent_actions), config.REACT_MAX_WORKERS)) as executor:
+                   futures = {}
+                   for idx, tool_name, args_str in independent_actions:
+                       future = executor.submit(execute_tool, tool_name, args_str)
+                       futures[future] = (idx, tool_name)
+
+                   for future in as_completed(futures):
+                       idx, tool_name = futures[future]
+                       try:
+                           observation = future.result(timeout=config.REACT_ACTION_TIMEOUT)
+                           results.append((idx, tool_name, observation))
+                           print(Color.success(f"  ✓ [{tool_name}] completed"))
+                       except FuturesTimeoutError:
+                           error_msg = f"Timeout after {config.REACT_ACTION_TIMEOUT}s"
+                           results.append((idx, tool_name, f"Error: {error_msg}"))
+                           print(Color.warning(f"  ⚠ [{tool_name}] timeout"))
+                       except Exception as e:
+                           error_msg = str(e)
+                           results.append((idx, tool_name, f"Error: {error_msg}"))
+                           print(Color.error(f"  ✗ [{tool_name}] failed: {e}"))
+           else:
+               # 병렬 실행 비활성화 또는 병렬 가능한 액션 없음
+               for idx, tool_name, args_str in independent_actions:
+                   observation = execute_tool(tool_name, args_str)
+                   results.append((idx, tool_name, observation))
+
+           # 의존성 있는 액션은 항상 순차 실행
+           if dependent_actions:
+               print(Color.system(f"  [Sequential] Executing {len(dependent_actions)} dependent actions..."))
+               for idx, tool_name, args_str in dependent_actions:
+                   observation = execute_tool(tool_name, args_str)
+                   results.append((idx, tool_name, observation))
+                   print(Color.success(f"  ✓ [{tool_name}] completed"))
+
+           # 원래 순서대로 정렬
+           results.sort(key=lambda x: x[0])
+           return results
+
+       4. run_react_agent 수정 (1332줄 근처의 action 실행 부분)
+
+       if actions:
+           # 도구 실행 기록
+           for tool_name, _ in actions:
+               tracker.record_tool(tool_name)
+
+           # Show flow stage
+           if config.DEBUG_MODE:
+               print(Color.system(f"  ┌─ FLOW: Parse → Found {len(actions)} action(s)"))
+
+           # 병렬 또는 순차 실행
+           if len(actions) > 1 and config.ENABLE_REACT_PARALLEL:
+               # 병렬 실행
+               print(Color.info(f"  ⚡ Executing {len(actions)} actions (parallel mode)"))
+               action_results = execute_actions_parallel(actions, tracker)
+           else:
+               # 순차 실행 (기존 방식)
+               print(Color.info(f"  🔧 Executing {len(actions)} actions (sequential mode)"))
+               action_results = []
+               for i, (tool_name, args_str) in enumerate(actions):
+                   if config.DEBUG_MODE:
+                       import time
+                       tool_start_time = time.time()
+                       print(Color.system(f"  ├─ FLOW: Execute → {tool_name}({args_str[:50]}...)"))
+
+                   print(Color.tool(f"  🔧 Tool {i+1}/{len(actions)}: {tool_name}"))
+                   observation = execute_tool(tool_name, args_str)
+                   action_results.append((i, tool_name, observation))
+
+                   if config.DEBUG_MODE:
+                       tool_elapsed = time.time() - tool_start_time
+                       print(Color.system(f"  ├─ FLOW: Complete → {tool_elapsed:.2f}s | {len(observation)} chars"))
+
+           # 결과 포맷팅 및 표시
+           combined_results = []
+           for idx, tool_name, observation in action_results:
+               # Error detection
+               obs_lower = observation.lower()
+               is_error = any(indicator in obs_lower for indicator in
+                             ['error:', 'exception:', 'traceback', 'syntax error', 'compilation failed'])
+
+               # Special case: ignore "error" in file content reads
+               if tool_name in ['read_file', 'read_lines', 'grep_file', 'get_plan'] and "error" in obs_lower:
+                   if not observation.strip().lower().startswith("error:"):
+                       is_error = False
+
+               # Record action for procedural memory
+               if procedural_memory is not None:
+                   action_result = "error" if is_error else "success"
+                   action_obj = Action(
+                       tool=tool_name,
+                       args="",  # Args already recorded
+                       result=action_result,
+                       observation=observation[:200]
+                   )
+                   actions_taken.append(action_obj)
+
+               # Smart preview
+               if tool_name in ['read_file', 'read_lines']:
+                   lines = observation.split('\n')[:config.TOOL_RESULT_PREVIEW_LINES]
+                   obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
+               elif len(observation) > config.TOOL_RESULT_PREVIEW_CHARS:
+                   obs_preview = observation[:config.TOOL_RESULT_PREVIEW_CHARS] + f"... ({len(observation)} chars total)"
+               else:
+                   obs_preview = observation
+
+               print(Color.info(f"  ✓ [{tool_name}] Result: {obs_preview}\n"))
+               combined_results.append(f"--- [Action {idx+1}] {tool_name} ---\n{observation}")
+
+           # Combine all observations
+           observation = "\n\n".join(combined_results)
+
+           # (기존 consecutive error check 로직 유지)
+           # ...
+
+       ---
+       Phase 3: 의존성 관리 개선 (고급)
+
+       목표
+
+       - 명시적 의존성 선언 지원
+       - 자동 의존성 감지 개선
+
+       구현 방식
+
+       1. 의존성 힌트 파싱 (선택적)
+       # LLM이 의존성을 명시할 수 있게 확장
+       # Action: read_file(path="main.py")
+       # Action: grep_file(pattern="def", path="main.py") [depends_on: 1]
+
+       def parse_action_dependencies(response: str) -> List[Tuple[str, str, List[int]]]:
+           """
+           Parse actions with optional dependency hints.
+           
+           Returns:
+               List of (tool_name, args_str, depends_on_indices)
+           """
+           # 구현 생략 (정규식으로 [depends_on: 1,2] 파싱)
+
+       2. 자동 의존성 감지 휴리스틱
+       def detect_dependencies(actions: List[Tuple[str, str]]) -> Dict[int, List[int]]:
+           """
+           Automatically detect dependencies between actions.
+           
+           Rules:
+           1. write_file(path=X) → any operation on X (depends)
+           2. replace_in_file(path=X) → any operation on X (depends)
+           3. read operations are independent
+           """
+           dependencies = {}
+
+           for i, (tool_name_i, args_i) in enumerate(actions):
+               deps = []
+               for j in range(i):
+                   tool_name_j, args_j = actions[j]
+                   # Check if i depends on j
+                   if is_dependent(tool_name_i, args_i, tool_name_j, args_j):
+                       deps.append(j)
+               dependencies[i] = deps
+
+           return dependencies
+
+       ---
+       테스트 전략
+
+       1. Unit Tests
+
+       파일: /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_parallel_execution.py
+
+       import pytest
+       from src.main import execute_actions_parallel
+       from src.config import ENABLE_REACT_PARALLEL
+
+       def test_parallel_read_operations():
+           """Test parallel execution of independent read operations"""
+           actions = [
+               ("read_file", "path='test1.py'"),
+               ("read_file", "path='test2.py'"),
+               ("list_dir", "path='.'")
+           ]
+
+           results = execute_actions_parallel(actions, mock_tracker)
+
+           assert len(results) == 3
+           assert all(len(r) == 3 for r in results)  # (idx, tool_name, observation)
+           # Check all completed
+           assert all("error" not in r[2].lower() or "Error:" not in r[2] for r in results)
+
+       def test_sequential_write_operations():
+           """Test sequential execution of dependent write operations"""
+           actions = [
+               ("write_file", "path='test.txt', content='hello'"),
+               ("read_file", "path='test.txt'")
+           ]
+
+           results = execute_actions_parallel(actions, mock_tracker)
+
+           assert len(results) == 2
+           assert results[1][2] == "hello"  # Read should see written content
+
+       def test_error_isolation():
+           """Test that one failure doesn't affect others"""
+           actions = [
+               ("read_file", "path='nonexistent.txt'"),  # Will fail
+               ("list_dir", "path='.'")  # Should still run
+           ]
+
+           results = execute_actions_parallel(actions, mock_tracker)
+
+           assert len(results) == 2
+           assert "error" in results[0][2].lower()  # First failed
+           # Second should still complete successfully
+           assert "error" not in results[1][2].lower() or not results[1][2].startswith("Error:")
+
+       2. Integration Tests
+
+       파일: /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_integration/test_parallel_react.py
+
+       def test_parallel_explore_multiple_files():
+           """Test LLM using multiple parallel read actions"""
+           messages = [
+               {"role": "system", "content": build_system_prompt()},
+               {"role": "user", "content": "Check main.py and config.py"}
+           ]
+
+           # Run ReAct loop
+           tracker = IterationTracker(max_iterations=10)
+           result_messages = run_react_agent(messages, tracker, "Check files", mode='oneshot')
+
+           # Should complete in 1-2 iterations (parallel execution)
+           assert tracker.current <= 2
+
+       def test_spawn_tools_integration():
+           """Test spawn_explore and spawn_plan tools"""
+           messages = [
+               {"role": "system", "content": build_system_prompt()},
+               {"role": "user", "content": "Use spawn_explore to find all Python files"}
+           ]
+
+           tracker = IterationTracker(max_iterations=10)
+           result_messages = run_react_agent(messages, tracker, "Explore codebase", mode='oneshot')
+
+           # Check that spawn_explore was called
+           assistant_msgs = [m for m in result_messages if m.get("role") == "assistant"]
+           assert any("spawn_explore" in m.get("content", "") for m in assistant_msgs)
+
+       3. Performance Tests
+
+       파일: /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_performance.py (기존 파일에 추가)
+
+       def test_parallel_speedup():
+           """Verify parallel execution is faster than sequential"""
+           actions = [("read_file", f"path='file{i}.py'") for i in range(5)]
+
+           # Sequential
+           start = time.time()
+           config.ENABLE_REACT_PARALLEL = False
+           seq_results = execute_actions_parallel(actions, mock_tracker)
+           seq_time = time.time() - start
+
+           # Parallel
+           start = time.time()
+           config.ENABLE_REACT_PARALLEL = True
+           par_results = execute_actions_parallel(actions, mock_tracker)
+           par_time = time.time() - start
+
+           # Parallel should be at least 2x faster (with 5 workers)
+           assert par_time < seq_time * 0.6
+
+       ---
+       에러 처리
+
+       1. Sub-Agent Tool 에러
+
+       # tools.py - spawn_explore()에서
+       try:
+           agent = ExploreAgent(...)
+           result = agent.run(query, context)
+
+           if result.status.value == "failed":
+               return f"Exploration failed: {', '.join(result.errors)}"
+
+       except ImportError as e:
+           return "Error: Sub-agent dependencies not installed. Run: pip install -r requirements.txt"
+       except TimeoutError:
+           return "Error: Exploration timed out after 60s"
+       except Exception as e:
+           return f"Error spawning explore agent: {e}\n{traceback.format_exc()}"
+
+       2. 병렬 실행 에러
+
+       # main.py - execute_actions_parallel()에서
+       try:
+           observation = future.result(timeout=config.REACT_ACTION_TIMEOUT)
+           results.append((idx, tool_name, observation))
+       except FuturesTimeoutError:
+           # 타임아웃 발생 - 에러 메시지로 대체
+           error_msg = f"Timeout after {config.REACT_ACTION_TIMEOUT}s"
+           results.append((idx, tool_name, f"Error: {error_msg}"))
+           print(Color.warning(f"  ⚠ [{tool_name}] timeout"))
+       except Exception as e:
+           # 기타 예외 - 격리하여 다른 액션 계속 실행
+           error_msg = str(e)
+           results.append((idx, tool_name, f"Error: {error_msg}"))
+           print(Color.error(f"  ✗ [{tool_name}] failed: {e}"))
+
+       ---
+       사용 예시
+
+       예시 1: LLM이 spawn_explore 사용
+
+       User: "Find all FIFO implementations in the codebase"
+
+       Agent:
+       Thought: I need to search the codebase thoroughly. spawn_explore is perfect for this.
+       Action: spawn_explore(query="find all FIFO implementations, including async and sync variants")
+
+       Observation:
+       === EXPLORATION RESULTS ===
+
+       Found 3 FIFO implementations:
+
+       1. async_fifo.v (L1-245)
+          - Dual-clock async FIFO with gray code pointers
+          - 64-entry depth, 32-bit data width
+
+       2. sync_fifo.v (L1-120)
+          - Single-clock synchronous FIFO
+          - Parameterized depth and width
+
+       3. axis_fifo.v (L1-180)
+          - AXI-Stream FIFO wrapper
+          - Uses sync_fifo internally
+
+       Files examined: 25
+       Tool calls: 8
+       Execution time: 3200ms
+
+       ===========================
+
+       Thought: Great! I found 3 FIFO modules. Let me read the async one for more details.
+       Action: read_lines(path="async_fifo.v", start_line=1, end_line=50)
+
+       예시 2: LLM이 병렬 실행 활용
+
+       User: "Check main.py, config.py, and tools.py for TODO comments"
+
+       Agent:
+       Thought: I need to search 3 files. These are independent operations - I can run them in parallel.
+       Action: grep_file(pattern="TODO", path="main.py")
+       Action: grep_file(pattern="TODO", path="config.py")
+       Action: grep_file(pattern="TODO", path="tools.py")
+
+       [System executes in parallel - all 3 complete in ~1 second instead of 3 seconds]
+
+       Observation:
+       --- [Action 1] grep_file ---
+       Found 2 match(es) in main.py:
+       >>> 245: # TODO: Add caching support
+       >>> 678: # TODO: Implement retry logic
+
+       --- [Action 2] grep_file ---
+       No matches found for pattern 'TODO' in config.py
+
+       --- [Action 3] grep_file ---
+       Found 1 match(es) in tools.py:
+       >>> 123: # TODO: Add progress bar
+
+       Thought: I found 3 TODO comments total. Let me summarize them for the user.
+
+       ---
+       성능 예상
+
+       병렬 실행 효과
+
+       시나리오: 5개 파일 읽기
+
+       - 순차 실행: 5 × 0.5s = 2.5초
+       - 병렬 실행 (5 workers): max(0.5s) ≈ 0.6초 (네트워크 오버헤드 포함)
+       - 속도 향상: 약 4배
+
+       시나리오: 3개 독립 작업 + 2개 의존 작업
+
+       - 순차 실행: 5 × 0.5s = 2.5초
+       - 병렬 실행: 0.6s (3개 병렬) + 1.0s (2개 순차) = 1.6초
+       - 속도 향상: 약 1.5배
+
+       Sub-Agent 도구 효과
+
+       기존 방식 (Orchestrator 자동 실행):
+       1. 태스크 분석: 2s
+       2. 에이전트 실행: 10s
+       3. 결과 통합: 1s
+       총: 13초
+
+       새로운 방식 (LLM 명시적 호출):
+       1. LLM이 필요 시점에만 호출
+       2. 경량 실행 (Orchestrator 오버헤드 없음)
+       3. 결과 즉시 반환
+       총: 약 5초 (60% 감소)
+
+       ---
+       마이그레이션 가이드
+
+       1. 기존 코드 호환성
+
+       변경 사항 없음:
+       - 순차 실행은 기본값으로 유지 (ENABLE_REACT_PARALLEL=false로 설정 시)
+       - 기존 도구는 모두 동일하게 작동
+
+       점진적 활성화:
+       # Step 1: Sub-agent 도구만 활성화 (병렬 실행은 비활성화)
+       export ENABLE_SUB_AGENTS=true
+       export ENABLE_REACT_PARALLEL=false
+
+       # Step 2: 안정화 후 병렬 실행 활성화
+       export ENABLE_REACT_PARALLEL=true
+       export REACT_MAX_WORKERS=3
+
+       # Step 3: 성능 최적화
+       export REACT_MAX_WORKERS=5
+       export REACT_ACTION_TIMEOUT=30
+
+       2. 환경 변수 설정
+
+       .env 파일:
+       # Sub-Agent System
+       ENABLE_SUB_AGENTS=true
+       SUB_AGENT_PARALLEL_ENABLED=false
+       SUB_AGENT_MAX_WORKERS=3
+
+       # ReAct Parallel Execution
+       ENABLE_REACT_PARALLEL=true
+       REACT_MAX_WORKERS=5
+       REACT_ACTION_TIMEOUT=30
+
+       ---
+       구현 우선순위
+
+       Phase 1: Sub-Agent Tool 개선 (1-2시간)
+
+       - Priority: High
+       - Risk: Low (기존 코드 거의 변경 없음)
+       - Impact: LLM이 필요 시 명시적으로 탐색/계획 에이전트 호출 가능
+
+       Phase 2: 병렬 실행 구현 (2-3시간)
+
+       - Priority: High
+       - Risk: Medium (동시성 이슈 가능)
+       - Impact: 다중 도구 호출 시 3-5배 속도 향상
+
+       Phase 3: 의존성 관리 개선 (3-4시간)
+
+       - Priority: Medium
+       - Risk: Low
+       - Impact: 더 정교한 병렬 실행 가능
+
+       ---
+       Critical Files for Implementation
+
+       다음은 구현에 가장 중요한 파일들입니다:
+
+       1. /Users/brian/Desktop/Project/brian_hw/brian_coder/core/tools.py (877줄)
+
+       - 이유: spawn_explore(), spawn_plan() 함수 개선 필요
+       - 수정 범위: 774-876줄 (약 100줄)
+       - 변경 내용: 에러 처리 강화, 결과 포맷팅 개선, import 조건부 처리
+
+       2. /Users/brian/Desktop/Project/brian_hw/brian_coder/src/main.py (1610줄)
+
+       - 이유: 병렬 실행 로직의 핵심 구현 위치
+       - 수정 범위:
+         - Import 추가 (16줄 근처)
+         - execute_actions_parallel() 함수 추가 (1100줄 근처, 약 80줄)
+         - run_react_agent() 수정 (1332-1400줄, 약 70줄)
+       - 변경 내용: ThreadPoolExecutor 기반 병렬 실행, 의존성 감지, 에러 격리
+
+       3. /Users/brian/Desktop/Project/brian_hw/brian_coder/src/config.py (607줄)
+
+       - 이유: 병렬 실행 설정 추가 필요
+       - 수정 범위: 상단에 새 섹션 추가 (약 15줄)
+       - 변경 내용: ENABLE_REACT_PARALLEL, REACT_MAX_WORKERS, REACT_ACTION_TIMEOUT 추가
+
+       4. /Users/brian/Desktop/Project/brian_hw/brian_coder/agents/sub_agents/orchestrator.py (562줄)
+
+       - 이유: 병렬 실행 패턴 참고용 (이미 구현됨)
+       - 수정 범위: 참고만 하고 직접 수정 불필요
+       - 변경 내용: 없음 (기존 _execute_parallel() 로직을 main.py로 이식)
+
+       5. /Users/brian/Desktop/Project/brian_hw/brian_coder/tests/test_core/test_parallel_execution.py (새 파일)
+
+       - 이유: 병렬 실행 기능 테스트
+       - 수정 범위: 신규 생성 (약 100줄)
+       - 변경 내용: 병렬/순차 실행 테스트, 에러 격리 테스트, 성능 벤치마크
+
+       ---
+       결론
+
+       이 계획은 기존 코드베이스를 최소한으로 수정하면서 두 가지 핵심 기능을 추가합니다:
+
+       1. Sub-Agent Tool 개선: LLM이 필요할 때 명시적으로 탐색/계획 에이전트를 호출 가능
+       2. 병렬 실행 구현: 독립적인 도구 호출을 동시에 실행하여 3-5배 성능 향상
+
+       핵심 설계 원칙:
+       - 하위 호환성 유지: 기존 기능은 모두 정상 작동
+       - 점진적 활성화: 환경 변수로 기능별 on/off 가능
+       - 에러 격리: 하나 실패해도 다른 작업은 계속
+       - 명확한 테스트: 각 기능별 unit/integration 테스트 제공
+
+       이 계획을 따라 구현하면 Brian Coder의 성능과 유연성이 크게 향상될 것입니다.
+  ⎿  Done (10 tool uses · 97.7k tokens · 2m 58s)
+
+> /export how to implement cluade code 
+
+∴ Thinking…
+
+  사용자가 "/export how to implement cluade code"라고 입력했습니다. 이것은 현재 진행 중인 Plan Mode 작업과는 다른 명령입니다.
+
+  "/export" 명령은 아마도 현재 대화나 계획을 파일로 내보내고 싶다는 의미인 것 같습니다. 그리고 "how to implement claude code"는 Claude Code를 어떻게 구현하는지에 대한 가이드를 원하는 것 같습니다.
+
+  현재 상황:
+  1. Plan Mode가 활성화되어 있음
+  2. Task agent를 실행해서 구현 계획을 받았음
+  3. 아직 최종 plan 파일을 작성하지 않았음
+
+  사용자의 의도를 파악해야 합니다:
+  - "/export"가 특별한 명령인지?
+  - 아니면 단순히 구현 가이드를 내보내고 싶은 건지?
+
+  일단 현재까지의 작업을 정리하고, plan 파일에 최종 계획을 작성한 다음 ExitPlanMode를 호출해야 합니다.
+
+  "/export" 명령은 아마도 계획을 파일로 저장하고 싶다는 의미일 것 같으니, plan 파일을 작성하고 ExitPlanMode를 호출하면 됩니다.
+
+⏺ 사용자님께서 "/export how to implement claude code"를 요청하셨네요. 현재까지 수집한 정보를 바탕으로 최종 계획을 작성하겠습니다.
+  ⎿  Interrupted · What should Claude do instead?
+
+> /export planforclaudecode 
+  ⎿  Conversation exported to: planforclaudecode.txt
+
+> /usage 
+  ⎿  Status dialog dismissed
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+>  
+

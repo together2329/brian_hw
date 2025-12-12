@@ -112,6 +112,56 @@ class RAGDatabase:
 
         self._ensure_initialized()
         self._load()
+        self._validate_dimension_compatibility()
+
+    def _validate_dimension_compatibility(self):
+        """
+        Check if stored chunks match the current embedding dimension.
+        If mismatch detected, warn user and recommend re-indexing.
+        """
+        if not self.chunks:
+            return
+
+        # Get one stored embedding to check dimension
+        stored_dim = 0
+        for chunk in self.chunks.values():
+            if chunk.embedding and len(chunk.embedding) > 0:
+                stored_dim = len(chunk.embedding)
+                break
+        
+        if stored_dim == 0:
+            return
+
+        # Get current system dimension
+        try:
+            from src import llm_client
+            current_dim = llm_client.get_embedding_dimension()
+        except:
+            # If we can't get current dim (e.g. API error), skip validation
+            return
+
+        if current_dim != stored_dim:
+            from display import Color
+            import shutil
+            
+            print(Color.warning(f"\n[RAG] ⚠️  Dimension Mismatch Detected!"))
+            print(Color.warning(f"  Stored Index: {stored_dim} dimensions"))
+            print(Color.warning(f"  Current Model: {current_dim} dimensions"))
+            print(Color.action(f"  🔄 Automatically resetting RAG database for compatibility..."))
+            
+            # Delete RAG directory
+            if self.rag_dir.exists():
+                shutil.rmtree(self.rag_dir)
+                
+            # Reset in-memory state
+            self.chunks = {}
+            self.file_hashes = {}
+            self.categories = {}
+            
+            # Re-initialize empty DB
+            self._ensure_initialized()
+            print(Color.success(f"  ✅ RAG database reset compelte. Re-indexing will start automatically."))
+            print()
 
     def _ensure_initialized(self):
         """Create RAG directory and files if needed."""
@@ -712,40 +762,226 @@ spec:
         
         return chunks
 
-    # ==================== Spec/Doc Chunking ====================
-
     def chunk_spec(self, content: str, file_path: str) -> List[Chunk]:
-        """Chunk specification/documentation files (Markdown)."""
+        """Chunk specification/documentation files (Markdown).
+        Uses hierarchical Markdown chunking for better analysis.
+        """
+        return self.chunk_markdown_hierarchical(content, file_path)
+
+    def chunk_markdown_hierarchical(self, content: str, file_path: str) -> List[Chunk]:
+        """
+        Hierarchical chunking for Markdown specification documents.
+        
+        Extracts:
+        - H1/H2/H3 섹션 (계층적 구조 유지)
+        - 표 (| ... |) 단독 청크
+        - 코드 블록 (```...```) 단독 청크
+        - Figure/이미지 참조 추출
+        - 섹션 간 관계 메타데이터
+        
+        Args:
+            content: Markdown file content
+            file_path: Path to source file
+            
+        Returns:
+            List of Chunk objects with hierarchical structure
+        """
         chunks = []
+        lines = content.split('\n')
         
-        # Split by headers (## or ###)
-        sections = re.split(r'\n(#{1,3}\s+[^\n]+)\n', content)
+        # Track current section hierarchy
+        current_h1 = ""
+        current_h2 = ""
+        current_h3 = ""
+        section_number = {"h1": 0, "h2": 0, "h3": 0}
         
-        current_section = ""
-        section_num = 0
+        # First pass: Extract special blocks (tables, code blocks)
+        # These get their own chunks with references to parent section
         
-        for i, part in enumerate(sections):
-            if part.startswith('#'):
-                current_section = part.strip('# \n')
-            elif part.strip():
-                section_num += 1
-                section_content = part.strip()
+        # Extract code blocks
+        code_block_pattern = re.compile(r'```(\w*)\n(.*?)```', re.DOTALL)
+        code_blocks = []
+        for match in code_block_pattern.finditer(content):
+            lang = match.group(1) or "text"
+            code_content = match.group(2).strip()
+            start_line = content[:match.start()].count('\n') + 1
+            end_line = content[:match.end()].count('\n') + 1
+            code_blocks.append({
+                'start': match.start(),
+                'end': match.end(),
+                'start_line': start_line,
+                'end_line': end_line,
+                'lang': lang,
+                'content': code_content
+            })
+            
+            chunks.append(Chunk(
+                id=self._generate_chunk_id(),
+                source_file=file_path,
+                category="spec",
+                level=4,  # Code blocks at level 4
+                chunk_type="code_block",
+                content=f"```{lang}\n{code_content[:1500]}\n```",
+                start_line=start_line,
+                end_line=end_line,
+                metadata={
+                    "language": lang,
+                    "parent_section": current_h2 or current_h1,
+                    "summary": f"Code block ({lang})"
+                }
+            ))
+        
+        # Extract tables
+        table_pattern = re.compile(r'(\|[^\n]+\|\n)+', re.MULTILINE)
+        for match in table_pattern.finditer(content):
+            table_content = match.group(0).strip()
+            # Skip separator-only tables
+            if table_content.count('|') < 4:
+                continue
                 
-                if len(section_content) > 50:  # Skip very short sections
-                    chunks.append(Chunk(
-                        id=self._generate_chunk_id(),
-                        source_file=file_path,
-                        category="spec",
-                        level=1,
-                        chunk_type="section",
-                        content=section_content[:2000],  # Limit size
-                        start_line=1,
-                        end_line=1,
-                        metadata={
-                            "section_title": current_section,
-                            "summary": f"Section: {current_section}"
-                        }
-                    ))
+            start_line = content[:match.start()].count('\n') + 1
+            end_line = content[:match.end()].count('\n') + 1
+            
+            # Extract table header for summary
+            first_row = table_content.split('\n')[0]
+            headers = [h.strip() for h in first_row.split('|')[1:-1]]
+            table_summary = ", ".join(headers[:3])
+            
+            chunks.append(Chunk(
+                id=self._generate_chunk_id(),
+                source_file=file_path,
+                category="spec",
+                level=4,  # Tables at level 4
+                chunk_type="table",
+                content=table_content[:2000],
+                start_line=start_line,
+                end_line=end_line,
+                metadata={
+                    "headers": headers[:5],
+                    "row_count": table_content.count('\n'),
+                    "parent_section": current_h2 or current_h1,
+                    "summary": f"Table: {table_summary}"
+                }
+            ))
+        
+        # Second pass: Extract sections (H1, H2, H3)
+        section_pattern = re.compile(r'^(#{1,3})\s+(.+)$', re.MULTILINE)
+        section_matches = list(section_pattern.finditer(content))
+        
+        for i, match in enumerate(section_matches):
+            level = len(match.group(1))  # Number of #
+            title = match.group(2).strip()
+            start_pos = match.end()
+            
+            # Find end of section (next same-level or higher header, or EOF)
+            end_pos = len(content)
+            for next_match in section_matches[i+1:]:
+                next_level = len(next_match.group(1))
+                if next_level <= level:
+                    end_pos = next_match.start()
+                    break
+            
+            section_content = content[start_pos:end_pos].strip()
+            start_line = content[:match.start()].count('\n') + 1
+            end_line = content[:end_pos].count('\n') + 1
+            
+            # Update hierarchy tracking
+            if level == 1:
+                section_number["h1"] += 1
+                section_number["h2"] = 0
+                section_number["h3"] = 0
+                current_h1 = title
+                current_h2 = ""
+                current_h3 = ""
+                section_id = f"{section_number['h1']}"
+            elif level == 2:
+                section_number["h2"] += 1
+                section_number["h3"] = 0
+                current_h2 = title
+                current_h3 = ""
+                section_id = f"{section_number['h1']}.{section_number['h2']}"
+            else:  # level == 3
+                section_number["h3"] += 1
+                current_h3 = title
+                section_id = f"{section_number['h1']}.{section_number['h2']}.{section_number['h3']}"
+            
+            # Skip very short sections
+            if len(section_content) < 30:
+                continue
+            
+            # Extract figure references from section
+            figure_refs = re.findall(r'!\[([^\]]*)\]\(([^)]+)\)', section_content)
+            figure_refs += re.findall(r'Figure\s+(\d+[-\.]?\d*)', section_content, re.IGNORECASE)
+            
+            # Extract cross-references (See Section X.Y)
+            cross_refs = re.findall(r'[Ss]ection\s+(\d+(?:\.\d+)*)', section_content)
+            cross_refs += re.findall(r'§\s*(\d+(?:\.\d+)*)', section_content)
+            
+            # Split long sections into smaller chunks
+            MAX_CHUNK_SIZE = 1500
+            OVERLAP = 200
+            STEP = MAX_CHUNK_SIZE - OVERLAP
+            
+            section_chunks = []
+            if len(section_content) > MAX_CHUNK_SIZE:
+                for start in range(0, len(section_content), STEP):
+                    end = min(start + MAX_CHUNK_SIZE, len(section_content))
+                    chunk_text = section_content[start:end]
+                    
+                    # Don't add tiny chunks at the end if they are just the overlap of the previous one
+                    # But here, range ensures we advance by STEP.
+                    # The only risk is if the last chunk is identical to previous? No, start advances.
+                    # Risk is if the last chunk is very small (e.g. 10 chars).
+                    # If it's effectively a subset of the previous chunk?
+                    # Example: Len 1600. Step 1300.
+                    # 1: 0-1500.
+                    # 2: 1300-1600 (300 chars). Unique tail content: 1500-1600 (100 chars).
+                    # This is fine.
+                    
+                    section_chunks.append(chunk_text)
+            else:
+                section_chunks.append(section_content)
+                
+            for i, chunk_content in enumerate(section_chunks):
+                part_suffix = f" (Part {i+1}/{len(section_chunks)})" if len(section_chunks) > 1 else ""
+                
+                chunks.append(Chunk(
+                    id=self._generate_chunk_id(),
+                    source_file=file_path,
+                    category="spec",
+                    level=level,
+                    chunk_type=f"section_h{level}",
+                    content=chunk_content,
+                    start_line=start_line,  # Approx start line
+                    end_line=end_line,
+                    metadata={
+                        "section_title": title + part_suffix,
+                        "section_id": section_id,
+                        "parent_h1": current_h1 if level > 1 else "",
+                        "parent_h2": current_h2 if level > 2 else "",
+                        "figure_refs": [str(f) for f in figure_refs[:5]],
+                        "cross_refs": cross_refs[:5],
+                        "has_table": any(t['start'] > match.start() and t['start'] < end_pos for t in []),
+                        "summary": f"§{section_id} {title}{part_suffix}"
+                    }
+                ))
+        
+        # If no sections found, create a single document chunk
+        if not chunks:
+            chunks.append(Chunk(
+                id=self._generate_chunk_id(),
+                source_file=file_path,
+                category="spec",
+                level=1,
+                chunk_type="document",
+                content=content[:3000],
+                start_line=1,
+                end_line=len(lines),
+                metadata={
+                    "section_title": Path(file_path).stem,
+                    "summary": f"Document: {Path(file_path).name}"
+                }
+            ))
         
         return chunks
 
@@ -1065,34 +1301,25 @@ spec:
 
     def _get_embedding(self, text: str) -> List[float]:
         """
-        Get embedding using existing graph_lite infrastructure.
-
-        Auto-detects embedding dimension from first successful API call.
-        Returns zero vector with correct dimension on failure.
+        Get embedding using centralized llm_client.
         """
         try:
-            # Try to use graph_lite's embedding function
-            from graph_lite import GraphLite
-            graph = GraphLite()
-            return graph.get_embedding(text)
+            from src import llm_client
+            return llm_client.get_embedding(text)
         except Exception as e:
+            # Fallback for errors: return zero vector with correct dimension
             try:
-                # Fallback: direct API call with retry logic
-                return self._get_embedding_direct(text)
-            except Exception as e2:
-                # Final fallback: return zero vector (allows search to continue)
-                # Dimension is auto-detected from API responses, with fallback to config
-                if self.embedding_dimension is None:
-                    try:
-                        from . import config
-                    except ImportError:
-                        import config
-                    embedding_dim = config.EMBEDDING_DIMENSION
-                else:
-                    embedding_dim = self.embedding_dimension
-
-                print(f"[RAG] Embedding failed (using zero vector, dim={embedding_dim}): {e2}")
-                return [0.0] * embedding_dim
+                from src import llm_client
+                dim = llm_client.get_embedding_dimension()
+            except:
+                try:
+                    import config
+                    dim = config.EMBEDDING_DIMENSION or 1536
+                except:
+                    dim = 1536
+                    
+            print(f"[RAG] Embedding failed (using {dim}-dim zero vector): {e}")
+            return [0.0] * dim
 
     def _get_embedding_direct(self, text: str) -> List[float]:
         """
@@ -1259,24 +1486,77 @@ spec:
     def save(self):
         """Save RAG index to JSON file."""
         try:
+            import config
             data = {
                 "chunks": {cid: c.to_dict() for cid, c in self.chunks.items()},
-                "file_hashes": self.file_hashes
+                "file_hashes": self.file_hashes,
+                "embedding_model": config.EMBEDDING_MODEL,
+                "embedding_dimension": config.EMBEDDING_DIMENSION or self.embedding_dimension
             }
-            self.index_path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+            self.index_path.write_text(json.dumps(data, indent=2))
         except Exception as e:
             print(f"[RAG] Save failed: {e}")
 
     def _load(self):
         """Load RAG index from JSON file."""
         try:
+            if not self.index_path.exists():
+                return
+
             data = json.loads(self.index_path.read_text())
+            
+            # Check for model compatibility BEFORE loading chunks
+            import config
+            stored_model = data.get("embedding_model")
+            current_model = config.EMBEDDING_MODEL
+            
+            # Strict model name check
+            if stored_model and stored_model != current_model:
+                from display import Color
+                import shutil
+                import os
+                
+                print(Color.warning(f"\n[RAG] ⚠️  Embedding Model Mismatch Detected!"))
+                print(Color.warning(f"  Stored Index Model: {stored_model}"))
+                print(Color.warning(f"  Current Config Model: {current_model}"))
+                print(Color.action(f"  🔄 Automatically resetting RAG database for compatibility..."))
+                
+                # Backup config file if it exists
+                config_backup = None
+                if self.config_file.exists():
+                    try:
+                        config_backup = self.config_file.read_text()
+                    except:
+                        pass
+
+                # Close/reset and return (which means starting empty)
+                if self.rag_dir.exists():
+                    shutil.rmtree(self.rag_dir)
+                
+                # Re-initialize empty DB
+                self._ensure_initialized()
+                
+                # Restore config file
+                if config_backup:
+                    try:
+                        self.config_file.write_text(config_backup)
+                        print(Color.success(f"  ✅ Restored .ragconfig settings"))
+                    except:
+                        print(Color.warning(f"  ⚠️  Failed to restore .ragconfig"))
+
+                self.chunks = {}
+                self.file_hashes = {}
+                # Stop loading
+                return
+
             self.chunks = {
                 cid: Chunk.from_dict(cdata) 
                 for cid, cdata in data.get("chunks", {}).items()
             }
             self.file_hashes = data.get("file_hashes", {})
+            
         except Exception as e:
+            # If load fails, start fresh
             self.chunks = {}
             self.file_hashes = {}
 

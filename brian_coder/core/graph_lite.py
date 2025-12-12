@@ -596,8 +596,12 @@ Indices to link:"""
                 if part.isdigit():
                     idx = int(part)
                     if 0 <= idx < len(candidates):
-                        indices.append(candidates[idx][1].id)
-                        print(f"[Graph] Linking to candidate {idx}: {candidates[idx][1].id}")
+                        target_node = candidates[idx][1]
+                        indices.append(target_node.id)
+                        # Show actual content instead of just ID
+                        content = target_node.data.get("content") or target_node.data.get("description") or target_node.data.get("name", "")
+                        content_preview = content[:60].replace('\n', ' ')
+                        print(f"[Graph]   → [{target_node.type}] \"{content_preview}...\"")
             
             print(f"[Graph] Total links created: {len(indices)}")
             return indices
@@ -614,101 +618,30 @@ Indices to link:"""
                      base_url: Optional[str] = None,
                      model: Optional[str] = None) -> List[float]:
         """
-        Get embedding for text using OpenAI API via urllib (zero-dependency).
+        Get embedding for text using centralized llm_client.
 
         Args:
             text: Text to embed
-            api_key: API key (if None, will try to load from config)
-            base_url: API base URL (if None, uses config.EMBEDDING_BASE_URL)
-            model: Embedding model name (if None, uses config.EMBEDDING_MODEL)
+            api_key: (Unused, centralized in llm_client)
+            base_url: (Unused, centralized in llm_client)
+            model: (Unused, centralized in llm_client)
 
         Returns:
             Embedding vector (list of floats)
         """
-        # Load config values if not provided
-        embedding_dim = 1536  # Default fallback dimension
         try:
-            import config
-            if api_key is None:
-                api_key = config.EMBEDDING_API_KEY
-            if base_url is None:
-                base_url = config.EMBEDDING_BASE_URL
-            if model is None:
-                model = config.EMBEDDING_MODEL
-            # Store embedding dimension for use in fallback
-            embedding_dim = config.EMBEDDING_DIMENSION
-        except (ImportError, AttributeError) as e:
-            if api_key is None:
-                raise ValueError("API key not provided and not found in config")
-            # Fallback defaults if config not available
-            base_url = base_url or "https://api.openai.com/v1"
-            model = model or "text-embedding-3-small"
-
-        # Check cache first
-        cache_key = f"{model}:{text[:100]}"  # Use first 100 chars as key
-        if cache_key in self._embedding_cache:
-            self._embedding_cache.move_to_end(cache_key)
-            return self._embedding_cache[cache_key]
-
-        # Prepare API request
-        url = f"{base_url}/embeddings"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-            "HTTP-Referer": "https://github.com/together2329/brian_hw",
-            "X-Title": "Brian Coder"
-        }
-        data = {
-            "input": text,
-            "model": model,
-            "encoding_format": "float"
-        }
-
-        # Retry logic for embedding API
-        max_retries = 3
-        last_error = None
-
-        for attempt in range(max_retries):
+            from src import llm_client
+            return llm_client.get_embedding(text)
+        except Exception as e:
+            # Fallback for errors: return zero vector with correct dimension
             try:
-                import time
-                if attempt > 0:
-                    wait_time = 2 ** attempt  # exponential backoff: 2s, 4s
-                    print(f"[RAG] Retrying embedding ({attempt + 1}/{max_retries})...", end=' ', flush=True)
-                    time.sleep(wait_time)
-
-                request = urllib.request.Request(
-                    url,
-                    data=json.dumps(data).encode('utf-8'),
-                    headers=headers
-                )
-
-                # Increased timeout from 30s to 60s
-                with urllib.request.urlopen(request, timeout=60) as response:
-                    response_data = response.read().decode('utf-8')
-                    result = json.loads(response_data)
-                    embedding = result["data"][0]["embedding"]
-
-                    # Cache the result
-                    self._embedding_cache[cache_key] = embedding
-
-                    # Enforce LRU limit (e.g., 1000 items)
-                    if len(self._embedding_cache) > 1000:
-                        self._embedding_cache.popitem(last=False)
-
-                    if attempt > 0:
-                        print("✅")
-                    return embedding
-
-            except Exception as e:
-                last_error = e
-                if attempt < max_retries - 1:
-                    continue
-                else:
-                    # All retries failed
-                    print(f"[Warning] Embedding API failed after {max_retries} attempts: {e}")
-                    print("[Warning] Continuing without embeddings for this text")
-                    # Return zero vector with correct dimension
-                    return [0.0] * embedding_dim
+                from src import llm_client
+                dim = llm_client.get_embedding_dimension()
+            except:
+                dim = 1536
+                
+            print(f"[Graph] Embedding failed: {e}")
+            return [0.0] * dim
 
     def cosine_similarity(self, v1: List[float], v2: List[float]) -> float:
         """
@@ -916,8 +849,68 @@ Indices to link:"""
         # 5. Sort and return
         results = [(data['score'], data['node']) for data in node_scores.values()]
         results.sort(reverse=True, key=lambda x: x[0])
-
-        return results[:limit]
+        
+        final_results = results[:limit]
+        
+        # DEBUG: ASCII Visualization of hybrid search
+        if hasattr(config, 'DEBUG_MODE') and config.DEBUG_MODE:
+            self._print_hybrid_search_viz(
+                query=query,
+                embedding_results=embedding_results,
+                bm25_results=bm25_results,
+                graph_results=[],  # Will be added in graph_rag_search
+                final_results=final_results,
+                alpha=alpha
+            )
+        
+        return final_results
+    
+    def _print_hybrid_search_viz(self, query: str, embedding_results: List, 
+                                  bm25_results: List, graph_results: List,
+                                  final_results: List, alpha: float = 0.7):
+        """Print ASCII visualization of hybrid search process."""
+        print(f"\n┌{'─'*66}┐")
+        print(f"│  [HybridRAG] Query: \"{query[:40]}...\"{'':>{66-len(query[:40])-25}}│")
+        print(f"├{'─'*66}┤")
+        
+        # Search engines
+        emb_count = len(embedding_results)
+        bm25_count = len(bm25_results)
+        graph_count = len(graph_results)
+        
+        print(f"│       ╔═══════════╗   ╔═══════════╗   ╔═══════════╗          │")
+        print(f"│       ║ Embedding ║   ║   BM25    ║   ║   Graph   ║          │")
+        print(f"│       ╚═════╤═════╝   ╚═════╤═════╝   ╚═════╤═════╝          │")
+        print(f"│             │               │               │                │")
+        print(f"│        [{emb_count:^3}]          [{bm25_count:^3}]          [{graph_count:^3}]             │")
+        
+        # Show top scores
+        if embedding_results:
+            top_emb = f"{embedding_results[0][0]:.2f}" if embedding_results else "---"
+            print(f"│        {top_emb}             ", end="")
+        else:
+            print(f"│         ---             ", end="")
+        if bm25_results:
+            top_bm25 = f"{bm25_results[0][0]:.2f}" if bm25_results else "---"
+            print(f"{top_bm25}             ", end="")
+        else:
+            print(f"---             ", end="")
+        print(f"{'':>20}│")
+        
+        print(f"│             │               │               │                │")
+        print(f"│             └───────────────┼───────────────┘                │")
+        print(f"│                             ▼                                │")
+        print(f"│                  ╔═══════════════════╗                       │")
+        print(f"│                  ║  RRF Fusion ({len(final_results):^2})  ║                       │")
+        print(f"│                  ╚═════════╤═════════╝                       │")
+        print(f"│                            │                                 │")
+        
+        # Show top results
+        for i, (score, node) in enumerate(final_results[:3]):
+            content = node.data.get('content', node.data.get('name', ''))[:35]
+            print(f"│  [{i+1}] {score:.3f} | {content}...  │")
+        
+        print(f"└{'─'*66}┘\n")
 
     def graph_rag_search(self, query: str, limit: int = 10,
                          node_type: Optional[str] = None,

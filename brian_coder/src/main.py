@@ -13,6 +13,8 @@ from datetime import datetime
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 # Get the project root (parent of src directory)
 _project_root = os.path.dirname(_script_dir)
+# Define PCIe directory path (sibling to brian_coder)
+_pcie_dir = os.path.join(os.path.dirname(_project_root), "PCIe")
 
 # Add paths: project root first, then src
 # This allows imports like: from lib.display import Color, from core.tools import ...
@@ -102,6 +104,7 @@ if config.ENABLE_GRAPH and config.ENABLE_CURATOR and graph_lite is not None:
         print(f"\033[91m[System] ❌ Curator initialization failed: {e}\033[0m")
         curator = None
 
+
 # --- Global Sub-Agent Orchestrator ---
 # Initialize orchestrator if sub-agents are enabled (replaces Deep Think)
 orchestrator = None
@@ -119,8 +122,36 @@ if config.ENABLE_SUB_AGENTS:
             timeout=config.SUB_AGENT_TIMEOUT
         )
     except Exception as e:
-        print(f"\033[91m[System] ❌ Sub-Agent Orchestrator initialization failed: {e}\033[0m")
+        print(f"\033[91m[System] ❌ Orchestrator initialization failed: {e}\033[0m")
         orchestrator = None
+
+# --- Global Hybrid RAG System ---
+# Initialize HybridRAG if Smart RAG is enabled
+hybrid_rag = None
+if config.ENABLE_SMART_RAG or config.DEBUG_MODE:
+    try:
+        from core.hybrid_rag import HybridRAG
+        from core.spec_graph import build_spec_graph_from_chunks
+        from core.rag_db import get_rag_db
+        
+        # Get DB (singleton)
+        _rag_db = get_rag_db()
+        
+        # Build Spec Graph from chunks (fast enough for 2-3k chunks)
+        _spec_chunks = [c for c in _rag_db.chunks.values() if c.category == 'spec']
+        if _spec_chunks:
+            _spec_graph = build_spec_graph_from_chunks(_spec_chunks)
+            if config.DEBUG_MODE:
+                print(Color.system(f"[System] Built SpecGraph with {len(_spec_graph.nodes)} nodes"))
+        else:
+            _spec_graph = None
+            
+        hybrid_rag = HybridRAG(_rag_db, graph_lite, _spec_graph)
+        
+    except Exception as e:
+        print(Color.warning(f"[System] ❌ HybridRAG initialization failed: {e}"))
+        hybrid_rag = None
+
 
 # --- Global Message Classifier ---
 # Initialize classifier for smart compression
@@ -424,6 +455,11 @@ def build_system_prompt(messages=None):
         Complete system prompt string
     """
     base_prompt = config.SYSTEM_PROMPT
+    
+    # Debug: Show prompt building start
+    if config.DEBUG_MODE and messages:
+        print(Color.system("[PROMPT] Building system prompt with context..."))
+        print(Color.system(f"[PROMPT]   Messages in history: {len(messages)}"))
 
     # Build context section
     if memory_system is not None or graph_lite is not None or procedural_memory is not None:
@@ -434,6 +470,21 @@ def build_system_prompt(messages=None):
             memory_context = memory_system.format_all_for_prompt()
             if memory_context:
                 context_parts.append(memory_context)
+                if config.DEBUG_MODE:
+                    # Get detailed breakdown
+                    prefs = memory_system.list_preferences()
+                    project_ctx = memory_system.list_project_context()
+                    print(Color.system(f"[PROMPT] ✅ Memory loaded:"))
+                    if prefs:
+                        print(Color.system(f"[PROMPT]     📋 Preferences ({len(prefs)} items):"))
+                        for key, val in prefs.items():
+                            val_str = str(val)[:50] + "..." if len(str(val)) > 50 else str(val)
+                            print(Color.system(f"[PROMPT]        {key}: {val_str}"))
+                    if project_ctx:
+                        print(Color.system(f"[PROMPT]     🗂️ Project Context ({len(project_ctx)} items):"))
+                        for key, val in project_ctx.items():
+                            val_str = str(val)[:50] + "..." if len(str(val)) > 50 else str(val)
+                            print(Color.system(f"[PROMPT]        {key}: {val_str}"))
 
         # Add procedural guidance (from past similar tasks)
         if procedural_memory is not None and config.PROCEDURAL_INJECT_GUIDANCE and messages:
@@ -478,6 +529,12 @@ def build_system_prompt(messages=None):
                         guidance += "=====================\n"
 
                         context_parts.append(guidance)
+                        
+                        # Debug output
+                        if config.DEBUG_MODE:
+                            print(Color.system(f"[PROMPT] ✅ Procedural: {len(similar_trajs)} similar trajectories"))
+                            for score, traj in similar_trajs:
+                                print(Color.system(f"[PROMPT]     - {traj.task_description[:40]}... (score: {score:.2f})"))
 
                         # Increment usage count for retrieved trajectories
                         for score, traj in similar_trajs:
@@ -505,18 +562,130 @@ def build_system_prompt(messages=None):
 
                     if relevant_results:
                         graph_context = "=== RELEVANT KNOWLEDGE ===\n\n"
+                        included_nodes = []
                         for score, node in relevant_results:
                             # Only include nodes with reasonable similarity
                             if score > config.GRAPH_SIMILARITY_THRESHOLD:
-                                node_desc = node.data.get("description", node.data.get("name", ""))
-                                graph_context += f"- {node.type}: {node_desc}\n"
+                                # Try multiple fields: content, description, name
+                                node_desc = node.data.get("content") or node.data.get("description") or node.data.get("name", "")
+                                if node_desc:
+                                    # Truncate long content
+                                    if len(node_desc) > 200:
+                                        node_desc = node_desc[:200] + "..."
+                                    graph_context += f"- {node.type}: {node_desc}\n"
+                                    included_nodes.append((score, node))
 
                         graph_context += "\n=====================\n"
                         context_parts.append(graph_context)
+                        
+                        # Debug output with type breakdown and content preview
+                        if config.DEBUG_MODE and included_nodes:
+                            type_counts = {}
+                            for score, node in included_nodes:
+                                type_counts[node.type] = type_counts.get(node.type, 0) + 1
+                            type_summary = ", ".join([f"{t}:{c}" for t, c in type_counts.items()])
+                            
+                            # Get total graph stats
+                            total_nodes = len(graph_lite.nodes) if hasattr(graph_lite, 'nodes') else 0
+                            total_edges = len(graph_lite.edges) if hasattr(graph_lite, 'edges') else 0
+                            print(Color.system(f"[PROMPT] ✅ Graph: {len(included_nodes)}/{total_nodes} nodes matched ({type_summary}), {total_edges} edges"))
+                            
+                            # Show all matched nodes with details
+                            for i, (score, node) in enumerate(included_nodes, 1):
+                                content = node.data.get('content') or node.data.get('description') or node.data.get('name', '')
+                                content_preview = content[:80].replace('\n', ' ') + "..." if len(content) > 80 else content.replace('\n', ' ')
+                                
+                                # Get usage stats
+                                helpful = getattr(node, 'helpful_count', 0)
+                                harmful = getattr(node, 'harmful_count', 0)
+                                usage = getattr(node, 'usage_count', 0)
+                                stats = f"👍{helpful} 👎{harmful} 📊{usage}" if any([helpful, harmful, usage]) else ""
+                                
+                                print(Color.system(f"[PROMPT]     {i}. [{node.type}] \"{content_preview}\""))
+                                if stats:
+                                    print(Color.system(f"[PROMPT]        score:{score:.2f} {stats}"))
 
                 except Exception as e:
                     # Fail silently if graph search fails
                     pass
+
+        # Smart RAG: Auto-inject relevant code/spec context
+        if config.ENABLE_SMART_RAG and messages:
+            user_messages = [m for m in messages if m.get("role") == "user"]
+            if user_messages:
+                recent_query = user_messages[-1].get("content", "")[:200]
+                
+                try:
+                    from core.smart_rag import SmartRAGDecision
+                    from core.rag_db import get_rag_db
+                    
+                    # Create Smart RAG decision maker
+                    smart_rag = SmartRAGDecision(
+                        high_threshold=config.SMART_RAG_HIGH_THRESHOLD,
+                        low_threshold=config.SMART_RAG_LOW_THRESHOLD,
+                        top_k=config.SMART_RAG_TOP_K,
+                        debug=config.DEBUG_MODE
+                    )
+                    
+                    # Define RAG search function (Hybrid if available)
+                    def rag_search_func(query, limit=3):
+                        if hybrid_rag:
+                            # Use HybridRAG (Embedding + BM25 + Graph)
+                            # This will also trigger the detailed debug visualization
+                            return hybrid_rag.search(query, limit=limit)
+                        else:
+                            # Fallback to simple Embedding search
+                            db = get_rag_db()
+                            return db.search(query, limit=limit)
+                    
+                    # LLM judge function (only if enabled)
+                    llm_judge_func = call_llm_raw if config.SMART_RAG_LLM_JUDGE else None
+                    
+                    # Decide and get results
+                    should_use, rag_results = smart_rag.decide(
+                        recent_query,
+                        rag_search_func,
+                        llm_judge_func
+                    )
+                    
+                    # Always show Smart RAG decision (for visibility)
+                    # Always show Smart RAG decision (for visibility)
+                    if rag_results:
+                        top_score = rag_results[0].score if hybrid_rag else (rag_results[0][0] if rag_results else 0)
+                        decision = "✅ Injected" if should_use else "❌ Ignored"
+                        
+                        # Note: Detailed debug visualization is handled inside hybrid_rag.search() if enabled
+                        
+                        # Simple output (always visible)
+                        print(Color.system(f"[SmartRAG] Query: \"{recent_query}\""))
+                        print(Color.system(f"[SmartRAG] Top Score: {top_score:.3f} | Threshold: {config.SMART_RAG_LOW_THRESHOLD}-{config.SMART_RAG_HIGH_THRESHOLD} | {decision}"))
+                        
+                        if should_use:
+                            for i, item in enumerate(rag_results[:3], 1):
+                                if hybrid_rag:
+                                    # HybridRAG returns SearchResult objects
+                                    score = item.score
+                                    source = os.path.basename(item.source_file)
+                                    category = getattr(item, 'chunk_type', 'unknown').upper()
+                                else:
+                                    # Basic RAG returns (score, chunk) tuples
+                                    score, chunk = item
+                                    source = os.path.basename(getattr(chunk, 'source_file', 'unknown'))
+                                    category = getattr(chunk, 'category', 'unknown').upper()
+                                    
+                                print(Color.system(f"[SmartRAG]   {i}. [{category}] {source} (score: {score:.2f})"))
+                        print("")
+                    
+                    if should_use and rag_results:
+                        rag_context = smart_rag.format_context(rag_results, max_chars=2000)
+                        context_parts.append(rag_context)
+                
+                except ImportError:
+                    # RAG module not available, skip silently
+                    pass
+                except Exception as e:
+                    if config.DEBUG_MODE:
+                        print(Color.warning(f"[SmartRAG] Error: {e}"))
 
         # Add RAG tool guidance for Verilog and Spec analysis
         rag_guidance = """=== RAG CODE & SPEC SEARCH ===
@@ -539,6 +708,13 @@ Workflow: rag_search() → find location → read_lines() → analyze
         # Combine all context parts
         if context_parts:
             base_prompt = base_prompt + "\n\n" + "\n\n".join(context_parts)
+            
+            # Debug: Show prompt build summary
+            if config.DEBUG_MODE and messages:
+                total_chars = len(base_prompt)
+                estimated_tokens = total_chars // 4
+                print(Color.system(f"[PROMPT] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"))
+                print(Color.system(f"[PROMPT] Build complete: {len(context_parts)} sections, ~{estimated_tokens:,} tokens"))
 
     return base_prompt
 
@@ -1121,10 +1297,47 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         # Context Management: Compress if needed
         messages = compress_history(messages)
 
+        # Smart RAG: Refresh system prompt with current context
+        # This enables dynamic RAG context injection based on latest user message
+        # Refresh on every iteration to find new relevant context as conversation progresses
+        if config.ENABLE_SMART_RAG or config.DEBUG_MODE:
+            # Only refresh if there's a new user message since last refresh
+            user_messages = [m for m in messages if m.get("role") == "user"]
+            current_query = user_messages[-1].get("content", "")[:100] if user_messages else ""
+            
+            # Check if query changed or first iteration
+            last_rag_query = getattr(tracker, '_last_rag_query', None)
+            if tracker.current == 0 or current_query != last_rag_query:
+                tracker._last_rag_query = current_query
+                
+                # Index PCIe directory if it exists
+                if os.path.exists(_pcie_dir):
+                    print(Color.system(f"[Startup] Checking PCIe Spec RAG index..."))
+                    try:
+                        # Index markdown files in PCIe directory as 'spec'
+                        rag_db.index_directory(_pcie_dir, patterns=["*.md", "*.txt"], category="spec")
+                    except Exception as e:
+                        print(Color.warning(f"[Startup] Failed to index PCIe directory: {e}"))
+
+                new_system_prompt = build_system_prompt(messages)
+                # Update system message if it exists
+                if messages and messages[0].get("role") == "system":
+                    messages[0]["content"] = new_system_prompt
+
         # Show context usage before each iteration
         if config.DEBUG_MODE or tracker.current == 0:
             show_context_usage(messages)
 
+        # Show flow stage: LLM Call
+        if config.DEBUG_MODE:
+            import time
+            llm_start_time = time.time()
+            user_msgs = len([m for m in messages if m.get('role') == 'user'])
+            asst_msgs = len([m for m in messages if m.get('role') == 'assistant'])
+            sys_msgs = len([m for m in messages if m.get('role') == 'system'])
+            print(Color.system(f"[FLOW] Stage 1: LLM Call"))
+            print(Color.system(f"[FLOW]   Messages: user:{user_msgs} assistant:{asst_msgs} system:{sys_msgs} total:{len(messages)}"))
+            
         print(Color.agent(f"Agent (Iteration {tracker.current+1}/{tracker.max_iterations}): "), end="", flush=True)
 
         collected_content = ""
@@ -1139,6 +1352,17 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
         print(colored_output)
         print()
+        
+        # Show flow stage: Response received
+        if config.DEBUG_MODE:
+            llm_elapsed = time.time() - llm_start_time if 'llm_start_time' in dir() else 0
+            has_thought = "Thought:" in collected_content
+            has_action = "Action:" in collected_content
+            response_len = len(collected_content)
+            response_tokens_est = response_len // 4
+            print(Color.system(f"[FLOW] Stage 2: Response received"))
+            print(Color.system(f"[FLOW]   Time: {llm_elapsed:.2f}s | Length: {response_len} chars (~{response_tokens_est} tokens)"))
+            print(Color.system(f"[FLOW]   Parsed: Thought:{has_thought} Action:{has_action}"))
 
         # Add assistant response to history
         messages.append({"role": "assistant", "content": collected_content})
@@ -1166,10 +1390,20 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         if actions:
             combined_results = []
             
+            # Show flow stage
+            if config.DEBUG_MODE:
+                print(Color.system(f"  ┌─ FLOW: Parse → Found {len(actions)} action(s)"))
+            
             for i, (tool_name, args_str) in enumerate(actions):
                 # Visual separator for multi-action (except first)
                 if i > 0:
                     print(Color.system(f"  {'-'*40}"))
+                
+                # Show tool execution stage
+                if config.DEBUG_MODE:
+                    import time
+                    tool_start_time = time.time()
+                    print(Color.system(f"  ├─ FLOW: Execute → {tool_name}({args_str[:50]}...)"))
                     
                 print(Color.tool(f"  🔧 Tool {i+1}/{len(actions)}: {tool_name}"))
 
@@ -1178,6 +1412,11 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                 # Execute
                 observation = execute_tool(tool_name, args_str)
+                
+                # Show tool execution timing
+                if config.DEBUG_MODE:
+                    tool_elapsed = time.time() - tool_start_time
+                    print(Color.system(f"  ├─ FLOW: Complete → {tool_elapsed:.2f}s | {len(observation)} chars"))
 
                 # Error detection: check if observation contains error indicators
                 obs_lower = observation.lower()

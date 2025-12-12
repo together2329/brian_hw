@@ -22,6 +22,7 @@ from typing import List, Dict, Any, Optional, Tuple, Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError
 
 import config
+from display import Color
 
 
 # ============================================================
@@ -131,7 +132,22 @@ Return ONLY a JSON array:
 Different approaches (JSON only):"""
 
         try:
+            # DEBUG: LLM Call logging
+            if config.DEBUG_MODE:
+                print(f"\n{'─'*60}")
+                print(f"[DeepThink] Phase 1: BRANCHING")
+                print(f"[DeepThink] 🔹 LLM Call #1 (temperature={config.DEEP_THINK_TEMPERATURE})")
+                print(f"[DeepThink] Generating {num_hypotheses} hypotheses...")
+                print(f"{Color.debug('[DeepThink] Prompt:')}\n{Color.debug(prompt)}")
+            
+            import time as _time
+            _start = _time.time()
             response = self.llm_call_func(prompt, temperature=config.DEEP_THINK_TEMPERATURE)
+            _elapsed = (_time.time() - _start) * 1000
+            
+            if config.DEBUG_MODE:
+                print(f"[DeepThink] ✅ Response: {len(response)} chars in {_elapsed:.0f}ms")
+                print(f"{Color.debug('[DeepThink] Response:')}\n{Color.debug(response)}\n")
 
             # Parse JSON from response
             start_idx = response.find('[')
@@ -149,9 +165,13 @@ Different approaches (JSON only):"""
                         description=approach.get("description", ""),
                         first_action=approach.get("first_action", ""),
                         reasoning=approach.get("reasoning", ""),
-                        confidence=0.5 + (0.1 * (num_hypotheses - i) / num_hypotheses)  # Slight ordering preference
+                        confidence=0.5 + (0.1 * (num_hypotheses - i) / num_hypotheses)
                     )
                     hypotheses.append(hyp)
+                    
+                    # DEBUG: Show each hypothesis
+                    if config.DEBUG_MODE:
+                        print(f"[DeepThink]   [{i+1}] {hyp.strategy_name}: {hyp.first_action[:50]}...")
 
                 return hypotheses if hypotheses else [self._create_default_hypothesis()]
 
@@ -180,6 +200,7 @@ class ParallelReasoner:
     """
     Runs simulation for each hypothesis by executing its first_action.
     Uses ThreadPoolExecutor for parallel execution.
+    Now includes LLM analysis of simulation results.
     """
 
     # Read-only tools that are safe to run in parallel
@@ -189,12 +210,14 @@ class ParallelReasoner:
         'rag_search', 'rag_status'
     }
 
-    def __init__(self, execute_tool_func: Callable = None):
+    def __init__(self, execute_tool_func: Callable = None, llm_call_func: Callable = None):
         """
         Args:
             execute_tool_func: Function to execute tools (signature: func(tool_name, args_str) -> str)
+            llm_call_func: Function to call LLM for result analysis
         """
         self.execute_tool_func = execute_tool_func
+        self.llm_call_func = llm_call_func
 
     def simulate(self, hypothesis: Hypothesis) -> str:
         """
@@ -277,7 +300,57 @@ class ParallelReasoner:
                 except Exception as e:
                     hypothesis.simulation_result = f"ERROR: {str(e)[:100]}"
 
+        # LLM Analysis: Analyze each simulation result
+        if self.llm_call_func:
+            # DEBUG: Phase 2 logging
+            if config.DEBUG_MODE:
+                print(f"\n{'─'*60}")
+                print(f"[DeepThink] Phase 2: SIMULATION ANALYSIS")
+                success_count = len([h for h in hypotheses if h.simulation_result and h.simulation_result.startswith("SUCCESS")])
+                print(f"[DeepThink] 🔹 LLM Calls: {success_count}x (analyzing {success_count} successful simulations)")
+            
+            llm_call_num = 0
+            for h in hypotheses:
+                if h.simulation_result and h.simulation_result.startswith("SUCCESS"):
+                    llm_call_num += 1
+                    if config.DEBUG_MODE:
+                        print(f"[DeepThink]   Analyzing [{h.strategy_name}]...", end=" ")
+                    h.simulation_analysis = self._analyze_simulation(h, llm_call_num)
+
         return hypotheses
+
+    def _analyze_simulation(self, hypothesis: Hypothesis, call_num: int = 0) -> str:
+        """Use LLM to analyze simulation result and assess usefulness."""
+        if not self.llm_call_func:
+            return ""
+
+        prompt = f"""Analyze this simulation result briefly (1-2 sentences):
+
+STRATEGY: {hypothesis.strategy_name}
+ACTION: {hypothesis.first_action}
+RESULT: {hypothesis.simulation_result[:300]}
+
+Is this result useful for the task? What did we learn?"""
+
+        if config.DEBUG_MODE:
+             print(f"\n{Color.debug('[DeepThink] Analysis Prompt:')}\n{Color.debug(prompt)}")
+
+        try:
+            import time as _time
+            _start = _time.time()
+            response = self.llm_call_func(prompt, temperature=0.3)
+            _elapsed = (_time.time() - _start) * 1000
+            
+            if config.DEBUG_MODE:
+                print(f"✅ {_elapsed:.0f}ms")
+                print(f"{Color.debug('[DeepThink] Analysis Result:')} {response.strip()}")
+            
+            
+            return response.strip()[:200]
+        except:
+             if config.DEBUG_MODE:
+                 print(f"{Color.error('❌ failed')}")
+             return ""
 
 
 # ============================================================
@@ -397,8 +470,14 @@ Consider:
 
 Return ONLY a decimal number between 0.0 and 1.0:"""
 
+        if config.DEBUG_MODE:
+             print(f"\n{Color.debug('[DeepThink] Coherence Prompt:')}\n{Color.debug(prompt)}")
+
         try:
             response = self.llm_call_func(prompt, temperature=0.1)
+            
+            if config.DEBUG_MODE:
+                print(f"{Color.debug('[DeepThink] Coherence Response:')} {response}")
 
             # Extract number from response
             match = re.search(r'(0?\.\d+|1\.0|0|1)', response.strip())
@@ -480,17 +559,19 @@ Return ONLY a decimal number between 0.0 and 1.0:"""
 class HypothesisSelector:
     """
     Selects the best hypothesis based on scores.
+    Now uses LLM for final selection decision.
     """
 
     def __init__(self, llm_call_func: Callable = None):
         self.llm_call_func = llm_call_func
 
-    def select_best(self, hypotheses: List[Hypothesis]) -> Hypothesis:
+    def select_best(self, hypotheses: List[Hypothesis], task: str = "") -> Hypothesis:
         """
-        Select hypothesis with highest final score.
+        Select hypothesis with highest final score, with LLM confirmation.
 
         Args:
             hypotheses: List of scored hypotheses
+            task: Original task description
 
         Returns:
             Best hypothesis
@@ -500,7 +581,48 @@ class HypothesisSelector:
 
         # Sort by final score (descending)
         sorted_hypotheses = sorted(hypotheses, key=lambda h: h.final_score, reverse=True)
-        return sorted_hypotheses[0]
+        top_candidate = sorted_hypotheses[0]
+
+        # LLM-based final selection (if scores are close)
+        if self.llm_call_func and len(sorted_hypotheses) >= 2:
+            score_diff = sorted_hypotheses[0].final_score - sorted_hypotheses[1].final_score
+            if score_diff < 0.1:  # Close scores, use LLM to decide
+                selected = self._llm_select(sorted_hypotheses[:3], task)
+                if selected:
+                    return selected
+
+        return top_candidate
+
+    def _llm_select(self, candidates: List[Hypothesis], task: str) -> Optional[Hypothesis]:
+        """Use LLM to make final selection when scores are close."""
+        if not self.llm_call_func:
+            return None
+
+        options = []
+        for i, h in enumerate(candidates):
+            sim_analysis = getattr(h, 'simulation_analysis', '')
+            options.append(f"{i}. {h.strategy_name} (score: {h.final_score:.2f})\n   {h.description}\n   Simulation: {sim_analysis[:100]}")
+
+        prompt = f"""Select the BEST approach for this task:
+
+TASK: {task}
+
+CANDIDATES:
+{chr(10).join(options)}
+
+Return ONLY the number (0, 1, or 2) of the best approach:"""
+
+        try:
+            response = self.llm_call_func(prompt, temperature=0.1)
+            match = re.search(r'([0-2])', response.strip())
+            if match:
+                idx = int(match.group(1))
+                if idx < len(candidates):
+                    return candidates[idx]
+        except:
+            pass
+
+        return None
 
     def select_top_k(self, hypotheses: List[Hypothesis], k: int = 2) -> List[Hypothesis]:
         """
@@ -545,7 +667,7 @@ class DeepThinkEngine:
             execute_tool_func: Tool execution function
         """
         self.brancher = HypothesisBrancher(llm_call_func)
-        self.reasoner = ParallelReasoner(execute_tool_func)
+        self.reasoner = ParallelReasoner(execute_tool_func, llm_call_func)  # Added LLM for analysis
         self.scorer = HypothesisScorer(procedural_memory, graph_lite, llm_call_func)
         self.selector = HypothesisSelector(llm_call_func)
         self.llm_call_func = llm_call_func
@@ -605,7 +727,7 @@ class DeepThinkEngine:
 
         # ========== PHASE 4: SELECTION ==========
         reasoning_log.append("\n[Phase 4] Selecting best hypothesis...")
-        selected = self.selector.select_best(hypotheses)
+        selected = self.selector.select_best(hypotheses, task)  # Pass task for LLM selection
         reasoning_log.append(f"  Selected: {selected.strategy_name} (score: {selected.final_score:.3f})")
 
         # Calculate total time

@@ -58,6 +58,17 @@ class Color:
     def info(text):
         """Info messages - Cyan + Dim"""
         return f"{Color.DIM}{Color.CYAN}{text}{Color.RESET}"
+
+    @staticmethod
+    def debug(text):
+        """Debug messages - Purple/Magenta"""
+        return f"{Color.MAGENTA}{text}{Color.RESET}"
+        
+    @staticmethod
+    def action(text):
+        """Action messages (e.g. key decisions) - Green + Bold + Underline"""
+        return f"{Color.BOLD}{Color.GREEN}\033[4m{text}{Color.RESET}"
+
     
     @staticmethod
     def diff_add(text):

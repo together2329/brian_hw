@@ -5,11 +5,11 @@
 | 카테고리 | 테스트 수 | 설명 |
 |---------|----------|------|
 | **Unit Tests** | 141 | 개별 함수/클래스 검증 |
-| **Integration Tests** | 83 | 컴포넌트 간 연동 검증 (LLM Tool Use 포함) |
+| **Integration Tests** | 99 | 컴포넌트 간 연동 검증 (LLM Tool Use + Memory In Context) |
 | **E2E Tests** | 6 | 전체 시스템 흐름 |
 | **Performance Tests** | 8 | 실행 속도 벤치마크 |
 | **LLM API Tests** | 6 | API 연동 (선택적) |
-| **Total** | **284** | |
+| **Total** | **300** | |
 
 ---
 
@@ -52,7 +52,8 @@ tests/
 │   ├── test_deep_think_pipeline.py  # DeepThink 파이프라인 (9개)
 │   ├── test_subagent_pipeline.py   # SubAgent 파이프라인 (12개)
 │   ├── test_subagent_deep.py       # SubAgent 딥 연동 (11개)
-│   └── test_llm_tool_use.py        # LLM Tool Use 검증 (42개) ✨ NEW
+│   ├── test_llm_tool_use.py        # LLM Tool Use 검증 (42개) ✨ NEW
+│   └── test_memory_in_context.py   # Memory In Context 검증 (16개) ✨ NEW
 ├── test_performance.py      # 성능 벤치마크
 ├── test_e2e.py              # End-to-End 테스트
 └── test_llm_api.py          # LLM API 테스트 (선택적)
@@ -97,6 +98,13 @@ tests/
   - **Tool 연쇄**: Read-then-Write, List-then-Read (2개)
   - **Context 관리**: Message history, 대용량 출력 (2개)
   - **Usability**: Tool 등록, 호출 가능성 (3개)
+- `test_memory_in_context.py` ✨ **NEW**: 메모리가 main.py 실행 환경에서 올바르게 동작하는지 검증
+  - **System Prompt 통합**: 선호도 포맷팅, 프로젝트 컨텍스트 (4개)
+  - **자동 추출**: 사용자 입력에서 선호도 감지 (2개)
+  - **Procedural Memory**: 유사 작업 검색, 사용량 추적, 트라젝토리 저장 (3개)
+  - **Graph Memory**: 자동 링킹, 저장 및 로드 (2개)
+  - **실제 메시지 흐름**: 다중 턴 대화, 작업 완료 흐름 (2개)
+  - **에러 처리**: 잘못된 키, 손상된 파일, 빈 상태 (3개)
 
 ### 3. E2E Tests (End-to-End)
 

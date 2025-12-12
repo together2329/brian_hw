@@ -148,7 +148,9 @@ EMBEDDING_API_KEY = os.getenv("EMBEDDING_API_KEY", API_KEY)
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 
 # Embedding dimension (auto-detected, optional override)
-EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "1536"))
+# Optional: Auto-detect if not set
+_emb_dim_env = os.getenv("EMBEDDING_DIMENSION")
+EMBEDDING_DIMENSION = int(_emb_dim_env) if _emb_dim_env else None
 
 # ============================================================
 # Memory System Configuration
@@ -261,6 +263,26 @@ ENABLE_NODE_MERGE = os.getenv("ENABLE_NODE_MERGE", "false").lower() in ("true", 
 # Similarity threshold for node merging (0.0-1.0)
 # Only nodes with similarity >= this value will be merged
 MERGE_SIMILARITY_THRESHOLD = float(os.getenv("MERGE_SIMILARITY_THRESHOLD", "0.85"))
+
+# ============================================================
+# Smart RAG Decision Configuration
+# ============================================================
+# Enable/Disable automatic RAG context injection
+# When enabled, automatically searches RAG and injects relevant context
+ENABLE_SMART_RAG = os.getenv("ENABLE_SMART_RAG", "true").lower() in ("true", "1", "yes")
+
+# High threshold: score >= this -> use RAG context directly
+SMART_RAG_HIGH_THRESHOLD = float(os.getenv("SMART_RAG_HIGH_THRESHOLD", "0.8"))
+
+# Low threshold: score < this -> ignore RAG results
+SMART_RAG_LOW_THRESHOLD = float(os.getenv("SMART_RAG_LOW_THRESHOLD", "0.5"))
+
+# Number of top results to consider
+SMART_RAG_TOP_K = int(os.getenv("SMART_RAG_TOP_K", "3"))
+
+# Enable LLM judgment for mid-score results (between low and high threshold)
+# When enabled, asks LLM to judge relevance for ambiguous cases
+SMART_RAG_LLM_JUDGE = os.getenv("SMART_RAG_LLM_JUDGE", "true").lower() in ("true", "1", "yes")
 
 # ============================================================
 # Procedural Memory Configuration (Memp)
