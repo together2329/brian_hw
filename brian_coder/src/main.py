@@ -2424,6 +2424,10 @@ def chat_loop():
     print(Color.system(f"Prompt Caching: {'Enabled' if config.ENABLE_PROMPT_CACHING else 'Disabled'}"))
     print(Color.system(f"Memory: {'Enabled' if config.ENABLE_MEMORY and memory_system else 'Disabled'}"))
     print(Color.system(f"Graph: {'Enabled' if config.ENABLE_GRAPH and graph_lite else 'Disabled'}"))
+    
+    # Perform Memory Healing (One-time check on startup)
+    if config.ENABLE_GRAPH and graph_lite:
+        graph_lite.heal_embeddings()
     print(Color.system(f"Procedural Memory: {'Enabled' if config.ENABLE_PROCEDURAL_MEMORY and procedural_memory else 'Disabled'}"))
     print(Color.system(f"Curator: {'Enabled' if config.ENABLE_CURATOR and curator else 'Disabled'}"))
 

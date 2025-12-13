@@ -12,7 +12,7 @@ A lightweight AI agent designed for restricted Linux environments (no `sudo`, no
 
 2. **Configuration**:
    - The agent connects to an OpenAI-compatible LLM API (e.g., Qwen, Llama, vLLM).
-   - Edit `config.py` or set environment variables:
+   - Edit `src/config.py` or set environment variables:
      ```bash
      export LLM_BASE_URL="https://openrouter.ai/api/v1"
      export LLM_API_KEY="sk-or-v1-..."
@@ -22,7 +22,7 @@ A lightweight AI agent designed for restricted Linux environments (no `sudo`, no
 3. **Running**:
    ```bash
    cd brian_coder
-   python3 main.py
+   python3 src/main.py
    ```
 
 ## Features
@@ -33,3 +33,17 @@ A lightweight AI agent designed for restricted Linux environments (no `sudo`, no
     - `write_file(path, content)`
     - `run_command(command)`
     - `list_dir(path)`
+
+## Optional Settings (Env Vars)
+- **Parallel tool execution (multi-Action)**:
+  - `ENABLE_REACT_PARALLEL=true|false`
+  - `REACT_MAX_WORKERS=5`
+  - `REACT_ACTION_TIMEOUT=30`
+- **Claude Code style flow (Plan → Approve → Execute)**:
+  - `CLAUDE_FLOW_MODE=off|auto|always`
+  - `CLAUDE_FLOW_REQUIRE_APPROVAL=true|false`
+  - `CLAUDE_FLOW_AUTO_EXECUTE=true|false`
+  - `CLAUDE_FLOW_COMPLEX_TASK_CHAR_THRESHOLD=120`
+  - `CLAUDE_FLOW_STEP_MAX_ITERATIONS=25`
+- **Safe mode (blocks destructive commands)**:
+  - `SAFE_MODE=true|false`

@@ -265,6 +265,20 @@ class TestProceduralMemoryPersistence(unittest.TestCase):
         pm2 = ProceduralMemory(memory_dir=self.temp_dir)
         # Just check that something was persisted
         self.assertIsInstance(pm2.trajectories, dict)
+
+    def test_multi_instance_save_merges_without_loss(self):
+        """Test that saves from multiple instances don't clobber each other."""
+        pm1 = ProceduralMemory(memory_dir=self.temp_dir)
+        pm2 = ProceduralMemory(memory_dir=self.temp_dir)
+
+        pm1.build("Task 1", [Action(tool="test", args="1", result="success")], "success", 1)
+        pm1.save()
+
+        pm2.build("Task 2", [Action(tool="test", args="2", result="success")], "success", 1)
+        pm2.save()
+
+        pm3 = ProceduralMemory(memory_dir=self.temp_dir)
+        self.assertGreaterEqual(len(pm3.trajectories), 2)
     
     def test_get_stats(self):
         """Test getting statistics"""

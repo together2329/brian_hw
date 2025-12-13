@@ -3,6 +3,7 @@ import subprocess
 import json
 import shlex
 import sys
+import re
 
 # Try to import format_diff with fallback mechanism
 try:
@@ -48,6 +49,11 @@ def write_file(path, content):
 def run_command(command):
     """Runs a shell command and returns output."""
     try:
+        # Optional safe-mode guardrail to avoid destructive commands.
+        safe_mode_env = os.getenv("SAFE_MODE", "false").lower() in ("true", "1", "yes")
+        if safe_mode_env and _is_dangerous_command(command):
+            return "Error: Command blocked by SAFE_MODE."
+
         # Security Note: In a real production agent, you'd want to sandbox this.
         # Since this is for internal use by a developer, we use subprocess directly.
         # Updated to use shell=False for better security
@@ -67,6 +73,28 @@ def run_command(command):
         return "Error: Command timed out."
     except Exception as e:
         return f"Error running command: {e}"
+
+
+def _is_dangerous_command(command: str) -> bool:
+    """
+    Heuristic check for destructive commands.
+    Used only when SAFE_MODE=true.
+    """
+    cmd = (command or "").strip().lower()
+    if not cmd:
+        return False
+
+    # Block common destructive patterns.
+    dangerous_patterns = [
+        r"\brm\b.*\s-\w*r\w*f\b",          # rm -rf / rm -fr variants
+        r"\bsudo\b",                      # privilege escalation
+        r"\bshutdown\b|\breboot\b|\bhalt\b|\bpoweroff\b",
+        r"\bmkfs\b|\bdd\b\s+if=",
+        r"\bgit\b\s+reset\s+--hard\b",
+        r"\bgit\b\s+clean\b.*-f",
+    ]
+
+    return any(re.search(pat, cmd) for pat in dangerous_patterns)
 
 def list_dir(path="."):
     """Lists files in a directory."""
@@ -783,7 +811,12 @@ def spawn_explore(query):
         Exploration results - files found, patterns identified, structure analysis
     """
     try:
-        from sub_agents.explore_agent import ExploreAgent
+        try:
+            # Tests may add `agents/` to sys.path (so `sub_agents` is importable).
+            from sub_agents.explore_agent import ExploreAgent
+        except ImportError:
+            # Runtime default: import via namespace package under `agents/`.
+            from agents.sub_agents.explore_agent import ExploreAgent
         from llm_client import call_llm_raw
 
         # Create a simple execute_tool wrapper
@@ -829,7 +862,12 @@ def spawn_plan(task_description):
         Text-only implementation plan with interface specs and steps
     """
     try:
-        from sub_agents.plan_agent import PlanAgent
+        try:
+            # Tests may add `agents/` to sys.path (so `sub_agents` is importable).
+            from sub_agents.plan_agent import PlanAgent
+        except ImportError:
+            # Runtime default: import via namespace package under `agents/`.
+            from agents.sub_agents.plan_agent import PlanAgent
         from llm_client import call_llm_raw
 
         agent = PlanAgent(

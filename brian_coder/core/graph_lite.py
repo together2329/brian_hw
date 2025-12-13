@@ -58,6 +58,10 @@ class SimpleBM25:
             self.idf[term] = math.log(((self.corpus_size - freq + 0.5) / (freq + 0.5)) + 1)
 
     def get_scores(self, query):
+        pass
+
+
+
         scores = [0.0] * self.corpus_size
         for term in query:
             if term not in self.idf: continue
@@ -478,7 +482,8 @@ class GraphLite:
         
         # Step 1: Find candidates via embedding similarity
         candidates = []
-        for existing in self.nodes.values():
+        # Snapshot nodes for thread safety during iteration
+        for existing in list(self.nodes.values()):
             if existing.embedding is None:
                 continue
             
@@ -486,7 +491,27 @@ class GraphLite:
             if existing.id == note.id:
                 continue
             
-            score = self.cosine_similarity(note.embedding, existing.embedding)
+            try:
+                score = self.cosine_similarity(note.embedding, existing.embedding)
+            except ValueError as e:
+                # Handle dimension mismatch (e.g., 4096 vs 1024)
+                # Attempt to re-embed the existing node with current model
+                try:
+                    content_to_embed = existing.data.get("content") or existing.data.get("description") or existing.data.get("name", "")
+                    if content_to_embed:
+                        # print(f"[Graph] Updating embedding for node {existing.id} (dimension mismatch)...")
+                        new_embedding = self.get_embedding(str(content_to_embed))
+                        if len(new_embedding) == len(note.embedding):
+                            existing.embedding = new_embedding
+                            score = self.cosine_similarity(note.embedding, existing.embedding)
+                        else:
+                            print(f"[Graph] Re-embedding failed to match dimension. Skipping node {existing.id}.")
+                            continue
+                    else:
+                        continue
+                except Exception as inner_e:
+                    print(f"[Graph] Failed to heal embedding mismatch: {inner_e}")
+                    continue
             
             # Import config at runtime to avoid circular dependency
             try:
@@ -1150,6 +1175,50 @@ Relations (JSON only):"""
         """
         return f"{prefix}_{uuid.uuid4().hex[:8]}"
 
+    def heal_embeddings(self):
+        """
+        Check all nodes for embedding dimension mismatch and re-embed if necessary.
+        This is a maintenance task to handle model changes (e.g., 1024 -> 4096 dim).
+        """
+        # probe current dimension
+        try:
+            probe = self.get_embedding("probe")
+            current_dim = len(probe)
+        except Exception as e:
+            print(f"[Graph] Healing skipped: could not probe embedding dimension: {e}")
+            return
+
+        print(f"[Graph] Verifying embedding dimensions (Target: {current_dim})...")
+        healed_count = 0
+        
+        # Snapshot values for iteration
+        for node in list(self.nodes.values()):
+            if not node.embedding:
+                continue
+                
+            if len(node.embedding) != current_dim:
+                # Mismatch found
+                try:
+                    content_to_embed = node.data.get("content") or node.data.get("description") or node.data.get("name", "")
+                    if content_to_embed:
+                        # Re-embed
+                        new_embedding = self.get_embedding(str(content_to_embed))
+                        if len(new_embedding) == current_dim:
+                            node.embedding = new_embedding
+                            healed_count += 1
+                            # Print progress every 10 nodes to avoid spam
+                            if healed_count % 10 == 1:
+                                print(f"[Graph] Healing progress: fixed {healed_count} nodes...")
+                except Exception as e:
+                    print(f"[Graph] Failed to heal node {node.id}: {e}")
+        
+        if healed_count > 0:
+            print(f"[Graph] Memory healing complete. Updated {healed_count} nodes.")
+            self.save()
+            print("[Graph] Saved healed memory.")
+        else:
+            print("[Graph] Memory integrity check passed. No repairs needed.")
+            
     def get_stats(self) -> Dict[str, int]:
         """
         Get graph statistics.

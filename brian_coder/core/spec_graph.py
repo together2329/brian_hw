@@ -89,6 +89,7 @@ class SpecGraph:
             self for chaining
         """
         section_map = {}  # section_id -> node_id
+        title_map = {}    # title -> node_id (for fast lookup)
         
         # First pass: Create nodes
         for chunk in chunks:
@@ -97,11 +98,12 @@ class SpecGraph:
                 
             node_id = f"spec_{chunk.id}"
             section_id = chunk.metadata.get("section_id", "")
+            title = chunk.metadata.get("section_title", chunk.metadata.get("summary", ""))
             
             node = SpecNode(
                 id=node_id,
                 node_type=chunk.chunk_type,
-                title=chunk.metadata.get("section_title", chunk.metadata.get("summary", "")),
+                title=title,
                 section_id=section_id,
                 level=chunk.level,
                 content_preview=chunk.content[:200],
@@ -111,6 +113,11 @@ class SpecGraph:
             
             if section_id:
                 section_map[section_id] = node_id
+            
+            # Map title to node_id (prefer sections over others)
+            if title:
+                if chunk.chunk_type.startswith("section") or title not in title_map:
+                    title_map[title] = node_id
         
         # Second pass: Create edges
         for chunk in chunks:
@@ -132,15 +139,12 @@ class SpecGraph:
                 if ref in section_map and section_map[ref] != node_id:
                     self.add_edge(node_id, section_map[ref], "cross_ref", 0.8)
             
-            # Table/code containment
+            # Table/code containment (optimized with title_map)
             parent_section = chunk.metadata.get("parent_section", "") or chunk.metadata.get("parent_h2", "") or chunk.metadata.get("parent_h1", "")
             if parent_section and chunk.chunk_type in ["table", "code_block"]:
-                # Find parent section node
-                for sec_id, sec_node_id in section_map.items():
-                    sec_node = self.nodes.get(sec_node_id)
-                    if sec_node and sec_node.title == parent_section:
-                        self.add_edge(sec_node_id, node_id, "contains", 0.9)
-                        break
+                # Use fast lookup instead of iteration
+                if parent_section in title_map:
+                    self.add_edge(title_map[parent_section], node_id, "contains", 0.9)
         
         return self
     

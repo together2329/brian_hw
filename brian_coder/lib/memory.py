@@ -5,6 +5,10 @@ Stores user preferences and project context in JSON files.
 Zero-dependency (stdlib only).
 """
 import json
+import os
+import tempfile
+import time
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -47,6 +51,75 @@ class MemorySystem:
         if not self.project_context_file.exists():
             self._save_project_context()
 
+    # ========== Low-level File Helpers ==========
+
+    def _read_json_file(self, path: Path) -> Dict[str, Any]:
+        """Read a JSON dict from disk, returning {} on error."""
+        try:
+            with open(path, 'r') as f:
+                data = json.load(f)
+                return data if isinstance(data, dict) else {}
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
+
+    def _atomic_write_json(self, path: Path, data: Dict[str, Any]) -> None:
+        """
+        Atomically write JSON to disk.
+        Writes to a temp file in the same directory, then os.replace().
+        """
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode='w',
+                dir=str(path.parent),
+                delete=False,
+                encoding='utf-8'
+            ) as tmp:
+                json.dump(data, tmp, indent=2, ensure_ascii=False)
+                tmp.flush()
+                os.fsync(tmp.fileno())
+                tmp_path = Path(tmp.name)
+            os.replace(str(tmp_path), str(path))
+        finally:
+            if tmp_path and tmp_path.exists():
+                try:
+                    tmp_path.unlink()
+                except Exception:
+                    pass
+
+    @contextmanager
+    def _file_lock(self, target_path: Path, timeout: float = 5.0, poll_interval: float = 0.05):
+        """
+        Cross-process lock using an adjacent lock file.
+        Best-effort: blocks until acquired or timeout.
+        """
+        lock_path = target_path.with_suffix(target_path.suffix + ".lock")
+        start = time.time()
+        fd = None
+
+        while True:
+            try:
+                fd = os.open(str(lock_path), os.O_CREAT | os.O_EXCL | os.O_RDWR)
+                break
+            except FileExistsError:
+                if (time.time() - start) > timeout:
+                    raise TimeoutError(f"Timeout acquiring lock for {target_path}")
+                time.sleep(poll_interval)
+
+        try:
+            yield
+        finally:
+            if fd is not None:
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
+            try:
+                os.unlink(str(lock_path))
+            except FileNotFoundError:
+                pass
+
     def _load(self):
         """Load memories from disk"""
         try:
@@ -62,14 +135,14 @@ class MemorySystem:
             self._project_context = {}
 
     def _save_preferences(self):
-        """Save preferences to disk"""
-        with open(self.preferences_file, 'w') as f:
-            json.dump(self._preferences, f, indent=2)
+        """Save preferences to disk (atomic + locked)."""
+        with self._file_lock(self.preferences_file):
+            self._atomic_write_json(self.preferences_file, self._preferences)
 
     def _save_project_context(self):
-        """Save project context to disk"""
-        with open(self.project_context_file, 'w') as f:
-            json.dump(self._project_context, f, indent=2)
+        """Save project context to disk (atomic + locked)."""
+        with self._file_lock(self.project_context_file):
+            self._atomic_write_json(self.project_context_file, self._project_context)
 
     # ========== Preferences Management ==========
 
@@ -85,8 +158,11 @@ class MemorySystem:
             memory.update_preference("variable_naming", "snake_case")
             memory.update_preference("add_comments", False)
         """
-        self._preferences[key] = value
-        self._save_preferences()
+        with self._file_lock(self.preferences_file):
+            current = self._read_json_file(self.preferences_file)
+            current[key] = value
+            self._preferences = current
+            self._atomic_write_json(self.preferences_file, current)
 
     def get_preference(self, key: str, default: Any = None) -> Any:
         """
@@ -111,11 +187,14 @@ class MemorySystem:
         Returns:
             True if removed, False if not found
         """
-        if key in self._preferences:
-            del self._preferences[key]
-            self._save_preferences()
+        with self._file_lock(self.preferences_file):
+            current = self._read_json_file(self.preferences_file)
+            if key not in current:
+                return False
+            del current[key]
+            self._preferences = current
+            self._atomic_write_json(self.preferences_file, current)
             return True
-        return False
 
     def list_preferences(self) -> Dict[str, Any]:
         """Get all preferences"""
@@ -153,8 +232,11 @@ class MemorySystem:
             memory.update_project_context("project_type", "Verilog PCIe system")
             memory.update_project_context("main_modules", ["pcie_msg_receiver", "pcie_axi_to_sram"])
         """
-        self._project_context[key] = value
-        self._save_project_context()
+        with self._file_lock(self.project_context_file):
+            current = self._read_json_file(self.project_context_file)
+            current[key] = value
+            self._project_context = current
+            self._atomic_write_json(self.project_context_file, current)
 
     def get_project_context(self, key: str, default: Any = None) -> Any:
         """Get project context"""
@@ -162,11 +244,14 @@ class MemorySystem:
 
     def remove_project_context(self, key: str) -> bool:
         """Remove project context"""
-        if key in self._project_context:
-            del self._project_context[key]
-            self._save_project_context()
+        with self._file_lock(self.project_context_file):
+            current = self._read_json_file(self.project_context_file)
+            if key not in current:
+                return False
+            del current[key]
+            self._project_context = current
+            self._atomic_write_json(self.project_context_file, current)
             return True
-        return False
 
     def list_project_context(self) -> Dict[str, Any]:
         """Get all project context"""
@@ -224,10 +309,12 @@ class MemorySystem:
 
     def clear_all(self):
         """Clear all memories (use with caution!)"""
-        self._preferences = {}
-        self._project_context = {}
-        self._save_preferences()
-        self._save_project_context()
+        with self._file_lock(self.preferences_file):
+            self._preferences = {}
+            self._atomic_write_json(self.preferences_file, self._preferences)
+        with self._file_lock(self.project_context_file):
+            self._project_context = {}
+            self._atomic_write_json(self.project_context_file, self._project_context)
 
     def export_to_dict(self) -> Dict[str, Any]:
         """Export all memories as dictionary"""
@@ -239,12 +326,16 @@ class MemorySystem:
     def import_from_dict(self, data: Dict[str, Any]):
         """Import memories from dictionary"""
         if "preferences" in data:
-            self._preferences = data["preferences"]
-            self._save_preferences()
+            prefs = data["preferences"] if isinstance(data["preferences"], dict) else {}
+            with self._file_lock(self.preferences_file):
+                self._preferences = prefs
+                self._atomic_write_json(self.preferences_file, prefs)
 
         if "project_context" in data:
-            self._project_context = data["project_context"]
-            self._save_project_context()
+            ctx = data["project_context"] if isinstance(data["project_context"], dict) else {}
+            with self._file_lock(self.project_context_file):
+                self._project_context = ctx
+                self._atomic_write_json(self.project_context_file, ctx)
 
     # ========== Mem0-style Auto Update ==========
 

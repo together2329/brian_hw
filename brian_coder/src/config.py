@@ -275,7 +275,7 @@ ENABLE_SMART_RAG = os.getenv("ENABLE_SMART_RAG", "true").lower() in ("true", "1"
 SMART_RAG_HIGH_THRESHOLD = float(os.getenv("SMART_RAG_HIGH_THRESHOLD", "0.8"))
 
 # Low threshold: score < this -> ignore RAG results
-SMART_RAG_LOW_THRESHOLD = float(os.getenv("SMART_RAG_LOW_THRESHOLD", "0.5"))
+SMART_RAG_LOW_THRESHOLD = float(os.getenv("SMART_RAG_LOW_THRESHOLD", "0.0"))
 
 # Number of top results to consider
 SMART_RAG_TOP_K = int(os.getenv("SMART_RAG_TOP_K", "3"))

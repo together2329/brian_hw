@@ -12,6 +12,11 @@ Key features:
 """
 import json
 import math
+import os
+import tempfile
+import time
+import uuid
+from contextlib import contextmanager
 from dataclasses import dataclass, asdict, field
 from datetime import datetime
 from pathlib import Path
@@ -113,7 +118,79 @@ class ProceduralMemory:
         self.memory_dir.mkdir(parents=True, exist_ok=True)
 
         if not self.trajectories_file.exists():
-            self.trajectories_file.write_text("{}")
+            # Best-effort, atomic init to avoid partial writes in concurrent setups.
+            with self._file_lock(self.trajectories_file):
+                if not self.trajectories_file.exists():
+                    self._atomic_write_json(self.trajectories_file, {})
+
+    # ==================== Low-level File Helpers ====================
+
+    def _read_json_file(self, path: Path) -> Dict[str, Any]:
+        """Read a JSON dict from disk, returning {} on error."""
+        try:
+            with open(path, 'r') as f:
+                data = json.load(f)
+                return data if isinstance(data, dict) else {}
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
+
+    def _atomic_write_json(self, path: Path, data: Dict[str, Any]) -> None:
+        """
+        Atomically write JSON to disk.
+        Writes to a temp file in the same directory, then os.replace().
+        """
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode='w',
+                dir=str(path.parent),
+                delete=False,
+                encoding='utf-8'
+            ) as tmp:
+                json.dump(data, tmp, indent=2, ensure_ascii=False)
+                tmp.flush()
+                os.fsync(tmp.fileno())
+                tmp_path = Path(tmp.name)
+            os.replace(str(tmp_path), str(path))
+        finally:
+            if tmp_path and tmp_path.exists():
+                try:
+                    tmp_path.unlink()
+                except Exception:
+                    pass
+
+    @contextmanager
+    def _file_lock(self, target_path: Path, timeout: float = 5.0, poll_interval: float = 0.05):
+        """
+        Cross-process lock using an adjacent lock file.
+        Best-effort: blocks until acquired or timeout.
+        """
+        lock_path = target_path.with_suffix(target_path.suffix + ".lock")
+        start = time.time()
+        fd = None
+
+        while True:
+            try:
+                fd = os.open(str(lock_path), os.O_CREAT | os.O_EXCL | os.O_RDWR)
+                break
+            except FileExistsError:
+                if (time.time() - start) > timeout:
+                    raise TimeoutError(f"Timeout acquiring lock for {target_path}")
+                time.sleep(poll_interval)
+
+        try:
+            yield
+        finally:
+            if fd is not None:
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
+            try:
+                os.unlink(str(lock_path))
+            except FileNotFoundError:
+                pass
 
     # ==================== Build ====================
 
@@ -141,7 +218,7 @@ class ProceduralMemory:
         success_rate = 1.0 if outcome == "success" else 0.0
 
         # Generate trajectory ID
-        trajectory_id = f"traj_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{len(self.trajectories)}"
+        trajectory_id = f"traj_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}_{uuid.uuid4().hex[:8]}"
 
         # Create trajectory
         trajectory = Trajectory(
@@ -410,30 +487,80 @@ class ProceduralMemory:
             return False
 
         self.trajectories[trajectory_id].usage_count += 1
+        self.trajectories[trajectory_id].updated_at = datetime.now().isoformat()
         return True
 
     # ==================== Persistence ====================
 
     def save(self) -> None:
-        """Save trajectories to disk."""
+        """Save trajectories to disk (atomic + locked + merge)."""
         try:
-            trajectories_data = {
-                traj_id: traj.to_dict()
-                for traj_id, traj in self.trajectories.items()
-            }
-            self.trajectories_file.write_text(
-                json.dumps(trajectories_data, indent=2, ensure_ascii=False)
-            )
+            with self._file_lock(self.trajectories_file):
+                existing = self._read_json_file(self.trajectories_file)
+                ours = {
+                    traj_id: traj.to_dict()
+                    for traj_id, traj in self.trajectories.items()
+                }
+
+                merged = dict(existing)
+                for traj_id, ours_data in ours.items():
+                    existing_data = merged.get(traj_id)
+                    if not isinstance(existing_data, dict):
+                        merged[traj_id] = ours_data
+                        continue
+
+                    try:
+                        ours_updated = datetime.fromisoformat(ours_data.get("updated_at", ""))
+                    except Exception:
+                        ours_updated = None
+                    try:
+                        existing_updated = datetime.fromisoformat(existing_data.get("updated_at", ""))
+                    except Exception:
+                        existing_updated = None
+
+                    choose_ours = False
+                    if existing_updated is None and ours_updated is not None:
+                        choose_ours = True
+                    elif ours_updated is None and existing_updated is None:
+                        choose_ours = True
+                    elif ours_updated is not None and existing_updated is not None:
+                        choose_ours = ours_updated >= existing_updated
+
+                    if choose_ours:
+                        merged_data = ours_data
+                    else:
+                        merged_data = existing_data
+
+                    # Preserve usage_count across processes where possible.
+                    try:
+                        merged_data["usage_count"] = max(
+                            int(existing_data.get("usage_count", 0)),
+                            int(ours_data.get("usage_count", 0))
+                        )
+                    except Exception:
+                        pass
+
+                    merged[traj_id] = merged_data
+
+                self._atomic_write_json(self.trajectories_file, merged)
+
+                # Keep in-memory state in sync with what we just wrote/merged.
+                self.trajectories = {
+                    tid: Trajectory.from_dict(tdata)
+                    for tid, tdata in merged.items()
+                    if isinstance(tdata, dict)
+                }
         except Exception as e:
             print(f"[Procedural Memory] Failed to save: {e}")
 
     def _load(self) -> None:
         """Load trajectories from disk."""
         try:
-            data = json.loads(self.trajectories_file.read_text())
+            data = self._read_json_file(self.trajectories_file)
             self.trajectories = {
                 traj_id: Trajectory.from_dict(traj_data)
                 for traj_id, traj_data in data.items()
+                if isinstance(traj_data, dict)
             }
         except Exception:
             # Initialize empty on load failure

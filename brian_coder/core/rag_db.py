@@ -81,20 +81,7 @@ class RAGDatabase:
     def __init__(self, rag_dir: str = ".brian_rag", fine_grained: bool = False):
         """
         Initialize RAG Database.
-
-        Args:
-            rag_dir: Directory for RAG storage (relative to home)
-            fine_grained: If True, create more detailed chunks (individual signals,
-                         case statements, etc.) for precise search. Default is False.
         """
-        self.rag_dir = Path.home() / rag_dir
-        self.index_path = self.rag_dir / "rag_index.json"
-        self.config_file = self.rag_dir / ".ragconfig"
-        self.fine_grained = fine_grained
-
-        self.chunks: Dict[str, Chunk] = {}
-        self.file_hashes: Dict[str, str] = {}
-        self.categories: Dict[str, CategoryConfig] = {}
 
         # Rate limiting settings (load from config, convert ms to seconds)
         self.api_call_count = 0
@@ -149,18 +136,21 @@ class RAGDatabase:
             print(Color.warning(f"  Current Model: {current_dim} dimensions"))
             print(Color.action(f"  🔄 Automatically resetting RAG database for compatibility..."))
             
-            # Delete RAG directory
-            if self.rag_dir.exists():
-                shutil.rmtree(self.rag_dir)
-                
-            # Reset in-memory state
+            # Always reset in-memory state so the agent can continue safely.
             self.chunks = {}
             self.file_hashes = {}
             self.categories = {}
             
-            # Re-initialize empty DB
-            self._ensure_initialized()
-            print(Color.success(f"  ✅ RAG database reset compelte. Re-indexing will start automatically."))
+            # Best-effort reset of on-disk storage. In restricted/sandboxed
+            # environments this may fail; we should not crash startup.
+            try:
+                if self.rag_dir.exists():
+                    shutil.rmtree(self.rag_dir)
+                self._ensure_initialized()
+                print(Color.success(f"  ✅ RAG database reset complete. Re-indexing will start automatically."))
+            except Exception as e:
+                print(Color.warning(f"  ⚠️  Failed to reset RAG directory '{self.rag_dir}': {e}"))
+                print(Color.warning("  Continuing with empty in-memory DB. Please delete/re-index manually if needed."))
             print()
 
     def _ensure_initialized(self):
@@ -906,7 +896,8 @@ spec:
                 section_id = f"{section_number['h1']}.{section_number['h2']}.{section_number['h3']}"
             
             # Skip very short sections
-            if len(section_content) < 30:
+            # Keep in sync with tests/docs: ignore sections under ~50 chars.
+            if len(section_content) < 50:
                 continue
             
             # Extract figure references from section
@@ -966,8 +957,9 @@ spec:
                     }
                 ))
         
-        # If no sections found, create a single document chunk
-        if not chunks:
+        # If no Markdown sections exist at all, create a single document chunk.
+        # If sections exist but were all skipped as too short, return empty.
+        if not chunks and not section_matches:
             chunks.append(Chunk(
                 id=self._generate_chunk_id(),
                 source_file=file_path,
@@ -1529,23 +1521,31 @@ spec:
                     except:
                         pass
 
-                # Close/reset and return (which means starting empty)
-                if self.rag_dir.exists():
-                    shutil.rmtree(self.rag_dir)
-                
-                # Re-initialize empty DB
-                self._ensure_initialized()
-                
-                # Restore config file
-                if config_backup:
-                    try:
-                        self.config_file.write_text(config_backup)
-                        print(Color.success(f"  ✅ Restored .ragconfig settings"))
-                    except:
-                        print(Color.warning(f"  ⚠️  Failed to restore .ragconfig"))
-
+                # Reset in-memory state first so we can safely continue even if
+                # the on-disk reset fails in restricted environments.
                 self.chunks = {}
                 self.file_hashes = {}
+                self.categories = {}
+
+                # Best-effort reset of on-disk storage.
+                try:
+                    if self.rag_dir.exists():
+                        shutil.rmtree(self.rag_dir)
+                    
+                    # Re-initialize empty DB
+                    self._ensure_initialized()
+                    
+                    # Restore config file
+                    if config_backup:
+                        try:
+                            self.config_file.write_text(config_backup)
+                            print(Color.success(f"  ✅ Restored .ragconfig settings"))
+                        except Exception as e:
+                            print(Color.warning(f"  ⚠️  Failed to restore .ragconfig: {e}"))
+                except Exception as e:
+                    print(Color.warning(f"  ⚠️  Failed to reset RAG database '{self.rag_dir}': {e}"))
+                    print(Color.warning("  Continuing with empty in-memory DB. Please delete/re-index manually if needed."))
+
                 # Stop loading
                 return
 

@@ -1,0 +1,27 @@
+# .ragconfig - RAG Category Configuration
+# Filtered for Transaction Layer ONLY
+
+version: 1
+
+verilog:
+  # Including pcie_msg_receiver.v as it contains Transaction Layer logic
+  enabled: true
+  description: "RTL 소스 코드 (Transaction Layer)"
+  include:
+    - "pcie_msg_receiver.v"
+  exclude: []
+
+testbench:
+  # No specific TL testbench found yet
+  enabled: false
+  description: "테스트벤치"
+  include: []
+  exclude: []
+
+spec:
+  # Strictly Transaction Layer spec
+  enabled: true
+  description: "Transaction Layer 스펙 문서"
+  include:
+    - "*transaction_layer.md"
+  exclude: []
