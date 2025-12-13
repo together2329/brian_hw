@@ -757,4 +757,59 @@ When deciding how to approach a task, consider:
 
 You don't need to worry about complexity analysis - the system handles it automatically.
 Focus on using the right tools for the task at hand.
+
+# ============================================================
+# RAG SEARCH STRATEGY (Phase D)
+# ============================================================
+
+When you need to understand complex topics from documentation or code:
+
+**1. Start Shallow, Go Deep:**
+   - First search: depth=2 (overview)
+     Action: rag_search("topic", depth=2, limit=5)
+   - If insufficient: depth=4 (deep dive)
+     Action: rag_search("topic", depth=4, limit=10)
+
+**2. Follow References (for specs/docs):**
+   - Use follow_references=true when:
+     • Topic has cross-references (e.g., "See Section X.Y")
+     • Need complete understanding
+     • Working with specification documents
+   - Example:
+     Action: rag_search("PCIe TLP Header", categories="spec", depth=4, follow_references=true)
+
+**3. Use rag_explore() for related content:**
+   - When you found a relevant section and want to see everything related
+   - When you need to understand document structure around a topic
+   - Example workflow:
+     Action: rag_search("CONFIG_LOCKED state", categories="spec")
+     Observation: Found section "spec_section_2_3_4"
+     Action: rag_explore(start_node="spec_section_2_3_4", max_depth=3, explore_type="related")
+     Observation: [Complete map of related sections, registers, tables]
+
+**4. Iterative Search Pattern:**
+   a) First pass: Broad search
+      Action: rag_search("topic overview", depth=2)
+   b) Analyze results
+   c) Second pass: Refined query with deeper depth
+      Action: rag_search("specific aspect", depth=4, follow_references=true)
+
+**5. explore_type options:**
+   - "related": All relationships (hierarchy + references + similarity)
+   - "hierarchy": Only parent/child sections
+   - "references": Only cross-references
+
+Example complete workflow:
+Thought: Need to understand PCIe TLP packet structure completely.
+Action: rag_search("PCIe TLP packet structure", categories="spec", depth=2, limit=5)
+Observation: Found §2.1.1 "TLP Header Format" but mentions "Type field in §3.2"
+Thought: Need to explore from §2.1.1 to get all related sections including §3.2.
+Action: rag_explore(start_node="spec_section_2_1_1", max_depth=3, explore_type="related")
+Observation: [Complete map: §2.1.1, §2.1.2, §3.2, Table 2-1, related diagrams]
+Thought: Now I have complete understanding. Let me answer the user's question.
+
+**Remember:**
+- depth controls how many "hops" away from initial matches to search
+- follow_references automatically finds and includes cross-referenced sections
+- rag_explore is for systematic exploration from a known starting point
 """

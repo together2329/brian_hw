@@ -618,7 +618,118 @@ def replace_lines(path, start_line, end_line, new_content):
 
 # ==================== RAG Tools ====================
 
-def rag_search(query, categories="all", limit=5):
+# Phase B: Helper functions for cross-reference following
+
+def _extract_references(text):
+    """
+    Extract cross-references from text using pattern matching.
+
+    Patterns:
+    - "See Section X.Y"
+    - "Refer to §X.Y"
+    - "Table X-Y"
+    - "[Related: name]"
+
+    Returns:
+        List of reference strings
+    """
+    import re
+
+    references = []
+
+    # Pattern 1: Section references (e.g., "Section 2.3", "§3.1")
+    section_patterns = [
+        r'[Ss]ection\s+(\d+(?:\.\d+)*)',
+        r'§\s*(\d+(?:\.\d+)*)',
+        r'\$\s*(\d+(?:\.\d+)*)',  # Alternative section marker
+    ]
+    for pattern in section_patterns:
+        matches = re.findall(pattern, text)
+        for match in matches:
+            references.append(f"Section {match}")
+
+    # Pattern 2: Table references (e.g., "Table 2-1", "Table 3.2")
+    table_patterns = [
+        r'[Tt]able\s+(\d+[\-\.]\d+)',
+        r'[Tt]able\s+(\d+)',
+    ]
+    for pattern in table_patterns:
+        matches = re.findall(pattern, text)
+        for match in matches:
+            references.append(f"Table {match}")
+
+    # Pattern 3: Figure references
+    figure_patterns = [
+        r'[Ff]igure\s+(\d+[\-\.]\d+)',
+        r'[Ff]ig\.\s+(\d+)',
+    ]
+    for pattern in figure_patterns:
+        matches = re.findall(pattern, text)
+        for match in matches:
+            references.append(f"Figure {match}")
+
+    # Pattern 4: [Related: ...] or [See: ...]
+    related_pattern = r'\[(?:Related|See):\s*([^\]]+)\]'
+    matches = re.findall(related_pattern, text, re.IGNORECASE)
+    references.extend(matches)
+
+    return list(set(references))  # Remove duplicates
+
+
+def _follow_cross_references(results, original_query, categories, max_follow=3):
+    """
+    Follow cross-references found in search results.
+
+    Args:
+        results: List of (score, chunk) tuples from initial search
+        original_query: Original search query
+        categories: Category filter
+        max_follow: Maximum number of top results to extract references from
+
+    Returns:
+        List of (score, chunk) tuples from referenced documents
+    """
+    from hybrid_rag import get_hybrid_rag
+    from rag_db import get_rag_db
+
+    extended_results = []
+    visited_refs = set()
+
+    # Extract references from top results
+    for i, (score, chunk) in enumerate(results[:max_follow]):
+        refs = _extract_references(chunk.content)
+
+        for ref in refs[:5]:  # Limit to 5 refs per chunk
+            if ref in visited_refs:
+                continue
+
+            visited_refs.add(ref)
+
+            try:
+                # Search for the reference
+                hybrid = get_hybrid_rag()
+                ref_search_results = hybrid.search(
+                    ref,
+                    limit=2,
+                    graph_hops=1  # Shallow search for references
+                )
+
+                # Convert to (score, chunk) format
+                db = get_rag_db()
+                for result in ref_search_results:
+                    chunk = db.chunks.get(result.id)
+                    if chunk and (categories == "all" or chunk.category in categories.split(",")):
+                        # Penalize referenced results slightly (multiply score by 0.8)
+                        extended_results.append((result.score * 0.8, chunk))
+
+            except Exception as e:
+                if config.DEBUG_MODE:
+                    print(f"[RAG] Failed to follow reference '{ref}': {e}")
+
+    return extended_results
+
+
+def rag_search(query, categories="all", limit=5, depth=2, follow_references=False):
     """
     Semantic search across indexed Verilog/Testbench/Spec documents.
 
@@ -626,23 +737,66 @@ def rag_search(query, categories="all", limit=5):
         query: Natural language search query (e.g., "AXI burst error handling")
         categories: Category filter - "verilog", "testbench", "spec", "verilog,testbench", or "all"
         limit: Maximum number of results (default: 5)
+        depth: Graph traversal depth (1-5 hops, default: 2). Higher values find more related sections.
+        follow_references: If True, automatically follow cross-references found in results (default: False)
 
     Returns:
         Formatted search results with code snippets and similarity scores
 
     Example:
         rag_search("FIFO overflow handling", categories="verilog,testbench", limit=3)
+        rag_search("PCIe TLP Header", categories="spec", limit=5, depth=4, follow_references=True)
     """
     try:
         from rag_db import get_rag_db
+        from hybrid_rag import get_hybrid_rag
 
-        db = get_rag_db()
-        results = db.search(query, categories=categories, limit=int(limit))
+        # Use HybridRAG for better results (Embedding + BM25 + Graph)
+        hybrid = get_hybrid_rag()
+
+        # Convert depth to graph_hops (1-5 range, clamped)
+        graph_hops = max(1, min(5, int(depth)))
+
+        # Perform hybrid search
+        search_results = hybrid.search(
+            query,
+            limit=int(limit),
+            graph_hops=graph_hops
+        )
+
+        # Convert HybridRAG results to (score, chunk) format
+        results = []
+        for result in search_results:
+            # Try to get chunk from RAG DB
+            db = get_rag_db()
+            chunk = db.chunks.get(result.id)
+            if chunk and (categories == "all" or chunk.category in categories.split(",")):
+                results.append((result.score, chunk))
 
         if not results:
             return f"No results found for '{query}' in categories: {categories}\n\nTip: Run rag_index() first to index files."
 
-        output = f"Found {len(results)} result(s) for '{query}':\n\n"
+        # Phase B: Follow cross-references if requested
+        if follow_references and results:
+            try:
+                extended_results = _follow_cross_references(results, query, categories, max_follow=3)
+                results.extend(extended_results)
+                # Remove duplicates by chunk ID
+                seen_ids = set()
+                unique_results = []
+                for score, chunk in results:
+                    if chunk.id not in seen_ids:
+                        seen_ids.add(chunk.id)
+                        unique_results.append((score, chunk))
+                results = unique_results
+            except Exception as e:
+                if config.DEBUG_MODE:
+                    print(f"[RAG] Follow references failed: {e}")
+
+        output = f"Found {len(results)} result(s) for '{query}'"
+        if follow_references and len(results) > int(limit):
+            output += f" (including {len(results) - int(limit)} from references)"
+        output += ":\n\n"
 
         # Track if any results have low scores
         low_score_count = 0
@@ -676,6 +830,88 @@ def rag_search(query, categories="all", limit=5):
         return output
     except Exception as e:
         return f"Error in rag_search: {e}"
+
+
+def rag_explore(start_node, max_depth=3, max_results=20, explore_type="related"):
+    """
+    Explore related documents starting from a specific node.
+
+    Args:
+        start_node: Starting node ID (e.g., "spec_section_2_1_1", "file:module.v")
+        max_depth: Maximum traversal depth (default: 3, range: 1-5)
+        max_results: Maximum number of results (default: 20)
+        explore_type: Exploration type - "related" (all), "hierarchy" (parent/child), "references" (cross-refs)
+
+    Returns:
+        Formatted exploration results with distance and path information
+
+    Example:
+        rag_explore(start_node="spec_section_2_1_1", max_depth=3, explore_type="related")
+        rag_explore(start_node="file:pcie_msg_receiver.v", max_depth=2, explore_type="hierarchy")
+    """
+    try:
+        from spec_graph import get_spec_graph
+        from rag_db import get_rag_db
+
+        spec_graph = get_spec_graph()
+        db = get_rag_db()
+
+        # Clamp max_depth to valid range
+        max_depth = max(1, min(5, int(max_depth)))
+        max_results = int(max_results)
+
+        # Determine edge types based on explore_type
+        edge_types = None
+        if explore_type == "hierarchy":
+            edge_types = ["parent", "child"]
+        elif explore_type == "references":
+            edge_types = ["cross_ref", "related"]
+        # "related" uses all edge types (None)
+
+        # Traverse graph
+        related_nodes = spec_graph.traverse_related(
+            start_node,
+            hops=max_depth,
+            edge_types=edge_types
+        )
+
+        if not related_nodes:
+            return f"No related nodes found for '{start_node}'.\n\nTips:\n  - Check node ID format (e.g., 'spec_section_X_Y' for sections)\n  - Use rag_search() first to find relevant starting points"
+
+        # Limit results
+        related_nodes = related_nodes[:max_results]
+
+        # Format output
+        output = f"Explored from '{start_node}' (depth={max_depth}, type={explore_type}):\n"
+        output += f"Found {len(related_nodes)} related node(s):\n\n"
+
+        for i, (node_id, distance, path) in enumerate(related_nodes, 1):
+            node = spec_graph.nodes.get(node_id)
+            if not node:
+                continue
+
+            # Format path (e.g., "A → B → C")
+            path_str = " → ".join([p.split("_")[-1] if "_" in p else p for p in path[:3]])
+            if len(path) > 3:
+                path_str += f" ... ({len(path)} steps)"
+
+            output += f"[{i}] Distance: {distance} | Path: {path_str}\n"
+            output += f"    📍 Node: {node_id}\n"
+            output += f"    📦 Type: {node.node_type}\n"
+
+            # Show content preview
+            if node.content_preview:
+                preview = node.content_preview[:150].replace('\n', ' ').strip()
+                if len(node.content_preview) > 150:
+                    preview += "..."
+                output += f"    ```\n    {preview}\n    ```\n\n"
+
+        output += f"\n💡 Tip: Use rag_search() with found sections to get full content."
+
+        return output
+    except Exception as e:
+        return f"Error in rag_explore: {e}"
+
 
 def rag_index(path=".", category=None, pattern=None, fine_grained=False, rate_limit_delay_ms=None):
     """
@@ -907,6 +1143,7 @@ AVAILABLE_TOOLS = {
     # RAG Tools
     "rag_search": rag_search,
     "rag_index": rag_index,
+    "rag_explore": rag_explore,  # Phase C: New exploration tool
     "rag_status": rag_status,
     "rag_clear": rag_clear,
     # On-Demand Sub-Agent Tools

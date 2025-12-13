@@ -37,9 +37,12 @@ class SearchResult:
     chunk_type: str
     category: str = "unknown"  # Added for compatibility with SmartRAG
     metadata: Dict = field(default_factory=dict)
-    
+
     # Source tracking for visualization
     sources: Dict[str, float] = field(default_factory=dict)  # {"embedding": 0.8, "bm25": 0.6}
+
+    # Phase A: Distance from origin node (for graph traversal)
+    distance: int = 0  # 0 = direct match, 1+ = hops away
 
 
 class HybridRAG:
@@ -197,7 +200,8 @@ class HybridRAG:
                 chunk_type=node.node_type,
                 category="spec",  # SpecGraph nodes are spec
                 metadata={"path": path, "distance": distance},
-                sources={"graph": score}
+                sources={"graph": score},
+                distance=distance  # Phase A: Set distance field
             ))
         return converted
     
@@ -234,12 +238,26 @@ class HybridRAG:
                 result_scores[result.id] = {"result": result, "score": 0, "sources": {}}
             result_scores[result.id]["score"] += rrf_score
             result_scores[result.id]["sources"]["graph"] = result.score
-        
-        # Create final results
+
+        # Create final results with distance-weighted scoring (Phase A)
         final_results = []
         for data in result_scores.values():
             result = data["result"]
-            result.score = data["score"]
+            base_score = data["score"]
+
+            # Apply distance penalty if available
+            if result.distance > 0:
+                # distance_penalty = 1.0 / (1 + distance * 0.5)
+                # Examples:
+                # - distance=0: penalty=1.0 (no change)
+                # - distance=1: penalty=0.67 (33% reduction)
+                # - distance=2: penalty=0.5 (50% reduction)
+                # - distance=3: penalty=0.4 (60% reduction)
+                distance_penalty = 1.0 / (1.0 + result.distance * 0.5)
+                result.score = base_score * distance_penalty
+            else:
+                result.score = base_score
+
             result.sources = data["sources"]
             final_results.append(result)
         
