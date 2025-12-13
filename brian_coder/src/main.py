@@ -569,9 +569,86 @@ def _looks_like_plan_approval_ack(text: str) -> bool:
     return any(re.search(p, t) for p in patterns)
 
 
-def _should_auto_plan(task_description: str) -> bool:
+# ============================================================
+# Phase 4: Autonomous Decision-Making - Complexity Analysis
+# ============================================================
+
+def _analyze_task_complexity_llm(task_description: str) -> dict:
     """
-    Heuristic trigger for Plan→Approve flow in CLAUDE_FLOW_MODE=auto.
+    Use LLM to analyze task complexity and determine if planning is needed.
+
+    Args:
+        task_description: The user's task/request
+
+    Returns:
+        dict with keys:
+        - complexity: "simple" | "medium" | "complex"
+        - needs_planning: bool
+        - estimated_steps: int (1-10)
+        - reasoning: str (why this complexity)
+    """
+    analysis_prompt = """You are a task complexity analyzer for a coding agent.
+
+Analyze the task and output JSON only (no markdown, no explanations).
+
+Complexity Guidelines:
+- **simple**: 1-2 actions
+  - Examples: fix typo, read single file, simple question
+  - No planning needed - just execute
+
+- **medium**: 3-5 steps
+  - Examples: small feature, bug fix with testing, refactor a function
+  - Can execute directly OR use simple plan
+
+- **complex**: 6+ steps, exploration needed
+  - Examples: design new system, multi-file refactoring, new feature with tests
+  - MUST use Plan Mode - requires exploration and structured approach
+
+Output JSON only:
+{
+  "complexity": "simple|medium|complex",
+  "needs_planning": true/false,
+  "estimated_steps": 1-10,
+  "reasoning": "brief explanation"
+}
+"""
+
+    try:
+        response = call_llm_raw(
+            [
+                {"role": "system", "content": analysis_prompt},
+                {"role": "user", "content": f"Task: {task_description}"},
+            ],
+            temperature=config.AUTONOMOUS_TEMPERATURE,
+        )
+
+        if not response or response.startswith("Error calling LLM:"):
+            return {"complexity": "unknown", "needs_planning": False, "estimated_steps": 0, "reasoning": "LLM error"}
+
+        # Extract JSON
+        json_match = re.search(r"\{[\s\S]*\}", response)
+        if not json_match:
+            return {"complexity": "unknown", "needs_planning": False, "estimated_steps": 0, "reasoning": "No JSON found"}
+
+        data = json.loads(json_match.group(0))
+
+        # Validate and return
+        return {
+            "complexity": data.get("complexity", "unknown"),
+            "needs_planning": data.get("needs_planning", False),
+            "estimated_steps": data.get("estimated_steps", 0),
+            "reasoning": data.get("reasoning", "No reasoning provided")
+        }
+
+    except Exception as e:
+        print(Color.warning(f"[Autonomous] LLM complexity analysis failed: {e}"))
+        return {"complexity": "unknown", "needs_planning": False, "estimated_steps": 0, "reasoning": str(e)}
+
+
+def _should_auto_plan_heuristic(task_description: str) -> bool:
+    """
+    Original heuristic-based trigger for Plan→Approve flow.
+    Used as fallback when AUTONOMOUS_COMPLEXITY_ANALYSIS is disabled.
     """
     text = (task_description or "").strip()
     if not text:
@@ -597,6 +674,48 @@ def _should_auto_plan(task_description: str) -> bool:
     ]
     hits = sum(1 for k in keywords if k in lowered)
     return hits >= 2
+
+
+def _should_auto_plan(task_description: str) -> bool:
+    """
+    Determine if Plan Mode should be triggered automatically.
+
+    Phase 4: Uses LLM-based complexity analysis when AUTONOMOUS_COMPLEXITY_ANALYSIS=true,
+    otherwise falls back to heuristic method.
+
+    Args:
+        task_description: The user's task/request
+
+    Returns:
+        True if Plan Mode should be entered, False otherwise
+    """
+    text = (task_description or "").strip()
+    if not text:
+        return False
+
+    # Avoid triggering on explicit plan execution/status commands
+    if _looks_like_execute_plan_request(text) or _looks_like_plan_status_request(text):
+        return False
+
+    # Phase 4: LLM-based analysis
+    if config.AUTONOMOUS_COMPLEXITY_ANALYSIS:
+        analysis = _analyze_task_complexity_llm(task_description)
+
+        print(Color.system(f"\n[Autonomous] Task Complexity Analysis:"))
+        print(Color.info(f"  Complexity: {analysis['complexity']}"))
+        print(Color.info(f"  Estimated Steps: {analysis['estimated_steps']}"))
+        print(Color.info(f"  Needs Planning: {analysis['needs_planning']}"))
+        print(Color.info(f"  Reasoning: {analysis['reasoning']}\n"))
+
+        # Use LLM decision if valid
+        if analysis["complexity"] != "unknown":
+            return analysis["needs_planning"]
+
+        # Fallback to heuristic if LLM failed
+        print(Color.warning("[Autonomous] LLM analysis failed, using heuristic fallback"))
+
+    # Fallback: heuristic method
+    return _should_auto_plan_heuristic(task_description)
 
 
 # ============================================================
@@ -2118,15 +2237,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             if tracker.current == 0 or current_query != last_rag_query:
                 tracker._last_rag_query = current_query
                 
-                # Index PCIe directory if it exists
-                if os.path.exists(_pcie_dir):
-                    print(Color.system(f"[Startup] Checking PCIe Spec RAG index..."))
-                    # Index markdown files in PCIe directory as 'spec'
-                    try:
-                        from core.rag_db import get_rag_db
-                        get_rag_db().index_directory(_pcie_dir, patterns=["*.md", "*.txt"], category="spec")
-                    except Exception as e:
-                        print(Color.warning(f"[Startup] Failed to index PCIe directory: {e}"))
+                # Legacy PCIe indexing removed - strictly use .ragconfig now
+                pass
 
                 new_system_prompt = build_system_prompt(messages)
                 # Update system message if it exists

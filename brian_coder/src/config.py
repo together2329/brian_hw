@@ -3,10 +3,12 @@ from pathlib import Path
 
 # Load .env file if it exists
 def load_env_file():
-    # Try multiple locations: src/.env, ../.env, ../../.env
+    # Load config files in order of priority (first loaded takes precedence)
+    # .config has highest priority, then .env files
     search_paths = [
-        Path(__file__).parent / '.env',  # src/.env
+        Path(__file__).parent.parent / '.config',  # brian_coder/.config (highest priority)
         Path(__file__).parent.parent / '.env',  # brian_coder/.env
+        Path(__file__).parent / '.env',  # src/.env
     ]
 
     for env_path in search_paths:
@@ -30,7 +32,7 @@ def load_env_file():
                         # Only set if not already in environment
                         if key and value and key not in os.environ:
                             os.environ[key] = value
-            break
+            # Continue loading other files (no break)
 
 load_env_file()
 
@@ -256,6 +258,16 @@ RAG_FINE_GRAINED = os.getenv("RAG_FINE_GRAINED", "false").lower() in ("true", "1
 # Default: 100ms (10 API calls/sec)
 RAG_RATE_LIMIT_DELAY_MS = int(os.getenv("RAG_RATE_LIMIT_DELAY_MS", "100"))
 
+# RAG storage directory (relative to home or absolute path)
+# Default: ".brian_rag" (stored in ~/.brian_rag)
+# Set to a project path like "/Users/me/project/.brian_rag" for project-local storage
+RAG_DIR = os.getenv("RAG_DIR", ".brian_rag")
+
+# RAG config file path (.ragconfig location)
+# Default: None (uses RAG_DIR/.ragconfig)
+# Set to project .ragconfig path for project-specific indexing patterns
+RAG_CONFIG_PATH = os.getenv("RAG_CONFIG_PATH", None)
+
 # Enable/Disable Node Merge (Phase 4)
 # When enabled, Curator will merge similar nodes to reduce redundancy
 ENABLE_NODE_MERGE = os.getenv("ENABLE_NODE_MERGE", "false").lower() in ("true", "1", "yes")
@@ -407,6 +419,18 @@ PLAN_MODE_EXPLORE_COUNT = int(os.getenv("PLAN_MODE_EXPLORE_COUNT", "3"))
 
 # Explore agents를 병렬로 실행할지 여부
 PLAN_MODE_PARALLEL_EXPLORE = os.getenv("PLAN_MODE_PARALLEL_EXPLORE", "true").lower() in ("true", "1", "yes")
+
+# ============================================================
+# Phase 4: Autonomous Decision-Making
+# ============================================================
+
+# LLM 기반 복잡도 분석 활성화
+# When enabled, uses LLM to analyze task complexity instead of simple heuristics
+AUTONOMOUS_COMPLEXITY_ANALYSIS = os.getenv("AUTONOMOUS_COMPLEXITY_ANALYSIS", "false").lower() in ("true", "1", "yes")
+
+# LLM 복잡도 분석 시 사용할 temperature (0.0-1.0)
+# Lower = more consistent, Higher = more creative
+AUTONOMOUS_TEMPERATURE = float(os.getenv("AUTONOMOUS_TEMPERATURE", "0.3"))
 
 # System Prompt with ReAct instructions
 SYSTEM_PROMPT = """You are an intelligent coding agent named Brian Coder.
@@ -707,4 +731,30 @@ TodoWrite:
 
 Thought: Now let me start with the first step.
 Action: grep_file(pattern="module.*fifo", path="*.v")
+
+# ============================================================
+# AUTONOMOUS DECISION-MAKING (Phase 4)
+# ============================================================
+
+When deciding how to approach a task, consider:
+
+1. **Task Complexity**:
+   - Simple (1-2 actions): Direct execution
+   - Medium (3-5 steps): Consider TodoWrite for tracking
+   - Complex (6+ steps): Automatically enters Plan Mode
+
+2. **Tool Selection**:
+   - **Parallel execution**: Use multiple read-only tools simultaneously
+   - **Sequential execution**: Write tools create barriers
+   - **Meta tools**: Use spawn_explore for broad exploration
+   - **TodoWrite**: Track progress for multi-step tasks
+
+3. **Plan Mode** (automatic when complex):
+   - System analyzes complexity automatically
+   - Spawns Explore agents in parallel
+   - Creates structured plan with approval
+   - Executes with TodoTracker
+
+You don't need to worry about complexity analysis - the system handles it automatically.
+Focus on using the right tools for the task at hand.
 """
