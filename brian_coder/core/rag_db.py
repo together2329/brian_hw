@@ -82,6 +82,24 @@ class RAGDatabase:
         """
         Initialize RAG Database.
         """
+        self.rag_dir = Path(os.path.expanduser(rag_dir))
+        self.index_path = self.rag_dir / "rag_index.json"
+        
+        # Config file location: use RAG_CONFIG_PATH if set, otherwise RAG_DIR/.ragconfig
+        try:
+            from . import config as cfg
+        except ImportError:
+            import config as cfg
+        if cfg.RAG_CONFIG_PATH:
+            self.config_file = Path(cfg.RAG_CONFIG_PATH)
+        else:
+            self.config_file = self.rag_dir / ".ragconfig"
+        
+        self.fine_grained = fine_grained
+        
+        self.chunks: Dict[str, Chunk] = {}
+        self.file_hashes: Dict[str, str] = {}
+        self.categories: Dict[str, CategoryConfig] = {}
 
         # Rate limiting settings (load from config, convert ms to seconds)
         self.api_call_count = 0
@@ -208,44 +226,57 @@ spec:
         try:
             content = self.config_file.read_text()
             
-            # Simple YAML-like parsing (no external dependencies)
-            current_category = None
-            current_section = None
+            # Temporary storage per category
+            cat_config = {}
+            current_cat = None
+            current_list = None # 'include' or 'exclude'
             
             for line in content.split('\n'):
-                stripped = line.strip()
+                # Handle comments within lines
+                if '#' in line:
+                    line = line.split('#')[0]
                 
-                # Skip comments and empty lines
-                if not stripped or stripped.startswith('#'):
+                stripped = line.strip()
+                if not stripped:
                     continue
                 
-                # Category header (verilog:, testbench:, spec:)
+                # Check indentation to detect top-level vs nested
+                indent = len(line) - len(line.lstrip())
+                
                 if stripped.endswith(':') and not stripped.startswith('-'):
-                    if '  ' not in line:  # Top-level key
-                        current_category = stripped[:-1]
-                        current_section = None
-                    else:  # Nested key (enabled:, include:, exclude:, etc.)
-                        key = stripped[:-1]
+                    key = stripped[:-1]
+                    if indent == 0:
+                        current_cat = key
+                        cat_config[current_cat] = {'enabled': True, 'include': [], 'exclude': []}
+                        current_list = None
+                    elif indent >= 2 and current_cat:
                         if key in ['include', 'exclude']:
-                            current_section = key
-                        elif key == 'enabled' or key == 'description':
-                            current_section = None
-                        
-                # List item (  - "*.v")
-                elif stripped.startswith('-') and current_category and current_section:
-                    # Check if this category is commented out
-                    # by looking at original line indentation
-                    pattern = stripped[1:].strip().strip('"').strip("'")
-                    if pattern:
-                        if current_section == 'include':
-                            patterns['include'].append(pattern)
-                        elif current_section == 'exclude':
-                            patterns['exclude'].append(pattern)
+                            current_list = key
+                        else:
+                            current_list = None
+                
+                elif ':' in stripped and not stripped.startswith('-'):
+                    # Property like "enabled: true"
+                    key, val = [part.strip() for part in stripped.split(':', 1)]
+                    if current_cat and key == 'enabled':
+                        cat_config[current_cat]['enabled'] = (val.lower() == 'true')
+                
+                elif stripped.startswith('-') and current_cat and current_list:
+                    val = stripped[1:].strip().strip('"\'')
+                    if val:
+                        cat_config[current_cat][current_list].append(val)
+            
+            # Merge enabled patterns
+            for cat, conf in cat_config.items():
+                if conf.get('enabled', True):
+                    patterns['include'].extend(conf['include'])
+                    patterns['exclude'].extend(conf['exclude'])
                             
         except Exception as e:
             print(f"[RAG] Config parse error: {e}, using defaults")
-            patterns = {'include': ["*.v", "*.sv", "*.md"], 'exclude': []}
-        
+            # Fallback to defaults if file error
+            pass
+            
         # Fallback if empty
         if not patterns['include']:
             patterns = {'include': ["*.v", "*.sv", "*.md"], 'exclude': []}
@@ -896,8 +927,8 @@ spec:
                 section_id = f"{section_number['h1']}.{section_number['h2']}.{section_number['h3']}"
             
             # Skip very short sections
-            # Keep in sync with tests/docs: ignore sections under ~50 chars.
-            if len(section_content) < 50:
+            # Keep in sync with tests/docs: ignore sections under ~200 chars.
+            if len(section_content) < 200:
                 continue
             
             # Extract figure references from section
@@ -909,7 +940,8 @@ spec:
             cross_refs += re.findall(r'§\s*(\d+(?:\.\d+)*)', section_content)
             
             # Split long sections into smaller chunks
-            MAX_CHUNK_SIZE = 1500
+            # Adjusted to 3500 to reduce chunk count (previously 1500)
+            MAX_CHUNK_SIZE = 3500
             OVERLAP = 200
             STEP = MAX_CHUNK_SIZE - OVERLAP
             
@@ -918,17 +950,6 @@ spec:
                 for start in range(0, len(section_content), STEP):
                     end = min(start + MAX_CHUNK_SIZE, len(section_content))
                     chunk_text = section_content[start:end]
-                    
-                    # Don't add tiny chunks at the end if they are just the overlap of the previous one
-                    # But here, range ensures we advance by STEP.
-                    # The only risk is if the last chunk is identical to previous? No, start advances.
-                    # Risk is if the last chunk is very small (e.g. 10 chars).
-                    # If it's effectively a subset of the previous chunk?
-                    # Example: Len 1600. Step 1300.
-                    # 1: 0-1500.
-                    # 2: 1300-1600 (300 chars). Unique tail content: 1500-1600 (100 chars).
-                    # This is fine.
-                    
                     section_chunks.append(chunk_text)
             else:
                 section_chunks.append(section_content)
@@ -966,7 +987,7 @@ spec:
                 category="spec",
                 level=1,
                 chunk_type="document",
-                content=content[:3000],
+                content=content[:5000], # Increased limit for fallback
                 start_line=1,
                 end_line=len(lines),
                 metadata={
@@ -1577,5 +1598,9 @@ def get_rag_db() -> RAGDatabase:
     """Get or create global RAG database instance."""
     global _rag_db
     if _rag_db is None:
-        _rag_db = RAGDatabase()
+        try:
+            from . import config
+        except ImportError:
+            import config
+        _rag_db = RAGDatabase(rag_dir=config.RAG_DIR)
     return _rag_db

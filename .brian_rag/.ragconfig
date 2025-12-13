@@ -5,33 +5,25 @@ verilog:
   enabled: true
   description: "RTL 소스 코드. 모듈 구현, 신호 정의, 상태머신 분석 시 검색"
   include:
-    - "pcie*.v"
+    - "*.v"
     - "*.sv"
   exclude:
     - "*_backup.v"
     - "*_old.v"
 
+testbench:
+  enabled: true
+  description: "테스트벤치. 시뮬레이션 시나리오, 테스트 케이스, expected 동작 확인 시 검색"
+  include:
+    - "*_tb.v"
+    - "*_test.v"
+  exclude: []
+
 spec:
   enabled: true
-  description: "PCIe 프로토콜 스펙, 설계 문서. 각 레이어 규칙, 타이밍 요구사항, 상태머신 분석 시 검색"
+  description: "프로토콜 스펙, 설계 문서. 프로토콜 규칙, 타이밍 요구사항 확인 시 검색"
   include:
-    # PCIe Core Specifications
-    - "/Users/brian/Desktop/Project/brian_hw/PCIe/00_Contents/contents.md"
-    - "/Users/brian/Desktop/Project/brian_hw/PCIe/01_Introduction/introduction.md"
-    - "/Users/brian/Desktop/Project/brian_hw/PCIe/02_Transaction Layer/transaction_layer.md"
-    - "/Users/brian/Desktop/Project/brian_hw/PCIe/03_Data_Link_Layer/data_link_layer.md"
-    - "/Users/brian/Desktop/Project/brian_hw/PCIe/04_Physical_Layer/physical_layer.md"
-    - "/Users/brian/Desktop/Project/brian_hw/PCIe/05_Power_Management/power_management.md"
-    - "/Users/brian/Desktop/Project/brian_hw/PCIe/06_System_Architecture/system_architecture.md"
-    - "/Users/brian/Desktop/Project/brian_hw/PCIe/07_Software/software.md"
-
-    # Security & Management
-    - "/Users/brian/Desktop/Project/brian_hw/PCIe/11_TDISP/tdisp.md"
-
-    # Additional Specs
-    - "/Users/brian/Desktop/Project/brian_hw/PCIe/Ordering.md"
-    - "/Users/brian/Desktop/Project/brian_hw/PCIe/PCIe Speed Bandwidth.md"
-
+    - "*.md"
+    - "*.txt"
   exclude:
     - "README.md"
-    - "*_main.md"
