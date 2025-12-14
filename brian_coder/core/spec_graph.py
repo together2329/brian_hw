@@ -242,6 +242,24 @@ class SpecGraph:
         return "\n".join(lines)
 
 
+# Singleton instance
+_spec_graph_instance = None
+
+def get_spec_graph() -> SpecGraph:
+    """Get or create the singleton SpecGraph instance."""
+    global _spec_graph_instance
+
+    if _spec_graph_instance is None:
+        from rag_db import get_rag_db
+
+        # Build from indexed chunks
+        rag_db = get_rag_db()
+        spec_chunks = [chunk for chunk in rag_db.chunks.values() if chunk.category == "spec"]
+
+        _spec_graph_instance = build_spec_graph_from_chunks(spec_chunks)
+
+    return _spec_graph_instance
+
 # Convenience function
 def build_spec_graph_from_chunks(chunks: List) -> SpecGraph:
     """Build a SpecGraph from RAG chunks."""

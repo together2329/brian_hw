@@ -317,6 +317,35 @@ class HybridRAG:
         print(f"└{'─'*70}┘\n")
 
 
+# Singleton instance
+_hybrid_rag_instance = None
+
+def get_hybrid_rag() -> HybridRAG:
+    """Get or create the singleton HybridRAG instance with all components."""
+    global _hybrid_rag_instance
+
+    if _hybrid_rag_instance is None:
+        # Import dependencies
+        from rag_db import get_rag_db
+        try:
+            from graph_lite import get_graph_lite
+        except ImportError:
+            get_graph_lite = lambda: None
+
+        try:
+            from spec_graph import get_spec_graph
+        except ImportError:
+            get_spec_graph = lambda: None
+
+        # Initialize with all available components
+        rag_db = get_rag_db()
+        graph_lite = get_graph_lite()
+        spec_graph = get_spec_graph()
+
+        _hybrid_rag_instance = HybridRAG(rag_db, graph_lite, spec_graph)
+
+    return _hybrid_rag_instance
+
 # Convenience function
 def create_hybrid_rag(rag_db=None, graph_lite=None, spec_graph=None) -> HybridRAG:
     """Create a HybridRAG instance with optional components."""

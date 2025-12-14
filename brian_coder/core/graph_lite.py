@@ -1385,3 +1385,34 @@ Relations (JSON only):"""
         self.nodes.clear()
         self.edges.clear()
         self._embedding_cache.clear()
+
+
+# Singleton instance
+_graph_lite_instance = None
+
+def get_graph_lite() -> GraphLite:
+    """Get or create the singleton GraphLite instance."""
+    global _graph_lite_instance
+
+    if _graph_lite_instance is None:
+        from rag_db import get_rag_db
+
+        # Build from RAG chunks for BM25 search
+        rag_db = get_rag_db()
+        _graph_lite_instance = GraphLite()
+
+        # Add RAG chunks as nodes for BM25 indexing
+        for chunk_id, chunk in rag_db.chunks.items():
+            node = Node(
+                id=chunk_id,
+                type=chunk.chunk_type,
+                data={
+                    "content": chunk.content,
+                    "source_file": chunk.source_file,
+                    "category": chunk.category,
+                    "label": chunk.content[:100]  # Use first 100 chars as label
+                }
+            )
+            _graph_lite_instance.add_node(node)
+
+    return _graph_lite_instance
