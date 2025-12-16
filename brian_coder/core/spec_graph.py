@@ -250,7 +250,10 @@ def get_spec_graph() -> SpecGraph:
     global _spec_graph_instance
 
     if _spec_graph_instance is None:
-        from rag_db import get_rag_db
+        try:
+            from rag_db import get_rag_db
+        except ImportError:
+            from core.rag_db import get_rag_db
 
         # Build from indexed chunks
         rag_db = get_rag_db()

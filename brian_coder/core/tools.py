@@ -620,6 +620,32 @@ def replace_lines(path, start_line, end_line, new_content):
 
 # Phase B: Helper functions for cross-reference following
 
+def _is_acronym_query(query: str) -> bool:
+    """
+    Check if query is asking for an acronym definition.
+
+    Patterns:
+    - "What does OHC stand for?"
+    - "OHC stands for"
+    - "Define TLP"
+    - "What is ECRC?"
+
+    Returns:
+        True if query appears to be asking for acronym definition
+    """
+    import re
+
+    patterns = [
+        r"\bwhat (?:does|is) \w+ stand for\b",
+        r"\b\w+ (?:stands for|means|definition)\b",
+        r"\bdefine \w+\b",
+        r"\bwhat is \w+\b",
+        r"\bwhat does \w+ mean\b",
+    ]
+    query_lower = query.lower()
+    return any(re.search(p, query_lower) for p in patterns)
+
+
 def _extract_references(text):
     """
     Extract cross-references from text using pattern matching.
@@ -750,6 +776,12 @@ def rag_search(query, categories="all", limit=5, depth=2, follow_references=Fals
     try:
         from rag_db import get_rag_db
         from hybrid_rag import get_hybrid_rag
+
+        # Phase 1: Acronym query expansion
+        # For queries like "What does OHC stand for?", expand with definition keywords
+        # to boost chunks with explicit definitions
+        if _is_acronym_query(query):
+            query = f"{query} stands for definition meaning"
 
         # Use HybridRAG for better results (Embedding + BM25 + Graph)
         hybrid = get_hybrid_rag()

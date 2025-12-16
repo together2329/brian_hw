@@ -28,7 +28,7 @@ from display import Color
 actual_token_cache = {}
 last_input_tokens = 0  # Last reported input tokens from API
 
-def chat_completion_stream(messages):
+def chat_completion_stream(messages, stop=None):
     """
     Sends a chat completion request to the LLM using urllib.
     Yields content chunks from the SSE stream.
@@ -67,6 +67,9 @@ def chat_completion_stream(messages):
         "stream": True,
         "stream_options": {"include_usage": True}  # Request usage data in streaming (OpenAI)
     }
+
+    if stop:
+        data["stop"] = stop
 
     # Debug: Log request details
     if config.DEBUG_MODE:
@@ -604,10 +607,16 @@ def get_embedding(text: str, model: str = None) -> list[float]:
                 return embedding
         except Exception as e:
             if attempt < max_retries - 1:
+                print(Color.warning(f"[Embedding] Connection error (attempt {attempt+1}/{max_retries}): {e}"))
                 time.sleep(1)
                 continue
-            if config.DEBUG_MODE:
-                print(Color.warning(f"[Embedding] Failed: {e}"))
+            
+            # Final attempt failed
+            print(Color.error(f"[Embedding] CRITICAL FAILURE: {e}"))
+            print(Color.error(f"  URL: {url}"))
+            print(Color.error(f"  Model: {model}"))
+            import traceback
+            traceback.print_exc()
             raise e
             
     # Should not reach here

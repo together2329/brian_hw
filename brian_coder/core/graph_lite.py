@@ -1395,7 +1395,10 @@ def get_graph_lite() -> GraphLite:
     global _graph_lite_instance
 
     if _graph_lite_instance is None:
-        from rag_db import get_rag_db
+        try:
+            from rag_db import get_rag_db
+        except ImportError:
+            from core.rag_db import get_rag_db
 
         # Build from RAG chunks for BM25 search
         rag_db = get_rag_db()
