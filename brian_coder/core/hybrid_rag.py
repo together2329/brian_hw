@@ -230,9 +230,12 @@ class HybridRAG:
         max_graph = max([r.score for r in graph_results], default=1.0)
 
         # Process embedding results
+        # Process embedding results
         for result in embedding_results:
-            normalized_score = result.score / max_emb if max_emb > 0 else 0
-            weighted_score = self.alpha_embedding * normalized_score
+            # Embedding scores are already Cosine Similarity (0.0 - 1.0)
+            # Do NOT normalize relative to max, because that boosts noise.
+            # Use raw score directly to preserve absolute confidence.
+            weighted_score = self.alpha_embedding * result.score
 
             if result.id not in result_scores:
                 result_scores[result.id] = {"result": result, "score": 0, "sources": {}}
