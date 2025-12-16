@@ -78,7 +78,7 @@ class RAGDatabase:
     - Semantic search via embeddings
     """
 
-    def __init__(self, rag_dir: str = ".brian_rag", fine_grained: bool = False):
+    def __init__(self, rag_dir: str = "~/.brian_rag", fine_grained: bool = False):
         """
         Initialize RAG Database.
         """
@@ -104,6 +104,12 @@ class RAGDatabase:
         # Rate limiting settings (load from config, convert ms to seconds)
         self.api_call_count = 0
         self.last_api_call_time = 0
+        
+        # Thread safety for rate limiting
+        import threading
+        self._rate_lock = threading.Lock()
+        self._last_call_ts = 0.0
+        
         try:
             from . import config
         except ImportError:
@@ -500,33 +506,41 @@ spec:
             depth = 1
             pos = 0
             
+            # Default to full content if loop fails
+            end_pos = len(module_content)
+
             while depth > 0 and pos < len(content_after):
                 # Use regex to find begin/end with word boundaries
                 remaining = content_after[pos:]
                 
                 begin_match = re.search(r'\bbegin\b', remaining)
+                # Ensure we don't match endcase, endmodule, etc.
                 end_match = re.search(r'\bend\b(?!case|function|module|task|generate|primitive)', remaining)
                 
                 next_begin = begin_match.start() + pos if begin_match else -1
                 next_end = end_match.start() + pos if end_match else -1
                 
                 if next_end == -1:
+                    # No closing end found at all, break loop
                     break
                 
                 if next_begin != -1 and next_begin < next_end:
                     depth += 1
-                    pos = next_begin + 5
+                    pos = next_begin + 5 # skip 'begin'
                 else:
                     depth -= 1
                     if depth == 0:
-                        end_pos = start_match.end() + next_end + 3
+                        end_pos = start_match.end() + next_end + 3 # +3 for 'end'
                         break
-                    pos = next_end + 3
-            else:
-                end_pos = len(module_content)
+                    pos = next_end + 3 # skip 'end'
             
             always_content = module_content[start_pos:end_pos]
-            always_body = always_content[len(start_match.group(0)):-3]  # Remove "always @(...) begin" and "end"
+            
+            # Safe body extraction
+            # Remove "always @(...) begin"
+            always_body = always_content[len(start_match.group(0)):]
+            # Remove the last standalone 'end' near the end (best-effort)
+            always_body = re.sub(r'\bend\b\s*$', '', always_body).strip()
             
             # Calculate line numbers
             start_offset = module_content[:start_pos].count('\n')
@@ -568,8 +582,10 @@ spec:
                     case_var = case_match.group(1).strip()
                     case_content = case_match.group(0)
                     
-                    # Extract individual case branches
-                    case_body = case_match.group(2)
+                    # Calculate accurate line numbers
+                    line_in_always = always_body[:case_match.start()].count('\n')
+                    actual_start = base_line + start_offset + line_in_always
+                    actual_end = actual_start + case_content.count('\n')
                     
                     chunks.append(Chunk(
                         id=self._generate_chunk_id(),
@@ -578,8 +594,8 @@ spec:
                         level=7,
                         chunk_type="case",
                         content=case_content[:1500],  # Limit size
-                        start_line=base_line + start_offset,
-                        end_line=base_line + end_offset,
+                        start_line=actual_start,
+                        end_line=actual_end,
                         metadata={
                             "module_name": module_name,
                             "case_variable": case_var,
@@ -595,6 +611,9 @@ spec:
                 for if_match in if_pattern.finditer(always_body):
                     condition = if_match.group(1).strip()[:60]  # Truncate long conditions
                     
+                    line_in_always = always_body[:if_match.start()].count('\n')
+                    actual_line = base_line + start_offset + line_in_always
+                    
                     chunks.append(Chunk(
                         id=self._generate_chunk_id(),
                         source_file=file_path,
@@ -602,8 +621,8 @@ spec:
                         level=9,
                         chunk_type="if_block",
                         content=f"if ({if_match.group(1)})",
-                        start_line=base_line + start_offset,
-                        end_line=base_line + start_offset,
+                        start_line=actual_line,
+                        end_line=actual_line,
                         metadata={
                             "module_name": module_name,
                             "condition": condition,
@@ -617,6 +636,9 @@ spec:
                     signal = asgn_match.group(1)
                     value = asgn_match.group(2).strip()[:50]
                     
+                    line_in_always = always_body[:asgn_match.start()].count('\n')
+                    actual_line = base_line + start_offset + line_in_always
+                    
                     chunks.append(Chunk(
                         id=self._generate_chunk_id(),
                         source_file=file_path,
@@ -624,8 +646,8 @@ spec:
                         level=8,
                         chunk_type="nb_assign",
                         content=asgn_match.group(0),
-                        start_line=base_line + start_offset,
-                        end_line=base_line + start_offset,
+                        start_line=actual_line,
+                        end_line=actual_line,
                         metadata={
                             "module_name": module_name,
                             "signal_name": signal,
@@ -644,6 +666,9 @@ spec:
                     if signal in ['default', 'begin', 'end']:
                         continue
                     
+                    line_in_always = always_body[:asgn_match.start()].count('\n')
+                    actual_line = base_line + start_offset + line_in_always
+                    
                     chunks.append(Chunk(
                         id=self._generate_chunk_id(),
                         source_file=file_path,
@@ -651,8 +676,8 @@ spec:
                         level=10,
                         chunk_type="b_assign",
                         content=asgn_match.group(0),
-                        start_line=base_line + start_offset,
-                        end_line=base_line + start_offset,
+                        start_line=actual_line,
+                        end_line=actual_line,
                         metadata={
                             "module_name": module_name,
                             "signal_name": signal,
@@ -795,106 +820,33 @@ spec:
         
         Extracts:
         - H1/H2/H3 섹션 (계층적 구조 유지)
-        - 표 (| ... |) 단독 청크
-        - 코드 블록 (```...```) 단독 청크
-        - Figure/이미지 참조 추출
-        - 섹션 간 관계 메타데이터
+        - 표 (| ... |) 단독 청크 (부모 섹션 매핑)
+        - 코드 블록 (```...```) 단독 청크 (부모 섹션 매핑)
         
-        Args:
-            content: Markdown file content
-            file_path: Path to source file
-            
-        Returns:
-            List of Chunk objects with hierarchical structure
+        Using robust "Section Mapping" pass:
+        1. Find all sections and their spans.
+        2. Identify special blocks (tables, code) and find their parent section.
         """
         chunks = []
         lines = content.split('\n')
         
-        # Track current section hierarchy
-        current_h1 = ""
-        current_h2 = ""
-        current_h3 = ""
-        section_number = {"h1": 0, "h2": 0, "h3": 0}
-        
-        # First pass: Extract special blocks (tables, code blocks)
-        # These get their own chunks with references to parent section
-        
-        # Extract code blocks
-        code_block_pattern = re.compile(r'```(\w*)\n(.*?)```', re.DOTALL)
-        code_blocks = []
-        for match in code_block_pattern.finditer(content):
-            lang = match.group(1) or "text"
-            code_content = match.group(2).strip()
-            start_line = content[:match.start()].count('\n') + 1
-            end_line = content[:match.end()].count('\n') + 1
-            code_blocks.append({
-                'start': match.start(),
-                'end': match.end(),
-                'start_line': start_line,
-                'end_line': end_line,
-                'lang': lang,
-                'content': code_content
-            })
-            
-            chunks.append(Chunk(
-                id=self._generate_chunk_id(),
-                source_file=file_path,
-                category="spec",
-                level=4,  # Code blocks at level 4
-                chunk_type="code_block",
-                content=f"```{lang}\n{code_content[:1500]}\n```",
-                start_line=start_line,
-                end_line=end_line,
-                metadata={
-                    "language": lang,
-                    "parent_section": current_h2 or current_h1,
-                    "summary": f"Code block ({lang})"
-                }
-            ))
-        
-        # Extract tables
-        table_pattern = re.compile(r'(\|[^\n]+\|\n)+', re.MULTILINE)
-        for match in table_pattern.finditer(content):
-            table_content = match.group(0).strip()
-            # Skip separator-only tables
-            if table_content.count('|') < 4:
-                continue
-                
-            start_line = content[:match.start()].count('\n') + 1
-            end_line = content[:match.end()].count('\n') + 1
-            
-            # Extract table header for summary
-            first_row = table_content.split('\n')[0]
-            headers = [h.strip() for h in first_row.split('|')[1:-1]]
-            table_summary = ", ".join(headers[:3])
-            
-            chunks.append(Chunk(
-                id=self._generate_chunk_id(),
-                source_file=file_path,
-                category="spec",
-                level=4,  # Tables at level 4
-                chunk_type="table",
-                content=table_content[:2000],
-                start_line=start_line,
-                end_line=end_line,
-                metadata={
-                    "headers": headers[:5],
-                    "row_count": table_content.count('\n'),
-                    "parent_section": current_h2 or current_h1,
-                    "summary": f"Table: {table_summary}"
-                }
-            ))
-        
-        # Second pass: Extract sections (H1, H2, H3)
+        # --- PASS 1: Identify all Sections and Spans ---
         section_pattern = re.compile(r'^(#{1,3})\s+(.+)$', re.MULTILINE)
         section_matches = list(section_pattern.finditer(content))
         
+        # List of dict: {title, level, start, end, id, object}
+        sections_map = []
+        
+        section_number = {"h1": 0, "h2": 0, "h3": 0}
+        current_context = {"h1": "", "h2": "", "h3": ""}
+        
         for i, match in enumerate(section_matches):
-            level = len(match.group(1))  # Number of #
+            level = len(match.group(1))
             title = match.group(2).strip()
-            start_pos = match.end()
+            start_pos = match.start() # Include the header itself
+            header_end = match.end()
             
-            # Find end of section (next same-level or higher header, or EOF)
+            # Find end of section (start of next same/higher level section or EOF)
             end_pos = len(content)
             for next_match in section_matches[i+1:]:
                 next_level = len(next_match.group(1))
@@ -902,92 +854,179 @@ spec:
                     end_pos = next_match.start()
                     break
             
-            section_content = content[start_pos:end_pos].strip()
-            start_line = content[:match.start()].count('\n') + 1
-            end_line = content[:end_pos].count('\n') + 1
-            
-            # Update hierarchy tracking
+            # Update numbering and context
             if level == 1:
                 section_number["h1"] += 1
                 section_number["h2"] = 0
                 section_number["h3"] = 0
-                current_h1 = title
-                current_h2 = ""
-                current_h3 = ""
+                current_context["h1"] = title
+                current_context["h2"] = ""
+                current_context["h3"] = ""
                 section_id = f"{section_number['h1']}"
             elif level == 2:
                 section_number["h2"] += 1
                 section_number["h3"] = 0
-                current_h2 = title
-                current_h3 = ""
+                current_context["h2"] = title
+                current_context["h3"] = ""
                 section_id = f"{section_number['h1']}.{section_number['h2']}"
-            else:  # level == 3
+            elif level == 3:
                 section_number["h3"] += 1
-                current_h3 = title
+                current_context["h3"] = title
                 section_id = f"{section_number['h1']}.{section_number['h2']}.{section_number['h3']}"
             
-            # Skip very short sections
-            # Keep in sync with tests/docs: ignore sections under ~200 chars.
-            if len(section_content) < 200:
+            sections_map.append({
+                "title": title,
+                "level": level,
+                "start": start_pos,
+                "end": end_pos,
+                "header_end": header_end, # Content starts after this
+                "id": section_id,
+                "h1": current_context["h1"],
+                "h2": current_context["h2"],
+                "h3": current_context["h3"]
+            })
+
+        # Helper to find parent section for a given position
+        def get_parent_section(pos):
+            # Find the deepest (highest level) section containing pos
+            best_sec = None
+            for sec in sections_map:
+                if sec["start"] <= pos < sec["end"]:
+                    if best_sec is None or sec["level"] > best_sec["level"]:
+                        best_sec = sec
+            return best_sec
+
+        # --- PASS 2: Extract Code Blocks ---
+        code_block_pattern = re.compile(r'```(\w*)\n(.*?)```', re.DOTALL)
+        for match in code_block_pattern.finditer(content):
+            lang = match.group(1) or "text"
+            code_content = match.group(2).strip()
+            start_line = content[:match.start()].count('\n') + 1
+            end_line = content[:match.end()].count('\n') + 1
+            
+            # Find parent section
+            parent = get_parent_section(match.start())
+            parent_title = parent["title"] if parent else ""
+            parent_h1 = parent["h1"] if parent else ""
+            
+            chunks.append(Chunk(
+                id=self._generate_chunk_id(),
+                source_file=file_path,
+                category="spec",
+                level=4,
+                chunk_type="code_block",
+                content=f"```{lang}\n{code_content[:2000]}\n```",
+                start_line=start_line,
+                end_line=end_line,
+                metadata={
+                    "language": lang,
+                    "parent_section": parent_title,
+                    "parent_chapter": parent_h1,
+                    "summary": f"Code block ({lang}) in {parent_title}"
+                }
+            ))
+
+        # --- PASS 3: Extract Tables ---
+        table_pattern = re.compile(r'(\|[^\n]+\|\n)+', re.MULTILINE)
+        tables = [] # Keep track for has_table metadata
+        for match in table_pattern.finditer(content):
+            table_content = match.group(0).strip()
+            if table_content.count('|') < 4: continue
+            
+            start_line = content[:match.start()].count('\n') + 1
+            end_line = content[:match.end()].count('\n') + 1
+            
+            tables.append({'start': match.start(), 'end': match.end()})
+            
+            # Table summary
+            first_row = table_content.split('\n')[0]
+            headers = [h.strip() for h in first_row.split('|')[1:-1]]
+            table_summary = ", ".join(headers[:3])
+            
+            # Find parent section
+            parent = get_parent_section(match.start())
+            parent_title = parent["title"] if parent else ""
+            parent_h1 = parent["h1"] if parent else ""
+
+            chunks.append(Chunk(
+                id=self._generate_chunk_id(),
+                source_file=file_path,
+                category="spec",
+                level=4,
+                chunk_type="table",
+                content=table_content[:2000],
+                start_line=start_line,
+                end_line=end_line,
+                metadata={
+                    "headers": headers[:5],
+                    "parent_section": parent_title,
+                    "parent_chapter": parent_h1,
+                    "summary": f"Table: {table_summary} in {parent_title}"
+                }
+            ))
+
+        # --- PASS 4: Process Sections themselves ---
+        for sec in sections_map:
+            # Get content excluding the header itself
+            section_content = content[sec["header_end"]:sec["end"]].strip()
+            start_line = content[:sec["start"]].count('\n') + 1
+            end_line = content[:sec["end"]].count('\n') + 1
+            
+            if len(section_content) < 100: # Skip tiny sections
                 continue
+                
+            # Check if section contains tables
+            has_table = any(t['start'] >= sec["start"] and t['start'] < sec["end"] for t in tables)
             
-            # Extract figure references from section
-            figure_refs = re.findall(r'!\[([^\]]*)\]\(([^)]+)\)', section_content)
-            figure_refs += re.findall(r'Figure\s+(\d+[-\.]?\d*)', section_content, re.IGNORECASE)
+            # Chunk long sections
+            try:
+                 from . import config
+            except ImportError:
+                 import config
             
-            # Extract cross-references (See Section X.Y)
-            cross_refs = re.findall(r'[Ss]ection\s+(\d+(?:\.\d+)*)', section_content)
-            cross_refs += re.findall(r'§\s*(\d+(?:\.\d+)*)', section_content)
-            
-            # Split long sections into smaller chunks
-            # Adjusted to 3500 to reduce chunk count (previously 1500)
-            MAX_CHUNK_SIZE = 3500
-            OVERLAP = 200
+            MAX_CHUNK_SIZE = config.RAG_CHUNK_SIZE
+            OVERLAP = config.RAG_CHUNK_OVERLAP
             STEP = MAX_CHUNK_SIZE - OVERLAP
             
             section_chunks = []
             if len(section_content) > MAX_CHUNK_SIZE:
-                for start in range(0, len(section_content), STEP):
-                    end = min(start + MAX_CHUNK_SIZE, len(section_content))
-                    chunk_text = section_content[start:end]
-                    section_chunks.append(chunk_text)
+                 for start in range(0, len(section_content), STEP):
+                     end = min(start + MAX_CHUNK_SIZE, len(section_content))
+                     section_chunks.append(section_content[start:end])
             else:
-                section_chunks.append(section_content)
-                
-            for i, chunk_content in enumerate(section_chunks):
+                 section_chunks.append(section_content)
+            
+            for i, chunk_text in enumerate(section_chunks):
                 part_suffix = f" (Part {i+1}/{len(section_chunks)})" if len(section_chunks) > 1 else ""
                 
                 chunks.append(Chunk(
                     id=self._generate_chunk_id(),
                     source_file=file_path,
                     category="spec",
-                    level=level,
-                    chunk_type=f"section_h{level}",
-                    content=chunk_content,
-                    start_line=start_line,  # Approx start line
+                    level=sec["level"],
+                    chunk_type=f"section_h{sec['level']}",
+                    content=chunk_text,
+                    start_line=start_line,
                     end_line=end_line,
                     metadata={
-                        "section_title": title + part_suffix,
-                        "section_id": section_id,
-                        "parent_h1": current_h1 if level > 1 else "",
-                        "parent_h2": current_h2 if level > 2 else "",
-                        "figure_refs": [str(f) for f in figure_refs[:5]],
-                        "cross_refs": cross_refs[:5],
-                        "has_table": any(t['start'] > match.start() and t['start'] < end_pos for t in []),
-                        "summary": f"§{section_id} {title}{part_suffix}"
+                        "section_title": sec["title"] + part_suffix,
+                        "section_id": sec["id"],
+                        "parent_h1": sec["h1"],
+                        "parent_h2": sec["h2"],
+                        "has_table": has_table,
+                        "summary": f"§{sec['id']} {sec['title']}{part_suffix}"
                     }
                 ))
-        
-        # If no Markdown sections exist at all, create a single document chunk.
-        # If sections exist but were all skipped as too short, return empty.
-        if not chunks and not section_matches:
-            chunks.append(Chunk(
+
+        # Fallback if no sections/chunks found
+        if not chunks and content.strip():
+             chunks.append(Chunk(
                 id=self._generate_chunk_id(),
                 source_file=file_path,
                 category="spec",
                 level=1,
                 chunk_type="document",
-                content=content[:5000], # Increased limit for fallback
+                content=content[:5000],
                 start_line=1,
                 end_line=len(lines),
                 metadata={
@@ -995,8 +1034,149 @@ spec:
                     "summary": f"Document: {Path(file_path).name}"
                 }
             ))
-        
+
         return chunks
+
+    # ==================== Chunk Classification System ====================
+
+    CLASSIFICATION_PROMPT_TEMPLATE = """You are a technical documentation classifier for hardware design specifications.
+
+Classify the following spec chunk into TWO dimensions:
+
+1. **Content Type** (choose ONE):
+   - definition: Formal definitions of terms, signals, protocols, concepts
+   - example: Concrete examples, scenarios, sample code/values
+   - table: Field definitions, bit layouts, value mappings, encoding tables
+   - explanation: How things work, processes, mechanisms, algorithms
+   - reference: Cross-references to other sections/documents
+   - other: General content not fitting above categories
+
+2. **Importance** (choose ONE):
+   - critical: Essential definitions, mandatory protocols, critical constraints
+   - important: Recommended practices, common usage, key features
+   - peripheral: Supplementary info, background, optional features
+
+**Chunk Content:**
+---
+{chunk_text}
+---
+
+**Context:** {metadata_context}
+
+Return ONLY valid JSON:
+{{
+  "content_type": "<one of: definition|example|table|explanation|reference|other>",
+  "importance": "<one of: critical|important|peripheral>",
+  "confidence": <float 0.0-1.0>,
+  "reasoning": "<brief 1-sentence explanation>"
+}}
+"""
+
+    def _fallback_classification(self, chunk: Chunk) -> Dict[str, Any]:
+        """Fallback rule-based classification if LLM fails."""
+        content_lower = chunk.content.lower()
+        
+        # Simple heuristic rules
+        confidence = 0.5
+        
+        # Simple heuristic rules
+        if "table" in content_lower and "|" in chunk.content:
+            c_type = "table"
+            confidence = 0.9
+        elif "for example" in content_lower or "e.g." in content_lower:
+            c_type = "example"
+            confidence = 0.8
+        elif "is defined as" in content_lower or "stands for" in content_lower:
+            c_type = "definition"
+            confidence = 0.85
+        elif "see section" in content_lower or "refer to" in content_lower:
+            c_type = "reference"
+            confidence = 0.8
+        else:
+            c_type = "explanation"
+            confidence = 0.5
+            
+        return {
+            "content_type": c_type,
+            "importance": "important",
+            "confidence": confidence,
+            "reasoning": "Fallback rule-based classification",
+            "classified_at": datetime.now().isoformat()
+        }
+
+    def _classify_chunk_llm(self, chunk: Chunk) -> Dict[str, Any]:
+        """Classify a single chunk using LLM."""
+        try:
+            from src import llm_client
+            
+            # Throttle classification calls to prevent rate limits
+            self._throttle()
+
+            # Prepare context string from metadata
+            context_parts = []
+            if "section_title" in chunk.metadata: context_parts.append(f"Section: {chunk.metadata['section_title']}")
+            if "parent_h1" in chunk.metadata: context_parts.append(f"Chapter: {chunk.metadata['parent_h1']}")
+            metadata_context = "; ".join(context_parts)
+            
+            prompt = self.CLASSIFICATION_PROMPT_TEMPLATE.format(
+                chunk_text=chunk.content[:2000],  # Truncate for classification prompt if too long
+                metadata_context=metadata_context
+            )
+            
+            # Call LLM with low temperature for deterministic output
+            # Using raw call since we expect JSON
+            response_text = llm_client.call_llm_raw(prompt, temperature=0.0)
+            
+            # Parse JSON
+            # Try to find JSON block if mixed with text
+            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+            if json_match:
+                json_str = json_match.group(0)
+                classification = json.loads(json_str)
+                classification["classified_at"] = datetime.now().isoformat()
+                return classification
+            else:
+                raise ValueError("No JSON found in response")
+                
+        except Exception as e:
+            # print(f"[RAG] Classification failed for chunk {chunk.id}: {e}")
+            return self._fallback_classification(chunk)
+
+    def _analyze_query_intent(self, query: str) -> Dict[str, Any]:
+        """Analyze user query to determine intent and boost factors."""
+        query_lower = query.lower()
+        intent = {
+            "preferred_type": None,
+            "boost_factor": 1.0,
+            "intent_type": "general"
+        }
+        
+        # Rule-based intent detection (Fast & Robust)
+        # Definition seeking
+        if any(x in query_lower for x in ["what is", "what does", "define", "definition", "stand for", "mean"]):
+            intent["preferred_type"] = "definition"
+            intent["boost_factor"] = 2.0
+            intent["intent_type"] = "definition_seeking"
+            
+        # Example seeking
+        elif any(x in query_lower for x in ["example", "how to", "usage", "scenario", "sample"]):
+            intent["preferred_type"] = "example"
+            intent["boost_factor"] = 2.0
+            intent["intent_type"] = "example_seeking"
+            
+        # Table/Structure seeking
+        elif any(x in query_lower for x in ["table", "list", "map", "layout", "bit", "field"]):
+            intent["preferred_type"] = "table"
+            intent["boost_factor"] = 1.8
+            intent["intent_type"] = "table_seeking"
+            
+        # Explanation seeking
+        elif any(x in query_lower for x in ["how does", "why", "explain", "work", "process"]):
+            intent["preferred_type"] = "explanation"
+            intent["boost_factor"] = 1.5
+            intent["intent_type"] = "explanation_seeking"
+            
+        return intent
 
     # ==================== Indexing ====================
 
@@ -1065,8 +1245,29 @@ spec:
             import threading
             from concurrent.futures import ThreadPoolExecutor, as_completed
             
-            # Prepare texts for embedding
-            texts = [chunk.content[:1000] for chunk in new_chunks]
+            # Prepare texts for embedding with CONTEXT INJECTION
+            # Instead of raw content, we embed: 
+            # "[Section Title] - [Summary] \n\n [Content]"
+            # This ensures the vector allows semantic search on context even if the content is generic.
+            texts = []
+            for chunk in new_chunks:
+                context_prefix = ""
+                if "section_title" in chunk.metadata:
+                    context_prefix += f"{chunk.metadata['section_title']}"
+                if "summary" in chunk.metadata:
+                     if context_prefix: context_prefix += " - "
+                     context_prefix += f"{chunk.metadata['summary']}"
+                
+                # Create contextualized text
+                if context_prefix:
+                    full_text = f"[{context_prefix}]\n\n{chunk.content}"
+                else:
+                    full_text = chunk.content
+                
+                # Trust the upstream chunking (MAX_CHUNK_SIZE=1200) to keep us within limits.
+                # No artificial truncation.
+                texts.append(full_text)
+
             embeddings = [None] * total
             completed = [0]  # Use list to allow modification in closure
             api_calls = [0]  # Track API calls in parallel
@@ -1096,10 +1297,88 @@ spec:
             # Update API call count
             self.api_call_count += api_calls[0]
             
-            # Assign embeddings to chunks
+            # Assign embeddings AND CLASSIFY chunks
+            # Parallelize classification for Spec files
+            spec_chunks_to_classify = []
+            spec_indices = []
+
             for i, chunk in enumerate(new_chunks):
                 chunk.embedding = embeddings[i]
+                if chunk.category == "spec":
+                    spec_chunks_to_classify.append(chunk)
+                    spec_indices.append(i)
+            
+            if spec_chunks_to_classify:
+                # Parallel classification
+                total_spec = len(spec_chunks_to_classify)
+                completed_spec = [0]
+                
+                def classify_one(chunk):
+                    # Smart Optimization: Skip LLM for obvious types to speed up indexing
+                    # 1. Tables (detected by markdown parser)
+                    if chunk.metadata.get("has_table") or (chunk.chunk_type == "table"):
+                         return {
+                             "content_type": "table",
+                             "importance": "important",
+                             "confidence": 0.9,
+                             "reasoning": "Detected table structure in markdown",
+                             "classified_at": datetime.now().isoformat()
+                         }
+                    
+                    # 2. Code Blocks (likely examples)
+                    if chunk.chunk_type == "code_block":
+                         return {
+                             "content_type": "example",
+                             "importance": "important", 
+                             "confidence": 0.8,
+                             "reasoning": "Detected code block",
+                             "classified_at": datetime.now().isoformat()
+                         }
+
+                    # 3. Very short chunks or references
+                    if len(chunk.content) < 150:
+                        return self._fallback_classification(chunk)
+
+                    # 4. Try heuristic first
+                    heuristic = self._fallback_classification(chunk)
+                    if heuristic['confidence'] >= 0.8:
+                        heuristic['reasoning'] += " (High confidence match)"
+                        return heuristic
+
+                    try:
+                        return self._classify_chunk_llm(chunk)
+                    except Exception:
+                        return heuristic
+
+                sys.stderr.write(f"\n[RAG]   Classifying {total_spec} spec chunks...\n")
+                
+                with ThreadPoolExecutor(max_workers=5) as executor:  # 5 workers to be safe with rate limits
+                    future_to_chunk = {executor.submit(classify_one, chunk): chunk for chunk in spec_chunks_to_classify}
+                    
+                    for future in as_completed(future_to_chunk):
+                        chunk = future_to_chunk[future]
+                        try:
+                            classification = future.result()
+                            chunk.metadata.update({
+                                "content_type": classification["content_type"],
+                                "importance": classification["importance"],
+                                "classification_confidence": classification.get("confidence", 0.5),
+                                "classified_at": classification.get("classified_at")
+                            })
+                        except Exception:
+                            pass # Should be handled by classify_one
+                        
+                        completed_spec[0] += 1
+                        pct = int(completed_spec[0] * 100 / total_spec)
+                        sys.stderr.write(f"\r[RAG]   Classifying: {completed_spec[0]}/{total_spec} ({pct}%)   ")
+                        sys.stderr.flush()
+
+                sys.stderr.write(f"\r[RAG]   Classifying: {total_spec}/{total_spec} (100%) ✅               \n")
+
+            for i, chunk in enumerate(new_chunks):
+                # Add to DB (embeddings and metadata already set)
                 self.chunks[chunk.id] = chunk
+
             
             # Clear progress line and move to next
             sys.stderr.write(f"\r[RAG]   Embedding: {total}/{total} (100%) ✅               \n")
@@ -1246,6 +1525,36 @@ spec:
 
     # ==================== Search ====================
 
+    def _expand_query_cognitively(self, query: str) -> str:
+        """
+        Uses LLM to expand the query with full terms and context.
+        Example: "OHC" -> "OHC (Orthogonal Header Content) definition in PCIe"
+        """
+        try:
+            from src import llm_client
+            
+            # Simple prompt for expansion
+            prompt = (
+                f"You are an expert technical assistant. The user is searching for: '{query}'.\n"
+                f"Rewrite this search query to be descriptive and include full names for any acronyms (especially PCIe terms).\n"
+                f"Output ONLY the expanded search string. Do not explain."
+            )
+            
+            print(f"[RAG] 🧠 Thinking about query: '{query}'...", flush=True)
+            expanded = llm_client.call_llm_raw(prompt, temperature=0.1)
+            
+            # Fallback if LLM fails or is verbose
+            if not expanded or len(expanded) > 200:
+                return query
+                
+            print(f"[RAG] 💡 Expanded: '{expanded}'", flush=True)
+            return expanded
+        except Exception as e:
+            print(f"[RAG] Warning: Cognitive expansion failed ({e}), using raw query.")
+            return query
+
+    # ==================== Search ====================
+
     def search(self, query: str, categories: str = "all", 
                limit: int = 5, level: int = None) -> List[Tuple[float, Chunk]]:
         """
@@ -1263,8 +1572,14 @@ spec:
         # Check for changes before searching
         self._smart_reindex()
         
+        # Analyze Intent (New)
+        intent = self._analyze_query_intent(query)
+        if intent["intent_type"] != "general":
+            print(f"[RAG] 🧠 Intent: {intent['intent_type']} -> prioritizing {intent['preferred_type']} (x{intent['boost_factor']})", flush=True)
+        
         # Get query embedding
         try:
+            # Use raw query for embedding to keep semantic match natural
             query_embedding = self._get_embedding(query)
         except Exception as e:
             print(f"[RAG] Query embedding failed: {e}")
@@ -1290,8 +1605,28 @@ spec:
             # Calculate similarity (embedding is never None now)
             try:
                 score = self._cosine_similarity(query_embedding, chunk.embedding)
-                # Filter out zero-score results (from failed embeddings)
+                
+                # CLASSIFICATION BOOSTING LOGIC
                 if score > 0.0:
+                    # 1. Content Type Boost
+                    # If query is seeking a definition and chunk IS a definition -> Boost
+                    if intent["preferred_type"] and chunk.metadata.get("content_type") == intent["preferred_type"]:
+                        score *= intent["boost_factor"]
+                    
+                    # 2. Importance Boost
+                    # Critical/Important chunks get a general boost
+                    importance = chunk.metadata.get("importance")
+                    if importance == "critical":
+                        score *= 1.3
+                    elif importance == "important":
+                        score *= 1.1
+
+                    # 3. Confidence Penalty
+                    # If classification was uncertain, trust it less
+                    conf = chunk.metadata.get("classification_confidence", 1.0)
+                    if conf < 0.7:
+                        score *= 0.9
+                    
                     results.append((score, chunk))
             except Exception:
                 continue
@@ -1317,6 +1652,7 @@ spec:
         Get embedding using centralized llm_client.
         """
         try:
+            self._throttle()
             from src import llm_client
             return llm_client.get_embedding(text)
         except Exception as e:
@@ -1429,6 +1765,16 @@ spec:
                     time.sleep(backoff_time)
                 else:
                     raise ValueError(f"HTTP error after {max_retries} retries: {e}")
+
+    def _throttle(self):
+        """Thread-safe rate limiting."""
+        import time
+        with self._rate_lock:
+            now = time.monotonic()
+            wait = self.rate_limit_delay - (now - self._last_call_ts)
+            if wait > 0:
+                time.sleep(wait)
+            self._last_call_ts = time.monotonic()
 
     def _cosine_similarity(self, v1: List[float], v2: List[float]) -> float:
         """Calculate cosine similarity (pure Python)."""
@@ -1592,7 +1938,7 @@ spec:
 # ==================== Convenience Functions ====================
 
 # Global RAG instance (lazy initialization)
-_rag_db = None
+_rag_db: Optional[RAGDatabase] = None
 
 def get_rag_db() -> RAGDatabase:
     """Get or create global RAG database instance."""
@@ -1602,5 +1948,5 @@ def get_rag_db() -> RAGDatabase:
             from . import config
         except ImportError:
             import config
-        _rag_db = RAGDatabase(rag_dir=config.RAG_DIR)
+        _rag_db = RAGDatabase(rag_dir=config.RAG_DIR, fine_grained=config.RAG_FINE_GRAINED)
     return _rag_db

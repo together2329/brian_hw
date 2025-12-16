@@ -325,6 +325,44 @@ def parse_all_actions(text):
         
     return actions
 
+
+def parse_implicit_actions(text):
+    """
+    Parses implicit tool calls (e.g. from Command R+ format).
+    Pattern: ... to=repo_browser.tool_name ... <|message|>{ json_args }
+    """
+    actions = []
+    # Regex to capture tool name and JSON args
+    # Look for 'to=...toolname' ... '<|message|> {json}'
+    pattern = r"to=(?:[\w\.]+\.)?(\w+).*?<\|message\|>\s*(\{.*?\})"
+    
+    matches = re.finditer(pattern, text, re.DOTALL)
+    for match in matches:
+        tool_name = match.group(1)
+        json_str = match.group(2)
+        try:
+            # Fix potential incomplete JSON if stopped mid-stream?
+            # But we stopped at <|call|>, so JSON should be complete.
+            args_dict = json.loads(json_str)
+            
+            # Reconstruct args string: key="value", key2=123
+            pairs = []
+            for k, v in args_dict.items():
+                # Use json.dumps to handle escaping and quotes correctly
+                pairs.append(f'{k}={json.dumps(v)}')
+            
+            args_str_reconstructed = ", ".join(pairs)
+            actions.append((tool_name, args_str_reconstructed))
+            
+            if config.DEBUG_MODE:
+                print(f"[DEBUG] Parsed implicit action: {tool_name}({args_str_reconstructed})")
+        except Exception as e:
+            if config.DEBUG_MODE:
+                print(f"[DEBUG] Failed to parse implicit JSON: {e}")
+            pass
+            
+    return actions
+
 def parse_tool_arguments(args_str):
     """
     Safely parses tool arguments from string.
@@ -2263,7 +2301,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
         collected_content = ""
         # Call LLM via urllib (collect without printing)
-        for content_chunk in chat_completion_stream(messages):
+        for content_chunk in chat_completion_stream(messages, stop=["Observation:", "<|call|>"]):
             collected_content += content_chunk
 
         # Apply colors to complete text and print

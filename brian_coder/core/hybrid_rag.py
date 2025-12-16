@@ -19,12 +19,16 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Tuple, Callable, Any
 from datetime import datetime
 
-# Import config for DEBUG_MODE
+# Import config (prioritize src.config)
 try:
-    import config
+    from src import config
 except ImportError:
-    class config:
-        DEBUG_MODE = False
+    try:
+        import config
+    except ImportError:
+        class config:
+            DEBUG_MODE = False
+            HYBRID_ALPHA = 0.7
 
 
 @dataclass
@@ -68,9 +72,11 @@ class HybridRAG:
         self.spec_graph = spec_graph
         
         # Weights for RRF
-        self.alpha_embedding = 0.4
-        self.alpha_bm25 = 0.3
-        self.alpha_graph = 0.3
+        # Weights for Hybrid Fusion (Dynamic)
+        self.alpha_embedding = getattr(config, 'HYBRID_ALPHA', 0.7)
+        remaining = 1.0 - self.alpha_embedding
+        self.alpha_bm25 = remaining / 2
+        self.alpha_graph = remaining / 2
         
         # RRF constant
         self.rrf_k = 60
@@ -132,8 +138,8 @@ class HybridRAG:
                 if config.DEBUG_MODE:
                     print(f"[HybridRAG] Graph traversal failed: {e}")
         
-        # 4. RRF Fusion
-        fused_results = self._rrf_fusion(
+        # 4. Weighted Sum Fusion
+        fused_results = self._weighted_sum_fusion(
             embedding_results, bm25_results, graph_results
         )
         
@@ -205,38 +211,52 @@ class HybridRAG:
             ))
         return converted
     
-    def _rrf_fusion(self, embedding_results: List[SearchResult],
-                    bm25_results: List[SearchResult],
-                    graph_results: List[SearchResult]) -> List[SearchResult]:
+    def _weighted_sum_fusion(self, embedding_results: List[SearchResult],
+                             bm25_results: List[SearchResult],
+                             graph_results: List[SearchResult]) -> List[SearchResult]:
         """
-        Combine results using Reciprocal Rank Fusion.
-        
-        RRF score = sum(weight * 1/(k + rank)) for each ranking
+        Combine results using Weighted Sum (normalized scores).
+
+        Each source is normalized to [0,1] and combined with weights:
+        final_score = 0.4 * embedding_norm + 0.3 * bm25_norm + 0.3 * graph_norm
+
+        This preserves raw score magnitudes (unlike RRF which only uses rank).
         """
         result_scores: Dict[str, Dict] = {}
-        
+
+        # Find max scores for normalization
+        max_emb = max([r.score for r in embedding_results], default=1.0)
+        max_bm25 = max([r.score for r in bm25_results], default=1.0)
+        max_graph = max([r.score for r in graph_results], default=1.0)
+
         # Process embedding results
-        for rank, result in enumerate(embedding_results):
-            rrf_score = self.alpha_embedding * (1.0 / (self.rrf_k + rank + 1))
+        for result in embedding_results:
+            normalized_score = result.score / max_emb if max_emb > 0 else 0
+            weighted_score = self.alpha_embedding * normalized_score
+
             if result.id not in result_scores:
                 result_scores[result.id] = {"result": result, "score": 0, "sources": {}}
-            result_scores[result.id]["score"] += rrf_score
+            result_scores[result.id]["score"] += weighted_score
             result_scores[result.id]["sources"]["embedding"] = result.score
-        
+
         # Process BM25 results
-        for rank, result in enumerate(bm25_results):
-            rrf_score = self.alpha_bm25 * (1.0 / (self.rrf_k + rank + 1))
+        for result in bm25_results:
+            normalized_score = result.score / max_bm25 if max_bm25 > 0 else 0
+            weighted_score = self.alpha_bm25 * normalized_score
+
             if result.id not in result_scores:
                 result_scores[result.id] = {"result": result, "score": 0, "sources": {}}
-            result_scores[result.id]["score"] += rrf_score
+            result_scores[result.id]["score"] += weighted_score
             result_scores[result.id]["sources"]["bm25"] = result.score
-        
+
         # Process graph results
-        for rank, result in enumerate(graph_results):
-            rrf_score = self.alpha_graph * (1.0 / (self.rrf_k + rank + 1))
+        for result in graph_results:
+            normalized_score = result.score / max_graph if max_graph > 0 else 0
+            weighted_score = self.alpha_graph * normalized_score
+
             if result.id not in result_scores:
                 result_scores[result.id] = {"result": result, "score": 0, "sources": {}}
-            result_scores[result.id]["score"] += rrf_score
+            result_scores[result.id]["score"] += weighted_score
             result_scores[result.id]["sources"]["graph"] = result.score
 
         # Create final results with distance-weighted scoring (Phase A)
@@ -297,8 +317,8 @@ class HybridRAG:
         print_candidates("Step C: Graph", graph_results)
         
         print(f"├{'─'*70}┤")
-        print(f"│  [Fusion] RRF Combined Results ({len(final_results)} total)                     │")
-        print(f"│  Weights: Emb={self.alpha_embedding}, BM25={self.alpha_bm25}, Graph={self.alpha_graph}                  │")
+        print(f"│  [Fusion] Weighted Sum Results ({len(final_results)} total)                   │")
+        print(f"│  Weights: Emb={self.alpha_embedding}, BM25={self.alpha_bm25}, Graph={self.alpha_graph} (normalized)            │")
         print(f"├{'─'*70}┤")
         
         # Final Results
@@ -326,16 +346,26 @@ def get_hybrid_rag() -> HybridRAG:
 
     if _hybrid_rag_instance is None:
         # Import dependencies
-        from rag_db import get_rag_db
+        try:
+            from rag_db import get_rag_db
+        except ImportError:
+            from core.rag_db import get_rag_db
+
         try:
             from graph_lite import get_graph_lite
         except ImportError:
-            get_graph_lite = lambda: None
+            try:
+                from core.graph_lite import get_graph_lite
+            except ImportError:
+                get_graph_lite = lambda: None
 
         try:
             from spec_graph import get_spec_graph
         except ImportError:
-            get_spec_graph = lambda: None
+            try:
+                from core.spec_graph import get_spec_graph
+            except ImportError:
+                get_spec_graph = lambda: None
 
         # Initialize with all available components
         rag_db = get_rag_db()

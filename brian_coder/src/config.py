@@ -238,7 +238,7 @@ SEARCH_METHOD = os.getenv("SEARCH_METHOD", "hybrid")
 # Alpha weight for hybrid search (0.0-1.0)
 # Higher = more weight on embedding similarity
 # Lower = more weight on BM25 keyword matching
-HYBRID_ALPHA = float(os.getenv("HYBRID_ALPHA", "0.7"))
+HYBRID_ALPHA = float(os.getenv("HYBRID_ALPHA", "0.8"))
 
 # ============================================================
 # RAG Auto-Indexing Configuration
@@ -268,6 +268,23 @@ RAG_DIR = os.getenv("RAG_DIR", ".brian_rag")
 # Set to project .ragconfig path for project-specific indexing patterns
 RAG_CONFIG_PATH = os.getenv("RAG_CONFIG_PATH", None)
 
+# RAG Optimization Settings
+# Chunk size for splitting documents (characters)
+# Reduced to 1200 for better semantic precision (matches embedding limits)
+RAG_CHUNK_SIZE = int(os.getenv("RAG_CHUNK_SIZE", "1200"))
+
+# Check overlap size
+RAG_CHUNK_OVERLAP = int(os.getenv("RAG_CHUNK_OVERLAP", "200"))
+
+# Batch size for embedding API calls
+RAG_EMBEDDING_BATCH_SIZE = int(os.getenv("RAG_EMBEDDING_BATCH_SIZE", "50"))
+
+# Enable persistent caching (SQLite)
+RAG_ENABLE_PERSISTENT_CACHE = os.getenv("RAG_ENABLE_PERSISTENT_CACHE", "true").lower() in ("true", "1", "yes")
+
+# Search Algorithm: 'vector', 'hybrid_simple', 'hybrid_rrf'
+RAG_SEARCH_ALGORITHM = os.getenv("RAG_SEARCH_ALGORITHM", "hybrid_simple")
+
 # Enable/Disable Node Merge (Phase 4)
 # When enabled, Curator will merge similar nodes to reduce redundancy
 ENABLE_NODE_MERGE = os.getenv("ENABLE_NODE_MERGE", "false").lower() in ("true", "1", "yes")
@@ -284,7 +301,7 @@ MERGE_SIMILARITY_THRESHOLD = float(os.getenv("MERGE_SIMILARITY_THRESHOLD", "0.85
 ENABLE_SMART_RAG = os.getenv("ENABLE_SMART_RAG", "true").lower() in ("true", "1", "yes")
 
 # High threshold: score >= this -> use RAG context directly
-SMART_RAG_HIGH_THRESHOLD = float(os.getenv("SMART_RAG_HIGH_THRESHOLD", "0.8"))
+SMART_RAG_HIGH_THRESHOLD = float(os.getenv("SMART_RAG_HIGH_THRESHOLD", "0.75"))
 
 # Low threshold: score < this -> ignore RAG results
 SMART_RAG_LOW_THRESHOLD = float(os.getenv("SMART_RAG_LOW_THRESHOLD", "0.0"))
@@ -504,8 +521,25 @@ Thought: 스펙 관련 질문이다. rag_search를 spec 카테고리로 제한�
 Action: rag_search(query="TDISP CONFIG_LOCKED", categories="spec", limit=3)
 
 ANSWER STYLE GUIDELINES:
-1. When asked about an acronym or technical term (e.g., "OHC"), ALWAYS start with its full expansion and definition found in the provided contexts.
-   - Example: "OHC stands for Orthogonal Header Content. It is a..."
+1. **CRITICAL RULE for acronyms and technical terms:**
+
+   When asked about an acronym (e.g., "What does OHC stand for?"):
+
+   a) IF multiple RAG chunks mention the acronym:
+      - **PRIORITIZE chunks with explicit definitions**
+      - Look for phrases: "stands for", "indicates the presence of", "means", "is defined as"
+      - Example GOOD chunk: "OHC stands for Orthogonal Header Content"
+      - Example BAD chunk: "Set the OHC field to 0x5" (usage, not definition)
+
+   b) ALWAYS verify definition from provided context:
+      - Quote the exact definition found in RAG results
+      - **NEVER hallucinate or guess definitions**
+      - If no clear definition found, say: "Definition not found in indexed documents"
+
+   c) Start answer with full expansion:
+      - Example: "OHC stands for Orthogonal Header Content. It is a..."
+      - Then provide context and details
+
 2. Be concise and professional. Avoid "I checked the documents and..." unless necessary.
 3. Structure: Definition -> Context (e.g., "In PCIe 6.0...") -> Details.
 4. If RAG results contain the answer, use them directly. Don't say "I couldn't find exact match" if partial matches strongly suggest the answer.
