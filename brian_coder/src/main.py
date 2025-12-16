@@ -1424,6 +1424,12 @@ def build_system_prompt(messages=None):
                     if should_use and rag_results:
                         rag_context = smart_rag.format_context(rag_results, max_chars=2000)
                         context_parts.append(rag_context)
+                        
+                        # DEBUG: Print the injected context to verify prompt inclusion (Always visible now)
+                        print(Color.system(f"\n[SmartRAG] Injected Context Preview ({len(rag_context)} chars):"))
+                        print(Color.system("-" * 40))
+                        print(Color.system(rag_context.strip()[:1000] + ("..." if len(rag_context) > 1000 else "")))
+                        print(Color.system("-" * 40 + "\n"))
                 
                 except ImportError:
                     # RAG module not available, skip silently

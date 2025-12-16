@@ -1539,6 +1539,7 @@ Return ONLY valid JSON:
                 f"The user is searching for: '{query}'.\n"
                 f"Rewrite this search query to be descriptive and include full names for any PCI Express acronyms.\n"
                 f"Example: 'TLP' -> 'Transaction Layer Packet (TLP)'.\n"
+                f"Example: 'TS' -> 'Trailer Size (TS)'.\n"
                 f"Example: 'OHC' -> 'Orthogonal Header Content (OHC)'.\n"
                 f"If you are unsure of an acronym in PCIe context, keep the original query.\n"
                 f"Output ONLY the expanded search string."

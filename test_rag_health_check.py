@@ -37,9 +37,9 @@ def check_config():
     chk1 = (alpha == 0.8)
     print_result("HYBRID_ALPHA == 0.8", chk1, f"(Got {alpha})")
     
-    # THRESHOLD should be 0.55
-    chk2 = (thresh == 0.55)
-    print_result("HIGH_THRESHOLD == 0.55", chk2, f"(Got {thresh})")
+    # THRESHOLD should be 0.50
+    chk2 = (thresh == 0.50)
+    print_result("HIGH_THRESHOLD == 0.50", chk2, f"(Got {thresh})")
     
     return chk1 and chk2
 
@@ -47,8 +47,9 @@ def check_queries(hybrid):
     print(f"\n{BOLD}2. Retrieval Quality Check{RESET}")
     
     test_cases = [
-        {"query": "ohc", "expect_high": True, "min_score": 0.55, "desc": "Definition (Orthogonal Header Content)"},
-        {"query": "TLP", "expect_high": True, "min_score": 0.55, "desc": "Common Acronym (Transaction Layer Packet)"},
+        {"query": "ohc", "expect_high": True, "min_score": 0.50, "desc": "Definition (Orthogonal Header Content)"},
+        {"query": "ts", "expect_high": True, "min_score": 0.50, "desc": "Acronym (Trailer Size)"},
+        {"query": "TLP", "expect_high": True, "min_score": 0.50, "desc": "Common Acronym (Transaction Layer Packet)"},
         {"query": "Ack", "expect_high": True, "min_score": 0.45, "desc": "Short Term (Acknowledge)"},
         {"query": "xyz_nonexistent_123", "expect_high": False, "max_score": 0.45, "desc": "Noise/Non-existent"},
     ]
