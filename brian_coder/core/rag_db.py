@@ -1659,6 +1659,21 @@ Return ONLY valid JSON:
         # Check for changes before searching
         self._smart_reindex()
         
+        # Load DEBUG_RAG setting
+        try:
+            from . import config as cfg
+            debug_rag = cfg.DEBUG_RAG
+        except:
+            try:
+                import config as cfg
+                debug_rag = cfg.DEBUG_RAG
+            except:
+                debug_rag = False
+        
+        if debug_rag:
+            print(f"[RAG DEBUG] Query: {query}")
+            print(f"[RAG DEBUG] Categories: {categories}, Limit: {limit}, Level: {level}")
+        
         # Analyze Intent (New)
         intent = self._analyze_query_intent(query)
         if intent["intent_type"] != "general":
@@ -1669,8 +1684,14 @@ Return ONLY valid JSON:
             # Expand query for better semantic matching (e.g. acronyms)
             expanded_query = self._expand_query_cognitively(query)
             
+            if debug_rag and expanded_query != query:
+                print(f"[RAG DEBUG] Expanded query: {expanded_query}")
+            
             # Use expanded query for embedding
             query_embedding = self._get_embedding(expanded_query)
+            
+            if debug_rag:
+                print(f"[RAG DEBUG] Embedding dimension: {len(query_embedding)}")
         except Exception as e:
             print(f"[RAG] Query embedding failed: {e}")
             return []

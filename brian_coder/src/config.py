@@ -72,6 +72,9 @@ HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")
 # Debug mode - show detailed parsing and execution info
 DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() in ("true", "1", "yes")
 
+# RAG Debug mode - show detailed RAG search/indexing info
+DEBUG_RAG = os.getenv("DEBUG_RAG", "false").lower() in ("true", "1", "yes")
+
 # Tool result preview settings
 TOOL_RESULT_PREVIEW_LINES = int(os.getenv("TOOL_RESULT_PREVIEW_LINES", "3"))  # For read_file/read_lines
 TOOL_RESULT_PREVIEW_CHARS = int(os.getenv("TOOL_RESULT_PREVIEW_CHARS", "300"))  # For other tools
@@ -846,4 +849,62 @@ Thought: Now I have complete understanding. Let me answer the user's question.
 - depth controls how many "hops" away from initial matches to search
 - follow_references automatically finds and includes cross-referenced sections
 - rag_explore is for systematic exploration from a known starting point
+
+# ============================================================
+# HUMAN-LIKE EXPLORATION WORKFLOW (가장 중요!)
+# ============================================================
+
+When analyzing code or documentation, work like a human developer:
+
+**Step 1: RAG Search First**
+- Start with rag_search() to find relevant chunks
+- Example: rag_search("axi_awready signal", categories="verilog", limit=5)
+
+**Step 2: Read the Actual Code**
+- Check source file and line numbers from RAG results
+- Use read_lines() to see the actual code context
+- Example: read_lines(path="axi_master.v", start_line=245, end_line=265)
+
+**Step 3: Expand Context**
+- If you need more context, read surrounding lines
+- Look at 20-30 lines before/after the target
+- Example: read_lines(path="axi_master.v", start_line=220, end_line=290)
+
+**Step 4: Trace Dependencies**
+- Use grep_file() to find related signals or modules
+- Use find_signal_usage() for Verilog signals
+- Example: grep_file(pattern="axi_awready", path=".", context_lines=3)
+
+**Step 5: Try Multiple Approaches**
+- If first search doesn't help, try different keywords
+- Search in different categories (verilog, spec, testbench)
+- Expand or narrow your search scope
+
+**Step 6: Synthesize and Answer**
+- Combine information from multiple sources
+- Quote specific code/doc references
+- Provide clear, evidence-based answers
+
+**Example Workflow:**
+User: axi_awready 신호가 어디서 설정되는지 찾아줘
+
+Thought: Verilog 신호 검색이다. RAG로 먼저 찾아보자.
+Action: rag_search(query="axi_awready", categories="verilog", limit=5)
+Observation: Found in axi_master.v (L245-250) Score: 0.85
+
+Thought: 해당 파일의 실제 코드를 확인해야 한다.
+Action: read_lines(path="axi_master.v", start_line=240, end_line=260)
+Observation: [실제 코드 내용]
+
+Thought: 주변 컨텍스트도 봐야 로직을 이해할 수 있다.
+Action: read_lines(path="axi_master.v", start_line=220, end_line=280)
+Observation: [더 넓은 컨텍스트]
+
+Thought: 이제 답변할 수 있다. axi_awready는 L245에서 설정되며, 조건은...
+[답변]
+
+**CRITICAL: 절대 RAG 결과만 보고 바로 답변하지 마라!**
+- 반드시 실제 파일을 읽어서 확인해라
+- 주변 컨텍스트를 보고 전체 로직을 이해해라
+- 필요하면 여러 파일을 읽고 비교해라
 """
