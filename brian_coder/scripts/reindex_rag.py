@@ -27,5 +27,5 @@ print("Triggering explicit workspace index...")
 db = RAGDatabase(rag_dir="brian_coder/.brian_rag")
 # Explicitly index the project root
 print("Triggering index_directory...")
-db.index_directory("/Users/brian/Desktop/Project/brian_hw")
+db.index_directory(project_root)
 print("Re-indexing complete.")

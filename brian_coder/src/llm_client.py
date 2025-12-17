@@ -608,16 +608,13 @@ def get_embedding(text: str, model: str = None) -> List[float]:
                 return embedding
         except Exception as e:
             if attempt < max_retries - 1:
-                print(Color.warning(f"[Embedding] Connection error (attempt {attempt+1}/{max_retries}): {e}"))
-                time.sleep(1)
+                delay = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                print(Color.warning(f"[Embedding] Retry {attempt+1}/{max_retries} in {delay}s: {e}"))
+                time.sleep(delay)
                 continue
             
-            # Final attempt failed
-            print(Color.error(f"[Embedding] CRITICAL FAILURE: {e}"))
-            print(Color.error(f"  URL: {url}"))
-            print(Color.error(f"  Model: {model}"))
-            import traceback
-            traceback.print_exc()
+            # Final attempt failed - simple error, no traceback
+            print(Color.error(f"[Embedding] Failed after {max_retries} attempts: {e}"))
             raise e
             
     # Should not reach here
