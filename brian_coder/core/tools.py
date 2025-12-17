@@ -5,22 +5,44 @@ import shlex
 import sys
 import re
 
-# Try to import format_diff with fallback mechanism
+# Robust library path discovery
 try:
     from lib.display import format_diff
 except ModuleNotFoundError:
-    # Fallback: Add lib path and try again
-    _core_dir = os.path.dirname(os.path.abspath(__file__))
-    _project_root = os.path.dirname(_core_dir)
-    sys.path.insert(0, os.path.join(_project_root, 'lib'))
+    # Fallback: Recursively search for 'lib/display.py' walking up the tree
+    import os
+    import sys
+    
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    found_lib = False
+    
+    # Walk up 3 levels looking for 'lib' directory
+    search_dir = current_dir
+    for _ in range(4):
+        possible_lib = os.path.join(search_dir, 'lib')
+        possible_display = os.path.join(possible_lib, 'display.py')
+        
+        if os.path.isdir(possible_lib) and os.path.isfile(possible_display):
+            # Found it! Add the parent of 'lib' to sys.path
+            if search_dir not in sys.path:
+                sys.path.insert(0, search_dir)
+            found_lib = True
+            break
+        
+        # Move up
+        parent = os.path.dirname(search_dir)
+        if parent == search_dir: # Reached root
+            break
+        search_dir = parent
+
+    # Try import again
     try:
         from lib.display import format_diff
     except ModuleNotFoundError:
-        # Last resort: try without lib prefix (display might be directly in sys.path)
         try:
             from display import format_diff
         except ModuleNotFoundError:
-            # If all imports fail, create a stub function
+            # Final fallback stub
             def format_diff(*args, **kwargs):
                 return ""
 

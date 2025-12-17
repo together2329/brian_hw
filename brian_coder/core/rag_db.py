@@ -99,7 +99,9 @@ class RAGDatabase:
         
         self.chunks: Dict[str, Chunk] = {}
         self.file_hashes: Dict[str, str] = {}
+        self.file_hashes: Dict[str, str] = {}
         self.categories: Dict[str, CategoryConfig] = {}
+        self.known_acronyms: Dict[str, str] = {}  # Extracted from chunks
 
         # Rate limiting settings (load from config, convert ms to seconds)
         self.api_call_count = 0
@@ -152,7 +154,19 @@ class RAGDatabase:
             return
 
         if current_dim != stored_dim:
-            from display import Color
+            try:
+                from lib.display import Color
+            except ImportError:
+                try:
+                    from display import Color
+                except:
+                    class Color:
+                        @staticmethod
+                        def warning(s): return s
+                        @staticmethod
+                        def action(s): return s
+                        @staticmethod
+                        def success(s): return s
             import shutil
             
             print(Color.warning(f"\n[RAG] ⚠️  Dimension Mismatch Detected!"))
@@ -1523,6 +1537,45 @@ Return ONLY valid JSON:
         return total_chunks
 
 
+
+    def _extract_known_acronyms(self):
+        """
+        Scan chunks for "Term (Acronym)" patterns to populate known_acronyms.
+        Optimized to run only once after load/reindex.
+        """
+        # Pattern 1: Capitalized Words + space + (ACRONYM)
+        # e.g. "Transaction Layer Packet (TLP)" or "Transaction Layer Packets (TLPs)"
+        import re
+        pattern1 = re.compile(r'([A-Z][a-z0-9]+(?:\s+[A-Z][a-z0-9]+){0,5})\s+\(([A-Z]{2,6})s?\)')
+        
+        # Pattern 2: "ACRONYM field indicates Full Name"
+        # e.g. "TS[2:0] field indicates Trailer Size"
+        pattern2 = re.compile(r'\b([A-Z]{2,6})(?:\[.*?\])?\s+field\s+(?:is|indicates)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3})')
+
+        count = 0
+        for chunk in self.chunks.values():
+            if chunk.category not in ["spec", "doc"]:
+                continue
+                
+            # Scan Pattern 1
+            matches1 = pattern1.findall(chunk.content)
+            for full, short in matches1:
+                # Remove trailing 's' from short if present (e.g. TLPs -> TLP)
+                norm_short = short.rstrip('s')
+                if norm_short not in self.known_acronyms and len(norm_short) >= 2:
+                    self.known_acronyms[norm_short] = full
+                    count += 1
+
+            # Scan Pattern 2 (Short -> Full)
+            matches2 = pattern2.findall(chunk.content)
+            for short, full in matches2:
+                if short not in self.known_acronyms and len(short) >= 2:
+                    self.known_acronyms[short] = full
+                    count += 1
+                    
+        if count:
+            print(f"[RAG] Extracted {count} new acronym definitions (Total: {len(self.known_acronyms)})")
+
     # ==================== Search ====================
 
     def _expand_query_cognitively(self, query: str) -> str:
@@ -1533,14 +1586,37 @@ Return ONLY valid JSON:
         try:
             from src import llm_client
             
+            # Build dynamic examples from extracted acronyms
+            acronym_context = ""
+            if self.known_acronyms:
+                # Filter: Only inject acronyms that appear in the query
+                # This reduces noise and guarantees relevance.
+                query_tokens = set(query.lower().replace("?", " ").replace(".", " ").replace(",", " ").split())
+                
+                relevant_examples = []
+                for k, v in self.known_acronyms.items():
+                    # Check if acronym (e.g. "ts") is in query tokens
+                    if k.lower() in query_tokens:
+                        relevant_examples.append(f"'{k}' -> '{v} ({k})'")
+                    # Optional: Check if full name parts match? (Maybe overkill, start strict)
+                    
+                # If we found matches, ONLY use those.
+                # If no matches, maybe provide a small random set or NONE?
+                # Providing NONE is safer to avoid hallucinating unrelated acronyms.
+                if relevant_examples:
+                    examples = sorted(relevant_examples)
+                    acronym_context = ".\n".join(examples) + "."
+                else:
+                    # No obvious acronyms found in query.
+                    # Injecting nothing effectively disables "guessing" based on random examples.
+                    acronym_context = "(No relevant acronyms detected in query)"
+
             # Simple prompt for expansion
             prompt = (
                 f"You are an expert in PCIe (Peripheral Component Interconnect Express) Specifications and Verilog.\n"
                 f"The user is searching for: '{query}'.\n"
-                f"Rewrite this search query to be descriptive and include full names for any PCI Express acronyms.\n"
-                f"Example: 'TLP' -> 'Transaction Layer Packet (TLP)'.\n"
-                f"Example: 'TS' -> 'Trailer Size (TS)'.\n"
-                f"Example: 'OHC' -> 'Orthogonal Header Content (OHC)'.\n"
+                f"Rewrite this search query to be descriptive and include full names for any PCI Express acronyms found in the prompt context.\n"
+                f"Relevant Acronym Definitions:\n{acronym_context}\n"
                 f"If you are unsure of an acronym in PCIe context, keep the original query.\n"
                 f"Output ONLY the expanded search string."
             )
@@ -1879,7 +1955,19 @@ Return ONLY valid JSON:
             
             # Strict model name check
             if stored_model and stored_model != current_model:
-                from display import Color
+                try:
+                    from lib.display import Color
+                except ImportError:
+                    try:
+                        from display import Color
+                    except:
+                        class Color:
+                            @staticmethod
+                            def warning(s): return s
+                            @staticmethod
+                            def action(s): return s
+                            @staticmethod
+                            def success(s): return s
                 import shutil
                 import os
                 
@@ -1929,8 +2017,10 @@ Return ONLY valid JSON:
                 for cid, cdata in data.get("chunks", {}).items()
             }
             self.file_hashes = data.get("file_hashes", {})
+            self._extract_known_acronyms()
             
         except Exception as e:
+            print(f"[RAG] Error loading index: {e}")
             # If load fails, start fresh
             self.chunks = {}
             self.file_hashes = {}

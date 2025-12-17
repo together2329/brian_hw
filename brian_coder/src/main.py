@@ -1428,7 +1428,8 @@ def build_system_prompt(messages=None):
                         # DEBUG: Print the injected context to verify prompt inclusion (Always visible now)
                         print(Color.system(f"\n[SmartRAG] Injected Context Preview ({len(rag_context)} chars):"))
                         print(Color.system("-" * 40))
-                        print(Color.system(rag_context.strip()[:1000] + ("..." if len(rag_context) > 1000 else "")))
+                        # User requested full context visibility
+                        print(Color.system(rag_context.strip()))
                         print(Color.system("-" * 40 + "\n"))
                 
                 except ImportError:
