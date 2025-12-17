@@ -1,0 +1,348 @@
+# Tool: write_file
+
+Create a new file or completely overwrite an existing file with new content.
+
+## Signature
+write_file(path="path/to/file", content="file content")
+
+## Description
+
+Creates a new file or completely replaces the contents of an existing file. This is the primary tool for:
+
+- **Creating new Verilog modules** - Write complete RTL implementations from scratch
+- **Generating testbenches** - Create comprehensive test files with stimulus and checking
+- **Creating configuration files** - Generate Makefiles, .gitignore, synthesis scripts
+- **Writing documentation** - Create README files, design docs, specification notes
+
+**CRITICAL RULE:** You MUST provide COMPLETE, WORKING code. Never use placeholders like `[insert code here]`, `...`, or `TODO`. The LLM must write the full implementation.
+
+For Verilog/SystemVerilog, this means:
+- Complete `module...endmodule` with all ports, parameters, signals, and logic
+- Full testbench with initial block, clock generation, stimulus, and assertions
+- Proper syntax with correct sensitivity lists, blocking/non-blocking assignments
+
+**When NOT to use write_file:**
+- Modifying existing files → Use `replace_in_file()` instead for safer, targeted edits
+- Appending to files → Read first, modify content, then write
+- Large multi-line content → Use triple quotes (`"""content"""`) for proper formatting
+
+## Good Examples
+
+✅ **write_file(path="rtl/counter.v", content="""module counter(...)...""")**
+   Create complete Verilog counter module with full implementation
+
+✅ **write_file(path="testbench/tb_fifo.sv", content="""module tb_fifo; initial begin...""")**
+   Create SystemVerilog testbench with stimulus and checks
+
+✅ **write_file(path="Makefile", content="""all:\n\tiverilog...""")**
+   Create build script with proper tabs and newlines
+
+✅ **write_file(path="docs/design.md", content="""# FIFO Design\n\n## Overview...""")**
+   Create markdown documentation
+
+✅ **write_file(path="scripts/run_sim.sh", content="""#!/bin/bash\niverilog...""")**
+   Create shell script with shebang
+
+## Bad Examples
+
+❌ **write_file(path="rtl/counter.v", content="[insert counter code here]")**
+   NEVER use placeholders! Must write actual working code
+
+❌ **write_file(path="rtl/module.v", content="...")**
+   NEVER use ellipsis! Write complete implementation
+
+❌ **write_file(path="rtl/fifo.v", content="module fifo; // TODO: implement")**
+   NEVER leave TODOs! Implement it now
+
+❌ **write_file(path="existing_module.v", content="updated code")**
+   BAD for existing files! Use `replace_in_file()` for safer edits
+
+❌ **write_file(path="rtl/counter.v", content=module counter...)**
+   ERROR: Missing quotes! Must use quotes around content
+
+❌ **write_file()**
+   ERROR: Missing required 'path' and 'content' parameters
+
+## When to Use
+
+- **Creating brand new files** that don't exist yet
+- **Completely replacing a file's contents** (when you want to rewrite from scratch)
+- **Generating files from templates or specifications**
+- **Creating multiple related files** (module + testbench + docs)
+- **Prototyping new modules** based on requirements
+- **Writing configuration/build files**
+
+## When NOT to Use
+
+- **Modifying existing code** → Use `replace_in_file()` for targeted changes
+- **Adding to existing files** → Read first with `read_file()`, modify, then write
+- **Fixing specific bugs** → Use `replace_in_file()` to change only problematic sections
+- **Refactoring** → Use `replace_in_file()` for safer, auditable changes
+- **Files don't exist and parent directory missing** → Create directory first with `run_command("mkdir -p dir")`
+
+## Verilog-Specific Use Cases
+
+### Scenario 1: Complete Module + Testbench Creation
+
+**Workflow:**
+```
+User asks: "Create a 4-bit up counter with sync reset"
+
+Thought: Need to create both module and testbench. Start with RTL.
+Action: write_file(path="rtl/counter_4bit.v", content="""module counter_4bit(
+    input wire clk,
+    input wire reset,
+    output reg [3:0] count
+);
+
+    always @(posedge clk) begin
+        if (reset)
+            count <= 4'b0000;
+        else
+            count <= count + 1'b1;
+    end
+
+endmodule
+""")
+Observation: Successfully wrote to 'rtl/counter_4bit.v'.
+
+Thought: Now create testbench to verify the counter
+Action: write_file(path="testbench/tb_counter_4bit.v", content="""module tb_counter_4bit;
+    reg clk;
+    reg reset;
+    wire [3:0] count;
+
+    // Instantiate counter
+    counter_4bit dut (
+        .clk(clk),
+        .reset(reset),
+        .count(count)
+    );
+
+    // Clock generation
+    initial clk = 0;
+    always #5 clk = ~clk;
+
+    // Test stimulus
+    initial begin
+        $dumpfile("counter.vcd");
+        $dumpvars(0, tb_counter_4bit);
+
+        // Reset
+        reset = 1;
+        #20;
+        reset = 0;
+
+        // Count for 20 cycles
+        #200;
+
+        // Check overflow
+        if (count != 4'b0100) begin
+            $display("ERROR: Expected count=4, got %d", count);
+            $finish;
+        end
+
+        $display("PASS: Counter test successful");
+        $finish;
+    end
+
+endmodule
+""")
+Observation: Successfully wrote to 'testbench/tb_counter_4bit.v'.
+
+Thought: Both files created. Now compile and simulate
+Action: run_command(command="iverilog -o sim rtl/counter_4bit.v testbench/tb_counter_4bit.v && vvp sim")
+Observation: PASS: Counter test successful
+```
+
+**Key Points:**
+- Write COMPLETE modules (all ports, signals, logic)
+- Write COMPLETE testbenches (clock gen, stimulus, assertions)
+- Use proper Verilog syntax (sensitivity lists, blocking/non-blocking)
+- Include `$dumpfile` and `$dumpvars` for waveform debug
+- Compile and test immediately after creation
+
+### Scenario 2: Multi-File Design
+
+**Workflow:**
+```
+User asks: "Create an async FIFO with separate read/write clock domains"
+
+Thought: This needs multiple files: FIFO module, gray encoder, testbench
+
+Action: write_file(path="rtl/async_fifo.v", content="""...[full FIFO implementation]...""")
+Action: write_file(path="rtl/gray_encoder.v", content="""...[gray code encoder]...""")
+Action: write_file(path="testbench/tb_async_fifo.v", content="""...[dual-clock testbench]...""")
+
+[All with COMPLETE implementations, no placeholders]
+```
+
+**Pattern: Create Related Files Together:**
+1. Core module first
+2. Helper modules next
+3. Testbench last
+4. Optional: Documentation, build scripts
+
+### Scenario 3: From Specification to Implementation
+
+**Workflow:**
+```
+User provides spec: "8-entry deep FIFO, 16-bit wide, with full/empty flags"
+
+Thought: I have the specification. Let me implement it completely.
+Action: write_file(path="rtl/fifo_8x16.v", content="""module fifo_8x16(
+    input wire clk,
+    input wire reset,
+    input wire wr_en,
+    input wire rd_en,
+    input wire [15:0] wr_data,
+    output reg [15:0] rd_data,
+    output reg full,
+    output reg empty
+);
+
+    // Internal signals
+    reg [15:0] mem [0:7];
+    reg [2:0] wr_ptr;
+    reg [2:0] rd_ptr;
+    reg [3:0] count;
+
+    // Write logic
+    always @(posedge clk) begin
+        if (reset) begin
+            wr_ptr <= 0;
+        end else if (wr_en && !full) begin
+            mem[wr_ptr] <= wr_data;
+            wr_ptr <= wr_ptr + 1;
+        end
+    end
+
+    // Read logic
+    always @(posedge clk) begin
+        if (reset) begin
+            rd_ptr <= 0;
+        end else if (rd_en && !empty) begin
+            rd_data <= mem[rd_ptr];
+            rd_ptr <= rd_ptr + 1;
+        end
+    end
+
+    // Count and flags
+    always @(posedge clk) begin
+        if (reset) begin
+            count <= 0;
+        end else begin
+            case ({wr_en && !full, rd_en && !empty})
+                2'b10: count <= count + 1;
+                2'b01: count <= count - 1;
+                default: count <= count;
+            endcase
+        end
+    end
+
+    assign full = (count == 8);
+    assign empty = (count == 0);
+
+endmodule
+""")
+```
+
+**No Shortcuts Allowed:**
+- ❌ `mem [0:7]; // TODO: implement read/write`
+- ✅ Complete read and write logic implemented
+
+### Scenario 4: Configuration Files
+
+**Workflow:**
+```
+User: "Create Makefile for Verilog simulation"
+
+Action: write_file(path="Makefile", content="""# Makefile for Verilog Simulation
+
+RTL_SRC = rtl/counter.v rtl/fifo.v
+TB_SRC = testbench/tb_counter.v
+SIM = sim
+
+all: $(SIM)
+\t./$(SIM)
+
+$(SIM): $(RTL_SRC) $(TB_SRC)
+\tiverilog -o $(SIM) $(RTL_SRC) $(TB_SRC)
+
+clean:
+\trm -f $(SIM) *.vcd
+
+.PHONY: all clean
+""")
+```
+
+**Important:** Use `\t` for TAB characters in Makefiles!
+
+## Error Recovery
+
+- **"Error: No such file or directory (parent dir missing)"**
+  1. Create directory first: `run_command(command="mkdir -p dirname")`
+  2. Verify path: `list_dir(path=".")` to see current directory structure
+  3. Then write file again
+
+- **"Error: Permission denied"**
+  1. Check permissions: `run_command(command="ls -la path/to/file")`
+  2. Try different location (e.g., current directory instead of system paths)
+  3. Change permissions if needed: `run_command(command="chmod +w path/to/file")`
+
+- **"File already exists - are you sure you want to overwrite?"**
+  1. If yes: Proceed with write_file (it will overwrite)
+  2. If no: Use `replace_in_file()` for targeted edits instead
+  3. Best practice: Read existing file first to understand current content
+
+- **"Syntax error after writing Verilog"**
+  1. Compile immediately after writing: `run_command(command="iverilog file.v")`
+  2. Read error message carefully
+  3. Use `replace_in_file()` to fix specific syntax issues
+  4. Common errors: Missing semicolons, mismatched begin/end, wrong sensitivity lists
+
+- **"Content not properly formatted (newlines missing)"**
+  1. Use triple quotes for multi-line content: `content="""line1\nline2"""`
+  2. Include explicit `\n` for newlines in strings
+  3. For large content, break into readable chunks with proper escaping
+
+## Tool Precedence
+
+**Use write_file() for:**
+- NEW files that don't exist
+- COMPLETE rewrites (starting from scratch)
+- Generated files (build scripts, configs)
+
+**Use replace_in_file() for:**
+- EXISTING files you want to modify
+- Targeted changes (fix one function, update one parameter)
+- Safer edits with less risk of breaking working code
+
+**Decision Tree:**
+
+```
+Need to create/modify file content?
+├─ File doesn't exist? → write_file() ✅
+├─ File exists but want complete rewrite? → write_file() ⚠️ (dangerous!)
+├─ File exists and want targeted change? → replace_in_file() ✅✅✅
+└─ File exists but unsure? → read_file() first, then decide
+```
+
+**Examples:**
+
+| Scenario | ❌ Wrong Tool | ✅ Right Tool |
+|----------|--------------|--------------|
+| Create new counter.v | replace_in_file | write_file ✅ |
+| Fix bug in existing module | write_file (rewrites all) | replace_in_file ✅ |
+| Add new port to module | write_file (risky) | replace_in_file ✅ |
+| Generate testbench | N/A | write_file ✅ |
+| Change parameter value | write_file (overkill) | replace_in_file ✅ |
+
+**Golden Rule:** If the file already exists and works, use `replace_in_file()` to preserve what works and change only what needs changing.
+
+## See Also
+
+- **replace_in_file** - Modify existing files with targeted find-replace (safer for edits)
+- **read_file** - Read file content before deciding to write or replace
+- **run_command** - Create directories (`mkdir -p`), set permissions (`chmod`)
+- **generate_module_testbench** - Auto-generate testbenches from module definitions

@@ -1,0 +1,386 @@
+# Tool: replace_in_file
+
+Replace text in an existing file using intelligent fuzzy matching strategies (OpenCode-style).
+
+## Signature
+replace_in_file(path="path/to/file", old_text="text to find", new_text="replacement text", count=-1, start_line=None, end_line=None)
+
+## Description
+
+**The safest way to modify existing files.** This tool performs targeted find-and-replace operations with **9 intelligent fuzzy matching strategies** adapted from OpenCode, Cline, and Gemini CLI.
+
+Unlike `write_file()` which overwrites entire files (risky!), `replace_in_file()` makes **surgical changes** to specific sections while preserving everything else.
+
+**Fuzzy Matching Strategies (Auto-Applied):**
+
+When an exact match fails, the tool automatically tries these 9 strategies in order:
+
+1. **LineTrimmedReplacer** - Ignores leading/trailing whitespace on each line
+2. **BlockAnchorReplacer** - Uses surrounding context to locate blocks
+3. **WhitespaceNormalizedReplacer** - Normalizes all whitespace (spaces, tabs, newlines)
+4. **IndentationFlexibleReplacer** - Ignores indentation differences
+5. **EscapeNormalizedReplacer** - Normalizes escape sequences (\n, \t, etc.)
+6. **TrimmedBoundaryReplacer** - Trims whitespace at start/end of entire block
+7. **ContextAwareReplacer** - Uses wider context to find unique matches
+8. **RegexPatternReplacer** - Falls back to regex matching if needed
+9. **SmartIndentReplacer** - Preserves relative indentation when replacing
+
+**This makes the tool very forgiving** - even if your `old_text` has slightly different spacing, indentation, or formatting from the actual file, it will likely still find the right section.
+
+**Parameters:**
+- `count=-1`: Replace all occurrences (use `count=1` for first only)
+- `start_line`, `end_line`: Limit replacement to specific line range
+
+## Good Examples
+
+✅ **replace_in_file(path="rtl/counter.v", old_text="always @(posedge clk)", new_text="always @(posedge clk or negedge reset_n)")**
+   Change async reset to sync reset in counter
+
+✅ **replace_in_file(path="rtl/fifo.v", old_text="parameter DEPTH = 8", new_text="parameter DEPTH = 16", count=1)**
+   Update FIFO depth parameter (first occurrence only)
+
+✅ **replace_in_file(path="testbench/tb.v", old_text="$display(\"Test FAILED\")", new_text="$display(\"Test PASSED\")")**
+   Fix testbench message
+
+✅ **replace_in_file(path="rtl/fsm.v", old_text="localparam IDLE = 0, ACTIVE = 1", new_text="localparam IDLE = 0, ACTIVE = 1, DONE = 2")**
+   Add new FSM state
+
+✅ **replace_in_file(path="rtl/axi.v", old_text="output reg axi_wvalid", new_text="output wire axi_wvalid")**
+   Change signal type from reg to wire
+
+✅ **replace_in_file(path="Makefile", old_text="SIM = iverilog", new_text="SIM = verilator", count=1)**
+   Switch simulator in Makefile
+
+## Bad Examples
+
+❌ **replace_in_file(path="rtl/module.v", old_text="", new_text="new code")**
+   BAD: Empty old_text. Use write_file() to add new content
+
+❌ **replace_in_file(path="new_file.v", old_text="...", new_text="...")**
+   BAD: File doesn't exist. Use write_file() to create new files
+
+❌ **replace_in_file(path="rtl/counter.v", old_text="module counter", new_text="[insert new code here]")**
+   BAD: Don't use placeholders! Provide actual replacement text
+
+❌ **replace_in_file(path="rtl/module.v", old_text="entire file content", new_text="completely new content")**
+   BAD: Replacing entire file. Use write_file() for complete rewrites
+
+❌ **replace_in_file()**
+   ERROR: Missing required parameters (path, old_text, new_text)
+
+## When to Use
+
+- **Modify existing files** (bug fixes, enhancements, refactoring)
+- **Targeted changes** (one function, one parameter, one signal)
+- **Safe edits** with minimal risk of breaking working code
+- **Preserving context** - keep everything except what needs changing
+- **Refactoring** - rename variables, change types, update interfaces
+- **Configuration updates** - change parameters, defines, macros
+- **Adding features** - insert new states, ports, signals to existing modules
+
+## When NOT to Use
+
+- **Creating new files** → Use `write_file()` instead
+- **Massive refactoring** (changing 50%+ of file) → Consider write_file() or multiple replaces
+- **old_text doesn't exist in file** → Verify with `grep_file()` or `read_file()` first
+- **Appending to files** → Read file, concatenate content, then write_file()
+
+## Verilog-Specific Use Cases
+
+### Scenario 1: Add Port to Module
+
+**Goal:** Add a new port to an existing module.
+
+**Workflow:**
+```
+User asks: "Add an enable signal to the counter"
+
+Thought: Need to add port to module declaration
+Action: read_file(path="rtl/counter.v")
+Observation: [Shows module counter(input clk, input reset, output [7:0] count);]
+
+Thought: I'll add enable port after reset
+Action: replace_in_file(
+    path="rtl/counter.v",
+    old_text="input reset,",
+    new_text="input reset,\n    input enable,"
+)
+Observation: Successfully replaced in 'rtl/counter.v'
+
+Thought: Now add logic to use enable signal
+Action: replace_in_file(
+    path="rtl/counter.v",
+    old_text="if (reset)\n            count <= 0;\n        else\n            count <= count + 1;",
+    new_text="if (reset)\n            count <= 0;\n        else if (enable)\n            count <= count + 1;"
+)
+```
+
+**Fuzzy matching helps:** Even if your indentation is slightly off, IndentationFlexibleReplacer will find the match.
+
+### Scenario 2: Rename Signal Throughout Module
+
+**Goal:** Rename a signal across the entire file.
+
+**Workflow:**
+```
+User asks: "Rename 'valid' to 'data_valid' in the FIFO"
+
+Thought: Need to replace all occurrences of the signal name
+Action: replace_in_file(
+    path="rtl/fifo.v",
+    old_text="valid",
+    new_text="data_valid",
+    count=-1
+)
+Observation: Replaced 8 occurrences in 'rtl/fifo.v'
+
+Thought: Done! But let me verify no issues
+Action: run_command(command="iverilog -t null rtl/fifo.v")
+Observation: No errors
+```
+
+**Important:** Use `count=-1` to replace ALL occurrences.
+
+### Scenario 3: Change FSM State Encoding
+
+**Goal:** Change FSM from binary to one-hot encoding.
+
+**Workflow:**
+```
+User asks: "Convert FSM to one-hot encoding"
+
+Thought: First, read to understand current encoding
+Action: read_file(path="rtl/fsm.v")
+Observation: localparam [1:0] IDLE=0, ACTIVE=1, DONE=2;
+
+Thought: Change to one-hot (3-bit, each state gets 1 bit)
+Action: replace_in_file(
+    path="rtl/fsm.v",
+    old_text="localparam [1:0] IDLE=0, ACTIVE=1, DONE=2;",
+    new_text="localparam [2:0] IDLE=3'b001, ACTIVE=3'b010, DONE=3'b100;"
+)
+Observation: Successfully replaced
+
+Thought: Also need to change state register width
+Action: replace_in_file(
+    path="rtl/fsm.v",
+    old_text="reg [1:0] state;",
+    new_text="reg [2:0] state;"
+)
+```
+
+### Scenario 4: Fix Bug in Always Block
+
+**Goal:** Fix a bug where signal isn't reset properly.
+
+**Workflow:**
+```
+User: "The ready signal isn't reset. Fix it."
+
+Thought: Find the always block and add reset condition
+Action: replace_in_file(
+    path="rtl/module.v",
+    old_text="always @(posedge clk) begin\n        if (valid)\n            ready <= 1;",
+    new_text="always @(posedge clk) begin\n        if (reset)\n            ready <= 0;\n        else if (valid)\n            ready <= 1;"
+)
+Observation: Successfully replaced
+```
+
+**Safety:** Changing only the always block that needs fixing, not rewriting the entire file.
+
+### Scenario 5: Update Parameter with Build-Time Configuration
+
+**Goal:** Change parameter based on configuration.
+
+**Workflow:**
+```
+User: "Increase AXI data width from 32 to 64 bits"
+
+Thought: Need to update DATA_WIDTH parameter
+Action: replace_in_file(
+    path="rtl/axi_master.v",
+    old_text="parameter DATA_WIDTH = 32",
+    new_text="parameter DATA_WIDTH = 64",
+    count=1
+)
+Observation: Successfully replaced
+
+Thought: Also update related address width (64-bit needs 64-bit addresses)
+Action: replace_in_file(
+    path="rtl/axi_master.v",
+    old_text="parameter ADDR_WIDTH = 32",
+    new_text="parameter ADDR_WIDTH = 64",
+    count=1
+)
+```
+
+### Scenario 6: Add Clock Domain Crossing Synchronizer
+
+**Goal:** Fix CDC issue by adding synchronizer.
+
+**Workflow:**
+```
+User: "The status signal crosses clock domains without synchronizer. Fix it."
+
+Thought: Add 2-stage synchronizer
+Action: replace_in_file(
+    path="rtl/cdc.v",
+    old_text="reg status_sync;",
+    new_text="reg status_sync, status_sync_stage1;"
+)
+
+Action: replace_in_file(
+    path="rtl/cdc.v",
+    old_text="always @(posedge dst_clk) begin\n        status_sync <= status_src;",
+    new_text="always @(posedge dst_clk) begin\n        status_sync_stage1 <= status_src;\n        status_sync <= status_sync_stage1;"
+)
+```
+
+**Critical:** Two-stage synchronizer prevents metastability in CDC.
+
+## Error Recovery
+
+### 9 Fuzzy Matching Strategies (Auto-Retry)
+
+**If exact match fails**, the tool automatically tries these strategies:
+
+```
+Attempt 1: Exact match
+Attempt 2: LineTrimmedReplacer (ignore line whitespace)
+Attempt 3: BlockAnchorReplacer (use surrounding context)
+Attempt 4: WhitespaceNormalizedReplacer (normalize all spaces/tabs/newlines)
+Attempt 5: IndentationFlexibleReplacer (ignore indentation)
+Attempt 6: EscapeNormalizedReplacer (normalize \n, \t, etc.)
+Attempt 7: TrimmedBoundaryReplacer (trim block boundaries)
+Attempt 8: ContextAwareReplacer (wider context window)
+Attempt 9: RegexPatternReplacer (fallback regex)
+```
+
+**Most failures succeed by Attempt 2-5.**
+
+### Manual Recovery if All Strategies Fail
+
+- **"Error: old_text not found in file"**
+  1. Verify content: `grep_file(pattern="partial_text", path="file.v")` to find actual text
+  2. Read section: `read_lines(path="file.v", start_line=X, end_line=Y)` to see exact formatting
+  3. Copy exact text: Use EXACT spacing/indentation from read_lines output
+  4. Try broader match: Include more surrounding context in old_text
+  5. Last resort: `read_file()`, manually edit content, then `write_file()`
+
+- **"Error: old_text found multiple times (ambiguous)"**
+  1. Make old_text more specific: Include unique surrounding context
+  2. Use line range: `start_line=50, end_line=100` to narrow scope
+  3. Use count=1: Replace only first occurrence if that's what you want
+  4. Or use count=N: Replace only first N occurrences
+
+- **"Replacement breaks syntax"**
+  1. Compile immediately: `run_command(command="iverilog -t null file.v")` to check
+  2. If errors, undo: Use git or re-read original and write_file()
+  3. Fix syntax: Make another replace_in_file() call to fix the error
+  4. Prevention: Always include proper Verilog syntax in new_text (semicolons, begin/end matching)
+
+- **"Too many replacements (replaced 100+ occurrences)"**
+  1. This might be wrong! Verify: `grep_file(pattern="old_text", path="file.v")` to count
+  2. If unexpected, undo changes (git revert or restore from backup)
+  3. Be more specific: Add context to old_text to limit matches
+  4. Use count=1 or count=N: Limit number of replacements
+
+## Tool Precedence
+
+**ALWAYS prefer replace_in_file() over manual read-modify-write:**
+
+❌ **WRONG (Manual approach):**
+```
+Action: read_file(path="counter.v")
+[Manually edit content in your mind]
+Action: write_file(path="counter.v", content="edited content")
+```
+
+✅ **CORRECT (Targeted replace):**
+```
+Action: replace_in_file(path="counter.v", old_text="original", new_text="updated")
+```
+
+**Why replace_in_file is better:**
+1. **Safer** - Only changes what needs changing
+2. **Clearer** - Shows exactly what changed
+3. **Auditable** - Easy to review old vs new
+4. **Reversible** - Easy to undo if needed
+5. **Fuzzy** - Works even with formatting differences
+
+**Decision Tree:**
+
+```
+Need to modify file?
+├─ File doesn't exist? → write_file() ✅
+├─ Want to change specific text? → replace_in_file() ✅✅✅
+├─ Want complete rewrite (>50% changed)? → write_file() ⚠️
+├─ Unsure what to change? → read_file() first, then replace_in_file()
+└─ Adding brand new content? → read_file(), concatenate, write_file()
+```
+
+**Usage Patterns:**
+
+| Task | ❌ Don't Use | ✅ Do Use |
+|------|-------------|----------|
+| Fix bug | write_file (rewrites all) | replace_in_file ✅✅ |
+| Add port | write_file (risky) | replace_in_file ✅✅ |
+| Rename signal | write_file | replace_in_file ✅✅ |
+| Change parameter | write_file | replace_in_file ✅✅ |
+| Update comment | write_file | replace_in_file ✅✅ |
+| Create new file | replace_in_file (fails) | write_file ✅✅ |
+| Rewrite 80% | replace_in_file (tedious) | write_file ✅ |
+
+## Advanced: OpenCode Integration
+
+This tool is powered by **9 fuzzy matching strategies from OpenCode** (originally from Cline and Gemini CLI):
+
+```python
+# Strategies (from brian_coder/core/tools.py lines 457-575)
+
+1. LineTrimmedReplacer
+   - Ignores leading/trailing spaces on each line
+   - Example: "  code  " matches "code"
+
+2. BlockAnchorReplacer
+   - Uses unique start/end markers to locate blocks
+   - Example: Finds block even if middle content has different spacing
+
+3. WhitespaceNormalizedReplacer
+   - Normalizes all whitespace to single space
+   - Example: "a    b" matches "a b"
+
+4. IndentationFlexibleReplacer
+   - Ignores indentation differences
+   - Example: "  always @(posedge clk)" matches "always @(posedge clk)"
+
+5. EscapeNormalizedReplacer
+   - Converts literal \n, \t to actual newlines/tabs
+   - Example: "line1\nline2" matches actual newline
+
+6. TrimmedBoundaryReplacer
+   - Trims whitespace at block boundaries only
+   - Example: " code " matches "code"
+
+7. ContextAwareReplacer
+   - Uses surrounding lines for unique identification
+   - Example: Finds block by looking at 5 lines before/after
+
+8. RegexPatternReplacer
+   - Escapes regex special chars, then tries pattern match
+   - Example: Treats "signal[0]" as literal, not regex
+
+9. SmartIndentReplacer
+   - Preserves relative indentation when replacing
+   - Example: Maintains nested block structure
+```
+
+**These strategies make the tool very robust** - most replacements succeed even with minor formatting differences.
+
+## See Also
+
+- **write_file** - Create new files or completely rewrite existing ones
+- **read_file** - Read file before deciding what to replace
+- **grep_file** - Find exact text before replacing (verify it exists)
+- **read_lines** - Read specific sections to see exact formatting
+- **run_command** - Compile after changes (`iverilog -t null file.v`) to verify syntax

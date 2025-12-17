@@ -1,0 +1,222 @@
+# Tool: read_file
+
+Read the complete content of a file from disk. Best for files under 1000 lines.
+
+## Signature
+read_file(path="path/to/file")
+
+## Description
+
+Reads and returns the entire content of a file as a single string. This tool is ideal for:
+
+- **Understanding module structure** - Seeing all ports, parameters, signals, and FSM states in one view
+- **Analyzing testbench logic** - Understanding stimulus generation and checking mechanisms
+- **Reading specification documents** - Protocol specs, design requirements, interface definitions
+- **Quick syntax verification** - Checking for obvious errors before compilation
+
+For Verilog/SystemVerilog projects, this is the primary tool for inspecting RTL modules, testbenches, and include files. Use this when you need to understand the complete implementation or verify a design's structure.
+
+**When working with large files** (>1000 lines), prefer `read_lines()` with specific line ranges to avoid overwhelming context.
+
+## Good Examples
+
+✅ **read_file(path="rtl/counter.v")**
+   Read a simple Verilog counter module to understand its implementation
+
+✅ **read_file(path="testbench/tb_axi_bridge.sv")**
+   Read SystemVerilog testbench to understand test scenarios
+
+✅ **read_file(path="docs/pcie_protocol.md")**
+   Read protocol specification document
+
+✅ **read_file(path="rtl/async_fifo.v")**
+   Read async FIFO to understand dual-clock domain crossing implementation
+
+✅ **read_file(path="include/axi_defines.vh")**
+   Read Verilog header file with parameter definitions
+
+✅ **read_file(path=".gitignore")**
+   Read configuration file (small text files are perfect for this tool)
+
+## Bad Examples
+
+❌ **read_file()**
+   ERROR: Missing required 'path' parameter
+
+❌ **read_file(path="*.v")**
+   ERROR: Wildcards not supported. Use `find_files(pattern="*.v")` first, then read specific files
+
+❌ **read_file(path="synthesis/netlist.v")**
+   BAD: Netlist with 10,000+ lines. Use `read_lines()` or `grep_file()` for specific sections
+
+❌ **read_file(path="rtl/module.v")** when you only need to find a specific signal
+   BAD: Use `grep_file(pattern="signal_name", path="rtl/module.v")` for targeted search
+
+❌ **read_file(path="sim/waveform.vcd")**
+   BAD: Binary/large data files. Use appropriate waveform viewer tools instead
+
+## When to Use
+
+- File is under 1000 lines
+- Need to see complete module structure (ports, parameters, always blocks, FSM states)
+- Analyzing entire testbench flow (setup, stimulus, assertions, cleanup)
+- Reading specification or documentation files
+- Understanding small to medium-sized modules before modification
+- Verifying file exists and has expected content
+- Learning from reference implementations
+
+## When NOT to Use
+
+- **File > 1000 lines** → Use `read_lines(path="...", start_line=X, end_line=Y)` instead
+- **Only need specific pattern** → Use `grep_file(pattern="...", path="...")` for targeted search
+- **Search across multiple files** → Use `rag_search(query="concept", categories="verilog")` for semantic understanding
+- **Find files first** → Use `find_files(pattern="*.v")` to locate files, then read them
+- **Binary files** → Not supported (waveforms, compiled binaries, etc.)
+
+## Verilog-Specific Use Cases
+
+### Scenario 1: Module Analysis Before Modification
+
+**Workflow:**
+```
+User asks: "Add a synchronous reset to the counter module"
+
+Thought: Before modifying, I need to understand the current counter implementation
+Action: read_file(path="rtl/counter.v")
+Observation: [Shows complete module with ports, always block, async reset]
+
+Thought: I see it has async reset. I'll convert it to sync reset
+Action: replace_in_file(path="rtl/counter.v", old_text="always @(posedge clk or negedge reset_n)", new_text="always @(posedge clk)")
+```
+
+**Why read_file is essential here:** You need to see the full module structure (ports, always blocks, sensitivity lists) to make safe modifications.
+
+### Scenario 2: Testbench Understanding
+
+**Workflow:**
+```
+User asks: "The FIFO test is failing. Why?"
+
+Thought: I need to understand what the testbench is testing
+Action: read_file(path="testbench/tb_fifo.sv")
+Observation: [Shows testbench with write/read tasks, overflow checks, assertions]
+
+Thought: I see the test checks overflow condition. Let me check the FIFO itself
+Action: read_file(path="rtl/fifo.v")
+Observation: [Shows FIFO implementation]
+
+[Now can compare expected vs actual behavior]
+```
+
+**Why read_file:** Testbenches contain complete test flows (setup, stimulus, checking) that need holistic understanding.
+
+### Scenario 3: Protocol Specification Lookup
+
+**Workflow:**
+```
+User asks: "What's the TLP header format for PCIe memory writes?"
+
+Thought: This is a specification question. Let me check the protocol doc
+Action: read_file(path="docs/pcie_6.0_spec.md")
+Observation: [Shows spec with TLP format tables]
+
+OR (if spec is indexed):
+
+Thought: Use RAG for faster semantic search
+Action: rag_search(query="TLP header format memory write", categories="spec", limit=3)
+Observation: [RAG returns relevant spec sections with scores]
+```
+
+**When to use read_file vs rag_search:**
+- Use **read_file** if you know the exact spec file and want complete context
+- Use **rag_search** if you want semantically relevant sections across multiple docs
+
+### Scenario 4: Include File Parameters
+
+**Workflow:**
+```
+User asks: "What's the default FIFO depth?"
+
+Thought: Parameters are likely defined in a header file
+Action: find_files(pattern="*_defines.vh", directory="include")
+Observation: Found: include/fifo_defines.vh
+
+Thought: Now read the definitions
+Action: read_file(path="include/fifo_defines.vh")
+Observation: `define FIFO_DEPTH 16
+```
+
+### Scenario 5: FSM State Analysis
+
+**Workflow:**
+```
+User asks: "How many states does the AXI master FSM have?"
+
+Thought: Read the module to see state definitions
+Action: read_file(path="rtl/axi_master.v")
+Observation: [Shows FSM with states: IDLE, ADDR, DATA, RESP]
+
+Thought: I see 4 states total
+[Answer user]
+```
+
+**Why read_file:** FSM states are typically defined at the top of modules with localparams or enums. Reading the full file shows all states and transitions clearly.
+
+## Error Recovery
+
+- **"Error: File 'rtl/counter.v' does not exist"**
+  1. Check path: `list_dir(path="rtl")` to see actual files
+  2. Verify extension: Maybe it's `counter.sv` not `counter.v`
+  3. Find file: `find_files(pattern="counter*", directory=".")` to locate it
+  4. Check cwd: Run `run_command(command="pwd")` to verify working directory
+
+- **"File too large (10,000+ lines)"**
+  1. Use `read_lines(path="file.v", start_line=1, end_line=100)` for specific sections
+  2. Or use `grep_file(pattern="module_name", path="file.v")` to find specific declarations
+  3. Or use `rag_search(query="specific concept", categories="verilog")` for semantic search
+
+- **"Cannot decode file (binary data detected)"**
+  1. Check if it's a waveform file (.vcd, .fsdb) - these should be viewed with waveform tools
+  2. Check if it's compiled binary (.o, .so, .exe) - source code not available
+  3. For simulation outputs, check .log files instead
+
+- **"File is empty / No content returned"**
+  1. Verify file exists: `list_dir(path="dirname")`
+  2. Check if file was just created: May need to wait for write to complete
+  3. Check permissions: Run `run_command(command="ls -la path/to/file")` to see file info
+
+## Tool Precedence
+
+**ALWAYS prefer:**
+- `read_file()` over `run_command(command="cat file.v")` - Cleaner, better formatting
+- `read_file()` for small files (<1000 lines)
+- `read_file()` when you need complete module understanding
+
+**NEVER use `read_file()` when:**
+- Searching for specific pattern across multiple files → Use `rag_search()` or `grep_file()`
+- File is very large (>1000 lines) → Use `read_lines()` with ranges
+- Only need to verify file exists → Use `list_dir()` or `find_files()`
+
+**Decision Tree:**
+
+```
+Need to access file content?
+├─ Know exact file path?
+│  ├─ File < 1000 lines? → read_file() ✅
+│  ├─ File > 1000 lines? → read_lines(start_line=X, end_line=Y)
+│  └─ Only need pattern? → grep_file(pattern="...", path="...")
+│
+├─ Don't know exact path?
+│  ├─ Know filename pattern? → find_files(pattern="*.v") then read_file()
+│  └─ Know concept only? → rag_search(query="concept", categories="verilog")
+│
+└─ Multiple files? → rag_search() for semantic understanding
+```
+
+## See Also
+
+- **read_lines** - Read specific line ranges from large files (1000+ lines)
+- **grep_file** - Search for specific patterns within a file with context lines
+- **find_files** - Locate files by pattern before reading them
+- **rag_search** - Semantic search across entire codebase (better for finding concepts)
+- **analyze_verilog_module** - Parse and analyze Verilog structure (ports, signals, FSMs)

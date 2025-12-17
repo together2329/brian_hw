@@ -78,6 +78,10 @@ DEBUG_RAG = os.getenv("DEBUG_RAG", "false").lower() in ("true", "1", "yes")
 # Full Prompt Debug - show complete input messages to LLM
 FULL_PROMPT_DEBUG = os.getenv("FULL_PROMPT_DEBUG", "false").lower() in ("true", "1", "yes")
 
+# Tool Description System (OpenCode Integration)
+# When enabled, loads detailed tool descriptions from .txt files
+ENABLE_TOOL_DESCRIPTIONS = os.getenv("ENABLE_TOOL_DESCRIPTIONS", "true").lower() in ("true", "1", "yes")
+
 # Tool result preview settings
 TOOL_RESULT_PREVIEW_LINES = int(os.getenv("TOOL_RESULT_PREVIEW_LINES", "3"))  # For read_file/read_lines
 TOOL_RESULT_PREVIEW_CHARS = int(os.getenv("TOOL_RESULT_PREVIEW_CHARS", "300"))  # For other tools
@@ -911,3 +915,131 @@ Thought: 이제 답변할 수 있다. axi_awready는 L245에서 설정되며, �
 - 주변 컨텍스트를 보고 전체 로직을 이해해라
 - 필요하면 여러 파일을 읽고 비교해라
 """
+
+# ============================================================
+# Tool Description System (OpenCode Integration)
+# ============================================================
+
+# Backup of original SYSTEM_PROMPT for legacy mode
+LEGACY_SYSTEM_PROMPT = SYSTEM_PROMPT
+
+
+def build_base_system_prompt(allowed_tools: set = None) -> str:
+    """
+    Build base system prompt with tool descriptions (OpenCode-style)
+
+    Args:
+        allowed_tools: Set of allowed tool names (None = all tools)
+
+    Returns:
+        System prompt string with tool information
+    """
+    if not ENABLE_TOOL_DESCRIPTIONS:
+        # Legacy mode: return hardcoded SYSTEM_PROMPT
+        return LEGACY_SYSTEM_PROMPT
+
+    try:
+        from core.tool_descriptions import get_loader, format_tool_for_prompt
+        from core import tools
+    except ImportError:
+        # Fallback to legacy if tool_descriptions not available
+        return LEGACY_SYSTEM_PROMPT
+
+    loader = get_loader()
+
+    # Determine tool list
+    if allowed_tools is None:
+        tool_list = list(tools.AVAILABLE_TOOLS.keys())
+    else:
+        tool_list = [t for t in tools.AVAILABLE_TOOLS if t in allowed_tools]
+
+    # Tool categories
+    categories = {
+        "Basic File Tools": ["read_file", "write_file", "run_command", "list_dir"],
+        "File Search & Navigation": ["grep_file", "read_lines", "find_files"],
+        "File Editing": ["replace_in_file", "replace_lines"],
+        "Git Tools": ["git_status", "git_diff"],
+        "RAG Tools": ["rag_search", "rag_index", "rag_status", "rag_explore", "rag_clear"],
+        "Verilog Analysis": [
+            "analyze_verilog_module", "find_signal_usage", "find_module_definition",
+            "extract_module_hierarchy", "generate_module_testbench", "find_potential_issues",
+            "analyze_timing_paths", "generate_module_docs", "suggest_optimizations"
+        ],
+        "Sub-Agent Tools": ["spawn_explore", "spawn_plan"]
+    }
+
+    # Build prompt
+    prompt_parts = [
+        "You are an intelligent coding agent named Brian Coder.",
+        "You can read files, write code, and run terminal commands to help the user.",
+        "",
+        "TOOLS:",
+        "You have access to the following tools:",
+        ""
+    ]
+
+    # Add tools by category
+    for category, tool_names in categories.items():
+        available = [t for t in tool_names if t in tool_list]
+
+        if not available:
+            continue
+
+        prompt_parts.append(f"\n### {category}\n")
+
+        for tool in available:
+            # Try to load detailed description
+            desc_tools = loader.get_all_tool_names()
+
+            if tool in desc_tools:
+                # Use detailed description from .txt file
+                formatted = format_tool_for_prompt(tool, include_examples=True)
+                prompt_parts.append(formatted)
+            else:
+                # Fallback: use simple signature from legacy prompt
+                # Extract from LEGACY_SYSTEM_PROMPT if possible
+                prompt_parts.append(f"- {tool}(...)")
+
+        prompt_parts.append("")
+
+    # Add general guidelines from LEGACY_SYSTEM_PROMPT
+    # (Keep the workflow examples, format instructions, etc.)
+    prompt_parts.extend([
+        "",
+        "RECOMMENDED WORKFLOW:",
+        "1. rag_index(\".\") - Index project once",
+        "2. rag_search(\"signal or concept\", categories=\"all\") - Find relevant code or spec",
+        "3. analyze_verilog_module() or read_lines() - Deep dive",
+        "",
+        "CRITICAL - Verilog Analysis Example:",
+        "User: axi_awready 신호가 어디서 설정되는지 찾아줘",
+        "Thought: Verilog 신호를 찾는 작업이다. grep보다 rag_search가 훨씬 효율적이다.",
+        "Action: rag_search(query=\"axi_awready\", categories=\"verilog\", limit=5)",
+        "Observation: Found 5 results... pcie_msg_receiver.v (L245-245) Score: 0.85",
+        "",
+        "FORMAT:",
+        "To use a tool, you must use the following format exactly:",
+        "",
+        "Thought: [Your reasoning about what to do next]",
+        "Action: [ToolName]([Arguments])",
+        "",
+        "The user will then respond with:",
+        "Observation: [Output of the tool]",
+        "",
+        "You can then continue with more Thought/Action/Observation steps.",
+        "When you have finished the task or need to ask the user a question, respond normally (without Action:).",
+        "",
+        "CRITICAL - DO NOT GENERATE OBSERVATIONS:",
+        "You must NEVER generate lines starting with \"Observation:\".",
+        "The system will provide the Observation to you after you execute an Action.",
+        "If you generate \"Observation:\", the system will think you are done and stop.",
+        "ALWAYS wait for the system to provide the Observation.",
+        ""
+    ])
+
+    return "\n".join(prompt_parts)
+
+
+# Update SYSTEM_PROMPT to use new tool description system
+# This will be overridden by build_system_prompt() in main.py when needed
+SYSTEM_PROMPT = build_base_system_prompt()

@@ -1,0 +1,312 @@
+# Tool: analyze_verilog_module
+
+Parse and analyze Verilog/SystemVerilog modules to extract structure, ports, signals, FSMs, and potential issues.
+
+## Signature
+analyze_verilog_module(path="path/to/module.v", deep=False)
+
+## Description
+
+**A Verilog-specific analysis tool** that parses RTL files and extracts structured information about:
+
+- **Module declaration** - Name, ports (input/output/inout), port widths, parameters
+- **Internal signals** - Wires, regs, their widths and usage
+- **Finite State Machines (FSMs)** - State definitions, transitions, current state encoding
+- **Always blocks** - Sensitivity lists, blocking vs non-blocking assignments
+- **Instantiations** - Submodules instantiated within this module
+- **Potential issues** - Latches, combinational loops, undriven signals
+
+**Two modes:**
+- `deep=False` (default): Quick analysis - ports, parameters, top-level signals
+- `deep=True`: Comprehensive analysis - FSMs, always blocks, instantiations, issue detection
+
+Use this tool when you need to **understand module structure programmatically** rather than reading the entire file manually. It's especially useful for:
+- Complex modules with many ports/signals
+- FSM-heavy designs
+- Understanding unfamiliar code quickly
+- Pre-modification analysis
+- Automated documentation generation
+
+## Good Examples
+
+✅ **analyze_verilog_module(path="rtl/axi_bridge.v", deep=False)**
+   Quick analysis: See ports and parameters of AXI bridge
+
+✅ **analyze_verilog_module(path="rtl/state_machine.v", deep=True)**
+   Deep analysis: Extract FSM states, transitions, potential issues
+
+✅ **analyze_verilog_module(path="rtl/async_fifo.v", deep=True)**
+   Understand FIFO structure: pointers, flags, clock domains
+
+✅ **analyze_verilog_module(path="testbench/tb_module.sv", deep=False)**
+   Analyze testbench ports (works with SystemVerilog too)
+
+✅ **analyze_verilog_module(path="rtl/top.v", deep=True)**
+   Analyze top-level module: See all instantiations and hierarchy
+
+## Bad Examples
+
+❌ **analyze_verilog_module(path="docs/spec.md", deep=True)**
+   ERROR: Not a Verilog file. Only works with .v/.sv files
+
+❌ **analyze_verilog_module(path="rtl/simple.v", deep=True)** when file is just 20 lines
+   OVERKILL: Use `read_file()` for simple modules. Analysis is for complex ones.
+
+❌ **analyze_verilog_module()**
+   ERROR: Missing required 'path' parameter
+
+❌ **analyze_verilog_module(path="*.v", deep=True)**
+   ERROR: Wildcards not supported. Analyze one file at a time.
+
+❌ **analyze_verilog_module(path="synthesis/netlist.v", deep=True)**
+   BAD: Netlist files are auto-generated and not human-readable. Analyze RTL source instead.
+
+## When to Use
+
+- **Complex modules** with 10+ ports or 5+ always blocks
+- **FSM analysis** - Need to understand states and transitions quickly
+- **Pre-modification** - Understand module before making changes
+- **Debugging** - Find potential issues (latches, loops, undriven signals)
+- **Documentation** - Extract port lists and signal descriptions
+- **Learning unfamiliar code** - Structured overview before deep dive
+- **Hierarchy analysis** - See which submodules are instantiated
+
+## When NOT to Use
+
+- **Simple modules (<50 lines)** → Use `read_file()` instead (faster and clearer)
+- **Just need one signal** → Use `grep_file()` or `rag_search()`
+- **Spec documents** → Not Verilog, use `read_file()` or `rag_search()`
+- **Netlist files** → Auto-generated, analyze source RTL instead
+- **Multiple files at once** → Run tool multiple times or use `rag_search()` for concepts
+
+## Verilog-Specific Use Cases
+
+### Scenario 1: FSM Analysis
+
+**Goal:** Understand state machine structure before modification.
+
+**Workflow:**
+```
+User asks: "Add a new TIMEOUT state to the AXI master FSM"
+
+Thought: Before adding state, I need to understand current FSM structure
+Action: analyze_verilog_module(path="rtl/axi_master.v", deep=True)
+Observation:
+  Module: axi_master
+  Ports: 15 (clk, reset, axi_*, ...)
+
+  FSM Detected: "state"
+    States: IDLE, ADDR, DATA, RESP (4 states)
+    Current encoding: Binary (2-bit)
+    Transitions:
+      IDLE -> ADDR: when start signal
+      ADDR -> DATA: when axi_awready
+      DATA -> RESP: when axi_wready && wlast
+      RESP -> IDLE: when axi_bvalid
+
+  Potential Issues: None
+
+Thought: FSM uses binary encoding. I'll add TIMEOUT as 5th state (need 3 bits)
+Action: replace_in_file(path="rtl/axi_master.v", old_text="localparam [1:0] IDLE=0, ADDR=1, DATA=2, RESP=3;", new_text="localparam [2:0] IDLE=0, ADDR=1, DATA=2, RESP=3, TIMEOUT=4;")
+```
+
+**Why use deep=True:** FSM extraction requires parsing always blocks and state variable assignments, which only happens in deep mode.
+
+### Scenario 2: Port Interface Understanding
+
+**Goal:** Understand module interface before connecting it.
+
+**Workflow:**
+```
+User asks: "How do I connect the async_fifo module?"
+
+Thought: Need to see the port list
+Action: analyze_verilog_module(path="rtl/async_fifo.v", deep=False)
+Observation:
+  Module: async_fifo
+  Parameters:
+    DATA_WIDTH = 16 (default)
+    DEPTH = 8 (default)
+
+  Ports (9 total):
+    Inputs:
+      wr_clk (1-bit)
+      wr_rst_n (1-bit)
+      wr_en (1-bit)
+      wr_data [DATA_WIDTH-1:0]
+      rd_clk (1-bit)
+      rd_rst_n (1-bit)
+      rd_en (1-bit)
+    Outputs:
+      rd_data [DATA_WIDTH-1:0]
+      full (1-bit)
+      empty (1-bit)
+
+Thought: FIFO has dual clock domains (wr_clk, rd_clk). Need separate resets too.
+[Now can instantiate correctly with both clocks]
+```
+
+**Why use deep=False:** Port info doesn't require deep analysis. Faster result.
+
+### Scenario 3: Issue Detection
+
+**Goal:** Find potential bugs before simulation.
+
+**Workflow:**
+```
+User: "The module is failing synthesis. Find issues."
+
+Thought: Use deep analysis to check for common errors
+Action: analyze_verilog_module(path="rtl/problematic.v", deep=True)
+Observation:
+  Module: problematic
+  Ports: ...
+
+  Potential Issues (3):
+    [WARNING] Latch inferred at line 45: "always @(*) ... data_out not assigned in all paths"
+    [WARNING] Multiple drivers for signal 'valid' (lines 67, 89)
+    [ERROR] Combinational loop detected: sig_a -> sig_b -> sig_c -> sig_a
+
+Thought: Found the issues! Fix the latch first
+Action: replace_in_file(path="rtl/problematic.v", old_text="always @(*) begin\n    if (sel)\n        data_out = din;", new_text="always @(*) begin\n    if (sel)\n        data_out = din;\n    else\n        data_out = 0;")
+```
+
+**Critical:** deep=True is essential for issue detection.
+
+### Scenario 4: Module Hierarchy Extraction
+
+**Goal:** Understand which submodules are instantiated.
+
+**Workflow:**
+```
+User: "What modules does the top-level instantiate?"
+
+Thought: Analyze top module to see instantiations
+Action: analyze_verilog_module(path="rtl/top.v", deep=True)
+Observation:
+  Module: top
+  Ports: ...
+
+  Instantiations (5):
+    1. axi_master (u_axi_master) at line 45
+    2. async_fifo (u_wr_fifo) at line 78
+    3. async_fifo (u_rd_fifo) at line 95
+    4. state_machine (u_ctrl) at line 112
+    5. crc_checker (u_crc) at line 145
+
+Thought: Top instantiates 2 FIFOs and an AXI master. Let me check their connections...
+```
+
+**Pattern:** Use deep=True to see instantiations with line numbers for easy navigation.
+
+### Scenario 5: Clock Domain Analysis
+
+**Goal:** Find all clock signals and their domains.
+
+**Workflow:**
+```
+User: "How many clock domains does this module have?"
+
+Thought: Analyze to find clock signals
+Action: analyze_verilog_module(path="rtl/multi_clock.v", deep=True)
+Observation:
+  Module: multi_clock
+
+  Clock signals detected (3):
+    1. sys_clk - used in always block at line 45, 67
+    2. axi_clk - used in always block at line 123
+    3. pcie_clk - used in always block at line 178
+
+  Clock Domain Crossings (2):
+    1. Signal 'data_valid' crosses from sys_clk to axi_clk (line 89)
+    2. Signal 'status' crosses from pcie_clk to sys_clk (line 145)
+       [WARNING] No synchronizer detected!
+
+Thought: Found CDC without synchronizer! This is dangerous.
+```
+
+**Why powerful:** Detects clock domain crossings and missing synchronizers automatically.
+
+## Error Recovery
+
+- **"Error: File 'module.v' not found"**
+  1. Verify path: `list_dir(path="rtl")` to see available files
+  2. Check extension: Maybe it's .sv not .v
+  3. Find it: `find_files(pattern="module*", directory=".")
+
+`
+  4. Then analyze with correct path
+
+- **"Error: Syntax error in Verilog file"**
+  1. Read file to see issue: `read_file(path="module.v")`
+  2. Fix syntax errors first (missing semicolons, mismatched begin/end)
+  3. Compile to verify: `run_command(command="iverilog -t null module.v")`
+  4. Then re-analyze
+
+- **"Warning: No FSM detected"**
+  1. Check if module actually has FSM (not all do)
+  2. FSM might use non-standard naming (not 'state' or 'current_state')
+  3. Manual check: `grep_file(pattern="always @", path="module.v")` to see always blocks
+  4. If FSM exists but not detected, read file manually
+
+- **"Analysis timeout / module too large"**
+  1. Use deep=False for quick analysis
+  2. For huge files (>5000 lines), use `read_lines()` for specific sections
+  3. Or use `rag_search()` to find specific concepts
+  4. Consider if the file should be refactored (modules shouldn't be that large)
+
+- **"No issues detected but synthesis still fails"**
+  1. This tool detects common RTL issues, not all synthesis constraints
+  2. Check synthesis log: `run_command(command="cat synthesis.log")`
+  3. Some issues are tool-specific (timing, resource usage)
+  4. Use `analyze_timing_paths()` for timing analysis
+
+## Tool Precedence
+
+**Use analyze_verilog_module() when:**
+- Need **structured data** (port list, FSM states, instantiations)
+- Want **automated issue detection**
+- Module is **complex** (100+ lines, multiple always blocks)
+- Need to understand **hierarchy** (instantiations)
+
+**Use read_file() when:**
+- Module is **simple** (<50 lines)
+- Need to see **actual code**, not just structure
+- Want to understand **algorithm/logic flow**
+- Looking for **specific implementation details**
+
+**Use rag_search() when:**
+- Looking for **concept** across multiple files
+- Don't know which file contains what you need
+- Want **semantic understanding**, not structural
+
+**Decision Tree:**
+
+```
+Need to understand Verilog module?
+├─ Module < 50 lines? → read_file() ✅
+├─ Module > 50 lines, complex FSM? → analyze_verilog_module(deep=True) ✅✅
+├─ Just need ports? → analyze_verilog_module(deep=False) ✅
+├─ Looking for specific signal? → grep_file() or rag_search()
+└─ Multiple files, concept-based? → rag_search() ✅
+```
+
+**Example Comparison:**
+
+| Task | read_file | analyze_verilog_module | rag_search |
+|------|-----------|----------------------|------------|
+| See port list | Manual extraction | Automatic ✅✅ | Not ideal |
+| Find FSM states | Manual search | Automatic ✅✅ | Possible |
+| Understand algorithm | Clear view ✅✅ | Not ideal | Concept-based |
+| Detect latches | Difficult | Automatic ✅✅ | Not possible |
+| See exact code | Perfect ✅✅ | Shows line numbers | Shows snippets |
+
+## See Also
+
+- **read_file** - Read complete module source (better for simple modules)
+- **find_signal_usage** - Find all usages of a specific signal across project
+- **find_module_definition** - Locate module definition by name
+- **extract_module_hierarchy** - Build complete hierarchy tree from top module
+- **find_potential_issues** - Dedicated tool for finding common Verilog bugs
+- **analyze_timing_paths** - Analyze critical timing paths (for synthesis)
+- **rag_search** - Semantic search for concepts (e.g., "FSM implementations")

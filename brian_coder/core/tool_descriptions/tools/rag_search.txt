@@ -1,0 +1,338 @@
+# Tool: rag_search
+
+Semantic search across indexed Verilog, testbench, and specification documents using RAG (Retrieval-Augmented Generation).
+
+## Signature
+rag_search(query="search query", categories="all", limit=5, depth=2, follow_references=False)
+
+## Description
+
+**RAG Search is Brian Coder's most powerful tool** for understanding codebases. Unlike simple pattern matching (`grep_file`), RAG search understands **semantic meaning** and returns **ranked results** with similarity scores.
+
+This tool uses vector embeddings to find code and documentation that is **conceptually similar** to your query, even if the exact words don't match. It's especially powerful for:
+
+- **Signal logic tracing** - "where is axi_awready assigned" finds assignments even if phrased differently
+- **Protocol understanding** - "PCIe TLP header format" finds relevant spec sections
+- **Acronym definitions** - "What does FLR stand for" finds the definition, not just occurrences
+- **Design pattern search** - "FIFO overflow handling" finds relevant implementations across the codebase
+- **Cross-module dependencies** - Understands relationships between modules
+
+**Categories:**
+- `"verilog"` - RTL modules (.v, .sv files)
+- `"testbench"` - Testbench files
+- `"spec"` - Specification documents (.md, .txt, protocol docs)
+- `"all"` - Search everything (default)
+
+**Key Parameters:**
+- `limit` - Number of results (default: 5, max recommended: 10)
+- `depth` - Graph traversal depth for related code (1-5, default: 2)
+- `follow_references` - Follow cross-references to find related sections (default: False)
+
+## Good Examples
+
+✅ **rag_search(query="axi_awready assignment logic", categories="verilog", limit=5)**
+   Find where axi_awready signal is assigned, ranked by relevance
+
+✅ **rag_search(query="PCIe TLP header format", categories="spec", limit=3)**
+   Find protocol specification sections about TLP headers
+
+✅ **rag_search(query="FLR stands for", categories="spec", limit=3)**
+   Find definition of "FLR" acronym (Function Level Reset)
+
+✅ **rag_search(query="FIFO overflow handling", categories="verilog,testbench", limit=5)**
+   Find FIFO overflow logic in both RTL and tests
+
+✅ **rag_search(query="state machine transitions", categories="verilog", limit=7)**
+   Find FSM implementations with state transitions
+
+✅ **rag_search(query="AXI burst types INCR WRAP", categories="all", limit=5)**
+   Find all references to AXI burst types across code and docs
+
+✅ **rag_search(query="clock domain crossing synchronizer", categories="verilog", limit=5, depth=3)**
+   Find CDC implementations with deeper graph traversal
+
+## Bad Examples
+
+❌ **rag_search(query="axi_awready", categories="verilog")**
+   BAD: Too generic. Better: "axi_awready assignment logic" or "axi_awready handshake"
+
+❌ **rag_search(query=".*awready.*", categories="verilog")**
+   BAD: Don't use regex patterns. RAG is semantic, not pattern-based. Use grep_file() for regex.
+
+❌ **rag_search(query="module counter", categories="verilog")**
+   BAD: If you know the exact module name, use find_module_definition() instead
+
+❌ **rag_search(query="read line 45 from file.v", categories="verilog")**
+   BAD: RAG is for semantic search, not line-specific reads. Use read_lines() instead
+
+❌ **rag_search(query="", categories="all")**
+   BAD: Empty query. Be specific about what you're looking for
+
+❌ **rag_search(query="all verilog files", categories="verilog")**
+   BAD: Too broad. Use find_files(pattern="*.v") to list files
+
+## When to Use
+
+- **Finding signal assignments** - "where is signal X set/cleared"
+- **Understanding protocols** - "how does protocol Y work"
+- **Acronym definitions** - "what does abbreviation Z mean"
+- **Design pattern discovery** - "how are FIFOs implemented here"
+- **Cross-module relationships** - "what modules use interface X"
+- **Concept exploration** - "error handling in AXI transactions"
+- **Spec lookup** - "PCIe configuration space layout"
+- **Learning codebase** - "how does clock domain crossing work here"
+
+## When NOT to Use
+
+- **Exact pattern matching** → Use `grep_file(pattern="regex", path="...")` for regex searches
+- **Known file path** → Use `read_file(path="exact/path.v")` to read specific files
+- **Known module name** → Use `find_module_definition(module_name="...")` for exact matches
+- **RAG index not built** → Run `rag_index(path=".")` first
+- **Simple file listing** → Use `find_files(pattern="*.v")` for file discovery
+
+## Verilog-Specific Use Cases
+
+### Pattern 1: Signal Logic Search
+
+**Goal:** Find where and how a signal is assigned.
+
+**Query Pattern:** `"<signal_name> assignment logic"` or `"<signal_name> set to"`
+
+**Example:**
+```
+User asks: "Where is axi_wready assigned?"
+
+Thought: This is a signal assignment question. Use RAG with semantic query
+Action: rag_search(query="axi_wready assignment logic", categories="verilog", limit=5)
+Observation:
+  Found 5 results:
+  1. pcie_axi_to_sram.v (L156-158) Score: 0.91
+     "axi_wready <= (state == W_DATA && sram_wen);"
+  2. axi_bridge.v (L234-236) Score: 0.85
+     "assign axi_wready = write_buffer_ready;"
+  ...
+
+Thought: Found it! The signal is assigned in pcie_axi_to_sram.v at line 156
+[Answer user with exact file and line number]
+```
+
+**Why this works:** RAG understands "assignment logic" means finding where the signal appears on the left side of `<=` or `=`.
+
+### Pattern 2: Protocol Specification Lookup
+
+**Goal:** Understand protocol behavior, formats, or requirements.
+
+**Query Pattern:** `"<protocol> <feature> specification"` or `"<protocol> <format> definition"`
+
+**Example:**
+```
+User asks: "What's the format of a PCIe memory write TLP?"
+
+Thought: This is a protocol specification question about TLP format
+Action: rag_search(query="PCIe memory write TLP format", categories="spec", limit=3)
+Observation:
+  Found 3 results:
+  1. pcie_6.0_spec.md (Section: TLP Format) Score: 0.94
+     "Memory Write TLP: Format[2:0]=010, Type[4:0]=00000"
+  2. pcie_6.0_spec.md (Section: Memory Transactions) Score: 0.88
+  ...
+
+Thought: The spec shows Format=010, Type=00000 for memory writes
+[Provide detailed answer from spec]
+```
+
+**Why use categories="spec":** Limits search to documentation, avoiding false matches from code comments.
+
+### Pattern 3: Acronym Definition
+
+**Goal:** Find what an acronym stands for.
+
+**Query Pattern:** `"<ACRONYM> stands for"` or `"<ACRONYM> definition"`
+
+**Example:**
+```
+User asks: "What does OHC mean in PCIe?"
+
+Thought: Looking for acronym definition. Check spec first
+Action: rag_search(query="OHC stands for", categories="spec", limit=3)
+Observation:
+  Found 3 results:
+  1. pcie_terminology.md (L45) Score: 0.96
+     "OHC (Orthogonal Header Content) indicates the presence of..."
+  2. pcie_6.0_spec.md (Section: TLP) Score: 0.82
+     "The OHC bit in the TLP header..."
+
+Thought: OHC stands for "Orthogonal Header Content"
+[Answer with full expansion and context]
+```
+
+**Critical for acronyms:** RAG prioritizes chunks with explicit definitions (phrases like "stands for", "means", "is defined as").
+
+### Pattern 4: Design Pattern Discovery
+
+**Goal:** Find how a specific pattern/technique is implemented.
+
+**Query Pattern:** `"<pattern> implementation"` or `"how to <action>"`
+
+**Example:**
+```
+User asks: "How does this project handle asynchronous FIFO?"
+
+Thought: Looking for async FIFO design patterns
+Action: rag_search(query="asynchronous FIFO implementation dual clock", categories="verilog", limit=5)
+Observation:
+  Found 5 results:
+  1. async_fifo.v (L10-45) Score: 0.93
+     "Uses gray code pointers for CDC safety..."
+  2. fifo_gray_encoder.v (L5-20) Score: 0.87
+  ...
+
+Thought: Found async_fifo.v uses gray code for clock domain crossing
+Action: read_file(path="async_fifo.v")
+[Now analyze full implementation]
+```
+
+### Pattern 5: Error/Edge Case Handling
+
+**Query Pattern:** `"<condition> error handling"` or `"<edge_case> check"`
+
+**Example:**
+```
+User asks: "How does the AXI bridge handle back-pressure?"
+
+Thought: This is about error/edge case handling
+Action: rag_search(query="AXI back-pressure flow control", categories="verilog,testbench", limit=5)
+Observation:
+  Found 5 results:
+  1. axi_bridge.v (L145-160) Score: 0.89
+     "if (!axi_wready) begin ... pause write"
+  2. tb_axi.sv (L234-250) Score: 0.84
+     "Test case: Back-pressure by de-asserting wready"
+  ...
+
+Thought: Bridge handles it by pausing writes when !wready. Testbench verifies this.
+```
+
+### Pattern 6: Cross-Module Dependency
+
+**Goal:** Find which modules use a specific interface or module.
+
+**Query Pattern:** `"modules using <interface>"` or `"<module_name> instantiation"`
+
+**Example:**
+```
+User asks: "Which modules use the AXI write interface?"
+
+Thought: Looking for modules that instantiate or connect to AXI write signals
+Action: rag_search(query="modules using AXI write interface awvalid awaddr", categories="verilog", limit=7, depth=3)
+Observation:
+  Found 7 results across multiple files showing AXI write usage
+  1. pcie_msg_receiver.v - implements AXI write slave
+  2. axi_master.v - generates AXI write transactions
+  ...
+
+Thought: Multiple modules use it. Let me list them for the user
+```
+
+**Using depth=3:** Traverses module hierarchy to find indirect dependencies.
+
+## Error Recovery
+
+- **"RAG index not initialized / No indexed documents found"**
+  1. First-time setup: `rag_index(path=".", fine_grained=False)` to index the project
+  2. Verify index: `rag_status()` to see what's indexed
+  3. Check .ragconfig exists in project root
+  4. For fine-grained chunking (slower but better): `rag_index(path=".", fine_grained=True)`
+
+- **"No results found" or "Empty search results"**
+  1. Broaden query: Try more general terms (e.g., "FIFO" instead of "async_fifo_with_gray_code")
+  2. Change categories: Try `categories="all"` instead of specific category
+  3. Check spelling: Verify acronyms and technical terms are correct
+  4. Use alternative phrasing: "signal assignment" vs "signal set to" vs "signal driven by"
+  5. Increase limit: `limit=10` to get more results
+  6. Try grep as fallback: `grep_file(pattern="exact_string", path=".")`
+
+- **"Too many low-relevance results (scores < 0.5)"**
+  1. Make query more specific: Add context words (e.g., "axi_awready assignment" → "axi_awready assignment in write channel")
+  2. Reduce limit: `limit=3` to see only top matches
+  3. Use categories: Narrow down with `categories="verilog"` instead of "all"
+  4. Check if need exact match: If looking for exact string, use `grep_file()` instead
+
+- **"Search is slow / timeout"**
+  1. Reduce depth: Use `depth=1` or `depth=2` (default) instead of higher values
+  2. Reduce limit: `limit=3` instead of `limit=10`
+  3. Disable graph traversal: `follow_references=False` (default)
+  4. Re-index with coarser granularity: `rag_index(path=".", fine_grained=False)`
+
+## Tool Precedence
+
+### CRITICAL - ALWAYS Prefer RAG over grep for Verilog
+
+**❌ WRONG Pattern:**
+```
+Thought: Find where axi_awready is used
+Action: grep_file(pattern="axi_awready", path=".")
+```
+
+**✅ CORRECT Pattern:**
+```
+Thought: Find axi_awready signal assignment logic
+Action: rag_search(query="axi_awready assignment", categories="verilog", limit=5)
+```
+
+**Why RAG is Better:**
+
+1. **Understands Context:** RAG knows "assignment" means LHS of `<=` or `=`, not just any occurrence
+2. **Ranks by Relevance:** grep shows ALL matches; RAG shows BEST matches with scores
+3. **Finds Semantic Matches:** RAG finds related code even if words differ
+4. **Cross-file Understanding:** RAG can traverse module instantiations and includes
+5. **Filters Noise:** grep shows comments, variable declarations, etc.; RAG focuses on logic
+
+**Decision Tree:**
+
+```
+Need to find code?
+├─ Know EXACT pattern (regex)? → grep_file() ✅
+├─ Understand CONCEPT/BEHAVIOR? → rag_search() ✅✅✅
+├─ Find specific LINE NUMBER? → read_lines() ✅
+└─ List all occurrences? → grep_file()
+```
+
+**Examples of When to Use RAG > grep:**
+
+| Task | ❌ grep_file | ✅ rag_search |
+|------|-------------|--------------|
+| Find signal assignments | `grep "signal.*<="` | `rag_search("signal assignment logic")` |
+| Understand protocol | `grep "Protocol"` | `rag_search("Protocol specification how it works")` |
+| Find error handling | `grep "error"` | `rag_search("error handling edge cases")` |
+| Locate FSM states | `grep "state.*<="` | `rag_search("state machine transitions")` |
+| Find module usage | `grep "module_name"` | `rag_search("modules using module_name")` |
+
+### When to Use Each Tool
+
+**Use rag_search():**
+- Semantic understanding needed
+- Finding "how" or "why", not just "where"
+- Exploring unfamiliar codebase
+- Acronym definitions
+- Protocol behaviors
+
+**Use grep_file():**
+- Exact regex pattern needed (e.g., `\bmodule\s+\w+`)
+- Want ALL occurrences, not ranked results
+- Looking for specific syntax pattern
+- Need line-by-line context
+
+**Use read_file():**
+- Know exact file to read
+- Need full module structure
+- File is small (<1000 lines)
+
+## See Also
+
+- **grep_file** - Exact pattern matching with regex (use when you need ALL occurrences)
+- **find_signal_usage** - Verilog-specific signal search (alternative to RAG for signals)
+- **find_module_definition** - Find module by exact name (faster than RAG for known names)
+- **rag_index** - Build/update RAG index (run once per project or after major changes)
+- **rag_status** - View indexed files and chunk counts
+- **rag_clear** - Clear index to start fresh

@@ -1199,17 +1199,19 @@ def execute_tool(tool_name, args_str):
 
 # Helper functions moved to llm_client.py
 
-def build_system_prompt(messages=None):
+def build_system_prompt(messages=None, allowed_tools=None):
     """
     Build system prompt with memory, graph context, and procedural guidance if available.
 
     Args:
         messages: Optional message history for graph semantic search and procedural retrieval
+        allowed_tools: Optional set of allowed tools (for sub-agents)
 
     Returns:
         Complete system prompt string
     """
-    base_prompt = config.SYSTEM_PROMPT
+    # Use new tool description system from config
+    base_prompt = config.build_base_system_prompt(allowed_tools=allowed_tools)
     
     # Debug: Show prompt building start
     if config.DEBUG_MODE and messages:
