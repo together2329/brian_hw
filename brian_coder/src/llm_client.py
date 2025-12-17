@@ -116,6 +116,10 @@ def chat_completion_stream(messages, stop=None):
     initial_delay = 2  # seconds
     
     for retry_count in range(max_retries):
+        # Local state for label tracking (resets each retry)
+        _reasoning_started = False
+        _content_started = False
+        
         try:
             req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
             with urllib.request.urlopen(req, timeout=config.API_TIMEOUT) as response:
@@ -145,10 +149,10 @@ def chat_completion_stream(messages, stop=None):
                                 if reasoning:
                                     if config.DEBUG_MODE:
                                         # Print reasoning in cyan with label (thinking process)
-                                        if not getattr(chat_completion_stream, '_reasoning_started', False):
+                                        if not _reasoning_started:
                                             sys.stdout.write(f"\n\033[36m[REASONING]\033[0m ")
-                                            chat_completion_stream._reasoning_started = True
-                                            chat_completion_stream._content_started = False
+                                            _reasoning_started = True
+                                            _content_started = False
                                         sys.stdout.write(f"\033[36m{reasoning}\033[0m") 
                                         sys.stdout.flush()
                                     # Yield reasoning so it's captured (use both reasoning + content)
@@ -158,9 +162,9 @@ def chat_completion_stream(messages, stop=None):
                                 if content:
                                     if config.DEBUG_MODE:
                                         # Print content label when first content arrives
-                                        if not getattr(chat_completion_stream, '_content_started', False):
+                                        if not _content_started:
                                             sys.stdout.write(f"\n\n\033[32m[CONTENT]\033[0m ")
-                                            chat_completion_stream._content_started = True
+                                            _content_started = True
                                         # Also print content for streaming display
                                         sys.stdout.write(f"\033[32m{content}\033[0m")
                                         sys.stdout.flush()
