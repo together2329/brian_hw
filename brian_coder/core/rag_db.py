@@ -99,7 +99,6 @@ class RAGDatabase:
         
         self.chunks: Dict[str, Chunk] = {}
         self.file_hashes: Dict[str, str] = {}
-        self.file_hashes: Dict[str, str] = {}
         self.categories: Dict[str, CategoryConfig] = {}
         self.known_acronyms: Dict[str, str] = {}  # Extracted from chunks
 
@@ -1782,102 +1781,6 @@ Return ONLY valid JSON:
                     
             print(f"[RAG] Embedding failed (using {dim}-dim zero vector): {e}")
             return [0.0] * dim
-
-    def _get_embedding_direct(self, text: str) -> List[float]:
-        """
-        Direct embedding API call with retry logic and rate limiting.
-
-        Handles:
-        - Rate limiting (429 Too Many Requests)
-        - Network errors and timeouts
-        - Exponential backoff retry
-        """
-        import urllib.request
-        import time
-
-        try:
-            # Try relative import first (when imported as package)
-            try:
-                from . import config
-            except ImportError:
-                import config
-            api_key = config.EMBEDDING_API_KEY
-            base_url = config.EMBEDDING_BASE_URL
-            model = config.EMBEDDING_MODEL
-        except Exception as e:
-            raise ValueError(f"Embedding config not found: {e}")
-
-        url = f"{base_url}/embeddings"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
-        }
-        data = {
-            "input": text[:8000],  # Limit text length
-            "model": model
-        }
-
-        # Retry configuration
-        max_retries = 3
-        base_backoff = 1.0  # Start with 1 second
-
-        for attempt in range(max_retries):
-            # Rate limiting: enforce minimum delay between API calls
-            current_time = time.time()
-            time_since_last_call = current_time - self.last_api_call_time
-            if time_since_last_call < self.rate_limit_delay:
-                sleep_time = self.rate_limit_delay - time_since_last_call
-                time.sleep(sleep_time)
-
-            self.last_api_call_time = time.time()
-            self.api_call_count += 1
-
-            try:
-                request = urllib.request.Request(
-                    url,
-                    data=json.dumps(data).encode('utf-8'),
-                    headers=headers
-                )
-
-                with urllib.request.urlopen(request, timeout=30) as response:
-                    result = json.loads(response.read().decode('utf-8'))
-                    embedding = result["data"][0]["embedding"]
-
-                    # Auto-detect embedding dimension from first successful API call
-                    if self.embedding_dimension is None:
-                        self.embedding_dimension = len(embedding)
-                        print(f"[RAG] Auto-detected embedding dimension: {self.embedding_dimension}")
-
-                    return embedding
-
-            except urllib.error.HTTPError as e:
-                if e.code == 429:  # Too Many Requests
-                    if attempt < max_retries - 1:
-                        # Exponential backoff: 1s, 2s, 4s...
-                        backoff_time = base_backoff * (2 ** attempt)
-                        print(f"[RAG] Rate limited (429). Retrying in {backoff_time:.1f}s... (attempt {attempt + 1}/{max_retries})")
-                        time.sleep(backoff_time)
-                    else:
-                        raise ValueError(f"API rate limit exceeded after {max_retries} retries")
-                else:
-                    # Other HTTP errors (400, 401, 403, etc.)
-                    raise ValueError(f"API error {e.code}: {e.read().decode('utf-8')}")
-
-            except urllib.error.URLError as e:
-                if attempt < max_retries - 1:
-                    # Network error, retry with backoff
-                    backoff_time = base_backoff * (2 ** attempt)
-                    print(f"[RAG] Network error: {e.reason}. Retrying in {backoff_time:.1f}s...")
-                    time.sleep(backoff_time)
-                else:
-                    raise ValueError(f"Network error after {max_retries} retries: {e.reason}")
-
-            except urllib.error.HTTPException as e:
-                if attempt < max_retries - 1:
-                    backoff_time = base_backoff * (2 ** attempt)
-                    time.sleep(backoff_time)
-                else:
-                    raise ValueError(f"HTTP error after {max_retries} retries: {e}")
 
     def _throttle(self):
         """Thread-safe rate limiting."""
