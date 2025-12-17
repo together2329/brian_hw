@@ -11,6 +11,7 @@ import copy
 import re
 import sys
 import os
+from typing import List, Optional
 
 # Add paths for imports
 _script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -545,7 +546,7 @@ _cached_embedding_dim = None
 # Key: {model}:{text_hash}, Value: list[float]
 _embedding_cache = {}
 
-def get_embedding(text: str, model: str = None) -> list[float]:
+def get_embedding(text: str, model: str = None) -> List[float]:
     """
     Get embedding for text using configured API.
     Handles caching and retries.

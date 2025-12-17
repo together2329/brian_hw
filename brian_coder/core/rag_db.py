@@ -122,6 +122,9 @@ class RAGDatabase:
 
         # Auto-detected embedding dimension (None = not yet detected)
         self.embedding_dimension = None
+        
+        # Project root for relative paths (directory containing .ragconfig or CWD)
+        self.project_root = self.config_file.parent if self.config_file.exists() else Path.cwd()
 
         self._ensure_initialized()
         self._load()
@@ -1214,7 +1217,8 @@ Return ONLY valid JSON:
 
         # Check if reindex needed (hash comparison)
         current_hash = self._get_file_hash(file_path)
-        stored_hash = self.file_hashes.get(str(path.resolve()))
+        rel_path = self._to_relative_path(str(path.resolve()))
+        stored_hash = self.file_hashes.get(rel_path)
 
         if current_hash == stored_hash:
             if not quiet:
@@ -1236,19 +1240,19 @@ Return ONLY valid JSON:
             else:
                 category = "verilog"  # Default
         
-        # Remove old chunks from this file
+        # Remove old chunks from this file (check both absolute and relative paths for compatibility)
         old_chunks = [cid for cid, c in self.chunks.items() 
-                      if c.source_file == str(path.resolve())]
+                      if c.source_file == rel_path or c.source_file == str(path.resolve())]
         for cid in old_chunks:
             del self.chunks[cid]
         
-        # Chunk based on category
+        # Chunk based on category (use relative path)
         if category in ["verilog"]:
-            new_chunks = self.chunk_verilog_hierarchical(content, str(path.resolve()))
+            new_chunks = self.chunk_verilog_hierarchical(content, rel_path)
         elif category == "testbench":
-            new_chunks = self.chunk_testbench(content, str(path.resolve()))
+            new_chunks = self.chunk_testbench(content, rel_path)
         elif category == "spec":
-            new_chunks = self.chunk_spec(content, str(path.resolve()))
+            new_chunks = self.chunk_spec(content, rel_path)
         else:
             new_chunks = []
         
@@ -1402,8 +1406,8 @@ Return ONLY valid JSON:
             for chunk in new_chunks:
                 self.chunks[chunk.id] = chunk
         
-        # Update hash
-        self.file_hashes[str(path.resolve())] = current_hash
+        # Update hash (use relative path)
+        self.file_hashes[rel_path] = current_hash
 
         # Incremental save after each file (prevents data loss on Ctrl+C)
         self.save()
@@ -1514,7 +1518,8 @@ Return ONLY valid JSON:
             # Check if file needs reindexing
             path = Path(file_path)
             current_hash = self._get_file_hash(str(file_path))
-            stored_hash = self.file_hashes.get(str(path.resolve()))
+            rel_path = self._to_relative_path(str(path.resolve()))
+            stored_hash = self.file_hashes.get(rel_path)
 
             if current_hash == stored_hash:
                 # File unchanged - skip
@@ -1723,11 +1728,13 @@ Return ONLY valid JSON:
     def _smart_reindex(self):
         """Check for file changes and reindex if needed."""
         for file_path, stored_hash in list(self.file_hashes.items()):
-            if Path(file_path).exists():
-                current_hash = self._get_file_hash(file_path)
+            # Resolve relative path against project root
+            abs_path = self.project_root / file_path
+            if abs_path.exists():
+                current_hash = self._get_file_hash(str(abs_path))
                 if current_hash != stored_hash:
                     print(f"[RAG] Change detected: {Path(file_path).name}")
-                    self.index_file(file_path)
+                    self.index_file(str(abs_path))
 
     # ==================== Embedding (reuse from graph_lite) ====================
 
@@ -1887,6 +1894,19 @@ Return ONLY valid JSON:
         """Calculate MD5 hash of file content."""
         with open(file_path, 'rb') as f:
             return hashlib.md5(f.read()).hexdigest()
+    
+    def _to_relative_path(self, file_path: str) -> str:
+        """
+        Convert absolute path to relative path from project root.
+        Removes /Users/xxx/... prefix for cleaner display.
+        """
+        try:
+            abs_path = Path(file_path).resolve()
+            rel_path = abs_path.relative_to(self.project_root)
+            return str(rel_path)
+        except ValueError:
+            # Path is not under project_root, return as-is
+            return file_path
 
     def get_stats(self) -> Dict[str, Any]:
         """Get RAG database statistics."""
