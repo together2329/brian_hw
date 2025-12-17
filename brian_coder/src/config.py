@@ -75,6 +75,9 @@ DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() in ("true", "1", "yes")
 # RAG Debug mode - show detailed RAG search/indexing info
 DEBUG_RAG = os.getenv("DEBUG_RAG", "false").lower() in ("true", "1", "yes")
 
+# Full Prompt Debug - show complete input messages to LLM
+FULL_PROMPT_DEBUG = os.getenv("FULL_PROMPT_DEBUG", "false").lower() in ("true", "1", "yes")
+
 # Tool result preview settings
 TOOL_RESULT_PREVIEW_LINES = int(os.getenv("TOOL_RESULT_PREVIEW_LINES", "3"))  # For read_file/read_lines
 TOOL_RESULT_PREVIEW_CHARS = int(os.getenv("TOOL_RESULT_PREVIEW_CHARS", "300"))  # For other tools

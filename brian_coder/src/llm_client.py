@@ -95,6 +95,20 @@ def chat_completion_stream(messages, stop=None):
                 print(Color.info(f"  First message: [list with {len(first_content)} blocks]"))
             else:
                 print(Color.info(f"  First message: [string, {len(str(first_content))} chars]"))
+        
+        # FULL_PROMPT_DEBUG: Show complete input messages
+        if getattr(config, 'FULL_PROMPT_DEBUG', False):
+            print(Color.info("\n" + "="*60))
+            print(Color.info("[FULL PROMPT DEBUG] Complete input messages:"))
+            print(Color.info("="*60))
+            for i, msg in enumerate(processed_messages):
+                role = msg.get('role', 'unknown')
+                content = str(msg.get('content', ''))
+                print(Color.info(f"\n--- Message {i+1} [{role}] ---"))
+                print(content[:5000] if len(content) > 5000 else content)
+                if len(content) > 5000:
+                    print(Color.info(f"... [truncated, total {len(content)} chars]"))
+            print(Color.info("="*60 + "\n"))
         print()
 
     # Retry logic for transient errors
@@ -125,17 +139,31 @@ def chat_completion_stream(messages, stop=None):
                             if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
                                 delta = chunk_json["choices"][0].get("delta", {})
                                 
-                                # Handle "reasoning_content" (DeepSeek/Reasoning models)
-                                reasoning = delta.get("reasoning_content", "")
+                                # Handle reasoning fields (DeepSeek models)
+                                # Can be: "reasoning", "reasoning_content", or "reasoning_details"
+                                reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
                                 if reasoning:
                                     if config.DEBUG_MODE:
-                                        # Print reasoning in cyan/italic (using direct ANSI for italic if supported, or just cyan)
-                                        # We'll use Color.debug but with a customized prefix to make it distinct
+                                        # Print reasoning in cyan with label (thinking process)
+                                        if not getattr(chat_completion_stream, '_reasoning_started', False):
+                                            sys.stdout.write(f"\n\033[36m[REASONING]\033[0m ")
+                                            chat_completion_stream._reasoning_started = True
+                                            chat_completion_stream._content_started = False
                                         sys.stdout.write(f"\033[36m{reasoning}\033[0m") 
                                         sys.stdout.flush()
+                                    # Yield reasoning so it's captured (use both reasoning + content)
+                                    yield reasoning
                                 
                                 content = delta.get("content", "")
                                 if content:
+                                    if config.DEBUG_MODE:
+                                        # Print content label when first content arrives
+                                        if not getattr(chat_completion_stream, '_content_started', False):
+                                            sys.stdout.write(f"\n\n\033[32m[CONTENT]\033[0m ")
+                                            chat_completion_stream._content_started = True
+                                        # Also print content for streaming display
+                                        sys.stdout.write(f"\033[32m{content}\033[0m")
+                                        sys.stdout.flush()
                                     yield content
                         except json.JSONDecodeError:
                             continue

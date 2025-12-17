@@ -1178,6 +1178,16 @@ def execute_tool(tool_name, args_str):
             print(f"[DEBUG] Parsed args: {parsed_args}, kwargs: {parsed_kwargs}")
 
         result = func(*parsed_args, **parsed_kwargs)
+        
+        # Ensure result is string for downstream processing
+        if not isinstance(result, str):
+            import json
+            try:
+                # Pretty print dict/list for readability
+                result = json.dumps(result, indent=2, ensure_ascii=False)
+            except Exception:
+                result = str(result)
+                
         return result
 
     except Exception as e:
@@ -2316,7 +2326,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         colored_output = colored_output.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
         colored_output = colored_output.replace("Action:", Color.YELLOW + "Action:" + Color.RESET)
 
-        print(colored_output)
+        # In DEBUG_MODE, content is already streamed with labels, so skip duplicate print
+        if not config.DEBUG_MODE:
+            print(colored_output)
         print()
         
         # Show flow stage: Response received

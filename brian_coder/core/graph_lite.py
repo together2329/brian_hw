@@ -515,7 +515,7 @@ class GraphLite:
             
             # Import config at runtime to avoid circular dependency
             try:
-                import config
+                from src import config
                 threshold = config.AMEM_SIMILARITY_THRESHOLD
             except:
                 threshold = 0.6
@@ -530,7 +530,7 @@ class GraphLite:
         candidates.sort(reverse=True, key=lambda x: x[0])
         
         try:
-            import config
+            from src import config
             max_candidates = config.AMEM_MAX_CANDIDATES
         except:
             max_candidates = 10
@@ -600,7 +600,7 @@ Indices to link:"""
             
             # Get temperature from config
             try:
-                import config
+                from src import config
                 temperature = config.AMEM_LINK_TEMPERATURE
             except:
                 temperature = 0.3
