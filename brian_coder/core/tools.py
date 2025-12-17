@@ -491,11 +491,40 @@ def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_lin
         # Count occurrences before replacement
         occurrences = target_content.count(old_text)
         
-        # Fuzzy whitespace matching: if exact match fails, try normalized matching
+        # OpenCode-style fuzzy matching: try 8 strategies in order
         actual_old_text = old_text
+        matched_strategy = None
+
         if occurrences == 0 and fuzzy_whitespace:
-            # Try to find a fuzzy match by normalizing leading whitespace
-            matched_text = _fuzzy_find_text(target_content, old_text)
+            # Try each replacer strategy in order (skip SimpleReplacer as we already tried exact match)
+            matched_text = None
+
+            for strategy_name, replacer in [
+                ("LineTrimmedReplacer", _line_trimmed_replacer),
+                ("BlockAnchorReplacer", _block_anchor_replacer),
+                ("WhitespaceNormalizedReplacer", _whitespace_normalized_replacer),
+                ("IndentationFlexibleReplacer", _indentation_flexible_replacer),
+                ("EscapeNormalizedReplacer", _escape_normalized_replacer),
+                ("TrimmedBoundaryReplacer", _trimmed_boundary_replacer),
+                ("ContextAwareReplacer", _context_aware_replacer),
+            ]:
+                for candidate in replacer(target_content, old_text):
+                    # Check if this candidate is unique
+                    candidate_count = target_content.count(candidate)
+                    if candidate_count == 1:
+                        # Perfect: unique match found
+                        matched_text = candidate
+                        matched_strategy = strategy_name
+                        break
+                    elif candidate_count > 0 and matched_text is None:
+                        # Store as potential match but keep trying for unique one
+                        matched_text = candidate
+                        matched_strategy = strategy_name
+
+                # If we found a unique match, stop searching
+                if matched_text and target_content.count(matched_text) == 1:
+                    break
+
             if matched_text:
                 actual_old_text = matched_text
                 occurrences = target_content.count(actual_old_text)
@@ -535,12 +564,398 @@ def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_lin
         
         result = f"Replaced {replacements} occurrence(s) in {path}\n\n"
         if actual_old_text != old_text:
-            result += f"(Fuzzy matched: adjusted whitespace)\n"
+            if matched_strategy:
+                result += f"(Fuzzy matched using: {matched_strategy})\n"
+            else:
+                result += f"(Fuzzy matched: adjusted whitespace)\n"
         result += "=== Visual Diff ==="
         result += f"\n{diff_output}"
         return result
     except Exception as e:
         return f"Error replacing text: {e}"
+
+# ============================================================================
+# OpenCode-style Fuzzy Matching Strategies (9 Replacers)
+# Ported from: opencode/packages/opencode/src/tool/edit.ts
+# Original sources: Cline, Gemini CLI edit correctors
+# ============================================================================
+
+# Constants for BlockAnchorReplacer
+SINGLE_CANDIDATE_SIMILARITY_THRESHOLD = 0.0
+MULTIPLE_CANDIDATES_SIMILARITY_THRESHOLD = 0.3
+
+def _levenshtein(a, b):
+    """
+    Levenshtein distance algorithm implementation.
+    Calculates the minimum edit distance between two strings.
+    """
+    if not a or not b:
+        return max(len(a), len(b))
+
+    # Create matrix
+    matrix = [[0] * (len(b) + 1) for _ in range(len(a) + 1)]
+
+    # Initialize first row and column
+    for i in range(len(a) + 1):
+        matrix[i][0] = i
+    for j in range(len(b) + 1):
+        matrix[0][j] = j
+
+    # Fill matrix
+    for i in range(1, len(a) + 1):
+        for j in range(1, len(b) + 1):
+            cost = 0 if a[i-1] == b[j-1] else 1
+            matrix[i][j] = min(
+                matrix[i-1][j] + 1,      # deletion
+                matrix[i][j-1] + 1,      # insertion
+                matrix[i-1][j-1] + cost  # substitution
+            )
+
+    return matrix[len(a)][len(b)]
+
+def _simple_replacer(content, find):
+    """Strategy 1: Exact match."""
+    yield find
+
+def _line_trimmed_replacer(content, find):
+    """
+    Strategy 2: Line-by-line trimmed matching.
+    Matches when each line is trimmed but structure is preserved.
+    """
+    original_lines = content.split('\n')
+    search_lines = find.split('\n')
+
+    # Remove trailing empty line if present
+    if search_lines and search_lines[-1] == '':
+        search_lines.pop()
+
+    # Try to find matching blocks
+    for i in range(len(original_lines) - len(search_lines) + 1):
+        matches = True
+
+        for j in range(len(search_lines)):
+            original_trimmed = original_lines[i + j].strip()
+            search_trimmed = search_lines[j].strip()
+
+            if original_trimmed != search_trimmed:
+                matches = False
+                break
+
+        if matches:
+            # Calculate the exact substring from content
+            match_start = sum(len(original_lines[k]) + 1 for k in range(i))
+            match_end = match_start
+
+            for k in range(len(search_lines)):
+                match_end += len(original_lines[i + k])
+                if k < len(search_lines) - 1:
+                    match_end += 1  # newline
+
+            yield content[match_start:match_end]
+
+def _block_anchor_replacer(content, find):
+    """
+    Strategy 3: Block anchor matching with Levenshtein similarity.
+    Matches blocks by first/last line anchors, validates middle with similarity.
+    """
+    original_lines = content.split('\n')
+    search_lines = find.split('\n')
+
+    if len(search_lines) < 3:
+        return  # Need at least 3 lines for meaningful anchoring
+
+    if search_lines and search_lines[-1] == '':
+        search_lines.pop()
+
+    first_line_search = search_lines[0].strip()
+    last_line_search = search_lines[-1].strip()
+    search_block_size = len(search_lines)
+
+    # Find all candidate blocks where first and last lines match
+    candidates = []
+    for i in range(len(original_lines)):
+        if original_lines[i].strip() != first_line_search:
+            continue
+
+        # Look for matching last line
+        for j in range(i + 2, len(original_lines)):
+            if original_lines[j].strip() == last_line_search:
+                candidates.append({'start_line': i, 'end_line': j})
+                break  # Only first occurrence
+
+    if not candidates:
+        return
+
+    # Single candidate - use relaxed threshold
+    if len(candidates) == 1:
+        candidate = candidates[0]
+        start_line = candidate['start_line']
+        end_line = candidate['end_line']
+        actual_block_size = end_line - start_line + 1
+
+        similarity = 0.0
+        lines_to_check = min(search_block_size - 2, actual_block_size - 2)
+
+        if lines_to_check > 0:
+            for j in range(1, min(search_block_size - 1, actual_block_size - 1)):
+                original_line = original_lines[start_line + j].strip()
+                search_line = search_lines[j].strip()
+                max_len = max(len(original_line), len(search_line))
+
+                if max_len == 0:
+                    continue
+
+                distance = _levenshtein(original_line, search_line)
+                similarity += (1 - distance / max_len) / lines_to_check
+
+                if similarity >= SINGLE_CANDIDATE_SIMILARITY_THRESHOLD:
+                    break
+        else:
+            similarity = 1.0
+
+        if similarity >= SINGLE_CANDIDATE_SIMILARITY_THRESHOLD:
+            match_start = sum(len(original_lines[k]) + 1 for k in range(start_line))
+            match_end = match_start
+            for k in range(start_line, end_line + 1):
+                match_end += len(original_lines[k])
+                if k < end_line:
+                    match_end += 1
+            yield content[match_start:match_end]
+        return
+
+    # Multiple candidates - find best match
+    best_match = None
+    max_similarity = -1
+
+    for candidate in candidates:
+        start_line = candidate['start_line']
+        end_line = candidate['end_line']
+        actual_block_size = end_line - start_line + 1
+
+        similarity = 0.0
+        lines_to_check = min(search_block_size - 2, actual_block_size - 2)
+
+        if lines_to_check > 0:
+            for j in range(1, min(search_block_size - 1, actual_block_size - 1)):
+                original_line = original_lines[start_line + j].strip()
+                search_line = search_lines[j].strip()
+                max_len = max(len(original_line), len(search_line))
+
+                if max_len == 0:
+                    continue
+
+                distance = _levenshtein(original_line, search_line)
+                similarity += 1 - distance / max_len
+
+            similarity /= lines_to_check
+        else:
+            similarity = 1.0
+
+        if similarity > max_similarity:
+            max_similarity = similarity
+            best_match = candidate
+
+    if max_similarity >= MULTIPLE_CANDIDATES_SIMILARITY_THRESHOLD and best_match:
+        start_line = best_match['start_line']
+        end_line = best_match['end_line']
+        match_start = sum(len(original_lines[k]) + 1 for k in range(start_line))
+        match_end = match_start
+        for k in range(start_line, end_line + 1):
+            match_end += len(original_lines[k])
+            if k < end_line:
+                match_end += 1
+        yield content[match_start:match_end]
+
+def _whitespace_normalized_replacer(content, find):
+    """
+    Strategy 4: Whitespace normalization.
+    Collapses consecutive whitespace to single space for matching.
+    """
+    import re
+
+    def normalize_whitespace(text):
+        return re.sub(r'\s+', ' ', text).strip()
+
+    normalized_find = normalize_whitespace(find)
+
+    # Try single-line matches
+    lines = content.split('\n')
+    for i, line in enumerate(lines):
+        if normalize_whitespace(line) == normalized_find:
+            yield line
+        else:
+            # Check substring match
+            normalized_line = normalize_whitespace(line)
+            if normalized_find in normalized_line:
+                # Find actual substring with regex
+                words = find.strip().split()
+                if words:
+                    pattern = r'\s+'.join(re.escape(word) for word in words)
+                    try:
+                        match = re.search(pattern, line)
+                        if match:
+                            yield match.group(0)
+                    except re.error:
+                        pass
+
+    # Try multi-line matches
+    find_lines = find.split('\n')
+    if len(find_lines) > 1:
+        for i in range(len(lines) - len(find_lines) + 1):
+            block = lines[i:i + len(find_lines)]
+            if normalize_whitespace('\n'.join(block)) == normalized_find:
+                yield '\n'.join(block)
+
+def _indentation_flexible_replacer(content, find):
+    """
+    Strategy 5: Indentation-flexible matching.
+    Ignores absolute indentation, preserves relative indentation.
+    """
+    def remove_indentation(text):
+        lines = text.split('\n')
+        non_empty_lines = [line for line in lines if line.strip()]
+
+        if not non_empty_lines:
+            return text
+
+        # Find minimum indentation
+        min_indent = min(
+            len(line) - len(line.lstrip())
+            for line in non_empty_lines
+        )
+
+        # Remove minimum indentation from all lines
+        result_lines = []
+        for line in lines:
+            if line.strip():
+                result_lines.append(line[min_indent:] if len(line) >= min_indent else line)
+            else:
+                result_lines.append(line)
+
+        return '\n'.join(result_lines)
+
+    normalized_find = remove_indentation(find)
+    content_lines = content.split('\n')
+    find_lines = find.split('\n')
+
+    for i in range(len(content_lines) - len(find_lines) + 1):
+        block = '\n'.join(content_lines[i:i + len(find_lines)])
+        if remove_indentation(block) == normalized_find:
+            yield block
+
+def _escape_normalized_replacer(content, find):
+    """
+    Strategy 6: Escape sequence normalization.
+    Handles escaped characters like \\n, \\t, etc.
+    """
+    def unescape_string(s):
+        """Unescape common escape sequences."""
+        replacements = {
+            '\\n': '\n',
+            '\\t': '\t',
+            '\\r': '\r',
+            "\\'": "'",
+            '\\"': '"',
+            '\\`': '`',
+            '\\\\': '\\',
+            '\\$': '$'
+        }
+        result = s
+        for escaped, unescaped in replacements.items():
+            result = result.replace(escaped, unescaped)
+        return result
+
+    unescaped_find = unescape_string(find)
+
+    # Try direct match with unescaped
+    if unescaped_find in content:
+        yield unescaped_find
+
+    # Try finding escaped versions in content
+    lines = content.split('\n')
+    find_lines = unescaped_find.split('\n')
+
+    for i in range(len(lines) - len(find_lines) + 1):
+        block = '\n'.join(lines[i:i + len(find_lines)])
+        if unescape_string(block) == unescaped_find:
+            yield block
+
+def _trimmed_boundary_replacer(content, find):
+    """
+    Strategy 7: Trimmed boundary matching.
+    Tries matching after trimming leading/trailing whitespace.
+    """
+    trimmed_find = find.strip()
+
+    if trimmed_find == find:
+        return  # Already trimmed, no point trying
+
+    # Try exact trimmed match
+    if trimmed_find in content:
+        yield trimmed_find
+
+    # Try finding blocks where trimmed content matches
+    lines = content.split('\n')
+    find_lines = find.split('\n')
+
+    for i in range(len(lines) - len(find_lines) + 1):
+        block = '\n'.join(lines[i:i + len(find_lines)])
+        if block.strip() == trimmed_find:
+            yield block
+
+def _context_aware_replacer(content, find):
+    """
+    Strategy 8: Context-aware matching.
+    Uses first and last lines as anchors, validates middle with 50% similarity.
+    """
+    find_lines = find.split('\n')
+
+    if len(find_lines) < 3:
+        return  # Need at least 3 lines
+
+    # Remove trailing empty line
+    if find_lines and find_lines[-1] == '':
+        find_lines.pop()
+
+    content_lines = content.split('\n')
+
+    # Extract anchor lines
+    first_line = find_lines[0].strip()
+    last_line = find_lines[-1].strip()
+
+    # Find blocks starting and ending with anchors
+    for i in range(len(content_lines)):
+        if content_lines[i].strip() != first_line:
+            continue
+
+        # Look for matching last line
+        for j in range(i + 2, len(content_lines)):
+            if content_lines[j].strip() == last_line:
+                # Found potential block
+                block_lines = content_lines[i:j + 1]
+
+                # Check if block size matches
+                if len(block_lines) == len(find_lines):
+                    # Check middle line similarity (at least 50%)
+                    matching_lines = 0
+                    total_non_empty = 0
+
+                    for k in range(1, len(block_lines) - 1):
+                        block_line = block_lines[k].strip()
+                        find_line = find_lines[k].strip()
+
+                        if block_line or find_line:
+                            total_non_empty += 1
+                            if block_line == find_line:
+                                matching_lines += 1
+
+                    if total_non_empty == 0 or matching_lines / total_non_empty >= 0.5:
+                        yield '\n'.join(block_lines)
+                        return  # Only first match
+                break
+
+# End of OpenCode-style Replacers
+# ============================================================================
 
 def _fuzzy_find_text(content, pattern):
     """
