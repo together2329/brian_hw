@@ -123,8 +123,9 @@ class RAGDatabase:
         # Auto-detected embedding dimension (None = not yet detected)
         self.embedding_dimension = None
         
-        # Project root for relative paths (directory containing .ragconfig or CWD)
-        self.project_root = self.config_file.parent if self.config_file.exists() else Path.cwd()
+        # Project root for relative paths (always CWD - the project directory)
+        # Note: .ragconfig is in ~/.brian_rag, NOT in project dir
+        self.project_root = Path.cwd().resolve()
 
         self._ensure_initialized()
         self._load()
