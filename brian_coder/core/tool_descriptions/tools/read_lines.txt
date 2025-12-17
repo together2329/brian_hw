@@ -1,0 +1,52 @@
+# Tool: read_lines
+Read specific lines from a file. Essential for navigating large files without consuming excessive tokens.
+
+## Signature
+read_lines(path="path/to/file", start_line=1, end_line=100)
+
+## Description
+Reads a specific range of lines from a file. This is the **primary tool** for examining large files (1000+ lines) where reading the entire content would be wasteful or exceed token limits.
+
+Use this tool to verify context around specific lines (e.g., after a grep search) or to inspect specific functions/modules in a massive source file.
+
+## Good Examples
+✅ **Inspect Context:** `read_lines("top_module.v", start_line=500, end_line=550)` (Check lines around a match)
+✅ **Header Only:** `read_lines("spec.txt", start_line=1, end_line=50)` (Read header/summary)
+✅ **Pagination:** `read_lines("logs/sim.log", start_line=1000, end_line=1200)` (Read log chunk)
+
+## Bad Examples
+❌ **Single Line:** `read_lines(..., start_line=10, end_line=10)` (Too narrow, missing context. Use 20-50 lines unless specific.)
+❌ **Huge Range:** `read_lines(..., start_line=1, end_line=5000)` (Just use `read_file` or split it up)
+❌ **Wrong Tool:** Using `read_lines` to search for a string (Use `grep_file` or `rag_search` instead)
+
+## When to Use
+- File size > 1000 lines
+- You know the line numbers (from `grep_file` or error logs)
+- You need to verify surrounding code before an edit
+- Investigating specific errors reported at `Line X`
+
+## When NOT to Use
+- Small files (< 500 lines) -> Use `read_file`
+- Searching for content -> Use `grep_file` or `rag_search`
+- Reading entire modules -> Use `analyze_verilog_module` or `read_file`
+
+## Verilog-Specific Use Cases
+
+### 1. Investigating Simulation Errors
+When a simulator reports an error at line 1205:
+1. **Don't** read the whole file.
+2. **Do**: `read_lines("dut.v", start_line=1150, end_line=1250)` to see the logic causing the error.
+
+### 2. Checking Pin Assignments in Massive Top Modules
+Top-level SOC wrappers can be 10k+ lines.
+1. `grep_file("axi_aclk", "soc_top.v")` -> Found at line 4500.
+2. `read_lines("soc_top.v", start_line=4480, end_line=4550)` to verify the instantiation connection.
+
+## Tool Precedence
+ALWAYS prefer:
+- `read_lines` over `read_file` for files > 20KB or > 1000 lines.
+- `read_lines` over `run_command("sed -n ...")` (It's safer and formatted better).
+
+## Error Recovery
+- **"Line number out of range"**: The tool will return EOF. Check file length with `run_command("wc -l ...")`.
+- **"File not found"**: Use `find_files` to verify path.

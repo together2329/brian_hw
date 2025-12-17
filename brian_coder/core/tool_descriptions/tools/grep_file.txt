@@ -1,0 +1,55 @@
+# Tool: grep_file
+Search for exact text patterns inside files using regex. Best for finding symbol usages and definitions.
+
+## Signature
+grep_file(pattern="regex_pattern", path="path/or/glob", case_insensitive=False, recursive=False)
+
+## Description
+Performs a fast, line-based search for text matching a regex pattern. This is your "Find in Files" tool. It is much faster than `rag_search` but relies on exact character matching (or regex).
+
+## Good Examples
+✅ **Find Definition:** `grep_file("module\s+pcie_core", "src/")` (Find module definition)
+✅ **Find Usage:** `grep_file("axi_awready", "src/", recursive=True)` (Find all usages of a signal)
+✅ **Find TODOs:** `grep_file("TODO|FIXME", ".", recursive=True)` (Find tasks)
+✅ **Case Insensitive:** `grep_file("error", "logs/", case_insensitive=True)`
+
+## Bad Examples
+❌ **Concept Search:** `grep_file("how does arbitration work", ".")` (Use `rag_search` for concepts!)
+❌ **Too Broad:** `grep_file("wire", ".")` (Too many results, useless)
+❌ **Single File Search:** `grep_file("pattern", "file.v")` (If you're going to read the file anyway, just use `read_file`. But specific search is okay.)
+
+## When to Use
+- Finding **exact** symbol names (variable names, module names).
+- Finding where a signal is connected/instantiated.
+- Checking if a specific parameter exists.
+- "Where is `XYZ` defined?"
+
+## When NOT to Use
+- Concepts/Understanding -> Use `rag_search` ("How does X work?")
+- Fuzzy concepts -> Use `rag_search`
+- Reading code structure -> Use `analyze_verilog_module`
+
+## Verilog-Specific Use Cases
+
+### 1. Tracing Signal Connectivity
+To see where `irq_valid` is used across the hierarchy:
+`grep_file("irq_valid", "src/", recursive=True)`
+Returns list of files and lines:
+- `src/ctrl.v:50: assign irq_valid = ...` (Driver)
+- `src/top.v:100: .irq_valid(irq_valid)` (Wiring)
+
+### 2. Finding Module Definitions
+`grep_file("^module\s+my_module", "src/", recursive=True)`
+Finds the exact file where `my_module` is defined.
+
+## Tool Precedence
+ALWAYS prefer:
+- `grep_file` over `rag_search` for **exact symbol lookups** (faster, more precise).
+- `grep_file` over `run_command("grep ...")` (structured output, better error handling).
+
+## Error Recovery
+- **"No matches found"**:
+  1. Check for typos.
+  2. Try `case_insensitive=True`.
+  3. Try a simpler regex (escape special chars like `[` or `*`).
+  4. Fallback to `rag_search` if you are unsure of the exact name.
