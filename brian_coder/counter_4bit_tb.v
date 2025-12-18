@@ -1,3 +1,4 @@
+// Testbench for 4‑bit counter
 module counter_4bit_tb;
 
     // Signals
@@ -13,6 +14,7 @@ module counter_4bit_tb;
     );
 
     // Clock generation
+    // Clock generation: 100 MHz (10 ns period)
     always #5 clk = ~clk;
 
     // Test sequence

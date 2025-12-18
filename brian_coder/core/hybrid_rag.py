@@ -307,7 +307,8 @@ class HybridRAG:
             print(f"│")
 
         print(f"\n┌{'─'*70}┐")
-        print(f"│  [HybridRAG] Process for: \"{query[:45]}\"{'':>{23-min(len(query), 45)}}│")
+        padding = max(0, 23 - min(len(query), 45))
+        print(f"│  [HybridRAG] Process for: \"{query[:45]}\"{'':>{padding}}│")
         print(f"├{'─'*70}┤")
         
         # Step A: Embedding

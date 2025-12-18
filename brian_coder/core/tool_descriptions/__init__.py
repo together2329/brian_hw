@@ -113,6 +113,17 @@ class DescriptionLoader:
         self._cache[tool_name] = desc
         return desc
 
+        return self._cache[tool_name]
+
+    def load_agent_guide(self, guide_name: str) -> str:
+        """Load agent guide text from agents directory"""
+        guide_path = self.base_dir / "agents" / f"{guide_name}.txt"
+        
+        if not guide_path.exists():
+            return ""
+            
+        return guide_path.read_text(encoding='utf-8')
+
     def _parse_txt_file(self, path: Path, tool_name: str) -> ToolDescription:
         """Parse tool description .txt file"""
         content = path.read_text(encoding='utf-8')

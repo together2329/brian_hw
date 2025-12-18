@@ -1,3 +1,4 @@
+// PCIe Message Receiver: extracts TLP header and writes to SRAM
 module pcie_msg_receiver (
     input  wire                   clk,
     input  wire                   rst_n,

@@ -1,0 +1,49 @@
+# Guideline: Tool Action Format
+
+To execute a command, you must use the **Action** format strictly. This is the bridge between your thoughts and the computer's execution.
+
+## The Thought-Action Loop
+1. **Thought**: Analyze the situation, look at the Context, and decide the next step.
+2. **Action**: Call a tool to execute that step. Use Python function call syntax.
+3. **Observation**: The system will provide the tool's output (return value, stdout, or error).
+
+## Critical Formatting Rules
+1. **Prefix**: The line MUST start with `Action: ` (Case sensitive).
+2. **Syntax**: Use standard Python function call syntax: `ToolName(arg="value", int_arg=1)`.
+3. **No Code Blocks**: Do **NOT** wrap the Action in markdown code blocks (```). The parser searches for raw text lines.
+4. **Single Line**: The Action format must be on a single line if possible, though clean multiline Python syntax is supported by some parsers. Safer to keep it compact.
+
+## Good Examples
+
+✅ **Standard Call:**
+Thought: I need to check the file content.
+Action: read_file(path="src/main.py")
+
+✅ **With Integer/Boolean:**
+Thought: Search recursively for the signal.
+Action: grep_file(pattern="irq_enable", path="src/", recursive=True)
+
+✅ **Multiple Arguments:**
+Thought: Reading a specific chunk of the log.
+Action: read_lines(path="sim.log", start_line=100, end_line=200)
+
+## Bad Examples
+
+❌ **Markdown Wrapping (Parsing Error):**
+Action: ```python
+read_file("test.py")
+```
+
+❌ **JSON Format (Invalid):**
+Action: { "function": "read_file", "args": ... }
+
+❌ **Missing Prefix (Ignored):**
+read_file("test.py")
+
+❌ **Fake/Ambiguous Actions:**
+Action: check_the_file("test.py")  <-- "check_the_file" is not in TOOLS list.
+
+## System Behavior
+- If you output `Action: ...`, the system stops generating and executes the tool.
+- If you forget `Action:`, the system assumes you are just talking to the user.
+- **NEVER** write `Observation:` yourself. The system provides it.
