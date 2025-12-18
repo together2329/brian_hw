@@ -1199,6 +1199,72 @@ def execute_tool(tool_name, args_str):
 
 # Helper functions moved to llm_client.py
 
+def load_active_skills(messages, allowed_tools=None):
+    """
+    Load active skills based on recent conversation context
+
+    Args:
+        messages: Message history for context analysis
+        allowed_tools: Optional set of allowed tools (for sub-agents)
+
+    Returns:
+        List of skill prompt strings to inject
+    """
+    if not config.ENABLE_SKILL_SYSTEM or not messages:
+        return []
+
+    try:
+        from core.skill_system import get_skill_registry, get_skill_activator
+
+        registry = get_skill_registry()
+        activator = get_skill_activator()
+
+        # Get recent user messages for context
+        user_messages = [m for m in messages if m.get("role") == "user"]
+        if not user_messages:
+            return []
+
+        # Analyze last 5 user messages
+        recent_context = " ".join([
+            msg["content"] for msg in user_messages[-5:]
+            if isinstance(msg.get("content"), str)
+        ])
+
+        # Detect relevant skills
+        active_skill_names = activator.detect_skills(
+            context=recent_context,
+            allowed_tools=allowed_tools,
+            threshold=config.SKILL_ACTIVATION_THRESHOLD
+        )
+
+        if not active_skill_names:
+            return []
+
+        # Generate skill prompts
+        skill_prompts = []
+        for skill_name in active_skill_names:
+            skill = registry.get_skill(skill_name)
+            if skill:
+                skill_prompts.append(skill.format_for_prompt())
+
+        # Debug output
+        if config.DEBUG_MODE and skill_prompts:
+            print(Color.system(f"[PROMPT] ✅ Skills: {len(skill_prompts)} activated"))
+            for skill_name in active_skill_names:
+                print(Color.system(f"[PROMPT]     - {skill_name}"))
+
+        return skill_prompts
+
+    except ImportError as e:
+        if config.DEBUG_MODE:
+            print(Color.warning(f"[PROMPT] ⚠️ Skill system not available: {e}"))
+        return []
+    except Exception as e:
+        if config.DEBUG_MODE:
+            print(Color.warning(f"[PROMPT] ⚠️ Error loading skills: {e}"))
+        return []
+
+
 def build_system_prompt(messages=None, allowed_tools=None):
     """
     Build system prompt with memory, graph context, and procedural guidance if available.
@@ -1450,6 +1516,20 @@ def build_system_prompt(messages=None, allowed_tools=None):
                 except Exception as e:
                     if config.DEBUG_MODE:
                         print(Color.warning(f"[SmartRAG] Error: {e}"))
+
+        # Add active skills (domain-specific expertise)
+        if config.ENABLE_SKILL_SYSTEM and messages:
+            try:
+                skill_prompts = load_active_skills(messages, allowed_tools)
+                if skill_prompts:
+                    skills_section = "=== ACTIVE SKILLS ===\n\n"
+                    skills_section += "The following domain expertise is active:\n\n"
+                    skills_section += "\n\n".join(skill_prompts)
+                    skills_section += "\n\n====================="
+                    context_parts.append(skills_section)
+            except Exception as e:
+                if config.DEBUG_MODE:
+                    print(Color.warning(f"[PROMPT] ⚠️ Error injecting skills: {e}"))
 
         # Add RAG tool guidance for Verilog and Spec analysis
         rag_guidance = """=== RAG CODE & SPEC SEARCH ===

@@ -82,6 +82,26 @@ FULL_PROMPT_DEBUG = os.getenv("FULL_PROMPT_DEBUG", "false").lower() in ("true", 
 # When enabled, loads detailed tool descriptions from .txt files
 ENABLE_TOOL_DESCRIPTIONS = os.getenv("ENABLE_TOOL_DESCRIPTIONS", "true").lower() in ("true", "1", "yes")
 
+# ============================================================
+# Skill System Configuration (Claude Code Style)
+# ============================================================
+# Enable/Disable skill system (plugin-based domain expertise)
+# When enabled, loads domain-specific prompts dynamically based on task context
+ENABLE_SKILL_SYSTEM = os.getenv("ENABLE_SKILL_SYSTEM", "true").lower() in ("true", "1", "yes")
+
+# User skills directory (for custom skills)
+# Users can add SKILL.md files here for project-specific expertise
+SKILLS_DIR = os.getenv("SKILLS_DIR", "~/.brian_coder/skills")
+
+# Auto-detect skills based on keywords and file patterns
+# If false, skills must be manually activated
+SKILL_AUTO_DETECT = os.getenv("SKILL_AUTO_DETECT", "true").lower() in ("true", "1", "yes")
+
+# Activation threshold for skill auto-detection (0.0-1.0)
+# Lower = more skills activated, Higher = only highly relevant skills
+# Default: 0.15 (sensitive - activates skills with 1-2 keyword matches)
+SKILL_ACTIVATION_THRESHOLD = float(os.getenv("SKILL_ACTIVATION_THRESHOLD", "0.15"))
+
 # Tool result preview settings
 TOOL_RESULT_PREVIEW_LINES = int(os.getenv("TOOL_RESULT_PREVIEW_LINES", "3"))  # For read_file/read_lines
 TOOL_RESULT_PREVIEW_CHARS = int(os.getenv("TOOL_RESULT_PREVIEW_CHARS", "300"))  # For other tools
@@ -1017,25 +1037,36 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         "Action: rag_search(query=\"axi_awready\", categories=\"verilog\", limit=5)",
         "Observation: Found 5 results... pcie_msg_receiver.v (L245-245) Score: 0.85",
         "",
-        "FORMAT:",
-        "To use a tool, you must use the following format exactly:",
-        "",
-        "Thought: [Your reasoning about what to do next]",
-        "Action: [ToolName]([Arguments])",
-        "",
-        "The user will then respond with:",
-        "Observation: [Output of the tool]",
-        "",
-        "You can then continue with more Thought/Action/Observation steps.",
-        "When you have finished the task or need to ask the user a question, respond normally (without Action:).",
-        "",
-        "CRITICAL - DO NOT GENERATE OBSERVATIONS:",
-        "You must NEVER generate lines starting with \"Observation:\".",
-        "The system will provide the Observation to you after you execute an Action.",
-        "If you generate \"Observation:\", the system will think you are done and stop.",
-        "ALWAYS wait for the system to provide the Observation.",
-        ""
     ])
+
+    # Try to load action guide
+    action_guide = loader.load_agent_guide("action_guide")
+    
+    if action_guide:
+        prompt_parts.append(action_guide)
+    else:
+        # Fallback to simple format if guide not found
+        prompt_parts.extend([
+            "FORMAT:",
+            "To use a tool, you must use the following format exactly:",
+            "",
+            "Thought: [Your reasoning about what to do next]",
+            "Action: [ToolName]([Arguments])",
+            "",
+            "The user will then respond with:",
+            "Observation: [Output of the tool]",
+            "",
+            "You can then continue with more Thought/Action/Observation steps.",
+            "When you have finished the task or need to ask the user a question, respond normally (without Action:).",
+            "",
+            "CRITICAL - DO NOT GENERATE OBSERVATIONS:",
+            "You must NEVER generate lines starting with \"Observation:\".",
+            "The system will provide the Observation to you after you execute an Action.",
+            "If you generate \"Observation:\", the system will think you are done and stop.",
+            "ALWAYS wait for the system to provide the Observation."
+        ])
+    
+    prompt_parts.append("")
 
     return "\n".join(prompt_parts)
 
