@@ -1878,6 +1878,10 @@ def compress_history(messages):
         # Construct new history: system messages + compressed + recent
         new_history = system_msgs + compressed + recent_msgs
 
+    # Invalidate last_input_tokens because history structure has changed significantly
+    # This prevents show_context_usage from reporting the small token count of the summarization call
+    llm_client.last_input_tokens = 0
+
     # Calculate new token count
     new_tokens = sum(estimate_message_tokens(m) for m in new_history)
     reduction_pct = int((1 - new_tokens / current_tokens) * 100) if current_tokens > 0 else 0
