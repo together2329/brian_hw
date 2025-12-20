@@ -294,43 +294,64 @@ def check_plan_status():
     except Exception as e:
         return f"Error checking plan status: {e}"
 
-def grep_file(pattern, path, context_lines=2):
+def grep_file(pattern, path, context_lines=2, recursive=False):
     """
     Searches for a pattern in a file and returns matching lines with context.
     Args:
         pattern: Regular expression pattern to search for
-        path: Path to the file
+        path: Path to the file or directory
         context_lines: Number of lines to show before and after each match (default: 2)
+        recursive: If True, search recursively in subdirectories (default: False)
     Returns:
         Formatted output with line numbers and context
     """
     import re
     import glob
+    import os
     try:
-        # Check for glob pattern
-        if any(char in path for char in ['*', '?', '[', ']']):
+        # Check for glob pattern or recursive directory search
+        is_glob = any(char in path for char in ['*', '?', '[', ']'])
+        
+        # If recursive and path is a directory (and not already a glob), append wildcard
+        if recursive and not is_glob and os.path.isdir(path):
+            path = os.path.join(path, '**', '*')
+            is_glob = True
+
+        if is_glob or recursive:
             files = glob.glob(path, recursive=True)
             if not files:
-                return f"No files found matching glob pattern '{path}'"
+                return f"No files found matching pattern '{path}'"
             
             # Limit number of files to prevent huge output
-            if len(files) > 20:
-                 return f"Error: Pattern '{path}' matches {len(files)} files. Please refine to match fewer than 20 items."
+            # If recursive, we might check many files, but only show matches.
+            # But we still want to limit HOW MANY matching files we process to avoid timeouts
+            # Let's verify file count first
+            if len(files) > 1000: # Soft limit for checking
+                return f"Error: Pattern matches {len(files)} files. Too many to search."
             
             combined_results = []
-            files_with_matches = 0
+            files_processed = 0
+            stats_checked = 0
             
             for file_path in sorted(files):
                 if os.path.isdir(file_path):
                     continue
-                    
-                match_output = grep_file(pattern, file_path, context_lines)
+                
+                stats_checked += 1
+                # When using recursive search, context logic is the same
+                match_output = grep_file(pattern, file_path, context_lines, recursive=False)
+                
                 if not match_output.startswith("No matches found") and not match_output.startswith("Error"):
                     combined_results.append(f"=== Matches in {file_path} ===\n{match_output}\n")
-                    files_with_matches += 1
-            
+                    files_processed += 1
+                
+                # Stop if we found too many matching files
+                if files_processed >= 20:
+                     combined_results.append(f"... (Stopped after finding matches in 20 files) ...")
+                     break
+
             if not combined_results:
-                return f"No matches found for pattern '{pattern}' in {len(files)} files matching '{path}'"
+                return f"No matches found for pattern '{pattern}' in {stats_checked} files searched."
             
             return "\n".join(combined_results)
 

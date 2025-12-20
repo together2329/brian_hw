@@ -1054,6 +1054,11 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         "Action: rag_search(query=\"axi_awready\", categories=\"verilog\", limit=5)",
         "Observation: Found 5 results... pcie_msg_receiver.v (L245-245) Score: 0.85",
         "",
+        "CRITICAL - ANTI-HALLUCINATION & NAVIGATION:",
+        "1. NO PREDICTION: If a tool fails (e.g., 'No files found'), DO NOT pretend to have the result. DO NOT invent analysis results.",
+        "2. ADAPTIVE NAVIGATION: If a target file is missing, automatically search parent directories ('list_dir(\"..\")') or use broader patterns.",
+        "3. VERIFICATION: You must successfully READ a file before analyzing it. Never analyze a file you haven't seen.",
+        "",
     ])
 
     # Try to load action guide
