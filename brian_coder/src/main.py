@@ -27,6 +27,8 @@ sys.path.insert(0, _project_root)  # brian_coder directory (for lib, core, agent
 import config
 from core import tools
 from core.action_dependency import ActionDependencyAnalyzer, FileConflictDetector, ActionBatch
+from core.slash_commands import get_registry as get_slash_command_registry
+from core.context_tracker import get_tracker as get_context_tracker
 import llm_client
 from lib.display import Color
 from llm_client import chat_completion_stream, call_llm_raw, estimate_message_tokens, get_actual_tokens
@@ -242,7 +244,10 @@ def parse_all_actions(text):
     
     actions = []
     start_pos = 0
-    pattern = r"Action:\s*(\w+)\("
+    # Support "Action:", "**Action:**", etc. 
+    # Handle optional markdown formatting (bold **, italic _, code `) around tool name
+    # e.g., Action: `read_file`(...) or **Action**: **read_file**(...)
+    pattern = r"(?:\*\*|__)?Action(?:\*\*|__)?::*\s*[`*_]*\s*(\w+)\s*[`*_]*\s*\("
     
     if config.DEBUG_MODE:
         print(f"[DEBUG] parse_all_actions input length: {len(text)}")
@@ -2424,8 +2429,15 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             print(Color.system(f"[FLOW]   Time: {llm_elapsed:.2f}s | Length: {response_len} chars (~{response_tokens_est} tokens)"))
             print(Color.system(f"[FLOW]   Parsed: Thought:{has_thought} Action:{has_action}"))
 
-        # Add assistant response to history
-        messages.append({"role": "assistant", "content": collected_content})
+        # Add assistant response to history with token metadata
+        assistant_msg = {"role": "assistant", "content": collected_content}
+
+        # Attach actual token usage from API if available
+        usage = llm_client.get_last_usage()
+        if usage:
+            assistant_msg["_tokens"] = usage  # Store as metadata
+
+        messages.append(assistant_msg)
 
         # Parse TodoWrite (Phase 2 - Claude Code Style)
         if todo_tracker is not None:
@@ -2664,6 +2676,22 @@ def chat_loop():
             {"role": "system", "content": build_system_prompt()}
         ]
 
+    # Initialize context tracker
+    max_tokens = config.MAX_CONTEXT_CHARS // 4  # Convert chars to tokens
+    context_tracker = get_context_tracker(max_tokens=max_tokens)
+
+    # Update tracker with initial context
+    # Note: System message includes base prompt + tools + memory + graph context
+    if messages and messages[0].get("role") == "system":
+        context_tracker.update_system_prompt(messages[0]["content"])
+
+    # Tools and memory are included in system message, so set to 0 to avoid double counting
+    context_tracker.update_tools("")
+    context_tracker.update_memory({})
+
+    # Update messages tokens (exclude system message to avoid double counting)
+    context_tracker.update_messages(messages, exclude_system=True)
+
     print(Color.BOLD + Color.CYAN + f"Brian Coder Agent (Zero-Dependency) initialized." + Color.RESET)
     print(Color.system(f"Connecting to: {config.BASE_URL}"))
     print(Color.system(f"Rate Limit: {config.RATE_LIMIT_DELAY}s | Max Iterations: {config.MAX_ITERATIONS}"))
@@ -2705,7 +2733,12 @@ def chat_loop():
 
 
     print(Color.system(f"Deep Think: {'Enabled' if config.ENABLE_DEEP_THINK else 'Disabled'}"))
-    print(Color.info("\nType 'exit' or 'quit' to stop.\n"))
+
+    # Initialize slash command registry
+    slash_registry = get_slash_command_registry()
+
+    print(Color.info("\nType 'exit' or 'quit' to stop."))
+    print(Color.info("Type /help for available slash commands.\n"))
 
 
     while True:
@@ -2713,6 +2746,79 @@ def chat_loop():
             user_input = input(Color.user("You: ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
                 break
+
+            # Handle slash commands
+            if user_input.startswith('/'):
+                # Update context tracker with current state before executing /context
+                if user_input.strip() == '/context':
+                    # Update with latest messages
+                    if messages and messages[0].get("role") == "system":
+                        context_tracker.update_system_prompt(messages[0]["content"])
+                    context_tracker.update_messages(messages, exclude_system=True)
+
+                result = slash_registry.execute(user_input)
+
+                if result:
+                    # Check for special commands
+                    if result == "CLEAR_HISTORY":
+                        # Clear conversation history
+                        messages = [{"role": "system", "content": build_system_prompt()}]
+
+                        # Update context tracker
+                        if messages and messages[0].get("role") == "system":
+                            context_tracker.update_system_prompt(messages[0]["content"])
+                        context_tracker.update_tools("")
+                        context_tracker.update_memory({})
+                        context_tracker.update_messages(messages, exclude_system=True)
+
+                        # Save to history
+                        save_conversation_history(messages)
+
+                        print(Color.success("\n✅ Conversation history cleared.\n"))
+                        continue
+                    elif result.startswith("COMPACT_HISTORY"):
+                        # Compact conversation with optional instructions
+                        parts = result.split(":", 1)
+                        instructions = parts[1] if len(parts) > 1 else "Summarize the conversation concisely"
+
+                        try:
+                            # Keep system message and recent messages
+                            system_msg = messages[0]
+                            recent_messages = messages[-5:] if len(messages) > 10 else messages[1:]
+                            to_summarize = messages[1:-5] if len(messages) > 10 else []
+
+                            if to_summarize:
+                                # Create summary
+                                summary_prompt = f"{instructions}\n\nMessages to summarize:\n"
+                                for msg in to_summarize:
+                                    summary_prompt += f"{msg['role']}: {msg['content'][:200]}...\n"
+
+                                summary = call_llm_raw([{"role": "user", "content": summary_prompt}])
+
+                                # Rebuild messages
+                                messages = [
+                                    system_msg,
+                                    {"role": "assistant", "content": f"[Summary of previous conversation]\n{summary}"}
+                                ] + recent_messages
+
+                                # Update context tracker
+                                if messages and messages[0].get("role") == "system":
+                                    context_tracker.update_system_prompt(messages[0]["content"])
+                                context_tracker.update_messages(messages, exclude_system=True)
+
+                                # Save to history
+                                save_conversation_history(messages)
+
+                                print(Color.success(f"\n✅ Conversation compacted. Kept {len(messages)} messages.\n"))
+                            else:
+                                print(Color.info("\n💡 Not enough messages to compact.\n"))
+                        except Exception as e:
+                            print(Color.warning(f"\n⚠️  Compaction failed: {e}\n"))
+                        continue
+                    else:
+                        # Regular command output
+                        print(result)
+                        continue
 
             # Auto-extract preferences from user input (Mem0-style)
             if memory_system is not None and config.ENABLE_MEMORY and config.ENABLE_AUTO_EXTRACT:

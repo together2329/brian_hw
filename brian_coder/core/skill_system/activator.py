@@ -146,12 +146,18 @@ class SkillActivator:
             elif keyword_lower in context_lower:
                 matches += 0.5
 
-        # Normalize by number of keywords, but cap at first 10 keywords
-        # This prevents score dilution when there are many keywords
-        effective_keyword_count = min(len(keywords), 10)
-        score = matches / effective_keyword_count
+        # Saturate score based on match count
+        # This ensures even a few strong keywords trigger activation
+        if matches >= 3:
+            score = 1.0
+        elif matches >= 2:
+            score = 0.8
+        elif matches >= 1:
+            score = 0.6
+        else:
+            score = 0.0
 
-        return min(score, 1.0)
+        return score
 
     def _file_pattern_match_score(self, file_patterns: List[str], context: str) -> float:
         """

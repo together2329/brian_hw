@@ -305,7 +305,35 @@ def grep_file(pattern, path, context_lines=2):
         Formatted output with line numbers and context
     """
     import re
+    import glob
     try:
+        # Check for glob pattern
+        if any(char in path for char in ['*', '?', '[', ']']):
+            files = glob.glob(path, recursive=True)
+            if not files:
+                return f"No files found matching glob pattern '{path}'"
+            
+            # Limit number of files to prevent huge output
+            if len(files) > 20:
+                 return f"Error: Pattern '{path}' matches {len(files)} files. Please refine to match fewer than 20 items."
+            
+            combined_results = []
+            files_with_matches = 0
+            
+            for file_path in sorted(files):
+                if os.path.isdir(file_path):
+                    continue
+                    
+                match_output = grep_file(pattern, file_path, context_lines)
+                if not match_output.startswith("No matches found") and not match_output.startswith("Error"):
+                    combined_results.append(f"=== Matches in {file_path} ===\n{match_output}\n")
+                    files_with_matches += 1
+            
+            if not combined_results:
+                return f"No matches found for pattern '{pattern}' in {len(files)} files matching '{path}'"
+            
+            return "\n".join(combined_results)
+
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
         if os.path.isdir(path):

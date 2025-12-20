@@ -1,0 +1,473 @@
+"""
+Slash Command System (Zero-Dependency)
+
+Claude Code style slash commands with readline autocomplete.
+Uses Python standard library only.
+
+Available commands:
+- /context  : Visualize token usage
+- /clear    : Clear conversation history
+- /compact  : Clear history but keep summary
+- /status   : Show system status
+- /help     : Show available commands
+"""
+
+import sys
+import os
+from typing import Callable, Optional, Any
+import readline
+
+
+class SlashCommandRegistry:
+    """
+    Slash command registry with autocomplete support.
+
+    Zero-dependency implementation using only Python standard library.
+    """
+
+    def __init__(self):
+        self.commands = {}
+        self._history_file = os.path.expanduser("~/.brian_coder_history")
+        self._register_builtin_commands()
+        self._setup_readline()
+
+    def _setup_readline(self):
+        """Setup readline for autocomplete and history"""
+        # Load command history
+        if os.path.exists(self._history_file):
+            try:
+                readline.read_history_file(self._history_file)
+            except:
+                pass
+
+        # Set history size
+        readline.set_history_length(1000)
+
+        # Setup autocomplete
+        readline.set_completer(self._completer)
+
+        # Try both GNU readline and libedit (macOS) syntax
+        try:
+            # GNU readline
+            readline.parse_and_bind("tab: complete")
+        except:
+            try:
+                # libedit (macOS default)
+                readline.parse_and_bind("bind ^I rl_complete")
+            except:
+                # Fallback: just set the completer without binding
+                pass
+
+        # Use delimiters that don't include '/'
+        readline.set_completer_delims(' \t\n')
+
+    def save_history(self):
+        """Save command history to file"""
+        try:
+            readline.write_history_file(self._history_file)
+        except:
+            pass
+
+    def _completer(self, text: str, state: int) -> Optional[str]:
+        """
+        Readline completer function.
+
+        Args:
+            text: Current text being completed
+            state: Completion index (0, 1, 2, ...)
+
+        Returns:
+            Completion option or None
+        """
+        if text.startswith('/'):
+            # Slash command completion
+            options = [cmd for cmd in self.get_completions()
+                      if cmd.startswith(text)]
+        else:
+            # No completion for regular text
+            options = []
+
+        if state < len(options):
+            return options[state]
+        return None
+
+    def register(self,
+                 name: str,
+                 handler: Callable[[str], Any],
+                 description: str,
+                 aliases: list[str] = None):
+        """
+        Register a slash command.
+
+        Args:
+            name: Command name (without /)
+            handler: Function to handle the command
+            description: Help text for the command
+            aliases: Alternative names for the command
+        """
+        self.commands[name] = {
+            'handler': handler,
+            'description': description,
+            'aliases': aliases or []
+        }
+
+    def _register_builtin_commands(self):
+        """Register built-in commands"""
+        self.register('context', self._cmd_context,
+                     'Visualize current context usage as a colored grid')
+
+        self.register('clear', self._cmd_clear,
+                     'Clear conversation history and free up context')
+
+        self.register('compact', self._cmd_compact,
+                     'Clear conversation history but keep a summary in context')
+
+        self.register('status', self._cmd_status,
+                     'Show Brian Coder status including version, model, and tools')
+
+        self.register('help', self._cmd_help,
+                     'Show available commands',
+                     aliases=['h', '?'])
+
+        self.register('list', self._cmd_list,
+                     'Quick list of all commands (TAB alternative)',
+                     aliases=['ls'])
+
+        self.register('tools', self._cmd_tools,
+                     'Show available tools and their status')
+
+        self.register('config', self._cmd_config,
+                     'Show current configuration')
+
+    def _cmd_context(self, args: str) -> str:
+        """Visualize context usage"""
+        try:
+            # Get actual token counts from context tracker
+            import config
+            import sys
+            # Import llm_client from the right location
+            if 'llm_client' in sys.modules:
+                llm_client = sys.modules['llm_client']
+            else:
+                from src import llm_client
+
+            from core.context_tracker import get_tracker
+
+            tracker = get_tracker()
+            model_name = config.MODEL_NAME
+
+            # Get actual token count from last API call
+            actual_total = llm_client.last_input_tokens if llm_client.last_input_tokens > 0 else None
+
+            # Debug output
+            debug_lines = []
+            if args.strip() == "debug":
+                debug_lines.append("\n=== DEBUG INFO ===")
+                debug_lines.append(f"  llm_client.last_input_tokens: {llm_client.last_input_tokens:,}")
+                debug_lines.append(f"  actual_total: {actual_total:,}" if actual_total else f"  actual_total: None")
+                debug_lines.append(f"  tracker.system_prompt_tokens: {tracker.system_prompt_tokens:,}")
+                debug_lines.append(f"  tracker.messages_tokens: {tracker.messages_tokens:,}")
+
+                # Message stats
+                if hasattr(tracker, '_message_stats'):
+                    stats = tracker._message_stats
+                    debug_lines.append(f"  message_stats:")
+                    debug_lines.append(f"    total_messages: {stats.get('total_messages', 0)}")
+                    debug_lines.append(f"    with_actual_tokens: {stats.get('with_actual_tokens', 0)}")
+                    debug_lines.append(f"    with_estimated_tokens: {stats.get('with_estimated_tokens', 0)}")
+                    debug_lines.append(f"    assistant_messages: {stats.get('assistant_messages', 0)}")
+                    debug_lines.append(f"    assistant_with_actual: {stats.get('assistant_with_actual', 0)}")
+
+                # Actual percentage (based on assistant messages only)
+                actual_pct = getattr(tracker, 'actual_percentage', 0)
+                debug_lines.append(f"  actual_percentage (assistant only): {actual_pct:.1f}%")
+                debug_lines.append(f"  will_use_saved_tokens: {actual_pct >= 50.0}")
+
+                debug_lines.append(f"  config.MAX_CONTEXT_CHARS: {config.MAX_CONTEXT_CHARS:,}")
+                debug_lines.append(f"  tracker.max_tokens: {tracker.max_tokens:,}")
+                debug_lines.append("==================\n")
+
+            # Generate Claude Code style visualization
+            output = tracker.visualize(model_name, actual_total=actual_total)
+
+            # Add debug info if requested
+            if debug_lines:
+                output = "".join(debug_lines) + output
+
+            # Add tips at the end
+            output += "\n💡 Tip: Use /clear to free up context"
+            output += "\n💡 Tip: Use /compact to summarize old messages"
+            output += "\n💡 Tip: Use /context debug for detailed info\n"
+
+            return output
+        except Exception as e:
+            import traceback
+            return f"Error getting context info: {e}\n{traceback.format_exc()}"
+
+    def _cmd_clear(self, args: str) -> str:
+        """Clear conversation history"""
+        # Return special signal that main.py will handle
+        # Main.py will:
+        # 1. Reset messages to just system prompt
+        # 2. Update context tracker
+        # 3. Save empty conversation to history file
+        return "CLEAR_HISTORY"  # Special signal for main loop
+
+    def _cmd_compact(self, args: str) -> str:
+        """Compact conversation with optional instructions"""
+        # Return special signal that main.py will handle
+        # Main.py will:
+        # 1. Summarize old messages (keeping recent 5)
+        # 2. Rebuild message list with summary
+        # 3. Update context tracker
+        # 4. Save compacted conversation to history file
+        if args.strip():
+            return f"COMPACT_HISTORY:{args.strip()}"
+        return "COMPACT_HISTORY"
+
+    def _cmd_status(self, args: str) -> str:
+        """Show system status"""
+        try:
+            import config
+            from core.simple_linter import SimpleLinter
+
+            output = []
+            output.append("\n" + "=" * 60)
+            output.append("🤖 Brian Coder Status")
+            output.append("=" * 60)
+
+            # Model info
+            output.append("\n📡 LLM Configuration:")
+            output.append(f"  • Model: {config.MODEL_NAME}")
+            output.append(f"  • API: {config.BASE_URL}")
+            output.append(f"  • Timeout: {config.API_TIMEOUT}s")
+
+            # Features
+            output.append("\n⚡ Features:")
+            output.append(f"  • Type Validation: {'✅' if config.ENABLE_TYPE_VALIDATION else '❌'}")
+            output.append(f"  • Linting: {'✅' if config.ENABLE_LINTING else '❌'}")
+            output.append(f"  • Smart RAG: {'✅' if config.ENABLE_SMART_RAG else '❌'}")
+            output.append(f"  • Memory System: {'✅' if config.ENABLE_MEMORY else '❌'}")
+            output.append(f"  • Skill System: {'✅' if config.ENABLE_SKILL_SYSTEM else '❌'}")
+            output.append(f"  • Sub-Agents: {'✅' if config.ENABLE_SUB_AGENTS else '❌'}")
+
+            # Linter tools
+            output.append("\n🔧 Linting Tools:")
+            linter = SimpleLinter()
+            for line in linter.get_available_tools_info().split('\n'):
+                if line.strip():
+                    output.append(f"  {line}")
+
+            # Working directory
+            output.append(f"\n📁 Working Directory:")
+            output.append(f"  • {os.getcwd()}")
+
+            output.append("=" * 60)
+
+            return "\n".join(output)
+        except Exception as e:
+            return f"Error getting status: {e}"
+
+    def _cmd_help(self, args: str) -> str:
+        """Show help for all commands"""
+        output = []
+        output.append("\n" + "=" * 60)
+        output.append("Available Slash Commands")
+        output.append("=" * 60)
+
+        # Sort commands
+        for name in sorted(self.commands.keys()):
+            cmd = self.commands[name]
+            aliases = f" ({', '.join('/' + a for a in cmd['aliases'])})" if cmd['aliases'] else ""
+            output.append(f"\n  /{name:<12} {cmd['description']}{aliases}")
+
+        output.append("\n" + "=" * 60)
+        output.append("💡 Tip: Press TAB to autocomplete commands")
+        output.append("💡 TAB이 안 되면: /? 로 이 목록 다시 보기")
+        output.append("=" * 60)
+
+        return "\n".join(output)
+
+    def _cmd_list(self, args: str) -> str:
+        """Quick command list (alternative to TAB)"""
+        commands = sorted(self.get_completions())
+        return "Available: " + " ".join(commands)
+
+    def _cmd_tools(self, args: str) -> str:
+        """Show available tools"""
+        try:
+            from core.tools import AVAILABLE_TOOLS
+
+            output = []
+            output.append("\n" + "=" * 60)
+            output.append("Available Tools")
+            output.append("=" * 60)
+
+            # Group tools by category
+            categories = {
+                "File Operations": ["read_file", "write_file", "list_dir"],
+                "Search & Navigation": ["grep_file", "read_lines", "find_files"],
+                "File Editing": ["replace_in_file", "replace_lines"],
+                "Git": ["git_status", "git_diff"],
+                "RAG": ["rag_search", "rag_index", "rag_status", "rag_explore", "rag_clear"],
+                "Verilog": [
+                    "analyze_verilog_module", "find_signal_usage",
+                    "find_module_definition", "extract_module_hierarchy"
+                ],
+                "Commands": ["run_command"],
+                "Sub-Agents": ["spawn_explore", "spawn_plan"]
+            }
+
+            for category, tools in categories.items():
+                available = [t for t in tools if t in AVAILABLE_TOOLS]
+                if available:
+                    output.append(f"\n📦 {category}:")
+                    for tool in available:
+                        output.append(f"  • {tool}")
+
+            output.append(f"\n✅ Total: {len(AVAILABLE_TOOLS)} tools")
+            output.append("=" * 60)
+
+            return "\n".join(output)
+        except Exception as e:
+            return f"Error listing tools: {e}"
+
+    def _cmd_config(self, args: str) -> str:
+        """Show current configuration"""
+        try:
+            import config
+
+            output = []
+            output.append("\n" + "=" * 60)
+            output.append("⚙️  Configuration")
+            output.append("=" * 60)
+
+            # Key settings
+            settings = {
+                "LLM": {
+                    "MODEL_NAME": config.MODEL_NAME,
+                    "BASE_URL": config.BASE_URL,
+                    "API_TIMEOUT": config.API_TIMEOUT,
+                    "MAX_ITERATIONS": config.MAX_ITERATIONS,
+                },
+                "Features": {
+                    "ENABLE_TYPE_VALIDATION": config.ENABLE_TYPE_VALIDATION,
+                    "ENABLE_LINTING": config.ENABLE_LINTING,
+                    "ENABLE_SMART_RAG": config.ENABLE_SMART_RAG,
+                    "ENABLE_MEMORY": config.ENABLE_MEMORY,
+                    "ENABLE_SKILL_SYSTEM": config.ENABLE_SKILL_SYSTEM,
+                },
+                "Performance": {
+                    "RATE_LIMIT_DELAY": config.RATE_LIMIT_DELAY,
+                    "REACT_MAX_WORKERS": config.REACT_MAX_WORKERS,
+                    "ENABLE_REACT_PARALLEL": config.ENABLE_REACT_PARALLEL,
+                }
+            }
+
+            for section, items in settings.items():
+                output.append(f"\n{section}:")
+                for key, value in items.items():
+                    output.append(f"  • {key}: {value}")
+
+            output.append("\n" + "=" * 60)
+            output.append("💡 Edit ~/.brian_coder/.config to change settings")
+            output.append("=" * 60)
+
+            return "\n".join(output)
+        except Exception as e:
+            return f"Error loading config: {e}"
+
+    def execute(self, command_line: str) -> Optional[str]:
+        """
+        Execute a slash command.
+
+        Args:
+            command_line: Full command line (e.g., "/help" or "/compact summary")
+
+        Returns:
+            Command output or None if not a command
+        """
+        if not command_line.startswith('/'):
+            return None
+
+        # Parse command
+        parts = command_line[1:].split(maxsplit=1)
+        if not parts:
+            return "Empty command. Type /help for available commands."
+
+        cmd_name = parts[0]
+        args = parts[1] if len(parts) > 1 else ""
+
+        # Find command (including aliases)
+        handler = None
+        for name, cmd in self.commands.items():
+            if cmd_name == name or cmd_name in cmd.get('aliases', []):
+                handler = cmd['handler']
+                break
+
+        if not handler:
+            return f"❌ Unknown command: /{cmd_name}\n💡 Type /help for available commands"
+
+        try:
+            return handler(args)
+        except Exception as e:
+            return f"❌ Error executing /{cmd_name}: {e}"
+
+    def get_completions(self) -> list[str]:
+        """Get list of all command completions"""
+        completions = []
+        for name, cmd in self.commands.items():
+            completions.append(f"/{name}")
+            for alias in cmd.get('aliases', []):
+                completions.append(f"/{alias}")
+        return sorted(completions)
+
+    def is_command(self, text: str) -> bool:
+        """Check if text is a slash command"""
+        return text.startswith('/')
+
+
+# Global registry instance
+_registry = None
+
+def get_registry() -> SlashCommandRegistry:
+    """Get global slash command registry"""
+    global _registry
+    if _registry is None:
+        _registry = SlashCommandRegistry()
+    return _registry
+
+
+# ============================================================
+# Example Usage
+# ============================================================
+
+if __name__ == "__main__":
+    # Test commands
+    registry = get_registry()
+
+    print("=" * 60)
+    print("Slash Command System Test")
+    print("=" * 60)
+
+    # Test each command
+    commands = [
+        "/help",
+        "/status",
+        "/context",
+        "/tools",
+        "/config",
+        "/unknown",  # Should show error
+    ]
+
+    for cmd in commands:
+        print(f"\n>>> {cmd}")
+        result = registry.execute(cmd)
+        if result:
+            print(result)
+
+    # Test autocomplete
+    print("\n" + "=" * 60)
+    print("Autocomplete Test")
+    print("=" * 60)
+    print("Available completions:", registry.get_completions())

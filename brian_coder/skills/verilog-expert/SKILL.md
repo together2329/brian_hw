@@ -3,7 +3,7 @@ name: verilog-expert
 description: Verilog RTL analysis and debugging expert with deep knowledge of hardware design patterns
 priority: 90
 activation:
-  keywords: [verilog, rtl, synthesize, timing, signal, module, always, reg, wire, posedge, negedge, fsm, state, clocking]
+  keywords: [verilog, rtl, synthesize, timing, signal, module, always, reg, wire, posedge, negedge, fsm, state, clocking, "신호", "모듈", "생성", "분석", "설계", "검증", "fsm", "state machine"]
   file_patterns: ["*.v", "*.sv"]
   auto_detect: true
 requires_tools:

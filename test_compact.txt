@@ -1,0 +1,14 @@
+Hello
+What is Verilog?
+How do I write a counter?
+What is a state machine?
+Can you explain FSM?
+Tell me about always blocks
+What is a testbench?
+How do I simulate?
+What is iverilog?
+How do I debug?
+/context debug
+/compact
+/context debug
+exit

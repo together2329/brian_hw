@@ -3,7 +3,7 @@ name: protocol-spec-expert
 description: PCIe, AMBA, and protocol specification expert with deep knowledge of industry standards
 priority: 85
 activation:
-  keywords: [pcie, amba, axi, tlp, protocol, specification, spec, transaction, header, packet, state machine, transition, config, register, dllp, ordered set]
+  keywords: [pcie, amba, axi, tlp, protocol, specification, spec, transaction, header, packet, "state machine", transition, config, register, dllp, "ordered set", tdisp, "상태머신", "전환", "조건", "프로토콜", "스펙"]
   file_patterns: ["*.md", "*.pdf", "*.txt", "*.rst"]
   auto_detect: true
 requires_tools:

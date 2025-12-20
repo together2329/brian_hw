@@ -28,6 +28,7 @@ from display import Color
 # Structure: {"message_index": actual_token_count}
 actual_token_cache = {}
 last_input_tokens = 0  # Last reported input tokens from API
+last_output_tokens = 0  # Last reported output tokens from API
 
 def chat_completion_stream(messages, stop=None):
     """
@@ -36,7 +37,7 @@ def chat_completion_stream(messages, stop=None):
     Supports Anthropic Prompt Caching when enabled.
     Updates global actual_token_cache with real token counts from API.
     """
-    global last_input_tokens
+    global last_input_tokens, last_output_tokens
 
     # Rate limiting: Configurable delay
     if config.RATE_LIMIT_DELAY > 0:
@@ -179,6 +180,8 @@ def chat_completion_stream(messages, stop=None):
                     output_tokens = usage_info.get("output_tokens") or usage_info.get("completion_tokens", 0)
                     if input_tokens > 0:
                         last_input_tokens = input_tokens
+                    if output_tokens > 0:
+                        last_output_tokens = output_tokens
 
                     # Display actual token usage (always show for visibility)
                     if config.DEBUG_MODE:
@@ -393,6 +396,26 @@ def get_actual_tokens(messages):
 
     # Fallback to estimation
     return sum(estimate_message_tokens(m) for m in messages)
+
+
+def get_last_usage():
+    """
+    Get token usage from last API call.
+
+    Returns:
+        dict: {"input": int, "output": int, "total": int}
+              Returns None if no API call has been made yet.
+    """
+    global last_input_tokens, last_output_tokens
+
+    if last_input_tokens == 0 and last_output_tokens == 0:
+        return None
+
+    return {
+        "input": last_input_tokens,
+        "output": last_output_tokens,
+        "total": last_input_tokens + last_output_tokens
+    }
 
 
 def get_token_count_from_api(messages):

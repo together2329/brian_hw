@@ -43,6 +43,8 @@ class MessageClassifier:
 
             # Project requirements
             r'\b(requirement|spec|specification|must have)\b',
+            # Korean requirements/preferences (unicode escapes to keep source ASCII)
+            r'(?:\uBC18\uB4DC\uC2DC|\uC808\uB300|\uD574\uC57C|\uD558\uC9C0\s*\uB9C8|\uAE08\uC9C0|\uD544\uC218|\uC694\uAD6C\uC0AC\uD56D|\uC0AC\uC591|\uC2A4\uD399|\uADDC\uCE59|\uCEE8\uBCA4\uC158|\uC2A4\uD0C0\uC77C|\uD45C\uC900)',
         ]
 
         # High importance patterns (errors and solutions)
@@ -56,6 +58,9 @@ class MessageClassifier:
 
             # Important discoveries
             r'\b(found|discovered|identified)\b.*\b(root cause|solution|fix)\b',
+            # Decisions and changes
+            r'\b(decided|decision|choose|chosen|switch(?:ed)?|rename(?:d)?|deprecate(?:d)?|workaround|mitigation|root cause|rca)\b',
+            r'(?:\uACB0\uC815|\uC120\uD0DD|\uBCC0\uACBD|\uC804\uD658|\uCC44\uD0DD|\uD569\uC758|\uC6D0\uC778|\uD574\uACB0|\uC218\uC815)',
         ]
 
         # Low importance patterns (exploration and failures)
@@ -73,6 +78,12 @@ class MessageClassifier:
         self.critical_regex = [re.compile(p, re.IGNORECASE) for p in self.critical_patterns]
         self.high_regex = [re.compile(p, re.IGNORECASE) for p in self.high_patterns]
         self.low_regex = [re.compile(p, re.IGNORECASE) for p in self.low_patterns]
+        
+        # System error pattern (for protecting error logs)
+        self.error_regex = re.compile(r'\b(Error|Exception|Traceback|Fail|Failed)\b', re.IGNORECASE)
+        self.observation_regex = re.compile(r'^\s*Observation:', re.IGNORECASE)
+        self.tool_output_regex = re.compile(r'^\s*(STDOUT|STDERR):', re.IGNORECASE)
+
 
     def classify_message(self, message: Dict) -> int:
         """
@@ -87,27 +98,45 @@ class MessageClassifier:
         role = message.get("role", "")
         content = str(message.get("content", ""))
 
-        # System messages are always critical
-        if role == "system":
-            return MessageImportance.CRITICAL
-
-        # User messages are at least MEDIUM
+        # Determine base importance
+        base_importance = MessageImportance.LOW
+        is_observation = False
         if role == "user":
-            base_importance = MessageImportance.MEDIUM
+            is_observation = bool(self.observation_regex.match(content)) or bool(self.tool_output_regex.match(content))
+        
+        # 1. System Messages (Refined Heuristic)
+        if role == "system":
+            # Check for explicit Error/Traceback patterns first (HIGH)
+            if self.error_regex.search(content):
+                base_importance = MessageImportance.HIGH
+            # Keep short status messages (HIGH)
+            elif len(content) < 1000:
+                base_importance = MessageImportance.HIGH
+            else:
+                # Large non-error outputs (LOW)
+                base_importance = MessageImportance.LOW
+                
+        # 2. User Messages (MEDIUM)
+        elif role == "user":
+            base_importance = MessageImportance.LOW if is_observation else MessageImportance.MEDIUM
+            
+        # 3. Assistant Messages (MEDIUM) matches default logic
         else:
-            base_importance = MessageImportance.LOW
+            base_importance = MessageImportance.MEDIUM
 
-        # Check critical patterns
-        for pattern in self.critical_regex:
-            if pattern.search(content):
-                return MessageImportance.CRITICAL
+        # Check critical patterns (Only for User/Assistant, avoid System tool outputs matching 'spec')
+        if role != "system":
+            for pattern in self.critical_regex:
+                if pattern.search(content):
+                    return MessageImportance.CRITICAL
 
-        # Check high patterns
+        # Check high patterns (Errors/Success) - Apply to all (including system for errors)
         for pattern in self.high_regex:
             if pattern.search(content):
                 return max(base_importance, MessageImportance.HIGH)
 
         # Check low patterns (only for assistant messages)
+        # We don't check low patterns for system messages, they default to LOW anyway
         if role == "assistant":
             for pattern in self.low_regex:
                 if pattern.search(content):
@@ -137,18 +166,22 @@ class MessageClassifier:
             keep_recent: Number of recent messages to always keep
 
         Returns:
-            Dict with keys: "critical", "high", "medium", "low", "recent"
+            Dict with keys: "system", "critical", "high", "medium", "low", "recent"
         """
-        # Separate system messages
-        system_msgs = [m for m in messages if m.get("role") == "system"]
-        regular_msgs = [m for m in messages if m.get("role") != "system"]
+        # Preserve initial system messages (system prompt) as a separate bucket.
+        system_prefix = []
+        idx = 0
+        while idx < len(messages) and messages[idx].get("role") == "system":
+            system_prefix.append(messages[idx])
+            idx += 1
+        remaining = messages[idx:]
 
         # Keep recent messages separate
-        if len(regular_msgs) > keep_recent:
-            recent_msgs = regular_msgs[-keep_recent:]
-            old_msgs = regular_msgs[:-keep_recent]
+        if len(remaining) > keep_recent:
+            recent_msgs = remaining[-keep_recent:]
+            old_msgs = remaining[:-keep_recent]
         else:
-            recent_msgs = regular_msgs
+            recent_msgs = remaining
             old_msgs = []
 
         # Classify old messages
@@ -161,7 +194,7 @@ class MessageClassifier:
         low = [m for m, imp in classified if imp == MessageImportance.LOW]
 
         return {
-            "system": system_msgs,
+            "system": system_prefix,
             "critical": critical,
             "high": high,
             "medium": medium,

@@ -1,0 +1,5 @@
+Hello, can you help me with Verilog?
+/context debug
+What is a state machine?
+/context debug
+exit
