@@ -78,6 +78,13 @@ DEBUG_RAG = os.getenv("DEBUG_RAG", "false").lower() in ("true", "1", "yes")
 # Full Prompt Debug - show complete input messages to LLM
 FULL_PROMPT_DEBUG = os.getenv("FULL_PROMPT_DEBUG", "false").lower() in ("true", "1", "yes")
 
+# Limit the number of messages shown in Full Prompt Debug
+# If True, only shows the last N messages
+FULL_PROMPT_DEBUG_LIMIT_ENABLED = os.getenv("FULL_PROMPT_DEBUG_LIMIT_ENABLED", "true").lower() in ("true", "1", "yes")
+
+# Number of recent messages to show when limiting is enabled
+FULL_PROMPT_DEBUG_LIMIT_COUNT = int(os.getenv("FULL_PROMPT_DEBUG_LIMIT_COUNT", "5"))
+
 # Tool Description System (OpenCode Integration)
 # When enabled, loads detailed tool descriptions from .txt files
 ENABLE_TOOL_DESCRIPTIONS = os.getenv("ENABLE_TOOL_DESCRIPTIONS", "true").lower() in ("true", "1", "yes")

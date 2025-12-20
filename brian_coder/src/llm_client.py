@@ -102,10 +102,25 @@ def chat_completion_stream(messages, stop=None):
             print(Color.info("\n" + "="*60))
             print(Color.info("[FULL PROMPT DEBUG] Complete input messages:"))
             print(Color.info("="*60))
-            for i, msg in enumerate(processed_messages):
+            msgs_to_show = processed_messages
+            start_index = 0
+
+            # Check for limit configuration
+            if getattr(config, 'FULL_PROMPT_DEBUG_LIMIT_ENABLED', True):
+                limit_count = getattr(config, 'FULL_PROMPT_DEBUG_LIMIT_COUNT', 5)
+                total_msgs = len(processed_messages)
+                
+                if total_msgs > limit_count:
+                    start_index = total_msgs - limit_count
+                    if start_index > 0:
+                        print(Color.info(f"\n... [Skipping {start_index} earlier messages (showing last {limit_count})] ..."))
+                        msgs_to_show = processed_messages[start_index:]
+
+            for i, msg in enumerate(msgs_to_show):
+                real_idx = start_index + i + 1
                 role = msg.get('role', 'unknown')
                 content = str(msg.get('content', ''))
-                print(Color.info(f"\n--- Message {i+1} [{role}] ---"))
+                print(Color.info(f"\n--- Message {real_idx} [{role}] ---"))
                 print(content[:5000] if len(content) > 5000 else content)
                 if len(content) > 5000:
                     print(Color.info(f"... [truncated, total {len(content)} chars]"))
