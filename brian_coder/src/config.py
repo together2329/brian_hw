@@ -83,6 +83,23 @@ FULL_PROMPT_DEBUG = os.getenv("FULL_PROMPT_DEBUG", "false").lower() in ("true", 
 ENABLE_TOOL_DESCRIPTIONS = os.getenv("ENABLE_TOOL_DESCRIPTIONS", "true").lower() in ("true", "1", "yes")
 
 # ============================================================
+# Type Validation & Linting (Zero-Dependency Features)
+# ============================================================
+# Enable parameter type validation (always available - uses standard library only)
+# Validates tool parameters before execution using type hints
+ENABLE_TYPE_VALIDATION = os.getenv("ENABLE_TYPE_VALIDATION", "true").lower() in ("true", "1", "yes")
+
+# Enable automatic linting after file writes (optional - uses external tools if available)
+# Checks Python files with compile() + pyflakes, Verilog files with iverilog
+# Falls back gracefully if external tools not installed
+ENABLE_LINTING = os.getenv("ENABLE_LINTING", "true").lower() in ("true", "1", "yes")
+
+# Enable LSP integration (optional - requires LSP server installed)
+# Uses pylsp, pyright, or jedi-language-server for advanced diagnostics
+# Gracefully disabled if no LSP server found
+ENABLE_LSP = os.getenv("ENABLE_LSP", "false").lower() in ("true", "1", "yes")
+
+# ============================================================
 # Skill System Configuration (Claude Code Style)
 # ============================================================
 # Enable/Disable skill system (plugin-based domain expertise)

@@ -56,15 +56,51 @@ def read_file(path):
     except Exception as e:
         return f"Error reading file: {e}"
 
-def write_file(path, content):
-    """Writes content to a file. Overwrites if exists."""
+def write_file(path: str, content: str) -> str:
+    """
+    Writes content to a file. Overwrites if exists.
+
+    Args:
+        path: File path to write to
+        content: Content to write
+
+    Returns:
+        Success message with optional lint warnings
+    """
+    # Import config
+    try:
+        import config
+        ENABLE_LINTING = config.ENABLE_LINTING
+    except:
+        ENABLE_LINTING = True  # Default to enabled
+
     try:
         dir_name = os.path.dirname(path)
         if dir_name:
             os.makedirs(dir_name, exist_ok=True)
         with open(path, 'w', encoding='utf-8') as f:
             f.write(content)
-        return f"Successfully wrote to '{path}'."
+
+        result = f"Successfully wrote to '{path}'."
+
+        # Optional linting
+        if ENABLE_LINTING:
+            try:
+                from core.simple_linter import SimpleLinter
+                linter = SimpleLinter()
+
+                # Check file
+                errors = linter.check_file(path)
+
+                if errors:
+                    # Format errors
+                    error_msg = linter.format_errors(errors, max_errors=5)
+                    result += f"\n\n⚠️  Linting results:\n{error_msg}\n"
+            except Exception:
+                # Linting failed, but file was written successfully
+                pass
+
+        return result
     except Exception as e:
         return f"Error writing file: {e}"
 
