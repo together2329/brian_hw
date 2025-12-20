@@ -467,7 +467,39 @@ def find_files(pattern, directory=".", max_depth=None, path=None):
                     matches.append(rel_path)
         
         if not matches:
-            return f"No files matching '{pattern}' found in {directory}"
+            # Smart Fallback: Check parent directory (1 level up)
+            # Only if directory is relative or not root
+            msg = f"No files matching '{pattern}' found in {directory}"
+            
+            try:
+                parent_dir = os.path.join(directory, "..")
+                # Normalize to avoid scanning same dir if directory was "."
+                if os.path.abspath(directory) != os.path.abspath(parent_dir) and os.path.exists(parent_dir):
+                    parent_matches = []
+                    # Shallow search in parent (depth 2 to avoid huge scans)
+                    for root, dirs, files in os.walk(parent_dir):
+                        depth = root[len(parent_dir):].count(os.sep)
+                        if depth > 2:
+                            dirs.clear()
+                            continue
+                        
+                        for filename in files:
+                            if fnmatch.fnmatch(filename, pattern):
+                                full_path = os.path.join(root, filename)
+                                rel_path = os.path.relpath(full_path, directory) # Relative to ORIGINAL search dir (so starts with ../)
+                                parent_matches.append(rel_path)
+                                
+                    if parent_matches:
+                        msg += f"\n\n💡 Hint: Found {len(parent_matches)} matching file(s) in parent directory ('..'):\n"
+                        # Limit hint output
+                        limit = 10
+                        msg += "\n".join(f"  - {m}" for m in sorted(parent_matches)[:limit])
+                        if len(parent_matches) > limit:
+                            msg += f"\n  ...and {len(parent_matches)-limit} more"
+            except Exception:
+                pass # Fallback shouldn't break the original error
+                
+            return msg
         
         result = f"Found {len(matches)} file(s) matching '{pattern}':\n"
         result += "\n".join(f"  - {m}" for m in sorted(matches))

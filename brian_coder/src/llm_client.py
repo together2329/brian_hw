@@ -116,14 +116,45 @@ def chat_completion_stream(messages, stop=None):
                         print(Color.info(f"\n... [Skipping {start_index} earlier messages (showing last {limit_count})] ..."))
                         msgs_to_show = processed_messages[start_index:]
 
+            # Check for line limit configuration
+            line_limit_enabled = getattr(config, 'FULL_PROMPT_DEBUG_LINE_LIMIT_ENABLED', True)
+            line_limit_count = getattr(config, 'FULL_PROMPT_DEBUG_LINE_LIMIT_COUNT', 20)
+
             for i, msg in enumerate(msgs_to_show):
                 real_idx = start_index + i + 1
                 role = msg.get('role', 'unknown')
                 content = str(msg.get('content', ''))
+                
                 print(Color.info(f"\n--- Message {real_idx} [{role}] ---"))
-                print(content[:5000] if len(content) > 5000 else content)
-                if len(content) > 5000:
-                    print(Color.info(f"... [truncated, total {len(content)} chars]"))
+                
+                # Colorize Action and Thought in debug output using regex for potential multi-matches
+                import re
+                
+                # Colors
+                CYAN = "\033[96m"
+                YELLOW = "\033[93m" 
+                RESET = "\033[0m"
+
+                colored_lines = []
+                for line in lines[:line_limit_count] if line_limit_enabled and len(lines) > line_limit_count else lines:
+                    # Highlight "Action:"
+                    line = re.sub(r'(Action:)', YELLOW + r'\1' + RESET, line)
+                    # Highlight "Thought:"
+                    line = re.sub(r'(Thought:)', CYAN + r'\1' + RESET, line)
+                    colored_lines.append(line)
+                
+                if line_limit_enabled and len(lines) > line_limit_count:
+                    # Print first N lines and truncation notice
+                    print('\n'.join(colored_lines))
+                    print(Color.info(f"... [truncated, {len(lines) - line_limit_count} lines hidden (total {len(lines)} lines)]"))
+                else:
+                    # Default large message handling (fallback to char truncation)
+                    content_to_print = '\n'.join(colored_lines)
+                    if len(content) > 5000:
+                        print(content_to_print[:5000])
+                        print(Color.info(f"... [truncated, total {len(content)} chars]"))
+                    else:
+                        print(content_to_print)
             print(Color.info("="*60 + "\n"))
         print()
 

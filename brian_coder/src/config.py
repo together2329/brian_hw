@@ -85,6 +85,12 @@ FULL_PROMPT_DEBUG_LIMIT_ENABLED = os.getenv("FULL_PROMPT_DEBUG_LIMIT_ENABLED", "
 # Number of recent messages to show when limiting is enabled
 FULL_PROMPT_DEBUG_LIMIT_COUNT = int(os.getenv("FULL_PROMPT_DEBUG_LIMIT_COUNT", "5"))
 
+# Limit the number of lines shown per message in Full Prompt Debug
+FULL_PROMPT_DEBUG_LINE_LIMIT_ENABLED = os.getenv("FULL_PROMPT_DEBUG_LINE_LIMIT_ENABLED", "true").lower() in ("true", "1", "yes")
+
+# Number of lines to show per message when limiting is enabled
+FULL_PROMPT_DEBUG_LINE_LIMIT_COUNT = int(os.getenv("FULL_PROMPT_DEBUG_LINE_LIMIT_COUNT", "20"))
+
 # Tool Description System (OpenCode Integration)
 # When enabled, loads detailed tool descriptions from .txt files
 ENABLE_TOOL_DESCRIPTIONS = os.getenv("ENABLE_TOOL_DESCRIPTIONS", "true").lower() in ("true", "1", "yes")
@@ -159,9 +165,10 @@ COMPRESSION_CHUNK_SIZE = int(os.getenv("COMPRESSION_CHUNK_SIZE", "10"))
 COMPRESSION_KEEP_RECENT = int(os.getenv("COMPRESSION_KEEP_RECENT", "4"))
 
 # Enable Smart Compression (selective preservation based on importance)
+# NOTE: Default changed to "false" - using Traditional Compression for simplicity
 # When enabled, preserves critical messages (user preferences, error solutions)
 # and only summarizes less important messages
-ENABLE_SMART_COMPRESSION = os.getenv("ENABLE_SMART_COMPRESSION", "true").lower() in ("true", "1", "yes")
+ENABLE_SMART_COMPRESSION = os.getenv("ENABLE_SMART_COMPRESSION", "false").lower() in ("true", "1", "yes")
 
 # ============================================================
 # Prompt Caching Configuration

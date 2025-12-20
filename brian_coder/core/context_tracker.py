@@ -85,22 +85,37 @@ class ContextTracker:
             if is_assistant:
                 assistant_count += 1
 
-            # Use actual token count from metadata if available
-            if "_tokens" in msg:
+            # Use actual token count from metadata if available (for assistant messages)
+            if "_tokens" in msg and is_assistant:
                 # Message has actual token metadata from API
+                # CRITICAL FIX: Only use valid output tokens, not the total request tokens!
                 tokens_meta = msg["_tokens"]
-                # Use total if available, otherwise sum input + output
-                msg_tokens = tokens_meta.get("total",
-                    tokens_meta.get("input", 0) + tokens_meta.get("output", 0))
-                total_tokens += msg_tokens
-                actual_count += 1
-                if is_assistant:
+                
+                # Try to get output/completion tokens specifically
+                output_tokens = tokens_meta.get("completion_tokens", 
+                               tokens_meta.get("output_tokens", 
+                               tokens_meta.get("output", 0)))
+                
+                if output_tokens > 0:
+                    msg_tokens = output_tokens
+                    total_tokens += msg_tokens
+                    actual_count += 1
                     assistant_with_actual += 1
+                else:
+                    # Fallback if metadata doesn't have clear output count
+                    # Estimate based on content
+                    content = str(msg.get("content", ""))
+                    msg_tokens = len(content) // 4
+                    total_tokens += msg_tokens
+                    estimated_count += 1
             else:
-                # Fallback to estimation
-                msg_tokens = estimate_message_tokens(msg)
+                 # Fallback for user/system messages or assistant without metadata
+                 # Estimate based on content
+                content = str(msg.get("content", ""))
+                msg_tokens = len(content) // 4
                 total_tokens += msg_tokens
                 estimated_count += 1
+
 
         self.messages_tokens = total_tokens
         self.message_count = len(msg_list)  # Store count for display

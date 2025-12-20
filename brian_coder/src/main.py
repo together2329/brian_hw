@@ -7,6 +7,8 @@ import re
 import copy
 import time
 import traceback
+import subprocess
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, wait
 from datetime import datetime
 from typing import List, Tuple, Optional, Dict
@@ -174,6 +176,33 @@ message_classifier = MessageClassifier() if config.ENABLE_SMART_COMPRESSION else
 
 # LLM Client functions moved to llm_client.py
 
+# --- Compression Prompts ---
+STRUCTURED_SUMMARY_PROMPT = """Summarize the following conversation history in a structured format:
+
+## Objectives
+- List main goals or user requests (What was the user trying to achieve?)
+
+## Completed Tasks
+- Enumerate successfully finished tasks with outcomes
+
+## Key Decisions & Changes
+- Important choices made (e.g., architecture, API changes, renamed files)
+- Configuration updates
+
+## Issues Encountered
+- Errors or problems that occurred
+- How they were resolved (or if still open)
+
+## Current State
+- What's working now
+- What's pending or blocked
+
+## Important Context
+- File paths, module names, or signals mentioned
+- User preferences or conventions established
+
+Keep each section concise. Use bullet points. Omit sections with no content."""
+
 # --- 3. History Management ---
 
 def save_conversation_history(messages):
@@ -313,17 +342,40 @@ def parse_all_actions(text):
             actions.append((tool_name, args_str))
             start_pos = i  # Continue searching after this action
         else:
-            # Unmatched parentheses - skip this action and try next one
+            # Unmatched parentheses - check if we hit end of string (Truncated Output)
+            if i >= len(text):
+                if config.DEBUG_MODE:
+                    print(Color.warning(f"[System] ⚠️  Action '{tool_name}' appears truncated at end of text. Attempting auto-recovery..."))
+                
+                # Recover argument string up to current position
+                args_str = text[match_start:]
+                
+                # Check if it looks like a valid partial argument (e.g. key="val...)
+                # Heuristic: If it has at least one char, we try to use it.
+                if args_str:
+                     # Attempt to close quotes if open
+                    if in_double_quote: args_str += '"'
+                    elif in_single_quote: args_str += "'"
+                    elif in_triple_double: args_str += '"""'
+                    elif in_triple_single: args_str += "'''"
+                    
+                    actions.append((tool_name, args_str))
+                    if config.DEBUG_MODE:
+                        print(Color.warning(f"[System] 🔧 Auto-recovered truncated action: {tool_name}({args_str}...)"))
+                    break # Stop parsing as we are at end of text
+            
+            # Unmatched parentheses in middle of text - skip this action and try next one
             if config.DEBUG_MODE:
                 print(f"[DEBUG] parse_all_actions: Unmatched parentheses for {tool_name}, skipping to next Action")
             
             # Find next "Action:" and continue from there instead of breaking
-            next_action = re.search(r"Action:\s*\w+\(", text[match_start:])
-            if next_action:
-                start_pos = match_start + next_action.start()
-                continue
+            next_match = re.search(pattern, text[match_start:], re.DOTALL)
+            if next_match:
+                start_pos = match_start + next_match.start()
             else:
-                break  # No more Actions found
+                 # No more actions possible
+                start_pos = len(text)
+
             
     if config.DEBUG_MODE:
         print(f"[DEBUG] parse_all_actions found {len(actions)} actions")
@@ -1779,15 +1831,26 @@ def show_context_usage(messages, use_actual=True):
     else:
         print(color(f"[Context: {current_tokens:,}/{limit_tokens:,} tokens ({usage_pct}%) {bar} {status}]"))
 
+    # Auto-warning when context exceeds 85%
+    if usage_pct >= 85:
+        print(Color.warning("\n⚠️  Context is 85%+ full. Consider running '/compact' soon."))
+        print(Color.info("   Tip: Use '/compact --dry-run' to preview compression.\n"))
 
-def compress_history(messages):
+
+def compress_history(messages, force=False, instruction=None, keep_recent=None, dry_run=False):
     """
     Compresses history if it exceeds the token limit.
     Strategy: Keep System messages + Last N messages. Summarize the middle.
     Uses last_input_tokens from API (no additional API call).
     Supports both single and chunked compression modes.
+    Args:
+        messages: Conversation history
+        force: If True, bypass token threshold check
+        instruction: Optional custom instruction for summarization
+        keep_recent: Number of recent messages to keep (None = use config default)
+        dry_run: If True, return preview without modifying state
     """
-    if not config.ENABLE_COMPRESSION:
+    if not config.ENABLE_COMPRESSION and not force:
         return messages
 
     limit_tokens = config.MAX_CONTEXT_CHARS // 4
@@ -1797,108 +1860,150 @@ def compress_history(messages):
     current_tokens = get_actual_tokens(messages)
     token_source = "actual" if llm_client.last_input_tokens > 0 else "estimated"
 
-    if current_tokens < threshold_tokens:
+    if not force and current_tokens < threshold_tokens:
         return messages
 
-    print(Color.warning(f"\n[System] Context size ({current_tokens:,} {token_source} tokens) exceeded threshold ({threshold_tokens:,}). Compressing..."))
+    print(Color.warning(f"\n[System] {'Manual' if force else 'Auto'} Compression triggered. Context: {current_tokens:,} {token_source} tokens."))
 
     if not messages:
         return messages
 
-    # Smart Compression: Classify messages by importance
-    if config.ENABLE_SMART_COMPRESSION and message_classifier:
-        print(Color.info("[System] Using Smart Compression (selective preservation)..."))
+    # Traditional compression: Simple time-based approach
+    # Structure: [system] + [summary of old] + [recent N]
+    print(Color.info("[System] Using traditional compression..."))
 
-        # Partition messages by importance
-        partitions = message_classifier.partition_by_importance(messages, keep_recent=config.COMPRESSION_KEEP_RECENT)
+    # Pre-compact hook
+    pre_hook_path = Path.home() / ".brian_coder" / "hooks" / "pre_compact.sh"
+    if pre_hook_path.exists():
+        print(Color.info("[Hook] Running pre_compact.sh..."))
+        try:
+            subprocess.run([str(pre_hook_path)], timeout=10, check=False, shell=False)
+        except subprocess.TimeoutExpired:
+            print(Color.warning("[Hook] pre_compact.sh timed out (10s)"))
+        except Exception as e:
+            print(Color.warning(f"[Hook] pre_compact.sh failed: {e}"))
 
-        # Show compression plan
-        if config.DEBUG_MODE:
-            summary = message_classifier.get_compression_summary(partitions)
-            print(Color.info(summary))
+    # Separate system messages from regular messages (like Strix)
+    system_msgs = [m for m in messages if m.get("role") == "system"]
+    regular_msgs = [m for m in messages if m.get("role") != "system"]
 
-        # Messages to preserve (no summarization)
-        preserved = partitions["system"] + partitions["critical"] + partitions["high"] + partitions["recent"]
-
-        # Messages to summarize (medium and low importance)
-        to_summarize = partitions["medium"] + partitions["low"]
-
-        if not to_summarize:
-            print(Color.info("[System] No messages to summarize (all are important)."))
-            return messages
-
-        # Compress only the less important messages
-        mode = config.COMPRESSION_MODE.lower()
-        if mode == "chunked":
-            compressed = _compress_chunked(to_summarize)
+    # Extract !important messages (preserve them)
+    important_msgs = []
+    other_msgs = []
+    for msg in regular_msgs:
+        content = str(msg.get("content", ""))
+        if "!important" in content.lower():
+            # Remove tag for cleaner history
+            msg_copy = msg.copy()
+            msg_copy["content"] = content.replace("!important", "").replace("!IMPORTANT", "").replace("!Important", "").strip()
+            important_msgs.append(msg_copy)
         else:
-            compressed = [_compress_single(to_summarize)]
+            other_msgs.append(msg)
 
-        # Reconstruct: system + critical + high + compressed + recent
-        # Note: Order matters for conversation flow
-        new_history = partitions["system"] + partitions["critical"] + partitions["high"] + compressed + partitions["recent"]
+    if important_msgs:
+        print(Color.info(f"[System] Preserving {len(important_msgs)} !important messages"))
 
-        preserved_count = len(partitions["critical"]) + len(partitions["high"])
-        summarized_count = len(to_summarize)
-        print(Color.success(f"[System] Preserved {preserved_count} important messages, summarized {summarized_count} less important"))
-
-    else:
-        # Traditional compression (original behavior)
-        print(Color.info("[System] Using traditional compression (all old messages summarized)..."))
-
-        # Separate system messages from regular messages (like Strix)
-        system_msgs = [m for m in messages if m.get("role") == "system"]
-        regular_msgs = [m for m in messages if m.get("role") != "system"]
-
-        # Check if history is too short
+    # Check if history is too short
+    if keep_recent is None:
         keep_recent = config.COMPRESSION_KEEP_RECENT
-        if len(regular_msgs) <= keep_recent:
-            print(Color.info(f"[System] History too short to compress ({len(regular_msgs)} <= {keep_recent} recent)."))
-            return messages
+    if len(other_msgs) <= keep_recent:
+        print(Color.info(f"[System] History too short to compress ({len(other_msgs)} <= {keep_recent} recent)."))
+        return messages
 
-        # Keep last N messages
-        recent_msgs = regular_msgs[-keep_recent:]
-        old_msgs = regular_msgs[:-keep_recent]
+    # Keep last N messages (from non-important messages)
+    recent_msgs = other_msgs[-keep_recent:]
+    old_msgs = other_msgs[:-keep_recent]
 
-        if not old_msgs:
-            return messages
+    if not old_msgs:
+        return messages
 
-        # Choose compression mode
-        mode = config.COMPRESSION_MODE.lower()
+    # Choose compression mode
+    mode = config.COMPRESSION_MODE.lower()
 
-        if mode == "chunked":
-            # Chunked compression (like Strix)
-            print(Color.info(f"[System] Using chunked compression (chunk_size={config.COMPRESSION_CHUNK_SIZE})..."))
-            compressed = _compress_chunked(old_msgs)
-        else:
-            # Single compression (default, faster and cheaper)
-            print(Color.info("[System] Using single compression..."))
-            compressed = [_compress_single(old_msgs)]
+    if mode == "chunked":
+        # Chunked compression (like Strix)
+        print(Color.info(f"[System] Using chunked compression (chunk_size={config.COMPRESSION_CHUNK_SIZE})..."))
+        compressed = _compress_chunked(old_msgs, instruction=instruction)
+    else:
+        # Single compression (default, faster and cheaper)
+        print(Color.info("[System] Using single compression..."))
+        compressed = [_compress_single(old_msgs, instruction=instruction)]
 
-        # Construct new history: system messages + compressed + recent
-        new_history = system_msgs + compressed + recent_msgs
+    # Construct new history: system + important + compressed + recent
+    new_history = system_msgs + important_msgs + compressed + recent_msgs
 
-    # Invalidate last_input_tokens because history structure has changed significantly
-    # This prevents show_context_usage from reporting the small token count of the summarization call
-    llm_client.last_input_tokens = 0
-
-    # Calculate new token count
+    # Calculate detailed statistics
     new_tokens = sum(estimate_message_tokens(m) for m in new_history)
     reduction_pct = int((1 - new_tokens / current_tokens) * 100) if current_tokens > 0 else 0
 
-    print(Color.success(f"[System] Compression complete. Tokens reduced: {current_tokens:,} ({token_source}) -> {new_tokens:,} (estimated) = {reduction_pct}% reduction"))
+    old_msg_count = len(messages)
+    new_msg_count = len(new_history)
+    msg_reduction_pct = int((1 - new_msg_count / old_msg_count) * 100) if old_msg_count > 0 else 0
+
+    # Dry-run mode: Preview only, don't modify state
+    if dry_run:
+        print(Color.info("\n" + "=" * 60))
+        print(Color.info("🔍 Compression Preview (Dry Run)"))
+        print(Color.info("=" * 60))
+        print(Color.info(f"Current:  {old_msg_count} messages, {current_tokens:,} tokens"))
+        print(Color.info(f"After:    {new_msg_count} messages, {new_tokens:,} tokens"))
+        print(Color.info(f"Reduction: {msg_reduction_pct}% messages, {reduction_pct}% tokens"))
+        print(Color.info(f"Kept recent: {keep_recent} messages"))
+        print(Color.info(f"Summarizing: {len(old_msgs)} messages → 1 summary"))
+        print(Color.info("=" * 60))
+        print(Color.warning("\nℹ️  Run '/compact' without --dry-run to apply.\n"))
+        return messages  # Return original (no changes)
+
+    # Normal mode: Apply compression
+    # Invalidate last_input_tokens because history structure has changed significantly
+    llm_client.last_input_tokens = 0
+
+    # Clean up _tokens metadata from all messages in new_history
+    # This forces context_tracker to recalculate using estimation
+    for msg in new_history:
+        if "_tokens" in msg:
+            del msg["_tokens"]
+
+    # Post-compact hook (with stats as environment variables)
+    post_hook_path = Path.home() / ".brian_coder" / "hooks" / "post_compact.sh"
+    if post_hook_path.exists():
+        print(Color.info("[Hook] Running post_compact.sh..."))
+        try:
+            env = os.environ.copy()
+            env["BRIAN_OLD_MSGS"] = str(old_msg_count)
+            env["BRIAN_NEW_MSGS"] = str(new_msg_count)
+            env["BRIAN_OLD_TOKENS"] = str(current_tokens)
+            env["BRIAN_NEW_TOKENS"] = str(new_tokens)
+            env["BRIAN_REDUCTION_PCT"] = str(reduction_pct)
+
+            subprocess.run([str(post_hook_path)], env=env, timeout=10, check=False, shell=False)
+        except subprocess.TimeoutExpired:
+            print(Color.warning("[Hook] post_compact.sh timed out (10s)"))
+        except Exception as e:
+            print(Color.warning(f"[Hook] post_compact.sh failed: {e}"))
+
+    # Print detailed statistics
+    print(Color.success("\n" + "=" * 60))
+    print(Color.success("✅ Compression Complete"))
+    print(Color.success("=" * 60))
+    print(Color.success(f"Messages: {old_msg_count} → {new_msg_count} ({msg_reduction_pct}% reduction)"))
+    print(Color.success(f"Tokens:   {current_tokens:,} ({token_source}) → {new_tokens:,} (estimated) = {reduction_pct}% reduction"))
+    print(Color.success(f"Kept recent: {keep_recent} messages"))
+    print(Color.success(f"Summarized: {len(old_msgs)} → 1 summary"))
+    print(Color.success("=" * 60 + "\n"))
 
     return new_history
 
 
-def _compress_single(messages):
+def _compress_single(messages, instruction=None):
     """Single-pass compression: summarize all messages at once"""
-    summary_prompt = "Summarize the following conversation history concisely. Focus on completed tasks, key decisions, and current state. Ignore minor chatter."
+    # Use structured summary prompt for better quality
+    summary_prompt = instruction if instruction else STRUCTURED_SUMMARY_PROMPT
 
     conversation_text = ""
     for m in messages:
         role = m.get("role", "unknown")
-        content = str(m.get("content", ""))[:1000]
+        content = str(m.get("content", ""))  # Read full message (no truncation)
         conversation_text += f"{role}: {content}\n"
 
     summary_request = [
@@ -1922,7 +2027,7 @@ def _compress_single(messages):
         return messages[0] if messages else {"role": "system", "content": "[Compression failed]"}
 
 
-def _compress_chunked(messages):
+def _compress_chunked(messages, instruction=None):
     """Chunked compression: summarize in chunks (like Strix)"""
     chunk_size = config.COMPRESSION_CHUNK_SIZE
     compressed = []
@@ -1936,7 +2041,8 @@ def _compress_chunked(messages):
 
         print(Color.info(f"[System] Chunk {chunk_num}/{total_chunks}..."), end="", flush=True)
 
-        summary_prompt = "Summarize the following conversation segment concisely. Focus on completed tasks, key decisions, and current state."
+        default_prompt = "Summarize the following conversation segment concisely. Focus on completed tasks, key decisions, and current state."
+        summary_prompt = instruction if instruction else default_prompt
 
         conversation_text = ""
         for m in chunk:
@@ -2419,6 +2525,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
         # In DEBUG_MODE, content is already streamed with labels, so skip duplicate print
         if not config.DEBUG_MODE:
+            # Apply highlighting to Action and Thought if not already applied
+            colored_output = colored_output.replace("Action:", Color.YELLOW + "Action:" + Color.RESET)
+            colored_output = colored_output.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
             print(colored_output)
         print()
         
@@ -2781,44 +2890,88 @@ def chat_loop():
                         print(Color.success("\n✅ Conversation history cleared.\n"))
                         continue
                     elif result.startswith("COMPACT_HISTORY"):
-                        # Compact conversation with optional instructions
+                        # Compact conversation with optional options
+                        import re
                         parts = result.split(":", 1)
-                        instructions = parts[1] if len(parts) > 1 else "Summarize the conversation concisely"
+                        options_str = parts[1].strip() if len(parts) > 1 else ""
+
+                        instruction = None
+                        keep_recent = None  # Use config default
+                        dry_run = False
+
+                        if options_str:
+                            # Parse key=value options
+                            if "keep=" in options_str:
+                                keep_match = re.search(r'keep=(\d+)', options_str)
+                                if keep_match:
+                                    keep_recent = int(keep_match.group(1))
+                            elif "dry_run=true" in options_str:
+                                dry_run = True
+                            else:
+                                # Custom instruction
+                                instruction = options_str
+
+                        # Compress with options
+                        messages = compress_history(
+                            messages,
+                            force=True,
+                            instruction=instruction,
+                            keep_recent=keep_recent,
+                            dry_run=dry_run
+                        )
+
+                        # Update tracker and save (only if not dry-run)
+                        if not dry_run:
+                            context_tracker.update_messages(messages, exclude_system=True)
+                            save_conversation_history(messages)
+
+                        continue
+
+                    elif result.startswith("SNAPSHOT_SAVE"):
+                        # Save snapshot
+                        from core.session_snapshot import save_snapshot
+                        parts = result.split(":", 1)
+                        name = parts[1].strip() if len(parts) > 1 and parts[1].strip() else None
 
                         try:
-                            # Keep system message and recent messages
-                            system_msg = messages[0]
-                            recent_messages = messages[-5:] if len(messages) > 10 else messages[1:]
-                            to_summarize = messages[1:-5] if len(messages) > 10 else []
-
-                            if to_summarize:
-                                # Create summary
-                                summary_prompt = f"{instructions}\n\nMessages to summarize:\n"
-                                for msg in to_summarize:
-                                    summary_prompt += f"{msg['role']}: {msg['content'][:200]}...\n"
-
-                                summary = call_llm_raw([{"role": "user", "content": summary_prompt}])
-
-                                # Rebuild messages
-                                messages = [
-                                    system_msg,
-                                    {"role": "assistant", "content": f"[Summary of previous conversation]\n{summary}"}
-                                ] + recent_messages
-
-                                # Update context tracker
-                                if messages and messages[0].get("role") == "system":
-                                    context_tracker.update_system_prompt(messages[0]["content"])
-                                context_tracker.update_messages(messages, exclude_system=True)
-
-                                # Save to history
-                                save_conversation_history(messages)
-
-                                print(Color.success(f"\n✅ Conversation compacted. Kept {len(messages)} messages.\n"))
-                            else:
-                                print(Color.info("\n💡 Not enough messages to compact.\n"))
+                            path = save_snapshot(messages, name)
+                            snapshot_name = Path(path).stem
+                            print(Color.success(f"\n✅ Snapshot saved: {snapshot_name}\n"))
                         except Exception as e:
-                            print(Color.warning(f"\n⚠️  Compaction failed: {e}\n"))
+                            print(Color.error(f"\n❌ Failed to save snapshot: {e}\n"))
                         continue
+
+                    elif result.startswith("SNAPSHOT_LOAD"):
+                        # Load snapshot
+                        from core.session_snapshot import load_snapshot
+                        parts = result.split(":", 1)
+                        name = parts[1].strip()
+
+                        try:
+                            messages = load_snapshot(name)
+                            context_tracker.update_messages(messages, exclude_system=True)
+                            print(Color.success(f"\n✅ Snapshot loaded: {name}\n"))
+                        except FileNotFoundError as e:
+                            print(Color.error(f"\n❌ {e}\n"))
+                        except Exception as e:
+                            print(Color.error(f"\n❌ Failed to load snapshot: {e}\n"))
+                        continue
+
+                    elif result.startswith("SNAPSHOT_DELETE"):
+                        # Delete snapshot
+                        from core.session_snapshot import delete_snapshot
+                        parts = result.split(":", 1)
+                        name = parts[1].strip()
+
+                        try:
+                            if delete_snapshot(name):
+                                print(Color.success(f"\n✅ Snapshot deleted: {name}\n"))
+                            else:
+                                print(Color.error(f"\n❌ Snapshot not found: {name}\n"))
+                        except Exception as e:
+                            print(Color.error(f"\n❌ Failed to delete snapshot: {e}\n"))
+                        continue
+
                     else:
                         # Regular command output
                         print(result)

@@ -139,6 +139,9 @@ class SlashCommandRegistry:
         self.register('config', self._cmd_config,
                      'Show current configuration')
 
+        self.register('snapshot', self._cmd_snapshot,
+                     'Save/restore conversation snapshots')
+
     def _cmd_context(self, args: str) -> str:
         """Visualize context usage"""
         try:
@@ -214,16 +217,33 @@ class SlashCommandRegistry:
         return "CLEAR_HISTORY"  # Special signal for main loop
 
     def _cmd_compact(self, args: str) -> str:
-        """Compact conversation with optional instructions"""
-        # Return special signal that main.py will handle
-        # Main.py will:
-        # 1. Summarize old messages (keeping recent 5)
-        # 2. Rebuild message list with summary
-        # 3. Update context tracker
-        # 4. Save compacted conversation to history file
-        if args.strip():
-            return f"COMPACT_HISTORY:{args.strip()}"
-        return "COMPACT_HISTORY"
+        """
+        Compact conversation with optional instructions
+
+        Usage:
+            /compact                    # Default (keep 4 recent)
+            /compact --keep 10          # Keep 10 recent messages
+            /compact --dry-run          # Preview without saving
+            /compact custom instruction # Custom summarization prompt
+        """
+        if not args.strip():
+            return "COMPACT_HISTORY"
+
+        # Parse options
+        import re
+
+        # --keep N option
+        keep_match = re.search(r'--keep\s+(\d+)', args)
+        if keep_match:
+            keep_count = int(keep_match.group(1))
+            return f"COMPACT_HISTORY:keep={keep_count}"
+
+        # --dry-run option
+        if "--dry-run" in args:
+            return "COMPACT_HISTORY:dry_run=true"
+
+        # Otherwise: custom instruction
+        return f"COMPACT_HISTORY:{args.strip()}"
 
     def _cmd_status(self, args: str) -> str:
         """Show system status"""
@@ -376,6 +396,49 @@ class SlashCommandRegistry:
             return "\n".join(output)
         except Exception as e:
             return f"Error loading config: {e}"
+
+    def _cmd_snapshot(self, args: str) -> str:
+        """
+        Save/restore conversation snapshots
+
+        Usage:
+            /snapshot save [name]    # Save current conversation
+            /snapshot load <name>    # Restore from snapshot
+            /snapshot list           # List all snapshots
+            /snapshot delete <name>  # Delete a snapshot
+        """
+        from core.session_snapshot import save_snapshot, load_snapshot, list_snapshots, delete_snapshot
+
+        parts = args.strip().split(maxsplit=1)
+        action = parts[0] if parts else "list"
+
+        if action == "save":
+            name = parts[1] if len(parts) > 1 else None
+            return f"SNAPSHOT_SAVE:{name or ''}"
+
+        elif action == "load":
+            if len(parts) < 2:
+                return "❌ Error: /snapshot load <name>"
+            return f"SNAPSHOT_LOAD:{parts[1]}"
+
+        elif action == "delete":
+            if len(parts) < 2:
+                return "❌ Error: /snapshot delete <name>"
+            return f"SNAPSHOT_DELETE:{parts[1]}"
+
+        elif action == "list":
+            snapshots = list_snapshots()
+            if snapshots:
+                output = "\n📸 Available Snapshots:\n"
+                for s in snapshots:
+                    output += f"  • {s}\n"
+                output += "\n💡 Use '/snapshot load <name>' to restore"
+                return output
+            else:
+                return "📸 No snapshots found.\n💡 Use '/snapshot save <name>' to create one."
+
+        else:
+            return f"❌ Unknown action: {action}\nUsage: /snapshot [save|load|list|delete]"
 
     def execute(self, command_line: str) -> Optional[str]:
         """
