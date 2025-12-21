@@ -1,0 +1,267 @@
+# Tool: list_dir
+
+List all contents of a directory (files and subdirectories) without filtering.
+
+## Signature
+list_dir(path=".", show_hidden=False)
+
+## Description
+
+**list_dir provides a simple directory listing** showing all files and subdirectories at a given path. Unlike find_files which filters by pattern, list_dir shows everything in a directory.
+
+**Primary use cases:**
+- Exploring directory structure
+- Getting overview of project layout
+- Verifying directory contents before operations
+- Quick sanity checks ("what's in this folder?")
+
+**Advantages over `run_command("ls")`:**
+- Clean, structured output
+- No need to parse shell formatting
+- Consistent across platforms
+- Safer (no shell injection)
+
+## Parameters
+
+- `path` (str, optional, default: ".") - Directory path to list
+  - Relative or absolute path
+  - Defaults to current working directory
+  - Must be a directory (not a file)
+
+- `show_hidden` (bool, optional, default: False) - Show hidden files
+  - `True`: Include dotfiles (`.gitignore`, `.env`, etc.)
+  - `False`: Hide dotfiles (standard behavior)
+
+## Good Examples
+
+✅ **list_dir(path="rtl")**
+   See all files and subdirectories in rtl/
+
+✅ **list_dir(path=".")**
+   See contents of current directory
+
+✅ **list_dir(path="testbench/unit_tests")**
+   Explore nested directory structure
+
+✅ **list_dir(path="/abs/path/to/project/docs")**
+   List contents of absolute path
+
+✅ **list_dir(path=".", show_hidden=True)**
+   Include dotfiles like .gitignore, .env
+
+## Bad Examples
+
+❌ **run_command(command="ls -la rtl/")**
+   BAD: Use list_dir(path="rtl") instead - cleaner output
+
+❌ **list_dir(path="rtl/counter.v")**
+   BAD: Cannot list a file, only directories. Use read_file(path="rtl/counter.v") for files
+
+❌ **list_dir(path="*.v")**
+   BAD: Glob patterns not supported. Use find_files(pattern="*.v") for pattern matching
+
+❌ **list_dir(path="rtl", pattern="*.v")**
+   ERROR: list_dir has no pattern parameter. Use find_files(pattern="*.v", directory="rtl") instead
+
+## When to Use
+
+Use list_dir when you need to:
+
+1. **Explore directory contents**
+   - "What's in the rtl/ directory?"
+   - "Show me the project structure"
+   - "What files are in docs/specs/?"
+
+2. **Quick directory overview**
+   - Getting oriented in unfamiliar codebase
+   - Verifying expected files exist
+   - Sanity check before operations
+
+3. **See ALL contents (no filtering)**
+   - Want to see everything, not just specific types
+   - Exploring without preconceptions
+
+## When NOT to Use
+
+**Use find_files instead when:**
+- You need to filter by pattern: `find_files(pattern="*.v")`
+- You need recursive search across subdirectories
+- You want to find specific file types
+- Example: "Find all Verilog files" → `find_files(pattern="*.v")`
+
+**Use read_file instead when:**
+- Path is a file, not a directory
+- You want file contents: `read_file(path="file.txt")`
+
+**Use grep_file instead when:**
+- You need to find files by content
+- Searching for code patterns, not filenames
+
+**Use rag_search instead when:**
+- You need semantic understanding
+- Example: "Files about PCIe" → `rag_search(query="PCIe implementation")`
+
+## Usage Notes
+
+**Output Format:**
+
+```
+rtl/
+├── axi_master.v
+├── axi_slave.v
+├── counter.v
+├── interconnect/
+│   ├── axi_crossbar.v
+│   └── arbiter.v
+└── utils/
+    └── fifo.v
+```
+
+Or simple list:
+```
+axi_master.v
+axi_slave.v
+counter.v
+interconnect/
+utils/
+```
+
+**Directories vs Files:**
+
+- Directories typically end with `/`
+- Or marked with `[DIR]` prefix
+- Files have no special marker
+
+**Ordering:**
+
+- Alphabetically sorted
+- Directories may appear first or mixed with files
+- Case-sensitive sorting
+
+**Hidden Files:**
+
+- By default, dotfiles (`.gitignore`, `.git/`) are hidden
+- Use `show_hidden=True` to see them
+- Common hidden files: `.env`, `.vscode/`, `.idea/`
+
+**Performance:**
+
+- Very fast (single directory read)
+- No recursion (only shows immediate contents)
+- For recursive listing, use `find_files(pattern="**/*")`
+
+## Tool Precedence
+
+**Decision Tree:**
+
+```
+Need to see directory contents?
+├─ Want ALL files (no filter)? → list_dir(path="dir")
+├─ Want specific file types? → find_files(pattern="*.ext", directory="dir")
+├─ Want files with content? → grep_file(pattern="regex", path="dir")
+└─ Want semantic search? → rag_search(query="concept")
+```
+
+**Comparison:**
+
+| Tool | Shows | Filters | Recursive |
+|------|-------|---------|-----------|
+| list_dir | All files/dirs | No | No (1 level only) |
+| find_files | Matching files | Yes (pattern) | Yes (configurable) |
+| grep_file | Files with content | Yes (regex) | Yes |
+
+## Error Recovery
+
+- **"Directory not found"**
+  1. Verify path exists
+  2. Check for typos
+  3. Use `list_dir(path=".")` to see current directory first
+  4. Use absolute path if relative path is confusing
+
+- **"Permission denied"**
+  1. Check directory permissions
+  2. May need elevated privileges
+  3. Try parent directory: `list_dir(path="..")`
+
+- **"Path is a file, not a directory"**
+  1. Use `read_file(path="file.txt")` instead for files
+  2. Or use parent directory: `list_dir(path="dirname(file)")`
+
+- **"Empty directory"**
+  1. Totally normal - directory exists but is empty
+  2. If unexpected, verify you're in the right path
+  3. Use `show_hidden=True` to check for hidden files
+
+## Verilog-Specific Use Cases
+
+### Pattern 1: Explore RTL Directory
+
+```
+User: "What's in the rtl/ folder?"
+
+Thought: List all contents
+Action: list_dir(path="rtl")
+Observation:
+  axi_master.v
+  axi_slave.v
+  counter.v
+  interconnect/
+  utils/
+```
+
+### Pattern 2: Verify Directory Structure
+
+```
+User: "Is there an interconnect/ directory?"
+
+Thought: List rtl/ to see subdirectories
+Action: list_dir(path="rtl")
+Observation: [Shows interconnect/ exists]
+
+Thought: Now check what's inside
+Action: list_dir(path="rtl/interconnect")
+Observation: axi_crossbar.v, arbiter.v
+```
+
+### Pattern 3: Quick Project Overview
+
+```
+User: "Show me the project structure"
+
+Thought: Start with root directory
+Action: list_dir(path=".")
+Observation:
+  rtl/
+  testbench/
+  docs/
+  sim/
+  Makefile
+  README.md
+
+Thought: User might want to see what's in each
+[Can follow up with more list_dir calls or find_files for deeper exploration]
+```
+
+### Pattern 4: Find Config Files
+
+```
+User: "Are there any configuration files?"
+
+Thought: Check for hidden files
+Action: list_dir(path=".", show_hidden=True)
+Observation:
+  .env
+  .gitignore
+  .vscode/
+  rtl/
+  testbench/
+  ...
+```
+
+## See Also
+
+- **find_files** - Find files by pattern (recursive, filtered)
+- **read_file** - Read file contents (for files, not directories)
+- **grep_file** - Find files by content search
+- **rag_search** - Semantic search across codebase
+- **run_command** - For complex `ls` operations (rarely needed)

@@ -1708,6 +1708,115 @@ def spawn_plan(task_description):
     except Exception as e:
         return f"Error spawning plan agent: {e}"
 
+
+def todo_write(todos):
+    """
+    Create or update task list to track multi-step task progress.
+
+    This tool helps organize complex tasks into trackable steps with
+    real-time progress visualization using ✅ ▶️ ⏸️ icons.
+
+    Args:
+        todos (list): List of task dictionaries with:
+            - content (str): Imperative form ("Run tests", "Fix bug")
+            - activeForm (str): Present continuous ("Running tests", "Fixing bug")
+            - status (str): "pending", "in_progress", or "completed"
+
+    Returns:
+        str: Formatted progress display with task list
+
+    Rules:
+        - Exactly ONE task must be "in_progress" at any time
+        - Use imperative form for content, present continuous for activeForm
+        - Only use for tasks with 3+ steps
+        - Do NOT use for single, straightforward tasks
+        - Mark tasks completed IMMEDIATELY after finishing
+
+    Example:
+        todo_write([
+            {"content": "Analyze code", "activeForm": "Analyzing code", "status": "in_progress"},
+            {"content": "Write tests", "activeForm": "Writing tests", "status": "pending"},
+            {"content": "Run build", "activeForm": "Running build", "status": "pending"}
+        ])
+    """
+    # Import here to avoid circular dependency
+    from typing import List, Dict
+
+    # Access global todo_tracker from main.py
+    # This is set in chat_loop() in main.py
+    try:
+        import sys
+        main_module = sys.modules.get('main')
+        if main_module is None:
+            import main as main_module
+
+        # Get or create todo_tracker
+        if not hasattr(main_module, 'todo_tracker') or main_module.todo_tracker is None:
+            from lib.todo_tracker import TodoTracker
+            main_module.todo_tracker = TodoTracker()
+
+        todo_tracker = main_module.todo_tracker
+    except Exception as e:
+        return f"Error accessing todo tracker: {e}"
+
+    # Validate input
+    if not todos:
+        return "Error: 'todos' parameter is required and must be a non-empty list"
+
+    if not isinstance(todos, list):
+        return f"Error: 'todos' must be a list, got {type(todos).__name__}"
+
+    # Validate each todo structure
+    for i, todo in enumerate(todos):
+        if not isinstance(todo, dict):
+            return f"Error: todos[{i}] must be a dictionary, got {type(todo).__name__}"
+
+        if "content" not in todo:
+            return f"Error: todos[{i}] missing required key 'content'"
+
+        if "activeForm" not in todo:
+            return f"Error: todos[{i}] missing required key 'activeForm'"
+
+        # Default status to pending if not provided
+        if "status" not in todo:
+            todo["status"] = "pending"
+
+        # Validate status value
+        valid_statuses = ["pending", "in_progress", "completed"]
+        if todo["status"] not in valid_statuses:
+            return f"Error: todos[{i}] has invalid status '{todo['status']}'. Must be one of: {', '.join(valid_statuses)}"
+
+    # Validate exactly ONE in_progress task
+    in_progress_count = sum(1 for t in todos if t.get("status") == "in_progress")
+
+    if in_progress_count > 1:
+        return (
+            "Error: Only ONE task can be 'in_progress' at a time.\n\n"
+            "Please mark completed tasks as 'completed' and future tasks as 'pending'.\n"
+            f"Currently {in_progress_count} tasks are marked as 'in_progress'."
+        )
+
+    if in_progress_count == 0:
+        # Auto-set first pending task to in_progress
+        for t in todos:
+            if t.get("status") == "pending":
+                t["status"] = "in_progress"
+                break
+
+    # Update tracker with new todos
+    try:
+        todo_tracker.add_todos(todos)
+    except Exception as e:
+        return f"Error updating todo tracker: {e}"
+
+    # Return formatted progress
+    try:
+        progress = todo_tracker.format_progress()
+        return f"✅ Todo list created successfully:\n\n{progress}"
+    except Exception as e:
+        return f"Error formatting progress: {e}"
+
+
 # Registry of available tools
 AVAILABLE_TOOLS = {
     "read_file": read_file,
@@ -1726,6 +1835,8 @@ AVAILABLE_TOOLS = {
     "git_status": git_status,
     "replace_in_file": replace_in_file,
     "replace_lines": replace_lines,
+    # Task Management
+    "todo_write": todo_write,
     # RAG Tools
     "rag_search": rag_search,
     "rag_index": rag_index,

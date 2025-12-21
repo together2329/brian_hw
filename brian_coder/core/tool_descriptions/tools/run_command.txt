@@ -1,0 +1,245 @@
+# Tool: run_command
+
+Execute shell commands in a persistent terminal session for build systems, compilation, simulation, and system operations.
+
+## Signature
+run_command(command="shell command", timeout=30)
+
+## Description
+
+**run_command is for TERMINAL OPERATIONS ONLY.** This tool executes shell commands like make, iverilog, npm install, python scripts, and system utilities.
+
+**CRITICAL - What This Tool Is NOT For:**
+
+DO NOT use run_command for file operations. Brian Coder provides specialized tools that are:
+- Faster and more reliable
+- Better integrated with RAG and memory systems
+- Type-safe with validation
+- Properly formatted for LLM consumption
+
+## Parameters
+
+- `command` (str, required) - The shell command to execute
+  - Must be a valid shell command
+  - Runs in persistent session (environment variables persist)
+  - No interactive input supported
+  - Timeout after 30 seconds by default
+
+- `timeout` (int, optional, default: 30) - Maximum execution time in seconds
+  - Range: 1-300 seconds
+  - Long-running processes may be killed
+
+## Good Examples
+
+✅ **run_command(command="iverilog -o sim/counter_tb counter.v tb_counter.sv")**
+   Compile Verilog files with iverilog
+
+✅ **run_command(command="vvp sim/counter_tb")**
+   Run Verilog simulation
+
+✅ **run_command(command="make clean && make all")**
+   Build system operations
+
+✅ **run_command(command="python3 scripts/generate_testcases.py")**
+   Run utility scripts
+
+✅ **run_command(command="which iverilog")**
+   Check tool availability
+
+✅ **run_command(command="pwd")**
+   Get current working directory
+
+## Bad Examples
+
+❌ **run_command(command="cat rtl/counter.v")**
+   BAD: Use `read_file(path="rtl/counter.v")` instead
+
+❌ **run_command(command="grep -r 'axi_awready' rtl/")**
+   BAD: Use `grep_file(pattern="axi_awready", path="rtl/", recursive=True)` instead
+
+❌ **run_command(command="find . -name '*.v'")**
+   BAD: Use `find_files(pattern="*.v", directory=".")` instead
+
+❌ **run_command(command="ls -la rtl/")**
+   BAD: Use `list_dir(path="rtl/")` instead
+
+❌ **run_command(command="head -n 50 module.v")**
+   BAD: Use `read_lines(path="module.v", start=1, count=50)` instead
+
+❌ **run_command(command="sed -i 's/old/new/g' file.v")**
+   BAD: Use `replace_in_file(path="file.v", old="old", new="new")` instead
+
+❌ **run_command(command="git status")**
+   BAD: Use `git_status()` instead
+
+❌ **run_command(command="git diff")**
+   BAD: Use `git_diff()` instead
+
+## When to Use
+
+Use run_command for:
+
+1. **Build Systems**
+   - `make`, `cmake`, `ninja`
+   - `npm install`, `pip install`
+   - `cargo build`, `go build`
+
+2. **Compilation**
+   - `iverilog`, `verilator`, `yosys`
+   - `gcc`, `g++`, `clang`
+   - `javac`, `rustc`
+
+3. **Simulation & Testing**
+   - `vvp` (Verilog simulation)
+   - `pytest`, `unittest`
+   - Custom test scripts
+
+4. **System Utilities**
+   - `pwd`, `which`, `uname`
+   - `echo $VARIABLE` (environment variables)
+   - `chmod`, `ln -s`
+
+5. **Tool-Specific Commands**
+   - `verilator --lint-only`
+   - `yosys -p "read_verilog ..."`
+   - Package managers: `apt`, `brew`
+
+## When NOT to Use
+
+**NEVER use run_command for file operations:**
+
+| ❌ DON'T Use | ✅ DO Use Instead | Why |
+|-------------|------------------|-----|
+| `cat file.txt` | `read_file(path="file.txt")` | Faster, formatted output |
+| `grep pattern file` | `grep_file(pattern="pattern", path="file")` | Context, line numbers, highlighting |
+| `find . -name '*.v'` | `find_files(pattern="*.v")` | Cleaner output, no escaping issues |
+| `ls -la dir/` | `list_dir(path="dir/")` | Structured output |
+| `head -n 20 file` | `read_lines(path="file", count=20)` | Direct access, no shell overhead |
+| `tail -n 50 file` | `read_lines(path="file", start=-50)` | Precise line selection |
+| `sed 's/a/b/g' file` | `replace_in_file(path="file", old="a", new="b")` | Safe, validated, reversible |
+| `echo "text" > file` | `write_file(path="file", content="text")` | Type-safe, no shell injection risk |
+| `git status` | `git_status()` | Parsed output, integration with workflow |
+| `git diff` | `git_diff()` | Formatted diffs, file tracking |
+
+**Also avoid for:**
+- Reading or writing files
+- Searching file contents
+- File navigation
+- Text manipulation
+- Git operations (use dedicated git tools)
+
+## Usage Notes
+
+**IMPORTANT - Tool Precedence:**
+
+Brian Coder has specialized tools for common operations. ALWAYS prefer specialized tools over run_command:
+
+```
+File Operations Priority:
+1st choice: Specialized tool (read_file, grep_file, etc.)
+2nd choice: run_command (ONLY if no specialized tool exists)
+
+Example:
+User asks: "Show me counter.v"
+✅ CORRECT: read_file(path="counter.v")
+❌ WRONG:   run_command(command="cat counter.v")
+```
+
+**Security & Safety:**
+
+- Commands run with `shell=False` for security (no shell injection)
+- Destructive commands (rm, mv, etc.) are allowed but use with caution
+- No interactive input (stdin) supported
+- Output limited to 10,000 characters (truncated if longer)
+- Environment persists between commands in same session
+
+**Timeout Behavior:**
+
+- Default: 30 seconds
+- Long simulations: Set explicit timeout
+  ```
+  run_command(command="vvp long_simulation", timeout=300)
+  ```
+- Timeout kills process and returns partial output
+
+**Working Directory:**
+
+- Commands run in Brian Coder's working directory
+- Use `cd dir && command` to change directory temporarily
+- Or use absolute paths: `iverilog -o /abs/path/sim ...`
+
+**Output Handling:**
+
+- STDOUT and STDERR are combined
+- Color codes are stripped
+- Output is returned as plain text
+- Very long output is truncated with "...[truncated]"
+
+## Error Recovery
+
+- **"Command not found"**
+  1. Check if tool is installed: `run_command(command="which tool_name")`
+  2. Install if missing (e.g., `apt install iverilog`, `brew install verilator`)
+  3. Verify PATH: `run_command(command="echo $PATH")`
+
+- **"Permission denied"**
+  1. Check file permissions
+  2. Use `chmod +x script.sh` if needed
+  3. Run with proper user privileges
+
+- **"Timeout after 30 seconds"**
+  1. Increase timeout: `run_command(command="long_process", timeout=120)`
+  2. Or run in background if not waiting for output
+
+- **"Command failed with exit code N"**
+  1. Read error message in output
+  2. Check command syntax
+  3. Verify file paths exist
+  4. Check for missing dependencies
+
+## Verilog-Specific Use Cases
+
+### Pattern 1: Compile and Simulate
+
+```
+User: "Run the counter testbench"
+
+Thought: Need to compile and simulate
+Action: run_command(command="iverilog -o sim/counter_tb rtl/counter.v tb/tb_counter.sv")
+Observation: Compiled successfully
+
+Thought: Now run simulation
+Action: run_command(command="vvp sim/counter_tb")
+Observation: Simulation output...
+```
+
+### Pattern 2: Lint Verilog Code
+
+```
+User: "Check for lint errors in axi_master.v"
+
+Thought: Use verilator lint
+Action: run_command(command="verilator --lint-only rtl/axi_master.v")
+Observation: Lint warnings...
+```
+
+### Pattern 3: Build Entire Project
+
+```
+User: "Build the PCIe project"
+
+Thought: Use Makefile
+Action: run_command(command="make clean && make all")
+Observation: Build log...
+```
+
+## See Also
+
+- **read_file** - Read file contents (NEVER use `cat`)
+- **grep_file** - Search file contents (NEVER use `grep`)
+- **find_files** - Find files by pattern (NEVER use `find`)
+- **list_dir** - List directory contents (NEVER use `ls`)
+- **git_status** - Get git status (NEVER use `git status`)
+- **git_diff** - View git diffs (NEVER use `git diff`)
+- **write_file** - Write to files (NEVER use `echo >`)
+- **replace_in_file** - Edit files (NEVER use `sed`)

@@ -1,0 +1,446 @@
+# Tool: todo_write
+
+Create and manage a structured task list for complex multi-step tasks, tracking progress with real-time visualization.
+
+## Signature
+todo_write(todos=[{"content": "Step 1", "activeForm": "Doing Step 1", "status": "pending"}, ...])
+
+## Description
+
+**todo_write helps you organize complex tasks into trackable steps** with real-time progress visualization using ✅ ▶️ ⏸️ icons. This tool is essential for demonstrating thoroughness and ensuring nothing is forgotten in multi-step processes.
+
+**What this tool provides:**
+- Clear progress visualization for users
+- Systematic tracking of multi-step workflows
+- Prevention of forgotten steps
+- Demonstration of organized approach
+- Real-time status updates
+
+**When this tool helps:**
+- Breaking down complex features into manageable steps
+- Ensuring all requirements are addressed
+- Organizing large refactoring or implementation tasks
+- Tracking progress on user-provided task lists
+- Showing users your systematic approach
+
+**CRITICAL Rules:**
+- Exactly ONE task must be "in_progress" at any time (not zero, not two+)
+- Task descriptions must have TWO forms:
+  - `content`: Imperative form (e.g., "Run tests", "Fix bug")
+  - `activeForm`: Present continuous form (e.g., "Running tests", "Fixing bug")
+- Mark tasks as "completed" IMMEDIATELY after finishing each step
+- Only use for tasks with 3+ distinct steps
+- DO NOT use for single, straightforward tasks
+
+## Parameters
+
+- `todos` (list of dict, required) - List of task dictionaries
+  - Each dictionary must contain:
+    - `content` (str): What needs to be done (imperative mood)
+    - `activeForm` (str): What you're currently doing (present continuous)
+    - `status` (str): Current state - "pending", "in_progress", or "completed"
+  - Constraint: Exactly ONE task must have status="in_progress"
+  - Minimum: At least 1 task (though 3+ recommended)
+
+## Good Examples
+
+✅ **Multi-step feature implementation**
+```python
+User: "Add dark mode toggle to the settings page"
+
+Thought: This requires multiple steps - UI component, state management, theme updates, testing. I'll create a todo list.
+Action: todo_write([
+    {"content": "Create dark mode toggle component in Settings",
+     "activeForm": "Creating dark mode toggle component in Settings",
+     "status": "in_progress"},
+    {"content": "Add dark mode state management (context/store)",
+     "activeForm": "Adding dark mode state management",
+     "status": "pending"},
+    {"content": "Update existing components to support theme switching",
+     "activeForm": "Updating existing components for theme switching",
+     "status": "pending"},
+    {"content": "Test dark mode across all pages",
+     "activeForm": "Testing dark mode across all pages",
+     "status": "pending"}
+])
+Observation: ✅ Todo list created successfully:
+  ▶️ Creating dark mode toggle component in Settings
+  ⏸️ Adding dark mode state management
+  ⏸️ Updating existing components for theme switching
+  ⏸️ Testing dark mode across all pages
+```
+GOOD: Complex feature with clear breakdown into 4 distinct steps
+
+✅ **User provides numbered list**
+```python
+User: "I need you to: 1) implement user registration, 2) build product catalog with search, 3) create shopping cart, 4) add checkout flow"
+
+Thought: User explicitly provided 4 tasks. I'll track these with todo_write.
+Action: todo_write([
+    {"content": "Implement user registration system",
+     "activeForm": "Implementing user registration system",
+     "status": "in_progress"},
+    {"content": "Build product catalog with search functionality",
+     "activeForm": "Building product catalog with search",
+     "status": "pending"},
+    {"content": "Create shopping cart functionality",
+     "activeForm": "Creating shopping cart functionality",
+     "status": "pending"},
+    {"content": "Add checkout flow with payment integration",
+     "activeForm": "Adding checkout flow with payment",
+     "status": "pending"}
+])
+```
+GOOD: User explicitly provided multiple tasks - perfect use case
+
+✅ **Verilog multi-module project**
+```python
+User: "Create a complete AXI bridge with testbench and documentation"
+
+Thought: Major project with multiple distinct phases
+Action: todo_write([
+    {"content": "Design AXI bridge RTL module with proper FSM",
+     "activeForm": "Designing AXI bridge RTL module",
+     "status": "in_progress"},
+    {"content": "Write comprehensive testbench with edge cases",
+     "activeForm": "Writing comprehensive testbench",
+     "status": "pending"},
+    {"content": "Run simulation and fix any bugs found",
+     "activeForm": "Running simulation and fixing bugs",
+     "status": "pending"},
+    {"content": "Generate module documentation and timing diagrams",
+     "activeForm": "Generating documentation and diagrams",
+     "status": "pending"}
+])
+```
+GOOD: Clear phases for a complex Verilog project
+
+✅ **Debugging multi-step workflow**
+```python
+User: "The FIFO overflow detection is broken"
+
+Thought: After initial investigation, I found this needs multiple fixes
+Action: todo_write([
+    {"content": "Analyze FIFO overflow logic in rtl/fifo.v",
+     "activeForm": "Analyzing FIFO overflow logic",
+     "status": "completed"},  # Already done during investigation
+    {"content": "Fix overflow condition in always block",
+     "activeForm": "Fixing overflow condition",
+     "status": "in_progress"},
+    {"content": "Update testbench to cover overflow edge cases",
+     "activeForm": "Updating testbench for edge cases",
+     "status": "pending"},
+    {"content": "Re-run simulation to verify fix",
+     "activeForm": "Re-running simulation to verify",
+     "status": "pending"}
+])
+```
+GOOD: Can mark already-completed steps as "completed"
+
+## Bad Examples
+
+❌ **Single trivial task**
+```python
+User: "Print Hello World in Python"
+
+Thought: I'll create a todo list...
+Action: todo_write([
+    {"content": "Print Hello World", "activeForm": "Printing Hello World", "status": "in_progress"}
+])
+```
+BAD: Single trivial task doesn't need tracking. Just do it:
+```python
+Thought: Simple one-line task, no need for todo_write
+Action: write_file(path="hello.py", content="print('Hello World')")
+```
+
+❌ **Simple file operation**
+```python
+User: "Add a comment to the calculateTotal function"
+
+Action: todo_write([
+    {"content": "Add comment", "activeForm": "Adding comment", "status": "in_progress"}
+])
+```
+BAD: Single straightforward edit. Just do it directly with read_file + replace_in_file.
+
+❌ **Multiple tasks in_progress (ERROR)**
+```python
+Action: todo_write([
+    {"content": "Step 1", "activeForm": "Doing Step 1", "status": "in_progress"},
+    {"content": "Step 2", "activeForm": "Doing Step 2", "status": "in_progress"}  # ERROR!
+])
+
+Observation: Error: Only ONE task can be 'in_progress' at a time.
+```
+BAD: Multiple in_progress violates the rule. Only current task should be in_progress.
+
+❌ **Missing activeForm**
+```python
+Action: todo_write([
+    {"content": "Run tests", "status": "pending"}  # Missing activeForm!
+])
+
+Observation: Error: todos[0] missing required key 'activeForm'
+```
+BAD: Must provide both content and activeForm for each task.
+
+❌ **Conversational/informational request**
+```python
+User: "What does this AXI module do?"
+
+Action: todo_write([
+    {"content": "Read AXI module", "activeForm": "Reading AXI module", "status": "in_progress"}
+])
+```
+BAD: User is asking a question, not requesting work. Just read and explain.
+
+## When to Use
+
+Use todo_write in these scenarios:
+
+1. **Complex multi-step tasks (3+ steps)**
+   - Implementing a new feature with multiple components
+   - Refactoring that touches multiple files
+   - Bug fix requiring investigation + fix + testing
+
+2. **Non-trivial tasks requiring careful planning**
+   - Tasks that could have steps forgotten
+   - Workflows with dependencies between steps
+   - Projects requiring systematic approach
+
+3. **User explicitly requests todo tracking**
+   - User says "create a todo list" or "track this"
+   - User wants to see progress
+   - User is monitoring a long-running task
+
+4. **User provides multiple tasks**
+   - Comma-separated list: "do X, Y, and Z"
+   - Numbered list: "1) X, 2) Y, 3) Z"
+   - Explicit enumeration
+
+5. **After receiving new instructions mid-task**
+   - Immediately capture new requirements as todos
+   - Update existing list with additional steps discovered
+
+6. **When you start working on a task**
+   - Mark appropriate task as in_progress BEFORE beginning work
+   - Exactly one task should be in_progress at any time
+
+7. **After completing a task**
+   - Mark as completed IMMEDIATELY
+   - Update list if new follow-up tasks discovered during implementation
+
+## When NOT to Use
+
+Skip todo_write in these cases:
+
+1. **Single, straightforward task**
+   - Can be completed in one action
+   - No planning or breakdown needed
+   - Example: "Show me file.v" → just read_file()
+
+2. **Trivial task (< 3 steps)**
+   - Takes less than 3 distinct steps
+   - Simple edits, reads, or commands
+   - Example: "Run the linter" → just run_command()
+
+3. **Purely conversational or informational**
+   - User asking questions
+   - Requesting explanations
+   - Exploring/learning about code
+   - Example: "How does this work?" → investigate and explain
+
+4. **Already have a plan system active**
+   - If using create_plan/mark_step_done workflow
+   - Don't duplicate with todo_write
+   - Choose one tracking system
+
+## Usage Notes
+
+**IMPORTANT - Task State Management:**
+
+- Update task status in REAL-TIME as you work
+- Mark tasks completed IMMEDIATELY after finishing (don't batch completions)
+- Exactly ONE task must be in_progress at any time (not less, not more)
+- Complete current tasks before starting new ones
+- Remove irrelevant tasks from the list entirely (don't leave as pending)
+
+**Task Completion Requirements:**
+
+ONLY mark a task as "completed" when you have FULLY accomplished it:
+
+- ❌ Tests are failing → keep as in_progress
+- ❌ Implementation is partial → keep as in_progress
+- ❌ Encountered unresolved errors → keep as in_progress
+- ❌ Couldn't find necessary files/dependencies → keep as in_progress
+- ✅ Task fully done, tests pass → mark as completed
+
+**When blocked:**
+- Keep task as in_progress
+- Create a new task describing what needs resolution
+- Example: "Debug test failure in test_axi_write"
+
+**Task Breakdown Best Practices:**
+
+- Create specific, actionable items
+- Break complex tasks into smaller, manageable steps
+- Use clear, descriptive task names
+- Always provide both forms (content + activeForm)
+
+**Two-form requirement explained:**
+
+- `content`: Imperative mood, describes WHAT to do
+  - "Run tests", "Fix bug", "Update documentation"
+- `activeForm`: Present continuous, describes WHAT you're DOING
+  - "Running tests", "Fixing bug", "Updating documentation"
+
+**Progress visualization:**
+
+```
+Current progress:
+  ✅ Completed step 1
+  ✅ Completed step 2
+  ▶️ Currently working on step 3
+  ⏸️ Waiting: step 4
+  ⏸️ Waiting: step 5
+```
+
+- ✅ = Completed
+- ▶️ = In Progress (exactly one)
+- ⏸️ = Pending (waiting)
+
+## Verilog-Specific Use Cases
+
+### Pattern 1: Multi-Module Verilog Project
+
+```
+User: "Create a complete PCIe endpoint with TLP handling, configuration space, and MSI support"
+
+Thought: Major project with distinct phases requiring careful tracking
+Action: todo_write([
+    {"content": "Design TLP packet parser module",
+     "activeForm": "Designing TLP packet parser module",
+     "status": "in_progress"},
+    {"content": "Implement PCIe configuration space registers",
+     "activeForm": "Implementing PCIe configuration space",
+     "status": "pending"},
+    {"content": "Add MSI/MSI-X interrupt generation logic",
+     "activeForm": "Adding MSI interrupt generation",
+     "status": "pending"},
+    {"content": "Create comprehensive testbench with TLP sequences",
+     "activeForm": "Creating comprehensive testbench",
+     "status": "pending"},
+    {"content": "Run simulation and verify against PCIe spec",
+     "activeForm": "Running simulation and verification",
+     "status": "pending"},
+    {"content": "Generate documentation and waveform diagrams",
+     "activeForm": "Generating documentation",
+     "status": "pending"}
+])
+
+Thought: Starting with TLP parser design...
+Action: read_file(path="docs/pcie_spec.md")
+...
+```
+
+### Pattern 2: Debug and Fix Workflow
+
+```
+User: "The AXI write channel is dropping transactions"
+
+Thought: Need to investigate, identify root cause, fix, and verify
+Action: todo_write([
+    {"content": "Analyze AXI write channel FSM and handshake logic",
+     "activeForm": "Analyzing AXI write channel FSM",
+     "status": "in_progress"},
+    {"content": "Identify root cause of transaction drops",
+     "activeForm": "Identifying root cause",
+     "status": "pending"},
+    {"content": "Fix FSM state transitions or handshake conditions",
+     "activeForm": "Fixing FSM transitions",
+     "status": "pending"},
+    {"content": "Update testbench with edge case scenarios",
+     "activeForm": "Updating testbench with edge cases",
+     "status": "pending"},
+    {"content": "Re-run simulation to confirm fix",
+     "activeForm": "Re-running simulation",
+     "status": "pending"}
+])
+
+Thought: Let me start by reading the AXI master code...
+Action: read_file(path="rtl/axi_master.v")
+```
+
+### Pattern 3: Systematic Code Review
+
+```
+User: "Review the entire PCIe system for potential issues"
+
+Thought: Multi-module review requires systematic approach
+Action: todo_write([
+    {"content": "Review pcie_msg_receiver.v for protocol compliance",
+     "activeForm": "Reviewing pcie_msg_receiver.v",
+     "status": "in_progress"},
+    {"content": "Review pcie_axi_to_sram.v for timing issues",
+     "activeForm": "Reviewing pcie_axi_to_sram.v",
+     "status": "pending"},
+    {"content": "Review sram.v for race conditions",
+     "activeForm": "Reviewing sram.v",
+     "status": "pending"},
+    {"content": "Check testbench coverage and add missing tests",
+     "activeForm": "Checking testbench coverage",
+     "status": "pending"},
+    {"content": "Document findings and recommendations",
+     "activeForm": "Documenting findings",
+     "status": "pending"}
+])
+```
+
+## Error Recovery
+
+- **"Error: Only ONE task can be 'in_progress' at a time"**
+  1. Review your todos list carefully
+  2. Mark all completed tasks as "completed"
+  3. Ensure only the task you're currently working on is "in_progress"
+  4. Set all future/waiting tasks to "pending"
+
+- **"Error: todos[N] missing required key 'content'"** or **'activeForm'**
+  1. Check all task dictionaries have both keys
+  2. Ensure correct spelling: "activeForm" (not "active_form")
+  3. Each task needs: content, activeForm, status
+
+- **"Error: todos must be a list"**
+  1. Wrap tasks in square brackets: `[{task1}, {task2}]`
+  2. Don't pass a single dict, pass a list of dicts
+
+- **"No tasks marked as in_progress"**
+  1. System will auto-set first pending task to in_progress
+  2. Or explicitly set current task status to "in_progress"
+
+- **"Error accessing todo tracker"**
+  1. Internal error - todo system may not be initialized
+  2. Report to user if persists
+
+## Integration with Other Tools
+
+**vs create_plan:**
+- `create_plan`: For linear, file-based planning workflows
+- `todo_write`: For real-time, in-conversation task tracking
+- Don't use both simultaneously - choose one
+
+**vs mark_step_done:**
+- `mark_step_done`: Works with create_plan system
+- `todo_write`: Self-contained task management
+- Different systems, don't mix
+
+**Complementary tools:**
+- Use todo_write to track high-level tasks
+- Use other tools (read_file, grep_file, etc.) to complete each task
+- Update todo_write as you complete each step
+
+## See Also
+
+- **create_plan** - Alternative file-based planning system (don't use together)
+- **get_plan** - View existing plan (for create_plan system)
+- **mark_step_done** - Mark plan steps complete (for create_plan system)

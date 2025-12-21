@@ -466,6 +466,19 @@ ENABLE_TODO_TRACKING = os.getenv("ENABLE_TODO_TRACKING", "true").lower() in ("tr
 TODO_AUTO_ADVANCE = os.getenv("TODO_AUTO_ADVANCE", "true").lower() in ("true", "1", "yes")
 
 # ============================================================
+# TodoWrite Tool (Claude Code Integration)
+# ============================================================
+# Enable TodoWrite as an explicit tool (in addition to auto-parsing)
+# When enabled, LLM can explicitly call todo_write() tool
+# When disabled, only auto-parsing from text works (legacy behavior)
+ENABLE_TODO_WRITE_TOOL = os.getenv("ENABLE_TODO_WRITE_TOOL", "true").lower() in ("true", "1", "yes")
+
+# Enhanced tool descriptions with Claude Code patterns
+# Adds "parallel execution", "when NOT to use", and detailed parameter constraints
+# When disabled, uses legacy simple descriptions
+ENABLE_ENHANCED_TOOL_DESCRIPTIONS = os.getenv("ENABLE_ENHANCED_TOOL_DESCRIPTIONS", "true").lower() in ("true", "1", "yes")
+
+# ============================================================
 # Claude Code Flow (Plan → Approve → Execute)
 # ============================================================
 # Flow modes:
@@ -1010,6 +1023,7 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         "File Search & Navigation": ["grep_file", "read_lines", "find_files"],
         "File Editing": ["replace_in_file", "replace_lines"],
         "Git Tools": ["git_status", "git_diff"],
+        "Task Management": ["create_plan", "get_plan", "mark_step_done", "wait_for_plan_approval", "check_plan_status", "todo_write"],
         "RAG Tools": ["rag_search", "rag_index", "rag_status", "rag_explore", "rag_clear"],
         "Verilog Analysis": [
             "analyze_verilog_module", "find_signal_usage", "find_module_definition",
@@ -1074,6 +1088,56 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         "3. VERIFICATION: You must successfully READ a file before analyzing it. Never analyze a file you haven't seen.",
         "",
     ])
+
+    # ============================================================
+    # Add TodoWrite guidelines (if enabled)
+    # ============================================================
+    if ENABLE_TODO_WRITE_TOOL and "todo_write" in tool_list:
+        prompt_parts.extend([
+            "",
+            "# TASK MANAGEMENT WITH TODOWRITE",
+            "",
+            "For complex multi-step tasks (3+ distinct steps), use the `todo_write` tool to track progress:",
+            "",
+            "**When to use todo_write:**",
+            "- Complex multi-step tasks requiring 3+ distinct steps or actions",
+            "- Non-trivial tasks requiring careful planning or multiple operations",
+            "- User explicitly requests task tracking or todo list",
+            "- User provides multiple tasks (comma-separated or numbered list)",
+            "",
+            "**When NOT to use todo_write:**",
+            "- Single, straightforward tasks (just do it directly)",
+            "- Trivial tasks that take less than 3 steps",
+            "- Purely conversational interactions or informational queries",
+            "",
+            "**Critical Rules:**",
+            "- Exactly ONE task must be 'in_progress' at any time (not zero, not multiple)",
+            "- Provide both 'content' (imperative) and 'activeForm' (present continuous) for each task",
+            "- Mark tasks completed IMMEDIATELY after finishing each step",
+            "- Update todos in real-time as you work",
+            "",
+            "**Example usage:**",
+            "```",
+            "User: Add dark mode toggle to the settings page",
+            "",
+            "Thought: This requires multiple distinct steps - UI component, state management, theme updates, testing. I'll create a todo list.",
+            "Action: todo_write([",
+            '    {"content": "Create dark mode toggle component", "activeForm": "Creating dark mode toggle component", "status": "in_progress"},',
+            '    {"content": "Add dark mode state management", "activeForm": "Adding dark mode state management", "status": "pending"},',
+            '    {"content": "Update components for theme support", "activeForm": "Updating components for theme support", "status": "pending"},',
+            '    {"content": "Test dark mode across pages", "activeForm": "Testing dark mode across pages", "status": "pending"}',
+            "])",
+            "Observation: ✅ Todo list created successfully:",
+            "  ▶️ Creating dark mode toggle component",
+            "  ⏸️ Adding dark mode state management",
+            "  ⏸️ Updating components for theme support",
+            "  ⏸️ Testing dark mode across pages",
+            "",
+            "Thought: Now I'll start working on the toggle component...",
+            "Action: read_file(path=\"src/components/Settings.tsx\")",
+            "```",
+            "",
+        ])
 
     # Try to load action guide
     action_guide = loader.load_agent_guide("action_guide")

@@ -213,6 +213,111 @@ Need to access file content?
 └─ Multiple files? → rag_search() for semantic understanding
 ```
 
+## Usage Notes
+
+**IMPORTANT - Parallel Execution:**
+
+You can call multiple tools in a single response. When multiple independent pieces of information are requested, it is ALWAYS better to speculatively read multiple potentially useful files in parallel for optimal performance.
+
+**Benefits of parallel reads:**
+- Faster response time (all files load simultaneously)
+- Complete context in one iteration
+- More efficient conversation flow
+- Better decision-making with full information
+
+**Example - Reading multiple files in parallel:**
+
+```
+User: "Compare the AXI master and slave implementations"
+
+Thought: Need to read both modules to compare
+Action: read_file(path="rtl/axi_master.v")
+Action: read_file(path="rtl/axi_slave.v")
+Observation: [Both files loaded in parallel]
+
+Thought: Now I can compare the two implementations
+[Comparison analysis...]
+```
+
+**Example - Reading module + testbench:**
+
+```
+User: "Understand how the counter works"
+
+Thought: Read RTL and testbench together for complete picture
+Action: read_file(path="rtl/counter.v")
+Action: read_file(path="testbench/tb_counter.sv")
+Observation: [Both files available]
+
+Thought: I can see the implementation and how it's tested
+```
+
+**Example - Reading related files:**
+
+```
+User: "How does the PCIe message system work?"
+
+Thought: Read all related files in parallel
+Action: read_file(path="rtl/pcie_msg_receiver.v")
+Action: read_file(path="rtl/pcie_axi_to_sram.v")
+Action: read_file(path="rtl/sram.v")
+Action: read_file(path="docs/PCIe_spec.md")
+Observation: [All 4 files loaded]
+
+Thought: Now I have complete understanding of the system
+```
+
+**When to use parallel reads:**
+
+- ✅ Comparing multiple modules
+- ✅ Understanding system with multiple components
+- ✅ Reading module + its testbench
+- ✅ Reading code + documentation together
+- ✅ Reviewing related interface files
+- ✅ Any time you need information from 2+ files
+
+**DO NOT read files sequentially if they are independent:**
+
+❌ BAD (sequential):
+```
+Action: read_file(path="a.v")
+[Wait for observation]
+Action: read_file(path="b.v")
+[Wait for observation]
+Action: read_file(path="c.v")
+```
+
+✅ GOOD (parallel):
+```
+Action: read_file(path="a.v")
+Action: read_file(path="b.v")
+Action: read_file(path="c.v")
+[All three observations returned together]
+```
+
+**Parameter Constraints:**
+
+- `path`: Must be a valid file path (not a glob pattern like `*.v`)
+  - Use absolute or relative paths
+  - Cannot use wildcards - for pattern matching use find_files() first
+  - Example: `"rtl/counter.v"` ✅, `"rtl/*.v"` ❌
+
+- File size limits:
+  - Best for files < 1000 lines (displayed completely)
+  - Files > 1000 lines may be better suited for read_lines() with specific ranges
+  - Very large files (10,000+ lines) might hit token limits
+
+- Line number format:
+  - Output shows line numbers: `  42→  wire [7:0] data;`
+  - Helpful for referencing specific lines
+  - Matches standard text editor line numbering
+
+**Performance tips:**
+
+- Reading multiple small files in parallel is better than reading one large file
+- If you only need a section of a large file, use read_lines()
+- For finding specific content, grep_file() is faster than read_file() + manual search
+
 ## See Also
 
 - **read_lines** - Read specific line ranges from large files (1000+ lines)

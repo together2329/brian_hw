@@ -47,9 +47,230 @@ ALWAYS prefer:
 - `grep_file` over `rag_search` for **exact symbol lookups** (faster, more precise).
 - `grep_file` over `run_command("grep ...")` (structured output, better error handling).
 
+## Parameters (Complete Reference)
+
+- `pattern` (str, required) - Regular expression pattern to search for
+  - Supports full regex syntax (Python `re` module)
+  - Special characters must be escaped: `\.`, `\[`, `\*`, `\(`, etc.
+  - Examples: `"axi_awready"`, `"module\s+\w+"`, `"TODO|FIXME"`
+
+- `path` (str, optional, default: ".") - File or directory to search
+  - Can be a specific file: `"rtl/counter.v"`
+  - Can be a directory: `"rtl/"` (searches all files in directory)
+  - Can be a glob pattern: `"rtl/**/*.v"` (with recursive=True)
+  - Defaults to current directory
+
+- `case_insensitive` (bool, optional, default: False) - Ignore case in pattern matching
+  - `True`: "error" matches "Error", "ERROR", "eRRoR"
+  - `False`: Exact case matching only
+
+- `recursive` (bool, optional, default: False) - Search subdirectories
+  - `True`: Recursively search all subdirectories
+  - `False`: Only search specified directory (1 level)
+
+- `output_mode` (str, optional, default: "content") - How to display results
+  - `"content"`: Show matching lines with context (default, most useful)
+  - `"files_with_matches"`: Show only file paths (list of files containing pattern)
+  - `"count"`: Show match counts per file (e.g., "file.v: 5 matches")
+
+- `context_before` (int, optional, default: 0) - Lines of context BEFORE each match
+  - Equivalent to `grep -B N`
+  - Shows N lines before the matching line
+  - Useful for understanding surrounding code
+
+- `context_after` (int, optional, default: 0) - Lines of context AFTER each match
+  - Equivalent to `grep -A N`
+  - Shows N lines after the matching line
+
+- `context` (int, optional, default: 0) - Lines of context BEFORE and AFTER
+  - Equivalent to `grep -C N`
+  - Shorthand for setting both context_before and context_after
+  - Example: `context=3` shows 3 lines before and 3 lines after each match
+
+## Output Modes Explained
+
+### Mode 1: content (Default - Most Common)
+
+```python
+grep_file(pattern="axi_awready", path="rtl/", recursive=True, output_mode="content")
+```
+
+**Output:**
+```
+rtl/axi_master.v:42:  assign axi_awready = (state == IDLE) && !fifo_full;
+rtl/axi_slave.v:78:  if (axi_awready && axi_awvalid) begin
+rtl/interconnect/crossbar.v:105:  wire [3:0] axi_awready;
+```
+
+**Use when:**
+- You want to see the actual code
+- Need to understand usage context
+- Default choice for most searches
+
+### Mode 2: files_with_matches (File List Only)
+
+```python
+grep_file(pattern="axi_awready", path="rtl/", recursive=True, output_mode="files_with_matches")
+```
+
+**Output:**
+```
+rtl/axi_master.v
+rtl/axi_slave.v
+rtl/interconnect/crossbar.v
+```
+
+**Use when:**
+- Just need to know which files contain the pattern
+- Planning to read the full files afterward
+- Want a quick overview of affected files
+
+### Mode 3: count (Match Statistics)
+
+```python
+grep_file(pattern="axi_awready", path="rtl/", recursive=True, output_mode="count")
+```
+
+**Output:**
+```
+rtl/axi_master.v: 3 matches
+rtl/axi_slave.v: 7 matches
+rtl/interconnect/crossbar.v: 2 matches
+```
+
+**Use when:**
+- Need statistics (how frequently is symbol used?)
+- Comparing usage across files
+- Quick assessment of codebase patterns
+
+## Context Parameters Examples
+
+### Example 1: See surrounding code (context=3)
+
+```python
+grep_file(pattern="assign axi_wready", path="rtl/axi_slave.v", context=3)
+```
+
+**Output:**
+```
+42:  // Write data channel
+43:  always @(posedge clk) begin
+44:    if (!rst_n) begin
+45:      axi_wready <= 1'b0;
+46:    end else begin
+47:      axi_wready <= (state == W_DATA) && !fifo_full;
+48:    end
+```
+
+Shows 3 lines before and after the match - helpful for understanding logic!
+
+### Example 2: See only what comes after (context_after=2)
+
+```python
+grep_file(pattern="module axi_master", path="rtl/", recursive=True, context_after=5)
+```
+
+**Output:**
+```
+rtl/axi_master.v:1:module axi_master (
+rtl/axi_master.v:2:  input wire clk,
+rtl/axi_master.v:3:  input wire rst_n,
+rtl/axi_master.v:4:  // AXI Write Address Channel
+rtl/axi_master.v:5:  output reg [63:0] axi_awaddr,
+rtl/axi_master.v:6:  output reg        axi_awvalid,
+```
+
+Perfect for seeing module port declarations!
+
+## Usage Notes
+
+**IMPORTANT - Parallel Pattern Execution:**
+
+You can call multiple tools in a single response. When searching for multiple patterns or in multiple locations, run grep_file calls in parallel for optimal performance:
+
+```
+User: "Find all AXI signals and PCIe signals"
+
+Thought: Search for both patterns in parallel
+Action: grep_file(pattern="axi_\w+", path="rtl/", recursive=True)
+Action: grep_file(pattern="pcie_\w+", path="rtl/", recursive=True)
+Observation: [Both search results returned together]
+```
+
+**Parallel search examples:**
+
+✅ **Search multiple patterns:**
+```
+Action: grep_file(pattern="TODO", path=".", recursive=True)
+Action: grep_file(pattern="FIXME", path=".", recursive=True)
+Action: grep_file(pattern="XXX", path=".", recursive=True)
+```
+
+✅ **Search multiple directories:**
+```
+Action: grep_file(pattern="axi_awready", path="rtl/")
+Action: grep_file(pattern="axi_awready", path="testbench/")
+Action: grep_file(pattern="axi_awready", path="docs/")
+```
+
+✅ **Combine with other tools:**
+```
+Action: grep_file(pattern="module\s+counter", path="rtl/")
+Action: read_file(path="testbench/tb_counter.sv")
+Action: rag_search(query="counter implementation details")
+```
+
+**Regex Pattern Tips:**
+
+| Pattern | Matches | Example |
+|---------|---------|---------|
+| `"axi_awready"` | Exact text | `wire axi_awready` |
+| `"axi_\w+"` | axi_ + word chars | `axi_awready`, `axi_wvalid` |
+| `"module\s+\w+"` | module + space + name | `module counter`, `module axi_master` |
+| `"^assign"` | Lines starting with assign | `assign data = ...` |
+| `";\s*$"` | Lines ending with ; | `wire data;` |
+| `"TODO|FIXME"` | Either pattern | Comments with either |
+
+**Performance considerations:**
+
+- `grep_file` is MUCH faster than `rag_search` for exact matches
+- Use specific patterns to avoid overwhelming results
+- `output_mode="files_with_matches"` is fastest (doesn't return line content)
+- Context parameters slow down search slightly but provide valuable information
+
+**When grep_file is better than rag_search:**
+
+| Scenario | Tool | Reason |
+|----------|------|--------|
+| Find symbol "axi_awready" | grep_file | Exact match, faster |
+| Understand AXI protocol | rag_search | Semantic concept |
+| Find all TODOs | grep_file | Exact string pattern |
+| Learn about arbitration | rag_search | Conceptual understanding |
+| Find module definition | grep_file | Regex pattern for "module NAME" |
+| Understand module purpose | rag_search | Semantic analysis |
+
 ## Error Recovery
 - **"No matches found"**:
-  1. Check for typos.
-  2. Try `case_insensitive=True`.
-  3. Try a simpler regex (escape special chars like `[` or `*`).
-  4. Fallback to `rag_search` if you are unsure of the exact name.
+  1. Check for typos in pattern
+  2. Try `case_insensitive=True`
+  3. Try a simpler regex (escape special chars like `[` or `*`)
+  4. Use `output_mode="files_with_matches"` to see if any files match
+  5. Fallback to `rag_search` if you are unsure of the exact name
+
+- **"Regex syntax error"**:
+  1. Escape special characters: `\.`, `\(`, `\[`, `\*`
+  2. Test pattern with simpler version first
+  3. Use raw strings in Python context: `r"pattern"`
+
+- **"Too many results"**:
+  1. Make pattern more specific: `"axi_awready"` instead of `"axi"`
+  2. Narrow search path: `"rtl/interconnect/"` instead of `"rtl/"`
+  3. Use `output_mode="count"` to see distribution first
+  4. Add context to pattern: `"wire.*axi_awready"` instead of just `"axi_awready"`
+
+## See Also
+
+- **rag_search** - Semantic search for concepts (when you don't know exact name)
+- **find_files** - Find files by name pattern (not content)
+- **read_file** - Read entire file (when you need full context)
+- **analyze_verilog_module** - Parse Verilog structure (ports, signals, FSMs)

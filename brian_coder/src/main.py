@@ -2552,22 +2552,31 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
         messages.append(assistant_msg)
 
-        # Parse TodoWrite (Phase 2 - Claude Code Style)
-        if todo_tracker is not None:
-            parsed_todos = parse_todo_write_from_text(collected_content)
-            if parsed_todos:
-                todo_tracker.add_todos(parsed_todos)
-                print(Color.info(todo_tracker.format_progress()))
-                print()
+        # Check for Action first (needed for TodoWrite explicit call detection)
+        actions = parse_all_actions(collected_content)
+
+        # Parse TodoWrite (Phase 2 - Claude Code Style with explicit call detection)
+        if todo_tracker is not None and config.ENABLE_TODO_TRACKING:
+            # Check if todo_write was explicitly called as a tool
+            explicit_todo_call = any(
+                action.get("tool") == "todo_write"
+                for action in actions
+                if isinstance(action, dict) and action.get("tool")
+            )
+
+            # Only parse from text if NOT explicitly called
+            # This prevents duplicate todos when LLM uses the tool directly
+            if not explicit_todo_call:
+                parsed_todos = parse_todo_write_from_text(collected_content)
+                if parsed_todos:
+                    todo_tracker.add_todos(parsed_todos)
+                    print(Color.info(todo_tracker.format_progress()))
+                    print()
 
         # Check for explicit completion signal
         if detect_completion_signal(collected_content):
             print(Color.success("\n[System] ✅ Task completion detected. Ending ReAct loop.\n"))
             break
-
-        # Check for Action
-        # Check for Action
-        actions = parse_all_actions(collected_content)
 
         # Check for hallucinated Observation
         if "Observation:" in collected_content and not actions:

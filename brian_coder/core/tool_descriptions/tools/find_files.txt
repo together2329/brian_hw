@@ -1,0 +1,256 @@
+# Tool: find_files
+
+Find files by glob pattern, supporting wildcards and recursive directory traversal.
+
+## Signature
+find_files(pattern="*.v", directory=".", recursive=True, limit=100)
+
+## Description
+
+**find_files is the primary tool for file discovery by name pattern.** It supports glob patterns with wildcards (`*`, `**`, `?`, `[]`) and returns clean, sorted file paths.
+
+**Primary use cases:**
+- Finding all files of a specific type (e.g., all `.v` files)
+- Locating files matching a naming pattern
+- Discovering test files, documentation, or configuration files
+- Building file lists for batch operations
+
+**Advantages over `run_command("find ...")`:**
+- Clean output (just paths, no shell artifacts)
+- Proper handling of spaces in filenames
+- Sorted results for consistency
+- No escaping needed
+- Respects `.gitignore` patterns
+
+## Parameters
+
+- `pattern` (str, required) - Glob pattern to match files
+  - Supports `*` (any chars), `?` (single char), `**` (recursive dirs)
+  - Examples: `"*.v"`, `"tb_*.sv"`, `"**/*.txt"`, `"rtl/**/axi_*.v"`
+  - Case-sensitive by default
+
+- `directory` (str, optional, default: ".") - Directory to search in
+  - Relative or absolute path
+  - Defaults to current working directory
+
+- `recursive` (bool, optional, default: True) - Search subdirectories
+  - `True`: Searches all subdirectories
+  - `False`: Only searches specified directory (1 level)
+
+- `limit` (int, optional, default: 100) - Maximum number of results
+  - Prevents overwhelming output
+  - Returns first N matches (sorted)
+
+## Good Examples
+
+✅ **find_files(pattern="*.v", directory="rtl", recursive=True)**
+   Find all Verilog RTL files recursively in rtl/ directory
+
+✅ **find_files(pattern="tb_*.sv", directory="testbench")**
+   Find all testbench files starting with "tb_"
+
+✅ **find_files(pattern="**/*.md", directory=".", recursive=True)**
+   Find all Markdown documentation files
+
+✅ **find_files(pattern="axi_*_master.v", directory="rtl/interconnect")**
+   Find AXI master modules with specific naming pattern
+
+✅ **find_files(pattern="*.txt", directory="specs", recursive=False)**
+   Find txt files only in specs/ directory (not subdirs)
+
+✅ **find_files(pattern="**/{counter,timer}*.v")**
+   Find counter or timer Verilog files anywhere in tree
+
+## Bad Examples
+
+❌ **run_command(command="find . -name '*.v'")**
+   BAD: Use find_files(pattern="*.v") instead - cleaner output, no shell escaping
+
+❌ **find_files(pattern="rtl/counter.v")**
+   BAD: For specific known file, use read_file(path="rtl/counter.v") directly
+
+❌ **find_files(pattern=".*")**
+   BAD: Hidden files require special handling, be explicit
+
+❌ **find_files(pattern="/absolute/path/*.v")**
+   BAD: Use directory="/absolute/path", pattern="*.v" for clarity
+
+## When to Use
+
+Use find_files when you need to:
+
+1. **Discover files by type**
+   - "Find all Verilog files" → `find_files(pattern="*.v")`
+   - "Find all testbenches" → `find_files(pattern="tb_*.sv")`
+   - "Find all specs" → `find_files(pattern="*.md", directory="docs")`
+
+2. **Locate files by naming pattern**
+   - "Find AXI-related modules" → `find_files(pattern="*axi*.v")`
+   - "Find all PCIe files" → `find_files(pattern="**/*pcie*")`
+
+3. **Build file lists for batch operations**
+   - "Find all tests to run"
+   - "Find all modules to document"
+   - "Find all files to index for RAG"
+
+4. **Verify file existence by pattern**
+   - "Are there any .svh header files?"
+   - "Do we have any Python scripts?"
+
+## When NOT to Use
+
+**Use read_file instead when:**
+- You know the exact file path: `read_file(path="rtl/counter.v")`
+- File path was provided by user: "Check rtl/axi.v"
+
+**Use grep_file instead when:**
+- You need to find files containing specific content
+- Searching by code pattern, not filename
+- Example: "Files with axi_awready signal" → `grep_file(pattern="axi_awready")`
+
+**Use list_dir instead when:**
+- You want to see all contents of a directory (not filtered)
+- Example: "What's in rtl/?" → `list_dir(path="rtl/")`
+
+**Use rag_search instead when:**
+- You need semantic understanding of file contents
+- Example: "Files about PCIe TLP headers" → `rag_search(query="PCIe TLP headers")`
+
+## Usage Notes
+
+**IMPORTANT - Parallel Execution:**
+
+You can call multiple tools in a single response. When you need to find different file sets, run multiple find_files calls in parallel:
+
+```
+Thought: Need to see Verilog RTL, testbenches, and specs
+Action: find_files(pattern="*.v", directory="rtl")
+Action: find_files(pattern="*.sv", directory="testbench")
+Action: find_files(pattern="*.md", directory="docs")
+Observation: [All three file lists returned in parallel]
+```
+
+**Glob Pattern Syntax:**
+
+| Pattern | Matches | Example |
+|---------|---------|---------|
+| `*` | Any characters (except `/`) | `*.v` → `counter.v`, `axi.v` |
+| `**` | Any directories (recursive) | `**/*.v` → `rtl/counter.v`, `a/b/c.v` |
+| `?` | Single character | `axi_?.v` → `axi_m.v`, `axi_s.v` |
+| `[abc]` | One of the chars | `[tm]b_*.sv` → `tb_*.sv`, `mb_*.sv` |
+| `{a,b}` | One of the options | `{counter,timer}.v` → `counter.v`, `timer.v` |
+
+**Result Ordering:**
+
+- Results are sorted alphabetically
+- Directories appear before files in same directory
+- Case-sensitive sorting (uppercase before lowercase)
+
+**Performance:**
+
+- Fast for < 1000 files
+- Use `limit` parameter for very large projects
+- Recursive=False is faster for shallow searches
+
+**Hidden Files:**
+
+- Dotfiles (`.gitignore`, `.env`) are NOT matched by default
+- Use explicit pattern for hidden files: `.*` or `.env*`
+
+## Tool Precedence
+
+**Decision Tree:**
+
+```
+Need to find files?
+├─ Know exact path? → use read_file(path="exact/path")
+├─ Find by filename pattern? → use find_files(pattern="*.ext")
+├─ Find by content? → use grep_file(pattern="content regex")
+└─ Find by semantic meaning? → use rag_search(query="concept")
+```
+
+**Comparison Table:**
+
+| Tool | Best For | Speed | Output |
+|------|----------|-------|--------|
+| find_files | File name patterns | Fast | File paths |
+| grep_file | Code content search | Medium | Files + line numbers |
+| rag_search | Semantic concepts | Slow | Chunks + scores |
+| list_dir | Directory listing | Fastest | All files/dirs |
+
+## Error Recovery
+
+- **"No files matching pattern"**
+  1. Check pattern syntax (e.g., `*.v` not `.v`)
+  2. Verify directory exists: `list_dir(path="dir")`
+  3. Try broader pattern: `**/*.v` instead of `rtl/*.v`
+  4. Check case sensitivity
+
+- **"Directory not found"**
+  1. Verify directory path
+  2. Use `list_dir(path=".")` to see current directory contents
+  3. Check for typos in path
+
+- **"Too many results (limit reached)"**
+  1. Increase limit: `find_files(pattern="*.v", limit=500)`
+  2. Narrow pattern: `find_files(pattern="axi_*.v")` instead of `*.v`
+  3. Specify directory: `find_files(pattern="*.v", directory="rtl/interconnect")`
+
+- **"Pattern matches directories"**
+  1. Results include both files and directories
+  2. Filter in subsequent processing
+  3. Or use more specific pattern
+
+## Verilog-Specific Use Cases
+
+### Pattern 1: Find All RTL Modules
+
+```
+User: "What Verilog modules do we have?"
+
+Thought: Find all .v files in rtl/
+Action: find_files(pattern="*.v", directory="rtl", recursive=True)
+Observation: [List of all .v files]
+
+Thought: Also check for SystemVerilog
+Action: find_files(pattern="*.sv", directory="rtl", recursive=True)
+Observation: [List of .sv files]
+```
+
+### Pattern 2: Find Specific Module Types
+
+```
+User: "Find all AXI interface modules"
+
+Thought: Search for files with 'axi' in name
+Action: find_files(pattern="*axi*.v", directory="rtl")
+Observation: rtl/axi_master.v, rtl/axi_slave.v, rtl/interconnect/axi_crossbar.v
+```
+
+### Pattern 3: Find Test Files for Module
+
+```
+User: "What tests exist for the FIFO module?"
+
+Thought: Look for testbench files with 'fifo' in name
+Action: find_files(pattern="*fifo*.sv", directory="testbench")
+Observation: testbench/tb_fifo.sv, testbench/tb_async_fifo.sv
+```
+
+### Pattern 4: Find Documentation
+
+```
+User: "Where are the PCIe specs?"
+
+Thought: Search for markdown/text files in docs with pcie
+Action: find_files(pattern="*pcie*", directory="docs", recursive=True)
+Observation: docs/specs/pcie_tlp.md, docs/design/pcie_implementation.md
+```
+
+## See Also
+
+- **list_dir** - Show all contents of a directory (unfiltered)
+- **grep_file** - Find files by content (not filename)
+- **rag_search** - Semantic search across indexed files
+- **read_file** - Read specific file once path is known
+- **run_command** - For `find` with complex logic (rarely needed)
