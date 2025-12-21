@@ -136,6 +136,7 @@ def chat_completion_stream(messages, stop=None):
                 RESET = "\033[0m"
 
                 colored_lines = []
+                lines = content.splitlines()
                 for line in lines[:line_limit_count] if line_limit_enabled and len(lines) > line_limit_count else lines:
                     # Highlight "Action:"
                     line = re.sub(r'(Action:)', YELLOW + r'\1' + RESET, line)
