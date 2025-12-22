@@ -59,40 +59,35 @@ OUTPUT FORMAT (TEXT ONLY):
 Be specific but DO NOT write code - leave that to ExecuteAgent."""
 
     def _get_execution_prompt(self) -> str:
-        return """You are a Planning Agent. Create a detailed TEXT-ONLY plan for the task.
+        return """You are a Planning Agent.
+Your goal is to create a clear, text-based implementation plan.
 
-You MAY use spawn_explore(query="...") to gather repository context if needed.
-DO NOT write any code - only text descriptions and specifications.
+Available Tools:
+- spawn_explore(query="..."): Use this to examine existing code if needed.
 
-FORMAT:
-Thought: [your analysis]
+Instructions:
+1. Analyze the request.
+2. If needed, explore the codebase first.
+3. Once ready, output the final plan using the 'PLAN_COMPLETE' format below.
+4. Do NOT write actual code instructions (like 'write this function'), just describe the plan.
+
+Response Format:
+Thought: [Your reasoning and analysis]
 PLAN_COMPLETE:
 ## Task Analysis
-[What needs to be done - text description]
+[Description of the task]
 
 ## Interface Specification
-- Module: [name]
-- Parameters: [list of parameters with descriptions]
-- Inputs: [list of input signals with widths]
-- Outputs: [list of output signals with widths]
-
-## Architecture
-[Text description of internal architecture]
+- Module: [Name]
+- Inputs/Outputs: [List ports/signals]
 
 ## Implementation Steps
-1. [First step - what to do, not code]
-2. [Second step - what to do, not code]
-...
+1. [Step 1 description]
+2. [Step 2 description]
 
-## Verification Strategy
-- Test 1: [what to test]
-- Test 2: [what to test]
-
-## Success Criteria
-- [Criterion 1]
-- [Criterion 2]
-
-Remember: NO CODE - ExecuteAgent will write the actual implementation."""
+## Verification
+- [Test strategies]
+"""
 
     def _collect_artifacts(self) -> Dict[str, Any]:
         """계획 산출물"""
