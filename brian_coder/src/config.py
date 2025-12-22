@@ -75,6 +75,10 @@ DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() in ("true", "1", "yes")
 # RAG Debug mode - show detailed RAG search/indexing info
 DEBUG_RAG = os.getenv("DEBUG_RAG", "false").lower() in ("true", "1", "yes")
 
+# SubAgent Debug mode - show detailed SubAgent execution info
+# Shows: parsing details, error checks, stall detection, tool calls (color-coded)
+DEBUG_SUBAGENT = os.getenv("DEBUG_SUBAGENT", "false").lower() in ("true", "1", "yes")
+
 # Full Prompt Debug - show complete input messages to LLM
 FULL_PROMPT_DEBUG = os.getenv("FULL_PROMPT_DEBUG", "false").lower() in ("true", "1", "yes")
 
@@ -500,6 +504,22 @@ CLAUDE_FLOW_COMPLEX_TASK_CHAR_THRESHOLD = int(os.getenv("CLAUDE_FLOW_COMPLEX_TAS
 
 # Plan step 실행 시 step별 최대 반복 횟수 (무한 루프 방지)
 CLAUDE_FLOW_STEP_MAX_ITERATIONS = int(os.getenv("CLAUDE_FLOW_STEP_MAX_ITERATIONS", "25"))
+
+# Interactive Plan Mode output directory
+PLAN_DIR = os.getenv("PLAN_DIR", "~/.brian_coder/plans")
+
+# Interactive Plan Mode debug (message flow)
+PLAN_MODE_DEBUG = os.getenv("PLAN_MODE_DEBUG", "false").lower() in ("true", "1", "yes")
+PLAN_MODE_DEBUG_FULL = os.getenv("PLAN_MODE_DEBUG_FULL", "false").lower() in ("true", "1", "yes")
+PLAN_MODE_STREAM = os.getenv("PLAN_MODE_STREAM", "false").lower() in ("true", "1", "yes")
+
+# Interactive Plan Mode context options
+PLAN_MODE_CONTEXT_MODE = os.getenv("PLAN_MODE_CONTEXT_MODE", "full").strip().lower()
+if PLAN_MODE_CONTEXT_MODE not in ("full", "summary", "recent"):
+    PLAN_MODE_CONTEXT_MODE = "full"
+PLAN_MODE_CONTEXT_RECENT_N = int(os.getenv("PLAN_MODE_CONTEXT_RECENT_N", "12"))
+PLAN_MODE_CONTEXT_INCLUDE_SYSTEM = os.getenv("PLAN_MODE_CONTEXT_INCLUDE_SYSTEM", "false").lower() in ("true", "1", "yes")
+PLAN_MODE_CONTEXT_MAX_CHARS = int(os.getenv("PLAN_MODE_CONTEXT_MAX_CHARS", "0"))
 
 # ============================================================
 # Phase 3: Claude Flow Complete Implementation

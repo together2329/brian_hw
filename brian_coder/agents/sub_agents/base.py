@@ -23,7 +23,9 @@ from functools import wraps
 # Debug Utilities
 # ============================================================
 
-# DEBUG 환경 변수로 디버깅 활성화 (DEBUG_SUBAGENT=true)
+# DEBUG 환경 변수로 디버깅 활성화
+# Can be set in .config file: DEBUG_SUBAGENT=true
+# Or as environment variable: export DEBUG_SUBAGENT=true
 DEBUG_SUBAGENT = os.getenv('DEBUG_SUBAGENT', 'false').lower() in ('true', '1', 'yes')
 
 
@@ -324,7 +326,24 @@ class SubAgent(ABC):
 
         debug_log(self.name, f"═══════════ RUN START ═══════════")
         debug_log(self.name, f"Task: {task[:200]}..." if len(task) > 200 else f"Task: {task}")
-        debug_log(self.name, "Context keys", list(context.keys()) if context else [])
+
+        # Context detailed logging
+        if context and context.keys():
+            debug_log(self.name, "Context keys", list(context.keys()))
+            # Show context details
+            context_details = {}
+            for key, value in context.items():
+                if isinstance(value, str):
+                    context_details[key] = value[:100] + "..." if len(value) > 100 else value
+                elif isinstance(value, list):
+                    context_details[key] = f"List[{len(value)} items]: {str(value[:3])[:100]}"
+                elif isinstance(value, dict):
+                    context_details[key] = f"Dict[{len(value)} keys]: {list(value.keys())[:5]}"
+                else:
+                    context_details[key] = str(value)[:100]
+            debug_log(self.name, "Context details", context_details)
+        else:
+            debug_log(self.name, "Context", "Empty (no context provided)")
 
         try:
             # Step 1: 컨텍스트 초기화
@@ -603,6 +622,13 @@ Output as JSON:
         """
         debug_log(self.name, f"\n  → Executing step {step.step_number} with ReAct loop")
         debug_log(self.name, f"  Max iterations: {self.max_iterations}")
+
+        # Context logging
+        if context:
+            context_preview = context[:200] + "..." if len(context) > 200 else context
+            debug_log(self.name, f"  Context provided ({len(context)} chars): {context_preview}")
+        else:
+            debug_log(self.name, "  Context: None (no dependencies)")
 
         # Error tracking variables
         consecutive_errors = 0
