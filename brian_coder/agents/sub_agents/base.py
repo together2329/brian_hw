@@ -611,6 +611,28 @@ Output as JSON:
 
         return None
 
+    def _create_user_message(self, step: ActionStep, context: str) -> str:
+        """
+        Create the initial user message for the ReAct loop.
+        Can be overridden by subclasses to customize prompt format.
+        """
+        return f"""
+{step.prompt}
+
+{context if context else ""}
+
+Expected Output: {step.expected_output}
+Available Tools: {step.required_tools}
+
+Use the ReAct format:
+Thought: [your reasoning]
+Action: tool_name(args)
+
+Or if done:
+Thought: [your reasoning]
+Result: [your final answer]
+"""
+
     def _execute_step(self, step: ActionStep, context: str) -> str:
         """
         단일 단계 실행 (미니 ReAct 루프)
@@ -641,22 +663,7 @@ Output as JSON:
 
         messages = [
             {"role": "system", "content": self._get_execution_prompt()},
-            {"role": "user", "content": f"""
-{step.prompt}
-
-{context if context else ""}
-
-Expected Output: {step.expected_output}
-Available Tools: {step.required_tools}
-
-Use the ReAct format:
-Thought: [your reasoning]
-Action: tool_name(args)
-
-Or if done:
-Thought: [your reasoning]
-Result: [your final answer]
-"""}
+            {"role": "user", "content": self._create_user_message(step, context)}
         ]
 
         # 미니 ReAct 루프

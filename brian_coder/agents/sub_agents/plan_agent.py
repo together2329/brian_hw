@@ -89,6 +89,21 @@ PLAN_COMPLETE:
 - [Test strategies]
 """
 
+    def _create_user_message(self, step: ActionStep, context: str) -> str:
+        """Custom user message for PlanAgent to avoid checking ReAct format conflicts."""
+        return f"""
+{step.prompt}
+
+{context if context else ""}
+
+Expected Output: A detailed text-only implementation plan
+Available Tools: {step.required_tools}
+
+Make sure to use the format:
+Thought: ...
+PLAN_COMPLETE: ...
+"""
+
     def _collect_artifacts(self) -> Dict[str, Any]:
         """계획 산출물"""
         return {

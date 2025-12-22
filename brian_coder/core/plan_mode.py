@@ -324,7 +324,9 @@ def _stream_llm_call(messages) -> str:
             if not chunk:
                 continue
             output += chunk
-            print(chunk, end="", flush=True)
+            # If DEBUG_MODE is on, llm_client already prints the chunks with color
+            if not config.DEBUG_MODE:
+                print(chunk, end="", flush=True)
     finally:
         print()
     return output.strip()
