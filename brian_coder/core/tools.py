@@ -1692,10 +1692,24 @@ def spawn_plan(task_description):
             from agents.sub_agents.plan_agent import PlanAgent
         from llm_client import call_llm_raw
 
+        # Create a simple execute_tool wrapper (read-only usage expected)
+        def execute_tool(tool_name, args):
+            if tool_name in AVAILABLE_TOOLS:
+                if isinstance(args, str):
+                    import re
+                    kwargs = {}
+                    for match in re.finditer(r'(\\w+)\\s*=\\s*["\\\']([^"\\\']*)["\\\']', args):
+                        kwargs[match.group(1)] = match.group(2)
+                    for match in re.finditer(r'(\\w+)\\s*=\\s*(\\d+)', args):
+                        kwargs[match.group(1)] = int(match.group(2))
+                    return AVAILABLE_TOOLS[tool_name](**kwargs) if kwargs else AVAILABLE_TOOLS[tool_name](args)
+                return AVAILABLE_TOOLS[tool_name](**args) if isinstance(args, dict) else AVAILABLE_TOOLS[tool_name](args)
+            return f"Tool {tool_name} not found"
+
         agent = PlanAgent(
             name="plan",
             llm_call_func=call_llm_raw,
-            execute_tool_func=lambda t, a: "Plan agent does not execute tools"
+            execute_tool_func=execute_tool
         )
 
         result = agent.run(task_description, {"task": task_description})

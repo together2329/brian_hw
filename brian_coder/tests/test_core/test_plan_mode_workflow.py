@@ -33,6 +33,8 @@ from src.main import (
     _spawn_parallel_explore_agents,
     _spawn_plan_agent,
     _execute_plan_mode_workflow,
+    _extract_steps_from_plan_text,
+    _extract_task_from_plan_text,
 )
 
 
@@ -106,6 +108,37 @@ class TestPlanModeWorkflow(unittest.TestCase):
         call_args = mock_generate_steps.call_args
         self.assertIn("additional_context", call_args.kwargs)
         self.assertIn("Exploration 1", call_args.kwargs["additional_context"])
+
+    def test_extract_steps_from_plan_text(self):
+        """Test: extract steps from Implementation Steps section"""
+        plan_text = """# Plan
+
+## Task
+Do something
+
+## Implementation Steps
+1. Step one
+2. Step two
+3. Step three
+
+## Verification Strategy
+- Test it
+"""
+        steps = _extract_steps_from_plan_text(plan_text)
+        self.assertEqual(steps, ["Step one", "Step two", "Step three"])
+
+    def test_extract_task_from_plan_text(self):
+        """Test: extract task from plan header"""
+        plan_text = """# Plan
+
+## Task
+Build a counter
+
+## Implementation Steps
+1. Step one
+"""
+        task = _extract_task_from_plan_text(plan_text)
+        self.assertEqual(task, "Build a counter")
 
     @patch('src.main._spawn_parallel_explore_agents')
     @patch('src.main._spawn_plan_agent')

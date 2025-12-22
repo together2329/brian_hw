@@ -122,6 +122,9 @@ class SlashCommandRegistry:
         self.register('compact', self._cmd_compact,
                      'Clear conversation history but keep a summary in context')
 
+        self.register('plan', self._cmd_plan,
+                     'Enter interactive plan mode (/plan <task>)')
+
         self.register('status', self._cmd_status,
                      'Show Brian Coder status including version, model, and tools')
 
@@ -141,6 +144,13 @@ class SlashCommandRegistry:
 
         self.register('snapshot', self._cmd_snapshot,
                      'Save/restore conversation snapshots')
+
+    def _cmd_plan(self, args: str) -> str:
+        """Enter interactive Plan Mode"""
+        task = args.strip()
+        if not task:
+            return "❌ Error: /plan requires a task description\nUsage: /plan <task>"
+        return f"PLAN_MODE_REQUEST:{task}"
 
     def _cmd_context(self, args: str) -> str:
         """Visualize context usage"""

@@ -1170,6 +1170,135 @@ Rules:
     return messages
 
 
+def _extract_steps_from_plan_text(plan_text: str) -> List[str]:
+    if not plan_text:
+        return []
+
+    def _steps_from_section(marker: str) -> List[str]:
+        if marker not in plan_text:
+            return []
+        section = plan_text.split(marker, 1)[1]
+        section = section.split("##", 1)[0]
+        matches = re.findall(r'\d+\.\s*(.+?)(?=\n\d+\.|\n##|$)', section, re.DOTALL)
+        return [m.strip() for m in matches if m.strip()]
+
+    steps = _steps_from_section("## Implementation Steps")
+    if not steps:
+        steps = _steps_from_section("## Steps")
+    if steps:
+        return steps
+
+    matches = re.findall(r'^\s*\d+\.\s*(.+)$', plan_text, re.MULTILINE)
+    return [m.strip() for m in matches if m.strip()]
+
+
+def _extract_task_from_plan_text(plan_text: str) -> str:
+    if "## Task" not in plan_text:
+        return ""
+    section = plan_text.split("## Task", 1)[1]
+    lines = [line.strip() for line in section.splitlines()]
+    for line in lines:
+        if line:
+            return line
+    return ""
+
+
+def _execute_plan_from_file(messages: List[Dict], plan_path: str) -> List[Dict]:
+    """
+    Execute a plan from a saved plan file.
+
+    Args:
+        messages: Current message history
+        plan_path: Path to the plan file
+
+    Returns:
+        Updated messages after plan execution
+    """
+    # Read plan file
+    if not plan_path:
+        msg = "Error: Empty plan path provided"
+        print(Color.error(f"[Plan Mode] {msg}"))
+        messages.append({"role": "assistant", "content": msg})
+        return messages
+
+    try:
+        with open(plan_path, "r", encoding="utf-8") as handle:
+            plan_text = handle.read()
+    except FileNotFoundError:
+        msg = f"Error: Plan file not found: {plan_path}"
+        print(Color.error(f"[Plan Mode] {msg}"))
+        messages.append({"role": "assistant", "content": msg})
+        return messages
+    except PermissionError:
+        msg = f"Error: Permission denied reading plan file: {plan_path}"
+        print(Color.error(f"[Plan Mode] {msg}"))
+        messages.append({"role": "assistant", "content": msg})
+        return messages
+    except Exception as e:
+        msg = f"Error: Failed to read plan file: {e}"
+        print(Color.error(f"[Plan Mode] {msg}"))
+        messages.append({"role": "assistant", "content": msg})
+        return messages
+
+    if not plan_text or not plan_text.strip():
+        msg = f"Error: Plan file is empty: {plan_path}"
+        print(Color.error(f"[Plan Mode] {msg}"))
+        messages.append({"role": "assistant", "content": msg})
+        return messages
+
+    # Extract task and steps
+    task = _extract_task_from_plan_text(plan_text)
+    task_label = task or f"Execute approved plan ({os.path.basename(plan_path)})"
+    steps = _extract_steps_from_plan_text(plan_text)
+
+    if not steps:
+        print(Color.warning("[Plan Mode] No steps found in plan, proceeding with full plan text"))
+
+    # Create TodoWrite if steps exist
+    if config.ENABLE_TODO_TRACKING and len(steps) >= 3:
+        try:
+            todos = []
+            for idx, step in enumerate(steps):
+                status = "in_progress" if idx == 0 else "pending"
+                todos.append({
+                    "content": step,
+                    "activeForm": f"Executing: {step}",
+                    "status": status
+                })
+            todo_display = tools.todo_write(todos)
+            if todo_display:
+                print(Color.info(todo_display))
+        except Exception as e:
+            print(Color.warning(f"[Plan Mode] Failed to create todo list: {e}"))
+
+    # Add plan message
+    plan_message = (
+        "You have an approved implementation plan. Execute the steps in order.\n"
+        "Do not change the plan without asking. Use tools as needed.\n\n"
+        f"{plan_text}"
+    )
+    messages.append({"role": "user", "content": plan_message})
+
+    # Execute plan
+    try:
+        tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
+        return run_react_agent(
+            messages,
+            tracker,
+            task_label,
+            mode="interactive",
+            allow_claude_flow=False
+        )
+    except Exception as e:
+        msg = f"Error during plan execution: {e}"
+        print(Color.error(f"[Plan Mode] {msg}"))
+        if config.FULL_PROMPT_DEBUG:
+            import traceback
+            print(Color.DIM + traceback.format_exc() + Color.RESET)
+        messages.append({"role": "assistant", "content": msg})
+        return messages
+
+
 def _maybe_handle_claude_flow(messages, task_description: str, mode: str) -> Optional[List[Dict]]:
     """
     Route control for Claude Code-like flow.
@@ -2979,6 +3108,67 @@ def chat_loop():
                                 print(Color.error(f"\n❌ Snapshot not found: {name}\n"))
                         except Exception as e:
                             print(Color.error(f"\n❌ Failed to delete snapshot: {e}\n"))
+                        continue
+
+                    elif result.startswith("PLAN_MODE_RESULT:"):
+                        plan_path = result.split(":", 1)[1].strip()
+                        if not plan_path:
+                            print(Color.error("\n❌ Plan mode did not return a plan path.\n"))
+                            continue
+
+                        messages = _execute_plan_from_file(messages, plan_path)
+                        continue
+
+                    elif result.startswith("PLAN_MODE_REQUEST:"):
+                        task = result.split(":", 1)[1].strip()
+                        if not task:
+                            print(Color.error("\n❌ Plan mode requires a task description.\n"))
+                            continue
+
+                        try:
+                            from core.plan_mode import plan_mode_loop
+                            plan_result = plan_mode_loop(task, context_messages=messages)
+                        except Exception as e:
+                            print(Color.error(f"\n❌ Plan mode failed with exception: {e}\n"))
+                            if config.FULL_PROMPT_DEBUG:
+                                import traceback
+                                print(Color.DIM + traceback.format_exc() + Color.RESET)
+                            continue
+
+                        if plan_result is None:
+                            print(Color.warning("\n⚠️  Plan mode cancelled.\n"))
+                            continue
+
+                        # Execute plan (use plan_content if plan_path is empty)
+                        if plan_result.plan_path:
+                            messages = _execute_plan_from_file(messages, plan_result.plan_path)
+                        elif plan_result.plan_content:
+                            # Plan not saved to file, but we have content
+                            print(Color.info("[Plan Mode] Using in-memory plan (not saved to file)"))
+                            plan_message = (
+                                "You have an approved implementation plan. Execute the steps in order.\n"
+                                "Do not change the plan without asking. Use tools as needed.\n\n"
+                                f"{plan_result.plan_content}"
+                            )
+                            messages.append({"role": "user", "content": plan_message})
+                            try:
+                                tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
+                                messages = run_react_agent(
+                                    messages,
+                                    tracker,
+                                    "Execute approved plan",
+                                    mode="interactive",
+                                    allow_claude_flow=False
+                                )
+                            except Exception as e:
+                                print(Color.error(f"[Plan Mode] Error during plan execution: {e}"))
+                        else:
+                            print(Color.error("\n❌ Plan result has no path or content.\n"))
+
+                        continue
+
+                    elif result == "PLAN_MODE_CANCELLED":
+                        print(Color.warning("\n⚠️  Plan mode cancelled.\n"))
                         continue
 
                     else:
