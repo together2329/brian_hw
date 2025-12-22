@@ -66,7 +66,7 @@ DO NOT write any code - only text descriptions and specifications.
 
 FORMAT:
 Thought: [your analysis]
-Result:
+PLAN_COMPLETE:
 ## Task Analysis
 [What needs to be done - text description]
 
@@ -127,6 +127,10 @@ Remember: NO CODE - ExecuteAgent will write the actual implementation."""
     def _extract_plan_text(self, output: str) -> str:
         if not output:
             return ""
+        if "PLAN_COMPLETE:" in output:
+            tail = output.split("PLAN_COMPLETE:", 1)[1].strip()
+            if tail:
+                return tail
         if "Result:" in output:
             tail = output.split("Result:", 1)[1].strip()
             if tail:

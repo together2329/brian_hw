@@ -672,9 +672,16 @@ Result: [your final answer]
                 messages.append({"role": "user", "content": warning})
                 continue  # Skip to next iteration
 
-            # 완료 체크 (Result: 가 있으면 완료)
-            if "Result:" in response and "Action:" not in response.split("Result:")[-1]:
-                debug_log(self.name, f"  [Iteration {i+1}] ✓ Found Result:, completing step")
+            # 완료 체크 (Result: 또는 명시적 종료 토큰 감지)
+            completion_tokens = ["Result:", "EXPLORE_COMPLETE", "PLAN_COMPLETE"]
+            is_complete = False
+            for token in completion_tokens:
+                if token in response and "Action:" not in response.split(token)[-1]:
+                    is_complete = True
+                    debug_log(self.name, f"  [Iteration {i+1}] ✓ Found {token}, completing step")
+                    break
+            
+            if is_complete:
                 return response
 
             # Action 파싱

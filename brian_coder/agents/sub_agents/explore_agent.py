@@ -73,7 +73,7 @@ Action: tool_name(arg1="value1", arg2="value2")
 
 When done:
 Thought: [summary of findings]
-Result: [structured findings - FILES FOUND, PATTERNS, CONVENTIONS]
+EXPLORE_COMPLETE: [structured findings - FILES FOUND, PATTERNS, CONVENTIONS]
 
 ⚠️ CRITICAL RULES:
 - Only use read-only tools
