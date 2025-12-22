@@ -114,6 +114,49 @@ def debug_method(method_name: str = None):
 
 
 # ============================================================
+# Action Parsing Utilities
+# ============================================================
+
+def sanitize_action_text(text: str) -> str:
+    """
+    Sanitize common LLM output errors in Action calls.
+
+    Fixes:
+    - Markdown bold: **Action:** -> Action:
+    - Incorrect quotes: end_line=26") -> end_line=26)
+    - Extra colons: Action:: -> Action:
+
+    Args:
+        text: Raw LLM response
+
+    Returns:
+        Sanitized text with common errors corrected
+
+    Examples:
+        >>> sanitize_action_text("**Action:** read_file(path='test.py')")
+        "Action: read_file(path='test.py')"
+
+        >>> sanitize_action_text("Action: read_lines(end_line=26\")")
+        "Action: read_lines(end_line=26)"
+    """
+    # Remove markdown bold around "Action:"
+    text = re.sub(r'\*\*Action:\*\*', 'Action:', text)
+    text = re.sub(r'\*\*Action\*\*:', 'Action:', text)
+    text = re.sub(r'__Action:__', 'Action:', text)
+    text = re.sub(r'__Action__:', 'Action:', text)
+
+    # Fix number followed by quote then closing paren/comma
+    # e.g., end_line=26") -> end_line=26)
+    text = re.sub(r'=(\d+)"([,\)])', r'=\1\2', text)
+    text = re.sub(r"=(\d+)'([,\)])", r'=\1\2', text)
+
+    # Fix extra colons
+    text = re.sub(r'Action::+', 'Action:', text)
+
+    return text
+
+
+# ============================================================
 # Enums
 # ============================================================
 
@@ -552,9 +595,23 @@ Output as JSON:
     def _execute_step(self, step: ActionStep, context: str) -> str:
         """
         단일 단계 실행 (미니 ReAct 루프)
+
+        개선사항:
+        - Hallucination 감지 (LLM이 "Observation:" 자가 생성 방지)
+        - 연속 에러 추적 (동일 에러 3회 반복 시 중단)
+        - Stall 감지 (연속 5회 읽기 작업 시 경고)
         """
         debug_log(self.name, f"\n  → Executing step {step.step_number} with ReAct loop")
         debug_log(self.name, f"  Max iterations: {self.max_iterations}")
+
+        # Error tracking variables
+        consecutive_errors = 0
+        last_error_observation = None
+        MAX_CONSECUTIVE_ERRORS = 3
+
+        # Stall detection variables
+        consecutive_reads = 0
+        MAX_CONSECUTIVE_READS = 5
 
         messages = [
             {"role": "system", "content": self._get_execution_prompt()},
@@ -581,6 +638,13 @@ Result: [your final answer]
             debug_log(self.name, f"  [Iteration {i+1}/{self.max_iterations}] Calling LLM...")
             response = self.llm_call_func(messages)
             messages.append({"role": "assistant", "content": response})
+
+            # Hallucination detection: LLM이 "Observation:"을 자가 생성하는지 확인
+            if "Observation:" in response and "Action:" not in response.split("Observation:")[-1]:
+                debug_log(self.name, f"  ⚠ [Iteration {i+1}] Hallucination detected: LLM generated 'Observation:' itself")
+                warning = "[System] You generated 'Observation:' yourself. DO NOT DO THIS. You must output an Action, wait for me to execute it, and then I will give you the Observation. Now, please output the correct Action."
+                messages.append({"role": "user", "content": warning})
+                continue  # Skip to next iteration
 
             # 완료 체크 (Result: 가 있으면 완료)
             if "Result:" in response and "Action:" not in response.split("Result:")[-1]:
@@ -611,6 +675,15 @@ Result: [your final answer]
                     debug_log(self.name, f"  [Tool Result] {result_preview}...")
                     observations.append(f"[{tool_name}]: {result}")
 
+                    # Stall detection: Track consecutive read operations
+                    read_tools = {'read_file', 'read_lines', 'grep_file', 'list_dir',
+                                  'find_files', 'git_diff', 'git_status', 'rag_search'}
+                    if tool_name in read_tools:
+                        consecutive_reads += 1
+                        debug_log(self.name, f"  [Stall Check] Consecutive reads: {consecutive_reads}/{MAX_CONSECUTIVE_READS}")
+                    else:
+                        consecutive_reads = 0  # Reset on non-read operation
+
                     # 파일 읽기/수정 추적
                     if 'read' in tool_name.lower():
                         self._files_read.append(args)
@@ -627,73 +700,207 @@ Result: [your final answer]
                     debug_log(self.name, f"  [Tool Error] {tool_name}: {str(e)}")
                     observations.append(f"[{tool_name}]: Error - {str(e)}")
 
-            messages.append({
-                "role": "user",
-                "content": f"Observation:\n" + "\n".join(observations)
-            })
+            # Combine observations
+            observation = "\n".join(observations)
+
+            # Consecutive error detection
+            is_error = "error" in observation.lower() or "exception" in observation.lower()
+            if is_error:
+                if observation == last_error_observation:
+                    consecutive_errors += 1
+                    debug_log(self.name, f"  ⚠ [Error Check] Consecutive error #{consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}")
+
+                    if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                        debug_log(self.name, f"  ❌ [Error Check] Same error {MAX_CONSECUTIVE_ERRORS} times. Stopping.")
+                        error_msg = f"[System] The same error occurred {MAX_CONSECUTIVE_ERRORS} times consecutively. This suggests the current approach is not working. Please try a different strategy or ask the user for help."
+                        messages.append({
+                            "role": "user",
+                            "content": f"Observation:\n{observation}\n\n{error_msg}"
+                        })
+                        break  # Exit ReAct loop
+                else:
+                    consecutive_errors = 0
+                    last_error_observation = observation
+            else:
+                consecutive_errors = 0
+                last_error_observation = None
+
+            # Stall warning
+            if consecutive_reads >= MAX_CONSECUTIVE_READS:
+                debug_log(self.name, f"  ⚠ [Stall Check] Detected {consecutive_reads} consecutive reads. Agent may be stalled.")
+                stall_msg = "[System] Detected excessive read operations without progress. You've read {consecutive_reads} times in a row. Please analyze your findings and either move to the next action or complete the task."
+                messages.append({
+                    "role": "user",
+                    "content": f"Observation:\n{observation}\n\n{stall_msg}"
+                })
+                consecutive_reads = 0  # Reset after warning
+            else:
+                messages.append({
+                    "role": "user",
+                    "content": f"Observation:\n{observation}"
+                })
 
         debug_log(self.name, f"  Max iterations reached for step {step.step_number}")
         return messages[-1]["content"] if messages else ""
 
     def _parse_actions(self, response: str) -> List[Tuple[str, str]]:
         """
-        응답에서 Action 파싱 (C3 Fix: 괄호 매칭 알고리즘)
+        응답에서 Action 파싱 (개선: Markdown, triple-quotes, truncated output)
 
-        기존 정규식은 중첩 괄호를 처리하지 못함.
-        예: write_file(content="def foo():\n    pass") → 실패
+        개선 사항:
+        - Markdown 형식 지원 (**Action:**, `tool_name`)
+        - Triple-quoted strings 처리
+        - Truncated output 자동 복구
+        - LLM 일반 오류 수정 (sanitize)
+
+        Examples:
+            >>> _parse_actions("**Action:** read_file(path='test.py')")
+            [('read_file', "path='test.py'")]
+
+            >>> _parse_actions("Action: `read_file`(path='test.py')")
+            [('read_file', "path='test.py'")]
         """
+        # STEP 1: Sanitize common LLM errors first
+        response = sanitize_action_text(response)
+
         actions = []
 
-        # 모든 "Action:" 시작점 찾기
-        action_pattern = r'Action:\s*(\w+)\('
+        # STEP 2: Updated pattern to support markdown and formatting
+        # 기존: r'Action:\s*(\w+)\('
+        # 개선: Markdown bold/italic/code blocks 지원
+        action_pattern = r'(?:\*\*|__)?Action(?:\*\*|__)?::*\s*[`*_]*\s*(\w+)\s*[`*_]*\s*\('
+        # 설명:
+        # (?:\*\*|__)? - Optional markdown bold/italic prefix
+        # Action - Literal "Action"
+        # (?:\*\*|__)? - Optional markdown bold/italic suffix
+        # ::* - Optional extra colons (some LLMs add them)
+        # \s*[`*_]*\s* - Optional markdown formatting around tool name
+        # (\w+) - Tool name (captured group)
+        # \s*[`*_]*\s* - Optional markdown after tool name
+        # \( - Opening paren
+
         for match in re.finditer(action_pattern, response):
             tool_name = match.group(1)
             start_paren = match.end() - 1  # '(' 위치
 
-            # 괄호 균형 추적으로 종료 위치 찾기
+            debug_log(self.name, f"  [Parse] Found action: {tool_name}")
+
+            # 괄호 균형 추적으로 종료 위치 찾기 (triple-quotes 지원)
             args = self._extract_balanced_parens(response, start_paren)
             if args is not None:
                 actions.append((tool_name, args))
+                debug_log(self.name, f"  [Parse] Extracted args: {args[:100]}{'...' if len(args) > 100 else ''}")
+            else:
+                debug_log(self.name, f"  ⚠ [Parse] Failed to extract args for {tool_name}")
 
         return actions
 
     def _extract_balanced_parens(self, text: str, start_pos: int) -> Optional[str]:
-        """괄호 균형을 추적하여 내용 추출"""
+        """
+        괄호 균형을 추적하여 내용 추출 (개선: triple-quotes, truncated recovery)
+
+        개선 사항:
+        - Triple-quoted strings 처리 (triple double/single quotes)
+        - Truncated output 자동 복구 (미완성 문자열 자동 마감)
+        - 상세 디버그 로깅
+
+        Args:
+            text: 전체 텍스트
+            start_pos: '(' 시작 위치
+
+        Returns:
+            괄호 안의 내용 (괄호 제외) 또는 None
+
+        Examples:
+            Simple args: '(path="test.py")' -> 'path="test.py"'
+            Triple quotes: '(content=TRIPLE_QUOTE_code_TRIPLE_QUOTE)' works too
+        """
         if start_pos >= len(text) or text[start_pos] != '(':
             return None
 
         depth = 0
-        in_string = False
-        string_char = None
+        in_single_quote = False
+        in_double_quote = False
+        in_triple_single = False
+        in_triple_double = False
         escape_next = False
 
-        for i in range(start_pos, len(text)):
+        i = start_pos
+        while i < len(text):
             char = text[i]
 
+            # Escape handling
             if escape_next:
                 escape_next = False
+                i += 1
                 continue
 
             if char == '\\':
                 escape_next = True
+                i += 1
                 continue
 
-            # 문자열 시작/종료 감지
-            if char in ('"', "'") and not in_string:
-                in_string = True
-                string_char = char
-            elif char == string_char and in_string:
-                in_string = False
-                string_char = None
+            # Check for triple quotes FIRST (only if not in other quotes)
+            if not in_single_quote and not in_double_quote:
+                if i + 2 < len(text):
+                    three_chars = text[i:i+3]
+                    if three_chars == '"""':
+                        if not in_triple_single:
+                            in_triple_double = not in_triple_double
+                            debug_log(self.name, f"  [Parse] Triple-double quote {'opened' if in_triple_double else 'closed'} at pos {i}")
+                            i += 3
+                            continue
+                    elif three_chars == "'" * 3:  # Triple single quote
+                        if not in_triple_double:
+                            in_triple_single = not in_triple_single
+                            debug_log(self.name, f"  [Parse] Triple-single quote {'opened' if in_triple_single else 'closed'} at pos {i}")
+                            i += 3
+                            continue
 
-            # 괄호 추적 (문자열 밖에서만)
-            if not in_string:
+            # Regular quote handling (only if not in triple quotes)
+            if not in_triple_single and not in_triple_double:
+                if char == '"' and not in_single_quote:
+                    in_double_quote = not in_double_quote
+                elif char == "'" and not in_double_quote:
+                    in_single_quote = not in_single_quote
+
+            # Parenthesis tracking (only outside all quotes)
+            in_any_quote = in_single_quote or in_double_quote or in_triple_single or in_triple_double
+            if not in_any_quote:
                 if char == '(':
                     depth += 1
                 elif char == ')':
                     depth -= 1
                     if depth == 0:
-                        return text[start_pos + 1:i]
+                        result = text[start_pos + 1:i]
+                        debug_log(self.name, f"  [Parse] ✓ Balanced parens extracted ({len(result)} chars)")
+                        return result
+
+            i += 1
+
+        # Truncated output recovery
+        if depth > 0:
+            debug_log(self.name, f"  ⚠ [Parse] Unmatched parens (depth={depth}), attempting recovery...")
+
+            # Extract what we have
+            args_str = text[start_pos + 1:]
+
+            # Close open quotes
+            if in_triple_double:
+                args_str += '"""'
+                debug_log(self.name, f"  🔧 [Parse] Auto-closed triple-double quote")
+            elif in_triple_single:
+                args_str += "'" * 3  # Triple single quote
+                debug_log(self.name, f"  🔧 [Parse] Auto-closed triple-single quote")
+            elif in_double_quote:
+                args_str += '"'
+                debug_log(self.name, f"  🔧 [Parse] Auto-closed double quote")
+            elif in_single_quote:
+                args_str += "'"
+                debug_log(self.name, f"  🔧 [Parse] Auto-closed single quote")
+
+            debug_log(self.name, f"  🔧 [Parse] Recovered truncated args: {args_str[:100]}{'...' if len(args_str) > 100 else ''}")
+            return args_str
 
         return None
 
