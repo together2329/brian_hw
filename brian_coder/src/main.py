@@ -18,8 +18,7 @@ from typing import List, Tuple, Optional, Dict
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 # Get the project root (parent of src directory)
 _project_root = os.path.dirname(_script_dir)
-# Define PCIe directory path (sibling to brian_coder)
-_pcie_dir = os.path.join(os.path.dirname(_project_root), "PCIe")
+
 
 # Add paths: project root first, then src
 # This allows imports like: from lib.display import Color, from core.tools import ...

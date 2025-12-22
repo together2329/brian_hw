@@ -14,7 +14,7 @@ Available commands:
 
 import sys
 import os
-from typing import Callable, Optional, Any
+from typing import Callable, Optional, Any, List
 import readline
 
 
@@ -95,7 +95,7 @@ class SlashCommandRegistry:
                  name: str,
                  handler: Callable[[str], Any],
                  description: str,
-                 aliases: list[str] = None):
+                 aliases: Optional[List[str]] = None):
         """
         Register a slash command.
 
@@ -486,7 +486,7 @@ class SlashCommandRegistry:
         except Exception as e:
             return f"❌ Error executing /{cmd_name}: {e}"
 
-    def get_completions(self) -> list[str]:
+    def get_completions(self) -> List[str]:
         """Get list of all command completions"""
         completions = []
         for name, cmd in self.commands.items():

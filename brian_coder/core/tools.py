@@ -296,100 +296,199 @@ def check_plan_status():
 
 def grep_file(pattern, path, context_lines=2, recursive=False):
     """
-    Searches for a pattern in a file and returns matching lines with context.
+    Searches for a pattern using system tools (git grep/grep) for performance.
+    
     Args:
-        pattern: Regular expression pattern to search for
-        path: Path to the file or directory
-        context_lines: Number of lines to show before and after each match (default: 2)
-        recursive: If True, search recursively in subdirectories (default: False)
+        pattern: Regex pattern to search for
+        path: Path to file or directory
+        context_lines: Number of context lines (default: 2)
+        recursive: Whether to search recursively (default: False)
+        
     Returns:
-        Formatted output with line numbers and context
+        Formatted matches string
     """
-    import re
-    import glob
-    import os
+    import subprocess
+    import sys
+    
+    # Python fallback implementation (for backup)
+    def _grep_python(pat, pth, ctx, rec):
+        import re
+        import glob
+        try:
+            is_glob = any(char in pth for char in ['*', '?', '[', ']'])
+            if rec and not is_glob and os.path.isdir(pth):
+                pth = os.path.join(pth, '**', '*')
+                is_glob = True
+
+            if is_glob or rec:
+                files = glob.glob(pth, recursive=True)
+                if not files: return f"No files found matching '{pth}'"
+                if len(files) > 1000: return f"Error: Too many files ({len(files)})"
+                
+                results = []
+                count = 0
+                for f in sorted(files):
+                    if os.path.isdir(f): continue
+                    res = _grep_python(pat, f, ctx, False)
+                    if not res.startswith("No matches") and not res.startswith("Error"):
+                        results.append(f"=== Matches in {f} ===\n{res}\n")
+                        count += 1
+                        if count >= 20: 
+                            results.append("... (Stopped after 20 files) ...")
+                            break
+                return "\n".join(results) if results else f"No matches found for '{pat}'"
+
+            # File search
+            if not os.path.exists(pth): return f"Error: '{pth}' not found"
+            if os.path.isdir(pth): return f"Error: '{pth}' is a dir"
+            
+            with open(pth, 'r', encoding='utf-8', errors='replace') as f:
+                lines = f.readlines()
+            
+            matches = []
+            regex = re.compile(pat)
+            for i, line in enumerate(lines, 1):
+                if regex.search(line):
+                    start = max(1, i - ctx)
+                    end = min(len(lines), i + ctx)
+                    block = []
+                    for j in range(start, end + 1):
+                        prefix = ">>> " if j == i else "    "
+                        block.append(f"{prefix}{j:4d}: {lines[j-1].rstrip()}")
+                    matches.append("\n".join(block))
+            
+            return f"Found {len(matches)} matches in {pth}:\n\n" + "\n...\n".join(matches) if matches else f"No matches found for '{pat}' in {pth}"
+            
+        except Exception as e:
+            return f"Error (Python grep): {e}"
+
+    # Try system tools
     try:
-        # Check for glob pattern or recursive directory search
-        is_glob = any(char in path for char in ['*', '?', '[', ']'])
+        cmd = []
+        # is_git = os.path.isdir(".git") and not os.path.isabs(path) # Removed git check priority
         
-        # If recursive and path is a directory (and not already a glob), append wildcard
-        if recursive and not is_glob and os.path.isdir(path):
-            path = os.path.join(path, '**', '*')
-            is_glob = True
+        # 1. Choose Tool - SYSTEM GREP PRIORITY (User Request)
+        # Try system grep (BSD/GNU) first
+        cmd = ["grep", "-I", "-n", f"-C{context_lines}", "-E", "-e", pattern]
+        if recursive:
+            cmd.append("-r")
+            # Smart excludes to avoid cluttering results
+            cmd.extend(["--exclude-dir=.git", "--exclude-dir=__pycache__", "--exclude-dir=.venv", "--exclude-dir=venv"])
+        
+        # Handle directory target for non-recursive grep
+        if os.path.isdir(path) and not recursive:
+             # grep without -r on dir will error or do nothing.
+             # Fallback to Python for non-recursive dir search
+             return _grep_python(pattern, path, context_lines, recursive)
+        
+        cmd.append(path)
 
-        if is_glob or recursive:
-            files = glob.glob(path, recursive=True)
-            if not files:
-                return f"No files found matching pattern '{path}'"
+        # 2. Run Command
+        process = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=10,
+            encoding='utf-8',
+            errors='replace'
+        )
+        
+        if process.returncode > 1:
+            # Error occurred (1 is just no matches)
+            # Fallback if tool failed options
+            return _grep_python(pattern, path, context_lines, recursive)
             
-            # Limit number of files to prevent huge output
-            # If recursive, we might check many files, but only show matches.
-            # But we still want to limit HOW MANY matching files we process to avoid timeouts
-            # Let's verify file count first
-            if len(files) > 1000: # Soft limit for checking
-                return f"Error: Pattern matches {len(files)} files. Too many to search."
+        output = process.stdout
+        if not output:
+             return f"No matches found for pattern '{pattern}'"
+
+        # 3. Formatter
+        # We need to parse grep output to match our friendly format
+        # Grep format: filename:line:content OR filename-line-content (context)
+        # But wait, our tools need to be robust.
+        
+        # Let's just return the raw grep output if it's readable, BUT the user expects the specific format 
+        # for other tools to consume it? 
+        # Actually, the agent reads it. Standard grep output is fine, but let's make it slightly nicer.
+        
+        # Split by file
+        lines = output.splitlines()
+        formatted_output = []
+        current_file = None
+        current_matches = []
+        
+        # Helper to dump matches for a file
+        def dump_current():
+            if current_file and current_matches:
+                formatted_output.append(f"=== Matches in {current_file} ===")
+                formatted_output.append("\n".join(current_matches))
+                formatted_output.append("")
+
+        for line in lines:
+            # Parse typical grep output: file:line:content or file-line-content
+            # Special handling for "--" separators
+            if line == "--":
+                current_matches.append("...")
+                continue
+                
+            # ATTEMPT 1: Recursive/Multi-file output (filename:line:content)
+            parts = line.split(':', 2)
+            is_match = True
             
-            combined_results = []
-            files_processed = 0
-            stats_checked = 0
-            
-            for file_path in sorted(files):
-                if os.path.isdir(file_path):
+            if len(parts) >= 3 and parts[1].isdigit():
+                # Format: filename:123:content
+                fname = parts[0]
+                lineno = int(parts[1])
+                content = parts[2]
+            elif len(parts) == 2 and parts[0].isdigit():
+                 # ATTEMPT 2: Single file output (line:content) - Grep behavior on single file
+                 # In this case, filename is 'path'
+                 fname = path
+                 lineno = int(parts[0])
+                 content = parts[1]
+            else:
+                # Context lines? (filename-123-content or 123-content)
+                parts_ctx = line.split('-', 2)
+                is_match = False
+                if len(parts_ctx) >= 3 and parts_ctx[1].isdigit():
+                    fname = parts_ctx[0]
+                    lineno = int(parts_ctx[1])
+                    content = parts_ctx[2]
+                elif len(parts_ctx) == 2 and parts_ctx[0].isdigit():
+                    fname = path
+                    lineno = int(parts_ctx[0])
+                    content = parts_ctx[1]
+                else:
+                    # Parse failed, preserve line
+                    if current_file: current_matches.append(line)
+                    elif not current_file and lines:
+                         # Single file mode, treat as content if we can't parse
+                         # But wait, we need to start a block
+                         current_file = path
+                         current_matches.append(line)
                     continue
-                
-                stats_checked += 1
-                # When using recursive search, context logic is the same
-                match_output = grep_file(pattern, file_path, context_lines, recursive=False)
-                
-                if not match_output.startswith("No matches found") and not match_output.startswith("Error"):
-                    combined_results.append(f"=== Matches in {file_path} ===\n{match_output}\n")
-                    files_processed += 1
-                
-                # Stop if we found too many matching files
-                if files_processed >= 20:
-                     combined_results.append(f"... (Stopped after finding matches in 20 files) ...")
-                     break
 
-            if not combined_results:
-                return f"No matches found for pattern '{pattern}' in {stats_checked} files searched."
+            # If we parsed successfully
+            if fname != current_file:
+                dump_current()
+                current_file = fname
+                current_matches = []
             
-            return "\n".join(combined_results)
+            prefix = ">>> " if is_match else "    "
+            current_matches.append(f"{prefix}{lineno:4d}: {content}")
 
-        if not os.path.exists(path):
-            return f"Error: File '{path}' does not exist."
-        if os.path.isdir(path):
-            return f"Error: '{path}' is a directory. Use find_files() or list_dir() for directories."
+        dump_current()
+        
+        if not formatted_output:
+             # Fallback if parsing failed drastically (e.g. filename only output)
+             return f"Raw Grep Output:\n{output}"
 
-        with open(path, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
+        return "\n".join(formatted_output)
 
-        matches = []
-        regex = re.compile(pattern)
-        
-        for i, line in enumerate(lines, 1):
-            if regex.search(line):
-                # Calculate context range
-                start = max(1, i - context_lines)
-                end = min(len(lines), i + context_lines)
-                
-                # Build context block
-                context_block = []
-                for j in range(start, end + 1):
-                    prefix = ">>> " if j == i else "    "
-                    context_block.append(f"{prefix}{j:4d}: {lines[j-1].rstrip()}")
-                
-                matches.append("\n".join(context_block))
-        
-        if not matches:
-            return f"No matches found for pattern '{pattern}' in {path}"
-        
-        result = f"Found {len(matches)} match(es) in {path}:\n\n"
-        result += "\n...\n".join(matches)
-        return result
-    except re.error as e:
-        return f"Error: Invalid regex pattern '{pattern}': {e}"
     except Exception as e:
-        return f"Error searching file: {e}"
+        # Final fallback
+        return _grep_python(pattern, path, context_lines, recursive)
 
 def read_lines(path, start_line, end_line):
     """
@@ -430,7 +529,7 @@ def read_lines(path, start_line, end_line):
     except Exception as e:
         return f"Error reading lines: {e}"
 
-def find_files(pattern, directory=".", max_depth=None, path=None):
+def find_files(pattern, directory=".", max_depth=None, path=None, recursive=True):
     """
     Finds files matching a pattern in a directory.
     Args:
@@ -438,6 +537,7 @@ def find_files(pattern, directory=".", max_depth=None, path=None):
         directory: Directory to search in (default: current directory)
         max_depth: Maximum depth to search (None for unlimited)
         path: Alias for 'directory' (for LLM compatibility)
+        recursive: Whether to search recursively (default: True)
     Returns:
         List of matching file paths
     """
@@ -446,6 +546,10 @@ def find_files(pattern, directory=".", max_depth=None, path=None):
         # Support 'path' as alias for 'directory'
         if path is not None:
             directory = path
+            
+        # Handle recursive parameter
+        if not recursive:
+            max_depth = 0
         
         if not os.path.exists(directory):
             return f"Error: Directory '{directory}' does not exist."

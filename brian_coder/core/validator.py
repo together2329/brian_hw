@@ -9,15 +9,13 @@ Uses Python standard library only:
 Provides Pydantic-like validation without external dependencies.
 """
 
-from typing import get_type_hints, get_origin, get_args, Union, Optional, Any
-from dataclasses import dataclass
-import inspect
+from typing import get_type_hints, get_origin, get_args, Union, Optional, Any, List, Dict, Tuple
 
 
 class ValidationError(Exception):
     """Raised when parameter validation fails"""
 
-    def __init__(self, errors: dict[str, str]):
+    def __init__(self, errors: Dict[str, str]):
         self.errors = errors
         messages = [f"  - {param}: {error}" for param, error in errors.items()]
         super().__init__(f"Validation failed:\n" + "\n".join(messages))
@@ -323,7 +321,7 @@ def get_function_signature(func) -> str:
     return f"{func.__name__}({', '.join(params)}) -> {return_str}"
 
 
-def validate_dict(data: dict, schema: dict[str, type]) -> dict[str, str]:
+def validate_dict(data: dict, schema: Dict[str, type]) -> Dict[str, str]:
     """
     Validate dictionary against schema.
 
@@ -335,7 +333,7 @@ def validate_dict(data: dict, schema: dict[str, type]) -> dict[str, str]:
         Dictionary of errors (empty if valid)
 
     Example:
-        schema = {"name": str, "age": int, "tags": list[str]}
+        schema = {"name": str, "age": int, "tags": List[str]}
         errors = validate_dict(user_data, schema)
     """
     errors = {}
@@ -389,7 +387,7 @@ if __name__ == "__main__":
 
     # Example 2: Optional parameters
     @validate_params
-    def search(query: str, limit: int = 5, categories: Optional[list[str]] = None) -> str:
+    def search(query: str, limit: int = 5, categories: Optional[List[str]] = None) -> str:
         """Search with optional parameters"""
         return f"Searching '{query}' with limit={limit}, categories={categories}"
 
@@ -398,7 +396,7 @@ if __name__ == "__main__":
 
     # Example 3: Complex types
     @validate_params
-    def batch_process(files: list[str], options: dict[str, Any]) -> str:
+    def batch_process(files: List[str], options: Dict[str, Any]) -> str:
         """Process multiple files"""
         return f"Processing {len(files)} files with options {options}"
 

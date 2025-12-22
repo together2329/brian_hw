@@ -13,7 +13,7 @@ import subprocess
 import shutil
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 
 class LintError:
@@ -74,7 +74,7 @@ class SimpleLinter:
 
         return "\n".join(lines)
 
-    def check_file(self, filepath: str) -> list[LintError]:
+    def check_file(self, filepath: str) -> List[LintError]:
         """
         Check file and return list of errors.
 
@@ -105,7 +105,7 @@ class SimpleLinter:
             # Unknown file type
             return []
 
-    def check_python(self, filepath: Path) -> list[LintError]:
+    def check_python(self, filepath: Path) -> List[LintError]:
         """Check Python file using built-in compile() + optional pyflakes"""
         errors = []
 
@@ -164,7 +164,7 @@ class SimpleLinter:
 
         return errors
 
-    def check_verilog(self, filepath: Path) -> list[LintError]:
+    def check_verilog(self, filepath: Path) -> List[LintError]:
         """Check Verilog file using iverilog or verilator"""
         errors = []
 
@@ -273,7 +273,7 @@ class SimpleLinter:
         # For other languages, no built-in syntax check
         return True
 
-    def format_errors(self, errors: list[LintError], max_errors: int = 10) -> str:
+    def format_errors(self, errors: List[LintError], max_errors: int = 10) -> str:
         """
         Format errors as human-readable string.
 
