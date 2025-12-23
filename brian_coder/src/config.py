@@ -182,6 +182,14 @@ ENABLE_SMART_COMPRESSION = os.getenv("ENABLE_SMART_COMPRESSION", "false").lower(
 # Cost savings: 90% for cached tokens
 ENABLE_PROMPT_CACHING = os.getenv("ENABLE_PROMPT_CACHING", "false").lower() in ("true", "1", "yes")
 
+# Prompt Caching Optimization Mode
+# Options:
+#   - "legacy": Single-string system message (current behavior, safe fallback)
+#   - "optimized": Multi-block system message (40-50% cost reduction)
+# Default: "legacy" (backward compatible)
+# NOTE: Only effective when ENABLE_PROMPT_CACHING=true and using Anthropic models
+CACHE_OPTIMIZATION_MODE = os.getenv("CACHE_OPTIMIZATION_MODE", "legacy").lower()
+
 # Feature Flags
 ENABLE_VERILOG_TOOLS = os.getenv("ENABLE_VERILOG_TOOLS", "false").lower() in ("true", "1", "yes")
 

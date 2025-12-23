@@ -30,6 +30,12 @@ actual_token_cache = {}
 last_input_tokens = 0  # Last reported input tokens from API
 last_output_tokens = 0  # Last reported output tokens from API
 
+# --- Cache Token Tracking (Anthropic Prompt Caching) ---
+last_cache_creation_tokens = 0  # Last cache creation tokens
+last_cache_read_tokens = 0      # Last cache read tokens
+total_cache_created = 0         # Total cache tokens created this session
+total_cache_read = 0            # Total cache tokens read this session
+
 def chat_completion_stream(messages, stop=None):
     """
     Sends a chat completion request to the LLM using urllib.
@@ -38,6 +44,8 @@ def chat_completion_stream(messages, stop=None):
     Updates global actual_token_cache with real token counts from API.
     """
     global last_input_tokens, last_output_tokens
+    global last_cache_creation_tokens, last_cache_read_tokens
+    global total_cache_created, total_cache_read
 
     # Rate limiting: Configurable delay
     if config.RATE_LIMIT_DELAY > 0:
@@ -245,15 +253,23 @@ def chat_completion_stream(messages, stop=None):
                     cache_creation_tokens = usage_info.get("cache_creation_input_tokens", 0)
                     cache_read_tokens = usage_info.get("cache_read_input_tokens", 0)
 
+                    # Update cache token tracking
+                    last_cache_creation_tokens = cache_creation_tokens
+                    last_cache_read_tokens = cache_read_tokens
+                    total_cache_created += cache_creation_tokens
+                    total_cache_read += cache_read_tokens
+
                     if cache_creation_tokens > 0 or cache_read_tokens > 0:
                         print(f"\n\n{Color.info('[Token Usage]')}")
                         print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
                         print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
                         if cache_creation_tokens > 0:
-                            print(f"{Color.info(f'  Cache Created: {cache_creation_tokens:,} tokens')}")
+                            print(f"{Color.info(f'  Cache Created: {cache_creation_tokens:,} tokens (Total Session: {total_cache_created:,})')}")
                         if cache_read_tokens > 0:
                             savings = int(cache_read_tokens * 0.9)
-                            print(f"{Color.success(f'  Cache Hit: {cache_read_tokens:,} tokens (saved ~{savings:,} tokens worth of cost!)')}\n")
+                            total_savings = int(total_cache_read * 0.9)
+                            print(f"{Color.success(f'  Cache Hit: {cache_read_tokens:,} tokens (saved ~{savings:,} tokens)')}")
+                            print(f"{Color.success(f'  Total Session Cache Hits: {total_cache_read:,} tokens (saved ~{total_savings:,} tokens!)')}\n")
                 
                 # Success! Exit retry loop
                 return
@@ -450,10 +466,20 @@ def get_last_usage():
     Get token usage from last API call.
 
     Returns:
-        dict: {"input": int, "output": int, "total": int}
-              Returns None if no API call has been made yet.
+        dict: {
+            "input": int,
+            "output": int,
+            "total": int,
+            "cache_created": int,      # Cache creation tokens (if caching enabled)
+            "cache_read": int,         # Cache read tokens (if caching enabled)
+            "total_cache_created": int,  # Session total cache created
+            "total_cache_read": int      # Session total cache read
+        }
+        Returns None if no API call has been made yet.
     """
     global last_input_tokens, last_output_tokens
+    global last_cache_creation_tokens, last_cache_read_tokens
+    global total_cache_created, total_cache_read
 
     if last_input_tokens == 0 and last_output_tokens == 0:
         return None
@@ -461,7 +487,11 @@ def get_last_usage():
     return {
         "input": last_input_tokens,
         "output": last_output_tokens,
-        "total": last_input_tokens + last_output_tokens
+        "total": last_input_tokens + last_output_tokens,
+        "cache_created": last_cache_creation_tokens,
+        "cache_read": last_cache_read_tokens,
+        "total_cache_created": total_cache_created,
+        "total_cache_read": total_cache_read
     }
 
 
@@ -597,15 +627,36 @@ def apply_cache_breakpoints(messages):
 
     # 1. System message always gets cache breakpoint (if exists and meets min tokens)
     if messages and messages[0].get("role") == "system":
-        tokens = estimate_message_tokens(messages[0])
-        if tokens >= config.MIN_CACHE_TOKENS:
-            messages[0]["content"] = convert_to_cache_format(
-                messages[0]["content"],
-                add_cache_control=True
+        content = messages[0].get("content")
+
+        # Multi-block format (optimized mode): check if already has cache_control
+        if isinstance(content, list):
+            # Check if any block already has cache_control (from optimized mode)
+            has_cache = any(
+                isinstance(block, dict) and "cache_control" in block
+                for block in content
             )
-            breakpoint_count += 1
-            if config.DEBUG_MODE:
-                print(Color.info(f"[System] Cache breakpoint 1/{max_breakpoints}: System message ({tokens} tokens)"))
+            if has_cache:
+                breakpoint_count += 1  # Count it but don't modify
+                if config.DEBUG_MODE:
+                    total_tokens = estimate_message_tokens(messages[0])
+                    print(Color.info(f"[System] Cache breakpoint 1/{max_breakpoints}: System message (multi-block, pre-configured, {total_tokens} tokens)"))
+            else:
+                # Legacy list format without cache_control: apply it to last block
+                tokens = estimate_message_tokens(messages[0])
+                if tokens >= config.MIN_CACHE_TOKENS:
+                    messages[0]["content"] = convert_to_cache_format(content, add_cache_control=True)
+                    breakpoint_count += 1
+                    if config.DEBUG_MODE:
+                        print(Color.info(f"[System] Cache breakpoint 1/{max_breakpoints}: System message (list format, {tokens} tokens)"))
+        else:
+            # Single string format (legacy mode)
+            tokens = estimate_message_tokens(messages[0])
+            if tokens >= config.MIN_CACHE_TOKENS:
+                messages[0]["content"] = convert_to_cache_format(content, add_cache_control=True)
+                breakpoint_count += 1
+                if config.DEBUG_MODE:
+                    print(Color.info(f"[System] Cache breakpoint 1/{max_breakpoints}: System message ({tokens} tokens)"))
 
     # 2. Dynamic breakpoints in message history
     if breakpoint_count < max_breakpoints and len(messages) > 1:

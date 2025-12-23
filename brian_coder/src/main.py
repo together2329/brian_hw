@@ -1766,18 +1766,20 @@ Workflow: rag_search() → find location → read_lines() → analyze
         context_parts.append(rag_guidance)
 
         # Combine all context parts
+        dynamic_context = ""
         if context_parts:
-            base_prompt = base_prompt + "\n\n" + "\n\n".join(context_parts)
-            
+            dynamic_context = "\n\n".join(context_parts)
+
             # Debug: Show prompt build summary
             if config.DEBUG_MODE and messages:
-                total_chars = len(base_prompt)
+                total_chars = len(base_prompt) + len(dynamic_context)
                 estimated_tokens = total_chars // 4
                 print(Color.system(f"[PROMPT] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"))
                 print(Color.system(f"[PROMPT] Build complete: {len(context_parts)} sections, ~{estimated_tokens:,} tokens"))
 
     # Claude Flow: Inject current plan status into the prompt (if present).
     plan_state = _get_plan_state()
+    plan_context = ""
     if plan_state.get("exists"):
         approved = bool(plan_state.get("approved"))
         plan_task = plan_state.get("task") or ""
@@ -1809,9 +1811,30 @@ Workflow: rag_search() → find location → read_lines() → analyze
             plan_lines.append("When a step is complete: mark_step_done(step_number=N)")
 
         plan_lines.append("===========================")
-        base_prompt = base_prompt + "\n\n" + "\n".join(plan_lines)
+        plan_context = "\n".join(plan_lines)
 
-    return base_prompt
+    # Return format based on CACHE_OPTIMIZATION_MODE
+    if config.CACHE_OPTIMIZATION_MODE == "optimized":
+        # Optimized mode: Return dict with static/dynamic parts
+        # Dynamic parts: context_parts + plan_context
+        all_dynamic_parts = []
+        if dynamic_context:
+            all_dynamic_parts.append(dynamic_context)
+        if plan_context:
+            all_dynamic_parts.append(plan_context)
+
+        return {
+            "static": base_prompt,
+            "dynamic": "\n\n".join(all_dynamic_parts) if all_dynamic_parts else ""
+        }
+    else:
+        # Legacy mode: Return single string
+        full_prompt = base_prompt
+        if dynamic_context:
+            full_prompt = full_prompt + "\n\n" + dynamic_context
+        if plan_context:
+            full_prompt = full_prompt + "\n\n" + plan_context
+        return full_prompt
 
 def save_procedural_trajectory(task_description, actions_taken, outcome, iterations):
     """
@@ -1848,10 +1871,30 @@ def on_conversation_end(messages):
     """
     Extract and save knowledge from conversation to graph.
     Now uses A-MEM auto-linking for intelligent connections.
-    
+    Also displays session statistics including cache usage.
+
     Args:
         messages: Full message history
     """
+    # Display cache statistics if caching was enabled
+    if config.ENABLE_PROMPT_CACHING and llm_client.total_cache_read > 0:
+        print(f"\n{Color.info('='*60)}")
+        print(f"{Color.info('[Session Cache Statistics]')}")
+        print(f"{Color.info('='*60)}")
+        print(f"{Color.info(f'  Total Cache Created: {llm_client.total_cache_created:,} tokens')}")
+        print(f"{Color.success(f'  Total Cache Hits: {llm_client.total_cache_read:,} tokens')}")
+
+        # Calculate total savings (cache reads are 90% cheaper)
+        total_savings = int(llm_client.total_cache_read * 0.9)
+        print(f"{Color.success(f'  Estimated Cost Savings: ~{total_savings:,} tokens worth!')}")
+
+        # Calculate efficiency percentage
+        if llm_client.total_cache_created > 0:
+            efficiency = (llm_client.total_cache_read / llm_client.total_cache_created) * 100
+            print(f"{Color.success(f'  Cache Efficiency: {efficiency:.1f}% (hits/created)')}")
+
+        print(f"{Color.info('='*60)}\n")
+
     if not (config.ENABLE_GRAPH and config.GRAPH_AUTO_EXTRACT and graph_lite):
         return
 
@@ -2651,10 +2694,35 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 # Legacy PCIe indexing removed - strictly use .ragconfig now
                 pass
 
-                new_system_prompt = build_system_prompt(messages)
+                system_prompt_data = build_system_prompt(messages)
                 # Update system message if it exists
                 if messages and messages[0].get("role") == "system":
-                    messages[0]["content"] = new_system_prompt
+                    if config.CACHE_OPTIMIZATION_MODE == "optimized" and isinstance(system_prompt_data, dict):
+                        # Optimized mode: Multi-block format for cache efficiency
+                        blocks = []
+
+                        # Static block (always cached - base prompt + tools)
+                        if system_prompt_data.get("static"):
+                            blocks.append({
+                                "type": "text",
+                                "text": system_prompt_data["static"],
+                                "cache_control": {"type": "ephemeral"}
+                            })
+
+                        # Dynamic block (no caching - RAG/Graph/Memory context changes per iteration)
+                        if system_prompt_data.get("dynamic"):
+                            blocks.append({
+                                "type": "text",
+                                "text": system_prompt_data["dynamic"]
+                            })
+
+                        messages[0]["content"] = blocks if blocks else system_prompt_data.get("static", "")
+
+                        if config.DEBUG_MODE:
+                            print(Color.info(f"[CACHE] Optimized mode: {len(blocks)} block(s) configured"))
+                    else:
+                        # Legacy mode: Single string
+                        messages[0]["content"] = system_prompt_data
 
         # Show context usage before each iteration
         if config.DEBUG_MODE or tracker.current == 0:
