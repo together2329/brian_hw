@@ -508,8 +508,22 @@ def parse_value(text):
                 i += 1
         raise ValueError(f"Unclosed string")
 
+    # JSON-like List or Dict
+    if text.startswith('[') or text.startswith('{'):
+        try:
+            # We need to find the matching closing bracket/brace
+            # This is tricky without a full parser, but let's try a simple bracket counter or json decoder
+            import json
+            decoder = json.JSONDecoder()
+            value, end_pos = decoder.raw_decode(text)
+            return value, end_pos
+        except json.JSONDecodeError:
+            # Fallback if strict JSON parsing fails (might be Python list repr?)
+            # But for now, let's assume valid JSON for complex types
+            pass
+
     # Number or identifier
-    match = re.match(r'([^,)\s]+)', text)
+    match = re.search(r'^([^,)\s]+)', text) # fixed regex anchor
     if match:
         value_str = match.group(1)
         # Try to parse as number

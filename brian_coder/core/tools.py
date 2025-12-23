@@ -294,7 +294,7 @@ def check_plan_status():
     except Exception as e:
         return f"Error checking plan status: {e}"
 
-def grep_file(pattern, path, context_lines=2, recursive=False):
+def grep_file(pattern, path, context_lines=2, recursive=False, **kwargs):
     """
     Searches for a pattern using system tools (git grep/grep) for performance.
     
@@ -303,6 +303,7 @@ def grep_file(pattern, path, context_lines=2, recursive=False):
         path: Path to file or directory
         context_lines: Number of context lines (default: 2)
         recursive: Whether to search recursively (default: False)
+        **kwargs: Additional arguments (ignored, for robustness)
         
     Returns:
         Formatted matches string
