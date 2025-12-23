@@ -1501,6 +1501,7 @@ def build_system_prompt(messages=None, allowed_tools=None):
         print(Color.system(f"[PROMPT]   Messages in history: {len(messages)}"))
 
     # Build context section
+    dynamic_context = ""
     if memory_system is not None or graph_lite is not None or procedural_memory is not None:
         context_parts = []
 
