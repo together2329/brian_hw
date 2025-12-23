@@ -115,18 +115,46 @@ def run_command(command):
         # Security Note: In a real production agent, you'd want to sandbox this.
         # Since this is for internal use by a developer, we use subprocess directly.
         # Updated to use shell=False for better security
-        args = shlex.split(command)
+        # Updated to use shell=True for better flexibility (redirection, pipes)
+        # and automatic output truncation to save context.
+        import time
+
         result = subprocess.run(
-            args, 
-            shell=False, 
+            command, 
+            shell=True, 
             capture_output=True, 
             text=True, 
-            timeout=30
+            timeout=60
         )
-        output = result.stdout
-        if result.stderr:
-            output += f"\nSTDERR:\n{result.stderr}"
-        return output.strip()
+        
+        stdout_str = result.stdout or ""
+        stderr_str = result.stderr or ""
+        
+        full_output = stdout_str
+        if stderr_str:
+            full_output += f"\nSTDERR:\n{stderr_str}"
+        
+        full_output = full_output.strip()
+        
+        # Output Truncation Logic
+        MAX_CHARS = 2000
+        if len(full_output) > MAX_CHARS:
+            timestamp = int(time.time())
+            log_filename = f"cmd_output_{timestamp}.txt"
+            log_path = os.path.abspath(log_filename)
+            
+            try:
+                with open(log_path, "w", encoding="utf-8") as f:
+                    f.write(full_output)
+                
+                summary = full_output[:500] + f"\n\n... (Output truncated via run_command tool) ...\n... (Total extracted chars: {len(full_output)}) ...\n\n[Full output saved to: {log_path}]\n"
+                if stderr_str:
+                     summary += f"[STDERR was present check log for details]"
+                return summary
+            except Exception as write_err:
+                return full_output[:MAX_CHARS] + f"\n... (Truncated, and failed to write log: {write_err})"
+        
+        return full_output
     except subprocess.TimeoutExpired:
         return "Error: Command timed out."
     except Exception as e:
@@ -154,10 +182,18 @@ def _is_dangerous_command(command: str) -> bool:
 
     return any(re.search(pat, cmd) for pat in dangerous_patterns)
 
-def list_dir(path="."):
-    """Lists files in a directory."""
+def list_dir(path=".", show_hidden=True, **kwargs):
+    """
+    Lists files in a directory.
+    Args:
+        path: Directory path (default: ".")
+        show_hidden: Whether to show hidden files (starting with .)
+    """
     try:
-        return "\n".join(os.listdir(path))
+        files = os.listdir(path)
+        if not show_hidden:
+            files = [f for f in files if not f.startswith('.')]
+        return "\n".join(sorted(files))
     except Exception as e:
         return f"Error listing directory: {e}"
 
