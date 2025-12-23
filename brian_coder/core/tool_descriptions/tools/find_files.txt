@@ -3,7 +3,7 @@
 Find files by glob pattern, supporting wildcards and recursive directory traversal.
 
 ## Signature
-find_files(pattern="*.v", directory=".", recursive=True, limit=100)
+find_files(pattern="*.v", directory=".", recursive=True)
 
 ## Description
 
@@ -36,10 +36,6 @@ find_files(pattern="*.v", directory=".", recursive=True, limit=100)
 - `recursive` (bool, optional, default: True) - Search subdirectories
   - `True`: Searches all subdirectories
   - `False`: Only searches specified directory (1 level)
-
-- `limit` (int, optional, default: 100) - Maximum number of results
-  - Prevents overwhelming output
-  - Returns first N matches (sorted)
 
 ## Good Examples
 
@@ -149,7 +145,6 @@ Observation: [All three file lists returned in parallel]
 **Performance:**
 
 - Fast for < 1000 files
-- Use `limit` parameter for very large projects
 - Recursive=False is faster for shallow searches
 
 **Hidden Files:**
@@ -191,10 +186,9 @@ Need to find files?
   2. Use `list_dir(path=".")` to see current directory contents
   3. Check for typos in path
 
-- **"Too many results (limit reached)"**
-  1. Increase limit: `find_files(pattern="*.v", limit=500)`
-  2. Narrow pattern: `find_files(pattern="axi_*.v")` instead of `*.v`
-  3. Specify directory: `find_files(pattern="*.v", directory="rtl/interconnect")`
+- **"Too many results"**
+  1. Narrow pattern: `find_files(pattern="axi_*.v")` instead of `*.v`
+  2. Specify directory: `find_files(pattern="*.v", directory="rtl/interconnect")`
 
 - **"Pattern matches directories"**
   1. Results include both files and directories
