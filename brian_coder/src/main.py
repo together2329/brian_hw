@@ -377,9 +377,26 @@ def parse_all_actions(text):
 
             
     if config.DEBUG_MODE:
-        print(f"[DEBUG] parse_all_actions found {len(actions)} actions")
+        print(f"[DEBUG] parse_all_actions found {len(actions)} raw actions")
         
-    return actions
+    # Deduplicate actions (preserve order)
+    # Why? Often models repeat the exact same action in Thought and Action blocks.
+    # Logic: Keep if (tool_name, args_str) has not been seen.
+    unique_actions = []
+    seen = set()
+    for tool_name, args_str in actions:
+        # Normalize args string (strip whitespace) for comparison
+        clean_args = args_str.strip()
+        signature = (tool_name, clean_args)
+        
+        if signature not in seen:
+            seen.add(signature)
+            unique_actions.append((tool_name, args_str))
+            
+    if config.DEBUG_MODE and len(unique_actions) != len(actions):
+        print(f"[DEBUG] Deduplicated actions: {len(actions)} -> {len(unique_actions)}")
+        
+    return unique_actions
 
 
 def parse_implicit_actions(text):
