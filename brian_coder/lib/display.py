@@ -130,10 +130,13 @@ def format_diff(old_text, new_text, context_lines=3):
 
 def format_diff_snippet(file_path, old_text, new_text, context_lines=3):
     """
-    Generate a clean snippet-style diff like Claude Code.
+    Generate a clean diff with line numbers like Claude Code.
 
-    Shows the edited region with line numbers in cat -n format,
-    without +/- symbols (just shows the final state).
+    Shows changes with:
+    - Line numbers on the left
+    - Red (-) for deleted lines
+    - Green (+) for added lines
+    - Context lines without +/-
 
     Args:
         file_path: Path to the file being edited
@@ -142,7 +145,7 @@ def format_diff_snippet(file_path, old_text, new_text, context_lines=3):
         context_lines: Number of context lines around changes
 
     Returns:
-        Formatted snippet string
+        Formatted diff string with colors and line numbers
     """
     import difflib
 
@@ -167,18 +170,54 @@ def format_diff_snippet(file_path, old_text, new_text, context_lines=3):
         return "[No changes detected]"
 
     # Calculate snippet boundaries (with context)
-    start_line = max(0, first_change[2] - context_lines)
-    end_line = min(len(new_lines), last_change[3] + context_lines)
+    old_start = max(0, first_change[0] - context_lines)
+    old_end = min(len(old_lines), last_change[1] + context_lines)
+    new_start = max(0, first_change[2] - context_lines)
+    new_end = min(len(new_lines), last_change[3] + context_lines)
 
-    # Build snippet
+    # Build diff with line numbers
     result = []
     result.append(f"The file {Color.CYAN}{file_path}{Color.RESET} has been updated. Here's the result of running `cat -n` on a snippet:")
+    result.append("")
 
-    for i in range(start_line, end_line):
-        line_num = i + 1
-        line_content = new_lines[i] if i < len(new_lines) else ""
+    # Process opcodes to show changes with line numbers
+    # Context uses NEW file line numbers, changes show both old and new
+    for tag, i1, i2, j1, j2 in opcodes:
+        # Skip if completely outside our view range
+        if i2 <= old_start or i1 >= old_end:
+            continue
 
-        # Format with proper alignment (5 chars for line number + arrow)
-        result.append(f"{Color.DIM}{line_num:6d}→{Color.RESET}{line_content}")
+        if tag == 'equal':
+            # Show context lines with NEW file line numbers
+            for j in range(max(j1, new_start), min(j2, new_end)):
+                line_num = j + 1
+                line_content = new_lines[j]
+                result.append(f"{Color.DIM}{line_num:6d}→{Color.RESET}{line_content}")
+
+        elif tag == 'replace':
+            # Show deleted lines in RED with OLD file line numbers
+            for i in range(max(i1, old_start), min(i2, old_end)):
+                line_num = i + 1  # OLD file line number
+                line_content = old_lines[i]
+                result.append(f"{Color.DIM}{line_num:6d} {Color.RESET}{Color.RED}-{line_content}{Color.RESET}")
+            # Show added lines in GREEN with NEW file line numbers
+            for j in range(max(j1, new_start), min(j2, new_end)):
+                line_num = j + 1  # NEW file line number
+                line_content = new_lines[j]
+                result.append(f"{Color.DIM}{line_num:6d} {Color.RESET}{Color.GREEN}+{line_content}{Color.RESET}")
+
+        elif tag == 'delete':
+            # Show deleted lines in RED with OLD file line numbers
+            for i in range(max(i1, old_start), min(i2, old_end)):
+                line_num = i + 1  # OLD file line number
+                line_content = old_lines[i]
+                result.append(f"{Color.DIM}{line_num:6d} {Color.RESET}{Color.RED}-{line_content}{Color.RESET}")
+
+        elif tag == 'insert':
+            # Show added lines in GREEN with NEW file line numbers
+            for j in range(max(j1, new_start), min(j2, new_end)):
+                line_num = j + 1  # NEW file line number
+                line_content = new_lines[j]
+                result.append(f"{Color.DIM}{line_num:6d} {Color.RESET}{Color.GREEN}+{line_content}{Color.RESET}")
 
     return '\n'.join(result)
