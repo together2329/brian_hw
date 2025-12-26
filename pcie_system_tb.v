@@ -383,7 +383,13 @@ module tb_pcie_sub_msg;
         $display("[%0t] [TB] Modules will now execute their internal tasks\n", $time);
         
         // Additional Stimulus: Trigger a specific test sequence if needed
-        // For now, let the automatic generators run, then force a check
+        $display("[%0t] [TB] Waiting for Assembly and Data Integrity Checks...", $time);
+        
+        // Wait for a few assemblies to complete
+        repeat(10) @(posedge assembled_valid);
+        
+        $display("[%0t] [TB] Verified 10 messages assembled successfully.", $time);
+        
         #500000;
 
         // All tests are now run by the modules' internal initial blocks
