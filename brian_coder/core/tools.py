@@ -7,7 +7,7 @@ import re
 
 # Robust library path discovery
 try:
-    from lib.display import format_diff
+    from lib.display import format_diff, format_diff_snippet
 except ModuleNotFoundError:
     # Fallback: Recursively search for 'lib/display.py' walking up the tree
     import os
@@ -37,22 +37,76 @@ except ModuleNotFoundError:
 
     # Try import again
     try:
-        from lib.display import format_diff
+        from lib.display import format_diff, format_diff_snippet
     except ModuleNotFoundError:
         try:
-            from display import format_diff
+            from display import format_diff, format_diff_snippet
         except ModuleNotFoundError:
-            # Final fallback stub
+            # Final fallback stubs
             def format_diff(*args, **kwargs):
+                return ""
+            def format_diff_snippet(*args, **kwargs):
                 return ""
 
 def read_file(path):
-    """Reads the content of a file."""
+    """
+    Reads the content of a file with smart truncation for large files.
+
+    For files >500 lines, automatically truncates and suggests better alternatives:
+    - Use grep_file to find specific sections
+    - Use read_lines with offset/limit for targeted reading
+    """
     try:
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
+
         with open(path, 'r', encoding='utf-8') as f:
-            return f.read()
+            lines = f.readlines()
+
+        total_lines = len(lines)
+
+        # Smart truncation for large files (Grep-first pattern)
+        MAX_LINES = 500
+        if total_lines > MAX_LINES:
+            # Read first MAX_LINES only
+            content = ''.join(lines[:MAX_LINES])
+
+            # Add smart suggestion message
+            suggestion = f"""
+
+============================================================
+⚠️  LARGE FILE DETECTED: {total_lines} lines total
+============================================================
+
+Showing first {MAX_LINES} lines only.
+... [{total_lines - MAX_LINES} lines hidden (total {total_lines} lines)]
+
+💡 RECOMMENDED NEXT ACTIONS (Grep-First Pattern):
+
+Instead of reading the entire file, use targeted approach:
+
+1. Find specific sections:
+   Action: grep_file(pattern="<keyword>", path="{path}")
+
+2. Read specific line ranges (after grep):
+   Action: read_lines(path="{path}", start_line=<N>, end_line=<N+50>)
+
+3. Search by concept (if indexed):
+   Action: rag_search(query="<concept>", file="{path}")
+
+Example workflow:
+  Action: grep_file(pattern="module.*top", path="{path}")
+  # → Find that module is at line 245
+  Action: read_lines(path="{path}", start_line=240, end_line=290)
+  # → Read just that module definition
+
+============================================================
+"""
+            return content + suggestion
+        else:
+            # Small file - read entire content
+            return ''.join(lines)
+
     except Exception as e:
         return f"Error reading file: {e}"
 
@@ -789,15 +843,60 @@ def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_lin
         
         if occurrences == 0:
             range_msg = f" in lines {start_line}-{end_line}" if start_line is not None else ""
-            # Provide helpful hint
-            hint = "\nHint: Check exact whitespace/indentation. Use read_lines() first to see actual content."
-            return f"No occurrences of '{old_text[:50]}...' found in {path}{range_msg}{hint}"
+            # Provide helpful recovery steps
+            hint = f"""
+
+❌ Text not found in {path}{range_msg}
+
+💡 RECOVERY STEPS (ALWAYS READ FIRST):
+
+1. Read the file to see exact formatting:
+   Action: read_file(path="{path}")
+   # OR for specific range:
+   Action: read_lines(path="{path}", start_line=<N>, end_line=<M>)
+
+2. Copy EXACT text from output (after → symbol):
+   - Remove line number prefix (e.g., '42→')
+   - Preserve exact indentation/spacing
+   - Include 5-10 lines of context
+
+3. Try replacement again with exact copy
+
+Common issues:
+- Wrong indentation (tabs vs spaces)
+- Missing/extra whitespace
+- Text doesn't exist in file (verify with grep_file first)
+"""
+            return hint
         
         # IMPROVEMENT: Uniqueness Safety Check
         # Strict logic: range required for multi-match unless count is specified.
         if start_line is None and end_line is None and occurrences > 1 and count == -1:
-             return f"Error: Found {occurrences} occurrences of '{old_text[:30]}...' in {path}. " \
-                   f"To prevent accidental edits, please specify start_line/end_line OR provide a more unique text context."
+             return f"""
+❌ Ambiguous replacement: Found {occurrences} occurrences in {path}
+
+💡 SOLUTION OPTIONS:
+
+1. Make old_text MORE SPECIFIC (add context):
+   - Include 5-10 lines of surrounding code
+   - Add unique function/class name above
+   - Use read_file() to see full context
+
+2. Use line range to narrow scope:
+   Action: replace_in_file(
+       path="{path}",
+       old_text="...",
+       new_text="...",
+       start_line=<start>,
+       end_line=<end>
+   )
+
+3. Replace only first N occurrences:
+   Action: replace_in_file(..., count=1)  # First only
+   Action: replace_in_file(..., count={occurrences})  # All {occurrences}
+
+⚠️  Replacing all {occurrences} occurrences requires confirmation.
+"""
         
         # Perform replacement
         if count == -1:
@@ -812,21 +911,22 @@ def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_lin
         full_suffix = "".join(lines[end_idx:])
         new_full_content = full_prefix + new_target_content + full_suffix
         
-        # Generate visual diff before writing
+        # Generate clean snippet diff before writing
         old_full_content = "".join(lines)
-        diff_output = format_diff(old_full_content, new_full_content, context_lines=2)
-        
+
         # Write back
         with open(path, 'w', encoding='utf-8') as f:
             f.write(new_full_content)
-        
-        result = f"Replaced {replacements} occurrence(s) in {path}\n\n"
+
+        # Generate diff snippet AFTER writing (so we show final state)
+        diff_output = format_diff_snippet(path, old_full_content, new_full_content, context_lines=3)
+
+        result = f"Replaced {replacements} occurrence(s) in {path}\n"
         if actual_old_text != old_text:
             if matched_strategy:
                 result += f"(Fuzzy matched using: {matched_strategy})\n"
             else:
                 result += f"(Fuzzy matched: adjusted whitespace)\n"
-        result += "=== Visual Diff ==="
         result += f"\n{diff_output}"
         return result
     except Exception as e:
@@ -1294,18 +1394,19 @@ def replace_lines(path, start_line, end_line, new_content):
             lines[end_line:]           # Lines after replacement
         )
         
-        # Generate visual diff before writing
+        # Generate clean snippet diff
         old_content = "".join(lines)
         new_content_full = "".join(new_lines)
-        diff_output = format_diff(old_content, new_content_full, context_lines=2)
-        
+
         # Write back
         with open(path, 'w', encoding='utf-8') as f:
             f.writelines(new_lines)
-        
+
+        # Generate diff snippet AFTER writing (shows final state)
+        diff_output = format_diff_snippet(path, old_content, new_content_full, context_lines=3)
+
         lines_removed = end_line - start_line + 1
-        result = f"Replaced lines {start_line}-{end_line} ({lines_removed} lines) in {path}\n\n"
-        result += "=== Visual Diff ==="
+        result = f"Replaced lines {start_line}-{end_line} ({lines_removed} lines) in {path}\n"
         result += f"\n{diff_output}"
         return result
     except Exception as e:

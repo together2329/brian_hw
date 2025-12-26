@@ -2530,6 +2530,80 @@ def _execute_batch_parallel(batch_actions):
     return results
 
 
+def _maybe_inject_exploration_strategy(messages, task_description):
+    """
+    복잡한 탐색 요청에 대해 초기 병렬 전략 주입
+
+    탐색 키워드: analyze, find all, explore, subsystem, overview, structure
+
+    Returns:
+        True if strategy was injected
+        False otherwise
+    """
+    if not messages:
+        return False
+
+    user_query = messages[-1].get("content", "").lower()
+    exploration_kw = ["analyze", "find all", "explore", "subsystem", "overview", "structure", "understand"]
+
+    if not any(kw in user_query for kw in exploration_kw):
+        return False
+
+    # 이미 주입되었는지 확인 (중복 방지)
+    for msg in messages:
+        if msg.get("role") == "system" and "EXPLORATION STRATEGY" in msg.get("content", ""):
+            return False
+
+    strategy = f"""=== MANDATORY EXPLORATION STRATEGY ===
+
+⚠️ CRITICAL: For "{task_description}", you MUST output ALL Phase 1 actions NOW.
+Do NOT output just one action. Output ALL THREE at once:
+
+**YOUR NEXT RESPONSE MUST INCLUDE EXACTLY THESE 3 ACTIONS:**
+
+Thought: Exploring "{task_description}" - gathering info in parallel.
+Action: list_dir(path=".")
+Action: find_files(pattern="*.md", directory=".")
+Action: rag_search(query="{task_description}", categories="all", limit=5)
+
+[DO NOT WAIT - Output all 3 actions above in your NEXT response]
+
+**Phase 2 (after Phase 1 completes):**
+- For SMALL files (<500 lines): Read in parallel (3+ read_file actions)
+- For LARGE files (>500 lines): Use Grep-First Pattern:
+  * Action: grep_file(pattern="module|class|def", path="large_file.sv")
+  * Action: grep_file(pattern="<keyword>", path="large_file.sv")
+  * Action: grep_file(pattern="<another_keyword>", path="large_file.sv")
+  * [After grep] Action: read_lines(path="...", start_line=N, end_line=N+50)
+
+**Phase 3 (deep analysis):**
+- Analyze modules in parallel (3+ analyze_verilog_module actions)
+
+**CRITICAL - Grep-First for Large Files:**
+If you see truncation warning (e.g., "500 lines shown, 2000 hidden"):
+  ❌ WRONG: Action: read_file(path="file.sv")  # Already failed!
+  ✅ CORRECT:
+     Action: grep_file(pattern="target_module", path="file.sv")
+     Action: grep_file(pattern="signal_name", path="file.sv")
+     Action: grep_file(pattern="always.*@", path="file.sv")
+
+**Forbidden:**
+- Outputting only 1 action per iteration
+- Reading large files without grep first
+
+**Required:**
+- Minimum 3 actions per response for this task
+- Use Grep-First pattern for any file >500 lines
+==="""
+
+    messages.append({"role": "system", "content": strategy})
+
+    if config.DEBUG_MODE:
+        print(Color.system("[META] Exploration strategy injected"))
+
+    return True
+
+
 def run_react_agent(messages, tracker, task_description, mode='interactive', allow_claude_flow=True, preface_enabled=True):
     """
     Executes the ReAct agent loop for a given task.
@@ -2667,6 +2741,11 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             print(Color.warning(f"[Deep Think] Analysis failed: {e}"))
             print(Color.info("[Deep Think] Continuing with standard approach..."))
             print()
+
+    # Inject exploration strategy for complex analysis tasks (Phase 1 optimization)
+    if allow_claude_flow and preface_enabled:
+        if _maybe_inject_exploration_strategy(messages, task_description):
+            print(Color.info("[System] 🧭 Exploration strategy injected. Expecting parallel actions...\n"))
 
     while True:
         # Check iteration limit with progressive warning
@@ -2829,6 +2908,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             if config.DEBUG_MODE:
                 print(Color.system(f"  ┌─ FLOW: Parse → Found {len(actions)} action(s)"))
 
+            # Warn if only single action (suboptimal)
+            if len(actions) == 1:
+                print(Color.warning("  ⚠️ Only 1 action detected. For 3-5x faster performance, output 3+ actions per response."))
+
             if len(actions) > 1 and config.ENABLE_REACT_PARALLEL:
                 print(Color.info(f"  ⚡ Executing {len(actions)} actions (parallel mode)"))
                 action_results = execute_actions_parallel(actions, tracker)
@@ -2865,6 +2948,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     if tool_name in ['read_file', 'read_lines']:
                         lines = observation.split('\n')[:config.TOOL_RESULT_PREVIEW_LINES]
                         obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
+                    elif tool_name in ['replace_in_file', 'replace_lines']:
+                        # Show full diff snippet for file edits (like Claude Code)
+                        obs_preview = observation
                     elif len(observation) > config.TOOL_RESULT_PREVIEW_CHARS:
                         obs_preview = observation[:config.TOOL_RESULT_PREVIEW_CHARS] + f"... ({len(observation)} chars total)"
                     else:
@@ -2924,6 +3010,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     if tool_name in ['read_file', 'read_lines']:
                         lines = observation.split('\n')[:config.TOOL_RESULT_PREVIEW_LINES]
                         obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
+                    elif tool_name in ['replace_in_file', 'replace_lines']:
+                        # Show full diff snippet for file edits (like Claude Code)
+                        obs_preview = observation
                     elif len(observation) > config.TOOL_RESULT_PREVIEW_CHARS:
                         obs_preview = observation[:config.TOOL_RESULT_PREVIEW_CHARS] + f"... ({len(observation)} chars total)"
                     else:

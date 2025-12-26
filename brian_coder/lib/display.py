@@ -90,27 +90,27 @@ def format_diff(old_text, new_text, context_lines=3):
     """
     Generate a visual unified diff between old and new text.
     Uses Python standard library only (no external dependencies).
-    
+
     Args:
         old_text: Original text content
-        new_text: New text content  
+        new_text: New text content
         context_lines: Number of context lines around changes
-    
+
     Returns:
         Formatted diff string with colors
     """
     import difflib
-    
+
     old_lines = old_text.splitlines(keepends=True)
     new_lines = new_text.splitlines(keepends=True)
-    
+
     diff = difflib.unified_diff(
         old_lines, new_lines,
         fromfile='before',
         tofile='after',
         n=context_lines
     )
-    
+
     result = []
     for line in diff:
         line_stripped = line.rstrip('\n')
@@ -124,5 +124,61 @@ def format_diff(old_text, new_text, context_lines=3):
             result.append(Color.diff_remove(line_stripped[1:]))
         else:
             result.append(Color.diff_context(line_stripped[1:] if line.startswith(' ') else line_stripped))
-    
+
     return '\n'.join(result) if result else "[No changes detected]"
+
+
+def format_diff_snippet(file_path, old_text, new_text, context_lines=3):
+    """
+    Generate a clean snippet-style diff like Claude Code.
+
+    Shows the edited region with line numbers in cat -n format,
+    without +/- symbols (just shows the final state).
+
+    Args:
+        file_path: Path to the file being edited
+        old_text: Original text content
+        new_text: New text content
+        context_lines: Number of context lines around changes
+
+    Returns:
+        Formatted snippet string
+    """
+    import difflib
+
+    old_lines = old_text.splitlines(keepends=False)
+    new_lines = new_text.splitlines(keepends=False)
+
+    # Find changed region using difflib
+    matcher = difflib.SequenceMatcher(None, old_lines, new_lines)
+    opcodes = matcher.get_opcodes()
+
+    # Find first and last change
+    first_change = None
+    last_change = None
+
+    for tag, i1, i2, j1, j2 in opcodes:
+        if tag != 'equal':
+            if first_change is None:
+                first_change = (i1, i2, j1, j2)
+            last_change = (i1, i2, j1, j2)
+
+    if first_change is None:
+        return "[No changes detected]"
+
+    # Calculate snippet boundaries (with context)
+    start_line = max(0, first_change[2] - context_lines)
+    end_line = min(len(new_lines), last_change[3] + context_lines)
+
+    # Build snippet
+    result = []
+    result.append(f"The file {Color.CYAN}{file_path}{Color.RESET} has been updated. Here's the result of running `cat -n` on a snippet:")
+
+    for i in range(start_line, end_line):
+        line_num = i + 1
+        line_content = new_lines[i] if i < len(new_lines) else ""
+
+        # Format with proper alignment (5 chars for line number + arrow)
+        result.append(f"{Color.DIM}{line_num:6d}→{Color.RESET}{line_content}")
+
+    return '\n'.join(result)

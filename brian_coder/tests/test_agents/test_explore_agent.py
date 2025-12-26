@@ -14,8 +14,9 @@ import sys
 import os
 
 # Add brian_coder to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'brian_coder'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'brian_coder/src'))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src'))) # brian_coder/src
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))) # brian_coder dir
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../'))) # project root
 
 from lib.display import Color
 

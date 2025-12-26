@@ -381,11 +381,21 @@ module tb_pcie_sub_msg;
         rst_n = 1;
         $display("[%0t] [TB] Reset released", $time);
         $display("[%0t] [TB] Modules will now execute their internal tasks\n", $time);
+        
+        // Additional Stimulus: Trigger a specific test sequence if needed
+        // For now, let the automatic generators run, then force a check
+        #500000;
 
         // All tests are now run by the modules' internal initial blocks
         // axi_write_gen will send fragmented messages
         // pcie_msg_receiver will assemble them
         // axi_read_gen will read and verify assembled messages
+
+        // Monitor: Print SRAM activity summary every 1ms
+        forever begin
+            #1000000;
+            $display("[%0t] [TB_MON] WPTR_0=%0d, RX_DEBUG_31=0x%h", $time, PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0, PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31);
+        end
     end
 
     // Bad header version test monitoring (removed infinite wait)
@@ -451,7 +461,7 @@ module tb_pcie_sub_msg;
     end
 
     // Task to clear expected queue data
-    task CLEAR_QUEUE_DATA;
+    task automatic CLEAR_QUEUE_DATA;
         input [3:0] queue_idx;
         integer i;
         begin

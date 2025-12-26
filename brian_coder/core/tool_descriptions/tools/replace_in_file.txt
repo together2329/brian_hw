@@ -5,6 +5,64 @@ Replace text in an existing file using intelligent fuzzy matching strategies (Op
 ## Signature
 replace_in_file(path="path/to/file", old_text="text to find", new_text="replacement text", count=-1, start_line=None, end_line=None)
 
+## ⚠️ CRITICAL: ALWAYS READ FIRST ⚠️
+
+**Mandatory Pattern - Never Skip This:**
+
+```
+Step 1: ALWAYS Read First
+Action: read_file(path="target.py")
+# OR
+Action: read_lines(path="target.py", start_line=100, end_line=150)
+
+Step 2: Copy EXACT Text (after the → symbol)
+Observation shows:
+   42→def calculate():
+   43→    result = x + y
+   44→    return result
+
+Step 3: Replace with Exact Copy
+Action: replace_in_file(
+    path="target.py",
+    old_text="def calculate():\n    result = x + y\n    return result",
+    new_text="def calculate():\n    result = x * y\n    return result"
+)
+```
+
+**Why This Matters:**
+- ✅ Guarantees exact spacing/indentation match
+- ✅ Verifies text exists before attempting replacement
+- ✅ Avoids fuzzy matching guesswork
+- ✅ Shows you exactly what will change
+- ✅ Prevents "text not found" errors
+
+**Common Failure Pattern (Don't Do This):**
+```
+❌ User: "Change foo to bar in main.py"
+❌ Action: replace_in_file(path="main.py", old_text="foo", new_text="bar")
+❌ Result: Error - "foo" is too ambiguous, appears 50 times
+```
+
+**Correct Pattern:**
+```
+✅ User: "Change foo to bar in main.py"
+✅ Action: read_file(path="main.py")
+✅ Observation: See exact context at line 45
+✅ Action: replace_in_file(
+    path="main.py",
+    old_text="def process_foo():\n    return foo.value",
+    new_text="def process_bar():\n    return bar.value"
+)
+✅ Result: Replaced 1 occurrence - SUCCESS!
+```
+
+**Key Rules:**
+1. Remove line number prefix (e.g., `42→`) when copying text
+2. Include 5-10 lines of context for unique match
+3. Preserve exact indentation (tabs vs spaces)
+4. Use `\n` for newlines in tool parameters
+5. Verify the snippet output after replacement
+
 ## Description
 
 **The safest way to modify existing files.** This tool performs targeted find-and-replace operations with **9 intelligent fuzzy matching strategies** adapted from OpenCode, Cline, and Gemini CLI.

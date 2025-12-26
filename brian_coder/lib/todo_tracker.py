@@ -316,7 +316,7 @@ def parse_todo_write_from_text(text: str) -> Optional[List[Dict]]:
     # Pattern 2: Numbered list (1. 2. 3.)
     if not todos:
         matches = re.findall(r'^\s*\d+\.\s*(.+)$', text, re.MULTILINE)
-        if len(matches) >= 2:  # At least 2 items to be considered a todo list
+        if len(matches) >= 3:  # At least 3 items (more substantial tasks)
             for content in matches:
                 content = content.strip()
                 active_form = _generate_active_form(content)

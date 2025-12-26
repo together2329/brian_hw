@@ -131,6 +131,7 @@ module pcie_msg_receiver (
     localparam SRAM_WR   = 3'b100;
 
     reg [2:0] state;
+    reg       wptr_updated_for_frag;
     reg [63:0] write_addr;
     reg [11:0] beat_count;
     reg [11:0] total_beats;
@@ -185,6 +186,7 @@ module pcie_msg_receiver (
     reg [11:0] asm_total_beats;
     reg [1:0] asm_padding_bytes;  // Padding bytes from L_PKT header[53:52]
     reg [7:0] asm_tlp_length_dw;  // TLP length in DW for SG_PKT
+    reg [15:0] tlp_len_dw;
     reg asm_is_sg_pkt;  // Flag to indicate SG_PKT (for WPTR calculation)
     reg [15:0] asm_accumulated_tlp_bytes;  // Accumulated TLP length for multi-fragment
 
@@ -388,7 +390,7 @@ module pcie_msg_receiver (
 
             case (state)
                 IDLE: begin
-                    axi_bvalid <= 1'b0;
+                    axi_bvalid <= (axi_bvalid && !axi_bready) ? 1'b1 : 1'b0;
 
                     if (axi_awvalid) begin
                         $display("DEBUG_FORCE: IDLE state saw AWVALID. Addr=0x%h", axi_awaddr);
@@ -516,10 +518,16 @@ module pcie_msg_receiver (
                                              $time, axi_wdata[39:24], ohc_size_dw, total_beats, expected_beats);
                                 end
                             end
+                            
+                            // [FIX] Capture TLP Length (Payload Length) from Header [39:24]
+                            // This is in DW (4 bytes). We need this for accurate WPTR update later.
+                            tlp_len_dw <= axi_wdata[39:24];
                         end
 
                         // Store fragment data in temporary buffer
-                        current_frag[beat_count] <= axi_wdata;
+                        if (beat_count < 64) begin
+                            current_frag[beat_count] <= axi_wdata;
+                        end
 
 `ifdef DEBUG
                         $display("[%0t] [MSG_RX] Beat %0d: data=0x%h, last=%0b",
@@ -530,8 +538,9 @@ module pcie_msg_receiver (
                         current_frag_beats <= current_frag_beats + 1;
 
                         if (axi_wlast) begin
-                            axi_wready <= 1'b0;
-                            state <= ASSEMBLE;
+                        axi_wready <= 1'b0;
+                        axi_bvalid <= 1'b1;
+                        state <= ASSEMBLE;
 `ifdef DEBUG
                             $display("[%0t] [W_DATA] Last beat received. Transitioning to ASSEMBLE.", $time);
 `endif
@@ -1035,9 +1044,16 @@ module pcie_msg_receiver (
                         
                         asm_beat_count <= 1; // Start reading from Beat 1 next
                         sram_alignment_init <= 1'b1;
+                        wptr_updated_for_frag <= 1'b0;
                         sram_wen <= 1'b0; // Ensure write enable is off initially
-                        
-                        // Initialize SRAM address with WPTR offset (convert bytes to 32-byte words)
+
+                        // Initialize SRAM address with WPTR offset (32-byte aligned address)
+                        case (current_queue_idx)
+                            4'h0: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0[31:0] >> 5) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:5]);
+                            4'h1: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1[31:0] >> 5) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_1[15:5]);
+                            default: sram_waddr <= 10'h0;
+                        endcase
+                        $display("[%0t] [SRAM_WR] Init: Queue=%0d, WPTR=%0d, Addr=%0d", $time, current_queue_idx, PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0, sram_waddr);
                         case (current_queue_idx)
                             4'h0: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0[9:0] + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] >> 5);
                             4'h1: sram_waddr <= PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1[9:0] + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_1[15:0] >> 5);
@@ -1065,37 +1081,47 @@ module pcie_msg_receiver (
                         sram_wen <= 1'b0; // Default to no write
                         
                         if (sram_alignment_init) begin
-                            // Increment address if a write occurred in the previous cycle
+                            // Increment address AFTER a write occurs
                             if (sram_wen) begin
                                 sram_waddr <= sram_waddr + 1;
+                                sram_wen   <= 1'b0;
                             end
 
                             // 1. Load accumulator from queue_data
                             if (sram_accumulator_bytes < 32 && asm_beat_count < asm_total_beats) begin
-                                // Load next beat
-                                $display("[%0t] [SRAM_WR] Loading Beat %0d to accumulator offset %0d", $time, asm_beat_count, sram_accumulator_bytes);
-                                for (i = 0; i < 32; i = i + 1) begin
-                                    sram_accumulator[(sram_accumulator_bytes*8) + (i*8) +: 8] <= queue_data[current_queue_idx][asm_beat_count][i*8 +: 8];
+                                // If first beat of fragment, skip 16B header
+                                if (asm_beat_count == 0) begin
+                                    $display("[%0t] [SRAM_WR] Loading Start Beat (stripping 16B header) to offset %0d", $time, sram_accumulator_bytes);
+                                    for (i = 0; i < 16; i = i + 1) begin
+                                        sram_accumulator[(sram_accumulator_bytes*8) + (i*8) +: 8] <= queue_data[current_queue_idx][asm_beat_count][(i+16)*8 +: 8];
+                                    end
+                                    sram_accumulator_bytes <= sram_accumulator_bytes + 16;
+                                end else begin
+                                    $display("[%0t] [SRAM_WR] Loading Beat %0d to accumulator offset %0d", $time, asm_beat_count, sram_accumulator_bytes);
+                                    for (i = 0; i < 32; i = i + 1) begin
+                                        sram_accumulator[(sram_accumulator_bytes*8) + (i*8) +: 8] <= queue_data[current_queue_idx][asm_beat_count][i*8 +: 8];
+                                    end
+                                    sram_accumulator_bytes <= sram_accumulator_bytes + 32;
                                 end
-                                sram_accumulator_bytes <= sram_accumulator_bytes + 32;
                                 asm_beat_count <= asm_beat_count + 1;
                             end
 
                             // 2. Write to SRAM if we have enough data
                             if (sram_accumulator_bytes >= 32) begin
                                 sram_wdata <= sram_accumulator[255:0];
-                                sram_wen <= 1'b1; 
-                                
+                                sram_wen   <= 1'b1;
+
                                 // Shift accumulator
                                 sram_accumulator <= sram_accumulator >> 256;
                                 sram_accumulator_bytes <= sram_accumulator_bytes - 32;
-                                
+
 `ifdef DEBUG
-                                $display("[%0t] [SRAM_WR] Write: addr=%0d, data=0x%h", $time, sram_waddr, sram_accumulator[255:0]);
+                                $display("[%0t] [SRAM_WR] Write Cycle. addr=%0d", $time, sram_waddr);
 `endif
                             end else begin
-                                // Check if we are done loading
+                                // Check if we are done loading THIS fragment
                                 if (asm_beat_count >= asm_total_beats) begin
+// Removed redundant WPTR update here to avoid double-counting. WPTR is updated at the end of ASSEMBLE state.
                                     // Flush remaining bytes if any (and if valid)
                                     if (sram_accumulator_bytes > 0) begin
                                         sram_wdata <= sram_accumulator[255:0]; // Pad with zeros (already zero shifted)
@@ -1110,22 +1136,28 @@ module pcie_msg_receiver (
                                         
                                         $display("[%0t] [SRAM_WR] SRAM write loop finished for queue %0d. Resetting sram_alignment_init.", $time, current_queue_idx);
                                         sram_alignment_init <= 1'b0;
+                                        sram_accumulator <= 512'h0;
+                                        sram_accumulator_bytes <= 10'h0;
                                         
                                         // Clear the queue based on state
                                         if (queue_state[current_queue_idx] == 2'b01) begin // WAIT_M or WAIT_L
-                                            // Partial write: Keep queue valid, but reset buffer pointers
+                                            // Partial write: Keep queue valid, and PRESERVE write_ptr for appending next fragment
                                             queue_total_beats[current_queue_idx] <= 12'h0;
-                                            queue_write_ptr[current_queue_idx] <= 12'h0;
                                             // Keep queue_valid, queue_state, queue_frag_count, queue_accumulated_tlp_bytes
                                             $display("[%0t] [SRAM_WR] Partial write complete. Queue %0d kept open.", $time, current_queue_idx);
                                         end else begin
-                                            // Complete write: Clear everything
+                                            // Complete write: Clear everything including SFR registers for next test
                                             queue_valid[current_queue_idx] <= 1'b0;
                                             queue_state[current_queue_idx] <= 2'b00;
                                             queue_total_beats[current_queue_idx] <= 12'h0;
                                             queue_write_ptr[current_queue_idx] <= 12'h0;
                                             queue_frag_count[current_queue_idx] <= 8'h0;
                                             queue_accumulated_tlp_bytes[current_queue_idx] <= 16'h0;
+                                            
+                                            case (current_queue_idx)
+                                                4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0 <= 32'h0;
+                                                // ... (Apply to all queues if needed, but Testbench uses Queue 0)
+                                            endcase
                                             $display("[%0t] [SRAM_WR] Complete write. Queue %0d cleared.", $time, current_queue_idx);
                                         end
                                         
@@ -1154,7 +1186,7 @@ module pcie_msg_receiver (
                                         // Update write pointer
                                         if (asm_is_sg_pkt) begin
                                             case (current_queue_idx)
-                                                4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] <= (asm_tlp_length_dw * 4) - asm_padding_bytes;
+                                                4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] <= (asm_tlp_length_dw * 4);
                                                 4'h1: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_1[15:0] <= (asm_tlp_length_dw * 4) - asm_padding_bytes;
                                                 4'h2: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_2[15:0] <= (asm_tlp_length_dw * 4) - asm_padding_bytes;
                                                 4'h3: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_3[15:0] <= (asm_tlp_length_dw * 4) - asm_padding_bytes;
@@ -1172,21 +1204,21 @@ module pcie_msg_receiver (
                                             endcase
                                         end else begin
                                             case (current_queue_idx)
-                                                4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'h1: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_1[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'h2: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_2[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'h3: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_3[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'h4: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_4[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'h5: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_5[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'h6: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_6[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'h7: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_7[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'h8: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_8[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'h9: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_9[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'hA: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_10[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'hB: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_11[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'hC: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_12[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'hD: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_13[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
-                                                4'hE: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_14[15:0] <= asm_accumulated_tlp_bytes - asm_padding_bytes;
+                                                4'h0: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] + asm_accumulated_tlp_bytes;
+                                                4'h1: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_1[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_1[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
+                                                4'h2: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_2[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_2[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
+                                                4'h3: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_3[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_3[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
+                                                4'h4: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_4[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_4[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
+                                                4'h5: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_5[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_5[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
+                                                4'h6: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_6[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_6[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
+                                                4'h7: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_7[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_7[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
+                                                4'h8: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_8[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_8[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
+                                                4'h9: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_9[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_9[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
+                                                4'hA: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_10[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_10[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
+                                                4'hB: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_11[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_11[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
+                                                4'hC: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_12[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_12[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
+                                                4'hD: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_13[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_13[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
+                                                4'hE: PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_14[15:0] <= PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_14[15:0] + (asm_accumulated_tlp_bytes - asm_padding_bytes);
                                             endcase
                                         end
 
@@ -1205,6 +1237,7 @@ module pcie_msg_receiver (
                 end
 
                 W_RESP: begin
+                    axi_bvalid <= 1'b1;
 `ifdef DEBUG
                     $display("[%0t] [MSG_RX] W_RESP state: bvalid=%b, bready=%b", $time, axi_bvalid, axi_bready);
 `endif
