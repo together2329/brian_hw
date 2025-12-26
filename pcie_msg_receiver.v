@@ -1036,35 +1036,36 @@ module pcie_msg_receiver (
                         sram_accumulator = 0;
                         sram_accumulator_bytes = 0;
                         
-                        // Extract payload from Beat 0
+                        // Extract payload from Beat 0 and align it
+                        sram_accumulator = 0;
                         for (i = sram_header_ohc_bytes; i < 32; i = i + 1) begin
-                            sram_accumulator[(i - sram_header_ohc_bytes)*8 +: 8] <= queue_data[current_queue_idx][0][i*8 +: 8];
+                            sram_accumulator[(i - sram_header_ohc_bytes)*8 +: 8] = queue_data[current_queue_idx][0][i*8 +: 8];
                         end
-                        sram_accumulator_bytes <= 32 - sram_header_ohc_bytes;
+                        sram_accumulator_bytes = 32 - sram_header_ohc_bytes;
                         
                         asm_beat_count <= 1; // Start reading from Beat 1 next
                         sram_alignment_init <= 1'b1;
                         wptr_updated_for_frag <= 1'b0;
                         sram_wen <= 1'b0; // Ensure write enable is off initially
 
-                        // Initialize SRAM address with WPTR offset (32-byte aligned address)
+                        // 3. Reset SRAM Address to Queue Base + Internal WPTR (32-byte units)
+                        sram_waddr = 0;
                         case (current_queue_idx)
-                            4'h0: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:5]);
-                            4'h1: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_1[15:5]);
-                            4'h2: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_2[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_2[15:5]);
-                            4'h3: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_3[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_3[15:5]);
-                            4'h4: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_4[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_4[15:5]);
-                            4'h5: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_5[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_5[15:5]);
-                            4'h6: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_6[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_6[15:5]);
-                            4'h7: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_7[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_7[15:5]);
-                            4'h8: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_8[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_8[15:5]);
-                            4'h9: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_9[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_9[15:5]);
-                            4'hA: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_10[15:5]);
-                            4'hB: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_11[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_11[15:5]);
-                            4'hC: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_12[15:5]);
-                            4'hD: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_13[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_13[15:5]);
-                            4'hE: sram_waddr <= (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_14[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_14[15:5]);
-                            default: sram_waddr <= 10'h0;
+                            4'h0: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:5]);
+                            4'h1: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_1[15:5]);
+                            4'h2: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_2[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_2[15:5]);
+                            4'h3: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_3[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_3[15:5]);
+                            4'h4: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_4[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_4[15:5]);
+                            4'h5: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_5[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_5[15:5]);
+                            4'h6: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_6[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_6[15:5]);
+                            4'h7: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_7[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_7[15:5]);
+                            4'h8: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_8[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_8[15:5]);
+                            4'h9: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_9[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_9[15:5]);
+                            4'ha: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_10[15:5]);
+                            4'hb: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_11[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_11[15:5]);
+                            4'hc: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_12[15:5]);
+                            4'hd: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_13[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_13[15:5]);
+                            4'he: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_14[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_14[15:5]);
                         endcase
                         
                         $display("[%0t] [SRAM_WR] Init: Queue=%0d, WPTR_0=%0d, sram_waddr_offset=%0d", 
@@ -1075,17 +1076,15 @@ module pcie_msg_receiver (
                         sram_wen <= 1'b0; // Default to no write
                         
                         if (sram_alignment_init) begin
-                            // Increment address AFTER a write occurs
+                            // Address increment must be tightly coupled with the end of a write enable pulse
                             if (sram_wen) begin
                                 sram_waddr <= sram_waddr + 1;
                                 sram_wen   <= 1'b0;
                             end
 
-                            // 1. Load accumulator from queue_data
-                            if (sram_accumulator_bytes < 32 && asm_beat_count < asm_total_beats) begin
-                                // Fragment의 첫 비트(beat_count 0)는 이미 init에서 처리됨
-                                // 여기서는 1번 비트부터 처리하며, 모든 비트를 32바이트 단위로 로드
-                                $display("[%0t] [SRAM_WR] Loading Beat %0d to accumulator offset %0d", $time, asm_beat_count, sram_accumulator_bytes);
+                            // 1. Load accumulator from queue_data (Continuous Bit-Stream Alignment)
+                            if (!sram_wen && sram_accumulator_bytes < 32 && asm_beat_count < asm_total_beats) begin
+                                // Atomic shift and load to prevent data gaps
                                 for (i = 0; i < 32; i = i + 1) begin
                                     sram_accumulator[(sram_accumulator_bytes*8) + (i*8) +: 8] <= queue_data[current_queue_idx][asm_beat_count][i*8 +: 8];
                                 end
@@ -1093,67 +1092,46 @@ module pcie_msg_receiver (
                                 asm_beat_count <= asm_beat_count + 1;
                             end
 
-                            // 2. Write to SRAM if we have enough data
-                            if (sram_accumulator_bytes >= 32) begin
+                            // 2. Continuous Write Logic: Atomic Address Alignment
+                            if (sram_accumulator_bytes >= 32 && !sram_wen) begin
                                 sram_wdata <= sram_accumulator[255:0];
                                 sram_wen   <= 1'b1;
-
-                                // Shift accumulator
-                                sram_accumulator <= sram_accumulator >> 256;
+                                sram_accumulator <= (sram_accumulator >> 256);
                                 sram_accumulator_bytes <= sram_accumulator_bytes - 32;
-
-`ifdef DEBUG
-                                $display("[%0t] [SRAM_WR] Write Cycle. addr=%0d", $time, sram_waddr);
-`endif
-                            end else begin
-                                // Check if we are done loading THIS fragment
-                                if (asm_beat_count >= asm_total_beats) begin
-                                    if (sram_accumulator_bytes > 0) begin
-                                        sram_wdata <= sram_accumulator[255:0];
-                                        sram_wen <= 1'b1;
-                                        sram_accumulator_bytes <= 0;
-                                        sram_waddr <= sram_waddr + 1;
-`ifdef DEBUG
-                                        $display("[%0t] [SRAM_WR] Write Partial Flush: addr=%0d", $time, sram_waddr);
-`endif
-                                    end else begin
-                                        sram_wen <= 1'b0;
-                                        sram_alignment_init <= 1'b0;
-                                        sram_accumulator <= 512'h0;
-
-                                        if (queue_state[current_queue_idx] != 2'b01) begin
-                                            queue_valid[current_queue_idx] <= 1'b0;
-                                            queue_state[current_queue_idx] <= 2'b00;
-                                            queue_total_beats[current_queue_idx] <= 12'h0;
-                                            queue_write_ptr[current_queue_idx] <= 12'h0;
-                                            queue_frag_count[current_queue_idx] <= 8'h0;
-                                            queue_accumulated_tlp_bytes[current_queue_idx] <= 16'h0;
-
-                                            // Set interrupts and WPTR on completion
-                                            o_msg_interrupt <= 1'b1;
-                                            case (current_queue_idx)
-                                                4'h0:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_0[0]  <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0]  <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0]  + asm_accumulated_tlp_bytes)); end
-                                                4'h1:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_1[0]  <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_1[15:0]  <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_1[15:0]  + asm_accumulated_tlp_bytes)); end
-                                                4'h2:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_2[0]  <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_2[15:0]  <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_2[15:0]  + asm_accumulated_tlp_bytes)); end
-                                                4'h3:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_3[0]  <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_3[15:0]  <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_3[15:0]  + asm_accumulated_tlp_bytes)); end
-                                                4'h4:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_4[0]  <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_4[15:0]  <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_4[15:0]  + asm_accumulated_tlp_bytes)); end
-                                                4'h5:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_5[0]  <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_5[15:0]  <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_5[15:0]  + asm_accumulated_tlp_bytes)); end
-                                                4'h6:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_6[0]  <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_6[15:0]  <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_6[15:0]  + asm_accumulated_tlp_bytes)); end
-                                                4'h7:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_7[0]  <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_7[15:0]  <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_7[15:0]  + asm_accumulated_tlp_bytes)); end
-                                                4'h8:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_8[0]  <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_8[15:0]  <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_8[15:0]  + asm_accumulated_tlp_bytes)); end
-                                                4'h9:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_9[0]  <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_9[15:0]  <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_9[15:0]  + asm_accumulated_tlp_bytes)); end
-                                                4'ha:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_10[0] <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_10[15:0] <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_10[15:0] + asm_accumulated_tlp_bytes)); end
-                                                4'hb:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_11[0] <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_11[15:0] <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_11[15:0] + asm_accumulated_tlp_bytes)); end
-                                                4'hc:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_12[0] <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_12[15:0] <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_12[15:0] + asm_accumulated_tlp_bytes)); end
-                                                4'hd:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_13[0] <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_13[15:0] <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_13[15:0] + asm_accumulated_tlp_bytes)); end
-                                                4'he:  begin PCIE_SFR_AXI_MSG_HANDLER_Q_INTR_STATUS_14[0] <= 1'b1; PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_14[15:0] <= (asm_is_sg_pkt ? (asm_tlp_length_dw*4) : (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_14[15:0] + asm_accumulated_tlp_bytes)); end
-                                            endcase
-                                        end
-                                        $display("[%0t] [SRAM_WR] Finished. Queue %0d", $time, current_queue_idx);
-                                        state <= IDLE;
-                                    end
-                                end else begin
-                                    sram_wen <= 1'b0;
+                                $display("[%0t] [SRAM_WR] Shift Write: addr=%0d", $time, sram_waddr);
+                            end else if (sram_wen) begin
+                                sram_wen   <= 1'b0;
+                                sram_waddr <= sram_waddr + 1;
+                            end else if (asm_beat_count >= asm_total_beats) begin
+                                if (sram_accumulator_bytes > 0 && !sram_wen) begin
+                                    sram_wdata <= sram_accumulator[255:0];
+                                    sram_wen   <= 1'b1;
+                                    sram_accumulator_bytes <= 0;
+                                    $display("[%0t] [SRAM_WR] Final Flush: addr=%0d", $time, sram_waddr);
+                                end                                 else if (!sram_wen) begin
+                                    // Completion Cleanup & Physical WPTR Sync
+                                    o_msg_interrupt <= 1'b1;
+                                    queue_valid[current_queue_idx] <= 1'b0;
+                                    // Sync physical SRAM address directly back to WPTR
+                                    case (current_queue_idx)
+                                        4'h0:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0]  <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0 [31:5]) * 32;
+                                        4'h1:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_1[15:0]  <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_1 [31:5]) * 32;
+                                        4'h2:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_2[15:0]  <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_2 [31:5]) * 32;
+                                        4'h3:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_3[15:0]  <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_3 [31:5]) * 32;
+                                        4'h4:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_4[15:0]  <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_4 [31:5]) * 32;
+                                        4'h5:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_5[15:0]  <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_5 [31:5]) * 32;
+                                        4'h6:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_6[15:0]  <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_6 [31:5]) * 32;
+                                        4'h7:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_7[15:0]  <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_7 [31:5]) * 32;
+                                        4'h8:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_8[15:0]  <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_8 [31:5]) * 32;
+                                        4'h9:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_9[15:0]  <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_9 [31:5]) * 32;
+                                        4'ha:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_10[15:0] <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_10 [31:5]) * 32;
+                                        4'hb:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_11[15:0] <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_11 [31:5]) * 32;
+                                        4'hc:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_12[15:0] <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12 [31:5]) * 32;
+                                        4'hd:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_13[15:0] <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_13 [31:5]) * 32;
+                                        4'he:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_14[15:0] <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_14 [31:5]) * 32;
+                                    endcase
+                                    $display("[%0t] [SRAM_WR] Finished. Queue %0d, Next WPTR aligned to sram_waddr=%0d", $time, current_queue_idx, sram_waddr);
+                                    state <= IDLE;
                                 end
                             end
                         end
