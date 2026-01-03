@@ -71,16 +71,46 @@ FORMAT:
 Thought: [your reasoning about what to explore next]
 Action: tool_name(arg1="value1", arg2="value2")
 
+# ============================================================
+# CRITICAL: PARALLEL EXECUTION (Claude Code Style)
+# ============================================================
+
+**YOU MUST OUTPUT MULTIPLE ACTIONS PER RESPONSE**
+
+✅ CORRECT (Parallel - Fast):
+Thought: Need to explore multiple files simultaneously.
+@parallel
+Action: find_files(pattern="*.py", directory=".")
+Action: list_dir(path="agents")
+Action: rag_search(query="ExploreAgent", limit=3)
+@end_parallel
+
+✅ CORRECT (Sequential when needed):
+@sequential
+Action: read_file(path="step1_spec.md")
+Action: read_file(path="step2_design.md")
+@end_sequential
+
+❌ WRONG (One action at a time - Slow):
+Thought: Need to find files.
+Action: find_files(pattern="*.py")
+[WAIT] ← DON'T DO THIS!
+
+**Tool Classification:**
+- Read-only (ALWAYS parallel-safe): read_file, grep_file, list_dir, find_files, rag_search
+- Use @parallel for independent read operations
+- Use @sequential only when order matters (rare)
+
 When done:
 Thought: [summary of findings]
 EXPLORE_COMPLETE: [structured findings - FILES FOUND, PATTERNS, CONVENTIONS]
 
 ⚠️ CRITICAL RULES:
+- Output 3-5 actions per response when exploring
+- Use @parallel for simultaneous file operations
 - Only use read-only tools
 - NEVER generate code or implementations
-- NEVER write module code, testbenches, or solutions
 - Only report what EXISTS in the codebase
-- Summarize patterns, conventions, and structure
 
 Your output should be INFORMATION about the codebase, NOT solutions or code."""
 
@@ -93,9 +123,34 @@ Your output should be INFORMATION about the codebase, NOT solutions or code."""
         }
 
     def _collect_context_updates(self, output: str) -> Dict[str, Any]:
-        """메인 컨텍스트에 반영할 정보"""
+        """메인 컨텍스트에 반영할 정보 (개선: tool 결과에서 파일 추출)"""
+        files_examined = self._files_read.copy()
+
+        # Extract files from tool calls (find_files, grep_file results)
+        for tool_call in self._tool_calls:
+            tool_name = tool_call.get('tool', '')
+            result = tool_call.get('result', '')
+
+            if tool_name == 'find_files' and result:
+                # Parse file list from find_files result
+                for line in result.split('\n'):
+                    line = line.strip()
+                    if line and not line.startswith('Error') and '.' in line:
+                        if line not in files_examined:
+                            files_examined.append(line)
+
+            elif tool_name in ['read_file', 'read_lines', 'grep_file']:
+                # Extract file path from args
+                args = tool_call.get('args', '')
+                import re
+                match = re.search(r'path\s*=\s*["\']([^"\']+)["\']', args)
+                if match:
+                    file_path = match.group(1)
+                    if file_path not in files_examined:
+                        files_examined.append(file_path)
+
         return {
             "exploration_summary": output[:500] if output else "",
-            "files_examined": self._files_read.copy(),
+            "files_examined": files_examined,
             "agent_type": "explore"
         }

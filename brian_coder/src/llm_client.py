@@ -2,8 +2,14 @@
 LLM Client for Brian Coder.
 Handles API communication, streaming, token counting, and prompt caching.
 Zero-dependency (uses urllib).
+
+OpenCode-Inspired Features:
+- Multi-provider support (agent-specific models)
+- Agent-aware API calls
+- Dynamic model switching
 """
 import json
+import ssl
 import urllib.request
 import urllib.error
 import time
@@ -11,7 +17,8 @@ import copy
 import re
 import sys
 import os
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+from dataclasses import dataclass
 
 # Add paths for imports
 _script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -35,6 +42,356 @@ last_cache_creation_tokens = 0  # Last cache creation tokens
 last_cache_read_tokens = 0      # Last cache read tokens
 total_cache_created = 0         # Total cache tokens created this session
 total_cache_read = 0            # Total cache tokens read this session
+
+
+# ============================================================
+# Provider Configuration (OpenCode-Inspired)
+# ============================================================
+
+@dataclass
+class ProviderConfig:
+    """Provider-specific configuration"""
+    provider_id: str
+    base_url: str
+    api_key: str
+    model_id: str
+    temperature: Optional[float] = None
+    top_p: Optional[float] = None
+    max_tokens: Optional[int] = None
+
+    @classmethod
+    def from_env(cls, provider_id: str = "default") -> 'ProviderConfig':
+        """Create from environment/config defaults"""
+        return cls(
+            provider_id=provider_id,
+            base_url=config.BASE_URL,
+            api_key=config.API_KEY,
+            model_id=config.MODEL_NAME
+        )
+
+
+# Provider registry (cached configs)
+_provider_cache: Dict[str, ProviderConfig] = {}
+
+
+def get_provider_config(provider_id: str = None, model_id: str = None) -> ProviderConfig:
+    """
+    Get provider configuration for a specific provider/model.
+
+    Args:
+        provider_id: Provider name (anthropic, openai, openrouter, etc.)
+        model_id: Model name override
+
+    Returns:
+        ProviderConfig with API details
+    """
+    # Default to env config
+    if not provider_id and not model_id:
+        return ProviderConfig.from_env()
+
+    cache_key = f"{provider_id or 'default'}:{model_id or 'default'}"
+    if cache_key in _provider_cache:
+        return _provider_cache[cache_key]
+
+    # Build config based on provider
+    provider_id = provider_id or ""
+    provider_lower = provider_id.lower()
+
+    # Known provider base URLs
+    provider_urls = {
+        "anthropic": "https://api.anthropic.com/v1",
+        "openai": "https://api.openai.com/v1",
+        "openrouter": "https://openrouter.ai/api/v1",
+        "google": "https://generativelanguage.googleapis.com/v1beta",
+        "groq": "https://api.groq.com/openai/v1",
+        "together": "https://api.together.xyz/v1",
+        "deepinfra": "https://api.deepinfra.com/v1/openai",
+        "mistral": "https://api.mistral.ai/v1",
+    }
+
+    # Get base URL
+    base_url = provider_urls.get(provider_lower, config.BASE_URL)
+
+    # Get API key from env (PROVIDER_API_KEY or fallback)
+    env_key = f"{provider_id.upper()}_API_KEY"
+    api_key = os.getenv(env_key, config.API_KEY)
+
+    provider_config = ProviderConfig(
+        provider_id=provider_id or "default",
+        base_url=base_url,
+        api_key=api_key,
+        model_id=model_id or config.MODEL_NAME
+    )
+
+    _provider_cache[cache_key] = provider_config
+    return provider_config
+
+
+def chat_completion_with_config(
+    messages: List[Dict[str, Any]],
+    provider_config: ProviderConfig = None,
+    stop: List[str] = None,
+    temperature: float = None,
+    top_p: float = None
+):
+    """
+    Chat completion with explicit provider configuration.
+    Yields content chunks from SSE stream.
+
+    Args:
+        messages: List of message dicts
+        provider_config: Provider configuration (None = use defaults)
+        stop: Stop sequences
+        temperature: Override temperature
+        top_p: Override top_p
+
+    Yields:
+        Content chunks
+    """
+    if provider_config is None:
+        provider_config = ProviderConfig.from_env()
+
+    # Use provided config
+    url = f"{provider_config.base_url}/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {provider_config.api_key}",
+        "User-Agent": "BrianCoder/1.0"
+    }
+
+    data = {
+        "model": provider_config.model_id,
+        "messages": messages,
+        "stream": True,
+        "stream_options": {"include_usage": True}
+    }
+
+    if stop:
+        data["stop"] = stop
+
+    # Apply temperature/top_p
+    if temperature is not None:
+        data["temperature"] = temperature
+    elif provider_config.temperature is not None:
+        data["temperature"] = provider_config.temperature
+
+    if top_p is not None:
+        data["top_p"] = top_p
+    elif provider_config.top_p is not None:
+        data["top_p"] = provider_config.top_p
+
+    if config.DEBUG_MODE:
+        print(Color.info(f"\n[Agent-Aware API Call]"))
+        print(Color.info(f"  Provider: {provider_config.provider_id}"))
+        print(Color.info(f"  Model: {provider_config.model_id}"))
+        print(Color.info(f"  URL: {url}"))
+
+    # Reuse existing streaming logic
+    yield from _execute_streaming_request(url, headers, data, messages)
+
+
+def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: List):
+    """
+    Execute streaming request with retry logic.
+    Internal helper for chat_completion functions.
+    """
+    global last_input_tokens, last_output_tokens
+    global last_cache_creation_tokens, last_cache_read_tokens
+    global total_cache_created, total_cache_read
+
+    max_retries = 3
+    initial_delay = 2
+
+    for retry_count in range(max_retries):
+        _reasoning_started = False
+        _content_started = False
+
+        try:
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(data).encode('utf-8'),
+                headers=headers
+            )
+
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = True
+            ssl_context.verify_mode = ssl.CERT_REQUIRED
+
+            with urllib.request.urlopen(req, timeout=config.API_TIMEOUT, context=ssl_context) as response:
+                usage_info = None
+                for line in response:
+                    line = line.decode('utf-8').strip()
+                    if line.startswith("data: "):
+                        data_str = line[6:]
+                        if data_str == "[DONE]":
+                            break
+                        try:
+                            chunk_json = json.loads(data_str)
+
+                            if "usage" in chunk_json:
+                                usage_info = chunk_json["usage"]
+
+                            if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
+                                delta = chunk_json["choices"][0].get("delta", {})
+
+                                reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
+                                if reasoning:
+                                    if config.DEBUG_MODE:
+                                        if not _reasoning_started:
+                                            sys.stdout.write(f"\n\033[36m[REASONING]\033[0m ")
+                                            _reasoning_started = True
+                                            _content_started = False
+                                        sys.stdout.write(f"\033[36m{reasoning}\033[0m")
+                                        sys.stdout.flush()
+                                    yield reasoning
+
+                                content = delta.get("content", "")
+                                if content:
+                                    if config.DEBUG_MODE:
+                                        if not _content_started:
+                                            sys.stdout.write(f"\n\n\033[32m[CONTENT]\033[0m ")
+                                            _content_started = True
+                                        sys.stdout.write(f"\033[32m{content}\033[0m")
+                                        sys.stdout.flush()
+                                    yield content
+                        except json.JSONDecodeError:
+                            continue
+
+                if usage_info:
+                    input_tokens = usage_info.get("input_tokens") or usage_info.get("prompt_tokens", 0)
+                    output_tokens = usage_info.get("output_tokens") or usage_info.get("completion_tokens", 0)
+                    if input_tokens > 0:
+                        last_input_tokens = input_tokens
+                    if output_tokens > 0:
+                        last_output_tokens = output_tokens
+
+                    if config.DEBUG_MODE:
+                        total_tokens = input_tokens + output_tokens
+                        print(f"\n{Color.info('[Token Usage]')}")
+                        print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
+                        print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
+                        print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}\n")
+
+                return
+
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8')
+            is_retryable = e.code == 429 or (500 <= e.code < 600)
+
+            if is_retryable and retry_count < max_retries - 1:
+                delay = initial_delay * (2 ** retry_count)
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] HTTP {e.code}: {e.reason}"))
+                print(Color.warning(f"Waiting {delay}s before retry...\n"))
+                time.sleep(delay)
+                continue
+
+            yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
+            try:
+                error_json = json.loads(error_body)
+                yield f"{Color.error('Error Details:')}\n"
+                if 'error' in error_json:
+                    error_info = error_json['error']
+                    if isinstance(error_info, dict):
+                        error_type = error_info.get('type', 'unknown')
+                        error_message = error_info.get('message', 'No message')
+                        yield f"{Color.error(f'  Type: {error_type}')}\n"
+                        yield f"{Color.error(f'  Message: {error_message}')}\n"
+            except:
+                yield f"{Color.error(f'Raw Error Body:')}\n{error_body[:500]}\n"
+            return
+
+        except (urllib.error.URLError, ssl.SSLError) as e:
+            if retry_count < max_retries - 1:
+                delay = initial_delay * (2 ** retry_count)
+                error_msg = str(e.reason) if hasattr(e, 'reason') else str(e)
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] Connection Error: {error_msg}"))
+                print(Color.warning(f"Waiting {delay}s before retry...\n"))
+                time.sleep(delay)
+                continue
+
+            error_msg = str(e.reason) if hasattr(e, 'reason') else str(e)
+            yield f"\n{Color.error(f'[Connection Error]: {error_msg}')}\n"
+            return
+
+        except Exception as e:
+            error_type = type(e).__name__
+            if retry_count < max_retries - 1:
+                delay = initial_delay * (2 ** retry_count)
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] {error_type}: {e}"))
+                print(Color.warning(f"Waiting {delay}s before retry...\n"))
+                time.sleep(delay)
+                continue
+
+            yield f"\n{Color.error(f'[{error_type}]: {e}')}\n"
+            return
+
+
+def call_llm_for_agent(
+    messages: List[Dict[str, Any]],
+    agent_name: str = None,
+    temperature: float = None
+) -> str:
+    """
+    Call LLM with agent-specific configuration (non-streaming).
+
+    Args:
+        messages: List of message dicts
+        agent_name: Agent name to look up config (optional)
+        temperature: Override temperature
+
+    Returns:
+        Complete response text
+    """
+    provider_config = ProviderConfig.from_env()  # Default
+
+    # Try to get agent-specific config
+    if agent_name:
+        try:
+            from core.agent_config import get_agent_config
+            agent = get_agent_config(agent_name)
+            if agent and agent.model:
+                provider_config = get_provider_config(
+                    provider_id=agent.model.provider_id,
+                    model_id=agent.model.model_id
+                )
+                if agent.temperature is not None and temperature is None:
+                    temperature = agent.temperature
+        except ImportError:
+            pass  # agent_config not available
+
+    url = f"{provider_config.base_url}/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {provider_config.api_key}"
+    }
+
+    data = {
+        "model": provider_config.model_id,
+        "messages": messages,
+        "stream": False
+    }
+
+    if temperature is not None:
+        data["temperature"] = temperature
+
+    try:
+        request = urllib.request.Request(
+            url,
+            data=json.dumps(data).encode('utf-8'),
+            headers=headers
+        )
+
+        with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            content = result["choices"][0]["message"]["content"]
+            # Sanitize metadata tokens
+            content = re.sub(r'<\|final<\|[^>]*\|>', '', content)
+            content = re.sub(r'<\|[^|<>]+\|>', '', content)
+            content = re.sub(r'<\|[a-z_]+$', '', content)
+            return content.strip()
+
+    except Exception as e:
+        return f"Error calling LLM: {e}"
 
 def chat_completion_stream(messages, stop=None):
     """
@@ -175,10 +532,16 @@ def chat_completion_stream(messages, stop=None):
         # Local state for label tracking (resets each retry)
         _reasoning_started = False
         _content_started = False
-        
+
         try:
             req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
-            with urllib.request.urlopen(req, timeout=config.API_TIMEOUT) as response:
+
+            # Create SSL context for more stable connections
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = True
+            ssl_context.verify_mode = ssl.CERT_REQUIRED
+
+            with urllib.request.urlopen(req, timeout=config.API_TIMEOUT, context=ssl_context) as response:
                 # Parse Server-Sent Events (SSE)
                 usage_info = None
                 for line in response:
@@ -323,13 +686,57 @@ def chat_completion_stream(messages, stop=None):
             # Connection error - retry
             if retry_count < max_retries - 1:
                 delay = initial_delay * (2 ** retry_count)
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] Connection Error: {e}"))
+                error_msg = str(e.reason) if hasattr(e, 'reason') else str(e)
+
+                # Special handling for SSL errors
+                if 'SSL' in error_msg or 'ssl' in error_msg.lower():
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] SSL Error: {error_msg}"))
+                    print(Color.warning(f"This is usually a temporary network issue."))
+                else:
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] Connection Error: {error_msg}"))
+
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
                 continue
-            
+
             # Max retries reached
-            yield f"\n{Color.error(f'[Connection Error]: {e}')}"
+            error_msg = str(e.reason) if hasattr(e, 'reason') else str(e)
+            yield f"\n{Color.error(f'[Connection Error]: {error_msg}')}\n"
+            yield f"{Color.warning('Tip: If SSL errors persist, check your network connection or try again later.')}\n"
+            return
+
+        except ssl.SSLError as e:
+            # Explicit SSL error handling (backup catch)
+            if retry_count < max_retries - 1:
+                delay = initial_delay * (2 ** retry_count)
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] SSL Handshake Error: {e}"))
+                print(Color.warning(f"This is usually a temporary network/server issue."))
+                print(Color.warning(f"Waiting {delay}s before retry...\n"))
+                time.sleep(delay)
+                continue
+
+            # Max retries reached
+            yield f"\n{Color.error(f'[SSL Error]: {e}')}\n"
+            yield f"{Color.warning('Possible causes:')}\n"
+            yield f"{Color.warning('  1. Temporary network instability')}\n"
+            yield f"{Color.warning('  2. API server maintenance')}\n"
+            yield f"{Color.warning('  3. Firewall/proxy interference')}\n"
+            yield f"{Color.info('Try again in a few moments.')}\n"
+            return
+
+        except Exception as e:
+            # Catch-all for unexpected errors
+            error_type = type(e).__name__
+            if retry_count < max_retries - 1:
+                delay = initial_delay * (2 ** retry_count)
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] Unexpected error ({error_type}): {e}"))
+                print(Color.warning(f"Waiting {delay}s before retry...\n"))
+                time.sleep(delay)
+                continue
+
+            # Max retries reached
+            yield f"\n{Color.error(f'[{error_type}]: {e}')}\n"
+            yield f"{Color.info('If this persists, please check your network connection.')}\n"
             return
 
 def call_llm_raw(prompt, temperature=0.7):

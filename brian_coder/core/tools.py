@@ -158,8 +158,14 @@ def write_file(path: str, content: str) -> str:
     except Exception as e:
         return f"Error writing file: {e}"
 
-def run_command(command):
-    """Runs a shell command and returns output."""
+def run_command(command, timeout=60):
+    """
+    Runs a shell command and returns output.
+
+    Args:
+        command: The shell command to run.
+        timeout: Optional timeout in seconds (default: 60).
+    """
     try:
         # Optional safe-mode guardrail to avoid destructive commands.
         safe_mode_env = os.getenv("SAFE_MODE", "false").lower() in ("true", "1", "yes")
@@ -178,7 +184,7 @@ def run_command(command):
             shell=True, 
             capture_output=True, 
             text=True, 
-            timeout=60
+            timeout=timeout
         )
         
         stdout_str = result.stdout or ""
@@ -1863,6 +1869,45 @@ def rag_clear():
 # On-Demand Sub-Agent Tools (Claude Code Style)
 # ============================================================
 
+class AgentResult(dict):
+    """
+    Special dict that auto-formats to readable string for LLM.
+
+    Allows both structured access (result['files_examined']) and
+    readable string display (str(result)) for LLM consumption.
+    """
+    def __str__(self):
+        """Format as readable string for LLM"""
+        if 'error' in self:
+            return self['error']
+
+        lines = []
+        if 'header' in self:
+            lines.append(self['header'])
+            lines.append("")
+
+        if 'output' in self:
+            lines.append(self['output'])
+
+        if 'metadata' in self:
+            lines.append("")
+            lines.append("[Metadata]")
+            for key, value in self['metadata'].items():
+                if isinstance(value, list) and value:
+                    lines.append(f"  {key}: {len(value)} items")
+                elif isinstance(value, (int, float)):
+                    lines.append(f"  {key}: {value}")
+
+        if 'footer' in self:
+            lines.append("")
+            lines.append(self['footer'])
+
+        return "\n".join(lines)
+
+    def __repr__(self):
+        return f"AgentResult({dict.__repr__(self)})"
+
+
 def spawn_explore(query):
     """
     Spawn an explore agent to search the codebase.
@@ -1872,7 +1917,14 @@ def spawn_explore(query):
         query: What to explore/find (e.g., "find all FIFO implementations", "understand AXI protocol usage")
 
     Returns:
-        Exploration results - files found, patterns identified, structure analysis
+        AgentResult dict with:
+        - output: Human-readable exploration results
+        - files_examined: List of files explored
+        - summary: Brief summary (500 chars)
+        - tool_calls_count: Number of tools used
+        - execution_time_ms: Execution time
+
+        Automatically formats as string for LLM display.
     """
     try:
         try:
@@ -1898,21 +1950,59 @@ def spawn_explore(query):
                 return AVAILABLE_TOOLS[tool_name](**args) if isinstance(args, dict) else AVAILABLE_TOOLS[tool_name](args)
             return f"Tool {tool_name} not found"
 
+        # Phase 3: Get SharedContext from main.py (thread-local)
+        shared_ctx = None
+        try:
+            from main import get_shared_context
+            shared_ctx = get_shared_context()
+        except ImportError:
+            pass  # SharedContext not available
+
         agent = ExploreAgent(
             name="explore",
             llm_call_func=call_llm_raw,
-            execute_tool_func=execute_tool
+            execute_tool_func=execute_tool,
+            shared_context=shared_ctx
         )
 
         result = agent.run(query, {"task": query})
 
         if result.status.value == "completed":
-            return f"=== EXPLORATION RESULTS ===\n{result.output}\n==========================="
+            # Return structured dict with auto-formatting
+            return AgentResult({
+                'header': '=== EXPLORATION RESULTS ===',
+                'output': result.output,
+                'footer': '===========================',
+                'metadata': {
+                    'files_examined': result.context_updates.get("files_examined", []),
+                    'summary': result.context_updates.get("exploration_summary", ""),
+                    'tool_calls_count': len(result.tool_calls),
+                    'execution_time_ms': result.execution_time_ms,
+                    'agent_type': 'explore'
+                },
+                # Direct access properties
+                'files_examined': result.context_updates.get("files_examined", []),
+                'summary': result.context_updates.get("exploration_summary", ""),
+                'tool_calls_count': len(result.tool_calls),
+                'execution_time_ms': result.execution_time_ms
+            })
         else:
-            return f"Exploration failed: {result.errors}"
+            return AgentResult({
+                'error': f"Exploration failed: {result.errors}",
+                'files_examined': [],
+                'summary': "",
+                'tool_calls_count': 0,
+                'execution_time_ms': result.execution_time_ms
+            })
 
     except Exception as e:
-        return f"Error spawning explore agent: {e}"
+        return AgentResult({
+            'error': f"Error spawning explore agent: {e}",
+            'files_examined': [],
+            'summary': "",
+            'tool_calls_count': 0,
+            'execution_time_ms': 0
+        })
 
 def spawn_plan(task_description):
     """
@@ -1923,7 +2013,14 @@ def spawn_plan(task_description):
         task_description: What to plan (e.g., "design async FIFO with CDC", "implement AXI master")
 
     Returns:
-        Text-only implementation plan with interface specs and steps
+        AgentResult dict with:
+        - output: Human-readable implementation plan
+        - planned_steps: List of implementation steps
+        - summary: Brief plan summary (500 chars)
+        - tool_calls_count: Number of tools used
+        - execution_time_ms: Execution time
+
+        Automatically formats as string for LLM display.
     """
     try:
         try:
@@ -1948,21 +2045,59 @@ def spawn_plan(task_description):
                 return AVAILABLE_TOOLS[tool_name](**args) if isinstance(args, dict) else AVAILABLE_TOOLS[tool_name](args)
             return f"Tool {tool_name} not found"
 
+        # Phase 3: Get SharedContext from main.py (thread-local)
+        shared_ctx = None
+        try:
+            from main import get_shared_context
+            shared_ctx = get_shared_context()
+        except ImportError:
+            pass  # SharedContext not available
+
         agent = PlanAgent(
             name="plan",
             llm_call_func=call_llm_raw,
-            execute_tool_func=execute_tool
+            execute_tool_func=execute_tool,
+            shared_context=shared_ctx
         )
 
         result = agent.run(task_description, {"task": task_description})
 
         if result.status.value == "completed":
-            return f"=== IMPLEMENTATION PLAN ===\n{result.output}\n==========================="
+            # Return structured dict with auto-formatting
+            return AgentResult({
+                'header': '=== IMPLEMENTATION PLAN ===',
+                'output': result.output,
+                'footer': '===========================',
+                'metadata': {
+                    'planned_steps': result.context_updates.get("planned_steps", []),
+                    'summary': result.context_updates.get("plan_summary", ""),
+                    'tool_calls_count': len(result.tool_calls),
+                    'execution_time_ms': result.execution_time_ms,
+                    'agent_type': 'plan'
+                },
+                # Direct access properties
+                'planned_steps': result.context_updates.get("planned_steps", []),
+                'summary': result.context_updates.get("plan_summary", ""),
+                'tool_calls_count': len(result.tool_calls),
+                'execution_time_ms': result.execution_time_ms
+            })
         else:
-            return f"Planning failed: {result.errors}"
+            return AgentResult({
+                'error': f"Planning failed: {result.errors}",
+                'planned_steps': [],
+                'summary': "",
+                'tool_calls_count': 0,
+                'execution_time_ms': result.execution_time_ms
+            })
 
     except Exception as e:
-        return f"Error spawning plan agent: {e}"
+        return AgentResult({
+            'error': f"Error spawning plan agent: {e}",
+            'planned_steps': [],
+            'summary': "",
+            'tool_calls_count': 0,
+            'execution_time_ms': 0
+        })
 
 
 def todo_write(todos):

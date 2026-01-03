@@ -258,19 +258,59 @@ def sanitize_action_text(text):
     return text
 
 
+def _extract_annotation_ranges(text):
+    """
+    Extract @parallel/@sequential annotation ranges from text.
+
+    Returns:
+        List[Tuple[int, int, str]]: [(start_pos, end_pos, hint_type)]
+    """
+    hint_ranges = []
+
+    # Pattern: @parallel ... @end_parallel
+    parallel_blocks = re.finditer(
+        r'@parallel\s*\n(.*?)\n\s*@end_parallel',
+        text,
+        re.DOTALL | re.MULTILINE
+    )
+    for match in parallel_blocks:
+        hint_ranges.append((match.start(1), match.end(1), "parallel"))
+
+    # Pattern: @sequential ... @end_sequential
+    sequential_blocks = re.finditer(
+        r'@sequential\s*\n(.*?)\n\s*@end_sequential',
+        text,
+        re.DOTALL | re.MULTILINE
+    )
+    for match in sequential_blocks:
+        hint_ranges.append((match.start(1), match.end(1), "sequential"))
+
+    return hint_ranges
+
+
 def parse_all_actions(text):
     """
     Parses ALL 'Action: Tool(args)' occurrences from the text.
-    Returns a list of (tool_name, args_str) tuples.
-    
+    Returns a list of (tool_name, args_str, hint) tuples.
+
     Improvements:
     - Sanitizes common LLM output errors (like end_line=26")
     - On parse failure, skips to next Action instead of stopping
+    - ENHANCED: Parses @parallel/@sequential annotations for LLM hints
     """
     # Sanitize common errors first
     text = sanitize_action_text(text)
-    
+
+    # Extract annotation ranges (for LLM hints)
+    hint_ranges = _extract_annotation_ranges(text)
+
+    if config.DEBUG_MODE and hint_ranges:
+        print(f"[DEBUG] Found {len(hint_ranges)} annotation blocks")
+        for start, end, hint in hint_ranges:
+            print(f"  - {hint}: chars {start}-{end}")
+
     actions = []
+    action_positions = []  # Track text position of each action
     start_pos = 0
     # Support "Action:", "**Action:**", etc. 
     # Handle optional markdown formatting (bold **, italic _, code `) around tool name
@@ -339,6 +379,7 @@ def parse_all_actions(text):
         if paren_count == 0:
             args_str = text[match_start:i-1]
             actions.append((tool_name, args_str))
+            action_positions.append(start_pos + match.start())  # Store action position
             start_pos = i  # Continue searching after this action
         else:
             # Unmatched parentheses - check if we hit end of string (Truncated Output)
@@ -359,6 +400,7 @@ def parse_all_actions(text):
                     elif in_triple_single: args_str += "'''"
                     
                     actions.append((tool_name, args_str))
+                    action_positions.append(start_pos + match.start())  # Store position
                     if config.DEBUG_MODE:
                         print(Color.warning(f"[System] 🔧 Auto-recovered truncated action: {tool_name}({args_str}...)"))
                     break # Stop parsing as we are at end of text
@@ -383,20 +425,42 @@ def parse_all_actions(text):
     # Why? Often models repeat the exact same action in Thought and Action blocks.
     # Logic: Keep if (tool_name, args_str) has not been seen.
     unique_actions = []
+    unique_positions = []
     seen = set()
-    for tool_name, args_str in actions:
+    for idx, (tool_name, args_str) in enumerate(actions):
         # Normalize args string (strip whitespace) for comparison
         clean_args = args_str.strip()
         signature = (tool_name, clean_args)
-        
+
         if signature not in seen:
             seen.add(signature)
             unique_actions.append((tool_name, args_str))
-            
+            if idx < len(action_positions):
+                unique_positions.append(action_positions[idx])
+            else:
+                unique_positions.append(0)  # Fallback
+
     if config.DEBUG_MODE and len(unique_actions) != len(actions):
         print(f"[DEBUG] Deduplicated actions: {len(actions)} -> {len(unique_actions)}")
-        
-    return unique_actions
+
+    # Assign hints based on position
+    actions_with_hints = []
+    for idx, (tool_name, args_str) in enumerate(unique_actions):
+        action_pos = unique_positions[idx]
+        hint = None
+
+        # Find matching hint range
+        for range_start, range_end, hint_type in hint_ranges:
+            if range_start <= action_pos < range_end:
+                hint = hint_type
+                break
+
+        actions_with_hints.append((tool_name, args_str, hint))
+
+        if config.DEBUG_MODE and hint:
+            print(f"[DEBUG] Action '{tool_name}' has hint: {hint}")
+
+    return actions_with_hints
 
 
 def parse_implicit_actions(text):
@@ -648,6 +712,26 @@ def _get_plan_state() -> Dict[str, object]:
     }
 
 
+def _auto_detect_step_completion(step_text: str, response: str) -> bool:
+    """
+    Auto-detect if a step is complete from LLM response.
+
+    Returns:
+        True if completion markers found, False otherwise
+    """
+    completion_markers = [
+        "step complete",
+        "✅",
+        "done with step",
+        "completed this step",
+        "step is complete",
+        "finished this step",
+        "step completed successfully"
+    ]
+    response_lower = response.lower()
+    return any(marker in response_lower for marker in completion_markers)
+
+
 def _looks_like_plan_status_request(text: str) -> bool:
     t = (text or "").strip().lower()
     if not t:
@@ -858,11 +942,31 @@ def _run_explore_agent(target: str) -> str:
         Exploration result summary
     """
     try:
-        # Use spawn_explore tool
-        result = tools.spawn_explore(query=target, thoroughness="medium")
-        return f"Explored: {target}\nResult:\n{result}"
+        # Use spawn_explore tool (fixed: removed invalid 'thoroughness' parameter)
+        result = tools.spawn_explore(query=target)
+
+        # Extract useful information from AgentResult
+        if isinstance(result, dict):
+            output = result.get('output', '')
+            files = result.get('files_examined', [])
+            summary = result.get('summary', '')
+
+            result_text = f"Explored: {target}\n\n"
+            if files:
+                result_text += f"Files examined: {', '.join(files)}\n\n"
+            if summary:
+                result_text += f"Summary: {summary}\n\n"
+            if output:
+                result_text += f"Details:\n{output}"
+
+            return result_text
+        else:
+            return f"Explored: {target}\nResult:\n{result}"
     except Exception as e:
-        return f"Explored: {target}\nError: {str(e)}"
+        import traceback
+        error_detail = traceback.format_exc()
+        print(Color.error(f"[Plan Mode] Explore agent error:\n{error_detail}"))
+        return f"Explored: {target}\nError: {str(e)}\nDetails: {error_detail[:500]}"
 
 
 def _spawn_parallel_explore_agents(task_description: str) -> List[str]:
@@ -877,7 +981,9 @@ def _spawn_parallel_explore_agents(task_description: str) -> List[str]:
     """
     explore_count = min(config.PLAN_MODE_EXPLORE_COUNT, 5)  # Max 5
 
-    print(Color.system(f"\n[Claude Flow] Phase 1: Spawning {explore_count}× Explore Agents (parallel)..."))
+    print(Color.system(f"\n╔═══════════════════════════════════════════════════════════╗"))
+    print(Color.system(f"║  Phase 1: Spawning {explore_count}× Explore Agents (PARALLEL)       ║"))
+    print(Color.system(f"╚═══════════════════════════════════════════════════════════╝\n"))
 
     # Define exploration targets
     explore_targets = [
@@ -886,9 +992,27 @@ def _spawn_parallel_explore_agents(task_description: str) -> List[str]:
         f"Explore test patterns, examples, and edge cases for: {task_description}",
     ][:explore_count]
 
+    # Create TodoTracker for real-time progress
+    explore_tracker = TodoTracker()
+    todos = [
+        {
+            "content": f"Agent {i+1}: {target[:60]}{'...' if len(target) > 60 else ''}",
+            "status": "pending",
+            "activeForm": f"Exploring (Agent {i+1})"
+        }
+        for i, target in enumerate(explore_targets)
+    ]
+    explore_tracker.add_todos(todos)
+
+    # Show initial progress
+    print(Color.system("\n=== EXPLORATION PROGRESS ==="))
+    print(Color.info(explore_tracker.format_progress()))
+    print(Color.system("============================\n"))
+
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
     results = []
+    completed_agents = set()
 
     with ThreadPoolExecutor(max_workers=explore_count) as executor:
         futures = {
@@ -901,13 +1025,41 @@ def _spawn_parallel_explore_agents(task_description: str) -> List[str]:
                 result = future.result(timeout=120)  # 2 min timeout
                 results.append(result)
                 agent_num = futures[future]
-                print(Color.success(f"[Claude Flow] Explore Agent {agent_num + 1}/{explore_count} completed"))
+                completed_agents.add(agent_num)
+
+                # Mark as completed and show progress
+                explore_tracker.mark_completed(agent_num)
+
+                print(Color.success(f"\n  ✅ Explore Agent {agent_num + 1}/{explore_count} completed"))
+
+                # Show what files were examined
+                if "Files examined:" in result:
+                    files_line = [line for line in result.split('\n') if 'Files examined:' in line]
+                    if files_line:
+                        print(Color.info(f"     {files_line[0].strip()}"))
+
+                # Show updated progress
+                print(Color.system("\n=== EXPLORATION PROGRESS ==="))
+                print(Color.info(explore_tracker.format_progress()))
+                print(Color.system("============================\n"))
+
             except Exception as e:
                 agent_num = futures[future]
+                completed_agents.add(agent_num)
                 error_msg = f"Explore target {agent_num + 1} failed: {str(e)}"
                 results.append(error_msg)
-                print(Color.error(f"[Claude Flow] {error_msg}"))
 
+                # Mark as completed (even if failed)
+                explore_tracker.mark_completed(agent_num)
+
+                print(Color.error(f"\n  ❌ {error_msg}"))
+
+                # Show updated progress
+                print(Color.system("\n=== EXPLORATION PROGRESS ==="))
+                print(Color.info(explore_tracker.format_progress()))
+                print(Color.system("============================\n"))
+
+    print(Color.system(f"\n✓ Phase 1 complete: {len(results)} exploration results\n"))
     return results
 
 
@@ -1112,49 +1264,69 @@ def _execute_approved_plan(messages, mode: str) -> List[Dict]:
     steps: List[Tuple[int, str, bool]] = state.get("steps", [])  # type: ignore[assignment]
     plan_task = state.get("task") or "Current plan"
 
-    # Phase 3: Initialize TodoTracker
-    todo_tracker = None
-    if config.ENABLE_TODO_TRACKING:
-        todo_tracker = TodoTracker()
-        todos = [
-            {
-                "content": f"Step {num}: {text}",
-                "status": "completed" if done else "pending",
-                "activeForm": f"Executing Step {num}: {text}"
-            }
-            for num, text, done in steps
-        ]
-        todo_tracker.add_todos(todos)
-        print(Color.system("\n[Claude Flow] ========================================"))
-        print(Color.info(todo_tracker.format_progress()))
-        print(Color.system("[Claude Flow] ========================================\n"))
+    # Phase 3: Initialize TodoTracker (REQUIRED for Plan execution)
+    todo_tracker = TodoTracker()
+    todos = [
+        {
+            "content": f"Step {num}: {text}",
+            "status": "completed" if done else "pending",
+            "activeForm": f"Executing Step {num}: {text}"
+        }
+        for num, text, done in steps
+    ]
+    todo_tracker.add_todos(todos)
+    print(Color.system("\n[Claude Flow] ========================================"))
+    print(Color.info(todo_tracker.format_progress()))
+    print(Color.system("[Claude Flow] ========================================\n"))
 
     for step_number, step_text, done in steps:
         if done:
             continue
 
         # Phase 3: Mark current step as in_progress
-        if todo_tracker:
-            step_index = step_number - 1  # 0-indexed
-            todo_tracker.mark_in_progress(step_index)
-            print(Color.system("\n[Claude Flow] ========================================"))
-            print(Color.info(todo_tracker.format_progress()))
-            print(Color.system("[Claude Flow] ========================================\n"))
+        step_index = step_number - 1  # 0-indexed
+        todo_tracker.mark_in_progress(step_index)
+        print(Color.system("\n[Claude Flow] ========================================"))
+        print(Color.info(todo_tracker.format_progress()))
+        print(Color.system("[Claude Flow] ========================================\n"))
 
-        print(Color.system(f"\n[Claude Flow] Executing plan step {step_number}: {step_text}"))
+        print(Color.system(f"\n╔═══════════════════════════════════════════════════════════╗"))
+        print(Color.system(f"║  Executing Step {step_number}/{len(steps)}: {step_text[:40]:<40}  ║"))
+        print(Color.system(f"╚═══════════════════════════════════════════════════════════╝\n"))
 
-        step_guidance = f"""=== EXECUTE APPROVED PLAN ===
+        # OPTIMIZATION: Use USER message instead of SYSTEM to enable prompt caching
+        # System message가 step마다 바뀌면 cache miss 발생
+        # User message로 보내면 system message는 불변 → cache hit 극대화
+        step_guidance = f"""[SYSTEM INSTRUCTION FOR THIS STEP]
+
+⚠️ CRITICAL: FOCUS ONLY ON THIS STEP ⚠️
+
+=== EXECUTE APPROVED PLAN ===
 Task: {plan_task}
-Current step: {step_number}. {step_text}
 
-Rules:
-- Focus ONLY on the current step.
-- Use tools as needed.
-- When the step is complete, you MUST call: mark_step_done(step_number={step_number})
-- After marking the step done, provide a brief summary and STOP (no more Actions).
+**Current Step**: {step_number} of {len(steps)}
+**Task**: {step_text}
+
+**STRICT RULES:**
+1. Work ONLY on this step - DO NOT jump to other steps
+2. DO NOT work on steps {step_number + 1} or beyond
+3. Use tools (grep_file, read_file, etc.) to ACTUALLY examine the codebase
+4. Make decisions based on ACTUAL file contents, not assumptions
+5. When you complete this step, you MUST call: mark_step_done(step_number={step_number})
+6. After calling mark_step_done(), provide a brief summary and STOP
+7. Do NOT continue to the next step automatically
+8. If you cannot complete this step, explain why and STOP
+
+**Remember**:
+- ACTUALLY use grep_file, read_file, find_files to explore
+- Make decisions based on REAL file contents
+- You MUST call mark_step_done({step_number}) when done!
+
+If you do not call mark_step_done({step_number}), this step will be considered INCOMPLETE.
 ============================
 """
-        messages.append({"role": "system", "content": step_guidance})
+        # Changed from "system" to "user" for better prompt caching
+        messages.append({"role": "user", "content": step_guidance})
 
         step_tracker = IterationTracker(max_iterations=config.CLAUDE_FLOW_STEP_MAX_ITERATIONS)
         messages = run_react_agent(
@@ -1166,13 +1338,30 @@ Rules:
             preface_enabled=False,
         )
 
-        # Re-check if the step was marked done.
+        # Get last response for auto-detection
+        last_response = ""
+        for msg in reversed(messages):
+            if msg.get("role") == "assistant":
+                last_response = msg.get("content", "")
+                break
+
+        # Check if step was marked done OR auto-detect completion
         refreshed = _get_plan_state()
         refreshed_steps: List[Tuple[int, str, bool]] = refreshed.get("steps", [])  # type: ignore[assignment]
         step_done_now = next((d for (n, _t, d) in refreshed_steps if n == step_number), False)
 
+        # Auto-detect completion if not explicitly marked
+        if not step_done_now and _auto_detect_step_completion(step_text, last_response):
+            print(Color.info(f"[Claude Flow] ✓ Auto-detected step {step_number} completion from LLM response"))
+            # Auto-call mark_step_done
+            tools.mark_step_done(_PLAN_FILE, step_number)
+            # Re-check
+            refreshed = _get_plan_state()
+            refreshed_steps = refreshed.get("steps", [])  # type: ignore[assignment]
+            step_done_now = next((d for (n, _t, d) in refreshed_steps if n == step_number), False)
+
         # Phase 3: Mark step as completed in TodoTracker
-        if todo_tracker and step_done_now:
+        if step_done_now:
             todo_tracker.mark_completed(step_index)
             print(Color.system("\n[Claude Flow] ========================================"))
             print(Color.success(todo_tracker.format_progress()))
@@ -1191,16 +1380,24 @@ Rules:
             break
 
     # Phase 3: Final progress summary
-    if todo_tracker:
-        print(Color.system("\n[Claude Flow] ========================================"))
-        print(Color.system("[Claude Flow] Final Progress:"))
-        print(Color.info(todo_tracker.format_progress()))
-        print(Color.system("[Claude Flow] ========================================\n"))
+    print(Color.system("\n[Claude Flow] ========================================"))
+    print(Color.system("[Claude Flow] Final Progress:"))
+    print(Color.info(todo_tracker.format_progress()))
+    print(Color.system("[Claude Flow] ========================================\n"))
 
     return messages
 
 
 def _extract_steps_from_plan_text(plan_text: str) -> List[str]:
+    """
+    Extract implementation steps/phases from plan text.
+
+    Supports multiple formats:
+    - "## Implementation Steps" or "## Steps" with numbered items
+    - "### Phase 1", "### Phase 2", etc.
+    - "Phase 1 –", "Phase 2 –", etc.
+    - Regular numbered lists
+    """
     if not plan_text:
         return []
 
@@ -1212,12 +1409,34 @@ def _extract_steps_from_plan_text(plan_text: str) -> List[str]:
         matches = re.findall(r'\d+\.\s*(.+?)(?=\n\d+\.|\n##|$)', section, re.DOTALL)
         return [m.strip() for m in matches if m.strip()]
 
+    # Try standard formats first
     steps = _steps_from_section("## Implementation Steps")
     if not steps:
         steps = _steps_from_section("## Steps")
     if steps:
         return steps
 
+    # Try extracting Phase-based steps
+    # Pattern 1: "### Phase N –" or "### Phase N:"
+    phase_matches = re.findall(r'###\s*Phase\s+(\d+)[^\n]*–\s*(.+?)(?=###|\Z)', plan_text, re.DOTALL | re.IGNORECASE)
+    if phase_matches:
+        steps = []
+        for num, desc in phase_matches:
+            # Extract first line as step title
+            title = desc.strip().split('\n')[0].strip()
+            steps.append(f"Phase {num}: {title}")
+        return steps
+
+    # Pattern 2: "Phase N –" (without ###)
+    phase_matches2 = re.findall(r'^Phase\s+(\d+)[^\n]*–\s*(.+?)(?=\n(?:Phase\s+\d+|##)|$)', plan_text, re.MULTILINE | re.DOTALL | re.IGNORECASE)
+    if phase_matches2:
+        steps = []
+        for num, desc in phase_matches2:
+            title = desc.strip().split('\n')[0].strip()
+            steps.append(f"Phase {num}: {title}")
+        return steps
+
+    # Fallback: regular numbered list
     matches = re.findall(r'^\s*\d+\.\s*(.+)$', plan_text, re.MULTILINE)
     return [m.strip() for m in matches if m.strip()]
 
@@ -1381,6 +1600,26 @@ def _maybe_handle_claude_flow(messages, task_description: str, mode: str) -> Opt
     return None
 
 
+# Thread-local storage for Agent communication metadata
+import threading
+_agent_metadata = threading.local()
+
+# Phase 3: Thread-local storage for SharedContext
+_shared_context_storage = threading.local()
+
+
+def get_shared_context():
+    """Get current thread's SharedContext"""
+    if not hasattr(_shared_context_storage, 'context'):
+        # Lazy import to avoid circular dependency
+        try:
+            from agents.shared_context import SharedContext
+            _shared_context_storage.context = SharedContext()
+        except ImportError:
+            _shared_context_storage.context = None
+    return _shared_context_storage.context
+
+
 def execute_tool(tool_name, args_str):
     if tool_name not in tools.AVAILABLE_TOOLS:
         return f"Error: Tool '{tool_name}' not found."
@@ -1394,7 +1633,23 @@ def execute_tool(tool_name, args_str):
             print(f"[DEBUG] Parsed args: {parsed_args}, kwargs: {parsed_kwargs}")
 
         result = func(*parsed_args, **parsed_kwargs)
-        
+
+        # Phase 2: Check if result is AgentResult and store metadata
+        if hasattr(result, '__class__') and result.__class__.__name__ == 'AgentResult':
+            # Store metadata in thread-local for accumulated_context
+            _agent_metadata.last_result = {
+                'tool_name': tool_name,
+                'files_examined': result.get('files_examined', []),
+                'planned_steps': result.get('planned_steps', []),
+                'summary': result.get('summary', ''),
+                'tool_calls_count': result.get('tool_calls_count', 0),
+                'execution_time_ms': result.get('execution_time_ms', 0),
+                'agent_type': result.get('metadata', {}).get('agent_type', '')
+            }
+        else:
+            # Clear metadata for non-agent tools
+            _agent_metadata.last_result = None
+
         # Ensure result is string for downstream processing
         if not isinstance(result, str):
             import json
@@ -1403,12 +1658,13 @@ def execute_tool(tool_name, args_str):
                 result = json.dumps(result, indent=2, ensure_ascii=False)
             except Exception:
                 result = str(result)
-                
+
         return result
 
     except Exception as e:
         import traceback
         error_detail = traceback.format_exc()
+        _agent_metadata.last_result = None  # Clear metadata on error
         return f"Error parsing/executing arguments: {e}\n{error_detail}\nargs_str was: {args_str[:200]}"
 
 # --- 5. Context Management ---
@@ -1446,12 +1702,23 @@ def load_active_skills(messages, allowed_tools=None):
             if isinstance(msg.get("content"), str)
         ])
 
-        # Detect relevant skills
-        active_skill_names = activator.detect_skills(
+        # Auto-detect relevant skills
+        auto_detected = activator.detect_skills(
             context=recent_context,
             allowed_tools=allowed_tools,
             threshold=config.SKILL_ACTIVATION_THRESHOLD
         )
+
+        # Manual overrides (set by /skill enable/disable commands)
+        forced_skills = getattr(load_active_skills, 'forced_skills', set())
+        disabled_skills = getattr(load_active_skills, 'disabled_skills', set())
+
+        # Merge: forced + auto - disabled
+        active_skill_names = list(forced_skills | set(auto_detected))
+        active_skill_names = [s for s in active_skill_names if s not in disabled_skills]
+
+        # Store for /skill active command and debugging
+        load_active_skills.active_skills = active_skill_names
 
         if not active_skill_names:
             return []
@@ -1467,7 +1734,8 @@ def load_active_skills(messages, allowed_tools=None):
         if config.DEBUG_MODE and skill_prompts:
             print(Color.system(f"[PROMPT] ✅ Skills: {len(skill_prompts)} activated"))
             for skill_name in active_skill_names:
-                print(Color.system(f"[PROMPT]     - {skill_name}"))
+                source = "FORCED" if skill_name in forced_skills else "AUTO"
+                print(Color.system(f"[PROMPT]     - {skill_name} [{source}]"))
 
         return skill_prompts
 
@@ -2414,7 +2682,8 @@ def execute_actions_parallel(actions, tracker):
     results = []
 
     # Record tool usage for progress tracking
-    for tool_name, _ in actions:
+    for action in actions: 
+        tool_name = action[0]
         tracker.record_tool(tool_name)
 
     # Use enhanced dependency analysis if enabled
@@ -2437,13 +2706,20 @@ def execute_actions_parallel(actions, tracker):
             print(Color.warning(warning))
 
         # Execute each batch
-        for batch in batches:
+        for batch_idx, batch in enumerate(batches):
+            hint_info = ""
+            if "LLM" in batch.reason:
+                hint_info = " [LLM-guided]"
+
             if config.DEBUG_MODE:
-                print(Color.system(f"  [Batch] {batch.reason}: {len(batch.actions)} action(s), parallel={batch.parallel}"))
+                print(Color.system(
+                    f"  [Batch {batch_idx+1}/{len(batches)}] {batch.reason}: "
+                    f"{len(batch.actions)} action(s), parallel={batch.parallel}{hint_info}"
+                ))
 
             if batch.parallel and len(batch.actions) > 1 and config.ENABLE_REACT_PARALLEL:
                 # Parallel execution
-                print(Color.info(f"  ⚡ Parallel batch: {len(batch.actions)} action(s)"))
+                print(Color.info(f"  ⚡ Parallel batch: {len(batch.actions)} action(s){hint_info}"))
                 batch_results = _execute_batch_parallel(batch.actions)
                 results.extend(batch_results)
             else:
@@ -2474,7 +2750,13 @@ def execute_actions_parallel(actions, tracker):
             results.extend(batch_results)
             parallel_batch = []
 
-        for idx, (tool_name, args_str) in enumerate(actions):
+        for idx, action_tuple in enumerate(actions):
+             # Unpack action tuple (tool, args, hint)
+            if len(action_tuple) == 3:
+                tool_name, args_str, hint = action_tuple
+            else:
+                tool_name, args_str = action_tuple
+
             if tool_name in _PARALLEL_ELIGIBLE_TOOLS:
                 parallel_batch.append((idx, tool_name, args_str))
                 continue
@@ -2629,6 +2911,17 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', all
 
     # Todo Tracking System (Phase 2 - Claude Code Style)
     todo_tracker = TodoTracker() if config.ENABLE_TODO_TRACKING else None
+
+    # ============================================================
+    # Phase 2: Agent Communication - Accumulated Context
+    # ============================================================
+    accumulated_context = {
+        'explored_files': [],      # Files examined by spawn_explore
+        'planned_steps': [],       # Steps from spawn_plan
+        'agent_artifacts': {},     # Other agent results
+        'exploration_summaries': [],  # Brief summaries from explore
+        'plan_summaries': []       # Brief summaries from plan
+    }
 
     # ============================================================
     # Sub-Agent System (Claude Code Style) - Replaces Deep Think
@@ -2804,6 +3097,43 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         # Legacy mode: Single string
                         messages[0]["content"] = system_prompt_data
 
+        # Phase 2: Inject Accumulated Context into system message
+        if accumulated_context and any(accumulated_context.values()):
+            context_summary = []
+
+            if accumulated_context.get('explored_files'):
+                files = accumulated_context['explored_files']
+                context_summary.append(f"📁 Files examined by agents: {len(files)} files")
+                if len(files) <= 10:
+                    context_summary.append(f"   {', '.join(files)}")
+
+            if accumulated_context.get('planned_steps'):
+                steps = accumulated_context['planned_steps']
+                context_summary.append(f"📋 Planned steps: {len(steps)} steps")
+                if len(steps) <= 5:
+                    for idx, step in enumerate(steps, 1):
+                        context_summary.append(f"   {idx}. {step}")
+
+            if accumulated_context.get('exploration_summaries'):
+                summaries = accumulated_context['exploration_summaries']
+                context_summary.append(f"🔍 Exploration insights: {len(summaries)} summary(ies)")
+
+            if context_summary:
+                context_msg = "\n\n[Agent Communication Context]\n" + "\n".join(context_summary)
+
+                if config.CACHE_OPTIMIZATION_MODE == "optimized" and isinstance(messages[0].get("content"), list):
+                    # Add to dynamic block
+                    messages[0]["content"].append({
+                        "type": "text",
+                        "text": context_msg
+                    })
+                elif isinstance(messages[0].get("content"), str):
+                    # Append to string
+                    messages[0]["content"] += context_msg
+
+                if config.DEBUG_MODE:
+                    print(Color.info(f"[CONTEXT] Injected accumulated context: {len(context_summary)} items"))
+
         # Show context usage before each iteration
         if config.DEBUG_MODE or tracker.current == 0:
             show_context_usage(messages)
@@ -2961,7 +3291,13 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     # Format for combined output
                     combined_results.append(f"--- [Action {idx+1}] {tool_name} ---\n{observation}")
             else:
-                for i, (tool_name, args_str) in enumerate(actions):
+                for i, action_tuple in enumerate(actions):
+                    # Unpack action tuple (tool, args, hint)
+                    if len(action_tuple) == 3:
+                        tool_name, args_str, hint = action_tuple
+                    else:
+                        tool_name, args_str = action_tuple
+                        hint = None
                     # Visual separator for multi-action (except first)
                     if i > 0:
                         print(Color.system(f"  {'-'*40}"))
@@ -2979,6 +3315,32 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                     # Execute
                     observation = execute_tool(tool_name, args_str)
+
+                    # Phase 2: Update accumulated_context from Agent results
+                    if hasattr(_agent_metadata, 'last_result') and _agent_metadata.last_result:
+                        metadata = _agent_metadata.last_result
+                        agent_type = metadata.get('agent_type', '')
+
+                        if agent_type == 'explore':
+                            # Update from spawn_explore
+                            accumulated_context['explored_files'].extend(metadata.get('files_examined', []))
+                            if metadata.get('summary'):
+                                accumulated_context['exploration_summaries'].append(metadata['summary'])
+
+                            if config.DEBUG_MODE:
+                                print(Color.system(f"  ├─ CONTEXT: +{len(metadata.get('files_examined', []))} files examined"))
+
+                        elif agent_type == 'plan':
+                            # Update from spawn_plan
+                            accumulated_context['planned_steps'] = metadata.get('planned_steps', [])
+                            if metadata.get('summary'):
+                                accumulated_context['plan_summaries'].append(metadata['summary'])
+
+                            if config.DEBUG_MODE:
+                                print(Color.system(f"  ├─ CONTEXT: +{len(metadata.get('planned_steps', []))} planned steps"))
+
+                        # Store in artifacts
+                        accumulated_context['agent_artifacts'][tool_name] = metadata
 
                     # Show tool execution timing
                     if config.DEBUG_MODE:
@@ -3194,6 +3556,105 @@ def chat_loop():
                     if messages and messages[0].get("role") == "system":
                         context_tracker.update_system_prompt(messages[0]["content"])
                     context_tracker.update_messages(messages, exclude_system=True)
+
+                # Handle /skill commands for manual skill control
+                if user_input.startswith('/skill ') or user_input.strip() == '/skill':
+                    skill_arg = user_input[7:].strip() if len(user_input) > 7 else ""
+
+                    try:
+                        from core.skill_system import get_skill_registry
+                        registry = get_skill_registry()
+
+                        if skill_arg == "list" or skill_arg == "":
+                            # List all available skills
+                            all_skills = registry.list_skills()
+                            print(Color.info("\n=== Available Skills ==="))
+                            for skill_name in sorted(all_skills):
+                                skill = registry.get_skill(skill_name)
+                                if skill:
+                                    priority_color = Color.CYAN if skill.priority >= 85 else Color.RESET
+                                    print(f"  • {Color.BOLD}{skill_name}{Color.RESET} {priority_color}(priority: {skill.priority}){Color.RESET}")
+                                    print(f"    {skill.description}")
+                            print()
+                            continue
+
+                        elif skill_arg == "active":
+                            # Show currently active skills
+                            forced = getattr(load_active_skills, 'forced_skills', set())
+                            disabled = getattr(load_active_skills, 'disabled_skills', set())
+
+                            print(Color.info("\n=== Active Skill Configuration ==="))
+                            if forced:
+                                print(Color.success("Force-Enabled:"))
+                                for skill_name in sorted(forced):
+                                    print(f"  ✅ {skill_name}")
+                            if disabled:
+                                print(Color.warning("Disabled:"))
+                                for skill_name in sorted(disabled):
+                                    print(f"  ❌ {skill_name}")
+                            if not forced and not disabled:
+                                print(Color.system("  (No manual overrides - using auto-detection)"))
+                            print()
+                            continue
+
+                        elif skill_arg.startswith("enable "):
+                            # Force-enable specific skill
+                            skill_name = skill_arg[7:].strip()
+                            if not hasattr(load_active_skills, 'forced_skills'):
+                                load_active_skills.forced_skills = set()
+                            if not hasattr(load_active_skills, 'disabled_skills'):
+                                load_active_skills.disabled_skills = set()
+
+                            # Check if skill exists
+                            if skill_name not in registry.list_skills():
+                                print(Color.error(f"❌ Skill '{skill_name}' not found. Use '/skill list' to see available skills."))
+                                continue
+
+                            load_active_skills.forced_skills.add(skill_name)
+                            # Remove from disabled if present
+                            load_active_skills.disabled_skills.discard(skill_name)
+
+                            print(Color.success(f"✅ Skill '{skill_name}' force-enabled (will be active in next turn)"))
+                            continue
+
+                        elif skill_arg.startswith("disable "):
+                            # Disable specific skill
+                            skill_name = skill_arg[8:].strip()
+                            if not hasattr(load_active_skills, 'disabled_skills'):
+                                load_active_skills.disabled_skills = set()
+                            if not hasattr(load_active_skills, 'forced_skills'):
+                                load_active_skills.forced_skills = set()
+
+                            load_active_skills.disabled_skills.add(skill_name)
+                            # Remove from forced if present
+                            load_active_skills.forced_skills.discard(skill_name)
+
+                            print(Color.warning(f"❌ Skill '{skill_name}' disabled (will not activate in next turn)"))
+                            continue
+
+                        elif skill_arg == "clear":
+                            # Clear all manual overrides
+                            load_active_skills.forced_skills = set()
+                            load_active_skills.disabled_skills = set()
+                            print(Color.success("✅ Manual skill overrides cleared (back to auto-detection)"))
+                            continue
+
+                        else:
+                            print(Color.info("\n=== Skill Control Commands ==="))
+                            print("  /skill list          - List all available skills")
+                            print("  /skill active        - Show manual overrides (forced/disabled)")
+                            print("  /skill enable <name> - Force-enable a specific skill")
+                            print("  /skill disable <name> - Disable a specific skill")
+                            print("  /skill clear         - Clear all manual overrides")
+                            print()
+                            continue
+
+                    except ImportError:
+                        print(Color.error("❌ Skill system not available"))
+                        continue
+                    except Exception as e:
+                        print(Color.error(f"❌ Error processing /skill command: {e}"))
+                        continue
 
                 result = slash_registry.execute(user_input)
 

@@ -397,10 +397,14 @@ module tb_pcie_sub_msg;
         // pcie_msg_receiver will assemble them
         // axi_read_gen will read and verify assembled messages
 
-        // Monitor: Print SRAM activity summary every 1ms
+        // Monitor: Enhanced Heatbeat and Progress Monitor
         forever begin
-            #1000000;
-            $display("[%0t] [TB_MON] WPTR_0=%0d, RX_DEBUG_31=0x%h", $time, PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0, PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31);
+            #1000000; // Summary every 1ms simulation time
+            $display("\n--- HEARTBEAT [%0t ps] ---", $time);
+            $display("[PROGRESS] Q0_WPTR: %0d bytes", PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0);
+            $display("[PROGRESS] Error Count (Bad Hdr): %0d", PCIE_SFR_AXI_MSG_HANDLER_RX_DEBUG_31[31:24]);
+            $display("[PROGRESS] Total Interrupts: %0d", tb_pcie_sub_msg.u_axi_read_gen.intr_count);
+            $display("---------------------------\n");
         end
     end
 

@@ -32,61 +32,194 @@ CRITICAL CONSTRAINTS:
 - ONLY create textual descriptions of WHAT to do
 - If you need repository context, use spawn_explore(query="...") in the execution phase
 
-OUTPUT FORMAT (TEXT ONLY):
-## Task Analysis
-[What needs to be done]
+# ============================================================
+# PLAN QUALITY CHECKLIST (All must be ✅)
+# ============================================================
 
-## Interface Specification
-- Module: ...
-- Parameters: ...
-- Inputs: ...
-- Outputs: ...
+Before outputting your plan, verify:
+- ✅ Every file change has absolute path (e.g., `brian_coder/src/config.py`)
+- ✅ Major changes have line numbers (e.g., "Line 145-160")
+- ✅ Steps are grouped into Phases (Phase 1, 2, 3...)
+- ✅ Each phase has time estimate (e.g., "10분", "30분")
+- ✅ New files marked with "(NEW)"
+- ✅ Interface changes show before/after
 
-## Architecture
-[Text description of internal architecture]
+If ANY ✅ is missing → Your plan is TOO VAGUE → Revise it.
 
-## Implementation Steps
-1. ...
-2. ...
+# ============================================================
+# OUTPUT FORMAT (Mandatory Structure)
+# ============================================================
 
-## Verification Strategy
-- Test 1: ...
-- Test 2: ...
+# [Task Title]
+
+## Overview
+[1-2 sentences: What is being done and why]
+
+## Critical Files
+1. `path/to/file1.py` - Purpose
+2. `path/to/file2.py (NEW)` - Purpose
+
+## Phase 1: [Name] (Time estimate)
+**File**: `path/to/file`
+**Line X-Y**: Description
+**Changes**: [Specific changes]
+
+## Phase 2: [Name] (Time estimate)
+...
+
+## Testing Strategy
+- Unit tests: [File path + test names]
+- Integration: [Scenario]
 
 ## Success Criteria
-- ...
+- [ ] Checklist item 1
+- [ ] Checklist item 2
 
 Be specific but DO NOT write code - leave that to ExecuteAgent."""
 
     def _get_execution_prompt(self) -> str:
-        return """You are a Planning Agent.
-Your goal is to create a clear, text-based implementation plan.
+        return """You are a Planning Agent. Create detailed, specific implementation plans.
 
-Available Tools:
-- spawn_explore(query="..."): Use this to examine existing code if needed.
+# ============================================================
+# CRITICAL: PARALLEL EXECUTION (Highly Recommended)
+# ============================================================
 
-Instructions:
-1. Analyze the request.
-2. If needed, explore the codebase first.
-3. Once ready, output the final plan using the 'PLAN_COMPLETE' format below.
-4. Do NOT write actual code instructions (like 'write this function'), just describe the plan.
+**YOU CAN SPAWN MULTIPLE EXPLORE AGENTS IN PARALLEL**
 
-Response Format:
-Thought: [Your reasoning and analysis]
-PLAN_COMPLETE:
-## Task Analysis
-[Description of the task]
+When you need context from multiple sources, spawn them ALL AT ONCE:
 
-## Interface Specification
-- Module: [Name]
-- Inputs/Outputs: [List ports/signals]
+✅ CORRECT (Parallel - Fast):
+Thought: I need to understand modules, tests, and documentation.
+@parallel
+Action: spawn_explore(query="Find all module definitions", thoroughness="medium")
+Action: spawn_explore(query="Find test patterns", thoroughness="quick")
+Action: spawn_explore(query="Find documentation structure", thoroughness="quick")
+@end_parallel
+Observation: [All 3 results arrive together in 20s]
 
-## Implementation Steps
-1. [Step 1 description]
-2. [Step 2 description]
+❌ WRONG (Sequential - Slow):
+Thought: Let me find modules first.
+Action: spawn_explore(query="Find modules")
+Observation: [wait 20s...]
+Thought: Now tests.
+Action: spawn_explore(query="Find tests")
+Observation: [wait 20s...]
+Total: 60s ← DON'T DO THIS!
 
-## Verification
-- [Test strategies]
+**Default to parallel unless truly dependent.**
+
+# ============================================================
+# CRITICAL: FILE PATHS & LINE NUMBERS (Mandatory)
+# ============================================================
+
+**Your plan MUST include specific file paths and line numbers.**
+
+✅ CORRECT (Specific):
+## Phase 1: Add helper function (10분)
+
+**File**: `brian_coder/core/tools.py`
+**Location**: Line 545-580 (after validate_args function)
+
+**Change**:
+Add _levenshtein_distance() helper function
+
+❌ WRONG (Vague):
+## Step 1: Add helper
+
+Add a function to calculate string distance.
+
+**Requirements:**
+- Use format: "File: `path/to/file.py`"
+- Use format: "Line N-M: description"
+- Use format: "(NEW)" for new files
+
+# ============================================================
+# GOOD vs BAD PLAN EXAMPLES
+# ============================================================
+
+❌ BAD PLAN (Too vague):
+## Steps
+1. Update the configuration
+2. Modify the main file
+3. Add tests
+
+Problems: No file paths, no line numbers, no specifics.
+
+✅ GOOD PLAN (Specific):
+## Phase 1: Configuration Update (5분)
+
+**File**: `src/config.py`
+**Line 145-147**: Replace TIMEOUT value
+
+**Change**:
+```
+# Before:
+TIMEOUT = 100
+
+# After:
+TIMEOUT = 200
+```
+
+## Phase 2: Main Logic Update (15분)
+
+**File**: `src/main.py`
+**Line 320-340**: Refactor error handling
+
+**Changes**:
+1. Extract retry logic to separate function
+2. Add exponential backoff
+3. Update error messages
+
+**Pattern to follow:**
+- File path first
+- Line numbers for changes
+- "Before/After" for replacements
+- Phase separation
+- Time estimates
+
+# ============================================================
+# GATHER CONTEXT FIRST (Critical)
+# ============================================================
+
+**ALWAYS explore the codebase BEFORE creating plan.**
+
+Step 1: Spawn 2-3 explore agents in parallel
+Step 2: Analyze findings
+Step 3: Create specific plan
+
+❌ ANTI-PATTERN:
+Thought: I'll plan based on task description.
+PLAN_COMPLETE: [plan without exploration]
+
+✅ CORRECT PATTERN:
+Thought: Need to explore first.
+@parallel
+Action: spawn_explore(query="Find existing modules")
+Action: spawn_explore(query="Find test patterns")
+@end_parallel
+Observation: [findings]
+Thought: Now I have complete context.
+PLAN_COMPLETE: [specific plan with file paths]
+
+# ============================================================
+# Planning Output Format
+# ============================================================
+
+After gathering context, create your plan:
+
+PLAN_COMPLETE: [Your detailed implementation plan in markdown]
+
+**Plan should include:**
+1. Overview
+2. Critical files to modify (with paths!)
+3. Step-by-step implementation (with line numbers!)
+4. Verification strategy
+
+**Remember:**
+- Text descriptions only (no code)
+- Specify interfaces and architecture
+- List files and their purposes
+- Describe what to do, not how to code it
 """
 
     def _create_user_message(self, step: ActionStep, context: str) -> str:
@@ -112,11 +245,17 @@ PLAN_COMPLETE: ...
         }
 
     def _collect_context_updates(self, output: str) -> Dict[str, Any]:
-        """메인 컨텍스트에 반영할 계획 정보"""
+        """메인 컨텍스트에 반영할 계획 정보 (개선: Phase 추출)"""
         # 계획에서 주요 단계 추출 시도
         steps = []
         import re
-        if "## Implementation Steps" in output:
+
+        # Try Phase pattern first (most specific)
+        phase_matches = re.findall(r'## Phase \d+[:\s]+(.+?)(?:\(|$)', output, re.MULTILINE)
+        if phase_matches:
+            steps = [f"Phase {idx+1}: {match.strip()}" for idx, match in enumerate(phase_matches)]
+        # Try Implementation Steps section
+        elif "## Implementation Steps" in output:
             steps_section = output.split("## Implementation Steps")[-1].split("##")[0]
             step_matches = re.findall(r'\d+\.\s*(.+?)(?=\n\d+\.|\n##|$)', steps_section, re.DOTALL)
             steps = [s.strip()[:100] for s in step_matches[:5]]
@@ -125,6 +264,7 @@ PLAN_COMPLETE: ...
             step_matches = re.findall(r'\d+\.\s*(.+?)(?=\n\d+\.|\n##|$)', steps_section, re.DOTALL)
             steps = [s.strip()[:100] for s in step_matches[:5]]
         else:
+            # Generic numbered list
             step_matches = re.findall(r'^\s*\d+\.\s*(.+)$', output, re.MULTILINE)
             steps = [s.strip()[:100] for s in step_matches[:5]]
 
@@ -135,16 +275,50 @@ PLAN_COMPLETE: ...
         }
 
     def _extract_plan_text(self, output: str) -> str:
+        """
+        Extract plan text from agent output.
+
+        Supports multiple formats:
+        - "PLAN_COMPLETE: ..."
+        - "**PLAN_COMPLETE**" (markdown bold)
+        - "[CONTENT] .**PLAN_COMPLETE**" (with content marker)
+        """
         if not output:
             return ""
-        if "PLAN_COMPLETE:" in output:
-            tail = output.split("PLAN_COMPLETE:", 1)[1].strip()
-            if tail:
-                return tail
+
+        # Try all PLAN_COMPLETE variants
+        plan_markers = [
+            "**PLAN_COMPLETE**",  # Most common (markdown bold)
+            "PLAN_COMPLETE:",     # Old format
+            "PLAN_COMPLETE",      # Without colon
+        ]
+
+        for marker in plan_markers:
+            if marker in output:
+                tail = output.split(marker, 1)[1].strip()
+                if tail:
+                    return tail
+
+        # Try "Result:" marker
         if "Result:" in output:
             tail = output.split("Result:", 1)[1].strip()
             if tail:
                 return tail
+
+        # Try extracting from [CONTENT] block (some models wrap it)
+        if "[CONTENT]" in output:
+            # Pattern: "[CONTENT] .**PLAN_COMPLETE**\n\n[actual plan]"
+            content_start = output.find("[CONTENT]")
+            if content_start != -1:
+                tail = output[content_start + len("[CONTENT]"):].strip()
+                # Remove any leading markers
+                for marker in plan_markers:
+                    if tail.startswith(marker):
+                        tail = tail[len(marker):].strip()
+                if tail:
+                    return tail
+
+        # Fallback: remove leading "Thought:" lines
         text = output.strip()
         if text.startswith("Thought:"):
             lines = text.splitlines()
@@ -152,6 +326,8 @@ PLAN_COMPLETE: ...
                 cleaned = "\n".join(lines[1:]).strip()
                 if cleaned:
                     return cleaned
+
+        # Return as-is if no pattern matched
         return text
 
     def _run_plan_prompt(self, prompt: str) -> SubAgentResult:

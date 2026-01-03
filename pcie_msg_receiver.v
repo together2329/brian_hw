@@ -1036,10 +1036,11 @@ module pcie_msg_receiver (
                         sram_accumulator = 0;
                         sram_accumulator_bytes = 0;
                         
-                        // Extract payload from Beat 0 and align it
-                        sram_accumulator = 0;
-                        for (i = sram_header_ohc_bytes; i < 32; i = i + 1) begin
-                            sram_accumulator[(i - sram_header_ohc_bytes)*8 +: 8] = queue_data[current_queue_idx][0][i*8 +: 8];
+                        // Extract payload from Beat 0 and align it (Precise Word Alignment)
+                        sram_accumulator = 512'h0;
+                        sram_accumulator_bytes = 0;
+                        for (i = 0; (sram_header_ohc_bytes + i) < 32; i = i + 1) begin
+                            sram_accumulator[i*8 +: 8] = queue_data[current_queue_idx][0][(sram_header_ohc_bytes + i)*8 +: 8];
                         end
                         sram_accumulator_bytes = 32 - sram_header_ohc_bytes;
                         
@@ -1048,7 +1049,7 @@ module pcie_msg_receiver (
                         wptr_updated_for_frag <= 1'b0;
                         sram_wen <= 1'b0; // Ensure write enable is off initially
 
-                        // 3. Reset SRAM Address to Queue Base + Internal WPTR (32-byte units)
+                        // 3. SRAM Base Address Sync (Using Correct SFR Names)
                         sram_waddr = 0;
                         case (current_queue_idx)
                             4'h0: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:5]);
@@ -1066,11 +1067,10 @@ module pcie_msg_receiver (
                             4'hc: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_12[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_12[15:5]);
                             4'hd: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_13[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_13[15:5]);
                             4'he: sram_waddr = (PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_14[31:5]) + (PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_14[15:5]);
+                            default: sram_waddr = 10'h0;
                         endcase
                         
-                        $display("[%0t] [SRAM_WR] Init: Queue=%0d, WPTR_0=%0d, sram_waddr_offset=%0d", 
-                                 $time, current_queue_idx, PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0, PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0] >> 5);
-                        
+                        $display("[%0t] [SRAM_WR] Init: Queue=%0d, sram_waddr=%0d", $time, current_queue_idx, sram_waddr);
                     end else begin
                         // Main Write Loop
                         sram_wen <= 1'b0; // Default to no write
@@ -1092,16 +1092,18 @@ module pcie_msg_receiver (
                                 asm_beat_count <= asm_beat_count + 1;
                             end
 
-                            // 2. Continuous Write Logic: Atomic Address Alignment
-                            if (sram_accumulator_bytes >= 32 && !sram_wen) begin
-                                sram_wdata <= sram_accumulator[255:0];
-                                sram_wen   <= 1'b1;
-                                sram_accumulator <= (sram_accumulator >> 256);
-                                sram_accumulator_bytes <= sram_accumulator_bytes - 32;
-                                $display("[%0t] [SRAM_WR] Shift Write: addr=%0d", $time, sram_waddr);
-                            end else if (sram_wen) begin
-                                sram_wen   <= 1'b0;
-                                sram_waddr <= sram_waddr + 1;
+                            // 2. Verified Atomic Word Write Logic
+                            if (sram_accumulator_bytes >= 32) begin
+                                if (!sram_wen) begin
+                                    sram_wdata <= sram_accumulator[255:0];
+                                    sram_wen   <= 1'b1;
+                                    sram_accumulator <= (sram_accumulator >> 256);
+                                    sram_accumulator_bytes <= sram_accumulator_bytes - 32;
+                                    $display("[%0t] [SRAM_WR] Shift Write: addr=%0d", $time, sram_waddr);
+                                end else begin
+                                    sram_wen   <= 1'b0;
+                                    sram_waddr <= sram_waddr + 1;
+                                end
                             end else if (asm_beat_count >= asm_total_beats) begin
                                 if (sram_accumulator_bytes > 0 && !sram_wen) begin
                                     sram_wdata <= sram_accumulator[255:0];
@@ -1109,9 +1111,12 @@ module pcie_msg_receiver (
                                     sram_accumulator_bytes <= 0;
                                     $display("[%0t] [SRAM_WR] Final Flush: addr=%0d", $time, sram_waddr);
                                 end                                 else if (!sram_wen) begin
-                                    // Completion Cleanup & Physical WPTR Sync
+                                    // Completion Cleanup & Full Reset of State
                                     o_msg_interrupt <= 1'b1;
                                     queue_valid[current_queue_idx] <= 1'b0;
+                                    sram_accumulator <= 512'h0;
+                                    sram_accumulator_bytes <= 0;
+                                    sram_alignment_init <= 1'b0;
                                     // Sync physical SRAM address directly back to WPTR
                                     case (current_queue_idx)
                                         4'h0:  PCIE_SFR_AXI_MSG_HANDLER_Q_DATA_WPTR_0[15:0]  <= (sram_waddr - PCIE_SFR_AXI_MSG_HANDLER_RX_Q_INIT_ADDR_0 [31:5]) * 32;

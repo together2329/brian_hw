@@ -6,6 +6,11 @@ Sub-Agent Base Classes
 - ActionStep, ActionPlan: 동작 계획
 - SubAgentResult: 실행 결과
 - SubAgent: 추상 기본 클래스
+
+OpenCode-Inspired Features:
+- 설정 기반 에이전트 (agent_config.py)
+- 에이전트별 모델/권한 설정
+- Wildcard 권한 패턴
 """
 
 import re
@@ -17,6 +22,15 @@ from enum import Enum
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional, Callable, Tuple, Set
 from functools import wraps
+
+# Try to import agent config (optional)
+try:
+    from core.agent_config import (
+        get_agent_config, AgentConfig, PermissionChecker, PermissionLevel
+    )
+    AGENT_CONFIG_AVAILABLE = True
+except ImportError:
+    AGENT_CONFIG_AVAILABLE = False
 
 
 # ============================================================
@@ -251,10 +265,18 @@ class SubAgent(ABC):
     - _get_execution_prompt(): 실행용 시스템 프롬프트
     - _collect_artifacts(): 산출물 수집
     - _collect_context_updates(): 컨텍스트 업데이트 수집
+
+    OpenCode-Inspired Features:
+    - 설정 파일에서 에이전트 구성 로드
+    - 에이전트별 모델/temperature 설정
+    - Wildcard 권한 패턴 지원
     """
 
     # 에이전트별 허용 도구 (서브클래스에서 오버라이드)
     ALLOWED_TOOLS: Set[str] = set()
+
+    # 에이전트 타입 이름 (설정 조회용)
+    AGENT_TYPE: str = "base"
 
     def __init__(
         self,
@@ -262,7 +284,8 @@ class SubAgent(ABC):
         llm_call_func: Callable,
         execute_tool_func: Callable,
         max_iterations: int = 10,
-        max_planning_tokens: int = 2000
+        max_planning_tokens: int = 2000,
+        shared_context = None
     ):
         """
         Args:
@@ -271,12 +294,14 @@ class SubAgent(ABC):
             execute_tool_func: 도구 실행 함수 (tool_name, args_str -> result)
             max_iterations: 최대 반복 횟수
             max_planning_tokens: 계획 생성 최대 토큰
+            shared_context: Optional SharedContext for agent communication
         """
         self.name = name
         self.llm_call_func = llm_call_func
         self.execute_tool_func = execute_tool_func
         self.max_iterations = max_iterations
         self.max_planning_tokens = max_planning_tokens
+        self.shared_context = shared_context  # Phase 3: Shared Memory
 
         # 격리된 컨텍스트 (메인과 독립)
         self._messages: List[Dict[str, Any]] = []
@@ -285,6 +310,104 @@ class SubAgent(ABC):
         self._tool_calls: List[Dict] = []
         self._files_read: List[str] = []
         self._files_modified: List[str] = []
+
+        # OpenCode-Inspired: Load config-based settings
+        self._agent_config: Optional[Any] = None
+        self._permission_checker: Optional[Any] = None
+        self._load_agent_config()
+
+    def _load_agent_config(self):
+        """
+        Load agent configuration from agents.jsonc (OpenCode-style).
+        Merges config settings with class defaults.
+        """
+        if not AGENT_CONFIG_AVAILABLE:
+            return
+
+        # Try to load config for this agent type
+        agent_type = getattr(self, 'AGENT_TYPE', self.name.replace('_agent', ''))
+        config = get_agent_config(agent_type)
+
+        if config:
+            self._agent_config = config
+            self._permission_checker = PermissionChecker(config)
+
+            # Merge allowed tools from config
+            config_tools = config.get_allowed_tools()
+            if config_tools and "*" not in config_tools:
+                # Config overrides class default
+                self.ALLOWED_TOOLS = self.ALLOWED_TOOLS.union(config_tools)
+            elif "*" in config_tools:
+                # All tools allowed - don't override
+                pass
+
+            # Apply max_steps if configured
+            if config.max_steps:
+                self.max_iterations = config.max_steps
+
+            debug_log(self.name, f"✓ Loaded config for agent type '{agent_type}'", {
+                "tools": list(self.ALLOWED_TOOLS)[:5],
+                "max_iterations": self.max_iterations,
+                "has_custom_prompt": bool(config.prompt)
+            })
+
+    def get_custom_prompt(self) -> Optional[str]:
+        """Get custom prompt from config if available."""
+        if self._agent_config and self._agent_config.prompt:
+            return self._agent_config.prompt
+        return None
+
+    def check_tool_permission(self, tool_name: str) -> bool:
+        """
+        Check if tool is allowed (config-aware).
+
+        Returns:
+            True if allowed, False if denied
+        """
+        # First check class-level ALLOWED_TOOLS
+        if self.ALLOWED_TOOLS and tool_name not in self.ALLOWED_TOOLS:
+            return False
+
+        # Then check config-based permissions
+        if self._permission_checker:
+            return self._permission_checker.check_tool(tool_name)
+
+        return True
+
+    def check_bash_permission(self, command: str) -> str:
+        """
+        Check bash command permission (wildcard pattern matching).
+
+        Returns:
+            "allow", "ask", or "deny"
+        """
+        if self._permission_checker:
+            level = self._permission_checker.check_bash(command)
+            return level.value
+        return "allow"
+
+    def get_llm_call_func(self) -> Callable:
+        """
+        Get LLM call function (potentially agent-specific model).
+        """
+        # If agent has custom model config, wrap the call
+        if self._agent_config and self._agent_config.model:
+            def agent_aware_llm_call(messages):
+                try:
+                    from src.llm_client import call_llm_for_agent
+                    agent_type = getattr(self, 'AGENT_TYPE', self.name)
+                    return call_llm_for_agent(
+                        messages,
+                        agent_name=agent_type,
+                        temperature=self._agent_config.temperature
+                    )
+                except ImportError:
+                    # Fallback to default
+                    return self.llm_call_func(messages)
+
+            return agent_aware_llm_call
+
+        return self.llm_call_func
 
     # ============ 추상 메소드 ============
 
@@ -370,6 +493,14 @@ class SubAgent(ABC):
             self._status = AgentStatus.COMPLETED
             result = self._build_result(output, start_time)
 
+            # Phase 3: Update SharedContext if available
+            if self.shared_context is not None:
+                try:
+                    self.shared_context.update_from_result(self.name, result)
+                    debug_log(self.name, "✓ SharedContext updated")
+                except Exception as e:
+                    debug_log(self.name, f"⚠ SharedContext update failed: {e}")
+
             debug_log(self.name, f"═══════════ RUN COMPLETE ═══════════")
             debug_log(self.name, "Execution summary", {
                 "status": result.status.value,
@@ -399,7 +530,7 @@ class SubAgent(ABC):
         self._files_modified = []
 
     def _initialize_context(self, task: str, context: Dict[str, Any] = None):
-        """독립적인 컨텍스트 초기화"""
+        """독립적인 컨텍스트 초기화 (Phase 3: SharedContext 포함)"""
         self._messages = []
 
         # 컨텍스트 정보가 있으면 포맷팅
@@ -417,6 +548,12 @@ class SubAgent(ABC):
                     context_parts.append(f"- {key}: {value}")
             if context_parts:
                 context_str = "\n[Context]\n" + "\n".join(context_parts)
+
+        # Phase 3: Add SharedContext info if available
+        if self.shared_context is not None:
+            shared_summary = self.shared_context.get_context_for_llm()
+            if shared_summary and shared_summary != "[Shared Agent Memory]":
+                context_str += "\n\n" + shared_summary
 
         # 태스크 저장
         self._current_task = task
@@ -699,46 +836,118 @@ Result: [your final answer]
                 debug_log(self.name, f"  [Iteration {i+1}] No actions found, completing step")
                 return response
 
-            # 도구 실행 (허용된 도구만)
+            # 도구 실행 (허용된 도구만, 병렬 실행 지원)
             observations = []
-            for tool_name, args in actions:
-                debug_log(self.name, f"  [Tool Call] {tool_name}({args[:100]}...)" if len(args) > 100 else f"  [Tool Call] {tool_name}({args})")
+
+            # Filter allowed tools first
+            allowed_actions = []
+            for action_tuple in actions:
+                # Support both (tool, args) and (tool, args, hint) formats
+                if len(action_tuple) == 3:
+                    tool_name, args, hint = action_tuple
+                else:
+                    tool_name, args = action_tuple
+                    hint = None
 
                 if tool_name not in self.ALLOWED_TOOLS:
                     debug_log(self.name, f"  [Tool Error] {tool_name} not in ALLOWED_TOOLS")
                     observations.append(f"[{tool_name}]: Error - Tool not allowed for this agent")
                     continue
 
+                allowed_actions.append((tool_name, args, hint))
+
+            # Try parallel execution if multiple actions and main.py available
+            parallel_success = False
+
+            if len(allowed_actions) > 1:
                 try:
-                    result = self.execute_tool_func(tool_name, args)
-                    result_preview = str(result)[:200] if result else "(empty)"
-                    debug_log(self.name, f"  [Tool Result] {result_preview}...")
-                    observations.append(f"[{tool_name}]: {result}")
+                    # Import execute_actions_parallel from main.py
+                    import sys
+                    import os
+                    src_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'src')
+                    if src_dir not in sys.path:
+                        sys.path.insert(0, src_dir)
 
-                    # Stall detection: Track consecutive read operations
-                    read_tools = {'read_file', 'read_lines', 'grep_file', 'list_dir',
-                                  'find_files', 'git_diff', 'git_status', 'rag_search'}
-                    if tool_name in read_tools:
-                        consecutive_reads += 1
-                        debug_log(self.name, f"  [Stall Check] Consecutive reads: {consecutive_reads}/{MAX_CONSECUTIVE_READS}")
-                    else:
-                        consecutive_reads = 0  # Reset on non-read operation
+                    from main import execute_actions_parallel
 
-                    # 파일 읽기/수정 추적
-                    if 'read' in tool_name.lower():
-                        self._files_read.append(args)
-                    if 'write' in tool_name.lower() or 'replace' in tool_name.lower():
-                        self._files_modified.append(args)
+                    # Create a simple tracker mock
+                    class SimpleTracker:
+                        def record_tool(self, tool_name):
+                            pass
 
-                    # 도구 호출 기록
-                    self._tool_calls.append({
-                        "tool": tool_name,
-                        "args": args,
-                        "result": str(result)[:500]  # 결과 요약
-                    })
+                    debug_log(self.name, f"  ⚡ Parallel execution: {len(allowed_actions)} actions")
+
+                    # Execute in parallel
+                    results = execute_actions_parallel(allowed_actions, SimpleTracker())
+
+                    # Process results
+                    for idx, tool_name, args, result in results:
+                        result_preview = str(result)[:200] if result else "(empty)"
+                        debug_log(self.name, f"  [Tool Result] {tool_name}: {result_preview}...")
+                        observations.append(f"[{tool_name}]: {result}")
+
+                        # Tracking
+                        if 'read' in tool_name.lower():
+                            self._files_read.append(args)
+                        if 'write' in tool_name.lower() or 'replace' in tool_name.lower():
+                            self._files_modified.append(args)
+
+                        self._tool_calls.append({
+                            "tool": tool_name,
+                            "args": args,
+                            "result": str(result)[:500]
+                        })
+
+                    # Reset stall detection on parallel execution
+                    consecutive_reads = 0
+                    parallel_success = True
+                    debug_log(self.name, f"  ✓ Parallel execution succeeded")
+
+                except ImportError:
+                    debug_log(self.name, "  ⚠ Could not import execute_actions_parallel, falling back to sequential")
                 except Exception as e:
-                    debug_log(self.name, f"  [Tool Error] {tool_name}: {str(e)}")
-                    observations.append(f"[{tool_name}]: Error - {str(e)}")
+                    debug_log(self.name, f"  ⚠ Parallel execution failed: {e}, falling back to sequential")
+
+            # Sequential fallback (if parallel not used or failed)
+            if not parallel_success:
+                for action_tuple in allowed_actions:
+                    tool_name, args, hint = action_tuple
+
+                    if hint:
+                        debug_log(self.name, f"  [LLM Hint] @{hint} for {tool_name}")
+
+                    debug_log(self.name, f"  [Tool Call] {tool_name}({args[:100]}...)" if len(args) > 100 else f"  [Tool Call] {tool_name}({args})")
+
+                    try:
+                        result = self.execute_tool_func(tool_name, args)
+                        result_preview = str(result)[:200] if result else "(empty)"
+                        debug_log(self.name, f"  [Tool Result] {result_preview}...")
+                        observations.append(f"[{tool_name}]: {result}")
+
+                        # Stall detection: Track consecutive read operations
+                        read_tools = {'read_file', 'read_lines', 'grep_file', 'list_dir',
+                                      'find_files', 'git_diff', 'git_status', 'rag_search'}
+                        if tool_name in read_tools:
+                            consecutive_reads += 1
+                            debug_log(self.name, f"  [Stall Check] Consecutive reads: {consecutive_reads}/{MAX_CONSECUTIVE_READS}")
+                        else:
+                            consecutive_reads = 0  # Reset on non-read operation
+
+                        # 파일 읽기/수정 추적
+                        if 'read' in tool_name.lower():
+                            self._files_read.append(args)
+                        if 'write' in tool_name.lower() or 'replace' in tool_name.lower():
+                            self._files_modified.append(args)
+
+                        # 도구 호출 기록
+                        self._tool_calls.append({
+                            "tool": tool_name,
+                            "args": args,
+                            "result": str(result)[:500]  # 결과 요약
+                        })
+                    except Exception as e:
+                        debug_log(self.name, f"  [Tool Error] {tool_name}: {str(e)}")
+                        observations.append(f"[{tool_name}]: Error - {str(e)}")
 
             # Combine observations
             observation = "\n".join(observations)
@@ -783,57 +992,82 @@ Result: [your final answer]
         debug_log(self.name, f"  Max iterations reached for step {step.step_number}")
         return messages[-1]["content"] if messages else ""
 
-    def _parse_actions(self, response: str) -> List[Tuple[str, str]]:
+    def _parse_actions(self, response: str) -> List[Tuple[str, str, Optional[str]]]:
         """
-        응답에서 Action 파싱 (개선: Markdown, triple-quotes, truncated output)
+        응답에서 Action 파싱 (개선: Markdown, triple-quotes, truncated output, LLM hints)
 
         개선 사항:
         - Markdown 형식 지원 (**Action:**, `tool_name`)
         - Triple-quoted strings 처리
         - Truncated output 자동 복구
         - LLM 일반 오류 수정 (sanitize)
+        - ENHANCED: @parallel/@sequential annotation 파싱
 
         Examples:
             >>> _parse_actions("**Action:** read_file(path='test.py')")
-            [('read_file', "path='test.py'")]
+            [('read_file', "path='test.py'", None)]
 
-            >>> _parse_actions("Action: `read_file`(path='test.py')")
-            [('read_file', "path='test.py'")]
+            >>> _parse_actions("@parallel\\nAction: read_file(path='test.py')")
+            [('read_file', "path='test.py'", "parallel")]
+
+        Returns:
+            List[Tuple[str, str, Optional[str]]]: (tool_name, args_str, hint)
         """
-        # STEP 1: Sanitize common LLM errors first
-        response = sanitize_action_text(response)
+        # Import parse_all_actions from main (reuse enhanced logic)
+        try:
+            import sys
+            import os
+            # Add src directory to path if not already there
+            src_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'src')
+            if src_dir not in sys.path:
+                sys.path.insert(0, src_dir)
 
-        actions = []
+            from main import parse_all_actions
 
-        # STEP 2: Updated pattern to support markdown and formatting
-        # 기존: r'Action:\s*(\w+)\('
-        # 개선: Markdown bold/italic/code blocks 지원
-        action_pattern = r'(?:\*\*|__)?Action(?:\*\*|__)?::*\s*[`*_]*\s*(\w+)\s*[`*_]*\s*\('
-        # 설명:
-        # (?:\*\*|__)? - Optional markdown bold/italic prefix
-        # Action - Literal "Action"
-        # (?:\*\*|__)? - Optional markdown bold/italic suffix
-        # ::* - Optional extra colons (some LLMs add them)
-        # \s*[`*_]*\s* - Optional markdown formatting around tool name
-        # (\w+) - Tool name (captured group)
-        # \s*[`*_]*\s* - Optional markdown after tool name
-        # \( - Opening paren
+            # Use enhanced parser from main.py
+            actions_with_hints = parse_all_actions(response)
+            debug_log(self.name, f"  Parsed {len(actions_with_hints)} actions (hints enabled)")
+            return actions_with_hints
 
-        for match in re.finditer(action_pattern, response):
-            tool_name = match.group(1)
-            start_paren = match.end() - 1  # '(' 위치
+        except Exception as e:
+            # Fallback to legacy parsing if main.py not available
+            debug_log(self.name, f"  ⚠ Could not use enhanced parser: {e}, using legacy parser")
 
-            debug_log(self.name, f"  [Parse] Found action: {tool_name}")
+            # STEP 1: Sanitize common LLM errors first
+            response = sanitize_action_text(response)
 
-            # 괄호 균형 추적으로 종료 위치 찾기 (triple-quotes 지원)
-            args = self._extract_balanced_parens(response, start_paren)
-            if args is not None:
-                actions.append((tool_name, args))
-                debug_log(self.name, f"  [Parse] Extracted args: {args[:100]}{'...' if len(args) > 100 else ''}")
-            else:
-                debug_log(self.name, f"  ⚠ [Parse] Failed to extract args for {tool_name}")
+            actions = []
 
-        return actions
+            # STEP 2: Updated pattern to support markdown and formatting
+            # 기존: r'Action:\s*(\w+)\('
+            # 개선: Markdown bold/italic/code blocks 지원
+            action_pattern = r'(?:\*\*|__)?Action(?:\*\*|__)?::*\s*[`*_]*\s*(\w+)\s*[`*_]*\s*\('
+            # 설명:
+            # (?:\*\*|__)? - Optional markdown bold/italic prefix
+            # Action - Literal "Action"
+            # (?:\*\*|__)? - Optional markdown bold/italic suffix
+            # ::* - Optional extra colons (some LLMs add them)
+            # \s*[`*_]*\s* - Optional markdown formatting around tool name
+            # (\w+) - Tool name (captured group)
+            # \s*[`*_]*\s* - Optional markdown after tool name
+            # \( - Opening paren
+
+            for match in re.finditer(action_pattern, response):
+                tool_name = match.group(1)
+                start_paren = match.end() - 1  # '(' 위치
+
+                debug_log(self.name, f"  [Parse] Found action: {tool_name}")
+
+                # 괄호 균형 추적으로 종료 위치 찾기 (triple-quotes 지원)
+                args = self._extract_balanced_parens(response, start_paren)
+                if args is not None:
+                    # Legacy parser doesn't support hints, return None as hint
+                    actions.append((tool_name, args, None))
+                    debug_log(self.name, f"  [Parse] Extracted args: {args[:100]}{'...' if len(args) > 100 else ''}")
+                else:
+                    debug_log(self.name, f"  ⚠ [Parse] Failed to extract args for {tool_name}")
+
+            return actions
 
     def _extract_balanced_parens(self, text: str, start_pos: int) -> Optional[str]:
         """

@@ -8,6 +8,7 @@ Actions를 분석하여 병렬 실행 가능한 batch로 분류합니다.
 from dataclasses import dataclass
 from typing import List, Tuple, Set, Optional, Dict
 import re
+from lib.display import Color
 
 
 @dataclass
@@ -67,7 +68,7 @@ class ActionDependencyAnalyzer:
         "create_plan", "mark_step_done",  # Plan 파일 수정
     }
 
-    def analyze(self, actions: List[Tuple[str, str]]) -> List[ActionBatch]:
+    def analyze(self, actions: List[Tuple[str, str, Optional[str]]]) -> List[ActionBatch]:
         """
         Actions를 분석하여 병렬 실행 가능한 batch로 분리
 
@@ -75,9 +76,11 @@ class ActionDependencyAnalyzer:
         1. Read-only actions를 batch에 추가
         2. Write action을 만나면 이전 batch flush + barrier 생성
         3. Write 후 다시 read-only batch 시작
+        4. ENHANCED: LLM hint를 검증하고 안전한 경우만 적용
 
         Args:
-            actions: List of (tool_name, args_str)
+            actions: List of (tool_name, args_str, hint)
+                    hint can be: None, "parallel", "sequential"
 
         Returns:
             List[ActionBatch]: 각 batch는 병렬 또는 순차 실행
@@ -87,30 +90,80 @@ class ActionDependencyAnalyzer:
 
         batches = []
         current_batch = []
+        current_hint = None
 
-        for idx, (tool_name, args_str) in enumerate(actions):
-            # Read-only 도구인지 확인
-            is_read_only = tool_name in self.READ_ONLY_TOOLS
-
-            if is_read_only:
-                # Read-only는 현재 batch에 추가
-                current_batch.append((idx, tool_name, args_str))
+        for idx, action_tuple in enumerate(actions):
+            # Unpack robustly
+            if len(action_tuple) == 3:
+                tool_name, args_str, hint = action_tuple
             else:
-                # Write 도구: 이전 batch flush
+                tool_name, args_str = action_tuple
+                hint = None
+
+            # 1. Validate hint safety
+            if hint == "parallel":
+                is_safe = self._validate_parallel_hint(
+                    tool_name, args_str, current_batch
+                )
+
+                if not is_safe:
+                    print(Color.warning(
+                        f"[Analyzer] ✗ LLM hint rejected for {tool_name}: "
+                        f"Unsafe for parallel execution"
+                    ))
+                    hint = None  # Fallback to default
+                else:
+                    print(Color.success(
+                        f"[Analyzer] ✓ LLM hint accepted for {tool_name}: parallel"
+                    ))
+
+            # 2. Process based on hint or default rules
+            if hint == "parallel":
+                # LLM explicitly requested parallel
+                current_batch.append((idx, tool_name, args_str))
+                current_hint = "parallel"
+
+            elif hint == "sequential":
+                # LLM explicitly requested sequential - flush and barrier
                 if current_batch:
                     batches.append(ActionBatch(
                         actions=current_batch,
                         parallel=True,
-                        reason="Read-only batch"
+                        reason="Batch before sequential hint"
                     ))
                     current_batch = []
 
-                # Write 도구는 단독 batch (barrier)
+                # Sequential: single-action batch
                 batches.append(ActionBatch(
                     actions=[(idx, tool_name, args_str)],
                     parallel=False,
-                    reason=f"Write barrier ({tool_name})"
+                    reason=f"LLM sequential hint ({tool_name})"
                 ))
+                current_hint = None
+
+            else:
+                # No hint - use default rules
+                is_read_only = tool_name in self.READ_ONLY_TOOLS
+
+                if is_read_only:
+                    # Read-only는 현재 batch에 추가
+                    current_batch.append((idx, tool_name, args_str))
+                else:
+                    # Write 도구: 이전 batch flush
+                    if current_batch:
+                        batches.append(ActionBatch(
+                            actions=current_batch,
+                            parallel=True,
+                            reason="Read-only batch"
+                        ))
+                        current_batch = []
+
+                    # Write 도구는 단독 batch (barrier)
+                    batches.append(ActionBatch(
+                        actions=[(idx, tool_name, args_str)],
+                        parallel=False,
+                        reason=f"Write barrier ({tool_name})"
+                    ))
 
         # 마지막 batch flush
         if current_batch:
@@ -121,6 +174,38 @@ class ActionDependencyAnalyzer:
             ))
 
         return batches
+
+    def _validate_parallel_hint(
+        self,
+        tool_name: str,
+        args_str: str,
+        current_batch: List[Tuple[int, str, str]]
+    ) -> bool:
+        """
+        Validate if a parallel hint is safe.
+
+        Returns:
+            True if safe, False if should be rejected
+        """
+        # Rule 1: Write tools NEVER parallel
+        if tool_name in self.WRITE_TOOLS:
+            return False
+
+        # Rule 2: Unknown tools are conservative (write)
+        if tool_name not in self.READ_ONLY_TOOLS:
+            return False
+
+        # Rule 3: Check file conflicts with current batch
+        current_access = self.extract_file_access(tool_name, args_str)
+
+        for idx, batch_tool, batch_args in current_batch:
+            batch_access = self.extract_file_access(batch_tool, batch_args)
+
+            if current_access and batch_access:
+                if current_access.conflicts_with(batch_access):
+                    return False  # File conflict
+
+        return True  # All checks passed
 
     def extract_file_access(self, tool_name: str, args_str: str) -> Optional[FileAccess]:
         """
