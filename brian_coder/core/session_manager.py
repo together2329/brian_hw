@@ -955,6 +955,110 @@ class SessionReverter:
 
 
 # ============================================================
+# Session Recovery Manager
+# ============================================================
+
+@dataclass
+class RecoveryPoint:
+    """Recovery point information for session rollback"""
+    id: str
+    session_id: str
+    message_count: int
+    created_at: float
+    description: str
+
+
+class SessionRecoveryManager:
+    """
+    Session recovery manager
+    - Automatic recovery point creation
+    - Rollback on errors
+    - Retry strategy
+    """
+
+    def __init__(self, storage: 'SessionStorage'):
+        """
+        Initialize recovery manager.
+
+        Args:
+            storage: SessionStorage instance
+        """
+        self.storage = storage
+        self.recovery_points: Dict[str, List[RecoveryPoint]] = {}
+
+    def create_recovery_point(
+        self,
+        session_id: str,
+        description: str = "Auto recovery point"
+    ) -> RecoveryPoint:
+        """
+        Create a recovery point.
+
+        Args:
+            session_id: Session ID
+            description: Recovery point description
+
+        Returns:
+            Created recovery point
+        """
+        messages = self.storage.list_messages(session_id)
+
+        point = RecoveryPoint(
+            id=str(uuid4()),
+            session_id=session_id,
+            message_count=len(messages),
+            created_at=time.time(),
+            description=description
+        )
+
+        if session_id not in self.recovery_points:
+            self.recovery_points[session_id] = []
+
+        self.recovery_points[session_id].append(point)
+
+        # Keep maximum 10 recovery points (memory optimization)
+        if len(self.recovery_points[session_id]) > 10:
+            self.recovery_points[session_id].pop(0)
+
+        return point
+
+    def rollback_to_point(
+        self,
+        session_id: str,
+        point: RecoveryPoint
+    ) -> bool:
+        """
+        Rollback to recovery point (message history only).
+
+        Args:
+            session_id: Session ID
+            point: Recovery point
+
+        Returns:
+            Success status
+        """
+        try:
+            messages = self.storage.list_messages(session_id)
+
+            # Delete messages after recovery point
+            for msg in messages[point.message_count:]:
+                self.storage.delete_message(session_id, msg.info.id)
+
+            return True
+        except Exception as e:
+            print(f"[Recovery] Rollback failed: {e}")
+            return False
+
+    def get_latest_point(self, session_id: str) -> Optional[RecoveryPoint]:
+        """Get latest recovery point"""
+        if session_id not in self.recovery_points:
+            return None
+        if not self.recovery_points[session_id]:
+            return None
+        return self.recovery_points[session_id][-1]
+
+
+# ============================================================
 # Session Manager (Main Interface)
 # ============================================================
 
@@ -980,6 +1084,7 @@ class SessionManager:
         self.snapshot = SnapshotManager()
         self.compactor = SessionCompactor(self.storage)
         self.reverter = SessionReverter(self.storage, self.snapshot)
+        self.recovery = SessionRecoveryManager(self.storage)
 
         self._current_session_id: Optional[str] = None
         self._initialized = True
@@ -1140,6 +1245,16 @@ class SessionManager:
     def get_diff(self, from_hash: str, to_hash: str = None) -> List[Dict]:
         """Get diff between snapshots"""
         return self.snapshot.diff(from_hash, to_hash)
+
+    # ============ Recovery Operations ============
+
+    def create_auto_recovery_point(
+        self,
+        session_id: str,
+        description: str = "Auto recovery point"
+    ) -> RecoveryPoint:
+        """Create automatic recovery point (convenience method)"""
+        return self.recovery.create_recovery_point(session_id, description)
 
 
 # ============================================================

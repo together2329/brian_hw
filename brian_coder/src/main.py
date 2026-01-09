@@ -30,6 +30,7 @@ from core import tools
 from core.action_dependency import ActionDependencyAnalyzer, FileConflictDetector, ActionBatch
 from core.slash_commands import get_registry as get_slash_command_registry
 from core.context_tracker import get_tracker as get_context_tracker
+from core.session_manager import SessionManager, RecoveryPoint
 import llm_client
 from lib.display import Color
 from llm_client import chat_completion_stream, call_llm_raw, estimate_message_tokens, get_actual_tokens
@@ -169,6 +170,16 @@ if config.ENABLE_SMART_RAG or config.DEBUG_MODE:
 # --- Global Message Classifier ---
 # Initialize classifier for smart compression
 message_classifier = MessageClassifier() if config.ENABLE_SMART_COMPRESSION else None
+
+# --- Turn Tracking ---
+# Track conversation turns for better context management
+current_turn_id = 0  # Current turn number (incremented on each user message)
+
+# --- Session Recovery ---
+# Session management for recovery system
+session_manager = None  # SessionManager instance (initialized in chat_loop)
+current_session_id = None  # Current session ID
+current_recovery_point = None  # Latest recovery point
 
 # --- Color Utilities (ANSI Escape Codes) ---
 # Moved to display.py
@@ -2325,13 +2336,25 @@ def compress_history(messages, force=False, instruction=None, keep_recent=None, 
         return messages
 
     limit_tokens = config.MAX_CONTEXT_CHARS // 4
-    threshold_tokens = int(limit_tokens * config.COMPRESSION_THRESHOLD)
+
+    # Preemptive compression threshold (85%)
+    preemptive_threshold = int(limit_tokens * config.PREEMPTIVE_COMPRESSION_THRESHOLD)
+    emergency_threshold = int(limit_tokens * config.COMPRESSION_THRESHOLD)
 
     # Use last_input_tokens from previous API call (no additional API call)
     current_tokens = get_actual_tokens(messages)
     token_source = "actual" if llm_client.last_input_tokens > 0 else "estimated"
 
-    if not force and current_tokens < threshold_tokens:
+    # Trigger preemptive compression at 85%
+    if current_tokens >= preemptive_threshold and not force:
+        usage_pct = int(current_tokens / limit_tokens * 100)
+        print(Color.warning(
+            f"\n[System] Preemptive compression triggered at {current_tokens:,} tokens "
+            f"({usage_pct}%)"
+        ))
+        force = True
+
+    if not force and current_tokens < emergency_threshold:
         return messages
 
     print(Color.warning(f"\n[System] {'Manual' if force else 'Auto'} Compression triggered. Context: {current_tokens:,} {token_source} tokens."))
@@ -2374,19 +2397,40 @@ def compress_history(messages, force=False, instruction=None, keep_recent=None, 
     if important_msgs:
         print(Color.info(f"[System] Preserving {len(important_msgs)} !important messages"))
 
-    # Check if history is too short
-    if keep_recent is None:
-        keep_recent = config.COMPRESSION_KEEP_RECENT
-    if len(other_msgs) <= keep_recent:
-        print(Color.info(f"[System] History too short to compress ({len(other_msgs)} <= {keep_recent} recent)."))
-        return messages
+    # Turn-based protection or legacy message-based protection
+    if config.ENABLE_TURN_PROTECTION and any(m.get("turn_id") for m in other_msgs):
+        # Turn-based protection (protects recent N turns)
+        protected_turns = config.TURN_PROTECTION_COUNT
 
-    # Keep last N messages (from non-important messages)
-    recent_msgs = other_msgs[-keep_recent:]
-    old_msgs = other_msgs[:-keep_recent]
+        # Find maximum turn ID
+        max_turn = max((m.get("turn_id", 0) for m in other_msgs), default=0)
+        protected_turn_threshold = max(0, max_turn - protected_turns + 1)
 
-    if not old_msgs:
-        return messages
+        # Protect recent N turns
+        recent_msgs = [m for m in other_msgs if m.get("turn_id", 0) >= protected_turn_threshold]
+        old_msgs = [m for m in other_msgs if m.get("turn_id", 0) < protected_turn_threshold]
+
+        print(Color.info(
+            f"[System] Protecting last {protected_turns} turns "
+            f"({len(recent_msgs)} messages, turns {protected_turn_threshold}-{max_turn})"
+        ))
+
+        if not old_msgs:
+            print(Color.info(f"[System] History too short to compress (all messages in protected turns)."))
+            return messages
+    else:
+        # Legacy message-based protection (for backward compatibility)
+        if keep_recent is None:
+            keep_recent = config.COMPRESSION_KEEP_RECENT
+        if len(other_msgs) <= keep_recent:
+            print(Color.info(f"[System] History too short to compress ({len(other_msgs)} <= {keep_recent} recent)."))
+            return messages
+
+        recent_msgs = other_msgs[-keep_recent:]
+        old_msgs = other_msgs[:-keep_recent]
+
+        if not old_msgs:
+            return messages
 
     # Choose compression mode
     mode = config.COMPRESSION_MODE.lower()
@@ -2902,6 +2946,7 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', all
     consecutive_errors = 0
     last_error_observation = None
     MAX_CONSECUTIVE_ERRORS = 3
+    recovery_attempts = 0  # Track recovery attempts
 
     # Initialize action tracking for procedural memory
     actions_taken = []
@@ -3179,8 +3224,14 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             print(Color.system(f"[FLOW]   Time: {llm_elapsed:.2f}s | Length: {response_len} chars (~{response_tokens_est} tokens)"))
             print(Color.system(f"[FLOW]   Parsed: Thought:{has_thought} Action:{has_action}"))
 
-        # Add assistant response to history with token metadata
-        assistant_msg = {"role": "assistant", "content": collected_content}
+        # Add assistant response to history with token metadata and turn tracking
+        global current_turn_id
+        assistant_msg = {
+            "role": "assistant",
+            "content": collected_content,
+            "turn_id": current_turn_id,  # Same turn as user message
+            "timestamp": time.time()
+        }
 
         # Attach actual token usage from API if available
         usage = llm_client.get_last_usage()
@@ -3393,15 +3444,87 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 consecutive_errors += 1
                 print(Color.warning(f"  [System] ⚠️  Consecutive error #{consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}"))
 
+                # Try recovery if enabled (2+ consecutive errors and haven't exceeded max attempts)
+                global current_recovery_point, session_manager, current_session_id
+                if (consecutive_errors >= 2 and
+                    recovery_attempts < config.MAX_RECOVERY_ATTEMPTS and
+                    config.ENABLE_SESSION_RECOVERY and
+                    current_recovery_point and
+                    session_manager):
+
+                    recovery_attempts += 1
+                    print(Color.warning(
+                        f"\n[Recovery] Attempt {recovery_attempts}/{config.MAX_RECOVERY_ATTEMPTS}: "
+                        f"Rolling back to recovery point..."
+                    ))
+
+                    # Rollback
+                    try:
+                        success = session_manager.recovery.rollback_to_point(
+                            current_session_id,
+                            current_recovery_point
+                        )
+
+                        if success:
+                            print(Color.success("[Recovery] Rollback successful. Retrying..."))
+                            # Rollback messages to recovery point
+                            messages = messages[:current_recovery_point.message_count]
+                            consecutive_errors = 0  # Reset after successful rollback
+                            # Continue to next iteration
+                        else:
+                            print(Color.error("[Recovery] Rollback failed."))
+                    except Exception as e:
+                        print(Color.error(f"[Recovery] Rollback error: {e}"))
+
+                # If max consecutive errors reached and no recovery or recovery failed
                 if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
-                    print(Color.error(f"  [System] ❌ Same error occurred {MAX_CONSECUTIVE_ERRORS} times. Stopping to prevent infinite loop."))
-                    messages.append({
-                        "role": "user",
-                        "content": f"Observation: {observation}\n\n[System] The same error occurred {MAX_CONSECUTIVE_ERRORS} times consecutively. Please ask the user for help or try a different approach."
-                    })
-                    break
+                    print(Color.error(f"  [System] ❌ Same error occurred {MAX_CONSECUTIVE_ERRORS} times. Session recovery failed."))
+
+                    # Offer user choices (simple text prompt)
+                    if config.ENABLE_SESSION_RECOVERY and current_recovery_point:
+                        print(Color.warning("\n복구 옵션을 선택하세요:"))
+                        print("  1. 마지막 복구 지점부터 계속")
+                        print("  2. 새 세션 시작")
+                        print("  3. 종료")
+
+                        try:
+                            choice = input(Color.info("\n선택 (1-3): ")).strip()
+
+                            if choice == "1":
+                                print(Color.info("[System] 복구 지점부터 계속합니다..."))
+                                messages = messages[:current_recovery_point.message_count]
+                                consecutive_errors = 0
+                                recovery_attempts = 0
+                                # Continue loop
+                            elif choice == "2":
+                                print(Color.info("[System] 새 세션을 시작합니다..."))
+                                # Create new session
+                                session = session_manager.create_session(
+                                    directory=str(Path.cwd()),
+                                    title=f"Session {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+                                )
+                                current_session_id = session.id
+                                # Reset everything
+                                messages = [{"role": "system", "content": build_system_prompt()}]
+                                consecutive_errors = 0
+                                recovery_attempts = 0
+                                # Continue loop
+                            else:
+                                print(Color.info("[System] 종료합니다."))
+                                break
+                        except (KeyboardInterrupt, EOFError):
+                            print(Color.info("\n[System] 종료합니다."))
+                            break
+                    else:
+                        # No recovery available, just stop
+                        messages.append({
+                            "role": "user",
+                            "content": f"Observation: {observation}\n\n[System] The same error occurred {MAX_CONSECUTIVE_ERRORS} times consecutively. Please ask the user for help or try a different approach."
+                        })
+                        break
             else:
                 consecutive_errors = 0
+                recovery_attempts = 0  # Reset recovery attempts on success
                 last_error_observation = observation if "error" in observation.lower() else None
 
             # Process observation (handles large files and context management)
@@ -3467,6 +3590,23 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 # --- 7. Main Loop ---
 
 def chat_loop():
+    # Initialize session manager (for recovery system)
+    global session_manager, current_session_id, current_recovery_point
+
+    if config.ENABLE_SESSION_RECOVERY and session_manager is None:
+        try:
+            session_manager = SessionManager()
+            session = session_manager.create_session(
+                directory=str(Path.cwd()),
+                title=f"Session {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            )
+            current_session_id = session.id
+            print(Color.system(f"[System] Session created: {current_session_id[:8]}"))
+        except Exception as e:
+            print(Color.warning(f"[System] Session manager initialization failed: {e}"))
+            print(Color.warning("[System] Continuing without session recovery..."))
+            session_manager = None
+
     # Try to load existing conversation history
     loaded_messages = load_conversation_history()
     if loaded_messages:
@@ -3841,7 +3981,25 @@ def chat_loop():
                     # Fail silently if extraction fails
                     pass
 
-            messages.append({"role": "user", "content": user_input})
+            # Create recovery point (before adding user message)
+            global current_turn_id, current_recovery_point
+            if config.ENABLE_SESSION_RECOVERY and config.AUTO_RECOVERY_POINT and session_manager:
+                try:
+                    current_recovery_point = session_manager.create_auto_recovery_point(
+                        current_session_id,
+                        description=f"User turn: {user_input[:50]}"
+                    )
+                except Exception as e:
+                    print(Color.warning(f"[Recovery] Failed to create recovery point: {e}"))
+
+            # Add user message with turn tracking
+            current_turn_id += 1
+            messages.append({
+                "role": "user",
+                "content": user_input,
+                "turn_id": current_turn_id,
+                "timestamp": time.time()
+            })
 
             # ReAct Loop: Smart Iteration Control with progress tracking
             # Initialize iteration tracker

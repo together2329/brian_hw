@@ -35,6 +35,7 @@ class ContextTracker:
         self.messages_tokens = 0
         self.message_count = 0
         self.actual_percentage = 0
+        self.turn_count = 0  # Track conversation turns
 
     def update_system_prompt(self, prompt: str):
         """Update system prompt token count"""
@@ -119,6 +120,13 @@ class ContextTracker:
 
         self.messages_tokens = total_tokens
         self.message_count = len(msg_list)  # Store count for display
+
+        # Calculate turn count (maximum turn_id in messages)
+        if messages:
+            max_turn = max((m.get("turn_id", 0) for m in messages), default=0)
+            self.turn_count = max_turn
+        else:
+            self.turn_count = 0
 
         # Calculate percentage based on ASSISTANT messages only
         # (user messages never have _tokens, so they skew the percentage)
@@ -341,6 +349,10 @@ class ContextTracker:
             lines.append(f" {free_bar}   ⛶ Free space: {free_str} ({free_pct:.1f}%) ⚠️  OVER LIMIT!")
         else:
             lines.append(f" {free_bar}   ⛶ Free space: {free_str} ({free_pct:.1f}%)")
+
+        # Turn count
+        if self.turn_count > 0:
+            lines.append(f" Turn count: {self.turn_count}")
 
         lines.append("")
 

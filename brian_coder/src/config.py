@@ -180,6 +180,24 @@ COMPRESSION_KEEP_RECENT = int(os.getenv("COMPRESSION_KEEP_RECENT", "4"))
 ENABLE_SMART_COMPRESSION = os.getenv("ENABLE_SMART_COMPRESSION", "false").lower() in ("true", "1", "yes")
 
 # ============================================================
+# Dynamic Context Pruning Configuration
+# ============================================================
+# Preemptive compression threshold (0.0 to 1.0)
+# Triggers compression earlier to prevent emergency situations
+# Default: 0.85 (85% of context limit)
+PREEMPTIVE_COMPRESSION_THRESHOLD = float(os.getenv("PREEMPTIVE_COMPRESSION_THRESHOLD", "0.85"))
+
+# Enable turn-based message protection during compression
+# When enabled, protects recent N turns instead of N messages
+# Default: true (recommended for better conversation continuity)
+ENABLE_TURN_PROTECTION = os.getenv("ENABLE_TURN_PROTECTION", "true").lower() in ("true", "1", "yes")
+
+# Number of recent turns to protect from compression
+# Only used when ENABLE_TURN_PROTECTION=true
+# Default: 3 (protects last 3 user-assistant exchanges)
+TURN_PROTECTION_COUNT = int(os.getenv("TURN_PROTECTION_COUNT", "3"))
+
+# ============================================================
 # Prompt Caching Configuration
 # ============================================================
 # Enable Anthropic Prompt Caching (manual control only)
@@ -212,6 +230,24 @@ CACHE_INTERVAL = int(os.getenv("CACHE_INTERVAL", "0"))
 # Claude Sonnet/Opus: 1024, Claude Haiku: 2048
 # Default: 1024
 MIN_CACHE_TOKENS = int(os.getenv("MIN_CACHE_TOKENS", "1024"))
+
+# ============================================================
+# Session Recovery Configuration
+# ============================================================
+# Enable/Disable session recovery system
+# When enabled, creates automatic recovery points and allows rollback on errors
+# Default: true (recommended for stability)
+ENABLE_SESSION_RECOVERY = os.getenv("ENABLE_SESSION_RECOVERY", "true").lower() in ("true", "1", "yes")
+
+# Maximum number of recovery attempts after consecutive errors
+# System will try to rollback and retry up to this many times
+# Default: 3
+MAX_RECOVERY_ATTEMPTS = int(os.getenv("MAX_RECOVERY_ATTEMPTS", "3"))
+
+# Automatically create recovery points
+# When enabled, creates a recovery point after each user message
+# Default: true (recommended)
+AUTO_RECOVERY_POINT = os.getenv("AUTO_RECOVERY_POINT", "true").lower() in ("true", "1", "yes")
 
 # ============================================================
 # Embedding Configuration (for Memory System)
