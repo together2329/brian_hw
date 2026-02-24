@@ -19,8 +19,15 @@ class PlanAgent(SubAgent):
     - 결과: strategy, steps, dependencies
     """
 
-    # Explore tool allowed for context gathering during planning
-    ALLOWED_TOOLS: Set[str] = {"spawn_explore"}
+    # Direct read-only tools (no sub-agent spawning needed)
+    ALLOWED_TOOLS: Set[str] = {
+        "find_files",
+        "grep_file",
+        "read_lines",
+        "read_file",
+        "list_dir",
+        "rag_search",
+    }
 
     def _get_planning_prompt(self) -> str:
         return """You are a Planning Agent for a coding assistant.
@@ -84,29 +91,25 @@ Be specific but DO NOT write code - leave that to ExecuteAgent."""
 # CRITICAL: PARALLEL EXECUTION (Highly Recommended)
 # ============================================================
 
-**YOU CAN SPAWN MULTIPLE EXPLORE AGENTS IN PARALLEL**
+**USE DIRECT TOOLS IN PARALLEL — DO NOT USE spawn_explore**
 
-When you need context from multiple sources, spawn them ALL AT ONCE:
+Use find_files, grep_file, read_lines, list_dir, rag_search directly.
+These are instant — no sub-agent spawning overhead.
 
 ✅ CORRECT (Parallel - Fast):
-Thought: I need to understand modules, tests, and documentation.
+Thought: I need to understand the structure and patterns.
 @parallel
-Action: spawn_explore(query="Find all module definitions", thoroughness="medium")
-Action: spawn_explore(query="Find test patterns", thoroughness="quick")
-Action: spawn_explore(query="Find documentation structure", thoroughness="quick")
+Action: find_files(pattern="*agent*.py", directory=".")
+Action: grep_file(pattern="class.*Agent", path="agents/")
+Action: rag_search(query="agent base class implementation", limit=3)
 @end_parallel
-Observation: [All 3 results arrive together in 20s]
+Observation: [All results arrive instantly]
 
-❌ WRONG (Sequential - Slow):
-Thought: Let me find modules first.
-Action: spawn_explore(query="Find modules")
-Observation: [wait 20s...]
-Thought: Now tests.
-Action: spawn_explore(query="Find tests")
-Observation: [wait 20s...]
-Total: 60s ← DON'T DO THIS!
+❌ WRONG (Spawning sub-agents - Slow & expensive):
+Action: spawn_explore(query="Find agent files")
+← DO NOT USE spawn_explore. Use direct tools instead.
 
-**Default to parallel unless truly dependent.**
+**RULE: Always use find_files/grep_file/rag_search directly. Never spawn_explore.**
 
 # ============================================================
 # CRITICAL: FILE PATHS & LINE NUMBERS (Mandatory)
@@ -183,7 +186,7 @@ TIMEOUT = 200
 
 **ALWAYS explore the codebase BEFORE creating plan.**
 
-Step 1: Spawn 2-3 explore agents in parallel
+Step 1: Use find_files/grep_file/rag_search in parallel to gather context
 Step 2: Analyze findings
 Step 3: Create specific plan
 
@@ -192,10 +195,11 @@ Thought: I'll plan based on task description.
 PLAN_COMPLETE: [plan without exploration]
 
 ✅ CORRECT PATTERN:
-Thought: Need to explore first.
+Thought: Need to explore first using direct tools.
 @parallel
-Action: spawn_explore(query="Find existing modules")
-Action: spawn_explore(query="Find test patterns")
+Action: find_files(pattern="*.py", directory="agents/")
+Action: grep_file(pattern="class.*Agent", path=".")
+Action: rag_search(query="agent implementation pattern", limit=3)
 @end_parallel
 Observation: [findings]
 Thought: Now I have complete context.

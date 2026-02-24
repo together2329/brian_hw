@@ -1,0 +1,121 @@
+{
+  // Brian Coder Agent Configuration (OpenCode-Inspired)
+  //
+  // This file allows you to customize agents without code changes.
+  // Supported features:
+  // - Custom agents with specific tools and permissions
+  // - Agent-specific LLM models (different models for different tasks)
+  // - Wildcard permission patterns for bash commands
+  //
+  // Configuration is merged with native agents (explore, plan, execute, review, build)
+
+  "agents": {
+    // Explore agent using Qwen3-Next via OpenRouter
+    "explore": {
+      "model": "openrouter/qwen/qwen3-next-80b-a3b-instruct",
+      "temperature": 0.3,
+      "description": "Exploration agent using Qwen3-Next 80B"
+    },
+
+    // Plan agent using GLM-4.6 via OpenRouter
+    "plan": {
+      "model": "openrouter/z-ai/glm-4.7",
+      "temperature": 0.2,
+      "description": "Planning agent using GLM-4.6"
+    },
+
+    // Example: Custom Verilog specialist agent
+    "verilog-expert": {
+      "description": "Specialized agent for Verilog/SystemVerilog analysis and implementation",
+      "mode": "subagent",
+      "model": "openrouter/anthropic/claude-3.5-sonnet",
+      "temperature": 0.2,
+      "prompt": "You are a Verilog/SystemVerilog expert. Focus on RTL design, timing analysis, FSM implementation, and synthesis optimization. Always consider clock domain crossings and reset handling.",
+      "tools": {
+        "read_file": true,
+        "read_lines": true,
+        "grep_file": true,
+        "write_file": true,
+        "replace_in_file": true,
+        "run_command": true,
+        "analyze_verilog_module": true,
+        "find_signal_usage": true
+      },
+      "permission": {
+        "edit": "allow",
+        "bash": {
+          "iverilog*": "allow",
+          "vvp*": "allow",
+          "yosys*": "allow",
+          "make*": "allow",
+          "rm -rf*": "deny",
+          "*": "ask"
+        }
+      }
+    },
+
+    // Example: Secure code review agent (read-only)
+    "security-reviewer": {
+      "description": "Security-focused code review agent. Read-only access.",
+      "mode": "subagent",
+      "model": "openrouter/anthropic/claude-3-opus",
+      "temperature": 0.1,
+      "prompt": "You are a security expert. Analyze code for vulnerabilities: SQL injection, XSS, buffer overflows, authentication issues, insecure dependencies. Be thorough and precise.",
+      "tools": {
+        "read_file": true,
+        "read_lines": true,
+        "grep_file": true,
+        "find_files": true,
+        "rag_search": true,
+        "write_file": false,
+        "replace_in_file": false,
+        "run_command": false
+      },
+      "permission": {
+        "edit": "deny",
+        "bash": {
+          "grep*": "allow",
+          "rg*": "allow",
+          "cat*": "allow",
+          "*": "deny"
+        }
+      }
+    },
+
+    // Example: Fast summarizer using cheap model
+    "summarizer": {
+      "description": "Fast summarization using lightweight model",
+      "mode": "subagent",
+      "hidden": true,
+      "model": "openrouter/google/gemini-flash-1.5-8b",
+      "temperature": 0.3,
+      "tools": {
+        "read_file": true,
+        "read_lines": true
+      },
+      "permission": {
+        "edit": "deny",
+        "bash": {
+          "*": "deny"
+        }
+      }
+    }
+  },
+
+  // Global default permissions (applied to new agents without explicit permission)
+  "default_permission": {
+    "edit": "allow",
+    "bash": {
+      "git*": "allow",
+      "ls*": "allow",
+      "cat*": "allow",
+      "grep*": "allow",
+      "find*": "allow",
+      "make*": "ask",
+      "rm -rf*": "deny",
+      "*": "ask"
+    },
+    "webfetch": "allow",
+    "external_directory": "ask"
+  }
+}

@@ -325,7 +325,10 @@ class SubAgent(ABC):
             return
 
         # Try to load config for this agent type
-        agent_type = getattr(self, 'AGENT_TYPE', self.name.replace('_agent', ''))
+        # Prefer self.name ("explore", "plan") over AGENT_TYPE class attribute
+        # since AGENT_TYPE defaults to "base" in the base class
+        _class_type = self.__class__.__dict__.get('AGENT_TYPE')  # only class-level override
+        agent_type = _class_type or self.name.replace('_agent', '')
         config = get_agent_config(agent_type)
 
         if config:
@@ -394,8 +397,13 @@ class SubAgent(ABC):
         if self._agent_config and self._agent_config.model:
             def agent_aware_llm_call(messages):
                 try:
-                    from src.llm_client import call_llm_for_agent
-                    agent_type = getattr(self, 'AGENT_TYPE', self.name)
+                    # Try both import paths (src.llm_client and llm_client)
+                    try:
+                        from src.llm_client import call_llm_for_agent
+                    except ImportError:
+                        from llm_client import call_llm_for_agent
+                    _cls_type = self.__class__.__dict__.get('AGENT_TYPE')
+                    agent_type = _cls_type or self.name
                     return call_llm_for_agent(
                         messages,
                         agent_name=agent_type,
@@ -607,7 +615,7 @@ Output as JSON:
 """}
         ]
 
-        response = self.llm_call_func(messages)
+        response = self.get_llm_call_func()(messages)
         return self._parse_plan(response)
 
     def _parse_plan(self, response: str) -> ActionPlan:
@@ -804,9 +812,10 @@ Result: [your final answer]
         ]
 
         # 미니 ReAct 루프
+        _llm_call = self.get_llm_call_func()
         for i in range(self.max_iterations):
             debug_log(self.name, f"  [Iteration {i+1}/{self.max_iterations}] Calling LLM...")
-            response = self.llm_call_func(messages)
+            response = _llm_call(messages)
             messages.append({"role": "assistant", "content": response})
 
             # Hallucination detection: LLM이 "Observation:"을 자가 생성하는지 확인

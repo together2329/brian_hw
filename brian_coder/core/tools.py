@@ -1608,7 +1608,11 @@ def rag_search(query, categories="all", limit=5, depth=2, follow_references=Fals
                 results.append((result.score, chunk))
 
         if not results:
-            return f"No results found for '{query}' in categories: {categories}\n\nTip: Run rag_index() first to index files."
+            # Check if DB is empty vs just no matches for this query
+            if len(db.chunks) == 0:
+                return f"No results found for '{query}' in categories: {categories}\n\nTip: Run rag_index() first to index files."
+            else:
+                return f"No results found for '{query}' in categories: {categories}\n\nNote: {len(db.chunks)} chunks indexed. Try different search terms or check category filter."
 
         # Phase B: Follow cross-references if requested
         if follow_references and results:
@@ -1908,13 +1912,14 @@ class AgentResult(dict):
         return f"AgentResult({dict.__repr__(self)})"
 
 
-def spawn_explore(query):
+def spawn_explore(query, thoroughness=None):
     """
     Spawn an explore agent to search the codebase.
     Use this when you need to find files, understand structure, or gather information.
 
     Args:
         query: What to explore/find (e.g., "find all FIFO implementations", "understand AXI protocol usage")
+        thoroughness: Optional hint for exploration depth ("quick", "medium", "high") - informational only
 
     Returns:
         AgentResult dict with:
@@ -1962,6 +1967,7 @@ def spawn_explore(query):
             name="explore",
             llm_call_func=call_llm_raw,
             execute_tool_func=execute_tool,
+            max_iterations=5,  # limit iterations to reduce cost/latency
             shared_context=shared_ctx
         )
 
