@@ -143,7 +143,8 @@ def _check_type(value: Any, expected_type: Any) -> bool:
     if origin is list:
         if not isinstance(value, list):
             return False
-        if args := get_args(expected_type):
+        args = get_args(expected_type)
+        if args:
             item_type = args[0]
             return all(_check_type(item, item_type) for item in value)
         return True
@@ -152,7 +153,8 @@ def _check_type(value: Any, expected_type: Any) -> bool:
     if origin is dict:
         if not isinstance(value, dict):
             return False
-        if args := get_args(expected_type):
+        args = get_args(expected_type)
+        if args:
             key_type, val_type = args
             return all(
                 _check_type(k, key_type) and _check_type(v, val_type)
@@ -164,7 +166,8 @@ def _check_type(value: Any, expected_type: Any) -> bool:
     if origin is tuple:
         if not isinstance(value, tuple):
             return False
-        if args := get_args(expected_type):
+        args = get_args(expected_type)
+        if args:
             if len(args) == 2 and args[1] is Ellipsis:
                 # tuple[T, ...] - variable length
                 return all(_check_type(item, args[0]) for item in value)
@@ -195,12 +198,14 @@ def _format_type(param_type: Any) -> str:
         return " | ".join(arg_names)
 
     if origin is list:
-        if args := get_args(param_type):
+        args = get_args(param_type)
+        if args:
             return f"list[{_format_type(args[0])}]"
         return "list"
 
     if origin is dict:
-        if args := get_args(param_type):
+        args = get_args(param_type)
+        if args:
             return f"dict[{_format_type(args[0])}, {_format_type(args[1])}]"
         return "dict"
 
@@ -234,32 +239,38 @@ def _parse_constraints(docstring: str, param_name: str) -> dict:
 
     # Pattern: param_name (type, >= N)
     pattern_ge = r'>=\s*(\d+(?:\.\d+)?)'
-    if match := re.search(pattern_ge, param_line):
+    match = re.search(pattern_ge, param_line)
+    if match:
         constraints['ge'] = float(match.group(1))
 
     # Pattern: param_name (type, <= N)
     pattern_le = r'<=\s*(\d+(?:\.\d+)?)'
-    if match := re.search(pattern_le, param_line):
+    match = re.search(pattern_le, param_line)
+    if match:
         constraints['le'] = float(match.group(1))
 
     # Pattern: param_name (type, > N)
     pattern_gt = rf'{param_name}\s*\([^,]+,\s*>\s*(\d+(?:\.\d+)?)\)'
-    if match := re.search(pattern_gt, docstring):
+    match = re.search(pattern_gt, docstring)
+    if match:
         constraints['gt'] = float(match.group(1))
 
     # Pattern: param_name (type, < N)
     pattern_lt = rf'{param_name}\s*\([^,]+,\s*<\s*(\d+(?:\.\d+)?)\)'
-    if match := re.search(pattern_lt, docstring):
+    match = re.search(pattern_lt, docstring)
+    if match:
         constraints['lt'] = float(match.group(1))
 
     # Pattern: min_length=N
     pattern_minlen = rf'{param_name}[^:]*min_length\s*=\s*(\d+)'
-    if match := re.search(pattern_minlen, docstring, re.IGNORECASE):
+    match = re.search(pattern_minlen, docstring, re.IGNORECASE)
+    if match:
         constraints['min_length'] = int(match.group(1))
 
     # Pattern: max_length=N
     pattern_maxlen = rf'{param_name}[^:]*max_length\s*=\s*(\d+)'
-    if match := re.search(pattern_maxlen, docstring, re.IGNORECASE):
+    match = re.search(pattern_maxlen, docstring, re.IGNORECASE)
+    if match:
         constraints['max_length'] = int(match.group(1))
 
     return constraints

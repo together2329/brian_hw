@@ -773,6 +773,8 @@ Use the ReAct format:
 Thought: [your reasoning]
 Action: tool_name(args)
 
+CRITICAL: Do NOT use "tool_call" or other formats. Use exactly "Action: tool_name(args)".
+
 Or if done:
 Thought: [your reasoning]
 Result: [your final answer]

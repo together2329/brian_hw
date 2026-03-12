@@ -254,6 +254,23 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                         sys.stdout.write(f"\033[32m{content}\033[0m")
                                         sys.stdout.flush()
                                     yield content
+
+                                # Handle native tool_calls (models like Qwen, Mistral, etc.)
+                                tool_calls = delta.get("tool_calls", [])
+                                for tc in tool_calls:
+                                    func = tc.get("function", {})
+                                    tc_name = func.get("name", "")
+                                    tc_args_str = func.get("arguments", "")
+                                    if tc_name and tc_args_str:
+                                        try:
+                                            tc_args = json.loads(tc_args_str)
+                                            args_formatted = ", ".join(
+                                                f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                                            )
+                                            yield f"\nAction: {tc_name}({args_formatted})\n"
+                                        except (json.JSONDecodeError, AttributeError):
+                                            pass
+
                         except json.JSONDecodeError:
                             continue
 
@@ -588,6 +605,26 @@ def chat_completion_stream(messages, stop=None):
                                         sys.stdout.write(f"\033[32m{content}\033[0m")
                                         sys.stdout.flush()
                                     yield content
+
+                                # Handle native tool_calls (models like Qwen, Mistral, etc.)
+                                # Convert to Action: format for ReAct parser compatibility
+                                tool_calls = delta.get("tool_calls", [])
+                                for tc in tool_calls:
+                                    func = tc.get("function", {})
+                                    tc_name = func.get("name", "")
+                                    tc_args_str = func.get("arguments", "")
+                                    if tc_name and tc_args_str:
+                                        try:
+                                            tc_args = json.loads(tc_args_str)
+                                            args_formatted = ", ".join(
+                                                f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                                            )
+                                            action_text = f"\nAction: {tc_name}({args_formatted})\n"
+                                            yield action_text
+                                        except (json.JSONDecodeError, AttributeError):
+                                            # Partial JSON from streaming - accumulate
+                                            pass
+
                         except json.JSONDecodeError:
                             continue
 

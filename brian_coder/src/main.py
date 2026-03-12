@@ -256,8 +256,9 @@ def sanitize_action_text(text):
     
     # Remove markdown bold around "Action:" (common LLM behavior)
     # e.g., **Action:** spawn_plan(...) -> Action: spawn_plan(...)
-    text = re.sub(r'\*\*Action:\*\*', 'Action:', text)
-    text = re.sub(r'\*\*Action\*\*:', 'Action:', text)  # Alternate format
+    text = re.sub(r'\*\*(?:Action|tool_call):\*\*', 'Action:', text)
+    text = re.sub(r'\*\*(?:Action|tool_call)\*\*:', 'Action:', text)  # Alternate format
+    text = re.sub(r'tool_call:', 'Action:', text) # Direct fallback
     
     # Pattern: number followed by quote then closing paren/comma
     # e.g., =26") or =26", -> =26) or =26,
@@ -267,6 +268,52 @@ def sanitize_action_text(text):
     text = re.sub(r"=(\d+)'([,\)])", r'=\1\2', text)
     
     return text
+
+
+def _strip_native_tool_tokens(text):
+    """
+    Strip native tool call tokens emitted by some models (Qwen, Mistral, DeepSeek, etc.)
+    and optionally convert them to the ReAct Action: format.
+
+    Native tool call patterns:
+    - tool_call_begin / tool_call_end
+    - tool_calls_section_begin / tool_calls_section_end
+    - <|tool_call|> / <tool_call> / </tool_call>
+    - <|start_header_id|>tool_call<|end_header_id|>
+    - {"name": "func", "arguments": {...}}  (JSON tool call block)
+    """
+    import re
+
+    # Pattern 1: XML-style tool calls like <tool_call>{"name":"func","arguments":{...}}</tool_call>
+    def _convert_xml_tool_call(match):
+        try:
+            data = json.loads(match.group(1).strip())
+            name = data.get("name", "")
+            args = data.get("arguments", {})
+            if name and isinstance(args, dict):
+                args_str = ", ".join(f'{k}={json.dumps(v)}' for k, v in args.items())
+                return f"\nAction: {name}({args_str})\n"
+        except (json.JSONDecodeError, AttributeError):
+            pass
+        return ""
+
+    text = re.sub(r'<tool_call>\s*(\{.*?\})\s*</tool_call>', _convert_xml_tool_call, text, flags=re.DOTALL)
+
+    # Pattern 2: Strip bare tokens (stop sequence leaks)
+    native_tokens = [
+        'tool_call_begin', 'tool_call_end',
+        'tool_calls_section_begin', 'tool_calls_section_end',
+        '<|tool_call|>', '<|tool_calls|>',
+        '<|start_header_id|>tool_call<|end_header_id|>',
+        '<tool_call>', '</tool_call>',
+    ]
+    for token in native_tokens:
+        text = text.replace(token, '')
+
+    # Pattern 3: Strip generic special tokens <|...|> that aren't useful
+    text = re.sub(r'<\|(?:tool_call|tool_calls|functions)[^|]*\|>', '', text)
+
+    return text.strip()
 
 
 def _extract_annotation_ranges(text):
@@ -323,10 +370,10 @@ def parse_all_actions(text):
     actions = []
     action_positions = []  # Track text position of each action
     start_pos = 0
-    # Support "Action:", "**Action:**", etc. 
+    # Support "Action:", "**Action:**", "tool_call:", etc. 
     # Handle optional markdown formatting (bold **, italic _, code `) around tool name
     # e.g., Action: `read_file`(...) or **Action**: **read_file**(...)
-    pattern = r"(?:\*\*|__)?Action(?:\*\*|__)?::*\s*[`*_]*\s*(\w+)\s*[`*_]*\s*\("
+    pattern = r"(?:\*\*|__)?(?:Action|tool_call)(?:\*\*|__)?::*\s*[`*_]*\s*(\w+)\s*[`*_]*\s*\("
     
     if config.DEBUG_MODE:
         print(f"[DEBUG] parse_all_actions input length: {len(text)}")
@@ -3197,8 +3244,11 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
         collected_content = ""
         # Call LLM via urllib (collect without printing)
-        for content_chunk in chat_completion_stream(messages, stop=["Observation:", "<|call|>"]):
+        for content_chunk in chat_completion_stream(messages, stop=["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"]):
             collected_content += content_chunk
+
+        # Strip any leaked native tool call tokens from content
+        collected_content = _strip_native_tool_tokens(collected_content)
 
         # Apply colors to complete text and print
         colored_output = collected_content
@@ -4037,6 +4087,11 @@ def chat_loop():
                 on_conversation_end(messages)
             except Exception as e:
                 print(Color.warning(f"[Warning] Failed to save knowledge: {e}"))
+            break
+        except EOFError:
+            # stdin closed (e.g., from echo pipe) - exit gracefully
+            print(Color.info("\n[System] Input stream closed. Exiting..."))
+            save_conversation_history(messages)
             break
         except Exception as e:
             print(Color.error(f"\nAn error occurred: {e}"))

@@ -690,6 +690,8 @@ To use a tool, you must use the following format exactly:
 Thought: [Your reasoning about what to do next]
 Action: [ToolName]([Arguments])
 
+CRITICAL: NEVER use "tool_call" or any other block format. ALWAYS use "Action:".
+
 The user will then respond with:
 Observation: [Output of the tool]
 
