@@ -122,6 +122,10 @@ def run_agent_session(
     # Import LLM client
     from llm_client import chat_completion_stream, call_llm_raw
 
+    # Sub-agent context limit (기본 32K tokens, primary보다 훨씬 작음)
+    sub_agent_max_tokens = int(os.getenv("SUBAGENT_MAX_CONTEXT_TOKENS", "32000"))
+    compression_threshold = 0.75  # 75%에서 압축
+
     # Mini ReAct loop
     all_observations = []
     iteration = 0
@@ -130,6 +134,13 @@ def run_agent_session(
         while iteration < max_iterations:
             iteration += 1
             _log(f"--- Iteration {iteration}/{max_iterations} ---")
+
+            # Context status + auto-compression
+            current_tokens = _context_status(messages, sub_agent_max_tokens, agent_name, verbose)
+            if current_tokens > int(sub_agent_max_tokens * compression_threshold):
+                _log(f"Context {current_tokens}/{sub_agent_max_tokens} ({int(current_tokens/sub_agent_max_tokens*100)}%) — compressing...")
+                messages = _compress_agent_context(messages, agent_name, keep_recent=4, model=model)
+                _context_status(messages, sub_agent_max_tokens, agent_name, verbose)
 
             # LLM call
             collected_content = ""
@@ -403,6 +414,90 @@ def _extract_path_from_args(args_str: str) -> Optional[str]:
     # Match path="..." or first positional "..."
     match = re.search(r'(?:path\s*=\s*)?["\']([^"\']+)["\']', args_str)
     return match.group(1) if match else None
+
+
+# ============================================================
+# Sub-Agent Context Management
+# ============================================================
+
+def _estimate_tokens(messages: List[Dict]) -> int:
+    """messages의 대략적 토큰 수 추정 (1 token ≈ 4 chars)"""
+    total_chars = sum(len(str(m.get("content", ""))) for m in messages)
+    return total_chars // 4
+
+
+def _context_status(messages: List[Dict], max_tokens: int, agent_name: str, verbose: bool = False) -> int:
+    """Context 사용량 표시. 현재 토큰 수 반환."""
+    current = _estimate_tokens(messages)
+    pct = int(current / max_tokens * 100) if max_tokens > 0 else 0
+
+    if verbose:
+        bar_len = 10
+        filled = int(bar_len * pct / 100)
+        bar = '█' * filled + '░' * (bar_len - filled)
+        status = "OVER" if pct >= 100 else "HIGH" if pct >= 80 else "OK"
+        print(f"  [{agent_name}] [Context: {current:,}/{max_tokens:,} ({pct}%) {bar} {status}]")
+
+    return current
+
+
+def _compress_agent_context(
+    messages: List[Dict],
+    agent_name: str,
+    keep_recent: int = 4,
+    model: Optional[str] = None,
+) -> List[Dict]:
+    """
+    Sub-agent용 경량 context compression.
+    system + 요약 + 최근 N개 메시지만 유지.
+    """
+    try:
+        from llm_client import call_llm_raw
+    except ImportError:
+        # compression 불가 — 그냥 반환
+        return messages
+
+    # system 메시지 분리
+    system_msgs = [m for m in messages if m.get("role") == "system"]
+    regular_msgs = [m for m in messages if m.get("role") != "system"]
+
+    if len(regular_msgs) <= keep_recent:
+        return messages  # 너무 짧아서 압축 불필요
+
+    old_msgs = regular_msgs[:-keep_recent]
+    recent_msgs = regular_msgs[-keep_recent:]
+
+    # 오래된 메시지를 요약
+    old_text = "\n".join(
+        f"[{m.get('role')}] {str(m.get('content', ''))[:500]}"
+        for m in old_msgs
+    )
+    if len(old_text) > 10000:
+        old_text = old_text[:10000] + "\n[...truncated...]"
+
+    summary_prompt = (
+        f"Summarize this {agent_name} agent conversation history into key facts only. "
+        f"Preserve: file paths, function names, findings, errors. Max 500 words.\n\n"
+        f"{old_text}"
+    )
+
+    try:
+        summary = call_llm_raw(
+            messages=[{"role": "user", "content": summary_prompt}],
+            model=model,
+        )
+        if not summary or not isinstance(summary, str):
+            summary = old_text[:3000]
+    except Exception:
+        summary = old_text[:3000]
+
+    summary_msg = {
+        "role": "user",
+        "content": f"[Compressed context from earlier iterations]\n{summary}"
+    }
+
+    print(f"  [{agent_name}] Context compressed: {len(old_msgs)} messages → 1 summary")
+    return system_msgs + [summary_msg] + recent_msgs
 
 
 def _compress_output(
