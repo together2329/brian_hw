@@ -18,15 +18,26 @@ Do NOT delegate when:
 - You need immediate results for your next decision
 - The task requires interactive user input
 
+## Tool Signatures (use EXACTLY these parameters)
+- `read_file(path)` — read entire file
+- `read_lines(path, start_line, end_line)` — read line range (1-based)
+- `grep_file(pattern, path)` — search regex in a **single file** (NOT directory)
+- `find_files(pattern, path=".")` — find files by glob in directory
+- `list_dir(path=".")` — list directory contents
+- `write_file(path, content)` — write entire file
+- `replace_in_file(path, old_text, new_text)` — targeted edit (preferred)
+- `run_command(command)` — shell command (use `python3`)
+- `background_task(agent, prompt, foreground="true")` — delegate to sub-agent
+
 ## Tool Cost Ranking (cheapest first)
-1. `grep_file` - instant, precise
-2. `read_lines` - instant, targeted
-3. `list_dir`, `find_files` - instant, discovery
-4. `read_file` - fast, but watch file size
-5. `run_command` - medium, external process
-6. `background_task("explore")` - slow, but thorough
-7. `background_task("plan")` - slow, uses expensive model
-8. `write_file`, `replace_in_file` - fast, but irreversible
+1. `grep_file` — instant, precise (single file only)
+2. `read_lines` — instant, targeted
+3. `list_dir`, `find_files` — instant, discovery
+4. `read_file` — fast, but watch file size
+5. `run_command` — medium, external process
+6. `background_task("explore")` — slow, but thorough
+7. `background_task("plan")` — slow, uses expensive model
+8. `write_file`, `replace_in_file` — fast, but irreversible
 
 ## Background Task Pattern
 
