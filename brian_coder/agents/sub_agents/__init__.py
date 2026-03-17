@@ -1,51 +1,20 @@
 """
-Sub-Agents Module
+Sub-Agents Module (v2 - Deprecated Legacy Compatibility)
 
-Claude Code 스타일의 서브 에이전트 시스템
+Legacy sub_agents have been replaced by:
+- core/agent_runner.py - Lightweight ReAct loop runner
+- core/background.py - Background agent manager
+- agents/prompts/ - Agent-specific system prompts
+
+This module provides stub imports for backward compatibility.
 """
 
-from .base import (
-    AgentStatus,
-    ActionStep,
-    ActionPlan,
-    SubAgentResult,
-    SubAgent,
-    PipelineStep,
-    ExecutionPlan,
-    OrchestratorResult,
-    # Debug utilities
-    DEBUG_SUBAGENT,
-    debug_log,
-    debug_method
-)
+# Stub for backward compatibility
+class Orchestrator:
+    """Deprecated: Use core.background.BackgroundManager instead."""
+    def __init__(self, *args, **kwargs):
+        pass
+    def run(self, *args, **kwargs):
+        return None
 
-from .orchestrator import Orchestrator
-
-from .explore_agent import ExploreAgent
-from .plan_agent import PlanAgent
-from .execute_agent import ExecuteAgent
-from .code_review_agent import CodeReviewAgent
-
-__all__ = [
-    # Base classes
-    'AgentStatus',
-    'ActionStep',
-    'ActionPlan',
-    'SubAgentResult',
-    'SubAgent',
-    'PipelineStep',
-    'ExecutionPlan',
-    'OrchestratorResult',
-    # Debug utilities
-    'DEBUG_SUBAGENT',
-    'debug_log',
-    'debug_method',
-    # Orchestrator
-    'Orchestrator',
-    # Agents
-    'ExploreAgent',
-    'PlanAgent',
-    'ExecuteAgent',
-    'CodeReviewAgent',
-]
-
+__all__ = ['Orchestrator']

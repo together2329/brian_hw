@@ -213,6 +213,84 @@ class TodoTracker:
         completed = sum(1 for t in self.todos if t.status == "completed")
         return completed / len(self.todos)
 
+    def get_continuation_prompt(self) -> Optional[str]:
+        """
+        미완료 todo가 있으면 continuation 리마인더 프롬프트 반환.
+
+        Returns:
+            리마인더 문자열 또는 None (모두 완료 시)
+        """
+        if not self.todos or self.is_all_completed():
+            return None
+
+        current = self.get_current_todo()
+        completed_count = sum(1 for t in self.todos if t.status == "completed")
+        remaining = len(self.todos) - completed_count
+
+        lines = [
+            f"[Todo Reminder] {completed_count}/{len(self.todos)} completed, {remaining} remaining.",
+            self.format_progress(),
+        ]
+
+        if current:
+            lines.append(f"\nCurrent task: {current.content}")
+            lines.append("Continue working on this task.")
+        else:
+            # No current in_progress, find next pending
+            for i, todo in enumerate(self.todos):
+                if todo.status == "pending":
+                    lines.append(f"\nNext task: {todo.content}")
+                    lines.append("Start working on this task.")
+                    break
+
+        return "\n".join(lines)
+
+    def get_minimal_context(self, step_idx: int) -> str:
+        """
+        특정 step 실행에 필요한 최소 context 반환.
+
+        이전 step의 결과와 현재 step의 내용만 포함.
+
+        Args:
+            step_idx: Step index (0-based)
+
+        Returns:
+            최소 context 문자열
+        """
+        if not self.todos or step_idx >= len(self.todos):
+            return ""
+
+        lines = []
+
+        # Previous completed steps (brief summary)
+        completed_steps = [
+            f"  {i+1}. {t.content} [DONE]"
+            for i, t in enumerate(self.todos[:step_idx])
+            if t.status == "completed"
+        ]
+        if completed_steps:
+            lines.append("Completed steps:")
+            lines.extend(completed_steps)
+
+        # Current step
+        current = self.todos[step_idx]
+        lines.append(f"\nCurrent step ({step_idx + 1}/{len(self.todos)}):")
+        lines.append(f"  {current.content}")
+
+        # Remaining steps (brief)
+        remaining = [
+            f"  {i+1}. {t.content}"
+            for i, t in enumerate(self.todos[step_idx + 1:], start=step_idx + 1)
+            if t.status == "pending"
+        ]
+        if remaining:
+            lines.append(f"\nRemaining ({len(remaining)} steps):")
+            lines.extend(remaining[:3])  # Show max 3
+            if len(remaining) > 3:
+                lines.append(f"  ... and {len(remaining) - 3} more")
+
+        return "\n".join(lines)
+
     def to_dict(self) -> Dict:
         """
         직렬화 (저장용)
@@ -315,16 +393,27 @@ def parse_todo_write_from_text(text: str) -> Optional[List[Dict]]:
 
     # Pattern 2: Numbered list (1. 2. 3.)
     if not todos:
-        matches = re.findall(r'^\s*\d+\.\s*(.+)$', text, re.MULTILINE)
-        if len(matches) >= 3:  # At least 3 items (more substantial tasks)
-            for content in matches:
-                content = content.strip()
-                active_form = _generate_active_form(content)
-                todos.append({
-                    "content": content,
-                    "status": "pending",
-                    "activeForm": active_form
-                })
+        content_text = text
+        # Also skip lines that look like analysis, not tasks
+        # (e.g., "1. message_classifier.py - ..." or "1. Use background_task...")
+        matches = re.findall(r'^\s*\d+\.\s*(.+)$', content_text, re.MULTILINE)
+        if len(matches) >= 3:  # At least 3 items
+            # Heuristic: real todos are short action items, not descriptions
+            # Filter out lines that are too long (>80 chars) or look like analysis
+            task_matches = [
+                m.strip() for m in matches
+                if len(m.strip()) <= 80
+                and not re.match(r'^(The |I |We |This |According |Let me )', m.strip(), re.IGNORECASE)
+                and not re.match(r'^\*\*', m.strip())  # Skip markdown bold items
+            ]
+            if len(task_matches) >= 3:
+                for content in task_matches:
+                    active_form = _generate_active_form(content)
+                    todos.append({
+                        "content": content,
+                        "status": "pending",
+                        "activeForm": active_form
+                    })
 
     return todos if todos else None
 

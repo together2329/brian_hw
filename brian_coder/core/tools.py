@@ -1917,97 +1917,40 @@ def spawn_explore(query, thoroughness=None):
     Spawn an explore agent to search the codebase.
     Use this when you need to find files, understand structure, or gather information.
 
+    NOTE: This is a legacy wrapper. Prefer background_task(agent="explore", prompt=...) for async execution.
+
     Args:
-        query: What to explore/find (e.g., "find all FIFO implementations", "understand AXI protocol usage")
-        thoroughness: Optional hint for exploration depth ("quick", "medium", "high") - informational only
+        query: What to explore/find
+        thoroughness: Optional hint ("quick", "medium", "high")
 
     Returns:
-        AgentResult dict with:
-        - output: Human-readable exploration results
-        - files_examined: List of files explored
-        - summary: Brief summary (500 chars)
-        - tool_calls_count: Number of tools used
-        - execution_time_ms: Execution time
-
-        Automatically formats as string for LLM display.
+        AgentResult or string with exploration results.
     """
+    # v2: Use agent_runner directly (synchronous)
     try:
-        try:
-            # Tests may add `agents/` to sys.path (so `sub_agents` is importable).
-            from sub_agents.explore_agent import ExploreAgent
-        except ImportError:
-            # Runtime default: import via namespace package under `agents/`.
-            from agents.sub_agents.explore_agent import ExploreAgent
-        from llm_client import call_llm_raw
-
-        # Create a simple execute_tool wrapper
-        def execute_tool(tool_name, args):
-            if tool_name in AVAILABLE_TOOLS:
-                # Parse args if string
-                if isinstance(args, str):
-                    import re
-                    kwargs = {}
-                    for match in re.finditer(r'(\w+)\s*=\s*["\']([^"\']*)["\']', args):
-                        kwargs[match.group(1)] = match.group(2)
-                    for match in re.finditer(r'(\w+)\s*=\s*(\d+)', args):
-                        kwargs[match.group(1)] = int(match.group(2))
-                    return AVAILABLE_TOOLS[tool_name](**kwargs) if kwargs else AVAILABLE_TOOLS[tool_name](args)
-                return AVAILABLE_TOOLS[tool_name](**args) if isinstance(args, dict) else AVAILABLE_TOOLS[tool_name](args)
-            return f"Tool {tool_name} not found"
-
-        # Phase 3: Get SharedContext from main.py (thread-local)
-        shared_ctx = None
-        try:
-            from main import get_shared_context
-            shared_ctx = get_shared_context()
-        except ImportError:
-            pass  # SharedContext not available
-
-        agent = ExploreAgent(
-            name="explore",
-            llm_call_func=call_llm_raw,
-            execute_tool_func=execute_tool,
-            max_iterations=5,  # limit iterations to reduce cost/latency
-            shared_context=shared_ctx
+        from core.agent_runner import run_agent_session
+        result = run_agent_session(
+            agent_name="explore",
+            prompt=query,
+            max_iterations=5,
         )
-
-        result = agent.run(query, {"task": query})
-
-        if result.status.value == "completed":
-            # Return structured dict with auto-formatting
-            return AgentResult({
-                'header': '=== EXPLORATION RESULTS ===',
-                'output': result.output,
-                'footer': '===========================',
-                'metadata': {
-                    'files_examined': result.context_updates.get("files_examined", []),
-                    'summary': result.context_updates.get("exploration_summary", ""),
-                    'tool_calls_count': len(result.tool_calls),
-                    'execution_time_ms': result.execution_time_ms,
-                    'agent_type': 'explore'
-                },
-                # Direct access properties
-                'files_examined': result.context_updates.get("files_examined", []),
-                'summary': result.context_updates.get("exploration_summary", ""),
-                'tool_calls_count': len(result.tool_calls),
-                'execution_time_ms': result.execution_time_ms
-            })
-        else:
-            return AgentResult({
-                'error': f"Exploration failed: {result.errors}",
-                'files_examined': [],
-                'summary': "",
-                'tool_calls_count': 0,
-                'execution_time_ms': result.execution_time_ms
-            })
-
+        return AgentResult({
+            'header': '=== EXPLORATION RESULTS ===',
+            'output': result.output,
+            'footer': '===========================',
+            'metadata': {'agent_type': 'explore'},
+            'files_examined': result.files_examined,
+            'summary': result.output[:500],
+            'tool_calls_count': len(result.tool_calls),
+            'execution_time_ms': result.execution_time_ms,
+        })
     except Exception as e:
         return AgentResult({
             'error': f"Error spawning explore agent: {e}",
             'files_examined': [],
             'summary': "",
             'tool_calls_count': 0,
-            'execution_time_ms': 0
+            'execution_time_ms': 0,
         })
 
 def spawn_plan(task_description):
@@ -2015,127 +1958,58 @@ def spawn_plan(task_description):
     Spawn a planning agent to create an implementation plan.
     Use this for complex tasks that need architectural planning before implementation.
 
+    NOTE: This is a legacy wrapper. Prefer background_task(agent="plan", prompt=...) for async execution.
+
     Args:
-        task_description: What to plan (e.g., "design async FIFO with CDC", "implement AXI master")
+        task_description: What to plan
 
     Returns:
-        AgentResult dict with:
-        - output: Human-readable implementation plan
-        - planned_steps: List of implementation steps
-        - summary: Brief plan summary (500 chars)
-        - tool_calls_count: Number of tools used
-        - execution_time_ms: Execution time
-
-        Automatically formats as string for LLM display.
+        AgentResult or string with implementation plan.
     """
+    # v2: Use agent_runner directly (synchronous)
     try:
-        try:
-            # Tests may add `agents/` to sys.path (so `sub_agents` is importable).
-            from sub_agents.plan_agent import PlanAgent
-        except ImportError:
-            # Runtime default: import via namespace package under `agents/`.
-            from agents.sub_agents.plan_agent import PlanAgent
-        from llm_client import call_llm_raw
-
-        # Create a simple execute_tool wrapper (read-only usage expected)
-        def execute_tool(tool_name, args):
-            if tool_name in AVAILABLE_TOOLS:
-                if isinstance(args, str):
-                    import re
-                    kwargs = {}
-                    for match in re.finditer(r'(\\w+)\\s*=\\s*["\\\']([^"\\\']*)["\\\']', args):
-                        kwargs[match.group(1)] = match.group(2)
-                    for match in re.finditer(r'(\\w+)\\s*=\\s*(\\d+)', args):
-                        kwargs[match.group(1)] = int(match.group(2))
-                    return AVAILABLE_TOOLS[tool_name](**kwargs) if kwargs else AVAILABLE_TOOLS[tool_name](args)
-                return AVAILABLE_TOOLS[tool_name](**args) if isinstance(args, dict) else AVAILABLE_TOOLS[tool_name](args)
-            return f"Tool {tool_name} not found"
-
-        # Phase 3: Get SharedContext from main.py (thread-local)
-        shared_ctx = None
-        try:
-            from main import get_shared_context
-            shared_ctx = get_shared_context()
-        except ImportError:
-            pass  # SharedContext not available
-
-        agent = PlanAgent(
-            name="plan",
-            llm_call_func=call_llm_raw,
-            execute_tool_func=execute_tool,
-            shared_context=shared_ctx
+        from core.agent_runner import run_agent_session
+        result = run_agent_session(
+            agent_name="plan",
+            prompt=task_description,
+            max_iterations=10,
         )
-
-        result = agent.run(task_description, {"task": task_description})
-
-        if result.status.value == "completed":
-            # Return structured dict with auto-formatting
-            return AgentResult({
-                'header': '=== IMPLEMENTATION PLAN ===',
-                'output': result.output,
-                'footer': '===========================',
-                'metadata': {
-                    'planned_steps': result.context_updates.get("planned_steps", []),
-                    'summary': result.context_updates.get("plan_summary", ""),
-                    'tool_calls_count': len(result.tool_calls),
-                    'execution_time_ms': result.execution_time_ms,
-                    'agent_type': 'plan'
-                },
-                # Direct access properties
-                'planned_steps': result.context_updates.get("planned_steps", []),
-                'summary': result.context_updates.get("plan_summary", ""),
-                'tool_calls_count': len(result.tool_calls),
-                'execution_time_ms': result.execution_time_ms
-            })
-        else:
-            return AgentResult({
-                'error': f"Planning failed: {result.errors}",
-                'planned_steps': [],
-                'summary': "",
-                'tool_calls_count': 0,
-                'execution_time_ms': result.execution_time_ms
-            })
-
+        return AgentResult({
+            'header': '=== IMPLEMENTATION PLAN ===',
+            'output': result.output,
+            'footer': '===========================',
+            'metadata': {'agent_type': 'plan'},
+            'planned_steps': [],
+            'summary': result.output[:500],
+            'tool_calls_count': len(result.tool_calls),
+            'execution_time_ms': result.execution_time_ms,
+        })
     except Exception as e:
         return AgentResult({
             'error': f"Error spawning plan agent: {e}",
             'planned_steps': [],
             'summary': "",
             'tool_calls_count': 0,
-            'execution_time_ms': 0
+            'execution_time_ms': 0,
         })
 
 
-def todo_write(todos):
+def todo_write(todos=None, tasks=None):
     """
     Create or update task list to track multi-step task progress.
 
-    This tool helps organize complex tasks into trackable steps with
-    real-time progress visualization using ✅ ▶️ ⏸️ icons.
-
     Args:
-        todos (list): List of task dictionaries with:
-            - content (str): Imperative form ("Run tests", "Fix bug")
-            - activeForm (str): Present continuous ("Running tests", "Fixing bug")
-            - status (str): "pending", "in_progress", or "completed"
-
-    Returns:
-        str: Formatted progress display with task list
-
-    Rules:
-        - Exactly ONE task must be "in_progress" at any time
-        - Use imperative form for content, present continuous for activeForm
-        - Only use for tasks with 3+ steps
-        - Do NOT use for single, straightforward tasks
-        - Mark tasks completed IMMEDIATELY after finishing
+        todos (list): List of task dicts or strings.
+        tasks (list): Alias for todos (some agents use this name).
 
     Example:
         todo_write([
             {"content": "Analyze code", "activeForm": "Analyzing code", "status": "in_progress"},
-            {"content": "Write tests", "activeForm": "Writing tests", "status": "pending"},
-            {"content": "Run build", "activeForm": "Running build", "status": "pending"}
+            {"content": "Write tests", "activeForm": "Writing tests", "status": "pending"}
         ])
     """
+    # Accept either parameter name
+    todos = todos or tasks
     # Import here to avoid circular dependency
     from typing import List, Dict
 
@@ -2163,6 +2037,16 @@ def todo_write(todos):
     if not isinstance(todos, list):
         return f"Error: 'todos' must be a list, got {type(todos).__name__}"
 
+    # Auto-convert string items to dict format
+    from lib.todo_tracker import _generate_active_form
+    for i, todo in enumerate(todos):
+        if isinstance(todo, str):
+            todos[i] = {
+                "content": todo,
+                "activeForm": _generate_active_form(todo),
+                "status": "pending",
+            }
+
     # Validate each todo structure
     for i, todo in enumerate(todos):
         if not isinstance(todo, dict):
@@ -2171,8 +2055,9 @@ def todo_write(todos):
         if "content" not in todo:
             return f"Error: todos[{i}] missing required key 'content'"
 
+        # Auto-generate activeForm if missing
         if "activeForm" not in todo:
-            return f"Error: todos[{i}] missing required key 'activeForm'"
+            todo["activeForm"] = _generate_active_form(todo["content"])
 
         # Default status to pending if not provided
         if "status" not in todo:
@@ -2214,6 +2099,140 @@ def todo_write(todos):
         return f"Error formatting progress: {e}"
 
 
+# ============================================================
+# Background Agent Tools (v2 Architecture)
+# ============================================================
+
+def background_task(agent, prompt, context="", foreground="true"):
+    """
+    Launch an agent to handle a sub-task.
+
+    Runs in foreground (synchronous) by default. Set foreground="false" for background execution.
+
+    Args:
+        agent: Agent type - "explore" (read-only, fast), "plan" (read-only, thorough),
+               "execute" (full access), "review" (read-only)
+        prompt: Clear description of what the agent should do
+        context: Optional context from current conversation to pass to the agent
+        foreground: "true" (default) for synchronous execution, "false" for background
+
+    Returns:
+        Foreground: Direct result from the agent.
+        Background: task_id string. Use background_output(task_id=...) to get results.
+
+    Example:
+        Action: background_task(agent="explore", prompt="Find all Verilog modules in rtl/")
+        Action: background_task(agent="plan", prompt="Design FIFO controller", foreground="false")
+    """
+    try:
+        valid_agents = {"explore", "plan", "execute", "review", "task"}
+        if agent not in valid_agents:
+            return f"Error: Invalid agent type '{agent}'. Must be one of: {', '.join(valid_agents)}"
+
+        is_foreground = str(foreground).lower() in ("true", "1", "yes")
+
+        if is_foreground:
+            # Foreground: synchronous execution with verbose output
+            import sys
+            from core.agent_runner import run_agent_session
+            print(f"\n  ┌─ Foreground Agent: {agent}", flush=True)
+            print(f"  │  Prompt: {prompt[:100]}...", flush=True)
+            print(f"  │", flush=True)
+
+            result = run_agent_session(
+                agent_name=agent,
+                prompt=prompt,
+                parent_context=context,
+                verbose=True,
+            )
+
+            print(f"  │")
+            print(f"  └─ Done: {result.status} ({result.execution_time_ms}ms, {result.iterations} iterations)")
+            print()
+
+            return (
+                f"=== Foreground Agent Result: {agent} ===\n"
+                f"Status: {result.status} | {result.execution_time_ms}ms | {result.iterations} iterations\n"
+                f"Files examined: {result.files_examined}\n"
+                f"Files modified: {result.files_modified}\n\n"
+                f"{result.output}"
+            )
+        else:
+            # Background: async execution
+            from core.background import get_background_manager
+            manager = get_background_manager()
+
+            task_id = manager.launch(
+                agent=agent,
+                prompt=prompt,
+                parent_context=context,
+            )
+
+            return (
+                f"Background task launched: {task_id}\n"
+                f"Agent: {agent}\n"
+                f"Prompt: {prompt[:100]}...\n\n"
+                f"Use background_output(task_id=\"{task_id}\") to get results when ready."
+            )
+    except Exception as e:
+        import traceback
+        return f"Error in background_task: {e}\n{traceback.format_exc()}"
+
+
+def background_output(task_id):
+    """
+    Get the output of a background agent task.
+
+    If the task is still running, returns status info.
+    If completed, returns the compressed result.
+
+    Args:
+        task_id: The task ID returned by background_task (e.g., "bg_a1b2c3d4")
+
+    Returns:
+        Task result or status message.
+    """
+    try:
+        from core.background import get_background_manager
+        manager = get_background_manager()
+        return manager.get_output(task_id)
+    except Exception as e:
+        return f"Error getting background output: {e}"
+
+
+def background_cancel(task_id):
+    """
+    Cancel a running background agent task.
+
+    Args:
+        task_id: The task ID to cancel
+
+    Returns:
+        Cancellation status message.
+    """
+    try:
+        from core.background import get_background_manager
+        manager = get_background_manager()
+        return manager.cancel(task_id)
+    except Exception as e:
+        return f"Error cancelling background task: {e}"
+
+
+def background_list():
+    """
+    List all background agent tasks and their statuses.
+
+    Returns:
+        Formatted list of all tasks with status, elapsed time, and prompts.
+    """
+    try:
+        from core.background import get_background_manager
+        manager = get_background_manager()
+        return manager.list_tasks()
+    except Exception as e:
+        return f"Error listing background tasks: {e}"
+
+
 # Registry of available tools
 AVAILABLE_TOOLS = {
     "read_file": read_file,
@@ -2240,9 +2259,14 @@ AVAILABLE_TOOLS = {
     "rag_explore": rag_explore,  # Phase C: New exploration tool
     "rag_status": rag_status,
     "rag_clear": rag_clear,
-    # On-Demand Sub-Agent Tools
+    # On-Demand Sub-Agent Tools (legacy)
     "spawn_explore": spawn_explore,
     "spawn_plan": spawn_plan,
+    # Background Agent Tools (v2)
+    "background_task": background_task,
+    "background_output": background_output,
+    "background_cancel": background_cancel,
+    "background_list": background_list,
 }
 
 # Import and register Verilog analysis tools

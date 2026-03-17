@@ -324,12 +324,14 @@ class AgentRegistry:
             webfetch=PermissionLevel.ALLOW
         )
 
-        # Explore 에이전트
+        # Explore 에이전트 (저렴한 모델, read-only, 빠른 탐색)
         self._agents["explore"] = AgentConfig(
             name="explore",
             description="Fast agent for codebase exploration. Read-only, finds files and patterns.",
             mode="subagent",
             native=True,
+            model=AgentModelConfig(provider_id="openrouter", model_id="qwen/qwen3-next-80b-a3b-instruct"),
+            max_steps=15,
             allowed_tools={
                 "read_file", "read_lines", "grep_file", "list_dir",
                 "find_files", "rag_search", "rag_explore", "git_status", "git_diff"
@@ -337,12 +339,14 @@ class AgentRegistry:
             permission=plan_permission
         )
 
-        # Plan 에이전트
+        # Plan 에이전트 (고성능 추론 모델, read-only)
         self._agents["plan"] = AgentConfig(
             name="plan",
             description="Planning agent for complex task analysis. Creates execution plans.",
             mode="subagent",
             native=True,
+            model=AgentModelConfig(provider_id="openrouter", model_id="z-ai/glm-4.7"),
+            max_steps=20,
             allowed_tools={
                 "read_file", "read_lines", "grep_file", "list_dir",
                 "find_files", "rag_search", "create_plan", "get_plan"
@@ -350,12 +354,14 @@ class AgentRegistry:
             permission=plan_permission
         )
 
-        # Execute 에이전트
+        # Execute 에이전트 (빠른 non-reasoning 모델, 전체 접근)
         self._agents["execute"] = AgentConfig(
             name="execute",
             description="Execution agent for implementing plans. Full write access.",
             mode="subagent",
             native=True,
+            model=AgentModelConfig(provider_id="openrouter", model_id="qwen/qwen3-next-80b-a3b-instruct"),
+            max_steps=30,
             allowed_tools={
                 "read_file", "read_lines", "write_file", "replace_in_file",
                 "replace_lines", "run_command", "grep_file", "list_dir",
@@ -364,12 +370,14 @@ class AgentRegistry:
             permission=default_permission
         )
 
-        # Review 에이전트
+        # Review 에이전트 (저렴한 모델, read-only)
         self._agents["review"] = AgentConfig(
             name="review",
             description="Code review agent for quality checks and suggestions.",
             mode="subagent",
             native=True,
+            model=AgentModelConfig(provider_id="openrouter", model_id="qwen/qwen3-next-80b-a3b-instruct"),
+            max_steps=10,
             allowed_tools={
                 "read_file", "read_lines", "grep_file", "list_dir",
                 "find_files", "rag_search", "git_diff"
@@ -377,14 +385,42 @@ class AgentRegistry:
             permission=plan_permission
         )
 
-        # Build 에이전트 (메인 에이전트)
-        self._agents["build"] = AgentConfig(
-            name="build",
-            description="Main agent with full access for development tasks.",
+        # Task 에이전트 (빠른 non-reasoning 모델, context 분배 + 오케스트레이션)
+        self._agents["task"] = AgentConfig(
+            name="task",
+            description="Task orchestration agent. Breaks plans into steps and dispatches to sub-agents with minimal context.",
+            mode="subagent",
+            native=True,
+            model=AgentModelConfig(provider_id="openrouter", model_id="qwen/qwen3-next-80b-a3b-instruct"),
+            max_steps=30,
+            allowed_tools={
+                "read_file", "read_lines", "grep_file", "list_dir",
+                "find_files", "rag_search", "background_task", "background_output",
+                "todo_write", "todo_read"
+            },
+            permission=default_permission
+        )
+
+        # Primary 에이전트 (메인 에이전트, 모든 도구 + background_task)
+        self._agents["primary"] = AgentConfig(
+            name="primary",
+            description="Primary orchestrating agent with full access and delegation capabilities.",
             mode="primary",
             native=True,
             default=True,
+            model=AgentModelConfig(provider_id="openrouter", model_id="z-ai/glm-4.7"),
             tools={"*": True},  # 모든 도구 허용
+            permission=default_permission
+        )
+
+        # Build 에이전트 (레거시 호환, primary alias)
+        self._agents["build"] = AgentConfig(
+            name="build",
+            description="Main agent with full access for development tasks. (alias for primary)",
+            mode="primary",
+            native=True,
+            default=False,
+            tools={"*": True},
             permission=default_permission
         )
 

@@ -40,19 +40,29 @@ from core.graph_lite import GraphLite, Node, Edge
 from lib.procedural_memory import ProceduralMemory, Action, Trajectory
 from lib.message_classifier import MessageClassifier
 from lib.curator import KnowledgeCurator
+from core.hooks import (
+    HookRegistry, HookPoint, HookContext, create_default_hooks,
+    TOOL_OUTPUT_LIMITS
+)
+from core.background import get_background_manager
 
-# Deep Think (optional - only import if enabled)
-if config.ENABLE_DEEP_THINK and not config.ENABLE_SUB_AGENTS:
-    from lib.deep_think import DeepThinkEngine, DeepThinkResult, format_deep_think_output
-
-# Sub-Agent System (optional - replaces Deep Think when enabled)
-if config.ENABLE_SUB_AGENTS:
+# Deep Think (deprecated - replaced by plan agent in v2)
+if getattr(config, 'ENABLE_DEEP_THINK', False) and not getattr(config, 'ENABLE_SUB_AGENTS', False):
     try:
-        # Tests may add `agents/` to sys.path (so `sub_agents` is importable).
+        from lib.deep_think import DeepThinkEngine, DeepThinkResult, format_deep_think_output
+    except ImportError:
+        pass
+
+# Legacy Sub-Agent System (deprecated - replaced by background agent system in v2)
+orchestrator = None
+if getattr(config, 'ENABLE_SUB_AGENTS', False):
+    try:
         from sub_agents import Orchestrator
     except ImportError:
-        # Runtime default: import via namespace package under `agents/`.
-        from agents.sub_agents import Orchestrator
+        try:
+            from agents.sub_agents import Orchestrator
+        except ImportError:
+            Orchestrator = None
 
 from lib.iteration_control import IterationTracker, detect_completion_signal, show_iteration_warning
 
@@ -117,6 +127,23 @@ if config.ENABLE_GRAPH and config.ENABLE_CURATOR and graph_lite is not None:
     except Exception as e:
         print(f"\033[91m[System] ❌ Curator initialization failed: {e}\033[0m")
         curator = None
+
+# --- Global Hook System ---
+hook_registry = None
+if getattr(config, 'ENABLE_HOOKS', True):
+    try:
+        hook_registry = create_default_hooks(
+            max_context_chars=config.MAX_CONTEXT_CHARS,
+            compression_threshold=getattr(config, 'CONTEXT_COMPRESSION_THRESHOLD', 0.80),
+            enable_truncation=True,
+            enable_compression=True,
+            enable_pruning=True,
+            enable_continuation=config.ENABLE_TODO_TRACKING,
+            enable_skill_activation=getattr(config, 'ENABLE_SKILL_SYSTEM', False),
+        )
+    except Exception as e:
+        print(f"\033[91m[System] ❌ Hook system initialization failed: {e}\033[0m")
+        hook_registry = None
 
 
 # --- Global Sub-Agent Orchestrator ---
@@ -1717,12 +1744,33 @@ def execute_tool(tool_name, args_str):
             except Exception:
                 result = str(result)
 
+        # Hook: AFTER_TOOL_EXEC (tool output truncation)
+        if hook_registry:
+            hook_ctx = HookContext(
+                tool_name=tool_name,
+                tool_args=args_str,
+                tool_output=result,
+            )
+            hook_ctx = hook_registry.run(HookPoint.AFTER_TOOL_EXEC, hook_ctx)
+            result = hook_ctx.tool_output
+
         return result
 
     except Exception as e:
         import traceback
         error_detail = traceback.format_exc()
         _agent_metadata.last_result = None  # Clear metadata on error
+
+        # Hook: ON_ERROR
+        if hook_registry:
+            hook_ctx = HookContext(
+                tool_name=tool_name,
+                tool_args=args_str,
+                error=e,
+                error_traceback=error_detail,
+            )
+            hook_registry.run(HookPoint.ON_ERROR, hook_ctx)
+
         return f"Error parsing/executing arguments: {e}\n{error_detail}\nargs_str was: {args_str[:200]}"
 
 # --- 5. Context Management ---
@@ -2905,9 +2953,10 @@ def _execute_batch_parallel(batch_actions):
 
 def _maybe_inject_exploration_strategy(messages, task_description):
     """
-    복잡한 탐색 요청에 대해 초기 병렬 전략 주입
+    Agent delegation 또는 탐색 요청에 대해 전략 주입
 
-    탐색 키워드: analyze, find all, explore, subsystem, overview, structure
+    1. Agent delegation: "task agent 써서", "explore agent로" 등 → 해당 agent에 위임
+    2. Exploration: "analyze", "structure" 등 → 병렬 탐색 전략
 
     Returns:
         True if strategy was injected
@@ -2917,17 +2966,72 @@ def _maybe_inject_exploration_strategy(messages, task_description):
         return False
 
     user_query = messages[-1].get("content", "").lower()
-    exploration_kw = ["analyze", "find all", "explore", "subsystem", "overview", "structure", "understand"]
-
-    if not any(kw in user_query for kw in exploration_kw):
-        return False
 
     # 이미 주입되었는지 확인 (중복 방지)
     for msg in messages:
-        if msg.get("role") == "system" and "EXPLORATION STRATEGY" in msg.get("content", ""):
+        if msg.get("role") == "system" and ("DELEGATION STRATEGY" in msg.get("content", "") or "EXPLORATION STRATEGY" in msg.get("content", "")):
             return False
 
-    strategy = f"""=== MANDATORY EXPLORATION STRATEGY ===
+    # === Priority 1: 명시적 agent delegation ===
+    # "task agent 써서", "explore agent로", "plan agent를 사용" 등
+    agent_types = ["task", "explore", "plan", "execute", "review"]
+    detected_agent = None
+    for agent_type in agent_types:
+        patterns = [
+            f"{agent_type} agent",
+            f"{agent_type} 에이전트",
+            f"{agent_type}agent",
+        ]
+        if any(p in user_query for p in patterns):
+            detected_agent = agent_type
+            break
+
+    if detected_agent:
+        strategy = f"""=== DELEGATION STRATEGY ===
+
+The user wants to use the **{detected_agent}** agent. Delegate the entire task:
+
+**Execute {detected_agent} agent (foreground, synchronous):**
+Thought: Delegating to {detected_agent} agent.
+Action: background_task(agent="{detected_agent}", prompt="{task_description}", foreground="true")
+
+**Rules:**
+- foreground="true" runs the agent synchronously — result is returned directly
+- Do NOT call background_output() — result is already in the response
+- Do NOT do the work yourself — the {detected_agent} agent handles everything
+- After receiving the result, summarize it for the user
+==="""
+        messages.append({"role": "system", "content": strategy})
+        print(Color.info("[META] Agent delegation strategy injected"))
+        print(Color.info(f"[System] 🤖 Delegating to {detected_agent} agent...\n"))
+        return True
+
+    # === Priority 2: 탐색 키워드 기반 전략 ===
+    exploration_kw = ["analyze", "find all", "explore", "subsystem", "overview", "structure", "understand"]
+    if not any(kw in user_query for kw in exploration_kw):
+        return False
+
+    # 일반적인 delegation 키워드 (agent 타입 명시 없음)
+    delegation_kw = ["background_task", "background", "foreground", "agent를 사용", "agent로", "agent 써서"]
+    use_delegation = any(kw in user_query for kw in delegation_kw)
+
+    if use_delegation:
+        strategy = f"""=== DELEGATION STRATEGY ===
+
+For "{task_description}", delegate to an explore agent:
+
+**Execute agent (foreground, synchronous):**
+Thought: Delegating to explore agent for thorough analysis.
+Action: background_task(agent="explore", prompt="{task_description}", foreground="true")
+
+**Rules:**
+- foreground="true" runs the agent synchronously — result is returned directly
+- Do NOT call background_output() — result is already in the response
+- Do NOT do parallel exploration yourself — the agent handles everything
+- After receiving the result, summarize it for the user
+==="""
+    else:
+        strategy = f"""=== MANDATORY EXPLORATION STRATEGY ===
 
 ⚠️ CRITICAL: For "{task_description}", you MUST output ALL Phase 1 actions NOW.
 Do NOT output just one action. Output ALL THREE at once:
@@ -3014,6 +3118,15 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', all
         'exploration_summaries': [],  # Brief summaries from explore
         'plan_summaries': []       # Brief summaries from plan
     }
+
+    # ============================================================
+    # Priority 1: Explicit agent delegation (must run BEFORE Claude Flow)
+    # ============================================================
+    if allow_claude_flow and preface_enabled:
+        if _maybe_inject_exploration_strategy(messages, task_description):
+            print(Color.info("[System] Agent delegation strategy injected.\n"))
+            # Skip Claude Flow — delegation strategy handles the task
+            allow_claude_flow = False
 
     # ============================================================
     # Sub-Agent System (Claude Code Style) - Replaces Deep Think
@@ -3127,10 +3240,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             print(Color.info("[Deep Think] Continuing with standard approach..."))
             print()
 
-    # Inject exploration strategy for complex analysis tasks (Phase 1 optimization)
-    if allow_claude_flow and preface_enabled:
-        if _maybe_inject_exploration_strategy(messages, task_description):
-            print(Color.info("[System] 🧭 Exploration strategy injected. Expecting parallel actions...\n"))
+    # (delegation/exploration strategy injection moved above Claude Flow check)
 
     while True:
         # Check iteration limit with progressive warning
@@ -3226,13 +3336,36 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 if config.DEBUG_MODE:
                     print(Color.info(f"[CONTEXT] Injected accumulated context: {len(context_summary)} items"))
 
+        # Hook: BEFORE_LLM_CALL (context pruning, compression check, skill activation)
+        if hook_registry:
+            hook_ctx = HookContext(
+                messages=messages,
+                max_context_chars=config.MAX_CONTEXT_CHARS,
+                compression_threshold=getattr(config, 'CONTEXT_COMPRESSION_THRESHOLD', 0.80),
+                iteration=tracker.current,
+                metadata={"todo_tracker": todo_tracker} if todo_tracker else {},
+            )
+            hook_ctx = hook_registry.run(HookPoint.BEFORE_LLM_CALL, hook_ctx)
+            messages = hook_ctx.messages
+
+            # Handle compression flag from PreemptiveCompactor
+            if hook_ctx.metadata.get("compression_needed"):
+                if config.DEBUG_MODE:
+                    usage_pct = hook_ctx.metadata.get("context_usage_pct", 0)
+                    print(Color.warning(f"  [Hook] Context at {usage_pct:.1f}% - triggering compression"))
+                messages = compress_history(messages, force=True)
+
+            if hook_ctx.metadata.get("pruned_messages"):
+                pruned = hook_ctx.metadata["pruned_messages"]
+                if config.DEBUG_MODE:
+                    print(Color.info(f"  [Hook] Pruned {pruned} redundant messages"))
+
         # Show context usage before each iteration
         if config.DEBUG_MODE or tracker.current == 0:
             show_context_usage(messages)
 
         # Show flow stage: LLM Call
         if config.DEBUG_MODE:
-            import time
             llm_start_time = time.time()
             user_msgs = len([m for m in messages if m.get('role') == 'user'])
             asst_msgs = len([m for m in messages if m.get('role') == 'assistant'])
@@ -3244,7 +3377,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
         collected_content = ""
         # Call LLM via urllib (collect without printing)
-        for content_chunk in chat_completion_stream(messages, stop=["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"]):
+        for content_chunk in chat_completion_stream(messages, stop=["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"], caller_tag="primary"):
             collected_content += content_chunk
 
         # Strip any leaked native tool call tokens from content
@@ -3290,6 +3423,16 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
         messages.append(assistant_msg)
 
+        # Hook: AFTER_LLM_CALL (todo continuation check)
+        if hook_registry:
+            hook_ctx = HookContext(
+                messages=messages,
+                iteration=tracker.current,
+                metadata={"todo_tracker": todo_tracker} if todo_tracker else {},
+            )
+            hook_ctx = hook_registry.run(HookPoint.AFTER_LLM_CALL, hook_ctx)
+            messages = hook_ctx.messages
+
         # Check for Action first (needed for TodoWrite explicit call detection)
         actions = parse_all_actions(collected_content)
 
@@ -3312,9 +3455,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     print()
 
         # Check for explicit completion signal
-        if detect_completion_signal(collected_content):
-            print(Color.success("\n[System] ✅ Task completion detected. Ending ReAct loop.\n"))
-            break
+        # Skip if there are pending actions to execute (agent isn't done yet)
+        if not actions and detect_completion_signal(collected_content):
+                print(Color.success("\n[System] ✅ Task completion detected. Ending ReAct loop.\n"))
+                break
 
         # Check for hallucinated Observation
         if "Observation:" in collected_content and not actions:
@@ -3405,7 +3549,6 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                     # Show tool execution stage
                     if config.DEBUG_MODE:
-                        import time
                         tool_start_time = time.time()
                         print(Color.system(f"  ├─ FLOW: Execute → {tool_name}({args_str[:50]}...)"))
 
@@ -3967,6 +4110,10 @@ def chat_loop():
                         try:
                             from core.plan_mode import plan_mode_loop
                             plan_result = plan_mode_loop(task, context_messages=messages)
+                        except ImportError:
+                            # plan_mode removed in v2 - use plan agent instead
+                            print(Color.warning("\n⚠️  Legacy plan mode not available. Use background_task(agent='plan', prompt='...') instead.\n"))
+                            continue
                         except Exception as e:
                             print(Color.error(f"\n❌ Plan mode failed with exception: {e}\n"))
                             if config.FULL_PROMPT_DEBUG:
@@ -4094,7 +4241,9 @@ def chat_loop():
             save_conversation_history(messages)
             break
         except Exception as e:
+            import traceback
             print(Color.error(f"\nAn error occurred: {e}"))
+            traceback.print_exc()
             pass
 
     # Save history on normal exit

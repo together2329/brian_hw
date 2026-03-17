@@ -10,18 +10,46 @@
   // Configuration is merged with native agents (explore, plan, execute, review, build)
 
   "agents": {
-    // Explore agent using Qwen3-Next via OpenRouter
+    // Explore agent - 빠른 탐색, read-only
     "explore": {
       "model": "openrouter/qwen/qwen3-next-80b-a3b-instruct",
       "temperature": 0.3,
       "description": "Exploration agent using Qwen3-Next 80B"
     },
 
-    // Plan agent using GLM-4.6 via OpenRouter
+    // Plan agent - 추론 강한 모델, 계획 수립
     "plan": {
       "model": "openrouter/z-ai/glm-4.7",
       "temperature": 0.2,
-      "description": "Planning agent using GLM-4.6"
+      "description": "Planning agent using GLM-4.7"
+    },
+
+    // Execute agent - 코드 구현, 전체 쓰기 권한
+    "execute": {
+      "model": "openrouter/z-ai/glm-4.7",
+      "temperature": 0.3,
+      "description": "Execution agent using GLM-4.7"
+    },
+
+    // Review agent - 코드 리뷰, read-only
+    "review": {
+      "model": "openrouter/qwen/qwen3-next-80b-a3b-instruct",
+      "temperature": 0.1,
+      "description": "Code review agent using Qwen3-Next 80B"
+    },
+
+    // Task agent - context 분배 + 오케스트레이션, sub-agent 호출 가능
+    "task": {
+      "model": "openrouter/z-ai/glm-4.7",
+      "temperature": 0.2,
+      "description": "Task orchestration agent - dispatches steps to sub-agents with minimal context"
+    },
+
+    // Primary agent - 오케스트레이터, 모든 도구 + delegation
+    "primary": {
+      "model": "openrouter/z-ai/glm-4.7",
+      "temperature": 0.3,
+      "description": "Primary orchestrating agent using GLM-4.7"
     },
 
     // Example: Custom Verilog specialist agent

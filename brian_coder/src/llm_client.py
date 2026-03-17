@@ -204,7 +204,6 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
 
     for retry_count in range(max_retries):
         _reasoning_started = False
-        _content_started = False
 
         try:
             req = urllib.request.Request(
@@ -234,23 +233,18 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                             if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
                                 delta = chunk_json["choices"][0].get("delta", {})
 
+                                # Skip reasoning tokens (DeepSeek etc.) — debug display only
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
-                                if reasoning:
-                                    if config.DEBUG_MODE:
-                                        if not _reasoning_started:
-                                            sys.stdout.write(f"\n\033[36m[REASONING]\033[0m ")
-                                            _reasoning_started = True
-                                            _content_started = False
-                                        sys.stdout.write(f"\033[36m{reasoning}\033[0m")
-                                        sys.stdout.flush()
-                                    yield reasoning
+                                if reasoning and config.DEBUG_MODE:
+                                    if not _reasoning_started:
+                                        sys.stdout.write(f"\n\033[36m[reasoning]\033[0m ")
+                                        _reasoning_started = True
+                                    sys.stdout.write(f"\033[36m{reasoning}\033[0m")
+                                    sys.stdout.flush()
 
                                 content = delta.get("content", "")
                                 if content:
                                     if config.DEBUG_MODE:
-                                        if not _content_started:
-                                            sys.stdout.write(f"\n\n\033[32m[CONTENT]\033[0m ")
-                                            _content_started = True
                                         sys.stdout.write(f"\033[32m{content}\033[0m")
                                         sys.stdout.flush()
                                     yield content
@@ -410,19 +404,24 @@ def call_llm_for_agent(
     except Exception as e:
         return f"Error calling LLM: {e}"
 
-def chat_completion_stream(messages, stop=None):
+def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=False, caller_tag=None):
     """
     Sends a chat completion request to the LLM using urllib.
     Yields content chunks from the SSE stream.
     Supports Anthropic Prompt Caching when enabled.
     Updates global actual_token_cache with real token counts from API.
+
+    Args:
+        messages: List of message dicts
+        stop: Optional stop sequences
+        model: Optional model override (default: config.MODEL_NAME)
     """
     global last_input_tokens, last_output_tokens
     global last_cache_creation_tokens, last_cache_read_tokens
     global total_cache_created, total_cache_read
 
-    # Rate limiting: Configurable delay
-    if config.RATE_LIMIT_DELAY > 0:
+    # Rate limiting: Configurable delay (skip for sub-agents)
+    if config.RATE_LIMIT_DELAY > 0 and not skip_rate_limit:
         print(Color.info(f"[System] Waiting {config.RATE_LIMIT_DELAY}s for rate limit..."))
         time.sleep(config.RATE_LIMIT_DELAY)
 
@@ -433,9 +432,23 @@ def chat_completion_stream(messages, stop=None):
         processed_messages = apply_cache_breakpoints(processed_messages)
 
     url = f"{config.BASE_URL}/chat/completions"
+
+    # Determine API key for the request
+    api_key = config.API_KEY
+
+    # If model override uses "openrouter/..." format, route to OpenRouter
+    if model and "/" in model:
+        parts = model.split("/", 1)
+        provider = parts[0]
+        if provider == "openrouter":
+            url = "https://openrouter.ai/api/v1/chat/completions"
+            # Use OpenRouter API key if available
+            openrouter_key = os.environ.get("OPENROUTER_API_KEY", config.API_KEY)
+            api_key = openrouter_key
+
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {config.API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "User-Agent": "BrianCoder/1.0"
     }
 
@@ -445,8 +458,16 @@ def chat_completion_stream(messages, stop=None):
         if config.DEBUG_MODE:
             print(Color.info("[System] Prompt caching enabled - added anthropic-beta header"))
 
+    # Resolve model: explicit override > config default
+    resolved_model = model or config.MODEL_NAME
+
+    # If model override uses "provider/model" format, strip the provider prefix
+    # (URL routing is already handled above)
+    if resolved_model and resolved_model.startswith("openrouter/"):
+        resolved_model = resolved_model[len("openrouter/"):]
+
     data = {
-        "model": config.MODEL_NAME,
+        "model": resolved_model,
         "messages": processed_messages,
         "stream": True,
         "stream_options": {"include_usage": True}  # Request usage data in streaming (OpenAI)
@@ -457,9 +478,10 @@ def chat_completion_stream(messages, stop=None):
 
     # Debug: Log request details
     if config.DEBUG_MODE:
-        print(Color.info(f"\n[Request Debug]"))
+        tag = f" ({caller_tag})" if caller_tag else ""
+        print(Color.info(f"\n[Request Debug]{tag}"))
         print(Color.info(f"  URL: {url}"))
-        print(Color.info(f"  Model: {config.MODEL_NAME}"))
+        print(Color.info(f"  Model: {resolved_model}"))
         print(Color.info(f"  Messages count: {len(processed_messages)}"))
 
         # Estimate total tokens
@@ -548,7 +570,6 @@ def chat_completion_stream(messages, stop=None):
     for retry_count in range(max_retries):
         # Local state for label tracking (resets each retry)
         _reasoning_started = False
-        _content_started = False
 
         try:
             req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
@@ -579,29 +600,18 @@ def chat_completion_stream(messages, stop=None):
                             if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
                                 delta = chunk_json["choices"][0].get("delta", {})
                                 
-                                # Handle reasoning fields (DeepSeek models)
-                                # Can be: "reasoning", "reasoning_content", or "reasoning_details"
+                                # Skip reasoning tokens (DeepSeek etc.) — debug display only
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
-                                if reasoning:
-                                    if config.DEBUG_MODE:
-                                        # Print reasoning in cyan with label (thinking process)
-                                        if not _reasoning_started:
-                                            sys.stdout.write(f"\n\033[36m[REASONING]\033[0m ")
-                                            _reasoning_started = True
-                                            _content_started = False
-                                        sys.stdout.write(f"\033[36m{reasoning}\033[0m") 
-                                        sys.stdout.flush()
-                                    # Yield reasoning so it's captured (use both reasoning + content)
-                                    yield reasoning
-                                
+                                if reasoning and config.DEBUG_MODE:
+                                    if not _reasoning_started:
+                                        sys.stdout.write(f"\n\033[36m[reasoning]\033[0m ")
+                                        _reasoning_started = True
+                                    sys.stdout.write(f"\033[36m{reasoning}\033[0m")
+                                    sys.stdout.flush()
+
                                 content = delta.get("content", "")
                                 if content:
                                     if config.DEBUG_MODE:
-                                        # Print content label when first content arrives
-                                        if not _content_started:
-                                            sys.stdout.write(f"\n\n\033[32m[CONTENT]\033[0m ")
-                                            _content_started = True
-                                        # Also print content for streaming display
                                         sys.stdout.write(f"\033[32m{content}\033[0m")
                                         sys.stdout.flush()
                                     yield content
@@ -712,7 +722,8 @@ def chat_completion_stream(messages, stop=None):
             # Debug: Show request info that caused error
             if config.DEBUG_MODE:
                 yield f"\n{Color.info('[Debug Info]')}\n"
-                yield f"{Color.info(f'  Model: {config.MODEL_NAME}')}\n"
+                yield f"{Color.info(f'  Model: {resolved_model} (config default: {config.MODEL_NAME})')}\n"
+                yield f"{Color.info(f'  URL: {url}')}\n"
                 yield f"{Color.info(f'  Message count: {len(processed_messages)}')}\n"
                 total_chars = sum(len(str(m.get('content', ''))) for m in processed_messages)
                 yield f"{Color.info(f'  Estimated tokens: {total_chars // 4:,}')}\n"
@@ -776,7 +787,7 @@ def chat_completion_stream(messages, stop=None):
             yield f"{Color.info('If this persists, please check your network connection.')}\n"
             return
 
-def call_llm_raw(prompt, temperature=0.7):
+def call_llm_raw(prompt, temperature=0.7, model=None, messages=None):
     """
     Call LLM without streaming (for extraction tasks).
 
@@ -784,25 +795,38 @@ def call_llm_raw(prompt, temperature=0.7):
         prompt: Either a string prompt OR a list of message dicts
                 e.g., [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}]
         temperature: Sampling temperature (default: 0.7)
+        model: Optional model override (default: config.MODEL_NAME)
+        messages: Alternative to prompt - pass messages list directly
 
     Returns:
         Complete response text
     """
+    resolved_model = model or config.MODEL_NAME
     url = f"{config.BASE_URL}/chat/completions"
+    api_key = config.API_KEY
+
+    # Route to OpenRouter if model specifies it
+    if resolved_model and resolved_model.startswith("openrouter/"):
+        resolved_model = resolved_model[len("openrouter/"):]
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        api_key = os.environ.get("OPENROUTER_API_KEY", config.API_KEY)
+
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {config.API_KEY}"
+        "Authorization": f"Bearer {api_key}"
     }
 
     # Support both string prompt and messages list
-    if isinstance(prompt, list):
-        messages = prompt
+    if messages is not None:
+        msgs = messages
+    elif isinstance(prompt, list):
+        msgs = prompt
     else:
-        messages = [{"role": "user", "content": prompt}]
+        msgs = [{"role": "user", "content": prompt}]
 
     data = {
-        "model": config.MODEL_NAME,
-        "messages": messages,
+        "model": resolved_model,
+        "messages": msgs,
         "temperature": temperature,
         "stream": False
     }
