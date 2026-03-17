@@ -3276,9 +3276,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             if config.DEBUG_MODE:
                 print(Color.system(f"  ┌─ FLOW: Parse → Found {len(actions)} action(s)"))
 
-            # Warn if only single action (suboptimal)
-            if len(actions) == 1:
-                print(Color.warning("  ⚠️ Only 1 action detected. For 3-5x faster performance, output 3+ actions per response."))
+            # Single action warning removed — too noisy for normal usage
 
             from lib.display import format_tool_header, format_tool_result, _extract_tool_args_summary
 

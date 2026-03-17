@@ -443,7 +443,7 @@ def _extract_tool_args_summary(tool_name: str, args_str: str) -> str:
         prompt_match = re.search(r'prompt\s*=\s*["\']([^"\']{0,40})', args_str)
         parts = []
         if agent_match:
-            parts.append(f'agent={agent_match.group(1)}')
+            parts.append(f'→ {agent_match.group(1)}')
         if prompt_match:
             parts.append(f'"{prompt_match.group(1)}..."')
         return ' '.join(parts) if parts else args_str[:60]
