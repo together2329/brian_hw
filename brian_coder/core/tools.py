@@ -1912,87 +1912,6 @@ class AgentResult(dict):
         return f"AgentResult({dict.__repr__(self)})"
 
 
-def spawn_explore(query, thoroughness=None):
-    """
-    Spawn an explore agent to search the codebase.
-    Use this when you need to find files, understand structure, or gather information.
-
-    NOTE: This is a legacy wrapper. Prefer background_task(agent="explore", prompt=...) for async execution.
-
-    Args:
-        query: What to explore/find
-        thoroughness: Optional hint ("quick", "medium", "high")
-
-    Returns:
-        AgentResult or string with exploration results.
-    """
-    # v2: Use agent_runner directly (synchronous)
-    try:
-        from core.agent_runner import run_agent_session
-        result = run_agent_session(
-            agent_name="explore",
-            prompt=query,
-            max_iterations=5,
-        )
-        return AgentResult({
-            'header': '=== EXPLORATION RESULTS ===',
-            'output': result.output,
-            'footer': '===========================',
-            'metadata': {'agent_type': 'explore'},
-            'files_examined': result.files_examined,
-            'summary': result.output[:500],
-            'tool_calls_count': len(result.tool_calls),
-            'execution_time_ms': result.execution_time_ms,
-        })
-    except Exception as e:
-        return AgentResult({
-            'error': f"Error spawning explore agent: {e}",
-            'files_examined': [],
-            'summary': "",
-            'tool_calls_count': 0,
-            'execution_time_ms': 0,
-        })
-
-def spawn_plan(task_description):
-    """
-    Spawn a planning agent to create an implementation plan.
-    Use this for complex tasks that need architectural planning before implementation.
-
-    NOTE: This is a legacy wrapper. Prefer background_task(agent="plan", prompt=...) for async execution.
-
-    Args:
-        task_description: What to plan
-
-    Returns:
-        AgentResult or string with implementation plan.
-    """
-    # v2: Use agent_runner directly (synchronous)
-    try:
-        from core.agent_runner import run_agent_session
-        result = run_agent_session(
-            agent_name="plan",
-            prompt=task_description,
-            max_iterations=10,
-        )
-        return AgentResult({
-            'header': '=== IMPLEMENTATION PLAN ===',
-            'output': result.output,
-            'footer': '===========================',
-            'metadata': {'agent_type': 'plan'},
-            'planned_steps': [],
-            'summary': result.output[:500],
-            'tool_calls_count': len(result.tool_calls),
-            'execution_time_ms': result.execution_time_ms,
-        })
-    except Exception as e:
-        return AgentResult({
-            'error': f"Error spawning plan agent: {e}",
-            'planned_steps': [],
-            'summary': "",
-            'tool_calls_count': 0,
-            'execution_time_ms': 0,
-        })
-
 
 def todo_write(todos=None, tasks=None):
     """
@@ -2259,9 +2178,6 @@ AVAILABLE_TOOLS = {
     "rag_explore": rag_explore,  # Phase C: New exploration tool
     "rag_status": rag_status,
     "rag_clear": rag_clear,
-    # On-Demand Sub-Agent Tools (legacy)
-    "spawn_explore": spawn_explore,
-    "spawn_plan": spawn_plan,
     # Background Agent Tools (v2)
     "background_task": background_task,
     "background_output": background_output,

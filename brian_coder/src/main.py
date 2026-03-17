@@ -1008,136 +1008,9 @@ def _should_auto_plan(task_description: str) -> bool:
 # Phase 3: Claude Flow Complete Implementation - Helper Functions
 # ============================================================
 
-def _run_explore_agent(target: str) -> str:
-    """
-    Run a single Explore agent using spawn_explore tool
 
-    Args:
-        target: Exploration target description
+# Legacy spawn_explore / spawn_parallel removed — use background_task(agent="explore", ...) instead
 
-    Returns:
-        Exploration result summary
-    """
-    try:
-        # Use spawn_explore tool (fixed: removed invalid 'thoroughness' parameter)
-        result = tools.spawn_explore(query=target)
-
-        # Extract useful information from AgentResult
-        if isinstance(result, dict):
-            output = result.get('output', '')
-            files = result.get('files_examined', [])
-            summary = result.get('summary', '')
-
-            result_text = f"Explored: {target}\n\n"
-            if files:
-                result_text += f"Files examined: {', '.join(files)}\n\n"
-            if summary:
-                result_text += f"Summary: {summary}\n\n"
-            if output:
-                result_text += f"Details:\n{output}"
-
-            return result_text
-        else:
-            return f"Explored: {target}\nResult:\n{result}"
-    except Exception as e:
-        import traceback
-        error_detail = traceback.format_exc()
-        print(Color.error(f"[Plan Mode] Explore agent error:\n{error_detail}"))
-        return f"Explored: {target}\nError: {str(e)}\nDetails: {error_detail[:500]}"
-
-
-def _spawn_parallel_explore_agents(task_description: str) -> List[str]:
-    """
-    Spawn multiple Explore agents in parallel
-
-    Args:
-        task_description: Task to explore
-
-    Returns:
-        List of exploration results
-    """
-    explore_count = min(config.PLAN_MODE_EXPLORE_COUNT, 5)  # Max 5
-
-    print(Color.system(f"\n╔═══════════════════════════════════════════════════════════╗"))
-    print(Color.system(f"║  Phase 1: Spawning {explore_count}× Explore Agents (PARALLEL)       ║"))
-    print(Color.system(f"╚═══════════════════════════════════════════════════════════╝\n"))
-
-    # Define exploration targets
-    explore_targets = [
-        f"Explore existing implementations and patterns related to: {task_description}",
-        f"Explore relevant modules, dependencies, and architecture for: {task_description}",
-        f"Explore test patterns, examples, and edge cases for: {task_description}",
-    ][:explore_count]
-
-    # Create TodoTracker for real-time progress
-    explore_tracker = TodoTracker()
-    todos = [
-        {
-            "content": f"Agent {i+1}: {target[:60]}{'...' if len(target) > 60 else ''}",
-            "status": "pending",
-            "activeForm": f"Exploring (Agent {i+1})"
-        }
-        for i, target in enumerate(explore_targets)
-    ]
-    explore_tracker.add_todos(todos)
-
-    # Show initial progress
-    print(Color.system("\n=== EXPLORATION PROGRESS ==="))
-    print(Color.info(explore_tracker.format_progress()))
-    print(Color.system("============================\n"))
-
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-
-    results = []
-    completed_agents = set()
-
-    with ThreadPoolExecutor(max_workers=explore_count) as executor:
-        futures = {
-            executor.submit(_run_explore_agent, target): i
-            for i, target in enumerate(explore_targets)
-        }
-
-        for future in as_completed(futures):
-            try:
-                result = future.result(timeout=120)  # 2 min timeout
-                results.append(result)
-                agent_num = futures[future]
-                completed_agents.add(agent_num)
-
-                # Mark as completed and show progress
-                explore_tracker.mark_completed(agent_num)
-
-                print(Color.success(f"\n  ✅ Explore Agent {agent_num + 1}/{explore_count} completed"))
-
-                # Show what files were examined
-                if "Files examined:" in result:
-                    files_line = [line for line in result.split('\n') if 'Files examined:' in line]
-                    if files_line:
-                        print(Color.info(f"     {files_line[0].strip()}"))
-
-                # Show updated progress
-                print(Color.system("\n=== EXPLORATION PROGRESS ==="))
-                print(Color.info(explore_tracker.format_progress()))
-                print(Color.system("============================\n"))
-
-            except Exception as e:
-                agent_num = futures[future]
-                completed_agents.add(agent_num)
-                error_msg = f"Explore target {agent_num + 1} failed: {str(e)}"
-                results.append(error_msg)
-
-                # Mark as completed (even if failed)
-                explore_tracker.mark_completed(agent_num)
-
-                print(Color.error(f"\n  ❌ {error_msg}"))
-
-                # Show updated progress
-                print(Color.system("\n=== EXPLORATION PROGRESS ==="))
-                print(Color.info(explore_tracker.format_progress()))
-                print(Color.system("============================\n"))
-
-    print(Color.system(f"\n✓ Phase 1 complete: {len(results)} exploration results\n"))
-    return results
 
 
 def _spawn_plan_agent(task_description: str, explore_results: List[str]) -> List[str]:
@@ -2789,8 +2662,6 @@ _PARALLEL_ELIGIBLE_TOOLS = {
     "extract_module_hierarchy",
     "find_potential_issues",
     "analyze_timing_paths",
-    # Meta 도구
-    "spawn_explore",  # 여러 explore agent 병렬 실행 가능
 }
 
 
@@ -2998,79 +2869,8 @@ Action: background_task(agent="{detected_agent}", prompt="{task_description}", f
         print(Color.info(f"[System] 🤖 Delegating to {detected_agent} agent...\n"))
         return True
 
-    # === Priority 2: 탐색 키워드 기반 전략 ===
-    exploration_kw = ["analyze", "find all", "explore", "subsystem", "overview", "structure", "understand"]
-    if not any(kw in user_query for kw in exploration_kw):
-        return False
-
-    # 일반적인 delegation 키워드 (agent 타입 명시 없음)
-    delegation_kw = ["background_task", "background", "foreground", "agent를 사용", "agent로", "agent 써서"]
-    use_delegation = any(kw in user_query for kw in delegation_kw)
-
-    if use_delegation:
-        strategy = f"""=== DELEGATION STRATEGY ===
-
-For "{task_description}", delegate to an explore agent:
-
-**Execute agent (foreground, synchronous):**
-Thought: Delegating to explore agent for thorough analysis.
-Action: background_task(agent="explore", prompt="{task_description}", foreground="true")
-
-**Rules:**
-- foreground="true" runs the agent synchronously — result is returned directly
-- Do NOT call background_output() — result is already in the response
-- Do NOT do parallel exploration yourself — the agent handles everything
-- After receiving the result, summarize it for the user
-==="""
-    else:
-        strategy = f"""=== MANDATORY EXPLORATION STRATEGY ===
-
-⚠️ CRITICAL: For "{task_description}", you MUST output ALL Phase 1 actions NOW.
-Do NOT output just one action. Output ALL THREE at once:
-
-**YOUR NEXT RESPONSE MUST INCLUDE EXACTLY THESE 3 ACTIONS:**
-
-Thought: Exploring "{task_description}" - gathering info in parallel.
-Action: list_dir(path=".")
-Action: find_files(pattern="*.md", directory=".")
-Action: rag_search(query="{task_description}", categories="all", limit=5)
-
-[DO NOT WAIT - Output all 3 actions above in your NEXT response]
-
-**Phase 2 (after Phase 1 completes):**
-- For SMALL files (<500 lines): Read in parallel (3+ read_file actions)
-- For LARGE files (>500 lines): Use Grep-First Pattern:
-  * Action: grep_file(pattern="module|class|def", path="large_file.sv")
-  * Action: grep_file(pattern="<keyword>", path="large_file.sv")
-  * Action: grep_file(pattern="<another_keyword>", path="large_file.sv")
-  * [After grep] Action: read_lines(path="...", start_line=N, end_line=N+50)
-
-**Phase 3 (deep analysis):**
-- Analyze modules in parallel (3+ analyze_verilog_module actions)
-
-**CRITICAL - Grep-First for Large Files:**
-If you see truncation warning (e.g., "500 lines shown, 2000 hidden"):
-  ❌ WRONG: Action: read_file(path="file.sv")  # Already failed!
-  ✅ CORRECT:
-     Action: grep_file(pattern="target_module", path="file.sv")
-     Action: grep_file(pattern="signal_name", path="file.sv")
-     Action: grep_file(pattern="always.*@", path="file.sv")
-
-**Forbidden:**
-- Outputting only 1 action per iteration
-- Reading large files without grep first
-
-**Required:**
-- Minimum 3 actions per response for this task
-- Use Grep-First pattern for any file >500 lines
-==="""
-
-    messages.append({"role": "system", "content": strategy})
-
-    if config.DEBUG_MODE:
-        print(Color.system("[META] Exploration strategy injected"))
-
-    return True
+    # Priority 2 제거됨 — 명시적 agent delegation만 지원
+    return False
 
 
 def run_react_agent(messages, tracker, task_description, mode='interactive', allow_claude_flow=True, preface_enabled=True):
