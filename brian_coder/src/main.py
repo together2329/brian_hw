@@ -132,15 +132,7 @@ if config.ENABLE_GRAPH and config.ENABLE_CURATOR and graph_lite is not None:
 hook_registry = None
 if getattr(config, 'ENABLE_HOOKS', True):
     try:
-        hook_registry = create_default_hooks(
-            max_context_chars=config.MAX_CONTEXT_CHARS,
-            compression_threshold=getattr(config, 'CONTEXT_COMPRESSION_THRESHOLD', 0.80),
-            enable_truncation=True,
-            enable_compression=True,
-            enable_pruning=True,
-            enable_continuation=config.ENABLE_TODO_TRACKING,
-            enable_skill_activation=getattr(config, 'ENABLE_SKILL_SYSTEM', False),
-        )
+        hook_registry = create_default_hooks()
     except Exception as e:
         print(f"\033[91m[System] ❌ Hook system initialization failed: {e}\033[0m")
         hook_registry = None
