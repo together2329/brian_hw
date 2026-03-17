@@ -443,33 +443,18 @@ def skill_auto_activator(context: HookContext) -> HookContext:
 # ============================================================
 
 def create_default_hooks(
-    max_context_chars: int = 512000,
-    compression_threshold: float = 0.80,
-    enable_truncation: bool = True,
-    enable_compression: bool = True,
-    enable_pruning: bool = True,
-    enable_continuation: bool = True,
-    enable_skill_activation: bool = True,
     enable_session_start: bool = True,
 ) -> HookRegistry:
     registry = HookRegistry()
     
     if enable_session_start:
         registry.register(HookPoint.ON_SESSION_START, lambda ctx: ctx, priority=10)
-    
-    if enable_truncation:
-        registry.register(HookPoint.ON_CONTEXT_TRUNCATED, truncate_context, priority=5)
-    
-    if enable_compression:
-        registry.register(HookPoint.ON_CONTEXT_COMPRESSED, compress_context, priority=5)
-    
-    if enable_pruning:
-        registry.register(HookPoint.ON_CONTEXT_PRUNED, prune_context, priority=5)
-    
-    if enable_continuation:
-        registry.register(HookPoint.ON_CONTEXT_CONTINUED, extend_context, priority=5)
-    
-    if enable_skill_activation:
-        registry.register(HookPoint.ON_SKILL_ACTIVATED, activate_skills, priority=5)
-    
+
+    # TODO: Phase 2에서 구현 예정
+    # - ToolOutputTruncator (AFTER_TOOL_EXEC)
+    # - PreemptiveCompactor (BEFORE_LLM_CALL)
+    # - DynamicContextPruner (BEFORE_LLM_CALL)
+    # - TodoContinuationEnforcer (AFTER_LLM_CALL)
+    # - SkillAutoActivator (BEFORE_LLM_CALL)
+
     return registry
