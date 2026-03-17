@@ -291,6 +291,23 @@ class AgentRegistry:
 
     def _register_native_agents(self):
         """네이티브 에이전트 등록 (기본 제공)"""
+        # 환경변수에서 모델 오버라이드 (LOW_PERF = 저렴/빠른, HIGH_PERF = 고성능/추론)
+        low_perf_model = os.getenv("SUBAGENT_LOW_MODEL", "openrouter/qwen/qwen3-next-80b-a3b-instruct")
+        high_perf_model = os.getenv("SUBAGENT_HIGH_MODEL", "openrouter/z-ai/glm-4.7")
+        primary_model = os.getenv("PRIMARY_MODEL", "openrouter/z-ai/glm-4.7")
+
+        def _parse_model(model_str: str) -> AgentModelConfig:
+            """'provider/model' 문자열을 AgentModelConfig로 변환"""
+            parts = model_str.split('/', 1)
+            return AgentModelConfig(
+                provider_id=parts[0] if len(parts) > 1 else "",
+                model_id=parts[1] if len(parts) > 1 else parts[0]
+            )
+
+        low_model = _parse_model(low_perf_model)
+        high_model = _parse_model(high_perf_model)
+        prim_model = _parse_model(primary_model)
+
         # 기본 권한 설정
         default_permission = ToolPermissions(
             edit=PermissionLevel.ALLOW,
@@ -330,7 +347,7 @@ class AgentRegistry:
             description="Fast agent for codebase exploration. Read-only, finds files and patterns.",
             mode="subagent",
             native=True,
-            model=AgentModelConfig(provider_id="openrouter", model_id="qwen/qwen3-next-80b-a3b-instruct"),
+            model=low_model,
             max_steps=15,
             allowed_tools={
                 "read_file", "read_lines", "grep_file", "list_dir",
@@ -345,7 +362,7 @@ class AgentRegistry:
             description="Planning agent for complex task analysis. Creates execution plans.",
             mode="subagent",
             native=True,
-            model=AgentModelConfig(provider_id="openrouter", model_id="z-ai/glm-4.7"),
+            model=high_model,
             max_steps=20,
             allowed_tools={
                 "read_file", "read_lines", "grep_file", "list_dir",
@@ -360,7 +377,7 @@ class AgentRegistry:
             description="Execution agent for implementing plans. Full write access.",
             mode="subagent",
             native=True,
-            model=AgentModelConfig(provider_id="openrouter", model_id="qwen/qwen3-next-80b-a3b-instruct"),
+            model=low_model,
             max_steps=30,
             allowed_tools={
                 "read_file", "read_lines", "write_file", "replace_in_file",
@@ -376,7 +393,7 @@ class AgentRegistry:
             description="Code review agent for quality checks and suggestions.",
             mode="subagent",
             native=True,
-            model=AgentModelConfig(provider_id="openrouter", model_id="qwen/qwen3-next-80b-a3b-instruct"),
+            model=low_model,
             max_steps=10,
             allowed_tools={
                 "read_file", "read_lines", "grep_file", "list_dir",
@@ -391,7 +408,7 @@ class AgentRegistry:
             description="Task orchestration agent. Breaks plans into steps and dispatches to sub-agents with minimal context.",
             mode="subagent",
             native=True,
-            model=AgentModelConfig(provider_id="openrouter", model_id="qwen/qwen3-next-80b-a3b-instruct"),
+            model=low_model,
             max_steps=30,
             allowed_tools={
                 "read_file", "read_lines", "grep_file", "list_dir",
@@ -408,7 +425,7 @@ class AgentRegistry:
             mode="primary",
             native=True,
             default=True,
-            model=AgentModelConfig(provider_id="openrouter", model_id="z-ai/glm-4.7"),
+            model=prim_model,
             tools={"*": True},  # 모든 도구 허용
             permission=default_permission
         )
