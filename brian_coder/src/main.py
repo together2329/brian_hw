@@ -3176,17 +3176,18 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         # Strip any leaked native tool call tokens from content
         collected_content = _strip_native_tool_tokens(collected_content)
 
-        # Apply colors to complete text and print
-        colored_output = collected_content
-        colored_output = colored_output.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
-        colored_output = colored_output.replace("Action:", Color.YELLOW + "Action:" + Color.RESET)
-
-        # In DEBUG_MODE, content is already streamed with labels, so skip duplicate print
+        # Display only Thought portion (Action lines are shown as tool headers)
         if not config.DEBUG_MODE:
-            # Apply highlighting to Action and Thought if not already applied
-            colored_output = colored_output.replace("Action:", Color.YELLOW + "Action:" + Color.RESET)
-            colored_output = colored_output.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
-            print(colored_output)
+            # Extract only Thought text, strip Action lines (already shown by tool UI)
+            display_lines = []
+            for line in collected_content.split('\n'):
+                if line.strip().startswith('Action:'):
+                    continue  # Skip — tool header will show this
+                display_lines.append(line)
+            display_text = '\n'.join(display_lines).strip()
+            if display_text:
+                display_text = display_text.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
+                print(display_text)
         print()
         
         # Show flow stage: Response received
@@ -3474,9 +3475,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         print(Color.success("🎉 All todos completed!"))
                     print()
 
-            # Check for stall condition
-            if tracker.is_stalled():
-                print(Color.warning(f"  [System] ⚠️  Detected {tracker.consecutive_reads} consecutive read operations. Agent may be stalled."))
+            # Stall tracking (silent — logged but not shown to agent)
         else:
             # No action = natural completion
             break

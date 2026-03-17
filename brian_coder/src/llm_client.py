@@ -233,14 +233,18 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                             if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
                                 delta = chunk_json["choices"][0].get("delta", {})
 
-                                # Skip reasoning tokens (DeepSeek etc.) — debug display only
+                                # Reasoning tokens (DeepSeek, GLM etc.)
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
-                                if reasoning and config.DEBUG_MODE:
-                                    if not _reasoning_started:
-                                        sys.stdout.write(f"\n\033[36m[reasoning]\033[0m ")
-                                        _reasoning_started = True
-                                    sys.stdout.write(f"\033[36m{reasoning}\033[0m")
-                                    sys.stdout.flush()
+                                if reasoning:
+                                    if config.DEBUG_MODE:
+                                        if not _reasoning_started:
+                                            sys.stdout.write(f"\n\033[36m[reasoning]\033[0m ")
+                                            _reasoning_started = True
+                                        sys.stdout.write(f"\033[36m{reasoning}\033[0m")
+                                        sys.stdout.flush()
+                                    # Primary agent: yield reasoning as content (preserves Thought: text)
+                                    if caller_tag == "primary":
+                                        yield reasoning
 
                                 content = delta.get("content", "")
                                 if content:
@@ -600,14 +604,18 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                             if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
                                 delta = chunk_json["choices"][0].get("delta", {})
                                 
-                                # Skip reasoning tokens (DeepSeek etc.) — debug display only
+                                # Reasoning tokens (DeepSeek, GLM etc.)
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
-                                if reasoning and config.DEBUG_MODE:
-                                    if not _reasoning_started:
-                                        sys.stdout.write(f"\n\033[36m[reasoning]\033[0m ")
-                                        _reasoning_started = True
-                                    sys.stdout.write(f"\033[36m{reasoning}\033[0m")
-                                    sys.stdout.flush()
+                                if reasoning:
+                                    if config.DEBUG_MODE:
+                                        if not _reasoning_started:
+                                            sys.stdout.write(f"\n\033[36m[reasoning]\033[0m ")
+                                            _reasoning_started = True
+                                        sys.stdout.write(f"\033[36m{reasoning}\033[0m")
+                                        sys.stdout.flush()
+                                    # Primary agent: yield reasoning as content (preserves Thought: text)
+                                    if caller_tag == "primary":
+                                        yield reasoning
 
                                 content = delta.get("content", "")
                                 if content:
