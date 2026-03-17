@@ -89,11 +89,17 @@ def run_agent_session(
     # Resolve model
     model = model_override or _get_agent_model(agent_name)
 
+    from lib.display import (
+        format_agent_banner, format_agent_done, format_tool_header,
+        format_tool_result, format_context_bar, _extract_tool_args_summary, Color
+    )
+
     def _log(msg):
         if verbose:
-            print(f"  [{agent_name}] {msg}")
+            print(f"  {Color.DIM}[{agent_name}]{Color.RESET} {msg}")
 
-    _log(f"Starting session: model={model}, tools={len(allowed_tools)} allowed, max_iter={max_iterations}")
+    if verbose:
+        print(format_agent_banner(agent_name, model, f"tools={len(allowed_tools)}, max_iter={max_iterations}"))
 
     # Build messages
     messages = [
@@ -175,12 +181,17 @@ def run_agent_session(
 
             # Show LLM response in verbose
             if verbose:
-                # Show thought + actions summary
                 lines = collected_content.strip().split('\n')
-                for line in lines[:15]:  # max 15 lines
-                    print(f"  [{agent_name}] > {line}")
+                for line in lines[:15]:
+                    # Color Thought/Action keywords
+                    if line.strip().startswith('Thought:'):
+                        print(f"  {Color.DIM}{Color.CYAN}┃{Color.RESET}  {line}")
+                    elif line.strip().startswith('Action:'):
+                        print(f"  {Color.YELLOW}▸{Color.RESET}  {line}")
+                    else:
+                        print(f"  {Color.DIM}┃{Color.RESET}  {line}")
                 if len(lines) > 15:
-                    print(f"  [{agent_name}] > ... ({len(lines) - 15} more lines)")
+                    print(f"  {Color.DIM}┃  ... ({len(lines) - 15} more lines){Color.RESET}")
 
             # Check for completion
             from lib.iteration_control import detect_completion_signal
@@ -211,7 +222,9 @@ def run_agent_session(
                         continue
 
                 # Execute tool
-                _log(f"  🔧 {tool_name}({args_str[:80]}{'...' if len(args_str) > 80 else ''})")
+                if verbose:
+                    summary = _extract_tool_args_summary(tool_name, args_str)
+                    print(format_tool_header(tool_name, summary, idx + 1, len(actions)))
                 try:
                     func = tools_module.AVAILABLE_TOOLS.get(tool_name)
                     if not func:
@@ -246,7 +259,10 @@ def run_agent_session(
                 if len(observation) > 20000:
                     observation = observation[:20000] + f"\n[Truncated: {len(observation)} chars total]"
 
-                _log(f"  ✓ {tool_name}: {len(observation)} chars")
+                if verbose:
+                    print(format_tool_result(observation, max_lines=3, max_chars=200))
+                else:
+                    _log(f"  ✓ {tool_name}: {len(observation)} chars")
                 combined_results.append(f"[{tool_name}] {observation}")
 
             # Add observation
@@ -289,7 +305,15 @@ def run_agent_session(
         output = output[:max_result_chars] + "\n[Result truncated]"
 
     elapsed_ms = int((time.time() - start_time) * 1000)
-    _log(f"Done: {iteration} iterations, {elapsed_ms}ms, {len(tool_calls)} tool calls, output={len(output)} chars")
+    if verbose:
+        print(format_agent_done(
+            agent_name, model,
+            elapsed_sec=elapsed_ms / 1000,
+            iterations=iteration,
+            tool_count=len(tool_calls),
+        ))
+    else:
+        _log(f"Done: {iteration} iterations, {elapsed_ms}ms, {len(tool_calls)} tool calls")
 
     return AgentResult(
         output=output,
@@ -429,14 +453,11 @@ def _estimate_tokens(messages: List[Dict]) -> int:
 def _context_status(messages: List[Dict], max_tokens: int, agent_name: str, verbose: bool = False) -> int:
     """Context 사용량 표시. 현재 토큰 수 반환."""
     current = _estimate_tokens(messages)
-    pct = int(current / max_tokens * 100) if max_tokens > 0 else 0
 
     if verbose:
-        bar_len = 10
-        filled = int(bar_len * pct / 100)
-        bar = '█' * filled + '░' * (bar_len - filled)
-        status = "OVER" if pct >= 100 else "HIGH" if pct >= 80 else "OK"
-        print(f"  [{agent_name}] [Context: {current:,}/{max_tokens:,} ({pct}%) {bar} {status}]")
+        from lib.display import format_context_bar
+        bar = format_context_bar(current, max_tokens, label=agent_name)
+        print(f"  {bar}")
 
     return current
 

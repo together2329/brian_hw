@@ -2054,9 +2054,6 @@ def background_task(agent, prompt, context="", foreground="true"):
             # Foreground: synchronous execution with verbose output
             import sys
             from core.agent_runner import run_agent_session
-            print(f"\n  ┌─ Foreground Agent: {agent}", flush=True)
-            print(f"  │  Prompt: {prompt[:100]}...", flush=True)
-            print(f"  │", flush=True)
 
             result = run_agent_session(
                 agent_name=agent,
@@ -2064,10 +2061,6 @@ def background_task(agent, prompt, context="", foreground="true"):
                 parent_context=context,
                 verbose=True,
             )
-
-            print(f"  │")
-            print(f"  └─ Done: {result.status} ({result.execution_time_ms}ms, {result.iterations} iterations)")
-            print()
 
             return (
                 f"=== Foreground Agent Result: {agent} ===\n"

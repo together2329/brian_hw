@@ -3165,7 +3165,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             print(Color.system(f"[FLOW] Stage 1: LLM Call"))
             print(Color.system(f"[FLOW]   Messages: user:{user_msgs} assistant:{asst_msgs} system:{sys_msgs} total:{len(messages)}"))
             
-        print(Color.agent(f"Agent (Iteration {tracker.current+1}/{tracker.max_iterations}): "), end="", flush=True)
+        from lib.display import format_iteration_header
+        print(format_iteration_header(tracker.current + 1, tracker.max_iterations), flush=True)
 
         collected_content = ""
         # Call LLM via urllib (collect without printing)
@@ -3279,23 +3280,21 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             if len(actions) == 1:
                 print(Color.warning("  ⚠️ Only 1 action detected. For 3-5x faster performance, output 3+ actions per response."))
 
+            from lib.display import format_tool_header, format_tool_result, _extract_tool_args_summary
+
             if len(actions) > 1 and config.ENABLE_REACT_PARALLEL:
-                print(Color.info(f"  ⚡ Executing {len(actions)} actions (parallel mode)"))
+                print(Color.DIM + f"  ⚡ {len(actions)} actions (parallel)" + Color.RESET)
                 action_results = execute_actions_parallel(actions, tracker)
 
                 for idx, tool_name, args_str, observation in action_results:
-                    # Visual separator for multi-action (except first)
-                    if idx > 0:
-                        print(Color.system(f"  {'-'*40}"))
+                    # Tool header with icon
+                    summary = _extract_tool_args_summary(tool_name, args_str)
+                    print(format_tool_header(tool_name, summary, idx + 1, len(actions)))
 
-                    print(Color.tool(f"  🔧 Tool {idx+1}/{len(actions)}: {tool_name}"))
-
-                    # Error detection: check if observation contains error indicators
+                    # Error detection
                     obs_lower = observation.lower()
                     is_error = any(indicator in obs_lower for indicator in
                                   ['error:', 'exception:', 'traceback', 'syntax error', 'compilation failed'])
-
-                    # Special case: ignore "error" in file content reads
                     if tool_name in ['read_file', 'read_lines', 'grep_file', 'get_plan'] and "error" in obs_lower:
                         if not observation.strip().lower().startswith("error:"):
                             is_error = False
@@ -3305,90 +3304,45 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         action_result = "error" if is_error else "success"
                         action_obj = Action(
                             tool=tool_name,
-                            args=args_str[:100],  # Truncate args
+                            args=args_str[:100],
                             result=action_result,
-                            observation=observation[:200]  # Truncate observation
+                            observation=observation[:200]
                         )
                         actions_taken.append(action_obj)
 
-                    # Smart preview based on tool type
-                    if tool_name in ['read_file', 'read_lines']:
-                        lines = observation.split('\n')[:config.TOOL_RESULT_PREVIEW_LINES]
-                        obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
-                    elif tool_name in ['replace_in_file', 'replace_lines']:
-                        # Show full diff snippet for file edits (like Claude Code)
-                        obs_preview = observation
-                    elif len(observation) > config.TOOL_RESULT_PREVIEW_CHARS:
-                        obs_preview = observation[:config.TOOL_RESULT_PREVIEW_CHARS] + f"... ({len(observation)} chars total)"
+                    # Tool result with tree structure
+                    if tool_name in ['replace_in_file', 'replace_lines']:
+                        print(format_tool_result(observation, max_lines=15, max_chars=2000))
                     else:
-                        obs_preview = observation
+                        print(format_tool_result(observation))
 
-                    print(Color.info(f"  ✓ Result: {obs_preview}\n"))
-
-                    # Format for combined output
                     combined_results.append(f"--- [Action {idx+1}] {tool_name} ---\n{observation}")
             else:
                 for i, action_tuple in enumerate(actions):
-                    # Unpack action tuple (tool, args, hint)
                     if len(action_tuple) == 3:
                         tool_name, args_str, hint = action_tuple
                     else:
                         tool_name, args_str = action_tuple
                         hint = None
-                    # Visual separator for multi-action (except first)
-                    if i > 0:
-                        print(Color.system(f"  {'-'*40}"))
 
-                    # Show tool execution stage
                     if config.DEBUG_MODE:
                         tool_start_time = time.time()
-                        print(Color.system(f"  ├─ FLOW: Execute → {tool_name}({args_str[:50]}...)"))
 
-                    print(Color.tool(f"  🔧 Tool {i+1}/{len(actions)}: {tool_name}"))
+                    # Tool header with icon
+                    summary = _extract_tool_args_summary(tool_name, args_str)
+                    print(format_tool_header(tool_name, summary, i + 1, len(actions)))
 
-                    # Record tool usage for progress tracking
                     tracker.record_tool(tool_name)
-
-                    # Execute
                     observation = execute_tool(tool_name, args_str)
 
-                    # Phase 2: Update accumulated_context from Agent results
-                    if hasattr(_agent_metadata, 'last_result') and _agent_metadata.last_result:
-                        metadata = _agent_metadata.last_result
-                        agent_type = metadata.get('agent_type', '')
-
-                        if agent_type == 'explore':
-                            # Update from spawn_explore
-                            accumulated_context['explored_files'].extend(metadata.get('files_examined', []))
-                            if metadata.get('summary'):
-                                accumulated_context['exploration_summaries'].append(metadata['summary'])
-
-                            if config.DEBUG_MODE:
-                                print(Color.system(f"  ├─ CONTEXT: +{len(metadata.get('files_examined', []))} files examined"))
-
-                        elif agent_type == 'plan':
-                            # Update from spawn_plan
-                            accumulated_context['planned_steps'] = metadata.get('planned_steps', [])
-                            if metadata.get('summary'):
-                                accumulated_context['plan_summaries'].append(metadata['summary'])
-
-                            if config.DEBUG_MODE:
-                                print(Color.system(f"  ├─ CONTEXT: +{len(metadata.get('planned_steps', []))} planned steps"))
-
-                        # Store in artifacts
-                        accumulated_context['agent_artifacts'][tool_name] = metadata
-
-                    # Show tool execution timing
                     if config.DEBUG_MODE:
                         tool_elapsed = time.time() - tool_start_time
-                        print(Color.system(f"  ├─ FLOW: Complete → {tool_elapsed:.2f}s | {len(observation)} chars"))
+                        print(Color.DIM + f"  │ {tool_elapsed:.2f}s" + Color.RESET)
 
-                    # Error detection: check if observation contains error indicators
+                    # Error detection
                     obs_lower = observation.lower()
                     is_error = any(indicator in obs_lower for indicator in
                                   ['error:', 'exception:', 'traceback', 'syntax error', 'compilation failed'])
-
-                    # Special case: ignore "error" in file content reads
                     if tool_name in ['read_file', 'read_lines', 'grep_file', 'get_plan'] and "error" in obs_lower:
                         if not observation.strip().lower().startswith("error:"):
                             is_error = False
@@ -3398,27 +3352,18 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         action_result = "error" if is_error else "success"
                         action_obj = Action(
                             tool=tool_name,
-                            args=args_str[:100],  # Truncate args
+                            args=args_str[:100],
                             result=action_result,
-                            observation=observation[:200]  # Truncate observation
+                            observation=observation[:200]
                         )
                         actions_taken.append(action_obj)
 
-                    # Smart preview based on tool type
-                    if tool_name in ['read_file', 'read_lines']:
-                        lines = observation.split('\n')[:config.TOOL_RESULT_PREVIEW_LINES]
-                        obs_preview = '\n'.join(lines) + f"\n... ({len(observation)} chars total)"
-                    elif tool_name in ['replace_in_file', 'replace_lines']:
-                        # Show full diff snippet for file edits (like Claude Code)
-                        obs_preview = observation
-                    elif len(observation) > config.TOOL_RESULT_PREVIEW_CHARS:
-                        obs_preview = observation[:config.TOOL_RESULT_PREVIEW_CHARS] + f"... ({len(observation)} chars total)"
+                    # Tool result with tree structure
+                    if tool_name in ['replace_in_file', 'replace_lines']:
+                        print(format_tool_result(observation, max_lines=15, max_chars=2000))
                     else:
-                        obs_preview = observation
+                        print(format_tool_result(observation))
 
-                    print(Color.info(f"  ✓ Result: {obs_preview}\n"))
-
-                    # Format for combined output
                     combined_results.append(f"--- [Action {i+1}] {tool_name} ---\n{observation}")
 
             # Combine all observations
@@ -3618,23 +3563,24 @@ def chat_loop():
     # Update messages tokens (exclude system message to avoid double counting)
     context_tracker.update_messages(messages, exclude_system=True)
 
-    print(Color.BOLD + Color.CYAN + f"Brian Coder Agent (Zero-Dependency) initialized." + Color.RESET)
-    print(Color.system(f"Connecting to: {config.BASE_URL}"))
-    print(Color.system(f"Rate Limit: {config.RATE_LIMIT_DELAY}s | Max Iterations: {config.MAX_ITERATIONS}"))
-    print(Color.system(f"History: {'Enabled' if config.SAVE_HISTORY else 'Disabled'}"))
-
-    compression_mode = "Smart" if config.ENABLE_SMART_COMPRESSION else "Traditional"
-    print(Color.system(f"Compression: {'Enabled' if config.ENABLE_COMPRESSION else 'Disabled'} ({compression_mode}, Threshold: {int(config.COMPRESSION_THRESHOLD*100)}%)"))
-
-    print(Color.system(f"Prompt Caching: {'Enabled' if config.ENABLE_PROMPT_CACHING else 'Disabled'}"))
-    print(Color.system(f"Memory: {'Enabled' if config.ENABLE_MEMORY and memory_system else 'Disabled'}"))
-    print(Color.system(f"Graph: {'Enabled' if config.ENABLE_GRAPH and graph_lite else 'Disabled'}"))
-    
     # Perform Memory Healing (One-time check on startup)
     if config.ENABLE_GRAPH and graph_lite:
         graph_lite.heal_embeddings()
-    print(Color.system(f"Procedural Memory: {'Enabled' if config.ENABLE_PROCEDURAL_MEMORY and procedural_memory else 'Disabled'}"))
-    print(Color.system(f"Curator: {'Enabled' if config.ENABLE_CURATOR and curator else 'Disabled'}"))
+
+    # Compact startup banner
+    from lib.display import format_startup_banner
+    print(format_startup_banner(
+        base_url=config.BASE_URL,
+        model=config.MODEL_NAME,
+        features={
+            'rate_limit': config.RATE_LIMIT_DELAY,
+            'max_iter': config.MAX_ITERATIONS,
+            'cache': config.ENABLE_PROMPT_CACHING,
+            'compress': config.ENABLE_COMPRESSION,
+            'memory': config.ENABLE_MEMORY and memory_system,
+            'rag': config.ENABLE_RAG_AUTO_INDEX,
+        }
+    ))
 
     # Show initial context usage
     show_context_usage(messages)
@@ -3658,7 +3604,7 @@ def chat_loop():
             print(Color.warning(f"[RAG] Auto-index skipped: {e}"))
 
 
-    print(Color.system(f"Deep Think: {'Enabled' if config.ENABLE_DEEP_THINK else 'Disabled'}"))
+    # Deep Think removed (replaced by plan agent)
 
     # Initialize slash command registry
     slash_registry = get_slash_command_registry()

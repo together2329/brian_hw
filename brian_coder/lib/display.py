@@ -1,7 +1,12 @@
 """
 Display utilities for Brian Coder.
 Handles ANSI color codes and terminal output formatting.
+Zero-dependency — pure ANSI escape sequences.
 """
+
+import os
+import shutil
+
 
 class Color:
     """ANSI color codes for terminal output"""
@@ -13,47 +18,50 @@ class Color:
     MAGENTA = '\033[95m'
     CYAN = '\033[96m'
     WHITE = '\033[97m'
-    
+    GRAY = '\033[90m'
+
     # Styles
     BOLD = '\033[1m'
     DIM = '\033[2m'
+    ITALIC = '\033[3m'
+    UNDERLINE = '\033[4m'
     RESET = '\033[0m'
-    
+
     @staticmethod
     def system(text):
         """System messages - Cyan"""
         return f"{Color.CYAN}{text}{Color.RESET}"
-    
+
     @staticmethod
     def user(text):
         """User messages - Green"""
         return f"{Color.GREEN}{text}{Color.RESET}"
-    
+
     @staticmethod
     def agent(text):
         """Agent messages - Blue"""
         return f"{Color.BLUE}{text}{Color.RESET}"
-    
+
     @staticmethod
     def tool(text):
         """Tool names - Magenta"""
         return f"{Color.MAGENTA}{text}{Color.RESET}"
-    
+
     @staticmethod
     def success(text):
         """Success messages - Green + Bold"""
         return f"{Color.BOLD}{Color.GREEN}{text}{Color.RESET}"
-    
+
     @staticmethod
     def warning(text):
         """Warning messages - Yellow"""
         return f"{Color.YELLOW}{text}{Color.RESET}"
-    
+
     @staticmethod
     def error(text):
         """Error messages - Red + Bold"""
         return f"{Color.BOLD}{Color.RED}{text}{Color.RESET}"
-    
+
     @staticmethod
     def info(text):
         """Info messages - Cyan + Dim"""
@@ -63,27 +71,385 @@ class Color:
     def debug(text):
         """Debug messages - Purple/Magenta"""
         return f"{Color.MAGENTA}{text}{Color.RESET}"
-        
+
     @staticmethod
     def action(text):
         """Action messages (e.g. key decisions) - Green + Bold + Underline"""
         return f"{Color.BOLD}{Color.GREEN}\033[4m{text}{Color.RESET}"
 
-    
+    @staticmethod
+    def dim(text):
+        """Dimmed text"""
+        return f"{Color.DIM}{text}{Color.RESET}"
+
+    @staticmethod
+    def bold(text):
+        """Bold text"""
+        return f"{Color.BOLD}{text}{Color.RESET}"
+
     @staticmethod
     def diff_add(text):
         """Added lines in diff - Green background"""
         return f"{Color.GREEN}+ {text}{Color.RESET}"
-    
+
     @staticmethod
     def diff_remove(text):
         """Removed lines in diff - Red"""
         return f"{Color.RED}- {text}{Color.RESET}"
-    
+
     @staticmethod
     def diff_context(text):
         """Context lines in diff - Dim"""
         return f"{Color.DIM}  {text}{Color.RESET}"
+
+
+# ============================================================
+# Tree Characters (oh-my-opencode inspired)
+# ============================================================
+
+TREE = {
+    'pipe':   '│',    # vertical pipe
+    'branch': '├─',   # mid-branch
+    'end':    '└─',   # end-branch
+    'indent': '   ',  # indentation
+    'bar':    '┃',    # thick pipe (for thinking blocks)
+}
+
+
+# ============================================================
+# Tool Icons (per-tool-type, oh-my-opencode inspired)
+# ============================================================
+
+TOOL_ICONS = {
+    # Read operations
+    'read_file':     '→',
+    'read_lines':    '→',
+    'grep_file':     '✱',
+    'find_files':    '✱',
+    'list_dir':      '✱',
+    'rag_search':    '✱',
+    'rag_explore':   '✱',
+    'rag_index':     '✱',
+    'rag_status':    '✱',
+    'rag_clear':     '✱',
+    # Write operations
+    'write_file':       '←',
+    'replace_in_file':  '←',
+    'replace_lines':    '←',
+    # Command execution
+    'run_command':   '$',
+    # Git
+    'git_diff':      '±',
+    'git_status':    '±',
+    # Agent delegation
+    'background_task':   '#',
+    'background_output': '#',
+    'background_cancel': '#',
+    'background_list':   '#',
+    # Todo
+    'todo_write':    '☐',
+    'todo_read':     '☐',
+    # Plan
+    'create_plan':   '◆',
+    'get_plan':      '◆',
+    # Verilog
+    'analyze_verilog_module': '⊞',
+    'find_signal_usage':      '⊞',
+    'find_module_definition': '⊞',
+    'extract_module_hierarchy': '⊞',
+    'find_potential_issues':  '⊞',
+    'analyze_timing_paths':   '⊞',
+}
+
+DEFAULT_TOOL_ICON = '⚙'
+
+
+def tool_icon(tool_name: str) -> str:
+    """Get icon for a tool name"""
+    return TOOL_ICONS.get(tool_name, DEFAULT_TOOL_ICON)
+
+
+# ============================================================
+# Formatting Utilities
+# ============================================================
+
+def get_terminal_width() -> int:
+    """Get terminal width, default 80"""
+    try:
+        return shutil.get_terminal_size().columns
+    except Exception:
+        return 80
+
+
+def format_tool_header(tool_name: str, args_summary: str = "", idx: int = 0, total: int = 1) -> str:
+    """
+    Format a tool execution header line.
+    Example: "  → Read core/hooks.py"
+    Example: "  ✱ Grep 'pattern' in core/"
+    """
+    icon = tool_icon(tool_name)
+    counter = f" {idx}/{total}" if total > 1 else ""
+    if args_summary:
+        return f"  {Color.CYAN}{icon}{Color.RESET} {Color.BOLD}{_friendly_tool_name(tool_name)}{Color.RESET} {Color.DIM}{args_summary}{Color.RESET}{Color.DIM}{counter}{Color.RESET}"
+    return f"  {Color.CYAN}{icon}{Color.RESET} {Color.BOLD}{_friendly_tool_name(tool_name)}{Color.RESET}{Color.DIM}{counter}{Color.RESET}"
+
+
+def format_tool_result(output: str, max_lines: int = 5, max_chars: int = 300) -> str:
+    """
+    Format tool result with tree structure.
+    Shows preview with dim tree end marker.
+    """
+    if not output:
+        return f"  {Color.DIM}{TREE['end']} (empty){Color.RESET}"
+
+    lines = output.strip().split('\n')
+    total_chars = len(output)
+
+    # Short output — show inline
+    if len(lines) <= max_lines and total_chars <= max_chars:
+        result_lines = []
+        for i, line in enumerate(lines):
+            prefix = TREE['end'] if i == len(lines) - 1 else TREE['pipe']
+            result_lines.append(f"  {Color.DIM}{prefix} {line[:120]}{Color.RESET}")
+        return '\n'.join(result_lines)
+
+    # Long output — show preview
+    preview_lines = lines[:max_lines]
+    result_lines = []
+    for line in preview_lines:
+        result_lines.append(f"  {Color.DIM}{TREE['pipe']} {line[:120]}{Color.RESET}")
+    result_lines.append(f"  {Color.DIM}{TREE['end']} ... ({len(lines)} lines, {total_chars:,} chars){Color.RESET}")
+    return '\n'.join(result_lines)
+
+
+def format_agent_banner(agent_name: str, model: str = "", action: str = "Starting") -> str:
+    """
+    Format sub-agent banner.
+    Example:
+      ┌─ execute · qwen3-next-80b · Starting
+      │
+    """
+    model_short = _short_model_name(model)
+    parts = [f"{Color.CYAN}{agent_name}{Color.RESET}"]
+    if model_short:
+        parts.append(f"{Color.DIM}{model_short}{Color.RESET}")
+    parts.append(f"{Color.DIM}{action}{Color.RESET}")
+
+    line = " · ".join(parts)
+    return f"\n  {Color.CYAN}┌─{Color.RESET} {line}\n  {Color.CYAN}│{Color.RESET}"
+
+
+def format_agent_done(agent_name: str, model: str = "", elapsed_sec: float = 0,
+                      iterations: int = 0, tool_count: int = 0) -> str:
+    """
+    Format sub-agent completion footer.
+    Example:
+      └─ execute · qwen3 · 6.1s · 3 tools · 2 iters
+    """
+    model_short = _short_model_name(model)
+    parts = [f"{Color.CYAN}{agent_name}{Color.RESET}"]
+    if model_short:
+        parts.append(f"{Color.DIM}{model_short}{Color.RESET}")
+    if elapsed_sec > 0:
+        parts.append(f"{Color.DIM}{elapsed_sec:.1f}s{Color.RESET}")
+    if tool_count > 0:
+        parts.append(f"{Color.DIM}{tool_count} tools{Color.RESET}")
+    if iterations > 0:
+        parts.append(f"{Color.DIM}{iterations} iters{Color.RESET}")
+
+    line = " · ".join(parts)
+    return f"  {Color.CYAN}│{Color.RESET}\n  {Color.CYAN}{TREE['end']}{Color.RESET} {line}\n"
+
+
+def format_context_bar(current_tokens: int, max_tokens: int, label: str = "") -> str:
+    """
+    Compact context usage bar.
+    Example: "[Context: 12K/32K ████░░░░ 38%]"
+    """
+    pct = int(current_tokens / max_tokens * 100) if max_tokens > 0 else 0
+
+    # Color by usage
+    if pct >= 100:
+        color = Color.RED
+    elif pct >= 80:
+        color = Color.YELLOW
+    elif pct >= 50:
+        color = Color.CYAN
+    else:
+        color = Color.GREEN
+
+    bar_len = 8
+    filled = min(bar_len, int(bar_len * pct / 100))
+    bar = '█' * filled + '░' * (bar_len - filled)
+
+    cur_str = _format_tokens(current_tokens)
+    max_str = _format_tokens(max_tokens)
+
+    prefix = f"{label} " if label else ""
+    return f"{color}{prefix}[{cur_str}/{max_str} {bar} {pct}%]{Color.RESET}"
+
+
+def format_startup_banner(base_url: str, model: str, features: dict) -> str:
+    """
+    Compact startup banner.
+    Example:
+      Brian Coder · openrouter/glm-4.7
+      Rate: 5s │ Iter: 100 │ Cache: on │ Compress: on
+    """
+    model_short = _short_model_name(model)
+    line1 = f"{Color.BOLD}{Color.CYAN}Brian Coder{Color.RESET} {Color.DIM}· {model_short}{Color.RESET}"
+
+    parts = []
+    if features.get('rate_limit'):
+        parts.append(f"Rate: {features['rate_limit']}s")
+    if features.get('max_iter'):
+        parts.append(f"Iter: {features['max_iter']}")
+    if features.get('cache'):
+        parts.append(f"Cache: {'on' if features['cache'] else 'off'}")
+    if features.get('compress'):
+        parts.append(f"Compress: {'on' if features['compress'] else 'off'}")
+    if features.get('memory'):
+        parts.append(f"Memory: {'on' if features['memory'] else 'off'}")
+    if features.get('rag'):
+        parts.append(f"RAG: {'on' if features['rag'] else 'off'}")
+
+    line2 = f"{Color.DIM}{' │ '.join(parts)}{Color.RESET}" if parts else ""
+
+    return f"{line1}\n{line2}" if line2 else line1
+
+
+def format_iteration_header(iteration: int, max_iter: int, agent_name: str = "") -> str:
+    """
+    Minimal iteration header.
+    Example: "─── 3/20 ───"
+    """
+    prefix = f"{agent_name} " if agent_name else ""
+    return f"\n{Color.DIM}─── {prefix}{iteration}/{max_iter} ───{Color.RESET}"
+
+
+def format_thought(text: str) -> str:
+    """Format thought text with dim bar prefix"""
+    lines = text.strip().split('\n')
+    formatted = []
+    for line in lines:
+        formatted.append(f"  {Color.DIM}{TREE['bar']}  {line}{Color.RESET}")
+    return '\n'.join(formatted)
+
+
+# ============================================================
+# Internal Helpers
+# ============================================================
+
+def _friendly_tool_name(tool_name: str) -> str:
+    """Convert tool_name to friendly display name"""
+    names = {
+        'read_file': 'Read',
+        'read_lines': 'Read',
+        'write_file': 'Write',
+        'replace_in_file': 'Edit',
+        'replace_lines': 'Edit',
+        'grep_file': 'Grep',
+        'find_files': 'Find',
+        'list_dir': 'List',
+        'run_command': 'Run',
+        'rag_search': 'RAG Search',
+        'rag_explore': 'RAG Explore',
+        'rag_index': 'RAG Index',
+        'rag_status': 'RAG Status',
+        'rag_clear': 'RAG Clear',
+        'git_diff': 'Git Diff',
+        'git_status': 'Git Status',
+        'background_task': 'Agent',
+        'background_output': 'Agent Output',
+        'background_cancel': 'Agent Cancel',
+        'background_list': 'Agent List',
+        'todo_write': 'Todo',
+        'todo_read': 'Todo',
+        'create_plan': 'Plan',
+        'get_plan': 'Plan',
+        'analyze_verilog_module': 'Analyze Module',
+        'find_signal_usage': 'Signal Usage',
+        'find_module_definition': 'Module Def',
+        'extract_module_hierarchy': 'Hierarchy',
+        'find_potential_issues': 'Issues',
+        'analyze_timing_paths': 'Timing',
+    }
+    return names.get(tool_name, tool_name)
+
+
+def _short_model_name(model: str) -> str:
+    """Shorten model name for display"""
+    if not model:
+        return ""
+    # Remove provider prefix for common providers
+    for prefix in ('openrouter/', 'anthropic/', 'openai/', 'google/'):
+        if model.startswith(prefix):
+            model = model[len(prefix):]
+            break
+    # Shorten common model names
+    shortcuts = {
+        'qwen/qwen3-next-80b-a3b-instruct': 'qwen3-80b',
+        'qwen3-next-80b-a3b-instruct': 'qwen3-80b',
+        'z-ai/glm-4.7': 'glm-4.7',
+        'glm-4.7': 'glm-4.7',
+        'claude-3-5-sonnet': 'claude-3.5-sonnet',
+        'claude-3-opus': 'claude-3-opus',
+    }
+    return shortcuts.get(model, model[:30])
+
+
+def _format_tokens(n: int) -> str:
+    """Format token count: 1234 → '1.2K', 123456 → '123K'"""
+    if n >= 1_000_000:
+        return f"{n/1_000_000:.1f}M"
+    if n >= 10_000:
+        return f"{n//1000}K"
+    if n >= 1_000:
+        return f"{n/1000:.1f}K"
+    return str(n)
+
+
+def _extract_tool_args_summary(tool_name: str, args_str: str) -> str:
+    """Extract a human-readable summary from tool args"""
+    import re
+
+    # Extract path for file tools
+    if tool_name in ('read_file', 'read_lines', 'write_file', 'replace_in_file', 'replace_lines'):
+        match = re.search(r'(?:path\s*=\s*)?["\']([^"\']+)["\']', args_str)
+        if match:
+            return match.group(1)
+
+    # Extract pattern + path for grep/find
+    if tool_name in ('grep_file', 'find_files'):
+        pattern_match = re.search(r'(?:pattern\s*=\s*)?["\']([^"\']+)["\']', args_str)
+        path_match = re.search(r'path\s*=\s*["\']([^"\']+)["\']', args_str)
+        parts = []
+        if pattern_match:
+            parts.append(f'"{pattern_match.group(1)}"')
+        if path_match:
+            parts.append(f'in {path_match.group(1)}')
+        return ' '.join(parts) if parts else args_str[:60]
+
+    # Extract command for run_command
+    if tool_name == 'run_command':
+        match = re.search(r'(?:command\s*=\s*)?["\']([^"\']+)["\']', args_str)
+        if match:
+            cmd = match.group(1)
+            return cmd[:60] + ('...' if len(cmd) > 60 else '')
+
+    # Extract agent + prompt for background_task
+    if tool_name == 'background_task':
+        agent_match = re.search(r'agent\s*=\s*["\']([^"\']+)["\']', args_str)
+        prompt_match = re.search(r'prompt\s*=\s*["\']([^"\']{0,40})', args_str)
+        parts = []
+        if agent_match:
+            parts.append(f'agent={agent_match.group(1)}')
+        if prompt_match:
+            parts.append(f'"{prompt_match.group(1)}..."')
+        return ' '.join(parts) if parts else args_str[:60]
+
+    # Default: truncate
+    return args_str[:60] + ('...' if len(args_str) > 60 else '') if args_str else ""
 
 
 def format_diff(old_text, new_text, context_lines=3):
