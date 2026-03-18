@@ -1913,6 +1913,38 @@ class AgentResult(dict):
 
 
 
+def _sync_subagent_todo(output: str):
+    """
+    Sub-agent 결과에서 완료된 step을 파싱하여 primary TodoTracker에 반영.
+    <result> 태그 안의 "✅" 마킹된 항목을 찾아서 매칭되는 todo를 completed로 변경.
+    """
+    try:
+        import sys, re
+        main_mod = sys.modules.get('main')
+        if not main_mod:
+            return
+        tracker = getattr(main_mod, 'todo_tracker', None)
+        if not tracker or not tracker.todos:
+            return
+
+        # Find "✅" lines in result
+        completed_lines = re.findall(r'✅\s*(.+)', output)
+        if not completed_lines:
+            return
+
+        for todo_item in tracker.todos:
+            if todo_item.status == "completed":
+                continue
+            for line in completed_lines:
+                # Fuzzy match: check if todo content appears in the completed line
+                if todo_item.content.lower()[:30] in line.lower() or line.lower()[:30] in todo_item.content.lower():
+                    idx = tracker.todos.index(todo_item)
+                    tracker.mark_completed(idx)
+                    break
+    except Exception:
+        pass  # Best-effort sync
+
+
 def todo_write(todos=None, tasks=None):
     """
     Create or update task list to track multi-step task progress.
@@ -2018,6 +2050,53 @@ def todo_write(todos=None, tasks=None):
         return f"Error formatting progress: {e}"
 
 
+def todo_update(index=None, status=None):
+    """
+    Update the status of a specific todo item.
+
+    Args:
+        index (int): 1-based index of the todo to update.
+        status (str): New status — "in_progress", "completed", or "pending".
+
+    Example:
+        todo_update(index=1, status="completed")
+        todo_update(index=2, status="in_progress")
+    """
+    try:
+        import sys
+        main_module = sys.modules.get('main')
+        if main_module is None:
+            import main as main_module
+        todo_tracker = getattr(main_module, 'todo_tracker', None)
+    except Exception as e:
+        return f"Error accessing todo tracker: {e}"
+
+    if todo_tracker is None or not todo_tracker.todos:
+        return "Error: No active todo list. Use todo_write() first."
+
+    if index is None or status is None:
+        return "Error: Both 'index' (1-based) and 'status' are required."
+
+    # Convert to 0-based
+    idx = int(index) - 1
+    if not (0 <= idx < len(todo_tracker.todos)):
+        return f"Error: index {index} out of range (1-{len(todo_tracker.todos)})"
+
+    valid = ["pending", "in_progress", "completed"]
+    if status not in valid:
+        return f"Error: status must be one of {valid}"
+
+    if status == "completed":
+        todo_tracker.mark_completed(idx)
+    elif status == "in_progress":
+        todo_tracker.mark_in_progress(idx)
+    else:
+        todo_tracker.todos[idx].status = "pending"
+        todo_tracker._save()
+
+    return todo_tracker.format_progress()
+
+
 # ============================================================
 # Background Agent Tools (v2 Architecture)
 # ============================================================
@@ -2061,6 +2140,9 @@ def background_task(agent, prompt, context="", foreground="true"):
                 parent_context=context,
                 verbose=True,
             )
+
+            # Sync sub-agent completion to primary todo tracker
+            _sync_subagent_todo(result.output)
 
             return (
                 f"=== Foreground Agent Result: {agent} ===\n"
@@ -2165,6 +2247,7 @@ AVAILABLE_TOOLS = {
     "replace_lines": replace_lines,
     # Task Management
     "todo_write": todo_write,
+    "todo_update": todo_update,
     # RAG Tools
     "rag_search": rag_search,
     "rag_index": rag_index,

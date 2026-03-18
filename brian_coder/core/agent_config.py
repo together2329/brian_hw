@@ -413,7 +413,7 @@ class AgentRegistry:
             allowed_tools={
                 "read_file", "read_lines", "grep_file", "list_dir",
                 "find_files", "rag_search", "background_task", "background_output",
-                "todo_write", "todo_read"
+                "todo_write", "todo_update"
             },
             permission=default_permission
         )

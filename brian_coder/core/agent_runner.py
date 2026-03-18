@@ -213,7 +213,7 @@ def run_agent_session(
 
             # Execute actions (sequential for sub-agents)
             combined_results = []
-            for tool_name, args_str, *hint in actions:
+            for idx, (tool_name, args_str, *hint) in enumerate(actions):
                 # Filter by allowed tools
                 if allowed_tools and "*" not in allowed_tools:
                     if tool_name not in allowed_tools:

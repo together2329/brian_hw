@@ -1,13 +1,18 @@
 """
 Todo Tracking System for Brian Coder
 
-Claude Code 스타일의 TodoWrite 기능 구현.
-복잡한 다단계 작업의 진행 상황을 실시간으로 추적하고 표시합니다.
+명시적 tool 호출(todo_write, todo_update)로만 관리되는 task tracking 시스템.
+파일 기반 persistence로 세션 간 상태 유지.
 """
 
+import json
 import time
+from pathlib import Path
 from typing import List, Dict, Optional
 from dataclasses import dataclass
+
+# Default persistence path
+TODO_FILE = Path.home() / ".brian_coder" / "current_todos.json"
 
 
 @dataclass
@@ -53,10 +58,13 @@ class TodoTracker:
         tracker.auto_advance()  # Move to next
     """
 
-    def __init__(self):
-        """Initialize empty todo tracker"""
+    def __init__(self, persist_path: Optional[Path] = None):
+        """Initialize todo tracker with optional file persistence"""
         self.todos: List[TodoItem] = []
         self.current_index: int = -1  # Index of current in_progress todo
+        self.stagnation_count: int = 0  # Consecutive continuation attempts without progress
+        self._last_completed_count: int = 0
+        self._persist_path: Optional[Path] = persist_path or TODO_FILE
 
     def add_todos(self, todos: List[Dict]):
         """
@@ -84,6 +92,10 @@ class TodoTracker:
                 self.current_index = i
                 break
 
+        self.stagnation_count = 0
+        self._last_completed_count = 0
+        self._save()
+
     def mark_in_progress(self, index: int):
         """
         특정 todo를 in_progress로 변경
@@ -105,6 +117,7 @@ class TodoTracker:
         # Set new in_progress
         self.todos[index].status = "in_progress"
         self.current_index = index
+        self._save()
 
     def mark_completed(self, index: int):
         """
@@ -117,6 +130,7 @@ class TodoTracker:
             return
 
         self.todos[index].status = "completed"
+        self._save()
 
     def auto_advance(self):
         """
@@ -312,21 +326,69 @@ class TodoTracker:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict) -> 'TodoTracker':
-        """
-        역직렬화 (로드용)
-
-        Args:
-            data: Dict from to_dict()
-
-        Returns:
-            TodoTracker instance
-        """
-        tracker = cls()
+    def from_dict(cls, data: Dict, persist_path: Optional[Path] = None) -> 'TodoTracker':
+        """역직렬화 (로드용)"""
+        tracker = cls(persist_path=persist_path)
         if "todos" in data:
             tracker.add_todos(data["todos"])
         tracker.current_index = data.get("current_index", -1)
+        tracker.stagnation_count = data.get("stagnation_count", 0)
+        tracker._last_completed_count = data.get("_last_completed_count", 0)
         return tracker
+
+    def _save(self):
+        """파일에 현재 상태 저장"""
+        if not self._persist_path:
+            return
+        try:
+            self._persist_path.parent.mkdir(parents=True, exist_ok=True)
+            data = self.to_dict()
+            data["stagnation_count"] = self.stagnation_count
+            data["_last_completed_count"] = self._last_completed_count
+            self._persist_path.write_text(json.dumps(data, ensure_ascii=False, indent=2))
+        except Exception:
+            pass  # Persistence is best-effort
+
+    @classmethod
+    def load(cls, persist_path: Optional[Path] = None) -> 'TodoTracker':
+        """파일에서 로드. 없으면 빈 tracker 반환."""
+        path = persist_path or TODO_FILE
+        if path.exists():
+            try:
+                data = json.loads(path.read_text())
+                return cls.from_dict(data, persist_path=path)
+            except Exception:
+                pass
+        return cls(persist_path=path)
+
+    def clear(self):
+        """Todo 초기화 + 파일 삭제"""
+        self.todos = []
+        self.current_index = -1
+        self.stagnation_count = 0
+        self._last_completed_count = 0
+        if self._persist_path and self._persist_path.exists():
+            self._persist_path.unlink()
+
+    def check_stagnation(self, max_stagnation: int = 3) -> bool:
+        """
+        Continuation 주입 전 stagnation 체크.
+
+        Returns:
+            True = 포기해야 함 (stagnation 초과)
+            False = 계속 진행 가능
+        """
+        completed = sum(1 for t in self.todos if t.status == "completed")
+        if completed > self._last_completed_count:
+            # 진전 있음 → 리셋
+            self.stagnation_count = 0
+            self._last_completed_count = completed
+        else:
+            # 진전 없음
+            self.stagnation_count += 1
+
+        self._save()
+        return self.stagnation_count >= max_stagnation
 
 
 # ============================================================

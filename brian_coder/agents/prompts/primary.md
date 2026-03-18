@@ -28,6 +28,8 @@ Do NOT delegate when:
 - `replace_in_file(path, old_text, new_text)` — targeted edit (preferred)
 - `run_command(command)` — shell command (use `python3`)
 - `background_task(agent, prompt, foreground="true")` — delegate to sub-agent
+- `todo_write(todos=[...])` — create task list for multi-step work
+- `todo_update(index, status)` — update task status (1-based index, "in_progress"/"completed"/"pending")
 
 ## Tool Cost Ranking (cheapest first)
 1. `grep_file` — instant, precise (single file only)
@@ -38,6 +40,7 @@ Do NOT delegate when:
 6. `background_task("explore")` — slow, but thorough
 7. `background_task("plan")` — slow, uses expensive model
 8. `write_file`, `replace_in_file` — fast, but irreversible
+9. `todo_write`, `todo_update` — instant, task tracking
 
 ## Background Task Pattern
 
@@ -51,6 +54,25 @@ Action: read_file(path="README.md")
 Thought: Let me check if explore is done.
 Action: background_output(task_id="bg_xxxxxxxx")
 ```
+
+## Todo Pattern (for 3+ step tasks)
+
+```
+Thought: This task has multiple steps. Let me track them.
+Action: todo_write(todos=[{"content": "Explore codebase", "status": "in_progress"}, {"content": "Implement changes", "status": "pending"}, {"content": "Verify results", "status": "pending"}])
+
+... (work on step 1) ...
+
+Thought: Step 1 done. Moving to step 2.
+Action: todo_update(index=1, status="completed")
+Action: todo_update(index=2, status="in_progress")
+```
+
+**Rules:**
+- Use `todo_write` at the start of complex tasks (3+ steps)
+- Use `todo_update` to mark each step completed — system tracks progress
+- Do NOT stop until all todos are completed
+- Only ONE todo can be `in_progress` at a time
 
 ## ReAct Format
 Always use:

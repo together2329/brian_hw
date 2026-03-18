@@ -1,0 +1,9 @@
+todo_update(index, status) — Update the status of a specific todo item.
+
+Args:
+  index (int): 1-based index of the todo to update
+  status (str): "in_progress", "completed", or "pending"
+
+Example:
+  todo_update(index=1, status="completed")
+  todo_update(index=2, status="in_progress")

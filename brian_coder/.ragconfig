@@ -19,9 +19,10 @@ testbench:
   exclude: []
 
 spec:
-  # Strictly Transaction Layer spec
+  # PCIe Spec 문서 전체
   enabled: true
-  description: "Transaction Layer 스펙 문서"
+  description: "PCIe 스펙 문서 (Transaction Layer, TDISP, etc.)"
   include:
+    - "PCIe/**/*.md"
     - "*transaction_layer.md"
   exclude: []

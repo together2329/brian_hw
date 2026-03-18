@@ -35,7 +35,7 @@ import llm_client
 from lib.display import Color
 from llm_client import chat_completion_stream, call_llm_raw, estimate_message_tokens, get_actual_tokens
 from lib.memory import MemorySystem
-from lib.todo_tracker import TodoTracker, parse_todo_write_from_text
+from lib.todo_tracker import TodoTracker
 from core.graph_lite import GraphLite, Node, Edge
 from lib.procedural_memory import ProceduralMemory, Action, Trajectory
 from lib.message_classifier import MessageClassifier
@@ -2279,7 +2279,7 @@ def show_context_usage(messages, use_actual=True):
         print(Color.info("   Tip: Use '/compact --dry-run' to preview compression.\n"))
 
 
-def compress_history(messages, force=False, instruction=None, keep_recent=None, dry_run=False):
+def compress_history(messages, force=False, instruction=None, keep_recent=None, dry_run=False, quiet=False):
     """
     Compresses history if it exceeds the token limit.
     Strategy: Keep System messages + Last N messages. Summarize the middle.
@@ -2308,16 +2308,18 @@ def compress_history(messages, force=False, instruction=None, keep_recent=None, 
     # Trigger preemptive compression at 85%
     if current_tokens >= preemptive_threshold and not force:
         usage_pct = int(current_tokens / limit_tokens * 100)
-        print(Color.warning(
-            f"\n[System] Preemptive compression triggered at {current_tokens:,} tokens "
-            f"({usage_pct}%)"
-        ))
+        if not quiet:
+            print(Color.warning(
+                f"\n[System] Preemptive compression triggered at {current_tokens:,} tokens "
+                f"({usage_pct}%)"
+            ))
         force = True
 
     if not force and current_tokens < emergency_threshold:
         return messages
 
-    print(Color.warning(f"\n[System] {'Manual' if force else 'Auto'} Compression triggered. Context: {current_tokens:,} {token_source} tokens."))
+    if not quiet:
+        print(Color.warning(f"\n[System] Compression triggered. Context: {current_tokens:,} {token_source} tokens."))
 
     if not messages:
         return messages
@@ -2370,14 +2372,28 @@ def compress_history(messages, force=False, instruction=None, keep_recent=None, 
         recent_msgs = [m for m in other_msgs if m.get("turn_id", 0) >= protected_turn_threshold]
         old_msgs = [m for m in other_msgs if m.get("turn_id", 0) < protected_turn_threshold]
 
+        # Fallback: if all messages are in protected turns, reduce protection
+        # to last 1 turn so we can still compress something
+        if not old_msgs and protected_turns > 1:
+            protected_turns = 1
+            protected_turn_threshold = max_turn  # only protect current turn
+            recent_msgs = [m for m in other_msgs if m.get("turn_id", 0) >= protected_turn_threshold]
+            old_msgs = [m for m in other_msgs if m.get("turn_id", 0) < protected_turn_threshold]
+
         print(Color.info(
             f"[System] Protecting last {protected_turns} turns "
             f"({len(recent_msgs)} messages, turns {protected_turn_threshold}-{max_turn})"
         ))
 
         if not old_msgs:
-            print(Color.info(f"[System] History too short to compress (all messages in protected turns)."))
-            return messages
+            # True single-turn: fall back to message-based split (keep last 4 messages)
+            fallback_keep = min(4, len(other_msgs))
+            if len(other_msgs) <= fallback_keep:
+                print(Color.info(f"[System] History too short to compress ({len(other_msgs)} messages)."))
+                return messages
+            recent_msgs = other_msgs[-fallback_keep:]
+            old_msgs = other_msgs[:-fallback_keep]
+            print(Color.info(f"[System] Single-turn fallback: compressing {len(old_msgs)} messages, keeping {len(recent_msgs)}"))
     else:
         # Legacy message-based protection (for backward compatibility)
         if keep_recent is None:
@@ -2404,8 +2420,20 @@ def compress_history(messages, force=False, instruction=None, keep_recent=None, 
         print(Color.info("[System] Using single compression..."))
         compressed = [_compress_single(old_msgs, instruction=instruction)]
 
-    # Construct new history: system + important + compressed + recent
-    new_history = system_msgs + important_msgs + compressed + recent_msgs
+    # Preserve todo state across compression (like oh-my-opencode's compaction-todo-preserver)
+    todo_preservation = []
+    try:
+        import sys
+        main_mod = sys.modules.get('main')
+        tracker = getattr(main_mod, 'todo_tracker', None) if main_mod else None
+        if tracker and tracker.todos:
+            todo_status = tracker.format_progress()
+            todo_preservation = [{"role": "user", "content": f"[System] Todo state preserved across compression:\n{todo_status}"}]
+    except Exception:
+        pass
+
+    # Construct new history: system + important + compressed + todo + recent
+    new_history = system_msgs + important_msgs + compressed + todo_preservation + recent_msgs
 
     # Calculate detailed statistics
     new_tokens = sum(estimate_message_tokens(m) for m in new_history)
@@ -2615,7 +2643,7 @@ To read specific sections:
     if total_tokens > threshold_tokens and config.ENABLE_COMPRESSION:
         print(Color.warning(f"\n[System] ⚠️  Adding observation would exceed threshold ({total_tokens:,} > {threshold_tokens:,} tokens)"))
         print(Color.info("[System] Compressing history before adding observation..."))
-        messages = compress_history(messages)
+        messages = compress_history(messages, force=True, quiet=True)  # skip duplicate logs
 
         # Re-calculate after compression
         current_tokens = sum(estimate_message_tokens(m) for m in messages)
@@ -3230,23 +3258,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         # Check for Action first (needed for TodoWrite explicit call detection)
         actions = parse_all_actions(collected_content)
 
-        # Parse TodoWrite (Phase 2 - Claude Code Style with explicit call detection)
-        if todo_tracker is not None and config.ENABLE_TODO_TRACKING:
-            # Check if todo_write was explicitly called as a tool
-            explicit_todo_call = any(
-                action.get("tool") == "todo_write"
-                for action in actions
-                if isinstance(action, dict) and action.get("tool")
-            )
-
-            # Only parse from text if NOT explicitly called
-            # This prevents duplicate todos when LLM uses the tool directly
-            if not explicit_todo_call:
-                parsed_todos = parse_todo_write_from_text(collected_content)
-                if parsed_todos:
-                    todo_tracker.add_todos(parsed_todos)
-                    print(Color.info(todo_tracker.format_progress()))
-                    print()
+        # Todo tracking: only via explicit todo_write/todo_update tool calls
+        # (no auto-parsing from numbered lists)
 
         # Check for explicit completion signal
         # Skip if there are pending actions to execute (agent isn't done yet)
@@ -3457,28 +3470,32 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 last_error_observation = observation if "error" in observation.lower() else None
 
             # Process observation (handles large files and context management)
+            # Append todo status to observation so LLM sees current progress
+            if todo_tracker and todo_tracker.todos:
+                observation += f"\n\n[Todo Status]\n{todo_tracker.format_progress()}"
             messages = process_observation(observation, messages)
 
-            # Todo Tracking: Auto-advance to next step if all actions succeeded (Phase 2)
-            if todo_tracker is not None and config.TODO_AUTO_ADVANCE:
-                # Check if all actions succeeded (no errors)
-                all_success = True
-                if hasattr(observation, 'lower') and 'error:' in observation.lower()[:100]:
-                    all_success = False
-
-                if all_success and todo_tracker.get_current_todo():
-                    todo_tracker.auto_advance()
-                    print(Color.success(f"✅ Step completed"))
-                    if not todo_tracker.is_all_completed():
-                        print(Color.info(todo_tracker.format_progress()))
-                    else:
-                        print(Color.success("🎉 All todos completed!"))
-                    print()
+            # Todo status is now managed by explicit todo_update() calls from LLM
+            # (auto-advance removed — LLM decides when steps are done)
 
             # Stall tracking (silent — logged but not shown to agent)
         else:
-            # No action = natural completion
-            break
+            # No action — check if todos remain
+            if (todo_tracker and not todo_tracker.is_all_completed()
+                    and todo_tracker.todos):
+                if todo_tracker.check_stagnation(max_stagnation=3):
+                    print(Color.warning("[System] Todo stagnation detected (3x no progress). Stopping."))
+                    break
+                # Inject continuation reminder
+                reminder = todo_tracker.get_continuation_prompt()
+                if reminder:
+                    messages.append({"role": "user", "content": reminder})
+                    print(Color.info(f"[System] {sum(1 for t in todo_tracker.todos if t.status == 'completed')}/{len(todo_tracker.todos)} todos done — continuing..."))
+                    # Don't break — continue loop
+                else:
+                    break
+            else:
+                break
 
         # Increment iteration counter
         tracker.increment()
