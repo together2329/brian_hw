@@ -3318,15 +3318,17 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             print(Color.system(f"[FLOW] Stage 1: LLM Call"))
             print(Color.system(f"[FLOW]   Messages: user:{user_msgs} assistant:{asst_msgs} system:{sys_msgs} total:{len(messages)}"))
             
-        from lib.display import format_iteration_header
+        from lib.display import format_iteration_header, Spinner
         print(format_iteration_header(tracker.current + 1, tracker.max_iterations, agent_name="primary", model=config.MODEL_NAME), flush=True)
 
-        # Call LLM (non-streaming to avoid token splitting on Linux)
-        collected_content = call_llm_raw(
-            prompt="",
-            messages=messages,
-            stop=["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"],
-        ) or ""
+        # Call LLM with Claude Code style spinner
+        with Spinner("Inferring") as spinner:
+            collected_content = call_llm_raw(
+                prompt="",
+                messages=messages,
+                stop=["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"],
+            ) or ""
+            llm_elapsed = spinner.elapsed
 
         # Strip any leaked native tool call tokens from content
         collected_content = _strip_native_tool_tokens(collected_content)
@@ -3343,6 +3345,12 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
         # Display only Thought portion (Action lines are shown as tool headers)
         if not config.DEBUG_MODE:
+            # Show elapsed time (Claude Code style)
+            elapsed_str = f"{llm_elapsed:.1f}s" if llm_elapsed < 60 else f"{int(llm_elapsed//60)}m{int(llm_elapsed%60):02d}s"
+            token_est = len(collected_content) // 4
+            token_str = f"{token_est/1000:.1f}k" if token_est >= 1000 else str(token_est)
+            print(f"  {Color.DIM}✽ {elapsed_str} · ↓ {token_str} tokens{Color.RESET}")
+
             # Extract only Thought text, strip Action lines (already shown by tool UI)
             display_lines = []
             for line in collected_content.split('\n'):
@@ -3429,7 +3437,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
             # Single action warning removed — too noisy for normal usage
 
-            from lib.display import format_tool_header, format_tool_result, format_tool_brief, _extract_tool_args_summary
+            from lib.display import format_tool_header, format_tool_result, format_tool_brief, _extract_tool_args_summary, _friendly_tool_name, Spinner
 
             if len(actions) > 1 and config.ENABLE_REACT_PARALLEL:
                 print(Color.DIM + f"  ⚡ {len(actions)} actions (parallel)" + Color.RESET)
@@ -3486,11 +3494,19 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                     summary = _extract_tool_args_summary(tool_name, args_str)
 
+                    # Run tool with spinner for slow tools (run_command, rag_*, background_*)
+                    _SLOW_TOOLS = {'run_command', 'rag_search', 'rag_explore', 'rag_index', 'background_task', 'background_output'}
                     tracker.record_tool(tool_name)
-                    observation = execute_tool(tool_name, args_str)
+                    tool_start = time.time()
+                    if tool_name in _SLOW_TOOLS and not config.DEBUG_MODE:
+                        friendly = _friendly_tool_name(tool_name)
+                        with Spinner(f"Running {friendly}"):
+                            observation = execute_tool(tool_name, args_str)
+                    else:
+                        observation = execute_tool(tool_name, args_str)
+                    tool_elapsed = time.time() - tool_start
 
                     if config.DEBUG_MODE:
-                        tool_elapsed = time.time() - tool_start_time
                         print(format_tool_header(tool_name, summary))
                         print(Color.DIM + f"  │ {tool_elapsed:.2f}s" + Color.RESET)
 
@@ -3513,8 +3529,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         )
                         actions_taken.append(action_obj)
 
-                    # Tool display: header + inline brief on same line
+                    # Tool display: header + inline brief + elapsed on same line
                     _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan', 'git_diff', 'git_status', 'rag_search', 'write_file'}
+                    elapsed_suffix = f" · {tool_elapsed:.1f}s" if tool_elapsed >= 1.0 else ""
                     if tool_name == 'background_task' and not config.DEBUG_MODE:
                         pass  # handoff line already printed by background_task()
                     elif tool_name in ['replace_in_file', 'replace_lines']:
@@ -3525,7 +3542,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         if tool_name in _INLINE_TOOLS:
                             brief = format_tool_brief(tool_name, args_str, observation)
                             header = format_tool_header(tool_name, summary)
-                            print(f"{header}  {Color.DIM}({brief}){Color.RESET}")
+                            print(f"{header}  {Color.DIM}({brief}{elapsed_suffix}){Color.RESET}")
                         else:
                             print(format_tool_header(tool_name, summary))
                             print(format_tool_result(observation))

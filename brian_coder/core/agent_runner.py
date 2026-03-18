@@ -191,18 +191,19 @@ def run_agent_session(
 
     from lib.display import (
         format_agent_banner, format_agent_done, format_tool_header,
-        format_tool_result, format_context_bar, _extract_tool_args_summary, Color
+        format_tool_result, format_context_bar, _extract_tool_args_summary, Color,
+        live_print,
     )
 
     def _log(msg):
         if verbose:
-            print(f"  {Color.DIM}[{agent_name}]{Color.RESET} {msg}")
+            live_print(f"  {Color.DIM}[{agent_name}]{Color.RESET} {msg}")
 
     # Always show banner (brief when not verbose)
     if verbose:
-        print(format_agent_banner(agent_name, model, f"tools={len(allowed_tools)}, max_iter={max_iterations}"))
+        live_print(format_agent_banner(agent_name, model, f"tools={len(allowed_tools)}, max_iter={max_iterations}"))
     else:
-        print(f"  {Color.DIM}┌─ {agent_name} · {model or 'default'}{Color.RESET}")
+        live_print(f"  {Color.DIM}┌─ {agent_name} · {model or 'default'}{Color.RESET}")
 
     # Build messages
     messages = [
@@ -282,13 +283,13 @@ def run_agent_session(
                 for line in lines[:15]:
                     # Color Thought/Action keywords
                     if line.strip().startswith('Thought:'):
-                        print(f"  {Color.DIM}{Color.CYAN}┃{Color.RESET}  {line}")
+                        live_print(f"  {Color.DIM}{Color.CYAN}┃{Color.RESET}  {line}")
                     elif line.strip().startswith('Action:'):
-                        print(f"  {Color.YELLOW}▸{Color.RESET}  {line}")
+                        live_print(f"  {Color.YELLOW}▸{Color.RESET}  {line}")
                     else:
-                        print(f"  {Color.DIM}┃{Color.RESET}  {line}")
+                        live_print(f"  {Color.DIM}┃{Color.RESET}  {line}")
                 if len(lines) > 15:
-                    print(f"  {Color.DIM}┃  ... ({len(lines) - 15} more lines){Color.RESET}")
+                    live_print(f"  {Color.DIM}┃  ... ({len(lines) - 15} more lines){Color.RESET}")
 
             # Check for completion
             from lib.iteration_control import detect_completion_signal
@@ -355,13 +356,13 @@ def run_agent_session(
                     observation = observation[:20000] + f"\n[Truncated: {len(observation)} chars total]"
 
                 if verbose:
-                    print(format_tool_header(tool_name, summary))
-                    print(format_tool_result(observation, max_lines=3, max_chars=200))
+                    live_print(format_tool_header(tool_name, summary))
+                    live_print(format_tool_result(observation, max_lines=3, max_chars=200))
                 else:
                     from lib.display import format_tool_brief
                     brief = format_tool_brief(tool_name, args_str, observation)
                     header = format_tool_header(tool_name, summary)
-                    print(f"{header}  {Color.DIM}({brief}){Color.RESET}")
+                    live_print(f"{header}  {Color.DIM}({brief}){Color.RESET}")
                 combined_results.append(f"[{tool_name}] {observation}")
 
             # Add observation
@@ -405,14 +406,14 @@ def run_agent_session(
 
     elapsed_ms = int((time.time() - start_time) * 1000)
     if verbose:
-        print(format_agent_done(
+        live_print(format_agent_done(
             agent_name, model,
             elapsed_sec=elapsed_ms / 1000,
             iterations=iteration,
             tool_count=len(tool_calls),
         ))
     else:
-        print(f"  {Color.DIM}└─ {agent_name} · {elapsed_ms/1000:.1f}s · {len(tool_calls)} tools · {iteration} iters{Color.RESET}")
+        live_print(f"  {Color.DIM}└─ {agent_name} · {elapsed_ms/1000:.1f}s · {len(tool_calls)} tools · {iteration} iters{Color.RESET}")
 
     return AgentResult(
         output=output,

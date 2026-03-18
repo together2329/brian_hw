@@ -6,6 +6,9 @@ Zero-dependency — pure ANSI escape sequences.
 
 import os
 import shutil
+import sys
+import threading
+import time
 
 
 class Color:
@@ -101,6 +104,111 @@ class Color:
     def diff_context(text):
         """Context lines in diff - Dim"""
         return f"{Color.DIM}  {text}{Color.RESET}"
+
+
+# ============================================================
+# Spinner — Claude Code style status line with coordinated output
+# ============================================================
+
+class Spinner:
+    """
+    Claude Code style inline spinner with elapsed time.
+    Coordinates with live_print() so sub-agent output doesn't collide.
+
+    Usage:
+        with Spinner("Inferring"):
+            result = call_llm(...)
+
+    Shows:  ✽ Inferring… (12s)
+    """
+
+    FRAMES = ["✽", "✦", "✶", "✧", "✹", "✷"]
+    INTERVAL = 0.15  # seconds per frame
+
+    # Class-level coordination
+    _active: 'Spinner' = None
+    _lock = threading.Lock()
+
+    def __init__(self, label: str = "Inferring", stream=None):
+        self.label = label
+        self.stream = stream or sys.stderr
+        self._stop_event = threading.Event()
+        self._thread = None
+        self._start_time = 0.0
+        self._frame_idx = 0
+
+    def _format_elapsed(self, elapsed: float) -> str:
+        if elapsed < 60:
+            return f"{elapsed:.0f}s"
+        minutes = int(elapsed // 60)
+        seconds = int(elapsed % 60)
+        return f"{minutes}m{seconds:02d}s"
+
+    def _render_line(self) -> str:
+        elapsed = time.time() - self._start_time
+        frame = self.FRAMES[self._frame_idx % len(self.FRAMES)]
+        elapsed_str = self._format_elapsed(elapsed)
+        return f"  {Color.CYAN}{frame}{Color.RESET} {Color.DIM}{self.label}… ({elapsed_str}){Color.RESET}"
+
+    def _render(self):
+        """Render the spinner on the current line (no newline)."""
+        line = self._render_line()
+        self.stream.write(f"\r\033[2K{line}")
+        self.stream.flush()
+
+    def _clear_line(self):
+        """Clear the spinner line."""
+        self.stream.write("\r\033[2K")
+        self.stream.flush()
+
+    def _spin(self):
+        while not self._stop_event.is_set():
+            with Spinner._lock:
+                self._render()
+                self._frame_idx += 1
+            self._stop_event.wait(self.INTERVAL)
+
+    def start(self):
+        self._start_time = time.time()
+        self._stop_event.clear()
+        Spinner._active = self
+        self._thread = threading.Thread(target=self._spin, daemon=True)
+        self._thread.start()
+        return self
+
+    def stop(self):
+        self._stop_event.set()
+        if self._thread:
+            self._thread.join(timeout=1.0)
+        with Spinner._lock:
+            self._clear_line()
+            Spinner._active = None
+
+    @property
+    def elapsed(self) -> float:
+        return time.time() - self._start_time if self._start_time else 0.0
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, *args):
+        self.stop()
+
+
+def live_print(*args, **kwargs):
+    """
+    Thread-safe print that coordinates with an active Spinner.
+    Clears spinner → prints → re-renders spinner.
+    Use this instead of print() when a Spinner might be running.
+    """
+    with Spinner._lock:
+        if Spinner._active:
+            Spinner._active._clear_line()
+        print(*args, **kwargs)
+        sys.stdout.flush()
+        if Spinner._active:
+            Spinner._active._render()
 
 
 # ============================================================
