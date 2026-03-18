@@ -3467,7 +3467,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         print(f"{header}  {Color.DIM}({brief}){Color.RESET}")
                     elif tool_name in ['replace_in_file', 'replace_lines']:
                         print(format_tool_header(tool_name, summary))
-                        print(format_tool_result(observation, max_lines=50, max_chars=10000))
+                        print(format_tool_result(observation, max_lines=100, max_chars=10000))
                     else:
                         print(format_tool_header(tool_name, summary))
                         print(format_tool_result(observation))
@@ -3524,7 +3524,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                             print(f"{header}  {Color.DIM}({brief}){Color.RESET}")
                         elif tool_name in ['replace_in_file', 'replace_lines']:
                             print(format_tool_header(tool_name, summary))
-                            print(format_tool_result(observation, max_lines=50, max_chars=10000))
+                            print(format_tool_result(observation, max_lines=100, max_chars=10000))
                         else:
                             print(format_tool_header(tool_name, summary))
                             print(format_tool_result(observation))
