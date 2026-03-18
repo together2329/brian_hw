@@ -251,18 +251,15 @@ def run_agent_session(
                 messages = _compress_agent_context(messages, agent_name, keep_recent=4, model=model)
                 _context_status(messages, sub_agent_max_tokens, agent_name, verbose)
 
-            # LLM call
+            # LLM call (non-streaming for reliable native tool token parsing)
             collected_content = ""
             _log(f"LLM call (model={model})...")
             try:
-                for chunk in chat_completion_stream(
-                    messages,
-                    stop=["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"],
+                collected_content = call_llm_raw(
+                    messages=messages,
+                    stop=["Observation:"],
                     model=model,
-                    skip_rate_limit=True,
-                    caller_tag=f"sub:{agent_name}",
-                ):
-                    collected_content += chunk
+                ) or ""
             except Exception as e:
                 return AgentResult(
                     output=f"LLM call failed: {e}",

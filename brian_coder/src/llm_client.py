@@ -790,16 +790,16 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             yield f"{Color.info('If this persists, please check your network connection.')}\n"
             return
 
-def call_llm_raw(prompt, temperature=0.7, model=None, messages=None):
+def call_llm_raw(prompt, temperature=0.7, model=None, messages=None, stop=None):
     """
-    Call LLM without streaming (for extraction tasks).
+    Call LLM without streaming (for extraction tasks, sub-agents, etc.).
 
     Args:
         prompt: Either a string prompt OR a list of message dicts
-                e.g., [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}]
         temperature: Sampling temperature (default: 0.7)
         model: Optional model override (default: config.MODEL_NAME)
         messages: Alternative to prompt - pass messages list directly
+        stop: Optional list of stop sequences
 
     Returns:
         Complete response text
@@ -833,14 +833,16 @@ def call_llm_raw(prompt, temperature=0.7, model=None, messages=None):
         "temperature": temperature,
         "stream": False
     }
-    
+    if stop:
+        data["stop"] = stop
+
     try:
         request = urllib.request.Request(
             url,
             data=json.dumps(data).encode('utf-8'),
             headers=headers
         )
-        
+
         with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
             result = json.loads(response.read().decode('utf-8'))
             content = result["choices"][0]["message"]["content"]
