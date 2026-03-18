@@ -33,6 +33,10 @@ def _strip_native_tool_tokens(text):
     import re
     import json
 
+    # Strip reasoning tokens leaked into content
+    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+    text = re.sub(r'</?think>', '', text)
+
     def _json_to_action(json_str):
         try:
             data = json.loads(json_str.strip())

@@ -2149,6 +2149,14 @@ def background_task(agent, prompt, context="", foreground="true"):
             # Sync sub-agent completion to primary todo tracker
             _sync_subagent_todo(result.output)
 
+            # Show sub-agent → primary handoff to user
+            from lib.display import Color
+            output_chars = len(result.output)
+            output_tokens = output_chars // 4  # rough estimate
+            print(f"\n  {Color.CYAN}◀ {agent} → primary{Color.RESET} ({result.status}, {result.execution_time_ms}ms, ~{output_tokens:,} tok)")
+            if result.files_modified:
+                print(f"  {Color.DIM}  modified: {result.files_modified}{Color.RESET}")
+
             return (
                 f"=== Foreground Agent Result: {agent} ===\n"
                 f"Status: {result.status} | {result.execution_time_ms}ms | {result.iterations} iterations\n"

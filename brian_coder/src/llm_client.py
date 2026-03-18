@@ -423,7 +423,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
     # Rate limiting: Configurable delay (skip for sub-agents)
     if config.RATE_LIMIT_DELAY > 0 and not skip_rate_limit:
-        print(Color.info(f"[System] Waiting {config.RATE_LIMIT_DELAY}s for rate limit..."))
+        if config.DEBUG_MODE:
+            print(Color.info(f"[System] Waiting {config.RATE_LIMIT_DELAY}s for rate limit..."))
         time.sleep(config.RATE_LIMIT_DELAY)
 
     # Apply prompt caching if enabled (deepcopy to preserve original)

@@ -361,6 +361,12 @@ def _strip_native_tool_tokens(text):
     """
     import re
 
+    # ── Strip reasoning tokens leaked into content ──
+    # DeepSeek/GLM sometimes emit <think>...</think> as content instead of reasoning
+    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+    # Partial tags (stream cut mid-tag)
+    text = re.sub(r'</?think>', '', text)
+
     # ── Helper ──
     def _json_tool_call_to_action(json_str):
         try:
@@ -3317,7 +3323,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             print(Color.system(f"[FLOW]   Messages: user:{user_msgs} assistant:{asst_msgs} system:{sys_msgs} total:{len(messages)}"))
             
         from lib.display import format_iteration_header
-        print(format_iteration_header(tracker.current + 1, tracker.max_iterations), flush=True)
+        print(format_iteration_header(tracker.current + 1, tracker.max_iterations, agent_name="primary"), flush=True)
 
         collected_content = ""
         # Call LLM via urllib (collect without printing)
