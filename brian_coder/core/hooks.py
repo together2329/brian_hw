@@ -446,15 +446,22 @@ def create_default_hooks(
     enable_session_start: bool = True,
 ) -> HookRegistry:
     registry = HookRegistry()
-    
+
     if enable_session_start:
         registry.register(HookPoint.ON_SESSION_START, lambda ctx: ctx, priority=10)
 
-    # TODO: Phase 2에서 구현 예정
-    # - ToolOutputTruncator (AFTER_TOOL_EXEC)
-    # - PreemptiveCompactor (BEFORE_LLM_CALL)
-    # - DynamicContextPruner (BEFORE_LLM_CALL)
-    # - TodoContinuationEnforcer (AFTER_LLM_CALL)
-    # - SkillAutoActivator (BEFORE_LLM_CALL)
+    # Phase 1: Tool output truncation (prevents context bloat from large outputs)
+    registry.register(HookPoint.AFTER_TOOL_EXEC, tool_output_truncator, priority=10)
+
+    # Phase 2: Context compression hooks
+    registry.register(HookPoint.BEFORE_LLM_CALL, dynamic_context_pruner, priority=10)
+    registry.register(HookPoint.BEFORE_LLM_CALL, preemptive_compactor, priority=20)
+    registry.register(HookPoint.BEFORE_LLM_CALL, skill_auto_activator, priority=30)
+
+    # Phase 2: Post-LLM hooks
+    registry.register(HookPoint.AFTER_LLM_CALL, todo_continuation_enforcer, priority=10)
+
+    # Error recovery
+    registry.register(HookPoint.ON_ERROR, emergency_recovery, priority=10)
 
     return registry
