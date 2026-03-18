@@ -318,9 +318,8 @@ def run_agent_session(
                         combined_results.append(observation)
                         continue
 
-                # Execute tool — always show tool header
+                # Execute tool
                 summary = _extract_tool_args_summary(tool_name, args_str)
-                print(format_tool_header(tool_name, summary, idx + 1, len(actions)))
                 try:
                     func = tools_module.AVAILABLE_TOOLS.get(tool_name)
                     if not func:
@@ -356,11 +355,13 @@ def run_agent_session(
                     observation = observation[:20000] + f"\n[Truncated: {len(observation)} chars total]"
 
                 if verbose:
+                    print(format_tool_header(tool_name, summary))
                     print(format_tool_result(observation, max_lines=3, max_chars=200))
                 else:
-                    # Brief: just line count
-                    line_count = observation.count('\n') + 1
-                    print(f"  {Color.DIM}│ ({line_count} lines){Color.RESET}")
+                    from lib.display import format_tool_brief
+                    brief = format_tool_brief(tool_name, args_str, observation)
+                    header = format_tool_header(tool_name, summary)
+                    print(f"{header}  {Color.DIM}({brief}){Color.RESET}")
                 combined_results.append(f"[{tool_name}] {observation}")
 
             # Add observation

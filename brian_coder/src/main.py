@@ -3429,16 +3429,14 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
             # Single action warning removed — too noisy for normal usage
 
-            from lib.display import format_tool_header, format_tool_result, _extract_tool_args_summary
+            from lib.display import format_tool_header, format_tool_result, format_tool_brief, _extract_tool_args_summary
 
             if len(actions) > 1 and config.ENABLE_REACT_PARALLEL:
                 print(Color.DIM + f"  ⚡ {len(actions)} actions (parallel)" + Color.RESET)
                 action_results = execute_actions_parallel(actions, tracker)
 
                 for idx, tool_name, args_str, observation in action_results:
-                    # Tool header with icon
                     summary = _extract_tool_args_summary(tool_name, args_str)
-                    print(format_tool_header(tool_name, summary, idx + 1, len(actions)))
 
                     # Error detection
                     obs_lower = observation.lower()
@@ -3459,15 +3457,19 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         )
                         actions_taken.append(action_obj)
 
-                    # Tool result display (read-only tools hidden unless DEBUG)
-                    _READ_ONLY_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan'}
-                    if tool_name in _READ_ONLY_TOOLS and not config.DEBUG_MODE:
-                        # Show only line count for read-only tools
-                        line_count = observation.count('\n') + 1
-                        print(Color.DIM + f"  │ ({line_count} lines)" + Color.RESET)
+                    # Tool display: header + inline brief on same line
+                    _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan', 'git_diff', 'git_status', 'rag_search', 'write_file'}
+                    if tool_name == 'background_task' and not config.DEBUG_MODE:
+                        pass  # handoff line already printed by background_task()
+                    elif tool_name in _INLINE_TOOLS and not config.DEBUG_MODE:
+                        brief = format_tool_brief(tool_name, args_str, observation)
+                        header = format_tool_header(tool_name, summary)
+                        print(f"{header}  {Color.DIM}({brief}){Color.RESET}")
                     elif tool_name in ['replace_in_file', 'replace_lines']:
-                        print(format_tool_result(observation, max_lines=15, max_chars=2000))
+                        print(format_tool_header(tool_name, summary))
+                        print(format_tool_result(observation, max_lines=50, max_chars=10000))
                     else:
+                        print(format_tool_header(tool_name, summary))
                         print(format_tool_result(observation))
 
                     combined_results.append(f"--- [Action {idx+1}] {tool_name} ---\n{observation}")
@@ -3482,15 +3484,14 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     if config.DEBUG_MODE:
                         tool_start_time = time.time()
 
-                    # Tool header with icon
                     summary = _extract_tool_args_summary(tool_name, args_str)
-                    print(format_tool_header(tool_name, summary, i + 1, len(actions)))
 
                     tracker.record_tool(tool_name)
                     observation = execute_tool(tool_name, args_str)
 
                     if config.DEBUG_MODE:
                         tool_elapsed = time.time() - tool_start_time
+                        print(format_tool_header(tool_name, summary))
                         print(Color.DIM + f"  │ {tool_elapsed:.2f}s" + Color.RESET)
 
                     # Error detection
@@ -3512,15 +3513,21 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         )
                         actions_taken.append(action_obj)
 
-                    # Tool result display (read-only tools hidden unless DEBUG)
-                    _READ_ONLY_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan'}
-                    if tool_name in _READ_ONLY_TOOLS and not config.DEBUG_MODE:
-                        line_count = observation.count('\n') + 1
-                        print(Color.DIM + f"  │ ({line_count} lines)" + Color.RESET)
-                    elif tool_name in ['replace_in_file', 'replace_lines']:
-                        print(format_tool_result(observation, max_lines=15, max_chars=2000))
-                    else:
-                        print(format_tool_result(observation))
+                    # Tool display: header + inline brief on same line
+                    _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan', 'git_diff', 'git_status', 'rag_search', 'write_file'}
+                    if not config.DEBUG_MODE:
+                        if tool_name == 'background_task':
+                            pass  # handoff line already printed by background_task()
+                        elif tool_name in _INLINE_TOOLS:
+                            brief = format_tool_brief(tool_name, args_str, observation)
+                            header = format_tool_header(tool_name, summary)
+                            print(f"{header}  {Color.DIM}({brief}){Color.RESET}")
+                        elif tool_name in ['replace_in_file', 'replace_lines']:
+                            print(format_tool_header(tool_name, summary))
+                            print(format_tool_result(observation, max_lines=15, max_chars=2000))
+                        else:
+                            print(format_tool_header(tool_name, summary))
+                            print(format_tool_result(observation))
 
                     combined_results.append(f"--- [Action {i+1}] {tool_name} ---\n{observation}")
 

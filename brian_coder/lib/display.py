@@ -188,10 +188,9 @@ def format_tool_header(tool_name: str, args_summary: str = "", idx: int = 0, tot
     Example: "  ✱ Grep 'pattern' in core/"
     """
     icon = tool_icon(tool_name)
-    counter = f" {idx}/{total}" if total > 1 else ""
     if args_summary:
-        return f"  {Color.CYAN}{icon}{Color.RESET} {Color.BOLD}{_friendly_tool_name(tool_name)}{Color.RESET} {Color.DIM}{args_summary}{Color.RESET}{Color.DIM}{counter}{Color.RESET}"
-    return f"  {Color.CYAN}{icon}{Color.RESET} {Color.BOLD}{_friendly_tool_name(tool_name)}{Color.RESET}{Color.DIM}{counter}{Color.RESET}"
+        return f"  {Color.CYAN}{icon}{Color.RESET} {Color.BOLD}{_friendly_tool_name(tool_name)}{Color.RESET} {Color.DIM}{args_summary}{Color.RESET}"
+    return f"  {Color.CYAN}{icon}{Color.RESET} {Color.BOLD}{_friendly_tool_name(tool_name)}{Color.RESET}"
 
 
 def format_tool_result(output: str, max_lines: int = 5, max_chars: int = 300) -> str:
@@ -220,6 +219,81 @@ def format_tool_result(output: str, max_lines: int = 5, max_chars: int = 300) ->
         result_lines.append(f"  {Color.DIM}{TREE['pipe']} {line[:120]}{Color.RESET}")
     result_lines.append(f"  {Color.DIM}{TREE['end']} ... ({len(lines)} lines, {total_chars:,} chars){Color.RESET}")
     return '\n'.join(result_lines)
+
+
+def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
+    """
+    Return a short inline suffix describing the tool result.
+    Appended to the tool header on the same line.
+
+    Examples:
+      ✱ Read core/hooks.py                    245 lines
+      ✱ Find "*.v"                            28 file(s)
+      ✱ Grep "pattern" in src/                3 match(es)
+      ✱ List path="."                         15 entries
+    """
+    import re
+    line_count = observation.count('\n') + 1 if observation else 0
+    is_error = observation.lower().startswith('error') if observation else False
+
+    if is_error:
+        first_line = observation.split('\n')[0][:60]
+        return f"{Color.RED}{first_line}{Color.RESET}"
+
+    if tool_name in ('read_file', 'read_lines'):
+        return f"{line_count} lines"
+
+    if tool_name == 'grep_file':
+        match_count = len([l for l in observation.split('\n') if l.strip()]) if observation else 0
+        return f"{match_count} match(es)"
+
+    if tool_name == 'find_files':
+        found_m = re.search(r'Found (\d+) file', observation) if observation else None
+        count = found_m.group(1) if found_m else str(line_count)
+        return f"{count} file(s)"
+
+    if tool_name == 'list_dir':
+        entries = len([l for l in observation.split('\n') if l.strip()]) if observation else 0
+        return f"{entries} entries"
+
+    if tool_name == 'write_file':
+        return f"{line_count} lines written"
+
+    if tool_name in ('replace_in_file', 'replace_lines'):
+        repl_m = re.search(r'(\d+) replacement', observation) if observation else None
+        if repl_m:
+            return f"{repl_m.group(1)} replacement(s)"
+        return "updated"
+
+    if tool_name == 'run_command':
+        exit_m = re.search(r'exit code[:\s]*(\d+)', observation.lower()) if observation else None
+        if exit_m:
+            return f"exit {exit_m.group(1)}"
+        return f"{line_count} lines output"
+
+    if tool_name == 'rag_search':
+        result_m = re.search(r'(\d+) result', observation) if observation else None
+        count = result_m.group(1) if result_m else "?"
+        return f"{count} result(s)"
+
+    if tool_name == 'get_plan':
+        return f"{line_count} lines"
+
+    if tool_name == 'background_task':
+        status_m = re.search(r'Status:\s*(\w+)', observation) if observation else None
+        return status_m.group(1) if status_m else "done"
+
+    if tool_name in ('git_diff', 'git_status'):
+        return f"{line_count} lines"
+
+    return f"{line_count} lines"
+
+
+def _extract_path(args_str: str) -> str:
+    """Extract file path from tool args string."""
+    import re
+    match = re.search(r'(?:path\s*=\s*)?["\']([^"\']+)["\']', args_str)
+    return match.group(1) if match else ""
 
 
 def format_agent_banner(agent_name: str, model: str = "", action: str = "Starting") -> str:
