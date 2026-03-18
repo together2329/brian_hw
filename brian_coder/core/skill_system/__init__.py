@@ -32,22 +32,25 @@ class Skill:
     activation: SkillActivation = field(default_factory=SkillActivation)
     requires_tools: List[str] = field(default_factory=list)
     related_skills: List[str] = field(default_factory=list)
-    content: str = ""  # Markdown content from SKILL.md
+    content: str = ""  # Hub content only (spoke files excluded)
     source_path: Optional[Path] = None
+    # Claude Code compatible fields
+    disable_model_invocation: bool = False  # True = manual /skill only
+    user_invocable: bool = True             # False = hidden from / menu
+    allowed_tools: List[str] = field(default_factory=list)
+    model_override: Optional[str] = None
+    argument_hint: Optional[str] = None
+    skill_dir: Optional[Path] = None        # ${CLAUDE_SKILL_DIR}
+    spoke_files: List[str] = field(default_factory=list)
 
     def format_for_prompt(self) -> str:
         """
-        Format skill content for LLM prompt injection
-
-        Returns:
-            Formatted string ready for system prompt
+        Format skill for LLM prompt injection.
+        Hub only — spoke files listed as references for on-demand read.
         """
-        parts = [
-            f"## 🔧 Skill: {self.name}",
-            f"**Description**: {self.description}",
-            "",
-            self.content
-        ]
+        parts = [f"## Skill: {self.name}", "", self.content]
+        if self.spoke_files and self.skill_dir:
+            parts.append(f"\n> Reference files in `{self.skill_dir}/`: {', '.join(self.spoke_files)}")
         return "\n".join(parts)
 
 

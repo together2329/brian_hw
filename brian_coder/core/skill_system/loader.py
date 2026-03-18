@@ -157,6 +157,13 @@ class SkillLoader:
                 auto_detect=activation_data.get('auto_detect', True)
             )
 
+            # Detect spoke files (other .md files in the same directory)
+            skill_dir = path.parent
+            spoke_files = [
+                f.name for f in skill_dir.iterdir()
+                if f.is_file() and f.suffix == '.md' and f.name != 'SKILL.md'
+            ]
+
             # Create Skill object
             skill = Skill(
                 name=frontmatter.get('name', path.parent.name),
@@ -167,7 +174,15 @@ class SkillLoader:
                 requires_tools=frontmatter.get('requires_tools', []),
                 related_skills=frontmatter.get('related_skills', []),
                 content=body,
-                source_path=path
+                source_path=path,
+                # Claude Code compatible fields
+                disable_model_invocation=frontmatter.get('disable-model-invocation', False),
+                user_invocable=frontmatter.get('user-invocable', True),
+                allowed_tools=frontmatter.get('allowed-tools', '').split(', ') if frontmatter.get('allowed-tools') else [],
+                model_override=frontmatter.get('model', None),
+                argument_hint=frontmatter.get('argument-hint', None),
+                skill_dir=skill_dir,
+                spoke_files=spoke_files,
             )
 
             return skill
