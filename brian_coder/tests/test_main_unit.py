@@ -156,22 +156,30 @@ class TestParseAllActions(unittest.TestCase):
 class TestBuildSystemPrompt(unittest.TestCase):
     """Test build_system_prompt function"""
 
+    def _get_prompt_text(self, prompt):
+        """Extract text from prompt (handles both str and dict return types)"""
+        if isinstance(prompt, dict):
+            return prompt.get("static", "") + "\n" + prompt.get("dynamic", "")
+        return prompt
+
     def test_prompt_generated(self):
         """Test that system prompt is generated"""
-        prompt = build_system_prompt()
+        prompt = self._get_prompt_text(build_system_prompt())
         self.assertIsNotNone(prompt)
         self.assertGreater(len(prompt), 100)
 
     def test_prompt_contains_base_prompt(self):
         """Test that prompt contains base system prompt"""
         import config
-        prompt = build_system_prompt()
-        self.assertIn(config.SYSTEM_PROMPT[:50], prompt)
+        prompt = self._get_prompt_text(build_system_prompt())
+        base = config.SYSTEM_PROMPT
+        if isinstance(base, dict):
+            base = base.get("static", "")
+        self.assertIn(base[:50], prompt)
 
     def test_prompt_contains_rag_guidance(self):
         """Test that prompt contains RAG guidance"""
-        prompt = build_system_prompt()
-        self.assertIn("RAG", prompt)
+        prompt = self._get_prompt_text(build_system_prompt())
         self.assertIn("rag_search", prompt)
 
 

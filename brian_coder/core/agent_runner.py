@@ -256,6 +256,7 @@ def run_agent_session(
             _log(f"LLM call (model={model})...")
             try:
                 collected_content = call_llm_raw(
+                    prompt="",
                     messages=messages,
                     stop=["Observation:"],
                     model=model,
@@ -601,6 +602,7 @@ def _compress_agent_context(
 
     try:
         summary = call_llm_raw(
+            prompt="",
             messages=[{"role": "user", "content": summary_prompt}],
             model=model,
         )
@@ -646,6 +648,7 @@ def _compress_output(
         )
 
         result = call_llm_raw(
+            prompt="",
             messages=[{"role": "user", "content": compress_prompt}],
             model=model,
         )

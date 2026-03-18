@@ -2105,7 +2105,7 @@ def todo_update(index=None, status=None):
 # Background Agent Tools (v2 Architecture)
 # ============================================================
 
-def background_task(agent, prompt, context="", foreground="true"):
+def background_task(agent="explore", prompt="", context="", foreground="true"):
     """
     Launch an agent to handle a sub-task.
 
@@ -2128,6 +2128,20 @@ def background_task(agent, prompt, context="", foreground="true"):
     """
     try:
         valid_agents = {"explore", "plan", "execute", "review", "task"}
+
+        # Auto-fix: if agent looks like a prompt (not a valid agent name), shift args
+        if agent not in valid_agents and not prompt:
+            # LLM passed prompt as first arg: background_task("do something...")
+            prompt = agent
+            agent = "explore"  # default agent
+        elif agent not in valid_agents and prompt:
+            # Maybe agent contains extra text, try context shift
+            context = f"{agent}\n{context}" if context else agent
+            agent = "explore"
+
+        if not prompt:
+            return "Error: 'prompt' is required. Usage: background_task(agent=\"explore\", prompt=\"your task description here\")"
+
         if agent not in valid_agents:
             return f"Error: Invalid agent type '{agent}'. Must be one of: {', '.join(valid_agents)}"
 
@@ -2154,6 +2168,8 @@ def background_task(agent, prompt, context="", foreground="true"):
             output_chars = len(result.output)
             output_tokens = output_chars // 4  # rough estimate
             print(f"\n  {Color.CYAN}◀ {agent} → primary{Color.RESET} ({result.status}, {result.execution_time_ms}ms, ~{output_tokens:,} tok)")
+            if result.status == "error" and result.error:
+                print(f"  {Color.RED}  error: {result.error}{Color.RESET}")
             if result.files_modified:
                 print(f"  {Color.DIM}  modified: {result.files_modified}{Color.RESET}")
 

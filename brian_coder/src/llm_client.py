@@ -790,7 +790,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             yield f"{Color.info('If this persists, please check your network connection.')}\n"
             return
 
-def call_llm_raw(prompt, temperature=0.7, model=None, messages=None, stop=None):
+def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=None):
     """
     Call LLM without streaming (for extraction tasks, sub-agents, etc.).
 

@@ -588,39 +588,35 @@ def parse_all_actions(text):
             action_positions.append(start_pos + match.start())  # Store action position
             start_pos = i  # Continue searching after this action
         else:
-            # Unmatched parentheses - check if we hit end of string (Truncated Output)
-            if i >= len(text):
+            # Unmatched parentheses - check if there's another Action after this one
+            next_action_match = re.search(pattern, text[match_start:], re.DOTALL)
+
+            if i >= len(text) and not next_action_match:
+                # Truly truncated at end of text with no further actions
                 if config.DEBUG_MODE:
                     print(Color.warning(f"[System] ⚠️  Action '{tool_name}' appears truncated at end of text. Attempting auto-recovery..."))
-                
-                # Recover argument string up to current position
+
                 args_str = text[match_start:]
-                
-                # Check if it looks like a valid partial argument (e.g. key="val...)
-                # Heuristic: If it has at least one char, we try to use it.
                 if args_str:
-                     # Attempt to close quotes if open
                     if in_double_quote: args_str += '"'
                     elif in_single_quote: args_str += "'"
                     elif in_triple_double: args_str += '"""'
                     elif in_triple_single: args_str += "'''"
-                    
+
                     actions.append((tool_name, args_str))
-                    action_positions.append(start_pos + match.start())  # Store position
+                    action_positions.append(start_pos + match.start())
                     if config.DEBUG_MODE:
                         print(Color.warning(f"[System] 🔧 Auto-recovered truncated action: {tool_name}({args_str}...)"))
-                    break # Stop parsing as we are at end of text
-            
+                    break
+
             # Unmatched parentheses in middle of text - skip this action and try next one
             if config.DEBUG_MODE:
                 print(f"[DEBUG] parse_all_actions: Unmatched parentheses for {tool_name}, skipping to next Action")
             
             # Find next "Action:" and continue from there instead of breaking
-            next_match = re.search(pattern, text[match_start:], re.DOTALL)
-            if next_match:
-                start_pos = match_start + next_match.start()
+            if next_action_match:
+                start_pos = match_start + next_action_match.start()
             else:
-                 # No more actions possible
                 start_pos = len(text)
 
             
@@ -3325,13 +3321,25 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         from lib.display import format_iteration_header
         print(format_iteration_header(tracker.current + 1, tracker.max_iterations, agent_name="primary"), flush=True)
 
-        collected_content = ""
-        # Call LLM via urllib (collect without printing)
-        for content_chunk in chat_completion_stream(messages, stop=["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"], caller_tag="primary"):
-            collected_content += content_chunk
+        # Call LLM (non-streaming to avoid token splitting on Linux)
+        collected_content = call_llm_raw(
+            prompt="",
+            messages=messages,
+            stop=["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"],
+        ) or ""
 
         # Strip any leaked native tool call tokens from content
         collected_content = _strip_native_tool_tokens(collected_content)
+
+        # Strip echoed system prompt fragments before first Thought:/Action:
+        # Some models (GLM 4.7) echo tail of system prompt at response start
+        import re as _re
+        _first_marker = _re.search(r'^(Thought:|Action:)', collected_content, _re.MULTILINE)
+        if _first_marker and _first_marker.start() > 0:
+            prefix = collected_content[:_first_marker.start()]
+            # Only strip if prefix looks like noise (no newlines = single fragment)
+            if '\n' not in prefix.strip():
+                collected_content = collected_content[_first_marker.start():]
 
         # Display only Thought portion (Action lines are shown as tool headers)
         if not config.DEBUG_MODE:
