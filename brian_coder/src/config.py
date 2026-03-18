@@ -625,9 +625,10 @@ Planning Tools (for complex multi-step tasks):
 15. wait_for_plan_approval() - Pause and wait for user to review/edit plan
 16. check_plan_status() - Check if plan was approved by user
 
-On-Demand Sub-Agent Tools (use sparingly, only when needed):
-30. spawn_explore(query="find FIFO implementations") - Spawn explore agent for deep codebase search
-31. spawn_plan(task_description="design async FIFO") - Spawn planning agent for complex task planning
+Sub-Agent Tools:
+30. background_task(agent="explore", prompt="find FIFO implementations") - Delegate to sub-agent
+31. background_output(task_id="bg_xxxx") - Get background task result
+32. todo_update(index=1, status="completed") - Update todo item status (1-based index)
 
 RAG Tools (for Code/Documentation search - RECOMMENDED):
 17. rag_search(query="function or concept", categories="all", limit=5) - Semantic search
@@ -909,8 +910,8 @@ When deciding how to approach a task, consider:
 2. **Tool Selection**:
    - **Parallel execution**: Use multiple read-only tools simultaneously
    - **Sequential execution**: Write tools create barriers
-   - **Meta tools**: Use spawn_explore for broad exploration
-   - **TodoWrite**: Track progress for multi-step tasks
+   - **Sub-agents**: Use background_task for delegation
+   - **Todo tracking**: Use todo_write/todo_update for multi-step tasks
 
 3. **Plan Mode** (automatic when complex):
    - System analyzes complexity automatically
@@ -1078,9 +1079,9 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         "File Search & Navigation": ["grep_file", "read_lines", "find_files"],
         "File Editing": ["replace_in_file", "replace_lines"],
         "Git Tools": ["git_status", "git_diff"],
-        "Task Management": ["create_plan", "get_plan", "mark_step_done", "wait_for_plan_approval", "check_plan_status", "todo_write"],
+        "Task Management": ["create_plan", "get_plan", "mark_step_done", "wait_for_plan_approval", "check_plan_status", "todo_write", "todo_update"],
         "RAG Tools": ["rag_search", "rag_index", "rag_status", "rag_explore", "rag_clear"],
-        "Sub-Agent Tools": ["spawn_explore", "spawn_plan"]
+        "Sub-Agent Tools": ["background_task", "background_output", "background_cancel", "background_list"]
     }
 
     # Add Verilog Analysis category only if enabled and tools are available
