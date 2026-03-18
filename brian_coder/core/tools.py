@@ -702,8 +702,12 @@ def find_files(pattern, directory=".", max_depth=None, path=None, recursive=True
                 
             return msg
         
+        MAX_RESULTS = 100
+        sorted_matches = sorted(matches)
         result = f"Found {len(matches)} file(s) matching '{pattern}':\n"
-        result += "\n".join(f"  - {m}" for m in sorted(matches))
+        result += "\n".join(f"  - {m}" for m in sorted_matches[:MAX_RESULTS])
+        if len(matches) > MAX_RESULTS:
+            result += f"\n  ... and {len(matches) - MAX_RESULTS} more files (narrow your search with a more specific path or pattern)"
         return result
     except Exception as e:
         return f"Error finding files: {e}"
@@ -2130,15 +2134,16 @@ def background_task(agent, prompt, context="", foreground="true"):
         is_foreground = str(foreground).lower() in ("true", "1", "yes")
 
         if is_foreground:
-            # Foreground: synchronous execution with verbose output
+            # Foreground: synchronous execution
             import sys
+            import config as _cfg
             from core.agent_runner import run_agent_session
 
             result = run_agent_session(
                 agent_name=agent,
                 prompt=prompt,
                 parent_context=context,
-                verbose=True,
+                verbose=_cfg.DEBUG_MODE,
             )
 
             # Sync sub-agent completion to primary todo tracker

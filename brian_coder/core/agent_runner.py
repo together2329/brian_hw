@@ -24,6 +24,102 @@ if os.path.join(_project_root, 'src') not in sys.path:
     sys.path.insert(0, os.path.join(_project_root, 'src'))
 
 
+def _strip_native_tool_tokens(text):
+    """
+    Strip native tool call tokens and convert to ReAct Action: format.
+    Standalone version for agent_runner (no main.py dependency).
+    Handles GLM 4.7, Qwen, DeepSeek, Mistral native formats.
+    """
+    import re
+    import json
+
+    def _json_to_action(json_str):
+        try:
+            data = json.loads(json_str.strip())
+            name = data.get("name", "")
+            args = data.get("arguments", {})
+            if name and isinstance(args, dict):
+                args_str = ", ".join(f'{k}={json.dumps(v)}' for k, v in args.items())
+                return f"\nAction: {name}({args_str})\n"
+        except (json.JSONDecodeError, AttributeError):
+            pass
+        return ""
+
+    def _xml_params_to_action(tool_name, params_block):
+        params = re.findall(r'<(\w+)>(.*?)</\1>', params_block, re.DOTALL)
+        if tool_name and params:
+            args_str = ", ".join(f'{k}={json.dumps(v)}' for k, v in params)
+            return f"\nAction: {tool_name}({args_str})\n"
+        elif tool_name:
+            return f"\nAction: {tool_name}()\n"
+        return ""
+
+    # JSON-based: <tool_call>{...}</tool_call> or bare JSON
+    text = re.sub(
+        r'<tool_call>\s*(\{.*?\})\s*</tool_call>',
+        lambda m: _json_to_action(m.group(1)), text, flags=re.DOTALL
+    )
+    text = re.sub(
+        r'\{\s*"name"\s*:\s*"(\w+)"\s*,\s*"arguments"\s*:\s*\{[^}]*\}\s*\}',
+        lambda m: _json_to_action(m.group(0)), text
+    )
+
+    # GLM-style universal: <tool/action/execute>NAME</tag> <param*>...<key>val</key>...</tag>
+    tool_tag_re = re.compile(
+        r'<(tool|action|execute|func\w*)\s*>'
+        r'\s*(?:<(execute|tool)\s*>\s*)?'
+        r'(\w+)'
+        r'\s*(?:</\w+>\s*)?'
+        r'</\w+>'
+    )
+    matches = list(tool_tag_re.finditer(text))
+    for m in reversed(matches):
+        tool_name = m.group(3)
+        after_tool = text[m.end():]
+        param_re = re.match(
+            r'\s*<(p(?:ar|ra)\w*)\s*>(.*)</(p(?:ar|ra)\w*)\s*>',
+            after_tool, re.DOTALL
+        )
+        if param_re:
+            total_end = m.end() + param_re.end()
+            action_str = _xml_params_to_action(tool_name, param_re.group(2))
+            text = text[:m.start()] + action_str + text[total_end:]
+        else:
+            text = text[:m.start()] + f"\nAction: {tool_name}()\n" + text[m.end():]
+
+    # Strip remaining tokens
+    for token in [
+        'tool_call_begin', 'tool_call_end',
+        'tool_calls_section_begin', 'tool_calls_section_end',
+        '<|tool_call|>', '<|tool_calls|>',
+        '<|start_header_id|>tool_call<|end_header_id|>',
+    ]:
+        text = text.replace(token, '')
+
+    text = re.sub(r'<\|(?:tool_call|tool_calls|functions)[^|]*\|>', '', text)
+    text = re.sub(r'</?(?:tool_call|tool|action|execute|func\w*|p(?:ar|aram)\w*)>', '', text)
+
+    # Bare function calls: "list_dir(path=".")" → "Action: list_dir(path=".")"
+    _KNOWN_TOOLS = {
+        'read_file', 'write_file', 'run_command', 'list_dir', 'grep_file',
+        'read_lines', 'find_files', 'replace_in_file', 'replace_lines',
+        'git_diff', 'git_status', 'todo_write', 'todo_update',
+        'rag_search', 'rag_index', 'rag_explore', 'rag_status',
+        'background_task', 'background_output',
+        'analyze_verilog_module', 'find_signal_usage', 'find_module_definition',
+        'extract_module_hierarchy', 'generate_module_testbench',
+    }
+    _tools_pattern = '|'.join(re.escape(t) for t in _KNOWN_TOOLS)
+    text = re.sub(
+        r'^(\s*)(' + _tools_pattern + r')\s*\(',
+        r'\1Action: \2(',
+        text,
+        flags=re.MULTILINE
+    )
+
+    return text.strip()
+
+
 @dataclass
 class AgentResult:
     """Sub-agent 실행 결과"""
@@ -98,8 +194,11 @@ def run_agent_session(
         if verbose:
             print(f"  {Color.DIM}[{agent_name}]{Color.RESET} {msg}")
 
+    # Always show banner (brief when not verbose)
     if verbose:
         print(format_agent_banner(agent_name, model, f"tools={len(allowed_tools)}, max_iter={max_iterations}"))
+    else:
+        print(f"  {Color.DIM}┌─ {agent_name} · {model or 'default'}{Color.RESET}")
 
     # Build messages
     messages = [
@@ -154,7 +253,7 @@ def run_agent_session(
             try:
                 for chunk in chat_completion_stream(
                     messages,
-                    stop=["Observation:", "<|call|>", "tool_call_begin"],
+                    stop=["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"],
                     model=model,
                     skip_rate_limit=True,
                     caller_tag=f"sub:{agent_name}",
@@ -169,12 +268,8 @@ def run_agent_session(
                     execution_time_ms=int((time.time() - start_time) * 1000),
                 )
 
-            # Clean up native tokens
-            try:
-                from main import _strip_native_tool_tokens
-                collected_content = _strip_native_tool_tokens(collected_content)
-            except ImportError:
-                pass
+            # Clean up native tool tokens + convert to ReAct format
+            collected_content = _strip_native_tool_tokens(collected_content)
 
             # Add assistant message
             messages.append({"role": "assistant", "content": collected_content})
@@ -221,10 +316,9 @@ def run_agent_session(
                         combined_results.append(observation)
                         continue
 
-                # Execute tool
-                if verbose:
-                    summary = _extract_tool_args_summary(tool_name, args_str)
-                    print(format_tool_header(tool_name, summary, idx + 1, len(actions)))
+                # Execute tool — always show tool header
+                summary = _extract_tool_args_summary(tool_name, args_str)
+                print(format_tool_header(tool_name, summary, idx + 1, len(actions)))
                 try:
                     func = tools_module.AVAILABLE_TOOLS.get(tool_name)
                     if not func:
@@ -262,7 +356,9 @@ def run_agent_session(
                 if verbose:
                     print(format_tool_result(observation, max_lines=3, max_chars=200))
                 else:
-                    _log(f"  ✓ {tool_name}: {len(observation)} chars")
+                    # Brief: just line count
+                    line_count = observation.count('\n') + 1
+                    print(f"  {Color.DIM}│ ({line_count} lines){Color.RESET}")
                 combined_results.append(f"[{tool_name}] {observation}")
 
             # Add observation
@@ -313,7 +409,7 @@ def run_agent_session(
             tool_count=len(tool_calls),
         ))
     else:
-        _log(f"Done: {iteration} iterations, {elapsed_ms}ms, {len(tool_calls)} tool calls")
+        print(f"  {Color.DIM}└─ {agent_name} · {elapsed_ms/1000:.1f}s · {len(tool_calls)} tools · {iteration} iters{Color.RESET}")
 
     return AgentResult(
         output=output,

@@ -289,24 +289,82 @@ def sanitize_action_text(text):
     return text
 
 
-def _strip_native_tool_tokens(text):
+def _convert_all_glm_tool_calls(text, xml_params_to_action_fn):
     """
-    Strip native tool call tokens emitted by some models (Qwen, Mistral, DeepSeek, etc.)
-    and optionally convert them to the ReAct Action: format.
+    Convert GLM 4.7 style XML tool calls to Action: format.
+    Handles all tag name variations and typos.
 
-    Native tool call patterns:
-    - tool_call_begin / tool_call_end
-    - tool_calls_section_begin / tool_calls_section_end
-    - <|tool_call|> / <tool_call> / </tool_call>
-    - <|start_header_id|>tool_call<|end_header_id|>
-    - {"name": "func", "arguments": {...}}  (JSON tool call block)
+    Examples:
+      <tool>list_dir</tool><parameter><path>.</path></parameter>
+      <action><execute>read_file</execute><paramater><path>f.py</path></paramater>
+      <tool>grep_file</tool><paratemeter><pattern>x</pattern><path>f.py</path></paratemeter>
     """
     import re
 
-    # Pattern 1: XML-style tool calls like <tool_call>{"name":"func","arguments":{...}}</tool_call>
-    def _convert_xml_tool_call(match):
+    result = text
+    # Tag patterns for tool name wrapper
+    tool_tag_re = re.compile(
+        r'<(tool|action|execute|func\w*)\s*>'       # open tag
+        r'\s*(?:<(execute|tool)\s*>\s*)?'            # optional nested: <action><execute>
+        r'(\w+)'                                     # tool name
+        r'\s*(?:</\w+>\s*)?'                         # optional nested close
+        r'</\w+>'                                    # close tag
+    )
+
+    # Find all tool name occurrences
+    matches = list(tool_tag_re.finditer(result))
+    if not matches:
+        return text
+
+    # Process in reverse order to preserve positions
+    for m in reversed(matches):
+        tool_name = m.group(3)
+        after_tool = result[m.end():]
+
+        # Look for parameter block right after.
+        # Opening: <parameter>, <paramater>, <prameter>, <paratemeter>, etc.
+        # Must start with "par" or "pra" to avoid matching </path>, </pattern>
+        param_re = re.match(
+            r'\s*<(p(?:ar|ra)\w*)\s*>'    # opening: par* or pra* (parameter, paramater, prameter...)
+            r'(.*)'                        # content (greedy — take everything until last matching close)
+            r'</(p(?:ar|ra)\w*)\s*>',     # closing: par* or pra*
+            after_tool,
+            re.DOTALL
+        )
+
+        if param_re:
+            params_block = param_re.group(2)
+            total_end = m.end() + param_re.end()
+            action_str = xml_params_to_action_fn(tool_name, params_block)
+            result = result[:m.start()] + action_str + result[total_end:]
+        else:
+            # No parameter block — just tool name
+            action_str = f"\nAction: {tool_name}()\n"
+            result = result[:m.start()] + action_str + result[m.end():]
+
+    return result
+
+
+def _strip_native_tool_tokens(text):
+    """
+    Strip native tool call tokens emitted by models (GLM, Qwen, Mistral, DeepSeek, etc.)
+    and convert them to the ReAct Action: format.
+
+    GLM 4.7 variants (tag names are often misspelled):
+      <tool>list_dir</tool><parameter><path>.</path></parameter>
+      <action><execute>list_dir</execute><parameter><path>.</path></paratemeter>
+      <tool>grep_file</tool><paramater><pattern>main</pattern><path>file.py</path></paramater>
+
+    Other models:
+      <tool_call>{"name":"func","arguments":{...}}</tool_call>
+      {"name":"func","arguments":{...}}  (bare JSON)
+    """
+    import re
+
+    # ── Helper ──
+    def _json_tool_call_to_action(json_str):
         try:
-            data = json.loads(match.group(1).strip())
+            data = json.loads(json_str.strip())
             name = data.get("name", "")
             args = data.get("arguments", {})
             if name and isinstance(args, dict):
@@ -316,21 +374,86 @@ def _strip_native_tool_tokens(text):
             pass
         return ""
 
-    text = re.sub(r'<tool_call>\s*(\{.*?\})\s*</tool_call>', _convert_xml_tool_call, text, flags=re.DOTALL)
+    def _xml_params_to_action(tool_name, params_block):
+        """Parse <key>value</key> pairs from any XML parameter block."""
+        params = re.findall(r'<(\w+)>(.*?)</\1>', params_block, re.DOTALL)
+        if tool_name and params:
+            args_str = ", ".join(f'{k}={json.dumps(v)}' for k, v in params)
+            return f"\nAction: {tool_name}({args_str})\n"
+        elif tool_name:
+            return f"\nAction: {tool_name}()\n"
+        return ""
 
-    # Pattern 2: Strip bare tokens (stop sequence leaks)
+    # ── Pattern 1: JSON-based tool calls ──
+    # <tool_call>{"name":"func","arguments":{...}}</tool_call>
+    text = re.sub(
+        r'<tool_call>\s*(\{.*?\})\s*</tool_call>',
+        lambda m: _json_tool_call_to_action(m.group(1)),
+        text, flags=re.DOTALL
+    )
+    # Bare JSON: {"name":"func","arguments":{...}}
+    text = re.sub(
+        r'\{\s*"name"\s*:\s*"(\w+)"\s*,\s*"arguments"\s*:\s*\{[^}]*\}\s*\}',
+        lambda m: _json_tool_call_to_action(m.group(0)),
+        text
+    )
+
+    # ── Pattern 2: GLM-style XML tool calls (UNIVERSAL) ──
+    # Catches ALL variants:
+    #   <tool>name</tool><parameter>...</parameter>
+    #   <action><execute>name</execute><parameter>...</paratemeter>
+    #   <tool>name</tool><paramater>...</paramater>   (typo)
+    # Strategy:
+    #   tag1 = any tag containing tool/action/execute → extract tool name
+    #   tag2 = any tag starting with "par" or "param" → extract <key>val</key> params
+
+    # Step 2a: Find tool name from various wrapper tags
+    # Match: <ANYTAG>tool_name</ANYTAG> followed by <param-like-tag>...</close-tag>
+    def _convert_glm_tool_call(match):
+        tool_name = match.group(1).strip()
+        params_block = match.group(2)
+        return _xml_params_to_action(tool_name, params_block)
+
+    # Universal GLM pattern: use a function to avoid regex greediness issues
+    text = _convert_all_glm_tool_calls(text, _xml_params_to_action)
+
+    # ── Pattern 3: Strip remaining special tokens ──
     native_tokens = [
         'tool_call_begin', 'tool_call_end',
         'tool_calls_section_begin', 'tool_calls_section_end',
         '<|tool_call|>', '<|tool_calls|>',
         '<|start_header_id|>tool_call<|end_header_id|>',
-        '<tool_call>', '</tool_call>',
     ]
     for token in native_tokens:
         text = text.replace(token, '')
 
-    # Pattern 3: Strip generic special tokens <|...|> that aren't useful
+    # Strip <|...|> special tokens
     text = re.sub(r'<\|(?:tool_call|tool_calls|functions)[^|]*\|>', '', text)
+
+    # Strip any remaining XML-like tags from tool calling (tool, action, execute, param*)
+    text = re.sub(r'</?(?:tool_call|tool|action|execute|func\w*|p(?:ar|aram)\w*)>', '', text)
+
+    # ── Pattern 4: Bare function calls without Action: prefix ──
+    # Models like Qwen sometimes output just "list_dir(path=".")" without any prefix.
+    # Detect known tool names at line start and prepend "Action: "
+    _KNOWN_TOOLS = {
+        'read_file', 'write_file', 'run_command', 'list_dir', 'grep_file',
+        'read_lines', 'find_files', 'replace_in_file', 'replace_lines',
+        'git_diff', 'git_status', 'todo_write', 'todo_update',
+        'rag_search', 'rag_index', 'rag_explore', 'rag_status', 'rag_clear',
+        'background_task', 'background_output', 'background_cancel', 'background_list',
+        'create_plan', 'get_plan', 'mark_step_done',
+        'analyze_verilog_module', 'find_signal_usage', 'find_module_definition',
+        'extract_module_hierarchy', 'generate_module_testbench', 'find_potential_issues',
+        'analyze_timing_paths', 'generate_module_docs', 'suggest_optimizations',
+    }
+    _tools_pattern = '|'.join(re.escape(t) for t in _KNOWN_TOOLS)
+    text = re.sub(
+        r'^(\s*)(' + _tools_pattern + r')\s*\(',
+        r'\1Action: \2(',
+        text,
+        flags=re.MULTILINE
+    )
 
     return text.strip()
 
@@ -3322,8 +3445,13 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         )
                         actions_taken.append(action_obj)
 
-                    # Tool result with tree structure
-                    if tool_name in ['replace_in_file', 'replace_lines']:
+                    # Tool result display (read-only tools hidden unless DEBUG)
+                    _READ_ONLY_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan'}
+                    if tool_name in _READ_ONLY_TOOLS and not config.DEBUG_MODE:
+                        # Show only line count for read-only tools
+                        line_count = observation.count('\n') + 1
+                        print(Color.DIM + f"  │ ({line_count} lines)" + Color.RESET)
+                    elif tool_name in ['replace_in_file', 'replace_lines']:
                         print(format_tool_result(observation, max_lines=15, max_chars=2000))
                     else:
                         print(format_tool_result(observation))
@@ -3370,8 +3498,12 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         )
                         actions_taken.append(action_obj)
 
-                    # Tool result with tree structure
-                    if tool_name in ['replace_in_file', 'replace_lines']:
+                    # Tool result display (read-only tools hidden unless DEBUG)
+                    _READ_ONLY_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan'}
+                    if tool_name in _READ_ONLY_TOOLS and not config.DEBUG_MODE:
+                        line_count = observation.count('\n') + 1
+                        print(Color.DIM + f"  │ ({line_count} lines)" + Color.RESET)
+                    elif tool_name in ['replace_in_file', 'replace_lines']:
                         print(format_tool_result(observation, max_lines=15, max_chars=2000))
                     else:
                         print(format_tool_result(observation))
@@ -3472,7 +3604,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             # Process observation (handles large files and context management)
             # Append todo status to observation so LLM sees current progress
             if todo_tracker and todo_tracker.todos:
-                observation += f"\n\n[Todo Status]\n{todo_tracker.format_progress()}"
+                progress = todo_tracker.format_progress()
+                observation += f"\n\n[Todo Status]\n{progress}"
+                # Always show todo progress to user
+                print(Color.info(f"\n{progress}"))
             messages = process_observation(observation, messages)
 
             # Todo status is now managed by explicit todo_update() calls from LLM

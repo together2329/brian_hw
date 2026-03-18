@@ -242,9 +242,6 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                             _reasoning_started = True
                                         sys.stdout.write(f"\033[36m{reasoning}\033[0m")
                                         sys.stdout.flush()
-                                    # Primary agent: yield reasoning as content (preserves Thought: text)
-                                    if caller_tag == "primary":
-                                        yield reasoning
 
                                 content = delta.get("content", "")
                                 if content:
@@ -613,9 +610,6 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                             _reasoning_started = True
                                         sys.stdout.write(f"\033[36m{reasoning}\033[0m")
                                         sys.stdout.flush()
-                                    # Primary agent: yield reasoning as content (preserves Thought: text)
-                                    if caller_tag == "primary":
-                                        yield reasoning
 
                                 content = delta.get("content", "")
                                 if content:
