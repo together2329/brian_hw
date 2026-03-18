@@ -3515,16 +3515,17 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                     # Tool display: header + inline brief on same line
                     _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan', 'git_diff', 'git_status', 'rag_search', 'write_file'}
-                    if not config.DEBUG_MODE:
-                        if tool_name == 'background_task':
-                            pass  # handoff line already printed by background_task()
-                        elif tool_name in _INLINE_TOOLS:
+                    if tool_name == 'background_task' and not config.DEBUG_MODE:
+                        pass  # handoff line already printed by background_task()
+                    elif tool_name in ['replace_in_file', 'replace_lines']:
+                        if not config.DEBUG_MODE:
+                            print(format_tool_header(tool_name, summary))
+                        print(format_tool_result(observation, max_lines=100, max_chars=10000))
+                    elif not config.DEBUG_MODE:
+                        if tool_name in _INLINE_TOOLS:
                             brief = format_tool_brief(tool_name, args_str, observation)
                             header = format_tool_header(tool_name, summary)
                             print(f"{header}  {Color.DIM}({brief}){Color.RESET}")
-                        elif tool_name in ['replace_in_file', 'replace_lines']:
-                            print(format_tool_header(tool_name, summary))
-                            print(format_tool_result(observation, max_lines=100, max_chars=10000))
                         else:
                             print(format_tool_header(tool_name, summary))
                             print(format_tool_result(observation))

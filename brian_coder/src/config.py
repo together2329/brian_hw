@@ -1046,478 +1046,137 @@ LEGACY_SYSTEM_PROMPT = SYSTEM_PROMPT
 
 def build_base_system_prompt(allowed_tools: set = None) -> str:
     """
-    Build base system prompt with tool descriptions (OpenCode-style)
-
-    Args:
-        allowed_tools: Set of allowed tool names (None = all tools)
-
-    Returns:
-        System prompt string with tool information
+    Build compact system prompt (~5K tokens).
+    Tool descriptions are minimal (name + signature + when-to-use).
+    Detailed examples removed — LLM infers usage from signatures.
     """
     if not ENABLE_TOOL_DESCRIPTIONS:
-        # Legacy mode: return hardcoded SYSTEM_PROMPT
         return LEGACY_SYSTEM_PROMPT
 
     try:
-        from core.tool_descriptions import get_loader, format_tool_for_prompt
         from core import tools
     except ImportError:
-        # Fallback to legacy if tool_descriptions not available
         return LEGACY_SYSTEM_PROMPT
-
-    loader = get_loader()
 
     # Determine tool list
     if allowed_tools is None:
-        tool_list = list(tools.AVAILABLE_TOOLS.keys())
+        tool_list = set(tools.AVAILABLE_TOOLS.keys())
     else:
-        tool_list = [t for t in tools.AVAILABLE_TOOLS if t in allowed_tools]
+        tool_list = set(t for t in tools.AVAILABLE_TOOLS if t in allowed_tools)
 
-    # Tool categories
-    categories = {
-        "Basic File Tools": ["read_file", "write_file", "run_command", "list_dir"],
-        "File Search & Navigation": ["grep_file", "read_lines", "find_files"],
-        "File Editing": ["replace_in_file", "replace_lines"],
-        "Git Tools": ["git_status", "git_diff"],
-        "Task Management": ["create_plan", "get_plan", "mark_step_done", "wait_for_plan_approval", "check_plan_status", "todo_write", "todo_update"],
-        "RAG Tools": ["rag_search", "rag_index", "rag_status", "rag_explore", "rag_clear"],
-        "Sub-Agent Tools": ["background_task", "background_output", "background_cancel", "background_list"]
+    def _tool_line(name, sig, desc):
+        """Format one tool line, only if available."""
+        if name in tool_list:
+            return f"- {name}({sig}) — {desc}"
+        return None
+
+    # ── COMPACT TOOL TABLE ──
+    tool_lines = {
+        "File I/O": [
+            _tool_line("read_file", 'path', "Read entire file. For large files (>500 lines), use grep_file first."),
+            _tool_line("read_lines", 'path, start_line, end_line', "Read line range. Use after grep to target sections."),
+            _tool_line("write_file", 'path, content', "Create NEW files ONLY. NEVER use on existing files."),
+            _tool_line("replace_in_file", 'path, old_text, new_text', "Edit existing files. ALWAYS read first to get exact text."),
+            _tool_line("replace_lines", 'path, start_line, end_line, new_content', "Replace line range in existing files."),
+            _tool_line("run_command", 'command', "Execute shell command."),
+            _tool_line("list_dir", 'path', "List directory contents."),
+        ],
+        "Search": [
+            _tool_line("grep_file", 'pattern, path', "Regex search in file(s). Use BEFORE read_file on large files."),
+            _tool_line("find_files", 'pattern, path', "Glob search for files. Prefer over repeated list_dir."),
+            _tool_line("rag_search", 'query, categories, limit', "Semantic code/doc search. Prefer over grep for concepts."),
+            _tool_line("rag_index", 'path', "Index project files for RAG (run once)."),
+            _tool_line("rag_explore", 'start_node, max_depth', "Explore related code sections."),
+            _tool_line("rag_status", '', "Show RAG index stats."),
+            _tool_line("rag_clear", '', "Clear RAG index."),
+        ],
+        "Git": [
+            _tool_line("git_status", '', "Show working tree status."),
+            _tool_line("git_diff", 'path', "Show unstaged changes."),
+        ],
+        "Task Management": [
+            _tool_line("todo_write", 'tasks', "Track multi-step tasks (3+ steps). Format: [{content, activeForm, status}]."),
+            _tool_line("todo_update", 'index, status', "Update task status (pending/in_progress/completed)."),
+            _tool_line("create_plan", 'title, steps', "Create execution plan for complex tasks."),
+            _tool_line("get_plan", '', "Get current plan."),
+            _tool_line("mark_step_done", 'step_index', "Mark plan step as done."),
+            _tool_line("wait_for_plan_approval", '', "Wait for user plan approval."),
+            _tool_line("check_plan_status", '', "Check plan status."),
+        ],
+        "Sub-Agents": [
+            _tool_line("background_task", 'agent, prompt', "Delegate to sub-agent (explore/plan/execute/review)."),
+            _tool_line("background_output", 'task_id', "Get sub-agent result."),
+            _tool_line("background_cancel", 'task_id', "Cancel sub-agent."),
+            _tool_line("background_list", '', "List active sub-agents."),
+        ],
     }
 
-    # Add Verilog Analysis category only if enabled and tools are available
+    # Verilog tools (conditional)
     if ENABLE_VERILOG_TOOLS and "analyze_verilog_module" in tool_list:
-        categories["Verilog Analysis"] = [
-            "analyze_verilog_module", "find_signal_usage", "find_module_definition",
-            "extract_module_hierarchy", "generate_module_testbench", "find_potential_issues",
-            "analyze_timing_paths", "generate_module_docs", "suggest_optimizations"
+        tool_lines["Verilog Analysis"] = [
+            _tool_line("analyze_verilog_module", 'path', "Parse module ports, parameters, FSM."),
+            _tool_line("find_signal_usage", 'signal, path', "Find signal assignments/references."),
+            _tool_line("find_module_definition", 'module_name, directory', "Locate module source file."),
+            _tool_line("extract_module_hierarchy", 'path', "Get instantiation tree."),
+            _tool_line("generate_module_testbench", 'path', "Auto-generate testbench."),
+            _tool_line("find_potential_issues", 'path', "Lint-like checks."),
+            _tool_line("analyze_timing_paths", 'path', "Timing analysis hints."),
+            _tool_line("generate_module_docs", 'path', "Auto-generate documentation."),
+            _tool_line("suggest_optimizations", 'path', "Optimization suggestions."),
         ]
 
-    # Build prompt
-    prompt_parts = [
-        "You are an intelligent coding agent named Brian Coder.",
-        "You can read files, write code, and run terminal commands to help the user.",
-        "",
-        "TOOLS:",
-        "You have access to the following tools:",
-        ""
-    ]
+    # ── BUILD PROMPT ──
+    parts = []
 
-    # Add tools by category
-    for category, tool_names in categories.items():
-        available = [t for t in tool_names if t in tool_list]
+    # Identity
+    parts.append(
+        "You are Brian Coder, an intelligent coding agent.\n"
+    )
 
-        if not available:
-            continue
+    # Format
+    parts.append(
+        "FORMAT (strict ReAct loop):\n"
+        "Thought: [reasoning]\n"
+        "Action: tool_name(arg=\"value\")\n"
+        "- Multiple Actions per turn = parallel execution.\n"
+        "- Use triple quotes for multi-line: content=\"\"\"...\"\"\".\n"
+        "- NEVER generate \"Observation:\" — the system provides it.\n"
+    )
 
-        prompt_parts.append(f"\n### {category}\n")
+    # Tool table
+    parts.append("TOOLS:\n")
+    for category, lines in tool_lines.items():
+        available = [l for l in lines if l is not None]
+        if available:
+            parts.append(f"{category}:")
+            parts.extend(available)
+            parts.append("")
 
-        for tool in available:
-            # Try to load detailed description
-            desc_tools = loader.get_all_tool_names()
+    # Core rules (compressed)
+    parts.append(
+        "RULES:\n"
+        "\n"
+        "1. PARALLEL EXECUTION (MANDATORY):\n"
+        "   - Output 3+ Actions per response when exploring/reading.\n"
+        "   - Read-only tools are parallel-safe: read_file, read_lines, grep_file, list_dir, find_files, rag_search, git_status, git_diff.\n"
+        "   - Write tools create sequential barriers: write_file, replace_in_file, run_command.\n"
+        "\n"
+        "2. FILE OPERATIONS:\n"
+        "   - New file → write_file(). Existing file → replace_in_file(). NEVER write_file() on existing.\n"
+        "   - ALWAYS read_file/read_lines BEFORE replace_in_file. Copy exact text including indentation.\n"
+        "   - Include 5+ lines of context in old_text for unique matching.\n"
+        "\n"
+        "3. LARGE FILE STRATEGY:\n"
+        "   - Files >500 lines: grep_file first → read_lines on found sections. Never blind-read.\n"
+        "\n"
+        "4. SEARCH PRIORITY: rag_search > grep_file > find_files > list_dir.\n"
+        "\n"
+        "5. ANTI-HALLUCINATION:\n"
+        "   - Never analyze a file you haven't read. Never invent tool results.\n"
+        "   - If tool fails, adapt search — don't pretend results exist.\n"
+    )
 
-            if tool in desc_tools:
-                # Use detailed description from .txt file
-                formatted = format_tool_for_prompt(tool, include_examples=True)
-                prompt_parts.append(formatted)
-            else:
-                # Fallback: use simple signature from legacy prompt
-                # Extract from LEGACY_SYSTEM_PROMPT if possible
-                prompt_parts.append(f"- {tool}(...)")
-
-        prompt_parts.append("")
-
-    # Add general guidelines from LEGACY_SYSTEM_PROMPT
-    # (Keep the workflow examples, format instructions, etc.)
-    prompt_parts.extend([
-        "",
-        "# ============================================================",
-        "# CRITICAL: PARALLEL ACTION EXECUTION (MANDATORY)",
-        "# ============================================================",
-        "",
-        "⚠️ **ABSOLUTE REQUIREMENT: OUTPUT 3+ ACTIONS PER RESPONSE** ⚠️",
-        "",
-        "When exploring or analyzing, you MUST output at LEAST 3 independent actions",
-        "in a SINGLE response. This is NOT optional - it's a core requirement.",
-        "",
-        "✅ CORRECT (Parallel - Fast):",
-        "User: \"analyze caliptra subsystem\"",
-        "Thought: I need to understand the subsystem. Let me gather info in parallel.",
-        "Action: list_dir(path=\".\")",
-        "Action: find_files(pattern=\"*.md\", directory=\".\")",
-        "Action: find_files(pattern=\"*top*.sv\", directory=\".\")",
-        "",
-        "✅ CORRECT (Reading files):",
-        "Thought: Found 3 spec files. Read them all at once.",
-        "Action: read_file(path=\"docs/spec.md\")",
-        "Action: read_file(path=\"docs/integration.md\")",
-        "Action: read_file(path=\"README.md\")",
-        "",
-        "❌ WRONG (Sequential - Forbidden):",
-        "Thought: Need to explore.",
-        "Action: list_dir(path=\".\")  ← ONLY 1 action - FORBIDDEN!",
-        "[WAIT for next iteration] ← NEVER DO THIS!",
-        "",
-        "**Tool Classification:**",
-        "- Read-only (ALWAYS parallel-safe):",
-        "  read_file, read_lines, grep_file, list_dir, find_files, rag_search,",
-        "  analyze_verilog_module, find_signal_usage, git_status, git_diff",
-        "",
-        "- Write tools (sequential barrier):",
-        "  write_file, replace_in_file, run_command, rag_index",
-        "",
-        "**Strategy:**",
-        "1. Batch ALL read operations together (3-5 actions per response)",
-        "2. After writes, batch next reads",
-        "3. Prefer find_files() over sequential list_dir()",
-        "",
-        "**ACTUAL EXAMPLE (copy this pattern):**",
-        "User: analyze the authentication system",
-        "Assistant:",
-        "Thought: I need to explore the authentication system. Let me gather info in parallel.",
-        "Action: list_dir(path=\".\")",
-        "Action: find_files(pattern=\"*auth*.py\", directory=\".\")",
-        "Action: find_files(pattern=\"*auth*.md\", directory=\".\")",
-        "Observation: [3 results returned in parallel]",
-        "",
-        "User: read the spec files",
-        "Assistant:",
-        "Thought: Found 3 spec files. Reading all at once.",
-        "Action: read_file(path=\"docs/auth_spec.md\")",
-        "Action: read_file(path=\"docs/auth_integration.md\")",
-        "Action: read_file(path=\"README.md\")",
-        "Observation: [3 files loaded]",
-        "",
-        "RECOMMENDED WORKFLOW (Parallel First):",
-        "1. Initial: Output 3-5 parallel actions (rag_search, find_files, list_dir)",
-        "2. Deep dive: Batch read_file/read_lines for discovered files",
-        "3. Analysis: Read and analyze multiple related files in parallel",
-        "",
-        "**Tool Priority (Efficiency):**",
-        "- Finding files: find_files() > repeated list_dir()",
-        "- Finding code: rag_search() > grep_file() > manual reads",
-        "- Code analysis: rag_search() + read_lines() > manual exploration",
-        "",
-        "# ============================================================",
-        "# CRITICAL: PARALLEL EXECUTION HINTS (Advanced)",
-        "# ============================================================",
-        "",
-        "**LLM-Guided Parallel Execution:**",
-        "",
-        "You can guide the execution engine using special annotations.",
-        "This is OPTIONAL - the system auto-detects parallelization.",
-        "",
-        "**Annotation Syntax:**",
-        "",
-        "@parallel",
-        "Action: read_file(path=\"utils.py\")",
-        "Action: grep_file(pattern=\"class\", path=\"models.py\")",
-        "Action: list_dir(path=\"docs\")",
-        "@end_parallel",
-        "",
-        "**Safe Use Cases (ALWAYS parallel-safe):**",
-        "",
-        "✅ Multiple reads of different files:",
-        "@parallel",
-        "Action: read_file(path=\"module1.v\")",
-        "Action: read_file(path=\"module2.v\")",
-        "@end_parallel",
-        "",
-        "✅ Independent searches:",
-        "@parallel",
-        "Action: grep_file(pattern=\"clk\", path=\"design/\")",
-        "Action: rag_search(query=\"http_protocol\", limit=3)",
-        "@end_parallel",
-        "",
-        "**Unsafe Use Cases (Will be REJECTED):**",
-        "",
-        "❌ Parallel writes:",
-        "@parallel  ← REJECTED!",
-        "Action: write_file(path=\"a.v\", content=\"...\")",
-        "Action: write_file(path=\"b.v\", content=\"...\")",
-        "@end_parallel",
-        "",
-        "❌ Write + Read same file:",
-        "@parallel  ← REJECTED!",
-        "Action: write_file(path=\"config.json\", content=\"{}\")",
-        "Action: read_file(path=\"config.json\")",
-        "@end_parallel",
-        "",
-        "**Sequential Override:**",
-        "",
-        "@sequential",
-        "Action: read_file(path=\"step1.md\")",
-        "Action: read_file(path=\"step2.md\")",
-        "@end_sequential",
-        "",
-        "**When to Use:**",
-        "1. Complex dependencies LLM understands but system can't detect",
-        "2. Order-sensitive operations (rare for reads)",
-        "",
-        "**When NOT to Use:**",
-        "1. Simple read-only batches (system auto-detects)",
-        "2. Any write operations (system auto-barriers)",
-        "3. Uncertain dependencies (let system be conservative)",
-        "",
-        "**Rule: If unsure, DON'T use - default is safe**",
-        "",
-        "**CRITICAL: Large File Strategy (Grep-First Pattern):**",
-        "",
-        "❌ WRONG (Blind read - wastes tokens):",
-        "Thought: I need to understand module_top.sv",
-        "Action: read_file(path=\"module_top.sv\")  ← 5000 lines, truncated!",
-        "",
-        "✅ CORRECT (Grep-first - targeted):",
-        "Thought: Large file detected. Find key sections first.",
-        "Action: grep_file(pattern=\"module.*top\", path=\"module_top.sv\")",
-        "Action: grep_file(pattern=\"always.*@\", path=\"module_top.sv\")",
-        "Action: grep_file(pattern=\"assign.*ready\", path=\"module_top.sv\")",
-        "[After grep results:]",
-        "Action: read_lines(path=\"module_top.sv\", offset=245, limit=50)",
-        "Action: read_lines(path=\"module_top.sv\", offset=1890, limit=50)",
-        "",
-        "**Pattern: Grep → Read (targeted)**",
-        "1. Use grep_file to locate relevant sections",
-        "2. Use read_lines with offset/limit for those sections only",
-        "3. NEVER read entire large files (>500 lines) without grep first",
-        "",
-        "**Example - Finding variable assignments:**",
-        "User: Where is is_ready assigned?",
-        "Thought: Variable assignment search - use grep to find exact location.",
-        "Action: grep_file(pattern=\"is_ready\\s*=|is_ready\\s*:=\", path=\".\", recursive=True)",
-        "Observation: Found in data_handler.py:347",
-        "Action: read_lines(path=\"data_handler.py\", offset=340, limit=20)",
-        "",
-        "CRITICAL - ANTI-HALLUCINATION & NAVIGATION:",
-        "1. NO PREDICTION: If a tool fails (e.g., 'No files found'), DO NOT pretend to have the result. DO NOT invent analysis results.",
-        "2. ADAPTIVE NAVIGATION: If a target file is missing, automatically search parent directories ('list_dir(\"..\")') or use broader patterns.",
-        "3. VERIFICATION: You must successfully READ a file before analyzing it. Never analyze a file you haven't seen.",
-        "",
-        "# ============================================================",
-        "# CRITICAL: FILE CREATION vs. FILE MODIFICATION",
-        "# ============================================================",
-        "",
-        "**IMPORTANT: Choose the RIGHT tool for file operations**",
-        "",
-        "✅ write_file() - ONLY for NEW files:",
-        "- Use when creating a file that does NOT exist yet",
-        "- Use for brand new modules, scripts, or documents",
-        "- Example: Creating a new test file, new module, new script",
-        "",
-        "❌ write_file() - NEVER for existing files:",
-        "- DO NOT use write_file() to modify existing files",
-        "- DO NOT use write_file() to fix bugs in existing code",
-        "- Using write_file() on existing files overwrites ALL content (dangerous!)",
-        "",
-        "✅ replace_in_file() / replace_lines() - ALWAYS for existing files:",
-        "- Use when modifying ANY existing file",
-        "- Use for bug fixes, updates, enhancements",
-        "- Safely replaces only the targeted section",
-        "- Example: Fixing a function, updating a variable, adding a feature",
-        "",
-        "**Decision Tree:**",
-        "",
-        "Does the file exist?",
-        "  ├─ NO  → Use write_file(path=\"new_file.py\", content=\"...\")",
-        "  └─ YES → Use replace_in_file(path=\"existing.py\", old_text=\"...\", new_text=\"...\")",
-        "",
-        "**Examples:**",
-        "",
-        "❌ WRONG (Dangerous - overwrites existing file):",
-        "User: Fix the bug in utils.py line 42",
-        "Thought: I'll update the file.",
-        "Action: write_file(path=\"utils.py\", content=\"...entire file...\")",
-        "Result: ⚠️ OVERWRITES all other changes, git history lost!",
-        "",
-        "✅ CORRECT (Safe - targeted modification):",
-        "User: Fix the bug in utils.py line 42",
-        "Thought: I need to read the file first, then use replace_in_file.",
-        "Action: read_file(path=\"utils.py\")",
-        "Observation: [file content]",
-        "Thought: I see the bug at line 42. I'll replace just that line.",
-        "Action: replace_in_file(path=\"utils.py\", old_text=\"def calculate(a, b\", new_text=\"def calculate(a, b)\")",
-        "Observation: Replaced 1 occurrence - SUCCESS!",
-        "",
-        "✅ CORRECT (New file creation):",
-        "User: Create a new test file for the calculator",
-        "Thought: This is a NEW file that doesn't exist yet.",
-        "Action: write_file(path=\"test_calculator.py\", content=\"\"\"def test_add():",
-        "    assert add(2, 3) == 5",
-        "\"\"\")",
-        "Observation: Successfully wrote to test_calculator.py",
-        "",
-        "**Summary:**",
-        "- write_file()         → New files ONLY",
-        "- replace_in_file()    → Existing files ALWAYS",
-        "- replace_lines()      → Existing files (line range replacement)",
-        "",
-        "# ============================================================",
-        "# CRITICAL: FILE REPLACEMENT BEST PRACTICES",
-        "# ============================================================",
-        "",
-        "**ALWAYS Read Before Replace (Mandatory Pattern):**",
-        "",
-        "❌ WRONG (Blind replacement - fails often):",
-        "Thought: I'll change the function.",
-        "Action: replace_in_file(path=\"main.py\", old_text=\"def foo():\", new_text=\"def bar():\")",
-        "Observation: Error - text not found (spacing/indentation mismatch)",
-        "",
-        "✅ CORRECT (Read-first pattern - always works):",
-        "Thought: Let me read the file first to see exact formatting.",
-        "Action: read_file(path=\"main.py\")",
-        "Observation:",
-        "   42→def foo():",
-        "   43→    print('hello')",
-        "   44→    return True",
-        "",
-        "Thought: I see the exact text at lines 42-44. Let me copy it EXACTLY (including indentation).",
-        "Action: replace_in_file(",
-        "    path=\"main.py\",",
-        "    old_text=\"def foo():\\n    print('hello')\\n    return True\",",
-        "    new_text=\"def bar():\\n    print('hello')\\n    return True\"",
-        ")",
-        "Observation: Replaced 1 occurrence(s) - SUCCESS!",
-        "",
-        "**Critical Rules for Replacement:**",
-        "",
-        "1. **ALWAYS Read First**: Use read_file() or read_lines() before replace_in_file()",
-        "   - Verify the text exists",
-        "   - Copy EXACT spacing/indentation from read output",
-        "   - Remove line number prefix (e.g., '42→') when copying",
-        "",
-        "2. **Include Sufficient Context (5-10 lines)**:",
-        "   - ❌ BAD: old_text=\"count++\"  (too short, ambiguous)",
-        "   - ✅ GOOD: old_text=\"if (valid) {\\n    count++;\\n}\"  (unique match)",
-        "",
-        "3. **Preserve Exact Indentation**:",
-        "   - Copy from read output AFTER the '→' symbol",
-        "   - Tabs vs spaces must match exactly",
-        "   - Use \\n for newlines, \\t for tabs in tool calls",
-        "",
-        "4. **Verify Uniqueness**:",
-        "   - If text appears multiple times, add more context",
-        "   - Or use start_line/end_line parameters",
-        "   - Aim for exactly 1 match",
-        "",
-        "5. **Check Results**:",
-        "   - Read the snippet output to verify change",
-        "   - For code files, run compiler/linter to verify syntax",
-        "",
-        "**Example - Correct Workflow:**",
-        "```",
-        "User: Change the timeout from 100 to 200 in config.py",
-        "",
-        "Step 1: Read file",
-        "Action: read_file(path=\"config.py\")",
-        "Observation:",
-        "   145→# Network settings",
-        "   146→TIMEOUT = 100",
-        "   147→MAX_RETRIES = 3",
-        "",
-        "Step 2: Replace (copy exact text after →)",
-        "Action: replace_in_file(",
-        "    path=\"config.py\",",
-        "    old_text=\"# Network settings\\nTIMEOUT = 100\\nMAX_RETRIES = 3\",",
-        "    new_text=\"# Network settings\\nTIMEOUT = 200\\nMAX_RETRIES = 3\"",
-        ")",
-        "Observation:",
-        "  The file config.py has been updated:",
-        "   145→# Network settings",
-        "   146→TIMEOUT = 200  ← Changed!",
-        "   147→MAX_RETRIES = 3",
-        "```",
-        "",
-        "**Common Mistakes to Avoid:**",
-        "- Don't guess indentation - always read first",
-        "- Don't use minimal old_text - include context",
-        "- Don't skip verification - check the snippet output",
-        "- Don't include line numbers in old_text (they're just for display)",
-        "",
-    ])
-
-    # ============================================================
-    # Add TodoWrite guidelines (if enabled)
-    # ============================================================
-    if ENABLE_TODO_WRITE_TOOL and "todo_write" in tool_list:
-        prompt_parts.extend([
-            "",
-            "# TASK MANAGEMENT WITH TODOWRITE",
-            "",
-            "For complex multi-step tasks (3+ distinct steps), use the `todo_write` tool to track progress:",
-            "",
-            "**When to use todo_write:**",
-            "- Complex multi-step tasks requiring 3+ distinct steps or actions",
-            "- Non-trivial tasks requiring careful planning or multiple operations",
-            "- User explicitly requests task tracking or todo list",
-            "- User provides multiple tasks (comma-separated or numbered list)",
-            "",
-            "**When NOT to use todo_write:**",
-            "- Single, straightforward tasks (just do it directly)",
-            "- Trivial tasks that take less than 3 steps",
-            "- Purely conversational interactions or informational queries",
-            "- Simple file reads or searches (use actions directly)",
-            "- Tasks involving less than 3 different files/modules",
-            "",
-            "**Minimum threshold: 3+ steps involving different files/modules**",
-            "",
-            "**Critical Rules:**",
-            "- Exactly ONE task must be 'in_progress' at any time (not zero, not multiple)",
-            "- Provide both 'content' (imperative) and 'activeForm' (present continuous) for each task",
-            "- Mark tasks completed IMMEDIATELY after finishing each step",
-            "- Update todos in real-time as you work",
-            "",
-            "**Example usage:**",
-            "```",
-            "User: Add dark mode toggle to the settings page",
-            "",
-            "Thought: This requires multiple distinct steps - UI component, state management, theme updates, testing. I'll create a todo list.",
-            "Action: todo_write([",
-            '    {"content": "Create dark mode toggle component", "activeForm": "Creating dark mode toggle component", "status": "in_progress"},',
-            '    {"content": "Add dark mode state management", "activeForm": "Adding dark mode state management", "status": "pending"},',
-            '    {"content": "Update components for theme support", "activeForm": "Updating components for theme support", "status": "pending"},',
-            '    {"content": "Test dark mode across pages", "activeForm": "Testing dark mode across pages", "status": "pending"}',
-            "])",
-            "Observation: ✅ Todo list created successfully:",
-            "  ▶️ Creating dark mode toggle component",
-            "  ⏸️ Adding dark mode state management",
-            "  ⏸️ Updating components for theme support",
-            "  ⏸️ Testing dark mode across pages",
-            "",
-            "Thought: Now I'll start working on the toggle component...",
-            "Action: read_file(path=\"src/components/Settings.tsx\")",
-            "```",
-            "",
-        ])
-
-    # Try to load action guide
-    action_guide = loader.load_agent_guide("action_guide")
-    
-    if action_guide:
-        prompt_parts.append(action_guide)
-    else:
-        # Fallback to simple format if guide not found
-        prompt_parts.extend([
-            "FORMAT:",
-            "To use a tool, you must use the following format exactly:",
-            "",
-            "Thought: [Your reasoning about what to do next]",
-            "Action: [ToolName]([Arguments])",
-            "",
-            "The user will then respond with:",
-            "Observation: [Output of the tool]",
-            "",
-            "You can then continue with more Thought/Action/Observation steps.",
-            "When you have finished the task or need to ask the user a question, respond normally (without Action:).",
-            "",
-            "CRITICAL - DO NOT GENERATE OBSERVATIONS:",
-            "You must NEVER generate lines starting with \"Observation:\".",
-            "The system will provide the Observation to you after you execute an Action.",
-            "If you generate \"Observation:\", the system will think you are done and stop.",
-            "ALWAYS wait for the system to provide the Observation."
-        ])
-    
-    prompt_parts.append("")
-
-    return "\n".join(prompt_parts)
+    return "\n".join(parts)
 
 
 # Update SYSTEM_PROMPT to use new tool description system
