@@ -3319,7 +3319,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             print(Color.system(f"[FLOW]   Messages: user:{user_msgs} assistant:{asst_msgs} system:{sys_msgs} total:{len(messages)}"))
             
         from lib.display import format_iteration_header
-        print(format_iteration_header(tracker.current + 1, tracker.max_iterations, agent_name="primary"), flush=True)
+        print(format_iteration_header(tracker.current + 1, tracker.max_iterations, agent_name="primary", model=config.MODEL_NAME), flush=True)
 
         # Call LLM (non-streaming to avoid token splitting on Linux)
         collected_content = call_llm_raw(

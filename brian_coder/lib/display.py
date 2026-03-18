@@ -392,13 +392,14 @@ def format_startup_banner(base_url: str, model: str, features: dict) -> str:
     return f"{line1}\n{line2}" if line2 else line1
 
 
-def format_iteration_header(iteration: int, max_iter: int, agent_name: str = "") -> str:
+def format_iteration_header(iteration: int, max_iter: int, agent_name: str = "", model: str = "") -> str:
     """
     Minimal iteration header.
-    Example: "─── 3/20 ───"
+    Example: "─── primary 3/100 · glm-4.7 ───"
     """
     prefix = f"{agent_name} " if agent_name else ""
-    return f"\n{Color.DIM}─── {prefix}{iteration}/{max_iter} ───{Color.RESET}"
+    model_str = f" · {_short_model_name(model)}" if model else ""
+    return f"\n{Color.DIM}─── {prefix}{iteration}/{max_iter}{model_str} ───{Color.RESET}"
 
 
 def format_thought(text: str) -> str:
