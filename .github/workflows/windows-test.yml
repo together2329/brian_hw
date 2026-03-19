@@ -1,5 +1,5 @@
-# Runs on real Windows to validate cross-platform compatibility
-name: Windows Compatibility Test
+# Cross-platform compatibility tests (Windows, Linux, macOS)
+name: Cross-Platform Test
 
 on:
   push:
@@ -11,8 +11,11 @@ on:
       - 'brian_coder/**'
 
 jobs:
-  windows-test:
-    runs-on: windows-latest
+  test:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,5 +28,5 @@ jobs:
       - name: Install dependencies
         run: pip install pytest
 
-      - name: Run Windows compatibility tests
+      - name: Run compatibility tests
         run: pytest brian_coder/tests/test_windows_compat.py -v
