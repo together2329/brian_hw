@@ -1,3 +1,4 @@
+# Runs on real Windows to validate cross-platform compatibility
 name: Windows Compatibility Test
 
 on:
