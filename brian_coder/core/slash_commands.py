@@ -15,7 +15,14 @@ Available commands:
 import sys
 import os
 from typing import Callable, Optional, Any, List
-import readline
+
+try:
+    import readline
+except ImportError:
+    try:
+        import pyreadline3 as readline  # Windows fallback
+    except ImportError:
+        readline = None  # No autocomplete, but still works
 
 
 class SlashCommandRegistry:
@@ -33,6 +40,9 @@ class SlashCommandRegistry:
 
     def _setup_readline(self):
         """Setup readline for autocomplete and history"""
+        if not readline:
+            return
+
         # Load command history
         if os.path.exists(self._history_file):
             try:
@@ -63,6 +73,8 @@ class SlashCommandRegistry:
 
     def save_history(self):
         """Save command history to file"""
+        if not readline:
+            return
         try:
             readline.write_history_file(self._history_file)
         except:

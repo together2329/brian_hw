@@ -2,8 +2,12 @@
 Test readline autocomplete functionality
 """
 
-import readline
 import sys
+
+try:
+    import readline
+except ImportError:
+    readline = None
 
 # Commands to autocomplete
 commands = ["/help", "/status", "/context", "/clear", "/compact", "/tools", "/config"]
@@ -16,28 +20,31 @@ def completer(text, state):
     return None
 
 # Setup readline
-readline.set_completer(completer)
-readline.set_completer_delims(' \t\n')
-
-# Check which readline we're using
 print("=" * 60)
 print("Readline Autocomplete Test")
 print("=" * 60)
-print(f"Readline module: {readline.__doc__[:50] if readline.__doc__ else 'Unknown'}...")
-print(f"Readline version: {readline.__version__ if hasattr(readline, '__version__') else 'N/A'}")
 
-# Try to detect libedit vs GNU readline
-try:
-    # GNU readline specific
-    readline.parse_and_bind("tab: complete")
-    print("Backend: GNU Readline")
-except:
+if readline:
+    readline.set_completer(completer)
+    readline.set_completer_delims(' \t\n')
+
+    print(f"Readline module: {readline.__doc__[:50] if readline.__doc__ else 'Unknown'}...")
+    print(f"Readline version: {readline.__version__ if hasattr(readline, '__version__') else 'N/A'}")
+
+    # Try to detect libedit vs GNU readline
     try:
-        # libedit (macOS default) specific
-        readline.parse_and_bind("bind ^I rl_complete")
-        print("Backend: libedit (macOS)")
+        # GNU readline specific
+        readline.parse_and_bind("tab: complete")
+        print("Backend: GNU Readline")
     except:
-        print("Backend: Unknown")
+        try:
+            # libedit (macOS default) specific
+            readline.parse_and_bind("bind ^I rl_complete")
+            print("Backend: libedit (macOS)")
+        except:
+            print("Backend: Unknown")
+else:
+    print("readline not available — autocomplete disabled")
 
 print("\n" + "=" * 60)
 print("Instructions:")

@@ -45,7 +45,6 @@ print("=" * 70)
 print()
 
 # Interactive loop
-import readline
 
 while True:
     try:

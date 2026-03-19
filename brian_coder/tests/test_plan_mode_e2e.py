@@ -192,12 +192,14 @@ def test_6_plan_mode_result():
     print("TEST 6: PlanModeResult Dataclass")
     print("=" * 60)
 
+    import tempfile
+    test_plan_path = os.path.join(tempfile.gettempdir(), "test.md")
     result = PlanModeResult(
-        plan_path="/tmp/test.md",
+        plan_path=test_plan_path,
         plan_content="Test plan"
     )
 
-    if result.plan_path == "/tmp/test.md" and result.plan_content == "Test plan":
+    if result.plan_path == test_plan_path and result.plan_content == "Test plan":
         print(Color.success("✅ PlanModeResult works correctly"))
         return True
     else:

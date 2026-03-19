@@ -5,10 +5,13 @@ Zero-dependency — pure ANSI escape sequences.
 """
 
 import os
+import platform
 import shutil
 import sys
 import threading
 import time
+
+IS_WINDOWS = platform.system() == "Windows"
 
 
 class Color:
@@ -247,8 +250,28 @@ class EscapeWatcher:
 
     @classmethod
     def _watch(cls):
-        import select
+        if IS_WINDOWS:
+            cls._watch_windows()
+        else:
+            cls._watch_unix()
+
+    @classmethod
+    def _watch_windows(cls):
+        import msvcrt
+        while cls._active:
+            if msvcrt.kbhit():
+                ch = msvcrt.getch()
+                if ch == b'\x1b':  # ESC
+                    with cls._lock:
+                        cls._pressed = True
+                    live_print(f"\n  {Color.YELLOW}⎋ ESC — aborting after current step…{Color.RESET}")
+                    break
+            time.sleep(0.1)
+
+    @classmethod
+    def _watch_unix(cls):
         try:
+            import select
             import tty, termios
         except ImportError:
             return  # Not a Unix terminal

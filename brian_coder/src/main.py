@@ -2404,6 +2404,32 @@ def show_context_usage(messages, use_actual=True):
         print(Color.info("   Tip: Use '/compact --dry-run' to preview compression.\n"))
 
 
+def _find_hook(hook_name: str):
+    """Find a hook file, checking platform-appropriate extensions."""
+    import platform
+    hooks_dir = Path.home() / ".brian_coder" / "hooks"
+    if platform.system() == "Windows":
+        candidates = [f"{hook_name}.bat", f"{hook_name}.ps1", f"{hook_name}.py"]
+    else:
+        candidates = [f"{hook_name}.sh"]
+    for name in candidates:
+        path = hooks_dir / name
+        if path.exists():
+            return path
+    return None
+
+
+def _hook_command(hook_path: Path) -> list:
+    """Return the command list to execute a hook file."""
+    suffix = hook_path.suffix.lower()
+    if suffix == ".py":
+        return [sys.executable, str(hook_path)]
+    if suffix == ".ps1":
+        return ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(hook_path)]
+    # .sh, .bat, and others: run directly
+    return [str(hook_path)]
+
+
 def compress_history(messages, force=False, instruction=None, keep_recent=None, dry_run=False, quiet=False):
     """
     Compresses history if it exceeds the token limit.
@@ -2453,16 +2479,16 @@ def compress_history(messages, force=False, instruction=None, keep_recent=None, 
     # Structure: [system] + [summary of old] + [recent N]
     print(Color.info("[System] Using traditional compression..."))
 
-    # Pre-compact hook
-    pre_hook_path = Path.home() / ".brian_coder" / "hooks" / "pre_compact.sh"
-    if pre_hook_path.exists():
-        print(Color.info("[Hook] Running pre_compact.sh..."))
+    # Pre-compact hook (platform-aware)
+    pre_hook_path = _find_hook("pre_compact")
+    if pre_hook_path and pre_hook_path.exists():
+        print(Color.info(f"[Hook] Running {pre_hook_path.name}..."))
         try:
-            subprocess.run([str(pre_hook_path)], timeout=10, check=False, shell=False)
+            subprocess.run(_hook_command(pre_hook_path), timeout=10, check=False, shell=False)
         except subprocess.TimeoutExpired:
-            print(Color.warning("[Hook] pre_compact.sh timed out (10s)"))
+            print(Color.warning(f"[Hook] {pre_hook_path.name} timed out (10s)"))
         except Exception as e:
-            print(Color.warning(f"[Hook] pre_compact.sh failed: {e}"))
+            print(Color.warning(f"[Hook] {pre_hook_path.name} failed: {e}"))
 
     # Separate system messages from regular messages (like Strix)
     system_msgs = [m for m in messages if m.get("role") == "system"]
@@ -2592,10 +2618,10 @@ def compress_history(messages, force=False, instruction=None, keep_recent=None, 
         if "_tokens" in msg:
             del msg["_tokens"]
 
-    # Post-compact hook (with stats as environment variables)
-    post_hook_path = Path.home() / ".brian_coder" / "hooks" / "post_compact.sh"
-    if post_hook_path.exists():
-        print(Color.info("[Hook] Running post_compact.sh..."))
+    # Post-compact hook (with stats as environment variables, platform-aware)
+    post_hook_path = _find_hook("post_compact")
+    if post_hook_path and post_hook_path.exists():
+        print(Color.info(f"[Hook] Running {post_hook_path.name}..."))
         try:
             env = os.environ.copy()
             env["BRIAN_OLD_MSGS"] = str(old_msg_count)
@@ -2604,11 +2630,11 @@ def compress_history(messages, force=False, instruction=None, keep_recent=None, 
             env["BRIAN_NEW_TOKENS"] = str(new_tokens)
             env["BRIAN_REDUCTION_PCT"] = str(reduction_pct)
 
-            subprocess.run([str(post_hook_path)], env=env, timeout=10, check=False, shell=False)
+            subprocess.run(_hook_command(post_hook_path), env=env, timeout=10, check=False, shell=False)
         except subprocess.TimeoutExpired:
-            print(Color.warning("[Hook] post_compact.sh timed out (10s)"))
+            print(Color.warning(f"[Hook] {post_hook_path.name} timed out (10s)"))
         except Exception as e:
-            print(Color.warning(f"[Hook] post_compact.sh failed: {e}"))
+            print(Color.warning(f"[Hook] {post_hook_path.name} failed: {e}"))
 
     # Print detailed statistics
     print(Color.success("\n" + "=" * 60))

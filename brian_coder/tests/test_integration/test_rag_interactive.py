@@ -1,7 +1,10 @@
 
 import sys
 import os
-import readline  # For better input handling
+try:
+    import readline  # For better input handling
+except ImportError:
+    readline = None
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'brian_coder')))
