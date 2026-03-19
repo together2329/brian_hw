@@ -3330,19 +3330,32 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         from lib.display import format_iteration_header, Spinner
         print(format_iteration_header(tracker.current + 1, tracker.max_iterations, agent_name="primary", model=config.MODEL_NAME), flush=True)
 
-        # Call LLM with Claude Code style spinner
-        with Spinner("Inferring") as spinner:
-            collected_content = call_llm_raw(
-                prompt="",
-                messages=messages,
-                stop=["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"],
-            ) or ""
-            llm_elapsed = spinner.elapsed
+        # Call LLM in background thread (non-blocking, ESC can abort mid-call)
+        import concurrent.futures
+        _llm_future = concurrent.futures.ThreadPoolExecutor(max_workers=1).submit(
+            call_llm_raw,
+            prompt="",
+            messages=messages,
+            stop=["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"],
+        )
 
-        # Check ESC right after LLM call returns
+        # Poll for result or ESC abort
+        spinner = Spinner("Inferring")
+        spinner.start()
+        collected_content = None
+        while not _llm_future.done():
+            if EscapeWatcher.check():
+                break
+            time.sleep(0.1)
+        llm_elapsed = spinner.elapsed
+        spinner.stop()
+
         if EscapeWatcher.check():
             print(Color.warning("\n  ⎋ Aborted by ESC. Returning to input prompt."))
+            _llm_future.cancel()
             break
+
+        collected_content = (_llm_future.result() or "")
 
         # Strip any leaked native tool call tokens from content
         collected_content = _strip_native_tool_tokens(collected_content)
