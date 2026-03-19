@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import platform
 import urllib.request
 import urllib.error
 import re
@@ -4240,6 +4241,11 @@ def chat_loop():
         print(Color.warning(f"[Warning] Failed to save knowledge: {e}"))
 
 if __name__ == "__main__":
+    if "--check" in sys.argv:
+        # Smoke test: verify all imports and initialization succeed
+        print(f"OK: platform={platform.system()}, model={config.MODEL_NAME}")
+        sys.exit(0)
+
     if len(sys.argv) > 1 and sys.argv[1] == "--prompt":
         # One-shot mode with ReAct loop
         prompt = sys.argv[2]
