@@ -63,7 +63,7 @@ MAX_ITERATIONS = int(os.getenv("MAX_ITERATIONS", "100"))
 
 # API timeout in seconds (how long to wait for API response)
 # Set to 0 to disable timeout (not recommended)
-API_TIMEOUT = int(os.getenv("API_TIMEOUT", "60"))
+API_TIMEOUT = int(os.getenv("API_TIMEOUT", "600"))
 
 # Save conversation history to file
 SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")
