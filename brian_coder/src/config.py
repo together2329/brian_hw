@@ -13,7 +13,7 @@ def load_env_file():
 
     for env_path in search_paths:
         if env_path.exists():
-            with open(env_path) as f:
+            with open(env_path, encoding='utf-8') as f:
                 for line in f:
                     line = line.strip()
                     # Skip comments and empty lines
