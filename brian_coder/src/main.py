@@ -3187,7 +3187,16 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
     # (delegation/exploration strategy injection moved above Claude Flow check)
 
+    # Start ESC key watcher for loop abort
+    from lib.display import EscapeWatcher
+    EscapeWatcher.start()
+
     while True:
+        # Check ESC key abort
+        if EscapeWatcher.check():
+            print(Color.warning("\n  ⎋ Aborted by ESC. Returning to input prompt."))
+            break
+
         # Check iteration limit with progressive warning
         warning_action = show_iteration_warning(tracker, mode=mode)
         if warning_action == 'stop':
@@ -3483,6 +3492,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     combined_results.append(f"--- [Action {idx+1}] {tool_name} ---\n{observation}")
             else:
                 for i, action_tuple in enumerate(actions):
+                    # Check ESC between tool executions
+                    if EscapeWatcher.check():
+                        break
+
                     if len(action_tuple) == 3:
                         tool_name, args_str, hint = action_tuple
                     else:
@@ -3673,6 +3686,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
         # Increment iteration counter
         tracker.increment()
+
+    # Stop ESC key watcher
+    EscapeWatcher.stop()
 
     # Save trajectory after task completion
     if procedural_memory is not None and actions_taken:

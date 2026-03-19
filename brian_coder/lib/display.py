@@ -212,6 +212,97 @@ def live_print(*args, **kwargs):
 
 
 # ============================================================
+# EscapeWatcher — ESC key to abort ReAct loop
+# ============================================================
+
+class EscapeWatcher:
+    """
+    Background thread that watches for ESC key press.
+    When ESC is detected, sets a flag that the ReAct loop checks
+    at each iteration boundary to break back to the input prompt.
+
+    Usage:
+        EscapeWatcher.start()
+        while running:
+            if EscapeWatcher.check():
+                break
+            ...
+        EscapeWatcher.stop()
+    """
+
+    _active = False
+    _pressed = False
+    _thread = None
+    _old_settings = None
+    _lock = threading.Lock()
+
+    @classmethod
+    def start(cls):
+        """Start watching for ESC. Call before entering ReAct loop."""
+        with cls._lock:
+            cls._pressed = False
+            cls._active = True
+        cls._thread = threading.Thread(target=cls._watch, daemon=True)
+        cls._thread.start()
+
+    @classmethod
+    def _watch(cls):
+        import select
+        try:
+            import tty, termios
+        except ImportError:
+            return  # Not a Unix terminal
+
+        fd = sys.stdin.fileno()
+        try:
+            cls._old_settings = termios.tcgetattr(fd)
+        except termios.error:
+            return  # Not a real terminal (e.g., piped input)
+
+        try:
+            # cbreak mode: read char-by-char, output still works normally
+            tty.setcbreak(fd)
+            while cls._active:
+                # Poll stdin with 0.2s timeout
+                ready, _, _ = select.select([sys.stdin], [], [], 0.2)
+                if ready:
+                    ch = sys.stdin.read(1)
+                    if ch == '\x1b':  # ESC
+                        with cls._lock:
+                            cls._pressed = True
+                        live_print(f"\n  {Color.YELLOW}⎋ ESC — aborting after current step…{Color.RESET}")
+                        break
+        except (OSError, ValueError):
+            pass  # stdin closed or not readable
+        finally:
+            try:
+                termios.tcsetattr(fd, termios.TCSADRAIN, cls._old_settings)
+            except (termios.error, ValueError):
+                pass
+
+    @classmethod
+    def stop(cls):
+        """Stop watching. Call after ReAct loop exits."""
+        with cls._lock:
+            cls._active = False
+        if cls._thread:
+            cls._thread.join(timeout=1.0)
+            cls._thread = None
+
+    @classmethod
+    def check(cls) -> bool:
+        """Check if ESC was pressed. Non-blocking."""
+        with cls._lock:
+            return cls._pressed
+
+    @classmethod
+    def reset(cls):
+        """Reset the pressed flag."""
+        with cls._lock:
+            cls._pressed = False
+
+
+# ============================================================
 # Tree Characters (oh-my-opencode inspired)
 # ============================================================
 
