@@ -3339,6 +3339,11 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             ) or ""
             llm_elapsed = spinner.elapsed
 
+        # Check ESC right after LLM call returns
+        if EscapeWatcher.check():
+            print(Color.warning("\n  ⎋ Aborted by ESC. Returning to input prompt."))
+            break
+
         # Strip any leaked native tool call tokens from content
         collected_content = _strip_native_tool_tokens(collected_content)
 
