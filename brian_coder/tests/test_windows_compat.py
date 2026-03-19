@@ -355,5 +355,63 @@ class TestWatchUnixImportGuard(unittest.TestCase):
                 EscapeWatcher._active = False
 
 
+class TestCommandTranslation(unittest.TestCase):
+    """_translate_command_for_windows 변환 로직"""
+
+    def test_ls_to_dir(self):
+        from core.tools import _translate_command_for_windows
+        with patch('platform.system', return_value="Windows"):
+            self.assertEqual(_translate_command_for_windows("ls"), "dir")
+
+    def test_ls_with_path(self):
+        from core.tools import _translate_command_for_windows
+        with patch('platform.system', return_value="Windows"):
+            self.assertEqual(_translate_command_for_windows("ls /tmp"), "dir /tmp")
+
+    def test_cat_to_type(self):
+        from core.tools import _translate_command_for_windows
+        with patch('platform.system', return_value="Windows"):
+            self.assertEqual(_translate_command_for_windows("cat file.txt"), "type file.txt")
+
+    def test_grep_to_findstr(self):
+        from core.tools import _translate_command_for_windows
+        with patch('platform.system', return_value="Windows"):
+            self.assertEqual(_translate_command_for_windows('grep "pattern" file.txt'), 'findstr "pattern" file.txt')
+
+    def test_pwd_to_cd(self):
+        from core.tools import _translate_command_for_windows
+        with patch('platform.system', return_value="Windows"):
+            self.assertEqual(_translate_command_for_windows("pwd"), "cd")
+
+    def test_which_to_where(self):
+        from core.tools import _translate_command_for_windows
+        with patch('platform.system', return_value="Windows"):
+            self.assertEqual(_translate_command_for_windows("which python"), "where python")
+
+    def test_mkdir_p(self):
+        from core.tools import _translate_command_for_windows
+        with patch('platform.system', return_value="Windows"):
+            self.assertEqual(_translate_command_for_windows("mkdir -p a/b/c"), "mkdir a/b/c")
+
+    def test_rm_rf(self):
+        from core.tools import _translate_command_for_windows
+        with patch('platform.system', return_value="Windows"):
+            self.assertEqual(_translate_command_for_windows("rm -rf build"), "rmdir /s /q build")
+
+    def test_no_translation_on_unix(self):
+        """Unix에서는 변환하지 않음"""
+        from core.tools import _translate_command_for_windows
+        with patch('platform.system', return_value="Darwin"):
+            self.assertEqual(_translate_command_for_windows("ls"), "ls")
+            self.assertEqual(_translate_command_for_windows("cat file.txt"), "cat file.txt")
+
+    def test_unknown_command_passthrough(self):
+        """알 수 없는 명령은 그대로 통과"""
+        from core.tools import _translate_command_for_windows
+        with patch('platform.system', return_value="Windows"):
+            self.assertEqual(_translate_command_for_windows("git status"), "git status")
+            self.assertEqual(_translate_command_for_windows("pip install foo"), "pip install foo")
+
+
 if __name__ == "__main__":
     unittest.main()

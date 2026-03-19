@@ -158,6 +158,57 @@ def write_file(path: str, content: str) -> str:
     except Exception as e:
         return f"Error writing file: {e}"
 
+def _translate_command_for_windows(command: str) -> str:
+    """Translate common Unix commands to Windows equivalents."""
+    import platform
+    if platform.system() != "Windows":
+        return command
+
+    import shlex
+    # Simple prefix-based translation for common commands
+    # Handles: ls, cat, grep, head, tail, which, rm, cp, mv, mkdir -p, touch
+    translations = {
+        'ls ':     'dir ',
+        'ls\n':    'dir',
+        'cat ':    'type ',
+        'grep ':   'findstr ',
+        'head ':   'more ',
+        'which ':  'where ',
+        'rm ':     'del ',
+        'cp ':     'copy ',
+        'mv ':     'move ',
+        'touch ':  'type nul > ',
+        'clear':   'cls',
+    }
+
+    stripped = command.lstrip()
+
+    # Exact match (e.g., "ls" alone)
+    if stripped == 'ls':
+        return 'dir'
+    if stripped == 'clear':
+        return 'cls'
+    if stripped == 'pwd':
+        return 'cd'
+
+    # Compound commands first (before simple prefix match)
+    # mkdir -p → mkdir (Windows mkdir creates parents by default)
+    if stripped.startswith('mkdir -p '):
+        return 'mkdir ' + stripped[len('mkdir -p '):]
+
+    # rm -rf / rm -r → rmdir /s /q
+    if stripped.startswith('rm -rf ') or stripped.startswith('rm -r '):
+        path = stripped.split(' ', 2)[-1]
+        return f'rmdir /s /q {path}'
+
+    # Simple prefix match
+    for unix_cmd, win_cmd in translations.items():
+        if stripped.startswith(unix_cmd):
+            return win_cmd + stripped[len(unix_cmd):]
+
+    return command
+
+
 def run_command(command, timeout=60):
     """
     Runs a shell command and returns output.
@@ -172,18 +223,16 @@ def run_command(command, timeout=60):
         if safe_mode_env and _is_dangerous_command(command):
             return "Error: Command blocked by SAFE_MODE."
 
-        # Security Note: In a real production agent, you'd want to sandbox this.
-        # Since this is for internal use by a developer, we use subprocess directly.
-        # Updated to use shell=False for better security
-        # Updated to use shell=True for better flexibility (redirection, pipes)
-        # and automatic output truncation to save context.
+        # Translate Unix commands to Windows equivalents
+        command = _translate_command_for_windows(command)
+
         import time
 
         result = subprocess.run(
-            command, 
-            shell=True, 
-            capture_output=True, 
-            text=True, 
+            command,
+            shell=True,
+            capture_output=True,
+            text=True,
             timeout=timeout
         )
         

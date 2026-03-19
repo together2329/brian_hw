@@ -78,44 +78,33 @@ class TestRunCommand(unittest.TestCase):
         result = run_command(f"{PYTHON} -c \"print('hello')\"")
         self.assertIn("hello", result)
 
-    def test_ls_or_dir(self):
-        """파일 목록 조회 — OS별 명령어"""
+    def test_ls_auto_translate(self):
+        """ls → Windows에서 자동으로 dir로 변환"""
         from core.tools import run_command
-        if platform.system() == "Windows":
-            result = run_command("dir")
-        else:
-            result = run_command("ls")
-        # 어떤 OS든 결과가 나와야 함
+        result = run_command("ls")
         self.assertIsInstance(result, str)
         self.assertGreater(len(result), 0)
 
-    def test_cat_or_type(self):
-        """파일 내용 읽기 — OS별 명령어"""
+    def test_cat_auto_translate(self):
+        """cat → Windows에서 자동으로 type으로 변환"""
         from core.tools import run_command
-        # 테스트용 임시 파일 생성
         tmp = os.path.join(tempfile.gettempdir(), "brian_test_cat.txt")
         with open(tmp, 'w', encoding='utf-8') as f:
             f.write("test content here")
         try:
-            if platform.system() == "Windows":
-                result = run_command(f'type "{tmp}"')
-            else:
-                result = run_command(f'cat "{tmp}"')
+            result = run_command(f'cat "{tmp}"')
             self.assertIn("test content", result)
         finally:
             os.remove(tmp)
 
-    def test_grep_or_findstr(self):
-        """텍스트 검색 — OS별 명령어"""
+    def test_grep_auto_translate(self):
+        """grep → Windows에서 자동으로 findstr로 변환"""
         from core.tools import run_command
         tmp = os.path.join(tempfile.gettempdir(), "brian_test_grep.txt")
         with open(tmp, 'w', encoding='utf-8') as f:
             f.write("apple\nbanana\ncherry\n")
         try:
-            if platform.system() == "Windows":
-                result = run_command(f'findstr "banana" "{tmp}"')
-            else:
-                result = run_command(f'grep "banana" "{tmp}"')
+            result = run_command(f'grep "banana" "{tmp}"')
             self.assertIn("banana", result)
         finally:
             os.remove(tmp)
@@ -125,6 +114,13 @@ class TestRunCommand(unittest.TestCase):
         from core.tools import run_command
         result = run_command(f'echo hello world | {PYTHON} -c "import sys; print(sys.stdin.read().strip().upper())"')
         self.assertIn("HELLO WORLD", result)
+
+    def test_pwd_auto_translate(self):
+        """pwd → Windows에서 cd로 변환"""
+        from core.tools import run_command
+        result = run_command("pwd")
+        self.assertIsInstance(result, str)
+        self.assertGreater(len(result), 0)
 
     def test_env_variable(self):
         """환경변수 접근"""
