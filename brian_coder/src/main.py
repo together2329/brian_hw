@@ -3837,7 +3837,7 @@ def chat_loop():
 
     while True:
         try:
-            user_input = input(Color.user("You: ") + Color.RESET)
+            user_input = input(Color.user("> ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
                 break
 
