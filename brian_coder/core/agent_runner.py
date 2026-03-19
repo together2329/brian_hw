@@ -258,16 +258,26 @@ def run_agent_session(
                 messages = _compress_agent_context(messages, agent_name, keep_recent=4, model=model)
                 _context_status(messages, sub_agent_max_tokens, agent_name, verbose)
 
-            # LLM call (non-streaming for reliable native tool token parsing)
+            # LLM call (non-blocking, ESC can abort mid-call)
             collected_content = ""
             _log(f"LLM call (model={model})...")
             try:
-                collected_content = call_llm_raw(
+                import concurrent.futures
+                _llm_future = concurrent.futures.ThreadPoolExecutor(max_workers=1).submit(
+                    call_llm_raw,
                     prompt="",
                     messages=messages,
                     stop=["Observation:"],
                     model=model,
-                ) or ""
+                )
+                while not _llm_future.done():
+                    if EscapeWatcher.check():
+                        break
+                    time.sleep(0.1)
+                if EscapeWatcher.check():
+                    _llm_future.cancel()
+                    break
+                collected_content = (_llm_future.result() or "")
             except Exception as e:
                 return AgentResult(
                     output=f"LLM call failed: {e}",
