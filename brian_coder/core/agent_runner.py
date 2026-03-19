@@ -242,6 +242,12 @@ def run_agent_session(
 
     try:
         while iteration < max_iterations:
+            # Check ESC abort
+            from lib.display import EscapeWatcher
+            if EscapeWatcher.check():
+                _log("ESC abort detected")
+                break
+
             iteration += 1
             _log(f"--- Iteration {iteration}/{max_iterations} ---")
 
@@ -312,6 +318,10 @@ def run_agent_session(
             # Execute actions (sequential for sub-agents)
             combined_results = []
             for idx, (tool_name, args_str, *hint) in enumerate(actions):
+                # Check ESC abort between tools
+                if EscapeWatcher.check():
+                    break
+
                 # Filter by allowed tools
                 if allowed_tools and "*" not in allowed_tools:
                     if tool_name not in allowed_tools:
