@@ -1,0 +1,25 @@
+name: Windows Compatibility Test
+
+on:
+  push:
+    paths:
+      - 'brian_coder/**'
+  pull_request:
+    paths:
+      - 'brian_coder/**'
+
+jobs:
+  windows-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pytest
+
+      - name: Run Windows compatibility tests
+        run: pytest brian_coder/tests/test_windows_compat.py -v
