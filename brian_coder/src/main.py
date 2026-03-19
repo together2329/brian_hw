@@ -9,6 +9,11 @@ import copy
 import time
 import traceback
 import subprocess
+
+# Windows: force UTF-8 for stdout/stderr to avoid cp1252 emoji crashes
+if platform.system() == "Windows":
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, wait
 from datetime import datetime
