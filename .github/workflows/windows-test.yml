@@ -28,8 +28,14 @@ jobs:
       - name: Install dependencies
         run: pip install pytest
 
-      - name: Run compatibility tests
+      - name: Smoke test - main.py --check
+        run: python brian_coder/src/main.py --check
+
+      - name: Platform compat tests (22 tests)
         run: pytest brian_coder/tests/test_windows_compat.py -v
 
-      - name: Smoke test main.py --check
-        run: python brian_coder/src/main.py --check
+      - name: Deep compat tests (32 tests)
+        run: pytest brian_coder/tests/test_deep_compat.py -v
+
+      - name: Session manager tests (27 tests)
+        run: pytest brian_coder/tests/test_session_manager.py -v

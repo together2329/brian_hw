@@ -623,7 +623,7 @@ class SnapshotManager:
 
         # Save snapshot
         snapshot_path = self.snapshot_dir / f"{snapshot_hash}.json"
-        with open(snapshot_path, 'w') as f:
+        with open(snapshot_path, 'w', encoding='utf-8') as f:
             json.dump(snapshot, f, indent=2)
 
         return snapshot_hash
@@ -633,7 +633,7 @@ class SnapshotManager:
         snapshot_path = self.snapshot_dir / f"{snapshot_hash}.json"
         if not snapshot_path.exists():
             return None
-        with open(snapshot_path, 'r') as f:
+        with open(snapshot_path, 'r', encoding='utf-8') as f:
             return json.load(f)
 
     def diff(self, from_hash: str, to_hash: str = None) -> List[Dict[str, Any]]:
