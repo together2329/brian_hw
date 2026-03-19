@@ -37,5 +37,8 @@ jobs:
       - name: Deep compat tests (32 tests)
         run: pytest brian_coder/tests/test_deep_compat.py -v
 
+      - name: Deep compat V2 tests (50 tests)
+        run: pytest brian_coder/tests/test_deep_compat_v2.py -v
+
       - name: Session manager tests (27 tests)
         run: pytest brian_coder/tests/test_session_manager.py -v
