@@ -30,3 +30,6 @@ jobs:
 
       - name: Run compatibility tests
         run: pytest brian_coder/tests/test_windows_compat.py -v
+
+      - name: Verify main.py imports cleanly
+        run: python -c "import sys; sys.path.insert(0,'brian_coder/src'); sys.path.insert(0,'brian_coder'); sys.path.insert(0,'brian_coder/core'); sys.path.insert(0,'brian_coder/lib'); from display import IS_WINDOWS; from slash_commands import get_registry; r=get_registry(); print(f'OK: IS_WINDOWS={IS_WINDOWS}, commands={len(r.commands)}')"
