@@ -3364,34 +3364,71 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         from lib.display import format_iteration_header, Spinner
         print(format_iteration_header(tracker.current + 1, tracker.max_iterations, agent_name="primary", model=config.MODEL_NAME), flush=True)
 
-        # Call LLM with streaming (Thought tokens printed in real-time)
+        # ── Streaming display ──
+        # Design: 3 states (NOISE → CONTENT → ACTION), 3 filters (think, dedup, width)
+        #
+        # States:
+        #   NOISE   — before first meaningful line (Thought/Action/#header). Suppress all.
+        #   CONTENT — displaying Thought/text. Show with dedup.
+        #   ACTION  — after Action: detected. Suppress all (tool UI handles display).
+        #
+        # Filters:
+        #   1. <think>...</think> — stripped before state machine
+        #   2. Dedup — intra-line (50-char sliding window) + inter-line (set + substring)
+        #   3. Terminal width cap — partial display only
+        #
+        import shutil
+        _TERM_W = shutil.get_terminal_size().columns - 4
+        _NOISE, _CONTENT, _ACTION = 0, 1, 2
+
         _stop_seqs = ["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"]
         _stream_start = time.time()
         collected_content = ""
-        _line_buf = ""       # Buffer for current incomplete line
-        _in_action = False   # True while inside Action block (suppress display)
-        _content_started = False  # Suppress noise before first meaningful line
+        _buf = ""           # incomplete line buffer
+        _state = _NOISE
         _aborted = False
-        _printed_set = set()  # Dedup: skip if line was already printed
-        _in_think = False    # True while inside <think>...</think> block
-        import shutil
-        _term_width = shutil.get_terminal_size().columns - 4  # margin for "  " prefix
+        _in_think = False
+        _seen = set()       # printed lines for dedup
 
-        def _dedup_intra_line(text):
-            """Remove repeated content within a single line.
-            Scans for any 50-char segment that appears twice — truncates before the second occurrence."""
+        def _dedup_line(text):
+            """Remove intra-line repetition (50-char sliding window)."""
             if len(text) < 100:
                 return text
-            check_len = 50
-            limit = min(len(text) // 2, 600)
-            for i in range(0, limit):
-                segment = text[i:i + check_len]
-                if len(segment) < check_len:
+            for i in range(min(len(text) // 2, 600)):
+                seg = text[i:i + 50]
+                if len(seg) < 50:
                     break
-                second = text.find(segment, i + check_len)
-                if second > i:
-                    return text[:second].rstrip()
+                j = text.find(seg, i + 50)
+                if j > i:
+                    return text[:j].rstrip()
             return text
+
+        def _is_dup(text):
+            """Check if text was already printed (exact or substring with 70% overlap)."""
+            if text in _seen:
+                return True
+            if len(text) > 60:
+                for prev in _seen:
+                    shorter, longer = (text, prev) if len(text) <= len(prev) else (prev, text)
+                    if len(shorter) > len(longer) * 0.7 and shorter in longer:
+                        return True
+            return False
+
+        def _emit(text):
+            """Print a completed line with dedup."""
+            text = _dedup_line(text)
+            if not _is_dup(text):
+                sys.stdout.write(f"\r\033[2K  {text}\n")
+                sys.stdout.flush()
+                _seen.add(text)
+
+        def _strip_think(text):
+            """Remove <think> tags, return (cleaned_text, entered_think, exited_think)."""
+            clean = re.sub(r'<think>.*?</think>', '', text)  # complete pairs
+            entered = '<think>' in text and '</think>' not in text
+            exited = '</think>' in text and '<think>' not in text
+            clean = re.sub(r'</?think>', '', clean).strip()  # leftover tags
+            return clean, entered, exited
 
         try:
             for chunk in chat_completion_stream(messages, stop=_stop_seqs):
@@ -3402,89 +3439,66 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 collected_content += chunk
 
                 if config.DEBUG_MODE:
-                    continue  # DEBUG_MODE has its own display in chat_completion_stream
+                    continue
 
-                _line_buf += chunk
+                _buf += chunk
 
-                # Process only complete lines (wait for \n)
-                while '\n' in _line_buf:
-                    line, _line_buf = _line_buf.split('\n', 1)
-                    stripped = line.strip()
+                # ── Process complete lines ──
+                while '\n' in _buf:
+                    raw_line, _buf = _buf.split('\n', 1)
+                    text, entered, exited = _strip_think(raw_line)
 
-                    # Suppress <think>...</think> blocks (reasoning tokens leaked as content)
-                    if '<think>' in stripped:
+                    if entered:
                         _in_think = True
-                        continue
-                    if '</think>' in stripped:
+                    if exited:
                         _in_think = False
+                    if _in_think and not exited:
                         continue
-                    if _in_think:
+                    if not text:
+                        if _state == _CONTENT:
+                            sys.stdout.write(f"\r\033[2K\n")
+                            sys.stdout.flush()
                         continue
 
-                    # Strip partial think tags from line edges
-                    stripped = re.sub(r'</?think>', '', stripped).strip()
-                    if not stripped:
-                        continue
+                    # Detect Thought: / Action: anywhere in line
+                    ti = text.find('Thought:')
+                    ai = text.find('Action:')
 
-                    # Handle "Thought:" or "Action:" anywhere in line (LLM may prefix noise)
-                    _thought_idx = stripped.find('Thought:')
-                    _action_idx = stripped.find('Action:')
-
-                    if _action_idx >= 0 and (_thought_idx < 0 or _action_idx < _thought_idx):
-                        # Action reached — stop displaying, tool UI handles this
-                        if not _in_action:
+                    if ai >= 0 and (ti < 0 or ai < ti):
+                        # → ACTION state
+                        if _state != _ACTION:
                             sys.stdout.write(f"\r\033[2K")
                             sys.stdout.flush()
-                        _in_action = True
-                        _content_started = True
-                    elif _in_action:
-                        # Still in Action block (Action_Input etc.) — suppress
-                        pass
-                    elif _thought_idx >= 0:
-                        _thought_text = stripped[_thought_idx + 8:]
-                        if _thought_text not in _printed_set:
-                            sys.stdout.write(f"\r\033[2K  {Color.CYAN}Thought:{Color.RESET}{_thought_text}\n")
-                            sys.stdout.flush()
-                            _printed_set.add(_thought_text)
-                        _content_started = True
-                    elif not _content_started:
-                        # Before first Thought:/Action:/meaningful content — suppress LLM noise
-                        # But allow lines starting with # or ## (markdown headers) to start content
-                        if stripped.startswith('#'):
-                            _content_started = True
-                            sys.stdout.write(f"\r\033[2K  {line}\n")
-                            sys.stdout.flush()
-                            _printed_set.add(stripped)
-                        # else: skip noise
-                    elif not stripped:
-                        # Empty line — preserve spacing (markdown paragraphs, etc.)
-                        sys.stdout.write(f"\r\033[2K\n")
-                        sys.stdout.flush()
-                    else:
-                        # Dedup layer 1: intra-line repetition (same sentence repeated within one line)
-                        stripped = _dedup_intra_line(stripped)
-                        line = stripped  # use cleaned version for display
-                        # Dedup layer 2: exact match against previously printed lines
-                        _is_dup = stripped in _printed_set
-                        # Dedup layer 3: substring match (LLM may split same sentence differently)
-                        if not _is_dup and len(stripped) > 40:
-                            for prev in _printed_set:
-                                if stripped in prev or prev in stripped:
-                                    _is_dup = True
-                                    break
-                        if not _is_dup:
-                            sys.stdout.write(f"\r\033[2K  {line}\n")
-                            sys.stdout.flush()
-                            _printed_set.add(stripped)
+                        _state = _ACTION
 
-                # Live typing effect: show partial line only after content started and not in Action
-                # Cap at terminal width to prevent wrap (\r only clears current terminal line)
-                if _content_started and not _in_action and not _in_think and _line_buf and not _line_buf.strip().startswith('Action'):
-                    _display = re.sub(r'</?think>', '', _line_buf).strip()
-                    if len(_display) > _term_width:
-                        _display = _display[:_term_width - 3] + "..."
-                    sys.stdout.write(f"\r\033[2K  {_display}")
-                    sys.stdout.flush()
+                    elif ti >= 0:
+                        # Thought line
+                        thought = text[ti + 8:]
+                        if thought and not _is_dup(thought):
+                            sys.stdout.write(f"\r\033[2K  {Color.CYAN}Thought:{Color.RESET}{thought}\n")
+                            sys.stdout.flush()
+                            _seen.add(thought)
+                        _state = _CONTENT
+
+                    elif _state == _NOISE or _state == _ACTION:
+                        # NOISE: only markdown headers break out
+                        # ACTION: suppress non-Thought/Action lines
+                        if _state == _NOISE and text.startswith('#'):
+                            _state = _CONTENT
+                            _emit(text)
+
+                    else:
+                        # CONTENT state — normal text
+                        _emit(text)
+
+                # ── Partial line display (typing effect) ──
+                if _state == _CONTENT and not _in_think and _buf:
+                    p = re.sub(r'</?think>', '', _buf).strip()
+                    if p and len(p) > 3 and not p.startswith('Action'):
+                        if len(p) > _TERM_W:
+                            p = p[:_TERM_W - 3] + "..."
+                        sys.stdout.write(f"\r\033[2K  {p}")
+                        sys.stdout.flush()
 
         except Exception as e:
             if not collected_content:
@@ -3492,9 +3506,12 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 break
 
         # Clean up partial line display
-        if not config.DEBUG_MODE and not _in_action:
-            if _line_buf.strip():
-                sys.stdout.write(f"\r\033[2K  {_line_buf}\n")
+        if not config.DEBUG_MODE and _state != _ACTION:
+            remaining = _buf.strip() if _buf else ""
+            if remaining:
+                remaining, _, _ = _strip_think(remaining)
+                if remaining:
+                    sys.stdout.write(f"\r\033[2K  {_dedup_line(remaining)}\n")
             else:
                 sys.stdout.write(f"\r\033[2K")
             sys.stdout.flush()

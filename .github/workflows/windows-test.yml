@@ -42,3 +42,6 @@ jobs:
 
       - name: Session manager tests (27 tests)
         run: pytest common_ai_agent/tests/test_session_manager.py -v
+
+      - name: Streaming display tests (58 tests)
+        run: pytest common_ai_agent/tests/test_streaming_display.py -v
