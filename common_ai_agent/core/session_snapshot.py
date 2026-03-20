@@ -1,4 +1,4 @@
-"""Session Snapshot System for Brian Coder"""
+"""Session Snapshot System for Common AI Agent"""
 import json
 import time
 from pathlib import Path

@@ -138,7 +138,7 @@ class SlashCommandRegistry:
                      'Enter interactive plan mode (/plan <task>)')
 
         self.register('status', self._cmd_status,
-                     'Show Brian Coder status including version, model, and tools')
+                     'Show Common AI Agent status including version, model, and tools')
 
         self.register('help', self._cmd_help,
                      'Show available commands',
@@ -275,7 +275,7 @@ class SlashCommandRegistry:
 
             output = []
             output.append("\n" + "=" * 60)
-            output.append("🤖 Brian Coder Status")
+            output.append("🤖 Common AI Agent Status")
             output.append("=" * 60)
 
             # Model info

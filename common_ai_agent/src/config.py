@@ -278,7 +278,7 @@ ENABLE_MEMORY = os.getenv("ENABLE_MEMORY", "true").lower() in ("true", "1", "yes
 MEMORY_DIR = os.getenv("MEMORY_DIR", ".brian_memory")
 
 # Enable automatic preference extraction from user messages (Mem0-style)
-# When enabled, Brian Coder will detect preferences in user messages
+# When enabled, Common AI Agent will detect preferences in user messages
 # and automatically learn them without explicit instruction
 # Default: true
 ENABLE_AUTO_EXTRACT = os.getenv("ENABLE_AUTO_EXTRACT", "true").lower() in ("true", "1", "yes")
@@ -593,7 +593,7 @@ AUTONOMOUS_COMPLEXITY_ANALYSIS = os.getenv("AUTONOMOUS_COMPLEXITY_ANALYSIS", "fa
 AUTONOMOUS_TEMPERATURE = float(os.getenv("AUTONOMOUS_TEMPERATURE", "0.3"))
 
 # System Prompt with ReAct instructions
-SYSTEM_PROMPT = """You are an intelligent coding agent named Brian Coder.
+SYSTEM_PROMPT = """You are an intelligent coding agent named Common AI Agent.
 You can read files, write code, and run terminal commands to help the user.
 
 TOOLS:
@@ -959,7 +959,7 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
 
     # Identity
     parts.append(
-        "You are Brian Coder, an intelligent coding agent.\n"
+        "You are Common AI Agent, an intelligent coding agent.\n"
     )
 
     # Format

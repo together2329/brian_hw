@@ -11,7 +11,7 @@ run_command(command="shell command", timeout=30)
 
 **CRITICAL - What This Tool Is NOT For:**
 
-DO NOT use run_command for file operations. Brian Coder provides specialized tools that are:
+DO NOT use run_command for file operations. Common AI Agent provides specialized tools that are:
 - Faster and more reliable
 - Better integrated with RAG and memory systems
 - Type-safe with validation
@@ -132,7 +132,7 @@ Use run_command for:
 
 **IMPORTANT - Tool Precedence:**
 
-Brian Coder has specialized tools for common operations. ALWAYS prefer specialized tools over run_command:
+Common AI Agent has specialized tools for common operations. ALWAYS prefer specialized tools over run_command:
 
 ```
 File Operations Priority:
@@ -164,7 +164,7 @@ User asks: "Show me counter.v"
 
 **Working Directory:**
 
-- Commands run in Brian Coder's working directory
+- Commands run in Common AI Agent's working directory
 - Use `cd dir && command` to change directory temporarily
 - Or use absolute paths: `iverilog -o /abs/path/sim ...`
 

@@ -7,7 +7,7 @@ rag_search(query="search query", categories="all", limit=5, depth=2, follow_refe
 
 ## Description
 
-**RAG Search is Brian Coder's most powerful tool** for understanding codebases. Unlike simple pattern matching (`grep_file`), RAG search understands **semantic meaning** and returns **ranked results** with similarity scores.
+**RAG Search is Common AI Agent's most powerful tool** for understanding codebases. Unlike simple pattern matching (`grep_file`), RAG search understands **semantic meaning** and returns **ranked results** with similarity scores.
 
 This tool uses vector embeddings to find code and documentation that is **conceptually similar** to your query, even if the exact words don't match. It's especially powerful for:
 

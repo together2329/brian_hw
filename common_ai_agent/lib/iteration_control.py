@@ -1,5 +1,5 @@
 """
-Iteration Control for Brian Coder ReAct Loop
+Iteration Control for Common AI Agent ReAct Loop
 
 Provides:
 - Progress tracking (tool usage patterns)

@@ -1,5 +1,5 @@
 """
-Todo Tracking System for Brian Coder
+Todo Tracking System for Common AI Agent
 
 명시적 tool 호출(todo_write, todo_update)로만 관리되는 task tracking 시스템.
 파일 기반 persistence로 세션 간 상태 유지.

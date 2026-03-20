@@ -1,5 +1,5 @@
 """
-Real-world test: Brian Coder에서 실제 사용하는 시나리오
+Real-world test: Common AI Agent에서 실제 사용하는 시나리오
 """
 
 import sys
@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'common_ai_agent'))
 from core.tools import write_file
 
 print("=" * 60)
-print("REAL-WORLD TEST: Brian Coder Environment")
+print("REAL-WORLD TEST: Common AI Agent Environment")
 print("=" * 60)
 
 # Test 1: Python 파일 작성 (에러 있음)

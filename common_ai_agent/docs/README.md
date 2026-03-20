@@ -1,4 +1,4 @@
-# Brian Coder Agent (Zero-Dependency)
+# Common AI Agent Agent (Zero-Dependency)
 
 A lightweight AI agent designed for restricted Linux environments (no `sudo`, no `pip`).
 **No external dependencies required.** It uses Python's standard library.

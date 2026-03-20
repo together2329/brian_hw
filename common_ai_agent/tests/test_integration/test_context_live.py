@@ -20,7 +20,7 @@ def simulate_chat_session():
     """Simulate a chat session with API calls"""
 
     print("=" * 70)
-    print("Simulating Brian Coder Chat Session")
+    print("Simulating Common AI Agent Chat Session")
     print("=" * 70)
 
     # Step 1: Initialize like chat_loop does

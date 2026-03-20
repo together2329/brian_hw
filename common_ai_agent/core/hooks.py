@@ -1,5 +1,5 @@
 """
-Hook System for Brian Coder v2
+Hook System for Common AI Agent v2
 
 ReAct 루프의 lifecycle에 훅을 삽입하여 context 관리, tool output 제한,
 자동 continuation 등을 처리하는 플러그인 시스템.

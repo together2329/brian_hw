@@ -1,6 +1,6 @@
 # 📋 Plan Mode Guide
 
-Brian Coder의 Plan Mode는 복잡한 작업을 체계적으로 관리할 수 있는 기능입니다.
+Common AI Agent의 Plan Mode는 복잡한 작업을 체계적으로 관리할 수 있는 기능입니다.
 
 ---
 
@@ -40,7 +40,7 @@ LLM이 계획을 세우고 바로 실행합니다.
 ```
 You: Design a counter with testbench and simulate it
 
-Brian Coder:
+Common AI Agent:
 → create_plan(...)
 → [Step 1] write_file("counter.v", ...)
 → mark_step_done(1)
@@ -68,7 +68,7 @@ You: Design a complete SPI master controller with testbench
 
 ##### 2️⃣ LLM이 초안 계획 생성
 ```
-Brian Coder:
+Common AI Agent:
 Thought: This is complex. I should create a plan and get user approval.
 Action: create_plan(task_description="SPI Master Design",
                     steps="Create spi_master.v\nCreate testbench\nCompile\nSimulate")
@@ -129,7 +129,7 @@ You: I've approved the plan. Please continue.
 
 ##### 5️⃣ LLM이 승인 확인 후 실행
 ```
-Brian Coder:
+Common AI Agent:
 Action: check_plan_status()
 Observation: ✅ Plan is APPROVED!
 

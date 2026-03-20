@@ -1,5 +1,5 @@
 """
-Tool Description Loader for Brian Coder
+Tool Description Loader for Common AI Agent
 
 OpenCode-style tool descriptions with:
 - Good/Bad examples

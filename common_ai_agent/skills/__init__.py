@@ -1,5 +1,5 @@
 """
-Built-in Skills for Brian Coder
+Built-in Skills for Common AI Agent
 
 Domain-specific expertise modules that provide:
 - Specialized prompts for Verilog, protocols, testbenches

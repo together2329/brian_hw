@@ -1,5 +1,5 @@
 """
-Skill System for Brian Coder
+Skill System for Common AI Agent
 
 Claude Code-style skill system with:
 - Plugin-based skill loading (SKILL.md files)

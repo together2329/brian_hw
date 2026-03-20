@@ -1,5 +1,5 @@
 """
-Verilog Analysis Tools Plugin for Brian Coder.
+Verilog Analysis Tools Plugin for Common AI Agent.
 Provides specialized tools for analyzing, debugging, and verifying Verilog code.
 Zero-dependency implementation using Python's re module.
 """

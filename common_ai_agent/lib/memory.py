@@ -1,5 +1,5 @@
 """
-Simple Memory System for Brian Coder
+Simple Memory System for Common AI Agent
 
 Stores user preferences and project context in JSON files.
 Zero-dependency (stdlib only).

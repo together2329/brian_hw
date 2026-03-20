@@ -1,5 +1,5 @@
 """
-Display utilities for Brian Coder.
+Display utilities for Common AI Agent.
 Handles ANSI color codes and terminal output formatting.
 Zero-dependency — pure ANSI escape sequences.
 """
@@ -593,11 +593,11 @@ def format_startup_banner(base_url: str, model: str, features: dict) -> str:
     """
     Compact startup banner.
     Example:
-      Brian Coder · openrouter/glm-4.7
+      Common AI Agent · openrouter/glm-4.7
       Rate: 5s │ Iter: 100 │ Cache: on │ Compress: on
     """
     model_short = _short_model_name(model)
-    line1 = f"{Color.BOLD}{Color.CYAN}Brian Coder{Color.RESET} {Color.DIM}· {model_short}{Color.RESET}"
+    line1 = f"{Color.BOLD}{Color.CYAN}Common AI Agent{Color.RESET} {Color.DIM}· {model_short}{Color.RESET}"
 
     parts = []
     if features.get('rate_limit'):

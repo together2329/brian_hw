@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script to validate Claude Code integration into Brian Coder
+Test script to validate Claude Code integration into Common AI Agent
 """
 
 import sys

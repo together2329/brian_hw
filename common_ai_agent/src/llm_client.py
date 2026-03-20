@@ -1,5 +1,5 @@
 """
-LLM Client for Brian Coder.
+LLM Client for Common AI Agent.
 Handles API communication, streaming, token counting, and prompt caching.
 Zero-dependency (uses urllib).
 

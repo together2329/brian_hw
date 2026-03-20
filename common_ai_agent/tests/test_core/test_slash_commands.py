@@ -1,7 +1,7 @@
 """
 Slash Commands Integration Test
 
-Tests slash commands in Brian Coder environment.
+Tests slash commands in Common AI Agent environment.
 """
 
 import sys

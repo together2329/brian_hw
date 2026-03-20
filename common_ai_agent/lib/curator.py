@@ -1,5 +1,5 @@
 """
-Knowledge Curator for Brian Coder (ACE-inspired)
+Knowledge Curator for Common AI Agent (ACE-inspired)
 
 Manages node lifecycle in the knowledge graph:
 - DELETE: Remove harmful nodes (harmful > helpful)

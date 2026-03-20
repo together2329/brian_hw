@@ -1,4 +1,4 @@
-# Brian Coder Test Suite
+# Common AI Agent Test Suite
 
 ## 📊 테스트 현황
 

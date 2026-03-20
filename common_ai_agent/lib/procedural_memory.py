@@ -1,7 +1,7 @@
 """
 Procedural Memory System (Memp-inspired)
 
-Enables Brian Coder to learn from past experiences and improve over time.
+Enables Common AI Agent to learn from past experiences and improve over time.
 Stores "how-to" knowledge as trajectories: task → actions → outcome.
 
 Key features:

@@ -8,7 +8,7 @@ Sub-Agent System Test Script
 import os
 import sys
 
-# Brian Coder 디렉토리를 Python path에 추가 (tests 폴더의 상위 디렉토리)
+# Common AI Agent 디렉토리를 Python path에 추가 (tests 폴더의 상위 디렉토리)
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from main import run_react_agent

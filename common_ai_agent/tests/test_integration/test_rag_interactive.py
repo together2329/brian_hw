@@ -26,7 +26,7 @@ RESET = "\033[0m"
 BOLD = "\033[1m"
 
 def print_header():
-    print(f"\n{BOLD}{BLUE}=== Brian Coder RAG Interactive Tester ==={RESET}")
+    print(f"\n{BOLD}{BLUE}=== Common AI Agent RAG Interactive Tester ==={RESET}")
     print(f"Config Loaded:")
     print(f"  - HYBRID_ALPHA: {getattr(config, 'HYBRID_ALPHA', 'Unknown')} (Should be 0.8)")
     print(f"  - HIGH THRESHOLD: {getattr(config, 'SMART_RAG_HIGH_THRESHOLD', 'Unknown')} (Should be 0.75)")
