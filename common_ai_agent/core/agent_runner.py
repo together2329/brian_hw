@@ -24,6 +24,26 @@ if os.path.join(_project_root, 'src') not in sys.path:
     sys.path.insert(0, os.path.join(_project_root, 'src'))
 
 
+def _dedup_intra_line(text):
+    """Remove repeated content within each line of text.
+    Scans for any 50-char segment that appears twice — truncates before the second occurrence."""
+    cleaned = []
+    for line in text.split('\n'):
+        if len(line) > 100:
+            check_len = 50
+            limit = min(len(line) // 2, 600)
+            for i in range(0, limit):
+                segment = line[i:i + check_len]
+                if len(segment) < check_len:
+                    break
+                second = line.find(segment, i + check_len)
+                if second > i:
+                    line = line[:second].rstrip()
+                    break
+        cleaned.append(line)
+    return '\n'.join(cleaned)
+
+
 def _strip_native_tool_tokens(text):
     """
     Strip native tool call tokens and convert to ReAct Action: format.
@@ -291,6 +311,9 @@ def run_agent_session(
             # Clean up native tool tokens + convert to ReAct format
             collected_content = _strip_native_tool_tokens(collected_content)
 
+            # Remove intra-line repetition from LLM response
+            collected_content = _dedup_intra_line(collected_content)
+
             # Add assistant message
             messages.append({"role": "assistant", "content": collected_content})
 
@@ -420,6 +443,9 @@ def run_agent_session(
         )
     else:
         output = raw_output
+
+    # Remove intra-line repetition in output (LLM repetition trap)
+    output = _dedup_intra_line(output)
 
     # Final truncation safety net
     if len(output) > max_result_chars:

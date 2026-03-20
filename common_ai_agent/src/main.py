@@ -3373,6 +3373,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         _content_started = False  # Suppress noise before first meaningful line
         _aborted = False
         _printed_set = set()  # Dedup: skip if line was already printed
+        import shutil
+        _term_width = shutil.get_terminal_size().columns - 4  # margin for "  " prefix
 
         def _dedup_intra_line(text):
             """Remove repeated content within a single line.
@@ -3460,8 +3462,11 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                             _printed_set.add(stripped)
 
                 # Live typing effect: show partial line only after content started and not in Action
+                # Cap at terminal width to prevent wrap (\r only clears current terminal line)
                 if _content_started and not _in_action and _line_buf and not _line_buf.strip().startswith('Action'):
-                    _display = _dedup_intra_line(_line_buf.strip())
+                    _display = _line_buf.strip()
+                    if len(_display) > _term_width:
+                        _display = _display[:_term_width - 3] + "..."
                     sys.stdout.write(f"\r\033[2K  {_display}")
                     sys.stdout.flush()
 
