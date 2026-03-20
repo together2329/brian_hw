@@ -982,6 +982,27 @@ Common issues:
 ⚠️  Replacing all {occurrences} occurrences requires confirmation.
 """
         
+        # Auto-adjust indentation: if fuzzy matched, align new_text indent to actual match
+        if actual_old_text != old_text:
+            # Detect indent difference between what LLM gave and what's actually in file
+            old_lines = old_text.split('\n')
+            actual_lines = actual_old_text.split('\n')
+            if old_lines and actual_lines:
+                old_indent = len(old_lines[0]) - len(old_lines[0].lstrip())
+                actual_indent = len(actual_lines[0]) - len(actual_lines[0].lstrip())
+                indent_diff = actual_indent - old_indent
+                if indent_diff != 0:
+                    # Apply indent adjustment to new_text
+                    adjusted_lines = []
+                    for nl in new_text.split('\n'):
+                        if indent_diff > 0:
+                            adjusted_lines.append(' ' * indent_diff + nl)
+                        else:
+                            # Remove indent (but don't go negative)
+                            strip_n = min(-indent_diff, len(nl) - len(nl.lstrip()))
+                            adjusted_lines.append(nl[strip_n:])
+                    new_text = '\n'.join(adjusted_lines)
+
         # Perform replacement
         if count == -1:
             new_target_content = target_content.replace(actual_old_text, new_text)
