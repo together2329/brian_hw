@@ -3374,6 +3374,33 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         _aborted = False
         _printed_set = set()  # Dedup: skip if line was already printed
 
+        def _dedup_intra_line(text):
+            """Remove repeated sentences within a single line.
+            E.g. 'A. B. A. B. A. B.' → 'A. B.'"""
+            if len(text) < 80:
+                return text
+            # Split by sentence-ending patterns
+            import re
+            sentences = re.split(r'(?<=[.!?])\s{2,}', text)
+            if len(sentences) < 2:
+                # Try detecting repeated substring: find shortest repeating unit
+                half = len(text) // 2
+                for length in range(40, half + 1):
+                    unit = text[:length]
+                    # Check if text is mostly repetitions of this unit
+                    if text.count(unit) >= 2:
+                        # Find where first occurrence ends meaningfully (sentence boundary)
+                        end = text.find(unit, len(unit))
+                        if end > 0:
+                            return text[:end].rstrip()
+                return text
+            seen = []
+            for s in sentences:
+                s_stripped = s.strip()
+                if s_stripped and s_stripped not in seen:
+                    seen.append(s_stripped)
+            return '  '.join(seen)
+
         try:
             for chunk in chat_completion_stream(messages, stop=_stop_seqs):
                 if EscapeWatcher.check():
@@ -3427,8 +3454,18 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         sys.stdout.write(f"\r\033[2K\n")
                         sys.stdout.flush()
                     else:
-                        # Any other non-empty content — dedup & display
-                        if stripped not in _printed_set:
+                        # Dedup layer 1: intra-line repetition (same sentence repeated within one line)
+                        stripped = _dedup_intra_line(stripped)
+                        line = stripped  # use cleaned version for display
+                        # Dedup layer 2: exact match against previously printed lines
+                        _is_dup = stripped in _printed_set
+                        # Dedup layer 3: substring match (LLM may split same sentence differently)
+                        if not _is_dup and len(stripped) > 40:
+                            for prev in _printed_set:
+                                if stripped in prev or prev in stripped:
+                                    _is_dup = True
+                                    break
+                        if not _is_dup:
                             sys.stdout.write(f"\r\033[2K  {line}\n")
                             sys.stdout.flush()
                             _printed_set.add(stripped)
