@@ -77,7 +77,8 @@ if config.ENABLE_VERILOG_TOOLS:
     try:
         from core import tools_verilog
         tools.AVAILABLE_TOOLS.update(tools_verilog.VERILOG_TOOLS)
-        print(Color.system("[System] Verilog tools plugin loaded successfully 🔌"))
+        if config.DEBUG_MODE:
+            print(Color.system("[System] Verilog tools plugin loaded successfully 🔌"))
     except ImportError as e:
         print(Color.warning(f"[System] Failed to load Verilog tools: {e}"))
 

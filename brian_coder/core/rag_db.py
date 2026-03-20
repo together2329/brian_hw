@@ -1579,7 +1579,9 @@ Return ONLY valid JSON:
                     count += 1
                     
         if count:
-            print(f"[RAG] Extracted {count} new acronym definitions (Total: {len(self.known_acronyms)})")
+            import os
+            if os.getenv("DEBUG_RAG", "false").lower() in ("true", "1", "yes"):
+                print(f"[RAG] Extracted {count} new acronym definitions (Total: {len(self.known_acronyms)})")
 
     # ==================== Search ====================
 
