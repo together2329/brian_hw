@@ -25,6 +25,59 @@ Configure via environment variables or `.env` file. See `.env.example` for all o
   - `background_task` (sub-agent delegation)
   - Verilog analysis tools (optional plugin)
 
+## Usage
+
+### Basic Conversation
+
+```
+> read dma/rtl/dma_top.v and explain the architecture
+```
+
+The agent uses Thought → Action → Observation loops to complete tasks autonomously.
+
+### Explore Agent
+
+Delegate read-only codebase exploration to a specialized sub-agent:
+
+```
+> use explore agent to check this directory
+> use explore agent to analyze the DMA module
+```
+
+The explore agent uses `list_dir`, `find_files`, `grep_file`, `read_file` to investigate the codebase and returns a structured summary.
+
+### Slash Commands
+
+```
+/help          — Show available commands
+/status        — Show agent status (model, tools, context)
+/compact       — Compress conversation history
+/clear         — Clear conversation
+/plan          — Enter plan mode for complex tasks
+/exit          — Exit the agent
+```
+
+### Keyboard Shortcuts
+
+- **ESC** — Abort current LLM inference mid-stream
+- **Ctrl+C** — Exit the agent
+
+### Multi-Agent Delegation
+
+The primary agent can delegate tasks to specialized sub-agents:
+
+| Agent | Role | Tools |
+|-------|------|-------|
+| **explore** | Read-only codebase analysis | read, grep, find, list |
+| **plan** | Strategy and planning | none (reasoning only) |
+| **execute** | Full tool access | all tools |
+| **review** | Code review | read, grep |
+
+```
+> use explore agent to find all Verilog modules
+> create a plan to refactor the DMA controller
+```
+
 ## API Setup
 
 Supports any OpenAI-compatible API endpoint (OpenAI, OpenRouter, vLLM, etc.).
