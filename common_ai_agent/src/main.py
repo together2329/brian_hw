@@ -3996,16 +3996,12 @@ def chat_loop():
             from prompt_toolkit.key_binding import KeyBindings
             _kb = KeyBindings()
 
-            @_kb.add('enter')
+            @_kb.add('s-enter')  # Shift+Enter → newline
             def _newline(event):
                 event.current_buffer.insert_text('\n')
 
-            @_kb.add('escape', 'enter')  # Meta+Enter (ESC then Enter)
-            def _submit_meta(event):
-                event.current_buffer.validate_and_handle()
-
-            @_kb.add('c-d')  # Ctrl+D
-            def _submit_ctrl_d(event):
+            @_kb.add('enter')  # Enter → submit
+            def _submit(event):
                 event.current_buffer.validate_and_handle()
 
             _multiline_prompt = PromptSession(
@@ -4013,7 +4009,7 @@ def chat_loop():
                 multiline=True,
             )
             _prompt_text = ANSI(Color.user("> ") + Color.RESET)
-            print(Color.info("  [Multiline] Enter=줄바꿈, ESC→Enter 또는 Ctrl+D=전송"))
+            print(Color.info("  [Multiline] Shift+Enter=줄바꿈, Enter=전송"))
         except ImportError:
             print(Color.warning("  [Multiline] prompt_toolkit not found — falling back to single-line input"))
 
