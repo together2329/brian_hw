@@ -6,11 +6,10 @@ A lightweight AI coding agent. **No external dependencies** — runs on Python's
 
 ```bash
 cd common_ai_agent
-export LLM_BASE_URL="https://openrouter.ai/api/v1"
-export LLM_API_KEY="sk-or-v1-..."
-export LLM_MODEL_NAME="openrouter/z-ai/glm-4.7"
 python3 src/main.py
 ```
+
+Configure via environment variables or `.env` file. See `.env.example` for all options.
 
 ## Features
 
@@ -28,42 +27,20 @@ python3 src/main.py
 
 ## API Setup
 
-### OpenAI
+Supports any OpenAI-compatible API endpoint (OpenAI, OpenRouter, vLLM, etc.).
 
 ```bash
-export LLM_BASE_URL="https://api.openai.com/v1"
-export LLM_API_KEY="sk-proj-YOUR_KEY"
-export LLM_MODEL_NAME="gpt-4o-mini"
-```
-
-Models: `gpt-4o-mini` (fast, cheap), `gpt-4o` (powerful)
-
-### OpenRouter
-
-```bash
-export LLM_BASE_URL="https://openrouter.ai/api/v1"
-export LLM_API_KEY="sk-or-v1-YOUR_KEY"
-export LLM_MODEL_NAME="openrouter/z-ai/glm-4.7"
-```
-
-Free models: `meta-llama/llama-3.3-70b-instruct:free`, `google/gemini-flash-1.5:free`
-
-### Local / vLLM
-
-```bash
-export LLM_BASE_URL="http://localhost:8000/v1"
-export LLM_API_KEY="none"
+export LLM_BASE_URL="your-api-base-url"
+export LLM_API_KEY="your-api-key"
 export LLM_MODEL_NAME="your-model-name"
 ```
-
-Any OpenAI-compatible API endpoint works.
 
 ### Sub-Agent Models
 
 ```bash
-export PRIMARY_MODEL="openrouter/z-ai/glm-4.7"
-export SUBAGENT_LOW_MODEL="openrouter/qwen/qwen3-next-80b-a3b-instruct"
-export SUBAGENT_HIGH_MODEL="openrouter/z-ai/glm-4.7"
+export PRIMARY_MODEL="primary-model"
+export SUBAGENT_LOW_MODEL="low-cost-model"
+export SUBAGENT_HIGH_MODEL="high-reasoning-model"
 ```
 
 ## Configuration
