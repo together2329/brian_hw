@@ -69,9 +69,10 @@ The primary agent can delegate tasks to specialized sub-agents:
 | Agent | Role | Tools |
 |-------|------|-------|
 | **explore** | Read-only codebase analysis | read, grep, find, list |
-| **plan** | Strategy and planning | none (reasoning only) |
+| **plan** | Strategy and planning | read-only + create_plan |
 | **execute** | Full tool access | all tools |
 | **review** | Code review | read, grep |
+| **task** | Background task execution | read-only + background + todo |
 
 ```
 > use explore agent to find all Verilog modules
