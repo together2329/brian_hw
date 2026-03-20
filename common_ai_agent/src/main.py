@@ -3373,6 +3373,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         _content_started = False  # Suppress noise before first meaningful line
         _aborted = False
         _printed_set = set()  # Dedup: skip if line was already printed
+        _in_think = False    # True while inside <think>...</think> block
         import shutil
         _term_width = shutil.get_terminal_size().columns - 4  # margin for "  " prefix
 
@@ -3409,6 +3410,21 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 while '\n' in _line_buf:
                     line, _line_buf = _line_buf.split('\n', 1)
                     stripped = line.strip()
+
+                    # Suppress <think>...</think> blocks (reasoning tokens leaked as content)
+                    if '<think>' in stripped:
+                        _in_think = True
+                        continue
+                    if '</think>' in stripped:
+                        _in_think = False
+                        continue
+                    if _in_think:
+                        continue
+
+                    # Strip partial think tags from line edges
+                    stripped = re.sub(r'</?think>', '', stripped).strip()
+                    if not stripped:
+                        continue
 
                     # Handle "Thought:" or "Action:" anywhere in line (LLM may prefix noise)
                     _thought_idx = stripped.find('Thought:')
@@ -3463,8 +3479,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                 # Live typing effect: show partial line only after content started and not in Action
                 # Cap at terminal width to prevent wrap (\r only clears current terminal line)
-                if _content_started and not _in_action and _line_buf and not _line_buf.strip().startswith('Action'):
-                    _display = _line_buf.strip()
+                if _content_started and not _in_action and not _in_think and _line_buf and not _line_buf.strip().startswith('Action'):
+                    _display = re.sub(r'</?think>', '', _line_buf).strip()
                     if len(_display) > _term_width:
                         _display = _display[:_term_width - 3] + "..."
                     sys.stdout.write(f"\r\033[2K  {_display}")
