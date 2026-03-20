@@ -45,3 +45,6 @@ jobs:
 
       - name: Streaming display tests (58 tests)
         run: pytest common_ai_agent/tests/test_streaming_display.py -v
+
+      - name: Multiline input tests (30 tests)
+        run: pytest common_ai_agent/tests/test_multiline_input.py -v
