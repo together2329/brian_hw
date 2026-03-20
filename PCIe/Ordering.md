@@ -1,3 +1,0 @@
-
-![[PCIe Ordering.png]]
-

@@ -4,11 +4,11 @@ name: Cross-Platform Test
 on:
   push:
     paths:
-      - 'brian_coder/**'
+      - 'common_ai_agent/**'
       - '.github/workflows/windows-test.yml'
   pull_request:
     paths:
-      - 'brian_coder/**'
+      - 'common_ai_agent/**'
 
 jobs:
   test:
@@ -29,16 +29,16 @@ jobs:
         run: pip install pytest
 
       - name: Smoke test - main.py --check
-        run: python brian_coder/src/main.py --check
+        run: python common_ai_agent/src/main.py --check
 
       - name: Platform compat tests (22 tests)
-        run: pytest brian_coder/tests/test_windows_compat.py -v
+        run: pytest common_ai_agent/tests/test_windows_compat.py -v
 
       - name: Deep compat tests (32 tests)
-        run: pytest brian_coder/tests/test_deep_compat.py -v
+        run: pytest common_ai_agent/tests/test_deep_compat.py -v
 
       - name: Deep compat V2 tests (50 tests)
-        run: pytest brian_coder/tests/test_deep_compat_v2.py -v
+        run: pytest common_ai_agent/tests/test_deep_compat_v2.py -v
 
       - name: Session manager tests (27 tests)
-        run: pytest brian_coder/tests/test_session_manager.py -v
+        run: pytest common_ai_agent/tests/test_session_manager.py -v
