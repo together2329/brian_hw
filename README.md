@@ -42,6 +42,7 @@ Delegate read-only codebase exploration to a specialized sub-agent:
 ```
 > use explore agent to check this directory
 > use explore agent to analyze the DMA module
+> use explore agent to find all Verilog modules in caliptra-ss
 ```
 
 The explore agent uses `list_dir`, `find_files`, `grep_file`, `read_file` to investigate the codebase and returns a structured summary.

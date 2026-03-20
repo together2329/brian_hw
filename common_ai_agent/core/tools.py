@@ -1654,6 +1654,9 @@ def rag_search(query, categories="all", limit=5, depth=2, follow_references=Fals
         rag_search("PCIe TLP Header", categories="spec", limit=5, depth=4, follow_references=True)
     """
     try:
+        from config import ENABLE_SMART_RAG
+        if not ENABLE_SMART_RAG:
+            return "RAG is disabled. Use grep_file() or find_files() instead."
         from rag_db import get_rag_db
         from hybrid_rag import get_hybrid_rag
 
@@ -1766,6 +1769,9 @@ def rag_explore(start_node, max_depth=3, max_results=20, explore_type="related")
         rag_explore(start_node="file:pcie_msg_receiver.v", max_depth=2, explore_type="hierarchy")
     """
     try:
+        from config import ENABLE_SMART_RAG
+        if not ENABLE_SMART_RAG:
+            return "RAG is disabled. Use grep_file() or find_files() instead."
         from spec_graph import get_spec_graph
         from rag_db import get_rag_db
 
@@ -1852,6 +1858,9 @@ def rag_index(path=".", category=None, pattern=None, fine_grained=False, rate_li
         rag_index(".", rate_limit_delay_ms=500)  # For rate-limited environments
     """
     try:
+        from config import ENABLE_SMART_RAG
+        if not ENABLE_SMART_RAG:
+            return "RAG is disabled. Set ENABLE_SMART_RAG=true to enable."
         import rag_db as rag_module
         import config
 
@@ -1897,8 +1906,11 @@ def rag_status():
         Summary of indexed files, chunks, and categories
     """
     try:
+        from config import ENABLE_SMART_RAG
+        if not ENABLE_SMART_RAG:
+            return "RAG is disabled."
         from rag_db import get_rag_db
-        
+
         db = get_rag_db()
         stats = db.get_stats()
         
@@ -1939,8 +1951,11 @@ def rag_clear():
         Confirmation message
     """
     try:
+        from config import ENABLE_SMART_RAG
+        if not ENABLE_SMART_RAG:
+            return "RAG is disabled."
         from rag_db import get_rag_db
-        
+
         db = get_rag_db()
         db.clear()
         return "RAG database cleared. Run rag_index() to re-index files."

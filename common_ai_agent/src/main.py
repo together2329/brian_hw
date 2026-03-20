@@ -3372,7 +3372,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         _in_action = False   # True while inside Action block (suppress display)
         _content_started = False  # Suppress noise before first meaningful line
         _aborted = False
-        _last_printed = ""   # Dedup: skip if identical to previous line
+        _printed_set = set()  # Dedup: skip if line was already printed
 
         try:
             for chunk in chat_completion_stream(messages, stop=_stop_seqs):
@@ -3408,10 +3408,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         pass
                     elif _thought_idx >= 0:
                         _thought_text = stripped[_thought_idx + 8:]
-                        if _thought_text != _last_printed:
+                        if _thought_text not in _printed_set:
                             sys.stdout.write(f"\r\033[2K  {Color.CYAN}Thought:{Color.RESET}{_thought_text}\n")
                             sys.stdout.flush()
-                            _last_printed = _thought_text
+                            _printed_set.add(_thought_text)
                         _content_started = True
                     elif not _content_started:
                         # Before first Thought:/Action:/meaningful content — suppress LLM noise
@@ -3420,7 +3420,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                             _content_started = True
                             sys.stdout.write(f"\r\033[2K  {line}\n")
                             sys.stdout.flush()
-                            _last_printed = stripped
+                            _printed_set.add(stripped)
                         # else: skip noise
                     elif not stripped:
                         # Empty line — preserve spacing (markdown paragraphs, etc.)
@@ -3428,10 +3428,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         sys.stdout.flush()
                     else:
                         # Any other non-empty content — dedup & display
-                        if stripped != _last_printed:
+                        if stripped not in _printed_set:
                             sys.stdout.write(f"\r\033[2K  {line}\n")
                             sys.stdout.flush()
-                            _last_printed = stripped
+                            _printed_set.add(stripped)
 
                 # Live typing effect: show partial line only after content started and not in Action
                 if _content_started and not _in_action and _line_buf and not _line_buf.strip().startswith('Action'):
