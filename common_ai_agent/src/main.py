@@ -3375,31 +3375,20 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         _printed_set = set()  # Dedup: skip if line was already printed
 
         def _dedup_intra_line(text):
-            """Remove repeated sentences within a single line.
-            E.g. 'A. B. A. B. A. B.' → 'A. B.'"""
-            if len(text) < 80:
+            """Remove repeated content within a single line.
+            Scans for any 50-char segment that appears twice — truncates before the second occurrence."""
+            if len(text) < 100:
                 return text
-            # Split by sentence-ending patterns
-            import re
-            sentences = re.split(r'(?<=[.!?])\s{2,}', text)
-            if len(sentences) < 2:
-                # Try detecting repeated substring: find shortest repeating unit
-                half = len(text) // 2
-                for length in range(40, half + 1):
-                    unit = text[:length]
-                    # Check if text is mostly repetitions of this unit
-                    if text.count(unit) >= 2:
-                        # Find where first occurrence ends meaningfully (sentence boundary)
-                        end = text.find(unit, len(unit))
-                        if end > 0:
-                            return text[:end].rstrip()
-                return text
-            seen = []
-            for s in sentences:
-                s_stripped = s.strip()
-                if s_stripped and s_stripped not in seen:
-                    seen.append(s_stripped)
-            return '  '.join(seen)
+            check_len = 50
+            limit = min(len(text) // 2, 600)
+            for i in range(0, limit):
+                segment = text[i:i + check_len]
+                if len(segment) < check_len:
+                    break
+                second = text.find(segment, i + check_len)
+                if second > i:
+                    return text[:second].rstrip()
+            return text
 
         try:
             for chunk in chat_completion_stream(messages, stop=_stop_seqs):
@@ -3472,7 +3461,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                 # Live typing effect: show partial line only after content started and not in Action
                 if _content_started and not _in_action and _line_buf and not _line_buf.strip().startswith('Action'):
-                    sys.stdout.write(f"\r\033[2K  {_line_buf}")
+                    _display = _dedup_intra_line(_line_buf.strip())
+                    sys.stdout.write(f"\r\033[2K  {_display}")
                     sys.stdout.flush()
 
         except Exception as e:
