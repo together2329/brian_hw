@@ -3984,13 +3984,48 @@ def chat_loop():
     # Initialize slash command registry
     slash_registry = get_slash_command_registry()
 
+    # ── Multiline input setup ──
+    _multiline_prompt = None
+    if config.ENABLE_MULTILINE_INPUT:
+        try:
+            # Add vendored packages to path
+            _vendor_dir = str(Path(__file__).parent.parent / 'vendor')
+            if _vendor_dir not in sys.path:
+                sys.path.insert(0, _vendor_dir)
+            from prompt_toolkit import PromptSession
+            from prompt_toolkit.key_binding import KeyBindings
+            _kb = KeyBindings()
+
+            @_kb.add('enter')
+            def _newline(event):
+                event.current_buffer.insert_text('\n')
+
+            @_kb.add('escape', 'enter')  # Meta+Enter (ESC then Enter)
+            def _submit_meta(event):
+                event.current_buffer.validate_and_handle()
+
+            @_kb.add('c-d')  # Ctrl+D
+            def _submit_ctrl_d(event):
+                event.current_buffer.validate_and_handle()
+
+            _multiline_prompt = PromptSession(
+                key_bindings=_kb,
+                multiline=True,
+            )
+            print(Color.info("  [Multiline] Enter=줄바꿈, ESC→Enter 또는 Ctrl+D=전송"))
+        except ImportError:
+            print(Color.warning("  [Multiline] prompt_toolkit not found — falling back to single-line input"))
+
     print(Color.info("\nType 'exit' or 'quit' to stop."))
     print(Color.info("Type /help for available slash commands.\n"))
 
 
     while True:
         try:
-            user_input = input(Color.user("> ") + Color.RESET)
+            if _multiline_prompt:
+                user_input = _multiline_prompt.prompt(Color.user("> ") + Color.RESET)
+            else:
+                user_input = input(Color.user("> ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
                 break
 

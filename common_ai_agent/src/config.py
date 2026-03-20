@@ -532,6 +532,14 @@ ENABLE_TODO_WRITE_TOOL = os.getenv("ENABLE_TODO_WRITE_TOOL", "true").lower() in 
 ENABLE_ENHANCED_TOOL_DESCRIPTIONS = os.getenv("ENABLE_ENHANCED_TOOL_DESCRIPTIONS", "true").lower() in ("true", "1", "yes")
 
 # ============================================================
+# Multiline Input (prompt_toolkit)
+# ============================================================
+# Enable multiline input mode using prompt_toolkit
+# When enabled: Enter = newline, Meta+Enter (ESC then Enter) or Ctrl+D = submit
+# When disabled: standard single-line input() (default)
+ENABLE_MULTILINE_INPUT = os.getenv("ENABLE_MULTILINE_INPUT", "true").lower() in ("true", "1", "yes")
+
+# ============================================================
 # Claude Code Flow (Plan → Approve → Execute)
 # ============================================================
 # Flow modes:
