@@ -360,7 +360,7 @@ HYBRID_ALPHA = float(os.getenv("HYBRID_ALPHA", "0.8"))
 # Enable/Disable automatic RAG indexing on startup
 # When enabled, automatically indexes files based on ~/.brian_rag/.ragconfig
 # Uses hash-based comparison to skip unchanged files (very fast on re-runs)
-ENABLE_RAG_AUTO_INDEX = os.getenv("ENABLE_RAG_AUTO_INDEX", "true").lower() in ("true", "1", "yes")
+ENABLE_RAG_AUTO_INDEX = os.getenv("ENABLE_RAG_AUTO_INDEX", "false").lower() in ("true", "1", "yes")
 
 # Fine-grained chunking for Verilog files
 # When enabled, creates detailed chunks for individual signals, case statements, if-else blocks
@@ -412,7 +412,7 @@ MERGE_SIMILARITY_THRESHOLD = float(os.getenv("MERGE_SIMILARITY_THRESHOLD", "0.85
 # ============================================================
 # Enable/Disable automatic RAG context injection
 # When enabled, automatically searches RAG and injects relevant context
-ENABLE_SMART_RAG = os.getenv("ENABLE_SMART_RAG", "true").lower() in ("true", "1", "yes")
+ENABLE_SMART_RAG = os.getenv("ENABLE_SMART_RAG", "false").lower() in ("true", "1", "yes")
 
 # High threshold: score >= this -> use RAG context directly
 SMART_RAG_HIGH_THRESHOLD = float(os.getenv("SMART_RAG_HIGH_THRESHOLD", "0.75"))
@@ -629,61 +629,6 @@ Sub-Agent Tools:
 30. background_task(agent="explore", prompt="find FIFO implementations") - Delegate to sub-agent
 31. background_output(task_id="bg_xxxx") - Get background task result
 32. todo_update(index=1, status="completed") - Update todo item status (1-based index)
-
-RAG Tools (for Code/Documentation search - RECOMMENDED):
-17. rag_search(query="function or concept", categories="all", limit=5) - Semantic search
-    Categories: "code" (source files), "docs" (documentation), "spec" (specifications), "all" (default)
-18. rag_index(path=".", fine_grained=False) - Index files (run once per project)
-19. rag_status() - Show indexed files and chunk counts
-20. rag_clear() - Clear RAG database
-
-RECOMMENDED WORKFLOW:
-1. rag_index(".") - Index project once
-2. rag_search("function or concept", categories="all") - Find relevant code or documentation
-3. read_lines() or read_file() - Read specific code sections for detailed analysis
-
-CRITICAL - Code Search Example:
-User: find where calculate_total function is defined
-Thought: Function definition search. rag_search is most efficient for semantic search.
-Action: rag_search(query="calculate_total function definition", categories="code", limit=5)
-Observation: Found 5 results... utils.py (L145-150) Score: 0.85
-
-CRITICAL - Spec/Protocol Search Example:
-User: TDISP 상태머신에서 CONFIG_LOCKED로 전환하는 조건이 뭐야?
-Thought: 스펙 관련 질문이다. rag_search를 spec 카테고리로 제한하여 검색한다.
-Action: rag_search(query="TDISP CONFIG_LOCKED", categories="spec", limit=3)
-
-ANSWER STYLE GUIDELINES:
-1. **CRITICAL RULE for acronyms and technical terms:**
-
-   When asked about an acronym (e.g., "What does OHC stand for?"):
-
-   a) IF multiple RAG chunks mention the acronym:
-      - **PRIORITIZE chunks with explicit definitions**
-      - Look for phrases: "stands for", "indicates the presence of", "means", "is defined as"
-      - Example GOOD chunk: "OHC stands for Orthogonal Header Content"
-      - Example BAD chunk: "Set the OHC field to 0x5" (usage, not definition)
-
-   b) ALWAYS verify definition from provided context:
-      - Quote the exact definition found in RAG results
-      - **NEVER hallucinate or guess definitions**
-      - If no clear definition found, say: "Definition not found in indexed documents"
-
-   c) Start answer with full expansion:
-      - Example: "OHC stands for Orthogonal Header Content. It is a..."
-      - Then provide context and details
-
-2. Be concise and professional. Avoid "I checked the documents and..." unless necessary.
-3. Structure: Definition -> Context (e.g., "In PCIe 6.0...") -> Details.
-4. If RAG results contain the answer, use them directly. Don't say "I couldn't find exact match" if partial matches strongly suggest the answer.
-Thought: 프로토콜 스펙 문서를 검색해야 한다. categories="spec"으로 검색하자.
-Action: rag_search(query="CONFIG_LOCKED LOCK_INTERFACE_REQUEST", categories="spec", limit=5)
-Observation: Found results... main.md (Section: LOCK_INTERFACE_REQUEST) Score: 0.82
-
-IMPORTANT: 
-- For source files: use categories="code"
-- For protocol docs (.md): use categories="spec"
-- When unsure: use categories="all"
 
 FORMAT:
 To use a tool, you must use the following format exactly:
@@ -922,118 +867,6 @@ When deciding how to approach a task, consider:
 You don't need to worry about complexity analysis - the system handles it automatically.
 Focus on using the right tools for the task at hand.
 
-# ============================================================
-# RAG SEARCH STRATEGY (Phase D)
-# ============================================================
-
-When you need to understand complex topics from documentation or code:
-
-**1. Start Shallow, Go Deep:**
-   - First search: depth=2 (overview)
-     Action: rag_search("topic", depth=2, limit=5)
-   - If insufficient: depth=4 (deep dive)
-     Action: rag_search("topic", depth=4, limit=10)
-
-**2. Follow References (for specs/docs):**
-   - Use follow_references=true when:
-     • Topic has cross-references (e.g., "See Section X.Y")
-     • Need complete understanding
-     • Working with specification documents
-   - Example:
-     Action: rag_search("PCIe TLP Header", categories="spec", depth=4, follow_references=true)
-
-**3. Use rag_explore() for related content:**
-   - When you found a relevant section and want to see everything related
-   - When you need to understand document structure around a topic
-   - Example workflow:
-     Action: rag_search("CONFIG_LOCKED state", categories="spec")
-     Observation: Found section "spec_section_2_3_4"
-     Action: rag_explore(start_node="spec_section_2_3_4", max_depth=3, explore_type="related")
-     Observation: [Complete map of related sections, registers, tables]
-
-**4. Iterative Search Pattern:**
-   a) First pass: Broad search
-      Action: rag_search("topic overview", depth=2)
-   b) Analyze results
-   c) Second pass: Refined query with deeper depth
-      Action: rag_search("specific aspect", depth=4, follow_references=true)
-
-**5. explore_type options:**
-   - "related": All relationships (hierarchy + references + similarity)
-   - "hierarchy": Only parent/child sections
-   - "references": Only cross-references
-
-Example complete workflow:
-Thought: Need to understand PCIe TLP packet structure completely.
-Action: rag_search("PCIe TLP packet structure", categories="spec", depth=2, limit=5)
-Observation: Found §2.1.1 "TLP Header Format" but mentions "Type field in §3.2"
-Thought: Need to explore from §2.1.1 to get all related sections including §3.2.
-Action: rag_explore(start_node="spec_section_2_1_1", max_depth=3, explore_type="related")
-Observation: [Complete map: §2.1.1, §2.1.2, §3.2, Table 2-1, related diagrams]
-Thought: Now I have complete understanding. Let me answer the user's question.
-
-**Remember:**
-- depth controls how many "hops" away from initial matches to search
-- follow_references automatically finds and includes cross-referenced sections
-- rag_explore is for systematic exploration from a known starting point
-
-# ============================================================
-# HUMAN-LIKE EXPLORATION WORKFLOW (가장 중요!)
-# ============================================================
-
-When analyzing code or documentation, work like a human developer:
-
-**Step 1: RAG Search First**
-- Start with rag_search() to find relevant chunks
-- Example: rag_search("process_data function", categories="code", limit=5)
-
-**Step 2: Read the Actual Code**
-- Check source file and line numbers from RAG results
-- Use read_lines() to see the actual code context
-- Example: read_lines(path="data_handler.py", start_line=145, end_line=165)
-
-**Step 3: Expand Context**
-- If you need more context, read surrounding lines
-- Look at 20-30 lines before/after the target
-- Example: read_lines(path="utils.py", start_line=120, end_line=180)
-
-**Step 4: Trace Dependencies**
-- Use grep_file() to find related signals or modules
-- Use grep_file() for pattern matching
-- Example: grep_file(pattern="def calculate", path=".", context_lines=3)
-
-**Step 5: Try Multiple Approaches**
-- If first search doesn't help, try different keywords
-- Search in different categories (code, docs, spec)
-- Expand or narrow your search scope
-
-**Step 6: Synthesize and Answer**
-- Combine information from multiple sources
-- Quote specific code/doc references
-- Provide clear, evidence-based answers
-
-**Example Workflow:**
-User: Where is the process_data function called?
-
-Thought: Function call search. Use RAG first to find locations.
-Action: rag_search(query="process_data function call", categories="code", limit=5)
-Observation: Found in data_handler.py (L145-150) Score: 0.85
-
-Thought: Now I need to read the actual code to understand the context.
-Action: read_lines(path="data_handler.py", start_line=140, end_line=160)
-Observation: [Actual code content]
-
-Thought: I should also check the surrounding context to understand the logic.
-Action: read_lines(path="data_handler.py", start_line=120, end_line=180)
-Observation: [Wider context]
-
-Thought: Now I can answer. process_data is called at L145 with the condition...
-[Answer]
-
-**CRITICAL: 절대 RAG 결과만 보고 바로 답변하지 마라!**
-- 반드시 실제 파일을 읽어서 확인해라
-- 주변 컨텍스트를 보고 전체 로직을 이해해라
-- 필요하면 여러 파일을 읽고 비교해라
 """
 
 # ============================================================
@@ -1084,11 +917,7 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         "Search": [
             _tool_line("grep_file", 'pattern, path', "Regex search in file(s). Use BEFORE read_file on large files."),
             _tool_line("find_files", 'pattern, path', "Glob search for files. Prefer over repeated list_dir."),
-            _tool_line("rag_search", 'query, categories, limit', "Semantic code/doc search. Prefer over grep for concepts."),
-            _tool_line("rag_index", 'path', "Index project files for RAG (run once)."),
-            _tool_line("rag_explore", 'start_node, max_depth', "Explore related code sections."),
-            _tool_line("rag_status", '', "Show RAG index stats."),
-            _tool_line("rag_clear", '', "Clear RAG index."),
+            # RAG tools disabled by default (set ENABLE_SMART_RAG=true to re-enable)
         ],
         "Git": [
             _tool_line("git_status", '', "Show working tree status."),
@@ -1158,7 +987,7 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         "\n"
         "1. PARALLEL EXECUTION (MANDATORY):\n"
         "   - Output 3+ Actions per response when exploring/reading.\n"
-        "   - Read-only tools are parallel-safe: read_file, read_lines, grep_file, list_dir, find_files, rag_search, git_status, git_diff.\n"
+        "   - Read-only tools are parallel-safe: read_file, read_lines, grep_file, list_dir, find_files, git_status, git_diff.\n"
         "   - Write tools create sequential barriers: write_file, replace_in_file, run_command.\n"
         "\n"
         "2. FILE OPERATIONS:\n"
@@ -1169,7 +998,7 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         "3. LARGE FILE STRATEGY:\n"
         "   - Files >500 lines: grep_file first → read_lines on found sections. Never blind-read.\n"
         "\n"
-        "4. SEARCH PRIORITY: rag_search > grep_file > find_files > list_dir.\n"
+        "4. SEARCH PRIORITY: grep_file > find_files > list_dir.\n"
         "\n"
         "5. ANTI-HALLUCINATION:\n"
         "   - Never analyze a file you haven't read. Never invent tool results.\n"

@@ -452,7 +452,8 @@ def _strip_native_tool_tokens(text):
         'read_file', 'write_file', 'run_command', 'list_dir', 'grep_file',
         'read_lines', 'find_files', 'replace_in_file', 'replace_lines',
         'git_diff', 'git_status', 'todo_write', 'todo_update',
-        'rag_search', 'rag_index', 'rag_explore', 'rag_status', 'rag_clear',
+        # RAG tools disabled by default (ENABLE_SMART_RAG=true to re-enable)
+        # 'rag_search', 'rag_index', 'rag_explore', 'rag_status', 'rag_clear',
         'background_task', 'background_output', 'background_cancel', 'background_list',
         'create_plan', 'get_plan', 'mark_step_done',
         'analyze_verilog_module', 'find_signal_usage', 'find_module_definition',
@@ -2837,9 +2838,9 @@ _PARALLEL_ELIGIBLE_TOOLS = {
     # Git 도구
     "git_status",
     "git_diff",
-    # RAG 도구 (read-only)
-    "rag_search",
-    "rag_status",
+    # RAG 도구 (disabled by default, set ENABLE_SMART_RAG=true to re-enable)
+    # "rag_search",
+    # "rag_status",
     # Verilog 분석 도구 (read-only)
     "analyze_verilog_module",
     "find_signal_usage",
@@ -3579,7 +3580,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         actions_taken.append(action_obj)
 
                     # Tool display: header + inline brief on same line
-                    _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan', 'git_diff', 'git_status', 'rag_search', 'write_file'}
+                    _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan', 'git_diff', 'git_status', 'write_file'}
                     if tool_name == 'background_task' and not config.DEBUG_MODE:
                         pass  # handoff line already printed by background_task()
                     elif tool_name in _INLINE_TOOLS and not config.DEBUG_MODE:
@@ -3612,7 +3613,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     summary = _extract_tool_args_summary(tool_name, args_str)
 
                     # Run tool with spinner for slow tools (run_command, rag_*, background_*)
-                    _SLOW_TOOLS = {'run_command', 'rag_search', 'rag_explore', 'rag_index', 'background_task', 'background_output'}
+                    _SLOW_TOOLS = {'run_command', 'background_task', 'background_output'}
                     tracker.record_tool(tool_name)
                     tool_start = time.time()
                     if tool_name in _SLOW_TOOLS and not config.DEBUG_MODE:
@@ -3647,7 +3648,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         actions_taken.append(action_obj)
 
                     # Tool display: header + inline brief + elapsed on same line
-                    _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan', 'git_diff', 'git_status', 'rag_search', 'write_file'}
+                    _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan', 'git_diff', 'git_status', 'write_file'}
                     elapsed_suffix = f" · {tool_elapsed:.1f}s" if tool_elapsed >= 1.0 else ""
                     if tool_name == 'background_task' and not config.DEBUG_MODE:
                         pass  # handoff line already printed by background_task()

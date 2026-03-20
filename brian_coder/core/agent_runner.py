@@ -108,7 +108,8 @@ def _strip_native_tool_tokens(text):
         'read_file', 'write_file', 'run_command', 'list_dir', 'grep_file',
         'read_lines', 'find_files', 'replace_in_file', 'replace_lines',
         'git_diff', 'git_status', 'todo_write', 'todo_update',
-        'rag_search', 'rag_index', 'rag_explore', 'rag_status',
+        # RAG tools disabled by default
+        # 'rag_search', 'rag_index', 'rag_explore', 'rag_status',
         'background_task', 'background_output',
         'analyze_verilog_module', 'find_signal_usage', 'find_module_definition',
         'extract_module_hierarchy', 'generate_module_testbench',
@@ -517,7 +518,7 @@ def _get_agent_tools(agent_name: str) -> Set[str]:
     # Fallback defaults
     READ_ONLY = {
         "read_file", "read_lines", "grep_file", "list_dir",
-        "find_files", "rag_search", "rag_explore",
+        "find_files",
         "git_diff", "git_status",
     }
     ALL_TOOLS = {"*"}
