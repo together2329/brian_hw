@@ -3992,7 +3992,7 @@ def chat_loop():
             _vendor_dir = str(Path(__file__).parent.parent / 'vendor')
             if _vendor_dir not in sys.path:
                 sys.path.insert(0, _vendor_dir)
-            from prompt_toolkit import PromptSession
+            from prompt_toolkit import PromptSession, ANSI
             from prompt_toolkit.key_binding import KeyBindings
             _kb = KeyBindings()
 
@@ -4012,6 +4012,7 @@ def chat_loop():
                 key_bindings=_kb,
                 multiline=True,
             )
+            _prompt_text = ANSI(Color.user("> ") + Color.RESET)
             print(Color.info("  [Multiline] Enter=줄바꿈, ESC→Enter 또는 Ctrl+D=전송"))
         except ImportError:
             print(Color.warning("  [Multiline] prompt_toolkit not found — falling back to single-line input"))
@@ -4023,7 +4024,7 @@ def chat_loop():
     while True:
         try:
             if _multiline_prompt:
-                user_input = _multiline_prompt.prompt(Color.user("> ") + Color.RESET)
+                user_input = _multiline_prompt.prompt(_prompt_text)
             else:
                 user_input = input(Color.user("> ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
