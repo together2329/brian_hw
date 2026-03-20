@@ -58,7 +58,22 @@ def read_file(path):
     """
     try:
         if not os.path.exists(path):
-            return f"Error: File '{path}' does not exist."
+            # Try to suggest similar files nearby
+            import glob
+            basename = os.path.basename(path)
+            parent = os.path.dirname(path) or "."
+            # Search up to 2 levels from parent
+            suggestions = []
+            for depth in ["", "*/"]:
+                search_dir = os.path.dirname(parent) or "."
+                found = glob.glob(os.path.join(search_dir, "**", basename), recursive=True)
+                suggestions.extend(found[:3])
+                if suggestions:
+                    break
+            if suggestions:
+                hint = ", ".join(f"'{s}'" for s in suggestions[:3])
+                return f"Error: File '{path}' does not exist. Did you mean: {hint}? Use find_files() to confirm."
+            return f"Error: File '{path}' does not exist. Use find_files('{basename}') to locate it."
 
         with open(path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
@@ -299,6 +314,10 @@ def list_dir(path=".", show_hidden=True, **kwargs):
         show_hidden: Whether to show hidden files (starting with .)
     """
     try:
+        if os.path.isfile(path):
+            return f"'{path}' is a file, not a directory. Use read_file() or grep_file() instead."
+        if not os.path.exists(path):
+            return f"'{path}' does not exist. Use find_files() to locate the correct path."
         files = os.listdir(path)
         if not show_hidden:
             files = [f for f in files if not f.startswith('.')]
@@ -485,7 +504,7 @@ def grep_file(pattern, path, context_lines=2, recursive=False, **kwargs):
                 return "\n".join(results) if results else f"No matches found for '{pat}'"
 
             # File search
-            if not os.path.exists(pth): return f"Error: '{pth}' not found"
+            if not os.path.exists(pth): return f"Error: '{pth}' not found. Use find_files() to locate the correct path."
             if os.path.isdir(pth): return f"Error: '{pth}' is a dir"
             
             with open(pth, 'r', encoding='utf-8', errors='replace') as f:
@@ -648,8 +667,14 @@ def read_lines(path, start_line, end_line):
     """
     try:
         if not os.path.exists(path):
-            return f"Error: File '{path}' does not exist."
-        
+            import glob
+            basename = os.path.basename(path)
+            suggestions = glob.glob(os.path.join("**", basename), recursive=True)[:3]
+            if suggestions:
+                hint = ", ".join(f"'{s}'" for s in suggestions)
+                return f"Error: File '{path}' does not exist. Did you mean: {hint}?"
+            return f"Error: File '{path}' does not exist. Use find_files('{basename}') to locate it."
+
         with open(path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         

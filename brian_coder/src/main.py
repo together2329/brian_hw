@@ -3362,32 +3362,98 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         from lib.display import format_iteration_header, Spinner
         print(format_iteration_header(tracker.current + 1, tracker.max_iterations, agent_name="primary", model=config.MODEL_NAME), flush=True)
 
-        # Call LLM in background thread (non-blocking, ESC can abort mid-call)
-        import concurrent.futures
-        _llm_future = concurrent.futures.ThreadPoolExecutor(max_workers=1).submit(
-            call_llm_raw,
-            prompt="",
-            messages=messages,
-            stop=["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"],
-        )
+        # Call LLM with streaming (Thought tokens printed in real-time)
+        _stop_seqs = ["Observation:", "<|call|>", "tool_call_begin", "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"]
+        _stream_start = time.time()
+        collected_content = ""
+        _line_buf = ""       # Buffer for current incomplete line
+        _in_action = False   # True while inside Action block (suppress display)
+        _content_started = False  # Suppress noise before first meaningful line
+        _aborted = False
+        _last_printed = ""   # Dedup: skip if identical to previous line
 
-        # Poll for result or ESC abort
-        spinner = Spinner("Inferring")
-        spinner.start()
-        collected_content = None
-        while not _llm_future.done():
-            if EscapeWatcher.check():
+        try:
+            for chunk in chat_completion_stream(messages, stop=_stop_seqs):
+                if EscapeWatcher.check():
+                    _aborted = True
+                    break
+
+                collected_content += chunk
+
+                if config.DEBUG_MODE:
+                    continue  # DEBUG_MODE has its own display in chat_completion_stream
+
+                _line_buf += chunk
+
+                # Process only complete lines (wait for \n)
+                while '\n' in _line_buf:
+                    line, _line_buf = _line_buf.split('\n', 1)
+                    stripped = line.strip()
+
+                    # Handle "Thought:" or "Action:" anywhere in line (LLM may prefix noise)
+                    _thought_idx = stripped.find('Thought:')
+                    _action_idx = stripped.find('Action:')
+
+                    if _action_idx >= 0 and (_thought_idx < 0 or _action_idx < _thought_idx):
+                        # Action reached — stop displaying, tool UI handles this
+                        if not _in_action:
+                            sys.stdout.write(f"\r\033[2K")
+                            sys.stdout.flush()
+                        _in_action = True
+                        _content_started = True
+                    elif _in_action:
+                        # Still in Action block (Action_Input etc.) — suppress
+                        pass
+                    elif _thought_idx >= 0:
+                        _thought_text = stripped[_thought_idx + 8:]
+                        if _thought_text != _last_printed:
+                            sys.stdout.write(f"\r\033[2K  {Color.CYAN}Thought:{Color.RESET}{_thought_text}\n")
+                            sys.stdout.flush()
+                            _last_printed = _thought_text
+                        _content_started = True
+                    elif not _content_started:
+                        # Before first Thought:/Action:/meaningful content — suppress LLM noise
+                        # But allow lines starting with # or ## (markdown headers) to start content
+                        if stripped.startswith('#'):
+                            _content_started = True
+                            sys.stdout.write(f"\r\033[2K  {line}\n")
+                            sys.stdout.flush()
+                            _last_printed = stripped
+                        # else: skip noise
+                    elif not stripped:
+                        # Empty line — preserve spacing (markdown paragraphs, etc.)
+                        sys.stdout.write(f"\r\033[2K\n")
+                        sys.stdout.flush()
+                    else:
+                        # Any other non-empty content — dedup & display
+                        if stripped != _last_printed:
+                            sys.stdout.write(f"\r\033[2K  {line}\n")
+                            sys.stdout.flush()
+                            _last_printed = stripped
+
+                # Live typing effect: show partial line only after content started and not in Action
+                if _content_started and not _in_action and _line_buf and not _line_buf.strip().startswith('Action'):
+                    sys.stdout.write(f"\r\033[2K  {_line_buf}")
+                    sys.stdout.flush()
+
+        except Exception as e:
+            if not collected_content:
+                print(Color.error(f"\n  LLM call failed: {e}"))
                 break
-            time.sleep(0.1)
-        llm_elapsed = spinner.elapsed
-        spinner.stop()
 
-        if EscapeWatcher.check():
+        # Clean up partial line display
+        if not config.DEBUG_MODE and not _in_action:
+            if _line_buf.strip():
+                sys.stdout.write(f"\r\033[2K  {_line_buf}\n")
+            else:
+                sys.stdout.write(f"\r\033[2K")
+            sys.stdout.flush()
+
+        llm_elapsed = time.time() - _stream_start
+
+        if _aborted:
             print(Color.warning("\n  ⎋ Aborted by ESC. Returning to input prompt."))
-            _llm_future.cancel()
             break
-
-        collected_content = (_llm_future.result() or "")
 
         # Strip any leaked native tool call tokens from content
         collected_content = _strip_native_tool_tokens(collected_content)
@@ -3402,24 +3468,12 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             if '\n' not in prefix.strip():
                 collected_content = collected_content[_first_marker.start():]
 
-        # Display only Thought portion (Action lines are shown as tool headers)
+        # Show summary line (streaming already displayed the Thought in real-time)
         if not config.DEBUG_MODE:
-            # Show elapsed time (Claude Code style)
             elapsed_str = f"{llm_elapsed:.1f}s" if llm_elapsed < 60 else f"{int(llm_elapsed//60)}m{int(llm_elapsed%60):02d}s"
             token_est = len(collected_content) // 4
             token_str = f"{token_est/1000:.1f}k" if token_est >= 1000 else str(token_est)
             print(f"  {Color.DIM}✽ {elapsed_str} · ↓ {token_str} tokens{Color.RESET}")
-
-            # Extract only Thought text, strip Action lines (already shown by tool UI)
-            display_lines = []
-            for line in collected_content.split('\n'):
-                if line.strip().startswith('Action:'):
-                    continue  # Skip — tool header will show this
-                display_lines.append(line)
-            display_text = '\n'.join(display_lines).strip()
-            if display_text:
-                display_text = display_text.replace("Thought:", Color.CYAN + "Thought:" + Color.RESET)
-                print(display_text)
         print()
         
         # Show flow stage: Response received

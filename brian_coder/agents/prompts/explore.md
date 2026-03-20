@@ -79,6 +79,9 @@ When done, provide structured results:
 
 ## Rules
 - **Use tools first, NEVER guess** file names or contents
+- **ONLY use paths confirmed by `list_dir` or `find_files`** — NEVER construct or guess file paths. If `list_dir("dma")` shows `rtl/`, then list `dma/rtl/` before reading files inside it. If a `read_file` or `read_lines` returns an error, do NOT retry with a guessed path — use `find_files` or `list_dir` to discover the correct path first.
+- **If a read/grep fails with "does not exist", STOP and run `find_files` to locate the correct path before retrying.**
+- **If `list_dir` fails with "Not a directory", the path is a file, not a directory — skip it and move on.**
 - NEVER write or modify files
 - `grep_file` searches ONE file — to search a directory, use `find_files` first then `grep_file` each result
 - Maximum 15 iterations — be efficient

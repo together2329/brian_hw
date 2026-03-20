@@ -460,7 +460,11 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
 
     if is_error:
         first_line = observation.split('\n')[0][:60]
-        return f"{Color.RED}{first_line}{Color.RESET}"
+        # Softer display: yellow instead of red, shorter message
+        short = first_line.replace("Error: ", "").replace("Error listing directory: ", "")
+        if "not found" in short.lower() or "does not exist" in short.lower() or "not a directory" in short.lower():
+            return f"{Color.YELLOW}Not found{Color.RESET}"
+        return f"{Color.YELLOW}{short}{Color.RESET}"
 
     if tool_name in ('read_file', 'read_lines'):
         return f"{line_count} lines"
