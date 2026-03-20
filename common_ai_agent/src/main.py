@@ -3996,7 +3996,7 @@ def chat_loop():
             from prompt_toolkit.key_binding import KeyBindings
             _kb = KeyBindings()
 
-            @_kb.add('s-enter')  # Shift+Enter → newline
+            @_kb.add('escape', 'enter')  # Option+Enter (Mac) → newline
             def _newline(event):
                 event.current_buffer.insert_text('\n')
 
@@ -4009,7 +4009,7 @@ def chat_loop():
                 multiline=True,
             )
             _prompt_text = ANSI(Color.user("> ") + Color.RESET)
-            print(Color.info("  [Multiline] Shift+Enter=줄바꿈, Enter=전송"))
+            print(Color.info("  [Multiline] Option+Enter=줄바꿈, Enter=전송"))
         except ImportError:
             print(Color.warning("  [Multiline] prompt_toolkit not found — falling back to single-line input"))
 
