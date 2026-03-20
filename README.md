@@ -26,24 +26,54 @@ python3 src/main.py
   - `background_task` (sub-agent delegation)
   - Verilog analysis tools (optional plugin)
 
-## Configuration
+## API Setup
 
-Set via environment variables or edit `src/config.py`:
+### OpenAI
 
 ```bash
-# LLM connection
-export LLM_BASE_URL="https://openrouter.ai/api/v1"
-export LLM_API_KEY="your-key"
-export LLM_MODEL_NAME="openrouter/z-ai/glm-4.7"
+export LLM_BASE_URL="https://api.openai.com/v1"
+export LLM_API_KEY="sk-proj-YOUR_KEY"
+export LLM_MODEL_NAME="gpt-4o-mini"
+```
 
-# Agent settings
+Models: `gpt-4o-mini` (fast, cheap), `gpt-4o` (powerful)
+
+### OpenRouter
+
+```bash
+export LLM_BASE_URL="https://openrouter.ai/api/v1"
+export LLM_API_KEY="sk-or-v1-YOUR_KEY"
+export LLM_MODEL_NAME="openrouter/z-ai/glm-4.7"
+```
+
+Free models: `meta-llama/llama-3.3-70b-instruct:free`, `google/gemini-flash-1.5:free`
+
+### Local / vLLM
+
+```bash
+export LLM_BASE_URL="http://localhost:8000/v1"
+export LLM_API_KEY="none"
+export LLM_MODEL_NAME="your-model-name"
+```
+
+Any OpenAI-compatible API endpoint works.
+
+### Sub-Agent Models
+
+```bash
+export PRIMARY_MODEL="openrouter/z-ai/glm-4.7"
+export SUBAGENT_LOW_MODEL="openrouter/qwen/qwen3-next-80b-a3b-instruct"
+export SUBAGENT_HIGH_MODEL="openrouter/z-ai/glm-4.7"
+```
+
+## Configuration
+
+```bash
 export MAX_ITERATIONS=100        # Max ReAct loop iterations
 export RATE_LIMIT_DELAY=5        # Seconds between API calls
 export SAFE_MODE=true            # Block destructive commands
 export DEBUG_MODE=false          # Verbose logging
 ```
-
-See [API_SETUP.md](API_SETUP.md) for detailed provider setup.
 
 ## Project Structure
 
@@ -54,6 +84,14 @@ common_ai_agent/
 ├── lib/          — display, memory, todo_tracker
 ├── agents/       — sub-agent prompts (explore, plan, execute, review)
 ├── skills/       — pluggable skill system
-├── tests/        — 142+ cross-platform tests
-└── docs/         — documentation
+└── tests/        — 142+ cross-platform tests
 ```
+
+## Troubleshooting
+
+| Error | Fix |
+|-------|-----|
+| HTTP 401 | Check API key |
+| HTTP 429 | Increase `RATE_LIMIT_DELAY` (default: 5s) |
+| Model not found | Check model name for provider |
+| Timeout | Check `LLM_BASE_URL` connectivity |
