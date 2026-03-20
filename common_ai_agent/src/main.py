@@ -3993,23 +3993,10 @@ def chat_loop():
             if _vendor_dir not in sys.path:
                 sys.path.insert(0, _vendor_dir)
             from prompt_toolkit import PromptSession, ANSI
-            from prompt_toolkit.key_binding import KeyBindings
-            _kb = KeyBindings()
 
-            @_kb.add('enter')  # Enter → newline
-            def _newline(event):
-                event.current_buffer.insert_text('\n')
-
-            @_kb.add('c-d')  # Ctrl+D → submit
-            def _submit(event):
-                event.current_buffer.validate_and_handle()
-
-            _multiline_prompt = PromptSession(
-                key_bindings=_kb,
-                multiline=True,
-            )
+            _multiline_prompt = PromptSession(multiline=False)
             _prompt_text = ANSI(Color.user("> ") + Color.RESET)
-            print(Color.info("  [Multiline] Enter=줄바꿈, Ctrl+D=전송"))
+            print(Color.info("  [Multiline] Enter=전송, 붙여넣기=여러 줄 입력"))
         except ImportError:
             print(Color.warning("  [Multiline] prompt_toolkit not found — falling back to single-line input"))
 
