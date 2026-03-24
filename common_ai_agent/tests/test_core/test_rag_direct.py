@@ -11,7 +11,7 @@ sys.path.append(str(current_dir / "common_ai_agent" / "src"))
 
 try:
     import config
-    config.RAG_DIR = str(current_dir / "common_ai_agent" / ".brian_rag")
+    config.RAG_DIR = str(current_dir / "common_ai_agent" / ".rag")
     
     from rag_db import get_rag_db
     

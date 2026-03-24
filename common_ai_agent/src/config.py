@@ -275,7 +275,7 @@ EMBEDDING_DIMENSION = int(_emb_dim_env) if _emb_dim_env else None
 ENABLE_MEMORY = os.getenv("ENABLE_MEMORY", "true").lower() in ("true", "1", "yes")
 
 # Memory directory (relative to home directory)
-MEMORY_DIR = os.getenv("MEMORY_DIR", ".brian_memory")
+MEMORY_DIR = os.getenv("MEMORY_DIR", ".memory")
 
 # Enable automatic preference extraction from user messages (Mem0-style)
 # When enabled, Common AI Agent will detect preferences in user messages
@@ -358,7 +358,7 @@ HYBRID_ALPHA = float(os.getenv("HYBRID_ALPHA", "0.8"))
 # RAG Auto-Indexing Configuration
 # ============================================================
 # Enable/Disable automatic RAG indexing on startup
-# When enabled, automatically indexes files based on ~/.brian_rag/.ragconfig
+# When enabled, automatically indexes files based on ~/.rag/.ragconfig
 # Uses hash-based comparison to skip unchanged files (very fast on re-runs)
 ENABLE_RAG_AUTO_INDEX = os.getenv("ENABLE_RAG_AUTO_INDEX", "false").lower() in ("true", "1", "yes")
 
@@ -372,10 +372,9 @@ RAG_FINE_GRAINED = os.getenv("RAG_FINE_GRAINED", "false").lower() in ("true", "1
 # Default: 100ms (10 API calls/sec)
 RAG_RATE_LIMIT_DELAY_MS = int(os.getenv("RAG_RATE_LIMIT_DELAY_MS", "100"))
 
-# RAG storage directory (relative to home or absolute path)
-# Default: ".brian_rag" (stored in ~/.brian_rag)
-# Set to a project path like "/Users/me/project/.brian_rag" for project-local storage
-RAG_DIR = os.getenv("RAG_DIR", ".brian_rag")
+# RAG storage directory (absolute or ~-prefixed path)
+# Default: "~/.rag" (stored in home directory, not project dir)
+RAG_DIR = os.getenv("RAG_DIR", "~/.rag")
 
 # RAG config file path (.ragconfig location)
 # Default: None (uses RAG_DIR/.ragconfig)

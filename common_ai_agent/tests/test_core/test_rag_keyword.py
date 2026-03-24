@@ -15,7 +15,7 @@ sys.path.extend([
 try:
     import config
     # Force use of local DB
-    config.RAG_DIR = str(current_dir / "common_ai_agent" / ".brian_rag")
+    config.RAG_DIR = str(current_dir / "common_ai_agent" / ".rag")
     from rag_db import get_rag_db
     
     db = get_rag_db()

@@ -8,7 +8,7 @@ Features:
 - Hash-based incremental re-indexing
 - Semantic search via embeddings
 
-Storage: JSON files in ~/.brian_rag/
+Storage: JSON files in ~/.rag/
 """
 import json
 import hashlib
@@ -78,7 +78,7 @@ class RAGDatabase:
     - Semantic search via embeddings
     """
 
-    def __init__(self, rag_dir: str = "~/.brian_rag", fine_grained: bool = False):
+    def __init__(self, rag_dir: str = "~/.rag", fine_grained: bool = False):
         """
         Initialize RAG Database.
         """
@@ -123,7 +123,7 @@ class RAGDatabase:
         self.embedding_dimension = None
         
         # Project root for relative paths (always CWD - the project directory)
-        # Note: .ragconfig is in ~/.brian_rag, NOT in project dir
+        # Note: .ragconfig is in ~/.rag, NOT in project dir
         self.project_root = Path.cwd().resolve()
 
         self._ensure_initialized()

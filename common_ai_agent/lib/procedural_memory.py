@@ -99,7 +99,7 @@ class ProceduralMemory:
     Enables learning from past experiences and failure reflection.
     """
 
-    def __init__(self, memory_dir: str = ".brian_memory"):
+    def __init__(self, memory_dir: str = ".memory"):
         """
         Initialize Procedural Memory system.
 

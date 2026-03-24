@@ -157,12 +157,12 @@ class GraphLite:
     - Files: graph_nodes.json, graph_edges.json
     """
 
-    def __init__(self, memory_dir: str = ".brian_memory"):
+    def __init__(self, memory_dir: str = ".memory"):
         """
         Initialize GraphLite system.
 
         Args:
-            memory_dir: Directory for storing graph files (default: ~/.brian_memory)
+            memory_dir: Directory for storing graph files (default: ~/.memory)
         """
         self.memory_dir = Path.home() / memory_dir
         self.nodes: Dict[str, Node] = {}

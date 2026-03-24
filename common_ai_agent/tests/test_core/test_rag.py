@@ -14,7 +14,7 @@ sys.path.append(str(current_dir / "common_ai_agent" / "src"))
 try:
     # Pre-import config and set RAG_DIR manually to ensure it picks the right DB
     import config
-    config.RAG_DIR = str(current_dir / "common_ai_agent" / ".brian_rag")
+    config.RAG_DIR = str(current_dir / "common_ai_agent" / ".rag")
     # print(f"DEBUG: Using RAG_DIR = {config.RAG_DIR}")
 except ImportError as e:
     print(f"Config import warning: {e}")

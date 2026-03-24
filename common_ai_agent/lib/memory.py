@@ -21,10 +21,10 @@ class MemorySystem:
     - User preferences (coding style, naming conventions, etc.)
     - Project context (file structure, main modules, etc.)
 
-    Storage: JSON files in ~/.brian_memory/
+    Storage: JSON files in ~/.memory/
     """
 
-    def __init__(self, memory_dir: str = ".brian_memory"):
+    def __init__(self, memory_dir: str = ".memory"):
         """
         Initialize memory system.
 
@@ -522,7 +522,7 @@ Decision:"""
 
 
 # Convenience function for quick access
-def get_memory_system(memory_dir: str = ".brian_memory") -> MemorySystem:
+def get_memory_system(memory_dir: str = ".memory") -> MemorySystem:
     """
     Get or create memory system instance.
 

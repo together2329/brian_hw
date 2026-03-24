@@ -14,7 +14,7 @@ sys.path.extend([
 try:
     import config
     # Ensure RAG DIR
-    config.RAG_DIR = str(current_dir / "common_ai_agent" / ".brian_rag")
+    config.RAG_DIR = str(current_dir / "common_ai_agent" / ".rag")
     # Force use of configured model (Qwen)
     # config.EMBEDDING_MODEL = "text-embedding-3-small"
     

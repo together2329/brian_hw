@@ -12,7 +12,7 @@ from core.rag_db import RAGDatabase
 
 def run_live_test():
     print("Initialize RAG Database...")
-    db = RAGDatabase(rag_dir="common_ai_agent/.brian_rag")
+    db = RAGDatabase(rag_dir="common_ai_agent/.rag")
     
     queries = [
         ("What is OHC?", "definition_seeking"),
