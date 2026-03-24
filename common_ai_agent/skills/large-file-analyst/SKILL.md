@@ -9,60 +9,83 @@ priority: 85
 activation:
   keywords: [
     "large file", "대용량", "전체 파일", "파일 전체", "전체 분석",
-    "함수 목록", "클래스 목록", "파일 구조", "모든 함수", "전체 내용"
+    "함수 목록", "클래스 목록", "파일 구조", "모든 함수", "전체 내용",
+    "설명해줘", "분석해줘", "파악해줘", "알려줘", "요약해줘",
+    "전체 로직", "전체 구조", "코드 분석", "소스 분석",
+    ".py", ".js", ".ts", ".go", ".java", ".cpp", ".c"
   ]
-  auto_detect: false
+  auto_detect: true
 requires_tools: [run_command, read_lines, background_task]
 ---
 
-## 핵심 원칙
-- **전체 read_file 금지** — 대용량 파일을 한번에 읽지 말 것
-- **병렬 분할 스캔** — explore 에이전트가 1000줄씩 동시 처리
-- **BACKGROUND_MAX_WORKERS=3** — 한 번에 최대 3개 에이전트만 실행 가능
+# SKILL: Large File Analyst — MANDATORY PROTOCOL
 
-## Approach
+**⚠️ OVERRIDE: 이 skill이 활성화된 경우, 기존 "grep_file first" 지시보다 아래 프로토콜이 우선합니다.**
+**DO NOT use read_file or grep_file alone for large file analysis.**
+**MUST use background_task parallel agents as described below.**
 
-### Step 1: 파일 크기 확인
+---
+
+## MANDATORY Step 1: 파일 줄 수 확인
+
 ```
-run_command("wc -l <파일경로>")
-```
-→ 총 줄 수 파악 후 청크 수 계산 (chunk_size=1000)
-
-### Step 2: 병렬 에이전트 spawn (3개씩 배치)
-청크가 3개 이하면 한 번에, 4개 이상이면 3개씩 나눠서 실행.
-
-각 에이전트 prompt 템플릿:
-```
-파일 <path>의 <start>~<end>줄을 read_lines로 읽고 다음을 추출하라:
-<사용자 질문에 맞는 추출 목표>
-
-출력 형식:
-- 발견한 항목: [줄번호] 내용
-- 없으면: "해당 없음"
+Action: run_command(command="wc -l <파일경로>")
 ```
 
-### Step 3: 결과 취합
-3개 배치가 끝날 때마다 결과를 수집하고, 다음 배치 실행.
-모든 배치 완료 후 전체 결과를 종합하여 답변.
+→ 줄 수 파악 후 chunk_size 결정:
+- 1K~3K줄: chunk_size=1000
+- 3K~10K줄: chunk_size=1000
+- 10K줄 이상: chunk_size=2000
 
-## 예시: 10000줄 파일, 함수 목록 추출
+---
+
+## MANDATORY Step 2: 병렬 background_task 에이전트 실행
+
+**반드시** 아래 형식으로 background_task를 동시 다발로 실행:
+
+```
+Action: background_task(agent="explore", prompt="<파일경로> 파일의 <start>~<end>줄을 read_lines(path='<파일경로>', start_line=<start>, end_line=<end>)로 읽고, <추출목표>를 찾아 [줄번호] 내용 형식으로 보고하라. 없으면 '해당 없음' 출력.")
+Action: background_task(agent="explore", prompt="<파일경로> 파일의 <start2>~<end2>줄을 read_lines(path='<파일경로>', start_line=<start2>, end_line=<end2>)로 읽고, <추출목표>를 찾아 [줄번호] 내용 형식으로 보고하라. 없으면 '해당 없음' 출력.")
+Action: background_task(agent="explore", prompt="<파일경로> 파일의 <start3>~<end3>줄을 read_lines(path='<파일경로>', start_line=<start3>, end_line=<end3>)로 읽고, <추출목표>를 찾아 [줄번호] 내용 형식으로 보고하라. 없으면 '해당 없음' 출력.")
+```
+
+- **한 배치에 최대 3개** (BACKGROUND_MAX_WORKERS=3 제한)
+- 3개 완료 후 다음 배치 실행
+- 마지막 청크는 실제 줄 수까지 (예: 4001~4425)
+
+---
+
+## MANDATORY Step 3: 결과 취합 후 최종 답변
+
+모든 배치 완료 → background_output으로 결과 수집 → 통합하여 최종 답변 제공.
+
+---
+
+## 예시: src/main.py (4425줄), 함수 목록 추출
+
+```
+Action: run_command(command="wc -l src/main.py")
+```
+
+→ 4425줄 → chunk_size=1000 → 5개 청크 → 배치 2회
 
 **배치 1** (동시 실행):
-- `background_task(agent="explore", prompt="파일 foo.py 1~1000줄 읽고 함수/클래스 정의 줄번호와 이름 추출")`
-- `background_task(agent="explore", prompt="파일 foo.py 1001~2000줄 읽고 함수/클래스 정의 줄번호와 이름 추출")`
-- `background_task(agent="explore", prompt="파일 foo.py 2001~3000줄 읽고 함수/클래스 정의 줄번호와 이름 추출")`
+```
+Action: background_task(agent="explore", prompt="src/main.py 파일의 1~1000줄을 read_lines(path='src/main.py', start_line=1, end_line=1000)로 읽고, def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출하라.")
+Action: background_task(agent="explore", prompt="src/main.py 파일의 1001~2000줄을 read_lines(path='src/main.py', start_line=1001, end_line=2000)로 읽고, def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출하라.")
+Action: background_task(agent="explore", prompt="src/main.py 파일의 2001~3000줄을 read_lines(path='src/main.py', start_line=2001, end_line=3000)로 읽고, def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출하라.")
+```
 
-→ 3개 완료 후 **배치 2** 실행...
+**배치 2** (배치 1 완료 후):
+```
+Action: background_task(agent="explore", prompt="src/main.py 파일의 3001~4000줄을 read_lines(path='src/main.py', start_line=3001, end_line=4000)로 읽고, def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출하라.")
+Action: background_task(agent="explore", prompt="src/main.py 파일의 4001~4425줄을 read_lines(path='src/main.py', start_line=4001, end_line=4425)로 읽고, def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출하라.")
+```
 
-## Chunk Size 가이드
-| 파일 크기 | chunk_size | 이유 |
-|-----------|-----------|------|
-| 1K ~ 3K줄 | 1000 | 에이전트 3개로 커버 |
-| 3K ~ 10K줄 | 1000 | 배치 3~4회 |
-| 10K줄 이상 | 2000 | 배치 수 줄이기 |
+---
 
 ## Gotchas
-- explore 에이전트는 저비용 모델(SUBAGENT_LOW_MODEL) 사용 — 비용 효율적
-- 각 에이전트 prompt에 반드시 **파일 경로 + 줄 범위** 명시
-- 에이전트 결과가 "해당 없음"이면 그 청크는 관련 없음으로 처리
-- 마지막 청크는 실제 줄 수까지만 (예: 9001~9843)
+- explore 에이전트는 저비용 모델 사용 — 비용 효율적
+- 각 background_task prompt에 반드시 **정확한 파일 경로 + 줄 범위 + read_lines 호출** 명시
+- `background_task` 없이 `read_file` 단독 사용 금지
+- `grep_file` 단독으로 전체 분석 시도 금지 (부분 결과만 반환됨)

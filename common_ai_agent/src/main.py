@@ -285,6 +285,8 @@ def sanitize_action_text(text):
     text = re.sub(r'\*\*(?:Action|tool_call):\*\*', 'Action:', text)
     text = re.sub(r'\*\*(?:Action|tool_call)\*\*:', 'Action:', text)  # Alternate format
     text = re.sub(r'tool_call:', 'Action:', text) # Direct fallback
+    # Normalize lowercase "action:" to "Action:" (glm-4.7 sometimes generates lowercase)
+    text = re.sub(r'(?m)^action:', 'Action:', text)
     
     # Pattern: number followed by quote then closing paren/comma
     # e.g., =26") or =26", -> =26) or =26,
@@ -535,7 +537,7 @@ def parse_all_actions(text):
         print(f"[DEBUG] parse_all_actions input length: {len(text)}")
 
     while True:
-        match = re.search(pattern, text[start_pos:], re.DOTALL)
+        match = re.search(pattern, text[start_pos:], re.DOTALL | re.IGNORECASE)
         if not match:
             break
             
@@ -3465,9 +3467,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                             sys.stdout.flush()
                         continue
 
-                    # Detect Thought: / Action: anywhere in line
-                    ti = text.find('Thought:')
-                    ai = text.find('Action:')
+                    # Detect Thought: / Action: anywhere in line (case-insensitive for glm-4.7)
+                    _text_lower = text.lower()
+                    ti = _text_lower.find('thought:')
+                    ai = _text_lower.find('action:')
 
                     if ai >= 0 and (ti < 0 or ai < ti):
                         # → ACTION state
@@ -3500,10 +3503,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 if _state == _CONTENT and not _in_think and _buf:
                     p = re.sub(r'</?think>', '', _buf).strip()
                     # If Action: appears mid-line (no newline before it), show only preceding text
-                    _ai_mid = p.find('Action:')
+                    _ai_mid = p.lower().find('action:')
                     if _ai_mid > 0:
                         p = p[:_ai_mid].rstrip()
-                    if p and len(p) > 3 and 'Action:' not in p:
+                    if p and len(p) > 3 and 'action:' not in p.lower():
                         if len(p) > _TERM_W:
                             p = p[:_TERM_W - 3] + "..."
                         sys.stdout.write(f"\r\033[2K  {p}")
@@ -3519,8 +3522,16 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             remaining = _buf.strip() if _buf else ""
             if remaining:
                 remaining, _, _ = _strip_think(remaining)
+                # Truncate at Action: if present (stream ended without \n before Action:)
+                _ai_end = remaining.lower().find('action:')
+                if _ai_end == 0:
+                    remaining = ""  # starts with Action: — suppress entirely
+                elif _ai_end > 0:
+                    remaining = remaining[:_ai_end].rstrip()
                 if remaining:
                     sys.stdout.write(f"\r\033[2K  {_dedup_line(remaining)}\n")
+                else:
+                    sys.stdout.write(f"\r\033[2K")
             else:
                 sys.stdout.write(f"\r\033[2K")
             sys.stdout.flush()
