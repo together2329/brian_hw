@@ -17,7 +17,6 @@ Probably, to get started, you might also want to have a look at
 from __future__ import annotations
 
 import re
-from importlib import metadata
 
 # note: this is a bit more lax than the actual pep 440 to allow for a/b/rc/dev without a number
 pep440 = re.compile(
@@ -28,10 +27,11 @@ from .application import Application
 from .formatted_text import ANSI, HTML
 from .shortcuts import PromptSession, choice, print_formatted_text, prompt
 
-# Don't forget to update in `docs/conf.py`!
+# importlib.metadata is Python 3.8+; fall back to hardcoded version on 3.7
 try:
-    __version__ = metadata.version("prompt_toolkit")
-except metadata.PackageNotFoundError:
+    from importlib import metadata as _metadata
+    __version__ = _metadata.version("prompt_toolkit")
+except Exception:
     __version__ = "3.0.52"  # vendored version
 
 assert pep440.match(__version__)
