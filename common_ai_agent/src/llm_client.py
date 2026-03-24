@@ -205,6 +205,8 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
     for retry_count in range(max_retries):
         _reasoning_started = False
         _content_label_printed = False
+        _debug_line_buf = ""
+        _debug_in_think = False
 
         try:
             req = urllib.request.Request(
@@ -247,11 +249,24 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                 content = delta.get("content", "")
                                 if content:
                                     if config.DEBUG_MODE:
-                                        if _reasoning_started and not _content_label_printed:
-                                            sys.stdout.write(f"\n\033[32m[content]\033[0m ")
-                                            _content_label_printed = True
-                                        sys.stdout.write(f"\033[32m{content}\033[0m")
-                                        sys.stdout.flush()
+                                        # Line-buffer: accumulate until \n to detect <think> tags
+                                        import re as _re
+                                        _debug_line_buf += content
+                                        while '\n' in _debug_line_buf:
+                                            _line, _debug_line_buf = _debug_line_buf.split('\n', 1)
+                                            if '<think>' in _line:
+                                                _debug_in_think = True
+                                            if '</think>' in _line:
+                                                _debug_in_think = False
+                                                _line = _line.split('</think>', 1)[1]
+                                            if not _debug_in_think:
+                                                _line = _re.sub(r'</?think>', '', _line).strip()
+                                                if _line:
+                                                    if not _content_label_printed:
+                                                        sys.stdout.write(f"\n\033[32m[content]\033[0m\n")
+                                                        _content_label_printed = True
+                                                    sys.stdout.write(f"\033[32m{_line}\033[0m\n")
+                                                    sys.stdout.flush()
                                     yield content
 
                                 # Handle native tool_calls (models like Qwen, Mistral, etc.)
@@ -577,6 +592,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         # Local state for label tracking (resets each retry)
         _reasoning_started = False
         _content_label_printed = False
+        _debug_line_buf = ""
+        _debug_in_think = False
 
         try:
             req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
@@ -620,11 +637,24 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                 content = delta.get("content", "")
                                 if content:
                                     if config.DEBUG_MODE:
-                                        if _reasoning_started and not _content_label_printed:
-                                            sys.stdout.write(f"\n\033[32m[content]\033[0m ")
-                                            _content_label_printed = True
-                                        sys.stdout.write(f"\033[32m{content}\033[0m")
-                                        sys.stdout.flush()
+                                        # Line-buffer: accumulate until \n to detect <think> tags
+                                        import re as _re
+                                        _debug_line_buf += content
+                                        while '\n' in _debug_line_buf:
+                                            _line, _debug_line_buf = _debug_line_buf.split('\n', 1)
+                                            if '<think>' in _line:
+                                                _debug_in_think = True
+                                            if '</think>' in _line:
+                                                _debug_in_think = False
+                                                _line = _line.split('</think>', 1)[1]
+                                            if not _debug_in_think:
+                                                _line = _re.sub(r'</?think>', '', _line).strip()
+                                                if _line:
+                                                    if not _content_label_printed:
+                                                        sys.stdout.write(f"\n\033[32m[content]\033[0m\n")
+                                                        _content_label_printed = True
+                                                    sys.stdout.write(f"\033[32m{_line}\033[0m\n")
+                                                    sys.stdout.flush()
                                     yield content
 
                                 # Handle native tool_calls (models like Qwen, Mistral, etc.)
