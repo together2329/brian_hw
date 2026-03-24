@@ -204,6 +204,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
 
     for retry_count in range(max_retries):
         _reasoning_started = False
+        _content_label_printed = False
 
         try:
             req = urllib.request.Request(
@@ -246,6 +247,9 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                 content = delta.get("content", "")
                                 if content:
                                     if config.DEBUG_MODE:
+                                        if _reasoning_started and not _content_label_printed:
+                                            sys.stdout.write(f"\n\033[32m[content]\033[0m ")
+                                            _content_label_printed = True
                                         sys.stdout.write(f"\033[32m{content}\033[0m")
                                         sys.stdout.flush()
                                     yield content
@@ -572,6 +576,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     for retry_count in range(max_retries):
         # Local state for label tracking (resets each retry)
         _reasoning_started = False
+        _content_label_printed = False
 
         try:
             req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
@@ -615,6 +620,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                 content = delta.get("content", "")
                                 if content:
                                     if config.DEBUG_MODE:
+                                        if _reasoning_started and not _content_label_printed:
+                                            sys.stdout.write(f"\n\033[32m[content]\033[0m ")
+                                            _content_label_printed = True
                                         sys.stdout.write(f"\033[32m{content}\033[0m")
                                         sys.stdout.flush()
                                     yield content
