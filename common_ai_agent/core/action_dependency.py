@@ -58,6 +58,7 @@ class ActionDependencyAnalyzer:
         "extract_module_hierarchy", "find_potential_issues", "analyze_timing_paths",
         # Meta 도구
         "spawn_explore",  # 여러 explore agent 병렬 실행 가능
+        "background_task",  # 병렬 분석 에이전트 (read-only)
     }
 
     # Write 도구들 (barrier 필요)
