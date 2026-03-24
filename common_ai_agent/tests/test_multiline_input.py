@@ -66,8 +66,13 @@ class TestMultilineSetup:
         def _submit(event):
             event.current_buffer.validate_and_handle()
 
-        session = PromptSession(key_bindings=kb, multiline=True)
-        assert session is not None
+        try:
+            session = PromptSession(key_bindings=kb, multiline=True)
+            assert session is not None
+        except Exception as e:
+            if "NoConsoleScreenBufferError" in type(e).__name__ or "console" in str(e).lower():
+                pytest.skip(f"No console available (CI/headless): {e}")
+            raise
 
     def test_ansi_prompt_text(self):
         """ANSI wrapper correctly wraps escape codes."""
@@ -257,11 +262,15 @@ class TestPromptSwitching:
         def _submit(event):
             event.current_buffer.validate_and_handle()
 
-        session = PromptSession(key_bindings=kb, multiline=True)
-        prompt_text = ANSI('\033[92m> \033[0m')
-
-        assert session is not None
-        assert prompt_text is not None
+        try:
+            session = PromptSession(key_bindings=kb, multiline=True)
+            prompt_text = ANSI('\033[92m> \033[0m')
+            assert session is not None
+            assert prompt_text is not None
+        except Exception as e:
+            if "NoConsoleScreenBufferError" in type(e).__name__ or "console" in str(e).lower():
+                pytest.skip(f"No console available (CI/headless): {e}")
+            raise
 
     def test_multiline_disabled_no_import(self):
         """When disabled, prompt_toolkit should not be required."""

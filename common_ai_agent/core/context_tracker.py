@@ -12,6 +12,16 @@ Provides Claude Code style visualization.
 
 from typing import Dict, Optional
 import os
+import sys
+
+# Emoji/special char support: disabled on Linux unless explicitly enabled
+_USE_EMOJI = sys.platform != 'linux' and os.environ.get('NO_EMOJI', '').lower() not in ('1', 'true', 'yes')
+
+# Bar characters
+_FULL  = "⛁" if _USE_EMOJI else "#"
+_HALF  = "⛀" if _USE_EMOJI else "+"
+_EMPTY = "⛶" if _USE_EMOJI else "."
+_WARN  = "⚠️"  if _USE_EMOJI else "[!]"
 
 
 class ContextTracker:
@@ -184,14 +194,14 @@ class ContextTracker:
             percentage: Usage percentage (0-100)
 
         Returns:
-            Character: ⛁ (used), ⛀ (partial), ⛶ (free)
+            Character: full (used), half (partial), empty (free)
         """
         if percentage >= 100:
-            return "⛁"  # Full block
+            return _FULL
         elif percentage >= 50:
-            return "⛀"  # Half block
+            return _HALF
         else:
-            return "⛶"  # Empty block
+            return _EMPTY
 
     def create_usage_bar(self, component_tokens: int, bar_width: int = 10) -> str:
         """
@@ -202,7 +212,7 @@ class ContextTracker:
             bar_width: Number of characters in bar
 
         Returns:
-            String like "⛁ ⛁ ⛀ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶"
+            String like "# # + . . . . . . ." (Linux) or "⛁ ⛁ ⛀ ⛶ ..." (macOS)
         """
         tokens_per_block = self.max_tokens / bar_width
         filled_blocks = component_tokens / tokens_per_block
@@ -211,11 +221,11 @@ class ContextTracker:
         for i in range(bar_width):
             remaining = filled_blocks - i
             if remaining >= 1.0:
-                chars.append("⛁")
+                chars.append(_FULL)
             elif remaining >= 0.5:
-                chars.append("⛀")
+                chars.append(_HALF)
             else:
-                chars.append("⛶")
+                chars.append(_EMPTY)
 
         return " ".join(chars)
 
@@ -244,17 +254,17 @@ class ContextTracker:
             blocks_needed = int((current_total / tokens_per_block))
 
             while len(chars) < blocks_needed and len(chars) < bar_width:
-                chars.append("⛁")
+                chars.append(_FULL)
 
         # Add half block if needed
         if len(chars) < bar_width:
             remaining_tokens = current_total - (len(chars) * tokens_per_block)
             if remaining_tokens >= tokens_per_block * 0.5:
-                chars.append("⛀")
+                chars.append(_HALF)
 
         # Fill rest with empty blocks
         while len(chars) < bar_width:
-            chars.append("⛶")
+            chars.append(_EMPTY)
 
         return " ".join(chars)
 
@@ -301,54 +311,40 @@ class ContextTracker:
         lines.append("")
         lines.append(" Context Usage")
 
-        # Overall bar with model info
-        overall_bar = self.create_overall_bar(10)
+        # Summary line
+        tag = "API" if (actual_total and actual_total > 0) else ("saved" if is_actual else "est")
+        lines.append(f" {model_name} · {total_str}/{max_str} tokens ({usage_pct:.1f}%) [{tag}]")
 
-        # Show actual vs estimated
-        if is_actual:
-            if actual_total is not None and actual_total > 0:
-                lines.append(f" {overall_bar}   {model_name} · {total_str}/{max_str} tokens ({usage_pct:.1f}%) [API actual]")
-            else:
-                # Mostly actual from saved metadata
-                lines.append(f" {overall_bar}   {model_name} · {total_str}/{max_str} tokens ({usage_pct:.1f}%) [saved tokens]")
-        else:
-            lines.append(f" {overall_bar}   {model_name} · {total_str}/{max_str} tokens ({usage_pct:.1f}%) [estimated]")
-
-        # Individual component bars
-        # When using actual total, estimate breakdown
+        # Component breakdown (text only, no bars)
         msg_count = getattr(self, 'message_count', 0)
 
         if actual_total is not None and actual_total > 0:
-            # Estimate system prompt tokens
             system_est = self.system_prompt_tokens if self.system_prompt_tokens > 0 else 0
             messages_est = max(0, actual_total - system_est)
-
             components = [
-                ("System (includes tools, memory, graph)", system_est, "⛁"),
-                (f"Messages ({msg_count} msgs)", messages_est, "⛁"),
+                ("System", system_est),
+                (f"Messages ({msg_count} msgs)", messages_est),
             ]
         else:
             components = [
-                ("System (includes tools, memory, graph)", self.system_prompt_tokens, "⛁"),
-                ("System tools", self.tools_tokens, "⛁"),
-                ("Memory files", self.memory_tokens, "⛁"),
-                (f"Messages ({msg_count} msgs)", self.messages_tokens, "⛁"),
+                ("System", self.system_prompt_tokens),
+                ("Tools", self.tools_tokens),
+                ("Memory", self.memory_tokens),
+                (f"Messages ({msg_count} msgs)", self.messages_tokens),
             ]
 
-        for name, tokens, icon in components:
+        for name, tokens in components:
             if tokens > 0:
-                bar = self.create_usage_bar(tokens, 10)
                 tokens_str = self.format_tokens(tokens)
                 pct = (tokens / self.max_tokens * 100) if self.max_tokens > 0 else 0
-                lines.append(f" {bar}   {icon} {name}: {tokens_str} tokens ({pct:.1f}%)")
+                lines.append(f"   {name}: {tokens_str} ({pct:.1f}%)")
 
-        # Free space bar
-        free_bar = self.create_usage_bar(0, 10)  # All empty
+        # Free space
         free_pct = 100 - usage_pct
         if free_tokens < 0:
-            lines.append(f" {free_bar}   ⛶ Free space: {free_str} ({free_pct:.1f}%) ⚠️  OVER LIMIT!")
+            lines.append(f"   Free: {free_str} ({free_pct:.1f}%) {_WARN} OVER LIMIT!")
         else:
-            lines.append(f" {free_bar}   ⛶ Free space: {free_str} ({free_pct:.1f}%)")
+            lines.append(f"   Free: {free_str} ({free_pct:.1f}%)")
 
         # Turn count
         if self.turn_count > 0:

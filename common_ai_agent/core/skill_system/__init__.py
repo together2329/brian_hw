@@ -48,7 +48,10 @@ class Skill:
         Format skill for LLM prompt injection.
         Hub only — spoke files listed as references for on-demand read.
         """
-        parts = [f"## Skill: {self.name}", "", self.content]
+        header = f"## Skill: {self.name}"
+        if self.description:
+            header += f"\n_{self.description.strip()}_"
+        parts = [header, "", self.content]
         if self.spoke_files and self.skill_dir:
             parts.append(f"\n> Reference files in `{self.skill_dir}/`: {', '.join(self.spoke_files)}")
         return "\n".join(parts)

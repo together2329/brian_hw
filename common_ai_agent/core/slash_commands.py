@@ -14,7 +14,14 @@ Available commands:
 
 import sys
 import os
+from pathlib import Path
 from typing import Callable, Optional, Any, List
+
+# Emoji support: disabled on Linux unless explicitly enabled
+_USE_EMOJI = sys.platform != 'linux' and os.environ.get('NO_EMOJI', '').lower() not in ('1', 'true', 'yes')
+
+def _icon(emoji: str, fallback: str) -> str:
+    return emoji if _USE_EMOJI else fallback
 
 try:
     import readline
@@ -157,6 +164,16 @@ class SlashCommandRegistry:
         self.register('snapshot', self._cmd_snapshot,
                      'Save/restore conversation snapshots')
 
+        self.register('skills', self._cmd_skills,
+                     'Show available skills and their activation status')
+
+    def _cmd_skills(self, args: str) -> str:
+        """Show available skills"""
+        section = self._fmt_skills_section()
+        if not section.strip():
+            return "No skills loaded.\n"
+        return section + "\n"
+
     def _cmd_plan(self, args: str) -> str:
         """Enter interactive Plan Mode"""
         task = args.strip()
@@ -219,15 +236,60 @@ class SlashCommandRegistry:
             if debug_lines:
                 output = "".join(debug_lines) + output
 
-            # Add tips at the end
-            output += "\n💡 Tip: Use /clear to free up context"
-            output += "\n💡 Tip: Use /compact to summarize old messages"
-            output += "\n💡 Tip: Use /context debug for detailed info\n"
+            # Add Rules section (.UPD_RULE.md)
+            output += self._fmt_rules_section()
+
+            # Add Skills section
+            output += self._fmt_skills_section()
+
+            # Tips (emoji-safe)
+            tip = _icon("💡", "[i]")
+            output += f"\n{tip} Tip: Use /clear to free up context"
+            output += f"\n{tip} Tip: Use /compact to summarize old messages"
+            output += f"\n{tip} Tip: Use /context debug for detailed info\n"
 
             return output
         except Exception as e:
             import traceback
             return f"Error getting context info: {e}\n{traceback.format_exc()}"
+
+    def _fmt_rules_section(self) -> str:
+        """Load and format .UPD_RULE.md files (global + project)."""
+        rule_paths = [
+            Path.home() / ".common_ai_agent" / ".UPD_RULE.md",   # global
+            Path(__file__).parent.parent / ".UPD_RULE.md",         # project (core/../)
+            Path.cwd() / ".UPD_RULE.md",                           # cwd fallback
+        ]
+        found = [(p, p.read_text(encoding="utf-8").strip()) for p in rule_paths if p.exists()]
+        if not found:
+            return ""
+
+        lines = ["\n Rules · .UPD_RULE.md"]
+        for path, content in found:
+            scope = "global" if path.parent != Path.cwd() else "project"
+            lines.append(f" \033[2m[{scope}]\033[0m")
+            for line in content.splitlines():
+                line = line.strip()
+                if line and not line.startswith("#") and not line.startswith("<!--"):
+                    lines.append(f" \033[2m└ {line[:80]}\033[0m")
+        return "\n".join(lines) + "\n"
+
+    def _fmt_skills_section(self) -> str:
+        """Load and format available skills."""
+        try:
+            from core.skill_system import get_skill_registry
+            registry = get_skill_registry()
+            skills = registry.get_skills_by_priority()
+            if not skills:
+                return ""
+
+            lines = ["\n Skills · /skills"]
+            for skill in skills:
+                spoke = f"  +{len(skill.spoke_files)} refs" if skill.spoke_files else ""
+                lines.append(f" \033[2m└ {skill.name} (priority: {skill.priority}){spoke}\033[0m")
+            return "\n".join(lines) + "\n"
+        except Exception:
+            return ""
 
     def _cmd_clear(self, args: str) -> str:
         """Clear conversation history"""
