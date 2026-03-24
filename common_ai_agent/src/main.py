@@ -4005,7 +4005,6 @@ def chat_loop():
 
             _multiline_prompt = PromptSession(multiline=False)
             _prompt_text = ANSI(Color.user("> ") + Color.RESET)
-            print(Color.info("  [Multiline] Enter=전송, 붙여넣기=여러 줄 입력"))
         except Exception as e:
             print(Color.warning(f"  [Multiline] prompt_toolkit unavailable ({type(e).__name__}: {e}) — falling back to single-line input"))
 
