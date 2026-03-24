@@ -1013,6 +1013,23 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         "   - If tool fails, adapt search — don't pretend results exist.\n"
     )
 
+    # .UPD_RULE.md — global then project (like CLAUDE.md hierarchy)
+    _upd_rule_paths = [
+        Path.home() / ".common_ai_agent" / ".UPD_RULE.md",   # global
+        Path(__file__).parent.parent / ".UPD_RULE.md",        # project
+    ]
+    _upd_rule_parts = []
+    for _p in _upd_rule_paths:
+        if _p.exists():
+            try:
+                _text = _p.read_text(encoding="utf-8").strip()
+                if _text:
+                    _upd_rule_parts.append(_text)
+            except Exception:
+                pass
+    if _upd_rule_parts:
+        parts.append("\n=== PROJECT RULES ===\n" + "\n\n".join(_upd_rule_parts) + "\n=====================")
+
     return "\n".join(parts)
 
 
