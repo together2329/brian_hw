@@ -399,16 +399,31 @@ def _strip_native_tool_tokens(text):
             return f"\nAction: {tool_name}()\n"
         return ""
 
+    # ── Pattern 0: <tool_call>func(args)</tool_call> — direct function call format ──
+    def _func_call_to_action(content):
+        content = content.strip()
+        # Already looks like a function call: name(args)
+        if re.match(r'^\w+\s*\(', content):
+            return f"\nAction: {content}\n"
+        return content
+
+    text = re.sub(
+        r'<tool_call>\s*(\w+\s*\([^<]*\))\s*(?:</tool_call>)?',
+        lambda m: _func_call_to_action(m.group(1)),
+        text, flags=re.DOTALL
+    )
+
     # ── Pattern 1: JSON-based tool calls ──
     # <tool_call>{"name":"func","arguments":{...}}</tool_call>
+    # Use greedy match to capture nested JSON (non-greedy stops at first })
     text = re.sub(
-        r'<tool_call>\s*(\{.*?\})\s*</tool_call>',
+        r'<tool_call>\s*(\{.*\})\s*</tool_call>',
         lambda m: _json_tool_call_to_action(m.group(1)),
         text, flags=re.DOTALL
     )
     # Bare JSON: {"name":"func","arguments":{...}}
     text = re.sub(
-        r'\{\s*"name"\s*:\s*"(\w+)"\s*,\s*"arguments"\s*:\s*\{[^}]*\}\s*\}',
+        r'\{\s*"name"\s*:\s*"(\w+)"\s*,\s*"arguments"\s*:\s*\{[^{}]*\}\s*\}',
         lambda m: _json_tool_call_to_action(m.group(0)),
         text
     )
