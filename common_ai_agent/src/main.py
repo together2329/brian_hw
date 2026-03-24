@@ -3427,7 +3427,12 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             clean = re.sub(r'<think>.*?</think>', '', text)  # complete pairs
             entered = '<think>' in text and '</think>' not in text
             exited = '</think>' in text and '<think>' not in text
-            clean = re.sub(r'</?think>', '', clean).strip()  # leftover tags
+            if exited:
+                # Content before </think> is reasoning — discard it, keep only what follows
+                after = text.split('</think>', 1)[1]
+                clean = re.sub(r'</?think>', '', after).strip()
+            else:
+                clean = re.sub(r'</?think>', '', clean).strip()  # leftover tags
             return clean, entered, exited
 
         try:
@@ -3494,7 +3499,11 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 # ── Partial line display (typing effect) ──
                 if _state == _CONTENT and not _in_think and _buf:
                     p = re.sub(r'</?think>', '', _buf).strip()
-                    if p and len(p) > 3 and not p.startswith('Action'):
+                    # If Action: appears mid-line (no newline before it), show only preceding text
+                    _ai_mid = p.find('Action:')
+                    if _ai_mid > 0:
+                        p = p[:_ai_mid].rstrip()
+                    if p and len(p) > 3 and 'Action:' not in p:
                         if len(p) > _TERM_W:
                             p = p[:_TERM_W - 3] + "..."
                         sys.stdout.write(f"\r\033[2K  {p}")
@@ -3988,8 +3997,8 @@ def chat_loop():
     _multiline_prompt = None
     if config.ENABLE_MULTILINE_INPUT:
         try:
-            # Add vendored packages to path
-            _vendor_dir = str(Path(__file__).parent.parent / 'vendor')
+            # Add vendored packages to path (use resolve() for absolute path on all platforms)
+            _vendor_dir = str(Path(__file__).resolve().parent.parent / 'vendor')
             if _vendor_dir not in sys.path:
                 sys.path.insert(0, _vendor_dir)
             from prompt_toolkit import PromptSession, ANSI
@@ -3997,8 +4006,8 @@ def chat_loop():
             _multiline_prompt = PromptSession(multiline=False)
             _prompt_text = ANSI(Color.user("> ") + Color.RESET)
             print(Color.info("  [Multiline] Enter=전송, 붙여넣기=여러 줄 입력"))
-        except ImportError:
-            print(Color.warning("  [Multiline] prompt_toolkit not found — falling back to single-line input"))
+        except Exception as e:
+            print(Color.warning(f"  [Multiline] prompt_toolkit unavailable ({type(e).__name__}: {e}) — falling back to single-line input"))
 
     print(Color.info("\nType 'exit' or 'quit' to stop."))
     print(Color.info("Type /help for available slash commands.\n"))
