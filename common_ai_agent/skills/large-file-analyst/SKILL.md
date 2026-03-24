@@ -10,10 +10,9 @@ activation:
   keywords: [
     "large file", "대용량", "전체 파일", "파일 전체", "전체 분석",
     "함수 목록", "클래스 목록", "파일 구조", "모든 함수", "전체 내용",
-    "설명해줘", "분석해줘", "파악해줘", "알려줘", "요약해줘",
-    "전체 로직", "전체 구조", "코드 분석", "소스 분석",
-    ".py", ".js", ".ts", ".go", ".java", ".cpp", ".c"
+    "전체 로직", "전체 구조", "코드 분석", "소스 분석", "구조 파악"
   ]
+  file_patterns: ["*.py", "*.js", "*.ts", "*.go", "*.java", "*.cpp", "*.c"]
   auto_detect: true
 requires_tools: [run_command, read_lines, background_task]
 ---

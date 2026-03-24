@@ -111,9 +111,8 @@ class SkillActivator:
         file_score = self._file_pattern_match_score(skill.activation.file_patterns, context)
         score += file_score * 0.3
 
-        # CRITICAL: Require at least one signal (keyword OR file pattern OR tool)
-        # This prevents activation on completely irrelevant queries
-        if keyword_score == 0.0 and file_score == 0.0 and (not allowed_tools or not skill.requires_tools):
+        # CRITICAL: keyword must be present — file_patterns alone cannot trigger activation
+        if keyword_score == 0.0:
             return 0.0
 
         return min(score, 1.0)
@@ -154,6 +153,8 @@ class SkillActivator:
             score = 0.8
         elif matches >= 1:
             score = 0.6
+        elif matches >= 0.5:
+            score = 0.4
         else:
             score = 0.0
 

@@ -1836,12 +1836,14 @@ def load_active_skills(messages, allowed_tools=None):
             if skill:
                 skill_prompts.append(skill.format_for_prompt())
 
-        # Debug output
-        if config.DEBUG_MODE and skill_prompts:
-            print(Color.system(f"[PROMPT] ✅ Skills: {len(skill_prompts)} activated"))
-            for skill_name in active_skill_names:
-                source = "FORCED" if skill_name in forced_skills else "AUTO"
-                print(Color.system(f"[PROMPT]     - {skill_name} [{source}]"))
+        # Skill activation output (always show)
+        if skill_prompts:
+            names = ", ".join(active_skill_names)
+            print(Color.system(f"  [skill] {names}"))
+            if config.DEBUG_MODE:
+                for skill_name in active_skill_names:
+                    source = "FORCED" if skill_name in forced_skills else "AUTO"
+                    print(Color.system(f"[PROMPT]     - {skill_name} [{source}]"))
 
         return skill_prompts
 
@@ -1876,7 +1878,7 @@ def build_system_prompt(messages=None, allowed_tools=None):
 
     # Build context section
     dynamic_context = ""
-    if memory_system is not None or graph_lite is not None or procedural_memory is not None:
+    if memory_system is not None or graph_lite is not None or procedural_memory is not None or config.ENABLE_SKILL_SYSTEM:
         context_parts = []
 
         # Add memory preferences
@@ -2119,8 +2121,7 @@ def build_system_prompt(messages=None, allowed_tools=None):
                     skills_section += "\n\n====================="
                     context_parts.append(skills_section)
             except Exception as e:
-                if config.DEBUG_MODE:
-                    print(Color.warning(f"[PROMPT] ⚠️ Error injecting skills: {e}"))
+                print(Color.warning(f"[PROMPT] ⚠️ Error injecting skills: {e}"))
 
         # Add RAG tool guidance for Verilog and Spec analysis
         rag_guidance = """=== RAG CODE & SPEC SEARCH ===
@@ -3246,7 +3247,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         # Smart RAG: Refresh system prompt with current context
         # This enables dynamic RAG context injection based on latest user message
         # Refresh on every iteration to find new relevant context as conversation progresses
-        if config.ENABLE_SMART_RAG or config.DEBUG_MODE:
+        if config.ENABLE_SMART_RAG or config.DEBUG_MODE or config.ENABLE_SKILL_SYSTEM:
             # Only refresh if there's a new user message since last refresh
             user_messages = [m for m in messages if m.get("role") == "user"]
             current_query = user_messages[-1].get("content", "")[:100] if user_messages else ""
