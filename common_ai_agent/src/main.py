@@ -1857,6 +1857,14 @@ def load_active_skills(messages, allowed_tools=None):
         return []
 
 
+def _build_system_prompt_str(**kwargs) -> str:
+    """build_system_prompt() wrapper — always returns a string (handles optimized dict return)."""
+    sp = build_system_prompt(**kwargs)
+    if isinstance(sp, dict):
+        return (sp.get("static", "") + "\n\n" + sp.get("dynamic", "")).strip()
+    return sp
+
+
 def build_system_prompt(messages=None, allowed_tools=None):
     """
     Build system prompt with memory, graph context, and procedural guidance if available.
@@ -3823,7 +3831,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                                 )
                                 current_session_id = session.id
                                 # Reset everything
-                                messages = [{"role": "system", "content": build_system_prompt()}]
+                                messages = [{"role": "system", "content": _build_system_prompt_str()}]
                                 consecutive_errors = 0
                                 recovery_attempts = 0
                                 # Continue loop
@@ -3940,7 +3948,7 @@ def chat_loop():
         print(Color.system("[System] Resuming from previous conversation.\n"))
     else:
         messages = [
-            {"role": "system", "content": build_system_prompt()}
+            {"role": "system", "content": _build_system_prompt_str()}
         ]
 
     # Initialize context tracker
@@ -4147,7 +4155,7 @@ def chat_loop():
                     # Check for special commands
                     if result == "CLEAR_HISTORY":
                         # Clear conversation history
-                        messages = [{"role": "system", "content": build_system_prompt()}]
+                        messages = [{"role": "system", "content": _build_system_prompt_str()}]
 
                         # Update context tracker
                         if messages and messages[0].get("role") == "system":
@@ -4415,7 +4423,7 @@ if __name__ == "__main__":
         # One-shot mode with ReAct loop
         prompt = sys.argv[2]
         messages = [
-            {"role": "system", "content": build_system_prompt()},
+            {"role": "system", "content": _build_system_prompt_str()},
             {"role": "user", "content": prompt}
         ]
         
