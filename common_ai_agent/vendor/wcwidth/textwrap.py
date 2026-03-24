@@ -11,7 +11,7 @@ import re
 import secrets
 import textwrap
 
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple, Optional
 
 # local
 from .wcwidth import width as _width
@@ -36,9 +36,10 @@ class _HyperlinkState(NamedTuple):
 _HYPERLINK_OPEN_RE = re.compile(r'\x1b]8;([^;]*);([^\x07\x1b]*)(\x07|\x1b\\)')
 
 
-def _parse_hyperlink_open(seq: str) -> _HyperlinkState | None:
+def _parse_hyperlink_open(seq):  # type: (str) -> Optional[_HyperlinkState]
     """Parse OSC 8 open sequence, return state or None."""
-    if (m := _HYPERLINK_OPEN_RE.match(seq)):
+    m = _HYPERLINK_OPEN_RE.match(seq)
+    if m:
         return _HyperlinkState(url=m.group(2), params=m.group(1), terminator=m.group(3))
     return None
 

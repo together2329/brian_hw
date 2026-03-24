@@ -962,7 +962,8 @@ def clip(
             break
 
         # Handle escape sequences
-        if char == '\x1b' and (match := ZERO_WIDTH_PATTERN.match(text, idx)):
+        match = ZERO_WIDTH_PATTERN.match(text, idx)
+        if char == '\x1b' and match:
             seq = match.group()
             if propagate_sgr and _SGR_PATTERN.match(seq):
                 # Update SGR state; will be applied as prefix when visible content starts
@@ -1022,7 +1023,8 @@ def clip(
 
     # Apply SGR prefix/suffix
     if sgr_at_clip_start is not None:
-        if prefix := _sgr_state_to_sequence(sgr_at_clip_start):
+        prefix = _sgr_state_to_sequence(sgr_at_clip_start)
+        if prefix:
             result = prefix + result
         if _sgr_state_is_active(sgr_at_clip_start):
             result += '\x1b[0m'

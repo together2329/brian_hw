@@ -280,10 +280,12 @@ def _sgr_state_update(state: _SGRState, sequence: str) -> _SGRState:
             state = state._replace(background=None)
         # Extended colors (semicolon-separated format)
         elif p == _SGR.FG_EXTENDED:
-            if color := _parse_extended_color(params, _SGR.FG_EXTENDED):
+            color = _parse_extended_color(params, _SGR.FG_EXTENDED)
+            if color:
                 state = state._replace(foreground=color)
         elif p == _SGR.BG_EXTENDED:
-            if color := _parse_extended_color(params, _SGR.BG_EXTENDED):
+            color = _parse_extended_color(params, _SGR.BG_EXTENDED)
+            if color:
                 state = state._replace(background=color)
     return state
 

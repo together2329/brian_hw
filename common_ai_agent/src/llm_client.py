@@ -689,6 +689,18 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     if output_tokens > 0:
                         last_output_tokens = output_tokens
 
+                    # Flush remaining line buffer (last line may have no trailing \n)
+                    if config.DEBUG_MODE and _debug_line_buf.strip():
+                        import re as _re
+                        _line = _debug_line_buf.strip()
+                        if not _debug_in_think:
+                            _line = _re.sub(r'</?think>', '', _line).strip()
+                            if _line:
+                                if not _content_label_printed:
+                                    sys.stdout.write(f"\n\033[32m[content]\033[0m\n")
+                                sys.stdout.write(f"\033[32m{_line}\033[0m\n")
+                                sys.stdout.flush()
+
                     # Display actual token usage (always show for visibility)
                     if config.DEBUG_MODE:
                         total_tokens = input_tokens + output_tokens
