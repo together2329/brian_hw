@@ -4271,6 +4271,11 @@ def chat_loop():
                         # Save to history
                         save_conversation_history(messages)
 
+                        # Reset active skill (history cleared = new context)
+                        load_active_skills._active_skill = None
+                        load_active_skills._cached_key = ""
+                        load_active_skills._cached_skill = None
+
                         print(Color.success("\n✅ Conversation history cleared.\n"))
                         continue
                     elif result.startswith("COMPACT_HISTORY"):
