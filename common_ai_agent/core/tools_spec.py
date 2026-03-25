@@ -81,18 +81,25 @@ def spec_navigate(spec: str, node_id: str = "root") -> str:
                 "description": node.get("description", "")
             }, ensure_ascii=False)
 
+    data_dir = os.path.abspath(os.path.join(_SKILLS_DIR, f"{spec}-expert", "data"))
+
+    def _child_entry(c):
+        entry = {
+            "id": c["id"],
+            "title": c["title"],
+            "description": c.get("description", ""),
+            "has_children": bool(c.get("children")),
+        }
+        if not c.get("children") and "path" in c:
+            raw = c["path"]
+            abs_p = raw if os.path.isabs(raw) else os.path.normpath(os.path.join(data_dir, raw))
+            entry["path"] = os.path.relpath(abs_p, _PROJECT_ROOT)
+        return entry
+
     return json.dumps({
         "spec": spec,
         "node_id": node_id,
-        "children": [
-            {
-                "id": c["id"],
-                "title": c["title"],
-                "description": c.get("description", ""),
-                "has_children": bool(c.get("children"))
-            }
-            for c in children
-        ]
+        "children": [_child_entry(c) for c in children]
     }, ensure_ascii=False, indent=2)
 
 

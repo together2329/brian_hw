@@ -34,15 +34,11 @@ related_skills: [pcie-expert, protocol-spec-expert]
 4. leaf → read_lines(path="<정확히 반환된 path>", start_line=1, end_line=200)
 ```
 
-**leaf 판단:** 반환값에 `"leaf": true` 이면 반드시 해당 `path` 값을 그대로 사용.
-- ⚠️ path를 절대 추측하거나 수정하지 말 것
-- ⚠️ spec_navigate가 반환한 path 문자열을 **복사해서 그대로** read_lines에 전달
+**leaf 판단 (둘 중 하나):**
+- 응답에 `"leaf": true` → 해당 응답의 `path` 필드를 그대로 read_lines에 전달
+- children 목록에서 `"has_children": false` → 해당 child의 `path` 필드를 그대로 read_lines에 전달 (**추가 spec_navigate 호출 불필요**)
 
-예시:
-```
-spec_navigate 반환: {"leaf": true, "path": "common_ai_agent/skills/nvme-expert/data/markdown/4.3.../4.3.2.1_SGL_Example.md"}
-→ read_lines(path="common_ai_agent/skills/nvme-expert/data/markdown/4.3.../4.3.2.1_SGL_Example.md", start_line=1, end_line=200)
-```
+- ⚠️ path를 절대 추측하거나 수정하지 말 것 — spec_navigate 반환값만 사용
 
 ---
 

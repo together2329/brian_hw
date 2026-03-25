@@ -33,7 +33,9 @@ related_skills: [pcie-expert]
 4. leaf → read_lines(path="<정확히 반환된 path>", start_line=1, end_line=200)
 ```
 
-**leaf 판단:** 반환값에 `"leaf": true` → 즉시 read_lines
+**leaf 판단 (둘 중 하나):**
+- 응답에 `"leaf": true` → 해당 응답의 `path` 필드를 그대로 read_lines에 전달
+- children 목록에서 `"has_children": false` → 해당 child의 `path` 필드를 그대로 read_lines에 전달 (**추가 spec_navigate 호출 불필요**)
 
 ---
 

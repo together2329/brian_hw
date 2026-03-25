@@ -33,10 +33,12 @@ related_skills: [verilog-expert, protocol-spec-expert]
 1. spec_navigate("pcie", "root")       → 챕터 1~12 목록, 관련 챕터 id 선택
 2. spec_navigate("pcie", "<id>")       → 섹션 목록, 관련 섹션 id 선택
 3. spec_navigate("pcie", "<id.sub>")   → 서브섹션 목록 또는 leaf
-4. leaf(has_children:false) → read_lines(path="<leaf.path>", start_line=1, end_line=200)
+4. leaf 판단 → 즉시 read_lines
 ```
 
-**leaf 판단:** 반환값에 `"leaf": true` 또는 `"has_children": false` → 즉시 read_lines
+**leaf 판단 (둘 중 하나):**
+- 응답에 `"leaf": true` → `path` 필드가 응답에 포함됨 → `read_lines(path=<path>)`
+- children 목록에서 `"has_children": false` → 해당 child 항목에 `path` 필드가 포함됨 → `read_lines(path=<child.path>)` (**추가 spec_navigate 호출 불필요**)
 
 ---
 
