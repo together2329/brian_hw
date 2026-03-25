@@ -3496,6 +3496,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         _aborted = False
         _in_think = False
         _seen = set()       # printed lines for dedup
+        _last_partial = ""  # last partial line displayed (avoid duplicate \r writes)
 
         def _dedup_line(text):
             """Remove intra-line repetition (50-char sliding window)."""
@@ -3620,8 +3621,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     if p and len(p) > 3 and 'action:' not in p.lower():
                         if len(p) > _TERM_W:
                             p = p[:_TERM_W - 3] + "..."
-                        sys.stdout.write(f"\r\033[2K  {p}")
-                        sys.stdout.flush()
+                        if p != _last_partial:  # skip if content unchanged
+                            sys.stdout.write(f"\r\033[2K  {p}")
+                            sys.stdout.flush()
+                            _last_partial = p
 
         except Exception as e:
             if not collected_content:
