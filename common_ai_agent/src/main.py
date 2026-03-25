@@ -1866,11 +1866,31 @@ def load_active_skills(messages, allowed_tools=None):
             last_msg = " ".join(p.get("text", "") for p in last_msg if isinstance(p, dict))
         cache_key = last_msg[:300].strip()
 
+        # Recent history context for routing (last 6 user turns)
+        def _extract_text(m):
+            c = m.get("content", "")
+            if isinstance(c, list):
+                return " ".join(p.get("text", "") for p in c if isinstance(p, dict))
+            return c or ""
+        recent_user_msgs = [_extract_text(m) for m in messages if m.get("role") == "user"]
+        history_context = " | ".join(recent_user_msgs[-6:-1])  # 직전 5턴 (현재 제외)
+
         # Session-level skill state (persists across compressions)
         # _active_skill: currently loaded skill name (None = none)
         if "skill" not in cache_key.lower():
             # No "skill" keyword → reuse existing active skill (skip routing)
             routed = getattr(load_active_skills, '_active_skill', None)
+            # If no active skill (e.g. session restart), try routing with history context
+            if routed is None and history_context:
+                all_skills = registry.get_all_skills()
+                routable = [s for s in all_skills if s.activation.auto_detect]
+                routing_ctx = f"{history_context} | {cache_key}"
+                routed = _route_skill_via_llm(routing_ctx, routable) if routable else None
+                load_active_skills._active_skill = routed
+                if routed:
+                    print(Color.system(f"  [skill] {routed} (llm-routed, history)"))
+                else:
+                    print(Color.system("  [skill] routing: none"))
         else:
             # "skill" keyword present → LLM routing (with cache)
             if cache_key == getattr(load_active_skills, '_cached_key', ""):
