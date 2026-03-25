@@ -72,4 +72,5 @@ spec_navigate("pcie", "6.33")  → leaf → read_lines
 
 - leaf 도달 전 파일 읽기 금지
 - 한 레벨에서 최대 2개 분기 선택 가능
-- **grep_file은 spec_navigate 완료 후, 특정 값/코드 추가 검색 시에만** 사용
+- **grep_file, find_files, run_command 사용 금지** — spec_navigate + read_lines만 사용
+- **같은 파일 반복 읽기 금지** — read_lines는 파일당 1회, end_line=500으로 충분히 읽을 것
