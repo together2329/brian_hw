@@ -947,6 +947,15 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         ],
     }
 
+    # Spec navigation tool (pcie/ucie/nvme 등)
+    if "spec_navigate" in tool_list:
+        tool_lines["Spec Navigation"] = [
+            _tool_line("spec_navigate", 'spec, node_id="root"',
+                       "Navigate spec TOC hierarchy. spec='pcie'/'ucie'/'nvme'. "
+                       "Start with node_id='root', drill down with returned ids. "
+                       "Leaf node returns path → use read_lines to read content."),
+        ]
+
     # Verilog tools (conditional)
     if ENABLE_VERILOG_TOOLS and "analyze_verilog_module" in tool_list:
         tool_lines["Verilog Analysis"] = [

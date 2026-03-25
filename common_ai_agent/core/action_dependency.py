@@ -59,6 +59,8 @@ class ActionDependencyAnalyzer:
         # Meta 도구
         "spawn_explore",  # 여러 explore agent 병렬 실행 가능
         "background_task",  # 병렬 분석 에이전트 (read-only)
+        # Spec 탐색 도구 (pcie/ucie/nvme 등 모든 스펙, read-only)
+        "spec_navigate",
     }
 
     # Write 도구들 (barrier 필요)

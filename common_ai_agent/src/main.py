@@ -82,6 +82,14 @@ if config.ENABLE_VERILOG_TOOLS:
     except ImportError as e:
         print(Color.warning(f"[System] Failed to load Verilog tools: {e}"))
 
+try:
+    from core.tools_spec import spec_navigate
+    tools.AVAILABLE_TOOLS["spec_navigate"] = spec_navigate
+    if config.DEBUG_MODE:
+        print(Color.system("[System] spec_navigate tool loaded (pcie/ucie/nvme)"))
+except ImportError as e:
+    print(Color.warning(f"[System] Failed to load spec_navigate: {e}"))
+
 # --- 1. No Vendor Path Needed ---
 # We are using standard libraries only.
 
@@ -3530,6 +3538,12 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 # ── Process complete lines ──
                 while '\n' in _buf:
                     raw_line, _buf = _buf.split('\n', 1)
+                    # Merge tokenization-split fragments: if raw_line is a short lowercase
+                    # fragment (e.g. "c" split from "code inspection."), re-attach to next line
+                    _stripped = raw_line.strip()
+                    if _stripped and len(_stripped) <= 3 and _stripped.islower():
+                        _buf = _stripped + _buf
+                        continue
                     text, entered, exited = _strip_think(raw_line)
 
                     if entered:
@@ -3606,7 +3620,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 elif _ai_end > 0:
                     remaining = remaining[:_ai_end].rstrip()
                 if remaining:
-                    sys.stdout.write(f"\r\033[2K  {_dedup_line(remaining)}\n")
+                    # Partial display already showed this content via \r overwrite.
+                    # Just finalize with \n — avoids re-printing tokenization fragments.
+                    sys.stdout.write(f"\n")
                 else:
                     sys.stdout.write(f"\r\033[2K")
             else:
@@ -4462,7 +4478,8 @@ def chat_loop():
                 on_conversation_end(messages)
             except Exception as e:
                 print(Color.warning(f"[Warning] Failed to save knowledge: {e}"))
-            break
+            import os as _os
+            _os._exit(0)  # 강제 종료 — ThreadPoolExecutor hang 방지
         except EOFError:
             # stdin closed (e.g., from echo pipe) - exit gracefully
             print(Color.info("\n[System] Input stream closed. Exiting..."))

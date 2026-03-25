@@ -2416,3 +2416,10 @@ try:
     })
 except ImportError:
     pass  # tools_verilog not available
+
+# Import and register generic spec navigation tool (pcie/ucie/nvme 등 모든 스펙)
+try:
+    from tools_spec import spec_navigate
+    AVAILABLE_TOOLS["spec_navigate"] = spec_navigate
+except ImportError:
+    pass  # spec_navigate_tool not available

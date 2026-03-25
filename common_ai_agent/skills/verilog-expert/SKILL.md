@@ -20,7 +20,7 @@ activation:
   file_patterns: ["*.v", "*.sv"]
   auto_detect: true
 requires_tools: [analyze_verilog_module, find_signal_usage, rag_search, read_lines]
-related_skills: [testbench-expert, protocol-spec-expert]
+related_skills: [testbench-expert]
 ---
 
 ## Gotchas
