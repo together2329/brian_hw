@@ -7,7 +7,7 @@ import os
 
 _CORE_DIR = os.path.dirname(os.path.abspath(__file__))
 _SKILLS_DIR = os.path.join(_CORE_DIR, "..", "skills")
-_PROJECT_ROOT = os.path.abspath(os.path.join(_CORE_DIR, "..", ".."))
+_PROJECT_ROOT = os.path.abspath(os.path.join(_CORE_DIR, ".."))  # = common_ai_agent/ (CWD)
 
 
 def _find_node(node, target_id):
