@@ -80,3 +80,17 @@ rag_index.json
 *.swp
 *.swo
 *~
+
+# Spec markdown data (large, regeneratable from PDF)
+common_ai_agent/skills/*/data/markdown/
+common_ai_agent/skills/*/data/full.md
+
+# Temp outputs
+common_ai_agent/cmd_output_*.txt
+common_ai_agent/.ragconfig
+
+# Raw PDF source folders
+NVMe/
+PCIe/
+UCIe/
+gstack/
