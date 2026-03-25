@@ -90,6 +90,8 @@ def process_node(doc, base_dir, node, next_sibling, total_pages, client, output_
         end_page_exclusive = next_sibling['item'][2]
 
     pages_to_extract = list(range(start_page - 1, end_page_exclusive - 1)) if start_page <= end_page_exclusive else []
+    if not pages_to_extract:
+        pages_to_extract = [start_page - 1]  # 같은 페이지에 여러 섹션이 있을 때 최소 자기 페이지 포함
 
     content_text = ""
     md_content = f"# {title}\n\n"
