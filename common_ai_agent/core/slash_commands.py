@@ -292,12 +292,10 @@ class SlashCommandRegistry:
             return ""
 
     def _cmd_clear(self, args: str) -> str:
-        """Clear conversation history"""
-        # Return special signal that main.py will handle
-        # Main.py will:
-        # 1. Reset messages to just system prompt
-        # 2. Update context tracker
-        # 3. Save empty conversation to history file
+        """Clear conversation history. /clear [N] keeps last N user/assistant message pairs."""
+        keep = args.strip()
+        if keep.isdigit():
+            return f"CLEAR_HISTORY:{keep}"
         return "CLEAR_HISTORY"  # Special signal for main loop
 
     def _cmd_compact(self, args: str) -> str:

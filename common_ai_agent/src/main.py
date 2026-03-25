@@ -4257,9 +4257,23 @@ def chat_loop():
 
                 if result:
                     # Check for special commands
-                    if result == "CLEAR_HISTORY":
-                        # Clear conversation history
-                        messages = [{"role": "system", "content": _build_system_prompt_str()}]
+                    if result == "CLEAR_HISTORY" or result.startswith("CLEAR_HISTORY:"):
+                        # Parse optional keep count: CLEAR_HISTORY or CLEAR_HISTORY:N
+                        keep_n = 0
+                        if ":" in result:
+                            try:
+                                keep_n = int(result.split(":", 1)[1])
+                            except ValueError:
+                                keep_n = 0
+
+                        # Rebuild: system prompt + last keep_n user/assistant pairs
+                        system_msg = {"role": "system", "content": _build_system_prompt_str()}
+                        if keep_n > 0:
+                            non_system = [m for m in messages if m.get("role") != "system"]
+                            kept = non_system[-(keep_n * 2):]  # N pairs = 2N messages
+                            messages = [system_msg] + kept
+                        else:
+                            messages = [system_msg]
 
                         # Update context tracker
                         if messages and messages[0].get("role") == "system":
@@ -4276,7 +4290,10 @@ def chat_loop():
                         load_active_skills._cached_key = ""
                         load_active_skills._cached_skill = None
 
-                        print(Color.success("\n✅ Conversation history cleared.\n"))
+                        if keep_n > 0:
+                            print(Color.success(f"\n✅ Conversation history cleared (kept last {keep_n} message pair(s)).\n"))
+                        else:
+                            print(Color.success("\n✅ Conversation history cleared.\n"))
                         continue
                     elif result.startswith("COMPACT_HISTORY"):
                         # Compact conversation with optional options
