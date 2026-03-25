@@ -1792,6 +1792,43 @@ def execute_tool(tool_name, args_str):
 
 # Helper functions moved to llm_client.py
 
+def _route_skill_via_llm(user_message: str, skills: list):
+    """
+    LLM 1 call로 가장 적합한 skill을 선택.
+    Returns skill name string or None.
+    """
+    if not skills:
+        return None
+    skill_names = {s.name.lower(): s.name for s in skills}
+    menu = "\n".join(f"- {s.name}: {s.description.strip()}" for s in skills)
+    routing_prompt = (
+        f"Available skills:\n{menu}\n\n"
+        f"User message: \"{user_message[:200]}\"\n\n"
+        "Rules:\n"
+        "- large-file-analyst: user wants to read/understand an ENTIRE file or its overall structure. Keywords: 분석, analyze, 전체, 구조, 함수 목록, 클래스 목록, 내용, 파악\n"
+        "- code-analysis-expert: user wants to FIND or TRACE a specific symbol/function/signal. Keywords: find, trace, 어디, 어느, 정의, definition, usage\n"
+        "- Reply with ONLY the skill name, or \"none\" if no skill fits."
+    )
+    routing_model = os.getenv("SUBAGENT_LOW_MODEL", config.MODEL_NAME)
+    try:
+        response = call_llm_raw(routing_prompt, temperature=0.0, model=routing_model)
+    except Exception as e:
+        import sys as _sys
+        _sys.stderr.write(f"[skill routing error] {e}\n")
+        return None
+    if not response:
+        return None
+    cleaned = response.strip().lower()
+    if cleaned in ("none", "none.", "no skill", ""):
+        return None
+    if cleaned in skill_names:
+        return skill_names[cleaned]
+    for lower_name, original_name in skill_names.items():
+        if lower_name in cleaned:
+            return original_name
+    return None
+
+
 def load_active_skills(messages, allowed_tools=None):
     """
     Load active skills based on recent conversation context
@@ -1807,28 +1844,47 @@ def load_active_skills(messages, allowed_tools=None):
         return []
 
     try:
-        from core.skill_system import get_skill_registry, get_skill_activator
+        from core.skill_system import get_skill_registry
 
         registry = get_skill_registry()
-        activator = get_skill_activator()
 
-        # Get recent user messages for context
+        # Get last user message
         user_messages = [m for m in messages if m.get("role") == "user"]
         if not user_messages:
             return []
 
-        # Analyze last 5 user messages
-        recent_context = " ".join([
-            msg["content"] for msg in user_messages[-5:]
-            if isinstance(msg.get("content"), str)
-        ])
+        last_msg = user_messages[-1].get("content", "")
+        if isinstance(last_msg, list):
+            last_msg = " ".join(p.get("text", "") for p in last_msg if isinstance(p, dict))
+        cache_key = last_msg[:300].strip()
 
-        # Auto-detect relevant skills
-        auto_detected = activator.detect_skills(
-            context=recent_context,
-            allowed_tools=allowed_tools,
-            threshold=config.SKILL_ACTIVATION_THRESHOLD
-        )
+        # Session-level skill state (persists across compressions)
+        # _active_skill: currently loaded skill name (None = none)
+        if "skill" not in cache_key.lower():
+            # No "skill" keyword → reuse existing active skill (skip routing)
+            routed = getattr(load_active_skills, '_active_skill', None)
+        else:
+            # "skill" keyword present → LLM routing (with cache)
+            if cache_key == getattr(load_active_skills, '_cached_key', ""):
+                # Same message → use cache silently
+                routed = getattr(load_active_skills, '_cached_skill', None)
+            elif getattr(load_active_skills, '_active_skill', None) is not None:
+                # Mid-loop re-call (tool results added as user messages) → keep existing skill
+                routed = load_active_skills._active_skill
+            else:
+                # First routing for this user turn
+                all_skills = registry.get_all_skills()
+                routable = [s for s in all_skills if s.activation.auto_detect]
+                routed = _route_skill_via_llm(cache_key, routable) if routable else None
+                load_active_skills._cached_key = cache_key
+                load_active_skills._cached_skill = routed
+                load_active_skills._active_skill = routed  # None clears, name sets
+                if routed:
+                    print(Color.system(f"  [skill] {routed} (llm-routed)"))
+                else:
+                    print(Color.system("  [skill] routing: none"))
+
+        auto_detected = [routed] if routed else []
 
         # Manual overrides (set by /skill enable/disable commands)
         forced_skills = getattr(load_active_skills, 'forced_skills', set())
@@ -1851,14 +1907,11 @@ def load_active_skills(messages, allowed_tools=None):
             if skill:
                 skill_prompts.append(skill.format_for_prompt())
 
-        # Skill activation output (always show)
+        # forced skills output (llm-routed already printed above)
         if skill_prompts:
-            names = ", ".join(active_skill_names)
-            print(Color.system(f"  [skill] {names}"))
-            if config.DEBUG_MODE:
-                for skill_name in active_skill_names:
-                    source = "FORCED" if skill_name in forced_skills else "AUTO"
-                    print(Color.system(f"[PROMPT]     - {skill_name} [{source}]"))
+            for skill_name in active_skill_names:
+                if skill_name in forced_skills:
+                    print(Color.system(f"  [skill] {skill_name} (forced)"))
 
         return skill_prompts
 

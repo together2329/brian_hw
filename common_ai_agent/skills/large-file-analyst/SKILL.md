@@ -1,10 +1,10 @@
 ---
 name: large-file-analyst
 description: >
-  1000줄 이상 대용량 파일 분석 시 호출. 병렬 explore 에이전트로 1000줄씩
+  1000줄 이상 파일의 전체 내용/구조 파악 시 호출. 병렬 explore 에이전트로 1000줄씩
   분할 스캔하여 빠르게 필요한 정보를 추출.
-  Trigger on: '대용량 파일', 'large file', '전체 파일 분석', '파일 구조 파악',
-  '함수 목록', '클래스 목록', '전체 내용', '파일 전체'.
+  Trigger on: '파일 전체 분석', '전체 구조', '함수 목록', '클래스 목록', '전체 내용',
+  '파일 구조 파악', 'large file', '대용량 파일', '소스 전체', '코드 전체 분석'.
 priority: 85
 activation:
   keywords: [
@@ -43,9 +43,9 @@ Action: run_command(command="wc -l <파일경로>")
 **반드시** 아래 형식으로 background_task를 동시 다발로 실행:
 
 ```
-Action: background_task(agent="explore", prompt="<파일경로> 파일의 <start>~<end>줄을 read_lines(path='<파일경로>', start_line=<start>, end_line=<end>)로 읽고, <추출목표>를 찾아 [줄번호] 내용 형식으로 보고하라. 없으면 '해당 없음' 출력.")
-Action: background_task(agent="explore", prompt="<파일경로> 파일의 <start2>~<end2>줄을 read_lines(path='<파일경로>', start_line=<start2>, end_line=<end2>)로 읽고, <추출목표>를 찾아 [줄번호] 내용 형식으로 보고하라. 없으면 '해당 없음' 출력.")
-Action: background_task(agent="explore", prompt="<파일경로> 파일의 <start3>~<end3>줄을 read_lines(path='<파일경로>', start_line=<start3>, end_line=<end3>)로 읽고, <추출목표>를 찾아 [줄번호] 내용 형식으로 보고하라. 없으면 '해당 없음' 출력.")
+Action: background_task(agent="explore", prompt="ONLY use read_lines tool. DO NOT use grep_file, find_files, list_dir, or read_file. TASK: read_lines(path='<파일경로>', start_line=<start>, end_line=<end>) 로 읽고 <추출목표>를 [줄번호] 내용 형식으로 보고. 없으면 '해당 없음'.")
+Action: background_task(agent="explore", prompt="ONLY use read_lines tool. DO NOT use grep_file, find_files, list_dir, or read_file. TASK: read_lines(path='<파일경로>', start_line=<start2>, end_line=<end2>) 로 읽고 <추출목표>를 [줄번호] 내용 형식으로 보고. 없으면 '해당 없음'.")
+Action: background_task(agent="explore", prompt="ONLY use read_lines tool. DO NOT use grep_file, find_files, list_dir, or read_file. TASK: read_lines(path='<파일경로>', start_line=<start3>, end_line=<end3>) 로 읽고 <추출목표>를 [줄번호] 내용 형식으로 보고. 없으면 '해당 없음'.")
 ```
 
 - **한 배치에 최대 3개** (BACKGROUND_MAX_WORKERS=3 제한)
@@ -70,15 +70,15 @@ Action: run_command(command="wc -l src/main.py")
 
 **배치 1** (동시 실행):
 ```
-Action: background_task(agent="explore", prompt="src/main.py 파일의 1~1000줄을 read_lines(path='src/main.py', start_line=1, end_line=1000)로 읽고, def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출하라.")
-Action: background_task(agent="explore", prompt="src/main.py 파일의 1001~2000줄을 read_lines(path='src/main.py', start_line=1001, end_line=2000)로 읽고, def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출하라.")
-Action: background_task(agent="explore", prompt="src/main.py 파일의 2001~3000줄을 read_lines(path='src/main.py', start_line=2001, end_line=3000)로 읽고, def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출하라.")
+Action: background_task(agent="explore", prompt="ONLY use read_lines tool. DO NOT use grep_file, find_files, list_dir, or read_file. TASK: read_lines(path='src/main.py', start_line=1, end_line=1000) 로 읽고 def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출. 없으면 '해당 없음'.")
+Action: background_task(agent="explore", prompt="ONLY use read_lines tool. DO NOT use grep_file, find_files, list_dir, or read_file. TASK: read_lines(path='src/main.py', start_line=1001, end_line=2000) 로 읽고 def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출. 없으면 '해당 없음'.")
+Action: background_task(agent="explore", prompt="ONLY use read_lines tool. DO NOT use grep_file, find_files, list_dir, or read_file. TASK: read_lines(path='src/main.py', start_line=2001, end_line=3000) 로 읽고 def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출. 없으면 '해당 없음'.")
 ```
 
 **배치 2** (배치 1 완료 후):
 ```
-Action: background_task(agent="explore", prompt="src/main.py 파일의 3001~4000줄을 read_lines(path='src/main.py', start_line=3001, end_line=4000)로 읽고, def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출하라.")
-Action: background_task(agent="explore", prompt="src/main.py 파일의 4001~4425줄을 read_lines(path='src/main.py', start_line=4001, end_line=4425)로 읽고, def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출하라.")
+Action: background_task(agent="explore", prompt="ONLY use read_lines tool. DO NOT use grep_file, find_files, list_dir, or read_file. TASK: read_lines(path='src/main.py', start_line=3001, end_line=4000) 로 읽고 def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출. 없으면 '해당 없음'.")
+Action: background_task(agent="explore", prompt="ONLY use read_lines tool. DO NOT use grep_file, find_files, list_dir, or read_file. TASK: read_lines(path='src/main.py', start_line=4001, end_line=4425) 로 읽고 def/class 정의를 [줄번호] 함수명/클래스명 형식으로 모두 추출. 없으면 '해당 없음'.")
 ```
 
 ---
