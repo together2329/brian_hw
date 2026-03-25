@@ -272,7 +272,7 @@ EMBEDDING_DIMENSION = int(_emb_dim_env) if _emb_dim_env else None
 # Memory System Configuration
 # ============================================================
 # Enable/Disable memory system
-ENABLE_MEMORY = os.getenv("ENABLE_MEMORY", "true").lower() in ("true", "1", "yes")
+ENABLE_MEMORY = os.getenv("ENABLE_MEMORY", "false").lower() in ("true", "1", "yes")
 
 # Memory directory (relative to home directory)
 MEMORY_DIR = os.getenv("MEMORY_DIR", ".memory")
@@ -287,7 +287,7 @@ ENABLE_AUTO_EXTRACT = os.getenv("ENABLE_AUTO_EXTRACT", "true").lower() in ("true
 # Graph Lite Configuration (Knowledge Graph)
 # ============================================================
 # Enable/Disable graph system
-ENABLE_GRAPH = os.getenv("ENABLE_GRAPH", "true").lower() in ("true", "1", "yes")
+ENABLE_GRAPH = os.getenv("ENABLE_GRAPH", "false").lower() in ("true", "1", "yes")
 
 # Auto-extract knowledge from conversations (end of session)
 GRAPH_AUTO_EXTRACT = os.getenv("GRAPH_AUTO_EXTRACT", "true").lower() in ("true", "1", "yes")
@@ -430,7 +430,7 @@ SMART_RAG_LLM_JUDGE = os.getenv("SMART_RAG_LLM_JUDGE", "true").lower() in ("true
 # Procedural Memory Configuration (Memp)
 # ============================================================
 # Enable/Disable procedural memory system (learning from past experiences)
-ENABLE_PROCEDURAL_MEMORY = os.getenv("ENABLE_PROCEDURAL_MEMORY", "true").lower() in ("true", "1", "yes")
+ENABLE_PROCEDURAL_MEMORY = os.getenv("ENABLE_PROCEDURAL_MEMORY", "false").lower() in ("true", "1", "yes")
 
 # Maximum number of similar trajectories to retrieve for guidance
 PROCEDURAL_RETRIEVE_LIMIT = int(os.getenv("PROCEDURAL_RETRIEVE_LIMIT", "3"))
