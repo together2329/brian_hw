@@ -211,9 +211,49 @@ def _extract_phrases(query: str, keywords: list) -> list:
     return result
 
 
+def _llm_select_sections(query: str, candidates: list) -> list:
+    """
+    LLM이 후보 섹션 목록에서 쿼리에 가장 관련된 node_id를 선택.
+    candidates: [{"id": ..., "title": ..., "description": ...}, ...]
+    반환: 선택된 node_id 리스트 (최대 2개)
+    """
+    try:
+        import sys, re as _re
+        _src_dir = os.path.join(_CORE_DIR, "..", "src")
+        if _src_dir not in sys.path:
+            sys.path.insert(0, _src_dir)
+        from llm_client import call_llm_raw
+
+        candidate_lines = "\n".join(
+            f"{i+1}. [{c['id']}] {c['title']}"
+            + (f" — {c['description'][:80]}" if c.get('description') else "")
+            for i, c in enumerate(candidates)
+        )
+        prompt = (
+            f"You are selecting the most relevant sections from a technical spec index.\n"
+            f"Query: {query}\n\n"
+            f"Candidates:\n{candidate_lines}\n\n"
+            f"Return ONLY the node_id(s) of the 1-2 most relevant sections as a JSON array. "
+            f"Example: [\"4.3.2\"] or [\"7.7.9\", \"7.7.9.2\"]. No explanation."
+        )
+        result = call_llm_raw(
+            prompt="",
+            messages=[{"role": "user", "content": prompt}],
+        )
+        if result:
+            match = _re.search(r'\[.*?\]', result, _re.DOTALL)
+            if match:
+                ids = json.loads(match.group())
+                return [str(i) for i in ids if isinstance(i, str)]
+    except Exception:
+        pass
+    # Fallback: return top 2 candidates
+    return [c["id"] for c in candidates[:2]]
+
+
 def spec_search(spec: str, query: str) -> str:
     """
-    LLM 키워드 확장 + 구문/키워드 매칭으로 관련 스펙 내용 반환.
+    키워드로 후보 섹션 추출 → LLM이 제목 보고 최적 섹션 선택 → 내용 반환.
     spec='pcie'/'ucie'/'nvme', query=사용자 질문.
     매칭 없으면 spec-navigator sub-agent로 fallback.
     """
@@ -231,10 +271,10 @@ def spec_search(spec: str, query: str) -> str:
     # 1. Expand keywords via LLM
     keywords = _expand_keywords(query)
 
-    # 2. Extract phrases (multi-word) for high-precision matching
+    # 2. Extract phrases
     phrases = _extract_phrases(query, keywords)
 
-    # 3. Score all nodes
+    # 3. Score all nodes → top 10 candidates (title only)
     all_nodes = _collect_all_nodes({"id": "root", "children": data.get("children", [])})
     scored = [(n, _score_node(n, keywords, phrases)) for n in all_nodes if n.get("path")]
     scored = [(n, s) for n, s in scored if s > 0]
@@ -243,14 +283,19 @@ def spec_search(spec: str, query: str) -> str:
     if not scored:
         return _spec_search_subagent(spec, query)
 
-    # 4. Determine confidence
-    top_score = scored[0][1]
-    is_high_confidence = top_score >= 10  # phrase match found
+    candidates = [n for n, _ in scored[:10]]
 
-    # 5. Read top 2 matching files
+    # 4. LLM selects best matching sections from candidate titles
+    selected_ids = _llm_select_sections(query, candidates)
+
+    # 5. Read selected files
     data_dir = os.path.abspath(os.path.join(_SKILLS_DIR, f"{spec}-expert", "data"))
+    id_to_node = {n["id"]: n for n in candidates}
     results = []
-    for node, score in scored[:2]:
+    for nid in selected_ids:
+        node = id_to_node.get(nid)
+        if not node:
+            continue
         raw_path = node["path"]
         abs_path = raw_path if os.path.isabs(raw_path) else os.path.normpath(os.path.join(data_dir, raw_path))
         try:
@@ -260,21 +305,14 @@ def spec_search(spec: str, query: str) -> str:
             if len(lines) > 300:
                 content += f"\n[...truncated, {len(lines)} lines total]"
             rel_path = os.path.relpath(abs_path, _PROJECT_ROOT)
-            results.append(f"## {node['title']} (node_id: {node['id']})\n\n{content}\n\n---\nSource: {rel_path}")
+            results.append(f"## {node['title']} (node_id: {nid})\n\n{content}\n\n---\nSource: {rel_path}")
         except Exception as e:
             results.append(f"## {node['title']}\n[Error reading: {e}]")
 
     if not results:
         return _spec_search_subagent(spec, query)
 
-    confidence_hint = (
-        "✅ HIGH CONFIDENCE MATCH (exact phrase found). "
-        "Full content is included below — no further navigation needed.\n\n"
-        if is_high_confidence else
-        "⚠️ PARTIAL MATCH (keyword-based). "
-        "Review content below; use spec_navigate if more detail is needed.\n\n"
-    )
-    return confidence_hint + "\n\n".join(results)
+    return "\n\n".join(results)
 
 
 def _spec_search_subagent(spec: str, query: str) -> str:
