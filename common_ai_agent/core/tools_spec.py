@@ -208,6 +208,7 @@ def _llm_select_sections(query: str, candidates: list) -> list:
     candidates: [{"id": ..., "title": ..., "description": ...}, ...]
     반환: 선택된 node_id 리스트 (최대 2개)
     """
+    _dbg(f"[LLM call #section-select] {len(candidates)} candidates → selecting best")
     try:
         import sys, re as _re
         _src_dir = os.path.join(_CORE_DIR, "..", "src")
@@ -235,9 +236,11 @@ def _llm_select_sections(query: str, candidates: list) -> list:
             match = _re.search(r'\[.*?\]', result, _re.DOTALL)
             if match:
                 ids = json.loads(match.group())
-                return [str(i) for i in ids if isinstance(i, str)]
-    except Exception:
-        pass
+                selected = [str(i) for i in ids if isinstance(i, str)]
+                _dbg(f"[LLM call #section-select] → {selected}")
+                return selected
+    except Exception as e:
+        _dbg(f"[LLM call #section-select] failed: {e} → fallback top-2")
     # Fallback: return top 2 candidates
     return [c["id"] for c in candidates[:2]]
 
@@ -280,7 +283,7 @@ def spec_search(spec: str, query: str) -> str:
         _dbg(f"  score={s:3d}  [{n['id']}] {n['title']}")
 
     if not scored:
-        _dbg("no candidates → fallback to subagent")
+        _dbg("[LLM call #fallback] no keyword matches → spec-navigator subagent")
         return _spec_search_subagent(spec, query)
 
     candidates = [n for n, _ in scored[:10]]
@@ -313,7 +316,7 @@ def spec_search(spec: str, query: str) -> str:
             results.append(f"## {node['title']}\n[Error reading: {e}]")
 
     if not results:
-        _dbg("no results after file read → fallback to subagent")
+        _dbg("[LLM call #fallback] selected IDs not in candidates → spec-navigator subagent")
         return _spec_search_subagent(spec, query)
 
     return "\n\n".join(results)
