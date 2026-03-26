@@ -99,8 +99,8 @@ def spec_navigate(spec: str, node_id: str = "root") -> str:
             try:
                 with open(abs_path, encoding="utf-8") as f:
                     lines = f.readlines()
-                content = "".join(lines[:300])
-                if len(lines) > 300:
+                content = "".join(lines[:600])
+                if len(lines) > 600:
                     content += f"\n[...truncated, {len(lines)} lines total]"
                 result["content"] = content
             except Exception:
@@ -306,8 +306,8 @@ def spec_search(spec: str, query: str) -> str:
         try:
             with open(abs_path, encoding="utf-8") as f:
                 lines = f.readlines()
-            content = "".join(lines[:300])
-            if len(lines) > 300:
+            content = "".join(lines[:600])
+            if len(lines) > 600:
                 content += f"\n[...truncated, {len(lines)} lines total]"
             rel_path = os.path.relpath(abs_path, _PROJECT_ROOT)
             _dbg(f"  reading [{nid}] {node['title']} — {len(lines)} lines from {rel_path}")
