@@ -33,6 +33,28 @@ def _find_node(node, target_id):
     return None
 
 
+def _find_siblings(root_data: dict, node_id: str) -> list:
+    """선택된 노드의 형제 노드(같은 부모의 다른 자식) 목록 반환."""
+    def _find_parent(node, target_id):
+        for child in node.get("children", []):
+            if child.get("id") == target_id:
+                return node
+            result = _find_parent(child, target_id)
+            if result is not None:
+                return result
+        return None
+
+    wrapper = {"id": "root", "children": root_data.get("children", [])}
+    parent = _find_parent(wrapper, node_id)
+    if not parent:
+        return []
+    return [
+        {"id": c["id"], "title": c["title"]}
+        for c in parent.get("children", [])
+        if c.get("id") != node_id
+    ]
+
+
 def spec_navigate(spec: str, node_id: str = "root") -> str:
     """
     스펙 계층 탐색기. spec='pcie'/'ucie'/'nvme' 등.
@@ -311,7 +333,13 @@ def spec_search(spec: str, query: str) -> str:
                 content += f"\n[...truncated, {len(lines)} lines total]"
             rel_path = os.path.relpath(abs_path, _PROJECT_ROOT)
             _dbg(f"  reading [{nid}] {node['title']} — {len(lines)} lines from {rel_path}")
-            results.append(f"## {node['title']} (node_id: {nid})\n\n{content}\n\n---\nSource: {rel_path}")
+            siblings = _find_siblings(data, nid)
+            related = ""
+            if siblings:
+                sib_list = ", ".join(f"[{s['id']}] {s['title']}" for s in siblings[:8])
+                related = f"\n\n**Related sections (same parent):** {sib_list}"
+                _dbg(f"  siblings: {[s['id'] for s in siblings]}")
+            results.append(f"## {node['title']} (node_id: {nid})\n\n{content}{related}\n\n---\nSource: {rel_path}")
         except Exception as e:
             results.append(f"## {node['title']}\n[Error reading: {e}]")
 
