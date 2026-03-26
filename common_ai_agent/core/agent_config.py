@@ -318,8 +318,8 @@ class AgentRegistry:
             external_directory=PermissionLevel.ASK
         )
 
-        # Plan 에이전트 권한 (읽기 전용)
-        plan_permission = ToolPermissions(
+        # Read-only 에이전트 권한
+        read_only_permission = ToolPermissions(
             edit=PermissionLevel.DENY,
             bash={
                 "git diff*": PermissionLevel.ALLOW,
@@ -353,22 +353,7 @@ class AgentRegistry:
                 "read_file", "read_lines", "grep_file", "list_dir",
                 "find_files", "rag_search", "rag_explore", "git_status", "git_diff"
             },
-            permission=plan_permission
-        )
-
-        # Plan 에이전트 (고성능 추론 모델, read-only)
-        self._agents["plan"] = AgentConfig(
-            name="plan",
-            description="Planning agent for complex task analysis. Creates execution plans.",
-            mode="subagent",
-            native=True,
-            model=high_model,
-            max_steps=20,
-            allowed_tools={
-                "read_file", "read_lines", "grep_file", "list_dir",
-                "find_files", "rag_search", "create_plan", "get_plan"
-            },
-            permission=plan_permission
+            permission=read_only_permission
         )
 
         # Execute 에이전트 (빠른 non-reasoning 모델, 전체 접근)
@@ -382,7 +367,7 @@ class AgentRegistry:
             allowed_tools={
                 "read_file", "read_lines", "write_file", "replace_in_file",
                 "replace_lines", "run_command", "grep_file", "list_dir",
-                "find_files", "rag_search", "mark_step_done"
+                "find_files", "rag_search"
             },
             permission=default_permission
         )
@@ -399,7 +384,7 @@ class AgentRegistry:
                 "read_file", "read_lines", "grep_file", "list_dir",
                 "find_files", "rag_search", "git_diff"
             },
-            permission=plan_permission
+            permission=read_only_permission
         )
 
         # Task 에이전트 (빠른 non-reasoning 모델, context 분배 + 오케스트레이션)

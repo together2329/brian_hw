@@ -125,6 +125,73 @@ Example workflow:
     except Exception as e:
         return f"Error reading file: {e}"
 
+def _find_git_root(path: str):
+    """Find nearest .git directory walking up from path. Returns root dir or None."""
+    check = os.path.abspath(path) if os.path.isdir(path) else os.path.dirname(os.path.abspath(path))
+    while True:
+        if os.path.exists(os.path.join(check, '.git')):
+            return check
+        parent = os.path.dirname(check)
+        if parent == check:
+            return None
+        check = parent
+
+
+def _llm_commit_summary(path: str, content_hint: str) -> str:
+    """Call cheap LLM to generate a short commit message. Returns '' on failure."""
+    try:
+        import config as _cfg
+        import sys as _sys
+        import os as _os
+        # Locate llm_client (src directory)
+        _src = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), 'src')
+        if _src not in _sys.path:
+            _sys.path.insert(0, _src)
+        import llm_client as _lc
+        model = getattr(_cfg, 'GIT_COMMIT_SUMMARY_MODEL', 'openrouter/qwen/qwen-2.5-7b-instruct')
+        temperature = getattr(_cfg, 'GIT_COMMIT_SUMMARY_TEMPERATURE', 0.3)
+        prompt = (
+            f"Write a git commit message in 60 chars or less (no quotes, no markdown) "
+            f"describing this file change.\n"
+            f"File: {path}\n"
+            f"Preview:\n{content_hint[:600]}\n\n"
+            f"Reply with ONLY the commit message."
+        )
+        result = _lc.call_llm_raw(prompt=prompt, model=model, temperature=temperature)
+        return result.strip()[:60]
+    except Exception:
+        return ""
+
+
+def _git_auto_commit(path: str, operation: str, stats: str = "", content_hint: str = ""):
+    """git add <path> && git commit after a write/replace operation. Silent on failure."""
+    try:
+        import config as _cfg
+        from datetime import datetime as _dt
+        if not getattr(_cfg, 'GIT_VERSION_CONTROL_ENABLE', True):
+            return
+        abs_path = os.path.abspath(path)
+        git_root = _find_git_root(abs_path)
+        if git_root is None:
+            return
+        subprocess.run(['git', 'add', abs_path], capture_output=True, cwd=git_root)
+        rel = os.path.relpath(abs_path, git_root)
+        timestamp = _dt.now().strftime("%Y-%m-%d %H:%M:%S")
+        stats_part = f" ({stats})" if stats else ""
+        mode = getattr(_cfg, 'GIT_COMMIT_MSG_MODE', 'simple')
+        if mode == 'summary' and content_hint:
+            summary = _llm_commit_summary(rel, content_hint)
+            if summary:
+                msg = f"auto: {operation} {rel}{stats_part} [{timestamp}] — {summary}"
+            else:
+                msg = f"auto: {operation} {rel}{stats_part} [{timestamp}]"
+        else:
+            msg = f"auto: {operation} {rel}{stats_part} [{timestamp}]"
+        subprocess.run(['git', 'commit', '-m', msg], capture_output=True, cwd=git_root)
+    except Exception:
+        pass
+
+
 def write_file(path: str, content: str) -> str:
     """
     Writes content to a file. Overwrites if exists.
@@ -169,6 +236,8 @@ def write_file(path: str, content: str) -> str:
                 # Linting failed, but file was written successfully
                 pass
 
+        import threading as _t
+        _t.Thread(target=_git_auto_commit, args=(path, "write"), kwargs={"content_hint": content[:800]}, daemon=True).start()
         return result
     except Exception as e:
         return f"Error writing file: {e}"
@@ -324,139 +393,6 @@ def list_dir(path=".", show_hidden=True, **kwargs):
         return "\n".join(sorted(files))
     except Exception as e:
         return f"Error listing directory: {e}"
-
-def create_plan(task_description, steps):
-    """
-    Creates a plan file with numbered steps for a complex task.
-    Args:
-        task_description: Description of the overall task
-        steps: Newline-separated list of steps
-    Returns:
-        Success message with plan file path
-    """
-    try:
-        plan_content = f"""# Task Plan
-## Task: {task_description}
-
-## Steps:
-"""
-        step_list = [s.strip() for s in steps.split('\n') if s.strip()]
-        for i, step in enumerate(step_list, 1):
-            plan_content += f"{i}. {step}\n"
-
-        plan_file = "current_plan.md"
-        with open(plan_file, 'w', encoding='utf-8') as f:
-            f.write(plan_content)
-
-        return f"Plan created successfully in '{plan_file}' with {len(step_list)} steps."
-    except Exception as e:
-        return f"Error creating plan: {e}"
-
-def get_plan():
-    """
-    Reads the current plan file.
-    Returns:
-        Plan content or error message
-    """
-    try:
-        plan_file = "current_plan.md"
-        if not os.path.exists(plan_file):
-            return "No plan file found. Use create_plan() first."
-        with open(plan_file, 'r', encoding='utf-8') as f:
-            return f.read()
-    except Exception as e:
-        return f"Error reading plan: {e}"
-
-def mark_step_done(step_number):
-    """
-    Marks a step as completed in the plan.
-    Args:
-        step_number: The step number to mark as done (1-based)
-    Returns:
-        Success message
-    """
-    try:
-        plan_file = "current_plan.md"
-        if not os.path.exists(plan_file):
-            return "No plan file found."
-
-        with open(plan_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-
-        lines = content.split('\n')
-        for i, line in enumerate(lines):
-            if line.strip().startswith(f"{step_number}."):
-                if not line.strip().endswith("✅"):
-                    lines[i] = line + " ✅"
-                break
-
-        with open(plan_file, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(lines))
-
-        return f"Step {step_number} marked as done."
-    except Exception as e:
-        return f"Error marking step: {e}"
-
-def wait_for_plan_approval():
-    """
-    Pauses execution and waits for user to review and approve the plan.
-    User should edit current_plan.md and add 'APPROVED' at the top when ready.
-    Returns:
-        Approval status message
-    """
-    try:
-        plan_file = "current_plan.md"
-        if not os.path.exists(plan_file):
-            return "No plan file found. Create a plan first."
-
-        # Add instruction to the plan file
-        with open(plan_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-
-        if "USER INSTRUCTION" not in content:
-            instruction = """# USER INSTRUCTION:
-# Review this plan and make any changes you want.
-# When ready to proceed, add 'APPROVED' on the line below:
-# STATUS:
-
----
-
-"""
-            with open(plan_file, 'w', encoding='utf-8') as f:
-                f.write(instruction + content)
-
-        return f"""Plan saved to '{plan_file}'.
-
-NEXT STEPS FOR USER:
-1. Open and review: {plan_file}
-2. Edit the plan as needed (add/remove/modify steps)
-3. When satisfied, add 'APPROVED' after 'STATUS:' in the file
-4. Then tell me to continue with: 'execute the plan' or 'check plan status'
-
-I will wait for your approval before proceeding."""
-    except Exception as e:
-        return f"Error in wait_for_plan_approval: {e}"
-
-def check_plan_status():
-    """
-    Checks if the plan has been approved by the user.
-    Returns:
-        Approval status and plan content
-    """
-    try:
-        plan_file = "current_plan.md"
-        if not os.path.exists(plan_file):
-            return "No plan file found."
-
-        with open(plan_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-
-        if "STATUS: APPROVED" in content:
-            return f"✅ Plan is APPROVED! Ready to execute.\n\n{content}"
-        else:
-            return f"⏳ Plan is NOT YET APPROVED. User needs to review.\n\n{content}"
-    except Exception as e:
-        return f"Error checking plan status: {e}"
 
 def grep_file(pattern, path, context_lines=2, recursive=False, **kwargs):
     """
@@ -1033,6 +969,11 @@ Common issues:
             else:
                 result += f"(Fuzzy matched: adjusted whitespace)\n"
         result += f"\n{diff_output}"
+        added = len(new_text.splitlines())
+        removed = len(actual_old_text.splitlines())
+        hint = f"--- old ---\n{actual_old_text[:400]}\n--- new ---\n{new_text[:400]}"
+        import threading as _t
+        _t.Thread(target=_git_auto_commit, args=(path, "replace"), kwargs={"stats": f"+{added}/-{removed} lines", "content_hint": hint}, daemon=True).start()
         return result
     except Exception as e:
         return f"Error replacing text: {e}"
@@ -2222,8 +2163,7 @@ def background_task(agent="explore", prompt="", context="", foreground="true"):
     Runs in foreground (synchronous) by default. Set foreground="false" for background execution.
 
     Args:
-        agent: Agent type - "explore" (read-only, fast), "plan" (read-only, thorough),
-               "execute" (full access), "review" (read-only)
+        agent: Agent type - "explore" (read-only, fast), "execute" (full access), "review" (read-only)
         prompt: Clear description of what the agent should do
         context: Optional context from current conversation to pass to the agent
         foreground: "true" (default) for synchronous execution, "false" for background
@@ -2234,10 +2174,10 @@ def background_task(agent="explore", prompt="", context="", foreground="true"):
 
     Example:
         Action: background_task(agent="explore", prompt="Find all Verilog modules in rtl/")
-        Action: background_task(agent="plan", prompt="Design FIFO controller", foreground="false")
+        Action: background_task(agent="execute", prompt="Fix the bug in src/main.py", foreground="false")
     """
     try:
-        valid_agents = {"explore", "plan", "execute", "review", "task"}
+        valid_agents = {"explore", "execute", "review", "task"}
 
         # Auto-fix: if agent looks like a prompt (not a valid agent name), shift args
         if agent not in valid_agents and not prompt:
@@ -2372,11 +2312,6 @@ AVAILABLE_TOOLS = {
     "write_file": write_file,
     "run_command": run_command,
     "list_dir": list_dir,
-    "create_plan": create_plan,
-    "get_plan": get_plan,
-    "mark_step_done": mark_step_done,
-    "wait_for_plan_approval": wait_for_plan_approval,
-    "check_plan_status": check_plan_status,
     "grep_file": grep_file,
     "read_lines": read_lines,
     "find_files": find_files,

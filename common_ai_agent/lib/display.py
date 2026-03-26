@@ -371,9 +371,6 @@ TOOL_ICONS = {
     # Todo
     'todo_write':    '☐',
     'todo_read':     '☐',
-    # Plan
-    'create_plan':   '◆',
-    'get_plan':      '◆',
     # Verilog
     'analyze_verilog_module': '⊞',
     'find_signal_usage':      '⊞',
@@ -501,9 +498,6 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
         result_m = re.search(r'(\d+) result', observation) if observation else None
         count = result_m.group(1) if result_m else "?"
         return f"{count} result(s)"
-
-    if tool_name == 'get_plan':
-        return f"{line_count} lines"
 
     if tool_name == 'background_task':
         status_m = re.search(r'Status:\s*(\w+)', observation) if observation else None
@@ -666,8 +660,6 @@ def _friendly_tool_name(tool_name: str) -> str:
         'background_list': 'Agent List',
         'todo_write': 'Todo',
         'todo_read': 'Todo',
-        'create_plan': 'Plan',
-        'get_plan': 'Plan',
         'analyze_verilog_module': 'Analyze Module',
         'find_signal_usage': 'Signal Usage',
         'find_module_definition': 'Module Def',

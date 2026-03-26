@@ -68,6 +68,7 @@ API_TIMEOUT = int(os.getenv("API_TIMEOUT", "600"))
 # Save conversation history to file
 SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")
 HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")
+TODO_FILE = os.getenv("TODO_FILE", "current_todos.json")
 
 # Debug mode - show detailed parsing and execution info
 DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() in ("true", "1", "yes")
@@ -114,6 +115,14 @@ ENABLE_TYPE_VALIDATION = os.getenv("ENABLE_TYPE_VALIDATION", "true").lower() in 
 # Checks Python files with compile() + pyflakes, Verilog files with iverilog
 # Falls back gracefully if external tools not installed
 ENABLE_LINTING = os.getenv("ENABLE_LINTING", "true").lower() in ("true", "1", "yes")
+
+# Enable automatic git version control (git init + add + commit on write/replace)
+GIT_VERSION_CONTROL_ENABLE = os.getenv("GIT_VERSION_CONTROL_ENABLE", "true").lower() in ("true", "1", "yes")
+# Commit message verbosity: "simple" | "summary"
+GIT_COMMIT_MSG_MODE = os.getenv("GIT_COMMIT_MSG_MODE", "simple")
+# Cheap LLM model for generating git commit summaries
+GIT_COMMIT_SUMMARY_MODEL = os.getenv("GIT_COMMIT_SUMMARY_MODEL", "openrouter/qwen/qwen-2.5-7b-instruct")
+GIT_COMMIT_SUMMARY_TEMPERATURE = float(os.getenv("GIT_COMMIT_SUMMARY_TEMPERATURE", "0.3"))
 
 # Enable LSP integration (optional - requires LSP server installed)
 # Uses pylsp, pyright, or jedi-language-server for advanced diagnostics
@@ -539,55 +548,6 @@ ENABLE_ENHANCED_TOOL_DESCRIPTIONS = os.getenv("ENABLE_ENHANCED_TOOL_DESCRIPTIONS
 ENABLE_MULTILINE_INPUT = os.getenv("ENABLE_MULTILINE_INPUT", "true").lower() in ("true", "1", "yes")
 
 # ============================================================
-# Claude Code Flow (Plan → Approve → Execute)
-# ============================================================
-# Flow modes:
-# - "off": 기존 ReAct 동작
-# - "auto": 복잡한 요청만 자동으로 Plan 모드 진입 (기본)
-# - "always": 모든 요청에서 Plan 모드 진입
-CLAUDE_FLOW_MODE = os.getenv("CLAUDE_FLOW_MODE", "auto").strip().lower()
-if CLAUDE_FLOW_MODE not in ("off", "auto", "always"):
-    CLAUDE_FLOW_MODE = "auto"
-
-# Plan 승인 전에는 실행(파일쓰기/명령)을 하지 않도록 가드
-CLAUDE_FLOW_REQUIRE_APPROVAL = os.getenv("CLAUDE_FLOW_REQUIRE_APPROVAL", "true").lower() in ("true", "1", "yes")
-
-# 사용자가 "execute plan"/"계획 실행"을 입력하면 남은 step을 자동 진행
-CLAUDE_FLOW_AUTO_EXECUTE = os.getenv("CLAUDE_FLOW_AUTO_EXECUTE", "true").lower() in ("true", "1", "yes")
-
-# 복잡도 판정(자동 Plan 진입) 임계값
-CLAUDE_FLOW_COMPLEX_TASK_CHAR_THRESHOLD = int(os.getenv("CLAUDE_FLOW_COMPLEX_TASK_CHAR_THRESHOLD", "120"))
-
-# Plan step 실행 시 step별 최대 반복 횟수 (무한 루프 방지)
-CLAUDE_FLOW_STEP_MAX_ITERATIONS = int(os.getenv("CLAUDE_FLOW_STEP_MAX_ITERATIONS", "25"))
-
-# Interactive Plan Mode output directory
-PLAN_DIR = os.getenv("PLAN_DIR", "~/.common_ai_agent/plans")
-
-# Interactive Plan Mode debug (message flow)
-PLAN_MODE_DEBUG = os.getenv("PLAN_MODE_DEBUG", "false").lower() in ("true", "1", "yes")
-PLAN_MODE_DEBUG_FULL = os.getenv("PLAN_MODE_DEBUG_FULL", "false").lower() in ("true", "1", "yes")
-PLAN_MODE_STREAM = os.getenv("PLAN_MODE_STREAM", "false").lower() in ("true", "1", "yes")
-
-# Interactive Plan Mode context options
-PLAN_MODE_CONTEXT_MODE = os.getenv("PLAN_MODE_CONTEXT_MODE", "full").strip().lower()
-if PLAN_MODE_CONTEXT_MODE not in ("full", "summary", "recent"):
-    PLAN_MODE_CONTEXT_MODE = "full"
-PLAN_MODE_CONTEXT_RECENT_N = int(os.getenv("PLAN_MODE_CONTEXT_RECENT_N", "12"))
-PLAN_MODE_CONTEXT_INCLUDE_SYSTEM = os.getenv("PLAN_MODE_CONTEXT_INCLUDE_SYSTEM", "false").lower() in ("true", "1", "yes")
-PLAN_MODE_CONTEXT_MAX_CHARS = int(os.getenv("PLAN_MODE_CONTEXT_MAX_CHARS", "0"))
-
-# ============================================================
-# Phase 3: Claude Flow Complete Implementation
-# ============================================================
-
-# Explore agent 개수 (Plan Mode에서 병렬 탐색)
-PLAN_MODE_EXPLORE_COUNT = int(os.getenv("PLAN_MODE_EXPLORE_COUNT", "3"))
-
-# Explore agents를 병렬로 실행할지 여부
-PLAN_MODE_PARALLEL_EXPLORE = os.getenv("PLAN_MODE_PARALLEL_EXPLORE", "true").lower() in ("true", "1", "yes")
-
-# ============================================================
 # Phase 4: Autonomous Decision-Making
 # ============================================================
 
@@ -624,13 +584,6 @@ File Editing:
 Git Tools:
 10. git_status() - Show current git status
 11. git_diff(path=None) - Show git diff (optionally for specific file)
-
-Planning Tools (for complex multi-step tasks):
-12. create_plan(task_description="description", steps="step1\\nstep2\\nstep3")
-13. get_plan() - View current plan
-14. mark_step_done(step_number=1) - Mark step as completed
-15. wait_for_plan_approval() - Pause and wait for user to review/edit plan
-16. check_plan_status() - Check if plan was approved by user
 
 Sub-Agent Tools:
 30. background_task(agent="explore", prompt="find FIFO implementations") - Delegate to sub-agent
@@ -695,60 +648,6 @@ if __name__ == "__main__":
     main()
 \"\"\")
 Observation: Successfully wrote to 'hello.py'.
-
-Example 3 - Complex Task with Planning:
-User: Design a complete REST API with authentication and testing.
-Thought: This is a complex multi-step task. I should create a plan first.
-Action: create_plan(task_description="REST API with Auth", steps="Create API routes\\nImplement authentication\\nWrite unit tests\\nRun tests\\nAnalyze results")
-Observation: Plan created successfully in 'current_plan.md' with 5 steps.
-
-Thought: Now I'll start with step 1. Let me check the plan.
-Action: get_plan()
-Observation: [Plan content showing all 5 steps]
-
-Thought: I'll create the API routes module for step 1.
-Action: write_file(path="api_routes.py", content=\"\"\"[full API code here]\"\"\")
-Observation: Successfully wrote to 'api_routes.py'.
-
-Thought: Step 1 is complete. Let me mark it done.
-Action: mark_step_done(step_number=1)
-Observation: Step 1 marked as done.
-
-[Continue with remaining steps...]
-
-WHEN TO USE PLAN MODE:
-- Complex tasks with 3+ distinct steps
-- Tasks requiring multiple file creation
-- Tasks with dependencies between steps
-- Design + testbench + simulation workflows
-- Multi-module projects
-
-HOW TO USE PLAN MODE:
-
-Option A - Automatic Execution (AI-driven):
-1. Create plan with create_plan()
-2. Execute each step in order
-3. Mark completed steps with mark_step_done()
-
-Option B - Interactive Planning (User-approved, RECOMMENDED):
-1. Create initial plan with create_plan()
-2. Call wait_for_plan_approval() - This pauses execution
-3. User reviews and edits current_plan.md
-4. User adds 'APPROVED' to the file when ready
-5. Call check_plan_status() to verify approval
-6. If approved, execute steps one by one
-7. Mark each step done with mark_step_done()
-
-Example Interactive Workflow:
-Thought: This is complex. I should get user approval first.
-Action: create_plan(task_description="API Development", steps="Create routes\\nAdd authentication\\nWrite tests")
-Observation: Plan created.
-Action: wait_for_plan_approval()
-Observation: Plan saved. Waiting for user approval...
-[User edits plan and approves]
-Action: check_plan_status()
-Observation: Plan is APPROVED!
-[Now proceed with execution]
 
 ERROR RECOVERY - NEVER GIVE UP:
 You are a persistent agent. When you encounter errors, you MUST analyze and fix them.
@@ -857,7 +756,7 @@ When deciding how to approach a task, consider:
 1. **Task Complexity**:
    - Simple (1-2 actions): Direct execution
    - Medium (3-5 steps): Consider TodoWrite for tracking
-   - Complex (6+ steps): Automatically enters Plan Mode
+   - Complex (6+ steps): Use todo_write to track progress
 
 2. **Tool Selection**:
    - **Parallel execution**: Use multiple read-only tools simultaneously
@@ -865,13 +764,6 @@ When deciding how to approach a task, consider:
    - **Sub-agents**: Use background_task for delegation
    - **Todo tracking**: Use todo_write/todo_update for multi-step tasks
 
-3. **Plan Mode** (automatic when complex):
-   - System analyzes complexity automatically
-   - Spawns Explore agents in parallel
-   - Creates structured plan with approval
-   - Executes with TodoTracker
-
-You don't need to worry about complexity analysis - the system handles it automatically.
 Focus on using the right tools for the task at hand.
 
 """
@@ -933,14 +825,9 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         "Task Management": [
             _tool_line("todo_write", 'tasks', "Track multi-step tasks (3+ steps). Format: [{content, activeForm, status}]."),
             _tool_line("todo_update", 'index, status', "Update task status (pending/in_progress/completed)."),
-            _tool_line("create_plan", 'title, steps', "Create execution plan for complex tasks."),
-            _tool_line("get_plan", '', "Get current plan."),
-            _tool_line("mark_step_done", 'step_index', "Mark plan step as done."),
-            _tool_line("wait_for_plan_approval", '', "Wait for user plan approval."),
-            _tool_line("check_plan_status", '', "Check plan status."),
         ],
         "Sub-Agents": [
-            _tool_line("background_task", 'agent, prompt', "Delegate to sub-agent (explore/plan/execute/review)."),
+            _tool_line("background_task", 'agent, prompt', "Delegate to sub-agent (explore/execute/review)."),
             _tool_line("background_output", 'task_id', "Get sub-agent result."),
             _tool_line("background_cancel", 'task_id', "Cancel sub-agent."),
             _tool_line("background_list", '', "List active sub-agents."),

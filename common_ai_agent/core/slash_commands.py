@@ -141,9 +141,6 @@ class SlashCommandRegistry:
         self.register('compact', self._cmd_compact,
                      'Clear conversation history but keep a summary in context')
 
-        self.register('plan', self._cmd_plan,
-                     'Enter interactive plan mode (/plan <task>)')
-
         self.register('status', self._cmd_status,
                      'Show Common AI Agent status including version, model, and tools')
 
@@ -173,13 +170,6 @@ class SlashCommandRegistry:
         if not section.strip():
             return "No skills loaded.\n"
         return section + "\n"
-
-    def _cmd_plan(self, args: str) -> str:
-        """Enter interactive Plan Mode"""
-        task = args.strip()
-        if not task:
-            return "❌ Error: /plan requires a task description\nUsage: /plan <task>"
-        return f"PLAN_MODE_REQUEST:{task}"
 
     def _cmd_context(self, args: str) -> str:
         """Visualize context usage"""
@@ -417,7 +407,7 @@ class SlashCommandRegistry:
                     "find_module_definition", "extract_module_hierarchy"
                 ],
                 "Commands": ["run_command"],
-                "Sub-Agents": ["spawn_explore", "spawn_plan"]
+                "Sub-Agents": ["spawn_explore"]
             }
 
             for category, tools in categories.items():

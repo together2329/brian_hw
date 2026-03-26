@@ -487,7 +487,6 @@ def _strip_native_tool_tokens(text):
         # RAG tools disabled by default (ENABLE_SMART_RAG=true to re-enable)
         # 'rag_search', 'rag_index', 'rag_explore', 'rag_status', 'rag_clear',
         'background_task', 'background_output', 'background_cancel', 'background_list',
-        'create_plan', 'get_plan', 'mark_step_done',
         'analyze_verilog_module', 'find_signal_usage', 'find_module_definition',
         'extract_module_hierarchy', 'generate_module_testbench', 'find_potential_issues',
         'analyze_timing_paths', 'generate_module_docs', 'suggest_optimizations',
@@ -861,9 +860,6 @@ def parse_value(text):
     return None, 0
 
 
-_PLAN_FILE = "current_plan.md"
-
-
 def _read_text_file_best_effort(path: str, max_chars: Optional[int] = None) -> Optional[str]:
     """Read a UTF-8 text file, returning None on error."""
     try:
@@ -875,843 +871,6 @@ def _read_text_file_best_effort(path: str, max_chars: Optional[int] = None) -> O
     except Exception:
         return None
 
-
-def _parse_plan_task(plan_content: str) -> Optional[str]:
-    if not plan_content:
-        return None
-    match = re.search(r"^##\s*Task:\s*(.+)$", plan_content, re.MULTILINE)
-    return match.group(1).strip() if match else None
-
-
-def _parse_plan_steps(plan_content: str) -> List[Tuple[int, str, bool]]:
-    """
-    Parse steps from current_plan.md.
-    Returns a list of (step_number, text, done).
-    """
-    if not plan_content:
-        return []
-
-    steps: List[Tuple[int, str, bool]] = []
-    seen_numbers = set()
-
-    for raw_line in plan_content.splitlines():
-        line = raw_line.rstrip()
-        match = re.match(r"^\s*(\d+)\.\s*(.+?)\s*$", line)
-        if not match:
-            continue
-
-        try:
-            step_number = int(match.group(1))
-        except ValueError:
-            continue
-
-        if step_number in seen_numbers:
-            continue
-
-        text = match.group(2).strip()
-        done = "✅" in text
-        text = text.replace("✅", "").strip()
-
-        seen_numbers.add(step_number)
-        steps.append((step_number, text, done))
-
-    steps.sort(key=lambda x: x[0])
-    return steps
-
-
-def _plan_is_approved(plan_content: str) -> bool:
-    return bool(plan_content) and ("STATUS: APPROVED" in plan_content)
-
-
-def _get_plan_state() -> Dict[str, object]:
-    """
-    Best-effort snapshot of plan status for flow routing.
-    """
-    content = _read_text_file_best_effort(_PLAN_FILE, max_chars=20000)
-    if not content:
-        return {
-            "exists": False,
-            "approved": False,
-            "task": None,
-            "steps": [],
-            "complete": False,
-            "next_step": None,
-        }
-
-    steps = _parse_plan_steps(content)
-    approved = _plan_is_approved(content)
-    complete = bool(steps) and all(done for _, _, done in steps)
-    next_step = next(((n, t, d) for (n, t, d) in steps if not d), None)
-
-    return {
-        "exists": True,
-        "approved": approved,
-        "task": _parse_plan_task(content),
-        "steps": steps,
-        "complete": complete,
-        "next_step": next_step,
-    }
-
-
-def _auto_detect_step_completion(step_text: str, response: str) -> bool:
-    """
-    Auto-detect if a step is complete from LLM response.
-
-    Returns:
-        True if completion markers found, False otherwise
-    """
-    completion_markers = [
-        "step complete",
-        "✅",
-        "done with step",
-        "completed this step",
-        "step is complete",
-        "finished this step",
-        "step completed successfully"
-    ]
-    response_lower = response.lower()
-    return any(marker in response_lower for marker in completion_markers)
-
-
-def _looks_like_plan_status_request(text: str) -> bool:
-    t = (text or "").strip().lower()
-    if not t:
-        return False
-    patterns = [
-        r"\bcheck\s+plan\s+status\b",
-        r"\bplan\s+status\b",
-        r"계획\s*상태",
-        r"승인\s*확인",
-        r"status\s*:",
-    ]
-    return any(re.search(p, t) for p in patterns)
-
-
-def _looks_like_execute_plan_request(text: str) -> bool:
-    t = (text or "").strip().lower()
-    if not t:
-        return False
-    patterns = [
-        r"\bexecute\s+plan\b",
-        r"\brun\s+plan\b",
-        r"\bcontinue\b",
-        r"\bproceed\b",
-        r"계획\s*실행",
-        r"계획\s*진행",
-        r"계속\s*진행",
-        r"실행해",
-        r"진행해",
-    ]
-    return any(re.search(p, t) for p in patterns)
-
-
-def _looks_like_plan_approval_ack(text: str) -> bool:
-    t = (text or "").strip().lower()
-    if not t:
-        return False
-    patterns = [
-        r"\bapproved\b",
-        r"\bokay\b",
-        r"\bok\b",
-        r"승인",
-        r"오케이",
-    ]
-    return any(re.search(p, t) for p in patterns)
-
-
-# ============================================================
-# Phase 4: Autonomous Decision-Making - Complexity Analysis
-# ============================================================
-
-def _analyze_task_complexity_llm(task_description: str) -> dict:
-    """
-    Use LLM to analyze task complexity and determine if planning is needed.
-
-    Args:
-        task_description: The user's task/request
-
-    Returns:
-        dict with keys:
-        - complexity: "simple" | "medium" | "complex"
-        - needs_planning: bool
-        - estimated_steps: int (1-10)
-        - reasoning: str (why this complexity)
-    """
-    analysis_prompt = """You are a task complexity analyzer for a coding agent.
-
-Analyze the task and output JSON only (no markdown, no explanations).
-
-Complexity Guidelines:
-- **simple**: 1-2 actions
-  - Examples: fix typo, read single file, simple question
-  - No planning needed - just execute
-
-- **medium**: 3-5 steps
-  - Examples: small feature, bug fix with testing, refactor a function
-  - Can execute directly OR use simple plan
-
-- **complex**: 6+ steps, exploration needed
-  - Examples: design new system, multi-file refactoring, new feature with tests
-  - MUST use Plan Mode - requires exploration and structured approach
-
-Output JSON only:
-{
-  "complexity": "simple|medium|complex",
-  "needs_planning": true/false,
-  "estimated_steps": 1-10,
-  "reasoning": "brief explanation"
-}
-"""
-
-    try:
-        response = call_llm_raw(
-            [
-                {"role": "system", "content": analysis_prompt},
-                {"role": "user", "content": f"Task: {task_description}"},
-            ],
-            temperature=config.AUTONOMOUS_TEMPERATURE,
-        )
-
-        if not response or response.startswith("Error calling LLM:"):
-            return {"complexity": "unknown", "needs_planning": False, "estimated_steps": 0, "reasoning": "LLM error"}
-
-        # Extract JSON
-        json_match = re.search(r"\{[\s\S]*\}", response)
-        if not json_match:
-            return {"complexity": "unknown", "needs_planning": False, "estimated_steps": 0, "reasoning": "No JSON found"}
-
-        data = json.loads(json_match.group(0))
-
-        # Validate and return
-        return {
-            "complexity": data.get("complexity", "unknown"),
-            "needs_planning": data.get("needs_planning", False),
-            "estimated_steps": data.get("estimated_steps", 0),
-            "reasoning": data.get("reasoning", "No reasoning provided")
-        }
-
-    except Exception as e:
-        print(Color.warning(f"[Autonomous] LLM complexity analysis failed: {e}"))
-        return {"complexity": "unknown", "needs_planning": False, "estimated_steps": 0, "reasoning": str(e)}
-
-
-def _should_auto_plan_heuristic(task_description: str) -> bool:
-    """
-    Original heuristic-based trigger for Plan→Approve flow.
-    Used as fallback when AUTONOMOUS_COMPLEXITY_ANALYSIS is disabled.
-    """
-    text = (task_description or "").strip()
-    if not text:
-        return False
-
-    # Avoid triggering on explicit plan execution/status commands.
-    if _looks_like_execute_plan_request(text) or _looks_like_plan_status_request(text):
-        return False
-
-    if "\n" in text:
-        return True
-
-    if len(text) >= config.CLAUDE_FLOW_COMPLEX_TASK_CHAR_THRESHOLD:
-        return True
-
-    lowered = text.lower()
-    keywords = [
-        # English
-        "implement", "design", "refactor", "feature", "pipeline", "agent",
-        "memory", "rag", "test", "simulate", "integration",
-        # Korean
-        "구현", "설계", "리팩토링", "기능", "테스트", "시뮬레이션", "에이전트", "플로우", "개선",
-    ]
-    hits = sum(1 for k in keywords if k in lowered)
-    return hits >= 2
-
-
-def _should_auto_plan(task_description: str) -> bool:
-    """
-    Determine if Plan Mode should be triggered automatically.
-
-    Phase 4: Uses LLM-based complexity analysis when AUTONOMOUS_COMPLEXITY_ANALYSIS=true,
-    otherwise falls back to heuristic method.
-
-    Args:
-        task_description: The user's task/request
-
-    Returns:
-        True if Plan Mode should be entered, False otherwise
-    """
-    text = (task_description or "").strip()
-    if not text:
-        return False
-
-    # Avoid triggering on explicit plan execution/status commands
-    if _looks_like_execute_plan_request(text) or _looks_like_plan_status_request(text):
-        return False
-
-    # Phase 4: LLM-based analysis
-    if config.AUTONOMOUS_COMPLEXITY_ANALYSIS:
-        analysis = _analyze_task_complexity_llm(task_description)
-
-        print(Color.system(f"\n[Autonomous] Task Complexity Analysis:"))
-        print(Color.info(f"  Complexity: {analysis['complexity']}"))
-        print(Color.info(f"  Estimated Steps: {analysis['estimated_steps']}"))
-        print(Color.info(f"  Needs Planning: {analysis['needs_planning']}"))
-        print(Color.info(f"  Reasoning: {analysis['reasoning']}\n"))
-
-        # Use LLM decision if valid
-        if analysis["complexity"] != "unknown":
-            return analysis["needs_planning"]
-
-        # Fallback to heuristic if LLM failed
-        print(Color.warning("[Autonomous] LLM analysis failed, using heuristic fallback"))
-
-    # Fallback: heuristic method
-    return _should_auto_plan_heuristic(task_description)
-
-
-# ============================================================
-# Phase 3: Claude Flow Complete Implementation - Helper Functions
-# ============================================================
-
-
-# Legacy spawn_explore / spawn_parallel removed — use background_task(agent="explore", ...) instead
-
-
-
-def _spawn_plan_agent(task_description: str, explore_results: List[str]) -> List[str]:
-    """
-    Spawn Plan agent to create implementation steps
-
-    Args:
-        task_description: Task to plan
-        explore_results: Results from Explore agents
-
-    Returns:
-        List of plan steps
-    """
-    print(Color.system("\n[Claude Flow] Phase 2: Spawning Plan Agent..."))
-
-    # Combine exploration results
-    context = "\n\n".join([
-        f"Exploration {i+1}:\n{result}"
-        for i, result in enumerate(explore_results)
-    ]) if explore_results else "No exploration data available."
-
-    # Generate plan steps via LLM with context
-    plan_steps = _generate_plan_steps_via_llm(
-        task_description,
-        additional_context=context
-    )
-
-    print(Color.success(f"[Claude Flow] Plan Agent generated {len(plan_steps)} steps"))
-
-    return plan_steps
-
-
-def _execute_plan_mode_workflow(messages, task_description: str) -> List[Dict]:
-    """
-    Complete Plan Mode Workflow (Claude Code style)
-
-    6-Step Workflow:
-    1. Complexity Analysis (already done by caller)
-    2. Spawn 3× Explore Agents (parallel)
-    3. Spawn 1× Plan Agent
-    4. Review critical files (optional, covered by explore)
-    5. Write plan file
-    6. Wait for approval
-
-    Args:
-        messages: Message history
-        task_description: Task to plan
-
-    Returns:
-        Updated messages with plan creation result
-    """
-    print(Color.system("\n[Claude Flow] ========================================"))
-    print(Color.system("[Claude Flow] Entering Plan Mode Workflow..."))
-    print(Color.system("[Claude Flow] ========================================"))
-
-    # Phase 1: Spawn 3× Explore Agents (병렬)
-    explore_results = []
-    if config.PLAN_MODE_PARALLEL_EXPLORE:
-        explore_results = _spawn_parallel_explore_agents(task_description)
-    else:
-        print(Color.system("[Claude Flow] Phase 1: Skipped (PLAN_MODE_PARALLEL_EXPLORE=false)"))
-
-    # Phase 2: Spawn 1× Plan Agent
-    plan_steps = _spawn_plan_agent(task_description, explore_results)
-
-    # Phase 3: Review critical files (optional - already covered by explore agents)
-    # Skipped for now
-
-    # Phase 4: Write plan file
-    if not plan_steps:
-        # Fallback to default steps
-        plan_steps = [
-            "관련 파일/구조 탐색",
-            "구현 계획 및 변경 범위 확정",
-            "코드 수정/추가 적용",
-            "테스트/검증 및 회귀 확인",
-            "정리 및 문서 업데이트",
-        ]
-        print(Color.warning("[Claude Flow] Using fallback plan steps"))
-
-    create_msg = tools.create_plan(
-        task_description=task_description,
-        steps="\n".join(plan_steps)
-    )
-
-    # Phase 5: Wait for approval
-    approval_msg = tools.wait_for_plan_approval()
-    plan_preview = tools.get_plan()
-
-    print(Color.success(f"[Claude Flow] {create_msg}"))
-    print(Color.info(approval_msg))
-    print(Color.system("\n[Claude Flow] Plan preview:\n"))
-    print(plan_preview[:2000] + ("\n...(truncated)" if len(plan_preview) > 2000 else ""))
-    print()
-
-    messages.append({
-        "role": "assistant",
-        "content": f"{create_msg}\n\n{approval_msg}",
-    })
-
-    return messages
-
-
-def _generate_plan_steps_via_llm(task_description: str, max_steps: int = 8, additional_context: str = "") -> List[str]:
-    """
-    Ask the LLM for a concise plan as JSON {"steps":[...]} and extract steps.
-    Returns [] on failure.
-    """
-    planning_prompt = """You are a planning assistant for a coding agent.
-
-Write a concise implementation plan as JSON only (no markdown, no code).
-
-Constraints:
-- Steps must be actionable and short (one sentence each)
-- No code snippets
-- Mention concrete file paths when applicable
-
-Output JSON only:
-{
-  "steps": ["...", "..."]
-}
-"""
-
-    user_content = f"Task: {task_description}"
-    if additional_context:
-        user_content += f"\n\nContext from exploration:\n{additional_context}"
-
-    response = call_llm_raw(
-        [
-            {"role": "system", "content": planning_prompt},
-            {"role": "user", "content": user_content},
-        ],
-        temperature=0.2,
-    )
-
-    if not response or response.startswith("Error calling LLM:"):
-        return []
-
-    json_match = re.search(r"\{[\s\S]*\}", response)
-    if not json_match:
-        return []
-
-    try:
-        data = json.loads(json_match.group(0))
-    except Exception:
-        return []
-
-    steps = data.get("steps")
-    if not isinstance(steps, list):
-        return []
-
-    cleaned: List[str] = []
-    for step in steps:
-        if not isinstance(step, str):
-            continue
-        s = step.strip()
-        s = re.sub(r"^\s*[-*]\s*", "", s)
-        s = re.sub(r"^\s*\d+\.\s*", "", s)
-        if not s:
-            continue
-        if s not in cleaned:
-            cleaned.append(s)
-
-    return cleaned[:max_steps]
-
-
-def _create_plan_and_wait(messages, task_description: str) -> List[Dict]:
-    """
-    Create current_plan.md and instruct user to approve.
-    Uses the complete Plan Mode Workflow (Phase 3).
-    """
-    # Use the new complete workflow
-    return _execute_plan_mode_workflow(messages, task_description)
-
-
-def _execute_approved_plan(messages, mode: str) -> List[Dict]:
-    """
-    Execute the next (or all) incomplete steps in an APPROVED plan.
-    Enhanced with TodoTracker integration (Phase 3).
-    """
-    state = _get_plan_state()
-    if not state.get("exists"):
-        msg = "No plan file found. Use create_plan() first."
-        print(Color.warning(f"[Claude Flow] {msg}"))
-        messages.append({"role": "assistant", "content": msg})
-        return messages
-
-    if not state.get("approved"):
-        status = tools.check_plan_status()
-        print(Color.warning("[Claude Flow] Plan is not approved yet."))
-        print(status)
-        messages.append({"role": "assistant", "content": status})
-        return messages
-
-    if state.get("complete"):
-        msg = "✅ Plan is already complete (all steps marked ✅)."
-        print(Color.success(f"[Claude Flow] {msg}"))
-        messages.append({"role": "assistant", "content": msg})
-        return messages
-
-    steps: List[Tuple[int, str, bool]] = state.get("steps", [])  # type: ignore[assignment]
-    plan_task = state.get("task") or "Current plan"
-
-    # Phase 3: Initialize TodoTracker (REQUIRED for Plan execution)
-    todo_tracker = TodoTracker()
-    todos = [
-        {
-            "content": f"Step {num}: {text}",
-            "status": "completed" if done else "pending",
-            "activeForm": f"Executing Step {num}: {text}"
-        }
-        for num, text, done in steps
-    ]
-    todo_tracker.add_todos(todos)
-    print(Color.system("\n[Claude Flow] ========================================"))
-    print(Color.info(todo_tracker.format_progress()))
-    print(Color.system("[Claude Flow] ========================================\n"))
-
-    for step_number, step_text, done in steps:
-        if done:
-            continue
-
-        # Phase 3: Mark current step as in_progress
-        step_index = step_number - 1  # 0-indexed
-        todo_tracker.mark_in_progress(step_index)
-        print(Color.system("\n[Claude Flow] ========================================"))
-        print(Color.info(todo_tracker.format_progress()))
-        print(Color.system("[Claude Flow] ========================================\n"))
-
-        print(Color.system(f"\n╔═══════════════════════════════════════════════════════════╗"))
-        print(Color.system(f"║  Executing Step {step_number}/{len(steps)}: {step_text[:40]:<40}  ║"))
-        print(Color.system(f"╚═══════════════════════════════════════════════════════════╝\n"))
-
-        # OPTIMIZATION: Use USER message instead of SYSTEM to enable prompt caching
-        # System message가 step마다 바뀌면 cache miss 발생
-        # User message로 보내면 system message는 불변 → cache hit 극대화
-        step_guidance = f"""[SYSTEM INSTRUCTION FOR THIS STEP]
-
-⚠️ CRITICAL: FOCUS ONLY ON THIS STEP ⚠️
-
-=== EXECUTE APPROVED PLAN ===
-Task: {plan_task}
-
-**Current Step**: {step_number} of {len(steps)}
-**Task**: {step_text}
-
-**STRICT RULES:**
-1. Work ONLY on this step - DO NOT jump to other steps
-2. DO NOT work on steps {step_number + 1} or beyond
-3. Use tools (grep_file, read_file, etc.) to ACTUALLY examine the codebase
-4. Make decisions based on ACTUAL file contents, not assumptions
-5. When you complete this step, you MUST call: mark_step_done(step_number={step_number})
-6. After calling mark_step_done(), provide a brief summary and STOP
-7. Do NOT continue to the next step automatically
-8. If you cannot complete this step, explain why and STOP
-
-**Remember**:
-- ACTUALLY use grep_file, read_file, find_files to explore
-- Make decisions based on REAL file contents
-- You MUST call mark_step_done({step_number}) when done!
-
-If you do not call mark_step_done({step_number}), this step will be considered INCOMPLETE.
-============================
-"""
-        # Changed from "system" to "user" for better prompt caching
-        messages.append({"role": "user", "content": step_guidance})
-
-        step_tracker = IterationTracker(max_iterations=config.CLAUDE_FLOW_STEP_MAX_ITERATIONS)
-        messages = run_react_agent(
-            messages,
-            step_tracker,
-            f"[Plan Step {step_number}] {step_text}",
-            mode=mode,
-            allow_claude_flow=False,
-            preface_enabled=False,
-        )
-
-        # Get last response for auto-detection
-        last_response = ""
-        for msg in reversed(messages):
-            if msg.get("role") == "assistant":
-                last_response = msg.get("content", "")
-                break
-
-        # Check if step was marked done OR auto-detect completion
-        refreshed = _get_plan_state()
-        refreshed_steps: List[Tuple[int, str, bool]] = refreshed.get("steps", [])  # type: ignore[assignment]
-        step_done_now = next((d for (n, _t, d) in refreshed_steps if n == step_number), False)
-
-        # Auto-detect completion if not explicitly marked
-        if not step_done_now and _auto_detect_step_completion(step_text, last_response):
-            print(Color.info(f"[Claude Flow] ✓ Auto-detected step {step_number} completion from LLM response"))
-            # Auto-call mark_step_done
-            tools.mark_step_done(_PLAN_FILE, step_number)
-            # Re-check
-            refreshed = _get_plan_state()
-            refreshed_steps = refreshed.get("steps", [])  # type: ignore[assignment]
-            step_done_now = next((d for (n, _t, d) in refreshed_steps if n == step_number), False)
-
-        # Phase 3: Mark step as completed in TodoTracker
-        if step_done_now:
-            todo_tracker.mark_completed(step_index)
-            print(Color.system("\n[Claude Flow] ========================================"))
-            print(Color.success(todo_tracker.format_progress()))
-            print(Color.system("[Claude Flow] ========================================\n"))
-
-        if not step_done_now:
-            msg = (
-                f"[Claude Flow] Step {step_number} is not marked ✅ yet. "
-                f"Review `current_plan.md`, adjust if needed, then run 'execute plan' again."
-            )
-            print(Color.warning(msg))
-            messages.append({"role": "assistant", "content": msg})
-            break
-
-        if not config.CLAUDE_FLOW_AUTO_EXECUTE:
-            break
-
-    # Phase 3: Final progress summary
-    print(Color.system("\n[Claude Flow] ========================================"))
-    print(Color.system("[Claude Flow] Final Progress:"))
-    print(Color.info(todo_tracker.format_progress()))
-    print(Color.system("[Claude Flow] ========================================\n"))
-
-    return messages
-
-
-def _extract_steps_from_plan_text(plan_text: str) -> List[str]:
-    """
-    Extract implementation steps/phases from plan text.
-
-    Supports multiple formats:
-    - "## Implementation Steps" or "## Steps" with numbered items
-    - "### Phase 1", "### Phase 2", etc.
-    - "Phase 1 –", "Phase 2 –", etc.
-    - Regular numbered lists
-    """
-    if not plan_text:
-        return []
-
-    def _steps_from_section(marker: str) -> List[str]:
-        if marker not in plan_text:
-            return []
-        section = plan_text.split(marker, 1)[1]
-        section = section.split("##", 1)[0]
-        matches = re.findall(r'\d+\.\s*(.+?)(?=\n\d+\.|\n##|$)', section, re.DOTALL)
-        return [m.strip() for m in matches if m.strip()]
-
-    # Try standard formats first
-    steps = _steps_from_section("## Implementation Steps")
-    if not steps:
-        steps = _steps_from_section("## Steps")
-    if steps:
-        return steps
-
-    # Try extracting Phase-based steps
-    # Pattern 1: "### Phase N –" or "### Phase N:"
-    phase_matches = re.findall(r'###\s*Phase\s+(\d+)[^\n]*–\s*(.+?)(?=###|\Z)', plan_text, re.DOTALL | re.IGNORECASE)
-    if phase_matches:
-        steps = []
-        for num, desc in phase_matches:
-            # Extract first line as step title
-            title = desc.strip().split('\n')[0].strip()
-            steps.append(f"Phase {num}: {title}")
-        return steps
-
-    # Pattern 2: "Phase N –" (without ###)
-    phase_matches2 = re.findall(r'^Phase\s+(\d+)[^\n]*–\s*(.+?)(?=\n(?:Phase\s+\d+|##)|$)', plan_text, re.MULTILINE | re.DOTALL | re.IGNORECASE)
-    if phase_matches2:
-        steps = []
-        for num, desc in phase_matches2:
-            title = desc.strip().split('\n')[0].strip()
-            steps.append(f"Phase {num}: {title}")
-        return steps
-
-    # Fallback: regular numbered list
-    matches = re.findall(r'^\s*\d+\.\s*(.+)$', plan_text, re.MULTILINE)
-    return [m.strip() for m in matches if m.strip()]
-
-
-def _extract_task_from_plan_text(plan_text: str) -> str:
-    if "## Task" not in plan_text:
-        return ""
-    section = plan_text.split("## Task", 1)[1]
-    lines = [line.strip() for line in section.splitlines()]
-    for line in lines:
-        if line:
-            return line
-    return ""
-
-
-def _execute_plan_from_file(messages: List[Dict], plan_path: str) -> List[Dict]:
-    """
-    Execute a plan from a saved plan file.
-
-    Args:
-        messages: Current message history
-        plan_path: Path to the plan file
-
-    Returns:
-        Updated messages after plan execution
-    """
-    # Read plan file
-    if not plan_path:
-        msg = "Error: Empty plan path provided"
-        print(Color.error(f"[Plan Mode] {msg}"))
-        messages.append({"role": "assistant", "content": msg})
-        return messages
-
-    try:
-        with open(plan_path, "r", encoding="utf-8") as handle:
-            plan_text = handle.read()
-    except FileNotFoundError:
-        msg = f"Error: Plan file not found: {plan_path}"
-        print(Color.error(f"[Plan Mode] {msg}"))
-        messages.append({"role": "assistant", "content": msg})
-        return messages
-    except PermissionError:
-        msg = f"Error: Permission denied reading plan file: {plan_path}"
-        print(Color.error(f"[Plan Mode] {msg}"))
-        messages.append({"role": "assistant", "content": msg})
-        return messages
-    except Exception as e:
-        msg = f"Error: Failed to read plan file: {e}"
-        print(Color.error(f"[Plan Mode] {msg}"))
-        messages.append({"role": "assistant", "content": msg})
-        return messages
-
-    if not plan_text or not plan_text.strip():
-        msg = f"Error: Plan file is empty: {plan_path}"
-        print(Color.error(f"[Plan Mode] {msg}"))
-        messages.append({"role": "assistant", "content": msg})
-        return messages
-
-    # Extract task and steps
-    task = _extract_task_from_plan_text(plan_text)
-    task_label = task or f"Execute approved plan ({os.path.basename(plan_path)})"
-    steps = _extract_steps_from_plan_text(plan_text)
-
-    if not steps:
-        print(Color.warning("[Plan Mode] No steps found in plan, proceeding with full plan text"))
-
-    # Create TodoWrite if steps exist
-    if config.ENABLE_TODO_TRACKING and len(steps) >= 3:
-        try:
-            todos = []
-            for idx, step in enumerate(steps):
-                status = "in_progress" if idx == 0 else "pending"
-                todos.append({
-                    "content": step,
-                    "activeForm": f"Executing: {step}",
-                    "status": status
-                })
-            todo_display = tools.todo_write(todos)
-            if todo_display:
-                print(Color.info(todo_display))
-        except Exception as e:
-            print(Color.warning(f"[Plan Mode] Failed to create todo list: {e}"))
-
-    # Add plan message
-    plan_message = (
-        "You have an approved implementation plan. Execute the steps in order.\n"
-        "Do not change the plan without asking. Use tools as needed.\n\n"
-        f"{plan_text}"
-    )
-    messages.append({"role": "user", "content": plan_message})
-
-    # Execute plan
-    try:
-        tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
-        return run_react_agent(
-            messages,
-            tracker,
-            task_label,
-            mode="interactive",
-            allow_claude_flow=False
-        )
-    except Exception as e:
-        msg = f"Error during plan execution: {e}"
-        print(Color.error(f"[Plan Mode] {msg}"))
-        if config.FULL_PROMPT_DEBUG:
-            import traceback
-            print(Color.DIM + traceback.format_exc() + Color.RESET)
-        messages.append({"role": "assistant", "content": msg})
-        return messages
-
-
-def _maybe_handle_claude_flow(messages, task_description: str, mode: str) -> Optional[List[Dict]]:
-    """
-    Route control for Claude Code-like flow.
-    Returns updated messages if handled, otherwise None.
-    """
-    if config.CLAUDE_FLOW_MODE == "off":
-        return None
-
-    state = _get_plan_state()
-    user_text = (task_description or "").strip()
-
-    if state.get("exists"):
-        if _looks_like_plan_status_request(user_text):
-            status = tools.check_plan_status()
-            print(status)
-            messages.append({"role": "assistant", "content": status})
-            return messages
-
-        if not state.get("approved") and config.CLAUDE_FLOW_REQUIRE_APPROVAL:
-            status = tools.check_plan_status()
-            print(Color.warning("[Claude Flow] Waiting for plan approval."))
-            print(status)
-            messages.append({"role": "assistant", "content": status})
-            return messages
-
-        if state.get("approved") and not state.get("complete"):
-            if _looks_like_execute_plan_request(user_text) or _looks_like_plan_approval_ack(user_text):
-                return _execute_approved_plan(messages, mode=mode)
-
-        return None
-
-    # No existing plan file: handle explicit plan commands gracefully.
-    if (
-        _looks_like_plan_status_request(user_text)
-        or _looks_like_execute_plan_request(user_text)
-        or _looks_like_plan_approval_ack(user_text)
-    ):
-        msg = "No plan file found. Ask me to create a plan first (or call create_plan())."
-        print(Color.warning(f"[Claude Flow] {msg}"))
-        messages.append({"role": "assistant", "content": msg})
-        return messages
-
-    # No existing plan file → maybe auto-create plan.
-    if config.CLAUDE_FLOW_MODE == "always":
-        return _create_plan_and_wait(messages, task_description)
-
-    if config.CLAUDE_FLOW_MODE == "auto" and _should_auto_plan(task_description):
-        return _create_plan_and_wait(messages, task_description)
-
-    return None
 
 
 # Thread-local storage for Agent communication metadata
@@ -2268,63 +1427,18 @@ Workflow: rag_search() → find location → read_lines() → analyze
                 print(Color.system(f"[PROMPT] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"))
                 print(Color.system(f"[PROMPT] Build complete: {len(context_parts)} sections, ~{estimated_tokens:,} tokens"))
 
-    # Claude Flow: Inject current plan status into the prompt (if present).
-    plan_state = _get_plan_state()
-    plan_context = ""
-    if plan_state.get("exists"):
-        approved = bool(plan_state.get("approved"))
-        plan_task = plan_state.get("task") or ""
-        steps = plan_state.get("steps") or []
-        next_step = plan_state.get("next_step")
-
-        status_str = "APPROVED" if approved else "PENDING APPROVAL"
-        plan_lines = [f"=== CURRENT PLAN ({status_str}) ==="]
-        if plan_task:
-            plan_lines.append(f"Task: {plan_task}")
-        plan_lines.append(f"Plan file: {_PLAN_FILE}")
-
-        if steps:
-            if next_step:
-                try:
-                    plan_lines.append(f"Next step: {next_step[0]}. {next_step[1]}")
-                except Exception:
-                    pass
-            plan_lines.append("Steps:")
-            for step_number, step_text, done in steps[:20]:
-                suffix = " ✅" if done else ""
-                plan_lines.append(f"{step_number}. {step_text}{suffix}")
-
-        if (not approved) and config.CLAUDE_FLOW_REQUIRE_APPROVAL:
-            plan_lines.append("Rule: Do NOT run write/replace/run_command until the user approves the plan.")
-            plan_lines.append("Ask the user to edit current_plan.md and set: STATUS: APPROVED")
-        else:
-            plan_lines.append("Rule: Follow the plan and execute steps in order.")
-            plan_lines.append("When a step is complete: mark_step_done(step_number=N)")
-
-        plan_lines.append("===========================")
-        plan_context = "\n".join(plan_lines)
-
     # Return format based on CACHE_OPTIMIZATION_MODE
     if config.CACHE_OPTIMIZATION_MODE == "optimized":
         # Optimized mode: Return dict with static/dynamic parts
-        # Dynamic parts: context_parts + plan_context
-        all_dynamic_parts = []
-        if dynamic_context:
-            all_dynamic_parts.append(dynamic_context)
-        if plan_context:
-            all_dynamic_parts.append(plan_context)
-
         return {
             "static": base_prompt,
-            "dynamic": "\n\n".join(all_dynamic_parts) if all_dynamic_parts else ""
+            "dynamic": dynamic_context if dynamic_context else ""
         }
     else:
         # Legacy mode: Return single string
         full_prompt = base_prompt
         if dynamic_context:
             full_prompt = full_prompt + "\n\n" + dynamic_context
-        if plan_context:
-            full_prompt = full_prompt + "\n\n" + plan_context
         return full_prompt
 
 def save_procedural_trajectory(task_description, actions_taken, outcome, iterations):
@@ -3178,16 +2292,16 @@ Action: background_task(agent="{detected_agent}", prompt="{task_description}", f
     return False
 
 
-def run_react_agent(messages, tracker, task_description, mode='interactive', allow_claude_flow=True, preface_enabled=True):
+def run_react_agent(messages, tracker, task_description, mode='interactive', preface_enabled=True):
     """
     Executes the ReAct agent loop for a given task.
-    
+
     Args:
         messages: List of message dicts (context)
         tracker: IterationTracker instance
         task_description: Description of the task (for procedural memory)
         mode: 'interactive' or 'oneshot'
-        
+
     Returns:
         Updated messages list
     """
@@ -3204,7 +2318,7 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', all
     referenced_node_ids = []
 
     # Todo Tracking System (Phase 2 - Claude Code Style)
-    todo_tracker = TodoTracker() if config.ENABLE_TODO_TRACKING else None
+    todo_tracker = TodoTracker.load(Path(config.TODO_FILE)) if config.ENABLE_TODO_TRACKING else None
 
     # ============================================================
     # Phase 2: Agent Communication - Accumulated Context
@@ -3218,21 +2332,11 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', all
     }
 
     # ============================================================
-    # Priority 1: Explicit agent delegation (must run BEFORE Claude Flow)
+    # Priority 1: Explicit agent delegation
     # ============================================================
-    if allow_claude_flow and preface_enabled:
+    if preface_enabled:
         if _maybe_inject_exploration_strategy(messages, task_description):
             print(Color.info("[System] Agent delegation strategy injected.\n"))
-            # Skip Claude Flow — delegation strategy handles the task
-            allow_claude_flow = False
-
-    # ============================================================
-    # Sub-Agent System (Claude Code Style) - Replaces Deep Think
-    # ============================================================
-    if allow_claude_flow:
-        handled_messages = _maybe_handle_claude_flow(messages, task_description, mode=mode)
-        if handled_messages is not None:
-            return handled_messages
 
     if preface_enabled and config.ENABLE_SUB_AGENTS and orchestrator:
         print(Color.system("\n[Sub-Agent] Orchestrator analyzing task..."))
@@ -3782,7 +2886,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     obs_lower = observation.lower()
                     is_error = any(indicator in obs_lower for indicator in
                                   ['error:', 'exception:', 'traceback', 'syntax error', 'compilation failed'])
-                    if tool_name in ['read_file', 'read_lines', 'grep_file', 'get_plan'] and "error" in obs_lower:
+                    if tool_name in ['read_file', 'read_lines', 'grep_file'] and "error" in obs_lower:
                         if not observation.strip().lower().startswith("error:"):
                             is_error = False
 
@@ -3798,7 +2902,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         actions_taken.append(action_obj)
 
                     # Tool display: header + inline brief on same line
-                    _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan', 'git_diff', 'git_status', 'write_file'}
+                    _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'git_diff', 'git_status', 'write_file'}
                     if tool_name == 'background_task' and not config.DEBUG_MODE:
                         pass  # handoff line already printed by background_task()
                     elif tool_name in _INLINE_TOOLS and not config.DEBUG_MODE:
@@ -3850,7 +2954,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     obs_lower = observation.lower()
                     is_error = any(indicator in obs_lower for indicator in
                                   ['error:', 'exception:', 'traceback', 'syntax error', 'compilation failed'])
-                    if tool_name in ['read_file', 'read_lines', 'grep_file', 'get_plan'] and "error" in obs_lower:
+                    if tool_name in ['read_file', 'read_lines', 'grep_file'] and "error" in obs_lower:
                         if not observation.strip().lower().startswith("error:"):
                             is_error = False
 
@@ -3866,7 +2970,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         actions_taken.append(action_obj)
 
                     # Tool display: header + inline brief + elapsed on same line
-                    _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'get_plan', 'git_diff', 'git_status', 'write_file'}
+                    _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'git_diff', 'git_status', 'write_file'}
                     elapsed_suffix = f" · {tool_elapsed:.1f}s" if tool_elapsed >= 1.0 else ""
                     if tool_name == 'background_task' and not config.DEBUG_MODE:
                         pass  # handoff line already printed by background_task()
@@ -4412,71 +3516,6 @@ def chat_loop():
                             print(Color.error(f"\n❌ Failed to delete snapshot: {e}\n"))
                         continue
 
-                    elif result.startswith("PLAN_MODE_RESULT:"):
-                        plan_path = result.split(":", 1)[1].strip()
-                        if not plan_path:
-                            print(Color.error("\n❌ Plan mode did not return a plan path.\n"))
-                            continue
-
-                        messages = _execute_plan_from_file(messages, plan_path)
-                        continue
-
-                    elif result.startswith("PLAN_MODE_REQUEST:"):
-                        task = result.split(":", 1)[1].strip()
-                        if not task:
-                            print(Color.error("\n❌ Plan mode requires a task description.\n"))
-                            continue
-
-                        try:
-                            from core.plan_mode import plan_mode_loop
-                            plan_result = plan_mode_loop(task, context_messages=messages)
-                        except ImportError:
-                            # plan_mode removed in v2 - use plan agent instead
-                            print(Color.warning("\n⚠️  Legacy plan mode not available. Use background_task(agent='plan', prompt='...') instead.\n"))
-                            continue
-                        except Exception as e:
-                            print(Color.error(f"\n❌ Plan mode failed with exception: {e}\n"))
-                            if config.FULL_PROMPT_DEBUG:
-                                import traceback
-                                print(Color.DIM + traceback.format_exc() + Color.RESET)
-                            continue
-
-                        if plan_result is None:
-                            print(Color.warning("\n⚠️  Plan mode cancelled.\n"))
-                            continue
-
-                        # Execute plan (use plan_content if plan_path is empty)
-                        if plan_result.plan_path:
-                            messages = _execute_plan_from_file(messages, plan_result.plan_path)
-                        elif plan_result.plan_content:
-                            # Plan not saved to file, but we have content
-                            print(Color.info("[Plan Mode] Using in-memory plan (not saved to file)"))
-                            plan_message = (
-                                "You have an approved implementation plan. Execute the steps in order.\n"
-                                "Do not change the plan without asking. Use tools as needed.\n\n"
-                                f"{plan_result.plan_content}"
-                            )
-                            messages.append({"role": "user", "content": plan_message})
-                            try:
-                                tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
-                                messages = run_react_agent(
-                                    messages,
-                                    tracker,
-                                    "Execute approved plan",
-                                    mode="interactive",
-                                    allow_claude_flow=False
-                                )
-                            except Exception as e:
-                                print(Color.error(f"[Plan Mode] Error during plan execution: {e}"))
-                        else:
-                            print(Color.error("\n❌ Plan result has no path or content.\n"))
-
-                        continue
-
-                    elif result == "PLAN_MODE_CANCELLED":
-                        print(Color.warning("\n⚠️  Plan mode cancelled.\n"))
-                        continue
-
                     else:
                         # Regular command output
                         print(result)
@@ -4574,7 +3613,25 @@ def chat_loop():
     except Exception as e:
         print(Color.warning(f"[Warning] Failed to save knowledge: {e}"))
 
+def _ensure_git_repo():
+    """Check for .git walking up from cwd; run git init if none found."""
+    cwd = os.getcwd()
+    check = cwd
+    while True:
+        if os.path.exists(os.path.join(check, '.git')):
+            return  # already inside a git repo
+        parent = os.path.dirname(check)
+        if parent == check:
+            break
+        check = parent
+    subprocess.run(['git', 'init', cwd], capture_output=True)
+    print(Color.system(f"[Git] Initialized new repository at {cwd}"))
+
+
 if __name__ == "__main__":
+    if getattr(config, 'GIT_VERSION_CONTROL_ENABLE', True):
+        _ensure_git_repo()
+
     if "--check" in sys.argv:
         # Smoke test: verify all imports and initialization succeed
         print(f"OK: platform={platform.system()}, model={config.MODEL_NAME}")

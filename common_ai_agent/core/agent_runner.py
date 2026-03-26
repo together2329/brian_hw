@@ -176,7 +176,7 @@ def run_agent_session(
     독립 세션에서 미니 ReAct 루프를 실행.
 
     Args:
-        agent_name: Agent 이름 (explore, plan, execute, review)
+        agent_name: Agent 이름 (explore, execute, review)
         prompt: Agent에게 전달할 작업 설명
         model_override: 사용할 모델 (None이면 agent config에서 결정)
         allowed_tools: 허용할 tool 이름 집합 (None이면 agent config 사용)
@@ -505,13 +505,6 @@ def _get_default_prompt(agent_name: str) -> str:
             "Action: tool_name(args)\n"
             "When done, provide your final answer."
         ),
-        "plan": (
-            "You are a planning agent. Analyze the task and create a detailed step-by-step plan. "
-            "You have READ-ONLY access to understand the codebase.\n\n"
-            "Output format:\n"
-            "<plan>\n1. Step description\n   - Files needed: ...\n   - Tools needed: ...\n</plan>\n\n"
-            "Use the ReAct format to gather information, then output your plan."
-        ),
         "execute": (
             "You are an execution agent. Implement code changes according to the given plan. "
             "You have FULL access to read, write, and run commands.\n\n"
@@ -556,7 +549,6 @@ def _get_agent_tools(agent_name: str) -> Set[str]:
 
     defaults = {
         "explore": READ_ONLY,
-        "plan": READ_ONLY | {"create_plan", "get_plan"},
         "execute": ALL_TOOLS,
         "review": READ_ONLY,
         "task": TASK_TOOLS,

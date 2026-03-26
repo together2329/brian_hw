@@ -68,7 +68,6 @@ class ActionDependencyAnalyzer:
         "write_file", "replace_in_file", "replace_lines",
         "run_command",  # 외부 부작용 가능
         "rag_index", "rag_clear",  # RAG DB 수정
-        "create_plan", "mark_step_done",  # Plan 파일 수정
     }
 
     def analyze(self, actions: List[Tuple[str, str, Optional[str]]]) -> List[ActionBatch]:

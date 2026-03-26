@@ -37,11 +37,10 @@ class IterationTracker:
 
         # Tool categories
         self.read_tools = {'read_file', 'read_lines', 'grep_file', 'list_dir',
-                           'find_files', 'git_diff', 'git_status', 'get_plan'}
+                           'find_files', 'git_diff', 'git_status'}
         self.write_tools = {'write_file', 'replace_in_file', 'replace_lines'}
         self.exec_tools = {'run_command'}
-        self.plan_tools = {'create_plan', 'mark_step_done', 'wait_for_plan_approval',
-                           'check_plan_status'}
+        self.plan_tools = set()  # Plan system removed
 
     def record_tool(self, tool_name: str):
         """

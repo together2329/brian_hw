@@ -46,14 +46,6 @@ class TestSlashCommands(unittest.TestCase):
         result = self.registry.execute("/compact")
         self.assertEqual(result, "COMPACT_HISTORY")
 
-    def test_plan_without_args(self):
-        result = self.registry.execute("/plan")
-        self.assertIn("Error", result)
-
-    def test_plan_with_args(self):
-        result = self.registry.execute("/plan create a counter")
-        self.assertEqual(result, "PLAN_MODE_REQUEST:create a counter")
-
     def test_all_commands_dont_crash(self):
         """모든 등록된 명령이 크래시 없이 실행"""
         safe_commands = ["/help", "/list", "/clear", "/compact"]

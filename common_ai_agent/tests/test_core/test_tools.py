@@ -8,7 +8,6 @@ Comprehensive tests for basic file/command tools:
 - grep_file / read_lines / find_files
 - replace_in_file / replace_lines
 - git_status / git_diff
-- create_plan / get_plan / mark_step_done
 """
 import sys
 import os
@@ -22,7 +21,6 @@ from tools import (
     grep_file, read_lines, find_files,
     replace_in_file, replace_lines,
     git_status, git_diff,
-    create_plan, get_plan, mark_step_done
 )
 
 
@@ -276,40 +274,6 @@ class TestReplaceLines(unittest.TestCase):
         self.assertIn("NEW LINE 2", content)
         self.assertIn("Line 1", content)
         self.assertIn("Line 4", content)
-
-
-class TestPlanTools(unittest.TestCase):
-    """Test plan-related tools"""
-    
-    def setUp(self):
-        """Set up test fixtures"""
-        self.original_dir = os.getcwd()
-        self.temp_dir = tempfile.mkdtemp()
-        os.chdir(self.temp_dir)
-    
-    def tearDown(self):
-        """Clean up"""
-        os.chdir(self.original_dir)
-        shutil.rmtree(self.temp_dir)
-    
-    def test_create_plan(self):
-        """Test creating a plan"""
-        result = create_plan("Test Task", "Step 1\nStep 2\nStep 3")
-        self.assertIn("created", result.lower())
-        self.assertTrue(os.path.exists("current_plan.md"))
-    
-    def test_get_plan(self):
-        """Test getting plan content"""
-        create_plan("Test Task", "Step 1\nStep 2")
-        result = get_plan()
-        self.assertIn("Step 1", result)
-        self.assertIn("Step 2", result)
-    
-    def test_mark_step_done(self):
-        """Test marking step as done"""
-        create_plan("Test Task", "Step 1\nStep 2")
-        result = mark_step_done(1)
-        self.assertIn("done", result.lower())
 
 
 if __name__ == '__main__':
