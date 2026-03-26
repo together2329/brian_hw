@@ -1,0 +1,25 @@
+{
+  "todos": [
+    {
+      "content": "첫 번째 테스트 태스크",
+      "activeForm": "첫 번째 테스트 진행 중",
+      "status": "completed",
+      "created_at": 1774520860.211182
+    },
+    {
+      "content": "두 번째 테스트 태스크",
+      "activeForm": "두 번째 테스트 진행 중",
+      "status": "pending",
+      "created_at": 1774520860.211183
+    },
+    {
+      "content": "세 번째 테스트 태스크",
+      "activeForm": "세 번째 테스트 진행 중",
+      "status": "pending",
+      "created_at": 1774520860.211184
+    }
+  ],
+  "current_index": -1,
+  "stagnation_count": 0,
+  "_last_completed_count": 0
+}

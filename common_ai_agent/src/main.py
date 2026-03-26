@@ -1059,8 +1059,6 @@ def load_active_skills(messages, allowed_tools=None):
                 load_active_skills._active_skill = routed
                 if routed:
                     print(Color.system(f"  [skill] {routed} (llm-routed, history)"))
-                else:
-                    print(Color.system("  [skill] routing: none"))
         else:
             # "skill" keyword present → LLM routing (with cache)
             if cache_key == getattr(load_active_skills, '_cached_key', ""):
@@ -1079,8 +1077,6 @@ def load_active_skills(messages, allowed_tools=None):
                 load_active_skills._active_skill = routed  # None clears, name sets
                 if routed:
                     print(Color.system(f"  [skill] {routed} (llm-routed)"))
-                else:
-                    print(Color.system("  [skill] routing: none"))
 
         auto_detected = [routed] if routed else []
 
@@ -2781,6 +2777,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         # Strip any leaked native tool call tokens from content
         collected_content = _strip_native_tool_tokens(collected_content)
 
+        # Strip <think>...</think> reasoning tokens before storing in history
+        # Reasoning is for display only — storing it inflates context unnecessarily
+        collected_content = re.sub(r'<think>.*?</think>', '', collected_content, flags=re.DOTALL).strip()
+
         # Strip echoed system prompt fragments before first Thought:/Action:
         # Some models (GLM 4.7) echo tail of system prompt at response start
         import re as _re
@@ -2911,7 +2911,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         print(f"{header}  {Color.DIM}({brief}){Color.RESET}")
                     elif tool_name in ['replace_in_file', 'replace_lines']:
                         print(format_tool_header(tool_name, summary))
-                        print(format_tool_result(observation, max_lines=100, max_chars=10000))
+                        print(format_tool_result(observation, max_lines=1000, max_chars=100000))
                     else:
                         print(format_tool_header(tool_name, summary))
                         print(format_tool_result(observation))
@@ -2977,7 +2977,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     elif tool_name in ['replace_in_file', 'replace_lines']:
                         if not config.DEBUG_MODE:
                             print(format_tool_header(tool_name, summary))
-                        print(format_tool_result(observation, max_lines=100, max_chars=10000))
+                        print(format_tool_result(observation, max_lines=1000, max_chars=100000))
                     elif not config.DEBUG_MODE:
                         if tool_name in _INLINE_TOOLS:
                             brief = format_tool_brief(tool_name, args_str, observation)

@@ -159,37 +159,42 @@ def _llm_commit_summary(path: str, content_hint: str) -> str:
         )
         result = _lc.call_llm_raw(prompt=prompt, model=model, temperature=temperature)
         return result.strip()[:60]
-    except Exception:
+    except Exception as e:
+        print(f"[Git] commit summary LLM failed ({model}): {e}")
         return ""
+
+
+_git_lock = __import__('threading').Lock()
 
 
 def _git_auto_commit(path: str, operation: str, stats: str = "", content_hint: str = ""):
     """git add <path> && git commit after a write/replace operation. Silent on failure."""
-    try:
-        import config as _cfg
-        from datetime import datetime as _dt
-        if not getattr(_cfg, 'GIT_VERSION_CONTROL_ENABLE', True):
-            return
-        abs_path = os.path.abspath(path)
-        git_root = _find_git_root(abs_path)
-        if git_root is None:
-            return
-        subprocess.run(['git', 'add', abs_path], capture_output=True, cwd=git_root)
-        rel = os.path.relpath(abs_path, git_root)
-        timestamp = _dt.now().strftime("%Y-%m-%d %H:%M:%S")
-        stats_part = f" ({stats})" if stats else ""
-        mode = getattr(_cfg, 'GIT_COMMIT_MSG_MODE', 'simple')
-        if mode == 'summary' and content_hint:
-            summary = _llm_commit_summary(rel, content_hint)
-            if summary:
-                msg = f"auto: {operation} {rel}{stats_part} [{timestamp}] — {summary}"
+    with _git_lock:
+        try:
+            import config as _cfg
+            from datetime import datetime as _dt
+            if not getattr(_cfg, 'GIT_VERSION_CONTROL_ENABLE', True):
+                return
+            abs_path = os.path.abspath(path)
+            git_root = _find_git_root(abs_path)
+            if git_root is None:
+                return
+            subprocess.run(['git', 'add', abs_path], capture_output=True, cwd=git_root)
+            rel = os.path.relpath(abs_path, git_root)
+            timestamp = _dt.now().strftime("%Y-%m-%d %H:%M:%S")
+            stats_part = f" ({stats})" if stats else ""
+            mode = getattr(_cfg, 'GIT_COMMIT_MSG_MODE', 'simple')
+            if mode == 'summary' and content_hint:
+                summary = _llm_commit_summary(rel, content_hint)
+                if summary:
+                    msg = f"auto: {operation} {rel}{stats_part} [{timestamp}] — {summary}"
+                else:
+                    msg = f"auto: {operation} {rel}{stats_part} [{timestamp}]"
             else:
                 msg = f"auto: {operation} {rel}{stats_part} [{timestamp}]"
-        else:
-            msg = f"auto: {operation} {rel}{stats_part} [{timestamp}]"
-        subprocess.run(['git', 'commit', '-m', msg], capture_output=True, cwd=git_root)
-    except Exception:
-        pass
+            subprocess.run(['git', 'commit', '-m', msg], capture_output=True, cwd=git_root)
+        except Exception:
+            pass
 
 
 def write_file(path: str, content: str) -> str:
@@ -237,7 +242,7 @@ def write_file(path: str, content: str) -> str:
                 pass
 
         import threading as _t
-        _t.Thread(target=_git_auto_commit, args=(path, "write"), kwargs={"content_hint": content[:800]}, daemon=True).start()
+        _t.Thread(target=_git_auto_commit, args=(path, "write"), kwargs={"content_hint": content[:800]}, daemon=False).start()
         return result
     except Exception as e:
         return f"Error writing file: {e}"
@@ -973,7 +978,7 @@ Common issues:
         removed = len(actual_old_text.splitlines())
         hint = f"--- old ---\n{actual_old_text[:400]}\n--- new ---\n{new_text[:400]}"
         import threading as _t
-        _t.Thread(target=_git_auto_commit, args=(path, "replace"), kwargs={"stats": f"+{added}/-{removed} lines", "content_hint": hint}, daemon=True).start()
+        _t.Thread(target=_git_auto_commit, args=(path, "replace"), kwargs={"stats": f"+{added}/-{removed} lines", "content_hint": hint}, daemon=False).start()
         return result
     except Exception as e:
         return f"Error replacing text: {e}"
