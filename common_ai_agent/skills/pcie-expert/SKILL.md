@@ -21,14 +21,14 @@ requires_tools: [spec_search, spec_navigate, read_lines]
 related_skills: [verilog-expert, protocol-spec-expert]
 ---
 
-# ⚠️ MANDATORY: spec-navigator agent에 위임할 것
+# ⚠️ MANDATORY: spec_ask 도구를 사용할 것
 
-**PCIe 스펙 질문은 반드시 spec-navigator agent에 위임한다.**
+**PCIe 스펙 질문은 반드시 `spec_ask` 도구를 사용한다.**
 
 ```
-Action: background_task(agent="spec-navigator", prompt="spec=pcie query=<질문>")
+Action: spec_ask(spec="pcie", query="<질문>")
 ```
 
-- `spec_search` / `spec_navigate`를 직접 호출하지 말 것
-- spec-navigator가 검색, 탐색, 답변 생성을 모두 처리한다
+- `find_files`, `grep_file`, `read_file` 등으로 직접 탐색하지 말 것
+- `spec_ask` 하나로 검색, 탐색, 답변 생성이 모두 처리된다
 - 결과가 반환되면 그 내용을 바탕으로 사용자에게 답변한다

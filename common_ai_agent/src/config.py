@@ -947,21 +947,15 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         ],
     }
 
-    # Spec navigation tools (pcie/ucie/nvme 등)
-    spec_nav_lines = []
-    if "spec_search" in tool_list:
-        spec_nav_lines.append(_tool_line(
-            "spec_search", "spec, query",
-            "Search spec via sub-agent (recommended). spec='pcie'/'ucie'/'nvme', "
-            "query=natural language question. Runs spec-navigator agent internally and returns extracted content."))
-    if "spec_navigate" in tool_list:
-        spec_nav_lines.append(_tool_line(
-            "spec_navigate", 'spec, node_id="root"',
-            "Navigate spec TOC hierarchy directly. spec='pcie'/'ucie'/'nvme'. "
-            "Start with node_id='root', drill down with returned ids. "
-            "Leaf node returns path → use read_lines to read content."))
-    if spec_nav_lines:
-        tool_lines["Spec Navigation"] = spec_nav_lines
+    # Spec Q&A tool (primary agent용)
+    if "spec_ask" in tool_list:
+        tool_lines["Spec Q&A"] = [
+            _tool_line("spec_ask", "spec, query",
+                       "Ask a question about a technical spec (pcie/ucie/nvme). "
+                       "Runs spec-navigator internally and returns a concise answer. "
+                       "Always use this for spec questions — do NOT use find_files or grep."),
+        ]
+    # spec_navigate / spec_search: sub-agent 전용 (system prompt에 노출 안 함)
 
     # Verilog tools (conditional)
     if ENABLE_VERILOG_TOOLS and "analyze_verilog_module" in tool_list:
