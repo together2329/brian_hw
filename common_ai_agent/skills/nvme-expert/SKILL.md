@@ -24,7 +24,7 @@ related_skills: [pcie-expert, protocol-spec-expert]
 **NVMe 스펙 질문은 반드시 `spec_ask` 도구를 사용한다.**
 
 ```
-Action: spec_ask(spec="nvme", query="<질문>")
+Action: spec_ask(spec="nvme", query="<사용자 질문 그대로>")
 ```
 
 - `find_files`, `grep_file`, `read_file` 등으로 직접 탐색하지 말 것

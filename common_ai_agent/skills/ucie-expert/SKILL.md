@@ -23,9 +23,10 @@ related_skills: [pcie-expert]
 **UCIe 스펙 질문은 반드시 `spec_ask` 도구를 사용한다.**
 
 ```
-Action: spec_ask(spec="ucie", query="<질문>")
+Action: spec_ask(spec="ucie", query="<사용자 질문 그대로>")
 ```
 
+- query는 **사용자 질문을 그대로** 전달 — 확장하거나 수정하지 말 것
 - `find_files`, `grep_file`, `read_file` 등으로 직접 탐색하지 말 것
 - `spec_ask` 하나로 검색, 탐색, 답변 생성이 모두 처리된다
 - 결과가 반환되면 그 내용을 바탕으로 사용자에게 답변한다

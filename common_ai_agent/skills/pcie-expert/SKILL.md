@@ -26,7 +26,7 @@ related_skills: [verilog-expert, protocol-spec-expert]
 **PCIe 스펙 질문은 반드시 `spec_ask` 도구를 사용한다.**
 
 ```
-Action: spec_ask(spec="pcie", query="<질문>")
+Action: spec_ask(spec="pcie", query="<사용자 질문 그대로>")
 ```
 
 - `find_files`, `grep_file`, `read_file` 등으로 직접 탐색하지 말 것
