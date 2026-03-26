@@ -344,36 +344,12 @@ def _spec_search_subagent(spec: str, query: str) -> str:
 
 def spec_ask(spec: str, query: str) -> str:
     """
-    Spec Q&A tool — spec-navigator sub-agent를 실행하여 질문에 답변.
+    Spec Q&A tool — spec_search로 관련 섹션을 찾아 내용을 반환.
     spec='pcie'/'ucie'/'nvme', query=자연어 질문.
-    내부에서 spec_search + spec_navigate를 사용하여 관련 섹션을 찾고 답변을 반환.
     primary agent는 이 도구 하나만 사용하면 됨.
     """
-    available = _list_available_specs()
-    if spec not in available:
-        return f"[spec_ask] spec '{spec}' not found. Available: {available}"
-
     _dbg(f"spec_ask: spec={spec!r} query={query!r}")
-
-    try:
-        import sys
-        _src_dir = os.path.join(_CORE_DIR, "..", "src")
-        if _src_dir not in sys.path:
-            sys.path.insert(0, _src_dir)
-        from core.agent_runner import run_agent_session
-    except ImportError as e:
-        return f"[spec_ask error] agent_runner import failed: {e}"
-
-    model = os.getenv("SPEC_NAVIGATOR_MODEL", "")
-    result = run_agent_session(
-        agent_name="spec-navigator",
-        prompt=f"Spec: {spec}\nQuery: {query}",
-        model_override=model or None,
-        max_iterations=12,
-        allowed_tools={"spec_search", "spec_navigate", "read_lines", "grep_file"},
-        verbose=False,
-    )
-    return result.output or "[spec_ask] No answer extracted."
+    return spec_search(spec, query)
 
 
 def _list_available_specs() -> list:
