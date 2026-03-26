@@ -2030,7 +2030,9 @@ def todo_write(todos=None, tasks=None):
         # Get or create todo_tracker
         if not hasattr(main_module, 'todo_tracker') or main_module.todo_tracker is None:
             from lib.todo_tracker import TodoTracker
-            main_module.todo_tracker = TodoTracker()
+            from pathlib import Path
+            import config as _cfg
+            main_module.todo_tracker = TodoTracker.load(Path(_cfg.TODO_FILE))
 
         todo_tracker = main_module.todo_tracker
     except Exception as e:
@@ -2149,6 +2151,25 @@ def todo_update(index=None, status=None):
         todo_tracker.todos[idx].status = "pending"
         todo_tracker._save()
 
+    return todo_tracker.format_progress()
+
+
+def todo_status():
+    """
+    Returns current todo list progress.
+    Use this to check what tasks are pending, in progress, or completed.
+    """
+    try:
+        import sys
+        main_module = sys.modules.get('main')
+        if main_module is None:
+            import main as main_module
+        todo_tracker = getattr(main_module, 'todo_tracker', None)
+    except Exception:
+        todo_tracker = None
+
+    if todo_tracker is None or not todo_tracker.todos:
+        return "No active todo list."
     return todo_tracker.format_progress()
 
 
@@ -2322,6 +2343,7 @@ AVAILABLE_TOOLS = {
     # Task Management
     "todo_write": todo_write,
     "todo_update": todo_update,
+    "todo_status": todo_status,
     # RAG Tools
     "rag_search": rag_search,
     "rag_index": rag_index,
