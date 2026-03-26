@@ -333,12 +333,14 @@ def spec_search(spec: str, query: str) -> str:
                 content += f"\n[...truncated, {len(lines)} lines total]"
             rel_path = os.path.relpath(abs_path, _PROJECT_ROOT)
             _dbg(f"  reading [{nid}] {node['title']} — {len(lines)} lines from {rel_path}")
-            siblings = _find_siblings(data, nid)
+            # scored 후보에 있는 sibling만 표시 (쿼리 관련 섹션만)
+            scored_ids = {n["id"] for n, _ in scored}
+            siblings = [s for s in _find_siblings(data, nid) if s["id"] in scored_ids]
             related = ""
             if siblings:
-                sib_list = ", ".join(f"[{s['id']}] {s['title']}" for s in siblings[:8])
-                related = f"\n\n**Related sections (same parent):** {sib_list}"
-                _dbg(f"  siblings: {[s['id'] for s in siblings]}")
+                sib_list = ", ".join(f"[{s['id']}] {s['title']}" for s in siblings)
+                related = f"\n\n**Related sections:** {sib_list}"
+                _dbg(f"  related siblings (scored): {[s['id'] for s in siblings]}")
             results.append(f"## {node['title']} (node_id: {nid})\n\n{content}{related}\n\n---\nSource: {rel_path}")
         except Exception as e:
             results.append(f"## {node['title']}\n[Error reading: {e}]")
