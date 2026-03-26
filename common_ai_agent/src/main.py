@@ -3185,6 +3185,7 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', all
     last_error_observation = None
     MAX_CONSECUTIVE_ERRORS = 3
     recovery_attempts = 0  # Track recovery attempts
+    final_answer_attempts = 0  # Track think-only → final answer injection attempts
 
     # Initialize action tracking for procedural memory
     actions_taken = []
@@ -3990,7 +3991,22 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 else:
                     break
             else:
-                break
+                # Check if response was think-only (no visible content)
+                import re as _re2
+                visible = _re2.sub(r'<think>.*?</think>', '', collected_content, flags=_re2.DOTALL).strip()
+                if len(visible) < 100 and final_answer_attempts < 2:
+                    final_answer_attempts += 1
+                    messages.append({
+                        "role": "user",
+                        "content": "Please provide your final answer to the user based on your research so far."
+                    })
+                    print(Color.info(f"  [System] Think-only response detected — requesting final answer (attempt {final_answer_attempts}/2)"))
+                    # continue loop to get final answer
+                else:
+                    # If visible content was generated but not shown by streaming display, print it now
+                    if visible and len(visible) >= 100:
+                        print(f"\r\033[2K{visible}")
+                    break
 
         # Increment iteration counter
         tracker.increment()

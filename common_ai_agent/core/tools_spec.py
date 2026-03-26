@@ -24,7 +24,9 @@ def spec_navigate(spec: str, node_id: str = "root") -> str:
     """
     스펙 계층 탐색기. spec='pcie'/'ucie'/'nvme' 등.
     node_id='root'로 챕터 목록 시작, 반환된 id로 드릴다운.
-    leaf node는 {"leaf":true,"path":"..."} 반환 → read_lines로 내용 읽기.
+    leaf node는 {"leaf":true, "content":"...", "path":"..."} 반환.
+    IMPORTANT: leaf response already includes full file content in "content" field.
+    Do NOT call read_file/read_lines separately — content is already included.
     path는 프로젝트 루트 기준 상대 경로.
     """
     index_path = os.path.join(
@@ -73,13 +75,24 @@ def spec_navigate(spec: str, node_id: str = "root") -> str:
             else:
                 abs_path = os.path.normpath(os.path.join(data_dir, raw_path))
             rel_path = os.path.relpath(abs_path, _PROJECT_ROOT)
-            return json.dumps({
+            result = {
                 "leaf": True,
                 "id": node["id"],
                 "title": node["title"],
                 "path": rel_path,
                 "description": node.get("description", "")
-            }, ensure_ascii=False)
+            }
+            # Auto-read file content
+            try:
+                with open(abs_path, encoding="utf-8") as f:
+                    lines = f.readlines()
+                content = "".join(lines[:300])
+                if len(lines) > 300:
+                    content += f"\n[...truncated, {len(lines)} lines total]"
+                result["content"] = content
+            except Exception:
+                pass
+            return json.dumps(result, ensure_ascii=False)
 
     data_dir = os.path.abspath(os.path.join(_SKILLS_DIR, f"{spec}-expert", "data"))
 
@@ -103,13 +116,169 @@ def spec_navigate(spec: str, node_id: str = "root") -> str:
     }, ensure_ascii=False, indent=2)
 
 
+def _expand_keywords(query: str) -> list:
+    """LLM으로 쿼리에서 검색 키워드 5~8개 생성. 실패 시 단순 토큰화 fallback."""
+    try:
+        import sys, re as _re
+        _src_dir = os.path.join(_CORE_DIR, "..", "src")
+        if _src_dir not in sys.path:
+            sys.path.insert(0, _src_dir)
+        from llm_client import call_llm_raw
+        prompt = (
+            "Extract 5-8 search keywords from this query for a technical spec document search. "
+            "Include abbreviations, full names, and closely related terms. "
+            "Return ONLY a JSON array of strings, nothing else.\n"
+            f"Query: {query}"
+        )
+        result = call_llm_raw(
+            prompt="",
+            messages=[{"role": "user", "content": prompt}],
+        )
+        if result:
+            match = _re.search(r'\[.*?\]', result, _re.DOTALL)
+            if match:
+                keywords = json.loads(match.group())
+                return [k.lower() for k in keywords if isinstance(k, str) and k.strip()]
+    except Exception:
+        pass
+    # Fallback: simple tokenization
+    return [w.lower() for w in query.split() if len(w) > 2]
+
+
+def _collect_all_nodes(node, nodes=None):
+    """index JSON 전체 노드를 재귀적으로 수집."""
+    if nodes is None:
+        nodes = []
+    nid = node.get("id", "")
+    if nid and nid != "root":
+        nodes.append({
+            "id": nid,
+            "title": node.get("title", ""),
+            "description": node.get("description", ""),
+            "path": node.get("path", ""),
+        })
+    for child in node.get("children", []):
+        _collect_all_nodes(child, nodes)
+    return nodes
+
+
+def _score_node(node, keywords, phrases):
+    """
+    구문(phrase) 매칭 우선, 개별 키워드 보조.
+    - phrase match in title: +10 (exact phrase, highest priority)
+    - phrase match in description: +5
+    - keyword match in title: +2
+    - keyword match in description: +1
+    """
+    title = node["title"].lower()
+    description = node.get("description", "").lower()
+    score = 0
+
+    # Phrase matching (highest weight)
+    for phrase in phrases:
+        if phrase in title:
+            score += 10
+        if phrase in description:
+            score += 5
+
+    # Individual keyword matching (fallback)
+    for kw in keywords:
+        if kw in title:
+            score += 2
+        if kw in description:
+            score += 1
+    return score
+
+
+def _extract_phrases(query: str, keywords: list) -> list:
+    """쿼리와 키워드에서 2단어 이상 구문 추출."""
+    phrases = []
+    q = query.lower().strip()
+    # Query itself as a phrase (if meaningful length)
+    if len(q) > 5:
+        phrases.append(q)
+    # Multi-word keywords are already phrases
+    for kw in keywords:
+        if ' ' in kw and len(kw) > 5:
+            phrases.append(kw.lower())
+    # Deduplicate, longest first (more specific phrases score first)
+    seen = set()
+    result = []
+    for p in sorted(phrases, key=len, reverse=True):
+        if p not in seen:
+            seen.add(p)
+            result.append(p)
+    return result
+
+
 def spec_search(spec: str, query: str) -> str:
     """
-    Spec Navigator sub-agent를 동기 실행하여 관련 스펙 내용을 반환.
+    LLM 키워드 확장 + 구문/키워드 매칭으로 관련 스펙 내용 반환.
     spec='pcie'/'ucie'/'nvme', query=사용자 질문.
-    내부적으로 작은 모델이 spec_navigate + read_lines를 수행.
+    매칭 없으면 spec-navigator sub-agent로 fallback.
     """
-    import os
+    available = _list_available_specs()
+    if spec not in available:
+        return f"[spec_search error] spec '{spec}' not found. Available: {available}"
+
+    index_path = os.path.join(_SKILLS_DIR, f"{spec}-expert", "data", f"{spec}_index.json")
+    try:
+        with open(index_path, encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as e:
+        return f"[spec_search error] Failed to load index: {e}"
+
+    # 1. Expand keywords via LLM
+    keywords = _expand_keywords(query)
+
+    # 2. Extract phrases (multi-word) for high-precision matching
+    phrases = _extract_phrases(query, keywords)
+
+    # 3. Score all nodes
+    all_nodes = _collect_all_nodes({"id": "root", "children": data.get("children", [])})
+    scored = [(n, _score_node(n, keywords, phrases)) for n in all_nodes if n.get("path")]
+    scored = [(n, s) for n, s in scored if s > 0]
+    scored.sort(key=lambda x: x[1], reverse=True)
+
+    if not scored:
+        return _spec_search_subagent(spec, query)
+
+    # 4. Determine confidence
+    top_score = scored[0][1]
+    is_high_confidence = top_score >= 10  # phrase match found
+
+    # 5. Read top 2 matching files
+    data_dir = os.path.abspath(os.path.join(_SKILLS_DIR, f"{spec}-expert", "data"))
+    results = []
+    for node, score in scored[:2]:
+        raw_path = node["path"]
+        abs_path = raw_path if os.path.isabs(raw_path) else os.path.normpath(os.path.join(data_dir, raw_path))
+        try:
+            with open(abs_path, encoding="utf-8") as f:
+                lines = f.readlines()
+            content = "".join(lines[:300])
+            if len(lines) > 300:
+                content += f"\n[...truncated, {len(lines)} lines total]"
+            rel_path = os.path.relpath(abs_path, _PROJECT_ROOT)
+            results.append(f"## {node['title']} (node_id: {node['id']})\n\n{content}\n\n---\nSource: {rel_path}")
+        except Exception as e:
+            results.append(f"## {node['title']}\n[Error reading: {e}]")
+
+    if not results:
+        return _spec_search_subagent(spec, query)
+
+    confidence_hint = (
+        "✅ HIGH CONFIDENCE MATCH (exact phrase found). "
+        "Full content is included below — no further navigation needed.\n\n"
+        if is_high_confidence else
+        "⚠️ PARTIAL MATCH (keyword-based). "
+        "Review content below; use spec_navigate if more detail is needed.\n\n"
+    )
+    return confidence_hint + "\n\n".join(results)
+
+
+def _spec_search_subagent(spec: str, query: str) -> str:
+    """Fallback: spec-navigator sub-agent 실행."""
     try:
         import sys
         _src_dir = os.path.join(_CORE_DIR, "..", "src")
@@ -119,12 +288,7 @@ def spec_search(spec: str, query: str) -> str:
     except ImportError as e:
         return f"[spec_search error] agent_runner import failed: {e}"
 
-    available = _list_available_specs()
-    if spec not in available:
-        return f"[spec_search error] spec '{spec}' not found. Available: {available}"
-
-    model = os.getenv("SPEC_NAVIGATOR_MODEL", "")  # 빈 문자열이면 agent_runner 기본값 사용
-
+    model = os.getenv("SPEC_NAVIGATOR_MODEL", "")
     result = run_agent_session(
         agent_name="spec-navigator",
         prompt=f"Spec: {spec}\nQuery: {query}",
@@ -133,7 +297,6 @@ def spec_search(spec: str, query: str) -> str:
         allowed_tools=["spec_navigate", "read_lines", "grep_file"],
         verbose=False,
     )
-
     return result.output or "[spec_search] No content extracted."
 
 
