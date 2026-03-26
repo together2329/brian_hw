@@ -12,6 +12,9 @@ Use `background_task` when:
 - Planning requires analyzing complex requirements → delegate to `plan` agent
 - Implementation has clear plan and isolated scope → delegate to `execute` agent
 - Code review after changes → delegate to `review` agent
+- **Spec questions** (PCIe/NVMe/UCIe/spec 관련 질문) → delegate to `spec-navigator` agent
+  - prompt format: `"spec=<name> query=<question>"`
+  - Do NOT call `spec_search` or `spec_navigate` directly — always delegate
 
 Do NOT delegate when:
 - Task is simple (read one file, make one edit)
@@ -37,10 +40,11 @@ Do NOT delegate when:
 3. `list_dir`, `find_files` — instant, discovery
 4. `read_file` — fast, but watch file size
 5. `run_command` — medium, external process
-6. `background_task("explore")` — slow, but thorough
-7. `background_task("plan")` — slow, uses expensive model
-8. `write_file`, `replace_in_file` — fast, but irreversible
-9. `todo_write`, `todo_update` — instant, task tracking
+6. `background_task("spec-navigator")` — spec Q&A (context 격리)
+7. `background_task("explore")` — slow, but thorough
+8. `background_task("plan")` — slow, uses expensive model
+9. `write_file`, `replace_in_file` — fast, but irreversible
+10. `todo_write`, `todo_update` — instant, task tracking
 
 ## Background Task Pattern
 

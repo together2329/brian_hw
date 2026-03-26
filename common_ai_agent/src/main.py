@@ -3366,7 +3366,11 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 # Legacy PCIe indexing removed - strictly use .ragconfig now
                 pass
 
-                system_prompt_data = build_system_prompt(messages)
+                # spec_search/spec_navigate는 spec-navigator sub-agent 전용
+                # primary에서 직접 노출하면 delegation을 무시하고 직접 호출함
+                _PRIMARY_EXCLUDED = {"spec_search", "spec_navigate"}
+                _primary_allowed = set(tools.AVAILABLE_TOOLS.keys()) - _PRIMARY_EXCLUDED
+                system_prompt_data = build_system_prompt(messages, allowed_tools=_primary_allowed)
                 # Update system message if it exists
                 if messages and messages[0].get("role") == "system":
                     if config.CACHE_OPTIMIZATION_MODE == "optimized" and isinstance(system_prompt_data, dict):

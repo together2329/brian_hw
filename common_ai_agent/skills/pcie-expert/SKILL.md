@@ -21,67 +21,14 @@ requires_tools: [spec_search, spec_navigate, read_lines]
 related_skills: [verilog-expert, protocol-spec-expert]
 ---
 
-# ⚠️ MANDATORY: 반드시 spec_search로 시작할 것
+# ⚠️ MANDATORY: spec-navigator agent에 위임할 것
 
-**첫 번째 도구는 반드시 `spec_search("pcie", "<질문>")`이어야 한다.**
-spec_search가 spec-navigator sub-agent를 실행하여 관련 스펙 내용을 추출해서 반환한다.
-그 결과를 바탕으로 답변한다.
+**PCIe 스펙 질문은 반드시 spec-navigator agent에 위임한다.**
 
 ```
-spec_search("pcie", "What is OHC in Flit Mode?")
-→ sub-agent가 자동으로 spec 탐색 후 관련 섹션 내용 반환
-→ 반환된 내용으로 답변 작성
+Action: background_task(agent="spec-navigator", prompt="spec=pcie query=<질문>")
 ```
 
----
-
-## spec_navigate 직접 사용 (fallback only)
-
-spec_search가 충분한 내용을 못 찾았을 때만 spec_navigate를 직접 사용.
-
-```
-1. spec_navigate("pcie", "root")       → 챕터 1~12 목록, 관련 챕터 id 선택
-2. spec_navigate("pcie", "<id>")       → 섹션 목록, 관련 섹션 id 선택
-3. spec_navigate("pcie", "<id.sub>")   → 서브섹션 목록 또는 leaf
-4. leaf 판단 → 즉시 read_lines
-```
-
-**leaf 판단 (둘 중 하나):**
-- 응답에 `"leaf": true` → `path` 필드가 응답에 포함됨 → `read_lines(path=<path>)`
-- children 목록에서 `"has_children": false` → 해당 child 항목에 `path` 필드가 포함됨 → `read_lines(path=<child.path>)` (**추가 spec_navigate 호출 불필요**)
-
----
-
-## 예시
-
-**"TDISP가 뭐야?"**
-```
-spec_navigate("pcie", "root")  → "11" (Chapter 11. TEE Device Interface Security Protocol) 선택
-spec_navigate("pcie", "11")    → 관련 섹션 선택
-spec_navigate("pcie", "11.1")  → leaf → read_lines
-```
-
-**"TLP header format"**
-```
-spec_navigate("pcie", "root")   → "2" 선택
-spec_navigate("pcie", "2")      → "2.2" 선택
-spec_navigate("pcie", "2.2")    → "2.2.1" 선택
-spec_navigate("pcie", "2.2.1")  → leaf → read_lines
-```
-
-**"IDE가 뭐야?"**
-```
-spec_navigate("pcie", "root")  → "6" (Chapter 6. System Architecture) 선택
-spec_navigate("pcie", "6")     → "6.33" (IDE) 선택
-spec_navigate("pcie", "6.33")  → leaf → read_lines
-```
-
----
-
-## 규칙
-
-- leaf 도달 전 파일 읽기 금지
-- 한 레벨에서 최대 2개 분기 선택 가능
-- **find_files, run_command 사용 금지** — 탐색은 spec_navigate만 사용
-- **grep_file은 파일 경로에만 가능** — 디렉토리 경로에 사용 시 에러 발생, 반드시 leaf path에만 사용
-- **같은 파일 반복 읽기 금지** — read_lines는 파일당 1회, end_line=500으로 충분히 읽을 것
+- `spec_search` / `spec_navigate`를 직접 호출하지 말 것
+- spec-navigator가 검색, 탐색, 답변 생성을 모두 처리한다
+- 결과가 반환되면 그 내용을 바탕으로 사용자에게 답변한다

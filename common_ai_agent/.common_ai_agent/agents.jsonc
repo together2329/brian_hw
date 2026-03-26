@@ -21,6 +21,26 @@
     "task":    { "temperature": 0.2 },
     "primary": { "temperature": 0.3 },
 
+    // Spec Q&A agent — handles PCIe/NVMe/UCIe spec questions in isolated context
+    "spec-navigator": {
+      "description": "Technical spec Q&A agent (PCIe/NVMe/UCIe). Answers questions using spec_search and spec_navigate.",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "tools": {
+        "spec_search": true,
+        "spec_navigate": true,
+        "read_lines": true,
+        "grep_file": true,
+        "write_file": false,
+        "replace_in_file": false,
+        "run_command": false
+      },
+      "permission": {
+        "edit": "deny",
+        "bash": { "*": "deny" }
+      }
+    },
+
     // Example: Custom Verilog specialist agent
     "verilog-expert": {
       "description": "Specialized agent for Verilog/SystemVerilog analysis and implementation",

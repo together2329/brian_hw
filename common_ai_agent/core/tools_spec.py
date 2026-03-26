@@ -4,8 +4,21 @@ spec_navigate(spec, node_id) 형태로 호출.
 """
 import json
 import os
+import sys
 
 _CORE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def _dbg(msg: str):
+    """DEBUG_MODE=true일 때 stderr에 출력."""
+    _src_dir = os.path.join(_CORE_DIR, "..", "src")
+    if _src_dir not in sys.path:
+        sys.path.insert(0, _src_dir)
+    try:
+        import config
+        if config.DEBUG_MODE:
+            print(f"[DEBUG spec] {msg}", flush=True)
+    except Exception:
+        pass
 _SKILLS_DIR = os.path.join(_CORE_DIR, "..", "skills")
 _PROJECT_ROOT = os.path.abspath(os.path.join(_CORE_DIR, ".."))  # = common_ai_agent/ (CWD)
 
@@ -116,33 +129,11 @@ def spec_navigate(spec: str, node_id: str = "root") -> str:
     }, ensure_ascii=False, indent=2)
 
 
-def _expand_keywords(query: str) -> list:
-    """LLM으로 쿼리에서 검색 키워드 5~8개 생성. 실패 시 단순 토큰화 fallback."""
-    try:
-        import sys, re as _re
-        _src_dir = os.path.join(_CORE_DIR, "..", "src")
-        if _src_dir not in sys.path:
-            sys.path.insert(0, _src_dir)
-        from llm_client import call_llm_raw
-        prompt = (
-            "Extract 5-8 search keywords from this query for a technical spec document search. "
-            "Include abbreviations, full names, and closely related terms. "
-            "Return ONLY a JSON array of strings, nothing else.\n"
-            f"Query: {query}"
-        )
-        result = call_llm_raw(
-            prompt="",
-            messages=[{"role": "user", "content": prompt}],
-        )
-        if result:
-            match = _re.search(r'\[.*?\]', result, _re.DOTALL)
-            if match:
-                keywords = json.loads(match.group())
-                return [k.lower() for k in keywords if isinstance(k, str) and k.strip()]
-    except Exception:
-        pass
-    # Fallback: simple tokenization
-    return [w.lower() for w in query.split() if len(w) > 2]
+def _tokenize_query(query: str) -> list:
+    """쿼리를 단순 토큰화. LLM 없이 원래 단어만 사용."""
+    import re as _re
+    return [_re.sub(r'[^\w]', '', w).lower() for w in query.split()
+            if len(_re.sub(r'[^\w]', '', w)) > 2]
 
 
 def _collect_all_nodes(node, nodes=None):
@@ -268,11 +259,15 @@ def spec_search(spec: str, query: str) -> str:
     except Exception as e:
         return f"[spec_search error] Failed to load index: {e}"
 
-    # 1. Expand keywords via LLM
-    keywords = _expand_keywords(query)
+    _dbg(f"spec={spec!r}  query={query!r}")
+
+    # 1. Tokenize query (no LLM — LLM title selection handles the intelligence)
+    keywords = _tokenize_query(query)
+    _dbg(f"keywords: {keywords}")
 
     # 2. Extract phrases
     phrases = _extract_phrases(query, keywords)
+    _dbg(f"phrases:  {phrases}")
 
     # 3. Score all nodes → top 10 candidates (title only)
     all_nodes = _collect_all_nodes({"id": "root", "children": data.get("children", [])})
@@ -280,13 +275,19 @@ def spec_search(spec: str, query: str) -> str:
     scored = [(n, s) for n, s in scored if s > 0]
     scored.sort(key=lambda x: x[1], reverse=True)
 
+    _dbg(f"total scored nodes: {len(scored)}")
+    for n, s in scored[:10]:
+        _dbg(f"  score={s:3d}  [{n['id']}] {n['title']}")
+
     if not scored:
+        _dbg("no candidates → fallback to subagent")
         return _spec_search_subagent(spec, query)
 
     candidates = [n for n, _ in scored[:10]]
 
     # 4. LLM selects best matching sections from candidate titles
     selected_ids = _llm_select_sections(query, candidates)
+    _dbg(f"LLM selected: {selected_ids}")
 
     # 5. Read selected files
     data_dir = os.path.abspath(os.path.join(_SKILLS_DIR, f"{spec}-expert", "data"))
@@ -295,6 +296,7 @@ def spec_search(spec: str, query: str) -> str:
     for nid in selected_ids:
         node = id_to_node.get(nid)
         if not node:
+            _dbg(f"  [{nid}] not found in candidates — skip")
             continue
         raw_path = node["path"]
         abs_path = raw_path if os.path.isabs(raw_path) else os.path.normpath(os.path.join(data_dir, raw_path))
@@ -305,11 +307,13 @@ def spec_search(spec: str, query: str) -> str:
             if len(lines) > 300:
                 content += f"\n[...truncated, {len(lines)} lines total]"
             rel_path = os.path.relpath(abs_path, _PROJECT_ROOT)
+            _dbg(f"  reading [{nid}] {node['title']} — {len(lines)} lines from {rel_path}")
             results.append(f"## {node['title']} (node_id: {nid})\n\n{content}\n\n---\nSource: {rel_path}")
         except Exception as e:
             results.append(f"## {node['title']}\n[Error reading: {e}]")
 
     if not results:
+        _dbg("no results after file read → fallback to subagent")
         return _spec_search_subagent(spec, query)
 
     return "\n\n".join(results)
