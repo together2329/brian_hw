@@ -83,12 +83,13 @@ if config.ENABLE_VERILOG_TOOLS:
         print(Color.warning(f"[System] Failed to load Verilog tools: {e}"))
 
 try:
-    from core.tools_spec import spec_navigate
+    from core.tools_spec import spec_navigate, spec_search
     tools.AVAILABLE_TOOLS["spec_navigate"] = spec_navigate
+    tools.AVAILABLE_TOOLS["spec_search"] = spec_search
     if config.DEBUG_MODE:
-        print(Color.system("[System] spec_navigate tool loaded (pcie/ucie/nvme)"))
+        print(Color.system("[System] spec_navigate / spec_search tools loaded (pcie/ucie/nvme)"))
 except ImportError as e:
-    print(Color.warning(f"[System] Failed to load spec_navigate: {e}"))
+    print(Color.warning(f"[System] Failed to load spec tools: {e}"))
 
 # --- 1. No Vendor Path Needed ---
 # We are using standard libraries only.

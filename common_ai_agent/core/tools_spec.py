@@ -103,6 +103,40 @@ def spec_navigate(spec: str, node_id: str = "root") -> str:
     }, ensure_ascii=False, indent=2)
 
 
+def spec_search(spec: str, query: str) -> str:
+    """
+    Spec Navigator sub-agent를 동기 실행하여 관련 스펙 내용을 반환.
+    spec='pcie'/'ucie'/'nvme', query=사용자 질문.
+    내부적으로 작은 모델이 spec_navigate + read_lines를 수행.
+    """
+    import os
+    try:
+        import sys
+        _src_dir = os.path.join(_CORE_DIR, "..", "src")
+        if _src_dir not in sys.path:
+            sys.path.insert(0, _src_dir)
+        from core.agent_runner import run_agent_session
+    except ImportError as e:
+        return f"[spec_search error] agent_runner import failed: {e}"
+
+    available = _list_available_specs()
+    if spec not in available:
+        return f"[spec_search error] spec '{spec}' not found. Available: {available}"
+
+    model = os.getenv("SPEC_NAVIGATOR_MODEL", "")  # 빈 문자열이면 agent_runner 기본값 사용
+
+    result = run_agent_session(
+        agent_name="spec-navigator",
+        prompt=f"Spec: {spec}\nQuery: {query}",
+        model_override=model or None,
+        max_iterations=12,
+        allowed_tools=["spec_navigate", "read_lines", "grep_file"],
+        verbose=False,
+    )
+
+    return result.output or "[spec_search] No content extracted."
+
+
 def _list_available_specs() -> list:
     """skills/ 폴더에서 *-expert/data/*_index.json 존재하는 스펙 목록 반환"""
     specs = []

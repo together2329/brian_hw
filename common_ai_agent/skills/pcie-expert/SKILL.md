@@ -17,17 +17,27 @@ activation:
              "상태머신", "프로토콜", "스펙", "레인", "링크"]
   file_patterns: ["*.md", "*.pdf", "*.txt", "*.rst"]
   auto_detect: true
-requires_tools: [spec_navigate, read_lines]
+requires_tools: [spec_search, spec_navigate, read_lines]
 related_skills: [verilog-expert, protocol-spec-expert]
 ---
 
-# ⚠️ MANDATORY: 반드시 spec_navigate로 시작할 것
+# ⚠️ MANDATORY: 반드시 spec_search로 시작할 것
 
-**grep_file, find_files, read_file, list_dir 사용 금지** — 첫 번째 도구는 반드시 `spec_navigate("pcie", "root")`여야 한다.
+**첫 번째 도구는 반드시 `spec_search("pcie", "<질문>")`이어야 한다.**
+spec_search가 spec-navigator sub-agent를 실행하여 관련 스펙 내용을 추출해서 반환한다.
+그 결과를 바탕으로 답변한다.
+
+```
+spec_search("pcie", "What is OHC in Flit Mode?")
+→ sub-agent가 자동으로 spec 탐색 후 관련 섹션 내용 반환
+→ 반환된 내용으로 답변 작성
+```
 
 ---
 
-## 탐색 절차 (4단계)
+## spec_navigate 직접 사용 (fallback only)
+
+spec_search가 충분한 내용을 못 찾았을 때만 spec_navigate를 직접 사용.
 
 ```
 1. spec_navigate("pcie", "root")       → 챕터 1~12 목록, 관련 챕터 id 선택

@@ -14,13 +14,14 @@ activation:
              "standard package", "chiplet interconnect"]
   file_patterns: ["*.md", "*.pdf", "*.txt"]
   auto_detect: true
-requires_tools: [spec_navigate, read_lines]
+requires_tools: [spec_search, spec_navigate, read_lines]
 related_skills: [pcie-expert]
 ---
 
-# ⚠️ MANDATORY: 반드시 spec_navigate로 시작할 것
+# ⚠️ MANDATORY: 반드시 spec_search로 시작할 것
 
-**grep_file, find_files, read_file, list_dir 사용 금지** — 첫 번째 도구는 반드시 `spec_navigate("ucie", "root")`여야 한다.
+**첫 번째 도구는 반드시 `spec_search("ucie", "<질문>")`이어야 한다.**
+spec_search가 spec-navigator sub-agent를 실행하여 관련 스펙 내용을 추출해서 반환한다.
 
 ---
 
