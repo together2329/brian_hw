@@ -40,6 +40,8 @@ class ContextTracker:
         """
         self.max_tokens = max_tokens
         self.system_prompt_tokens = 0
+        self.skill_tokens = 0          # tokens used by active skill prompt
+        self.active_skill_name = None  # name of active skill
         self.tools_tokens = 0
         self.memory_tokens = 0
         self.messages_tokens = 0
@@ -48,8 +50,13 @@ class ContextTracker:
         self.turn_count = 0  # Track conversation turns
 
     def update_system_prompt(self, prompt: str):
-        """Update system prompt token count"""
-        self.system_prompt_tokens = len(prompt) // 4
+        """Update system prompt token count (base only, excluding skill)"""
+        self.system_prompt_tokens = len(prompt) // 4 - self.skill_tokens
+
+    def update_skill(self, skill_name: Optional[str], skill_prompt: str):
+        """Update active skill token count separately from system prompt"""
+        self.skill_tokens = len(skill_prompt) // 4 if skill_prompt else 0
+        self.active_skill_name = skill_name
 
     def update_tools(self, tools_json: str):
         """Update tools definition token count"""
@@ -319,15 +326,24 @@ class ContextTracker:
         msg_count = getattr(self, 'message_count', 0)
 
         if actual_total is not None and actual_total > 0:
-            system_est = self.system_prompt_tokens if self.system_prompt_tokens > 0 else 0
-            messages_est = max(0, actual_total - system_est)
+            system_est = max(0, self.system_prompt_tokens)
+            skill_est  = self.skill_tokens if self.skill_tokens > 0 else 0
+            messages_est = max(0, actual_total - system_est - skill_est)
             components = [
                 ("System", system_est),
-                (f"Messages ({msg_count} msgs)", messages_est),
             ]
+            if skill_est > 0:
+                skill_label = f"Skill ({self.active_skill_name})" if self.active_skill_name else "Skill"
+                components.append((skill_label, skill_est))
+            components.append((f"Messages ({msg_count} msgs)", messages_est))
         else:
             components = [
                 ("System", self.system_prompt_tokens),
+            ]
+            if self.skill_tokens > 0:
+                skill_label = f"Skill ({self.active_skill_name})" if self.active_skill_name else "Skill"
+                components.append((skill_label, self.skill_tokens))
+            components += [
                 ("Tools", self.tools_tokens),
                 ("Memory", self.memory_tokens),
                 (f"Messages ({msg_count} msgs)", self.messages_tokens),

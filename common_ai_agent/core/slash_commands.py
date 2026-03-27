@@ -138,6 +138,9 @@ class SlashCommandRegistry:
         self.register('clear', self._cmd_clear,
                      'Clear conversation history and free up context')
 
+        self.register('model', self._cmd_model,
+                     'Switch primary model: /model gpt-4o, /model (show current)')
+
         self.register('window', self._cmd_window,
                      'Rolling context window: /window 10 (keep last N pairs), /window 0 to disable')
 
@@ -293,6 +296,14 @@ class SlashCommandRegistry:
         if keep.isdigit():
             return f"CLEAR_HISTORY:{keep}"
         return "CLEAR_HISTORY"  # Special signal for main loop
+
+    def _cmd_model(self, args: str) -> str:
+        """Switch primary model. /model <name> to change, /model to show current."""
+        import src.config as _config
+        name = args.strip()
+        if not name:
+            return f"Current model: {_config.MODEL_NAME}"
+        return f"MODEL_SWITCH:{name}"
 
     def _cmd_window(self, args: str) -> str:
         """Rolling context window. /window N — only last N message pairs sent to LLM each turn."""

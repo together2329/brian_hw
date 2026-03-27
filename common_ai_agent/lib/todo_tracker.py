@@ -9,10 +9,26 @@ import json
 import time
 from pathlib import Path
 from typing import List, Dict, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 # Default persistence path
 TODO_FILE = Path.home() / ".common_ai_agent" / "current_todos.json"
+
+# Priority ordering
+_PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
+
+
+def _fmt_elapsed(seconds: float) -> str:
+    """Format elapsed seconds as human-readable string."""
+    if seconds < 60:
+        return f"{int(seconds)}s"
+    elif seconds < 3600:
+        m, s = divmod(int(seconds), 60)
+        return f"{m}m{s:02d}s"
+    else:
+        h, rem = divmod(int(seconds), 3600)
+        m = rem // 60
+        return f"{h}h{m:02d}m"
 
 
 @dataclass
@@ -24,44 +40,50 @@ class TodoItem:
         content: Todo 내용 (예: "Run tests")
         active_form: 진행 중일 때 표시할 내용 (예: "Running tests")
         status: 현재 상태 ("pending", "in_progress", "completed")
+        priority: 우선순위 ("high", "medium", "low")
         created_at: 생성 시간 (timestamp)
+        completed_at: 완료 시간 (timestamp, None if not completed)
     """
     content: str
     active_form: str
-    status: str = "pending"  # "pending", "in_progress", "completed"
+    status: str = "pending"       # "pending", "in_progress", "completed"
+    priority: str = "medium"      # "high", "medium", "low"
     created_at: float = None
+    completed_at: Optional[float] = None
 
     def __post_init__(self):
         if self.created_at is None:
             self.created_at = time.time()
+        if self.priority not in _PRIORITY_ORDER:
+            self.priority = "medium"
+
+    @property
+    def elapsed(self) -> Optional[float]:
+        """Elapsed seconds from creation to completion (or now if in_progress)."""
+        if self.status == "completed" and self.completed_at:
+            return self.completed_at - self.created_at
+        if self.status == "in_progress":
+            return time.time() - self.created_at
+        return None
 
 
 class TodoTracker:
     """
     ReAct 루프와 통합된 Todo tracking 시스템
 
-    Claude Code의 TodoWrite 동작을 모방합니다:
+    Features:
     - 여러 step의 진행 상황 추적
     - 한 번에 하나의 step만 in_progress
-    - Auto-advance: 현재 step 완료 시 자동으로 다음 step 진행
-    - Progress visualization (✅ ▶️ ⏸️)
-
-    Example:
-        tracker = TodoTracker()
-        tracker.add_todos([
-            {"content": "Explore code", "status": "pending", "activeForm": "Exploring code"},
-            {"content": "Write tests", "status": "pending", "activeForm": "Writing tests"}
-        ])
-        tracker.mark_in_progress(0)  # Start first todo
-        print(tracker.format_progress())  # Show progress
-        tracker.mark_completed(0)  # Complete first
-        tracker.auto_advance()  # Move to next
+    - Priority-aware scheduling (high → medium → low)
+    - Progress bar visualization
+    - Completion timestamps & elapsed time
+    - Stagnation detection with task-level detail
     """
 
     def __init__(self, persist_path: Optional[Path] = None):
         """Initialize todo tracker with optional file persistence"""
         self.todos: List[TodoItem] = []
-        self.current_index: int = -1  # Index of current in_progress todo
+        self.current_index: int = -1
         self.stagnation_count: int = 0
         self._last_completed_count: int = 0
         self._persist_path: Optional[Path] = persist_path or TODO_FILE
@@ -71,9 +93,9 @@ class TodoTracker:
         LLM이 생성한 todo list를 추가
 
         Args:
-            todos: List of dicts with keys: content, status, activeForm
+            todos: List of dicts with keys: content, status, activeForm, priority
                   Example: [
-                      {"content": "Step 1", "status": "pending", "activeForm": "Doing Step 1"},
+                      {"content": "Step 1", "status": "pending", "activeForm": "Doing Step 1", "priority": "high"},
                       {"content": "Step 2", "status": "pending", "activeForm": "Doing Step 2"},
                   ]
         """
@@ -83,6 +105,8 @@ class TodoTracker:
                 content=todo_dict.get("content", ""),
                 active_form=todo_dict.get("activeForm", todo_dict.get("active_form", todo_dict.get("content", ""))),
                 status=todo_dict.get("status", "pending"),
+                priority=todo_dict.get("priority", "medium"),
+                completed_at=todo_dict.get("completed_at"),
             ))
 
         # Find current in_progress item
@@ -98,81 +122,70 @@ class TodoTracker:
 
     def mark_in_progress(self, index: int):
         """
-        특정 todo를 in_progress로 변경
-
-        중요: 한 번에 하나의 todo만 in_progress 가능
-        이전 in_progress는 자동으로 pending으로 변경
-
-        Args:
-            index: Todo index (0-based)
+        특정 todo를 in_progress로 변경.
+        한 번에 하나의 todo만 in_progress 가능 — 이전 것은 pending으로 복귀.
         """
         if not (0 <= index < len(self.todos)):
             return
 
-        # Clear previous in_progress (한 번에 하나만)
         for todo in self.todos:
             if todo.status == "in_progress":
                 todo.status = "pending"
 
-        # Set new in_progress
         self.todos[index].status = "in_progress"
         self.current_index = index
         self._save()
 
     def mark_completed(self, index: int):
-        """
-        특정 todo를 completed로 변경
-
-        Args:
-            index: Todo index (0-based)
-        """
+        """특정 todo를 completed로 변경하고 완료 시간 기록."""
         if not (0 <= index < len(self.todos)):
             return
 
         self.todos[index].status = "completed"
+        self.todos[index].completed_at = time.time()
         self._save()
 
     def auto_advance(self):
-        """
-        현재 todo 완료 후 자동으로 다음 pending todo로 이동
-
-        동작:
-        1. 현재 in_progress todo를 completed로 변경
-        2. 다음 pending todo를 찾아 in_progress로 변경
-        """
-        # Complete current
+        """현재 todo 완료 후 자동으로 다음 pending todo로 이동 (priority 반영)."""
         if self.current_index >= 0 and self.current_index < len(self.todos):
             self.mark_completed(self.current_index)
 
-        # Find next pending
         next_idx = self._get_next_pending()
         if next_idx is not None:
             self.mark_in_progress(next_idx)
             return
 
-        # No more pending todos
         self.current_index = -1
 
     def _get_next_pending(self) -> Optional[int]:
-        """Get the next pending todo index."""
-        for i, todo in enumerate(self.todos):
-            if todo.status == "pending":
-                return i
-        return None
+        """
+        다음 pending todo 인덱스 반환.
+        Priority 순서: high → medium → low.
+        같은 priority 내에서는 원래 순서(index 오름차순) 유지.
+        """
+        candidates = [
+            (i, todo) for i, todo in enumerate(self.todos)
+            if todo.status == "pending"
+        ]
+        if not candidates:
+            return None
+
+        # Sort by priority first, then by original index
+        candidates.sort(key=lambda x: (_PRIORITY_ORDER.get(x[1].priority, 1), x[0]))
+        return candidates[0][0]
 
     def format_progress(self) -> str:
         """
-        Progress를 시각화된 문자열로 포맷
+        Progress를 시각화된 문자열로 포맷.
 
         Format:
             === TODO PROGRESS ===
-            ✅ 1. Completed task
-            ▶️ 2. Current task in progress...
-            ⏸️ 3. Pending task
-            Progress: 1/3
+            ✅ 1. Completed task                (12s)
+            ▶️ 2. [HIGH] Current task...        (5s elapsed)
+            ⏸️ 3. Next task
+            ⏸️ 4. [LOW] Low priority task
 
-        Returns:
-            Formatted progress string
+            [████████░░░░░░░░░░░░] 40%  (2/5 done)
         """
         if not self.todos:
             return ""
@@ -180,109 +193,93 @@ class TodoTracker:
         lines = ["=== TODO PROGRESS ==="]
 
         for i, todo in enumerate(self.todos):
-            # Icon based on status
             icon = {
-                "pending": "⏸️",
+                "pending":     "⏸️",
                 "in_progress": "▶️",
-                "completed": "✅"
+                "completed":   "✅"
             }.get(todo.status, "❓")
 
-            # Text: active_form for in_progress, content otherwise
-            if todo.status == "in_progress":
-                text = todo.active_form
-            else:
-                text = todo.content
+            # Priority badge (only for non-medium)
+            priority_badge = ""
+            if todo.priority == "high":
+                priority_badge = "[HIGH] "
+            elif todo.priority == "low":
+                priority_badge = "[LOW] "
 
-            lines.append(f"{icon} {i+1}. {text}")
+            # Text
+            text = todo.active_form if todo.status == "in_progress" else todo.content
 
-        # Progress summary
+            # Elapsed / completion time
+            time_str = ""
+            if todo.status == "completed" and todo.elapsed is not None:
+                time_str = f"  ({_fmt_elapsed(todo.elapsed)})"
+            elif todo.status == "in_progress" and todo.elapsed is not None:
+                time_str = f"  ({_fmt_elapsed(todo.elapsed)} elapsed)"
+
+            lines.append(f"{icon} {i+1}. {priority_badge}{text}{time_str}")
+
+        # Progress bar
         completed_count = sum(1 for t in self.todos if t.status == "completed")
-        lines.append(f"\nProgress: {completed_count}/{len(self.todos)}")
+        total = len(self.todos)
+        ratio = completed_count / total if total > 0 else 0
+        bar_len = 20
+        filled = int(bar_len * ratio)
+        bar = "█" * filled + "░" * (bar_len - filled)
+        pct = int(ratio * 100)
+        lines.append(f"\n[{bar}] {pct}%  ({completed_count}/{total} done)")
 
         return "\n".join(lines)
 
     def get_current_todo(self) -> Optional[TodoItem]:
-        """
-        현재 in_progress인 todo 반환
-
-        Returns:
-            TodoItem or None
-        """
+        """현재 in_progress인 todo 반환."""
         if self.current_index >= 0 and self.current_index < len(self.todos):
             return self.todos[self.current_index]
         return None
 
     def is_all_completed(self) -> bool:
-        """
-        모든 todo가 완료되었는지 확인
-
-        Returns:
-            True if all todos are completed
-        """
-        return all(todo.status == "completed" for todo in self.todos)
+        """모든 todo가 완료되었는지 확인."""
+        return bool(self.todos) and all(t.status == "completed" for t in self.todos)
 
     def get_completion_ratio(self) -> float:
-        """
-        완료 비율 계산 (0.0 ~ 1.0)
-
-        Returns:
-            Completion ratio
-        """
+        """완료 비율 계산 (0.0 ~ 1.0)."""
         if not self.todos:
             return 1.0
-
         completed = sum(1 for t in self.todos if t.status == "completed")
         return completed / len(self.todos)
 
     def get_continuation_prompt(self) -> Optional[str]:
-        """
-        미완료 todo가 있으면 continuation 리마인더 프롬프트 반환.
-
-        Returns:
-            리마인더 문자열 또는 None (모두 완료 시)
-        """
+        """미완료 todo가 있으면 continuation 리마인더 프롬프트 반환."""
         if not self.todos or self.is_all_completed():
             return None
 
         current = self.get_current_todo()
-
         completed_count = sum(1 for t in self.todos if t.status == "completed")
         remaining = len(self.todos) - completed_count
 
+        # Brief reminder only — full progress shown on todo_update/todo_write
         lines = [
             f"[Todo Reminder] {completed_count}/{len(self.todos)} completed, {remaining} remaining.",
-            self.format_progress(),
         ]
 
         if current:
-            lines.append(f"\nCurrent task: {current.content}")
+            lines.append(f"Current task: {current.content}")
             lines.append("Continue working on this task.")
         else:
-            # No current in_progress, find next pending
-            for i, todo in enumerate(self.todos):
-                if todo.status == "pending":
-                    lines.append(f"\nNext task: {todo.content}")
-                    lines.append("Start working on this task.")
-                    break
+            next_idx = self._get_next_pending()
+            if next_idx is not None:
+                todo = self.todos[next_idx]
+                lines.append(f"Next task: {todo.content}")
+                lines.append("Start working on this task.")
 
         return "\n".join(lines)
 
     def get_minimal_context(self, step_idx: int) -> str:
-        """
-        특정 step 실행에 필요한 최소 context 반환.
-
-        Args:
-            step_idx: Step index (0-based)
-
-        Returns:
-            최소 context 문자열
-        """
+        """특정 step 실행에 필요한 최소 context 반환."""
         if not self.todos or step_idx >= len(self.todos):
             return ""
 
         lines = []
 
-        # Previous completed steps (brief summary)
         completed_steps = [
             f"  {i+1}. {t.content} [DONE]"
             for i, t in enumerate(self.todos[:step_idx])
@@ -292,12 +289,10 @@ class TodoTracker:
             lines.append("Completed steps:")
             lines.extend(completed_steps)
 
-        # Current step
         current = self.todos[step_idx]
         lines.append(f"\nCurrent step ({step_idx + 1}/{len(self.todos)}):")
         lines.append(f"  {current.content}")
 
-        # Remaining steps (brief)
         remaining = [
             f"  {i+1}. {t.content}"
             for i, t in enumerate(self.todos[step_idx + 1:], start=step_idx + 1)
@@ -305,26 +300,23 @@ class TodoTracker:
         ]
         if remaining:
             lines.append(f"\nRemaining ({len(remaining)} steps):")
-            lines.extend(remaining[:3])  # Show max 3
+            lines.extend(remaining[:3])
             if len(remaining) > 3:
                 lines.append(f"  ... and {len(remaining) - 3} more")
 
         return "\n".join(lines)
 
     def to_dict(self) -> Dict:
-        """
-        직렬화 (저장용)
-
-        Returns:
-            Dict representation
-        """
+        """직렬화 (저장용)."""
         return {
             "todos": [
                 {
                     "content": t.content,
                     "activeForm": t.active_form,
                     "status": t.status,
+                    "priority": t.priority,
                     "created_at": t.created_at,
+                    "completed_at": t.completed_at,
                 }
                 for t in self.todos
             ],
@@ -333,7 +325,7 @@ class TodoTracker:
 
     @classmethod
     def from_dict(cls, data: Dict, persist_path: Optional[Path] = None) -> 'TodoTracker':
-        """역직렬화 (로드용)"""
+        """역직렬화 (로드용)."""
         tracker = cls(persist_path=persist_path)
         if "todos" in data:
             tracker.add_todos(data["todos"])
@@ -343,7 +335,7 @@ class TodoTracker:
         return tracker
 
     def _save(self):
-        """파일에 현재 상태 저장"""
+        """파일에 현재 상태 저장."""
         if not self._persist_path:
             return
         try:
@@ -353,7 +345,7 @@ class TodoTracker:
             data["_last_completed_count"] = self._last_completed_count
             self._persist_path.write_text(json.dumps(data, ensure_ascii=False, indent=2))
         except Exception:
-            pass  # Persistence is best-effort
+            pass
 
     @classmethod
     def load(cls, persist_path: Optional[Path] = None) -> 'TodoTracker':
@@ -368,7 +360,7 @@ class TodoTracker:
         return cls(persist_path=path)
 
     def clear(self):
-        """Todo 초기화 + 파일 삭제"""
+        """Todo 초기화 + 파일 삭제."""
         self.todos = []
         self.current_index = -1
         self.stagnation_count = 0
@@ -386,15 +378,37 @@ class TodoTracker:
         """
         completed = sum(1 for t in self.todos if t.status == "completed")
         if completed > self._last_completed_count:
-            # 진전 있음 → 리셋
             self.stagnation_count = 0
             self._last_completed_count = completed
         else:
-            # 진전 없음
             self.stagnation_count += 1
 
         self._save()
-        return self.stagnation_count >= max_stagnation
+
+        if self.stagnation_count >= max_stagnation:
+            current = self.get_current_todo()
+            if current:
+                elapsed_str = f" ({_fmt_elapsed(current.elapsed)} elapsed)" if current.elapsed else ""
+                # Warn about stuck task but don't give up — return True signals caller
+            return True
+        return False
+
+    def get_stagnation_hint(self) -> str:
+        """현재 막힌 task에 대한 힌트 메시지 반환."""
+        current = self.get_current_todo()
+        if not current:
+            return "[Stagnation] No active task. Use todo_write to set tasks."
+
+        elapsed_str = f" ({_fmt_elapsed(current.elapsed)} elapsed)" if current.elapsed else ""
+        priority_str = f" [{current.priority.upper()}]" if current.priority != "medium" else ""
+        completed = sum(1 for t in self.todos if t.status == "completed")
+
+        return (
+            f"[Stagnation x{self.stagnation_count}] Stuck on task {self.current_index + 1}/{len(self.todos)}"
+            f"{priority_str}: \"{current.content}\"{elapsed_str}\n"
+            f"Progress: {completed}/{len(self.todos)} completed. "
+            f"Try a different approach or use todo_update to mark it completed if done."
+        )
 
 
 # ============================================================
@@ -415,12 +429,6 @@ def parse_todo_write_from_text(text: str) -> Optional[List[Dict]]:
        Todo:
        1. Step 1
        2. Step 2
-
-    Args:
-        text: LLM response text
-
-    Returns:
-        List of todo dicts or None if no todos found
     """
     import re
 
@@ -428,29 +436,20 @@ def parse_todo_write_from_text(text: str) -> Optional[List[Dict]]:
 
     # Pattern 1: TodoWrite: 형식
     if "TodoWrite:" in text or "Todo:" in text:
-        # Extract todo section
         match = re.search(r'(TodoWrite|Todo):\s*\n((?:[-*]\s*\[.\]\s*.+\n?)+)', text, re.IGNORECASE)
         if match:
             todo_text = match.group(2)
-            # Parse each line: - [ ] content
             for line in todo_text.split('\n'):
                 line = line.strip()
                 if not line:
                     continue
 
-                # Match: - [ ] content or - [x] content
                 item_match = re.match(r'[-*]\s*\[(.)\]\s*(.+)', line)
                 if item_match:
                     status_char = item_match.group(1).strip().lower()
                     content = item_match.group(2).strip()
 
-                    # Determine status
-                    if status_char in ['x', 'v', '✓']:
-                        status = "completed"
-                    else:
-                        status = "pending"
-
-                    # Generate active_form (content + "ing" 형태)
+                    status = "completed" if status_char in ['x', 'v', '✓'] else "pending"
                     active_form = _generate_active_form(content)
 
                     todos.append({
@@ -461,16 +460,13 @@ def parse_todo_write_from_text(text: str) -> Optional[List[Dict]]:
 
     # Pattern 2: Numbered list (1. 2. 3.)
     if not todos:
-        content_text = text
-        # Also skip lines that look like analysis, not tasks
-        matches = re.findall(r'^\s*\d+\.\s*(.+)$', content_text, re.MULTILINE)
-        if len(matches) >= 3:  # At least 3 items
-            # Heuristic: real todos are short action items, not descriptions
+        matches = re.findall(r'^\s*\d+\.\s*(.+)$', text, re.MULTILINE)
+        if len(matches) >= 3:
             task_matches = [
                 m.strip() for m in matches
                 if len(m.strip()) <= 80
                 and not re.match(r'^(The |I |We |This |According |Let me )', m.strip(), re.IGNORECASE)
-                and not re.match(r'^\*\*', m.strip())  # Skip markdown bold items
+                and not re.match(r'^\*\*', m.strip())
             ]
             if len(task_matches) >= 3:
                 for content in task_matches:
@@ -485,24 +481,9 @@ def parse_todo_write_from_text(text: str) -> Optional[List[Dict]]:
 
 
 def _generate_active_form(content: str) -> str:
-    """
-    Content에서 active_form 생성
-
-    Example:
-        "Run tests" → "Running tests"
-        "Build project" → "Building project"
-        "Fix bug" → "Fixing bug"
-
-    Args:
-        content: Todo content
-
-    Returns:
-        Active form string
-    """
-    # Simple heuristic: Add -ing or "Executing: " prefix
+    """Content에서 active_form 생성 (e.g. "Run tests" → "Running tests")."""
     content_lower = content.lower()
 
-    # Common verbs that change to -ing
     verb_map = {
         "run": "Running",
         "build": "Building",
@@ -517,13 +498,17 @@ def _generate_active_form(content: str) -> str:
         "design": "Designing",
         "compile": "Compiling",
         "debug": "Debugging",
+        "verify": "Verifying",
+        "check": "Checking",
+        "update": "Updating",
+        "refactor": "Refactoring",
+        "add": "Adding",
+        "remove": "Removing",
+        "integrate": "Integrating",
     }
 
-    # Find verb at start (case-insensitive)
     for verb, verb_ing in verb_map.items():
         if content_lower.startswith(verb):
-            # Replace first occurrence, preserving case of rest
             return verb_ing + content[len(verb):]
 
-    # Default: prefix with "Executing: "
     return f"Executing: {content}"

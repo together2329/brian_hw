@@ -899,7 +899,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             yield f"{Color.info('If this persists, please check your network connection.')}\n"
             return
 
-def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=None):
+def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=None, stream_prefix=None, spinner_label=None):
     """
     Call LLM without streaming (for extraction tasks, sub-agents, etc.).
 
@@ -909,10 +909,13 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         model: Optional model override (default: config.MODEL_NAME)
         messages: Alternative to prompt - pass messages list directly
         stop: Optional list of stop sequences
+        stream_prefix: If set, stream output to stdout with this prefix (e.g. "  │ ")
+        spinner_label: If set (and stream_prefix is None), show a spinner while waiting
 
     Returns:
         Complete response text
     """
+    global last_input_tokens, last_output_tokens
     resolved_model = model or config.MODEL_NAME
     url = f"{config.BASE_URL}/chat/completions"
     api_key = config.API_KEY
@@ -936,11 +939,12 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
     else:
         msgs = [{"role": "user", "content": prompt}]
 
+    use_stream = stream_prefix is not None
     data = {
         "model": resolved_model,
         "messages": msgs,
         "temperature": temperature,
-        "stream": False
+        "stream": use_stream
     }
     if stop:
         data["stop"] = stop
@@ -952,18 +956,77 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
             headers=headers
         )
 
-        with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            content = result["choices"][0]["message"]["content"]
-            # Sanitize: Remove OpenRouter/provider metadata tokens
-            # Patterns like <|start|>, <|channel|>, <|message|>, <|final<|...|>
-            # First handle nested patterns like <|final<|message|>
+        if use_stream:
+            full_content = []
+            with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
+                line_buf = ""
+                for raw_line in response:
+                    line = raw_line.decode('utf-8').strip()
+                    if not line.startswith("data:"):
+                        continue
+                    data_str = line[5:].strip()
+                    if data_str == "[DONE]":
+                        break
+                    try:
+                        chunk = json.loads(data_str)
+                        delta = chunk.get("choices", [{}])[0].get("delta", {})
+                        token = delta.get("content", "")
+                        if token:
+                            full_content.append(token)
+                            line_buf += token
+                            while '\n' in line_buf:
+                                out_line, line_buf = line_buf.split('\n', 1)
+                                sys.stdout.write(f"{stream_prefix}{out_line}\n")
+                                sys.stdout.flush()
+                        usage = chunk.get("usage", {})
+                        if usage:
+                            last_input_tokens = usage.get("prompt_tokens", usage.get("input_tokens", 0))
+                            last_output_tokens = usage.get("completion_tokens", usage.get("output_tokens", 0))
+                    except (json.JSONDecodeError, KeyError):
+                        pass
+                if line_buf.strip():
+                    sys.stdout.write(f"{stream_prefix}{line_buf}\n")
+                    sys.stdout.flush()
+            content = "".join(full_content)
             content = re.sub(r'<\|final<\|[^>]*\|>', '', content)
-            # Then handle simple patterns like <|start|>, <|end|>, etc.
             content = re.sub(r'<\|[^|<>]+\|>', '', content)
-            # Clean up any remaining <| or |> artifacts
-            content = re.sub(r'<\|[a-z_]+$', '', content)  # Trailing <|word
+            content = re.sub(r'<\|[a-z_]+$', '', content)
             return content.strip()
+
+        # Show spinner while waiting (non-streaming)
+        _spinner = None
+        if spinner_label:
+            try:
+                import sys as _sys
+                _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+                _parent = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+                _sys.path.insert(0, os.path.abspath(_parent))
+                from lib.display import Spinner as _Spinner
+                _spinner = _Spinner(spinner_label)
+                _spinner.start()
+            except Exception:
+                _spinner = None
+
+        try:
+            with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
+                result = json.loads(response.read().decode('utf-8'))
+        finally:
+            if _spinner:
+                elapsed = _spinner.elapsed
+                _spinner.stop()
+                sys.stderr.write(f"  \033[36m✽\033[0m \033[2m{spinner_label}... (Done {elapsed:.1f}s)\033[0m\n")
+                sys.stderr.flush()
+
+        content = result["choices"][0]["message"]["content"]
+        usage = result.get("usage", {})
+        if usage:
+            last_input_tokens = usage.get("prompt_tokens", usage.get("input_tokens", 0))
+            last_output_tokens = usage.get("completion_tokens", usage.get("output_tokens", 0))
+        # Sanitize: Remove OpenRouter/provider metadata tokens
+        content = re.sub(r'<\|final<\|[^>]*\|>', '', content)
+        content = re.sub(r'<\|[^|<>]+\|>', '', content)
+        content = re.sub(r'<\|[a-z_]+$', '', content)
+        return content.strip()
 
     except Exception as e:
         return f"Error calling LLM: {e}"

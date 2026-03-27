@@ -393,11 +393,12 @@ def todo_continuation_enforcer(context: HookContext) -> HookContext:
 
                 if is_stopping:
                     # Inject reminder
+                    completed = sum(1 for t in todo_tracker.todos if t.status == "completed")
+                    remaining = len(todo_tracker.todos) - completed
                     reminder = {
                         "role": "user",
                         "content": (
-                            f"[System] There are still incomplete tasks:\n"
-                            f"{todo_tracker.format_progress()}\n\n"
+                            f"[System] {completed}/{len(todo_tracker.todos)} tasks done, {remaining} remaining.\n"
                             f"Current task: {current.content}\n"
                             f"Please continue working on the remaining tasks."
                         )

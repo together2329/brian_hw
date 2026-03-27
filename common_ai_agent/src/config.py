@@ -122,6 +122,9 @@ GIT_VERSION_CONTROL_ENABLE = os.getenv("GIT_VERSION_CONTROL_ENABLE", "true").low
 GIT_COMMIT_MSG_MODE = os.getenv("GIT_COMMIT_MSG_MODE", "simple")
 # Cheap LLM model for generating git commit summaries
 GIT_COMMIT_SUMMARY_MODEL = os.getenv("GIT_COMMIT_SUMMARY_MODEL", "openrouter/qwen/qwen-2.5-7b-instruct")
+
+# Secondary model: lightweight tasks (spec summarization, etc.)
+SECONDARY_MODEL = os.getenv("SECONDARY_MODEL", MODEL_NAME)
 GIT_COMMIT_SUMMARY_TEMPERATURE = float(os.getenv("GIT_COMMIT_SUMMARY_TEMPERATURE", "0.3"))
 
 # Enable LSP integration (optional - requires LSP server installed)

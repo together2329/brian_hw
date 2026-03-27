@@ -187,11 +187,11 @@ def _git_auto_commit(path: str, operation: str, stats: str = "", content_hint: s
             if mode == 'summary' and content_hint:
                 summary = _llm_commit_summary(rel, content_hint)
                 if summary:
-                    msg = f"auto: {operation} {rel}{stats_part} [{timestamp}] — {summary}"
+                    msg = f"auto: {operation} {rel}{stats_part} — {summary}"
                 else:
-                    msg = f"auto: {operation} {rel}{stats_part} [{timestamp}]"
+                    msg = f"auto: {operation} {rel}{stats_part}"
             else:
-                msg = f"auto: {operation} {rel}{stats_part} [{timestamp}]"
+                msg = f"auto: {operation} {rel}{stats_part}"
             subprocess.run(['git', 'commit', '-m', msg], capture_output=True, cwd=git_root)
         except Exception:
             pass

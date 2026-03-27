@@ -91,8 +91,6 @@ try:
     tools.AVAILABLE_TOOLS["spec_search"] = spec_search
     if config.DEBUG_MODE:
         print(Color.system("[System] spec tools loaded: spec_ask (primary) + spec_navigate/spec_search (sub-agent)"))
-    else:
-        print(Color.system("[System] spec tools loaded (pcie/ucie/nvme)"))
 except ImportError as e:
     print(Color.warning(f"[System] Failed to load spec tools: {e}"))
 
@@ -2659,8 +2657,20 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 clean = re.sub(r'</?think>', '', clean).strip()  # leftover tags
             return clean, entered, exited
 
+        # ── Thinking spinner ──
+        _thinking_spinner = Spinner("Thinking")
+        _thinking_spinner.start()
+        _thinking_stopped = False
+
         try:
             for chunk in chat_completion_stream(messages, stop=_stop_seqs):
+                if not _thinking_stopped:
+                    _elapsed_think = time.time() - _stream_start
+                    _thinking_spinner.stop()
+                    sys.stderr.write(f"  \033[36m✽\033[0m \033[2mThinking... (Done {_elapsed_think:.1f}s)\033[0m\n")
+                    sys.stderr.flush()
+                    _thinking_stopped = True
+
                 if EscapeWatcher.check():
                     _aborted = True
                     break
@@ -2743,6 +2753,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                             _last_partial = p
 
         except Exception as e:
+            if not _thinking_stopped:
+                _thinking_spinner.stop()
             if not collected_content:
                 print(Color.error(f"\n  LLM call failed: {e}"))
                 break
@@ -2794,9 +2806,15 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         # Show summary line (streaming already displayed the Thought in real-time)
         if not config.DEBUG_MODE:
             elapsed_str = f"{llm_elapsed:.1f}s" if llm_elapsed < 60 else f"{int(llm_elapsed//60)}m{int(llm_elapsed%60):02d}s"
-            token_est = len(collected_content) // 4
-            token_str = f"{token_est/1000:.1f}k" if token_est >= 1000 else str(token_est)
-            print(f"  {Color.DIM}✽ {elapsed_str} · ↓ {token_str} tokens{Color.RESET}")
+            _fk = lambda n: f"{n/1000:.1f}k" if n >= 1000 else str(n)
+            _in = llm_client.last_input_tokens
+            _out = llm_client.last_output_tokens
+            if _in > 0 and _out > 0:
+                token_str = f"in {_fk(_in)} · out {_fk(_out)} · sum {_fk(_in + _out)}"
+            else:
+                token_est = len(collected_content) // 4
+                token_str = f"~{_fk(token_est)}"
+            print(f"  {Color.DIM}✽ {elapsed_str} · {token_str} tokens{Color.RESET}")
         print()
         
         # Show flow stage: Response received
@@ -2936,8 +2954,12 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                     # Run tool with spinner for slow tools (run_command, rag_*, background_*)
                     _SLOW_TOOLS = {'run_command', 'background_task', 'background_output'}
+                    _PRE_HEADER_TOOLS = {'spec_ask'}
                     tracker.record_tool(tool_name)
                     tool_start = time.time()
+                    # Print header before execution for tools that emit progress lines
+                    if tool_name in _PRE_HEADER_TOOLS and not config.DEBUG_MODE:
+                        print(format_tool_header(tool_name, summary))
                     if tool_name in _SLOW_TOOLS and not config.DEBUG_MODE:
                         friendly = _friendly_tool_name(tool_name)
                         with Spinner(f"Running {friendly}"):
@@ -2983,6 +3005,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                             brief = format_tool_brief(tool_name, args_str, observation)
                             header = format_tool_header(tool_name, summary)
                             print(f"{header}  {Color.DIM}({brief}{elapsed_suffix}){Color.RESET}")
+                        elif tool_name in _PRE_HEADER_TOOLS:
+                            # Header already printed before execution; only show result
+                            print(format_tool_result(observation))
                         else:
                             print(format_tool_header(tool_name, summary))
                             print(format_tool_result(observation))
@@ -3122,7 +3147,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     # continue loop to get final answer
                 else:
                     # If visible content was generated but not shown by streaming display, print it now
-                    if visible and len(visible) >= 100:
+                    # Skip if content has ReAct markers (already streamed/displayed)
+                    _has_react = any(m in visible for m in ('Thought:', 'Action:', 'Response:'))
+                    if visible and len(visible) >= 100 and not _has_react:
                         print(f"\r\033[2K{visible}")
                     break
 
@@ -3177,7 +3204,8 @@ def chat_loop():
                 title=f"Session {datetime.now().strftime('%Y-%m-%d %H:%M')}"
             )
             current_session_id = session.id
-            print(Color.system(f"[System] Session created: {current_session_id[:8]}"))
+            if config.DEBUG_MODE:
+                print(Color.system(f"[System] Session ID: {current_session_id[:8]}"))
         except Exception as e:
             print(Color.warning(f"[System] Session manager initialization failed: {e}"))
             print(Color.warning("[System] Continuing without session recovery..."))

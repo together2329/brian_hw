@@ -250,9 +250,12 @@ def _llm_select_sections(query: str, candidates: list) -> list:
             f"Return ONLY the node_id(s) of the 1-2 most relevant sections as a JSON array. "
             f"Example: [\"4.3.2\"] or [\"7.7.9\", \"7.7.9.2\"]. No explanation."
         )
+        import config as _config
+        print(f"  [spec-select] {_config.MODEL_NAME} selecting...", flush=True)
         result = call_llm_raw(
             prompt="",
             messages=[{"role": "user", "content": prompt}],
+            stream_prefix="  [spec-select] ",
         )
         if result:
             match = _re.search(r'\[.*?\]', result, _re.DOTALL)
@@ -310,13 +313,22 @@ def spec_search(spec: str, query: str) -> str:
 
     candidates = [n for n, _ in scored[:10]]
 
+    # Print candidates
+    print(f"  [spec-search] {len(candidates)} candidates:", flush=True)
+    for i, (n, s) in enumerate(scored[:10]):
+        print(f"    {i+1:2d}. [{n['id']}] {n['title']}", flush=True)
+
     # 4. LLM selects best matching sections from candidate titles
     selected_ids = _llm_select_sections(query, candidates)
     _dbg(f"LLM selected: {selected_ids}")
 
+    # Print selected
+    id_to_node = {n["id"]: n for n in candidates}
+    selected_titles = [f"[{nid}] {id_to_node[nid]['title']}" for nid in selected_ids if nid in id_to_node]
+    print(f"  [spec-search] selected: {' · '.join(selected_titles)}", flush=True)
+
     # 5. Read selected files
     data_dir = os.path.abspath(os.path.join(_SKILLS_DIR, f"{spec}-expert", "data"))
-    id_to_node = {n["id"]: n for n in candidates}
     results = []
     for nid in selected_ids:
         node = id_to_node.get(nid)
@@ -377,12 +389,53 @@ def _spec_search_subagent(spec: str, query: str) -> str:
 
 def spec_ask(spec: str, query: str) -> str:
     """
-    Spec Q&A tool — spec_search로 관련 섹션을 찾아 내용을 반환.
+    Spec Q&A tool — spec_search로 관련 섹션을 찾아 secondary model로 요약 후 반환.
     spec='pcie'/'ucie'/'nvme', query=자연어 질문.
     primary agent는 이 도구 하나만 사용하면 됨.
     """
     _dbg(f"spec_ask: spec={spec!r} query={query!r}")
-    return spec_search(spec, query)
+    raw = spec_search(spec, query)
+
+    # Summarize with secondary model to reduce main context token usage
+    try:
+        _src_dir = os.path.join(_CORE_DIR, "..", "src")
+        if _src_dir not in sys.path:
+            sys.path.insert(0, _src_dir)
+        import config
+        import time
+        import llm_client as _llm_client
+        from llm_client import call_llm_raw
+
+        secondary_model = getattr(config, "SECONDARY_MODEL", None) or config.MODEL_NAME
+        print(f"  [spec-summarize] {secondary_model}...", flush=True)
+
+        summary_prompt = (
+            f"You are a technical spec summarizer. "
+            f"Summarize the following spec content to answer this query.\n"
+            f"Query: {query}\n\n"
+            f"Spec content:\n{raw}\n\n"
+            f"STRICT RULES:\n"
+            f"- Use ONLY information from the spec content above. Do NOT add outside knowledge.\n"
+            f"- If the spec content does not answer the query, say so explicitly.\n"
+            f"- Keep all key definitions, field names, bit values, and table data verbatim.\n"
+            f"- 500-800 words max."
+        )
+
+        t0 = time.time()
+        summary = call_llm_raw(summary_prompt, temperature=0.1, model=secondary_model, stream_prefix="  │ ")
+        elapsed = time.time() - t0
+
+        _in  = _llm_client.last_input_tokens
+        _out = _llm_client.last_output_tokens
+        _fk = lambda n: f"{n/1000:.1f}k" if n >= 1000 else str(n)
+        _tok_str = f"in {_fk(_in)} · out {_fk(_out)} · sum {_fk(_in+_out)}" if _in > 0 else ""
+        print(f"\n  [spec-summarize] done · {elapsed:.1f}s{' · ' + _tok_str if _tok_str else ''}", flush=True)
+
+        return summary
+
+    except Exception as e:
+        _dbg(f"spec_ask summarize failed: {e} — returning raw")
+        return raw
 
 
 def _list_available_specs() -> list:
