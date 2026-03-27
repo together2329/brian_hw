@@ -3202,6 +3202,13 @@ def chat_loop():
     if messages and messages[0].get("role") == "system":
         context_tracker.update_system_prompt(messages[0]["content"])
 
+    # Rolling window (default disabled, set by /window N)
+    rolling_window_size = 0
+    full_messages = None  # Full history when rolling window is active
+
+    # Auto-compression (default disabled, set by /compression N)
+    auto_compression_threshold = 0
+
     # Tools and memory are included in system message, so set to 0 to avoid double counting
     context_tracker.update_tools("")
     context_tracker.update_memory({})
@@ -3428,10 +3435,34 @@ def chat_loop():
                         load_active_skills._cached_key = ""
                         load_active_skills._cached_skill = None
 
+                        # Reset last_input_tokens so context bar reflects trimmed messages
+                        llm_client.last_input_tokens = 0
+
                         if keep_n > 0:
                             print(Color.success(f"\n✅ Conversation history cleared (kept last {keep_n} message pair(s)).\n"))
                         else:
                             print(Color.success("\n✅ Conversation history cleared.\n"))
+                        show_context_usage(messages, use_actual=False)
+                        continue
+
+                    if result.startswith("WINDOW_MODE:"):
+                        n = int(result.split(":", 1)[1])
+                        rolling_window_size = n
+                        if n > 0:
+                            full_messages = list(messages)  # Start tracking full history
+                            print(Color.success(f"\n✅ Rolling window: last {n} message pair(s) per LLM call.\n"))
+                        else:
+                            full_messages = None  # Disable full history tracking
+                            print(Color.success("\n✅ Rolling window disabled.\n"))
+                        continue
+
+                    if result.startswith("COMPRESSION_MODE:"):
+                        n = int(result.split(":", 1)[1])
+                        auto_compression_threshold = n
+                        if n > 0:
+                            print(Color.success(f"\n✅ Auto-compression: triggers when messages exceed {n}.\n"))
+                        else:
+                            print(Color.success("\n✅ Auto-compression disabled.\n"))
                         continue
                     elif result.startswith("COMPACT_HISTORY"):
                         # Compact conversation with optional options
@@ -3560,9 +3591,33 @@ def chat_loop():
             # ReAct Loop: Smart Iteration Control with progress tracking
             # Initialize iteration tracker
             tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
-            
-            # Run ReAct Agent
-            messages = run_react_agent(messages, tracker, user_input, mode='interactive')
+
+            # Auto-compression: compress when non-system message count exceeds threshold
+            if auto_compression_threshold > 0:
+                non_sys_count = sum(1 for m in messages if m.get("role") != "system")
+                if non_sys_count > auto_compression_threshold:
+                    print(Color.info(f"\n[Auto-compress] {non_sys_count} msgs > {auto_compression_threshold}, compressing..."))
+                    messages = compress_history(messages, force=True, quiet=True)
+                    context_tracker.update_messages(messages, exclude_system=True)
+                    save_conversation_history(messages)
+
+            # Rolling window: pass trimmed view to LLM, keep full_messages as authoritative history
+            if rolling_window_size > 0 and full_messages is not None:
+                # First iteration: messages != full_messages, sync user message
+                # Subsequent iterations: messages IS full_messages (same object), already synced
+                if messages is not full_messages:
+                    full_messages.append(messages[-1])
+                sys_msgs = [m for m in full_messages if m.get("role") == "system"]
+                non_sys = [m for m in full_messages if m.get("role") != "system"]
+                window_msgs = sys_msgs + non_sys[-(rolling_window_size * 2):]
+                window_result = run_react_agent(window_msgs, tracker, user_input, mode='interactive')
+                # Append only newly added messages (assistant + tool responses) to full_messages
+                new_msgs = window_result[len(window_msgs):]
+                full_messages.extend(new_msgs)
+                messages = full_messages
+            else:
+                # Run ReAct Agent
+                messages = run_react_agent(messages, tracker, user_input, mode='interactive')
 
             # Extract knowledge from conversation at end
             try:

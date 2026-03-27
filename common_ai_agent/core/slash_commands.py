@@ -138,6 +138,12 @@ class SlashCommandRegistry:
         self.register('clear', self._cmd_clear,
                      'Clear conversation history and free up context')
 
+        self.register('window', self._cmd_window,
+                     'Rolling context window: /window 10 (keep last N pairs), /window 0 to disable')
+
+        self.register('compression', self._cmd_compression,
+                     'Auto-compress when message count exceeds N: /compression 30, /compression 0 to disable')
+
         self.register('compact', self._cmd_compact,
                      'Clear conversation history but keep a summary in context')
 
@@ -287,6 +293,20 @@ class SlashCommandRegistry:
         if keep.isdigit():
             return f"CLEAR_HISTORY:{keep}"
         return "CLEAR_HISTORY"  # Special signal for main loop
+
+    def _cmd_window(self, args: str) -> str:
+        """Rolling context window. /window N — only last N message pairs sent to LLM each turn."""
+        n = args.strip()
+        if n.isdigit():
+            return f"WINDOW_MODE:{n}"
+        return "WINDOW_MODE:0"  # disable
+
+    def _cmd_compression(self, args: str) -> str:
+        """Auto-compress when non-system message count exceeds N. /compression 0 to disable."""
+        n = args.strip()
+        if n.isdigit():
+            return f"COMPRESSION_MODE:{n}"
+        return "COMPRESSION_MODE:0"  # disable
 
     def _cmd_compact(self, args: str) -> str:
         """
