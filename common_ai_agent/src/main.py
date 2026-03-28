@@ -2716,7 +2716,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     # Merge tokenization-split fragments: if raw_line is a short lowercase
                     # fragment (e.g. "c" split from "code inspection."), re-attach to next line
                     _stripped = raw_line.strip()
-                    if _stripped and len(_stripped) <= 3 and _stripped.islower():
+                    if _stripped and len(_stripped) <= 3 and _stripped.islower() and '\n' in _buf:
                         _buf = _stripped + _buf
                         continue
                     text, entered, exited, reasoning = _strip_think(raw_line)
@@ -2795,17 +2795,21 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         if not config.DEBUG_MODE and _state != _ACTION:
             remaining = _buf.strip() if _buf else ""
             if remaining:
-                remaining, _, _ = _strip_think(remaining)
+                text, entered, exited, reasoning = _strip_think(remaining)
+                # Ensure we handle any leftover reasoning if we just exited think
+                if exited and reasoning:
+                    # just drop it or handle it... streaming already handled it if in real-time
+                    pass
+                
                 # Truncate at Action: if present (stream ended without \n before Action:)
-                _ai_end = remaining.lower().find('action:')
+                _ai_end = text.lower().find('action:')
                 if _ai_end == 0:
-                    remaining = ""  # starts with Action: — suppress entirely
+                    text = ""  # starts with Action: — suppress entirely
                 elif _ai_end > 0:
-                    remaining = remaining[:_ai_end].rstrip()
-                if remaining:
-                    # Partial display already showed this content via \r overwrite.
-                    # Just finalize with \n — avoids re-printing tokenization fragments.
-                    sys.stdout.write(f"\n")
+                    text = text[:_ai_end].rstrip()
+                
+                if text:
+                    _emit(text)
                 else:
                     sys.stdout.write(f"\r\033[2K")
             else:
@@ -3081,6 +3085,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         if tool_name in _INLINE_TOOLS:
                             brief = format_tool_brief(tool_name, args_str, observation)
                             header = format_tool_header(tool_name, summary)
+                            # Ensure tool header is on a new line
                             print(f"{header}  {Color.DIM}({brief}{elapsed_suffix}){Color.RESET}")
                         elif tool_name in _PRE_HEADER_TOOLS:
                             # Header already printed before execution; only show result
@@ -3094,14 +3099,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                     combined_results.append(f"--- [Action {i+1}] {tool_name} ---\n{observation}")
 
-                    # FORCE BREAK after todo_write to trigger confirmation prompt
-                    # But don't break on todo_update in execution mode
-                    if tool_name == 'todo_write' or (tool_name == 'todo_update' and agent_mode in ('plan', 'plan_q')):
-                        print(Color.system("\n[System] ⏹  Plan ready. Breaking loop for confirmation.\n"))
-                        # Append the results so far and break the loop
-                        messages.append({"role": "assistant", "content": collected_content})
-                        messages.append({"role": "user", "content": "\n".join(combined_results)})
-                        return messages, 'plan'
+
+                    # [Step Review] todo_update(completed) logic already handled above
 
             # Combine all observations
             observation = "\n\n".join(combined_results)
@@ -3452,16 +3451,6 @@ def chat_loop():
         try:
             if config.ENABLE_TODO_TRACKING:
                 todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE))
-                if todo_tracker_main and todo_tracker_main.todos and not todo_tracker_main.is_all_completed() and not is_first_turn:
-                    if agent_mode == 'normal':
-                        agent_mode = 'plan'
-                        # Proactively refresh system prompt to hide tools
-                        if messages and messages[0].get("role") == "system":
-                            system_prompt_data = build_system_prompt(messages, allowed_tools=None, agent_mode='plan')
-                            if isinstance(system_prompt_data, dict):
-                                messages[0]["content"] = system_prompt_data.get("static", "") + "\n\n" + system_prompt_data.get("dynamic", "")
-                            else:
-                                messages[0]["content"] = system_prompt_data
 
             if _multiline_prompt:
                 is_plan_turn = (agent_mode in ('plan', 'plan_q'))
@@ -3834,7 +3823,8 @@ def chat_loop():
             if agent_mode in ('plan', 'plan_q'):
                 _inp = user_input.lower().strip()
                 # Support English and Korean confirmation
-                if _inp in ('y', 'yes', 'confirm', 'proceed', '진행', '확인', 'ok', '네', '예', 'ㅇㅇ'):
+                if _inp in ('y', 'yes', 'confirm', 'proceed', '진행', '확인', 'ok', '네', '예', 'ㅇㅇ', 'yc'):
+                    do_compress = (_inp == 'yc')
                     agent_mode = 'normal'
                     os.environ["PLAN_MODE"] = "false"
                     if messages and messages[0].get("role") == "system":
@@ -3848,11 +3838,18 @@ def chat_loop():
                             _new_content = system_prompt_data
                         messages[0]["content"] = _new_content
 
-                    print(Color.success("\n[Plan] ✅ Confirmed. Switching to Execution Mode and starting task...\n"))
+                    msg = "✅ Confirmed. Switching to Execution Mode..."
+                    if do_compress:
+                        msg += " (with History Compression)"
+                    print(Color.success(f"\n[Plan] {msg}\n"))
+                    
                     # Inject a direct instruction to start immediately instead of just "y"
                     user_input = "Confirmed. Proceed with the first task immediately without further talk."
                     messages[-1]["content"] = user_input
-                    messages = compress_history(messages, force=True)
+                    
+                    if do_compress:
+                        messages = compress_history(messages, force=True)
+                    
                     if full_messages is not None:
                         full_messages = list(messages)
                     save_conversation_history(messages)

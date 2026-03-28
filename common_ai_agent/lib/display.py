@@ -31,6 +31,7 @@ class Color:
     DIM = '\033[2m'
     ITALIC = '\033[3m'
     UNDERLINE = '\033[4m'
+    STRIKETHROUGH = '\033[9m'
     RESET = '\033[0m'
 
     @staticmethod
@@ -370,6 +371,10 @@ TOOL_ICONS = {
     'background_list':   '#',
     # Todo
     'todo_write':    '☐',
+    'todo_update':   '☐',
+    'todo_add':      '☐',
+    'todo_remove':   '☐',
+    'todo_status':   '☐',
     'todo_read':     '☐',
     # Verilog
     'analyze_verilog_module': '⊞',
@@ -505,6 +510,21 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
 
     if tool_name in ('git_diff', 'git_status'):
         return f"{line_count} lines"
+
+    if tool_name == 'todo_write':
+        count = observation.count('⏸') + observation.count('▶') + observation.count('✅')
+        return f"{count} task(s)"
+
+    if tool_name == 'todo_update':
+        if 'completed' in observation.lower():
+            return "completed"
+        return "updated"
+
+    if tool_name == 'todo_add':
+        return "added"
+
+    if tool_name == 'todo_remove':
+        return "removed"
 
     return f"{line_count} lines"
 
@@ -740,6 +760,40 @@ def _extract_tool_args_summary(tool_name: str, args_str: str) -> str:
         if prompt_match:
             parts.append(f'"{prompt_match.group(1)}..."')
         return ' '.join(parts) if parts else args_str[:60]
+
+    # Extract tasks/todos count for todo_write
+    if tool_name == 'todo_write':
+        # Minimal attempt to count items in the tasks/todos list
+        tasks_m = re.search(r'(?:tasks|todos)\s*=\s*\[', args_str)
+        if tasks_m:
+            # Count the number of dictionaries in the list by looking for "content" or "{"
+            count = args_str.count('"content":') or args_str.count('{')
+            return f"{count} task(s)"
+        return "..."
+
+    # Extract index/status for todo_update
+    if tool_name == 'todo_update':
+        idx_m = re.search(r'index\s*=\s*(\d+)', args_str)
+        status_m = re.search(r'status\s*=\s*["\']([^"\']+)["\']', args_str)
+        content_m = re.search(r'content\s*=\s*["\']([^"\']{0,30})', args_str)
+        parts = []
+        if idx_m:
+            parts.append(f"#{int(idx_m.group(1))}")
+        if status_m:
+            parts.append(f"→ {status_m.group(1)}")
+        if content_m and not status_m:
+            parts.append(f"→ \"{content_m.group(1)}...\"")
+        return ' '.join(parts) if parts else args_str[:60]
+
+    # Extract content for todo_add
+    if tool_name == 'todo_add':
+        content_m = re.search(r'content\s*=\s*["\']([^"\']{0,40})', args_str)
+        return f'"{content_m.group(1)}..."' if content_m else args_str[:60]
+
+    # Extract index for todo_remove
+    if tool_name == 'todo_remove':
+        idx_m = re.search(r'index\s*=\s*(\d+)', args_str)
+        return f"#{idx_m.group(1)}" if idx_m else args_str[:60]
 
     # Default: truncate
     return args_str[:60] + ('...' if len(args_str) > 60 else '') if args_str else ""

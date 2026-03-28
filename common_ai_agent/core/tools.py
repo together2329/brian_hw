@@ -2157,19 +2157,23 @@ def todo_write(todos=None, tasks=None):
         return f"Error formatting progress: {e}"
 
 
-def todo_update(index=None, status=None, reason=""):
+def todo_update(index=None, status=None, reason="", content="", detail="", activeForm="", criteria=""):
     """
-    Update the status of a specific todo item.
+    Update a specific todo item's status and/or content.
 
     Args:
-        index (int): 1-based index of the todo to update.
-        status (str): New status — "in_progress", "completed", or "pending".
+        index (int): 1-based index of the todo to update (required).
+        status (str): New status — "in_progress", "completed", or "pending" (optional).
         reason (str): Rejection reason when reverting to pending/in_progress.
-                      Stored on the item and shown in the next step header.
+        content (str): New task description (optional, updates if provided).
+        detail (str): New implementation detail (optional, updates if provided).
+        activeForm (str): New display text while in progress (optional).
+        criteria (str): New completion criteria (optional).
 
     Example:
         todo_update(index=1, status="completed")
-        todo_update(index=2, status="pending", reason="Tests still failing: test_foo AssertionError")
+        todo_update(index=2, content="Updated task description")
+        todo_update(index=3, status="pending", reason="Tests still failing")
     """
     try:
         import sys
@@ -2183,38 +2187,155 @@ def todo_update(index=None, status=None, reason=""):
     if todo_tracker is None or not todo_tracker.todos:
         return "Error: No active todo list. Use todo_write() first."
 
-    if index is None or status is None:
-        return "Error: Both 'index' (1-based) and 'status' are required."
+    if index is None:
+        return "Error: 'index' (1-based) is required."
 
     # Convert to 0-based
     idx = int(index) - 1
     if not (0 <= idx < len(todo_tracker.todos)):
         return f"Error: index {index} out of range (1-{len(todo_tracker.todos)})"
 
-    valid = ["pending", "in_progress", "completed"]
-    if status not in valid:
-        return f"Error: status must be one of {valid}"
-
     item = todo_tracker.todos[idx]
 
-    if status == "completed":
-        item.rejection_reason = ""  # 완료 시 거절 이유 초기화
-        todo_tracker.mark_completed(idx)
-        return todo_tracker.format_progress()
-    elif status == "in_progress":
-        if reason:
-            item.rejection_reason = reason
-        todo_tracker.mark_in_progress(idx)
-    else:  # pending
-        if reason:
-            item.rejection_reason = reason
-        item.status = "pending"
-        todo_tracker.save()
+    # Update content fields if provided
+    if content:
+        item.content = content
+        if not activeForm:
+            from lib.todo_tracker import _generate_active_form
+            item.active_form = _generate_active_form(content)
+    if activeForm:
+        item.active_form = activeForm
+    if detail:
+        item.detail = detail
+    if criteria:
+        item.criteria = criteria
+
+    # Update status if provided
+    if status:
+        valid = ["pending", "in_progress", "completed"]
+        if status not in valid:
+            return f"Error: status must be one of {valid}"
+
+        if status == "completed":
+            item.rejection_reason = ""
+            todo_tracker.mark_completed(idx)
+            return todo_tracker.format_progress()
+        elif status == "in_progress":
+            if reason:
+                item.rejection_reason = reason
+            todo_tracker.mark_in_progress(idx)
+        else:  # pending
+            if reason:
+                item.rejection_reason = reason
+            item.status = "pending"
+
+    todo_tracker.save()
 
     if reason:
         prefix = f"[REJECTED] Step {index}: {item.content}\nRejection reason: {reason}\n\n"
         return prefix + todo_tracker.format_progress()
     return todo_tracker.format_progress()
+
+
+def todo_add(content="", activeForm="", priority="medium", detail="", criteria="", index=None):
+    """
+    Add a single task to the existing todo list.
+    More efficient than todo_write for adding tasks mid-execution.
+
+    Args:
+        content (str): Task description (required).
+        activeForm (str): Display text while in progress (auto-generated if omitted).
+        priority (str): "high", "medium", or "low" (default: "medium").
+        detail (str): Implementation details (optional).
+        criteria (str): Completion criteria, newline-separated (optional).
+        index (int): 1-based position to insert at. If omitted, appends to end.
+
+    Example:
+        todo_add(content="Fix lint errors", priority="low")
+        todo_add(content="Add error handler", index=3)
+    """
+    try:
+        import sys
+        main_module = sys.modules.get('main')
+        if main_module is None:
+            import main as main_module
+        todo_tracker = getattr(main_module, 'todo_tracker', None)
+    except Exception as e:
+        return f"Error accessing todo tracker: {e}"
+
+    if todo_tracker is None:
+        # Auto-create tracker if needed
+        from lib.todo_tracker import TodoTracker
+        from pathlib import Path
+        import config as _cfg
+        todo_tracker = TodoTracker.load(Path(_cfg.TODO_FILE))
+        main_module.todo_tracker = todo_tracker
+
+    if not content:
+        return "Error: 'content' is required."
+
+    from lib.todo_tracker import TodoItem, _generate_active_form
+    active = activeForm or _generate_active_form(content)
+
+    new_item = TodoItem(
+        content=content,
+        active_form=active,
+        status="pending",
+        priority=priority,
+        detail=detail,
+        criteria=criteria,
+    )
+
+    if index is not None:
+        idx = int(index) - 1
+        idx = max(0, min(idx, len(todo_tracker.todos)))
+        todo_tracker.todos.insert(idx, new_item)
+    else:
+        todo_tracker.todos.append(new_item)
+
+    todo_tracker.save()
+    return todo_tracker.format_progress()
+
+
+def todo_remove(index=None):
+    """
+    Remove a task from the todo list by index.
+
+    Args:
+        index (int): 1-based index of the task to remove (required).
+
+    Example:
+        todo_remove(index=3)
+    """
+    try:
+        import sys
+        main_module = sys.modules.get('main')
+        if main_module is None:
+            import main as main_module
+        todo_tracker = getattr(main_module, 'todo_tracker', None)
+    except Exception as e:
+        return f"Error accessing todo tracker: {e}"
+
+    if todo_tracker is None or not todo_tracker.todos:
+        return "Error: No active todo list."
+
+    if index is None:
+        return "Error: 'index' (1-based) is required."
+
+    idx = int(index) - 1
+    if not (0 <= idx < len(todo_tracker.todos)):
+        return f"Error: index {index} out of range (1-{len(todo_tracker.todos)})"
+
+    removed = todo_tracker.todos.pop(idx)
+
+    # Fix current_index if needed
+    if todo_tracker.current_index == idx:
+        todo_tracker.current_index = -1
+    elif todo_tracker.current_index > idx:
+        todo_tracker.current_index -= 1
+
+    todo_tracker.save()
+    return f"Removed: \"{removed.content}\"\n\n{todo_tracker.format_progress()}"
 
 
 def todo_status():
@@ -2407,6 +2528,8 @@ AVAILABLE_TOOLS = {
     # Task Management
     "todo_write": todo_write,
     "todo_update": todo_update,
+    "todo_add": todo_add,
+    "todo_remove": todo_remove,
     "todo_status": todo_status,
     # RAG Tools (disabled — uncomment to enable)
     # "rag_search": rag_search,

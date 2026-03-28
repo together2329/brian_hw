@@ -767,7 +767,7 @@ When deciding how to approach a task, consider:
    - **Parallel execution**: Use multiple read-only tools simultaneously
    - **Sequential execution**: Write tools create barriers
    - **Sub-agents**: Use background_task for delegation
-   - **Todo tracking**: Use todo_write/todo_update for multi-step tasks
+   - **Todo tracking**: Use todo_update/todo_add for task progress during execution
 
 Focus on using the right tools for the task at hand.
 
@@ -805,6 +805,8 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False)
     # Filter out blocked tools in Plan Mode as requested by user
     if plan_mode:
         tool_list = tool_list - PLAN_MODE_BLOCKED_TOOLS
+    else:
+        tool_list = tool_list - NORMAL_MODE_BLOCKED_TOOLS
 
     def _tool_line(name, sig, desc):
         """Format one tool line, only if available."""
@@ -834,8 +836,11 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False)
             _tool_line("git_revert", 'path', "Revert uncommitted changes to a file."),
         ],
         "Task Management": [
-            _tool_line("todo_write", 'tasks', "Track multi-step tasks (3+ steps). Format: [{content, activeForm, status}]."),
-            _tool_line("todo_update", 'index, status', "Update task status (pending/in_progress/completed)."),
+            _tool_line("todo_write", 'tasks', "Create task list (Plan Mode only). Format: [{content, activeForm, status}]."),
+            _tool_line("todo_update", 'index, status, content, detail', "Update task status and/or content."),
+            _tool_line("todo_add", 'content, priority, index', "Add a single task to the list."),
+            _tool_line("todo_remove", 'index', "Remove a task (Plan Mode only)."),
+            _tool_line("todo_status", '', "Show current task progress."),
         ],
         "Sub-Agents": [
             _tool_line("background_task", 'agent, prompt', "Delegate to sub-agent (explore/execute/review)."),
@@ -950,6 +955,19 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False)
     return "\n".join(parts)
 
 
+PLAN_MODE_BLOCKED_TOOLS = frozenset({
+    'write_file', 'replace_in_file', 'replace_lines',
+    'replace_file_content', 'multi_replace_file_content',
+    'apply_diffs', 'run_command', 'git_revert',
+})
+
+# Tools only available in Plan Mode (blocked in Normal/Execution mode)
+NORMAL_MODE_BLOCKED_TOOLS = frozenset({
+    'todo_write',   # Use todo_update/todo_add during execution
+    'todo_remove',  # Task removal only during planning
+})
+
+
 # Update SYSTEM_PROMPT to use new tool description system
 # This will be overridden by build_system_prompt() in main.py when needed
 SYSTEM_PROMPT = build_base_system_prompt()
@@ -979,6 +997,7 @@ PLAN_MODE_PROMPT = (
     "4. CONFIRM (CRITICAL):\n"
     "   When the user confirms ('y', 'yes', 'go', etc.), you should then start execution.\n"
     "   If the plan is complex, use `todo_write(todos=[...])` during the planning phase to finalize the task list.\n"
+    "   During execution, use `todo_update(index=N, status='completed')` to track progress. Do NOT use `todo_write` during execution.\n"
     "   Execution ONLY begins AFTER the user provides a final confirmation of the plan.\n"
     "\n"
     "USER INTERACTION:\n"
@@ -990,9 +1009,3 @@ PLAN_MODE_PROMPT = (
     "MANDATORY confirmation ('y') before execution.\n"
     "=================="
 )
-
-PLAN_MODE_BLOCKED_TOOLS = frozenset({
-    'write_file', 'replace_in_file', 'replace_lines',
-    'replace_file_content', 'multi_replace_file_content',
-    'apply_diffs', 'run_command', 'todo_update', 'git_revert',
-})

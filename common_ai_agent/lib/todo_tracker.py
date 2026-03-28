@@ -25,6 +25,7 @@ except ImportError:
     class Color:
         CYAN = ""
         YELLOW = ""
+        RED = ""
         BOLD = ""
         DIM = ""
         STRIKETHROUGH = ""
@@ -220,10 +221,15 @@ class TodoTracker:
         if not self.todos:
             return ""
 
+        from lib.display import get_terminal_width
+        term_width = get_terminal_width()
+        # Adjusted max length based on terminal width (with some padding for icons/timing)
+        max_text_len = max(40, term_width - 35)
+
         # Rich styling for premium feel
-        _HEADER = f"{Color.BOLD}{Color.CYAN}┍━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┑"
-        _TITLE  = f"  {Color.YELLOW}TRACKING PROGRESS{Color.CYAN}"
-        _HEADER_END = f"┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┙{Color.RESET}"
+        _HEADER = f"  {Color.CYAN}┍━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┑"
+        _TITLE  = f"  {Color.CYAN}┃{Color.RESET}  {Color.BOLD}{Color.YELLOW}📋 PLAN & PROGRESS{Color.RESET}                       {Color.CYAN}┃"
+        _HEADER_END = f"  {Color.CYAN}┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┙{Color.RESET}"
         _BAR_BG = Color.DIM + "░" + Color.RESET
         _BAR_FG = Color.success("█")
         
@@ -251,9 +257,9 @@ class TodoTracker:
                 content_style = Color.BOLD + Color.YELLOW
 
             text = todo.active_form if todo.status == "in_progress" else todo.content
-            # Truncate if too long to prevent wrapping issues
-            if len(text) > 60:
-                text = text[:57] + "..."
+            # Truncate if too long to prevent wrapping issues, using dynamic width
+            if len(text) > max_text_len:
+                text = text[:max_text_len-3] + "..."
             
             # Elapsed / completion time
             time_str = ""
@@ -268,6 +274,10 @@ class TodoTracker:
             if todo.detail and todo.status != 'completed':
                 prefix = "   " if todo.status == "in_progress" else "   "
                 lines.append(f"{prefix}{Color.DIM}└ 📝 {todo.detail}{Color.RESET}")
+                
+            # Show rejection reason if available
+            if todo.rejection_reason and todo.status != 'completed':
+                lines.append(f"     {Color.RED}⚠ {todo.rejection_reason}{Color.RESET}")
                 
             # Show criteria if available
             if todo.criteria and todo.status != 'completed':
