@@ -3202,7 +3202,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     # Catches NOISE-state responses (no Thought: prefix) that were suppressed.
                     _has_react = any(m in visible for m in ('Thought:', 'Action:', 'Response:'))
                     if visible and not _has_react and not _content_emitted:
-                        print(f"\r\033[2K{visible}")
+                        print(visible)
                     break
 
         # Increment iteration counter
