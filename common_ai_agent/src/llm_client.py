@@ -899,7 +899,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             yield f"{Color.info('If this persists, please check your network connection.')}\n"
             return
 
-def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=None, stream_prefix=None, spinner_label=None):
+def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=None, stream_prefix=None, spinner_label=None, max_tokens=None, extra_body=None):
     """
     Call LLM without streaming (for extraction tasks, sub-agents, etc.).
 
@@ -948,6 +948,10 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
     }
     if stop:
         data["stop"] = stop
+    if max_tokens is not None:
+        data["max_tokens"] = max_tokens
+    if extra_body:
+        data.update(extra_body)
 
     try:
         request = urllib.request.Request(
@@ -958,6 +962,7 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
 
         if use_stream:
             full_content = []
+            _prefix_printed = False
             with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
                 line_buf = ""
                 for raw_line in response:
@@ -970,23 +975,39 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
                     try:
                         chunk = json.loads(data_str)
                         delta = chunk.get("choices", [{}])[0].get("delta", {})
-                        token = delta.get("content", "")
+                        # GLM-4.7: reasoning_content=thinking (display only), content=answer
+                        thinking_token = delta.get("reasoning_content", "")
+                        answer_token = delta.get("content", "")
+                        token = thinking_token or answer_token
+                        if answer_token:
+                            full_content.append(answer_token)
                         if token:
-                            full_content.append(token)
-                            line_buf += token
-                            while '\n' in line_buf:
-                                out_line, line_buf = line_buf.split('\n', 1)
-                                sys.stdout.write(f"{stream_prefix}{out_line}\n")
-                                sys.stdout.flush()
+                            # Print prefix once at start of each line
+                            if not _prefix_printed:
+                                sys.stdout.write(stream_prefix)
+                                _prefix_printed = True
+                            # Print token immediately; handle newlines with prefix
+                            if '\n' in token:
+                                parts = token.split('\n')
+                                sys.stdout.write(parts[0])
+                                for part in parts[1:]:
+                                    sys.stdout.write('\n')
+                                    if part:
+                                        sys.stdout.write(stream_prefix + part)
+                                        _prefix_printed = True
+                                    else:
+                                        _prefix_printed = False
+                            else:
+                                sys.stdout.write(token)
+                            sys.stdout.flush()
                         usage = chunk.get("usage", {})
                         if usage:
                             last_input_tokens = usage.get("prompt_tokens", usage.get("input_tokens", 0))
                             last_output_tokens = usage.get("completion_tokens", usage.get("output_tokens", 0))
                     except (json.JSONDecodeError, KeyError):
                         pass
-                if line_buf.strip():
-                    sys.stdout.write(f"{stream_prefix}{line_buf}\n")
-                    sys.stdout.flush()
+                sys.stdout.write('\n')
+                sys.stdout.flush()
             content = "".join(full_content)
             content = re.sub(r'<\|final<\|[^>]*\|>', '', content)
             content = re.sub(r'<\|[^|<>]+\|>', '', content)

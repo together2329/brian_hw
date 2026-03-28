@@ -247,16 +247,28 @@ def _llm_select_sections(query: str, candidates: list) -> list:
             f"You are selecting the most relevant sections from a technical spec index.\n"
             f"Query: {query}\n\n"
             f"Candidates:\n{candidate_lines}\n\n"
-            f"Return ONLY the node_id(s) of the 1-2 most relevant sections as a JSON array. "
-            f"Example: [\"4.3.2\"] or [\"7.7.9\", \"7.7.9.2\"]. No explanation."
+            f"In 1 sentence, state which section(s) best answer the query and why. "
+            f"Then on a new line, return the node_id(s) as a JSON array. "
+            f"Example:\nSection 10.2 directly defines FDI interface.\n[\"10.2\"]"
         )
         import config as _config
+        import llm_client as _llm_client
+        import time as _time
         print(f"  [spec-select] {_config.MODEL_NAME} selecting...", flush=True)
+        _t0 = _time.time()
         result = call_llm_raw(
             prompt="",
             messages=[{"role": "user", "content": prompt}],
             stream_prefix="  [spec-select] ",
+            temperature=0.0,
+            extra_body={"thinking": {"type": "disabled"}},
         )
+        _elapsed = _time.time() - _t0
+        _in = _llm_client.last_input_tokens
+        _out = _llm_client.last_output_tokens
+        _fk = lambda n: f"{n/1000:.1f}k" if n >= 1000 else str(n)
+        _tok_str = f"in {_fk(_in)} · out {_fk(_out)} · sum {_fk(_in+_out)}" if _in > 0 else ""
+        print(f"\n  [spec-select] done · {_elapsed:.1f}s{' · ' + _tok_str if _tok_str else ''}", flush=True)
         if result:
             match = _re.search(r'\[.*?\]', result, _re.DOTALL)
             if match:
