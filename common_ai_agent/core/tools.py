@@ -182,7 +182,9 @@ def _git_auto_commit(path: str, operation: str, stats: str = "", content_hint: s
             subprocess.run(['git', 'add', abs_path], capture_output=True, cwd=git_root)
             rel = os.path.relpath(abs_path, git_root)
             timestamp = _dt.now().strftime("%Y-%m-%d %H:%M:%S")
-            stats_part = f" ({stats})" if stats else ""
+            # Omit diff stats (+N/-M lines) in Plan Mode as requested by user
+            is_plan_mode = os.environ.get("PLAN_MODE") == "true"
+            stats_part = f" ({stats})" if stats and not is_plan_mode else ""
             mode = getattr(_cfg, 'GIT_COMMIT_MSG_MODE', 'simple')
             if mode == 'summary' and content_hint:
                 summary = _llm_commit_summary(rel, content_hint)
@@ -790,6 +792,49 @@ def git_status():
         return "Error: Git status timed out."
     except Exception as e:
         return f"Error running git status: {e}"
+
+def git_revert(path: str) -> str:
+    """
+    Reverts uncommitted changes to a file using git.
+    Args:
+        path: Path to the file to revert.
+    """
+    try:
+        # Use abspath to correctly find git root
+        abs_path = os.path.abspath(path)
+        if not os.path.exists(abs_path):
+            return f"Error: Path '{path}' does not exist."
+            
+        git_root = _find_git_root(abs_path)
+        if git_root is None:
+            return f"Error: '{path}' is not in a git repository."
+
+        # Attempt git restore (modern)
+        result = subprocess.run(
+            ['git', 'restore', abs_path],
+            capture_output=True,
+            text=True,
+            cwd=git_root
+        )
+        
+        if result.returncode == 0:
+            return f"Successfully reverted changes to '{path}' using git restore."
+        
+        # Fallback to git checkout
+        result = subprocess.run(
+            ['git', 'checkout', 'HEAD', '--', abs_path],
+            capture_output=True,
+            text=True,
+            cwd=git_root
+        )
+        
+        if result.returncode == 0:
+            return f"Successfully reverted changes to '{path}' using git checkout."
+        else:
+            return f"Error reverting file: {result.stderr}"
+            
+    except Exception as e:
+        return f"Error reverting file: {e}"
 
 def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_line=None, fuzzy_whitespace=True):
     """
@@ -2356,6 +2401,7 @@ AVAILABLE_TOOLS = {
     "find_files": find_files,
     "git_diff": git_diff,
     "git_status": git_status,
+    "git_revert": git_revert,
     "replace_in_file": replace_in_file,
     "replace_lines": replace_lines,
     # Task Management

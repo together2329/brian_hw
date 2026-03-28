@@ -587,6 +587,7 @@ File Editing:
 Git Tools:
 10. git_status() - Show current git status
 11. git_diff(path=None) - Show git diff (optionally for specific file)
+12. git_revert(path="path/to/file") - Revert uncommitted changes to a file
 
 Sub-Agent Tools:
 30. background_task(agent="explore", prompt="find FIFO implementations") - Delegate to sub-agent
@@ -780,13 +781,14 @@ Focus on using the right tools for the task at hand.
 LEGACY_SYSTEM_PROMPT = SYSTEM_PROMPT
 
 
-def build_base_system_prompt(allowed_tools: set = None) -> str:
+def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False) -> str:
     """
     Build compact system prompt (~5K tokens).
     Tool descriptions are minimal (name + signature + when-to-use).
     Detailed examples removed — LLM infers usage from signatures.
     """
     if not ENABLE_TOOL_DESCRIPTIONS:
+        # Legacy fallback
         return LEGACY_SYSTEM_PROMPT
 
     try:
@@ -799,6 +801,11 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         tool_list = set(tools.AVAILABLE_TOOLS.keys())
     else:
         tool_list = set(t for t in tools.AVAILABLE_TOOLS if t in allowed_tools)
+
+    # Filter out blocked tools in Plan Mode as requested by user
+    if plan_mode:
+        blocked = {'write_file', 'replace_in_file', 'replace_lines', 'run_command', 'git_revert'}
+        tool_list = tool_list - blocked
 
     def _tool_line(name, sig, desc):
         """Format one tool line, only if available."""
@@ -825,6 +832,7 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         "Git": [
             _tool_line("git_status", '', "Show working tree status."),
             _tool_line("git_diff", 'path', "Show unstaged changes."),
+            _tool_line("git_revert", 'path', "Revert uncommitted changes to a file."),
         ],
         "Task Management": [
             _tool_line("todo_write", 'tasks', "Track multi-step tasks (3+ steps). Format: [{content, activeForm, status}]."),
@@ -890,20 +898,25 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
             parts.append("")
 
     # Core rules (compressed)
-    parts.append(
-        "RULES:\n"
-        "\n"
-        "1. PARALLEL EXECUTION (MANDATORY):\n"
-        "   - Output 3+ Actions per response when exploring/reading.\n"
+    rules_parts = [
+        "RULES:\n",
+        "\n1. PARALLEL EXECUTION (MANDATORY):\n",
+        "   - Output 3+ Actions per response when exploring/reading.\n",
         "   - Read-only tools are parallel-safe: read_file, read_lines, grep_file, list_dir, find_files, git_status, git_diff.\n"
-        "   - Write tools create sequential barriers: write_file, replace_in_file, run_command.\n"
-        "\n"
-        "2. FILE OPERATIONS:\n"
-        "   - New file → write_file(). Existing file → replace_in_file(). NEVER write_file() on existing.\n"
-        "   - ALWAYS read_file/read_lines BEFORE replace_in_file. Copy exact text including indentation.\n"
-        "   - Include 5+ lines of context in old_text for unique matching.\n"
-        "\n"
-        "3. LARGE FILE STRATEGY:\n"
+    ]
+    if not plan_mode:
+        rules_parts.append("   - Write tools create sequential barriers: write_file, replace_in_file, run_command.\n")
+
+    rules_parts.append("\n2. FILE OPERATIONS:\n")
+    if plan_mode:
+        rules_parts.append("   - You are in PLAN MODE. File modifications are BLOCKED until the plan is confirmed.\n")
+    else:
+        rules_parts.append("   - New file → write_file(). Existing file → replace_in_file(). NEVER write_file() on existing.\n")
+        rules_parts.append("   - ALWAYS read_file/read_lines BEFORE replace_in_file. Copy exact text including indentation.\n")
+        rules_parts.append("   - Include 5+ lines of context in old_text for unique matching.\n")
+
+    rules_parts.append(
+        "\n3. LARGE FILE STRATEGY:\n"
         "   - Files >500 lines: grep_file first → read_lines on found sections. Never blind-read.\n"
         "\n"
         "4. SEARCH PRIORITY: grep_file > find_files > list_dir.\n"
@@ -912,6 +925,7 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
         "   - Never analyze a file you haven't read. Never invent tool results.\n"
         "   - If tool fails, adapt search — don't pretend results exist.\n"
     )
+    parts.append("".join(rules_parts))
 
     # .UPD_RULE.md — global then project (like CLAUDE.md hierarchy)
     _upd_rule_paths = [
@@ -930,6 +944,10 @@ def build_base_system_prompt(allowed_tools: set = None) -> str:
     if _upd_rule_parts:
         parts.append("\n=== PROJECT RULES ===\n" + "\n\n".join(_upd_rule_parts) + "\n=====================")
 
+    # Append Plan Mode instructions if active
+    if plan_mode:
+        parts.append(PLAN_MODE_PROMPT)
+
     return "\n".join(parts)
 
 
@@ -945,28 +963,37 @@ PLAN_MODE_PROMPT = (
     "\n\n=== PLAN MODE ===\n"
     "You are in PLAN MODE. Do NOT implement — plan only.\n"
     "\n"
-    "Loop: ASK → PROPOSE → FEEDBACK → (repeat if needed) → CONFIRM → EXECUTE\n"
+    "Workflow: ASK → PROPOSE → FEEDBACK → (repeat if needed) → CONFIRM → EXECUTE\n"
     "\n"
-    "1. ASK (first response — NO tool calls):\n"
+    "1. ASK:\n"
     "   Ask 1–2 critical questions only. What is unclear? What are the constraints?\n"
     "\n"
-    "2. PROPOSE (after user answers):\n"
+    "2. PROPOSE:\n"
     "   Explore code if needed, then present a short numbered plan.\n"
-    "   End every response with: '이 방향이 맞나요?'\n"
+    "   **SMART GUIDE**: Adapt your plan's complexity to the task:\n"
+    "   - For complex tasks (3+ steps): MANDATORY to show a formal Markdown Draft Todo List.\n"
+    "   - For simple tasks (1-2 steps): A short 1-2 line text plan is sufficient.\n"
+    "   End every planning response with: '이 할 일 목록(혹은 계획)으로 진행할까요? [y/n/feedback]'\n"
     "\n"
-    "3. FEEDBACK → repeat step 2 until user confirms.\n"
+    "3. FEEDBACK: Adjust the plan based on user input until satisfied.\n"
     "\n"
-    "4. CONFIRM: on '좋아' / 'ok' / 'go' / '실행' →\n"
-    "   call todo_write([steps]) — each step needs:\n"
-    "     content, detail, criteria, active_form\n"
+    "4. CONFIRM (CRITICAL):\n"
+    "   When the user confirms ('y', 'yes', 'go', etc.), you should then start execution.\n"
+    "   If the plan is complex, use `todo_write(todos=[...])` during the planning phase to finalize the task list.\n"
+    "   Execution ONLY begins AFTER the user provides a final confirmation of the plan.\n"
+    "\n"
+    "USER INTERACTION:\n"
+    "   The user will be shown a special prompt: `Plan Confirmation [y/n/feedback] > `.\n"
+    "   - 'y' means confirm. The system will then switch to NORMAL mode for execution.\n"
+    "   - Other inputs (feedback or 'n') will stay in PLAN mode.\n"
     "\n"
     "RULES: first response = questions only | write/run tools blocked | "
-    "todo_write only after confirmation\n"
+    "MANDATORY confirmation ('y') before execution.\n"
     "=================="
 )
 
 PLAN_MODE_BLOCKED_TOOLS = frozenset({
     'write_file', 'replace_in_file', 'replace_lines',
     'replace_file_content', 'multi_replace_file_content',
-    'apply_diffs', 'run_command', 'todo_update',
+    'apply_diffs', 'run_command', 'todo_update', 'git_revert',
 })

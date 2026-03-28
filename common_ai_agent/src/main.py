@@ -653,7 +653,7 @@ def parse_all_actions(text):
 
             
     if config.DEBUG_MODE:
-        print(f"[DEBUG] parse_all_actions found {len(actions)} raw actions")
+        # Removed debug action count print
         
     # Deduplicate actions (preserve order)
     # Why? Often models repeat the exact same action in Thought and Action blocks.
@@ -1140,11 +1140,8 @@ def build_system_prompt(messages=None, allowed_tools=None, agent_mode=None):
         _at = set(t for t in _at if t not in config.PLAN_MODE_BLOCKED_TOOLS)
 
     # Use new tool description system from config with filtered tool list
-    base_prompt = config.build_base_system_prompt(allowed_tools=_at)
-    
-    # Inject mode-specific behavioral instructions
-    if agent_mode in ('plan', 'plan_q'):
-        base_prompt += config.PLAN_MODE_PROMPT
+    is_plan = agent_mode in ('plan', 'plan_q')
+    base_prompt = config.build_base_system_prompt(allowed_tools=_at, plan_mode=is_plan)
     
     # Debug: Show prompt building start
     if config.DEBUG_MODE and messages:
@@ -3466,17 +3463,20 @@ def chat_loop():
                                 messages[0]["content"] = system_prompt_data
 
             if _multiline_prompt:
-                # Specialized prompt for Plan Mode (if todos exist)
-                if agent_mode in ('plan', 'plan_q') and todo_tracker_main and todo_tracker_main.todos:
-                    _plan_msg = f"\n{Color.YELLOW}[Plan Mode]{Color.RESET} A plan is active. Confirm to execute or provide feedback.\n"
-                    _plan_prompt = ANSI(Color.warning("Confirm Plan? [y/n/feedback] ") + Color.CYAN + "Plan Mode > " + Color.RESET)
-                    user_input = _multiline_prompt.prompt(_plan_prompt, bottom_toolbar=lambda: _plan_msg)
+                is_plan_turn = (agent_mode in ('plan', 'plan_q'))
+                
+                if is_plan_turn:
+                    _plan_msg = f"{ANSI(Color.YELLOW + '[Plan Mode]')}{Color.RESET} A plan is active. Confirm to execute or provide feedback."
+                    _plan_prompt = ANSI(Color.warning("Plan Confirmation [y/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                    user_input = _multiline_prompt.prompt(_plan_prompt, bottom_toolbar=lambda: ANSI(_plan_msg))
                 else:
                     user_input = _multiline_prompt.prompt(_prompt_text)
             else:
-                if agent_mode in ('plan', 'plan_q') and todo_tracker_main and todo_tracker_main.todos:
-                    print(f"\n{Color.YELLOW}[Plan Mode]{Color.RESET} A plan is active. Confirm to execute or provide feedback.")
-                    user_input = input(Color.warning("Confirm Plan? [y/n/feedback] ") + Color.CYAN + "Plan Mode > " + Color.RESET)
+                is_plan_turn = (agent_mode in ('plan', 'plan_q'))
+                
+                if is_plan_turn:
+                    print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} A plan is active. Confirm to execute or provide feedback.")
+                    user_input = input(Color.warning("Plan Confirmation [y/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
                 else:
                     user_input = input(Color.user("> ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
@@ -3667,21 +3667,42 @@ def chat_loop():
                         agent_mode = result.split(":", 1)[1]
                         if agent_mode == "plan":
                             agent_mode = "plan_q"  # first turn: questions only, tools blocked
+                            os.environ["PLAN_MODE"] = "true"
                             print(Color.success("\n✅ Plan mode: clarify → explore → refine → user confirms → execute.\n"))
                             # Clear stale todos from previous session
                             todo_file = Path(config.TODO_FILE)
                             if todo_file.exists():
                                 todo_file.unlink()
-                            # Inject plan mode instruction into system prompt
+                            
+                            # Refresh system prompt with Plan Mode instructions
                             if messages and messages[0].get("role") == "system":
-                                _sys_content_append(messages[0], config.PLAN_MODE_PROMPT)
+                                system_prompt_data = build_system_prompt(messages, agent_mode=agent_mode)
+                                if config.CACHE_OPTIMIZATION_MODE == "optimized" and isinstance(system_prompt_data, dict):
+                                    blocks = []
+                                    if system_prompt_data.get("static"):
+                                        blocks.append({"type": "text", "text": system_prompt_data["static"], "cache_control": {"type": "ephemeral"}})
+                                    if system_prompt_data.get("dynamic"):
+                                        blocks.append({"type": "text", "text": system_prompt_data["dynamic"]})
+                                    messages[0]["content"] = blocks if blocks else system_prompt_data.get("static", "")
+                                else:
+                                    messages[0]["content"] = _build_system_prompt_str(messages=messages, agent_mode=agent_mode)
                                 save_conversation_history(messages)
                         else:
                             agent_mode = "normal"
+                            os.environ["PLAN_MODE"] = "false"
                             print(Color.success("\n✅ Normal mode.\n"))
-                            # Remove plan mode instruction if present
+                            # Restore normal system prompt
                             if messages and messages[0].get("role") == "system":
-                                _sys_content_strip_plan(messages[0])
+                                system_prompt_data = build_system_prompt(messages, agent_mode=agent_mode)
+                                if config.CACHE_OPTIMIZATION_MODE == "optimized" and isinstance(system_prompt_data, dict):
+                                    blocks = []
+                                    if system_prompt_data.get("static"):
+                                        blocks.append({"type": "text", "text": system_prompt_data["static"], "cache_control": {"type": "ephemeral"}})
+                                    if system_prompt_data.get("dynamic"):
+                                        blocks.append({"type": "text", "text": system_prompt_data["dynamic"]})
+                                    messages[0]["content"] = blocks if blocks else system_prompt_data.get("static", "")
+                                else:
+                                    messages[0]["content"] = _build_system_prompt_str(messages=messages, agent_mode=agent_mode)
                                 save_conversation_history(messages)
                         continue
 
@@ -3815,6 +3836,7 @@ def chat_loop():
                 # Support English and Korean confirmation
                 if _inp in ('y', 'yes', 'confirm', 'proceed', '진행', '확인', 'ok', '네', '예', 'ㅇㅇ'):
                     agent_mode = 'normal'
+                    os.environ["PLAN_MODE"] = "false"
                     if messages and messages[0].get("role") == "system":
                         # Fully rebuild system prompt to restore tools and remove Plan Mode instructions
                         from core import tools
@@ -3825,7 +3847,7 @@ def chat_loop():
                         else:
                             _new_content = system_prompt_data
                         messages[0]["content"] = _new_content
-                    print(Color.success("\n[Plan] Confirmed by user. Compressing plan history and switching to Execution Mode...\n"))
+                    print(Color.success("\n[Plan] ✅ Confirmed. Switching to Execution Mode and starting task...\n"))
                     messages = compress_history(messages, force=True)
                     if full_messages is not None:
                         full_messages = list(messages)
