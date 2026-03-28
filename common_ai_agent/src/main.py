@@ -3427,6 +3427,8 @@ def chat_loop():
     # Initialize slash command registry
     slash_registry = get_slash_command_registry()
 
+    is_first_turn = True
+
     # ── Multiline input setup ──
     _multiline_prompt = None
     if config.ENABLE_MULTILINE_INPUT:
@@ -3450,7 +3452,7 @@ def chat_loop():
         try:
             if config.ENABLE_TODO_TRACKING:
                 todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE))
-                if todo_tracker_main and todo_tracker_main.todos and not todo_tracker_main.is_all_completed():
+                if todo_tracker_main and todo_tracker_main.todos and not todo_tracker_main.is_all_completed() and not is_first_turn:
                     if agent_mode == 'normal':
                         agent_mode = 'plan'
                         # Proactively refresh system prompt to hide tools
@@ -3887,6 +3889,9 @@ def chat_loop():
             else:
                 # Run ReAct Agent
                 messages, agent_mode = run_react_agent(messages, tracker, user_input, mode='interactive', agent_mode=agent_mode)
+                
+                # After the first turn, we enable auto-plan if there are pending todos
+                is_first_turn = False
 
             # plan_q (first clarification turn) → plan (explore allowed next turn)
             if agent_mode == 'plan_q':

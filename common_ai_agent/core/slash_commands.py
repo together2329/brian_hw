@@ -177,7 +177,7 @@ class SlashCommandRegistry:
                      'Enter plan mode: clarify → explore → propose → confirm → todo_write → execute')
 
         self.register('todo', self._cmd_todo,
-                     'Show current todo list status')
+                     'Show/manage current todo list: /todo, /todo clear')
 
         self.register('mode', self._cmd_mode,
                      'Switch agent mode: /mode normal to exit plan mode')
@@ -187,11 +187,20 @@ class SlashCommandRegistry:
         return "AGENT_MODE:plan"
 
     def _cmd_todo(self, args: str) -> str:
-        """Show current todo list status."""
+        """Show/manage current todo list status."""
         try:
+            import config
             from pathlib import Path
             import json
-            todo_file = Path.home() / ".common_ai_agent" / "current_todos.json"
+            todo_file = Path(config.TODO_FILE)
+
+            # Handle /todo clear
+            if args.strip().lower() == 'clear':
+                if todo_file.exists():
+                    todo_file.unlink()
+                    return "✅ Todo list cleared.\n"
+                return "No active todo list to clear.\n"
+
             if not todo_file.exists():
                 return "No active todo list.\n"
             data = json.loads(todo_file.read_text(encoding="utf-8"))
@@ -205,7 +214,7 @@ class SlashCommandRegistry:
                 lines.append(f"{icon} {i+1}. {t.get('content', '')}")
             return "\n".join(lines) + "\n"
         except Exception as e:
-            return f"Error reading todos: {e}\n"
+            return f"Error reading/managing todos: {e}\n"
 
     def _cmd_mode(self, args: str) -> str:
         """Switch agent mode. /mode normal to exit."""

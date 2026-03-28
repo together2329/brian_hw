@@ -804,8 +804,7 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False)
 
     # Filter out blocked tools in Plan Mode as requested by user
     if plan_mode:
-        blocked = {'write_file', 'replace_in_file', 'replace_lines', 'run_command', 'git_revert'}
-        tool_list = tool_list - blocked
+        tool_list = tool_list - PLAN_MODE_BLOCKED_TOOLS
 
     def _tool_line(name, sig, desc):
         """Format one tool line, only if available."""

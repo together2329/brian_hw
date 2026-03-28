@@ -12,7 +12,11 @@ from typing import List, Dict, Optional
 from dataclasses import dataclass, field
 
 # Default persistence path
-TODO_FILE = Path.home() / ".common_ai_agent" / "current_todos.json"
+try:
+    import config
+    TODO_FILE = Path(config.TODO_FILE)
+except (ImportError, AttributeError):
+    TODO_FILE = Path.home() / ".common_ai_agent" / "current_todos.json"
 
 # Import Color for display
 try:
