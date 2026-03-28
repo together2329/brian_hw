@@ -4,19 +4,34 @@
       "content": "첫 번째 테스트 태스크",
       "activeForm": "첫 번째 테스트 진행 중",
       "status": "completed",
-      "created_at": 1774520938.2385778
+      "priority": "medium",
+      "created_at": 1774703108.8267,
+      "completed_at": null,
+      "detail": "",
+      "criteria": "",
+      "rejection_reason": ""
     },
     {
       "content": "두 번째 테스트 태스크",
       "activeForm": "두 번째 테스트 진행 중",
       "status": "pending",
-      "created_at": 1774520938.23858
+      "priority": "medium",
+      "created_at": 1774703108.826703,
+      "completed_at": null,
+      "detail": "",
+      "criteria": "",
+      "rejection_reason": ""
     },
     {
       "content": "세 번째 테스트 태스크",
       "activeForm": "세 번째 테스트 진행 중",
       "status": "pending",
-      "created_at": 1774520938.238581
+      "priority": "medium",
+      "created_at": 1774703108.8267038,
+      "completed_at": null,
+      "detail": "",
+      "criteria": "",
+      "rejection_reason": ""
     }
   ],
   "current_index": -1,

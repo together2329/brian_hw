@@ -360,9 +360,9 @@ class TodoTracker:
             else:
                 next_idx = self._get_next_pending()
                 if next_idx is not None:
-                todo = self.todos[next_idx]
-                lines.append(f"Next task: {todo.content}")
-                lines.append("Start working on this task.")
+                    todo = self.todos[next_idx]
+                    lines.append(f"Next task: {todo.content}")
+                    lines.append("Start working on this task.")
 
         return "\n".join(lines)
 
