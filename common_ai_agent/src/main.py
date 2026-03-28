@@ -3095,7 +3095,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     combined_results.append(f"--- [Action {i+1}] {tool_name} ---\n{observation}")
 
                     # FORCE BREAK after todo_write to trigger confirmation prompt
-                    if tool_name in ('todo_write', 'todo_update'):
+                    # But don't break on todo_update in execution mode
+                    if tool_name == 'todo_write' or (tool_name == 'todo_update' and agent_mode in ('plan', 'plan_q')):
                         print(Color.system("\n[System] ⏹  Plan ready. Breaking loop for confirmation.\n"))
                         # Append the results so far and break the loop
                         messages.append({"role": "assistant", "content": collected_content})
