@@ -2260,7 +2260,29 @@ Action: background_task(agent="{detected_agent}", prompt="{task_description}", f
     return False
 
 
-def run_react_agent(messages, tracker, task_description, mode='interactive', preface_enabled=True):
+def _sys_content_append(msg, text):
+    """Append text to system message content (handles str and list formats)."""
+    if isinstance(msg["content"], str):
+        msg["content"] += text
+    elif isinstance(msg["content"], list):
+        for block in msg["content"]:
+            if isinstance(block, dict) and block.get("type") == "text":
+                block["text"] += text
+                return
+
+
+def _sys_content_strip_plan(msg):
+    """Remove PLAN MODE section from system message content (handles str and list formats)."""
+    if isinstance(msg["content"], str):
+        msg["content"] = msg["content"].split("\n\n=== PLAN MODE ===")[0]
+    elif isinstance(msg["content"], list):
+        for block in msg["content"]:
+            if isinstance(block, dict) and block.get("type") == "text":
+                block["text"] = block["text"].split("\n\n=== PLAN MODE ===")[0]
+                return
+
+
+def run_react_agent(messages, tracker, task_description, mode='interactive', preface_enabled=True, agent_mode='normal'):
     """
     Executes the ReAct agent loop for a given task.
 
@@ -2606,13 +2628,17 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         return True
             return False
 
+        _content_emitted = False  # tracks whether any response text was actually printed
+
         def _emit(text):
             """Print a completed line with dedup."""
+            nonlocal _content_emitted
             text = _dedup_line(text)
             if not _is_dup(text):
                 sys.stdout.write(f"\r\033[2K  {text}\n")
                 sys.stdout.flush()
                 _seen.add(text)
+                _content_emitted = True
 
         def _strip_think(text):
             """Remove <think> tags, return (cleaned_text, entered_think, exited_think)."""
@@ -2721,6 +2747,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                             sys.stdout.write(f"\r\033[2K  {p}")
                             sys.stdout.flush()
                             _last_partial = p
+                            _content_emitted = True
 
         except Exception as e:
             if not _thinking_stopped:
@@ -2933,7 +2960,21 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     # Print header before execution for tools that emit progress lines
                     if tool_name in _PRE_HEADER_TOOLS and not config.DEBUG_MODE:
                         print(format_tool_header(tool_name, summary))
-                    if tool_name in _SLOW_TOOLS and not config.DEBUG_MODE:
+                    # Plan mode tool gating
+                    if agent_mode == 'plan_q':
+                        # First clarification turn: ALL tools blocked — must ask questions only
+                        observation = (
+                            f"[Plan Mode] Tool calls are not allowed yet. "
+                            "You must ask the user clarifying questions first (no tool calls). "
+                            "Once the user answers, you may explore code."
+                        )
+                    elif agent_mode == 'plan' and tool_name in config.PLAN_MODE_BLOCKED_TOOLS:
+                        observation = (
+                            f"[Plan Mode] '{tool_name}' is blocked. "
+                            "Only read/search tools are available (read_file, read_lines, grep_file, find_files). "
+                            "Clarify requirements with the user, then call todo_write() when confirmed."
+                        )
+                    elif tool_name in _SLOW_TOOLS and not config.DEBUG_MODE:
                         friendly = _friendly_tool_name(tool_name)
                         with Spinner(f"Running {friendly}"):
                             observation = execute_tool(tool_name, args_str)
@@ -2945,26 +2986,27 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         print(format_tool_header(tool_name, summary))
                         print(Color.DIM + f"  │ {tool_elapsed:.2f}s" + Color.RESET)
 
-                    # todo_update(completed) → mini step review
+                    # todo_update(completed) → mini step review with criteria
                     if tool_name == 'todo_update' and 'completed' in args_str:
                         current_todo = todo_tracker.get_current_todo() if todo_tracker else None
                         _prev_content = current_todo.content if current_todo else "이전 스텝"
+                        criteria_block = ""
+                        if current_todo and current_todo.criteria:
+                            lines = [f"  - {c.strip()}" for c in current_todo.criteria.splitlines() if c.strip()]
+                            criteria_block = "\nAcceptance criteria:\n" + "\n".join(lines) + "\n"
                         observation += (
-                            f"\n\n[Step Review] '{_prev_content}' 완료로 표시됨.\n"
-                            "실제로 완료됐는지 검증할 것:\n"
-                            "- 구현/변경이 실제로 적용됐는가? (read_file, grep_file로 확인)\n"
-                            "- 미완성이면 todo_update(N, 'in_progress')로 되돌릴 것\n"
-                            "- 완료 확인 후 다음 스텝으로 진행"
+                            f"\n\n[Step Review] '{_prev_content}' 완료로 표시됨.{criteria_block}\n"
+                            "모든 criteria 충족? → 다음 스텝 진행.\n"
+                            "미충족 항목 있음? → todo_update(N, 'pending', reason='<구체적 미충족 이유>')"
                         )
 
                     # Plan mode: todo_write() = plan confirmed → compress + exit plan mode
-                    if tool_name == 'todo_write' and agent_mode == 'plan':
+                    if tool_name == 'todo_write' and agent_mode in ('plan', 'plan_q'):
                         agent_mode = 'normal'
                         if messages and messages[0].get("role") == "system":
-                            messages[0]["content"] = messages[0]["content"].split("\n\n=== PLAN MODE ===")[0]
+                            _sys_content_strip_plan(messages[0])
                         print(Color.success("\n[Plan] Confirmed. Compressing plan history → executing...\n"))
                         messages = compress_history(messages, force=True)
-                        context_tracker.update_messages(messages, exclude_system=True)
                         save_conversation_history(messages)
 
                     # Error detection
@@ -3110,7 +3152,15 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 total = len(todo_tracker.todos)
                 completed = sum(1 for t in todo_tracker.todos if t.status == 'completed')
                 if current_todo:
-                    step_header = f"[Step {completed + 1}/{total}: {current_todo.content}]\n→ 현재 목표를 염두에 두고 아래 결과를 해석할 것\n\n"
+                    header_parts = [f"[Step {completed + 1}/{total}: {current_todo.content}]"]
+                    if current_todo.rejection_reason:
+                        header_parts.append(f"⚠️  Previously rejected: {current_todo.rejection_reason}")
+                    if current_todo.detail:
+                        header_parts.append(f"Detail: {current_todo.detail}")
+                    if current_todo.criteria:
+                        header_parts.append(f"Criteria: {current_todo.criteria}")
+                    header_parts.append("→ 현재 목표를 염두에 두고 아래 결과를 해석할 것")
+                    step_header = "\n".join(header_parts) + "\n\n"
                     observation = step_header + observation
                 print(Color.info(f"\n[{completed}/{total}] {current_todo.content if current_todo else 'All done'}"))
 
@@ -3139,7 +3189,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 # Check if response was think-only (no visible content)
                 import re as _re2
                 visible = _re2.sub(r'<think>.*?</think>', '', collected_content, flags=_re2.DOTALL).strip()
-                if len(visible) < 100 and final_answer_attempts < 2:
+                if len(visible) < 10 and final_answer_attempts < 2:
                     final_answer_attempts += 1
                     messages.append({
                         "role": "user",
@@ -3148,12 +3198,11 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     print(Color.info(f"  [System] Think-only response detected — requesting final answer (attempt {final_answer_attempts}/2)"))
                     # continue loop to get final answer
                 else:
-                    # Fallback print only if streaming did NOT show content
-                    # (_thinking_stopped=True means streaming ran and already displayed content)
-                    if not _thinking_stopped:
-                        _has_react = any(m in visible for m in ('Thought:', 'Action:', 'Response:'))
-                        if visible and len(visible) >= 100 and not _has_react:
-                            print(f"\r\033[2K{visible}")
+                    # Fallback: print only if streaming did NOT already show content.
+                    # Catches NOISE-state responses (no Thought: prefix) that were suppressed.
+                    _has_react = any(m in visible for m in ('Thought:', 'Action:', 'Response:'))
+                    if visible and not _has_react and not _content_emitted:
+                        print(f"\r\033[2K{visible}")
                     break
 
         # Increment iteration counter
@@ -3190,7 +3239,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             print(Color.info(f"[ACE] Updated {updated} knowledge nodes with tag '{tag}'"))
             graph_lite.save()
 
-    return messages
+    return messages, agent_mode
 
 
 # --- 7. Main Loop ---
@@ -3539,17 +3588,22 @@ def chat_loop():
                     if result.startswith("AGENT_MODE:"):
                         agent_mode = result.split(":", 1)[1]
                         if agent_mode == "plan":
+                            agent_mode = "plan_q"  # first turn: questions only, tools blocked
                             print(Color.success("\n✅ Plan mode: clarify → explore → refine → user confirms → execute.\n"))
+                            # Clear stale todos from previous session
+                            todo_file = Path(config.TODO_FILE)
+                            if todo_file.exists():
+                                todo_file.unlink()
                             # Inject plan mode instruction into system prompt
                             if messages and messages[0].get("role") == "system":
-                                messages[0]["content"] += config.PLAN_MODE_PROMPT
+                                _sys_content_append(messages[0], config.PLAN_MODE_PROMPT)
                                 save_conversation_history(messages)
                         else:
                             agent_mode = "normal"
                             print(Color.success("\n✅ Normal mode.\n"))
                             # Remove plan mode instruction if present
                             if messages and messages[0].get("role") == "system":
-                                messages[0]["content"] = messages[0]["content"].split("\n\n=== PLAN MODE ===")[0]
+                                _sys_content_strip_plan(messages[0])
                                 save_conversation_history(messages)
                         continue
 
@@ -3699,14 +3753,18 @@ def chat_loop():
                 sys_msgs = [m for m in full_messages if m.get("role") == "system"]
                 non_sys = [m for m in full_messages if m.get("role") != "system"]
                 window_msgs = sys_msgs + non_sys[-(rolling_window_size * 2):]
-                window_result = run_react_agent(window_msgs, tracker, user_input, mode='interactive')
+                window_msgs_result, agent_mode = run_react_agent(window_msgs, tracker, user_input, mode='interactive', agent_mode=agent_mode)
                 # Append only newly added messages (assistant + tool responses) to full_messages
-                new_msgs = window_result[len(window_msgs):]
+                new_msgs = window_msgs_result[len(window_msgs):]
                 full_messages.extend(new_msgs)
                 messages = full_messages
             else:
                 # Run ReAct Agent
-                messages = run_react_agent(messages, tracker, user_input, mode='interactive')
+                messages, agent_mode = run_react_agent(messages, tracker, user_input, mode='interactive', agent_mode=agent_mode)
+
+            # plan_q (first clarification turn) → plan (explore allowed next turn)
+            if agent_mode == 'plan_q':
+                agent_mode = 'plan'
 
             # Extract knowledge from conversation at end
             try:
@@ -3796,7 +3854,7 @@ if __name__ == "__main__":
         tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
 
         # Run ReAct Agent
-        messages = run_react_agent(messages, tracker, prompt, mode='oneshot')
+        messages, _ = run_react_agent(messages, tracker, prompt, mode='oneshot')
 
         # Extract knowledge from conversation at end
         try:

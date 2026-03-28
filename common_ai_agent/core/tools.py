@@ -2112,17 +2112,19 @@ def todo_write(todos=None, tasks=None):
         return f"Error formatting progress: {e}"
 
 
-def todo_update(index=None, status=None):
+def todo_update(index=None, status=None, reason=""):
     """
     Update the status of a specific todo item.
 
     Args:
         index (int): 1-based index of the todo to update.
         status (str): New status — "in_progress", "completed", or "pending".
+        reason (str): Rejection reason when reverting to pending/in_progress.
+                      Stored on the item and shown in the next step header.
 
     Example:
         todo_update(index=1, status="completed")
-        todo_update(index=2, status="in_progress")
+        todo_update(index=2, status="pending", reason="Tests still failing: test_foo AssertionError")
     """
     try:
         import sys
@@ -2148,14 +2150,25 @@ def todo_update(index=None, status=None):
     if status not in valid:
         return f"Error: status must be one of {valid}"
 
+    item = todo_tracker.todos[idx]
+
     if status == "completed":
+        item.rejection_reason = ""  # 완료 시 거절 이유 초기화
         todo_tracker.mark_completed(idx)
+        return todo_tracker.format_progress()
     elif status == "in_progress":
+        if reason:
+            item.rejection_reason = reason
         todo_tracker.mark_in_progress(idx)
-    else:
-        todo_tracker.todos[idx].status = "pending"
+    else:  # pending
+        if reason:
+            item.rejection_reason = reason
+        item.status = "pending"
         todo_tracker._save()
 
+    if reason:
+        prefix = f"[REJECTED] Step {index}: {item.content}\nRejection reason: {reason}\n\n"
+        return prefix + todo_tracker.format_progress()
     return todo_tracker.format_progress()
 
 

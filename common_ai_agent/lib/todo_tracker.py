@@ -43,6 +43,9 @@ class TodoItem:
         priority: 우선순위 ("high", "medium", "low")
         created_at: 생성 시간 (timestamp)
         completed_at: 완료 시간 (timestamp, None if not completed)
+        detail: 구체적 구현 내용/방법 (선택)
+        criteria: 완료 판단 기준 체크리스트 (줄바꿈 구분, 선택)
+        rejection_reason: 가장 최근 거절 이유 (step header에 표시)
     """
     content: str
     active_form: str
@@ -50,6 +53,9 @@ class TodoItem:
     priority: str = "medium"      # "high", "medium", "low"
     created_at: float = None
     completed_at: Optional[float] = None
+    detail: str = ""
+    criteria: str = ""
+    rejection_reason: str = ""
 
     def __post_init__(self):
         if self.created_at is None:
@@ -107,6 +113,9 @@ class TodoTracker:
                 status=todo_dict.get("status", "pending"),
                 priority=todo_dict.get("priority", "medium"),
                 completed_at=todo_dict.get("completed_at"),
+                detail=todo_dict.get("detail", ""),
+                criteria=todo_dict.get("criteria", ""),
+                rejection_reason=todo_dict.get("rejection_reason", ""),
             ))
 
         # Find current in_progress item
@@ -143,6 +152,7 @@ class TodoTracker:
 
         self.todos[index].status = "completed"
         self.todos[index].completed_at = time.time()
+        self.todos[index].rejection_reason = ""
         self._save()
 
     def auto_advance(self):
@@ -317,6 +327,9 @@ class TodoTracker:
                     "priority": t.priority,
                     "created_at": t.created_at,
                     "completed_at": t.completed_at,
+                    "detail": t.detail,
+                    "criteria": t.criteria,
+                    "rejection_reason": t.rejection_reason,
                 }
                 for t in self.todos
             ],
