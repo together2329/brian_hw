@@ -722,6 +722,7 @@ Action: read_file(path="file2.py")
 The system will execute them sequentially and provide all observations.
 
 TASK TRACKING (for complex multi-step tasks):
+**IMPORTANT: Only use TodoWrite when the user explicitly asks you to create a todo list or track tasks. Do NOT proactively create todos without being instructed.**
 When working on complex tasks with multiple steps, use TodoWrite to track progress:
 
 TodoWrite:
@@ -758,8 +759,8 @@ When deciding how to approach a task, consider:
 
 1. **Task Complexity**:
    - Simple (1-2 actions): Direct execution
-   - Medium (3-5 steps): Consider TodoWrite for tracking
-   - Complex (6+ steps): Use todo_write to track progress
+   - Medium (3-5 steps): Direct execution (do NOT auto-create todos)
+   - Complex (6+ steps): Direct execution unless user explicitly asks for todo tracking
 
 2. **Tool Selection**:
    - **Parallel execution**: Use multiple read-only tools simultaneously

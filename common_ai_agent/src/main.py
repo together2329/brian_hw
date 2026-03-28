@@ -1382,23 +1382,6 @@ def build_system_prompt(messages=None, allowed_tools=None):
             except Exception as e:
                 print(Color.warning(f"[PROMPT] ⚠️ Error injecting skills: {e}"))
 
-        # Add RAG tool guidance for Verilog and Spec analysis
-        rag_guidance = """=== RAG CODE & SPEC SEARCH ===
-
-Use RAG tools for semantic search (much faster than grep):
-- rag_search(query, categories, limit): Semantic search
-  Categories: "verilog", "testbench", "spec", "all" (default: "all")
-  Example: rag_search("axi_awready signal", categories="verilog", limit=5)
-  Example: rag_search("TDISP state machine", categories="spec", limit=5)
-  Example: rag_search("CONFIG_LOCKED transition", categories="all", limit=5)
-- rag_index(path, fine_grained): Index files (run once)
-- rag_status(): Check indexed files count
-- read_lines(file, start, end): Read specific lines after finding location
-
-Workflow: rag_search() → find location → read_lines() → analyze
-==============================
-"""
-        context_parts.append(rag_guidance)
 
         # Combine all context parts
         dynamic_context = ""
@@ -3237,6 +3220,34 @@ def chat_loop():
 
     # Update messages tokens (exclude system message to avoid double counting)
     context_tracker.update_messages(messages, exclude_system=True)
+
+    # .UPD_RULE.md — create default if missing
+    _upd_rule_paths = [
+        Path.home() / ".common_ai_agent" / ".UPD_RULE.md",  # global
+        Path(__file__).parent.parent / ".UPD_RULE.md",       # project
+    ]
+    _upd_rule_default = (
+        "# Update Rules\n\n"
+        "Project-specific instructions for this AI agent.\n"
+        "Add rules here to customize behavior for this project.\n\n"
+        "## Examples\n"
+        "- Always use Korean for responses\n"
+        "- Follow PEP 8 for Python code\n"
+        "- Use snake_case for variable names\n"
+    )
+    _any_upd_rule_exists = any(p.exists() for p in _upd_rule_paths)
+    if not _any_upd_rule_exists:
+        _default_path = _upd_rule_paths[1]  # project-level
+        try:
+            _default_path.parent.mkdir(parents=True, exist_ok=True)
+            _default_path.write_text(_upd_rule_default, encoding="utf-8")
+            print(Color.info(f"[System] Created default .UPD_RULE.md at {_default_path}"))
+        except Exception as e:
+            print(Color.warning(f"[System] Could not create .UPD_RULE.md: {e}"))
+    else:
+        _loaded = [str(p) for p in _upd_rule_paths if p.exists()]
+        if config.DEBUG_MODE:
+            print(Color.system(f"[System] .UPD_RULE.md loaded: {', '.join(_loaded)}"))
 
     # Perform Memory Healing (One-time check on startup)
     if config.ENABLE_GRAPH and graph_lite:

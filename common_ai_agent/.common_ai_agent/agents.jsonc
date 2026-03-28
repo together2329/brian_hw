@@ -83,7 +83,6 @@
         "read_lines": true,
         "grep_file": true,
         "find_files": true,
-        "rag_search": true,
         "write_file": false,
         "replace_in_file": false,
         "run_command": false
