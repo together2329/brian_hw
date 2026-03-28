@@ -18,23 +18,16 @@ requires_tools: [spec_search, spec_navigate, read_lines]
 related_skills: [pcie-expert]
 ---
 
-# ⚠️ MANDATORY: spec_navigate → spec_search 순서로 사용할 것
+# ⚠️ MANDATORY: spec_search 도구를 사용할 것
 
-**UCIe 스펙 질문은 반드시 아래 순서로 처리한다.**
+**UCIe 스펙 질문은 반드시 `spec_search` 도구를 사용한다.**
 
-## Step 1: 인덱스 확인
-```
-Action: spec_navigate(spec="ucie", node_id="root")
-```
-→ 챕터 목록을 보고 관련 섹션을 파악한다.
-
-## Step 2: 섹션 검색 및 읽기
 ```
 Action: spec_search(spec="ucie", query="<사용자 질문 그대로>")
 ```
 
 - **`spec_search`는 질문당 단 한 번만 호출한다** — 여러 번 또는 병렬로 호출하지 말 것
 - query는 **사용자 질문을 그대로** 전달 — 여러 sub-query로 나누거나 확장하지 말 것
-- **acronym/용어를 임의로 추측하거나 해석하지 말 것** — spec_navigate/spec_search 결과를 보기 전까지 어떤 가정도 하지 말 것
-- `find_files`, `grep_file`, `read_file` 등으로 직접 탐색하지 말 것
+- **acronym/용어를 임의로 추측하거나 해석하지 말 것** — spec_search 결과를 보기 전까지 어떤 가정도 하지 말 것
+- `find_files`, `grep_file`, `read_file`, `spec_navigate` 등으로 직접 탐색하지 말 것
 - 결과가 반환되면 그 내용을 바탕으로 사용자에게 답변한다
