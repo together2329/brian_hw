@@ -336,7 +336,7 @@ class TodoTracker:
 
         if current:
             lines.append(f"Current task: {current.content}")
-            lines.append("Continue working on this task.")
+            lines.append("Continue working on this task. When done, call todo_update(index=N, status='completed').")
         else:
             next_idx = self._get_next_pending()
             if next_idx is not None:
