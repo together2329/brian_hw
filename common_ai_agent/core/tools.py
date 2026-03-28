@@ -2349,12 +2349,12 @@ AVAILABLE_TOOLS = {
     "todo_write": todo_write,
     "todo_update": todo_update,
     "todo_status": todo_status,
-    # RAG Tools
-    "rag_search": rag_search,
-    "rag_index": rag_index,
-    "rag_explore": rag_explore,  # Phase C: New exploration tool
-    "rag_status": rag_status,
-    "rag_clear": rag_clear,
+    # RAG Tools (disabled — uncomment to enable)
+    # "rag_search": rag_search,
+    # "rag_index": rag_index,
+    # "rag_explore": rag_explore,
+    # "rag_status": rag_status,
+    # "rag_clear": rag_clear,
     # Background Agent Tools (v2)
     "background_task": background_task,
     "background_output": background_output,
