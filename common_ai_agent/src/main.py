@@ -3092,12 +3092,15 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 last_error_observation = observation if "error" in observation.lower() else None
 
             # Process observation (handles large files and context management)
-            # Append todo status to observation so LLM sees current progress
+            # Append only current step to observation (not full list)
             if todo_tracker and todo_tracker.todos:
-                progress = todo_tracker.format_progress()
-                observation += f"\n\n[Todo Status]\n{progress}"
-                # Always show todo progress to user
-                print(Color.info(f"\n{progress}"))
+                current_todo = todo_tracker.get_current_todo()
+                total = len(todo_tracker.todos)
+                completed = sum(1 for t in todo_tracker.todos if t.status == 'completed')
+                if current_todo:
+                    observation += f"\n[Step {completed + 1}/{total}] {current_todo.content}"
+                print(Color.info(f"\n[{completed}/{total}] {current_todo.content if current_todo else 'All done'}"))
+
             messages = process_observation(observation, messages)
 
             # Todo status is now managed by explicit todo_update() calls from LLM
