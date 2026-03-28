@@ -3465,7 +3465,7 @@ def chat_loop():
                 
                 if is_plan_turn:
                     _plan_prompt = ANSI(Color.warning("Plan Confirmation [y/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
-                    user_input = _multiline_prompt.prompt(_plan_prompt)
+                    user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
                 else:
                     user_input = _multiline_prompt.prompt(_prompt_text)
             else:
