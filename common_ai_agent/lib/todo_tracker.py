@@ -127,7 +127,7 @@ class TodoTracker:
 
         self.stagnation_count = 0
         self._last_completed_count = 0
-        self._save()
+        self.save()
 
     def mark_in_progress(self, index: int):
         """
@@ -143,7 +143,7 @@ class TodoTracker:
 
         self.todos[index].status = "in_progress"
         self.current_index = index
-        self._save()
+        self.save()
 
     def mark_completed(self, index: int):
         """특정 todo를 completed로 변경하고 완료 시간 기록."""
@@ -153,7 +153,7 @@ class TodoTracker:
         self.todos[index].status = "completed"
         self.todos[index].completed_at = time.time()
         self.todos[index].rejection_reason = ""
-        self._save()
+        self.save()
 
     def auto_advance(self):
         """현재 todo 완료 후 자동으로 다음 pending todo로 이동 (priority 반영)."""
@@ -227,6 +227,16 @@ class TodoTracker:
                 time_str = f"  ({_fmt_elapsed(todo.elapsed)} elapsed)"
 
             lines.append(f"{icon} {i+1}. {priority_badge}{text}{time_str}")
+            
+            # Show detail if available
+            if todo.detail and todo.status != 'completed':
+                lines.append(f"   └ 📝 {Color.DIM}{todo.detail}{Color.RESET}")
+                
+            # Show criteria if available
+            if todo.criteria and todo.status != 'completed':
+                for c in todo.criteria.splitlines():
+                    if c.strip():
+                        lines.append(f"     {Color.DIM}• {c.strip()}{Color.RESET}")
 
         # Progress bar
         completed_count = sum(1 for t in self.todos if t.status == "completed")

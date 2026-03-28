@@ -966,5 +966,7 @@ PLAN_MODE_PROMPT = (
 )
 
 PLAN_MODE_BLOCKED_TOOLS = frozenset({
-    'write_file', 'replace_in_file', 'run_command',
+    'write_file', 'replace_in_file', 'replace_lines',
+    'replace_file_content', 'multi_replace_file_content',
+    'apply_diffs', 'run_command', 'todo_update',
 })

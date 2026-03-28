@@ -48,6 +48,7 @@ class ContextTracker:
         self.message_count = 0
         self.actual_percentage = 0
         self.turn_count = 0  # Track conversation turns
+        self.messages = []   # Store full message content for verbose display
 
     def update_system_prompt(self, prompt: str):
         """Update system prompt token count (base only, excluding skill)"""

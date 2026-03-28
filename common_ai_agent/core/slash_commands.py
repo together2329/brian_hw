@@ -221,6 +221,67 @@ class SlashCommandRegistry:
             return "No skills loaded.\n"
         return section + "\n"
 
+    def _format_full_context(self, tracker) -> str:
+        """Format the full conversation history for verbose display."""
+        if not hasattr(tracker, 'messages') or not tracker.messages:
+            return "\n\033[33m[System] No message history available in context.\033[0m\n"
+
+        from lib.display import Color
+        
+        lines = []
+        lines.append("\n" + "=" * 60)
+        lines.append(" 📄 Full Conversation Context")
+        lines.append("=" * 60)
+
+        for i, msg in enumerate(tracker.messages):
+            role = msg.get("role", "unknown").upper()
+            raw_content = msg.get("content", "")
+            
+            # Handle structured content (list of blocks, common in Anthropic caching)
+            if isinstance(raw_content, list):
+                content = []
+                for block in raw_content:
+                    if isinstance(block, dict):
+                        if block.get("type") == "text":
+                            content.append(block.get("text", ""))
+                        elif block.get("type") == "tool_use":
+                            content.append(f"[Tool Use: {block.get('name')}]")
+                    else:
+                        content.append(str(block))
+                content = "\n".join(content).strip()
+            else:
+                content = str(raw_content).strip()
+            
+            # Formatting based on role
+            if role == "SYSTEM":
+                role_fmt = f"\033[1;35m[{role}]\033[0m" # Magenta bold
+            elif role == "USER":
+                role_fmt = f"\033[1;32m[{role}]\033[0m" # Green bold
+            elif role == "ASSISTANT":
+                role_fmt = f"\033[1;36m[{role}]\033[0m" # Cyan bold
+            else:
+                role_fmt = f"[{role}]"
+
+            # Optional turn ID and tokens
+            turn_str = f" (turn {msg['turn_id']})" if "turn_id" in msg else ""
+            token_str = ""
+            if "_tokens" in msg:
+                t = msg["_tokens"]
+                count = t.get("completion_tokens", t.get("output_tokens", 0))
+                if count > 0:
+                    token_str = f" [{count} tokens]"
+
+            lines.append(f"\n{role_fmt}{turn_str}{token_str}")
+            
+            # Print content with subtle indentation
+            for line in content.splitlines():
+                lines.append(f"  {line}")
+            
+            lines.append("\033[2m" + "-" * 40 + "\033[0m") # Dim separator
+
+        lines.append("\n" + "=" * 60)
+        return "\n".join(lines) + "\n"
+
     def _cmd_context(self, args: str) -> str:
         """Visualize context usage"""
         try:
@@ -271,6 +332,10 @@ class SlashCommandRegistry:
 
             # Generate Claude Code style visualization
             output = tracker.visualize(model_name, actual_total=actual_total)
+
+            # --- VERBOSE MODE: Show full context ---
+            if 'verbose' in args or '-v' in args:
+                output += self._format_full_context(tracker)
 
             # Add debug info if requested
             if debug_lines:

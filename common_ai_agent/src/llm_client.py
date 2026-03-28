@@ -249,57 +249,29 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                 content = delta.get("content", "")
                                 if content:
                                     if config.DEBUG_MODE:
-                                        # Line-buffer: accumulate until \n to detect <think> tags
+                                        # Process chunks immediately to avoid cutting at tag boundaries
                                         import re as _re
-                                        _debug_line_buf += content
-                                        while '\n' in _debug_line_buf:
-                                            _line, _debug_line_buf = _debug_line_buf.split('\n', 1)
-                                            if '<think>' in _line and '</think>' not in _line:
-                                                # Entering think block
-                                                before = _line.split('<think>', 1)[0].strip()
-                                                if before and not _debug_in_think:
-                                                    if not _content_label_printed:
-                                                        sys.stdout.write(f"\n\n\033[32m[content]\033[0m\n")
-                                                        _content_label_printed = True
-                                                    sys.stdout.write(f"\033[32m{before}\033[0m\n")
+                                        _parts = _re.split(r'(</?think>)', content)
+                                        for _p in _parts:
+                                            if _p == '<think>':
                                                 _debug_in_think = True
                                                 if not _reasoning_started:
                                                     sys.stdout.write(f"\n\033[36m[reasoning]\033[0m\n")
                                                     _reasoning_started = True
-                                            elif '</think>' in _line:
-                                                # Exiting think block
-                                                if _debug_in_think:
-                                                    inside = _line.split('</think>', 1)[0].strip()
-                                                    if inside:
-                                                        sys.stdout.write(f"\033[36m{inside}\033[0m\n")
+                                            elif _p == '</think>':
                                                 _debug_in_think = False
-                                                after = _line.split('</think>', 1)[1].strip()
-                                                if after:
+                                            elif _p:
+                                                if _debug_in_think:
+                                                    # Print reasoning in cyan
+                                                    sys.stdout.write(f"\033[36m{_p}\033[0m")
+                                                else:
+                                                    # Print normal content in green
                                                     if not _content_label_printed:
-                                                        sys.stdout.write(f"\n\n\033[32m[content]\033[0m\n")
+                                                        if _reasoning_started:
+                                                            sys.stdout.write(f"\n")
+                                                        sys.stdout.write(f"\n\033[32m[content]\033[0m\n")
                                                         _content_label_printed = True
-                                                    sys.stdout.write(f"\033[32m{after}\033[0m\n")
-                                            elif _debug_in_think:
-                                                # Inside think block — show as reasoning (cyan)
-                                                if _line.strip():
-                                                    sys.stdout.write(f"\033[36m{_line}\033[0m\n")
-                                            else:
-                                                # Normal content (green) — truncate at Thought:/Action:
-                                                _line = _re.sub(r'</?think>', '', _line).strip()
-                                                _ll = _line.lower()
-                                                for _kw in ('thought:', 'action:'):
-                                                    _ki = _ll.find(_kw)
-                                                    if _ki == 0:
-                                                        _line = ''
-                                                        break
-                                                    elif _ki > 0:
-                                                        _line = _line[:_ki].rstrip()
-                                                        break
-                                                if _line:
-                                                    if not _content_label_printed:
-                                                        sys.stdout.write(f"\n\n\033[32m[content]\033[0m\n")
-                                                        _content_label_printed = True
-                                                    sys.stdout.write(f"\033[32m{_line}\033[0m\n")
+                                                    sys.stdout.write(f"\033[32m{_p}\033[0m")
                                             sys.stdout.flush()
                                     yield content
 
@@ -703,12 +675,14 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                                 if _line.strip():
                                                     sys.stdout.write(f"\033[36m{_line}\033[0m\n")
                                             else:
-                                                _line = _re.sub(r'</?think>', '', _line).strip()
-                                                if _line:
+                                                # Preserve newlines by not stripping if line is whitespace
+                                                _line_clean = _re.sub(r'</?think>', '', _line)
+                                                if _line_clean.strip() or _line.strip('\n') == '':
                                                     if not _content_label_printed:
                                                         sys.stdout.write(f"\n\n\033[32m[content]\033[0m\n")
                                                         _content_label_printed = True
-                                                    sys.stdout.write(f"\033[32m{_line}\033[0m\n")
+                                                    # Print the original line (including its \n if it was just a newline)
+                                                    sys.stdout.write(f"\033[32m{_line_clean}\033[0m\n")
                                             sys.stdout.flush()
                                     yield content
 

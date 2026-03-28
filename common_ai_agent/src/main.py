@@ -1116,19 +1116,35 @@ def _build_system_prompt_str(**kwargs) -> str:
     return sp
 
 
-def build_system_prompt(messages=None, allowed_tools=None):
+def build_system_prompt(messages=None, allowed_tools=None, agent_mode=None):
     """
     Build system prompt with memory, graph context, and procedural guidance if available.
 
     Args:
         messages: Optional message history for graph semantic search and procedural retrieval
         allowed_tools: Optional set of allowed tools (for sub-agents)
+        agent_mode: Optional agent operation mode (plan/normal)
 
     Returns:
         Complete system prompt string
     """
-    # Use new tool description system from config
-    base_prompt = config.build_base_system_prompt(allowed_tools=allowed_tools)
+    # Determine effective tool list
+    if allowed_tools is None:
+        from core import tools
+        _at = set(tools.AVAILABLE_TOOLS.keys())
+    else:
+        _at = set(allowed_tools)
+
+    # Plan mode filtering: proactive tool hiding from system prompt
+    if agent_mode in ('plan', 'plan_q'):
+        _at = set(t for t in _at if t not in config.PLAN_MODE_BLOCKED_TOOLS)
+
+    # Use new tool description system from config with filtered tool list
+    base_prompt = config.build_base_system_prompt(allowed_tools=_at)
+    
+    # Inject mode-specific behavioral instructions
+    if agent_mode in ('plan', 'plan_q'):
+        base_prompt += config.PLAN_MODE_PROMPT
     
     # Debug: Show prompt building start
     if config.DEBUG_MODE and messages:
@@ -2052,7 +2068,7 @@ _PARALLEL_ELIGIBLE_TOOLS = {
 }
 
 
-def execute_actions_parallel(actions, tracker):
+def execute_actions_parallel(actions, tracker, agent_mode='normal'):
     """
     Execute Actions with intelligent parallelism using ActionDependencyAnalyzer.
 
@@ -2096,25 +2112,35 @@ def execute_actions_parallel(actions, tracker):
 
         # Execute each batch
         for batch_idx, batch in enumerate(batches):
-            hint_info = ""
-            if "LLM" in batch.reason:
-                hint_info = " [LLM-guided]"
-
-            if config.DEBUG_MODE:
-                print(Color.system(
-                    f"  [Batch {batch_idx+1}/{len(batches)}] {batch.reason}: "
-                    f"{len(batch.actions)} action(s), parallel={batch.parallel}{hint_info}"
-                ))
-
             if batch.parallel and len(batch.actions) > 1 and config.ENABLE_REACT_PARALLEL:
-                # Parallel execution
-                print(Color.info(f"  ⚡ Parallel batch: {len(batch.actions)} action(s){hint_info}"))
-                batch_results = _execute_batch_parallel(batch.actions)
-                results.extend(batch_results)
+                # Parallel execution: Filter out blocked tools first
+                allowed_actions = []
+                for idx, tool_name, args_str in batch.actions:
+                    # Plan mode gating in parallel batch
+                    if agent_mode == 'plan_q':
+                        observation = "[Plan Mode] Tool calls blocked. Ask clarifying questions first."
+                        results.append((idx, tool_name, args_str, observation))
+                    elif agent_mode == 'plan' and tool_name in config.PLAN_MODE_BLOCKED_TOOLS:
+                        observation = f"[Plan Mode] '{tool_name}' is blocked. Only read/search tools are available."
+                        results.append((idx, tool_name, args_str, observation))
+                    else:
+                        allowed_actions.append((idx, tool_name, args_str))
+
+                if allowed_actions:
+                    if config.DEBUG_MODE:
+                        print(Color.info(f"  ⚡ Parallel batch: {len(allowed_actions)} action(s)"))
+                    batch_results = _execute_batch_parallel(allowed_actions)
+                    results.extend(batch_results)
             else:
                 # Sequential execution
                 for idx, tool_name, args_str in batch.actions:
-                    observation = execute_tool(tool_name, args_str)
+                    # Plan mode gating in sequential batch
+                    if agent_mode == 'plan_q':
+                        observation = "[Plan Mode] Tool calls blocked. Ask clarifying questions first."
+                    elif agent_mode == 'plan' and tool_name in config.PLAN_MODE_BLOCKED_TOOLS:
+                        observation = f"[Plan Mode] '{tool_name}' is blocked. Only read/search tools are available."
+                    else:
+                        observation = execute_tool(tool_name, args_str)
                     results.append((idx, tool_name, args_str, observation))
 
     else:
@@ -2470,7 +2496,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 # Legacy PCIe indexing removed - strictly use .ragconfig now
                 pass
 
-                system_prompt_data = build_system_prompt(messages, allowed_tools=set(tools.AVAILABLE_TOOLS.keys()))
+                system_prompt_data = build_system_prompt(messages, allowed_tools=set(tools.AVAILABLE_TOOLS.keys()), agent_mode=agent_mode)
                 # Update system message if it exists
                 if messages and messages[0].get("role") == "system":
                     if config.CACHE_OPTIMIZATION_MODE == "optimized" and isinstance(system_prompt_data, dict):
@@ -2641,26 +2667,37 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 _content_emitted = True
 
         def _strip_think(text):
-            """Remove <think> tags, return (cleaned_text, entered_think, exited_think)."""
-            clean = re.sub(r'<think>.*?</think>', '', text)  # complete pairs
-            entered = '<think>' in text and '</think>' not in text
-            exited = '</think>' in text and '<think>' not in text
-            if exited:
-                # Content before </think> is reasoning — discard it, keep only what follows
-                after = text.split('</think>', 1)[1]
-                clean = re.sub(r'</?think>', '', after).strip()
-            else:
-                clean = re.sub(r'</?think>', '', clean).strip()  # leftover tags
-            return clean, entered, exited
+            """Remove <think> tags, return (cleaned_text, entered_think, exited_think, reasoning_text)."""
+            nonlocal _in_think
+            parts = re.split(r'(</?think>)', text)
+            clean_parts = []
+            reasoning_parts = []
+            entered_here = False
+            exited_here = False
+            for p in parts:
+                if p == "<think>":
+                    _in_think = True
+                    entered_here = True
+                elif p == "</think>":
+                    _in_think = False
+                    exited_here = True
+                elif p:
+                    if _in_think:
+                        reasoning_parts.append(p)
+                    else:
+                        clean_parts.append(p)
+            return "".join(clean_parts), entered_here, exited_here, "".join(reasoning_parts)
 
-        # ── Thinking spinner ──
-        _thinking_spinner = Spinner("Thinking")
-        _thinking_spinner.start()
+        # ── Thinking spinner (disabled in Debug Mode to prevent output artifacts) ──
+        _thinking_spinner = None
+        if not config.DEBUG_MODE:
+            _thinking_spinner = Spinner("Thinking")
+            _thinking_spinner.start()
         _thinking_stopped = False
 
         try:
             for chunk in chat_completion_stream(messages, stop=_stop_seqs):
-                if not _thinking_stopped:
+                if not _thinking_stopped and _thinking_spinner:
                     _elapsed_think = time.time() - _stream_start
                     _thinking_spinner.stop()
                     sys.stderr.write(f"  \033[36m✽\033[0m \033[2mThinking... (Done {_elapsed_think:.1f}s)\033[0m\n")
@@ -2687,12 +2724,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     if _stripped and len(_stripped) <= 3 and _stripped.islower():
                         _buf = _stripped + _buf
                         continue
-                    text, entered, exited = _strip_think(raw_line)
+                    text, entered, exited, reasoning = _strip_think(raw_line)
 
-                    if entered:
-                        _in_think = True
-                    if exited:
-                        _in_think = False
                     if _in_think and not exited:
                         continue
                     if not text:
@@ -2735,7 +2768,14 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                 # ── Partial line display (typing effect) ──
                 if _state == _CONTENT and not _in_think and _buf:
-                    p = re.sub(r'</?think>', '', _buf).strip()
+                    # Correctly strip reasoning from partial buffer for display
+                    p = ""
+                    _tmp_in_think = _in_think
+                    for _p in re.split(r'(</?think>)', _buf):
+                        if _p == "<think>": _tmp_in_think = True
+                        elif _p == "</think>": _tmp_in_think = False
+                        elif not _tmp_in_think: p += _p
+                    p = p.rstrip()
                     # If Action: appears mid-line (no newline before it), show only preceding text
                     _ai_mid = p.lower().find('action:')
                     if _ai_mid > 0:
@@ -2812,6 +2852,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 token_est = len(collected_content) // 4
                 token_str = f"~{_fk(token_est)}"
             print(f"  {Color.DIM}✽ {elapsed_str} · {token_str} tokens{Color.RESET}")
+        
+        # Ensure newline after response before debug info
         print()
         
         # Show flow stage: Response received
@@ -2875,6 +2917,16 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             continue
 
         if actions:
+            # Plan Mode Safety: If todo_write is called, it must be the ONLY tool in the batch.
+            # This prevents bypassing the confirmation prompt by bundling modifications with plan creation.
+            _has_todo_op = any(a[0] in ('todo_write', 'todo_update') for a in actions)
+            if _has_todo_op:
+                # Filter to only FIRST todo op to force clean transition
+                _todo_action = next(a for a in actions if a[0] in ('todo_write', 'todo_update'))
+                if len(actions) > 1:
+                    print(Color.warning(f"  [System] ⚠️  Todo operation detected. Bundled actions deferred until plan confirmation."))
+                actions = [_todo_action]
+
             combined_results = []
 
             # Todo Tracking: Mark current step as in_progress (Phase 2)
@@ -2892,7 +2944,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
             if len(actions) > 1 and config.ENABLE_REACT_PARALLEL:
                 print(Color.DIM + f"  ⚡ {len(actions)} actions (parallel)" + Color.RESET)
-                action_results = execute_actions_parallel(actions, tracker)
+                action_results = execute_actions_parallel(actions, tracker, agent_mode=agent_mode)
 
                 for idx, tool_name, args_str, observation in action_results:
                     summary = _extract_tool_args_summary(tool_name, args_str)
@@ -3000,14 +3052,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                             "미충족 항목 있음? → todo_update(N, 'pending', reason='<구체적 미충족 이유>')"
                         )
 
-                    # Plan mode: todo_write() = plan confirmed → compress + exit plan mode
-                    if tool_name == 'todo_write' and agent_mode in ('plan', 'plan_q'):
-                        agent_mode = 'normal'
-                        if messages and messages[0].get("role") == "system":
-                            _sys_content_strip_plan(messages[0])
-                        print(Color.success("\n[Plan] Confirmed. Compressing plan history → executing...\n"))
-                        messages = compress_history(messages, force=True)
-                        save_conversation_history(messages)
+                    # [STRIKE] Auto-confirmation removed. Mode switch now requires explicit user input in the main loop.
 
                     # Error detection
                     obs_lower = observation.lower()
@@ -3053,6 +3098,14 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                             print(format_tool_result(observation))
 
                     combined_results.append(f"--- [Action {i+1}] {tool_name} ---\n{observation}")
+
+                    # FORCE BREAK after todo_write to trigger confirmation prompt
+                    if tool_name in ('todo_write', 'todo_update'):
+                        print(Color.system("\n[System] ⏹  Plan updated. Breaking ReAct loop to wait for user confirmation."))
+                        # Append the results so far and break the loop
+                        messages.append({"role": "assistant", "content": collected_content})
+                        messages.append({"role": "user", "content": "\n".join(combined_results)})
+                        return messages, 'plan'
 
             # Combine all observations
             observation = "\n\n".join(combined_results)
@@ -3201,8 +3254,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     # Fallback: print only if streaming did NOT already show content.
                     # Catches NOISE-state responses (no Thought: prefix) that were suppressed.
                     _has_react = any(m in visible for m in ('Thought:', 'Action:', 'Response:'))
-                    if visible and not _has_react and not _content_emitted:
-                        print(visible)
+                    if visible and not _has_react and not _content_emitted and not config.DEBUG_MODE:
+                        print(f"  {visible}")
                     break
 
         # Increment iteration counter
@@ -3263,6 +3316,9 @@ def chat_loop():
             print(Color.warning("[System] Continuing without session recovery..."))
             session_manager = None
 
+    # Default mode
+    agent_mode = 'normal'
+
     # Try to load existing conversation history
     loaded_messages = load_conversation_history()
     if loaded_messages:
@@ -3270,7 +3326,7 @@ def chat_loop():
         print(Color.system("[System] Resuming from previous conversation.\n"))
     else:
         messages = [
-            {"role": "system", "content": _build_system_prompt_str()}
+            {"role": "system", "content": _build_system_prompt_str(agent_mode=agent_mode)}
         ]
 
     # Initialize context tracker
@@ -3351,6 +3407,8 @@ def chat_loop():
 
     # ACE Credit Assignment: Track conversation count for periodic curation
     conversation_count = 0
+    # Todo tracker for UI confirmation checks
+    todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE)) if config.ENABLE_TODO_TRACKING else None
 
     # Auto RAG Indexing on startup
     if config.ENABLE_RAG_AUTO_INDEX:
@@ -3394,21 +3452,46 @@ def chat_loop():
 
     while True:
         try:
+            if config.ENABLE_TODO_TRACKING:
+                todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE))
+                if todo_tracker_main and todo_tracker_main.todos and not todo_tracker_main.is_all_completed():
+                    if agent_mode == 'normal':
+                        agent_mode = 'plan'
+                        # Proactively refresh system prompt to hide tools
+                        if messages and messages[0].get("role") == "system":
+                            system_prompt_data = build_system_prompt(messages, allowed_tools=None, agent_mode='plan')
+                            if isinstance(system_prompt_data, dict):
+                                messages[0]["content"] = system_prompt_data.get("static", "") + "\n\n" + system_prompt_data.get("dynamic", "")
+                            else:
+                                messages[0]["content"] = system_prompt_data
+
             if _multiline_prompt:
-                user_input = _multiline_prompt.prompt(_prompt_text)
+                # Specialized prompt for Plan Mode (if todos exist)
+                if agent_mode in ('plan', 'plan_q') and todo_tracker_main and todo_tracker_main.todos:
+                    _plan_msg = f"\n{Color.YELLOW}[Plan Mode]{Color.RESET} A plan is active. Confirm to execute or provide feedback.\n"
+                    _plan_prompt = ANSI(Color.warning("Confirm Plan? [y/n/feedback] ") + Color.CYAN + "Plan Mode > " + Color.RESET)
+                    user_input = _multiline_prompt.prompt(_plan_prompt, bottom_toolbar=lambda: _plan_msg)
+                else:
+                    user_input = _multiline_prompt.prompt(_prompt_text)
             else:
-                user_input = input(Color.user("> ") + Color.RESET)
+                if agent_mode in ('plan', 'plan_q') and todo_tracker_main and todo_tracker_main.todos:
+                    print(f"\n{Color.YELLOW}[Plan Mode]{Color.RESET} A plan is active. Confirm to execute or provide feedback.")
+                    user_input = input(Color.warning("Confirm Plan? [y/n/feedback] ") + Color.CYAN + "Plan Mode > " + Color.RESET)
+                else:
+                    user_input = input(Color.user("> ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
                 break
 
             # Handle slash commands
             if user_input.startswith('/'):
                 # Update context tracker with current state before executing /context
-                if user_input.strip() == '/context':
+                if user_input.startswith('/context'):
                     # Update with latest messages
                     if messages and messages[0].get("role") == "system":
                         context_tracker.update_system_prompt(messages[0]["content"])
                     context_tracker.update_messages(messages, exclude_system=True)
+                    # Store messages for verbose mode
+                    context_tracker.messages = messages
 
                 # Handle /skill commands for manual skill control
                 if user_input.startswith('/skill ') or user_input.strip() == '/skill':
@@ -3523,7 +3606,7 @@ def chat_loop():
                                 keep_n = 0
 
                         # Rebuild: system prompt + last keep_n user/assistant pairs
-                        system_msg = {"role": "system", "content": _build_system_prompt_str()}
+                        system_msg = {"role": "system", "content": _build_system_prompt_str(agent_mode=agent_mode)}
                         if keep_n > 0:
                             non_system = [m for m in messages if m.get("role") != "system"]
                             kept = non_system[-(keep_n * 2):]  # N pairs = 2N messages
@@ -3547,13 +3630,8 @@ def chat_loop():
                         load_active_skills._cached_skill = None
 
                         # Clear todo tracker
-                        if todo_tracker:
-                            todo_tracker.todos.clear()
-                            todo_tracker.current_index = -1
-                            todo_tracker.save()
-                        todo_file = Path(config.TODO_FILE)
-                        if todo_file.exists():
-                            todo_file.unlink()
+                        if todo_tracker_main:
+                            todo_tracker_main.clear()
 
                         # Reset last_input_tokens so context bar reflects trimmed messages
                         llm_client.last_input_tokens = 0
@@ -3731,8 +3809,32 @@ def chat_loop():
                 "timestamp": time.time()
             })
 
+            # Plan Mode Manual Confirmation Handler (Confirm by user input only)
+            if agent_mode in ('plan', 'plan_q'):
+                _inp = user_input.lower().strip()
+                # Support English and Korean confirmation
+                if _inp in ('y', 'yes', 'confirm', 'proceed', '진행', '확인', 'ok', '네', '예', 'ㅇㅇ'):
+                    agent_mode = 'normal'
+                    if messages and messages[0].get("role") == "system":
+                        # Fully rebuild system prompt to restore tools and remove Plan Mode instructions
+                        from core import tools
+                        system_prompt_data = build_system_prompt(messages, allowed_tools=set(tools.AVAILABLE_TOOLS.keys()), agent_mode='normal')
+                        if isinstance(system_prompt_data, dict):
+                            # Optimized mode: combine static and dynamic blocks
+                            _new_content = system_prompt_data.get("static", "") + system_prompt_data.get("dynamic", "")
+                        else:
+                            _new_content = system_prompt_data
+                        messages[0]["content"] = _new_content
+                    print(Color.success("\n[Plan] Confirmed by user. Compressing plan history and switching to Execution Mode...\n"))
+                    messages = compress_history(messages, force=True)
+                    if full_messages is not None:
+                        full_messages = list(messages)
+                    save_conversation_history(messages)
+                elif _inp in ('n', 'no', 'cancel', '취소', '아니오', 'ㄴㄴ'):
+                    print(Color.warning("\n[Plan] Execution cancelled. Staying in Plan Mode for further refinements.\n"))
+                    user_input = "I've reviewed the plan and I'm NOT ready to execute yet. Let's refine it further or address my concerns."
+
             # ReAct Loop: Smart Iteration Control with progress tracking
-            # Initialize iteration tracker
             tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
 
             # Auto-compression: compress when non-system message count exceeds threshold
