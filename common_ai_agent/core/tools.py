@@ -2224,7 +2224,7 @@ def todo_update(index=None, status=None, reason="", content="", detail="", activ
             todo_tracker.mark_reviewed(idx)
             todo_tracker.save()
             progress = todo_tracker.format_progress()
-            return f"✅ Task {index} reviewed and fully complete.\n\n[System] Proceed to the next task if any remain:\n\n{progress}"
+            return f"✅ Task {index} reviewed and fully complete.\n\n[System] Proceed to the next task if any remain (Followed by the updated progress list):\n\n{progress}"
         elif status == "completed":
             item.rejection_reason = ""
             todo_tracker.mark_completed(idx)
