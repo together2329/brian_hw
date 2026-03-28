@@ -83,14 +83,11 @@ if config.ENABLE_VERILOG_TOOLS:
         print(Color.warning(f"[System] Failed to load Verilog tools: {e}"))
 
 try:
-    from core.tools_spec import spec_navigate, spec_search, spec_ask
-    # spec_ask: primary agent용 단일 진입점 (내부에서 spec-navigator 실행)
-    tools.AVAILABLE_TOOLS["spec_ask"] = spec_ask
-    # spec_navigate / spec_search: spec-navigator sub-agent 전용 (primary 제외)
+    from core.tools_spec import spec_navigate, spec_search
     tools.AVAILABLE_TOOLS["spec_navigate"] = spec_navigate
     tools.AVAILABLE_TOOLS["spec_search"] = spec_search
     if config.DEBUG_MODE:
-        print(Color.system("[System] spec tools loaded: spec_ask (primary) + spec_navigate/spec_search (sub-agent)"))
+        print(Color.system("[System] spec tools loaded: spec_navigate + spec_search"))
 except ImportError as e:
     print(Color.warning(f"[System] Failed to load spec tools: {e}"))
 
@@ -891,14 +888,9 @@ def get_shared_context():
     return _shared_context_storage.context
 
 
-_PRIMARY_AGENT_EXCLUDED_TOOLS = {"spec_search", "spec_navigate"}
-
 def execute_tool(tool_name, args_str):
     if tool_name not in tools.AVAILABLE_TOOLS:
         return f"Error: Tool '{tool_name}' not found."
-    if tool_name in _PRIMARY_AGENT_EXCLUDED_TOOLS:
-        return (f"Error: '{tool_name}' is reserved for spec-navigator sub-agent. "
-                f"Use: background_task(agent=\"spec-navigator\", prompt=\"spec=<name> query=<question>\")")
 
     func = tools.AVAILABLE_TOOLS[tool_name]
     try:
@@ -2474,11 +2466,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 # Legacy PCIe indexing removed - strictly use .ragconfig now
                 pass
 
-                # spec_search/spec_navigate는 spec-navigator sub-agent 전용
-                # primary에서 직접 노출하면 delegation을 무시하고 직접 호출함
-                _PRIMARY_EXCLUDED = {"spec_search", "spec_navigate"}
-                _primary_allowed = set(tools.AVAILABLE_TOOLS.keys()) - _PRIMARY_EXCLUDED
-                system_prompt_data = build_system_prompt(messages, allowed_tools=_primary_allowed)
+                system_prompt_data = build_system_prompt(messages, allowed_tools=set(tools.AVAILABLE_TOOLS.keys()))
                 # Update system message if it exists
                 if messages and messages[0].get("role") == "system":
                     if config.CACHE_OPTIMIZATION_MODE == "optimized" and isinstance(system_prompt_data, dict):
@@ -2954,7 +2942,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                     # Run tool with spinner for slow tools (run_command, rag_*, background_*)
                     _SLOW_TOOLS = {'run_command', 'background_task', 'background_output'}
-                    _PRE_HEADER_TOOLS = {'spec_ask'}
+                    _PRE_HEADER_TOOLS = {'spec_search'}
                     tracker.record_tool(tool_name)
                     tool_start = time.time()
                     # Print header before execution for tools that emit progress lines
