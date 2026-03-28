@@ -203,6 +203,16 @@ class SlashCommandRegistry:
 
             if not todo_file.exists():
                 return "No active todo list.\n"
+            # Use TodoTracker's own premium formatting if possible
+            try:
+                from lib.todo_tracker import TodoTracker
+                tracker = TodoTracker.load(todo_file)
+                if tracker:
+                    return tracker.format_progress()
+            except ImportError:
+                pass
+
+            # Fallback if library not available
             data = json.loads(todo_file.read_text(encoding="utf-8"))
             todos = data.get("todos", [])
             if not todos:

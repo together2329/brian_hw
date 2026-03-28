@@ -221,11 +221,13 @@ class TodoTracker:
             return ""
 
         # Rich styling for premium feel
-        _HEADER = f"{Color.BOLD}{Color.CYAN}┖━━━ {Color.YELLOW}TRACKING PROGRESS {Color.CYAN}━━━┛{Color.RESET}"
+        _HEADER = f"{Color.BOLD}{Color.CYAN}┍━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┑"
+        _TITLE  = f"  {Color.YELLOW}TRACKING PROGRESS{Color.CYAN}"
+        _HEADER_END = f"┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┙{Color.RESET}"
         _BAR_BG = Color.DIM + "░" + Color.RESET
         _BAR_FG = Color.success("█")
         
-        lines = ["", _HEADER]
+        lines = ["", _HEADER, _TITLE, _HEADER_END]
 
         for i, todo in enumerate(self.todos):
             icon = {
@@ -249,6 +251,9 @@ class TodoTracker:
                 content_style = Color.BOLD + Color.YELLOW
 
             text = todo.active_form if todo.status == "in_progress" else todo.content
+            # Truncate if too long to prevent wrapping issues
+            if len(text) > 60:
+                text = text[:57] + "..."
             
             # Elapsed / completion time
             time_str = ""
