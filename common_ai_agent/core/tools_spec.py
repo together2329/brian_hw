@@ -109,12 +109,11 @@ def spec_navigate(spec: str, node_id: str = "root") -> str:
                 abs_path = raw_path
             else:
                 abs_path = os.path.normpath(os.path.join(data_dir, raw_path))
-            rel_path = os.path.relpath(abs_path, _PROJECT_ROOT)
             result = {
                 "leaf": True,
                 "id": node["id"],
                 "title": node["title"],
-                "path": rel_path,
+                "path": abs_path,
                 "description": node.get("description", "")
             }
             # Auto-read file content
@@ -141,7 +140,7 @@ def spec_navigate(spec: str, node_id: str = "root") -> str:
         if not c.get("children") and "path" in c:
             raw = c["path"]
             abs_p = raw if os.path.isabs(raw) else os.path.normpath(os.path.join(data_dir, raw))
-            entry["path"] = os.path.relpath(abs_p, _PROJECT_ROOT)
+            entry["path"] = abs_p
         return entry
 
     return json.dumps({
