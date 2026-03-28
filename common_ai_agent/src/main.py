@@ -2917,6 +2917,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     elif tool_name in ['replace_in_file', 'replace_lines']:
                         print(format_tool_header(tool_name, summary))
                         print(format_tool_result(observation, max_lines=1000, max_chars=100000))
+                    elif tool_name == 'spec_navigate':
+                        print(format_tool_header(tool_name, summary))
+                        print(format_tool_result(observation, max_lines=50, max_chars=5000))
                     else:
                         print(format_tool_header(tool_name, summary))
                         print(format_tool_result(observation))
@@ -2995,6 +2998,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         elif tool_name in _PRE_HEADER_TOOLS:
                             # Header already printed before execution; only show result
                             print(format_tool_result(observation))
+                        elif tool_name == 'spec_navigate':
+                            print(format_tool_header(tool_name, summary))
+                            print(format_tool_result(observation, max_lines=50, max_chars=5000))
                         else:
                             print(format_tool_header(tool_name, summary))
                             print(format_tool_result(observation))

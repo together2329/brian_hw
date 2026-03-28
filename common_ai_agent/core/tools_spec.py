@@ -143,7 +143,8 @@ def spec_navigate(spec: str, node_id: str = "root") -> str:
         raw = c.get("path", "")
         if not c.get("children") and raw:
             abs_p = raw if os.path.isabs(raw) else os.path.normpath(os.path.join(data_dir, raw))
-            marker = f"  [leaf] path={abs_p}"
+            fname = os.path.basename(abs_p)
+            marker = f"  [leaf:{fname}] (path={abs_p})"
         else:
             marker = "  [+]" if c.get("children") else "  [ ]"
         lines.append(f"{marker} [{c['id']}] {c['title']}")
