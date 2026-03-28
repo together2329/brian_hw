@@ -130,24 +130,25 @@ def spec_navigate(spec: str, node_id: str = "root") -> str:
 
     data_dir = os.path.abspath(os.path.join(_SKILLS_DIR, f"{spec}-expert", "data"))
 
-    def _child_entry(c):
-        entry = {
-            "id": c["id"],
-            "title": c["title"],
-            "description": c.get("description", ""),
-            "has_children": bool(c.get("children")),
-        }
-        if not c.get("children") and "path" in c:
-            raw = c["path"]
-            abs_p = raw if os.path.isabs(raw) else os.path.normpath(os.path.join(data_dir, raw))
-            entry["path"] = abs_p
-        return entry
+    # 현재 섹션 제목 (root가 아닌 경우)
+    if node_id != "root":
+        wrapper = {"id": "root", "children": data.get("children", [])}
+        cur_node = _find_node(wrapper, node_id)
+        cur_title = cur_node["title"] if cur_node else node_id
+    else:
+        cur_title = f"{spec.upper()} Specification"
 
-    return json.dumps({
-        "spec": spec,
-        "node_id": node_id,
-        "children": [_child_entry(c) for c in children]
-    }, ensure_ascii=False, indent=2)
+    lines = [f"[{spec.upper()}] {cur_title}", ""]
+    for c in children:
+        raw = c.get("path", "")
+        if not c.get("children") and raw:
+            abs_p = raw if os.path.isabs(raw) else os.path.normpath(os.path.join(data_dir, raw))
+            marker = f"  [leaf] path={abs_p}"
+        else:
+            marker = "  [+]" if c.get("children") else "  [ ]"
+        lines.append(f"{marker} [{c['id']}] {c['title']}")
+
+    return "\n".join(lines)
 
 
 def _tokenize_query(query: str) -> list:
