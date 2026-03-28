@@ -766,10 +766,14 @@ def parse_tool_arguments(args_str):
             # Parse value
             value, chars_consumed = parse_value(args_str[i:])
             kwargs[key] = value
+            if chars_consumed == 0:
+                break
             i += chars_consumed
         else:
             # Positional argument
             value, chars_consumed = parse_value(args_str[i:])
+            if chars_consumed == 0:
+                break
             args.append(value)
             i += chars_consumed
 
@@ -2713,6 +2717,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 # ── Process complete lines ──
                 while '\n' in _buf:
                     raw_line, _buf = _buf.split('\n', 1)
+                    # Ensure trailing newline if we streamed anything
+                    if _content_emitted:
+                        print()
                     # Merge tokenization-split fragments: if raw_line is a short lowercase
                     # fragment (e.g. "c" split from "code inspection."), re-attach to next line
                     _stripped = raw_line.strip()
@@ -3074,7 +3081,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         actions_taken.append(action_obj)
 
                     # Tool display: header + inline brief + elapsed on same line
-                    _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'git_diff', 'git_status', 'write_file'}
+                    _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'git_diff', 'git_status', 'write_file', 'todo_write', 'todo_update', 'todo_add', 'todo_remove'}
                     elapsed_suffix = f" · {tool_elapsed:.1f}s" if tool_elapsed >= 1.0 else ""
                     if tool_name == 'background_task' and not config.DEBUG_MODE:
                         pass  # handoff line already printed by background_task()
