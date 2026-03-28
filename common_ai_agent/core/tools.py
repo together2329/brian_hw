@@ -2212,9 +2212,12 @@ def todo_update(index=None, status=None, reason="", content="", detail="", activ
 
     # Update status if provided
     if status:
+        # Normalize common aliases
+        _status_aliases = {"active": "in_progress", "done": "completed", "complete": "completed"}
+        status = _status_aliases.get(status, status)
         valid = ["pending", "in_progress", "completed"]
         if status not in valid:
-            return f"Error: status must be one of {valid}"
+            return f"Error: status must be one of {valid} (got '{status}')"
 
         if status == "completed":
             item.rejection_reason = ""

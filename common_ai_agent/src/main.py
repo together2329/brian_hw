@@ -2916,14 +2916,15 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             continue
 
         if actions:
-            # Plan Mode Safety: If todo_write is called, it must be the ONLY tool in the batch.
+            # Plan Mode Safety: If todo_write is called in plan mode, it must be the ONLY tool in the batch.
             # This prevents bypassing the confirmation prompt by bundling modifications with plan creation.
-            _has_todo_op = any(a[0] in ('todo_write', 'todo_update') for a in actions)
-            if _has_todo_op:
+            _todo_ops = {'todo_write', 'todo_update', 'todo_add', 'todo_remove'}
+            _has_todo_op = any(a[0] in _todo_ops for a in actions)
+            if _has_todo_op and agent_mode in ('plan', 'plan_q'):
                 # Filter to only FIRST todo op to force clean transition
-                _todo_action = next(a for a in actions if a[0] in ('todo_write', 'todo_update'))
+                _todo_action = next(a for a in actions if a[0] in _todo_ops)
                 if len(actions) > 1:
-                    print(Color.warning(f"  [System] ⚠️  Todo operation detected. Bundled actions deferred until plan confirmation."))
+                    print(Color.warning(f"  [System] ⚠️  Todo operation detected in Plan Mode. Bundled actions deferred until plan confirmation."))
                 actions = [_todo_action]
 
             combined_results = []
