@@ -3214,6 +3214,9 @@ def chat_loop():
     # Auto-compression (default disabled, set by /compression N)
     auto_compression_threshold = 0
 
+    # Agent mode: "normal" (default ReAct loop) or "plan" (explore→todo_write→compress)
+    agent_mode = "normal"
+
     # Tools and memory are included in system message, so set to 0 to avoid double counting
     context_tracker.update_tools("")
     context_tracker.update_memory({})
@@ -3497,6 +3500,46 @@ def chat_loop():
                         else:
                             print(Color.success("\n✅ Auto-compression disabled.\n"))
                         continue
+
+                    if result.startswith("AGENT_MODE:"):
+                        agent_mode = result.split(":", 1)[1]
+                        if agent_mode == "plan":
+                            print(Color.success("\n✅ Plan mode: clarify → explore → refine → user confirms → execute.\n"))
+                            # Inject plan mode instruction into system prompt
+                            if messages and messages[0].get("role") == "system":
+                                _plan_instr = (
+                                    "\n\n=== PLAN MODE ===\n"
+                                    "You are in collaborative PLAN MODE. Do NOT implement anything.\n"
+                                    "\n"
+                                    "Your process:\n"
+                                    "1. CLARIFY: Ask the user questions to fully understand the requirements.\n"
+                                    "   - Ask one or two focused questions at a time.\n"
+                                    "   - Keep asking until you have NO remaining ambiguities.\n"
+                                    "   - Do not assume — always ask when unsure.\n"
+                                    "2. EXPLORE: Read relevant code to understand the current state.\n"
+                                    "3. PROPOSE: Present a numbered plan. End with a question like\n"
+                                    "   '이 방향이 맞나요? 수정할 부분 있으면 말씀해 주세요.'\n"
+                                    "4. REFINE: Incorporate feedback and re-propose. Repeat until confirmed.\n"
+                                    "5. FINALIZE: When user confirms (e.g. '좋아', 'ok', 'go', '실행'),\n"
+                                    "   call todo_write([...steps...]) — this triggers auto-compress and execution.\n"
+                                    "\n"
+                                    "Rules:\n"
+                                    "- Never skip the clarification step.\n"
+                                    "- Never call todo_write() until the user explicitly confirms.\n"
+                                    "- Always end your response with a question or request for feedback.\n"
+                                    "=================="
+                                )
+                                messages[0]["content"] += _plan_instr
+                                save_conversation_history(messages)
+                        else:
+                            agent_mode = "normal"
+                            print(Color.success("\n✅ Normal mode.\n"))
+                            # Remove plan mode instruction if present
+                            if messages and messages[0].get("role") == "system":
+                                messages[0]["content"] = messages[0]["content"].split("\n\n=== PLAN MODE ===")[0]
+                                save_conversation_history(messages)
+                        continue
+
                     elif result.startswith("COMPACT_HISTORY"):
                         # Compact conversation with optional options
                         import re

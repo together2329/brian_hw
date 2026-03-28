@@ -173,6 +173,16 @@ class SlashCommandRegistry:
         self.register('skills', self._cmd_skills,
                      'Show available skills and their activation status')
 
+        self.register('mode', self._cmd_mode,
+                     'Switch agent mode: /mode plan (explore→todo_write→compress), /mode normal')
+
+    def _cmd_mode(self, args: str) -> str:
+        """Switch agent mode. /mode plan or /mode normal."""
+        mode = args.strip().lower()
+        if mode in ('plan', 'normal'):
+            return f"AGENT_MODE:{mode}"
+        return f"AGENT_MODE:normal"
+
     def _cmd_skills(self, args: str) -> str:
         """Show available skills"""
         section = self._fmt_skills_section()
