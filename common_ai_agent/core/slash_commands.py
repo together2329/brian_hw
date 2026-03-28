@@ -249,6 +249,13 @@ class SlashCommandRegistry:
                     else:
                         content.append(str(block))
                 content = "\n".join(content).strip()
+            elif isinstance(raw_content, dict):
+                content = []
+                if "static" in raw_content:
+                    content.append(raw_content["static"])
+                if "dynamic" in raw_content:
+                    content.append(raw_content["dynamic"])
+                content = "\n".join(content).strip()
             else:
                 content = str(raw_content).strip()
             

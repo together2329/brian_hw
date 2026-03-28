@@ -652,9 +652,7 @@ def parse_all_actions(text):
                 start_pos = len(text)
 
             
-    if config.DEBUG_MODE:
-        # Removed debug action count print
-        
+    
     # Deduplicate actions (preserve order)
     # Why? Often models repeat the exact same action in Thought and Action blocks.
     # Logic: Keep if (tool_name, args_str) has not been seen.
@@ -3466,9 +3464,8 @@ def chat_loop():
                 is_plan_turn = (agent_mode in ('plan', 'plan_q'))
                 
                 if is_plan_turn:
-                    _plan_msg = f"{ANSI(Color.YELLOW + '[Plan Mode]')}{Color.RESET} A plan is active. Confirm to execute or provide feedback."
                     _plan_prompt = ANSI(Color.warning("Plan Confirmation [y/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
-                    user_input = _multiline_prompt.prompt(_plan_prompt, bottom_toolbar=lambda: ANSI(_plan_msg))
+                    user_input = _multiline_prompt.prompt(_plan_prompt)
                 else:
                     user_input = _multiline_prompt.prompt(_prompt_text)
             else:
