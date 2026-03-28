@@ -5,7 +5,6 @@ description: >
   Command Set, Admin Commands, I/O Commands, Queue Model, Submission/Completion Queue,
   Namespace, Controller, PCIe Transport, Fabrics, NVM Command Set, Zoned Namespace,
   Key Value, Power Management, Error Handling, Sanitize, Security (TCG), Telemetry 등.
-  spec_navigate 도구로 TOC를 계층적으로 탐색하여 정확한 스펙 섹션을 찾는다.
 priority: 85
 activation:
   keywords: [nvme, "nvm express", "non-volatile memory", "submission queue", "completion queue",
@@ -15,29 +14,31 @@ activation:
              "스토리지", "큐", "컨트롤러", "네임스페이스"]
   file_patterns: ["*.md", "*.pdf", "*.txt"]
   auto_detect: true
-requires_tools: [spec_search, spec_navigate, read_lines]
+requires_tools: [spec_navigate, grep_file, read_lines]
 related_skills: [pcie-expert, protocol-spec-expert]
 ---
 
-# ⚠️ MANDATORY: spec_search 도구를 사용할 것
+# ⚠️ MANDATORY: spec_navigate → grep 방식으로 탐색
 
-**NVMe 스펙 질문은 반드시 `spec_search` 도구를 사용한다.**
+**NVMe 스펙 질문은 반드시 아래 순서로 처리한다.**
 
+## Step 1: TOC 확인
 ```
-Action: spec_search(spec="nvme", query="<사용자 질문 그대로>")
-```
-
-- **`spec_search`는 질문당 단 한 번만 호출한다** — 여러 번 또는 병렬로 호출하지 말 것
-- query는 사용자 질문을 그대로 전달 — 여러 sub-query로 나누지 말 것
-- **acronym/용어를 임의로 추측하거나 해석하지 말 것** — spec_search 결과를 보기 전까지 어떤 가정도 하지 말 것
-- 결과가 반환되면 그 내용을 바탕으로 사용자에게 답변한다
-
-## 추가 탐색이 필요할 때
-spec_search 결과가 부족하면 spec 데이터 디렉토리 내에서 추가 탐색 가능:
-
-```
-Action: grep_file(pattern="<키워드>", path="skills/nvme-expert/data/markdown")
-Action: spec_navigate(spec="nvme", node_id="<섹션 ID>")
+Action: spec_navigate(spec="nvme", node_id="root")
 ```
 
-탐색 범위는 반드시 `skills/nvme-expert/data/markdown/` 내로 한정할 것.
+## Step 2: 키워드 검색
+```
+Action: grep_file(pattern="<핵심 키워드>", path="skills/nvme-expert/data/markdown")
+```
+
+## Step 3: 관련 파일 읽기
+```
+Action: read_lines(path="skills/nvme-expert/data/markdown/<파일명>", start_line=1, end_line=100)
+```
+
+## 규칙
+- **acronym/용어를 임의로 추측하거나 해석하지 말 것** — 탐색 결과를 보기 전까지 어떤 가정도 하지 말 것
+- `spec_search`는 사용하지 말 것
+- 탐색 범위는 `skills/nvme-expert/data/markdown/` 내로 한정
+- 필요하면 `spec_navigate(spec="nvme", node_id="<섹션ID>")` 로 특정 섹션 드릴다운

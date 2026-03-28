@@ -83,11 +83,10 @@ if config.ENABLE_VERILOG_TOOLS:
         print(Color.warning(f"[System] Failed to load Verilog tools: {e}"))
 
 try:
-    from core.tools_spec import spec_navigate, spec_search
+    from core.tools_spec import spec_navigate
     tools.AVAILABLE_TOOLS["spec_navigate"] = spec_navigate
-    tools.AVAILABLE_TOOLS["spec_search"] = spec_search
     if config.DEBUG_MODE:
-        print(Color.system("[System] spec tools loaded: spec_navigate + spec_search"))
+        print(Color.system("[System] spec tools loaded: spec_navigate"))
 except ImportError as e:
     print(Color.warning(f"[System] Failed to load spec tools: {e}"))
 
