@@ -3484,6 +3484,15 @@ def chat_loop():
                         load_active_skills._cached_key = ""
                         load_active_skills._cached_skill = None
 
+                        # Clear todo tracker
+                        if todo_tracker:
+                            todo_tracker.todos.clear()
+                            todo_tracker.current_index = -1
+                            todo_tracker.save()
+                        todo_file = Path(config.TODO_FILE)
+                        if todo_file.exists():
+                            todo_file.unlink()
+
                         # Reset last_input_tokens so context bar reflects trimmed messages
                         llm_client.last_input_tokens = 0
 
