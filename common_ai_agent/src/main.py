@@ -2945,6 +2945,16 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         print(format_tool_header(tool_name, summary))
                         print(Color.DIM + f"  │ {tool_elapsed:.2f}s" + Color.RESET)
 
+                    # Plan mode: todo_write() = plan confirmed → compress + exit plan mode
+                    if tool_name == 'todo_write' and agent_mode == 'plan':
+                        agent_mode = 'normal'
+                        if messages and messages[0].get("role") == "system":
+                            messages[0]["content"] = messages[0]["content"].split("\n\n=== PLAN MODE ===")[0]
+                        print(Color.success("\n[Plan] Confirmed. Compressing plan history → executing...\n"))
+                        messages = compress_history(messages, force=True)
+                        context_tracker.update_messages(messages, exclude_system=True)
+                        save_conversation_history(messages)
+
                     # Error detection
                     obs_lower = observation.lower()
                     is_error = any(indicator in obs_lower for indicator in
