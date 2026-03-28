@@ -516,6 +516,8 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
         return f"{count} task(s)"
 
     if tool_name == 'todo_update':
+        if 'reviewed' in observation.lower():
+            return "reviewed"
         if 'completed' in observation.lower():
             return "completed"
         return "updated"

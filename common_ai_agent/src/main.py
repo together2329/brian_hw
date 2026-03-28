@@ -3199,7 +3199,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             if todo_tracker and todo_tracker.todos:
                 current_todo = todo_tracker.get_current_todo()
                 total = len(todo_tracker.todos)
-                completed = sum(1 for t in todo_tracker.todos if t.status == 'completed')
+                completed = sum(1 for t in todo_tracker.todos if t.status in ('completed', 'reviewed'))
                 if current_todo:
                     header_parts = [f"[Step {completed + 1}/{total}: {current_todo.content}]"]
                     if current_todo.rejection_reason:
@@ -3234,7 +3234,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 reminder = todo_tracker.get_continuation_prompt()
                 if reminder:
                     messages.append({"role": "user", "content": reminder})
-                    print(Color.info(f"[System] {sum(1 for t in todo_tracker.todos if t.status == 'completed')}/{len(todo_tracker.todos)} todos done — continuing..."))
+                    print(Color.info(f"[System] {sum(1 for t in todo_tracker.todos if t.status in ('completed', 'reviewed'))}/{len(todo_tracker.todos)} todos done — continuing..."))
                     # Don't break — continue loop
                 else:
                     break

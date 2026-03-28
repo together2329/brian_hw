@@ -60,7 +60,7 @@ class TodoItem:
     Attributes:
         content: Todo 내용 (예: "Run tests")
         active_form: 진행 중일 때 표시할 내용 (예: "Running tests")
-        status: 현재 상태 ("pending", "in_progress", "completed")
+        status: 현재 상태 ("pending", "in_progress", "completed", "reviewed")
         priority: 우선순위 ("high", "medium", "low")
         created_at: 생성 시간 (timestamp)
         completed_at: 완료 시간 (timestamp, None if not completed)
@@ -70,7 +70,7 @@ class TodoItem:
     """
     content: str
     active_form: str
-    status: str = "pending"       # "pending", "in_progress", "completed"
+    status: str = "pending"       # "pending", "in_progress", "completed", "reviewed"
     priority: str = "medium"      # "high", "medium", "low"
     created_at: float = None
     completed_at: Optional[float] = None
@@ -87,7 +87,7 @@ class TodoItem:
     @property
     def elapsed(self) -> Optional[float]:
         """Elapsed seconds from creation to completion (or now if in_progress)."""
-        if self.status == "completed" and self.completed_at:
+        if self.status in ("completed", "reviewed") and self.completed_at:
             return self.completed_at - self.created_at
         if self.status == "in_progress":
             return time.time() - self.created_at
@@ -176,6 +176,15 @@ class TodoTracker:
         self.todos[index].rejection_reason = ""
         self.save()
 
+    def mark_reviewed(self, index: int):
+        """특정 todo를 reviewed로 변경."""
+        if not (0 <= index < len(self.todos)):
+            return
+
+        self.todos[index].status = "reviewed"
+        # completed_at shouldn't change
+        self.save()
+
     def auto_advance(self):
         """현재 todo 완료 후 자동으로 다음 pending todo로 이동 (priority 반영)."""
         if self.current_index >= 0 and self.current_index < len(self.todos):
@@ -239,7 +248,8 @@ class TodoTracker:
             icon = {
                 "pending":     f"{Color.DIM}⏸ {Color.RESET}",
                 "in_progress": f"{Color.warning('▶')} ",
-                "completed":   f"{Color.success('✅')} "
+                "completed":   f"{Color.warning('👀')} ",
+                "reviewed":    f"{Color.success('✅')} "
             }.get(todo.status, "❓ ")
 
             # Priority badge
@@ -251,8 +261,10 @@ class TodoTracker:
 
             # Text with status-based coloring
             content_style = Color.RESET
-            if todo.status == "completed":
+            if todo.status == "reviewed":
                 content_style = Color.DIM + Color.STRIKETHROUGH
+            elif todo.status == "completed":
+                content_style = Color.RESET
             elif todo.status == "in_progress":
                 content_style = Color.BOLD + Color.YELLOW
 
@@ -263,7 +275,7 @@ class TodoTracker:
             
             # Elapsed / completion time
             time_str = ""
-            if todo.status == "completed" and todo.elapsed is not None:
+            if todo.status in ("completed", "reviewed") and todo.elapsed is not None:
                 time_str = f" {Color.DIM}({_fmt_elapsed(todo.elapsed)}){Color.RESET}"
             elif todo.status == "in_progress" and todo.elapsed is not None:
                 time_str = f" {Color.DIM}({_fmt_elapsed(todo.elapsed)} elapsed){Color.RESET}"
@@ -286,7 +298,7 @@ class TodoTracker:
                         lines.append(f"     {Color.DIM}• {c.strip()}{Color.RESET}")
 
         # Progress bar
-        completed_count = sum(1 for t in self.todos if t.status == "completed")
+        completed_count = sum(1 for t in self.todos if t.status == "reviewed")
         total = len(self.todos)
         ratio = completed_count / total if total > 0 else 0
         bar_len = 25
@@ -310,14 +322,14 @@ class TodoTracker:
         return None
 
     def is_all_completed(self) -> bool:
-        """모든 todo가 완료되었는지 확인."""
-        return bool(self.todos) and all(t.status == "completed" for t in self.todos)
+        """모든 todo가 reviewed(완전히 완료)되었는지 확인."""
+        return bool(self.todos) and all(t.status == "reviewed" for t in self.todos)
 
     def get_completion_ratio(self) -> float:
         """완료 비율 계산 (0.0 ~ 1.0)."""
         if not self.todos:
             return 1.0
-        completed = sum(1 for t in self.todos if t.status == "completed")
+        completed = sum(1 for t in self.todos if t.status == "reviewed")
         return completed / len(self.todos)
 
     def get_continuation_prompt(self) -> Optional[str]:
@@ -326,20 +338,28 @@ class TodoTracker:
             return None
 
         current = self.get_current_todo()
-        completed_count = sum(1 for t in self.todos if t.status == "completed")
+        completed_count = sum(1 for t in self.todos if t.status == "reviewed")
         remaining = len(self.todos) - completed_count
 
         # Brief reminder only — full progress shown on todo_update/todo_write
         lines = [
-            f"[Todo Reminder] {completed_count}/{len(self.todos)} completed, {remaining} remaining.",
+            f"[Todo Reminder] {completed_count}/{len(self.todos)} fully reviewed, {remaining} remaining.",
         ]
 
         if current:
             lines.append(f"Current task: {current.content}")
-            lines.append("Continue working on this task. When done, call todo_update(index=N, status='completed').")
+            lines.append("Continue working on this task. When done, call todo_update(index=N, status='completed'). Then verify and update status='reviewed'.")
         else:
-            next_idx = self._get_next_pending()
-            if next_idx is not None:
+            # Check if there are any 'completed' (but not 'reviewed') tasks
+            unreviewed = [i for i, t in enumerate(self.todos) if t.status == "completed"]
+            if unreviewed:
+                idx = unreviewed[0]
+                todo = self.todos[idx]
+                lines.append(f"Task pending review: {todo.content}")
+                lines.append(f"Please review your implementation for task {idx+1}. If it's correct, call todo_update(index={idx+1}, status='reviewed').")
+            else:
+                next_idx = self._get_next_pending()
+                if next_idx is not None:
                 todo = self.todos[next_idx]
                 lines.append(f"Next task: {todo.content}")
                 lines.append("Start working on this task.")
@@ -356,7 +376,7 @@ class TodoTracker:
         completed_steps = [
             f"  {i+1}. {t.content} [DONE]"
             for i, t in enumerate(self.todos[:step_idx])
-            if t.status == "completed"
+            if t.status in ("completed", "reviewed")
         ]
         if completed_steps:
             lines.append("Completed steps:")

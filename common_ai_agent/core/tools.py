@@ -2122,7 +2122,7 @@ def todo_write(todos=None, tasks=None):
             todo["status"] = "pending"
 
         # Validate status value
-        valid_statuses = ["pending", "in_progress", "completed"]
+        valid_statuses = ["pending", "in_progress", "completed", "reviewed"]
         if todo["status"] not in valid_statuses:
             return f"Error: todos[{i}] has invalid status '{todo['status']}'. Must be one of: {', '.join(valid_statuses)}"
 
@@ -2163,7 +2163,7 @@ def todo_update(index=None, status=None, reason="", content="", detail="", activ
 
     Args:
         index (int): 1-based index of the todo to update (required).
-        status (str): New status — "in_progress", "completed", or "pending" (optional).
+        status (str): New status — "in_progress", "completed", "reviewed", or "pending" (optional).
         reason (str): Rejection reason when reverting to pending/in_progress.
         content (str): New task description (optional, updates if provided).
         detail (str): New implementation detail (optional, updates if provided).
@@ -2213,18 +2213,24 @@ def todo_update(index=None, status=None, reason="", content="", detail="", activ
     # Update status if provided
     if status:
         # Normalize common aliases
-        _status_aliases = {"active": "in_progress", "done": "completed", "complete": "completed"}
+        _status_aliases = {"active": "in_progress", "done": "completed", "complete": "completed", "verified": "reviewed"}
         status = _status_aliases.get(status, status)
-        valid = ["pending", "in_progress", "completed"]
+        valid = ["pending", "in_progress", "completed", "reviewed"]
         if status not in valid:
             return f"Error: status must be one of {valid} (got '{status}')"
 
-        if status == "completed":
+        if status == "reviewed":
+            item.rejection_reason = ""
+            todo_tracker.mark_reviewed(idx)
+            todo_tracker.save()
+            progress = todo_tracker.format_progress()
+            return f"✅ Task {index} reviewed and fully complete.\n\n[System] Proceed to the next task if any remain:\n\n{progress}"
+        elif status == "completed":
             item.rejection_reason = ""
             todo_tracker.mark_completed(idx)
             todo_tracker.save()
             progress = todo_tracker.format_progress()
-            return f"✅ Task {index} marked as completed.\n\n[System] Please review your work. If everything is correct, proceed to the next task:\n\n{progress}"
+            return f"👀 Task {index} marked as completed (awaiting review).\n\n[System] Please verify your implementation. If it's correct, call todo_update(index={index}, status='reviewed'). If it needs fixes, mark 'in_progress' again with a reason:\n\n{progress}"
         elif status == "in_progress":
             if reason:
                 item.rejection_reason = reason
