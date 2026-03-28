@@ -3134,11 +3134,12 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     print(Color.info(f"  [System] Think-only response detected — requesting final answer (attempt {final_answer_attempts}/2)"))
                     # continue loop to get final answer
                 else:
-                    # If visible content was generated but not shown by streaming display, print it now
-                    # Skip if content has ReAct markers (already streamed/displayed)
-                    _has_react = any(m in visible for m in ('Thought:', 'Action:', 'Response:'))
-                    if visible and len(visible) >= 100 and not _has_react:
-                        print(f"\r\033[2K{visible}")
+                    # Fallback print only if streaming did NOT show content
+                    # (_thinking_stopped=True means streaming ran and already displayed content)
+                    if not _thinking_stopped:
+                        _has_react = any(m in visible for m in ('Thought:', 'Action:', 'Response:'))
+                        if visible and len(visible) >= 100 and not _has_react:
+                            print(f"\r\033[2K{visible}")
                     break
 
         # Increment iteration counter
