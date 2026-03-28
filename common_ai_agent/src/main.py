@@ -3455,17 +3455,22 @@ def chat_loop():
             if _multiline_prompt:
                 is_plan_turn = (agent_mode in ('plan', 'plan_q'))
                 
-                if is_plan_turn:
-                    _plan_prompt = ANSI(Color.warning("Plan Confirmation [y/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                if agent_mode == 'plan_q':
+                    _plan_prompt = ANSI(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
+                    user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
+                elif agent_mode == 'plan':
+                    _plan_prompt = ANSI(Color.warning("Plan Confirmation [y/yc/feedback] ") + Color.CYAN + "> " + Color.RESET)
                     user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
                 else:
                     user_input = _multiline_prompt.prompt(_prompt_text)
             else:
                 is_plan_turn = (agent_mode in ('plan', 'plan_q'))
                 
-                if is_plan_turn:
+                if agent_mode == 'plan_q':
+                    user_input = input(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
+                elif agent_mode == 'plan':
                     print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} A plan is active. Confirm to execute or provide feedback.")
-                    user_input = input(Color.warning("Plan Confirmation [y/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                    user_input = input(Color.warning("Plan Confirmation [y/yc/feedback] ") + Color.CYAN + "> " + Color.RESET)
                 else:
                     user_input = input(Color.user("> ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
