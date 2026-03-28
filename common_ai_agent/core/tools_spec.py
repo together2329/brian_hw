@@ -401,53 +401,12 @@ def _spec_search_subagent(spec: str, query: str) -> str:
 
 def spec_ask(spec: str, query: str) -> str:
     """
-    Spec Q&A tool — spec_search로 관련 섹션을 찾아 secondary model로 요약 후 반환.
+    Spec Q&A tool — spec_search로 관련 섹션을 찾아 raw content를 반환.
+    primary agent가 직접 내용을 읽고 답변.
     spec='pcie'/'ucie'/'nvme', query=자연어 질문.
-    primary agent는 이 도구 하나만 사용하면 됨.
     """
     _dbg(f"spec_ask: spec={spec!r} query={query!r}")
-    raw = spec_search(spec, query)
-
-    # Summarize with secondary model to reduce main context token usage
-    try:
-        _src_dir = os.path.join(_CORE_DIR, "..", "src")
-        if _src_dir not in sys.path:
-            sys.path.insert(0, _src_dir)
-        import config
-        import time
-        import llm_client as _llm_client
-        from llm_client import call_llm_raw
-
-        secondary_model = getattr(config, "SECONDARY_MODEL", None) or config.MODEL_NAME
-        print(f"  [spec-summarize] {secondary_model}...", flush=True)
-
-        summary_prompt = (
-            f"You are a technical spec summarizer. "
-            f"Summarize the following spec content to answer this query.\n"
-            f"Query: {query}\n\n"
-            f"Spec content:\n{raw}\n\n"
-            f"STRICT RULES:\n"
-            f"- Use ONLY information from the spec content above. Do NOT add outside knowledge.\n"
-            f"- If the spec content does not answer the query, say so explicitly.\n"
-            f"- Keep all key definitions, field names, bit values, and table data verbatim.\n"
-            f"- 500-800 words max."
-        )
-
-        t0 = time.time()
-        summary = call_llm_raw(summary_prompt, temperature=0.1, model=secondary_model, stream_prefix="  │ ")
-        elapsed = time.time() - t0
-
-        _in  = _llm_client.last_input_tokens
-        _out = _llm_client.last_output_tokens
-        _fk = lambda n: f"{n/1000:.1f}k" if n >= 1000 else str(n)
-        _tok_str = f"in {_fk(_in)} · out {_fk(_out)} · sum {_fk(_in+_out)}" if _in > 0 else ""
-        print(f"\n  [spec-summarize] done · {elapsed:.1f}s{' · ' + _tok_str if _tok_str else ''}", flush=True)
-
-        return summary
-
-    except Exception as e:
-        _dbg(f"spec_ask summarize failed: {e} — returning raw")
-        return raw
+    return spec_search(spec, query)
 
 
 def _list_available_specs() -> list:
