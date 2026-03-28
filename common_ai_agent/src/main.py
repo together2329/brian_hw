@@ -2945,6 +2945,18 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         print(format_tool_header(tool_name, summary))
                         print(Color.DIM + f"  │ {tool_elapsed:.2f}s" + Color.RESET)
 
+                    # todo_update(completed) → mini step review
+                    if tool_name == 'todo_update' and 'completed' in args_str:
+                        current_todo = todo_tracker.get_current_todo() if todo_tracker else None
+                        _prev_content = current_todo.content if current_todo else "이전 스텝"
+                        observation += (
+                            f"\n\n[Step Review] '{_prev_content}' 완료로 표시됨.\n"
+                            "실제로 완료됐는지 검증할 것:\n"
+                            "- 구현/변경이 실제로 적용됐는가? (read_file, grep_file로 확인)\n"
+                            "- 미완성이면 todo_update(N, 'in_progress')로 되돌릴 것\n"
+                            "- 완료 확인 후 다음 스텝으로 진행"
+                        )
+
                     # Plan mode: todo_write() = plan confirmed → compress + exit plan mode
                     if tool_name == 'todo_write' and agent_mode == 'plan':
                         agent_mode = 'normal'
