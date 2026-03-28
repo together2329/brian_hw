@@ -2222,7 +2222,9 @@ def todo_update(index=None, status=None, reason="", content="", detail="", activ
         if status == "completed":
             item.rejection_reason = ""
             todo_tracker.mark_completed(idx)
-            return todo_tracker.format_progress()
+            todo_tracker.save()
+            progress = todo_tracker.format_progress()
+            return f"✅ Task {index} marked as completed.\n\n[System] Please review your work. If everything is correct, proceed to the next task:\n\n{progress}"
         elif status == "in_progress":
             if reason:
                 item.rejection_reason = reason
