@@ -258,10 +258,13 @@ def _llm_select_sections(query: str, candidates: list) -> list:
         _t0 = _time.time()
         result = call_llm_raw(
             prompt="",
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {"role": "system", "content": "You are a fast section selector. Reply with ONLY a JSON array of node IDs. No thinking, no explanation."},
+                {"role": "user", "content": prompt},
+            ],
             stream_prefix="  [spec-select] ",
             temperature=0.0,
-            extra_body={"thinking": {"type": "disabled"}},
+            extra_body={"thinking": {"budget_tokens": 0}},
         )
         _elapsed = _time.time() - _t0
         _in = _llm_client.last_input_tokens

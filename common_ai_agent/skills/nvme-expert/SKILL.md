@@ -30,5 +30,11 @@ Action: spec_search(spec="nvme", query="<사용자 질문 그대로>")
 - **`spec_search`는 질문당 단 한 번만 호출한다** — 여러 번 또는 병렬로 호출하지 말 것
 - query는 사용자 질문을 그대로 전달 — 여러 sub-query로 나누지 말 것
 - **acronym/용어를 임의로 추측하거나 해석하지 말 것** — spec_search 결과를 보기 전까지 어떤 가정도 하지 말 것
-- `find_files`, `grep_file`, `read_file`, `spec_navigate` 등으로 직접 탐색하지 말 것
+- `find_files`, `grep_file`, `read_file` 등으로 직접 탐색하지 말 것
 - 결과가 반환되면 그 내용을 바탕으로 사용자에게 답변한다
+
+## Fallback: spec_search 결과가 부족할 때
+```
+Action: spec_navigate(spec="nvme", node_id="<섹션 ID>")
+```
+→ spec_search가 관련 내용을 못 찾은 경우에만 사용. node_id="root"로 시작해 드릴다운.
