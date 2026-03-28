@@ -2209,7 +2209,7 @@ def todo_update(index=None, status=None, reason=""):
         if reason:
             item.rejection_reason = reason
         item.status = "pending"
-        todo_tracker._save()
+        todo_tracker.save()
 
     if reason:
         prefix = f"[REJECTED] Step {index}: {item.content}\nRejection reason: {reason}\n\n"

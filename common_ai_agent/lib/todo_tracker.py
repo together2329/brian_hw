@@ -14,6 +14,22 @@ from dataclasses import dataclass, field
 # Default persistence path
 TODO_FILE = Path.home() / ".common_ai_agent" / "current_todos.json"
 
+# Import Color for display
+try:
+    from lib.display import Color
+except ImportError:
+    class Color:
+        CYAN = ""
+        YELLOW = ""
+        BOLD = ""
+        DIM = ""
+        STRIKETHROUGH = ""
+        RESET = ""
+        @staticmethod
+        def success(s): return s
+        @staticmethod
+        def warning(s): return s
+
 # Priority ordering
 _PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 
@@ -200,37 +216,49 @@ class TodoTracker:
         if not self.todos:
             return ""
 
-        lines = ["=== TODO PROGRESS ==="]
+        # Rich styling for premium feel
+        _HEADER = f"{Color.BOLD}{Color.CYAN}┖━━━ {Color.YELLOW}TRACKING PROGRESS {Color.CYAN}━━━┛{Color.RESET}"
+        _BAR_BG = Color.DIM + "░" + Color.RESET
+        _BAR_FG = Color.success("█")
+        
+        lines = ["", _HEADER]
 
         for i, todo in enumerate(self.todos):
             icon = {
-                "pending":     "⏸️",
-                "in_progress": "▶️",
-                "completed":   "✅"
-            }.get(todo.status, "❓")
+                "pending":     f"{Color.DIM}⏸ {Color.RESET}",
+                "in_progress": f"{Color.warning('▶')} ",
+                "completed":   f"{Color.success('✅')} "
+            }.get(todo.status, "❓ ")
 
-            # Priority badge (only for non-medium)
+            # Priority badge
             priority_badge = ""
             if todo.priority == "high":
-                priority_badge = "[HIGH] "
+                priority_badge = f"{Color.RED}[HIGH]{Color.RESET} "
             elif todo.priority == "low":
-                priority_badge = "[LOW] "
+                priority_badge = f"{Color.DIM}[LOW]{Color.RESET} "
 
-            # Text
+            # Text with status-based coloring
+            content_style = Color.RESET
+            if todo.status == "completed":
+                content_style = Color.DIM + Color.STRIKETHROUGH
+            elif todo.status == "in_progress":
+                content_style = Color.BOLD + Color.YELLOW
+
             text = todo.active_form if todo.status == "in_progress" else todo.content
-
+            
             # Elapsed / completion time
             time_str = ""
             if todo.status == "completed" and todo.elapsed is not None:
-                time_str = f"  ({_fmt_elapsed(todo.elapsed)})"
+                time_str = f" {Color.DIM}({_fmt_elapsed(todo.elapsed)}){Color.RESET}"
             elif todo.status == "in_progress" and todo.elapsed is not None:
-                time_str = f"  ({_fmt_elapsed(todo.elapsed)} elapsed)"
+                time_str = f" {Color.DIM}({_fmt_elapsed(todo.elapsed)} elapsed){Color.RESET}"
 
-            lines.append(f"{icon} {i+1}. {priority_badge}{text}{time_str}")
+            lines.append(f"{icon}{Color.CYAN}{i+1}.{Color.RESET} {priority_badge}{content_style}{text}{Color.RESET}{time_str}")
             
             # Show detail if available
             if todo.detail and todo.status != 'completed':
-                lines.append(f"   └ 📝 {Color.DIM}{todo.detail}{Color.RESET}")
+                prefix = "   " if todo.status == "in_progress" else "   "
+                lines.append(f"{prefix}{Color.DIM}└ 📝 {todo.detail}{Color.RESET}")
                 
             # Show criteria if available
             if todo.criteria and todo.status != 'completed':
@@ -242,11 +270,17 @@ class TodoTracker:
         completed_count = sum(1 for t in self.todos if t.status == "completed")
         total = len(self.todos)
         ratio = completed_count / total if total > 0 else 0
-        bar_len = 20
+        bar_len = 25
         filled = int(bar_len * ratio)
-        bar = "█" * filled + "░" * (bar_len - filled)
+        bar = _BAR_FG * filled + _BAR_BG * (bar_len - filled)
         pct = int(ratio * 100)
-        lines.append(f"\n[{bar}] {pct}%  ({completed_count}/{total} done)")
+        
+        status_text = f"{Color.success(str(completed_count))}{Color.DIM}/{total} done{Color.RESET}"
+        if pct == 100:
+            status_text = f"{Color.success('ALL DONE! 🏁')}"
+
+        lines.append(f"\n {Color.CYAN}╎{Color.RESET} [{bar}] {Color.BOLD}{pct}%{Color.RESET}  {status_text}")
+        lines.append("")
 
         return "\n".join(lines)
 
@@ -357,7 +391,7 @@ class TodoTracker:
         tracker._last_completed_count = data.get("_last_completed_count", 0)
         return tracker
 
-    def _save(self):
+    def save(self):
         """파일에 현재 상태 저장."""
         if not self._persist_path:
             return
@@ -406,7 +440,7 @@ class TodoTracker:
         else:
             self.stagnation_count += 1
 
-        self._save()
+        self.save()
 
         if self.stagnation_count >= max_stagnation:
             current = self.get_current_todo()
