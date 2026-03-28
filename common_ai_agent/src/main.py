@@ -3096,7 +3096,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                     # FORCE BREAK after todo_write to trigger confirmation prompt
                     if tool_name in ('todo_write', 'todo_update'):
-                        print(Color.system("\n[System] ⏹  Plan updated. Breaking ReAct loop to wait for user confirmation."))
+                        print(Color.system("\n[System] ⏹  Plan ready. Breaking loop for confirmation.\n"))
                         # Append the results so far and break the loop
                         messages.append({"role": "assistant", "content": collected_content})
                         messages.append({"role": "user", "content": "\n".join(combined_results)})
@@ -3844,7 +3844,11 @@ def chat_loop():
                         else:
                             _new_content = system_prompt_data
                         messages[0]["content"] = _new_content
+
                     print(Color.success("\n[Plan] ✅ Confirmed. Switching to Execution Mode and starting task...\n"))
+                    # Inject a direct instruction to start immediately instead of just "y"
+                    user_input = "Confirmed. Proceed with the first task immediately without further talk."
+                    messages[-1]["content"] = user_input
                     messages = compress_history(messages, force=True)
                     if full_messages is not None:
                         full_messages = list(messages)
