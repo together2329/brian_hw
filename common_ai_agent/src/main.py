@@ -3215,8 +3215,12 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
             messages = process_observation(observation, messages)
 
-            # Todo status is now managed by explicit todo_update() calls from LLM
-            # (auto-advance removed — LLM decides when steps are done)
+            # Inject todo reminder after tool results so agent stays aware of progress
+            if (todo_tracker and todo_tracker.todos
+                    and not todo_tracker.is_all_completed()):
+                reminder = todo_tracker.get_continuation_prompt()
+                if reminder:
+                    messages.append({"role": "user", "content": reminder})
 
             # Stall tracking (silent — logged but not shown to agent)
         else:
