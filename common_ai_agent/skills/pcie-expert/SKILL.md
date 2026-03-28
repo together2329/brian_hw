@@ -20,27 +20,26 @@ requires_tools: [spec_navigate, grep_file, read_lines]
 related_skills: [verilog-expert, protocol-spec-expert]
 ---
 
-# ⚠️ MANDATORY: spec_navigate → grep 방식으로 탐색
+# ⚠️ MANDATORY: spec_navigate로 탐색
 
-**PCIe 스펙 질문은 반드시 아래 순서로 처리한다.**
+**PCIe 스펙 질문은 반드시 `spec_navigate`로 처리한다.**
 
-## Step 1: TOC 확인
+## 탐색 방법
+
 ```
+# 1. TOC 확인
 Action: spec_navigate(spec="pcie", node_id="root")
-```
 
-## Step 2: 키워드 검색
-```
-Action: grep_file(pattern="<핵심 키워드>", path="skills/pcie-expert/data/markdown")
-```
+# 2. 관련 챕터 드릴다운 → leaf의 content에 내용 포함
+Action: spec_navigate(spec="pcie", node_id="<섹션ID>")
 
-## Step 3: 관련 파일 읽기
-```
-Action: read_lines(path="skills/pcie-expert/data/markdown/<파일명>", start_line=1, end_line=100)
+# 3. 더 깊이 탐색 필요 시 — navigate path로 grep → 라인 번호 확인 → read_lines
+Action: grep_file(pattern="<키워드>", path="<navigate path의 상위 디렉토리>")
+Action: read_lines(path="<파일경로>", start_line=<N>, end_line=<N+80>)
 ```
 
 ## 규칙
-- **acronym/용어를 임의로 추측하거나 해석하지 말 것** — 탐색 결과를 보기 전까지 어떤 가정도 하지 말 것
+- **acronym/용어를 임의로 추측하지 말 것** — navigate 결과를 보기 전까지 어떤 가정도 하지 말 것
+- leaf `content`로 충분하면 추가 read 불필요
+- grep 경로는 반드시 `spec_navigate`의 `path`에서 유도할 것 — 임의 경로 금지
 - `spec_search`는 사용하지 말 것
-- 탐색 범위는 `skills/pcie-expert/data/markdown/` 내로 한정
-- 필요하면 `spec_navigate(spec="pcie", node_id="<섹션ID>")` 로 특정 섹션 드릴다운
