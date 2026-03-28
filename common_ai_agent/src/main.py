@@ -3098,7 +3098,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 total = len(todo_tracker.todos)
                 completed = sum(1 for t in todo_tracker.todos if t.status == 'completed')
                 if current_todo:
-                    observation += f"\n[Step {completed + 1}/{total}] {current_todo.content}"
+                    step_header = f"[Step {completed + 1}/{total}: {current_todo.content}]\n→ 현재 목표를 염두에 두고 아래 결과를 해석할 것\n\n"
+                    observation = step_header + observation
                 print(Color.info(f"\n[{completed}/{total}] {current_todo.content if current_todo else 'All done'}"))
 
             messages = process_observation(observation, messages)
