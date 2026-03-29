@@ -256,8 +256,8 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                         sys.stdout.write(content)
                                         sys.stdout.flush()
                                 
-                                if content:
-                                    yield content
+                                if reasoning or content:
+                                    yield reasoning or content
 
                                 # Handle native tool_calls (models like Qwen, Mistral, etc.)
                                 tool_calls = delta.get("tool_calls", [])
@@ -632,6 +632,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                             _content_label_printed = True
                                         sys.stdout.write(content)
                                         sys.stdout.flush()
+
+                                if reasoning or content:
+                                    yield reasoning or content
 
                                 # Handle native tool_calls
                                 tool_calls = delta.get("tool_calls", [])

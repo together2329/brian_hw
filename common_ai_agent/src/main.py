@@ -2152,11 +2152,9 @@ def execute_actions_parallel(actions, tracker, agent_mode='normal'):
                 # Parallel execution: Filter out blocked tools first
                 allowed_actions = []
                 for idx, tool_name, args_str in batch.actions:
-                    # Plan mode gating in parallel batch
-                    if agent_mode == 'plan_q':
-                        observation = "[Plan Mode] Tool calls blocked. Ask clarifying questions first."
-                        results.append((idx, tool_name, args_str, observation))
-                    elif agent_mode == 'plan' and tool_name in config.PLAN_MODE_BLOCKED_TOOLS:
+                    # Plan mode gating in parallel batch (consistent across 'plan' and 'plan_q')
+                    is_any_plan = agent_mode in ('plan', 'plan_q')
+                    if is_any_plan and tool_name in config.PLAN_MODE_BLOCKED_TOOLS:
                         observation = f"[Plan Mode] '{tool_name}' is blocked. Only read/search tools are available."
                         results.append((idx, tool_name, args_str, observation))
                     else:
@@ -2171,9 +2169,8 @@ def execute_actions_parallel(actions, tracker, agent_mode='normal'):
                 # Sequential execution
                 for idx, tool_name, args_str in batch.actions:
                     # Plan mode gating in sequential batch
-                    if agent_mode == 'plan_q':
-                        observation = "[Plan Mode] Tool calls blocked. Ask clarifying questions first."
-                    elif agent_mode == 'plan' and tool_name in config.PLAN_MODE_BLOCKED_TOOLS:
+                    is_any_plan = agent_mode in ('plan', 'plan_q')
+                    if is_any_plan and tool_name in config.PLAN_MODE_BLOCKED_TOOLS:
                         observation = f"[Plan Mode] '{tool_name}' is blocked. Only read/search tools are available."
                     else:
                         observation = execute_tool(tool_name, args_str)
@@ -3092,24 +3089,12 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     # Print header before execution for tools that emit progress lines
                     if tool_name in _PRE_HEADER_TOOLS and not config.DEBUG_MODE:
                         print(format_tool_header(tool_name, summary))
-                    # Plan mode tool gating
-                    _PLAN_READONLY_TOOLS = frozenset({
-                        'list_dir', 'read_file', 'read_lines', 'grep_file', 'find_files',
-                        'git_status', 'git_diff',
-                        'todo_write', 'todo_update', 'todo_add', 'todo_remove', 'todo_status',
-                    })
-                    if agent_mode == 'plan_q' and tool_name not in _PLAN_READONLY_TOOLS:
-                        # First clarification turn: only read-only tools allowed
-                        observation = (
-                            f"[Plan Mode] '{tool_name}' is blocked during clarification. "
-                            "Only read-only tools are allowed (list_dir, read_file, grep_file, find_files, etc.). "
-                            "Ask the user clarifying questions first."
-                        )
-                    elif agent_mode == 'plan' and tool_name in config.PLAN_MODE_BLOCKED_TOOLS:
+                    # Plan mode tool gating (Unified logic for 'plan' and 'plan_q')
+                    if agent_mode in ('plan', 'plan_q') and tool_name in config.PLAN_MODE_BLOCKED_TOOLS:
                         observation = (
                             f"[Plan Mode] '{tool_name}' is blocked. "
-                            "Only read/search tools are available (read_file, read_lines, grep_file, find_files). "
-                            "Clarify requirements with the user, then call todo_write() when confirmed."
+                            "Only read/search tools are available (read_file, grep_file, find_files, verilog tools, etc.). "
+                            "Clarify requirements or update the plan/todo list first."
                         )
                     elif tool_name in _SLOW_TOOLS and not config.DEBUG_MODE:
                         friendly = _friendly_tool_name(tool_name)
