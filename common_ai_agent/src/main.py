@@ -3375,8 +3375,14 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         print(f"  {visible}")
                     break
 
-        # Increment iteration counter
-        tracker.increment()
+            # [Step Review] Increment iteration counter
+            tracker.increment()
+
+            # Step-by-Step execution: Break loop after any productive action to return control to user
+            if getattr(config, 'STEP_BY_STEP_MODE', False) and (combined_results or _is_todo_write):
+                if config.DEBUG_MODE:
+                    print(Color.info("  [StepMode] Action detected in step-by-step mode. Pausing..."))
+                break
 
     # Stop ESC key watcher
     EscapeWatcher.stop()
@@ -4016,8 +4022,12 @@ def chat_loop():
                         msg += " (with History Compression)"
                     print(Color.success(f"\n[Plan] {msg}\n"))
                     
-                    # Inject a direct instruction to start immediately instead of just "y"
-                    user_input = "Confirmed. Perform ONLY the first task (Step 1) immediately. Do NOT attempt multiple tasks in one turn."
+                    # Inject a dynamic confirmation message based on STEP_BY_STEP_MODE
+                    if getattr(config, 'STEP_BY_STEP_MODE', False):
+                        user_input = "Confirmed. Perform ONLY the first task (Step 1) immediately. Do NOT attempt multiple tasks in one turn."
+                    else:
+                        user_input = "Confirmed. Please proceed with the entire plan and complete all tasks."
+                        
                     if config.DEBUG_MODE:
                         print(Color.info(f"  [Debug] Injected confirmation: {user_input}"))
                     messages[-1]["content"] = user_input
