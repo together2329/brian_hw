@@ -461,8 +461,8 @@ class TodoTracker:
                 )
             else:
                 return (
-                    f"[Todo {approved_count}/{total}] Task {idx}: {current.content}"
-                    f" → todo_update(index={idx}, status='completed') when done"
+                    f"[Todo {approved_count}/{total}] Task {idx}: {current.content} "
+                    f"→ Action: todo_update(index={idx}, status='completed')"
                 )
 
         unreviewed = [i for i, t in enumerate(self.todos) if t.status == "completed"]
@@ -476,7 +476,8 @@ class TodoTracker:
         next_idx = self._get_next_pending()
         if next_idx is not None:
             todo = self.todos[next_idx]
-            return f"[Todo {approved_count}/{total}] Next: task {next_idx+1}: {todo.content}"
+            idx = next_idx + 1
+            return f"[Todo {approved_count}/{total}] Next Task {idx}: {todo.content} → Action: todo_update(index={idx}, status='in_progress')"
 
         return None
 

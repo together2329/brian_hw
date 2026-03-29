@@ -597,7 +597,11 @@ Git Tools:
 Sub-Agent Tools:
 30. background_task(agent="explore", prompt="find FIFO implementations") - Delegate to sub-agent
 31. background_output(task_id="bg_xxxx") - Get background task result
-32. todo_update(index=1, status="completed") - Update todo item status (1-based index)
+32. todo_update(index=1, status="completed") - Update todo item status (index is REQUIRED and MUST be 1-based. 1=first task, 2=second, etc.)
+
+RELIABILITY RULES:
+1. Always update your todo status immediately after completing the associated work in the SAME TURN.
+2. Use the exact 1-based index provided in the "[Todo X/Y] Next Task N: ..." status footer.
 
 FORMAT:
 To use a tool, you must use the following format exactly:
@@ -847,11 +851,11 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     task_tools = []
     if plan_mode:
         task_tools.append(_tool_line("todo_write", 'tasks', "Create task list (Plan Mode only). Format: [{content, activeForm, status}]."))
-        task_tools.append(_tool_line("todo_remove", 'index', "Remove a task (Plan Mode only)."))
+        task_tools.append(_tool_line("todo_remove", 'index', "Remove a task (index REQUIRED, 1-based)."))
     
     if todo_active:
-        task_tools.append(_tool_line("todo_update", 'index, status, content, detail', "Update task status and/or content."))
-        task_tools.append(_tool_line("todo_add", 'content, priority, index', "Add a single task to the list."))
+        task_tools.append(_tool_line("todo_update", 'index, status, content, detail', "Update task status (index REQUIRED, 1-based)."))
+        task_tools.append(_tool_line("todo_add", 'content, priority, index', "Add task (index is target position, 1-based)."))
         task_tools.append(_tool_line("todo_status", '', "Show current task progress."))
     
     task_tools = [t for t in task_tools if t]

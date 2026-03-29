@@ -242,31 +242,19 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
 
                                 # Handle reasoning and content for debug display
                                 if config.DEBUG_MODE:
-                                    to_show = reasoning or content
-                                    if to_show:
-                                        import re as _re
-                                        _parts = _re.split(r'(</?think>)', to_show)
-                                        for _p in _parts:
-                                            if _p == '<think>':
-                                                _debug_in_think = True
-                                                if not _reasoning_started:
-                                                    sys.stdout.write(f"\n\033[36m[reasoning]\033[0m\n")
-                                                    _reasoning_started = True
-                                            elif _p == '</think>':
-                                                _debug_in_think = False
-                                            elif _p:
-                                                if reasoning or _debug_in_think:
-                                                    if not _reasoning_started:
-                                                        sys.stdout.write(f"\n\033[36m[reasoning]\033[0m\n")
-                                                        _reasoning_started = True
-                                                    sys.stdout.write(f"\033[36m{_p}\033[0m")
-                                                else:
-                                                    if not _content_label_printed:
-                                                        if _reasoning_started: sys.stdout.write("\n")
-                                                        sys.stdout.write(f"\033[32m[content]\033[0m\n")
-                                                        _content_label_printed = True
-                                                    sys.stdout.write(f"\033[32m{_p}\033[0m")
-                                                sys.stdout.flush()
+                                    # Use a simple prefix only when switching between types
+                                    if reasoning:
+                                        if not _reasoning_started:
+                                            sys.stdout.write(f"\n\033[36m[reasoning]\033[0m ")
+                                            _reasoning_started = True
+                                        sys.stdout.write(reasoning)
+                                        sys.stdout.flush()
+                                    if content:
+                                        if not _content_label_printed:
+                                            sys.stdout.write(f"\n\033[32m[content]\033[0m ")
+                                            _content_label_printed = True
+                                        sys.stdout.write(content)
+                                        sys.stdout.flush()
                                 
                                 if content:
                                     yield content
@@ -632,37 +620,20 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
                                 # Handle reasoning and content for debug display
                                 if config.DEBUG_MODE:
-                                    to_show = reasoning or content
-                                    if to_show:
-                                        import re as _re
-                                        _parts = _re.split(r'(</?think>)', to_show)
-                                        for _p in _parts:
-                                            if _p == '<think>':
-                                                _debug_in_think = True
-                                                if not _reasoning_started:
-                                                    sys.stdout.write(f"\n\033[36m[reasoning]\033[0m\n")
-                                                    _reasoning_started = True
-                                            elif _p == '</think>':
-                                                _debug_in_think = False
-                                            elif _p:
-                                                if reasoning or _debug_in_think:
-                                                    if not _reasoning_started:
-                                                        sys.stdout.write(f"\n\033[36m[reasoning]\033[0m\n")
-                                                        _reasoning_started = True
-                                                    sys.stdout.write(f"\033[36m{_p}\033[0m")
-                                                else:
-                                                    if not _content_label_printed:
-                                                        if _reasoning_started: sys.stdout.write("\n")
-                                                        sys.stdout.write(f"\033[32m[content]\033[0m\n")
-                                                        _content_label_printed = True
-                                                    sys.stdout.write(f"\033[32m{_p}\033[0m")
-                                                sys.stdout.flush()
-                                
-                                if content:
-                                    yield content
+                                    if reasoning:
+                                        if not _reasoning_started:
+                                            sys.stdout.write(f"\n\033[36m[reasoning]\033[0m ")
+                                            _reasoning_started = True
+                                        sys.stdout.write(reasoning)
+                                        sys.stdout.flush()
+                                    if content:
+                                        if not _content_label_printed:
+                                            sys.stdout.write(f"\n\033[32m[content]\033[0m ")
+                                            _content_label_printed = True
+                                        sys.stdout.write(content)
+                                        sys.stdout.flush()
 
-                                # Handle native tool_calls (models like Qwen, Mistral, etc.)
-                                # Convert to Action: format for ReAct parser compatibility
+                                # Handle native tool_calls
                                 tool_calls = delta.get("tool_calls", [])
                                 for tc in tool_calls:
                                     func = tc.get("function", {})

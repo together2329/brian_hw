@@ -2837,9 +2837,6 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     _ai_mid = p.lower().find('action:')
                     if _ai_mid > 0:
                         p = p[:_ai_mid].rstrip()
-                    if p and len(p) > 3 and 'action:' not in p.lower() and p.lower().strip() != 'action':
-                        if len(p) > _TERM_W:
-                            p = p[:_TERM_W - 3] + "..."
                         if p != _last_partial:  # skip if content unchanged
                             sys.stdout.write(f"\r\033[2K  {p}")
                             sys.stdout.flush()

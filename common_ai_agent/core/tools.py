@@ -2210,7 +2210,7 @@ def todo_write(todos=None, tasks=None):
         return f"Error formatting progress: {e}"
 
 
-def todo_update(index=None, status=None, reason="", content="", detail="", activeForm="", criteria=""):
+def todo_update(index=None, id=None, status=None, reason="", content="", detail="", activeForm="", criteria=""):
     """
     Update a specific todo item's status and/or content.
 
@@ -2234,9 +2234,12 @@ def todo_update(index=None, status=None, reason="", content="", detail="", activ
         return ""
 
     if index is None:
-        return "Error: 'index' (1-based) is required."
+        index = id
 
-    if str(index) == "0":
+    if index is None:
+        return "Error: 'index' (1-based) is required. (Note: use 1-based indexing, not 0-based)."
+
+    if str(index).strip() == "0":
         return "Error: Todo indices are 1-based (1, 2, 3...). Please use index 1 for the first task."
 
     # Convert to 0-based
@@ -2393,7 +2396,7 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
     return todo_tracker.format_progress()
 
 
-def todo_remove(index=None):
+def todo_remove(index=None, id=None):
     """
     Remove a task from the todo list by index.
 
@@ -2408,7 +2411,13 @@ def todo_remove(index=None):
     if todo_tracker is None or not todo_tracker.todos:
         return ""
 
-    if str(index) == "0":
+    if index is None:
+        index = id
+
+    if index is None:
+        return "Error: 'index' (1-based) is required. (Note: use 1-based indexing, not 0-based)."
+
+    if str(index).strip() == "0":
         return "Error: Todo indices are 1-based. Use index 1 for the first task."
 
     idx = int(index) - 1
