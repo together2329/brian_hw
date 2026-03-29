@@ -2756,12 +2756,12 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                 if token_type == "reasoning":
                     if not chunk: continue
-                    # Reasoning is displayed immediately (Dimmed) but not added to collected_content
-                    # It's treated like a real-time thought process
                     sys.stdout.write(f"\r\033[2K  {Color.DIM}{chunk}{Color.RESET}")
                     sys.stdout.flush()
                     _content_emitted = True
-                    continue
+                    if not config.REASONING_IN_CONTEXT:
+                        continue
+                    # REASONING_IN_CONTEXT=true: fall through so chunk is added to collected_content
 
                 _buf += chunk
 
@@ -2896,8 +2896,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         collected_content = _strip_native_tool_tokens(collected_content)
 
         # Strip <think>...</think> reasoning tokens before storing in history
-        # Reasoning is for display only — storing it inflates context unnecessarily
-        collected_content = re.sub(r'<think>.*?</think>', '', collected_content, flags=re.DOTALL).strip()
+        # Controlled by REASONING_IN_CONTEXT config option
+        if not config.REASONING_IN_CONTEXT:
+            collected_content = re.sub(r'<think>.*?</think>', '', collected_content, flags=re.DOTALL).strip()
 
         # Strip echoed system prompt fragments before first Thought:/Action:
         # Some models (GLM 4.7) echo tail of system prompt at response start

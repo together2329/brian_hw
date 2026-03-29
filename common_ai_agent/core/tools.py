@@ -2293,6 +2293,12 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             )
 
         if status == "approved":
+            if not reason:
+                return (
+                    f"Error: You MUST provide a 'reason' when approving a task.\n"
+                    f"Describe what you actually verified (e.g. 'read output file — correct, ran tests — all passed').\n"
+                    f"→ todo_update(index={index}, status='approved', reason='<what you checked>')"
+                )
             item.rejection_reason = ""
             todo_tracker.mark_approved(idx)
             todo_tracker.save()
@@ -2300,10 +2306,10 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             if next_todo:
                 next_idx = todo_tracker.current_index + 1
                 return (
-                    f"✅ Task {index} approved.\n"
+                    f"✅ Task {index} approved. [{reason}]\n"
                     f"→ Next: todo_update(index={next_idx}, status='in_progress') — {next_todo.content}"
                 )
-            return "✅ Task {index} approved. All tasks complete! 🏁"
+            return f"✅ Task {index} approved. [{reason}] All tasks complete! 🏁"
         elif status == "completed":
             item.rejection_reason = ""
             todo_tracker.mark_completed(idx)
@@ -2315,7 +2321,7 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                 f"  1. read_file the output — confirm it looks correct\n"
                 f"  2. run compile/lint/test to verify\n"
                 f"  3. Check edge cases\n"
-                f"  → Passed → todo_update(index={index}, status='approved')\n"
+                f"  → Passed → todo_update(index={index}, status='approved', reason='<what you verified>')\n"
                 f"  → Issues → todo_update(index={index}, status='rejected', reason='<issue>')"
             )
             return review_steps

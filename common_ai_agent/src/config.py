@@ -77,6 +77,9 @@ STEP_BY_STEP_MODE = os.getenv("STEP_BY_STEP_MODE", "false").lower() in ("true", 
 # Debug mode - show detailed parsing and execution info
 DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() in ("true", "1", "yes")
 
+# Include LLM reasoning in message context (stored in history for next turn)
+REASONING_IN_CONTEXT = os.getenv("REASONING_IN_CONTEXT", "false").lower() in ("true", "1", "yes")
+
 # RAG Debug mode - show detailed RAG search/indexing info
 DEBUG_RAG = os.getenv("DEBUG_RAG", "false").lower() in ("true", "1", "yes")
 
