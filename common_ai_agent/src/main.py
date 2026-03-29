@@ -75,6 +75,37 @@ from lib.iteration_control import IterationTracker, detect_completion_signal, sh
 # Global Todo Tracker state (synced with tools)
 todo_tracker = None
 
+def _parse_todo_markdown(text: str) -> List[Dict]:
+    """
+    TodoWrite: [ ] ... 형태의 마크다운 리스트를 파싱하여 todo_write 인자로 변환.
+    """
+    # Look for TodoWrite: followed by a checkbox list
+    pattern = r"TodoWrite:.*?\n((?:\s*[-*]\s*\[\s*[ xX]*\]\s*.*?\n?)+)"
+    match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+    if not match:
+        return []
+    
+    tasks = []
+    list_content = match.group(1)
+    for line in list_content.strip().split("\n"):
+        line = line.strip()
+        # Extract content after [ ] or [x]
+        content_match = re.search(r"\[\s*([ xX]*)\s*\]\s*(.*)", line)
+        if content_match:
+            status_char = content_match.group(1).lower()
+            content = content_match.group(2).strip()
+            
+            status = "pending"
+            if "x" in status_char:
+                status = "completed"
+            
+            tasks.append({
+                "content": content,
+                "activeForm": content,
+                "status": status
+            })
+    return tasks
+
 # --- Dynamic Plugin Loading ---
 if config.ENABLE_VERILOG_TOOLS:
     try:
@@ -1146,7 +1177,13 @@ def build_system_prompt(messages=None, allowed_tools=None, agent_mode=None):
 
     # Use new tool description system from config with filtered tool list
     is_plan = agent_mode in ('plan', 'plan_q')
-    base_prompt = config.build_base_system_prompt(allowed_tools=_at, plan_mode=is_plan)
+    
+    # Hide todo tools from prompt if no active tasks, as requested by user
+    todo_active = False
+    if todo_tracker is not None and todo_tracker.todos:
+        todo_active = True
+    
+    base_prompt = config.build_base_system_prompt(allowed_tools=_at, plan_mode=is_plan, todo_active=todo_active)
     
     # Debug: Show prompt building start
     if config.DEBUG_MODE and messages:
@@ -2743,6 +2780,9 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     # Detect Thought: / Action: anywhere in line (case-insensitive for glm-4.7)
                     _text_lower = text.lower()
                     ai = _text_lower.find('action:')
+                    # Also catch bare "Action" line (some models omit the colon)
+                    if ai < 0 and _text_lower.strip() == 'action':
+                        ai = 0
                     ti = _text_lower.find('thought:')
 
                     if ai >= 0 and (ti < 0 or ai < ti):
@@ -2797,7 +2837,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     _ai_mid = p.lower().find('action:')
                     if _ai_mid > 0:
                         p = p[:_ai_mid].rstrip()
-                    if p and len(p) > 3 and 'action:' not in p.lower():
+                    if p and len(p) > 3 and 'action:' not in p.lower() and p.lower().strip() != 'action':
                         if len(p) > _TERM_W:
                             p = p[:_TERM_W - 3] + "..."
                         if p != _last_partial:  # skip if content unchanged
@@ -2917,7 +2957,17 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         # Check for Action first (needed for TodoWrite explicit call detection)
         actions = parse_all_actions(collected_content)
 
-        # Todo tracking: only via explicit todo_write/todo_update tool calls
+        # Todo tracking: supports explicit tool calls AND markdown auto-parsing
+        markdown_tasks = _parse_todo_markdown(collected_content)
+        if markdown_tasks and not any(a[0] == 'todo_write' for a in actions):
+            # Auto-generate todo_write action if markdown plan detected but no explicit tool call
+            # This ensures the visual progress tracker appears even without the tool
+            _todo_write_func = tools.AVAILABLE_TOOLS.get('todo_write')
+            if _todo_write_func:
+                observation = _todo_write_func(markdown_tasks)
+                # Display it as if the assistant called it
+                print(format_tool_header("todo_write", "Auto-parsed from markdown plan"))
+                print(format_tool_result(observation, max_lines=1000, max_chars=100000))
         # (no auto-parsing from numbered lists)
 
         # Check for explicit completion signal
@@ -3009,10 +3059,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     elif tool_name in ['replace_in_file', 'replace_lines']:
                         print(format_tool_header(tool_name, summary))
                         print(format_tool_result(observation, max_lines=1000, max_chars=100000))
-                    elif tool_name == 'todo_write' and agent_mode in ('plan', 'plan_q'):
-                        print(format_tool_header(tool_name, summary))
-                        print(format_tool_result(observation, max_lines=1000, max_chars=100000))
-                    elif tool_name == 'todo_update':
+                    elif tool_name in ['todo_write', 'todo_update', 'todo_add', 'todo_remove', 'todo_status']:
                         print(format_tool_header(tool_name, summary))
                         print(format_tool_result(observation, max_lines=1000, max_chars=100000))
                     elif tool_name == 'spec_navigate':
@@ -3274,7 +3321,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     header_parts.append("→ 현재 목표를 염두에 두고 아래 결과를 해석할 것")
                     step_header = "\n".join(header_parts) + "\n\n"
                     observation = step_header + observation
-                print(Color.info(f"\n[{completed}/{total}] {current_todo.content if current_todo else 'All done'}"))
+
 
             messages = process_observation(observation, messages, todo_tracker=todo_tracker)
 

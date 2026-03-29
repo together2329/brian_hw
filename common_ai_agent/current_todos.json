@@ -1,34 +1,12 @@
 {
   "todos": [
     {
-      "content": "첫 번째 테스트 태스크",
-      "activeForm": "첫 번째 테스트 진행 중",
-      "status": "completed",
+      "content": "Alias Test",
+      "activeForm": "Executing: Alias Test",
+      "status": "approved",
       "priority": "medium",
-      "created_at": 1774703108.8267,
-      "completed_at": null,
-      "detail": "",
-      "criteria": "",
-      "rejection_reason": ""
-    },
-    {
-      "content": "두 번째 테스트 태스크",
-      "activeForm": "두 번째 테스트 진행 중",
-      "status": "pending",
-      "priority": "medium",
-      "created_at": 1774703108.826703,
-      "completed_at": null,
-      "detail": "",
-      "criteria": "",
-      "rejection_reason": ""
-    },
-    {
-      "content": "세 번째 테스트 태스크",
-      "activeForm": "세 번째 테스트 진행 중",
-      "status": "pending",
-      "priority": "medium",
-      "created_at": 1774703108.8267038,
-      "completed_at": null,
+      "created_at": 1774785680.943895,
+      "completed_at": 1774785680.944018,
       "detail": "",
       "criteria": "",
       "rejection_reason": ""

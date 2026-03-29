@@ -127,6 +127,9 @@ class TodoTracker:
     - Progress bar visualization
     - Completion timestamps & elapsed time
     - Stagnation detection with task-level detail
+    
+    Convention: External tool interactions (todo_update, todo_add) use 1-based indexing
+    to match the user display, then convert to 0-based for internal List access.
     """
 
     def __init__(self, persist_path: Optional[Path] = None):
@@ -334,9 +337,6 @@ class TodoTracker:
                 content_style = Color.BOLD + Color.RED
 
             text = todo.active_form if todo.status in ("in_progress", "rejected") else todo.content
-            # Truncate if too long to prevent wrapping issues, using dynamic width
-            if len(text) > max_text_len:
-                text = text[:max_text_len-3] + "..."
             
             # Elapsed / completion time
             time_str = ""

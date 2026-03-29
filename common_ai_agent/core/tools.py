@@ -2082,8 +2082,8 @@ def _get_todo_tracker():
             main_module.todo_tracker = TodoTracker.load(Path(_cfg.TODO_FILE))
 
         return main_module.todo_tracker
-    except Exception as e:
-        print(f"Error accessing todo tracker: {e}")
+    except Exception:
+        # Silently fail if tracker cannot be accessed
         return None
 
 
@@ -2126,7 +2126,7 @@ def todo_write(todos=None, tasks=None):
 
     todo_tracker = _get_todo_tracker()
     if todo_tracker is None:
-        return "Error: Could not access todo tracker."
+        return ""
 
     # Validate input
     if not todos:
@@ -2231,14 +2231,13 @@ def todo_update(index=None, status=None, reason="", content="", detail="", activ
     todo_tracker = _get_todo_tracker()
 
     if todo_tracker is None or not todo_tracker.todos:
-        return "Error: No active todo list. Use todo_write() first."
+        return ""
 
     if index is None:
         return "Error: 'index' (1-based) is required."
 
     if str(index) == "0":
-        # Auto-correct 0→1 since indices are always 1-based
-        index = 1
+        return "Error: Todo indices are 1-based (1, 2, 3...). Please use index 1 for the first task."
 
     # Convert to 0-based
     try:
@@ -2363,7 +2362,7 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
     todo_tracker = _get_todo_tracker()
 
     if todo_tracker is None:
-        return "Error: Could not access todo tracker."
+        return ""
 
     if not content:
         return "Error: 'content' is required."
@@ -2379,6 +2378,9 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
         detail=detail,
         criteria=criteria,
     )
+
+    if str(index) == "0":
+        return "Error: Todo indices are 1-based. To insert at the beginning, use index 1."
 
     if index is not None:
         idx = int(index) - 1
@@ -2404,10 +2406,10 @@ def todo_remove(index=None):
     todo_tracker = _get_todo_tracker()
 
     if todo_tracker is None or not todo_tracker.todos:
-        return "Error: No active todo list."
+        return ""
 
-    if index is None:
-        return "Error: 'index' (1-based) is required."
+    if str(index) == "0":
+        return "Error: Todo indices are 1-based. Use index 1 for the first task."
 
     idx = int(index) - 1
     if not (0 <= idx < len(todo_tracker.todos)):
@@ -2433,7 +2435,7 @@ def todo_status():
     todo_tracker = _get_todo_tracker()
 
     if todo_tracker is None or not todo_tracker.todos:
-        return "No active todo list."
+        return ""
     return todo_tracker.format_progress()
 
 

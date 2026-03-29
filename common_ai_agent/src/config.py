@@ -786,7 +786,7 @@ Focus on using the right tools for the task at hand.
 LEGACY_SYSTEM_PROMPT = SYSTEM_PROMPT
 
 
-def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False) -> str:
+def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False, todo_active: bool = True) -> str:
     """
     Build compact system prompt (~5K tokens).
     Tool descriptions are minimal (name + signature + when-to-use).
@@ -807,11 +807,17 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False)
     else:
         tool_list = set(t for t in tools.AVAILABLE_TOOLS if t in allowed_tools)
 
-    # Filter out blocked tools in Plan Mode as requested by user
+    # Filter out blocked tools
     if plan_mode:
         tool_list = tool_list - PLAN_MODE_BLOCKED_TOOLS
     else:
         tool_list = tool_list - NORMAL_MODE_BLOCKED_TOOLS
+
+    # If todo is not active, remove todo tools from the allowed list
+    # (except maybe todo_write, but user wants "entirely without" behavior)
+    if not todo_active:
+        _todo_tools = {"todo_write", "todo_update", "todo_add", "todo_remove", "todo_status"}
+        tool_list = tool_list - _todo_tools
 
     def _tool_line(name, sig, desc):
         """Format one tool line, only if available."""
@@ -833,27 +839,32 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False)
         "Search": [
             _tool_line("grep_file", 'pattern, path', "Regex search in file(s). Use BEFORE read_file on large files."),
             _tool_line("find_files", 'pattern, path', "Glob search for files. Prefer over repeated list_dir."),
-            # RAG tools disabled by default (set ENABLE_SMART_RAG=true to re-enable)
         ],
         "Git": [
             _tool_line("git_status", '', "Show working tree status."),
             _tool_line("git_diff", 'path', "Show unstaged changes."),
             _tool_line("git_revert", 'path', "Revert uncommitted changes to a file."),
-        ],
-        "Task Management": [
-            _tool_line("todo_write", 'tasks', "Create task list (Plan Mode only). Format: [{content, activeForm, status}]."),
-            _tool_line("todo_update", 'index, status, content, detail', "Update task status and/or content."),
-            _tool_line("todo_add", 'content, priority, index', "Add a single task to the list."),
-            _tool_line("todo_remove", 'index', "Remove a task (Plan Mode only)."),
-            _tool_line("todo_status", '', "Show current task progress."),
-        ],
-        "Sub-Agents": [
+        ]
+    }
+
+    # Only add Task Management if tools are in the list
+    task_tools = [
+        _tool_line("todo_write", 'tasks', "Create task list (Plan Mode only)."),
+        _tool_line("todo_update", 'index, status, content, detail', "Update task status and/or content."),
+        _tool_line("todo_add", 'content, priority, index', "Add a single task to the list."),
+        _tool_line("todo_remove", 'index', "Remove a task (Plan Mode only)."),
+        _tool_line("todo_status", '', "Show current task progress."),
+    ]
+    task_tools = [t for t in task_tools if t]
+    if task_tools:
+        tool_lines["Task Management"] = task_tools
+
+    tool_lines["Sub-Agents"] = [
             _tool_line("background_task", 'agent, prompt', "Delegate to sub-agent (explore/execute/review)."),
             _tool_line("background_output", 'task_id', "Get sub-agent result."),
             _tool_line("background_cancel", 'task_id', "Cancel sub-agent."),
             _tool_line("background_list", '', "List active sub-agents."),
-        ],
-    }
+        ]
 
     # Spec Q&A tool (primary agent용)
     if "spec_ask" in tool_list:
