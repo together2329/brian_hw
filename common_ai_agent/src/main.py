@@ -1756,7 +1756,10 @@ def compress_history(messages, todo_tracker=None, force=False, instruction=None,
             print(Color.warning(f"[Hook] {pre_hook_path.name} failed: {e}"))
 
     # Separate system messages from regular messages (like Strix)
-    system_msgs = [m for m in messages if m.get("role") == "system"]
+    # Exclude previously generated summary/todo messages (they accumulate on repeated compression)
+    _GENERATED_PREFIXES = ("[Previous Conversation Summary", "[Ongoing Task]", "[Todo Status]", "[Todo ")
+    system_msgs = [m for m in messages if m.get("role") == "system"
+                   and not str(m.get("content", "")).startswith(_GENERATED_PREFIXES)]
     regular_msgs = [m for m in messages if m.get("role") != "system"]
 
     # Extract !important messages (preserve them)
@@ -1829,22 +1832,39 @@ def compress_history(messages, todo_tracker=None, force=False, instruction=None,
     
     # Preservation of critical task state
     todo_preservation = []
-    if todo_tracker and todo_tracker.todos and not todo_tracker.is_all_processed():
-        prompt = todo_tracker.get_continuation_prompt()
-        if prompt:
-            todo_preservation = [{"role": "system", "content": f"[Ongoing Task]: {prompt}"}]
-        else:
-            # next_pending case: continuation prompt is None (approved tool return handles it normally)
-            # but on compression we need an explicit reminder
+    if todo_tracker and todo_tracker.todos:
+        # Build compact todo status list (plain text, no ANSI)
+        status_icon = {
+            "pending":     "⏸",
+            "in_progress": "▶",
+            "completed":   "👀",
+            "approved":    "✅",
+            "rejected":    "❌",
+        }
+        todo_lines = ["[Todo Status]:"]
+        for i, t in enumerate(todo_tracker.todos):
+            icon = status_icon.get(t.status, "?")
+            todo_lines.append(f"  {icon} {i+1}. [{t.status}] {t.content}")
+        todo_snapshot = "\n".join(todo_lines)
+
+        if not todo_tracker.is_all_processed():
+            prompt = todo_tracker.get_continuation_prompt()
             next_idx = todo_tracker._get_next_pending()
-            if next_idx is not None:
+            if prompt:
+                next_instruction = f"\n[Ongoing Task]: {prompt}"
+            elif next_idx is not None:
                 todo = todo_tracker.todos[next_idx]
                 approved = sum(1 for t in todo_tracker.todos if t.status == "approved")
                 total = len(todo_tracker.todos)
-                todo_preservation = [{"role": "system", "content": (
-                    f"[Ongoing Task]: [Todo {approved}/{total}] Next task ready: {todo.content}\n"
+                next_instruction = (
+                    f"\n[Ongoing Task]: [Todo {approved}/{total}] Next task ready: {todo.content}\n"
                     f"→ Start with: todo_update(index={next_idx + 1}, status='in_progress')"
-                )}]
+                )
+            else:
+                next_instruction = ""
+            todo_preservation = [{"role": "system", "content": todo_snapshot + next_instruction}]
+        else:
+            todo_preservation = [{"role": "system", "content": todo_snapshot + "\n[All tasks completed]"}]
 
     compressed = []
     if mode == "chunked":

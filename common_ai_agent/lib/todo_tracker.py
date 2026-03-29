@@ -360,25 +360,6 @@ class TodoTracker:
                     if c.strip():
                         lines.append(f"     {Color.DIM}• {c.strip()}{Color.RESET}")
 
-        # Progress bar
-        approved_count = sum(1 for t in self.todos if t.status == "approved")
-        completed_count = sum(1 for t in self.todos if t.status == "completed")
-        total = len(self.todos)
-        
-        ratio = approved_count / total if total > 0 else 0
-        bar_len = 25
-        filled = int(bar_len * ratio)
-        bar = _BAR_FG * filled + _BAR_BG * (bar_len - filled)
-        pct = int(ratio * 100)
-        
-        status_text = f"{Color.success(str(approved_count))}{Color.DIM}/{total} approved{Color.RESET}"
-        if completed_count > 0:
-            status_text += f" {Color.warning(f'({completed_count} awaiting review)')}"
-        
-        if pct == 100:
-            status_text = f"{Color.success('ALL DONE! 🏁')}"
-
-        lines.append(f"\n {Color.CYAN}╎{Color.RESET} [{bar}] {Color.BOLD}{pct}%{Color.RESET}  {status_text}")
         lines.append("")
 
         return "\n".join(lines)
