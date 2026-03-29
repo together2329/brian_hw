@@ -1013,7 +1013,6 @@ PLAN_MODE_PROMPT = (
     "\n"
     "2. THE PLAN:\n"
     "   Present a concise numbered plan as plain text.\n"
-    "   End every planning response with: '이 할 할 할 할 할 할 할 할 할 목록(혹은 계획)으로 진행할까요? [y/yc/feedback]'\n"
     "\n"
     "3. EXECUTION FORBIDDEN:\n"
     "   NEVER use write_file, replace_in_file, multi_replace_file_content, or run_command in this mode.\n"

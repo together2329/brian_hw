@@ -2756,9 +2756,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                 if token_type == "reasoning":
                     if not chunk: continue
-                    sys.stdout.write(f"\r\033[2K  {Color.DIM}{chunk}{Color.RESET}")
-                    sys.stdout.flush()
-                    _content_emitted = True
+                    if config.DEBUG_MODE:
+                        sys.stdout.write(f"\r\033[2K  {Color.DIM}{chunk}{Color.RESET}")
+                        sys.stdout.flush()
+                        _content_emitted = True
                     if not config.REASONING_IN_CONTEXT:
                         continue
                     # REASONING_IN_CONTEXT=true: fall through so chunk is added to collected_content
