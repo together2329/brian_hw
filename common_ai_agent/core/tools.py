@@ -2315,6 +2315,7 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                 )
             item.rejection_reason = ""
             todo_tracker.mark_approved(idx)
+            _git_tag_todo(index, "approved", item.content)
             todo_tracker.save()
             next_todo = todo_tracker.get_current_todo()
             if next_todo:
@@ -2327,16 +2328,15 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
         elif status == "completed":
             item.rejection_reason = ""
             todo_tracker.mark_completed(idx)
-            _git_tag_todo(index, "completed", item.content)
             todo_tracker.save()
             review_steps = (
-                f"✅ Task {index} marked as completed (awaiting review).\n"
-                f"SELF-REVIEW before approving:\n"
-                f"  1. read_file the output — confirm it looks correct\n"
-                f"  2. run compile/lint/test to verify\n"
-                f"  3. Check edge cases\n"
-                f"  → Passed → todo_update(index={index}, status='approved', reason='<what you verified>')\n"
-                f"  → Issues → todo_update(index={index}, status='rejected', reason='<issue>')"
+                f"✅ Task {index} marked as completed — CRITICAL REVIEW REQUIRED.\n"
+                f"Do NOT approve without verifying:\n"
+                f"  1. Read the output or run the relevant test/command\n"
+                f"  2. Confirm it matches the task goal: \"{item.content}\"\n"
+                f"  3. Check for edge cases or side effects\n"
+                f"→ Passed → todo_update(index={index}, status='approved', reason='<what you verified>')\n"
+                f"→ Failed → todo_update(index={index}, status='rejected', reason='<specific issue>')"
             )
             return review_steps
         elif status == "rejected":

@@ -3315,7 +3315,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         header_parts.append(f"Detail: {current_todo.detail}")
                     if current_todo.criteria:
                         header_parts.append(f"Criteria: {current_todo.criteria}")
-                    header_parts.append("→ 현재 목표를 염두에 두고 아래 결과를 해석할 것")
+                    header_parts.append("→ Interpret the result below in context of the current goal")
                     step_header = "\n".join(header_parts) + "\n\n"
                     observation = step_header + observation
 
@@ -3731,7 +3731,7 @@ def chat_loop():
 
                 result = slash_registry.execute(user_input)
 
-                if result:
+                if result is not None:
                     # Check for special commands
                     if result == "CLEAR_HISTORY" or result.startswith("CLEAR_HISTORY:"):
                         # Parse optional keep count: CLEAR_HISTORY or CLEAR_HISTORY:N
@@ -3974,7 +3974,8 @@ def chat_loop():
 
                     else:
                         # Regular command output
-                        print(result)
+                        if result:
+                            print(result)
                         continue
 
             # Auto-extract preferences from user input (Mem0-style)
@@ -4039,9 +4040,22 @@ def chat_loop():
                     
                     # Inject a dynamic confirmation message based on STEP_BY_STEP_MODE
                     if getattr(config, 'STEP_BY_STEP_MODE', False):
-                        user_input = "Confirmed. Perform ONLY the first task (Step 1) immediately. Do NOT attempt multiple tasks in one turn."
+                        user_input = (
+                            "Confirmed. Perform ONLY the first task (Step 1) now.\n"
+                            "Workflow: todo_update(index=1, status='in_progress') → do work → "
+                            "todo_update(index=1, status='completed') → verify → "
+                            "todo_update(index=1, status='approved', reason='...')"
+                        )
                     else:
-                        user_input = "Confirmed. Please proceed with the entire plan and complete all tasks."
+                        user_input = (
+                            "Confirmed. Execute all tasks in order. For EACH task follow this workflow:\n"
+                            "  1. todo_update(index=N, status='in_progress')\n"
+                            "  2. Do the work\n"
+                            "  3. todo_update(index=N, status='completed')\n"
+                            "  4. Verify the result\n"
+                            "  5. todo_update(index=N, status='approved', reason='what you verified')\n"
+                            "Start now: todo_update(index=1, status='in_progress')"
+                        )
                         
                     if config.DEBUG_MODE:
                         print(Color.info(f"  [Debug] Injected confirmation: {user_input}"))
@@ -4056,6 +4070,11 @@ def chat_loop():
                 elif _inp in ('n', 'no', 'cancel', '취소', '아니오', 'ㄴㄴ'):
                     print(Color.warning("\n[Plan] Execution cancelled. Staying in Plan Mode for further refinements.\n"))
                     user_input = "I've reviewed the plan and I'm NOT ready to execute yet. Let's refine it further or address my concerns."
+                elif len(_inp) <= 2 and not _inp.startswith('/'):
+                    # Likely a typo (e.g. "]", "?") — don't waste an LLM call
+                    messages.pop()  # remove the message we just appended
+                    print(Color.warning(f"  [Plan] Type y to confirm, n to cancel, or write feedback."))
+                    continue
 
             # Handle 'keep going' signal to resume from rejected state
             if config.ENABLE_TODO_TRACKING and todo_tracker_main:

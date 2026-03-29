@@ -1,9 +1,26 @@
-todo_update(index, status) — Update the status of a specific todo item.
+todo_update(index, status, reason="") — Update a todo item's status. Follow the required workflow below.
+
+REQUIRED WORKFLOW (must follow in order):
+  1. todo_update(index=N, status='in_progress')    ← start the task
+  2. Do the actual work
+  3. todo_update(index=N, status='completed')       ← mark done
+  4. Verify the result (read file, run test, check output)
+  5. todo_update(index=N, status='approved', reason='what you verified')  ← approve after verification
+     OR todo_update(index=N, status='rejected', reason='specific issue')  ← reject if failed
 
 Args:
-  index (int): 1-based index of the todo to update
-  status (str): "in_progress", "completed", or "pending"
+  index  (int): 1-based index of the todo item (REQUIRED — use 1 for first task, 2 for second, etc.)
+  status (str): One of: "in_progress", "completed", "approved", "rejected", "pending"
+  reason (str): REQUIRED for 'approved' (describe what you verified) and 'rejected' (describe the issue)
+
+IMPORTANT:
+  - Parameter name is 'index', NOT 'task_id' or 'id'
+  - Indices are 1-based: first task = index=1, second task = index=2
+  - Never skip steps — must go in_progress → completed → approved
+  - approved requires a non-empty reason
 
 Example:
-  todo_update(index=1, status="completed")
-  todo_update(index=2, status="in_progress")
+  todo_update(index=1, status='in_progress')
+  todo_update(index=1, status='completed')
+  todo_update(index=1, status='approved', reason='read output file — correct result confirmed')
+  todo_update(index=1, status='rejected', reason='test failed: expected 5 but got 4')

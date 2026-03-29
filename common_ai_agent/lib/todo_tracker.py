@@ -297,14 +297,10 @@ class TodoTracker:
         # Adjusted max length based on terminal width (with some padding for icons/timing)
         max_text_len = max(40, term_width - 35)
 
-        # Rich styling for premium feel
-        _HEADER = f"  {Color.CYAN}┍━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┑"
-        _TITLE  = f"  {Color.CYAN}┃{Color.RESET}  {Color.BOLD}{Color.YELLOW}📋 PLAN & PROGRESS{Color.RESET}                       {Color.CYAN}┃"
-        _HEADER_END = f"  {Color.CYAN}┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┙{Color.RESET}"
         _BAR_BG = Color.DIM + "░" + Color.RESET
         _BAR_FG = Color.success("█")
-        
-        lines = ["", _HEADER, _TITLE, _HEADER_END]
+
+        lines = ["", f"  {Color.BOLD}{Color.CYAN}── PLAN & PROGRESS ──{Color.RESET}"]
 
         for i, todo in enumerate(self.todos):
             # Icon and explicit status label [Approved], [In Progress], etc.
@@ -453,34 +449,24 @@ class TodoTracker:
             idx = self.current_index + 1
             if current.status == "rejected":
                 return (
-                    f"[Todo {approved_count}/{total}] ❌ Task {idx} rejected: {current.rejection_reason}"
-                    f" → todo_update(index={idx}, status='in_progress')"
+                    f"[Task {idx}/{total} REJECTED] {current.rejection_reason}\n"
+                    f"Fix the issue, then call: todo_update(index={idx}, status='in_progress')"
                 )
             elif current.status == "completed":
-                return (
-                    f"[Todo {approved_count}/{total}] Task {idx} awaiting review"
-                    f" → todo_update(index={idx}, status='approved') or 'rejected'"
-                )
+                # Review instruction is already in the tool return value — no separate injection
+                return None
             else:
                 return (
-                    f"[Todo {approved_count}/{total}] Current task: {current.content}\n"
-                    f"→ 작업이 끝나면 반드시 todo_update(index={idx}, status='completed') 를 호출할 것"
+                    f"[Task {idx}/{total}] {current.content}\n"
+                    f"→ When done, call: todo_update(index={idx}, status='completed')"
                 )
 
         unreviewed = [i for i, t in enumerate(self.todos) if t.status == "completed"]
         if unreviewed:
-            idx = unreviewed[0] + 1
-            return (
-                f"[Todo {approved_count}/{total}] Task {idx} awaiting review"
-                f" → todo_update(index={idx}, status='approved') or 'rejected'"
-            )
+            # Review instruction is already in the tool return value — no separate injection
+            return None
 
-        next_idx = self._get_next_pending()
-        if next_idx is not None:
-            todo = self.todos[next_idx]
-            idx = next_idx + 1
-            return f"[Todo {approved_count}/{total}] Next task: {todo.content} → todo_update(index={idx}, status='in_progress')"
-
+        # Next task instruction is already in the 'approved' tool return — no separate injection
         return None
 
     def get_minimal_context(self, step_idx: int) -> str:
