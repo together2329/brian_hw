@@ -2749,6 +2749,20 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 if config.DEBUG_MODE:
                     continue
 
+                # Token unpacking: now receives (type, chunk) from llm_client
+                token_type = "content"
+                if isinstance(chunk, tuple) and len(chunk) == 2:
+                    token_type, chunk = chunk
+
+                if token_type == "reasoning":
+                    if not chunk: continue
+                    # Reasoning is displayed immediately (Dimmed) but not added to collected_content
+                    # It's treated like a real-time thought process
+                    sys.stdout.write(f"\r\033[2K  {Color.DIM}{chunk}{Color.RESET}")
+                    sys.stdout.flush()
+                    _content_emitted = True
+                    continue
+
                 _buf += chunk
 
                 # ── Process complete lines ──

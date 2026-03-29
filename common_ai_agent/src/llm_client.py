@@ -240,24 +240,10 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
                                 content = delta.get("content", "")
 
-                                # Handle reasoning and content for debug display
-                                if config.DEBUG_MODE:
-                                    # Use a simple prefix only when switching between types
-                                    if reasoning:
-                                        if not _reasoning_started:
-                                            sys.stdout.write(f"\n\033[36m[reasoning]\033[0m\n")
-                                            _reasoning_started = True
-                                        sys.stdout.write(reasoning)
-                                        sys.stdout.flush()
-                                    if content:
-                                        if not _content_label_printed:
-                                            sys.stdout.write(f"\n\033[32m[content]\033[0m\n\n")
-                                            _content_label_printed = True
-                                        sys.stdout.write(content)
-                                        sys.stdout.flush()
-                                
-                                if reasoning or content:
-                                    yield reasoning or content
+                                if reasoning:
+                                    yield ("reasoning", reasoning)
+                                if content:
+                                    yield ("content", content)
 
                                 # Handle native tool_calls (models like Qwen, Mistral, etc.)
                                 tool_calls = delta.get("tool_calls", [])
