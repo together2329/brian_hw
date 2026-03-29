@@ -2276,6 +2276,20 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
         if status not in valid:
             return f"Error: status must be one of {valid} (got '{status}')"
 
+        # Enforce sequential execution: all prior tasks must be approved
+        if status in ("in_progress", "completed", "approved"):
+            blocking = [
+                i + 1 for i in range(idx)
+                if todo_tracker.todos[i].status not in ("approved",)
+            ]
+            if blocking:
+                blocking_str = ", ".join(str(b) for b in blocking)
+                return (
+                    f"Error: Cannot update Task {index} — "
+                    f"Task(s) {blocking_str} must be approved first.\n"
+                    f"Tasks must be completed in order. Finish Task {blocking[0]} before moving to Task {index}."
+                )
+
         # Protection: Do not allow downgrading "approved" tasks
         if item.status == "approved" and status in ("completed", "in_progress"):
             return (

@@ -341,11 +341,13 @@ class TodoTracker:
             # Elapsed / completion time
             time_str = ""
             if todo.status in ("completed", "approved") and todo.elapsed is not None:
-                time_str = f" {Color.dim(f'({_fmt_elapsed(todo.elapsed)}')}{Color.RESET}"
+                secs = abs(todo.elapsed)
+                time_str = f" {Color.dim(f'({_fmt_elapsed(secs)})')}{Color.RESET}"
             elif todo.status in ("in_progress", "rejected") and todo.elapsed is not None:
-                time_str = f" {Color.dim(f'({_fmt_elapsed(todo.elapsed)} elapsed)')}{Color.RESET}"
+                secs = abs(todo.elapsed)
+                time_str = f" {Color.dim(f'({_fmt_elapsed(secs)} elapsed)')}{Color.RESET}"
 
-            lines.append(f"{icon}{Color.CYAN}{i+1}.{Color.RESET} {label} {priority_badge}{content_style}{text}{Color.RESET}{time_str}")
+            lines.append(f"  {icon}{Color.CYAN}{i+1}.{Color.RESET} {label} {priority_badge}{content_style}{text}{Color.RESET}{time_str}")
             
             # Show detail if available
             if todo.detail and todo.status != 'completed':
@@ -461,8 +463,8 @@ class TodoTracker:
                 )
             else:
                 return (
-                    f"[Todo {approved_count}/{total}] Task {idx}: {current.content} "
-                    f"→ Action: todo_update(index={idx}, status='completed')"
+                    f"[Todo {approved_count}/{total}] Current task: {current.content}\n"
+                    f"→ 작업이 끝나면 반드시 todo_update(index={idx}, status='completed') 를 호출할 것"
                 )
 
         unreviewed = [i for i, t in enumerate(self.todos) if t.status == "completed"]
@@ -477,7 +479,7 @@ class TodoTracker:
         if next_idx is not None:
             todo = self.todos[next_idx]
             idx = next_idx + 1
-            return f"[Todo {approved_count}/{total}] Next Task {idx}: {todo.content} → Action: todo_update(index={idx}, status='in_progress')"
+            return f"[Todo {approved_count}/{total}] Next task: {todo.content} → todo_update(index={idx}, status='in_progress')"
 
         return None
 
