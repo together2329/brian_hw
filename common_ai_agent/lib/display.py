@@ -459,6 +459,13 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
     import re
     line_count = observation.count('\n') + 1 if observation else 0
     is_error = observation.lower().startswith('error') if observation else False
+    # Treat system/plan-mode messages as errors so they surface visibly
+    is_system_msg = bool(observation and observation.startswith('[') and
+                         any(observation.startswith(p) for p in ('[Plan Mode]', '[System]', '[Error')))
+
+    if is_system_msg:
+        first_line = observation.split('\n')[0][:80]
+        return f"{Color.YELLOW}{first_line}{Color.RESET}"
 
     if is_error:
         first_line = observation.split('\n')[0][:60]
@@ -516,8 +523,8 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
         return f"{count} task(s)"
 
     if tool_name == 'todo_update':
-        if 'reviewed' in observation.lower():
-            return "reviewed"
+        if 'approved' in observation.lower() or 'reviewed' in observation.lower():
+            return "approved"
         if 'completed' in observation.lower():
             return "completed"
         return "updated"

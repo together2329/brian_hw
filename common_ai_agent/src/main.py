@@ -1656,7 +1656,7 @@ def _hook_command(hook_path: Path) -> list:
     return [str(hook_path)]
 
 
-def compress_history(messages, force=False, instruction=None, keep_recent=None, dry_run=False, quiet=False):
+def compress_history(messages, todo_tracker=None, force=False, instruction=None, keep_recent=None, dry_run=False, quiet=False):
     """
     Compresses history if it exceeds the token limit.
     Strategy: Keep System messages + Last N messages. Summarize the middle.
@@ -1664,6 +1664,7 @@ def compress_history(messages, force=False, instruction=None, keep_recent=None, 
     Supports both single and chunked compression modes.
     Args:
         messages: Conversation history
+        todo_tracker: Optional tracker to preserve state
         force: If True, bypass token threshold check
         instruction: Optional custom instruction for summarization
         keep_recent: Number of recent messages to keep (None = use config default)
@@ -1673,6 +1674,7 @@ def compress_history(messages, force=False, instruction=None, keep_recent=None, 
         return messages
 
     limit_tokens = config.MAX_CONTEXT_CHARS // 4
+    # ... (skipping some logic for context calculation) ...
 
     # Preemptive compression threshold (85%)
     preemptive_threshold = int(limit_tokens * config.PREEMPTIVE_COMPRESSION_THRESHOLD)
@@ -1786,46 +1788,23 @@ def compress_history(messages, force=False, instruction=None, keep_recent=None, 
             return messages
 
     # Choose compression mode
-    mode = config.COMPRESSION_MODE.lower()
+    mode = config.COMPRESSION_MODE.lower() if hasattr(config, "COMPRESSION_MODE") else "traditional"
+    
+    # Preservation of critical task state
+    todo_preservation = []
+    if todo_tracker:
+        prompt = todo_tracker.get_continuation_prompt()
+        if prompt:
+            todo_preservation = [{"role": "system", "content": f"[Ongoing Task]: {prompt}"}]
 
+    compressed = []
     if mode == "chunked":
         # Chunked compression (like Strix)
         print(Color.info(f"[System] Using chunked compression (chunk_size={config.COMPRESSION_CHUNK_SIZE})..."))
         compressed = _compress_chunked(old_msgs, instruction=instruction)
     else:
-        # Single compression (default, faster and cheaper)
-        print(Color.info("[System] Using single compression..."))
+        # Default strategy: summarize all old messages into one
         compressed = [_compress_single(old_msgs, instruction=instruction)]
-
-    # Preserve todo state across compression (like oh-my-opencode's compaction-todo-preserver)
-    todo_preservation = []
-    try:
-        import sys
-        main_mod = sys.modules.get('main')
-        tracker = getattr(main_mod, 'todo_tracker', None) if main_mod else None
-        if tracker and tracker.todos:
-            todo_status = tracker.format_progress()
-            current_todo = tracker.get_current_todo()
-            current_info = ""
-            if current_todo:
-                current_info = f"\n\n👉 CURRENT TASK: {current_todo.content}"
-                if current_todo.detail:
-                    current_info += f"\nDetail: {current_todo.detail}"
-            
-            todo_preservation = [{
-                "role": "user", 
-                "content": (
-                    f"[System] Todo state preserved across compression:\n{todo_status}{current_info}\n\n"
-                    "🚨 IMPORTANT: You MUST execute ONLY the current task immediately. "
-                    "Do NOT chain multiple tasks or attempt to bundle different steps in a single turn. "
-                    "Perform ONLY the immediate next step for the current task and stop."
-                )
-            }]
-            if config.DEBUG_MODE:
-                _pres_clean = todo_preservation[0]['content'].replace('\n', ' ')
-                print(Color.info(f"  [Debug] Injected compression guard: {_pres_clean}"))
-    except Exception:
-        pass
 
     # Construct new history: system + important + compressed + todo + recent
     new_history = system_msgs + important_msgs + compressed + todo_preservation + recent_msgs
@@ -1971,7 +1950,7 @@ def _compress_chunked(messages, instruction=None):
 
     return compressed
 
-def process_observation(observation, messages):
+def process_observation(observation, messages, todo_tracker=None):
     """
     Processes observation before adding to message history.
     Handles large file truncation and context management.
@@ -2038,7 +2017,7 @@ To read specific sections:
     if total_tokens > threshold_tokens and config.ENABLE_COMPRESSION:
         print(Color.warning(f"\n[System] ⚠️  Adding observation would exceed threshold ({total_tokens:,} > {threshold_tokens:,} tokens)"))
         print(Color.info("[System] Compressing history before adding observation..."))
-        messages = compress_history(messages, force=True, quiet=True)  # skip duplicate logs
+        messages = compress_history(messages, todo_tracker=todo_tracker, force=True, quiet=True)  # skip duplicate logs
 
         # Re-calculate after compression
         current_tokens = sum(estimate_message_tokens(m) for m in messages)
@@ -2328,7 +2307,7 @@ def _sys_content_strip_plan(msg):
                 return
 
 
-def run_react_agent(messages, tracker, task_description, mode='interactive', preface_enabled=True, agent_mode='normal'):
+def run_react_agent(messages, tracker, task_description, mode='interactive', preface_enabled=True, agent_mode='normal', todo_tracker=None):
     """
     Executes the ReAct agent loop for a given task.
 
@@ -2501,7 +2480,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             tracker.extend(20)
 
         # Context Management: Compress if needed
-        messages = compress_history(messages)
+        messages = compress_history(messages, todo_tracker=todo_tracker)
 
         # Smart RAG: Refresh system prompt with current context
         # This enables dynamic RAG context injection based on latest user message
@@ -2603,7 +2582,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 if config.DEBUG_MODE:
                     usage_pct = hook_ctx.metadata.get("context_usage_pct", 0)
                     print(Color.warning(f"  [Hook] Context at {usage_pct:.1f}% - triggering compression"))
-                messages = compress_history(messages, force=True)
+                messages = compress_history(messages, todo_tracker=todo_tracker, force=True)
 
             if hook_ctx.metadata.get("pruned_messages"):
                 pruned = hook_ctx.metadata["pruned_messages"]
@@ -2741,9 +2720,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 # ── Process complete lines ──
                 while '\n' in _buf:
                     raw_line, _buf = _buf.split('\n', 1)
-                    # Ensure trailing newline if we streamed anything
-                    if _content_emitted:
-                        print()
+                    # Ensure trailing newline if we streamed anything.
+                    # Track whether this line was already partially shown (streaming effect).
+                    _line_was_partial = _content_emitted
+                    _content_emitted = False
                     # Merge tokenization-split fragments: if raw_line is a short lowercase
                     # fragment (e.g. "c" split from "code inspection."), re-attach to next line
                     _stripped = raw_line.strip()
@@ -2790,7 +2770,18 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                     else:
                         # CONTENT state — normal text
-                        _emit(text)
+                        if _line_was_partial:
+                            # Overwrite the truncated partial with the full completed line
+                            text = _dedup_line(text)
+                            if not _is_dup(text):
+                                sys.stdout.write(f"\r\033[2K  {text}\n")
+                                sys.stdout.flush()
+                                _seen.add(text)
+                            else:
+                                sys.stdout.write(f"\r\033[2K\n")
+                                sys.stdout.flush()
+                        else:
+                            _emit(text)
 
                 # ── Partial line display (typing effect) ──
                 if _state == _CONTENT and not _in_think and _buf:
@@ -3005,10 +2996,23 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     if tool_name == 'background_task' and not config.DEBUG_MODE:
                         pass  # handoff line already printed by background_task()
                     elif tool_name in _INLINE_TOOLS and not config.DEBUG_MODE:
-                        brief = format_tool_brief(tool_name, args_str, observation)
-                        header = format_tool_header(tool_name, summary)
-                        print(f"{header}  {Color.DIM}({brief}){Color.RESET}")
+                        _is_sys_msg = observation and any(
+                            observation.startswith(p) for p in ('[Plan Mode]', '[System]', '[Error')
+                        )
+                        if _is_sys_msg:
+                            print(format_tool_header(tool_name, summary))
+                            print(format_tool_result(observation))
+                        else:
+                            brief = format_tool_brief(tool_name, args_str, observation)
+                            header = format_tool_header(tool_name, summary)
+                            print(f"{header}  {Color.DIM}({brief}){Color.RESET}")
                     elif tool_name in ['replace_in_file', 'replace_lines']:
+                        print(format_tool_header(tool_name, summary))
+                        print(format_tool_result(observation, max_lines=1000, max_chars=100000))
+                    elif tool_name == 'todo_write' and agent_mode in ('plan', 'plan_q'):
+                        print(format_tool_header(tool_name, summary))
+                        print(format_tool_result(observation, max_lines=1000, max_chars=100000))
+                    elif tool_name == 'todo_update':
                         print(format_tool_header(tool_name, summary))
                         print(format_tool_result(observation, max_lines=1000, max_chars=100000))
                     elif tool_name == 'spec_navigate':
@@ -3045,12 +3049,17 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     if tool_name in _PRE_HEADER_TOOLS and not config.DEBUG_MODE:
                         print(format_tool_header(tool_name, summary))
                     # Plan mode tool gating
-                    if agent_mode == 'plan_q':
-                        # First clarification turn: ALL tools blocked — must ask questions only
+                    _PLAN_READONLY_TOOLS = frozenset({
+                        'list_dir', 'read_file', 'read_lines', 'grep_file', 'find_files',
+                        'git_status', 'git_diff',
+                        'todo_write', 'todo_update', 'todo_add', 'todo_remove', 'todo_status',
+                    })
+                    if agent_mode == 'plan_q' and tool_name not in _PLAN_READONLY_TOOLS:
+                        # First clarification turn: only read-only tools allowed
                         observation = (
-                            f"[Plan Mode] Tool calls are not allowed yet. "
-                            "You must ask the user clarifying questions first (no tool calls). "
-                            "Once the user answers, you may explore code."
+                            f"[Plan Mode] '{tool_name}' is blocked during clarification. "
+                            "Only read-only tools are allowed (list_dir, read_file, grep_file, find_files, etc.). "
+                            "Ask the user clarifying questions first."
                         )
                     elif agent_mode == 'plan' and tool_name in config.PLAN_MODE_BLOCKED_TOOLS:
                         observation = (
@@ -3070,21 +3079,14 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         print(format_tool_header(tool_name, summary))
                         print(Color.DIM + f"  │ {tool_elapsed:.2f}s" + Color.RESET)
 
-                    # todo_update(completed) → mini step review with criteria
+                    # Warn about lint errors detected in this turn (append to completed observation)
                     if tool_name == 'todo_update' and 'completed' in args_str:
-                        current_todo = todo_tracker.get_current_todo() if todo_tracker else None
-                        _prev_content = current_todo.content if current_todo else "이전 스텝"
-                        criteria_block = ""
-                        if current_todo and current_todo.criteria:
-                            lines = [f"  - {c.strip()}" for c in current_todo.criteria.splitlines() if c.strip()]
-                            criteria_block = "\nAcceptance criteria:\n" + "\n".join(lines) + "\n"
-                        observation += (
-                            f"\n\n[Step Review] '{_prev_content}' 완료로 표시됨.{criteria_block}\n"
-                            "모든 criteria 충족? → 다음 스텝 진행.\n"
-                            "미충족 항목 있음? → todo_update(N, 'pending', reason='<구체적 미충족 이유>')"
+                        _has_lint_errors = any(
+                            "❌" in r and ("error" in r.lower() or "linting" in r.lower())
+                            for r in combined_results
                         )
-
-                    # [STRIKE] Auto-confirmation removed. Mode switch now requires explicit user input in the main loop.
+                        if _has_lint_errors:
+                            observation += "\n⚠️ LINT ERRORS detected — fix before approving."
 
                     # Error detection
                     obs_lower = observation.lower()
@@ -3104,7 +3106,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                             observation=observation[:200]
                         )
                         actions_taken.append(action_obj)
-
+                    
                     # Tool display: header + inline brief + elapsed on same line
                     _INLINE_TOOLS = {'read_file', 'read_lines', 'grep_file', 'find_files', 'list_dir', 'git_diff', 'git_status', 'write_file', 'todo_write', 'todo_update', 'todo_add', 'todo_remove'}
                     elapsed_suffix = f" · {tool_elapsed:.1f}s" if tool_elapsed >= 1.0 else ""
@@ -3115,7 +3117,15 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                             print(format_tool_header(tool_name, summary))
                         print(format_tool_result(observation, max_lines=1000, max_chars=100000))
                     elif not config.DEBUG_MODE:
-                        if tool_name in _INLINE_TOOLS:
+                        if tool_name == 'todo_write' and agent_mode in ('plan', 'plan_q'):
+                            # In plan mode: show full todo list so user can review before confirming
+                            print(format_tool_header(tool_name, summary))
+                            print(format_tool_result(observation, max_lines=1000, max_chars=100000))
+                        elif tool_name == 'todo_update':
+                            # Always show full progress table after every todo_update
+                            print(format_tool_header(tool_name, summary))
+                            print(format_tool_result(observation, max_lines=1000, max_chars=100000))
+                        elif tool_name in _INLINE_TOOLS:
                             brief = format_tool_brief(tool_name, args_str, observation)
                             header = format_tool_header(tool_name, summary)
                             # Ensure tool header is on a new line
@@ -3130,7 +3140,15 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                             print(format_tool_header(tool_name, summary))
                             print(format_tool_result(observation))
 
-                    combined_results.append(f"--- [Action {i+1}] {tool_name} ---\n{observation}")
+                    # [Context Optimization] Truncate successful write results for LLM context
+                    agent_observation = observation
+                    _WRITE_TOOLS = {'write_to_file', 'replace_file_content', 'multi_replace_file_content', 'replace_in_file', 'replace_lines', 'todo_write'}
+                    if tool_name in _WRITE_TOOLS and not is_error:
+                        _obs_lines = observation.splitlines()
+                        if len(_obs_lines) > 5:
+                            agent_observation = "\n".join(_obs_lines[:5]) + "\n\n(Remaining output truncated for brevity. Use read_file to verify if needed.)"
+
+                    combined_results.append(f"--- [Action {i+1}] {tool_name} ---\n{agent_observation}")
 
 
                     # [Step Review] todo_update(completed) logic already handled above
@@ -3235,6 +3253,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             # End of tool execution block. Reload todo_tracker from disk to pick up tool changes
             if config.ENABLE_TODO_TRACKING:
                 todo_tracker = TodoTracker.load(Path(config.TODO_FILE))
+                if config.DEBUG_MODE and tool_name in ('todo_update', 'todo_write', 'todo_add', 'todo_remove') and todo_tracker:
+                    todo_tracker.print_debug_status()
 
             # Append only current step to observation (not full list)
             if todo_tracker and todo_tracker.todos:
@@ -3256,14 +3276,23 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     observation = step_header + observation
                 print(Color.info(f"\n[{completed}/{total}] {current_todo.content if current_todo else 'All done'}"))
 
-            messages = process_observation(observation, messages)
+            messages = process_observation(observation, messages, todo_tracker=todo_tracker)
 
             # Inject todo reminder after tool results so agent stays aware of progress
+            # Skip injection when the last tool was a todo op — its return value already has guidance
+            _last_tool_was_todo = tool_name in ('todo_update', 'todo_write', 'todo_add')
             if (todo_tracker and todo_tracker.todos
-                    and not todo_tracker.is_all_completed()):
+                    and not todo_tracker.is_all_processed()
+                    and not _last_tool_was_todo):
                 reminder = todo_tracker.get_continuation_prompt()
                 if reminder:
-                    messages.append({"role": "user", "content": reminder})
+                    # Deduplicate: Don't inject if the last user message already has it
+                    last_content = messages[-1].get("content", "") if messages else ""
+                    if reminder not in last_content:
+                        messages.append({"role": "user", "content": reminder})
+                        if config.DEBUG_MODE:
+                            _rem_clean = reminder.replace('\n', ' ')
+                            print(Color.info(f"  [Debug] Injected continuation: {_rem_clean}"))
 
             # Stall tracking (silent — logged but not shown to agent)
         else:
@@ -3271,22 +3300,29 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             if config.ENABLE_TODO_TRACKING:
                 todo_tracker = TodoTracker.load(Path(config.TODO_FILE))
 
-            if (todo_tracker and not todo_tracker.is_all_completed()
+            if (todo_tracker and not todo_tracker.is_all_processed()
                     and todo_tracker.todos):
                 if todo_tracker.check_stagnation(max_stagnation=3):
-                    print(Color.warning("[System] Todo stagnation detected (3x no progress). Stopping."))
+                    hint = todo_tracker.get_stagnation_hint()
+                    print(Color.warning(f"[System] Todo stagnation detected (3x no progress)."))
+                    print(Color.info(f"  {hint}"))
+                    print(Color.warning("Stopping."))
                     break
                 # Inject continuation reminder (ONLY if we didn't just complete a task in this turn)
                 reminder = todo_tracker.get_continuation_prompt()
                 if reminder:
-                    # Logic check: If the last turn ended in a break due to _has_todo_op,
-                    # this block might be reached in the next ReAct loop if user-input was empty.
-                    messages.append({"role": "user", "content": reminder})
-                    done_count = sum(1 for t in todo_tracker.todos if t.status in ('completed', 'approved'))
-                    if config.DEBUG_MODE:
-                        _rem_clean = reminder.replace('\n', ' ')
-                        print(Color.info(f"  [Debug] Injected continuation: {_rem_clean}"))
-                    print(Color.info(f"[System] {done_count}/{len(todo_tracker.todos)} todos done — resuming..."))
+                    # Deduplicate: Don't inject if the last user message already has it
+                    last_content = messages[-1].get("content", "") if messages else ""
+                    if reminder not in last_content:
+                        # Logic check: If the last turn ended in a break due to _has_todo_op,
+                        # this block might be reached in the next ReAct loop if user-input was empty.
+                        messages.append({"role": "user", "content": reminder})
+                        if config.DEBUG_MODE:
+                            _rem_clean = reminder.replace('\n', ' ')
+                            print(Color.info(f"  [Debug] Injected continuation (stale): {_rem_clean}"))
+                    
+                    approved_count = sum(1 for t in todo_tracker.todos if t.status == 'approved')
+                    print(Color.info(f"[System] {approved_count}/{len(todo_tracker.todos)} todos approved — resuming..."))
                     # Don't break — continue loop
                 else:
                     break
@@ -3827,6 +3863,7 @@ def chat_loop():
                         # Compress with options
                         messages = compress_history(
                             messages,
+                            todo_tracker=todo_tracker_main,
                             force=True,
                             instruction=instruction,
                             keep_recent=keep_recent,
@@ -3957,7 +3994,7 @@ def chat_loop():
                     messages[-1]["content"] = user_input
                     
                     if do_compress:
-                        messages = compress_history(messages, force=True)
+                        messages = compress_history(messages, todo_tracker=todo_tracker_main, force=True)
                     
                     if full_messages is not None:
                         full_messages = list(messages)
@@ -3965,6 +4002,21 @@ def chat_loop():
                 elif _inp in ('n', 'no', 'cancel', '취소', '아니오', 'ㄴㄴ'):
                     print(Color.warning("\n[Plan] Execution cancelled. Staying in Plan Mode for further refinements.\n"))
                     user_input = "I've reviewed the plan and I'm NOT ready to execute yet. Let's refine it further or address my concerns."
+
+            # Handle 'keep going' signal to resume from rejected state
+            if config.ENABLE_TODO_TRACKING and todo_tracker_main:
+                _inp = user_input.lower().strip()
+                if any(x in _inp for x in ('keep going', 'continue', '진행', '계속')):
+                    if todo_tracker_main.unprocess_rejected():
+                        print(Color.success("\n[System] 'Keep going' detected. Resetting rejected tasks for retry.\n"))
+                        # Merge reminder into user input for better context and cleaner output
+                        reminder = todo_tracker_main.get_continuation_prompt()
+                        if reminder:
+                            user_input = f"{user_input}\n\n{reminder}"
+                            messages[-1]["content"] = user_input
+                            if config.DEBUG_MODE:
+                                _rem_db = reminder.replace('\n', ' ')
+                                print(Color.info(f"  [Debug] Merged reminder into user input: {_rem_db}"))
 
             # ReAct Loop: Smart Iteration Control with progress tracking
             tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
@@ -3974,7 +4026,7 @@ def chat_loop():
                 non_sys_count = sum(1 for m in messages if m.get("role") != "system")
                 if non_sys_count > auto_compression_threshold:
                     print(Color.info(f"\n[Auto-compress] {non_sys_count} msgs > {auto_compression_threshold}, compressing..."))
-                    messages = compress_history(messages, force=True, quiet=True)
+                    messages = compress_history(messages, todo_tracker=todo_tracker_main, force=True, quiet=True)
                     context_tracker.update_messages(messages, exclude_system=True)
                     save_conversation_history(messages)
 
@@ -3987,14 +4039,14 @@ def chat_loop():
                 sys_msgs = [m for m in full_messages if m.get("role") == "system"]
                 non_sys = [m for m in full_messages if m.get("role") != "system"]
                 window_msgs = sys_msgs + non_sys[-(rolling_window_size * 2):]
-                window_msgs_result, agent_mode = run_react_agent(window_msgs, tracker, user_input, mode='interactive', agent_mode=agent_mode)
+                window_msgs_result, agent_mode = run_react_agent(window_msgs, tracker, user_input, mode='interactive', agent_mode=agent_mode, todo_tracker=todo_tracker_main)
                 # Append only newly added messages (assistant + tool responses) to full_messages
                 new_msgs = window_msgs_result[len(window_msgs):]
                 full_messages.extend(new_msgs)
                 messages = full_messages
             else:
                 # Run ReAct Agent
-                messages, agent_mode = run_react_agent(messages, tracker, user_input, mode='interactive', agent_mode=agent_mode)
+                messages, agent_mode = run_react_agent(messages, tracker, user_input, mode='interactive', agent_mode=agent_mode, todo_tracker=todo_tracker_main)
                 
                 # After the first turn, we enable auto-plan if there are pending todos
                 is_first_turn = False
@@ -4091,7 +4143,7 @@ if __name__ == "__main__":
         tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
 
         # Run ReAct Agent
-        messages, _ = run_react_agent(messages, tracker, prompt, mode='oneshot')
+        messages, _ = run_react_agent(messages, tracker, prompt, mode='oneshot', todo_tracker=None)
 
         # Extract knowledge from conversation at end
         try:

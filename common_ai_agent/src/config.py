@@ -69,6 +69,10 @@ API_TIMEOUT = int(os.getenv("API_TIMEOUT", "600"))
 SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")
 HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")
 TODO_FILE = os.getenv("TODO_FILE", "current_todos.json")
+TODO_ERROR_FILE = os.getenv("TODO_ERROR_FILE", "current_todos_error.json")
+
+# Step-by-step execution mode
+STEP_BY_STEP_MODE = os.getenv("STEP_BY_STEP_MODE", "false").lower() in ("true", "1", "yes")
 
 # Debug mode - show detailed parsing and execution info
 DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() in ("true", "1", "yes")
@@ -565,6 +569,7 @@ AUTONOMOUS_TEMPERATURE = float(os.getenv("AUTONOMOUS_TEMPERATURE", "0.3"))
 # System Prompt with ReAct instructions
 SYSTEM_PROMPT = """You are an intelligent coding agent named Common AI Agent.
 You can read files, write code, and run terminal commands to help the user.
+Always use surgical edits (replace_in_file or multi_replace) to modify only the necessary parts and save tokens.
 
 TOOLS:
 You have access to the following tools:
@@ -959,6 +964,7 @@ PLAN_MODE_BLOCKED_TOOLS = frozenset({
     'write_file', 'replace_in_file', 'replace_lines',
     'replace_file_content', 'multi_replace_file_content',
     'apply_diffs', 'run_command', 'git_revert',
+    'background_task', 'background_output', 'spawn_explore'
 })
 
 # Tools only available in Plan Mode (blocked in Normal/Execution mode)
@@ -980,32 +986,23 @@ PLAN_MODE_PROMPT = (
     "\n\n=== PLAN MODE ===\n"
     "You are in PLAN MODE. Do NOT implement — plan only.\n"
     "\n"
-    "Workflow: ASK → PROPOSE → FEEDBACK → (repeat if needed) → CONFIRM → EXECUTE\n"
+    "Workflow: ASK/PROPOSE → FEEDBACK → (repeat if needed) → CONFIRM → EXECUTE\n"
     "\n"
-    "1. ASK:\n"
-    "   Ask 1–2 critical questions only. What is unclear? What are the constraints?\n"
+    "1. ASK & PROPOSE:\n"
+    "   Combine questions and planning into ONE turn if the requirements are clear. "
+    "Do NOT force a separate question-only turn if you have enough info to propose a plan.\n"
     "\n"
-    "2. PROPOSE:\n"
-    "   Explore code if needed, then present a short numbered plan.\n"
-    "   **SMART GUIDE**: Adapt your plan's complexity to the task:\n"
-    "   - For complex tasks (3+ steps): MANDATORY to show a formal Markdown Draft Todo List.\n"
-    "   - For simple tasks (1-2 steps): A short 1-2 line text plan is sufficient.\n"
+    "2. THE PLAN:\n"
+    "   Present a concise numbered plan. Adapt its complexity as needed:\n"
+    "   - Complex tasks (3+ steps): Recommended to show a formal Markdown Draft Todo List.\n"
+    "   - Simple tasks (1-2 steps): A short 1-2 line plan is sufficient.\n"
     "   End every planning response with: '이 할 일 목록(혹은 계획)으로 진행할까요? [y/yc/feedback]'\n"
     "\n"
-    "3. FEEDBACK: Adjust the plan based on user input until satisfied.\n"
+    "3. FEEDBACK & CONFIRM:\n"
+    "   Adjust quickly based on user input. Execution ONLY begins AFTER a final confirmation ('y', 'yes', 'go', etc.).\n"
+    "   If confirmed, immediately transition to EXECUTION mode without further re-handshaking.\n"
     "\n"
-    "4. CONFIRM (CRITICAL):\n"
-    "   When the user confirms ('y', 'yes', 'go', etc.), you should then start execution.\n"
-    "   If the plan is complex, use `todo_write(todos=[...])` during the planning phase to finalize the task list.\n"
-    "   During execution, use `todo_update(index=N, status='completed')` to track progress. Do NOT use `todo_write` during execution.\n"
-    "   Execution ONLY begins AFTER the user provides a final confirmation of the plan.\n"
-    "\n"
-    "USER INTERACTION:\n"
-    "   The user will be shown a special prompt: `Plan Confirmation [y/yc/feedback] > `.\n"
-    "   - 'y' means confirm. The system will then switch to NORMAL mode for execution.\n"
-    "   - Other inputs (feedback or 'n') will stay in PLAN mode.\n"
-    "\n"
-    "RULES: first response = questions only | write/run tools blocked | "
-    "MANDATORY confirmation ('y') before execution.\n"
+    "RULES: combined ask/propose encouraged | write/run tools blocked in plan mode | "
+    "confirmation ('y') required before execution.\n"
     "=================="
 )

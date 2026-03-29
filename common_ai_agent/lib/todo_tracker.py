@@ -38,6 +38,28 @@ except ImportError:
 # Priority ordering
 _PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 
+# Status aliases for normalizing common alternative values
+STATUS_ALIASES = {
+    "todo": "pending",
+    "open": "pending",
+    "not_started": "pending",
+    "new": "pending",
+    "done": "completed",
+    "finish": "completed",
+    "finished": "completed",
+    "complete": "completed",
+    "wip": "in_progress",
+    "in-progress": "in_progress",
+    "active": "in_progress",
+    "started": "in_progress",
+    "reviewed": "approved",
+    "accepted": "approved",
+    "verified": "approved",
+    "passed": "approved",
+    "failed": "rejected",
+    "blocked": "rejected",
+}
+
 
 def _fmt_elapsed(seconds: float) -> str:
     """Format elapsed seconds as human-readable string."""
@@ -70,7 +92,7 @@ class TodoItem:
     """
     content: str
     active_form: str
-    status: str = "pending"       # "pending", "in_progress", "completed", "reviewed"
+    status: str = "pending"       # "pending", "in_progress", "completed", "approved", "rejected"
     priority: str = "medium"      # "high", "medium", "low"
     created_at: float = None
     completed_at: Optional[float] = None
@@ -87,7 +109,7 @@ class TodoItem:
     @property
     def elapsed(self) -> Optional[float]:
         """Elapsed seconds from creation to completion (or now if in_progress)."""
-        if self.status in ("completed", "reviewed") and self.completed_at:
+        if self.status in ("completed", "approved") and self.completed_at:
             return self.completed_at - self.created_at
         if self.status == "in_progress":
             return time.time() - self.created_at
@@ -176,14 +198,51 @@ class TodoTracker:
         self.todos[index].rejection_reason = ""
         self.save()
 
-    def mark_reviewed(self, index: int):
-        """특정 todo를 reviewed로 변경."""
+    def mark_approved(self, index: int):
+        """특정 todo를 approved로 변경 (완전 완료)."""
         if not (0 <= index < len(self.todos)):
             return
 
-        self.todos[index].status = "reviewed"
+        self.todos[index].status = "approved"
+        self.todos[index].rejection_reason = ""
+        if self.current_index == index:
+            next_idx = self._get_next_pending()
+            if next_idx is not None:
+                self.mark_in_progress(next_idx)
+            else:
+                self.current_index = -1
         # completed_at shouldn't change
         self.save()
+
+    def mark_rejected(self, index: int, reason: str):
+        """특정 todo를 rejected로 변경 (재작업 필요)."""
+        if not (0 <= index < len(self.todos)):
+            return
+
+        self.todos[index].status = "rejected"
+        self.todos[index].rejection_reason = reason
+        # Set it as the current active task so it must be worked on
+        self.current_index = index
+        self.save()
+
+    def unprocess_rejected(self):
+        """'rejected' 상태인 모든 todo를 'pending'으로 되돌림."""
+        modified = False
+        first_rejected = None
+        for i, todo in enumerate(self.todos):
+            if todo.status == "rejected":
+                todo.status = "pending"
+                todo.rejection_reason = ""
+                modified = True
+                if first_rejected is None:
+                    first_rejected = i
+        
+        if modified:
+            if first_rejected is not None:
+                self.current_index = first_rejected
+            self.save()
+            return True
+        return False
 
     def auto_advance(self):
         """현재 todo 완료 후 자동으로 다음 pending todo로 이동 (priority 반영)."""
@@ -245,42 +304,48 @@ class TodoTracker:
         lines = ["", _HEADER, _TITLE, _HEADER_END]
 
         for i, todo in enumerate(self.todos):
-            icon = {
-                "pending":     f"{Color.DIM}⏸ {Color.RESET}",
-                "in_progress": f"{Color.warning('▶')} ",
-                "completed":   f"{Color.warning('👀')} ",
-                "reviewed":    f"{Color.success('✅')} "
-            }.get(todo.status, "❓ ")
+            # Icon and explicit status label [Approved], [In Progress], etc.
+            status_info = {
+                "pending":     (f"{Color.dim('⏸')} ", "[Pending]"),
+                "in_progress": (f"{Color.warning('▶')} ", "[In Progress]"),
+                "completed":   (f"{Color.warning('👀')} ", "[Completed]"),
+                "approved":    (f"{Color.success('✅')} ", f"{Color.success('[Approved]')}"),
+                "rejected":    (f"{Color.error('❌')} ", f"{Color.error('[Rejected]')} ")
+            }.get(todo.status, ("❓ ", "[?] "))
+            
+            icon, label = status_info
 
             # Priority badge
             priority_badge = ""
             if todo.priority == "high":
                 priority_badge = f"{Color.RED}[HIGH]{Color.RESET} "
             elif todo.priority == "low":
-                priority_badge = f"{Color.DIM}[LOW]{Color.RESET} "
+                priority_badge = f"{Color.dim('[LOW]')} "
 
             # Text with status-based coloring
             content_style = Color.RESET
-            if todo.status == "reviewed":
-                content_style = Color.DIM + Color.STRIKETHROUGH
+            if todo.status == "approved":
+                content_style = getattr(Color, "DIM", "") + getattr(Color, "STRIKETHROUGH", "")
             elif todo.status == "completed":
                 content_style = Color.RESET
             elif todo.status == "in_progress":
                 content_style = Color.BOLD + Color.YELLOW
+            elif todo.status == "rejected":
+                content_style = Color.BOLD + Color.RED
 
-            text = todo.active_form if todo.status == "in_progress" else todo.content
+            text = todo.active_form if todo.status in ("in_progress", "rejected") else todo.content
             # Truncate if too long to prevent wrapping issues, using dynamic width
             if len(text) > max_text_len:
                 text = text[:max_text_len-3] + "..."
             
             # Elapsed / completion time
             time_str = ""
-            if todo.status in ("completed", "reviewed") and todo.elapsed is not None:
-                time_str = f" {Color.DIM}({_fmt_elapsed(todo.elapsed)}){Color.RESET}"
-            elif todo.status == "in_progress" and todo.elapsed is not None:
-                time_str = f" {Color.DIM}({_fmt_elapsed(todo.elapsed)} elapsed){Color.RESET}"
+            if todo.status in ("completed", "approved") and todo.elapsed is not None:
+                time_str = f" {Color.dim(f'({_fmt_elapsed(todo.elapsed)}')}{Color.RESET}"
+            elif todo.status in ("in_progress", "rejected") and todo.elapsed is not None:
+                time_str = f" {Color.dim(f'({_fmt_elapsed(todo.elapsed)} elapsed)')}{Color.RESET}"
 
-            lines.append(f"{icon}{Color.CYAN}{i+1}.{Color.RESET} {priority_badge}{content_style}{text}{Color.RESET}{time_str}")
+            lines.append(f"{icon}{Color.CYAN}{i+1}.{Color.RESET} {label} {priority_badge}{content_style}{text}{Color.RESET}{time_str}")
             
             # Show detail if available
             if todo.detail and todo.status != 'completed':
@@ -288,8 +353,8 @@ class TodoTracker:
                 lines.append(f"{prefix}{Color.DIM}└ 📝 {todo.detail}{Color.RESET}")
                 
             # Show rejection reason if available
-            if todo.rejection_reason and todo.status != 'completed':
-                lines.append(f"     {Color.RED}⚠ {todo.rejection_reason}{Color.RESET}")
+            if todo.rejection_reason and todo.status in ('rejected', 'in_progress', 'pending'):
+                lines.append(f"     {Color.error('⚠ REJECTED:')} {Color.RED}{todo.rejection_reason}{Color.RESET}")
                 
             # Show criteria if available
             if todo.criteria and todo.status != 'completed':
@@ -298,15 +363,20 @@ class TodoTracker:
                         lines.append(f"     {Color.DIM}• {c.strip()}{Color.RESET}")
 
         # Progress bar
-        completed_count = sum(1 for t in self.todos if t.status == "reviewed")
+        approved_count = sum(1 for t in self.todos if t.status == "approved")
+        completed_count = sum(1 for t in self.todos if t.status == "completed")
         total = len(self.todos)
-        ratio = completed_count / total if total > 0 else 0
+        
+        ratio = approved_count / total if total > 0 else 0
         bar_len = 25
         filled = int(bar_len * ratio)
         bar = _BAR_FG * filled + _BAR_BG * (bar_len - filled)
         pct = int(ratio * 100)
         
-        status_text = f"{Color.success(str(completed_count))}{Color.DIM}/{total} done{Color.RESET}"
+        status_text = f"{Color.success(str(approved_count))}{Color.DIM}/{total} approved{Color.RESET}"
+        if completed_count > 0:
+            status_text += f" {Color.warning(f'({completed_count} awaiting review)')}"
+        
         if pct == 100:
             status_text = f"{Color.success('ALL DONE! 🏁')}"
 
@@ -315,6 +385,35 @@ class TodoTracker:
 
         return "\n".join(lines)
 
+    def print_debug_status(self):
+        """[Debug] Print current todo list status to terminal."""
+        if not self.todos:
+            # print(Color.DIM + "  [Todo] No tasks." + Color.RESET)
+            return
+
+        print(f"\n  {Color.BOLD}{Color.CYAN}--- TODO STATUS ---{Color.RESET}")
+        for i, t in enumerate(self.todos):
+            # Status icon & label
+            status_info = {
+                "pending": ("⚪ ", "[Pending]"),
+                "in_progress": ("🔵 ", "[In Progress]"),
+                "completed": ("🟡 ", "[Completed]"),
+                "approved": (Color.success("✅ "), Color.success("[Approved]")),
+                "rejected": (Color.error("❌ "), Color.error("[Rejected]"))
+            }.get(t.status, ("❓ ", "[?]"))
+            
+            icon, label = status_info
+            
+            # Text style
+            style = Color.RESET
+            if t.status == "approved": style = Color.success("") # Green
+            if t.status == "in_progress": style = Color.BOLD + Color.YELLOW
+            if t.status == "rejected": style = Color.BOLD + Color.RED
+            if t.status == "pending": style = Color.DIM
+            
+            print(f"  {icon}{i+1}. {label} {style}{t.content}{Color.RESET}")
+        print(f"  {Color.BOLD}{Color.CYAN}-------------------{Color.RESET}\n")
+
     def get_current_todo(self) -> Optional[TodoItem]:
         """현재 in_progress인 todo 반환."""
         if self.current_index >= 0 and self.current_index < len(self.todos):
@@ -322,49 +421,64 @@ class TodoTracker:
         return None
 
     def is_all_completed(self) -> bool:
-        """모든 todo가 reviewed(완전히 완료)되었는지 확인."""
-        return bool(self.todos) and all(t.status == "reviewed" for t in self.todos)
+        """모든 todo가 approved(완전히 완료)되었는지 확인."""
+        return bool(self.todos) and all(t.status == "approved" for t in self.todos)
 
-    def get_completion_ratio(self) -> float:
+    def is_all_processed(self) -> bool:
+        """모든 todo가 처리(approved 또는 rejected)되었는지 확인."""
+        return bool(self.todos) and all(t.status in ("approved", "rejected") for t in self.todos)
+
+    def get_progress_pct(self) -> float:
         """완료 비율 계산 (0.0 ~ 1.0)."""
         if not self.todos:
             return 1.0
-        completed = sum(1 for t in self.todos if t.status == "reviewed")
+        completed = sum(1 for t in self.todos if t.status == "approved")
         return completed / len(self.todos)
 
+    def get_completion_ratio(self) -> float:
+        return self.get_progress_pct()
+
     def get_continuation_prompt(self) -> Optional[str]:
-        """미완료 todo가 있으면 continuation 리마인더 프롬프트 반환."""
-        if not self.todos or self.is_all_completed():
+        """미완료 todo가 있으면 1-line 리마인더 반환."""
+        if not self.todos or self.is_all_processed():
             return None
 
         current = self.get_current_todo()
-        completed_count = sum(1 for t in self.todos if t.status == "reviewed")
-        remaining = len(self.todos) - completed_count
-
-        # Brief reminder only — full progress shown on todo_update/todo_write
-        lines = [
-            f"[Todo Reminder] {completed_count}/{len(self.todos)} fully reviewed, {remaining} remaining.",
-        ]
+        approved_count = sum(1 for t in self.todos if t.status == "approved")
+        total = len(self.todos)
 
         if current:
-            lines.append(f"Current task: {current.content}")
-            lines.append("Continue working on this task. When done, call todo_update(index=N, status='completed'). Then verify and update status='reviewed'.")
-        else:
-            # Check if there are any 'completed' (but not 'reviewed') tasks
-            unreviewed = [i for i, t in enumerate(self.todos) if t.status == "completed"]
-            if unreviewed:
-                idx = unreviewed[0]
-                todo = self.todos[idx]
-                lines.append(f"Task pending review: {todo.content}")
-                lines.append(f"Please review your implementation for task {idx+1}. If it's correct, call todo_update(index={idx+1}, status='reviewed').")
+            idx = self.current_index + 1
+            if current.status == "rejected":
+                return (
+                    f"[Todo {approved_count}/{total}] ❌ Task {idx} rejected: {current.rejection_reason}"
+                    f" → todo_update(index={idx}, status='in_progress')"
+                )
+            elif current.status == "completed":
+                return (
+                    f"[Todo {approved_count}/{total}] Task {idx} awaiting review"
+                    f" → todo_update(index={idx}, status='approved') or 'rejected'"
+                )
             else:
-                next_idx = self._get_next_pending()
-                if next_idx is not None:
-                    todo = self.todos[next_idx]
-                    lines.append(f"Next task: {todo.content}")
-                    lines.append("Start working on this task.")
+                return (
+                    f"[Todo {approved_count}/{total}] Task {idx}: {current.content}"
+                    f" → todo_update(index={idx}, status='completed') when done"
+                )
 
-        return "\n".join(lines)
+        unreviewed = [i for i, t in enumerate(self.todos) if t.status == "completed"]
+        if unreviewed:
+            idx = unreviewed[0] + 1
+            return (
+                f"[Todo {approved_count}/{total}] Task {idx} awaiting review"
+                f" → todo_update(index={idx}, status='approved') or 'rejected'"
+            )
+
+        next_idx = self._get_next_pending()
+        if next_idx is not None:
+            todo = self.todos[next_idx]
+            return f"[Todo {approved_count}/{total}] Next: task {next_idx+1}: {todo.content}"
+
+        return None
 
     def get_minimal_context(self, step_idx: int) -> str:
         """특정 step 실행에 필요한 최소 context 반환."""
@@ -376,7 +490,7 @@ class TodoTracker:
         completed_steps = [
             f"  {i+1}. {t.content} [DONE]"
             for i, t in enumerate(self.todos[:step_idx])
-            if t.status in ("completed", "reviewed")
+            if t.status in ("completed", "approved")
         ]
         if completed_steps:
             lines.append("Completed steps:")
@@ -472,7 +586,7 @@ class TodoTracker:
             True = 포기해야 함 (stagnation 초과)
             False = 계속 진행 가능
         """
-        completed = sum(1 for t in self.todos if t.status == "completed")
+        completed = sum(1 for t in self.todos if t.status in ("completed", "approved", "rejected"))
         if completed > self._last_completed_count:
             self.stagnation_count = 0
             self._last_completed_count = completed

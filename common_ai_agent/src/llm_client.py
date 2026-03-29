@@ -238,20 +238,14 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
 
                                 # Reasoning tokens (DeepSeek, GLM etc.)
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
-                                if reasoning:
-                                    if config.DEBUG_MODE:
-                                        if not _reasoning_started:
-                                            sys.stdout.write(f"\n\033[36m[reasoning]\033[0m ")
-                                            _reasoning_started = True
-                                        sys.stdout.write(f"\033[36m{reasoning}\033[0m")
-                                        sys.stdout.flush()
-
                                 content = delta.get("content", "")
-                                if content:
-                                    if config.DEBUG_MODE:
-                                        # Process chunks immediately to avoid cutting at tag boundaries
+
+                                # Handle reasoning and content for debug display
+                                if config.DEBUG_MODE:
+                                    to_show = reasoning or content
+                                    if to_show:
                                         import re as _re
-                                        _parts = _re.split(r'(</?think>)', content)
+                                        _parts = _re.split(r'(</?think>)', to_show)
                                         for _p in _parts:
                                             if _p == '<think>':
                                                 _debug_in_think = True
@@ -261,18 +255,20 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                             elif _p == '</think>':
                                                 _debug_in_think = False
                                             elif _p:
-                                                if _debug_in_think:
-                                                    # Print reasoning in cyan
+                                                if reasoning or _debug_in_think:
+                                                    if not _reasoning_started:
+                                                        sys.stdout.write(f"\n\033[36m[reasoning]\033[0m\n")
+                                                        _reasoning_started = True
                                                     sys.stdout.write(f"\033[36m{_p}\033[0m")
                                                 else:
-                                                    # Print normal content in green
                                                     if not _content_label_printed:
-                                                        if _reasoning_started:
-                                                            sys.stdout.write(f"\n")
-                                                        sys.stdout.write(f"\n\033[32m[content]\033[0m\n")
+                                                        if _reasoning_started: sys.stdout.write("\n")
+                                                        sys.stdout.write(f"\033[32m[content]\033[0m\n")
                                                         _content_label_printed = True
                                                     sys.stdout.write(f"\033[32m{_p}\033[0m")
-                                            sys.stdout.flush()
+                                                sys.stdout.flush()
+                                
+                                if content:
                                     yield content
 
                                 # Handle native tool_calls (models like Qwen, Mistral, etc.)
@@ -632,58 +628,37 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                 
                                 # Reasoning tokens (DeepSeek, GLM etc.)
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
-                                if reasoning:
-                                    if config.DEBUG_MODE:
-                                        if not _reasoning_started:
-                                            sys.stdout.write(f"\n\033[36m[reasoning]\033[0m\n")
-                                            _reasoning_started = True
-                                        sys.stdout.write(f"\033[36m{reasoning}\033[0m")
-                                        sys.stdout.flush()
-
                                 content = delta.get("content", "")
-                                if content:
-                                    if config.DEBUG_MODE:
-                                        # Line-buffer: accumulate until \n to detect <think> tags
+
+                                # Handle reasoning and content for debug display
+                                if config.DEBUG_MODE:
+                                    to_show = reasoning or content
+                                    if to_show:
                                         import re as _re
-                                        _debug_line_buf += content
-                                        while '\n' in _debug_line_buf:
-                                            _line, _debug_line_buf = _debug_line_buf.split('\n', 1)
-                                            if '<think>' in _line and '</think>' not in _line:
-                                                before = _line.split('<think>', 1)[0].strip()
-                                                if before and not _debug_in_think:
-                                                    if not _content_label_printed:
-                                                        sys.stdout.write(f"\n\n\033[32m[content]\033[0m\n")
-                                                        _content_label_printed = True
-                                                    sys.stdout.write(f"\033[32m{before}\033[0m\n")
+                                        _parts = _re.split(r'(</?think>)', to_show)
+                                        for _p in _parts:
+                                            if _p == '<think>':
                                                 _debug_in_think = True
                                                 if not _reasoning_started:
                                                     sys.stdout.write(f"\n\033[36m[reasoning]\033[0m\n")
                                                     _reasoning_started = True
-                                            elif '</think>' in _line:
-                                                if _debug_in_think:
-                                                    inside = _line.split('</think>', 1)[0].strip()
-                                                    if inside:
-                                                        sys.stdout.write(f"\033[36m{inside}\033[0m\n")
+                                            elif _p == '</think>':
                                                 _debug_in_think = False
-                                                after = _line.split('</think>', 1)[1].strip()
-                                                if after:
+                                            elif _p:
+                                                if reasoning or _debug_in_think:
+                                                    if not _reasoning_started:
+                                                        sys.stdout.write(f"\n\033[36m[reasoning]\033[0m\n")
+                                                        _reasoning_started = True
+                                                    sys.stdout.write(f"\033[36m{_p}\033[0m")
+                                                else:
                                                     if not _content_label_printed:
-                                                        sys.stdout.write(f"\n\n\033[32m[content]\033[0m\n")
+                                                        if _reasoning_started: sys.stdout.write("\n")
+                                                        sys.stdout.write(f"\033[32m[content]\033[0m\n")
                                                         _content_label_printed = True
-                                                    sys.stdout.write(f"\033[32m{after}\033[0m\n")
-                                            elif _debug_in_think:
-                                                if _line.strip():
-                                                    sys.stdout.write(f"\033[36m{_line}\033[0m\n")
-                                            else:
-                                                # Preserve newlines by not stripping if line is whitespace
-                                                _line_clean = _re.sub(r'</?think>', '', _line)
-                                                if _line_clean.strip() or _line.strip('\n') == '':
-                                                    if not _content_label_printed:
-                                                        sys.stdout.write(f"\n\n\033[32m[content]\033[0m\n")
-                                                        _content_label_printed = True
-                                                    # Print the original line (including its \n if it was just a newline)
-                                                    sys.stdout.write(f"\033[32m{_line_clean}\033[0m\n")
-                                            sys.stdout.flush()
+                                                    sys.stdout.write(f"\033[32m{_p}\033[0m")
+                                                sys.stdout.flush()
+                                
+                                if content:
                                     yield content
 
                                 # Handle native tool_calls (models like Qwen, Mistral, etc.)
@@ -718,21 +693,6 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     if output_tokens > 0:
                         last_output_tokens = output_tokens
 
-                    # Flush remaining line buffer (last line may have no trailing \n)
-                    if config.DEBUG_MODE and _debug_line_buf.strip():
-                        import re as _re
-                        _line = _debug_line_buf.strip()
-                        if _debug_in_think:
-                            # Still inside think block at stream end
-                            if _line:
-                                sys.stdout.write(f"\033[36m{_line}\033[0m\n")
-                        else:
-                            _line = _re.sub(r'</?think>', '', _line).strip()
-                            if _line:
-                                if not _content_label_printed:
-                                    sys.stdout.write(f"\n\n\033[32m[content]\033[0m\n")
-                                sys.stdout.write(f"\033[32m{_line}\033[0m\n")
-                        sys.stdout.flush()
 
                     # Display actual token usage (always show for visibility)
                     if config.DEBUG_MODE:
@@ -1067,6 +1027,14 @@ def estimate_message_tokens(message):
     # Handle string content
     if isinstance(content, str):
         return len(content) // 4
+
+    # Handle optimized prompt structure (dict)
+    if isinstance(content, dict):
+        total_chars = 0
+        for val in content.values():
+            if isinstance(val, str):
+                total_chars += len(val)
+        return total_chars // 4
 
     # Handle structured content (list of blocks)
     if isinstance(content, list):

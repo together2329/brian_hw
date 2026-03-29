@@ -198,18 +198,21 @@ def _git_auto_commit(path: str, operation: str, stats: str = "", content_hint: s
         except Exception:
             pass
 
-def _git_tag_todo(index, status):
+def _git_tag_todo(index, status, content=""):
     """
     Creates a git tag for todo progress.
+    Tag format: todo_{index}_{status}_{slug}
     """
+    import re
     try:
-        # Check if it's a git repo
         subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], capture_output=True, check=True)
-        tag_name = f"todo_{index}_{status}"
-        # Use -f to overwrite if retrying/toggling
+        if content:
+            slug = re.sub(r'[^a-zA-Z0-9]+', '_', content).strip('_')[:40].rstrip('_')
+            tag_name = f"todo_{index}_{status}_{slug}"
+        else:
+            tag_name = f"todo_{index}_{status}"
         subprocess.run(["git", "tag", "-f", tag_name], capture_output=True, check=True)
     except Exception:
-        # Silently fail if not a git repo or other git error
         pass
 
 
@@ -2084,6 +2087,24 @@ def _get_todo_tracker():
         return None
 
 
+def _save_todo_write_error(error_msg: str, attempted_todos=None):
+    """Save todo_write failure info so /todo can surface it."""
+    import json
+    import time
+    try:
+        import config
+        from pathlib import Path
+        error_file = Path(config.TODO_ERROR_FILE)
+        payload = {
+            "error": error_msg,
+            "timestamp": time.time(),
+            "attempted_count": len(attempted_todos) if attempted_todos else 0,
+        }
+        error_file.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass  # Best-effort; never block the main error return
+
+
 def todo_write(todos=None, tasks=None):
     """
     Create or update task list to track multi-step task progress.
@@ -2140,33 +2161,46 @@ def todo_write(todos=None, tasks=None):
         if "status" not in todo:
             todo["status"] = "pending"
 
-        # Validate status value
+        # Normalize status aliases (e.g. "todo" → "pending", "done" → "completed")
+        from lib.todo_tracker import STATUS_ALIASES
         valid_statuses = ["pending", "in_progress", "completed", "approved", "rejected"]
-        if todo["status"] not in valid_statuses:
-            return f"Error: todos[{i}] has invalid status '{todo['status']}'. Must be one of: {', '.join(valid_statuses)}"
+        raw_status = todo["status"]
+        if raw_status not in valid_statuses:
+            normalized = STATUS_ALIASES.get(raw_status)
+            if normalized:
+                todo["status"] = normalized
+            else:
+                err = f"Error: todos[{i}] has invalid status '{raw_status}'. Must be one of: {', '.join(valid_statuses)}"
+                _save_todo_write_error(err, todos)
+                return err
 
     # Validate exactly ONE in_progress task
     in_progress_count = sum(1 for t in todos if t.get("status") == "in_progress")
 
     if in_progress_count > 1:
-        return (
+        err = (
             "Error: Only ONE task can be 'in_progress' at a time.\n\n"
             "Please mark completed tasks as 'completed' and future tasks as 'pending'.\n"
             f"Currently {in_progress_count} tasks are marked as 'in_progress'."
         )
-
-    if in_progress_count == 0:
-        # Auto-set first pending task to in_progress
-        for t in todos:
-            if t.get("status") == "pending":
-                t["status"] = "in_progress"
-                break
+        _save_todo_write_error(err, todos)
+        return err
 
     # Update tracker with new todos
     try:
         todo_tracker.add_todos(todos)
     except Exception as e:
         return f"Error updating todo tracker: {e}"
+
+    # Clear any previous write error on success
+    try:
+        import config as _cfg
+        from pathlib import Path as _Path
+        _error_file = _Path(getattr(_cfg, "TODO_ERROR_FILE", "current_todos_error.json"))
+        if _error_file.exists():
+            _error_file.unlink()
+    except Exception:
+        pass
 
     # Return formatted progress
     try:
@@ -2202,8 +2236,16 @@ def todo_update(index=None, status=None, reason="", content="", detail="", activ
     if index is None:
         return "Error: 'index' (1-based) is required."
 
+    if str(index) == "0":
+        # Auto-correct 0→1 since indices are always 1-based
+        index = 1
+
     # Convert to 0-based
-    idx = int(index) - 1
+    try:
+        idx = int(index) - 1
+    except ValueError:
+        return f"Error: index must be an integer, got '{index}'"
+
     if not (0 <= idx < len(todo_tracker.todos)):
         return f"Error: index {index} out of range (1-{len(todo_tracker.todos)})"
 
@@ -2225,52 +2267,80 @@ def todo_update(index=None, status=None, reason="", content="", detail="", activ
     # Update status if provided
     if status:
         # Normalize common aliases
-        # Normalize common aliases
-        _status_aliases = {"active": "in_progress", "done": "completed", "complete": "completed", "verified": "approved", "reviewed": "approved"}
-        status = _status_aliases.get(status, status)
+        from lib.todo_tracker import STATUS_ALIASES
         valid = ["pending", "in_progress", "completed", "approved", "rejected"]
         if status not in valid:
+            status = STATUS_ALIASES.get(status, status)
+        if status not in valid:
             return f"Error: status must be one of {valid} (got '{status}')"
+
+        # Protection: Do not allow downgrading "approved" tasks
+        if item.status == "approved" and status in ("completed", "in_progress"):
+            return (
+                f"Status Conflict: Task {index} is already 'approved' (fully complete).\n"
+                "If you intended to update a DIFFERENT task, please check the 1-based index in the todo list.\n"
+                "If you truly need to re-work this task, use status='rejected' with a specific reason."
+            )
+
+        # Enforce state machine: must go through 'completed' before 'approved'
+        if status == "approved" and item.status not in ("completed", "approved"):
+            return (
+                f"Error: Task {index} is currently '{item.status}'. "
+                f"You must call todo_update(index={index}, status='completed') first, "
+                f"then review, then call todo_update(index={index}, status='approved')."
+            )
 
         if status == "approved":
             item.rejection_reason = ""
             todo_tracker.mark_approved(idx)
             todo_tracker.save()
-            progress = todo_tracker.format_progress()
-            return f"✅ Task {index} approved and fully complete.\n\n[System] Proceed to the next task if any remain (Followed by the updated progress list):\n\n{progress}"
+            next_todo = todo_tracker.get_current_todo()
+            if next_todo:
+                next_idx = todo_tracker.current_index + 1
+                return (
+                    f"✅ Task {index} approved.\n"
+                    f"→ Next: todo_update(index={next_idx}, status='in_progress') — {next_todo.content}"
+                )
+            return "✅ Task {index} approved. All tasks complete! 🏁"
         elif status == "completed":
             item.rejection_reason = ""
             todo_tracker.mark_completed(idx)
-            # Add git tag
-            _git_tag_todo(index, "completed")
+            _git_tag_todo(index, "completed", item.content)
             todo_tracker.save()
-            progress = todo_tracker.format_progress()
-            return f"✅ Task {index} marked as completed (awaiting review).\n\n[System] ⚠️ CRITICAL REVIEW REQUIRED ⚠️\nDo NOT just blindly mark this as approved. You MUST critically examine your own code. Have you run tests? Have you covered edge cases? Are there any potential bugs? If it needs fixes or you are unsure, mark 'rejected' with a specific reason. Only call todo_update(index={index}, status='approved') if you have verified it is completely robust:\n\n{progress}"
+            review_steps = (
+                f"✅ Task {index} marked as completed (awaiting review).\n"
+                f"SELF-REVIEW before approving:\n"
+                f"  1. read_file the output — confirm it looks correct\n"
+                f"  2. run compile/lint/test to verify\n"
+                f"  3. Check edge cases\n"
+                f"  → Passed → todo_update(index={index}, status='approved')\n"
+                f"  → Issues → todo_update(index={index}, status='rejected', reason='<issue>')"
+            )
+            return review_steps
         elif status == "rejected":
             if not reason:
-                 return f"Error: You MUST provide a 'reason' when marking a task as 'rejected'. What needs to be fixed?"
+                return "Error: You MUST provide a 'reason' when marking a task as 'rejected'. What needs to be fixed?"
             todo_tracker.mark_rejected(idx, reason)
+            todo_tracker.save()
+            return (
+                f"❌ Task {index} rejected: {reason}\n"
+                f"→ Fix, then: todo_update(index={index}, status='in_progress')"
+            )
         elif status == "in_progress":
             if reason:
                 item.rejection_reason = reason
             todo_tracker.mark_in_progress(idx)
-            # Add git tag
-            _git_tag_todo(index, "in_progress")
+            todo_tracker.save()
+            return f"▶ Task {index} in progress: {item.content}"
         else:  # pending
             if reason:
                 item.rejection_reason = reason
             item.status = "pending"
+            todo_tracker.save()
+            return f"⏸ Task {index} set to pending: {item.content}"
 
     todo_tracker.save()
-
-    if reason:
-        # If it's explicitly rejected, show the reason clearly
-        if status == "rejected":
-             prefix = f"{Color.error('❌ REJECTED')} Step {index}: {item.content}\nReason: {reason}\n\n"
-        else:
-             prefix = f"[INFO] Step {index}: {item.content}\nNote: {reason}\n\n"
-        return prefix + todo_tracker.format_progress()
-    return todo_tracker.format_progress()
+    return f"✅ Task {index} updated."
 
 
 def todo_add(content="", activeForm="", priority="medium", detail="", criteria="", index=None):

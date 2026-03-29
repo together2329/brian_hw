@@ -217,6 +217,25 @@ class SlashCommandRegistry:
                 return "No active todo list to clear.\n"
 
             if not todo_file.exists():
+                # Check if there's a recent write failure to surface
+                try:
+                    import time as _time
+                    error_file = Path(getattr(config, "TODO_ERROR_FILE", "current_todos_error.json"))
+                    if error_file.exists():
+                        err_data = json.loads(error_file.read_text(encoding="utf-8"))
+                        err_msg = err_data.get("error", "")
+                        ts = err_data.get("timestamp")
+                        n = err_data.get("attempted_count", 0)
+                        if err_msg:
+                            age = int(_time.time() - ts) if ts else 0
+                            age_str = f"{age}s ago" if age < 3600 else f"{age//3600}h ago"
+                            return (
+                                f"No active todo list.\n\n"
+                                f"⚠️  Last todo_write failed ({age_str}, {n} task(s) attempted):\n"
+                                f"   {err_msg}\n"
+                            )
+                except Exception:
+                    pass
                 return "No active todo list.\n"
             # Use TodoTracker's own premium formatting if possible
             try:
