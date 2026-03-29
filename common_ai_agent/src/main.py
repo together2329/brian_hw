@@ -2655,10 +2655,6 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 if config.DEBUG_MODE:
                     print(Color.info(f"  [Hook] Pruned {pruned} redundant messages"))
 
-        # Show context usage before each iteration
-        if config.DEBUG_MODE or tracker.current == 0:
-            show_context_usage(messages)
-
         # Show flow stage: LLM Call
         if config.DEBUG_MODE:
             llm_start_time = time.time()
@@ -2766,10 +2762,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         try:
             for chunk in chat_completion_stream(messages, stop=_stop_seqs):
                 if not _thinking_stopped and _thinking_spinner:
-                    _elapsed_think = time.time() - _stream_start
                     _thinking_spinner.stop()
-                    sys.stderr.write(f"  \033[36m✽\033[0m \033[2mThinking... (Done {_elapsed_think:.1f}s)\033[0m\n")
-                    sys.stderr.flush()
                     _thinking_stopped = True
 
                 if EscapeWatcher.check():
@@ -2788,10 +2781,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                 if token_type == "reasoning":
                     if not chunk: continue
-                    if config.DEBUG_MODE:
-                        sys.stdout.write(f"\r\033[2K  {Color.DIM}{chunk}{Color.RESET}")
-                        sys.stdout.flush()
-                        _content_emitted = True
+                    # Always display reasoning inline (dim), but never add to context
+                    sys.stdout.write(f"\r\033[2K  {Color.DIM}{chunk}{Color.RESET}")
+                    sys.stdout.flush()
+                    _content_emitted = True
                     if not config.REASONING_IN_CONTEXT:
                         continue
                     # REASONING_IN_CONTEXT=true: fall through so chunk is added to collected_content
@@ -2812,6 +2805,11 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         _buf = _stripped + _buf
                         continue
                     text, entered, exited, reasoning = _strip_think(raw_line)
+
+                    # Display <think> tag reasoning inline (dim), without adding to context
+                    if reasoning:
+                        sys.stdout.write(f"\r\033[2K  {Color.DIM}{reasoning}{Color.RESET}\n")
+                        sys.stdout.flush()
 
                     if _in_think and not exited:
                         continue
@@ -2955,10 +2953,14 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 token_est = len(collected_content) // 4
                 token_str = f"~{_fk(token_est)}"
             print(f"  {Color.DIM}✽ {elapsed_str} · {token_str} tokens{Color.RESET}")
-        
+
         # Ensure newline after response before debug info
         print()
         
+        # Show context usage after LLM call (accurate: last_input_tokens just set)
+        if config.DEBUG_MODE:
+            show_context_usage(messages)
+
         # Show flow stage: Response received
         if config.DEBUG_MODE:
             llm_elapsed = time.time() - llm_start_time if 'llm_start_time' in dir() else 0
