@@ -7,7 +7,7 @@ import re
 
 # Robust library path discovery
 try:
-    from lib.display import format_diff, format_diff_snippet
+    from lib.display import format_diff, format_diff_snippet, Color
 except ModuleNotFoundError:
     # Fallback: Recursively search for 'lib/display.py' walking up the tree
     import os
@@ -37,10 +37,10 @@ except ModuleNotFoundError:
 
     # Try import again
     try:
-        from lib.display import format_diff, format_diff_snippet
+        from lib.display import format_diff, format_diff_snippet, Color
     except ModuleNotFoundError:
         try:
-            from display import format_diff, format_diff_snippet
+            from display import format_diff, format_diff_snippet, Color
         except ModuleNotFoundError:
             # Final fallback stubs
             def format_diff(*args, **kwargs):
@@ -189,14 +189,28 @@ def _git_auto_commit(path: str, operation: str, stats: str = "", content_hint: s
             if mode == 'summary' and content_hint:
                 summary = _llm_commit_summary(rel, content_hint)
                 if summary:
-                    msg = f"auto: {operation} {rel}{stats_part} — {summary}"
+                    msg = f"{operation} {rel}{stats_part} — {summary}"
                 else:
-                    msg = f"auto: {operation} {rel}{stats_part}"
+                    msg = f"{operation} {rel}{stats_part}"
             else:
-                msg = f"auto: {operation} {rel}{stats_part}"
+                msg = f"{operation} {rel}{stats_part}"
             subprocess.run(['git', 'commit', '-m', msg], capture_output=True, cwd=git_root)
         except Exception:
             pass
+
+def _git_tag_todo(index, status):
+    """
+    Creates a git tag for todo progress.
+    """
+    try:
+        # Check if it's a git repo
+        subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], capture_output=True, check=True)
+        tag_name = f"todo_{index}_{status}"
+        # Use -f to overwrite if retrying/toggling
+        subprocess.run(["git", "tag", "-f", tag_name], capture_output=True, check=True)
+    except Exception:
+        # Silently fail if not a git repo or other git error
+        pass
 
 
 def write_file(path: str, content: str) -> str:
@@ -309,10 +323,9 @@ def run_command(command, timeout=60):
         timeout: Optional timeout in seconds (default: 60).
     """
     try:
-        # Optional safe-mode guardrail to avoid destructive commands.
-        safe_mode_env = os.getenv("SAFE_MODE", "false").lower() in ("true", "1", "yes")
-        if safe_mode_env and _is_dangerous_command(command):
-            return "Error: Command blocked by SAFE_MODE."
+        # Strictly block mv and rm as per user request
+        if _is_dangerous_command(command):
+            return f"Error: Command '{command.split()[0]}' is blocked (mv and rm are not allowed in run_command)."
 
         # Translate Unix commands to Windows equivalents
         command = _translate_command_for_windows(command)
@@ -372,7 +385,8 @@ def _is_dangerous_command(command: str) -> bool:
 
     # Block common destructive patterns.
     dangerous_patterns = [
-        r"\brm\b.*\s-\w*r\w*f\b",          # rm -rf / rm -fr variants
+        r"\brm\b",                        # block all rm commands
+        r"\bmv\b",                        # block all mv commands
         r"\bsudo\b",                      # privilege escalation
         r"\bshutdown\b|\breboot\b|\bhalt\b|\bpoweroff\b",
         r"\bmkfs\b|\bdd\b\s+if=",
@@ -2050,6 +2064,26 @@ def _sync_subagent_todo(output: str):
         pass  # Best-effort sync
 
 
+def _get_todo_tracker():
+    """Helper to lazily load and return the global TodoTracker instance."""
+    try:
+        import sys
+        main_module = sys.modules.get('main')
+        if main_module is None:
+            import main as main_module
+
+        if not hasattr(main_module, 'todo_tracker') or main_module.todo_tracker is None:
+            from lib.todo_tracker import TodoTracker
+            from pathlib import Path
+            import config as _cfg
+            main_module.todo_tracker = TodoTracker.load(Path(_cfg.TODO_FILE))
+
+        return main_module.todo_tracker
+    except Exception as e:
+        print(f"Error accessing todo tracker: {e}")
+        return None
+
+
 def todo_write(todos=None, tasks=None):
     """
     Create or update task list to track multi-step task progress.
@@ -2069,24 +2103,9 @@ def todo_write(todos=None, tasks=None):
     # Import here to avoid circular dependency
     from typing import List, Dict
 
-    # Access global todo_tracker from main.py
-    # This is set in chat_loop() in main.py
-    try:
-        import sys
-        main_module = sys.modules.get('main')
-        if main_module is None:
-            import main as main_module
-
-        # Get or create todo_tracker
-        if not hasattr(main_module, 'todo_tracker') or main_module.todo_tracker is None:
-            from lib.todo_tracker import TodoTracker
-            from pathlib import Path
-            import config as _cfg
-            main_module.todo_tracker = TodoTracker.load(Path(_cfg.TODO_FILE))
-
-        todo_tracker = main_module.todo_tracker
-    except Exception as e:
-        return f"Error accessing todo tracker: {e}"
+    todo_tracker = _get_todo_tracker()
+    if todo_tracker is None:
+        return "Error: Could not access todo tracker."
 
     # Validate input
     if not todos:
@@ -2122,7 +2141,7 @@ def todo_write(todos=None, tasks=None):
             todo["status"] = "pending"
 
         # Validate status value
-        valid_statuses = ["pending", "in_progress", "completed", "reviewed"]
+        valid_statuses = ["pending", "in_progress", "completed", "approved", "rejected"]
         if todo["status"] not in valid_statuses:
             return f"Error: todos[{i}] has invalid status '{todo['status']}'. Must be one of: {', '.join(valid_statuses)}"
 
@@ -2163,7 +2182,7 @@ def todo_update(index=None, status=None, reason="", content="", detail="", activ
 
     Args:
         index (int): 1-based index of the todo to update (required).
-        status (str): New status — "in_progress", "completed", "reviewed", or "pending" (optional).
+        status (str): New status — "in_progress", "completed", "approved", "rejected", or "pending" (optional).
         reason (str): Rejection reason when reverting to pending/in_progress.
         content (str): New task description (optional, updates if provided).
         detail (str): New implementation detail (optional, updates if provided).
@@ -2175,14 +2194,7 @@ def todo_update(index=None, status=None, reason="", content="", detail="", activ
         todo_update(index=2, content="Updated task description")
         todo_update(index=3, status="pending", reason="Tests still failing")
     """
-    try:
-        import sys
-        main_module = sys.modules.get('main')
-        if main_module is None:
-            import main as main_module
-        todo_tracker = getattr(main_module, 'todo_tracker', None)
-    except Exception as e:
-        return f"Error accessing todo tracker: {e}"
+    todo_tracker = _get_todo_tracker()
 
     if todo_tracker is None or not todo_tracker.todos:
         return "Error: No active todo list. Use todo_write() first."
@@ -2213,28 +2225,37 @@ def todo_update(index=None, status=None, reason="", content="", detail="", activ
     # Update status if provided
     if status:
         # Normalize common aliases
-        _status_aliases = {"active": "in_progress", "done": "completed", "complete": "completed", "verified": "reviewed"}
+        # Normalize common aliases
+        _status_aliases = {"active": "in_progress", "done": "completed", "complete": "completed", "verified": "approved", "reviewed": "approved"}
         status = _status_aliases.get(status, status)
-        valid = ["pending", "in_progress", "completed", "reviewed"]
+        valid = ["pending", "in_progress", "completed", "approved", "rejected"]
         if status not in valid:
             return f"Error: status must be one of {valid} (got '{status}')"
 
-        if status == "reviewed":
+        if status == "approved":
             item.rejection_reason = ""
-            todo_tracker.mark_reviewed(idx)
+            todo_tracker.mark_approved(idx)
             todo_tracker.save()
             progress = todo_tracker.format_progress()
-            return f"✅ Task {index} reviewed and fully complete.\n\n[System] Proceed to the next task if any remain (Followed by the updated progress list):\n\n{progress}"
+            return f"✅ Task {index} approved and fully complete.\n\n[System] Proceed to the next task if any remain (Followed by the updated progress list):\n\n{progress}"
         elif status == "completed":
             item.rejection_reason = ""
             todo_tracker.mark_completed(idx)
+            # Add git tag
+            _git_tag_todo(index, "completed")
             todo_tracker.save()
             progress = todo_tracker.format_progress()
-            return f"👀 Task {index} marked as completed (awaiting review).\n\n[System] Please verify your implementation. If it's correct, call todo_update(index={index}, status='reviewed'). If it needs fixes, mark 'in_progress' again with a reason:\n\n{progress}"
+            return f"✅ Task {index} marked as completed (awaiting review).\n\n[System] ⚠️ CRITICAL REVIEW REQUIRED ⚠️\nDo NOT just blindly mark this as approved. You MUST critically examine your own code. Have you run tests? Have you covered edge cases? Are there any potential bugs? If it needs fixes or you are unsure, mark 'rejected' with a specific reason. Only call todo_update(index={index}, status='approved') if you have verified it is completely robust:\n\n{progress}"
+        elif status == "rejected":
+            if not reason:
+                 return f"Error: You MUST provide a 'reason' when marking a task as 'rejected'. What needs to be fixed?"
+            todo_tracker.mark_rejected(idx, reason)
         elif status == "in_progress":
             if reason:
                 item.rejection_reason = reason
             todo_tracker.mark_in_progress(idx)
+            # Add git tag
+            _git_tag_todo(index, "in_progress")
         else:  # pending
             if reason:
                 item.rejection_reason = reason
@@ -2243,7 +2264,11 @@ def todo_update(index=None, status=None, reason="", content="", detail="", activ
     todo_tracker.save()
 
     if reason:
-        prefix = f"[REJECTED] Step {index}: {item.content}\nRejection reason: {reason}\n\n"
+        # If it's explicitly rejected, show the reason clearly
+        if status == "rejected":
+             prefix = f"{Color.error('❌ REJECTED')} Step {index}: {item.content}\nReason: {reason}\n\n"
+        else:
+             prefix = f"[INFO] Step {index}: {item.content}\nNote: {reason}\n\n"
         return prefix + todo_tracker.format_progress()
     return todo_tracker.format_progress()
 
@@ -2265,22 +2290,10 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
         todo_add(content="Fix lint errors", priority="low")
         todo_add(content="Add error handler", index=3)
     """
-    try:
-        import sys
-        main_module = sys.modules.get('main')
-        if main_module is None:
-            import main as main_module
-        todo_tracker = getattr(main_module, 'todo_tracker', None)
-    except Exception as e:
-        return f"Error accessing todo tracker: {e}"
+    todo_tracker = _get_todo_tracker()
 
     if todo_tracker is None:
-        # Auto-create tracker if needed
-        from lib.todo_tracker import TodoTracker
-        from pathlib import Path
-        import config as _cfg
-        todo_tracker = TodoTracker.load(Path(_cfg.TODO_FILE))
-        main_module.todo_tracker = todo_tracker
+        return "Error: Could not access todo tracker."
 
     if not content:
         return "Error: 'content' is required."
@@ -2318,14 +2331,7 @@ def todo_remove(index=None):
     Example:
         todo_remove(index=3)
     """
-    try:
-        import sys
-        main_module = sys.modules.get('main')
-        if main_module is None:
-            import main as main_module
-        todo_tracker = getattr(main_module, 'todo_tracker', None)
-    except Exception as e:
-        return f"Error accessing todo tracker: {e}"
+    todo_tracker = _get_todo_tracker()
 
     if todo_tracker is None or not todo_tracker.todos:
         return "Error: No active todo list."
@@ -2354,14 +2360,7 @@ def todo_status():
     Returns current todo list progress.
     Use this to check what tasks are pending, in progress, or completed.
     """
-    try:
-        import sys
-        main_module = sys.modules.get('main')
-        if main_module is None:
-            import main as main_module
-        todo_tracker = getattr(main_module, 'todo_tracker', None)
-    except Exception:
-        todo_tracker = None
+    todo_tracker = _get_todo_tracker()
 
     if todo_tracker is None or not todo_tracker.todos:
         return "No active todo list."

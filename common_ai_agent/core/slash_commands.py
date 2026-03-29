@@ -173,6 +173,9 @@ class SlashCommandRegistry:
         self.register('skills', self._cmd_skills,
                      'Show available skills and their activation status')
 
+        self.register('step', self._cmd_step,
+                     'Toggle Step-by-Step execution mode (pause after each task)')
+
         self.register('plan', self._cmd_plan,
                      'Enter plan mode: clarify → explore → propose → confirm → todo_write → execute')
 
@@ -182,9 +185,21 @@ class SlashCommandRegistry:
         self.register('mode', self._cmd_mode,
                      'Switch agent mode: /mode normal to exit plan mode')
 
+        self.register('git', self._cmd_git,
+                     'Git operations: /git clear (removes .git), /git diff (shows changes)')
+
     def _cmd_plan(self, args: str) -> str:
         """Enter plan mode."""
         return "AGENT_MODE:plan"
+
+    def _cmd_git(self, args: str) -> str:
+        """Git operations. /git clear or /git diff."""
+        arg = args.strip().lower()
+        if arg == 'clear':
+            return "GIT_CLEAR"
+        if arg == 'diff':
+            return "GIT_DIFF"
+        return "Usage: /git clear (to delete .git) or /git diff (to see changes)\n"
 
     def _cmd_todo(self, args: str) -> str:
         """Show/manage current todo list status."""
@@ -232,6 +247,13 @@ class SlashCommandRegistry:
         if mode in ('plan', 'normal'):
             return f"AGENT_MODE:{mode}"
         return f"AGENT_MODE:normal"
+
+    def _cmd_step(self, args: str) -> str:
+        """Toggle Step-by-Step execution mode."""
+        import config
+        config.STEP_BY_STEP_MODE = not getattr(config, 'STEP_BY_STEP_MODE', False)
+        status = "ON" if config.STEP_BY_STEP_MODE else "OFF"
+        return f"STEP_MODE:{status}"
 
     def _cmd_skills(self, args: str) -> str:
         """Show available skills"""

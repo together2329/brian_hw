@@ -72,6 +72,9 @@ if getattr(config, 'ENABLE_SUB_AGENTS', False):
 
 from lib.iteration_control import IterationTracker, detect_completion_signal, show_iteration_warning
 
+# Global Todo Tracker state (synced with tools)
+todo_tracker = None
+
 # --- Dynamic Plugin Loading ---
 if config.ENABLE_VERILOG_TOOLS:
     try:
@@ -1802,7 +1805,25 @@ def compress_history(messages, force=False, instruction=None, keep_recent=None, 
         tracker = getattr(main_mod, 'todo_tracker', None) if main_mod else None
         if tracker and tracker.todos:
             todo_status = tracker.format_progress()
-            todo_preservation = [{"role": "user", "content": f"[System] Todo state preserved across compression:\n{todo_status}"}]
+            current_todo = tracker.get_current_todo()
+            current_info = ""
+            if current_todo:
+                current_info = f"\n\n👉 CURRENT TASK: {current_todo.content}"
+                if current_todo.detail:
+                    current_info += f"\nDetail: {current_todo.detail}"
+            
+            todo_preservation = [{
+                "role": "user", 
+                "content": (
+                    f"[System] Todo state preserved across compression:\n{todo_status}{current_info}\n\n"
+                    "🚨 IMPORTANT: You MUST execute ONLY the current task immediately. "
+                    "Do NOT chain multiple tasks or attempt to bundle different steps in a single turn. "
+                    "Perform ONLY the immediate next step for the current task and stop."
+                )
+            }]
+            if config.DEBUG_MODE:
+                _pres_clean = todo_preservation[0]['content'].replace('\n', ' ')
+                print(Color.info(f"  [Debug] Injected compression guard: {_pres_clean}"))
     except Exception:
         pass
 
@@ -2333,7 +2354,10 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
     referenced_node_ids = []
 
     # Todo Tracking System (Phase 2 - Claude Code Style)
-    todo_tracker = TodoTracker.load(Path(config.TODO_FILE)) if config.ENABLE_TODO_TRACKING else None
+    if config.ENABLE_TODO_TRACKING:
+        todo_tracker = TodoTracker.load(Path(config.TODO_FILE))
+    else:
+        todo_tracker = None
 
     # ============================================================
     # Phase 2: Agent Communication - Accumulated Context
@@ -2738,8 +2762,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                     # Detect Thought: / Action: anywhere in line (case-insensitive for glm-4.7)
                     _text_lower = text.lower()
-                    ti = _text_lower.find('thought:')
                     ai = _text_lower.find('action:')
+                    ti = _text_lower.find('thought:')
 
                     if ai >= 0 and (ti < 0 or ai < ti):
                         # → ACTION state
@@ -2927,6 +2951,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             # This prevents bypassing the confirmation prompt by bundling modifications with plan creation.
             _todo_ops = {'todo_write', 'todo_update', 'todo_add', 'todo_remove'}
             _has_todo_op = any(a[0] in _todo_ops for a in actions)
+            _is_todo_write = any(a[0] == 'todo_write' for a in actions)
             if _has_todo_op and agent_mode in ('plan', 'plan_q'):
                 # Filter to only FIRST todo op to force clean transition
                 _todo_action = next(a for a in actions if a[0] in _todo_ops)
@@ -3113,6 +3138,11 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             # Combine all observations
             observation = "\n\n".join(combined_results)
 
+            # Step-by-Step Safety: Break loop after todo_write to allow user to see/confirm the plan.
+            # Other todo operations during execution (like todo_update) no longer break.
+            if _is_todo_write:
+                break
+
             # Check consecutive errors using the combined observation
             if observation == last_error_observation:
                 consecutive_errors += 1
@@ -3202,11 +3232,17 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 last_error_observation = observation if "error" in observation.lower() else None
 
             # Process observation (handles large files and context management)
+            # End of tool execution block. Reload todo_tracker from disk to pick up tool changes
+            if config.ENABLE_TODO_TRACKING:
+                todo_tracker = TodoTracker.load(Path(config.TODO_FILE))
+
             # Append only current step to observation (not full list)
             if todo_tracker and todo_tracker.todos:
                 current_todo = todo_tracker.get_current_todo()
                 total = len(todo_tracker.todos)
-                completed = sum(1 for t in todo_tracker.todos if t.status in ('completed', 'reviewed'))
+                # Only count 'approved' tasks because 'completed' tasks are still awaiting review
+                # and should be considered the active / current operation in focus.
+                completed = sum(1 for t in todo_tracker.todos if t.status == 'approved')
                 if current_todo:
                     header_parts = [f"[Step {completed + 1}/{total}: {current_todo.content}]"]
                     if current_todo.rejection_reason:
@@ -3232,16 +3268,25 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             # Stall tracking (silent — logged but not shown to agent)
         else:
             # No action — check if todos remain
+            if config.ENABLE_TODO_TRACKING:
+                todo_tracker = TodoTracker.load(Path(config.TODO_FILE))
+
             if (todo_tracker and not todo_tracker.is_all_completed()
                     and todo_tracker.todos):
                 if todo_tracker.check_stagnation(max_stagnation=3):
                     print(Color.warning("[System] Todo stagnation detected (3x no progress). Stopping."))
                     break
-                # Inject continuation reminder
+                # Inject continuation reminder (ONLY if we didn't just complete a task in this turn)
                 reminder = todo_tracker.get_continuation_prompt()
                 if reminder:
+                    # Logic check: If the last turn ended in a break due to _has_todo_op,
+                    # this block might be reached in the next ReAct loop if user-input was empty.
                     messages.append({"role": "user", "content": reminder})
-                    print(Color.info(f"[System] {sum(1 for t in todo_tracker.todos if t.status in ('completed', 'reviewed'))}/{len(todo_tracker.todos)} todos done — continuing..."))
+                    done_count = sum(1 for t in todo_tracker.todos if t.status in ('completed', 'approved'))
+                    if config.DEBUG_MODE:
+                        _rem_clean = reminder.replace('\n', ' ')
+                        print(Color.info(f"  [Debug] Injected continuation: {_rem_clean}"))
+                    print(Color.info(f"[System] {done_count}/{len(todo_tracker.todos)} todos done — resuming..."))
                     # Don't break — continue loop
                 else:
                     break
@@ -3649,6 +3694,43 @@ def chat_loop():
                         show_context_usage(messages, use_actual=False)
                         continue
 
+                    if result == "GIT_CLEAR":
+                        # Delete .git directory
+                        try:
+                            abs_path = os.path.abspath(".")
+                            # Find git root starting from current dir
+                            curr = Path(abs_path)
+                            git_dir = None
+                            for parent in [curr] + list(curr.parents):
+                                if (parent / ".git").exists():
+                                    git_dir = parent / ".git"
+                                    break
+                            
+                            if git_dir:
+                                import shutil
+                                shutil.rmtree(git_dir)
+                                print(Color.success(f"\n✅ Git history cleared (.git directory removed from {git_dir.parent}).\n"))
+                            else:
+                                print(Color.warning("\n⚠️  No .git directory found to clear.\n"))
+                        except Exception as e:
+                            print(Color.error(f"\n❌ Failed to clear git history: {e}\n"))
+                        continue
+
+                    if result == "GIT_DIFF":
+                        # Show git diff
+                        try:
+                            import subprocess
+                            proc = subprocess.run(["git", "diff"], capture_output=True, text=True)
+                            if proc.stdout:
+                                print(f"\n{Color.CYAN}--- Git Diff ---{Color.RESET}")
+                                print(proc.stdout)
+                                print(f"{Color.CYAN}----------------{Color.RESET}\n")
+                            else:
+                                print(Color.info("\nℹ️  No changes detected in git.\n"))
+                        except Exception as e:
+                            print(Color.error(f"\n❌ Failed to show git diff: {e}\n"))
+                        continue
+
                     if result.startswith("WINDOW_MODE:"):
                         n = int(result.split(":", 1)[1])
                         rolling_window_size = n
@@ -3710,6 +3792,14 @@ def chat_loop():
                                 else:
                                     messages[0]["content"] = _build_system_prompt_str(messages=messages, agent_mode=agent_mode)
                                 save_conversation_history(messages)
+                        continue
+
+                    if result.startswith("STEP_MODE:"):
+                        status = result.split(":", 1)[1]
+                        if status == "ON":
+                            print(Color.success(f"\n✅ Step-by-Step execution mode enabled (will pause after each task).\n"))
+                        else:
+                            print(Color.warning(f"\n⏸️  Step-by-Step execution mode disabled.\n"))
                         continue
 
                     elif result.startswith("COMPACT_HISTORY"):
@@ -3861,7 +3951,9 @@ def chat_loop():
                     print(Color.success(f"\n[Plan] {msg}\n"))
                     
                     # Inject a direct instruction to start immediately instead of just "y"
-                    user_input = "Confirmed. Proceed with the first task immediately without further talk."
+                    user_input = "Confirmed. Perform ONLY the first task (Step 1) immediately. Do NOT attempt multiple tasks in one turn."
+                    if config.DEBUG_MODE:
+                        print(Color.info(f"  [Debug] Injected confirmation: {user_input}"))
                     messages[-1]["content"] = user_input
                     
                     if do_compress:
