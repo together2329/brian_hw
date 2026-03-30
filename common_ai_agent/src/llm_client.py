@@ -483,6 +483,21 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     content = re.sub(r'<\|final<\|[^>]*\|>', '', content)
     content = re.sub(r'<\|[^|<>]+\|>', '', content)
 
+    # Non-streaming bleed fix: some models (e.g. GLM-4.7) split reasoning mid-sentence
+    # and put the tail in content. Since we have the full text, we can reliably fix it.
+    if reasoning and content:
+        first_char = content.lstrip()[:1]
+        if first_char and (first_char.islower() or first_char in ',;:'):
+            # Content starts mid-sentence → find first sentence boundary
+            m = re.search(r'[.!?]\s*[A-Z\n]', content)
+            if m:
+                reasoning = reasoning + content[:m.start() + 1]
+                content = content[m.start() + 1:].lstrip()
+            else:
+                # No boundary found — treat all as reasoning tail, content is empty
+                reasoning = reasoning + content
+                content = ""
+
     # Debug output (mirrors streaming debug labels so DEBUG_MODE: continue works correctly)
     if config.DEBUG_MODE:
         if reasoning:
