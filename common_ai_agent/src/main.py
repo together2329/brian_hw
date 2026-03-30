@@ -2823,17 +2823,20 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         sys.stdout.write(f"  {Color.DIM}{_rbuf}{Color.RESET}\n")
                         sys.stdout.flush()
                     # If reasoning ended mid-sentence, content may still be reasoning tail
-                    if not _rbuf.rstrip().endswith(('.', '!', '?')):
+                    # '>' covers </think> tag endings — those are clean boundaries
+                    if not _rbuf.rstrip().endswith(('.', '!', '?', '>', '\n')):
                         _reasoning_bleeding = True
                     _rbuf = ""
 
                 # Handle reasoning bleed: content chunks that are still part of thinking
                 if _reasoning_bleeding:
                     _bleed_buf += chunk
-                    m = re.search(r'[.!?](\s*[A-Z]|\n)', _bleed_buf)
-                    if m:
-                        tail = _bleed_buf[:m.start() + 1]
-                        rest = _bleed_buf[m.start() + 1:]
+                    m = re.search(r'[.!?]\s*[A-Z]|[.!?]\n|\n[A-Z]', _bleed_buf)
+                    # Fallback: give up after 300 chars to avoid eating real content
+                    if m or len(_bleed_buf) > 300:
+                        split_pos = m.start() + 1 if m else len(_bleed_buf)
+                        tail = _bleed_buf[:split_pos]
+                        rest = _bleed_buf[split_pos:]
                         if tail.strip() and config.REASONING_DISPLAY:
                             sys.stdout.write(f"  {Color.DIM}{tail.strip()}{Color.RESET}\n")
                             sys.stdout.flush()
