@@ -2730,16 +2730,18 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
         def _clear_partial():
             """Erase the current partial line portably (no \\033[2K required)."""
+            nonlocal _last_partial
             if _last_partial:
                 sys.stdout.write(f"\r{' ' * (len(_last_partial) + 4)}\r")
                 sys.stdout.flush()
+                _last_partial = ""
 
         def _emit(text):
             """Print a completed line with dedup."""
             nonlocal _content_emitted
             text = _dedup_line(text)
             if not _is_dup(text):
-                sys.stdout.write(f"\r\033[2K  {text}\n")
+                sys.stdout.write(f"  {text}\n")
                 sys.stdout.flush()
                 _seen.add(text)
                 _content_emitted = True
@@ -2821,6 +2823,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     _rbuf = ""
 
                 _buf += chunk
+                if config.STREAM_TOKEN_DELAY_MS > 0:
+                    time.sleep(config.STREAM_TOKEN_DELAY_MS / 1000.0)
 
                 # ── Process complete lines ──
                 while '\n' in _buf:
@@ -2893,47 +2897,12 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                         _emit(text)
 
                     else:
-                        # CONTENT state — normal text
+                        # CONTENT state — normal text (line-buffered, no partial display)
                         if not _content_started:
                             sys.stdout.write("\n")
                             sys.stdout.flush()
                             _content_started = True
-                        if _line_was_partial:
-                            # Overwrite the truncated partial with the full completed line
-                            text = _dedup_line(text)
-                            if not _is_dup(text):
-                                sys.stdout.write(f"\r\033[2K  {text}\n")
-                                sys.stdout.flush()
-                                _seen.add(text)
-                            else:
-                                sys.stdout.write(f"\r\033[2K\n")
-                                sys.stdout.flush()
-                        else:
-                            _emit(text)
-
-                # ── Partial line display (typing effect) ──
-                if _state == _CONTENT and not _in_think and _buf:
-                    # Correctly strip reasoning from partial buffer for display
-                    p = ""
-                    _tmp_in_think = _in_think
-                    for _p in re.split(r'(</?think>)', _buf):
-                        if _p == "<think>": _tmp_in_think = True
-                        elif _p == "</think>": _tmp_in_think = False
-                        elif not _tmp_in_think: p += _p
-                    p = p.rstrip()
-                    # If Action: appears mid-line (no newline before it), show only preceding text
-                    _ai_mid = p.lower().find('action:')
-                    if _ai_mid > 0:
-                        p = p[:_ai_mid].rstrip()
-                        if p != _last_partial:  # skip if content unchanged
-                            if not _content_started:
-                                sys.stdout.write("\n")
-                                sys.stdout.flush()
-                                _content_started = True
-                            sys.stdout.write(f"\r\033[2K  {p}")
-                            sys.stdout.flush()
-                            _last_partial = p
-                            _content_emitted = True
+                        _emit(text)
 
         except Exception as e:
             if not _thinking_stopped:
@@ -3710,6 +3679,9 @@ def chat_loop():
                     user_input = input(Color.user("> ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
                 break
+
+            if not user_input.strip():
+                continue
 
             # Handle slash commands
             if user_input.startswith('/'):

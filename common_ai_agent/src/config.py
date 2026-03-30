@@ -87,6 +87,9 @@ REASONING_IN_CONTEXT = os.getenv("REASONING_IN_CONTEXT", "false").lower() in ("t
 # Display LLM reasoning tokens in terminal (dim text before content)
 REASONING_DISPLAY = os.getenv("REASONING_DISPLAY", "true").lower() in ("true", "1", "yes")
 
+# Streaming token delay (milliseconds). 0 = disabled. Use for debugging display issues.
+STREAM_TOKEN_DELAY_MS = float(os.getenv("STREAM_TOKEN_DELAY_MS", "0"))
+
 # RAG Debug mode - show detailed RAG search/indexing info
 DEBUG_RAG = os.getenv("DEBUG_RAG", "false").lower() in ("true", "1", "yes")
 

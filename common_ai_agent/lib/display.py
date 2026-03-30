@@ -140,6 +140,7 @@ class Spinner:
         self._thread = None
         self._start_time = 0.0
         self._frame_idx = 0
+        self._last_len = 0  # rendered line length for portable clearing
 
     def _format_elapsed(self, elapsed: float) -> str:
         if elapsed < 60:
@@ -157,13 +158,17 @@ class Spinner:
     def _render(self):
         """Render the spinner on the current line (no newline)."""
         line = self._render_line()
-        self.stream.write(f"\r\033[2K{line}")
+        # Portable: overwrite previous content with spaces then write new line
+        pad = max(0, self._last_len - len(line))
+        self.stream.write(f"\r{line}{' ' * pad}")
         self.stream.flush()
+        self._last_len = len(line)
 
     def _clear_line(self):
-        """Clear the spinner line."""
-        self.stream.write("\r\033[2K")
+        """Clear the spinner line portably (no \\033[2K)."""
+        self.stream.write(f"\r{' ' * (self._last_len + 4)}\r")
         self.stream.flush()
+        self._last_len = 0
 
     def _spin(self):
         while not self._stop_event.is_set():
