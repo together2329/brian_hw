@@ -1821,8 +1821,12 @@ def compress_history(messages, todo_tracker=None, force=False, instruction=None,
             print(Color.info(f"[System] History too short to compress ({len(other_msgs)} <= {keep_recent} recent)."))
             return messages
 
-        recent_msgs = other_msgs[-keep_recent:]
-        old_msgs = other_msgs[:-keep_recent]
+        if keep_recent == 0:
+            recent_msgs = []
+            old_msgs = other_msgs
+        else:
+            recent_msgs = other_msgs[-keep_recent:]
+            old_msgs = other_msgs[:-keep_recent]
 
         if not old_msgs:
             return messages
@@ -2951,14 +2955,14 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             print(Color.warning("\n  ⎋ Aborted by ESC. Returning to input prompt."))
             break
 
-        # LLM returned nothing (timeout / network error) — retry once then stop
+        # LLM returned nothing (timeout / network error) — retry then stop
         if not collected_content.strip():
-            if _llm_retry < 1:
+            if _llm_retry < config.LLM_RETRY_COUNT:
                 _llm_retry += 1
-                print(Color.warning(f"\n  LLM empty response, retrying ({_llm_retry}/1)..."))
+                print(Color.warning(f"\n  LLM empty response, retrying ({_llm_retry}/{config.LLM_RETRY_COUNT})..."))
                 continue
             _llm_retry = 0
-            print(Color.error("\n  LLM failed after retry. Returning to input."))
+            print(Color.error(f"\n  LLM failed after {config.LLM_RETRY_COUNT} retry. Returning to input."))
             break
         _llm_retry = 0
 

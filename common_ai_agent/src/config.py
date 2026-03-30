@@ -209,6 +209,9 @@ COMPRESSION_CHUNK_SIZE = int(os.getenv("COMPRESSION_CHUNK_SIZE", "10"))
 # Recommended: 4-15 messages
 COMPRESSION_KEEP_RECENT = int(os.getenv("COMPRESSION_KEEP_RECENT", "4"))
 
+# Number of LLM retry attempts on empty/failed response (0 = no retry)
+LLM_RETRY_COUNT = int(os.getenv("LLM_RETRY_COUNT", "1"))
+
 # Enable Smart Compression (selective preservation based on importance)
 # NOTE: Default changed to "false" - using Traditional Compression for simplicity
 # When enabled, preserves critical messages (user preferences, error solutions)
