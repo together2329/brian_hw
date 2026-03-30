@@ -2978,7 +2978,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             else:
                 token_est = len(collected_content) // 4
                 token_str = f"~{_fk(token_est)}"
-            print(f"  {Color.DIM}✽ {elapsed_str} · {token_str} tokens{Color.RESET}")
+            print(f"  {Color.DIM}✽ {token_str} tokens{Color.RESET}")
 
         # Ensure newline after response before debug info
         print()

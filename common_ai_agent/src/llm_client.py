@@ -463,9 +463,8 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         return
     finally:
         if _spinner:
-            elapsed = _spinner.elapsed
             _spinner.stop()
-            sys.stderr.write(f"  \033[36m✽\033[0m \033[2mThinking... (Done {elapsed:.1f}s)\033[0m\n")
+            sys.stderr.write(f"  \033[36m✽\033[0m \033[2mThinking...\033[0m\n")
             sys.stderr.flush()
 
     msg = result["choices"][0]["message"]
@@ -1066,9 +1065,8 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
                 result = json.loads(response.read().decode('utf-8'))
         finally:
             if _spinner:
-                elapsed = _spinner.elapsed
                 _spinner.stop()
-                sys.stderr.write(f"  \033[36m✽\033[0m \033[2m{spinner_label}... (Done {elapsed:.1f}s)\033[0m\n")
+                sys.stderr.write(f"  \033[36m✽\033[0m \033[2m{spinner_label}...\033[0m\n")
                 sys.stderr.flush()
 
         content = result["choices"][0]["message"]["content"]
