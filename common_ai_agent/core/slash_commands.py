@@ -472,7 +472,10 @@ class SlashCommandRegistry:
 
     def _cmd_model(self, args: str) -> str:
         """Switch model. /model 1 (primary), /model 2 (secondary), /model <name>"""
-        import src.config as _config
+        import sys
+        _config = sys.modules.get('config') or sys.modules.get('src.config')
+        if _config is None:
+            import src.config as _config
         name = args.strip()
         if not name:
             marker1 = " ◀ active" if _config.MODEL_NAME == _config.PRIMARY_MODEL else ""
