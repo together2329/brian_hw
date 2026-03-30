@@ -476,15 +476,26 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
 
     # Yield reasoning first (if present)
     reasoning = msg.get("reasoning_content") or msg.get("reasoning") or ""
-    if reasoning:
-        for line in reasoning.splitlines(keepends=True):
-            yield ("reasoning", line)
 
     # Yield content line-by-line
     content = msg.get("content") or ""
     # Sanitize provider metadata tokens
     content = re.sub(r'<\|final<\|[^>]*\|>', '', content)
     content = re.sub(r'<\|[^|<>]+\|>', '', content)
+
+    # Debug output (mirrors streaming debug labels so DEBUG_MODE: continue works correctly)
+    if config.DEBUG_MODE:
+        if reasoning:
+            sys.stdout.write(f"\n\033[36m[reasoning]\033[0m {reasoning}\n")
+            sys.stdout.flush()
+        if content:
+            sys.stdout.write(f"\n\033[32m[content]\033[0m {content}\n")
+            sys.stdout.flush()
+
+    if reasoning:
+        for line in reasoning.splitlines(keepends=True):
+            yield ("reasoning", line)
+
     if content:
         for line in content.splitlines(keepends=True):
             yield line
