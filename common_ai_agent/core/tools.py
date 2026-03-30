@@ -2330,13 +2330,17 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             todo_tracker.mark_completed(idx)
             todo_tracker.save()
             review_steps = (
-                f"✅ Task {index} marked as completed — CRITICAL REVIEW REQUIRED.\n"
-                f"Do NOT approve without verifying:\n"
-                f"  1. Read the output or run the relevant test/command\n"
-                f"  2. Confirm it matches the task goal: \"{item.content}\"\n"
-                f"  3. Check for edge cases or side effects\n"
-                f"→ Passed → todo_update(index={index}, status='approved', reason='<what you verified>')\n"
-                f"→ Failed → todo_update(index={index}, status='rejected', reason='<specific issue>')"
+                f"Task {index} marked completed. Now perform a CRITICAL, ADVERSARIAL review.\n"
+                f"You are a skeptical reviewer — your job is to find problems, not to approve.\n\n"
+                f"MANDATORY checks before approving:\n"
+                f"  1. Actually READ the changed files / run the command / check the output\n"
+                f"  2. Does the result EXACTLY match the goal: \"{item.content}\"?\n"
+                f"  3. Are there regressions, side effects, or edge cases broken?\n"
+                f"  4. Is there anything incomplete, missing, or just partially done?\n"
+                f"  5. Would a strict senior engineer be satisfied — or would they send it back?\n\n"
+                f"DEFAULT to REJECT if there is ANY doubt. Approval requires concrete evidence.\n"
+                f"→ All checks pass → todo_update(index={index}, status='approved', reason='<specific evidence: what you read/ran and what you confirmed>')\n"
+                f"→ Any issue found → todo_update(index={index}, status='rejected', reason='<exact problem and what needs to be fixed>')"
             )
             return review_steps
         elif status == "rejected":

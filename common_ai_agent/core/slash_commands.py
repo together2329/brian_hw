@@ -471,11 +471,21 @@ class SlashCommandRegistry:
         return "CLEAR_HISTORY"  # Special signal for main loop
 
     def _cmd_model(self, args: str) -> str:
-        """Switch primary model. /model <name> to change, /model to show current."""
+        """Switch model. /model 1 (primary), /model 2 (secondary), /model <name>"""
         import src.config as _config
         name = args.strip()
         if not name:
-            return f"Current model: {_config.MODEL_NAME}"
+            marker1 = " ◀ active" if _config.MODEL_NAME == _config.PRIMARY_MODEL else ""
+            marker2 = " ◀ active" if _config.MODEL_NAME == _config.SECONDARY_MODEL else ""
+            return (
+                f"Current model: {_config.MODEL_NAME}\n"
+                f"  1: {_config.PRIMARY_MODEL}{marker1}\n"
+                f"  2: {_config.SECONDARY_MODEL}{marker2}"
+            )
+        if name == "1":
+            return "MODEL_SWITCH:1"
+        if name == "2":
+            return "MODEL_SWITCH:2"
         return f"MODEL_SWITCH:{name}"
 
     def _cmd_window(self, args: str) -> str:

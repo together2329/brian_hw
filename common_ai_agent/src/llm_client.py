@@ -566,7 +566,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     # Retry logic for transient errors
     max_retries = 3
     initial_delay = 2  # seconds
-    
+    _fallback_used = False  # True after switching to SECONDARY_MODEL
+
     for retry_count in range(max_retries):
         # Local state for label tracking (resets each retry)
         _reasoning_started = False
@@ -697,10 +698,19 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 
         except urllib.error.HTTPError as e:
             error_body = e.read().decode('utf-8')
-            
-            # Check if error is retryable
+
+            # Detect quota/token exhaustion → fall back to SECONDARY_MODEL
+            _body_lower = error_body.lower()
+            _is_quota_error = (e.code == 401)
+            if _is_quota_error and not _fallback_used and config.SECONDARY_MODEL and config.SECONDARY_MODEL != resolved_model:
+                _fallback_used = True
+                resolved_model = config.SECONDARY_MODEL
+                print(Color.warning(f"\n[Fallback] Quota/token limit hit ({e.code}). Switching to secondary model: {resolved_model}\n"))
+                continue
+
+            # Check if error is retryable (rate limit / server error)
             is_retryable = e.code == 429 or (500 <= e.code < 600)
-            
+
             if is_retryable and retry_count < max_retries - 1:
                 # Calculate exponential backoff delay
                 delay = initial_delay * (2 ** retry_count)

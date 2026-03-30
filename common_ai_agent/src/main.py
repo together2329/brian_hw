@@ -4047,6 +4047,17 @@ def chat_loop():
                             print(Color.error(f"\n❌ Failed to delete snapshot: {e}\n"))
                         continue
 
+                    elif result.startswith("MODEL_SWITCH:"):
+                        target = result.split(":", 1)[1]
+                        if target == "1":
+                            config.MODEL_NAME = config.PRIMARY_MODEL
+                        elif target == "2":
+                            config.MODEL_NAME = config.SECONDARY_MODEL
+                        else:
+                            config.MODEL_NAME = target
+                        print(Color.success(f"\n✅ Model switched to: {config.MODEL_NAME}\n"))
+                        continue
+
                     else:
                         # Regular command output
                         if result:
