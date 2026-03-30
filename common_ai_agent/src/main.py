@@ -2538,6 +2538,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
     from lib.display import EscapeWatcher
     EscapeWatcher.start()
 
+    _llm_retry = 0  # retry counter for empty LLM responses
+
     while True:
         # Check ESC key abort
         if EscapeWatcher.check():
@@ -2949,10 +2951,16 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             print(Color.warning("\n  ⎋ Aborted by ESC. Returning to input prompt."))
             break
 
-        # LLM returned nothing (timeout / network error) — stop react loop
+        # LLM returned nothing (timeout / network error) — retry once then stop
         if not collected_content.strip():
-            print(Color.error("\n  LLM returned empty response. Stopping."))
+            if _llm_retry < 1:
+                _llm_retry += 1
+                print(Color.warning(f"\n  LLM empty response, retrying ({_llm_retry}/1)..."))
+                continue
+            _llm_retry = 0
+            print(Color.error("\n  LLM failed after retry. Returning to input."))
             break
+        _llm_retry = 0
 
         # Strip any leaked native tool call tokens from content
         collected_content = _strip_native_tool_tokens(collected_content)
