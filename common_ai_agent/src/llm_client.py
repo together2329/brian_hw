@@ -400,6 +400,99 @@ def call_llm_for_agent(
     except Exception as e:
         return f"Error calling LLM: {e}"
 
+def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=False):
+    """
+    Non-streaming LLM call. Fetches complete response then yields chunks.
+    Yields ("reasoning", text) tuples for reasoning, plain strings for content.
+    """
+    global last_input_tokens, last_output_tokens
+
+    if config.RATE_LIMIT_DELAY > 0 and not skip_rate_limit:
+        time.sleep(config.RATE_LIMIT_DELAY)
+
+    # Apply prompt caching if enabled
+    processed_messages = messages
+    if config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
+        processed_messages = copy.deepcopy(messages)
+        processed_messages = apply_cache_breakpoints(processed_messages)
+
+    resolved_model = model or config.MODEL_NAME
+    url = f"{config.BASE_URL}/chat/completions"
+    api_key = config.API_KEY
+
+    if resolved_model and resolved_model.startswith("openrouter/"):
+        resolved_model = resolved_model[len("openrouter/"):]
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        api_key = os.environ.get("OPENROUTER_API_KEY", config.API_KEY)
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+        "User-Agent": "BrianCoder/1.0"
+    }
+
+    data = {
+        "model": resolved_model,
+        "messages": processed_messages,
+        "stream": False,
+    }
+    if stop:
+        data["stop"] = stop
+    if config.MAX_OUTPUT_TOKENS > 0:
+        data["max_tokens"] = config.MAX_OUTPUT_TOKENS
+
+    # Show spinner while waiting
+    _spinner = None
+    try:
+        from lib.display import Spinner as _Spinner
+        _spinner = _Spinner("Thinking")
+        _spinner.start()
+    except Exception:
+        _spinner = None
+
+    try:
+        request = urllib.request.Request(
+            url, data=json.dumps(data).encode('utf-8'), headers=headers
+        )
+        with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
+            result = json.loads(response.read().decode('utf-8'))
+    except Exception as e:
+        if _spinner:
+            _spinner.stop()
+        print(Color.error(f"\n  LLM error: {e}"))
+        return
+    finally:
+        if _spinner:
+            elapsed = _spinner.elapsed
+            _spinner.stop()
+            sys.stderr.write(f"  \033[36m✽\033[0m \033[2mThinking... (Done {elapsed:.1f}s)\033[0m\n")
+            sys.stderr.flush()
+
+    msg = result["choices"][0]["message"]
+    usage = result.get("usage", {})
+    if usage:
+        last_input_tokens = usage.get("prompt_tokens", usage.get("input_tokens", 0))
+        last_output_tokens = usage.get("completion_tokens", usage.get("output_tokens", 0))
+
+    # Yield reasoning first (if present)
+    reasoning = msg.get("reasoning_content") or msg.get("reasoning") or ""
+    if reasoning:
+        for line in reasoning.splitlines(keepends=True):
+            yield ("reasoning", line)
+
+    # Yield content line-by-line
+    content = msg.get("content") or ""
+    # Sanitize provider metadata tokens
+    content = re.sub(r'<\|final<\|[^>]*\|>', '', content)
+    content = re.sub(r'<\|[^|<>]+\|>', '', content)
+    if content:
+        for line in content.splitlines(keepends=True):
+            yield line
+        # Ensure final newline
+        if not content.endswith('\n'):
+            yield '\n'
+
+
 def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=False, caller_tag=None):
     """
     Sends a chat completion request to the LLM using urllib.
@@ -415,6 +508,11 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     global last_input_tokens, last_output_tokens
     global last_cache_creation_tokens, last_cache_read_tokens
     global total_cache_created, total_cache_read
+
+    # Non-streaming mode: fetch full response then yield line-by-line
+    if not config.ENABLE_STREAMING:
+        yield from _chat_completion_nonstream(messages, stop=stop, model=model, skip_rate_limit=skip_rate_limit)
+        return
 
     # Rate limiting: Configurable delay (skip for sub-agents)
     if config.RATE_LIMIT_DELAY > 0 and not skip_rate_limit:

@@ -87,6 +87,10 @@ REASONING_IN_CONTEXT = os.getenv("REASONING_IN_CONTEXT", "false").lower() in ("t
 # Display LLM reasoning tokens in terminal (dim text before content)
 REASONING_DISPLAY = os.getenv("REASONING_DISPLAY", "true").lower() in ("true", "1", "yes")
 
+# Enable streaming mode (token-by-token). false = wait for full response then display.
+# Non-streaming cleanly separates reasoning/content but shows nothing until complete.
+ENABLE_STREAMING = os.getenv("ENABLE_STREAMING", "true").lower() in ("true", "1", "yes")
+
 # Streaming token delay (milliseconds). 0 = disabled. Use for debugging display issues.
 STREAM_TOKEN_DELAY_MS = float(os.getenv("STREAM_TOKEN_DELAY_MS", "0"))
 

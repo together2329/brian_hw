@@ -2695,8 +2695,6 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         collected_content = ""
         _buf = ""           # incomplete line buffer
         _rbuf = ""          # reasoning display buffer (line-accumulation)
-        _reasoning_bleeding = False  # reasoning tail bleeding into content field
-        _bleed_buf = ""              # accumulated bleeding content
         _content_started = False  # whether first content line has been emitted
         _state = _NOISE
         _aborted = False
@@ -2822,31 +2820,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     if config.REASONING_DISPLAY:
                         sys.stdout.write(f"  {Color.DIM}{_rbuf}{Color.RESET}\n")
                         sys.stdout.flush()
-                    # If reasoning ended mid-sentence, content may still be reasoning tail
-                    # '>' covers </think> tag endings — those are clean boundaries
-                    if not _rbuf.rstrip().endswith(('.', '!', '?', '>', '\n')):
-                        _reasoning_bleeding = True
                     _rbuf = ""
-
-                # Handle reasoning bleed: content chunks that are still part of thinking
-                if _reasoning_bleeding:
-                    _bleed_buf += chunk
-                    m = re.search(r'[.!?]\s*[A-Z]|[.!?]\n|\n[A-Z]', _bleed_buf)
-                    # Fallback: give up after 300 chars to avoid eating real content
-                    if m or len(_bleed_buf) > 300:
-                        split_pos = m.start() + 1 if m else len(_bleed_buf)
-                        tail = _bleed_buf[:split_pos]
-                        rest = _bleed_buf[split_pos:]
-                        if tail.strip() and config.REASONING_DISPLAY:
-                            sys.stdout.write(f"  {Color.DIM}{tail.strip()}{Color.RESET}\n")
-                            sys.stdout.flush()
-                        _reasoning_bleeding = False
-                        _bleed_buf = ""
-                        chunk = rest
-                        if not chunk.strip():
-                            continue
-                    else:
-                        continue  # still bleeding, keep accumulating
 
                 _buf += chunk
                 if config.STREAM_TOKEN_DELAY_MS > 0:
@@ -2943,14 +2917,6 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 sys.stdout.write(f"  {Color.DIM}{_rbuf}{Color.RESET}\n")
                 sys.stdout.flush()
             _rbuf = ""
-
-        # Flush any remaining bleed buffer
-        if _bleed_buf:
-            if config.REASONING_DISPLAY:
-                sys.stdout.write(f"  {Color.DIM}{_bleed_buf.strip()}{Color.RESET}\n")
-                sys.stdout.flush()
-            _bleed_buf = ""
-            _reasoning_bleeding = False
 
         # Clean up partial line display
         if not config.DEBUG_MODE and _state != _ACTION:
