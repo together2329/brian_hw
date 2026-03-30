@@ -1961,7 +1961,10 @@ def _compress_single(messages, instruction=None):
     summary_content = ""
     try:
         for chunk in chat_completion_stream(summary_request):
-            summary_content += chunk
+            if isinstance(chunk, tuple) and chunk[0] == "reasoning":
+                pass
+            else:
+                summary_content += chunk
         print(Color.success(" Done."))
 
         return {
@@ -2004,7 +2007,10 @@ def _compress_chunked(messages, instruction=None):
         try:
             summary_content = ""
             for chunk_data in chat_completion_stream(summary_request):
-                summary_content += chunk_data
+                if isinstance(chunk_data, tuple) and chunk_data[0] == "reasoning":
+                    pass
+                else:
+                    summary_content += chunk_data
 
             compressed.append({
                 "role": "system",
@@ -2688,6 +2694,8 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         _stream_start = time.time()
         collected_content = ""
         _buf = ""           # incomplete line buffer
+        _rbuf = ""          # reasoning display buffer (line-accumulation)
+        _content_started = False  # whether first content line has been emitted
         _state = _NOISE
         _aborted = False
         _in_think = False
@@ -2769,7 +2777,11 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     _aborted = True
                     break
 
-                collected_content += chunk
+                if isinstance(chunk, tuple) and len(chunk) == 2 and chunk[0] == "reasoning":
+                    if config.REASONING_IN_CONTEXT:
+                        collected_content += chunk[1]
+                else:
+                    collected_content += chunk
 
                 if config.DEBUG_MODE:
                     continue
@@ -2781,13 +2793,27 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                 if token_type == "reasoning":
                     if not chunk: continue
-                    # Always display reasoning inline (dim), but never add to context
-                    sys.stdout.write(f"\r\033[2K  {Color.DIM}{chunk}{Color.RESET}")
-                    sys.stdout.flush()
-                    _content_emitted = True
+                    if config.REASONING_DISPLAY:
+                        # Accumulate and display reasoning line-by-line in dim
+                        _rbuf += chunk
+                        while '\n' in _rbuf:
+                            rline, _rbuf = _rbuf.split('\n', 1)
+                            if rline.strip():
+                                sys.stdout.write(f"\r\033[2K  {Color.DIM}{rline}{Color.RESET}\n")
+                                sys.stdout.flush()
+                        if _rbuf:
+                            sys.stdout.write(f"\r\033[2K  {Color.DIM}{_rbuf[:_TERM_W]}{Color.RESET}")
+                            sys.stdout.flush()
                     if not config.REASONING_IN_CONTEXT:
                         continue
                     # REASONING_IN_CONTEXT=true: fall through so chunk is added to collected_content
+
+                # Flush remaining reasoning partial line before processing content
+                if _rbuf:
+                    if config.REASONING_DISPLAY:
+                        sys.stdout.write(f"\r\033[2K  {Color.DIM}{_rbuf}{Color.RESET}\n")
+                        sys.stdout.flush()
+                    _rbuf = ""
 
                 _buf += chunk
 
@@ -2843,15 +2869,25 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                             _seen.add(thought)
                         _state = _CONTENT
 
-                    elif _state == _NOISE or _state == _ACTION:
-                        # NOISE: only markdown headers break out
+                    elif _state == _ACTION:
                         # ACTION: suppress non-Thought/Action lines
-                        if _state == _NOISE and text.startswith('#'):
-                            _state = _CONTENT
-                            _emit(text)
+                        pass
+
+                    elif _state == _NOISE:
+                        # Any non-empty text breaks out of NOISE → display
+                        _state = _CONTENT
+                        if not _content_started:
+                            sys.stdout.write("\n")
+                            sys.stdout.flush()
+                            _content_started = True
+                        _emit(text)
 
                     else:
                         # CONTENT state — normal text
+                        if not _content_started:
+                            sys.stdout.write("\n")
+                            sys.stdout.flush()
+                            _content_started = True
                         if _line_was_partial:
                             # Overwrite the truncated partial with the full completed line
                             text = _dedup_line(text)
@@ -2880,6 +2916,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     if _ai_mid > 0:
                         p = p[:_ai_mid].rstrip()
                         if p != _last_partial:  # skip if content unchanged
+                            if not _content_started:
+                                sys.stdout.write("\n")
+                                sys.stdout.flush()
+                                _content_started = True
                             sys.stdout.write(f"\r\033[2K  {p}")
                             sys.stdout.flush()
                             _last_partial = p

@@ -65,6 +65,9 @@ MAX_ITERATIONS = int(os.getenv("MAX_ITERATIONS", "100"))
 # Set to 0 to disable timeout (not recommended)
 API_TIMEOUT = int(os.getenv("API_TIMEOUT", "600"))
 
+# Maximum output tokens per LLM response (0 = no limit)
+MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "16000"))
+
 # Save conversation history to file
 SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")
 HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")
@@ -79,6 +82,9 @@ DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() in ("true", "1", "yes")
 
 # Include LLM reasoning in message context (stored in history for next turn)
 REASONING_IN_CONTEXT = os.getenv("REASONING_IN_CONTEXT", "false").lower() in ("true", "1", "yes")
+
+# Display LLM reasoning tokens in terminal (dim text before content)
+REASONING_DISPLAY = os.getenv("REASONING_DISPLAY", "true").lower() in ("true", "1", "yes")
 
 # RAG Debug mode - show detailed RAG search/indexing info
 DEBUG_RAG = os.getenv("DEBUG_RAG", "false").lower() in ("true", "1", "yes")

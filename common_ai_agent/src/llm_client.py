@@ -473,6 +473,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     if stop:
         data["stop"] = stop
 
+    if config.MAX_OUTPUT_TOKENS > 0:
+        data["max_tokens"] = config.MAX_OUTPUT_TOKENS
+
     # Debug: Log request details
     if config.DEBUG_MODE:
         tag = f" ({caller_tag})" if caller_tag else ""
@@ -619,8 +622,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                         sys.stdout.write(content)
                                         sys.stdout.flush()
 
-                                if reasoning or content:
-                                    yield reasoning or content
+                                if reasoning:
+                                    yield ("reasoning", reasoning)
+                                if content:
+                                    yield content
 
                                 # Handle native tool_calls
                                 tool_calls = delta.get("tool_calls", [])
