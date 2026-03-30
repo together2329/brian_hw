@@ -2949,6 +2949,11 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
             print(Color.warning("\n  ⎋ Aborted by ESC. Returning to input prompt."))
             break
 
+        # LLM returned nothing (timeout / network error) — stop react loop
+        if not collected_content.strip():
+            print(Color.error("\n  LLM returned empty response. Stopping."))
+            break
+
         # Strip any leaked native tool call tokens from content
         collected_content = _strip_native_tool_tokens(collected_content)
 
