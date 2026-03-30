@@ -153,7 +153,7 @@ class Spinner:
         elapsed = time.time() - self._start_time
         frame = self.FRAMES[self._frame_idx % len(self.FRAMES)]
         elapsed_str = self._format_elapsed(elapsed)
-        return f"  {Color.CYAN}{frame}{Color.RESET} {Color.DIM}{self.label}… ({elapsed_str}){Color.RESET}"
+        return f"  {Color.CYAN}{frame}{Color.RESET} {Color.DIM}{self.label}…{Color.RESET}"
 
     def _render(self):
         """Render the spinner on the current line (no newline)."""
