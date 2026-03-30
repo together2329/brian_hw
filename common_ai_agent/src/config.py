@@ -45,7 +45,7 @@ load_env_file()
 BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
 API_KEY = os.getenv("LLM_API_KEY", "your-openai-api-key-here")
 MODEL_NAME = os.getenv("LLM_MODEL_NAME", "gpt-4o-mini")
-PRIMARY_MODEL = MODEL_NAME  # Original primary model (used by /model 1)
+PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", MODEL_NAME)
 
 # ============================================================
 # OpenRouter Configuration (주석 처리됨)

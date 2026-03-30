@@ -2728,6 +2728,12 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
         _content_emitted = False  # tracks whether any response text was actually printed
 
+        def _clear_partial():
+            """Erase the current partial line portably (no \\033[2K required)."""
+            if _last_partial:
+                sys.stdout.write(f"\r{' ' * (len(_last_partial) + 4)}\r")
+                sys.stdout.flush()
+
         def _emit(text):
             """Print a completed line with dedup."""
             nonlocal _content_emitted
@@ -2795,15 +2801,14 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     if not chunk: continue
                     if config.REASONING_DISPLAY:
                         # Accumulate and display reasoning line-by-line in dim
+                        # Only emit complete lines (ending with \n) — no partial display
+                        # to avoid \r\033[2K residue on Linux terminals
                         _rbuf += chunk
                         while '\n' in _rbuf:
                             rline, _rbuf = _rbuf.split('\n', 1)
                             if rline.strip():
-                                sys.stdout.write(f"\r\033[2K  {Color.DIM}{rline}{Color.RESET}\n")
+                                sys.stdout.write(f"  {Color.DIM}{rline}{Color.RESET}\n")
                                 sys.stdout.flush()
-                        if _rbuf:
-                            sys.stdout.write(f"\r\033[2K  {Color.DIM}{_rbuf[:_TERM_W]}{Color.RESET}")
-                            sys.stdout.flush()
                     if not config.REASONING_IN_CONTEXT:
                         continue
                     # REASONING_IN_CONTEXT=true: fall through so chunk is added to collected_content
@@ -2811,7 +2816,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 # Flush remaining reasoning partial line before processing content
                 if _rbuf:
                     if config.REASONING_DISPLAY:
-                        sys.stdout.write(f"\r\033[2K  {Color.DIM}{_rbuf}{Color.RESET}\n")
+                        sys.stdout.write(f"  {Color.DIM}{_rbuf}{Color.RESET}\n")
                         sys.stdout.flush()
                     _rbuf = ""
 
@@ -2834,14 +2839,18 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
                     # Display <think> tag reasoning inline (dim), without adding to context
                     if reasoning:
-                        sys.stdout.write(f"\r\033[2K  {Color.DIM}{reasoning}{Color.RESET}\n")
+                        if _line_was_partial:
+                            _clear_partial()
+                        sys.stdout.write(f"  {Color.DIM}{reasoning}{Color.RESET}\n")
                         sys.stdout.flush()
 
                     if _in_think and not exited:
                         continue
                     if not text:
                         if _state == _CONTENT:
-                            sys.stdout.write(f"\r\033[2K\n")
+                            if _line_was_partial:
+                                _clear_partial()
+                            sys.stdout.write("\n")
                             sys.stdout.flush()
                         continue
 
@@ -2856,15 +2865,16 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     if ai >= 0 and (ti < 0 or ai < ti):
                         # → ACTION state
                         if _state != _ACTION:
-                            sys.stdout.write(f"\r\033[2K")
-                            sys.stdout.flush()
+                            _clear_partial()
                         _state = _ACTION
 
                     elif ti >= 0:
                         # Thought line
                         thought = text[ti + 8:]
                         if thought and not _is_dup(thought):
-                            sys.stdout.write(f"\r\033[2K  {Color.CYAN}Thought:{Color.RESET}{thought}\n")
+                            if _line_was_partial:
+                                _clear_partial()
+                            sys.stdout.write(f"  {Color.CYAN}Thought:{Color.RESET}{thought}\n")
                             sys.stdout.flush()
                             _seen.add(thought)
                         _state = _CONTENT
@@ -2932,6 +2942,13 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 print(Color.error(f"\n  LLM call failed: {e}"))
                 break
 
+        # Flush any remaining reasoning buffer (stream ended before content transition)
+        if _rbuf:
+            if config.REASONING_DISPLAY:
+                sys.stdout.write(f"  {Color.DIM}{_rbuf}{Color.RESET}\n")
+                sys.stdout.flush()
+            _rbuf = ""
+
         # Clean up partial line display
         if not config.DEBUG_MODE and _state != _ACTION:
             remaining = _buf.strip() if _buf else ""
@@ -2941,20 +2958,20 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 if exited and reasoning:
                     # just drop it or handle it... streaming already handled it if in real-time
                     pass
-                
+
                 # Truncate at Action: if present (stream ended without \n before Action:)
                 _ai_end = text.lower().find('action:')
                 if _ai_end == 0:
                     text = ""  # starts with Action: — suppress entirely
                 elif _ai_end > 0:
                     text = text[:_ai_end].rstrip()
-                
+
                 if text:
                     _emit(text)
                 else:
-                    sys.stdout.write(f"\r\033[2K")
+                    _clear_partial()
             else:
-                sys.stdout.write(f"\r\033[2K")
+                _clear_partial()
             sys.stdout.flush()
 
         llm_elapsed = time.time() - _stream_start
