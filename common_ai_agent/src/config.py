@@ -66,6 +66,9 @@ MAX_ITERATIONS = int(os.getenv("MAX_ITERATIONS", "100"))
 # Set to 0 to disable timeout (not recommended)
 API_TIMEOUT = int(os.getenv("API_TIMEOUT", "600"))
 
+# Timeout for non-streaming requests (full response must arrive within this time)
+NONSTREAM_API_TIMEOUT = int(os.getenv("NONSTREAM_API_TIMEOUT", "600"))
+
 # Maximum output tokens per LLM response (0 = no limit)
 MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "16000"))
 

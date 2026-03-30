@@ -454,7 +454,7 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         request = urllib.request.Request(
             url, data=json.dumps(data).encode('utf-8'), headers=headers
         )
-        with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
+        with urllib.request.urlopen(request, timeout=config.NONSTREAM_API_TIMEOUT) as response:
             result = json.loads(response.read().decode('utf-8'))
     except Exception as e:
         if _spinner:
