@@ -233,10 +233,22 @@ class SlashCommandRegistry:
                     return "✅ Todo list cleared.\n"
                 return "No active todo list to clear.\n"
 
-            # Handle /todo set <N|all> <status>  — force status change
-            parts = args.strip().split()
-            if parts and parts[0].lower() == 'set':
+            parts = args.strip().split(maxsplit=2)
+            subcmd = parts[0].lower() if parts else ''
+
+            if subcmd == 'set':
                 return self._todo_force_set(parts[1:], todo_file)
+            if subcmd == 'remove':
+                return self._todo_remove(parts[1:], todo_file)
+            if subcmd == 'add':
+                text = args.strip()[len('add'):].strip()
+                return self._todo_add(text, todo_file)
+            if subcmd == 'move':
+                return self._todo_move(parts[1:], todo_file)
+            if subcmd == 'goal':
+                # /todo goal <N> <new text>
+                rest = args.strip()[len('goal'):].strip().split(maxsplit=1)
+                return self._todo_goal(rest, todo_file)
 
             if not todo_file.exists():
                 # Check if there's a recent write failure to surface
@@ -382,6 +394,127 @@ class SlashCommandRegistry:
             else:
                 return f"❌ Invalid target: '{target}' — use a task number or 'all'\n"
 
+        except Exception as e:
+            return f"❌ Error: {e}\n"
+
+    def _todo_remove(self, parts: list, todo_file) -> str:
+        """Remove a todo item by index. /todo remove <N>"""
+        if not parts or not parts[0].isdigit():
+            return "Usage: /todo remove <N>\nExample: /todo remove 2\n"
+        if not todo_file.exists():
+            return "No active todo list.\n"
+        try:
+            from lib.todo_tracker import TodoTracker
+            tracker = TodoTracker.load(todo_file)
+            if not tracker or not tracker.todos:
+                return "No todos found.\n"
+            idx = int(parts[0]) - 1
+            if not (0 <= idx < len(tracker.todos)):
+                return f"❌ Task {parts[0]} not found (total: {len(tracker.todos)})\n"
+            removed = tracker.todos.pop(idx)
+            # Fix current_index
+            if tracker.current_index == idx:
+                tracker.current_index = -1
+                # Find next in_progress or pending
+                for i, t in enumerate(tracker.todos):
+                    if t.status == 'in_progress':
+                        tracker.current_index = i
+                        break
+            elif tracker.current_index > idx:
+                tracker.current_index -= 1
+            tracker.save()
+            return f"🗑️  Removed task {int(parts[0])}: {removed.content}\n\n" + tracker.format_progress()
+        except Exception as e:
+            return f"❌ Error: {e}\n"
+
+    def _todo_add(self, text: str, todo_file) -> str:
+        """Add a new todo item. /todo add <text>"""
+        if not text.strip():
+            return "Usage: /todo add <task description>\nExample: /todo add Write unit tests\n"
+        try:
+            from lib.todo_tracker import TodoTracker, TodoItem
+            import time as _time
+            if todo_file.exists():
+                tracker = TodoTracker.load(todo_file)
+            else:
+                tracker = TodoTracker(persist_path=todo_file)
+            if tracker is None:
+                tracker = TodoTracker(persist_path=todo_file)
+            tracker.todos.append(TodoItem(
+                content=text.strip(),
+                active_form=text.strip(),
+                status="pending",
+                priority="medium",
+            ))
+            tracker.save()
+            n = len(tracker.todos)
+            return f"➕ Added task {n}: {text.strip()}\n\n" + tracker.format_progress()
+        except Exception as e:
+            return f"❌ Error: {e}\n"
+
+    def _todo_move(self, parts: list, todo_file) -> str:
+        """Move todo from position N to position M. /todo move <N> <M>"""
+        if len(parts) < 2 or not parts[0].isdigit() or not parts[1].isdigit():
+            return (
+                "Usage: /todo move <N> <M>\n"
+                "Example: /todo move 3 1  (move task 3 to position 1)\n"
+            )
+        if not todo_file.exists():
+            return "No active todo list.\n"
+        try:
+            from lib.todo_tracker import TodoTracker
+            tracker = TodoTracker.load(todo_file)
+            if not tracker or not tracker.todos:
+                return "No todos found.\n"
+            src = int(parts[0]) - 1
+            dst = int(parts[1]) - 1
+            n = len(tracker.todos)
+            if not (0 <= src < n):
+                return f"❌ Task {parts[0]} not found (total: {n})\n"
+            dst = max(0, min(dst, n - 1))
+            item = tracker.todos.pop(src)
+            tracker.todos.insert(dst, item)
+            # Fix current_index after reorder
+            tracker.current_index = -1
+            for i, t in enumerate(tracker.todos):
+                if t.status == 'in_progress':
+                    tracker.current_index = i
+                    break
+            tracker.save()
+            return (
+                f"↕️  Moved task '{item.content}': position {int(parts[0])} → {dst + 1}\n\n"
+                + tracker.format_progress()
+            )
+        except Exception as e:
+            return f"❌ Error: {e}\n"
+
+    def _todo_goal(self, parts: list, todo_file) -> str:
+        """Change the content/goal of a todo item. /todo goal <N> <new text>"""
+        if len(parts) < 2 or not parts[0].isdigit():
+            return (
+                "Usage: /todo goal <N> <new description>\n"
+                "Example: /todo goal 2 Refactor auth module using JWT\n"
+            )
+        if not todo_file.exists():
+            return "No active todo list.\n"
+        try:
+            from lib.todo_tracker import TodoTracker
+            tracker = TodoTracker.load(todo_file)
+            if not tracker or not tracker.todos:
+                return "No todos found.\n"
+            idx = int(parts[0]) - 1
+            if not (0 <= idx < len(tracker.todos)):
+                return f"❌ Task {parts[0]} not found (total: {len(tracker.todos)})\n"
+            old_content = tracker.todos[idx].content
+            tracker.todos[idx].content = parts[1].strip()
+            tracker.todos[idx].active_form = parts[1].strip()
+            tracker.save()
+            return (
+                f"✏️  Task {int(parts[0])} goal updated:\n"
+                f"   Before: {old_content}\n"
+                f"   After:  {parts[1].strip()}\n\n"
+                + tracker.format_progress()
+            )
         except Exception as e:
             return f"❌ Error: {e}\n"
 

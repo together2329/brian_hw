@@ -104,6 +104,10 @@ MAN_PAGES: dict[str, str] = {
  사용법
    /todo                       현재 Todo 목록 표시
    /todo clear                 Todo 목록 전체 초기화
+   /todo add <text>            새 태스크 추가
+   /todo remove <N>            태스크 N 삭제
+   /todo move <N> <M>          태스크 N을 위치 M으로 이동 (순서 변경)
+   /todo goal <N> <text>       태스크 N의 내용 변경
    /todo set <N> <status>      특정 태스크 상태 강제 변경
    /todo set all <status>      전체 태스크 상태 강제 변경
 
@@ -115,11 +119,12 @@ MAN_PAGES: dict[str, str] = {
    rejected      반려 ❌
 
  예시
-   /todo set 1 approved        태스크 1 강제 승인
-   /todo set 2 pending         태스크 2 대기로 리셋
-   /todo set 3 in_progress     태스크 3 진행 중으로 변경
-   /todo set all pending       전체 초기화 (재시작)
-   /todo set all approved      전체 승인 (강제 완료)
+   /todo add "JWT 인증 모듈 작성"   새 태스크 추가
+   /todo remove 3               태스크 3 삭제
+   /todo move 3 1               태스크 3을 맨 앞으로 이동
+   /todo goal 2 "auth.py 리팩토링"  태스크 2 내용 변경
+   /todo set 1 approved         태스크 1 강제 승인
+   /todo set all pending        전체 리셋 (재시작)
 
  AI 상태 흐름 (정상)
    pending → in_progress → completed → approved
