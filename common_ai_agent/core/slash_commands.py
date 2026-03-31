@@ -640,38 +640,27 @@ class SlashCommandRegistry:
             return f"❌ Error: {e}\n"
 
     def _todo_rule(self) -> str:
-        """Show current rules/ folder contents and file locations."""
+        """Show current rules/ folder contents."""
         from pathlib import Path
         import os
-        rule_dirs = [
-            (Path.home() / ".common_ai_agent" / "rules", "global"),
-            (Path(os.getcwd()) / "rules", "project"),
-        ]
+        rules_dir = Path(os.getcwd()) / "rules"
         SEP = "=" * 60
-        lines = [f"\n{SEP}", " TODO RULES  rules/*.md", SEP]
-        found_any = False
-        for d, scope in rule_dirs:
-            lines.append(f"\n[{scope}] {d}")
-            if d.is_dir():
-                files = sorted(d.glob("*.md"))
-                if files:
-                    for f in files:
-                        content = f.read_text(encoding="utf-8").strip()
-                        lines.append(f"  ├ {f.name}")
-                        for ln in content.splitlines()[:5]:
-                            lines.append(f"  │  {ln}")
-                        if len(content.splitlines()) > 5:
-                            lines.append(f"  │  ... ({len(content.splitlines())} lines total)")
-                    found_any = True
-                else:
-                    lines.append("  (파일 없음)")
+        lines = [f"\n{SEP}", f" TODO RULES  {rules_dir}", SEP]
+        if rules_dir.is_dir():
+            files = sorted(rules_dir.glob("*.md"))
+            if files:
+                for f in files:
+                    content = f.read_text(encoding="utf-8").strip()
+                    lines.append(f"\n  ├ {f.name}")
+                    for ln in content.splitlines()[:6]:
+                        lines.append(f"  │  {ln}")
+                    if len(content.splitlines()) > 6:
+                        lines.append(f"  │  ... ({len(content.splitlines())} lines total)")
             else:
-                lines.append("  (폴더 없음)")
-        if not found_any:
-            lines.append(f"\n규칙 파일이 없습니다.")
-            lines.append( "아래 경로에 rules/ 폴더를 만들고 .md 파일을 추가하세요:")
-            for d, scope in rule_dirs:
-                lines.append(f"  {d}/")
+                lines.append("\n  (파일 없음 — rules/*.md 파일을 추가하세요)")
+        else:
+            lines.append(f"\n  rules/ 폴더 없음")
+            lines.append(f"  mkdir rules && vi rules/todo.md 로 생성하세요")
         lines.append(f"\n{SEP}")
         lines.append("💡 태스크 실행 중 매 continuation prompt에 자동 첨부됩니다.")
         lines.append(f"{SEP}")
@@ -1014,34 +1003,49 @@ class SlashCommandRegistry:
             output.append("💡 /help -v 전체 커맨드  |  TAB 자동완성  |  /man guide 시작 가이드")
             output.append(SEP)
         else:
-            # --- Verbose view: grouped ---
+            # --- Verbose view: grouped with detail ---
             output.append("\n" + SEP)
             output.append(" Common AI Agent — Full Command Reference")
             output.append(SEP)
 
             groups = [
-                ("Context & History", ["context", "clear", "compact", "compression", "window", "snapshot"]),
-                ("Agent & Mode",      ["plan", "mode", "step"]),
-                ("Tools & Config",    ["model", "tools", "skills", "config", "status"]),
-                ("Task Management",   ["todo", "git"]),
-                ("Help",              ["help", "list", "man"]),
+                ("컨텍스트 & 히스토리", [
+                    ("context",     "/context [-v|debug]  컨텍스트 토큰 사용량 시각화. -v: 전체 대화 내용 표시"),
+                    ("clear",       "/clear [N]           대화 기록 완전 초기화. N 지정 시 최근 N쌍 유지"),
+                    ("compact",     "/compact [--keep N]  AI로 요약 압축. 맥락 유지하며 컨텍스트 절약"),
+                    ("compression", "/compression [N]     N 메시지 초과 시 자동 압축. 0=비활성화"),
+                    ("window",      "/window [N]          LLM에 최근 N쌍만 전송. 0=비활성화"),
+                    ("snapshot",    "/snapshot save|load|list|delete  대화 스냅샷 저장/복원"),
+                ]),
+                ("에이전트 & 모드", [
+                    ("plan",  "/plan [task]   계획 수립 모드 진입. 탐색→계획→승인→실행"),
+                    ("mode",  "/mode normal   Plan Mode 종료, 일반 모드 복귀"),
+                    ("step",  "/step          태스크 단위 일시정지 토글 (각 액션 후 멈춤)"),
+                ]),
+                ("도구 & 설정", [
+                    ("model",  "/model [1|2|name]  모델 전환. 인자 없으면 현재 모델 표시"),
+                    ("tools",  "/tools             사용 가능한 도구 목록"),
+                    ("skills", "/skills            로드된 스킬 목록 및 활성화 상태"),
+                    ("config", "/config            현재 설정 (.config) 주요 값 표시"),
+                    ("status", "/status            에이전트 상태: 모델, API, 기능 활성화 여부"),
+                ]),
+                ("태스크 관리", [
+                    ("todo", "/todo [subcmd]  Todo 목록 관리. /man todo 로 전체 서브커맨드 확인"),
+                    ("git",  "/git diff|clear  Git 변경사항 확인 / .git 디렉토리 삭제"),
+                ]),
+                ("도움말", [
+                    ("help", "/help [-v]      기본: 핵심 커맨드. -v: 이 전체 목록"),
+                    ("list", "/list           슬래시 커맨드 이름만 간단히 나열 (/ls)"),
+                    ("man",  "/man <topic>    상세 매뉴얼. topic: plan todo compact context skills git model clear guide"),
+                ]),
             ]
-            listed = set()
-            for group_name, names in groups:
+            for group_name, items in groups:
                 output.append(f"\n[{group_name}]")
-                for name in names:
+                for name, desc in items:
                     if name in self.commands:
                         cmd = self.commands[name]
                         aliases = f"  ({', '.join('/' + a for a in cmd['aliases'])})" if cmd['aliases'] else ""
-                        output.append(f"  /{name:<14} {cmd['description']}{aliases}")
-                        listed.add(name)
-            # Any commands not in groups
-            extras = [n for n in self.commands if n not in listed]
-            if extras:
-                output.append("\n[Other]")
-                for name in sorted(extras):
-                    cmd = self.commands[name]
-                    output.append(f"  /{name:<14} {cmd['description']}")
+                        output.append(f"  {desc}{aliases}")
 
             output.append("\n" + SEP)
             output.append("💡 /man <topic> 상세 매뉴얼  |  TAB 자동완성")

@@ -63,21 +63,17 @@ STATUS_ALIASES = {
 
 def _load_todo_rule() -> str:
     """
-    Load todo rules from rules/ folders (global + project).
-    Reads all *.md files in each folder, sorted alphabetically.
+    Load todo rules from project rules/ folder only.
+    Reads all *.md files sorted alphabetically.
     """
     import os
-    rule_dirs = [
-        Path.home() / ".common_ai_agent" / "rules",
-        Path(os.getcwd()) / "rules",
-    ]
+    rules_dir = Path(os.getcwd()) / "rules"
     parts = []
-    for d in rule_dirs:
-        if d.is_dir():
-            for f in sorted(d.glob("*.md")):
-                content = f.read_text(encoding="utf-8").strip()
-                if content:
-                    parts.append(f"## [{f.stem}]\n{content}")
+    if rules_dir.is_dir():
+        for f in sorted(rules_dir.glob("*.md")):
+            content = f.read_text(encoding="utf-8").strip()
+            if content:
+                parts.append(f"## [{f.stem}]\n{content}")
     return "\n\n".join(parts)
 
 

@@ -18,32 +18,58 @@ MAN_PAGES: dict[str, str] = {
    Common AI Agent는 LLM 기반 코딩 어시스턴트입니다.
    자연어로 대화하거나 슬래시 커맨드로 기능을 제어합니다.
 
- 기본 사용법
-   그냥 메시지 입력        일반 대화 / 코딩 질문
-   /plan <task>           계획 후 실행 (복잡한 작업)
-   /todo                  현재 진행 중인 태스크 확인
-   /model                 모델 전환
-   /compact               컨텍스트 정리
+ ─────────────────────────────────────────────────────
+ 전체 워크플로우 (Plan → Todo → 실행)
+ ─────────────────────────────────────────────────────
 
- 빠른 시작
-   1. 모델 확인:       /model
-   2. 컨텍스트 확인:   /context
-   3. 작업 시작:       /plan "무엇을 만들고 싶은지 설명"
-   4. 진행 확인:       /todo
-   5. 정리:            /compact
+ 1단계: 작업 시작
+   /plan "로그인 모듈 JWT 방식으로 리팩토링"
+   → AI가 코드베이스를 탐색하고 단계별 계획을 제시합니다
+
+ 2단계: 계획 검토 & 승인
+   AI: "다음과 같이 진행하겠습니다:
+        1. auth.py JWT 검증 로직 추가
+        2. tests/test_auth.py 테스트 작성
+        3. README 업데이트"
+   y  ← 'y' 또는 Enter 입력으로 승인 → 즉시 실행 시작
+
+ 3단계: 실행 중 Todo 추적
+   /todo
+   > ▶️  1. auth.py JWT 검증 로직 추가     ← 현재 진행 중
+   > ⏸️  2. tests/test_auth.py 테스트 작성
+   > ⏸️  3. README 업데이트
+
+ 4단계: 태스크 stuck 시 수동 제어
+   /todo s 1 a          태스크 1 강제 승인 (stuck 해결)
+   /todo s all p        전체 리셋 후 재시작
+   /todo rule           현재 실행 규칙 확인
+
+ 5단계: 완료 후 정리
+   /compact             대화 요약 압축 (컨텍스트 절약)
+   /context             남은 컨텍스트 확인
+
+ ─────────────────────────────────────────────────────
+ 빠른 참조
+ ─────────────────────────────────────────────────────
+
+ 모델 관리
+   /model               현재 모델 확인
+   /model 2             보조 모델로 전환
+   /model claude-opus-4-6  직접 지정
+
+ 컨텍스트 관리
+   /context             사용량 시각화
+   /compact             요약 압축 (맥락 유지)
+   /clear               완전 초기화 (새 시작)
 
  TAB 자동완성
-   / 입력 후 TAB → 커맨드 목록
-   /m + TAB → /man, /model, /mode ...
+   / 입력 후 TAB → 커맨드 목록 표시
 
  도움말
-   /help              핵심 커맨드 목록
-   /help -v           전체 커맨드 목록
-   /man <topic>       상세 매뉴얼
-   /man guide         이 페이지
-
- 토픽 목록
-   plan, todo, compact, context, skills, git, model, clear
+   /help                핵심 커맨드 목록
+   /help -v             전체 커맨드 상세 목록
+   /man <topic>         상세 매뉴얼
+   topic: plan todo compact context skills git model clear guide
 {_SEP}
 """,
 
