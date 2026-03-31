@@ -81,6 +81,9 @@ TODO_ERROR_FILE = os.getenv("TODO_ERROR_FILE", "current_todos_error.json")
 # Step-by-step execution mode
 STEP_BY_STEP_MODE = os.getenv("STEP_BY_STEP_MODE", "false").lower() in ("true", "1", "yes")
 
+# Execution mode: agent (default loop), chat (1-turn, no tools), step (pause after each action)
+EXECUTION_MODE = os.getenv("EXECUTION_MODE", "agent")  # agent | chat | step
+
 # Debug mode - show detailed parsing and execution info
 DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() in ("true", "1", "yes")
 

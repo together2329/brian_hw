@@ -24,29 +24,44 @@ MAN_PAGES: dict[str, str] = {
 
  1단계: 작업 시작
    /plan "로그인 모듈 JWT 방식으로 리팩토링"
-   → AI가 코드베이스를 탐색하고 단계별 계획을 제시합니다
+   → AI가 코드베이스를 탐색합니다 (자동)
 
- 2단계: 계획 검토 & 승인
-   AI: "다음과 같이 진행하겠습니다:
-        1. auth.py JWT 검증 로직 추가
-        2. tests/test_auth.py 테스트 작성
-        3. README 업데이트"
-   y  ← 'y' 또는 Enter 입력으로 승인 → 즉시 실행 시작
-
- 3단계: 실행 중 Todo 추적
-   /todo
-   > ▶️  1. auth.py JWT 검증 로직 추가     ← 현재 진행 중
+ 2단계: Todo 목록 생성 (AI 자동)
+   AI가 todo_write 툴로 태스크 목록을 작성합니다:
+   > ⏸️  1. auth.py JWT 검증 로직 추가
    > ⏸️  2. tests/test_auth.py 테스트 작성
    > ⏸️  3. README 업데이트
+   /todo  ← 목록 확인
+   /todo add "추가 태스크"   ← 필요 시 수동 추가
+   /todo rm 2               ← 불필요한 태스크 제거
 
- 4단계: 태스크 stuck 시 수동 제어
-   /todo s 1 a          태스크 1 강제 승인 (stuck 해결)
-   /todo s all p        전체 리셋 후 재시작
-   /todo rule           현재 실행 규칙 확인
+ 3단계: 계획 검토 & 승인
+   AI가 계획을 제시하면:
+   y      ← 승인 → 즉시 실행 시작
+   n      ← 거절 → 재계획 요청
+   (수정 요청도 가능: "2번 태스크 빼고 진행해")
 
- 5단계: 완료 후 정리
-   /compact             대화 요약 압축 (컨텍스트 절약)
-   /context             남은 컨텍스트 확인
+ 4단계: 태스크 실행 사이클 (태스크마다 반복)
+   ┌─ AI가 작업 수행
+   │   ↓
+   │  in_progress  ← 태스크 시작
+   │   ↓
+   │  completed    ← 작업 완료, AI가 검토 요청
+   │   ↓
+   ├─ approved     ← 검토 통과 → 다음 태스크로 자동 이동
+   └─ rejected     ← 재작업 필요 → 다시 in_progress로
+
+   /todo  ← 언제든 현재 상태 확인
+
+ 5단계: 태스크 stuck 시 수동 제어
+   /todo s 1 a      태스크 1 강제 승인 (AI가 멈췄을 때)
+   /todo s 1 r      태스크 1 반려 (재작업 지시)
+   /todo s all p    전체 pending 리셋 후 재시작
+   /todo rule       현재 실행 규칙 확인
+
+ 6단계: 완료 후 정리
+   /compact         대화 요약 압축 (컨텍스트 절약)
+   /context         남은 컨텍스트 확인
 
  ─────────────────────────────────────────────────────
  빠른 참조
@@ -128,17 +143,19 @@ MAN_PAGES: dict[str, str] = {
    /plan 실행 후 AI가 자동으로 등록하며, 수동 조작도 가능합니다.
 
  사용법 (alias 모두 동일 동작)
-   /todo                           현재 Todo 목록 표시
-   /todo clear                     Todo 목록 전체 초기화
-   /todo add <text>                새 태스크 추가
-   /todo remove <N>  / rm <N>      태스크 N 삭제
-   /todo move <N> <M> / mv <N> <M> 태스크 N을 위치 M으로 이동
-   /todo goal <N> <text> / g       태스크 N 내용(goal) 변경
-   /todo set <N> <status> / s      상태 강제 변경
-   /todo set all <status>          전체 상태 강제 변경
-   /todo edit <N> <field> <value>  개별 필드 수정
-   /todo edit <N> <field>+ <value> 필드에 내용 추가(append)
+   /todo                                현재 Todo 목록 표시
+   /todo clear                          Todo 목록 전체 초기화
+   /todo add <text>                     새 태스크 추가
+   /todo remove <N>  / rm <N>           태스크 N 삭제
+   /todo move <N> <M> / mv <N> <M>      태스크 N을 위치 M으로 이동
+   /todo goal <N> <text> / g            태스크 N 내용(goal) 변경
+   /todo set <N> <status> / s           상태 강제 변경
+   /todo set all <status>               전체 상태 강제 변경
+   /todo edit <N> <field> <value>       개별 필드 수정
+   /todo edit <N> <field>+ <value>      필드에 내용 추가(append)
    (edit alias: e)
+   /todo revert <N> [opts] [reason]     태스크 N 승인 시점으로 롤백
+   /todo rv <N> [opts] [reason]         (alias)
 
  edit 필드 목록
    content / c        태스크 설명 (goal과 동일, active_form도 동기화)
@@ -172,7 +189,7 @@ MAN_PAGES: dict[str, str] = {
  서브커맨드 Alias
    remove → rm       move → mv
    goal   → g        set  → s
-   edit   → e
+   edit   → e        revert → rv
 
  Status Alias (/todo s, /todo set)
    p = pending    i/ip = in_progress
@@ -195,6 +212,24 @@ MAN_PAGES: dict[str, str] = {
      <프로젝트>/.TODO_RULE.md           프로젝트 규칙
    /todo rule   현재 규칙 내용 확인
 
+ revert 옵션
+   --hard          git reset --hard (커밋 삭제, 비가역)
+   --reset-conv    승인 시점의 conversation 스냅샷 복원
+   기본 (옵션 없음): git revert (revert commit 추가, 히스토리 보존)
+
+ revert 예시
+   /todo revert 2 "JWT 로직 오류"
+   > git revert commit 생성 + conversation에 rollback 주입
+
+   /todo rv 2 --hard "완전 초기화"
+   > git reset --hard + conversation rollback 주입
+
+   /todo rv 2 --reset-conv "재작업"
+   > git revert + conversation 승인 시점 스냅샷 복원
+
+   /todo rv 2 --hard --reset-conv "이유"
+   > 코드 + conversation 완전 하드 리셋
+
  AI 상태 흐름 (정상)
    pending → in_progress → completed → approved
 
@@ -208,6 +243,7 @@ MAN_PAGES: dict[str, str] = {
 
  관련 커맨드
    /plan    Plan Mode (태스크 자동 생성)
+   /mode    실행 모드 전환 (agent/chat/step)
    /step    태스크 단위 일시정지 모드
 {_SEP}
 """,
@@ -420,16 +456,19 @@ MAN_PAGES: dict[str, str] = {
 {_SEP}
 
  개요
-   대화 기록을 초기화합니다.
-   완전히 새로운 대화를 시작하고 싶을 때 사용합니다.
+   대화 기록 또는 전체 상태를 초기화합니다.
 
  사용법
-   /clear             전체 대화 기록 초기화
+   /clear             대화 기록만 초기화
+   /clear all         git(.git) + todo + 대화 기록 전체 초기화
    /clear <N>         최근 N쌍(user+assistant)만 유지하고 나머지 삭제
 
  예시
    /clear
-   > 대화 기록이 초기화되었습니다. (새 대화 시작)
+   > 대화 기록이 초기화되었습니다.
+
+   /clear all
+   > ✅ All cleared: git + todo + conversation.
 
    /clear 3
    > 최근 3쌍 유지, 이전 기록 삭제
@@ -439,8 +478,10 @@ MAN_PAGES: dict[str, str] = {
    /compact   요약 유지 (맥락은 남김, 컨텍스트 절약)
 
  관련 커맨드
-   /compact     요약 유지 압축
-   /context     현재 컨텍스트 사용량 확인
+   /compact        요약 유지 압축
+   /context        현재 컨텍스트 사용량 확인
+   /todo clear     todo만 초기화
+   /git clear      .git만 삭제
 {_SEP}
 """,
 }

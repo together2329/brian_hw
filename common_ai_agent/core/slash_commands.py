@@ -247,6 +247,7 @@ class SlashCommandRegistry:
                 'g':  'goal',
                 's':  'set',
                 'e':  'edit',
+                'rv': 'revert',
             }
             subcmd = SUBCMD_ALIASES.get(subcmd, subcmd)
 
@@ -267,6 +268,9 @@ class SlashCommandRegistry:
                 return self._todo_edit(rest[1:], todo_file)
             if subcmd in ('rule', 'rules'):
                 return self._todo_rule()
+            if subcmd == 'revert':
+                rest = args.strip().split()
+                return self._todo_revert(rest[1:], todo_file)
 
             if not todo_file.exists():
                 # Check if there's a recent write failure to surface
@@ -670,12 +674,38 @@ class SlashCommandRegistry:
         lines.append(f"{SEP}")
         return "\n".join(lines) + "\n"
 
+    def _todo_revert(self, args: list, todo_file) -> str:
+        """Return revert signal: /todo revert <N> [--hard] [--reset-conv] [reason]"""
+        if not args:
+            return (
+                "Usage: /todo revert <N> [--hard] [--reset-conv] [reason]\n"
+                "  --hard        git reset --hard (destructive, removes commits)\n"
+                "  --reset-conv  restore conversation to approval snapshot\n"
+            )
+        try:
+            n = int(args[0])
+        except ValueError:
+            return "Error: N must be an integer.\n"
+        rest = args[1:]
+        hard = '--hard' in rest
+        reset_conv = '--reset-conv' in rest
+        reason_parts = [a for a in rest if a not in ('--hard', '--reset-conv')]
+        reason = " ".join(reason_parts)
+        return f"TODO_REVERT:{n}:hard={hard}:reset_conv={reset_conv}:{reason}"
+
     def _cmd_mode(self, args: str) -> str:
-        """Switch agent mode. /mode normal to exit."""
+        """Switch execution or agent mode."""
         mode = args.strip().lower()
+        if mode in ('agent', 'chat', 'step'):
+            return f"EXECUTION_MODE:{mode}"
         if mode in ('plan', 'normal'):
             return f"AGENT_MODE:{mode}"
-        return f"AGENT_MODE:normal"
+        # No args → show current status
+        import config as _cfg
+        em = getattr(_cfg, 'EXECUTION_MODE', 'agent')
+        sbsm = getattr(_cfg, 'STEP_BY_STEP_MODE', False)
+        return (f"\nExecution mode: {em}  |  Step-by-step: {'ON' if sbsm else 'OFF'}\n"
+                f"Usage: /mode agent|chat|step|plan|normal\n")
 
     def _cmd_step(self, args: str) -> str:
         """Toggle Step-by-Step execution mode."""
@@ -874,10 +904,12 @@ class SlashCommandRegistry:
             return ""
 
     def _cmd_clear(self, args: str) -> str:
-        """Clear conversation history. /clear [N] keeps last N user/assistant message pairs."""
-        keep = args.strip()
-        if keep.isdigit():
-            return f"CLEAR_HISTORY:{keep}"
+        """Clear conversation history. /clear [N|all]"""
+        arg = args.strip()
+        if arg == 'all':
+            return "CLEAR_ALL"
+        if arg.isdigit():
+            return f"CLEAR_HISTORY:{arg}"
         return "CLEAR_HISTORY"  # Special signal for main loop
 
     def _cmd_model(self, args: str) -> str:

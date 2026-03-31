@@ -1169,6 +1169,26 @@ def _build_system_prompt_str(**kwargs) -> str:
     return sp
 
 
+def _save_conv_snapshot(n: int, messages: list):
+    """Save conversation snapshot when task N is approved."""
+    import hashlib
+    cwd_hash = hashlib.md5(os.getcwd().encode()).hexdigest()[:8]
+    snap_dir = Path.home() / ".common_ai_agent" / "conv_snapshots"
+    snap_dir.mkdir(parents=True, exist_ok=True)
+    (snap_dir / f"{cwd_hash}_todo_{n}_approved.json").write_text(
+        json.dumps(messages, ensure_ascii=False, indent=2))
+
+
+def _load_conv_snapshot(n: int):
+    """Load conversation snapshot for task N approval point. Returns None if not found."""
+    import hashlib
+    cwd_hash = hashlib.md5(os.getcwd().encode()).hexdigest()[:8]
+    snap_file = Path.home() / ".common_ai_agent" / "conv_snapshots" / f"{cwd_hash}_todo_{n}_approved.json"
+    if snap_file.exists():
+        return json.loads(snap_file.read_text())
+    return None
+
+
 def build_system_prompt(messages=None, allowed_tools=None, agent_mode=None):
     """
     Build system prompt with memory, graph context, and procedural guidance if available.
@@ -3063,6 +3083,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         # Check for Action first (needed for TodoWrite explicit call detection)
         actions = parse_all_actions(collected_content)
 
+        # Chat mode: respond once without executing any tools
+        if getattr(config, 'EXECUTION_MODE', 'agent') == 'chat':
+            break
+
         # Todo tracking: supports explicit tool calls AND markdown auto-parsing
         markdown_tasks = _parse_todo_markdown(collected_content)
         if markdown_tasks and not any(a[0] == 'todo_write' for a in actions):
@@ -3296,6 +3320,13 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
             # Combine all observations
             observation = "\n\n".join(combined_results)
+
+            # Snapshot: save conversation when a task is approved
+            if "✅ Task" in observation and "approved" in observation:
+                import re as _re
+                _m = _re.search(r"Task (\d+) approved", observation)
+                if _m:
+                    _save_conv_snapshot(int(_m.group(1)), messages)
 
             # Step-by-Step Safety: Break loop after todo_write to allow user to see/confirm the plan.
             # Other todo operations during execution (like todo_update) no longer break.
@@ -3705,14 +3736,16 @@ def chat_loop():
                     user_input = _multiline_prompt.prompt(_prompt_text)
             else:
                 is_plan_turn = (agent_mode in ('plan', 'plan_q'))
-                
+
                 if agent_mode == 'plan_q':
                     user_input = input(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
                 elif agent_mode == 'plan':
                     print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} A plan is active. Confirm to execute or provide feedback.")
                     user_input = input(Color.warning("Plan Confirmation [y/yc/feedback] ") + Color.CYAN + "> " + Color.RESET)
                 else:
-                    user_input = input(Color.user("> ") + Color.RESET)
+                    _em = getattr(config, 'EXECUTION_MODE', 'agent')
+                    _em_prefix = f"[{_em}] " if _em != 'agent' else ""
+                    user_input = input(_em_prefix + Color.user("> ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
                 break
 
@@ -3833,6 +3866,29 @@ def chat_loop():
 
                 if result is not None:
                     # Check for special commands
+                    if result == "CLEAR_ALL":
+                        # 1. Delete .git directory
+                        try:
+                            curr = Path(os.path.abspath("."))
+                            git_dir = next(
+                                (p / ".git" for p in [curr] + list(curr.parents) if (p / ".git").exists()),
+                                None)
+                            if git_dir:
+                                import shutil
+                                shutil.rmtree(git_dir)
+                        except Exception:
+                            pass
+                        # 2. Delete todo file
+                        _todo_f = Path(config.TODO_FILE)
+                        if _todo_f.exists():
+                            _todo_f.unlink()
+                        # 3. Reset conversation
+                        system_msg = {"role": "system", "content": _build_system_prompt_str(agent_mode=agent_mode)}
+                        messages = [system_msg]
+                        save_conversation_history(messages)
+                        print(Color.success("\n✅ All cleared: git + todo + conversation.\n"))
+                        continue
+
                     if result == "CLEAR_HISTORY" or result.startswith("CLEAR_HISTORY:"):
                         # Parse optional keep count: CLEAR_HISTORY or CLEAR_HISTORY:N
                         keep_n = 0
@@ -3986,6 +4042,124 @@ def chat_loop():
                             print(Color.success(f"\n✅ Step-by-Step execution mode enabled (will pause after each task).\n"))
                         else:
                             print(Color.warning(f"\n⏸️  Step-by-Step execution mode disabled.\n"))
+                        continue
+
+                    if result.startswith("EXECUTION_MODE:"):
+                        em = result.split(":", 1)[1]
+                        config.EXECUTION_MODE = em
+                        config.STEP_BY_STEP_MODE = (em == 'step')
+                        labels = {'agent': 'Agent (loop)', 'chat': 'Chat (1-turn)', 'step': 'Step (1-action)'}
+                        print(Color.success(f"\n✅ Mode: {labels.get(em, em)}\n"))
+                        continue
+
+                    if result.startswith("TODO_REVERT:"):
+                        # Format: "TODO_REVERT:{N}:hard={True|False}:reset_conv={True|False}:{reason}"
+                        _parts = result.split(":", 4)
+                        _revert_n = int(_parts[1])
+                        _hard = _parts[2].endswith("True")
+                        _reset_conv = _parts[3].endswith("True")
+                        _revert_reason = _parts[4] if len(_parts) > 4 else ""
+
+                        import subprocess as _sp
+
+                        # 1. Find approved tag
+                        _tag_pattern = f"todo_{_revert_n}_approved*"
+                        _tag_list = _sp.run(
+                            ["git", "tag", "-l", _tag_pattern], capture_output=True, text=True
+                        ).stdout.strip().splitlines()
+
+                        if not _tag_list:
+                            print(Color.error(f"\n❌ No approved git tag found for task {_revert_n}.\n"
+                                              f"   (Pattern: {_tag_pattern})\n"))
+                            continue
+
+                        _tag = _tag_list[-1]
+
+                        # 2. Show commits to be affected
+                        _log_out = _sp.run(
+                            ["git", "log", "--oneline", f"{_tag}..HEAD"],
+                            capture_output=True, text=True
+                        ).stdout.strip()
+
+                        # 3. Show diff stat
+                        _stat_out = _sp.run(
+                            ["git", "diff", "--stat", f"{_tag}..HEAD"],
+                            capture_output=True, text=True
+                        ).stdout.strip()
+
+                        # 4. Preview
+                        _mode_label = "reset --hard" if _hard else "revert (new commit)"
+                        print(Color.warning(f"\n⚠️  Revert Task {_revert_n} via git {_mode_label} to {_tag}"))
+                        if _log_out:
+                            print(Color.DIM + "\nCommits affected:")
+                            for _line in _log_out.splitlines():
+                                print(f"  {_line}")
+                        if _stat_out:
+                            print(Color.DIM + "\nFiles affected:")
+                            for _line in _stat_out.splitlines()[-10:]:
+                                print(f"  {_line}")
+                        print(Color.RESET)
+
+                        # 5. Confirm
+                        _confirm = input(Color.warning("Proceed with rollback? [y/N] ")).strip().lower()
+                        if _confirm != 'y':
+                            print(Color.info("Cancelled.\n"))
+                            continue
+
+                        # 6. Git rollback
+                        if _hard:
+                            _sp.run(["git", "reset", "--hard", _tag], check=True)
+                        else:
+                            _rv = _sp.run(
+                                ["git", "revert", "--no-commit", f"{_tag}..HEAD"],
+                                capture_output=True, text=True
+                            )
+                            if _rv.returncode != 0:
+                                _sp.run(["git", "revert", "--abort"])
+                                print(Color.error(f"\n❌ Merge conflicts during revert. Try --hard flag.\n"))
+                                continue
+                            _sp.run(["git", "commit", "-m",
+                                     f"rollback: task {_revert_n} - {_revert_reason or 'manual revert'}"])
+
+                        # 7. Update todo status
+                        _todo_path = Path(config.TODO_FILE)
+                        if _todo_path.exists():
+                            _tracker = TodoTracker.load(_todo_path)
+                            _idx = _revert_n - 1
+                            if 0 <= _idx < len(_tracker.todos):
+                                _item = _tracker.todos[_idx]
+                                _item.status = "pending"
+                                _item.rejection_reason = f"↩ Rolled back: {_revert_reason}" if _revert_reason else "↩ Rolled back"
+                                _item.approved_reason = ""
+                                _tracker.current_index = _idx
+                                _tracker.save()
+
+                        _rollback_notice = (
+                            f"[System] Rollback applied: Task {_revert_n} reverted to pending.\n"
+                            f"Git tag: {_tag}\n"
+                            f"Commits affected:\n{_log_out or '(none)'}\n"
+                            f"Reason: {_revert_reason or '(none)'}\n"
+                            f"The codebase has been rolled back. Re-read modified files before continuing."
+                        )
+
+                        # 8. Update conversation
+                        if _reset_conv:
+                            _snap = _load_conv_snapshot(_revert_n)
+                            if _snap:
+                                messages = _snap
+                                messages.append({"role": "user", "content": _rollback_notice})
+                                messages.append({"role": "assistant", "content": f"Understood. Conversation and code both restored to task {_revert_n} approval point."})
+                                print(Color.success(f"\n✅ Rolled back to {_tag}. Task {_revert_n} → pending. Conversation restored.\n"))
+                            else:
+                                print(Color.warning(f"\n⚠️  No conversation snapshot found for task {_revert_n}. Keeping current conversation.\n"))
+                                messages.append({"role": "user", "content": _rollback_notice})
+                                messages.append({"role": "assistant", "content": "Understood. Code rolled back. No conversation snapshot available."})
+                        else:
+                            messages.append({"role": "user", "content": _rollback_notice})
+                            messages.append({"role": "assistant", "content": f"Understood. Task {_revert_n} has been rolled back to pending state. I'll re-examine the codebase before retrying."})
+                            print(Color.success(f"\n✅ Rolled back to {_tag}. Task {_revert_n} → pending.\n"))
+
+                        save_conversation_history(messages)
                         continue
 
                     elif result.startswith("COMPACT_HISTORY"):
