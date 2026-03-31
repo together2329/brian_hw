@@ -5,12 +5,31 @@ Phase 7: extracted from main.py execute_tool()
 Provides dispatch_tool() — pure function with all dependencies injected.
 main.py's execute_tool() becomes a thin wrapper that passes live globals.
 """
+import inspect
 import json
+import os
 import threading
 import traceback
 from typing import Any, Callable, Dict, Optional
 
 from core.action_parser import parse_tool_arguments
+
+# ---------------------------------------------------------------------------
+# Tool aliases — common LLM hallucinations mapped to real tool names
+# ---------------------------------------------------------------------------
+_TOOL_ALIASES: Dict[str, str] = {
+    "apply_patch":   "replace_in_file",
+    "patch_file":    "replace_in_file",
+    "edit_file":     "replace_in_file",
+    "run_shell":     "run_command",
+    "shell":         "run_command",
+    "bash":          "run_command",
+    "execute":       "run_command",
+    "search_file":   "grep_file",
+    "search":        "grep_file",
+    "ls":            "list_dir",
+    "cat":           "read_file",
+}
 
 # ---------------------------------------------------------------------------
 # Thread-local agent metadata (mirrors main.py _agent_metadata)
@@ -52,13 +71,54 @@ def dispatch_tool(
     Returns:
         String result (tool output, converted if non-string, or error message).
     """
+    # Resolve aliases before lookup
+    resolved_name = _TOOL_ALIASES.get(tool_name, tool_name)
+    if resolved_name != tool_name:
+        print(f"  [System] Tool '{tool_name}' → alias resolved to '{resolved_name}'")
+        tool_name = resolved_name
+
     if tool_name not in available_tools:
-        return f"Error: Tool '{tool_name}' not found."
+        # Suggest closest match from aliases
+        suggestions = [v for k, v in _TOOL_ALIASES.items() if tool_name.lower() in k.lower()]
+        hint = f" Did you mean: {suggestions[0]!r}?" if suggestions else ""
+        return f"Error: Tool '{tool_name}' not found.{hint}"
 
     func = available_tools[tool_name]
 
     try:
         parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
+
+        # Auto-fix: grep_file(path, ...) — LLM swapped pattern and path
+        if tool_name == "grep_file" and parsed_args:
+            first = parsed_args[0]
+            # If first arg looks like a file path (has / or known extension) and not a regex
+            if (("/" in str(first) or os.path.splitext(str(first))[1])
+                    and "pattern" not in parsed_kwargs):
+                # Swap: first arg is path, second is pattern (or pull pattern from kwargs)
+                if len(parsed_args) >= 2:
+                    parsed_args = [parsed_args[1], parsed_args[0]] + list(parsed_args[2:])
+                elif "path" in parsed_kwargs:
+                    pass  # path already in kwargs, first arg must be pattern — keep as-is
+                else:
+                    parsed_kwargs["path"] = parsed_args[0]
+                    parsed_args = []
+
+        # Auto-fix: positional arg duplicates a keyword arg ("got multiple values")
+        if parsed_args:
+            try:
+                sig = inspect.signature(func)
+                param_names = list(sig.parameters.keys())
+                # Remove positional args that are already in kwargs
+                fixed_positional = []
+                for i, val in enumerate(parsed_args):
+                    name = param_names[i] if i < len(param_names) else None
+                    if name and name in parsed_kwargs:
+                        pass  # skip — kwargs already has this
+                    else:
+                        fixed_positional.append(val)
+                parsed_args = fixed_positional
+            except (ValueError, TypeError):
+                pass
 
         if debug:
             print(f"[DEBUG] Parsed args: {parsed_args}, kwargs: {parsed_kwargs}")
