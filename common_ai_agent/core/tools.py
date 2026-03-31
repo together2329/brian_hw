@@ -421,17 +421,18 @@ def list_dir(path=".", show_hidden=True, **kwargs):
 def grep_file(pattern, path, context_lines=2, recursive=False, **kwargs):
     """
     Searches for a pattern using system tools (git grep/grep) for performance.
-    
+
     Args:
         pattern: Regex pattern to search for
         path: Path to file or directory
         context_lines: Number of context lines (default: 2)
         recursive: Whether to search recursively (default: False)
         **kwargs: Additional arguments (ignored, for robustness)
-        
+
     Returns:
         Formatted matches string
     """
+    context_lines = int(context_lines)  # LLM may pass "2" as string
     import subprocess
     import sys
     
@@ -626,6 +627,13 @@ def read_lines(path, start_line, end_line):
         Content of the specified line range with line numbers
     """
     try:
+        # Coerce to int — LLM sometimes passes quoted numbers e.g. "260"
+        try:
+            start_line = int(start_line)
+            end_line = int(end_line)
+        except (TypeError, ValueError):
+            return f"Error: start_line and end_line must be integers (got start_line={start_line!r}, end_line={end_line!r})"
+
         if not os.path.exists(path):
             import glob
             basename = os.path.basename(path)
@@ -637,9 +645,9 @@ def read_lines(path, start_line, end_line):
 
         with open(path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
-        
+
         total_lines = len(lines)
-        
+
         # Validate line numbers
         if start_line < 1 or end_line < 1:
             return "Error: Line numbers must be >= 1"
@@ -1477,14 +1485,21 @@ def replace_lines(path, start_line, end_line, new_content):
         Success message
     """
     try:
+        # Coerce to int — LLM sometimes passes quoted numbers e.g. "260"
+        try:
+            start_line = int(start_line)
+            end_line = int(end_line)
+        except (TypeError, ValueError):
+            return f"Error: start_line and end_line must be integers (got start_line={start_line!r}, end_line={end_line!r})"
+
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
-        
+
         with open(path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
-        
+
         total_lines = len(lines)
-        
+
         # Validate line numbers
         if start_line < 1 or end_line < 1:
             return "Error: Line numbers must be >= 1"

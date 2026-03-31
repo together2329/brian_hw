@@ -526,9 +526,17 @@ def run_react_agent_impl(
             if _thinking_spinner and not _thinking_stopped:
                 if hasattr(_thinking_spinner, "stop"):
                     _thinking_spinner.stop()
+                _thinking_stopped = True
             if not collected_content:
                 print(f"\n  LLM call failed: {e}")
                 break
+
+        # Guarantee spinner is stopped even if generator yielded zero chunks
+        # (e.g. network timeout returns empty iterator without raising)
+        if _thinking_spinner and not _thinking_stopped:
+            if hasattr(_thinking_spinner, "stop"):
+                _thinking_spinner.stop()
+            _thinking_stopped = True
 
         # Flush remaining reasoning
         if _rbuf:
