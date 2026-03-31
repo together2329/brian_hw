@@ -94,6 +94,7 @@ class StreamParser:
         self._content_started: bool = False
         self._seen: Set[str] = set()
         self._content_emitted: bool = False
+        self._reasoning_emitted: bool = False  # track if any reasoning was displayed
 
         # collected raw text (for callers that need to parse actions from it)
         self.collected: str = ""
@@ -122,14 +123,17 @@ class StreamParser:
             if self.reasoning_display:
                 self._rbuf += chunk
                 self._flush_reasoning_lines()
-            if not self.reasoning_in_context:
-                return
+            return  # never fall through to content processing
 
         # ----- flush pending reasoning before content -----
         if self._rbuf:
             if self.reasoning_display:
                 self._emit_reasoning(self._rbuf)
+                self._reasoning_emitted = True
             self._rbuf = ""
+            if self._reasoning_emitted:
+                self._emit_blank()  # blank line separating reasoning from content
+                self._reasoning_emitted = False  # reset — flush() must not fire again
 
         # ----- content token -----
         self._buf += chunk  # type: ignore[operator]
@@ -144,7 +148,13 @@ class StreamParser:
         if self._rbuf:
             if self.reasoning_display:
                 self._emit_reasoning(self._rbuf)
+                self._reasoning_emitted = True
             self._rbuf = ""
+
+        # Blank line after reasoning block ends (only if content follows or stream ended)
+        if self._reasoning_emitted:
+            self._emit_blank()
+            self._reasoning_emitted = False  # only emit once
 
         # Flush remaining content
         remaining = self._buf.strip()
@@ -170,6 +180,7 @@ class StreamParser:
         self._content_started = False
         self._seen = set()
         self._content_emitted = False
+        self._reasoning_emitted = False
         self.collected = ""
 
     # ------------------------------------------------------------------
@@ -181,6 +192,7 @@ class StreamParser:
             rline, self._rbuf = self._rbuf.split("\n", 1)
             if rline.strip():
                 self._emit_reasoning(rline)
+                self._reasoning_emitted = True
             else:
                 self._emit_reasoning("", blank=True)
 

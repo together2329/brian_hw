@@ -361,10 +361,16 @@ def run_react_agent_impl(
             except Exception:
                 pass
 
-        # Print iteration header
+        # Print iteration header (with active_form of current todo if available)
+        _todo_label = ""
+        if todo_tracker and todo_tracker.todos:
+            _cur = todo_tracker.get_current_todo()
+            if _cur and _cur.active_form and _cur.active_form != _cur.content:
+                _todo_label = _cur.active_form
         print(format_iteration_header(
             tracker.current + 1, tracker.max_iterations,
             agent_name="primary", model=getattr(cfg, "MODEL_NAME", ""),
+            todo_label=_todo_label,
         ), flush=True)
 
         # ----- Streaming LLM call -----
@@ -474,6 +480,17 @@ def run_react_agent_impl(
         collected_content = deps.strip_tokens_fn(collected_content)
         if not getattr(cfg, "REASONING_IN_CONTEXT", False):
             collected_content = deps.strip_thinking_fn(collected_content).strip()
+
+        # If stripping thinking tags left nothing, the model only produced reasoning.
+        # Treat like an empty response (retry) rather than adding empty content to history.
+        if not collected_content.strip():
+            if _llm_retry < getattr(cfg, "LLM_RETRY_COUNT", 1):
+                _llm_retry += 1
+                print(f"\n  LLM only generated reasoning (no content), retrying ({_llm_retry}/{cfg.LLM_RETRY_COUNT})...")
+                continue
+            _llm_retry = 0
+            print(f"\n  LLM failed after {getattr(cfg, 'LLM_RETRY_COUNT', 1)} retry. Returning to input.")
+            break
 
         # Strip echoed system prompt prefix
         _first_marker = re.search(r"^(Thought:|Action:)", collected_content, re.MULTILINE)
@@ -606,10 +623,22 @@ def run_react_agent_impl(
                         tool_name, args_str = action_tuple
 
                     summary = _extract_tool_args_summary(tool_name, args_str)
+                    # For todo_update: inject previous status so header shows "#N prev → new"
+                    if tool_name == "todo_update" and todo_tracker:
+                        import re as _re
+                        _idx_m = _re.search(r'index\s*=\s*(\d+)', args_str)
+                        if _idx_m:
+                            _idx = int(_idx_m.group(1)) - 1
+                            if 0 <= _idx < len(todo_tracker.todos):
+                                _prev = todo_tracker.todos[_idx].status
+                                _new_m = _re.search(r'status\s*=\s*["\']([^"\']+)["\']', args_str)
+                                if _new_m and _prev != _new_m.group(1):
+                                    summary = f"#{_idx + 1} {_prev} → {_new_m.group(1)}"
                     tracker.record_tool(tool_name)
                     tool_start = time.time()
 
                     _SLOW_TOOLS = {"run_command", "background_task", "background_output"}
+                    _WRITE_TOOLS = {"write_file", "replace_in_file", "replace_lines"}
                     _debug = getattr(cfg, "DEBUG_MODE", False)
                     _is_plan_blocked = (
                         agent_mode in ("plan", "plan_q")
@@ -628,6 +657,9 @@ def run_react_agent_impl(
                     elif tool_name in _SLOW_TOOLS and not _debug:
                         friendly = _friendly_tool_name(tool_name)
                         with Spinner(f"  running…"):
+                            observation = deps.execute_tool_fn(tool_name, args_str)
+                    elif tool_name in _WRITE_TOOLS and not _debug:
+                        with Spinner(f"  writing…"):
                             observation = deps.execute_tool_fn(tool_name, args_str)
                     else:
                         observation = deps.execute_tool_fn(tool_name, args_str)

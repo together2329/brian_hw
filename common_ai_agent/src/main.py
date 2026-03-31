@@ -1104,6 +1104,7 @@ def chat_loop():
         slash_registry=slash_registry,
         context_tracker=context_tracker,
         curator=curator,
+        hook_registry=hook_registry,
     )
 
     # ── Multiline input setup ──

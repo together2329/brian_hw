@@ -529,10 +529,20 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
         return f"{count} tasks"
 
     if tool_name == 'todo_update':
-        if 'approved' in observation.lower() or 'reviewed' in observation.lower():
-            return "approved"
-        if 'completed' in observation.lower():
-            return "completed"
+        # Match on the leading status marker, not anywhere in the text
+        # (the "completed" response body contains "approved" as a future action reference)
+        if observation:
+            first = observation.lstrip()
+            if first.startswith("✅") and "approved" in first.split("\n")[0].lower():
+                return f"{Color.GREEN}approved{Color.RESET}"
+            if "marked completed" in first.lower() or first.startswith("Task") and "completed" in first.split("\n")[0]:
+                return f"{Color.CYAN}completed{Color.RESET}"
+            if first.startswith("❌"):
+                return f"{Color.RED}rejected{Color.RESET}"
+            if first.startswith("▶"):
+                return "in_progress"
+            if first.startswith("⏸"):
+                return "pending"
         return "updated"
 
     if tool_name == 'todo_add':
@@ -647,14 +657,18 @@ def format_startup_banner(base_url: str, model: str, features: dict) -> str:
     return f"{line1}\n{line2}" if line2 else line1
 
 
-def format_iteration_header(iteration: int, max_iter: int, agent_name: str = "", model: str = "") -> str:
+def format_iteration_header(iteration: int, max_iter: int, agent_name: str = "", model: str = "", todo_label: str = "") -> str:
     """
     Minimal iteration header.
     Example: "─── primary 3/100 · glm-4.7 ───"
+    Optional todo_label shows active_form of current todo task below the header line.
     """
     prefix = f"{agent_name} " if agent_name else ""
     model_str = f" · {_short_model_name(model)}" if model else ""
-    return f"\n{Color.DIM}─── {prefix}{iteration}/{max_iter}{model_str} ───{Color.RESET}"
+    header = f"\n{Color.DIM}─── {prefix}{iteration}/{max_iter}{model_str} ───{Color.RESET}"
+    if todo_label:
+        header += f"\n  {Color.DIM}{todo_label}{Color.RESET}"
+    return header
 
 
 def format_thought(text: str) -> str:
@@ -741,7 +755,7 @@ def _extract_tool_args_summary(tool_name: str, args_str: str) -> str:
     """Extract a human-readable summary from tool args"""
     import re
 
-    # Extract path (+ optional line range) for file tools
+    # Extract path (+ optional line range / content preview) for file tools
     if tool_name in ('read_file', 'read_lines', 'write_file', 'replace_in_file', 'replace_lines'):
         match = re.search(r'(?:path\s*=\s*)?["\']([^"\']+)["\']', args_str)
         if match:
@@ -751,6 +765,20 @@ def _extract_tool_args_summary(tool_name: str, args_str: str) -> str:
                 end_m   = re.search(r'end(?:_line)?\s*=\s*(\d+)', args_str)
                 if start_m and end_m:
                     return f"{path} · lines {start_m.group(1)}-{end_m.group(1)}"
+            if tool_name == 'write_file':
+                content_m = re.search(r'content\s*=\s*"""(.*?)"""', args_str, re.DOTALL)
+                if not content_m:
+                    content_m = re.search(r'content\s*=\s*["\'](.{0,200})', args_str, re.DOTALL)
+                if content_m:
+                    preview = content_m.group(1)[:80].replace('\n', '↵')
+                    return f'{path} · "{preview}…"'
+            if tool_name in ('replace_in_file', 'replace_lines'):
+                old_m = re.search(r'old_string\s*=\s*"""(.*?)"""', args_str, re.DOTALL)
+                if not old_m:
+                    old_m = re.search(r'old_string\s*=\s*["\'](.{0,120})', args_str, re.DOTALL)
+                if old_m:
+                    preview = old_m.group(1)[:60].replace('\n', '↵').strip()
+                    return f'{path} · "{preview}…"'
             return path
 
     # Extract pattern + path for grep/find

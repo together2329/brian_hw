@@ -437,7 +437,10 @@ def compress_history(
         todo_lines = ["[Todo Status]:"]
         for i, t in enumerate(todo_tracker.todos):
             icon = status_icon.get(t.status, "?")
-            todo_lines.append(f"  {icon} {i+1}. [{t.status}] {t.content}")
+            line = f"  {icon} {i+1}. [{t.status}] {t.content}"
+            if t.rejection_reason and t.status in ("rejected", "in_progress", "pending"):
+                line += f"\n     ⚠ REJECTED: {t.rejection_reason}"
+            todo_lines.append(line)
         todo_snapshot = "\n".join(todo_lines)
 
         if not todo_tracker.is_all_processed():

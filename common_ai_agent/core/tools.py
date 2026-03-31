@@ -467,12 +467,16 @@ def grep_file(pattern, path, context_lines=2, recursive=False, **kwargs):
             # File search
             if not os.path.exists(pth): return f"Error: '{pth}' not found. Use find_files() to locate the correct path."
             if os.path.isdir(pth): return f"Error: '{pth}' is a dir"
-            
+
             with open(pth, 'r', encoding='utf-8', errors='replace') as f:
                 lines = f.readlines()
-            
+
             matches = []
-            regex = re.compile(pat)
+            try:
+                regex = re.compile(pat)
+            except re.error:
+                # Invalid regex — fall back to literal string search
+                regex = re.compile(re.escape(pat))
             for i, line in enumerate(lines, 1):
                 if regex.search(line):
                     start = max(1, i - ctx)

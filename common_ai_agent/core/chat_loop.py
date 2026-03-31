@@ -50,6 +50,7 @@ class ChatLoopDeps:
     slash_registry: Optional[Any] = None
     context_tracker: Optional[Any] = None
     curator: Optional[Any] = None
+    hook_registry: Optional[Any] = None   # phase9 gap: was missing, hooks not firing per-turn
 
 
 Control = Literal["continue", "break", "skip"]
