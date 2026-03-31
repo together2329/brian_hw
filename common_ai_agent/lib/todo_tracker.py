@@ -62,18 +62,34 @@ STATUS_ALIASES = {
 
 
 def _load_todo_rule() -> str:
-    """Load .TODO_RULE.md from global (~/.common_ai_agent/) and project (cwd) locations."""
+    """
+    Load todo rules from rules/ folders (global + project).
+    Reads all *.md files in each folder, sorted alphabetically.
+    Also falls back to .TODO_RULE.md for backward compatibility.
+    """
     import os
-    paths = [
+    rule_dirs = [
+        Path.home() / ".common_ai_agent" / "rules",
+        Path(os.getcwd()) / "rules",
+    ]
+    fallback_files = [
         Path.home() / ".common_ai_agent" / ".TODO_RULE.md",
         Path(os.getcwd()) / ".TODO_RULE.md",
     ]
     parts = []
-    for p in paths:
-        if p.exists():
-            content = p.read_text(encoding="utf-8").strip()
-            if content:
-                parts.append(content)
+    for d in rule_dirs:
+        if d.is_dir():
+            for f in sorted(d.glob("*.md")):
+                content = f.read_text(encoding="utf-8").strip()
+                if content:
+                    parts.append(f"## [{f.stem}]\n{content}")
+    # Fallback: .TODO_RULE.md (legacy)
+    if not parts:
+        for p in fallback_files:
+            if p.exists():
+                content = p.read_text(encoding="utf-8").strip()
+                if content:
+                    parts.append(content)
     return "\n\n".join(parts)
 
 

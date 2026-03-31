@@ -640,28 +640,38 @@ class SlashCommandRegistry:
             return f"❌ Error: {e}\n"
 
     def _todo_rule(self) -> str:
-        """Show current .TODO_RULE.md content and file locations."""
+        """Show current rules/ folder contents and file locations."""
         from pathlib import Path
         import os
-        paths = [
-            Path.home() / ".common_ai_agent" / ".TODO_RULE.md",
-            Path(os.getcwd()) / ".TODO_RULE.md",
+        rule_dirs = [
+            (Path.home() / ".common_ai_agent" / "rules", "global"),
+            (Path(os.getcwd()) / "rules", "project"),
         ]
         SEP = "=" * 60
-        lines = [f"\n{SEP}", " TODO RULES  .TODO_RULE.md", SEP]
+        lines = [f"\n{SEP}", " TODO RULES  rules/*.md", SEP]
         found_any = False
-        for p in paths:
-            scope = "global" if "common_ai_agent" in str(p.parent) else "project"
-            if p.exists():
-                content = p.read_text(encoding="utf-8").strip()
-                lines.append(f"\n[{scope}] {p}")
-                lines.append(content)
-                found_any = True
+        for d, scope in rule_dirs:
+            lines.append(f"\n[{scope}] {d}")
+            if d.is_dir():
+                files = sorted(d.glob("*.md"))
+                if files:
+                    for f in files:
+                        content = f.read_text(encoding="utf-8").strip()
+                        lines.append(f"  ├ {f.name}")
+                        for ln in content.splitlines()[:5]:
+                            lines.append(f"  │  {ln}")
+                        if len(content.splitlines()) > 5:
+                            lines.append(f"  │  ... ({len(content.splitlines())} lines total)")
+                    found_any = True
+                else:
+                    lines.append("  (파일 없음)")
             else:
-                lines.append(f"\n[{scope}] {p}  (없음)")
+                lines.append("  (폴더 없음)")
         if not found_any:
-            lines.append("\n규칙 파일이 없습니다.")
-            lines.append("아래 경로에 .TODO_RULE.md 파일을 만들면 태스크 시작 시 자동으로 주입됩니다.")
+            lines.append(f"\n규칙 파일이 없습니다.")
+            lines.append( "아래 경로에 rules/ 폴더를 만들고 .md 파일을 추가하세요:")
+            for d, scope in rule_dirs:
+                lines.append(f"  {d}/")
         lines.append(f"\n{SEP}")
         lines.append("💡 태스크 실행 중 매 continuation prompt에 자동 첨부됩니다.")
         lines.append(f"{SEP}")
