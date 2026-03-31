@@ -51,6 +51,7 @@ from core.hooks import (
     TOOL_OUTPUT_LIMITS
 )
 from core.background import get_background_manager
+from core.text_utils import strip_thinking_tags as _strip_thinking_tags
 
 # Deep Think (deprecated - replaced by plan agent in v2)
 if getattr(config, 'ENABLE_DEEP_THINK', False) and not getattr(config, 'ENABLE_SUB_AGENTS', False):
@@ -430,10 +431,7 @@ def _strip_native_tool_tokens(text):
     import re
 
     # ── Strip reasoning tokens leaked into content ──
-    # DeepSeek/GLM sometimes emit <think>...</think> as content instead of reasoning
-    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
-    # Partial tags (stream cut mid-tag)
-    text = re.sub(r'</?think>', '', text)
+    text = _strip_thinking_tags(text)
 
     # ── Helper ──
     def _json_tool_call_to_action(json_str):
@@ -3012,7 +3010,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         # Strip <think>...</think> reasoning tokens before storing in history
         # Controlled by REASONING_IN_CONTEXT config option
         if not config.REASONING_IN_CONTEXT:
-            collected_content = re.sub(r'<think>.*?</think>', '', collected_content, flags=re.DOTALL).strip()
+            collected_content = _strip_thinking_tags(collected_content).strip()
 
         # Strip echoed system prompt fragments before first Thought:/Action:
         # Some models (GLM 4.7) echo tail of system prompt at response start
@@ -3507,8 +3505,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                     break
             else:
                 # Check if response was think-only (no visible content)
-                import re as _re2
-                visible = _re2.sub(r'<think>.*?</think>', '', collected_content, flags=_re2.DOTALL).strip()
+                visible = _strip_thinking_tags(collected_content).strip()
                 if len(visible) < 10 and final_answer_attempts < 2:
                     final_answer_attempts += 1
                     messages.append({

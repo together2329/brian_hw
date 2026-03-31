@@ -29,6 +29,7 @@ sys.path.insert(0, os.path.join(_project_root, 'core'))
 
 import config
 from display import Color
+from text_utils import strip_metadata_tokens as _strip_metadata_tokens
 
 # --- Global Token Tracking ---
 # Stores actual token counts from API responses
@@ -391,11 +392,7 @@ def call_llm_for_agent(
         with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
             result = json.loads(response.read().decode('utf-8'))
             content = result["choices"][0]["message"]["content"]
-            # Sanitize metadata tokens
-            content = re.sub(r'<\|final<\|[^>]*\|>', '', content)
-            content = re.sub(r'<\|[^|<>]+\|>', '', content)
-            content = re.sub(r'<\|[a-z_]+$', '', content)
-            return content.strip()
+            return _strip_metadata_tokens(content).strip()
 
     except Exception as e:
         return f"Error calling LLM: {e}"
@@ -480,8 +477,7 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     # Yield content line-by-line
     content = msg.get("content") or ""
     # Sanitize provider metadata tokens
-    content = re.sub(r'<\|final<\|[^>]*\|>', '', content)
-    content = re.sub(r'<\|[^|<>]+\|>', '', content)
+    content = _strip_metadata_tokens(content)
 
     # Non-streaming bleed fix: some models (e.g. GLM-4.7) split reasoning mid-sentence
     # and put the tail in content. Since we have the full text, we can reliably fix it.
@@ -1042,10 +1038,7 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
                 sys.stdout.write('\n')
                 sys.stdout.flush()
             content = "".join(full_content)
-            content = re.sub(r'<\|final<\|[^>]*\|>', '', content)
-            content = re.sub(r'<\|[^|<>]+\|>', '', content)
-            content = re.sub(r'<\|[a-z_]+$', '', content)
-            return content.strip()
+            return _strip_metadata_tokens(content).strip()
 
         # Show spinner while waiting (non-streaming)
         _spinner = None
@@ -1076,10 +1069,7 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
             last_input_tokens = usage.get("prompt_tokens", usage.get("input_tokens", 0))
             last_output_tokens = usage.get("completion_tokens", usage.get("output_tokens", 0))
         # Sanitize: Remove OpenRouter/provider metadata tokens
-        content = re.sub(r'<\|final<\|[^>]*\|>', '', content)
-        content = re.sub(r'<\|[^|<>]+\|>', '', content)
-        content = re.sub(r'<\|[a-z_]+$', '', content)
-        return content.strip()
+        return _strip_metadata_tokens(content).strip()
 
     except Exception as e:
         return f"Error calling LLM: {e}"

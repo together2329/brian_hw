@@ -23,6 +23,8 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 import re
 
+from file_utils import read_json_file as _read_json_file_util, atomic_write_json as _atomic_write_json_util
+
 
 @dataclass
 class Action:
@@ -127,38 +129,11 @@ class ProceduralMemory:
 
     def _read_json_file(self, path: Path) -> Dict[str, Any]:
         """Read a JSON dict from disk, returning {} on error."""
-        try:
-            with open(path, 'r') as f:
-                data = json.load(f)
-                return data if isinstance(data, dict) else {}
-        except (FileNotFoundError, json.JSONDecodeError):
-            return {}
+        return _read_json_file_util(path)
 
     def _atomic_write_json(self, path: Path, data: Dict[str, Any]) -> None:
-        """
-        Atomically write JSON to disk.
-        Writes to a temp file in the same directory, then os.replace().
-        """
-        path.parent.mkdir(parents=True, exist_ok=True)
-        tmp_path = None
-        try:
-            with tempfile.NamedTemporaryFile(
-                mode='w',
-                dir=str(path.parent),
-                delete=False,
-                encoding='utf-8'
-            ) as tmp:
-                json.dump(data, tmp, indent=2, ensure_ascii=False)
-                tmp.flush()
-                os.fsync(tmp.fileno())
-                tmp_path = Path(tmp.name)
-            os.replace(str(tmp_path), str(path))
-        finally:
-            if tmp_path and tmp_path.exists():
-                try:
-                    tmp_path.unlink()
-                except Exception:
-                    pass
+        """Atomically write JSON to disk via temp file swap."""
+        _atomic_write_json_util(path, data)
 
     @contextmanager
     def _file_lock(self, target_path: Path, timeout: float = 5.0, poll_interval: float = 0.05):

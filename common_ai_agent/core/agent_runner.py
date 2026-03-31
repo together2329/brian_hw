@@ -23,6 +23,8 @@ if _project_root not in sys.path:
 if os.path.join(_project_root, 'src') not in sys.path:
     sys.path.insert(0, os.path.join(_project_root, 'src'))
 
+from text_utils import strip_thinking_tags as _strip_thinking_tags
+
 
 def _dedup_intra_line(text):
     """Remove repeated content within each line of text.
@@ -54,8 +56,7 @@ def _strip_native_tool_tokens(text):
     import json
 
     # Strip reasoning tokens leaked into content
-    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
-    text = re.sub(r'</?think>', '', text)
+    text = _strip_thinking_tags(text)
 
     def _json_to_action(json_str):
         try:
