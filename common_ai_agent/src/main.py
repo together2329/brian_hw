@@ -89,6 +89,11 @@ from core.parallel_executor import (
     execute_batch_parallel as _execute_batch_parallel_impl,
     PARALLEL_ELIGIBLE_TOOLS as _PARALLEL_ELIGIBLE_TOOLS_IMPORTED,
 )
+from core.chat_loop import (
+    ChatLoopState as _ChatLoopState,
+    ChatLoopDeps as _ChatLoopDeps,
+    process_chat_turn as _process_chat_turn,
+)
 
 # Deep Think (deprecated - replaced by plan agent in v2)
 if getattr(config, 'ENABLE_DEEP_THINK', False) and not getattr(config, 'ENABLE_SUB_AGENTS', False):
@@ -1077,6 +1082,30 @@ def chat_loop():
 
     is_first_turn = True
 
+    # ── ChatLoopState / Deps for core/chat_loop delegation ──
+    _loop_state = _ChatLoopState(
+        messages=messages,
+        agent_mode=agent_mode,
+        rolling_window_size=rolling_window_size,
+        full_messages=full_messages,
+        auto_compression_threshold=auto_compression_threshold,
+        conversation_count=conversation_count,
+        is_first_turn=is_first_turn,
+        todo_tracker=todo_tracker_main,
+    )
+    _loop_deps = _ChatLoopDeps(
+        cfg=config,
+        run_react_agent_fn=run_react_agent,
+        compress_fn=compress_history,
+        save_history_fn=save_conversation_history,
+        on_conversation_end_fn=on_conversation_end,
+        build_system_prompt_fn=build_system_prompt,
+        show_context_usage_fn=show_context_usage,
+        slash_registry=slash_registry,
+        context_tracker=context_tracker,
+        curator=curator,
+    )
+
     # ── Multiline input setup ──
     _multiline_prompt = None
     if config.ENABLE_MULTILINE_INPUT:
@@ -1671,8 +1700,7 @@ def chat_loop():
                                 print(Color.info(f"  [Memory] 🔄 Updated preference: {action['key']} = {action['new_value']} (was: {action['old_value']})"))
                             elif action["action"] == "DELETE":
                                 print(Color.warning(f"  [Memory] ❌ Removed preference: {action['key']}"))
-                except Exception as e:
-                    # Fail silently if extraction fails
+                except Exception:
                     pass
 
             # Create recovery point (before adding user message)
@@ -1692,144 +1720,29 @@ def chat_loop():
                 "role": "user",
                 "content": user_input,
                 "turn_id": current_turn_id,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             })
 
-            # Plan Mode Manual Confirmation Handler (Confirm by user input only)
-            if agent_mode in ('plan', 'plan_q'):
-                _inp = user_input.lower().strip()
-                # Support English and Korean confirmation
-                if _inp in ('y', 'yes', 'confirm', 'proceed', '진행', '확인', 'ok', '네', '예', 'ㅇㅇ', 'yc'):
-                    do_compress = (_inp == 'yc')
-                    agent_mode = 'normal'
-                    os.environ["PLAN_MODE"] = "false"
-                    if messages and messages[0].get("role") == "system":
-                        # Fully rebuild system prompt to restore tools and remove Plan Mode instructions
-                        from core import tools
-                        system_prompt_data = build_system_prompt(messages, allowed_tools=set(tools.AVAILABLE_TOOLS.keys()), agent_mode='normal')
-                        if isinstance(system_prompt_data, dict):
-                            # Optimized mode: combine static and dynamic blocks
-                            _new_content = system_prompt_data.get("static", "") + system_prompt_data.get("dynamic", "")
-                        else:
-                            _new_content = system_prompt_data
-                        messages[0]["content"] = _new_content
+            # --- Delegate per-turn logic to core/chat_loop.py ---
+            _loop_state.messages = messages
+            _loop_state.agent_mode = agent_mode
+            _loop_state.todo_tracker = todo_tracker_main
 
-                    msg = "✅ Confirmed. Switching to Execution Mode..."
-                    if do_compress:
-                        msg += " (with History Compression)"
-                    print(Color.success(f"\n[Plan] {msg}\n"))
-                    
-                    # Inject a dynamic confirmation message based on STEP_BY_STEP_MODE
-                    if getattr(config, 'STEP_BY_STEP_MODE', False):
-                        user_input = (
-                            "Confirmed. Perform ONLY the first task (Step 1) now.\n"
-                            "Workflow: todo_update(index=1, status='in_progress') → do work → "
-                            "todo_update(index=1, status='completed') → verify → "
-                            "todo_update(index=1, status='approved', reason='...')"
-                        )
-                    else:
-                        user_input = (
-                            "Confirmed. Execute all tasks in order. For EACH task follow this workflow:\n"
-                            "  1. todo_update(index=N, status='in_progress')\n"
-                            "  2. Do the work\n"
-                            "  3. todo_update(index=N, status='completed')\n"
-                            "  4. Verify the result\n"
-                            "  5. todo_update(index=N, status='approved', reason='what you verified')\n"
-                            "Start now: todo_update(index=1, status='in_progress')"
-                        )
-                        
-                    if config.DEBUG_MODE:
-                        print(Color.info(f"  [Debug] Injected confirmation: {user_input}"))
-                    messages[-1]["content"] = user_input
-                    
-                    if do_compress:
-                        messages = compress_history(messages, todo_tracker=todo_tracker_main, force=True)
-                    
-                    if full_messages is not None:
-                        full_messages = list(messages)
-                    save_conversation_history(messages)
-                elif _inp in ('n', 'no', 'cancel', '취소', '아니오', 'ㄴㄴ'):
-                    print(Color.warning("\n[Plan] Execution cancelled. Staying in Plan Mode for further refinements.\n"))
-                    user_input = "I've reviewed the plan and I'm NOT ready to execute yet. Let's refine it further or address my concerns."
-                elif len(_inp) <= 2 and not _inp.startswith('/'):
-                    # Likely a typo (e.g. "]", "?") — don't waste an LLM call
-                    messages.pop()  # remove the message we just appended
-                    print(Color.warning(f"  [Plan] Type y to confirm, n to cancel, or write feedback."))
-                    continue
+            # Delegate per-turn processing to core/chat_loop
+            _loop_state, _ctrl = _process_chat_turn(user_input, _loop_state, _loop_deps)
+            messages = _loop_state.messages
+            agent_mode = _loop_state.agent_mode
+            rolling_window_size = _loop_state.rolling_window_size
+            full_messages = _loop_state.full_messages
+            auto_compression_threshold = _loop_state.auto_compression_threshold
+            conversation_count = _loop_state.conversation_count
+            is_first_turn = _loop_state.is_first_turn
+            todo_tracker_main = _loop_state.todo_tracker
 
-            # Handle 'keep going' signal to resume from rejected state
-            if config.ENABLE_TODO_TRACKING and todo_tracker_main:
-                _inp = user_input.lower().strip()
-                if any(x in _inp for x in ('keep going', 'continue', '진행', '계속')):
-                    if todo_tracker_main.unprocess_rejected():
-                        print(Color.success("\n[System] 'Keep going' detected. Resetting rejected tasks for retry.\n"))
-                        # Merge reminder into user input for better context and cleaner output
-                        reminder = todo_tracker_main.get_continuation_prompt()
-                        if reminder:
-                            user_input = f"{user_input}\n\n{reminder}"
-                            messages[-1]["content"] = user_input
-                            if config.DEBUG_MODE:
-                                _rem_db = reminder.replace('\n', ' ')
-                                print(Color.info(f"  [Debug] Merged reminder into user input: {_rem_db}"))
-
-            # ReAct Loop: Smart Iteration Control with progress tracking
-            tracker = IterationTracker(max_iterations=config.MAX_ITERATIONS)
-
-            # Auto-compression: compress when non-system message count exceeds threshold
-            if auto_compression_threshold > 0:
-                non_sys_count = sum(1 for m in messages if m.get("role") != "system")
-                if non_sys_count > auto_compression_threshold:
-                    print(Color.info(f"\n[Auto-compress] {non_sys_count} msgs > {auto_compression_threshold}, compressing..."))
-                    messages = compress_history(messages, todo_tracker=todo_tracker_main, force=True, quiet=True)
-                    context_tracker.update_messages(messages, exclude_system=True)
-                    save_conversation_history(messages)
-
-            # Rolling window: pass trimmed view to LLM, keep full_messages as authoritative history
-            if rolling_window_size > 0 and full_messages is not None:
-                # First iteration: messages != full_messages, sync user message
-                # Subsequent iterations: messages IS full_messages (same object), already synced
-                if messages is not full_messages:
-                    full_messages.append(messages[-1])
-                sys_msgs = [m for m in full_messages if m.get("role") == "system"]
-                non_sys = [m for m in full_messages if m.get("role") != "system"]
-                window_msgs = sys_msgs + non_sys[-(rolling_window_size * 2):]
-                window_msgs_result, agent_mode = run_react_agent(window_msgs, tracker, user_input, mode='interactive', agent_mode=agent_mode, todo_tracker=todo_tracker_main)
-                # Append only newly added messages (assistant + tool responses) to full_messages
-                new_msgs = window_msgs_result[len(window_msgs):]
-                full_messages.extend(new_msgs)
-                messages = full_messages
-            else:
-                # Run ReAct Agent
-                messages, agent_mode = run_react_agent(messages, tracker, user_input, mode='interactive', agent_mode=agent_mode, todo_tracker=todo_tracker_main)
-                
-                # After the first turn, we enable auto-plan if there are pending todos
-                is_first_turn = False
-
-            # plan_q (first clarification turn) → plan (explore allowed next turn)
-            if agent_mode == 'plan_q':
-                agent_mode = 'plan'
-
-            # Extract knowledge from conversation at end
-            try:
-                on_conversation_end(messages)
-            except Exception as e:
-                print(Color.warning(f"[Warning] Failed to save knowledge: {e}"))
-                print(Color.warning("[Warning] Conversation will continue normally"))
-
-            # ACE Credit Assignment: Run periodic curation
-            conversation_count += 1
-            if curator and conversation_count % config.CURATOR_INTERVAL == 0:
-                print(Color.system("\n[Curator] Running periodic knowledge curation..."))
-                try:
-                    stats = curator.curate()
-                    if stats['deleted_harmful'] > 0 or stats['pruned_unused'] > 0:
-                        print(Color.info(f"[Curator] Cleaned up: {stats['deleted_harmful']} harmful, "
-                                       f"{stats['pruned_unused']} unused nodes"))
-                        print(Color.info(f"[Curator] Graph size: {stats['total_before']} → {stats['total_after']} nodes"))
-                    else:
-                        print(Color.info("[Curator] No cleanup needed. Graph is healthy."))
-                except Exception as e:
-                    print(Color.warning(f"[Curator] Curation failed: {e}"))
+            if _ctrl == "break":
+                break
+            if _ctrl == "skip":
+                continue
 
         except KeyboardInterrupt:
             print(Color.warning("\nExiting..."))
