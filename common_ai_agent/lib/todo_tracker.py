@@ -99,6 +99,7 @@ class TodoItem:
     detail: str = ""
     criteria: str = ""
     rejection_reason: str = ""
+    approved_reason: str = ""
 
     def __post_init__(self):
         if self.created_at is None:
@@ -162,6 +163,7 @@ class TodoTracker:
                 detail=todo_dict.get("detail", ""),
                 criteria=todo_dict.get("criteria", ""),
                 rejection_reason=todo_dict.get("rejection_reason", ""),
+                approved_reason=todo_dict.get("approved_reason", ""),
             ))
 
         # Find current in_progress item
@@ -353,6 +355,10 @@ class TodoTracker:
             # Show rejection reason if available
             if todo.rejection_reason and todo.status in ('rejected', 'in_progress', 'pending'):
                 lines.append(f"     {Color.error('⚠ REJECTED:')} {Color.RED}{todo.rejection_reason}{Color.RESET}")
+
+            # Show approved reason if available
+            if todo.approved_reason and todo.status == 'approved':
+                lines.append(f"     {Color.success('✔ APPROVED:')} {Color.DIM}{todo.approved_reason}{Color.RESET}")
                 
             # Show criteria if available
             if todo.criteria and todo.status != 'completed':
@@ -497,6 +503,7 @@ class TodoTracker:
                     "detail": t.detail,
                     "criteria": t.criteria,
                     "rejection_reason": t.rejection_reason,
+                    "approved_reason": t.approved_reason,
                 }
                 for t in self.todos
             ],

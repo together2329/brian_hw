@@ -101,15 +101,27 @@ MAN_PAGES: dict[str, str] = {
    현재 진행 중인 태스크 목록을 관리합니다.
    /plan 실행 후 AI가 자동으로 등록하며, 수동 조작도 가능합니다.
 
- 사용법
-   /todo                       현재 Todo 목록 표시
-   /todo clear                 Todo 목록 전체 초기화
-   /todo add <text>            새 태스크 추가
-   /todo remove <N>            태스크 N 삭제
-   /todo move <N> <M>          태스크 N을 위치 M으로 이동 (순서 변경)
-   /todo goal <N> <text>       태스크 N의 내용 변경
-   /todo set <N> <status>      특정 태스크 상태 강제 변경
-   /todo set all <status>      전체 태스크 상태 강제 변경
+ 사용법 (alias 모두 동일 동작)
+   /todo                           현재 Todo 목록 표시
+   /todo clear                     Todo 목록 전체 초기화
+   /todo add <text>                새 태스크 추가
+   /todo remove <N>  / rm <N>      태스크 N 삭제
+   /todo move <N> <M> / mv <N> <M> 태스크 N을 위치 M으로 이동
+   /todo goal <N> <text> / g       태스크 N 내용(goal) 변경
+   /todo set <N> <status> / s      상태 강제 변경
+   /todo set all <status>          전체 상태 강제 변경
+   /todo edit <N> <field> <value>  개별 필드 수정
+   /todo edit <N> <field>+ <value> 필드에 내용 추가(append)
+   (edit alias: e)
+
+ edit 필드 목록
+   content / c        태스크 설명 (goal과 동일, active_form도 동기화)
+   detail / d         구현 방법/상세 설명
+   criteria / cr      완료 판단 기준 (줄바꿈으로 구분)
+   priority / pr      우선순위: high(h) / medium(m) / low(l)
+   active_form / af   진행 중일 때 표시 텍스트
+   rejection_reason / rr  반려 사유
+   approved_reason / ar   승인 메모
 
  상태 종류
    pending       대기 중 ⏸️
@@ -119,12 +131,17 @@ MAN_PAGES: dict[str, str] = {
    rejected      반려 ❌
 
  예시
-   /todo add "JWT 인증 모듈 작성"   새 태스크 추가
-   /todo remove 3               태스크 3 삭제
-   /todo move 3 1               태스크 3을 맨 앞으로 이동
-   /todo goal 2 "auth.py 리팩토링"  태스크 2 내용 변경
-   /todo set 1 approved         태스크 1 강제 승인
-   /todo set all pending        전체 리셋 (재시작)
+   /todo add "JWT 인증 모듈 작성"        새 태스크 추가
+   /todo rm 3                           태스크 3 삭제
+   /todo mv 3 1                         태스크 3을 맨 앞으로 이동
+   /todo g 2 "auth.py 리팩토링"          태스크 2 내용 변경
+   /todo s 1 a                          태스크 1 강제 승인 (a=approved)
+   /todo s all p                        전체 pending 리셋
+   /todo e 1 d "JWT 라이브러리 사용"     detail 설정
+   /todo e 1 d+ "\n- RS256 알고리즘"    detail에 내용 추가
+   /todo e 2 cr "테스트 통과\n리뷰 완료" criteria 설정
+   /todo e 1 pr h                       priority=high
+   /todo e 1 ar "모든 테스트 통과"       approved reason 설정
 
  AI 상태 흐름 (정상)
    pending → in_progress → completed → approved

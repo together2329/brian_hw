@@ -236,19 +236,31 @@ class SlashCommandRegistry:
             parts = args.strip().split(maxsplit=2)
             subcmd = parts[0].lower() if parts else ''
 
+            # Subcommand aliases
+            SUBCMD_ALIASES = {
+                'rm': 'remove',
+                'mv': 'move',
+                'g':  'goal',
+                's':  'set',
+                'e':  'edit',
+            }
+            subcmd = SUBCMD_ALIASES.get(subcmd, subcmd)
+
             if subcmd == 'set':
                 return self._todo_force_set(parts[1:], todo_file)
             if subcmd == 'remove':
                 return self._todo_remove(parts[1:], todo_file)
             if subcmd == 'add':
-                text = args.strip()[len('add'):].strip()
-                return self._todo_add(text, todo_file)
+                text = args.strip().split(maxsplit=1)
+                return self._todo_add(text[1] if len(text) > 1 else '', todo_file)
             if subcmd == 'move':
                 return self._todo_move(parts[1:], todo_file)
             if subcmd == 'goal':
-                # /todo goal <N> <new text>
-                rest = args.strip()[len('goal'):].strip().split(maxsplit=1)
-                return self._todo_goal(rest, todo_file)
+                rest = args.strip().split(maxsplit=2)
+                return self._todo_goal(rest[1:], todo_file)
+            if subcmd == 'edit':
+                rest = args.strip().split(maxsplit=3)
+                return self._todo_edit(rest[1:], todo_file)
 
             if not todo_file.exists():
                 # Check if there's a recent write failure to surface
@@ -524,6 +536,102 @@ class SlashCommandRegistry:
                 f"✏️  Task {int(parts[0])} goal updated:\n"
                 f"   Before: {old_content}\n"
                 f"   After:  {parts[1].strip()}\n\n"
+                + tracker.format_progress()
+            )
+        except Exception as e:
+            return f"❌ Error: {e}\n"
+
+    def _todo_edit(self, parts: list, todo_file) -> str:
+        """
+        Edit any field of a todo item.
+        Usage: /todo edit <N> <field>[+] <value>
+        field+  = append (add to existing), field = replace
+
+        Fields:
+          content / c          task description (also updates active_form)
+          detail  / d          implementation details
+          criteria / cr        completion criteria
+          priority / pr        high/medium/low  (h/m/l)
+          active_form / af     in-progress display text
+          rejection_reason / rr  rejection reason
+          approved_reason / ar   approval note
+        """
+        FIELD_ALIASES = {
+            'c':       'content',
+            'd':       'detail',
+            'cr':      'criteria',
+            'pr':      'priority',
+            'af':      'active_form',
+            'rr':      'rejection_reason',
+            'ar':      'approved_reason',
+        }
+        PRIORITY_ABBR = {'h': 'high', 'm': 'medium', 'l': 'low'}
+        VALID_FIELDS = set(FIELD_ALIASES.values())
+
+        if len(parts) < 3 or not parts[0].isdigit():
+            fields_str = "  content/c, detail/d, criteria/cr, priority/pr, active_form/af, rejection_reason/rr, approved_reason/ar"
+            return (
+                "Usage: /todo edit <N> <field>[+] <value>\n"
+                "  field+  = append to existing value\n\n"
+                "Fields:\n" + fields_str + "\n\n"
+                "Examples:\n"
+                "  /todo e 1 d \"JWT 라이브러리 사용\"    set detail\n"
+                "  /todo e 1 d+ \"\\n- RS256 알고리즘\"   append to detail\n"
+                "  /todo e 2 cr \"테스트 통과\"           set criteria\n"
+                "  /todo e 1 pr h                      set priority=high\n"
+                "  /todo e 1 ar \"모든 테스트 통과\"      set approved reason\n"
+            )
+
+        if not todo_file.exists():
+            return "No active todo list.\n"
+
+        try:
+            from lib.todo_tracker import TodoTracker
+            tracker = TodoTracker.load(todo_file)
+            if not tracker or not tracker.todos:
+                return "No todos found.\n"
+
+            idx = int(parts[0]) - 1
+            if not (0 <= idx < len(tracker.todos)):
+                return f"❌ Task {parts[0]} not found (total: {len(tracker.todos)})\n"
+
+            raw_field = parts[1]
+            append = raw_field.endswith('+')
+            field_key = raw_field.rstrip('+').lower()
+            field_name = FIELD_ALIASES.get(field_key, field_key)
+
+            if field_name not in VALID_FIELDS:
+                return f"❌ Unknown field: '{field_key}'\nValid: {', '.join(sorted(VALID_FIELDS))}\n"
+
+            value = parts[2].strip()
+
+            # Priority special handling
+            if field_name == 'priority':
+                value = PRIORITY_ABBR.get(value.lower(), value.lower())
+                if value not in ('high', 'medium', 'low'):
+                    return f"❌ Invalid priority: '{value}' — use high/medium/low (h/m/l)\n"
+                append = False  # priority never appends
+
+            todo = tracker.todos[idx]
+            old_value = getattr(todo, field_name, "")
+
+            if append and old_value:
+                new_value = old_value + value
+            else:
+                new_value = value
+
+            setattr(todo, field_name, new_value)
+
+            # content change also syncs active_form (unless af was explicitly set)
+            if field_name == 'content' and not append:
+                todo.active_form = new_value
+
+            tracker.save()
+
+            mode = "appended" if append else "set"
+            return (
+                f"✏️  Task {int(parts[0])} [{field_name}] {mode}:\n"
+                f"   {repr(new_value[:120])}\n\n"
                 + tracker.format_progress()
             )
         except Exception as e:
