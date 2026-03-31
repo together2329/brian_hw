@@ -300,6 +300,13 @@ class SlashCommandRegistry:
         Usage: /todo set <N|all> <status>
         Valid statuses: pending, in_progress, completed, approved, rejected
         """
+        STATUS_ABBR = {
+            "p": "pending",
+            "i": "in_progress", "ip": "in_progress",
+            "c": "completed",
+            "a": "approved",
+            "r": "rejected",
+        }
         VALID_STATUSES = {"pending", "in_progress", "completed", "approved", "rejected"}
         STATUS_ICONS = {
             "pending": "⏸️",
@@ -321,10 +328,14 @@ class SlashCommandRegistry:
             )
 
         target = parts[0].lower()
-        new_status = parts[1].lower()
+        new_status = STATUS_ABBR.get(parts[1].lower(), parts[1].lower())
 
         if new_status not in VALID_STATUSES:
-            return f"❌ Invalid status: '{new_status}'\nValid: {', '.join(sorted(VALID_STATUSES))}\n"
+            return (
+                f"❌ Invalid status: '{parts[1]}'\n"
+                f"Valid: {', '.join(sorted(VALID_STATUSES))}\n"
+                f"Abbr:  p=pending  i=in_progress  c=completed  a=approved  r=rejected\n"
+            )
 
         if not todo_file.exists():
             return "No active todo list.\n"
