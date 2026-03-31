@@ -412,14 +412,15 @@ def get_terminal_width() -> int:
 
 def format_tool_header(tool_name: str, args_summary: str = "", idx: int = 0, total: int = 1) -> str:
     """
-    Format a tool execution header line.
-    Example: "  → Read core/hooks.py"
-    Example: "  ✱ Grep 'pattern' in core/"
+    Format a tool execution header line (Claude Code style).
+    Example: "⏺ Read(core/hooks.py)"
+    Example: "⏺ Read(core/hooks.py · lines 10-50)"
+    Example: "⏺ Grep("pattern" in core/)"
     """
-    icon = tool_icon(tool_name)
+    name = _friendly_tool_name(tool_name)
     if args_summary:
-        return f"  {Color.CYAN}{icon}{Color.RESET} {Color.BOLD}{_friendly_tool_name(tool_name)}{Color.RESET} {Color.DIM}{args_summary}{Color.RESET}"
-    return f"  {Color.CYAN}{icon}{Color.RESET} {Color.BOLD}{_friendly_tool_name(tool_name)}{Color.RESET}"
+        return f"⏺ {Color.BOLD}{name}{Color.RESET}{Color.DIM}({args_summary}){Color.RESET}"
+    return f"⏺ {Color.BOLD}{name}{Color.RESET}"
 
 
 def format_tool_result(output: str, max_lines: int = 5, max_chars: int = 300) -> str:
@@ -485,12 +486,12 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
 
     if tool_name == 'grep_file':
         match_count = len([l for l in observation.split('\n') if l.strip()]) if observation else 0
-        return f"{match_count} match(es)"
+        return f"{match_count} matches"
 
     if tool_name == 'find_files':
         found_m = re.search(r'Found (\d+) file', observation) if observation else None
         count = found_m.group(1) if found_m else str(line_count)
-        return f"{count} file(s)"
+        return f"{count} files"
 
     if tool_name == 'list_dir':
         entries = len([l for l in observation.split('\n') if l.strip()]) if observation else 0
@@ -502,7 +503,7 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
     if tool_name in ('replace_in_file', 'replace_lines'):
         repl_m = re.search(r'(\d+) replacement', observation) if observation else None
         if repl_m:
-            return f"{repl_m.group(1)} replacement(s)"
+            return f"{repl_m.group(1)} replacements"
         return "updated"
 
     if tool_name == 'run_command':
@@ -514,7 +515,7 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
     if tool_name == 'rag_search':
         result_m = re.search(r'(\d+) result', observation) if observation else None
         count = result_m.group(1) if result_m else "?"
-        return f"{count} result(s)"
+        return f"{count} results"
 
     if tool_name == 'background_task':
         status_m = re.search(r'Status:\s*(\w+)', observation) if observation else None
@@ -525,7 +526,7 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
 
     if tool_name == 'todo_write':
         count = observation.count('⏸') + observation.count('▶') + observation.count('✅')
-        return f"{count} task(s)"
+        return f"{count} tasks"
 
     if tool_name == 'todo_update':
         if 'approved' in observation.lower() or 'reviewed' in observation.lower():
@@ -740,11 +741,17 @@ def _extract_tool_args_summary(tool_name: str, args_str: str) -> str:
     """Extract a human-readable summary from tool args"""
     import re
 
-    # Extract path for file tools
+    # Extract path (+ optional line range) for file tools
     if tool_name in ('read_file', 'read_lines', 'write_file', 'replace_in_file', 'replace_lines'):
         match = re.search(r'(?:path\s*=\s*)?["\']([^"\']+)["\']', args_str)
         if match:
-            return match.group(1)
+            path = match.group(1)
+            if tool_name == 'read_lines':
+                start_m = re.search(r'start(?:_line)?\s*=\s*(\d+)', args_str)
+                end_m   = re.search(r'end(?:_line)?\s*=\s*(\d+)', args_str)
+                if start_m and end_m:
+                    return f"{path} · lines {start_m.group(1)}-{end_m.group(1)}"
+            return path
 
     # Extract pattern + path for grep/find
     if tool_name in ('grep_file', 'find_files'):
@@ -782,7 +789,7 @@ def _extract_tool_args_summary(tool_name: str, args_str: str) -> str:
         if tasks_m:
             # Count the number of dictionaries in the list by looking for "content" or "{"
             count = args_str.count('"content":') or args_str.count('{')
-            return f"{count} task(s)"
+            return f"{count} tasks"
         return "..."
 
     # Extract index/status for todo_update

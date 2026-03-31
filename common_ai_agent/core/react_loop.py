@@ -680,7 +680,7 @@ def run_react_agent_impl(
                         print(format_tool_result(observation, max_lines=1000, max_chars=100000))
                     elif tool_name in _INLINE_TOOLS:
                         brief = format_tool_brief(tool_name, args_str, observation)
-                        print(f"  ({brief}{elapsed_suffix})")
+                        print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")
                     else:
                         print(format_tool_result(observation))
 
