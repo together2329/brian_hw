@@ -66,6 +66,11 @@ from core.history_manager import (
     save_conversation_history as _save_history_impl,
     load_conversation_history as _load_history_impl,
 )
+from core.prompt_builder import (
+    build_system_prompt as _build_system_prompt_impl,
+    _build_system_prompt_str as _build_system_prompt_str_impl,
+    PromptContext,
+)
 
 # Deep Think (deprecated - replaced by plan agent in v2)
 if getattr(config, 'ENABLE_DEEP_THINK', False) and not getattr(config, 'ENABLE_SUB_AGENTS', False):
@@ -580,344 +585,39 @@ def load_active_skills(messages, allowed_tools=None):
 
 
 def _build_system_prompt_str(**kwargs) -> str:
-    """build_system_prompt() wrapper — always returns a string (handles optimized dict return)."""
-    sp = build_system_prompt(**kwargs)
-    if isinstance(sp, dict):
-        return (sp.get("static", "") + "\n\n" + sp.get("dynamic", "")).strip()
-    return sp
-
-
-def _save_conv_snapshot(n: int, messages: list):
-    """Save conversation snapshot when task N is approved."""
-    import hashlib
-    cwd_hash = hashlib.md5(os.getcwd().encode()).hexdigest()[:8]
-    snap_dir = Path.home() / ".common_ai_agent" / "conv_snapshots"
-    snap_dir.mkdir(parents=True, exist_ok=True)
-    (snap_dir / f"{cwd_hash}_todo_{n}_approved.json").write_text(
-        json.dumps(messages, ensure_ascii=False, indent=2))
-
-
-def _load_conv_snapshot(n: int):
-    """Load conversation snapshot for task N approval point. Returns None if not found."""
-    import hashlib
-    cwd_hash = hashlib.md5(os.getcwd().encode()).hexdigest()[:8]
-    snap_file = Path.home() / ".common_ai_agent" / "conv_snapshots" / f"{cwd_hash}_todo_{n}_approved.json"
-    if snap_file.exists():
-        return json.loads(snap_file.read_text())
-    return None
+    """Wrapper: delegates to core.prompt_builder."""
+    ctx = PromptContext(
+        memory_system=memory_system,
+        graph_lite=graph_lite,
+        procedural_memory=procedural_memory,
+        hybrid_rag=hybrid_rag,
+        todo_tracker=todo_tracker,
+    )
+    return _build_system_prompt_str_impl(
+        context=ctx,
+        load_skills_fn=load_active_skills if config.ENABLE_SKILL_SYSTEM else None,
+        llm_call_fn=call_llm_raw,
+        **kwargs,
+    )
 
 
 def build_system_prompt(messages=None, allowed_tools=None, agent_mode=None):
-    """
-    Build system prompt with memory, graph context, and procedural guidance if available.
-
-    Args:
-        messages: Optional message history for graph semantic search and procedural retrieval
-        allowed_tools: Optional set of allowed tools (for sub-agents)
-        agent_mode: Optional agent operation mode (plan/normal)
-
-    Returns:
-        Complete system prompt string
-    """
-    # Determine effective tool list
-    if allowed_tools is None:
-        from core import tools
-        _at = set(tools.AVAILABLE_TOOLS.keys())
-    else:
-        _at = set(allowed_tools)
-
-    # Plan mode filtering: proactive tool hiding from system prompt
-    if agent_mode in ('plan', 'plan_q'):
-        _at = set(t for t in _at if t not in config.PLAN_MODE_BLOCKED_TOOLS)
-
-    # Use new tool description system from config with filtered tool list
-    is_plan = agent_mode in ('plan', 'plan_q')
-    
-    # Hide todo tools from prompt if no active tasks, as requested by user
-    todo_active = False
-    if todo_tracker is not None and todo_tracker.todos:
-        todo_active = True
-    
-    base_prompt = config.build_base_system_prompt(allowed_tools=_at, plan_mode=is_plan, todo_active=todo_active)
-    
-    # Debug: Show prompt building start
-    if config.DEBUG_MODE and messages:
-        print(Color.system("[PROMPT] Building system prompt with context..."))
-        print(Color.system(f"[PROMPT]   Messages in history: {len(messages)}"))
-
-    # Build context section
-    dynamic_context = ""
-    if memory_system is not None or graph_lite is not None or procedural_memory is not None or config.ENABLE_SKILL_SYSTEM:
-        context_parts = []
-
-        # Add memory preferences
-        if memory_system is not None:
-            memory_context = memory_system.format_all_for_prompt()
-            if memory_context:
-                context_parts.append(memory_context)
-                if config.DEBUG_MODE:
-                    # Get detailed breakdown
-                    prefs = memory_system.list_preferences()
-                    project_ctx = memory_system.list_project_context()
-                    print(Color.system(f"[PROMPT] ✅ Memory loaded:"))
-                    if prefs:
-                        print(Color.system(f"[PROMPT]     📋 Preferences ({len(prefs)} items):"))
-                        for key, val in prefs.items():
-                            val_str = str(val)[:50] + "..." if len(str(val)) > 50 else str(val)
-                            print(Color.system(f"[PROMPT]        {key}: {val_str}"))
-                    if project_ctx:
-                        print(Color.system(f"[PROMPT]     🗂️ Project Context ({len(project_ctx)} items):"))
-                        for key, val in project_ctx.items():
-                            val_str = str(val)[:50] + "..." if len(str(val)) > 50 else str(val)
-                            print(Color.system(f"[PROMPT]        {key}: {val_str}"))
-
-        # Add procedural guidance (from past similar tasks)
-        if procedural_memory is not None and config.PROCEDURAL_INJECT_GUIDANCE and messages:
-            # Get recent user messages to understand current task
-            user_messages = [m for m in messages if m.get("role") == "user"]
-            if user_messages:
-                # Use last user message as current task
-                current_task = user_messages[-1].get("content", "")[:200]
-
-                try:
-                    # Retrieve similar past trajectories
-                    similar_trajs = procedural_memory.retrieve(
-                        current_task,
-                        limit=config.PROCEDURAL_RETRIEVE_LIMIT
-                    )
-
-                    # Filter by threshold
-                    similar_trajs = [(score, traj) for score, traj in similar_trajs
-                                    if score >= config.PROCEDURAL_SIMILARITY_THRESHOLD]
-
-                    if similar_trajs:
-                        guidance = "=== PAST EXPERIENCE ===\n\n"
-                        guidance += "You have similar past experiences that may help:\n\n"
-
-                        for i, (score, traj) in enumerate(similar_trajs, 1):
-                            guidance += f"{i}. Task: {traj.task_description}\n"
-                            guidance += f"   Outcome: {traj.outcome.upper()} ({traj.iterations} iterations)\n"
-
-                            # Show key actions for successful trajectories
-                            if traj.outcome == "success":
-                                guidance += "   Successful approach:\n"
-                                for action in traj.actions[:3]:  # Show first 3 actions
-                                    guidance += f"     - {action.tool}({action.args[:50]}...)\n"
-
-                            # Show errors for failed trajectories
-                            elif traj.errors_encountered:
-                                guidance += f"   Errors encountered: {', '.join(traj.errors_encountered[:2])}\n"
-
-                            guidance += "\n"
-
-                        guidance += "Use this experience to avoid past mistakes and follow proven approaches.\n"
-                        guidance += "=====================\n"
-
-                        context_parts.append(guidance)
-                        
-                        # Debug output
-                        if config.DEBUG_MODE:
-                            print(Color.system(f"[PROMPT] ✅ Procedural: {len(similar_trajs)} similar trajectories"))
-                            for score, traj in similar_trajs:
-                                print(Color.system(f"[PROMPT]     - {traj.task_description[:40]}... (score: {score:.2f})"))
-
-                        # Increment usage count for retrieved trajectories
-                        for score, traj in similar_trajs:
-                            procedural_memory.increment_usage(traj.id)
-
-                except Exception as e:
-                    # Fail silently if procedural retrieval fails
-                    pass
-
-        # Add graph knowledge (semantic search based on recent conversation)
-        if graph_lite is not None and messages:
-            # Get recent user messages for context
-            user_messages = [m for m in messages if m.get("role") == "user"]
-            if user_messages:
-                # Use last user message as search query
-                recent_topic = user_messages[-1].get("content", "")[:200]
-
-                try:
-                    # Graph RAG: Search with graph traversal for richer context
-                    relevant_results = graph_lite.graph_rag_search(
-                        recent_topic,
-                        limit=config.GRAPH_SEARCH_LIMIT,
-                        hop=1  # Follow 1 hop of edges
-                    )
-
-                    if relevant_results:
-                        graph_context = "=== RELEVANT KNOWLEDGE ===\n\n"
-                        included_nodes = []
-                        for score, node in relevant_results:
-                            # Only include nodes with reasonable similarity
-                            if score > config.GRAPH_SIMILARITY_THRESHOLD:
-                                # Try multiple fields: content, description, name
-                                node_desc = node.data.get("content") or node.data.get("description") or node.data.get("name", "")
-                                if node_desc:
-                                    # Truncate long content
-                                    if len(node_desc) > 200:
-                                        node_desc = node_desc[:200] + "..."
-                                    graph_context += f"- {node.type}: {node_desc}\n"
-                                    included_nodes.append((score, node))
-
-                        graph_context += "\n=====================\n"
-                        context_parts.append(graph_context)
-                        
-                        # Debug output with type breakdown and content preview
-                        if config.DEBUG_MODE and included_nodes:
-                            type_counts = {}
-                            for score, node in included_nodes:
-                                type_counts[node.type] = type_counts.get(node.type, 0) + 1
-                            type_summary = ", ".join([f"{t}:{c}" for t, c in type_counts.items()])
-                            
-                            # Get total graph stats
-                            total_nodes = len(graph_lite.nodes) if hasattr(graph_lite, 'nodes') else 0
-                            total_edges = len(graph_lite.edges) if hasattr(graph_lite, 'edges') else 0
-                            print(Color.system(f"[PROMPT] ✅ Graph: {len(included_nodes)}/{total_nodes} nodes matched ({type_summary}), {total_edges} edges"))
-                            
-                            # Show all matched nodes with details
-                            for i, (score, node) in enumerate(included_nodes, 1):
-                                content = node.data.get('content') or node.data.get('description') or node.data.get('name', '')
-                                content_preview = content[:80].replace('\n', ' ') + "..." if len(content) > 80 else content.replace('\n', ' ')
-                                
-                                # Get usage stats
-                                helpful = getattr(node, 'helpful_count', 0)
-                                harmful = getattr(node, 'harmful_count', 0)
-                                usage = getattr(node, 'usage_count', 0)
-                                stats = f"👍{helpful} 👎{harmful} 📊{usage}" if any([helpful, harmful, usage]) else ""
-                                
-                                print(Color.system(f"[PROMPT]     {i}. [{node.type}] \"{content_preview}\""))
-                                if stats:
-                                    print(Color.system(f"[PROMPT]        score:{score:.2f} {stats}"))
-
-                except Exception as e:
-                    # Fail silently if graph search fails
-                    pass
-
-        # Smart RAG: Auto-inject relevant code/spec context
-        if config.ENABLE_SMART_RAG and messages:
-            user_messages = [m for m in messages if m.get("role") == "user"]
-            if user_messages:
-                recent_query = user_messages[-1].get("content", "")[:200]
-                
-                try:
-                    from core.smart_rag import SmartRAGDecision
-                    from core.rag_db import get_rag_db
-                    
-                    # Create Smart RAG decision maker
-                    smart_rag = SmartRAGDecision(
-                        high_threshold=config.SMART_RAG_HIGH_THRESHOLD,
-                        low_threshold=config.SMART_RAG_LOW_THRESHOLD,
-                        top_k=config.SMART_RAG_TOP_K,
-                        debug=config.DEBUG_MODE
-                    )
-                    
-                    # Define RAG search function (Hybrid if available)
-                    def rag_search_func(query, limit=3):
-                        if hybrid_rag:
-                            # Use HybridRAG (Embedding + BM25 + Graph)
-                            # This will also trigger the detailed debug visualization
-                            return hybrid_rag.search(query, limit=limit)
-                        else:
-                            # Fallback to simple Embedding search
-                            db = get_rag_db()
-                            return db.search(query, limit=limit)
-                    
-                    # LLM judge function (only if enabled)
-                    llm_judge_func = call_llm_raw if config.SMART_RAG_LLM_JUDGE else None
-                    
-                    # Decide and get results
-                    should_use, rag_results = smart_rag.decide(
-                        recent_query,
-                        rag_search_func,
-                        llm_judge_func
-                    )
-                    
-                    # Always show Smart RAG decision (for visibility)
-                    # Always show Smart RAG decision (for visibility)
-                    if rag_results:
-                        top_score = rag_results[0].score if hybrid_rag else (rag_results[0][0] if rag_results else 0)
-                        decision = "✅ Injected" if should_use else "❌ Ignored"
-                        
-                        # Note: Detailed debug visualization is handled inside hybrid_rag.search() if enabled
-                        
-                        # Simple output (always visible)
-                        print(Color.system(f"[SmartRAG] Query: \"{recent_query}\""))
-                        print(Color.system(f"[SmartRAG] Top Score: {top_score:.3f} | Threshold: {config.SMART_RAG_LOW_THRESHOLD}-{config.SMART_RAG_HIGH_THRESHOLD} | {decision}"))
-                        
-                        if should_use:
-                            for i, item in enumerate(rag_results[:3], 1):
-                                if hybrid_rag:
-                                    # HybridRAG returns SearchResult objects
-                                    score = item.score
-                                    source = os.path.basename(item.source_file)
-                                    category = getattr(item, 'chunk_type', 'unknown').upper()
-                                else:
-                                    # Basic RAG returns (score, chunk) tuples
-                                    score, chunk = item
-                                    source = os.path.basename(getattr(chunk, 'source_file', 'unknown'))
-                                    category = getattr(chunk, 'category', 'unknown').upper()
-                                    
-                                print(Color.system(f"[SmartRAG]   {i}. [{category}] {source} (score: {score:.2f})"))
-                        print("")
-                    
-                    if should_use and rag_results:
-                        rag_context = smart_rag.format_context(rag_results, max_chars=2000)
-                        context_parts.append(rag_context)
-                        
-                        # DEBUG: Print the injected context to verify prompt inclusion (Always visible now)
-                        print(Color.system(f"\n[SmartRAG] Injected Context Preview ({len(rag_context)} chars):"))
-                        print(Color.system("-" * 40))
-                        # User requested full context visibility
-                        print(Color.system(rag_context.strip()))
-                        print(Color.system("-" * 40 + "\n"))
-                
-                except ImportError:
-                    # RAG module not available, skip silently
-                    pass
-                except Exception as e:
-                    if config.DEBUG_MODE:
-                        print(Color.warning(f"[SmartRAG] Error: {e}"))
-
-        # Add active skills (domain-specific expertise)
-        if config.ENABLE_SKILL_SYSTEM and messages:
-            try:
-                skill_prompts = load_active_skills(messages, allowed_tools)
-                if skill_prompts:
-                    skills_section = "=== ACTIVE SKILLS ===\n\n"
-                    skills_section += "The following domain expertise is active:\n\n"
-                    skills_section += "\n\n".join(skill_prompts)
-                    skills_section += "\n\n====================="
-                    context_parts.append(skills_section)
-            except Exception as e:
-                print(Color.warning(f"[PROMPT] ⚠️ Error injecting skills: {e}"))
-
-
-        # Combine all context parts
-        dynamic_context = ""
-        if context_parts:
-            dynamic_context = "\n\n".join(context_parts)
-
-            # Debug: Show prompt build summary
-            if config.DEBUG_MODE and messages:
-                total_chars = len(base_prompt) + len(dynamic_context)
-                estimated_tokens = total_chars // 4
-                print(Color.system(f"[PROMPT] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"))
-                print(Color.system(f"[PROMPT] Build complete: {len(context_parts)} sections, ~{estimated_tokens:,} tokens"))
-
-    # Return format based on CACHE_OPTIMIZATION_MODE
-    if config.CACHE_OPTIMIZATION_MODE == "optimized":
-        # Optimized mode: Return dict with static/dynamic parts
-        return {
-            "static": base_prompt,
-            "dynamic": dynamic_context if dynamic_context else ""
-        }
-    else:
-        # Legacy mode: Return single string
-        full_prompt = base_prompt
-        if dynamic_context:
-            full_prompt = full_prompt + "\n\n" + dynamic_context
-        return full_prompt
+    """Wrapper: delegates to core.prompt_builder with global state injected."""
+    ctx = PromptContext(
+        memory_system=memory_system,
+        graph_lite=graph_lite,
+        procedural_memory=procedural_memory,
+        hybrid_rag=hybrid_rag,
+        todo_tracker=todo_tracker,
+    )
+    return _build_system_prompt_impl(
+        messages=messages,
+        allowed_tools=allowed_tools,
+        agent_mode=agent_mode,
+        context=ctx,
+        load_skills_fn=load_active_skills if config.ENABLE_SKILL_SYSTEM else None,
+        llm_call_fn=call_llm_raw,
+    )
 
 def save_procedural_trajectory(task_description, actions_taken, outcome, iterations):
     """
