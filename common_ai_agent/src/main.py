@@ -84,6 +84,11 @@ from core.tool_dispatcher import (
     _agent_metadata,
     get_last_agent_metadata,
 )
+from core.parallel_executor import (
+    execute_actions_parallel as _execute_actions_parallel_impl,
+    execute_batch_parallel as _execute_batch_parallel_impl,
+    PARALLEL_ELIGIBLE_TOOLS as _PARALLEL_ELIGIBLE_TOOLS_IMPORTED,
+)
 
 # Deep Think (deprecated - replaced by plan agent in v2)
 if getattr(config, 'ENABLE_DEEP_THINK', False) and not getattr(config, 'ENABLE_SUB_AGENTS', False):
@@ -318,6 +323,7 @@ def _read_text_file_best_effort(path: str, max_chars: Optional[int] = None) -> O
 # Thread-local storage for Agent communication metadata (lives in core/tool_dispatcher)
 
 # Phase 3: Thread-local storage for SharedContext
+import threading
 _shared_context_storage = threading.local()
 
 
@@ -769,184 +775,26 @@ def process_observation(observation, messages, todo_tracker=None):
 
 # --- 6. ReAct Agent Logic ---
 
-_PARALLEL_ELIGIBLE_TOOLS = {
-    # Safe, read-only tools (no filesystem writes, no external side effects).
-    # 기본 읽기 도구
-    "read_file",
-    "read_lines",
-    "grep_file",
-    "list_dir",
-    "find_files",
-    # Git 도구
-    "git_status",
-    "git_diff",
-    # RAG 도구 (disabled by default, set ENABLE_SMART_RAG=true to re-enable)
-    # "rag_search",
-    # "rag_status",
-    # Verilog 분석 도구 (read-only)
-    "analyze_verilog_module",
-    "find_signal_usage",
-    "find_module_definition",
-    "extract_module_hierarchy",
-    "find_potential_issues",
-    "analyze_timing_paths",
-}
+_PARALLEL_ELIGIBLE_TOOLS = _PARALLEL_ELIGIBLE_TOOLS_IMPORTED
 
 
 def execute_actions_parallel(actions, tracker, agent_mode='normal'):
-    """
-    Execute Actions with intelligent parallelism using ActionDependencyAnalyzer.
-
-    Claude Code Style Strategy:
-    - Analyze action dependencies using ActionDependencyAnalyzer
-    - Read-only tools → parallel execution
-    - Write tools → sequential barrier
-    - File conflict detection → automatic warning
-
-    Returns:
-        List of tuples: (index, tool_name, args_str, observation)
-    """
-    if not actions:
-        return []
-
-    results = []
-
-    # Record tool usage for progress tracking
-    for action in actions: 
-        tool_name = action[0]
-        tracker.record_tool(tool_name)
-
-    # Use enhanced dependency analysis if enabled
-    # For now, always use the new analyzer (config option will be added later)
-    use_enhanced = getattr(config, 'ENABLE_ENHANCED_PARALLEL', True)
-
-    if use_enhanced:
-        # === Enhanced Mode: ActionDependencyAnalyzer ===
-        analyzer = ActionDependencyAnalyzer()
-        batches = analyzer.analyze(actions)
-
-        # File conflict detection
-        detector = FileConflictDetector()
-        all_indexed_actions = []
-        for batch in batches:
-            all_indexed_actions.extend(batch.actions)
-
-        warnings = detector.check_conflicts(all_indexed_actions, analyzer)
-        for warning in warnings:
-            print(Color.warning(warning))
-
-        # Execute each batch
-        for batch_idx, batch in enumerate(batches):
-            if batch.parallel and len(batch.actions) > 1 and config.ENABLE_REACT_PARALLEL:
-                # Parallel execution: Filter out blocked tools first
-                allowed_actions = []
-                for idx, tool_name, args_str in batch.actions:
-                    # Plan mode gating in parallel batch (consistent across 'plan' and 'plan_q')
-                    is_any_plan = agent_mode in ('plan', 'plan_q')
-                    if is_any_plan and tool_name in config.PLAN_MODE_BLOCKED_TOOLS:
-                        observation = f"[Plan Mode] '{tool_name}' is blocked. Only read/search tools are available."
-                        results.append((idx, tool_name, args_str, observation))
-                    else:
-                        allowed_actions.append((idx, tool_name, args_str))
-
-                if allowed_actions:
-                    if config.DEBUG_MODE:
-                        print(Color.info(f"  ⚡ Parallel batch: {len(allowed_actions)} action(s)"))
-                    batch_results = _execute_batch_parallel(allowed_actions)
-                    results.extend(batch_results)
-            else:
-                # Sequential execution
-                for idx, tool_name, args_str in batch.actions:
-                    # Plan mode gating in sequential batch
-                    is_any_plan = agent_mode in ('plan', 'plan_q')
-                    if is_any_plan and tool_name in config.PLAN_MODE_BLOCKED_TOOLS:
-                        observation = f"[Plan Mode] '{tool_name}' is blocked. Only read/search tools are available."
-                    else:
-                        observation = execute_tool(tool_name, args_str)
-                    results.append((idx, tool_name, args_str, observation))
-
-    else:
-        # === Legacy Mode: Simple allowlist-based ===
-        parallel_batch = []
-
-        def flush_parallel_batch():
-            nonlocal parallel_batch
-
-            if not parallel_batch:
-                return
-
-            if len(parallel_batch) == 1 or not config.ENABLE_REACT_PARALLEL:
-                idx, tool_name, args_str = parallel_batch[0]
-                observation = execute_tool(tool_name, args_str)
-                results.append((idx, tool_name, args_str, observation))
-                parallel_batch = []
-                return
-
-            print(Color.info(f"  ⚡ Parallel batch: {len(parallel_batch)} action(s)"))
-            batch_results = _execute_batch_parallel(parallel_batch)
-            results.extend(batch_results)
-            parallel_batch = []
-
-        for idx, action_tuple in enumerate(actions):
-             # Unpack action tuple (tool, args, hint)
-            if len(action_tuple) == 3:
-                tool_name, args_str, hint = action_tuple
-            else:
-                tool_name, args_str = action_tuple
-
-            if tool_name in _PARALLEL_ELIGIBLE_TOOLS:
-                parallel_batch.append((idx, tool_name, args_str))
-                continue
-
-            flush_parallel_batch()
-            observation = execute_tool(tool_name, args_str)
-            results.append((idx, tool_name, args_str, observation))
-
-        flush_parallel_batch()
-
-    # Sort by original index
-    results.sort(key=lambda x: x[0])
-    return results
+    return _execute_actions_parallel_impl(
+        actions,
+        tracker=tracker,
+        agent_mode=agent_mode,
+        cfg=config,
+        execute_tool_fn=execute_tool,
+        print_fn=lambda msg: print(Color.warning(msg) if msg.startswith("[") else Color.info(msg)),
+    )
 
 
 def _execute_batch_parallel(batch_actions):
-    """
-    Helper function: Execute a batch of actions in parallel using ThreadPoolExecutor.
-
-    Args:
-        batch_actions: List of (idx, tool_name, args_str) tuples
-
-    Returns:
-        List of (idx, tool_name, args_str, observation) tuples
-    """
-    results = []
-    max_workers = min(len(batch_actions), max(1, config.REACT_MAX_WORKERS))
-
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_map = {
-            executor.submit(execute_tool, tool_name, args_str): (idx, tool_name, args_str)
-            for idx, tool_name, args_str in batch_actions
-        }
-
-        done, not_done = wait(future_map.keys(), timeout=max(1, config.REACT_ACTION_TIMEOUT))
-
-        for future in done:
-            idx, tool_name, args_str = future_map[future]
-            try:
-                observation = future.result()
-            except Exception as e:
-                observation = f"Error: Exception in parallel execution: {e}\n{traceback.format_exc()}"
-            results.append((idx, tool_name, args_str, observation))
-
-        for future in not_done:
-            idx, tool_name, args_str = future_map[future]
-            try:
-                future.cancel()
-            except Exception:
-                pass
-            results.append((idx, tool_name, args_str, f"Error: Timeout after {config.REACT_ACTION_TIMEOUT}s"))
-
-    return results
+    return _execute_batch_parallel_impl(
+        batch_actions,
+        execute_tool_fn=execute_tool,
+        cfg=config,
+    )
 
 
 def _maybe_inject_exploration_strategy(messages, task_description):
