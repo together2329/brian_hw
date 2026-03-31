@@ -62,6 +62,10 @@ from core.action_parser import (
     parse_value,
 )
 from core.observation_processor import process_observation as _process_observation_impl
+from core.history_manager import (
+    save_conversation_history as _save_history_impl,
+    load_conversation_history as _load_history_impl,
+)
 
 # Deep Think (deprecated - replaced by plan agent in v2)
 if getattr(config, 'ENABLE_DEEP_THINK', False) and not getattr(config, 'ENABLE_SUB_AGENTS', False):
@@ -312,32 +316,12 @@ Omit sections with nothing to report."""
 # --- 3. History Management ---
 
 def save_conversation_history(messages):
-    """Saves conversation history to a JSON file if enabled in config."""
-    if not config.SAVE_HISTORY:
-        return
-
-    try:
-        with open(config.HISTORY_FILE, 'w', encoding='utf-8') as f:
-            json.dump(messages, f, indent=2, ensure_ascii=False)
-        print(Color.success(f"[System] History saved to {config.HISTORY_FILE}"))
-    except Exception as e:
-        print(Color.error(f"[System] Failed to save history: {e}"))
+    """Wrapper: delegates to core.history_manager."""
+    _save_history_impl(messages)
 
 def load_conversation_history():
-    """Loads conversation history from JSON file if it exists."""
-    if not config.SAVE_HISTORY:
-        return None
-
-    try:
-        if os.path.exists(config.HISTORY_FILE):
-            with open(config.HISTORY_FILE, 'r', encoding='utf-8') as f:
-                messages = json.load(f)
-                print(Color.success(f"[System] Loaded {len(messages)} messages from {config.HISTORY_FILE}"))
-                return messages
-    except Exception as e:
-        print(Color.error(f"[System] Failed to load history: {e}"))
-
-    return None
+    """Wrapper: delegates to core.history_manager."""
+    return _load_history_impl()
 
 # --- 4. ReAct Logic ---
 # Parser functions imported from core.action_parser (see imports above)
