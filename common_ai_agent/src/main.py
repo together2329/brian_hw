@@ -61,6 +61,7 @@ from core.action_parser import (
     parse_tool_arguments,
     parse_value,
 )
+from core.observation_processor import process_observation as _process_observation_impl
 
 # Deep Think (deprecated - replaced by plan agent in v2)
 if getattr(config, 'ENABLE_DEEP_THINK', False) and not getattr(config, 'ENABLE_SUB_AGENTS', False):
@@ -1502,94 +1503,13 @@ def _compress_chunked(messages, instruction=None):
     return compressed
 
 def process_observation(observation, messages, todo_tracker=None):
-    """
-    Processes observation before adding to message history.
-    Handles large file truncation and context management.
-    Returns updated messages list.
-    """
-    # Check if adding observation would exceed context limit
-    limit_tokens = config.MAX_CONTEXT_CHARS // 4
-    threshold_tokens = int(limit_tokens * config.COMPRESSION_THRESHOLD)
-    
-    # Step 1: First check if observation itself is too large
-    observation_msg = {"role": "user", "content": f"Observation: {observation}"}
-    observation_tokens = estimate_message_tokens(observation_msg)
-
-    if observation_tokens > limit_tokens * 0.3:  # Observation > 30% of limit (stricter)
-        original_size = len(observation)
-        lines = observation.split('\n')
-        total_lines = len(lines)
-
-        # Show first N lines as preview + guidance
-        PREVIEW_LINES = config.LARGE_FILE_PREVIEW_LINES
-        preview_lines = lines[:PREVIEW_LINES]
-        preview = '\n'.join(preview_lines)
-        
-        # Safety Truncation: Ensure preview itself isn't too huge (e.g. if lines are very long)
-        # Limit preview to 50% of MAX_OBSERVATION_CHARS
-        MAX_PREVIEW_CHARS = config.MAX_OBSERVATION_CHARS // 2
-        if len(preview) > MAX_PREVIEW_CHARS:
-            preview = preview[:MAX_PREVIEW_CHARS] + f"\n... [Preview truncated at {MAX_PREVIEW_CHARS} chars] ..."
-
-        # Calculate max readable lines (based on context limit)
-        MAX_READABLE_LINES = (config.MAX_OBSERVATION_CHARS // 80)  # Assume ~80 chars per line
-
-        observation = f"""[File Preview - Too large to display completely]
-
-Showing first {PREVIEW_LINES} lines (Total: {total_lines:,} lines, {original_size:,} characters)
-
---- BEGIN PREVIEW ---
-{preview}
---- END PREVIEW ---
-
-💡 File is too large for full display. You can read up to ~{MAX_READABLE_LINES} lines at a time.
-
-To read specific sections:
-1. Use read_lines(path, start_line, end_line)
-   Examples:
-   - read_lines(path, start_line=100, end_line=200)           # Lines 100-200
-   - read_lines(path, start_line={max(1, total_lines-100)}, end_line={total_lines})  # Last 100 lines
-
-2. Use grep_file(pattern, path) to search for patterns
-   Example:
-   - grep_file(pattern="module\\s+\\w+", path)   # Find modules
-   - grep_file(pattern="always.*@", path)        # Find always blocks
-
-3. Ask the user which part they want to see
-"""
-        observation_msg = {"role": "user", "content": f"Observation: {observation}"}
-        observation_tokens = estimate_message_tokens(observation_msg)
-        print(Color.warning(f"[System] ⚠️  Large observation truncated: {original_size:,} chars → {config.MAX_OBSERVATION_CHARS:,} chars ({total_lines:,} lines total)"))
-
-    # Step 2: Check total context size
-    current_tokens = sum(estimate_message_tokens(m) for m in messages)
-    total_tokens = current_tokens + observation_tokens
-
-    if total_tokens > threshold_tokens and config.ENABLE_COMPRESSION:
-        print(Color.warning(f"\n[System] ⚠️  Adding observation would exceed threshold ({total_tokens:,} > {threshold_tokens:,} tokens)"))
-        print(Color.info("[System] Compressing history before adding observation..."))
-        messages = compress_history(messages, todo_tracker=todo_tracker, force=True, quiet=True)  # skip duplicate logs
-
-        # Re-calculate after compression
-        current_tokens = sum(estimate_message_tokens(m) for m in messages)
-        total_tokens = current_tokens + observation_tokens
-
-        # If still exceeding after compression, force truncate observation
-        if total_tokens > threshold_tokens:
-            print(Color.warning(f"[System] ⚠️  Still exceeding threshold after compression. Force truncating observation..."))
-            original_size = len(observation)
-            # Limit observation to 20% of limit to be safe
-            max_safe_tokens = int(limit_tokens * 0.2)
-            max_safe_chars = max_safe_tokens * 4
-
-            if len(observation) > max_safe_chars:
-                observation = observation[:max_safe_chars] + f"\n\n[Observation truncated: {original_size:,} → {max_safe_chars:,} chars to prevent context overflow]"
-                observation_msg = {"role": "user", "content": f"Observation: {observation}"}
-                observation_tokens = estimate_message_tokens(observation_msg)
-                print(Color.info(f"[System] Observation truncated to {observation_tokens:,} tokens"))
-
-    messages.append(observation_msg)
-    return messages
+    """Wrapper: delegates to core.observation_processor with main.py dependencies injected."""
+    return _process_observation_impl(
+        observation,
+        messages,
+        compress_fn=compress_history,
+        todo_tracker=todo_tracker,
+    )
 
 
 # --- 6. ReAct Agent Logic ---
