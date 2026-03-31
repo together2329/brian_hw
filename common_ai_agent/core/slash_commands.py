@@ -167,6 +167,10 @@ class SlashCommandRegistry:
         self.register('man', self._cmd_man,
                      '상세 매뉴얼: /man plan, /man todo, /man guide ...')
 
+        self.register('guide', lambda _: self._cmd_man('guide'),
+                     '시작 가이드 (= /man guide)',
+                     hidden=True)
+
         # --- Hidden commands (visible only in /help -v) ---
         self.register('compression', self._cmd_compression,
                      'Auto-compress when message count exceeds N: /compression 30, /compression 0 to disable',
