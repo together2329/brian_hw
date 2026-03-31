@@ -255,31 +255,32 @@ current_recovery_point = None  # Latest recovery point
 # LLM Client functions moved to llm_client.py
 
 # --- Compression Prompts ---
-STRUCTURED_SUMMARY_PROMPT = """Summarize the following conversation history in a structured format:
+STRUCTURED_SUMMARY_PROMPT = """You are compressing conversation history for an AI agent. Be EXTREMELY concise — target 90% size reduction.
 
-## Objectives
-- List main goals or user requests (What was the user trying to achieve?)
+Rules:
+- Each bullet: ONE short sentence only (max 15 words)
+- Skip filler, pleasantries, repetition, and failed attempts
+- Only facts needed to continue the work
 
-## Completed Tasks
-- Enumerate successfully finished tasks with outcomes
+## Goals
+- What the user wanted
 
-## Key Decisions & Changes
-- Important choices made (e.g., architecture, API changes, renamed files)
-- Configuration updates
+## Done
+- Completed tasks (file changed, feature added, bug fixed)
 
-## Issues Encountered
-- Errors or problems that occurred
-- How they were resolved (or if still open)
+## Decisions
+- Key choices: file names, architecture, APIs, configs
 
-## Current State
-- What's working now
-- What's pending or blocked
+## Errors & Fixes
+- Errors encountered and how resolved (or still open)
 
-## Important Context
-- File paths, module names, or signals mentioned
-- User preferences or conventions established
+## State
+- What works now / what's blocked
 
-Keep each section concise. Use bullet points. Omit sections with no content."""
+## Context
+- File paths, module names, user conventions (only if critical)
+
+Omit empty sections. No explanations — facts only."""
 
 # --- 3. History Management ---
 
@@ -1778,8 +1779,12 @@ def compress_history(messages, todo_tracker=None, force=False, instruction=None,
     if important_msgs:
         print(Color.info(f"[System] Preserving {len(important_msgs)} !important messages"))
 
-    # Turn-based protection or legacy message-based protection
-    if config.ENABLE_TURN_PROTECTION and any(m.get("turn_id") for m in other_msgs):
+    # Resolve keep_recent first — explicit 0 means "compress ALL, skip turn protection"
+    if keep_recent is None:
+        keep_recent = config.COMPRESSION_KEEP_RECENT
+
+    # Turn-based protection (only when keep_recent > 0)
+    if keep_recent != 0 and config.ENABLE_TURN_PROTECTION and any(m.get("turn_id") for m in other_msgs):
         # Turn-based protection (protects recent N turns)
         protected_turns = config.TURN_PROTECTION_COUNT
 
@@ -1814,9 +1819,7 @@ def compress_history(messages, todo_tracker=None, force=False, instruction=None,
             old_msgs = other_msgs[:-fallback_keep]
             print(Color.info(f"[System] Single-turn fallback: compressing {len(old_msgs)} messages, keeping {len(recent_msgs)}"))
     else:
-        # Legacy message-based protection (for backward compatibility)
-        if keep_recent is None:
-            keep_recent = config.COMPRESSION_KEEP_RECENT
+        # keep_recent=0 → compress ALL, or no turn IDs → legacy message-based split
         if len(other_msgs) <= keep_recent:
             print(Color.info(f"[System] History too short to compress ({len(other_msgs)} <= {keep_recent} recent)."))
             return messages
@@ -1964,7 +1967,7 @@ def _compress_single(messages, instruction=None):
     print(Color.info("[System] Generating summary..."), end="", flush=True)
     summary_content = ""
     try:
-        for chunk in chat_completion_stream(summary_request):
+        for chunk in chat_completion_stream(summary_request, suppress_spinner=True):
             if isinstance(chunk, tuple) and chunk[0] == "reasoning":
                 pass
             else:
@@ -2010,7 +2013,7 @@ def _compress_chunked(messages, instruction=None):
 
         try:
             summary_content = ""
-            for chunk_data in chat_completion_stream(summary_request):
+            for chunk_data in chat_completion_stream(summary_request, suppress_spinner=True):
                 if isinstance(chunk_data, tuple) and chunk_data[0] == "reasoning":
                     pass
                 else:

@@ -400,7 +400,7 @@ def call_llm_for_agent(
     except Exception as e:
         return f"Error calling LLM: {e}"
 
-def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=False):
+def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=False, suppress_spinner=False):
     """
     Non-streaming LLM call. Fetches complete response then yields chunks.
     Yields ("reasoning", text) tuples for reasoning, plain strings for content.
@@ -441,14 +441,15 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     if config.MAX_OUTPUT_TOKENS > 0:
         data["max_tokens"] = config.MAX_OUTPUT_TOKENS
 
-    # Show spinner while waiting
+    # Show spinner while waiting (suppressed during compression)
     _spinner = None
-    try:
-        from lib.display import Spinner as _Spinner
-        _spinner = _Spinner("Thinking")
-        _spinner.start()
-    except Exception:
-        _spinner = None
+    if not suppress_spinner:
+        try:
+            from lib.display import Spinner as _Spinner
+            _spinner = _Spinner("Thinking")
+            _spinner.start()
+        except Exception:
+            _spinner = None
 
     try:
         request = urllib.request.Request(
@@ -518,7 +519,7 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
             yield '\n'
 
 
-def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=False, caller_tag=None):
+def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=False, caller_tag=None, suppress_spinner=False):
     """
     Sends a chat completion request to the LLM using urllib.
     Yields content chunks from the SSE stream.
@@ -536,7 +537,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
     # Non-streaming mode: fetch full response then yield line-by-line
     if not config.ENABLE_STREAMING:
-        yield from _chat_completion_nonstream(messages, stop=stop, model=model, skip_rate_limit=skip_rate_limit)
+        yield from _chat_completion_nonstream(messages, stop=stop, model=model, skip_rate_limit=skip_rate_limit, suppress_spinner=suppress_spinner)
         return
 
     # Rate limiting: Configurable delay (skip for sub-agents)
