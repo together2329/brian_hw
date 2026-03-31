@@ -15,6 +15,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
+from lib.display import Color
+
 
 # ---------------------------------------------------------------------------
 # Pure stream-display helpers (extracted from the nested closures in main.py)
@@ -450,14 +452,14 @@ def run_react_agent_impl(
                         while "\n" in _rbuf:
                             rline, _rbuf = _rbuf.split("\n", 1)
                             if rline.strip():
-                                sys.stdout.write(f"  {rline}\n")
+                                sys.stdout.write(f"  {Color.DIM}{rline}{Color.RESET}\n")
                                 sys.stdout.flush()
                     if not getattr(cfg, "REASONING_IN_CONTEXT", False):
                         continue
 
                 if _rbuf:
                     if getattr(cfg, "REASONING_DISPLAY", False):
-                        sys.stdout.write(f"  {_rbuf}\n")
+                        sys.stdout.write(f"  {Color.DIM}{_rbuf}{Color.RESET}\n")
                         sys.stdout.flush()
                     _rbuf = ""
 
@@ -477,7 +479,7 @@ def run_react_agent_impl(
                     if reasoning:
                         if _line_was_partial:
                             _clear_partial()
-                        sys.stdout.write(f"  {reasoning}\n")
+                        sys.stdout.write(f"  {Color.DIM}{reasoning}{Color.RESET}\n")
                         sys.stdout.flush()
                     if _in_think[0] and not exited:
                         continue
@@ -540,7 +542,7 @@ def run_react_agent_impl(
 
         # Flush remaining reasoning
         if _rbuf:
-            sys.stdout.write(f"  {_rbuf}\n")
+            sys.stdout.write(f"  {Color.DIM}{_rbuf}{Color.RESET}\n")
             sys.stdout.flush()
             _rbuf = ""
 
@@ -910,9 +912,15 @@ def run_react_agent_impl(
                     pass
 
             if todo_tracker and not todo_tracker.is_all_processed() and todo_tracker.todos:
-                if todo_tracker.check_stagnation(max_stagnation=getattr(cfg, "TODO_STAGNATION_LIMIT", 3)):
+                if todo_tracker.check_stagnation(max_stagnation=getattr(cfg, "TODO_STAGNATION_LIMIT", 50)):
                     hint = todo_tracker.get_stagnation_hint()
-                    print(f"[System] Todo stagnation detected.\n  {hint}")
+                    limit = getattr(cfg, "TODO_STAGNATION_LIMIT", 50)
+                    count = getattr(todo_tracker, "stagnation_count", limit)
+                    print(
+                        f"\n[System] Todo stagnation: tried {count}/{limit} times without progress.\n"
+                        f"  {hint}\n"
+                        f"  Waiting for user feedback."
+                    )
                     break
                 reminder = todo_tracker.get_continuation_prompt()
                 if reminder:
