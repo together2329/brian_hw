@@ -233,6 +233,11 @@ class SlashCommandRegistry:
                     return "✅ Todo list cleared.\n"
                 return "No active todo list to clear.\n"
 
+            # Handle /todo set <N|all> <status>  — force status change
+            parts = args.strip().split()
+            if parts and parts[0].lower() == 'set':
+                return self._todo_force_set(parts[1:], todo_file)
+
             if not todo_file.exists():
                 # Check if there's a recent write failure to surface
                 try:
@@ -276,6 +281,109 @@ class SlashCommandRegistry:
             return "\n".join(lines) + "\n"
         except Exception as e:
             return f"Error reading/managing todos: {e}\n"
+
+    def _todo_force_set(self, parts: list, todo_file) -> str:
+        """
+        Force-set todo status, bypassing state machine validation.
+        Usage: /todo set <N|all> <status>
+        Valid statuses: pending, in_progress, completed, approved, rejected
+        """
+        VALID_STATUSES = {"pending", "in_progress", "completed", "approved", "rejected"}
+        STATUS_ICONS = {
+            "pending": "⏸️",
+            "in_progress": "▶️",
+            "completed": "✅",
+            "approved": "✅✅",
+            "rejected": "❌",
+        }
+
+        if len(parts) < 2:
+            return (
+                "Usage: /todo set <N|all> <status>\n"
+                f"Valid statuses: {', '.join(sorted(VALID_STATUSES))}\n"
+                "Examples:\n"
+                "  /todo set 1 approved     — force approve task 1\n"
+                "  /todo set 2 pending      — reset task 2 to pending\n"
+                "  /todo set all pending    — reset all tasks to pending\n"
+                "  /todo set all approved   — mark all tasks approved\n"
+            )
+
+        target = parts[0].lower()
+        new_status = parts[1].lower()
+
+        if new_status not in VALID_STATUSES:
+            return f"❌ Invalid status: '{new_status}'\nValid: {', '.join(sorted(VALID_STATUSES))}\n"
+
+        if not todo_file.exists():
+            return "No active todo list.\n"
+
+        try:
+            from lib.todo_tracker import TodoTracker
+            tracker = TodoTracker.load(todo_file)
+            if not tracker or not tracker.todos:
+                return "No todos found.\n"
+
+            if target == 'all':
+                changed = []
+                for i, todo in enumerate(tracker.todos):
+                    old = todo.status
+                    todo.status = new_status
+                    if new_status == 'approved':
+                        import time as _time
+                        if not todo.completed_at:
+                            todo.completed_at = _time.time()
+                        todo.rejection_reason = ""
+                    elif new_status == 'pending':
+                        todo.rejection_reason = ""
+                    changed.append(f"  {STATUS_ICONS.get(new_status, '?')} {i+1}. {todo.content}  ({old} → {new_status})")
+                tracker.current_index = -1
+                tracker.stagnation_count = 0
+                tracker.save()
+                return f"Force-set ALL {len(tracker.todos)} tasks to '{new_status}':\n" + "\n".join(changed) + "\n"
+
+            elif target.isdigit():
+                idx = int(target) - 1  # 1-based → 0-based
+                if not (0 <= idx < len(tracker.todos)):
+                    return f"❌ Task {target} not found (total: {len(tracker.todos)})\n"
+
+                old_status = tracker.todos[idx].status
+                tracker.todos[idx].status = new_status
+
+                if new_status == 'approved':
+                    import time as _time
+                    if not tracker.todos[idx].completed_at:
+                        tracker.todos[idx].completed_at = _time.time()
+                    tracker.todos[idx].rejection_reason = ""
+                    # Auto-advance current_index to next pending
+                    next_pending = None
+                    for j, t in enumerate(tracker.todos):
+                        if t.status == 'pending':
+                            next_pending = j
+                            break
+                    tracker.current_index = next_pending if next_pending is not None else -1
+                elif new_status == 'in_progress':
+                    # Only one in_progress at a time
+                    for j, t in enumerate(tracker.todos):
+                        if j != idx and t.status == 'in_progress':
+                            t.status = 'pending'
+                    tracker.current_index = idx
+                elif new_status == 'pending':
+                    tracker.todos[idx].rejection_reason = ""
+                    if tracker.current_index == idx:
+                        tracker.current_index = -1
+
+                tracker.save()
+                icon = STATUS_ICONS.get(new_status, '?')
+                return (
+                    f"{icon} Task {int(target)} force-set: {old_status} → {new_status}\n"
+                    f"   {tracker.todos[idx].content}\n\n"
+                    + tracker.format_progress()
+                )
+            else:
+                return f"❌ Invalid target: '{target}' — use a task number or 'all'\n"
+
+        except Exception as e:
+            return f"❌ Error: {e}\n"
 
     def _cmd_mode(self, args: str) -> str:
         """Switch agent mode. /mode normal to exit."""

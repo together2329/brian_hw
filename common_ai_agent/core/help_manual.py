@@ -102,29 +102,35 @@ MAN_PAGES: dict[str, str] = {
    /plan 실행 후 AI가 자동으로 등록하며, 수동 조작도 가능합니다.
 
  사용법
-   /todo              현재 Todo 목록 표시
-   /todo clear        Todo 목록 초기화
+   /todo                       현재 Todo 목록 표시
+   /todo clear                 Todo 목록 전체 초기화
+   /todo set <N> <status>      특정 태스크 상태 강제 변경
+   /todo set all <status>      전체 태스크 상태 강제 변경
 
- 상태 아이콘
-   ▶️  in_progress    현재 진행 중
-   ⏸️  pending        대기 중
-   ✅  completed      완료
+ 상태 종류
+   pending       대기 중 ⏸️
+   in_progress   진행 중 ▶️
+   completed     완료(미승인) ✅
+   approved      승인 완료 ✅✅
+   rejected      반려 ❌
 
  예시
-   /todo
-   > ▶️  1. auth.py JWT 토큰 검증 로직 수정
-   > ⏸️  2. tests/test_auth.py 테스트 추가
-   > ✅  3. README 업데이트
+   /todo set 1 approved        태스크 1 강제 승인
+   /todo set 2 pending         태스크 2 대기로 리셋
+   /todo set 3 in_progress     태스크 3 진행 중으로 변경
+   /todo set all pending       전체 초기화 (재시작)
+   /todo set all approved      전체 승인 (강제 완료)
 
-   /todo clear
-   > ✅ Todo list cleared.
+ AI 상태 흐름 (정상)
+   pending → in_progress → completed → approved
+
+ 강제 변경이 필요한 경우
+   - AI가 멈춰서 진행이 안 될 때
+   - 잘못된 상태로 stuck 됐을 때
+   - 일부 태스크만 건너뛰고 싶을 때
 
  설정 (.config)
    TODO_FILE=current_todos.json   저장 파일 경로
-
- 자동 등록
-   /plan 승인 후 AI가 단계별 태스크를 자동으로 등록합니다.
-   각 태스크 완료 시 상태가 자동으로 업데이트됩니다.
 
  관련 커맨드
    /plan    Plan Mode (태스크 자동 생성)
