@@ -3443,7 +3443,7 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
             if (todo_tracker and not todo_tracker.is_all_processed()
                     and todo_tracker.todos):
-                if todo_tracker.check_stagnation(max_stagnation=3):
+                if todo_tracker.check_stagnation(max_stagnation=config.TODO_STAGNATION_LIMIT):
                     hint = todo_tracker.get_stagnation_hint()
                     print(Color.warning(f"[System] Todo stagnation detected (3x no progress)."))
                     print(Color.info(f"  {hint}"))

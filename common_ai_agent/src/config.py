@@ -551,6 +551,7 @@ REACT_ACTION_TIMEOUT = int(os.getenv("REACT_ACTION_TIMEOUT", "30"))
 # Enable todo tracking for multi-step tasks
 # Displays real-time progress with ✅ ▶️ ⏸️ icons
 ENABLE_TODO_TRACKING = os.getenv("ENABLE_TODO_TRACKING", "true").lower() in ("true", "1", "yes")
+TODO_STAGNATION_LIMIT = int(os.getenv("TODO_STAGNATION_LIMIT", "50"))
 
 # Auto-advance to next todo when current step completes
 # If False, todos stay in_progress until manually completed
