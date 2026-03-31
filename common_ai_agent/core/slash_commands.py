@@ -695,17 +695,28 @@ class SlashCommandRegistry:
 
     def _cmd_mode(self, args: str) -> str:
         """Switch execution or agent mode."""
-        mode = args.strip().lower()
-        if mode in ('agent', 'chat', 'step'):
-            return f"EXECUTION_MODE:{mode}"
+        parts = args.strip().lower().split()
+        if not parts:
+            import config as _cfg
+            em = getattr(_cfg, 'EXECUTION_MODE', 'agent')
+            ci = getattr(_cfg, 'CHAT_MAX_ITERATIONS', 1)
+            sbsm = getattr(_cfg, 'STEP_BY_STEP_MODE', False)
+            chat_desc = f"chat (max {ci} iter{'s' if ci != 1 else ''}, {'no tools' if ci == 0 else 'tools allowed'})"
+            cur = chat_desc if em == 'chat' else em
+            return (f"\nExecution mode: {cur}  |  Step-by-step: {'ON' if sbsm else 'OFF'}\n"
+                    f"Usage: /mode agent | chat [N] | step | plan | normal\n"
+                    f"  chat 0   respond only, no tools\n"
+                    f"  chat 1   1 ReAct iteration with tools (default)\n"
+                    f"  chat N   N iterations with tools\n")
+        mode = parts[0]
+        if mode == 'chat':
+            n = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 1
+            return f"EXECUTION_MODE:chat:{n}"
+        if mode in ('agent', 'step'):
+            return f"EXECUTION_MODE:{mode}:0"
         if mode in ('plan', 'normal'):
             return f"AGENT_MODE:{mode}"
-        # No args → show current status
-        import config as _cfg
-        em = getattr(_cfg, 'EXECUTION_MODE', 'agent')
-        sbsm = getattr(_cfg, 'STEP_BY_STEP_MODE', False)
-        return (f"\nExecution mode: {em}  |  Step-by-step: {'ON' if sbsm else 'OFF'}\n"
-                f"Usage: /mode agent|chat|step|plan|normal\n")
+        return f"\nUnknown mode: {mode}\nUsage: /mode agent|chat [N]|step|plan|normal\n"
 
     def _cmd_step(self, args: str) -> str:
         """Toggle Step-by-Step execution mode."""

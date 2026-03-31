@@ -2440,6 +2440,7 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
     MAX_CONSECUTIVE_ERRORS = 3
     recovery_attempts = 0  # Track recovery attempts
     final_answer_attempts = 0  # Track think-only → final answer injection attempts
+    _chat_iter_count = 0  # Track iterations for chat mode N≥1
 
     # Initialize action tracking for procedural memory
     actions_taken = []
@@ -3083,9 +3084,10 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
         # Check for Action first (needed for TodoWrite explicit call detection)
         actions = parse_all_actions(collected_content)
 
-        # Chat mode: respond once without executing any tools
+        # Chat mode 0: respond only, no tool execution
         if getattr(config, 'EXECUTION_MODE', 'agent') == 'chat':
-            break
+            if getattr(config, 'CHAT_MAX_ITERATIONS', 1) == 0:
+                break
 
         # Todo tracking: supports explicit tool calls AND markdown auto-parsing
         markdown_tasks = _parse_todo_markdown(collected_content)
@@ -3468,6 +3470,11 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
 
             # Stall tracking (silent — logged but not shown to agent)
         else:
+            # Chat mode N≥1: no actions this iteration — still break
+            if getattr(config, 'EXECUTION_MODE', 'agent') == 'chat':
+                if getattr(config, 'CHAT_MAX_ITERATIONS', 1) > 0:
+                    break
+
             # No action — check if todos remain
             if config.ENABLE_TODO_TRACKING:
                 todo_tracker = TodoTracker.load(Path(config.TODO_FILE))
@@ -3526,6 +3533,14 @@ Use the above analysis to guide your response. Continue with the ReAct loop if m
                 if config.DEBUG_MODE:
                     print(Color.info("  [StepMode] Action detected in step-by-step mode. Pausing..."))
                 break
+
+            # Chat mode N≥1: break after N iterations (actions path)
+            if getattr(config, 'EXECUTION_MODE', 'agent') == 'chat':
+                _chat_max = getattr(config, 'CHAT_MAX_ITERATIONS', 1)
+                if _chat_max > 0:
+                    _chat_iter_count += 1
+                    if _chat_iter_count >= _chat_max:
+                        break
 
     # Stop ESC key watcher
     EscapeWatcher.stop()
@@ -3744,7 +3759,13 @@ def chat_loop():
                     user_input = input(Color.warning("Plan Confirmation [y/yc/feedback] ") + Color.CYAN + "> " + Color.RESET)
                 else:
                     _em = getattr(config, 'EXECUTION_MODE', 'agent')
-                    _em_prefix = f"[{_em}] " if _em != 'agent' else ""
+                    if _em == 'chat':
+                        _ci = getattr(config, 'CHAT_MAX_ITERATIONS', 1)
+                        _em_prefix = f"[chat:{_ci}] "
+                    elif _em != 'agent':
+                        _em_prefix = f"[{_em}] "
+                    else:
+                        _em_prefix = ""
                     user_input = input(_em_prefix + Color.user("> ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
                 break
@@ -4045,11 +4066,23 @@ def chat_loop():
                         continue
 
                     if result.startswith("EXECUTION_MODE:"):
-                        em = result.split(":", 1)[1]
+                        _em_parts = result.split(":", 2)
+                        em = _em_parts[1]
+                        _em_n = int(_em_parts[2]) if len(_em_parts) > 2 else 1
                         config.EXECUTION_MODE = em
                         config.STEP_BY_STEP_MODE = (em == 'step')
-                        labels = {'agent': 'Agent (loop)', 'chat': 'Chat (1-turn)', 'step': 'Step (1-action)'}
-                        print(Color.success(f"\n✅ Mode: {labels.get(em, em)}\n"))
+                        if em == 'chat':
+                            config.CHAT_MAX_ITERATIONS = _em_n
+                            if _em_n == 0:
+                                _mode_label = "Chat (respond only, no tools)"
+                            elif _em_n == 1:
+                                _mode_label = "Chat (1 iteration with tools)"
+                            else:
+                                _mode_label = f"Chat ({_em_n} iterations with tools)"
+                        else:
+                            labels = {'agent': 'Agent (loop)', 'step': 'Step (1-action)'}
+                            _mode_label = labels.get(em, em)
+                        print(Color.success(f"\n✅ Mode: {_mode_label}\n"))
                         continue
 
                     if result.startswith("TODO_REVERT:"):
