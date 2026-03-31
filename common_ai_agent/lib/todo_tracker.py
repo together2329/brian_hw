@@ -575,7 +575,7 @@ class TodoTracker:
         if self._persist_path and self._persist_path.exists():
             self._persist_path.unlink()
 
-    def check_stagnation(self, max_stagnation: int = 3) -> bool:
+    def check_stagnation(self, max_stagnation: int = 50) -> bool:
         """
         Continuation 주입 전 stagnation 체크.
 

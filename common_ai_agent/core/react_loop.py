@@ -368,53 +368,44 @@ def run_react_agent_impl(
         ), flush=True)
 
         # ----- Streaming LLM call -----
-        _NOISE, _CONTENT, _ACTION = 0, 1, 2
+        from core.stream_parser import StreamParser
+
         _stop_seqs = ["Observation:", "<|call|>", "tool_call_begin",
                       "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"]
         _stream_start = time.time()
-        collected_content = ""
-        _buf = ""
-        _rbuf = ""
-        _content_started = False
-        _state = _NOISE
         _aborted = False
-        _in_think = [False]  # list for closure mutability
+        _debug = getattr(cfg, "DEBUG_MODE", False)
 
-        _seen, _is_dup = _make_is_dup()
-        _last_partial = [""]
-        _content_emitted = [False]
+        def _emit_content(line):
+            sys.stdout.write(f"  {line}\n")
+            sys.stdout.flush()
 
-        def _clear_partial():
-            if _last_partial[0]:
-                sys.stdout.write(f"\r{' ' * (len(_last_partial[0]) + 4)}\r")
-                sys.stdout.flush()
-                _last_partial[0] = ""
+        def _emit_reasoning(line, blank=False):
+            if blank:
+                sys.stdout.write("\n")
+            else:
+                sys.stdout.write(f"  {Color.DIM}{line}{Color.RESET}\n")
+            sys.stdout.flush()
 
-        def _emit(text):
-            text = _dedup_line(text)
-            if not _is_dup(text):
-                sys.stdout.write(f"  {text}\n")
-                sys.stdout.flush()
-                _seen.add(text)
-                _content_emitted[0] = True
+        def _emit_thought(line):
+            sys.stdout.write(f"  Thought:{line}\n")
+            sys.stdout.flush()
 
-        def _strip_think_stream(text):
-            parts = re.split(r"(</?think>)", text)
-            clean, reasoning = [], []
-            entered = exited = False
-            for p in parts:
-                if p == "<think>":
-                    _in_think[0] = True
-                    entered = True
-                elif p == "</think>":
-                    _in_think[0] = False
-                    exited = True
-                elif p:
-                    (reasoning if _in_think[0] else clean).append(p)
-            return "".join(clean), entered, exited, "".join(reasoning)
+        def _emit_blank():
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+
+        _parser = StreamParser(
+            emit_fn=_emit_content,
+            emit_reasoning_fn=_emit_reasoning,
+            emit_thought_fn=_emit_thought,
+            emit_blank_fn=_emit_blank,
+            reasoning_display=getattr(cfg, "REASONING_DISPLAY", False),
+            reasoning_in_context=getattr(cfg, "REASONING_IN_CONTEXT", False),
+        )
 
         _thinking_spinner = None
-        if not getattr(cfg, "DEBUG_MODE", False):
+        if not _debug:
             _thinking_spinner = Spinner("Thinking")
             if hasattr(_thinking_spinner, "start"):
                 _thinking_spinner.start()
@@ -431,138 +422,36 @@ def run_react_agent_impl(
                     _aborted = True
                     break
 
-                if isinstance(chunk, tuple) and len(chunk) == 2 and chunk[0] == "reasoning":
-                    if getattr(cfg, "REASONING_IN_CONTEXT", False):
-                        collected_content += chunk[1]
-                else:
-                    collected_content += chunk
-
-                if getattr(cfg, "DEBUG_MODE", False):
+                if _debug:
+                    # In debug mode just collect, skip display
+                    if isinstance(chunk, tuple) and len(chunk) == 2 and chunk[0] == "reasoning":
+                        if getattr(cfg, "REASONING_IN_CONTEXT", False):
+                            _parser.collected += chunk[1]
+                    else:
+                        _parser.collected += chunk  # type: ignore[operator]
                     continue
 
-                token_type = "content"
-                if isinstance(chunk, tuple) and len(chunk) == 2:
-                    token_type, chunk = chunk
-
-                if token_type == "reasoning":
-                    if not chunk:
-                        continue
-                    if getattr(cfg, "REASONING_DISPLAY", False):
-                        _rbuf += chunk
-                        while "\n" in _rbuf:
-                            rline, _rbuf = _rbuf.split("\n", 1)
-                            if rline.strip():
-                                sys.stdout.write(f"  {Color.DIM}{rline}{Color.RESET}\n")
-                                sys.stdout.flush()
-                    if not getattr(cfg, "REASONING_IN_CONTEXT", False):
-                        continue
-
-                if _rbuf:
-                    if getattr(cfg, "REASONING_DISPLAY", False):
-                        sys.stdout.write(f"  {Color.DIM}{_rbuf}{Color.RESET}\n")
-                        sys.stdout.flush()
-                    _rbuf = ""
-
-                _buf += chunk
                 if getattr(cfg, "STREAM_TOKEN_DELAY_MS", 0) > 0:
                     time.sleep(cfg.STREAM_TOKEN_DELAY_MS / 1000.0)
 
-                while "\n" in _buf:
-                    raw_line, _buf = _buf.split("\n", 1)
-                    _line_was_partial = _content_emitted[0]
-                    _content_emitted[0] = False
-                    _stripped = raw_line.strip()
-                    if _stripped and len(_stripped) <= 3 and _stripped.islower() and "\n" in _buf:
-                        _buf = _stripped + _buf
-                        continue
-                    text, entered, exited, reasoning = _strip_think_stream(raw_line)
-                    if reasoning:
-                        if _line_was_partial:
-                            _clear_partial()
-                        sys.stdout.write(f"  {Color.DIM}{reasoning}{Color.RESET}\n")
-                        sys.stdout.flush()
-                    if _in_think[0] and not exited:
-                        continue
-                    if not text:
-                        if _state == _CONTENT:
-                            if _line_was_partial:
-                                _clear_partial()
-                            sys.stdout.write("\n")
-                            sys.stdout.flush()
-                        continue
-                    _text_lower = text.lower()
-                    ai = _text_lower.find("action:")
-                    if ai < 0 and _text_lower.strip() == "action":
-                        ai = 0
-                    ti = _text_lower.find("thought:")
-                    if ai >= 0 and (ti < 0 or ai < ti):
-                        if _state != _ACTION:
-                            _clear_partial()
-                        _state = _ACTION
-                    elif ti >= 0:
-                        thought = text[ti + 8:]
-                        if thought and not _is_dup(thought):
-                            if _line_was_partial:
-                                _clear_partial()
-                            sys.stdout.write(f"  Thought:{thought}\n")
-                            sys.stdout.flush()
-                            _seen.add(thought)
-                        _state = _CONTENT
-                    elif _state == _ACTION:
-                        pass
-                    elif _state == _NOISE:
-                        _state = _CONTENT
-                        if not _content_started:
-                            sys.stdout.write("\n")
-                            sys.stdout.flush()
-                            _content_started = True
-                        _emit(text)
-                    else:
-                        if not _content_started:
-                            sys.stdout.write("\n")
-                            sys.stdout.flush()
-                            _content_started = True
-                        _emit(text)
+                _parser.feed(chunk)
 
         except Exception as e:
             if _thinking_spinner and not _thinking_stopped:
                 if hasattr(_thinking_spinner, "stop"):
                     _thinking_spinner.stop()
                 _thinking_stopped = True
-            if not collected_content:
+            if not _parser.collected:
                 print(f"\n  LLM call failed: {e}")
                 break
 
-        # Guarantee spinner is stopped even if generator yielded zero chunks
-        # (e.g. network timeout returns empty iterator without raising)
+        # Guarantee spinner is stopped
         if _thinking_spinner and not _thinking_stopped:
             if hasattr(_thinking_spinner, "stop"):
                 _thinking_spinner.stop()
             _thinking_stopped = True
 
-        # Flush remaining reasoning
-        if _rbuf:
-            sys.stdout.write(f"  {Color.DIM}{_rbuf}{Color.RESET}\n")
-            sys.stdout.flush()
-            _rbuf = ""
-
-        # Clean up partial line
-        if not getattr(cfg, "DEBUG_MODE", False) and _state != _ACTION:
-            remaining = _buf.strip() if _buf else ""
-            if remaining:
-                text, _entered, _exited, _reasoning = _strip_think_stream(remaining)
-                _ai_end = text.lower().find("action:")
-                if _ai_end == 0:
-                    text = ""
-                elif _ai_end > 0:
-                    text = text[:_ai_end].rstrip()
-                if text:
-                    _emit(text)
-                else:
-                    _clear_partial()
-            else:
-                _clear_partial()
-            sys.stdout.flush()
+        collected_content = _parser.flush()
 
         llm_elapsed = time.time() - _stream_start
 
@@ -721,14 +610,24 @@ def run_react_agent_impl(
                     tool_start = time.time()
 
                     _SLOW_TOOLS = {"run_command", "background_task", "background_output"}
-                    if agent_mode in ("plan", "plan_q") and tool_name in getattr(cfg, "PLAN_MODE_BLOCKED_TOOLS", set()):
+                    _debug = getattr(cfg, "DEBUG_MODE", False)
+                    _is_plan_blocked = (
+                        agent_mode in ("plan", "plan_q")
+                        and tool_name in getattr(cfg, "PLAN_MODE_BLOCKED_TOOLS", set())
+                    )
+
+                    # Show what we're about to do — before execution so long ops aren't silent
+                    if not _debug and not _is_plan_blocked:
+                        print(format_tool_header(tool_name, summary))
+
+                    if _is_plan_blocked:
                         observation = (
                             f"[Plan Mode] '{tool_name}' is blocked. "
                             "Only read/search tools are available."
                         )
-                    elif tool_name in _SLOW_TOOLS and not getattr(cfg, "DEBUG_MODE", False):
+                    elif tool_name in _SLOW_TOOLS and not _debug:
                         friendly = _friendly_tool_name(tool_name)
-                        with Spinner(f"Running {friendly}"):
+                        with Spinner(f"  running…"):
                             observation = deps.execute_tool_fn(tool_name, args_str)
                     else:
                         observation = deps.execute_tool_fn(tool_name, args_str)
@@ -761,27 +660,29 @@ def run_react_agent_impl(
                         except Exception:
                             pass
 
+                    # Display result (header already printed before execution above)
                     _INLINE_TOOLS = {"read_file", "read_lines", "grep_file", "find_files", "list_dir",
                                      "git_diff", "git_status", "write_file", "todo_write", "todo_update",
                                      "todo_add", "todo_remove"}
                     elapsed_suffix = f" · {tool_elapsed:.1f}s" if tool_elapsed >= 1.0 else ""
-                    if tool_name == "background_task" and not getattr(cfg, "DEBUG_MODE", False):
-                        pass
-                    elif tool_name in ("replace_in_file", "replace_lines"):
-                        if not getattr(cfg, "DEBUG_MODE", False):
-                            print(format_tool_header(tool_name, summary))
-                        print(format_tool_result(observation, max_lines=1000, max_chars=100000))
-                    elif not getattr(cfg, "DEBUG_MODE", False):
-                        if tool_name in ("todo_update", "todo_write") and agent_mode in ("plan", "plan_q"):
-                            print(format_tool_header(tool_name, summary))
+                    if _is_plan_blocked:
+                        print(format_tool_header(tool_name, summary))
+                        print(format_tool_result(observation))
+                    elif _debug:
+                        if tool_name in ("replace_in_file", "replace_lines"):
                             print(format_tool_result(observation, max_lines=1000, max_chars=100000))
-                        elif tool_name in _INLINE_TOOLS:
-                            brief = format_tool_brief(tool_name, args_str, observation)
-                            header = format_tool_header(tool_name, summary)
-                            print(f"{header}  ({brief}{elapsed_suffix})")
-                        else:
-                            print(format_tool_header(tool_name, summary))
-                            print(format_tool_result(observation))
+                    elif tool_name == "background_task":
+                        first_line = observation.splitlines()[0] if observation.strip() else "started"
+                        print(f"  {Color.DIM}{first_line}{elapsed_suffix}{Color.RESET}")
+                    elif tool_name in ("replace_in_file", "replace_lines"):
+                        print(format_tool_result(observation, max_lines=1000, max_chars=100000))
+                    elif tool_name in ("todo_update", "todo_write") and agent_mode in ("plan", "plan_q"):
+                        print(format_tool_result(observation, max_lines=1000, max_chars=100000))
+                    elif tool_name in _INLINE_TOOLS:
+                        brief = format_tool_brief(tool_name, args_str, observation)
+                        print(f"  ({brief}{elapsed_suffix})")
+                    else:
+                        print(format_tool_result(observation))
 
                     # Truncate write tool results for LLM context
                     agent_observation = observation
