@@ -143,6 +143,25 @@ MAN_PAGES: dict[str, str] = {
    /todo e 1 pr h                       priority=high
    /todo e 1 ar "모든 테스트 통과"       approved reason 설정
 
+ 서브커맨드 Alias
+   remove → rm       move → mv
+   goal   → g        set  → s
+   edit   → e
+
+ Status Alias (/todo s, /todo set)
+   p = pending    i/ip = in_progress
+   c = completed  a = approved    r = rejected
+
+ Edit 필드 Alias (/todo e, /todo edit)
+   c  = content          d  = detail
+   cr = criteria         pr = priority
+   af = active_form      rr = rejection_reason
+   ar = approved_reason
+   field+  = 덮어쓰기 대신 내용 추가(append)
+
+ Priority Alias (edit pr)
+   h = high    m = medium    l = low
+
  AI 상태 흐름 (정상)
    pending → in_progress → completed → approved
 
