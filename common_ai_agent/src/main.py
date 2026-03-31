@@ -79,6 +79,11 @@ from core.react_loop import (
     run_react_agent_impl as _run_react_agent_impl,
     ReactLoopDeps,
 )
+from core.tool_dispatcher import (
+    dispatch_tool as _dispatch_tool,
+    _agent_metadata,
+    get_last_agent_metadata,
+)
 
 # Deep Think (deprecated - replaced by plan agent in v2)
 if getattr(config, 'ENABLE_DEEP_THINK', False) and not getattr(config, 'ENABLE_SUB_AGENTS', False):
@@ -310,9 +315,7 @@ def _read_text_file_best_effort(path: str, max_chars: Optional[int] = None) -> O
 
 
 
-# Thread-local storage for Agent communication metadata
-import threading
-_agent_metadata = threading.local()
+# Thread-local storage for Agent communication metadata (lives in core/tool_dispatcher)
 
 # Phase 3: Thread-local storage for SharedContext
 _shared_context_storage = threading.local()
@@ -331,72 +334,13 @@ def get_shared_context():
 
 
 def execute_tool(tool_name, args_str):
-    if tool_name not in tools.AVAILABLE_TOOLS:
-        return f"Error: Tool '{tool_name}' not found."
-
-    func = tools.AVAILABLE_TOOLS[tool_name]
-    try:
-        # Parse arguments safely
-        parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
-
-        if config.DEBUG_MODE:
-            print(f"[DEBUG] Parsed args: {parsed_args}, kwargs: {parsed_kwargs}")
-
-        result = func(*parsed_args, **parsed_kwargs)
-
-        # Phase 2: Check if result is AgentResult and store metadata
-        if hasattr(result, '__class__') and result.__class__.__name__ == 'AgentResult':
-            # Store metadata in thread-local for accumulated_context
-            _agent_metadata.last_result = {
-                'tool_name': tool_name,
-                'files_examined': result.get('files_examined', []),
-                'planned_steps': result.get('planned_steps', []),
-                'summary': result.get('summary', ''),
-                'tool_calls_count': result.get('tool_calls_count', 0),
-                'execution_time_ms': result.get('execution_time_ms', 0),
-                'agent_type': result.get('metadata', {}).get('agent_type', '')
-            }
-        else:
-            # Clear metadata for non-agent tools
-            _agent_metadata.last_result = None
-
-        # Ensure result is string for downstream processing
-        if not isinstance(result, str):
-            import json
-            try:
-                # Pretty print dict/list for readability
-                result = json.dumps(result, indent=2, ensure_ascii=False)
-            except Exception:
-                result = str(result)
-
-        # Hook: AFTER_TOOL_EXEC (tool output truncation)
-        if hook_registry:
-            hook_ctx = HookContext(
-                tool_name=tool_name,
-                tool_args=args_str,
-                tool_output=result,
-            )
-            hook_ctx = hook_registry.run(HookPoint.AFTER_TOOL_EXEC, hook_ctx)
-            result = hook_ctx.tool_output
-
-        return result
-
-    except Exception as e:
-        import traceback
-        error_detail = traceback.format_exc()
-        _agent_metadata.last_result = None  # Clear metadata on error
-
-        # Hook: ON_ERROR
-        if hook_registry:
-            hook_ctx = HookContext(
-                tool_name=tool_name,
-                tool_args=args_str,
-                error=e,
-                error_traceback=error_detail,
-            )
-            hook_registry.run(HookPoint.ON_ERROR, hook_ctx)
-
-        return f"Error parsing/executing arguments: {e}\n{error_detail}\nargs_str was: {args_str[:200]}"
+    return _dispatch_tool(
+        tool_name,
+        args_str,
+        available_tools=tools.AVAILABLE_TOOLS,
+        debug=getattr(config, "DEBUG_MODE", False),
+        hook_registry=hook_registry,
+    )
 
 # --- 5. Context Management ---
 
