@@ -24,6 +24,12 @@ if os.path.join(_project_root, 'src') not in sys.path:
     sys.path.insert(0, os.path.join(_project_root, 'src'))
 
 from text_utils import strip_thinking_tags as _strip_thinking_tags
+from action_parser import (
+    _strip_native_tool_tokens,
+    parse_all_actions,
+    sanitize_action_text,
+    parse_tool_arguments,
+)
 
 
 def _dedup_intra_line(text):
@@ -44,106 +50,6 @@ def _dedup_intra_line(text):
                     break
         cleaned.append(line)
     return '\n'.join(cleaned)
-
-
-def _strip_native_tool_tokens(text):
-    """
-    Strip native tool call tokens and convert to ReAct Action: format.
-    Standalone version for agent_runner (no main.py dependency).
-    Handles GLM 4.7, Qwen, DeepSeek, Mistral native formats.
-    """
-    import re
-    import json
-
-    # Strip reasoning tokens leaked into content
-    text = _strip_thinking_tags(text)
-
-    def _json_to_action(json_str):
-        try:
-            data = json.loads(json_str.strip())
-            name = data.get("name", "")
-            args = data.get("arguments", {})
-            if name and isinstance(args, dict):
-                args_str = ", ".join(f'{k}={json.dumps(v)}' for k, v in args.items())
-                return f"\nAction: {name}({args_str})\n"
-        except (json.JSONDecodeError, AttributeError):
-            pass
-        return ""
-
-    def _xml_params_to_action(tool_name, params_block):
-        params = re.findall(r'<(\w+)>(.*?)</\1>', params_block, re.DOTALL)
-        if tool_name and params:
-            args_str = ", ".join(f'{k}={json.dumps(v)}' for k, v in params)
-            return f"\nAction: {tool_name}({args_str})\n"
-        elif tool_name:
-            return f"\nAction: {tool_name}()\n"
-        return ""
-
-    # JSON-based: <tool_call>{...}</tool_call> or bare JSON
-    text = re.sub(
-        r'<tool_call>\s*(\{.*?\})\s*</tool_call>',
-        lambda m: _json_to_action(m.group(1)), text, flags=re.DOTALL
-    )
-    text = re.sub(
-        r'\{\s*"name"\s*:\s*"(\w+)"\s*,\s*"arguments"\s*:\s*\{[^}]*\}\s*\}',
-        lambda m: _json_to_action(m.group(0)), text
-    )
-
-    # GLM-style universal: <tool/action/execute>NAME</tag> <param*>...<key>val</key>...</tag>
-    tool_tag_re = re.compile(
-        r'<(tool|action|execute|func\w*)\s*>'
-        r'\s*(?:<(execute|tool)\s*>\s*)?'
-        r'(\w+)'
-        r'\s*(?:</\w+>\s*)?'
-        r'</\w+>'
-    )
-    matches = list(tool_tag_re.finditer(text))
-    for m in reversed(matches):
-        tool_name = m.group(3)
-        after_tool = text[m.end():]
-        param_re = re.match(
-            r'\s*<(p(?:ar|ra)\w*)\s*>(.*)</(p(?:ar|ra)\w*)\s*>',
-            after_tool, re.DOTALL
-        )
-        if param_re:
-            total_end = m.end() + param_re.end()
-            action_str = _xml_params_to_action(tool_name, param_re.group(2))
-            text = text[:m.start()] + action_str + text[total_end:]
-        else:
-            text = text[:m.start()] + f"\nAction: {tool_name}()\n" + text[m.end():]
-
-    # Strip remaining tokens
-    for token in [
-        'tool_call_begin', 'tool_call_end',
-        'tool_calls_section_begin', 'tool_calls_section_end',
-        '<|tool_call|>', '<|tool_calls|>',
-        '<|start_header_id|>tool_call<|end_header_id|>',
-    ]:
-        text = text.replace(token, '')
-
-    text = re.sub(r'<\|(?:tool_call|tool_calls|functions)[^|]*\|>', '', text)
-    text = re.sub(r'</?(?:tool_call|tool|action|execute|func\w*|p(?:ar|aram)\w*)>', '', text)
-
-    # Bare function calls: "list_dir(path=".")" → "Action: list_dir(path=".")"
-    _KNOWN_TOOLS = {
-        'read_file', 'write_file', 'run_command', 'list_dir', 'grep_file',
-        'read_lines', 'find_files', 'replace_in_file', 'replace_lines',
-        'git_diff', 'git_status', 'todo_write', 'todo_update',
-        # RAG tools disabled by default
-        # 'rag_search', 'rag_index', 'rag_explore', 'rag_status',
-        'background_task', 'background_output',
-        'analyze_verilog_module', 'find_signal_usage', 'find_module_definition',
-        'extract_module_hierarchy', 'generate_module_testbench',
-    }
-    _tools_pattern = '|'.join(re.escape(t) for t in _KNOWN_TOOLS)
-    text = re.sub(
-        r'^(\s*)(' + _tools_pattern + r')\s*\(',
-        r'\1Action: \2(',
-        text,
-        flags=re.MULTILINE
-    )
-
-    return text.strip()
 
 
 @dataclass
@@ -243,13 +149,7 @@ def run_agent_session(
         "content": prompt
     })
 
-    # Import parsing utilities from main.py
-    try:
-        from main import parse_all_actions, sanitize_action_text, parse_tool_arguments
-    except ImportError:
-        # Fallback for different import contexts
-        sys.path.insert(0, os.path.join(_project_root, 'src'))
-        from main import parse_all_actions, sanitize_action_text, parse_tool_arguments
+    # Parsing utilities already imported at module level from action_parser
 
     # Import LLM client
     from llm_client import chat_completion_stream, call_llm_raw
