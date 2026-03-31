@@ -255,32 +255,48 @@ current_recovery_point = None  # Latest recovery point
 # LLM Client functions moved to llm_client.py
 
 # --- Compression Prompts ---
-STRUCTURED_SUMMARY_PROMPT = """You are compressing conversation history for an AI agent. Be EXTREMELY concise — target 90% size reduction.
+STRUCTURED_SUMMARY_PROMPT = """You are summarizing conversation history for an AI coding agent.
+Goal: Preserve ALL context needed to continue the work seamlessly, while eliminating redundancy.
 
-Rules:
-- Each bullet: ONE short sentence only (max 15 words)
-- Skip filler, pleasantries, repetition, and failed attempts
-- Only facts needed to continue the work
+What to KEEP:
+- Every file path, function name, class name, variable name that was touched
+- All decisions made (architecture, API design, naming conventions, configs)
+- Errors encountered and how they were resolved (or if still unresolved)
+- User preferences, constraints, and explicit instructions
+- Current state: what works, what's broken, what's next
+- Any partial work in progress
+
+What to SKIP:
+- Greetings, filler phrases, repeated explanations
+- Superseded approaches that were abandoned
+- Tool call boilerplate (keep only the outcome)
+- Identical information stated multiple times
+
+Format: structured bullet points, no prose padding.
+Be thorough on facts. Skip nothing important.
 
 ## Goals
-- What the user wanted
+[What the user is trying to achieve]
 
-## Done
-- Completed tasks (file changed, feature added, bug fixed)
+## Completed
+[Tasks finished, with outcomes — include file names and what changed]
 
-## Decisions
-- Key choices: file names, architecture, APIs, configs
+## Decisions & Conventions
+[Architecture choices, naming rules, API design, config values]
 
 ## Errors & Fixes
-- Errors encountered and how resolved (or still open)
+[Errors hit and how resolved; unresolved issues clearly marked]
 
-## State
-- What works now / what's blocked
+## In Progress / Next
+[Partially done work; what to do next]
 
-## Context
-- File paths, module names, user conventions (only if critical)
+## Key Files & Symbols
+[Important file paths, function/class names, config keys]
 
-Omit empty sections. No explanations — facts only."""
+## User Preferences
+[Coding style, language preference, workflow constraints]
+
+Omit sections with nothing to report."""
 
 # --- 3. History Management ---
 
