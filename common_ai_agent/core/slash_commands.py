@@ -261,6 +261,8 @@ class SlashCommandRegistry:
             if subcmd == 'edit':
                 rest = args.strip().split(maxsplit=3)
                 return self._todo_edit(rest[1:], todo_file)
+            if subcmd in ('rule', 'rules'):
+                return self._todo_rule()
 
             if not todo_file.exists():
                 # Check if there's a recent write failure to surface
@@ -636,6 +638,34 @@ class SlashCommandRegistry:
             )
         except Exception as e:
             return f"❌ Error: {e}\n"
+
+    def _todo_rule(self) -> str:
+        """Show current .TODO_RULE.md content and file locations."""
+        from pathlib import Path
+        import os
+        paths = [
+            Path.home() / ".common_ai_agent" / ".TODO_RULE.md",
+            Path(os.getcwd()) / ".TODO_RULE.md",
+        ]
+        SEP = "=" * 60
+        lines = [f"\n{SEP}", " TODO RULES  .TODO_RULE.md", SEP]
+        found_any = False
+        for p in paths:
+            scope = "global" if "common_ai_agent" in str(p.parent) else "project"
+            if p.exists():
+                content = p.read_text(encoding="utf-8").strip()
+                lines.append(f"\n[{scope}] {p}")
+                lines.append(content)
+                found_any = True
+            else:
+                lines.append(f"\n[{scope}] {p}  (없음)")
+        if not found_any:
+            lines.append("\n규칙 파일이 없습니다.")
+            lines.append("아래 경로에 .TODO_RULE.md 파일을 만들면 태스크 시작 시 자동으로 주입됩니다.")
+        lines.append(f"\n{SEP}")
+        lines.append("💡 태스크 실행 중 매 continuation prompt에 자동 첨부됩니다.")
+        lines.append(f"{SEP}")
+        return "\n".join(lines) + "\n"
 
     def _cmd_mode(self, args: str) -> str:
         """Switch agent mode. /mode normal to exit."""

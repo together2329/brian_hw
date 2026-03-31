@@ -162,6 +162,13 @@ MAN_PAGES: dict[str, str] = {
  Priority Alias (edit pr)
    h = high    m = medium    l = low
 
+ Todo Rule (.TODO_RULE.md)
+   태스크 시작 시 AI에게 자동 주입되는 실행 규칙 파일.
+   파일 위치 (둘 다 있으면 합쳐서 주입):
+     ~/.common_ai_agent/.TODO_RULE.md   전역 규칙
+     <프로젝트>/.TODO_RULE.md           프로젝트 규칙
+   /todo rule   현재 규칙 내용 확인
+
  AI 상태 흐름 (정상)
    pending → in_progress → completed → approved
 

@@ -61,6 +61,22 @@ STATUS_ALIASES = {
 }
 
 
+def _load_todo_rule() -> str:
+    """Load .TODO_RULE.md from global (~/.common_ai_agent/) and project (cwd) locations."""
+    import os
+    paths = [
+        Path.home() / ".common_ai_agent" / ".TODO_RULE.md",
+        Path(os.getcwd()) / ".TODO_RULE.md",
+    ]
+    parts = []
+    for p in paths:
+        if p.exists():
+            content = p.read_text(encoding="utf-8").strip()
+            if content:
+                parts.append(content)
+    return "\n\n".join(parts)
+
+
 def _fmt_elapsed(seconds: float) -> str:
     """Format elapsed seconds as human-readable string."""
     if seconds < 60:
@@ -424,18 +440,17 @@ class TodoTracker:
         return self.get_progress_pct()
 
     def get_continuation_prompt(self) -> Optional[str]:
-        """미완료 todo가 있으면 1-line 리마인더 반환."""
+        """미완료 todo가 있으면 1-line 리마인더 반환. .TODO_RULE.md가 있으면 태스크 시작 시 주입."""
         if not self.todos or self.is_all_processed():
             return None
 
         current = self.get_current_todo()
-        approved_count = sum(1 for t in self.todos if t.status == "approved")
         total = len(self.todos)
 
         if current:
             idx = self.current_index + 1
             if current.status == "rejected":
-                return (
+                prompt = (
                     f"[Task {idx}/{total} REJECTED] {current.rejection_reason}\n"
                     f"Fix the issue, then call: todo_update(index={idx}, status='in_progress')"
                 )
@@ -443,10 +458,15 @@ class TodoTracker:
                 # Review instruction is already in the tool return value — no separate injection
                 return None
             else:
-                return (
+                prompt = (
                     f"[Task {idx}/{total}] {current.content}\n"
                     f"→ When done, call: todo_update(index={idx}, status='completed')"
                 )
+            # Append TODO_RULE if present
+            rule = _load_todo_rule()
+            if rule:
+                prompt += f"\n\n=== TODO RULES ===\n{rule}"
+            return prompt
 
         unreviewed = [i for i, t in enumerate(self.todos) if t.status == "completed"]
         if unreviewed:
