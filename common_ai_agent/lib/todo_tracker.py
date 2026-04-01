@@ -487,9 +487,15 @@ class TodoTracker:
             if rule:
                 prompt += f"\n\n=== TODO RULES ===\n{rule}"
             # Append UPD_RULE (project execution rules) — periodic re-injection
-            upd_rule = _load_upd_rule()
-            if upd_rule:
-                prompt += f"\n\n=== PROJECT RULES (reminder) ===\n{upd_rule}"
+            try:
+                import config as _cfg
+                _periodic = getattr(_cfg, "UPD_RULE_PERIODIC_INJECT", True)
+            except Exception:
+                _periodic = True
+            if _periodic:
+                upd_rule = _load_upd_rule()
+                if upd_rule:
+                    prompt += f"\n\n=== PROJECT RULES (reminder) ===\n{upd_rule}"
             return prompt
 
         unreviewed = [i for i, t in enumerate(self.todos) if t.status == "completed"]

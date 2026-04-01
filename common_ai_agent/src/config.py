@@ -558,6 +558,16 @@ REACT_ACTION_TIMEOUT = int(os.getenv("REACT_ACTION_TIMEOUT", "30"))
 ENABLE_TODO_TRACKING = os.getenv("ENABLE_TODO_TRACKING", "true").lower() in ("true", "1", "yes")
 TODO_STAGNATION_LIMIT = int(os.getenv("TODO_STAGNATION_LIMIT", "50"))
 
+# Inject .UPD_RULE.md before default RULES in system prompt so it takes precedence.
+# true  = PROJECT RULES appear before default RULES (recommended)
+# false = PROJECT RULES appear after (old behavior — may be overridden by defaults)
+UPD_RULE_PRIORITY_INJECT = os.getenv("UPD_RULE_PRIORITY_INJECT", "true").lower() in ("true", "1", "yes")
+
+# Periodically re-inject .UPD_RULE.md into continuation_prompt every turn.
+# true  = remind the model of PROJECT RULES alongside each task reminder
+# false = PROJECT RULES only in system prompt (may be forgotten in long sessions)
+UPD_RULE_PERIODIC_INJECT = os.getenv("UPD_RULE_PERIODIC_INJECT", "true").lower() in ("true", "1", "yes")
+
 # Auto-advance to next todo when current step completes
 # If False, todos stay in_progress until manually completed
 TODO_AUTO_ADVANCE = os.getenv("TODO_AUTO_ADVANCE", "true").lower() in ("true", "1", "yes")
@@ -966,12 +976,15 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     _upd_rule_text = "\n\n".join(_upd_rule_parts) if _upd_rule_parts else ""
 
     # PROJECT RULES injected BEFORE default rules so they take precedence
-    if _upd_rule_text:
+    if _upd_rule_text and UPD_RULE_PRIORITY_INJECT:
         parts.append(
             "\n=== PROJECT RULES (override defaults below) ===\n"
             + _upd_rule_text
             + "\n=== END PROJECT RULES ===\n"
         )
+    elif _upd_rule_text:
+        # Legacy: append after rules (lower priority)
+        parts.append("\n=== PROJECT RULES ===\n" + _upd_rule_text + "\n=====================")
 
     # Core rules (compressed) — PROJECT RULES above override these if they conflict
     rules_parts = [
