@@ -124,8 +124,9 @@ class _PersistentHTTPError(urllib.error.HTTPError):
 
 def warmup_connection() -> None:
     """
-    Pre-establish the TCP+SSL connection to the LLM API host in the background.
-    Call this at program startup so the first real LLM call skips the handshake.
+    Pre-establish a live HTTP keep-alive connection to the LLM API host.
+    Sends a real GET /models request so the server keeps the connection open.
+    (TCP-only connect() leaves the connection idle; servers close it within seconds.)
     Safe to call from a daemon thread — failures are silently ignored.
     """
     t0 = time.perf_counter()
@@ -135,17 +136,36 @@ def warmup_connection() -> None:
         if not host:
             return
         if _http_conn_pool.get(host) is not None:
-            return  # already connected
+            return  # already warm
+
         conn = http.client.HTTPSConnection(
             host, context=_get_or_create_ssl_ctx(), timeout=10
         )
-        conn.connect()          # TCP + TLS handshake only — no HTTP request
         _http_conn_pool[host] = conn
+
+        # Send a lightweight GET /models to complete a full HTTP round-trip.
+        # This keeps the connection alive (server won't close an idle-after-connect
+        # TCP connection within seconds if actual HTTP traffic occurred).
+        base_path = parsed.path.rstrip('/')  # e.g. "/api/v1"
+        warmup_path = base_path + "/models"
+        conn.request("GET", warmup_path, headers={
+            "Authorization": f"Bearer {config.API_KEY}",
+            "Connection": "keep-alive",
+        })
+        resp = conn.getresponse()
+        resp.read()  # drain so connection is available for reuse
+
         elapsed = time.perf_counter() - t0
         sys.stderr.write(f"\r\033[2m[LLM] connected ({elapsed:.2f}s)\033[0m\n")
         sys.stderr.flush()
     except Exception as e:
         elapsed = time.perf_counter() - t0
+        # Remove broken connection from pool so next real call reconnects cleanly
+        try:
+            parsed2 = urllib.parse.urlparse(config.BASE_URL)
+            _http_conn_pool.pop(parsed2.netloc, None)
+        except Exception:
+            pass
         sys.stderr.write(f"\r\033[2m[LLM] warmup failed ({elapsed:.2f}s): {e}\033[0m\n")
         sys.stderr.flush()
 
