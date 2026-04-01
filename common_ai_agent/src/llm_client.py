@@ -122,6 +122,29 @@ class _PersistentHTTPError(urllib.error.HTTPError):
         return self._body_bytes
 
 
+def warmup_connection() -> None:
+    """
+    Pre-establish the TCP+SSL connection to the LLM API host in the background.
+    Call this at program startup so the first real LLM call skips the handshake.
+    Safe to call from a daemon thread — failures are silently ignored.
+    """
+    try:
+        parsed = urllib.parse.urlparse(config.BASE_URL)
+        host = parsed.netloc
+        if not host:
+            return
+        conn = _http_conn_pool.get(host)
+        if conn is not None:
+            return  # already connected
+        conn = http.client.HTTPSConnection(
+            host, context=_get_or_create_ssl_ctx(), timeout=10
+        )
+        conn.connect()          # TCP + TLS handshake only — no HTTP request
+        _http_conn_pool[host] = conn
+    except Exception:
+        pass  # warmup failure is non-fatal; next real call will connect normally
+
+
 def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
     """
     POST via a persistent HTTPS connection (HTTP keep-alive).

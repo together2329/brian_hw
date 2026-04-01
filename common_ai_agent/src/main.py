@@ -9,6 +9,7 @@ import copy
 import time
 import traceback
 import subprocess
+import threading
 
 # Windows: force UTF-8 for stdout/stderr to avoid cp1252 emoji crashes
 if platform.system() == "Windows":
@@ -937,6 +938,9 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
 # --- 7. Main Loop ---
 
 def chat_loop():
+    # Pre-warm TCP+SSL connection in parallel while the rest of startup runs
+    threading.Thread(target=llm_client.warmup_connection, daemon=True, name="llm-warmup").start()
+
     # Initialize session manager (for recovery system)
     global session_manager, current_session_id, current_recovery_point
 
