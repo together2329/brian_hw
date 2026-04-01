@@ -128,21 +128,26 @@ def warmup_connection() -> None:
     Call this at program startup so the first real LLM call skips the handshake.
     Safe to call from a daemon thread — failures are silently ignored.
     """
+    t0 = time.perf_counter()
     try:
         parsed = urllib.parse.urlparse(config.BASE_URL)
         host = parsed.netloc
         if not host:
             return
-        conn = _http_conn_pool.get(host)
-        if conn is not None:
+        if _http_conn_pool.get(host) is not None:
             return  # already connected
         conn = http.client.HTTPSConnection(
             host, context=_get_or_create_ssl_ctx(), timeout=10
         )
         conn.connect()          # TCP + TLS handshake only — no HTTP request
         _http_conn_pool[host] = conn
-    except Exception:
-        pass  # warmup failure is non-fatal; next real call will connect normally
+        elapsed = time.perf_counter() - t0
+        sys.stderr.write(f"\r\033[2m[LLM] connected ({elapsed:.2f}s)\033[0m\n")
+        sys.stderr.flush()
+    except Exception as e:
+        elapsed = time.perf_counter() - t0
+        sys.stderr.write(f"\r\033[2m[LLM] warmup failed ({elapsed:.2f}s): {e}\033[0m\n")
+        sys.stderr.flush()
 
 
 def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
