@@ -949,11 +949,34 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
             parts.extend(available)
             parts.append("")
 
-    # Core rules (compressed)
+    # .UPD_RULE.md — load early so PROJECT RULES can override defaults below
+    _upd_rule_paths = [
+        Path.home() / ".common_ai_agent" / ".UPD_RULE.md",   # global
+        Path(__file__).parent.parent / ".UPD_RULE.md",        # project
+    ]
+    _upd_rule_parts = []
+    for _p in _upd_rule_paths:
+        if _p.exists():
+            try:
+                _text = _p.read_text(encoding="utf-8").strip()
+                if _text:
+                    _upd_rule_parts.append(_text)
+            except Exception:
+                pass
+    _upd_rule_text = "\n\n".join(_upd_rule_parts) if _upd_rule_parts else ""
+
+    # PROJECT RULES injected BEFORE default rules so they take precedence
+    if _upd_rule_text:
+        parts.append(
+            "\n=== PROJECT RULES (override defaults below) ===\n"
+            + _upd_rule_text
+            + "\n=== END PROJECT RULES ===\n"
+        )
+
+    # Core rules (compressed) — PROJECT RULES above override these if they conflict
     rules_parts = [
-        "RULES:\n",
-        "\n1. PARALLEL EXECUTION (MANDATORY):\n",
-        "   - Output 3+ Actions per response when exploring/reading.\n",
+        "RULES (defaults — PROJECT RULES above take precedence):\n",
+        "\n1. PARALLEL EXECUTION:\n",
         "   - Read-only tools are parallel-safe: read_file, read_lines, grep_file, list_dir, find_files, git_status, git_diff.\n"
     ]
     if not plan_mode:
@@ -978,23 +1001,6 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
         "   - If tool fails, adapt search — don't pretend results exist.\n"
     )
     parts.append("".join(rules_parts))
-
-    # .UPD_RULE.md — global then project (like CLAUDE.md hierarchy)
-    _upd_rule_paths = [
-        Path.home() / ".common_ai_agent" / ".UPD_RULE.md",   # global
-        Path(__file__).parent.parent / ".UPD_RULE.md",        # project
-    ]
-    _upd_rule_parts = []
-    for _p in _upd_rule_paths:
-        if _p.exists():
-            try:
-                _text = _p.read_text(encoding="utf-8").strip()
-                if _text:
-                    _upd_rule_parts.append(_text)
-            except Exception:
-                pass
-    if _upd_rule_parts:
-        parts.append("\n=== PROJECT RULES ===\n" + "\n\n".join(_upd_rule_parts) + "\n=====================")
 
     # Append Plan Mode instructions if active
     if plan_mode:

@@ -77,6 +77,26 @@ def _load_todo_rule() -> str:
     return "\n\n".join(parts)
 
 
+def _load_upd_rule() -> str:
+    """
+    Load .UPD_RULE.md (project-level execution rules).
+    Checked in: cwd, cwd/.., global ~/.common_ai_agent/
+    """
+    import os
+    candidates = [
+        Path(os.getcwd()) / ".UPD_RULE.md",
+        Path(os.getcwd()).parent / ".UPD_RULE.md",
+        Path.home() / ".common_ai_agent" / ".UPD_RULE.md",
+    ]
+    for p in candidates:
+        if p.exists():
+            try:
+                return p.read_text(encoding="utf-8").strip()
+            except Exception:
+                pass
+    return ""
+
+
 def _fmt_elapsed(seconds: float) -> str:
     """Format elapsed seconds as human-readable string."""
     if seconds < 60:
@@ -466,6 +486,10 @@ class TodoTracker:
             rule = _load_todo_rule()
             if rule:
                 prompt += f"\n\n=== TODO RULES ===\n{rule}"
+            # Append UPD_RULE (project execution rules) — periodic re-injection
+            upd_rule = _load_upd_rule()
+            if upd_rule:
+                prompt += f"\n\n=== PROJECT RULES (reminder) ===\n{upd_rule}"
             return prompt
 
         unreviewed = [i for i, t in enumerate(self.todos) if t.status == "completed"]
