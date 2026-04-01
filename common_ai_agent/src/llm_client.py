@@ -103,6 +103,7 @@ def print_call_summary() -> None:
 # Reuses TCP+SSL connections across LLM calls to avoid per-call handshake overhead.
 _ssl_ctx_cache: Optional[ssl.SSLContext] = None
 _http_conn_pool: Dict[str, http.client.HTTPSConnection] = {}
+_last_post_reused: bool = False  # set by _persistent_post; read by PERF logging
 
 
 def _get_or_create_ssl_ctx() -> ssl.SSLContext:
@@ -189,8 +190,10 @@ def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
     req_headers = dict(headers)
     req_headers["Connection"] = "keep-alive"
 
+    global _last_post_reused
     for attempt in range(2):
         conn = _http_conn_pool.get(host)
+        _was_alive = conn is not None and conn.sock is not None
         if conn is None:
             conn = http.client.HTTPSConnection(
                 host, context=_get_or_create_ssl_ctx(), timeout=timeout
@@ -202,6 +205,7 @@ def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
             if resp.status >= 400:
                 body_bytes = resp.read()  # fully drain before raising
                 raise _PersistentHTTPError(url, resp.status, resp.reason, body_bytes)
+            _last_post_reused = _was_alive and attempt == 0
             return resp
         except _PersistentHTTPError:
             raise
@@ -213,6 +217,7 @@ def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
             except Exception:
                 pass
             _http_conn_pool.pop(host, None)
+            _last_post_reused = False
             if attempt == 1:
                 raise
 
@@ -638,7 +643,8 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         _t_connected = time.time()
         _ns_connect = _t_connected - _t_connect
         if _perf:
-            print(f"  \033[2m[PERF/LLM] connect: {_ns_connect:.3f}s\033[0m")
+            _reuse_tag = "reused" if _last_post_reused else "new-conn"
+            print(f"  \033[2m[PERF/LLM] connect: {_ns_connect:.3f}s ({_reuse_tag})\033[0m")
         result = json.loads(response.read().decode('utf-8'))
         _t_done = time.time()
         _ns_read = _t_done - _t_connected
@@ -1020,7 +1026,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     if _perf_gen_elapsed and _perf_gen_elapsed > 0:
                         _tps = _perf_chunks / _perf_gen_elapsed
                         _tps_str = f" ({_perf_chunks} chunks, {_tps:.1f} tok/s)"
-                    print(f"\n  \033[2m[PERF/LLM] setup={_setup:.3f}s | connect={_perf_connect:.3f}s | ttft={_perf_ttft:.3f}s | decode={_perf_gen_elapsed:.3f}s{_tps_str}\033[0m")
+                    _reuse_tag = "reused" if _last_post_reused else "new-conn"
+                    print(f"\n  \033[2m[PERF/LLM] setup={_setup:.3f}s | connect={_perf_connect:.3f}s ({_reuse_tag}) | ttft={_perf_ttft:.3f}s | decode={_perf_gen_elapsed:.3f}s{_tps_str}\033[0m")
 
                 # Record call
                 _record_call(
