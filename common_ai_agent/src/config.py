@@ -561,12 +561,12 @@ TODO_STAGNATION_LIMIT = int(os.getenv("TODO_STAGNATION_LIMIT", "50"))
 # Inject .UPD_RULE.md before default RULES in system prompt so it takes precedence.
 # true  = PROJECT RULES appear before default RULES (recommended)
 # false = PROJECT RULES appear after (old behavior — may be overridden by defaults)
-UPD_RULE_PRIORITY_INJECT = os.getenv("UPD_RULE_PRIORITY_INJECT", "true").lower() in ("true", "1", "yes")
+UPD_RULE_PRIORITY_INJECT = os.getenv("UPD_RULE_PRIORITY_INJECT", "false").lower() in ("true", "1", "yes")
 
 # Periodically re-inject .UPD_RULE.md into continuation_prompt every turn.
 # true  = remind the model of PROJECT RULES alongside each task reminder
 # false = PROJECT RULES only in system prompt (may be forgotten in long sessions)
-UPD_RULE_PERIODIC_INJECT = os.getenv("UPD_RULE_PERIODIC_INJECT", "true").lower() in ("true", "1", "yes")
+UPD_RULE_PERIODIC_INJECT = os.getenv("UPD_RULE_PERIODIC_INJECT", "false").lower() in ("true", "1", "yes")
 
 # Auto-advance to next todo when current step completes
 # If False, todos stay in_progress until manually completed
