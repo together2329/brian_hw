@@ -19,7 +19,7 @@ import json
 import re
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from text_utils import strip_thinking_tags as _strip_thinking_tags
+from core.text_utils import strip_thinking_tags as _strip_thinking_tags
 
 
 # ---------------------------------------------------------------------------

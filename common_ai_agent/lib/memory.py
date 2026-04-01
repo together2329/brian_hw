@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from file_utils import read_json_file as _read_json_file_util, atomic_write_json as _atomic_write_json_util
+from lib.file_utils import read_json_file as _read_json_file_util, atomic_write_json as _atomic_write_json_util
 
 
 class MemorySystem:

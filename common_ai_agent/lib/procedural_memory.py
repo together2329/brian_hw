@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 import re
 
-from file_utils import read_json_file as _read_json_file_util, atomic_write_json as _atomic_write_json_util
+from lib.file_utils import read_json_file as _read_json_file_util, atomic_write_json as _atomic_write_json_util
 
 
 @dataclass
