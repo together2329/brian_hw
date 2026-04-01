@@ -301,9 +301,9 @@ current_recovery_point = None  # Latest recovery point
 
 # --- 3. History Management ---
 
-def save_conversation_history(messages):
+def save_conversation_history(messages, silent=True):
     """Wrapper: delegates to core.history_manager."""
-    _save_history_impl(messages)
+    _save_history_impl(messages, silent=silent)
 
 def load_conversation_history():
     """Wrapper: delegates to core.history_manager."""
@@ -1746,7 +1746,7 @@ def chat_loop():
 
         except KeyboardInterrupt:
             print(Color.warning("\nExiting..."))
-            save_conversation_history(messages)
+            save_conversation_history(messages, silent=False)
             try:
                 on_conversation_end(messages)
             except Exception as e:
@@ -1756,7 +1756,7 @@ def chat_loop():
         except EOFError:
             # stdin closed (e.g., from echo pipe) - exit gracefully
             print(Color.info("\n[System] Input stream closed. Exiting..."))
-            save_conversation_history(messages)
+            save_conversation_history(messages, silent=False)
             break
         except Exception as e:
             import traceback
@@ -1765,7 +1765,7 @@ def chat_loop():
             pass
 
     # Save history on normal exit
-    save_conversation_history(messages)
+    save_conversation_history(messages, silent=False)
     try:
         on_conversation_end(messages)
     except Exception as e:

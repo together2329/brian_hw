@@ -299,19 +299,25 @@ class TodoTracker:
 
     def _get_next_pending(self) -> Optional[int]:
         """
-        다음 pending todo 인덱스 반환.
-        Priority 순서: high → medium → low.
+        다음 actionable todo 인덱스 반환.
+        우선순위: rejected > completed (review needed) > pending.
         같은 priority 내에서는 원래 순서(index 오름차순) 유지.
         """
+        # Status priority: rejected=0 (must fix first), completed=1 (needs review), pending=2
+        STATUS_ORDER = {"rejected": 0, "completed": 1, "pending": 2}
         candidates = [
             (i, todo) for i, todo in enumerate(self.todos)
-            if todo.status == "pending"
+            if todo.status in ("pending", "completed", "rejected")
         ]
         if not candidates:
             return None
 
-        # Sort by priority first, then by original index
-        candidates.sort(key=lambda x: (_PRIORITY_ORDER.get(x[1].priority, 1), x[0]))
+        # Sort by status priority first, then task priority, then original index
+        candidates.sort(key=lambda x: (
+            STATUS_ORDER.get(x[1].status, 9),
+            _PRIORITY_ORDER.get(x[1].priority, 1),
+            x[0]
+        ))
         return candidates[0][0]
 
     def format_progress(self) -> str:
@@ -459,10 +465,31 @@ class TodoTracker:
     def get_completion_ratio(self) -> float:
         return self.get_progress_pct()
 
+    def _auto_recover_current_index(self) -> bool:
+        """
+        current_index가 -1이거나 invalid할 때 자동 복구.
+        rejected > completed > pending 순으로 첫 번째 actionable task를 current로 설정.
+        Returns True if recovered.
+        """
+        if self.current_index >= 0 and self.current_index < len(self.todos):
+            status = self.todos[self.current_index].status
+            if status in ("in_progress", "rejected", "completed"):
+                return False  # already valid
+
+        # Find first actionable task
+        next_idx = self._get_next_pending()
+        if next_idx is not None:
+            self.current_index = next_idx
+            return True
+        return False
+
     def get_continuation_prompt(self) -> Optional[str]:
         """미완료 todo가 있으면 1-line 리마인더 반환. .TODO_RULE.md가 있으면 태스크 시작 시 주입."""
         if not self.todos or self.is_all_processed():
             return None
+
+        # Auto-recover if current_index is broken (-1 or pointing at approved task)
+        self._auto_recover_current_index()
 
         current = self.get_current_todo()
         total = len(self.todos)

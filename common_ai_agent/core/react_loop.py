@@ -301,10 +301,17 @@ def run_react_agent_impl(
         elif warning_action == "extend":
             tracker.extend(20)
 
+        _perf = getattr(cfg, "PERF_TRACKING", False)
+        _perf_iter_start = time.time()
+
         # Compress history if needed
+        _t = time.time()
         messages = deps.compress_fn(messages, todo_tracker=todo_tracker)
+        if _perf:
+            print(f"  {Color.DIM}[PERF] compress: {time.time()-_t:.3f}s{Color.RESET}")
 
         # Refresh system prompt
+        _t = time.time()
         if getattr(cfg, "ENABLE_SMART_RAG", False) or getattr(cfg, "DEBUG_MODE", False) or getattr(cfg, "ENABLE_SKILL_SYSTEM", False):
             user_messages = [m for m in messages if m.get("role") == "user"]
             current_query = user_messages[-1].get("content", "")[:100] if user_messages else ""
@@ -326,6 +333,8 @@ def run_react_agent_impl(
                         messages[0]["content"] = blocks if blocks else system_prompt_data.get("static", "")
                     else:
                         messages[0]["content"] = system_prompt_data
+        if _perf:
+            print(f"  {Color.DIM}[PERF] build_prompt: {time.time()-_t:.3f}s{Color.RESET}")
 
         # Inject accumulated context
         if accumulated_context and any(v for v in accumulated_context.values() if v):
@@ -344,6 +353,7 @@ def run_react_agent_impl(
                     messages[0]["content"].append({"type": "text", "text": ctx_msg})
 
         # Hook: BEFORE_LLM_CALL
+        _t = time.time()
         if deps.hook_registry:
             try:
                 from core.hooks import HookContext, HookPoint
@@ -360,6 +370,8 @@ def run_react_agent_impl(
                     messages = deps.compress_fn(messages, todo_tracker=todo_tracker, force=True)
             except Exception:
                 pass
+        if _perf:
+            print(f"  {Color.DIM}[PERF] before_llm_hook: {time.time()-_t:.3f}s{Color.RESET}")
 
         # Update terminal title with current non-approved task (always visible above input)
         if todo_tracker and todo_tracker.todos:
@@ -392,6 +404,8 @@ def run_react_agent_impl(
 
         _stop_seqs = ["Observation:", "<|call|>", "tool_call_begin",
                       "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"]
+        if _perf:
+            print(f"  {Color.DIM}[PERF] >>> LLM call start{Color.RESET}")
         _stream_start = time.time()
         _aborted = False
         _debug = getattr(cfg, "DEBUG_MODE", False)
@@ -514,7 +528,7 @@ def run_react_agent_impl(
                 collected_content = collected_content[_first_marker.start():]
 
         # Token summary line
-        if not getattr(cfg, "DEBUG_MODE", False):
+        if not getattr(cfg, "DEBUG_MODE", False) and getattr(cfg, "SHOW_TOKEN_STATS", True):
             elapsed_str = f"{llm_elapsed:.1f}s" if llm_elapsed < 60 else f"{int(llm_elapsed//60)}m{int(llm_elapsed%60):02d}s"
             _in_tok, _out_tok = deps.get_llm_tokens_fn()
             _fk = lambda n: f"{n/1000:.1f}k" if n >= 1000 else str(n)
@@ -522,7 +536,9 @@ def run_react_agent_impl(
                 token_str = f"in {_fk(_in_tok)} · out {_fk(_out_tok)} · sum {_fk(_in_tok + _out_tok)}"
             else:
                 token_str = f"~{_fk(len(collected_content)//4)}"
-            print(f"  ✽ {token_str} tokens")
+            print(f"\n  {Color.DIM}✽ {token_str} tokens · {elapsed_str}{Color.RESET}")
+        if _perf:
+            print(f"  {Color.DIM}[PERF] <<< LLM call end: {llm_elapsed:.3f}s{Color.RESET}")
 
         print()
 
@@ -539,6 +555,7 @@ def run_react_agent_impl(
         messages.append(assistant_msg)
 
         # Hook: AFTER_LLM_CALL
+        _t = time.time()
         if deps.hook_registry:
             try:
                 from core.hooks import HookContext, HookPoint
@@ -551,14 +568,19 @@ def run_react_agent_impl(
                 messages = hook_ctx.messages
             except Exception:
                 pass
+        if _perf:
+            print(f"  {Color.DIM}[PERF] after_llm_hook: {time.time()-_t:.3f}s{Color.RESET}")
 
         # Parse actions
+        _t = time.time()
         try:
             from core.action_parser import parse_all_actions
         except ImportError:
             parse_all_actions = lambda text, debug=False: []
 
         actions = parse_all_actions(collected_content, debug=getattr(cfg, "DEBUG_MODE", False))
+        if _perf:
+            print(f"  {Color.DIM}[PERF] parse_actions: {time.time()-_t:.3f}s{Color.RESET}")
 
         # Chat mode 0: respond only
         if getattr(cfg, "EXECUTION_MODE", "agent") == "chat":
@@ -649,6 +671,8 @@ def run_react_agent_impl(
                                 if _new_m and _prev != _new_m.group(1):
                                     summary = f"#{_idx + 1} {_prev} → {_new_m.group(1)}"
                     tracker.record_tool(tool_name)
+                    if _perf:
+                        print(f"  {Color.DIM}[PERF] >>> tool/{tool_name} start{Color.RESET}")
                     tool_start = time.time()
 
                     _SLOW_TOOLS = {"run_command", "background_task", "background_output"}
@@ -679,6 +703,8 @@ def run_react_agent_impl(
                         observation = deps.execute_tool_fn(tool_name, args_str)
 
                     tool_elapsed = time.time() - tool_start
+                    if _perf:
+                        print(f"  {Color.DIM}[PERF] <<< tool/{tool_name}: {tool_elapsed:.3f}s{Color.RESET}")
 
                     # Lint error warning for todo_update(completed)
                     if tool_name == "todo_update" and "completed" in args_str:
@@ -830,6 +856,9 @@ def run_react_agent_impl(
                     if reminder not in last_content:
                         messages.append({"role": "user", "content": reminder})
 
+            if _perf:
+                _iter_total = time.time() - _perf_iter_start
+                print(f"  {Color.DIM}[PERF] === iteration total: {_iter_total:.3f}s ==={Color.RESET}")
             tracker.increment()
 
             # Step-by-step mode
@@ -886,6 +915,9 @@ def run_react_agent_impl(
                 else:
                     break
 
+            if _perf:
+                _iter_total = time.time() - _perf_iter_start
+                print(f"  {Color.DIM}[PERF] === iteration total: {_iter_total:.3f}s ==={Color.RESET}")
             tracker.increment()
 
             if getattr(cfg, "EXECUTION_MODE", "agent") == "chat":

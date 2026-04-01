@@ -460,12 +460,20 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         except Exception:
             _spinner = None
 
+    _perf = getattr(config, "PERF_TRACKING", False)
     try:
         request = urllib.request.Request(
             url, data=json.dumps(data).encode('utf-8'), headers=headers
         )
+        _t_connect = time.time()
         with urllib.request.urlopen(request, timeout=config.NONSTREAM_API_TIMEOUT) as response:
+            _t_connected = time.time()
+            if _perf:
+                print(f"  \033[2m[PERF/LLM] connect: {_t_connected - _t_connect:.3f}s\033[0m")
             result = json.loads(response.read().decode('utf-8'))
+            _t_done = time.time()
+            if _perf:
+                print(f"  \033[2m[PERF/LLM] response_read: {_t_done - _t_connected:.3f}s\033[0m")
     except Exception as e:
         if _spinner:
             _spinner.stop()
@@ -707,6 +715,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         _debug_line_buf = ""
         _debug_in_think = False
 
+        _perf = getattr(config, "PERF_TRACKING", False)
         try:
             req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
 
@@ -715,14 +724,25 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             ssl_context.check_hostname = True
             ssl_context.verify_mode = ssl.CERT_REQUIRED
 
+            _t_connect = time.time()
+            _perf_connect = None
+            _perf_ttft = None
+            _perf_gen_elapsed = None
+            _perf_chunks = 0
             with urllib.request.urlopen(req, timeout=config.STREAM_API_TIMEOUT, context=ssl_context) as response:
+                _perf_connect = time.time() - _t_connect
                 # Parse Server-Sent Events (SSE)
                 usage_info = None
+                _t_first_token = None
+                _total_tokens_streamed = 0
                 for line in response:
                     line = line.decode('utf-8').strip()
                     if line.startswith("data: "):
                         data_str = line[6:] # Remove "data: " prefix
                         if data_str == "[DONE]":
+                            if _t_first_token:
+                                _perf_gen_elapsed = time.time() - _t_first_token
+                                _perf_chunks = _total_tokens_streamed
                             break
                         try:
                             chunk_json = json.loads(data_str)
@@ -735,7 +755,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                             # Structure: choices[0].delta.content
                             if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
                                 delta = chunk_json["choices"][0].get("delta", {})
-                                
+
                                 # Reasoning tokens (DeepSeek, GLM etc.)
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
                                 content = delta.get("content", "")
@@ -765,6 +785,12 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                         sys.stdout.write(content)
                                         sys.stdout.flush()
 
+                                if reasoning or content:
+                                    if _t_first_token is None:
+                                        _t_first_token = time.time()
+                                        _perf_ttft = _t_first_token - _t_connect
+                                    _total_tokens_streamed += 1
+
                                 if reasoning:
                                     yield ("reasoning", reasoning)
                                 if content:
@@ -790,6 +816,14 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
                         except json.JSONDecodeError:
                             continue
+
+                # Print PERF/LLM summary after streaming completes (clean, no mid-stream interleave)
+                if _perf:
+                    _tps_str = ""
+                    if _perf_gen_elapsed and _perf_gen_elapsed > 0:
+                        _tps = _perf_chunks / _perf_gen_elapsed
+                        _tps_str = f" ({_perf_chunks} chunks, {_tps:.1f} tok/s)"
+                    print(f"\n  \033[2m[PERF/LLM] connect={_perf_connect:.3f}s | ttft={_perf_ttft:.3f}s | decode={_perf_gen_elapsed:.3f}s{_tps_str}\033[0m")
 
                 # Update global token tracking with actual values from API
                 if usage_info:

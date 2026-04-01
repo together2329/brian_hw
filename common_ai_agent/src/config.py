@@ -94,6 +94,12 @@ CHAT_MAX_ITERATIONS = int(os.getenv("CHAT_MAX_ITERATIONS", "1"))
 # Debug mode - show detailed parsing and execution info
 DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() in ("true", "1", "yes")
 
+# Performance tracking - print timing for each phase of the ReAct loop
+PERF_TRACKING = os.getenv("PERF_TRACKING", "false").lower() in ("true", "1", "yes")
+
+# Show token usage stats after each LLM response (✽ in X · out Y · sum Z tokens)
+SHOW_TOKEN_STATS = os.getenv("SHOW_TOKEN_STATS", "true").lower() in ("true", "1", "yes")
+
 # Include LLM reasoning in message context (stored in history for next turn)
 REASONING_IN_CONTEXT = os.getenv("REASONING_IN_CONTEXT", "false").lower() in ("true", "1", "yes")
 
