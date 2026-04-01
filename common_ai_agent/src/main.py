@@ -33,7 +33,6 @@ sys.path.insert(0, _project_root)  # common_ai_agent directory (for lib, core, a
 
 import config
 from core import tools
-from core.action_dependency import ActionDependencyAnalyzer, FileConflictDetector, ActionBatch
 from core.slash_commands import get_registry as get_slash_command_registry
 from core.context_tracker import get_tracker as get_context_tracker
 from core.session_manager import SessionManager, RecoveryPoint
