@@ -498,7 +498,18 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
         return f"{entries} entries"
 
     if tool_name == 'write_file':
-        return f"{line_count} lines written"
+        # Count lines from content arg, not from the 1-line observation message
+        content_m = re.search(r'content\s*=\s*"""(.*?)"""', args_str, re.DOTALL)
+        if not content_m:
+            content_m = re.search(r'content\s*=\s*["\'](.+)', args_str, re.DOTALL)
+        if content_m:
+            n = content_m.group(1).count('\n') + 1
+            return f"{n} lines written"
+        # Fallback: extract from observation ("wrote N lines" / "N lines")
+        obs_m = re.search(r'(\d+)\s+line', observation) if observation else None
+        if obs_m:
+            return f"{obs_m.group(1)} lines written"
+        return "written"
 
     if tool_name in ('replace_in_file', 'replace_lines'):
         repl_m = re.search(r'(\d+) replacement', observation) if observation else None
