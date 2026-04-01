@@ -939,7 +939,8 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
 
 def chat_loop():
     # Pre-warm TCP+SSL connection in parallel while the rest of startup runs
-    threading.Thread(target=llm_client.warmup_connection, daemon=True, name="llm-warmup").start()
+    _warmup_thread = threading.Thread(target=llm_client.warmup_connection, daemon=True, name="llm-warmup")
+    _warmup_thread.start()
 
     # Initialize session manager (for recovery system)
     global session_manager, current_session_id, current_recovery_point
@@ -1118,6 +1119,10 @@ def chat_loop():
 
     print(Color.info("\nType 'exit' or 'quit' to stop."))
     print(Color.info("Type /help for available slash commands.\n"))
+
+    # Wait up to 1s for warmup message to print before the first > prompt.
+    # Prevents the [LLM] connected message from overwriting the prompt line.
+    _warmup_thread.join(timeout=1.0)
 
 
     while True:

@@ -156,7 +156,7 @@ def warmup_connection() -> None:
         resp.read()  # drain so connection is available for reuse
 
         elapsed = time.perf_counter() - t0
-        sys.stderr.write(f"\r\033[2m[LLM] connected ({elapsed:.2f}s)\033[0m\n")
+        sys.stderr.write(f"\033[2m[LLM] connected ({elapsed:.2f}s)\033[0m\n")
         sys.stderr.flush()
     except Exception as e:
         elapsed = time.perf_counter() - t0
@@ -166,7 +166,7 @@ def warmup_connection() -> None:
             _http_conn_pool.pop(parsed2.netloc, None)
         except Exception:
             pass
-        sys.stderr.write(f"\r\033[2m[LLM] warmup failed ({elapsed:.2f}s): {e}\033[0m\n")
+        sys.stderr.write(f"\033[2m[LLM] warmup failed ({elapsed:.2f}s): {e}\033[0m\n")
         sys.stderr.flush()
 
 
