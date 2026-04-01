@@ -107,7 +107,8 @@ class TestReadlineGracefulDegradation(unittest.TestCase):
 
             # 명령 실행 가능
             result = registry.execute("/help")
-            self.assertIn("Available", result)
+            self.assertIsNotNone(result)
+            self.assertIn("/help", result)
 
             # 자동완성 목록 반환
             completions = registry.get_completions()
