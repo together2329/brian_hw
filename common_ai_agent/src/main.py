@@ -434,17 +434,8 @@ def load_active_skills(messages, allowed_tools=None):
         # Session-level skill state (persists across compressions)
         # _active_skill: currently loaded skill name (None = none)
         if "skill" not in cache_key.lower():
-            # No "skill" keyword → reuse existing active skill (skip routing)
+            # No "skill" keyword → reuse existing active skill only (no LLM routing)
             routed = getattr(load_active_skills, '_active_skill', None)
-            # If no active skill (e.g. session restart), try routing with history context
-            if routed is None and history_context:
-                all_skills = registry.get_all_skills()
-                routable = [s for s in all_skills if s.activation.auto_detect]
-                routing_ctx = f"{history_context} | {cache_key}"
-                routed = _route_skill_via_llm(routing_ctx, routable) if routable else None
-                load_active_skills._active_skill = routed
-                if routed:
-                    print(Color.system(f"  [skill] {routed} (llm-routed, history)"))
         else:
             # "skill" keyword present → LLM routing (with cache)
             if cache_key == getattr(load_active_skills, '_cached_key', ""):

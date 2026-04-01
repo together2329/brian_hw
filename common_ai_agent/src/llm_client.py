@@ -39,6 +39,64 @@ actual_token_cache = {}
 last_input_tokens = 0  # Last reported input tokens from API
 last_output_tokens = 0  # Last reported output tokens from API
 
+# --- LLM Call Performance Log ---
+@dataclass
+class LLMCallRecord:
+    caller: str          # e.g. "main", "compress", "skill_routing", "git_commit"
+    model: str
+    input_tokens: int
+    output_tokens: int
+    connect_s: float
+    ttft_s: float        # time-to-first-token (streaming) or response_read (nonstream)
+    decode_s: float      # generation time after first token (0 for nonstream)
+    total_s: float
+    timestamp: float
+
+_call_log: list = []     # List[LLMCallRecord]
+
+def _record_call(caller: str, model: str, in_tok: int, out_tok: int,
+                 connect_s: float, ttft_s: float, decode_s: float, total_s: float) -> None:
+    record = LLMCallRecord(
+        caller=caller, model=model,
+        input_tokens=in_tok, output_tokens=out_tok,
+        connect_s=connect_s, ttft_s=ttft_s, decode_s=decode_s, total_s=total_s,
+        timestamp=time.time(),
+    )
+    _call_log.append(record)
+    if getattr(config, "PERF_TRACKING", False):
+        _fk = lambda n: f"{n/1000:.1f}k" if n >= 1000 else str(n)
+        tok_str = f"in={_fk(in_tok)} out={_fk(out_tok)}" if in_tok else ""
+        print(f"  \033[2m[PERF/call] {caller} | {model} | "
+              f"connect={connect_s:.3f}s ttft={ttft_s:.3f}s decode={decode_s:.3f}s "
+              f"total={total_s:.3f}s {tok_str}\033[0m")
+
+def get_call_log() -> list:
+    """Return all LLM call records this session."""
+    return _call_log
+
+def print_call_summary() -> None:
+    """Print per-caller summary table."""
+    if not _call_log:
+        print("  No LLM calls recorded.")
+        return
+    from collections import defaultdict
+    groups: dict = defaultdict(list)
+    for r in _call_log:
+        groups[r.caller].append(r)
+    print(f"\n  {'Caller':<20} {'Calls':>5} {'total avg':>10} {'ttft avg':>10} {'in avg':>10} {'out avg':>10}")
+    print(f"  {'─'*70}")
+    for caller, recs in sorted(groups.items()):
+        n = len(recs)
+        avg_total = sum(r.total_s for r in recs) / n
+        avg_ttft  = sum(r.ttft_s  for r in recs) / n
+        avg_in    = sum(r.input_tokens  for r in recs) / n
+        avg_out   = sum(r.output_tokens for r in recs) / n
+        _fk = lambda v: f"{v/1000:.1f}k" if v >= 1000 else f"{v:.0f}"
+        print(f"  {caller:<20} {n:>5} {avg_total:>9.3f}s {avg_ttft:>9.3f}s {_fk(avg_in):>10} {_fk(avg_out):>10}")
+    total_s = sum(r.total_s for r in _call_log)
+    print(f"  {'─'*70}")
+    print(f"  {'TOTAL':<20} {len(_call_log):>5} {total_s:>9.3f}s\n")
+
 # --- Cache Token Tracking (Anthropic Prompt Caching) ---
 last_cache_creation_tokens = 0  # Last cache creation tokens
 last_cache_read_tokens = 0      # Last cache read tokens
@@ -468,12 +526,15 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         _t_connect = time.time()
         with urllib.request.urlopen(request, timeout=config.NONSTREAM_API_TIMEOUT) as response:
             _t_connected = time.time()
+            _t_connected = time.time()
+            _ns_connect = _t_connected - _t_connect
             if _perf:
-                print(f"  \033[2m[PERF/LLM] connect: {_t_connected - _t_connect:.3f}s\033[0m")
+                print(f"  \033[2m[PERF/LLM] connect: {_ns_connect:.3f}s\033[0m")
             result = json.loads(response.read().decode('utf-8'))
             _t_done = time.time()
+            _ns_read = _t_done - _t_connected
             if _perf:
-                print(f"  \033[2m[PERF/LLM] response_read: {_t_done - _t_connected:.3f}s\033[0m")
+                print(f"  \033[2m[PERF/LLM] response_read: {_ns_read:.3f}s\033[0m")
     except Exception as e:
         if _spinner:
             _spinner.stop()
@@ -490,6 +551,18 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     if usage:
         last_input_tokens = usage.get("prompt_tokens", usage.get("input_tokens", 0))
         last_output_tokens = usage.get("completion_tokens", usage.get("output_tokens", 0))
+
+    # Record call (nonstream: ttft = connect+read, decode = 0)
+    _record_call(
+        caller="main(nonstream)",
+        model=model or config.MODEL_NAME,
+        in_tok=last_input_tokens,
+        out_tok=last_output_tokens,
+        connect_s=_ns_connect,
+        ttft_s=_ns_connect + _ns_read,
+        decode_s=0.0,
+        total_s=_ns_connect + _ns_read,
+    )
 
     # Yield reasoning first (if present)
     reasoning = msg.get("reasoning_content") or msg.get("reasoning") or ""
@@ -551,22 +624,32 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     global last_cache_creation_tokens, last_cache_read_tokens
     global total_cache_created, total_cache_read
 
+    _t_fn_start = time.time()  # track pre-connect setup time
+
     # Non-streaming mode: fetch full response then yield line-by-line
     if not config.ENABLE_STREAMING:
         yield from _chat_completion_nonstream(messages, stop=stop, model=model, skip_rate_limit=skip_rate_limit, suppress_spinner=suppress_spinner)
         return
+
+    _perf_pre = getattr(config, "PERF_TRACKING", False)
+    _t_pre = time.time()
 
     # Rate limiting: Configurable delay (skip for sub-agents)
     if config.RATE_LIMIT_DELAY > 0 and not skip_rate_limit:
         if config.DEBUG_MODE:
             print(Color.info(f"[System] Waiting {config.RATE_LIMIT_DELAY}s for rate limit..."))
         time.sleep(config.RATE_LIMIT_DELAY)
+    if _perf_pre:
+        print(f"  \033[2m[PERF/setup] rate_limit: {time.time()-_t_pre:.3f}s\033[0m")
 
     # Apply prompt caching if enabled (deepcopy to preserve original)
+    _t_pre = time.time()
     processed_messages = messages
     if config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
         processed_messages = copy.deepcopy(messages)
         processed_messages = apply_cache_breakpoints(processed_messages)
+    if _perf_pre:
+        print(f"  \033[2m[PERF/setup] prompt_cache_prep: {time.time()-_t_pre:.3f}s\033[0m")
 
     url = f"{config.BASE_URL}/chat/completions"
 
@@ -717,12 +800,18 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
         _perf = getattr(config, "PERF_TRACKING", False)
         try:
+            _t_pre = time.time()
             req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
+            if _perf:
+                print(f"  \033[2m[PERF/setup] json_encode: {time.time()-_t_pre:.3f}s\033[0m")
 
             # Create SSL context for more stable connections
+            _t_pre = time.time()
             ssl_context = ssl.create_default_context()
             ssl_context.check_hostname = True
             ssl_context.verify_mode = ssl.CERT_REQUIRED
+            if _perf:
+                print(f"  \033[2m[PERF/setup] ssl_ctx: {time.time()-_t_pre:.3f}s\033[0m")
 
             _t_connect = time.time()
             _perf_connect = None
@@ -819,11 +908,24 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
                 # Print PERF/LLM summary after streaming completes (clean, no mid-stream interleave)
                 if _perf:
+                    _setup = _t_connect - _t_fn_start
                     _tps_str = ""
                     if _perf_gen_elapsed and _perf_gen_elapsed > 0:
                         _tps = _perf_chunks / _perf_gen_elapsed
                         _tps_str = f" ({_perf_chunks} chunks, {_tps:.1f} tok/s)"
-                    print(f"\n  \033[2m[PERF/LLM] connect={_perf_connect:.3f}s | ttft={_perf_ttft:.3f}s | decode={_perf_gen_elapsed:.3f}s{_tps_str}\033[0m")
+                    print(f"\n  \033[2m[PERF/LLM] setup={_setup:.3f}s | connect={_perf_connect:.3f}s | ttft={_perf_ttft:.3f}s | decode={_perf_gen_elapsed:.3f}s{_tps_str}\033[0m")
+
+                # Record call
+                _record_call(
+                    caller=caller_tag or "main",
+                    model=resolved_model,
+                    in_tok=last_input_tokens,
+                    out_tok=last_output_tokens,
+                    connect_s=_perf_connect or 0.0,
+                    ttft_s=_perf_ttft or 0.0,
+                    decode_s=_perf_gen_elapsed or 0.0,
+                    total_s=(_perf_connect or 0.0) + (_perf_ttft or 0.0) + (_perf_gen_elapsed or 0.0),
+                )
 
                 # Update global token tracking with actual values from API
                 if usage_info:
@@ -995,7 +1097,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             yield f"{Color.info('If this persists, please check your network connection.')}\n"
             return
 
-def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=None, stream_prefix=None, spinner_label=None, max_tokens=None, extra_body=None):
+def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=None, stream_prefix=None, spinner_label=None, max_tokens=None, extra_body=None, caller_tag=None):
     """
     Call LLM without streaming (for extraction tasks, sub-agents, etc.).
 
@@ -1049,6 +1151,19 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
     if extra_body:
         data.update(extra_body)
 
+    _raw_t_start = time.perf_counter()
+    if caller_tag:
+        _raw_caller = caller_tag
+    else:
+        # Auto-detect caller from call stack (1 level up = direct caller)
+        try:
+            _f = sys._getframe(1)
+            _fname = os.path.basename(_f.f_code.co_filename).replace(".py", "")
+            _func  = _f.f_code.co_name
+            _raw_caller = f"{_fname}.{_func}"
+        except Exception:
+            _raw_caller = "call_llm_raw"
+
     try:
         request = urllib.request.Request(
             url,
@@ -1059,8 +1174,10 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         if use_stream:
             full_content = []
             _prefix_printed = False
+            _raw_t_connect = time.perf_counter()
             with urllib.request.urlopen(request, timeout=config.STREAM_API_TIMEOUT) as response:
-                line_buf = ""
+                _raw_connected = time.perf_counter()
+                _raw_t_first = None
                 for raw_line in response:
                     line = raw_line.decode('utf-8').strip()
                     if not line.startswith("data:"):
@@ -1071,18 +1188,17 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
                     try:
                         chunk = json.loads(data_str)
                         delta = chunk.get("choices", [{}])[0].get("delta", {})
-                        # GLM-4.7: reasoning_content=thinking (display only), content=answer
                         thinking_token = delta.get("reasoning_content", "")
                         answer_token = delta.get("content", "")
                         token = thinking_token or answer_token
                         if answer_token:
                             full_content.append(answer_token)
                         if token:
-                            # Print prefix once at start of each line
+                            if _raw_t_first is None:
+                                _raw_t_first = time.perf_counter()
                             if not _prefix_printed:
                                 sys.stdout.write(stream_prefix)
                                 _prefix_printed = True
-                            # Print token immediately; handle newlines with prefix
                             if '\n' in token:
                                 parts = token.split('\n')
                                 sys.stdout.write(parts[0])
@@ -1104,6 +1220,12 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
                         pass
                 sys.stdout.write('\n')
                 sys.stdout.flush()
+            _raw_t_end = time.perf_counter()
+            _raw_connect = _raw_connected - _raw_t_connect
+            _raw_ttft = (_raw_t_first - _raw_t_connect) if _raw_t_first else _raw_connect
+            _raw_decode = (_raw_t_end - _raw_t_first) if _raw_t_first else 0.0
+            _record_call(_raw_caller, resolved_model, last_input_tokens, last_output_tokens,
+                         _raw_connect, _raw_ttft, _raw_decode, _raw_t_end - _raw_t_start)
             content = "".join(full_content)
             return _strip_metadata_tokens(content).strip()
 
@@ -1121,9 +1243,12 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
             except Exception:
                 _spinner = None
 
+        _raw_t_connect = time.perf_counter()
         try:
             with urllib.request.urlopen(request, timeout=config.NONSTREAM_API_TIMEOUT) as response:
+                _raw_connected = time.perf_counter()
                 result = json.loads(response.read().decode('utf-8'))
+                _raw_t_end = time.perf_counter()
         finally:
             if _spinner:
                 _spinner.stop()
@@ -1135,7 +1260,10 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         if usage:
             last_input_tokens = usage.get("prompt_tokens", usage.get("input_tokens", 0))
             last_output_tokens = usage.get("completion_tokens", usage.get("output_tokens", 0))
-        # Sanitize: Remove OpenRouter/provider metadata tokens
+        _raw_connect = _raw_connected - _raw_t_connect
+        _raw_read = _raw_t_end - _raw_connected
+        _record_call(_raw_caller, resolved_model, last_input_tokens, last_output_tokens,
+                     _raw_connect, _raw_connect + _raw_read, 0.0, _raw_t_end - _raw_t_start)
         return _strip_metadata_tokens(content).strip()
 
     except Exception as e:
