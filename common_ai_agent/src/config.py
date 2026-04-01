@@ -66,8 +66,13 @@ MAX_ITERATIONS = int(os.getenv("MAX_ITERATIONS", "100"))
 # Set to 0 to disable timeout (not recommended)
 API_TIMEOUT = int(os.getenv("API_TIMEOUT", "600"))
 
+# Streaming timeout: per-read socket timeout for streaming requests.
+# Must be higher than API_TIMEOUT — reasoning models (GLM, DeepSeek) can think
+# silently for minutes before emitting the first token, causing socket.timeout.
+STREAM_API_TIMEOUT = int(os.getenv("STREAM_API_TIMEOUT", "1800"))
+
 # Timeout for non-streaming requests (full response must arrive within this time)
-NONSTREAM_API_TIMEOUT = int(os.getenv("NONSTREAM_API_TIMEOUT", "600"))
+NONSTREAM_API_TIMEOUT = int(os.getenv("NONSTREAM_API_TIMEOUT", "1800"))
 
 # Maximum output tokens per LLM response (0 = no limit)
 MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "16000"))

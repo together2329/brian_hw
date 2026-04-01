@@ -9,6 +9,7 @@ OpenCode-Inspired Features:
 - Dynamic model switching
 """
 import json
+import socket
 import ssl
 import urllib.request
 import urllib.error
@@ -220,7 +221,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             ssl_context.check_hostname = True
             ssl_context.verify_mode = ssl.CERT_REQUIRED
 
-            with urllib.request.urlopen(req, timeout=config.API_TIMEOUT, context=ssl_context) as response:
+            with urllib.request.urlopen(req, timeout=config.STREAM_API_TIMEOUT, context=ssl_context) as response:
                 usage_info = None
                 for line in response:
                     line = line.decode('utf-8').strip()
@@ -308,6 +309,17 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                 yield f"{Color.error(f'Raw Error Body:')}\n{error_body[:500]}\n"
             return
 
+        except socket.timeout as e:
+            # socket.timeout (OSError subclass) not always caught by URLError
+            if retry_count < max_retries - 1:
+                delay = initial_delay * (2 ** retry_count)
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] Read timeout ({config.STREAM_API_TIMEOUT}s): {e}"))
+                print(Color.warning(f"Waiting {delay}s before retry...\n"))
+                time.sleep(delay)
+                continue
+            yield f"\n{Color.error(f'[Read Timeout]: {e}')}\n"
+            return
+
         except (urllib.error.URLError, ssl.SSLError) as e:
             if retry_count < max_retries - 1:
                 delay = initial_delay * (2 ** retry_count)
@@ -389,7 +401,7 @@ def call_llm_for_agent(
             headers=headers
         )
 
-        with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
+        with urllib.request.urlopen(request, timeout=config.NONSTREAM_API_TIMEOUT) as response:
             result = json.loads(response.read().decode('utf-8'))
             content = result["choices"][0]["message"]["content"]
             return _strip_metadata_tokens(content).strip()
@@ -703,7 +715,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             ssl_context.check_hostname = True
             ssl_context.verify_mode = ssl.CERT_REQUIRED
 
-            with urllib.request.urlopen(req, timeout=config.API_TIMEOUT, context=ssl_context) as response:
+            with urllib.request.urlopen(req, timeout=config.STREAM_API_TIMEOUT, context=ssl_context) as response:
                 # Parse Server-Sent Events (SSE)
                 usage_info = None
                 for line in response:
@@ -904,6 +916,17 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             yield f"{Color.warning('Tip: If SSL errors persist, check your network connection or try again later.')}\n"
             return
 
+        except socket.timeout as e:
+            # socket.timeout (OSError subclass) not always caught by URLError
+            if retry_count < max_retries - 1:
+                delay = initial_delay * (2 ** retry_count)
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] Read timeout ({config.STREAM_API_TIMEOUT}s): {e}"))
+                print(Color.warning(f"Waiting {delay}s before retry...\n"))
+                time.sleep(delay)
+                continue
+            yield f"\n{Color.error(f'[Read Timeout]: {e}')}\n"
+            return
+
         except ssl.SSLError as e:
             # Explicit SSL error handling (backup catch)
             if retry_count < max_retries - 1:
@@ -1002,7 +1025,7 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         if use_stream:
             full_content = []
             _prefix_printed = False
-            with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
+            with urllib.request.urlopen(request, timeout=config.STREAM_API_TIMEOUT) as response:
                 line_buf = ""
                 for raw_line in response:
                     line = raw_line.decode('utf-8').strip()
@@ -1065,7 +1088,7 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
                 _spinner = None
 
         try:
-            with urllib.request.urlopen(request, timeout=config.API_TIMEOUT) as response:
+            with urllib.request.urlopen(request, timeout=config.NONSTREAM_API_TIMEOUT) as response:
                 result = json.loads(response.read().decode('utf-8'))
         finally:
             if _spinner:
