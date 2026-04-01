@@ -440,6 +440,9 @@ def grep_file(pattern, path, context_lines=2, recursive=False, **kwargs):
     def _grep_python(pat, pth, ctx, rec):
         import re
         import glob
+        # Auto-enable recursive when target is a directory
+        if os.path.isdir(pth) and not rec:
+            rec = True
         try:
             is_glob = any(char in pth for char in ['*', '?', '[', ']'])
             if rec and not is_glob and os.path.isdir(pth):
@@ -474,8 +477,8 @@ def grep_file(pattern, path, context_lines=2, recursive=False, **kwargs):
             matches = []
             try:
                 regex = re.compile(pat)
-            except re.error:
-                # Invalid regex — fall back to literal string search
+            except Exception:
+                # Invalid regex (e.g. unterminated '[') — fall back to literal string search
                 regex = re.compile(re.escape(pat))
             for i, line in enumerate(lines, 1):
                 if regex.search(line):
@@ -505,11 +508,11 @@ def grep_file(pattern, path, context_lines=2, recursive=False, **kwargs):
             # Smart excludes to avoid cluttering results
             cmd.extend(["--exclude-dir=.git", "--exclude-dir=__pycache__", "--exclude-dir=.venv", "--exclude-dir=venv"])
         
-        # Handle directory target for non-recursive grep
+        # Auto-enable recursive when target is a directory
         if os.path.isdir(path) and not recursive:
-             # grep without -r on dir will error or do nothing.
-             # Fallback to Python for non-recursive dir search
-             return _grep_python(pattern, path, context_lines, recursive)
+            recursive = True
+            cmd.append("-r")
+            cmd.extend(["--exclude-dir=.git", "--exclude-dir=__pycache__", "--exclude-dir=.venv", "--exclude-dir=venv"])
         
         cmd.append(path)
 

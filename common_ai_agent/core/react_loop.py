@@ -361,6 +361,20 @@ def run_react_agent_impl(
             except Exception:
                 pass
 
+        # Update terminal title with current non-approved task (always visible above input)
+        if todo_tracker and todo_tracker.todos:
+            _title_cur = next(
+                (t for t in todo_tracker.todos if t.status != "approved"),
+                None
+            )
+            if _title_cur:
+                _title_idx = todo_tracker.todos.index(_title_cur) + 1
+                _title_total = len(todo_tracker.todos)
+                _title_icon = {"in_progress": "▶", "rejected": "✗", "completed": "✓"}.get(_title_cur.status, "•")
+                _title_text = f"[{_title_idx}/{_title_total}] {_title_icon} {_title_cur.status} | {_title_cur.content[:60]}"
+                sys.stdout.write(f"\033]0;{_title_text}\007")
+                sys.stdout.flush()
+
         # Print iteration header (with active_form of current todo if available)
         _todo_label = ""
         if todo_tracker and todo_tracker.todos:
@@ -589,31 +603,6 @@ def run_react_agent_impl(
                 actions = [_todo_action]
 
             combined_results: List[str] = []
-
-            # Print current todo banner before actions (not before thinking)
-            _todo_ops_set = {"todo_write", "todo_update", "todo_add", "todo_remove"}
-            _only_todo_ops = all(a[0] in _todo_ops_set for a in actions)
-            if (todo_tracker and todo_tracker.todos
-                    and not _only_todo_ops
-                    and not getattr(cfg, "DEBUG_MODE", False)
-                    and not todo_tracker.is_all_processed()):
-                _cur = todo_tracker.get_current_todo()
-                if _cur is None:
-                    # No in_progress task — find first non-approved todo
-                    _cur = next(
-                        (t for t in todo_tracker.todos if t.status not in ("approved", "rejected")),
-                        None
-                    )
-                    _tidx = (todo_tracker.todos.index(_cur) + 1) if _cur else 0
-                else:
-                    _tidx = todo_tracker.current_index + 1
-                if _cur:
-                    _ttotal = len(todo_tracker.todos)
-                    _tstatus_icon = {"in_progress": "▶", "rejected": "✗", "completed": "✓"}.get(_cur.status, "•")
-                    print(
-                        f"\n  {Color.BOLD}{Color.CYAN}◆ Task {_tidx}/{_ttotal}"
-                        f"  {_tstatus_icon} {_cur.content}{Color.RESET}"
-                    )
 
             if len(actions) > 1 and getattr(cfg, "ENABLE_REACT_PARALLEL", False):
                 print(f"  ⚡ {len(actions)} actions (parallel)")
