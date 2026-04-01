@@ -570,16 +570,11 @@ def call_llm_for_agent(
         data["temperature"] = temperature
 
     try:
-        request = urllib.request.Request(
-            url,
-            data=json.dumps(data).encode('utf-8'),
-            headers=headers
-        )
-
-        with urllib.request.urlopen(request, timeout=config.NONSTREAM_API_TIMEOUT) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            content = result["choices"][0]["message"]["content"]
-            return _strip_metadata_tokens(content).strip()
+        _body = json.dumps(data).encode('utf-8')
+        response = _persistent_post(url, headers, _body, timeout=config.NONSTREAM_API_TIMEOUT)
+        result = json.loads(response.read().decode('utf-8'))
+        content = result["choices"][0]["message"]["content"]
+        return _strip_metadata_tokens(content).strip()
 
     except Exception as e:
         return f"Error calling LLM: {e}"
@@ -637,21 +632,18 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
 
     _perf = getattr(config, "PERF_TRACKING", False)
     try:
-        request = urllib.request.Request(
-            url, data=json.dumps(data).encode('utf-8'), headers=headers
-        )
+        _body = json.dumps(data).encode('utf-8')
         _t_connect = time.time()
-        with urllib.request.urlopen(request, timeout=config.NONSTREAM_API_TIMEOUT) as response:
-            _t_connected = time.time()
-            _t_connected = time.time()
-            _ns_connect = _t_connected - _t_connect
-            if _perf:
-                print(f"  \033[2m[PERF/LLM] connect: {_ns_connect:.3f}s\033[0m")
-            result = json.loads(response.read().decode('utf-8'))
-            _t_done = time.time()
-            _ns_read = _t_done - _t_connected
-            if _perf:
-                print(f"  \033[2m[PERF/LLM] response_read: {_ns_read:.3f}s\033[0m")
+        response = _persistent_post(url, headers, _body, timeout=config.NONSTREAM_API_TIMEOUT)
+        _t_connected = time.time()
+        _ns_connect = _t_connected - _t_connect
+        if _perf:
+            print(f"  \033[2m[PERF/LLM] connect: {_ns_connect:.3f}s\033[0m")
+        result = json.loads(response.read().decode('utf-8'))
+        _t_done = time.time()
+        _ns_read = _t_done - _t_connected
+        if _perf:
+            print(f"  \033[2m[PERF/LLM] response_read: {_ns_read:.3f}s\033[0m")
     except Exception as e:
         if _spinner:
             _spinner.stop()
@@ -1540,20 +1532,19 @@ def get_token_count_from_api(messages):
             "stream": False   # Non-streaming to get usage immediately
         }
 
-        req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
-        with urllib.request.urlopen(req, timeout=10) as response:
-            result = json.loads(response.read().decode('utf-8'))
+        response = _persistent_post(url, headers, json.dumps(data).encode('utf-8'), timeout=10)
+        result = json.loads(response.read().decode('utf-8'))
 
-            # Extract token count from usage
-            if "usage" in result:
-                usage = result["usage"]
-                # Both OpenAI and Anthropic formats
-                input_tokens = usage.get("input_tokens") or usage.get("prompt_tokens", 0)
+        # Extract token count from usage
+        if "usage" in result:
+            usage = result["usage"]
+            # Both OpenAI and Anthropic formats
+            input_tokens = usage.get("input_tokens") or usage.get("prompt_tokens", 0)
 
-                if config.DEBUG_MODE:
-                    print(Color.info(f"[Token Count API] Got actual count: {input_tokens:,} tokens"))
+            if config.DEBUG_MODE:
+                print(Color.info(f"[Token Count API] Got actual count: {input_tokens:,} tokens"))
 
-                return input_tokens
+            return input_tokens
 
     except Exception as e:
         if config.DEBUG_MODE:
@@ -1753,26 +1744,21 @@ def get_embedding(text: str, model: str = None) -> List[float]:
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            req = urllib.request.Request(
-                url, 
-                data=json.dumps(data).encode('utf-8'),
-                headers=headers
-            )
-            with urllib.request.urlopen(req, timeout=30) as response:
-                result = json.loads(response.read().decode('utf-8'))
-                embedding = result["data"][0]["embedding"]
-                
-                # Cache result
-                _embedding_cache[cache_key] = embedding
-                # Maintain cache size (max 1000)
-                if len(_embedding_cache) > 1000:
-                    try:
-                        # Remove first item (oldest)
-                        _embedding_cache.pop(next(iter(_embedding_cache)))
-                    except StopIteration:
-                        pass
-                        
-                return embedding
+            response = _persistent_post(url, headers, json.dumps(data).encode('utf-8'), timeout=30)
+            result = json.loads(response.read().decode('utf-8'))
+            embedding = result["data"][0]["embedding"]
+
+            # Cache result
+            _embedding_cache[cache_key] = embedding
+            # Maintain cache size (max 1000)
+            if len(_embedding_cache) > 1000:
+                try:
+                    # Remove first item (oldest)
+                    _embedding_cache.pop(next(iter(_embedding_cache)))
+                except StopIteration:
+                    pass
+
+            return embedding
         except Exception as e:
             if attempt < max_retries - 1:
                 delay = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
