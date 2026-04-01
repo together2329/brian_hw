@@ -11,8 +11,10 @@ OpenCode-Inspired Features:
 import json
 import socket
 import ssl
+import http.client
 import urllib.request
 import urllib.error
+import urllib.parse
 import time
 import copy
 import re
@@ -96,6 +98,76 @@ def print_call_summary() -> None:
     total_s = sum(r.total_s for r in _call_log)
     print(f"  {'─'*70}")
     print(f"  {'TOTAL':<20} {len(_call_log):>5} {total_s:>9.3f}s\n")
+
+# --- Persistent HTTPS Connection Pool ---
+# Reuses TCP+SSL connections across LLM calls to avoid per-call handshake overhead.
+_ssl_ctx_cache: Optional[ssl.SSLContext] = None
+_http_conn_pool: Dict[str, http.client.HTTPSConnection] = {}
+
+
+def _get_or_create_ssl_ctx() -> ssl.SSLContext:
+    global _ssl_ctx_cache
+    if _ssl_ctx_cache is None:
+        _ssl_ctx_cache = ssl.create_default_context()
+    return _ssl_ctx_cache
+
+
+class _PersistentHTTPError(urllib.error.HTTPError):
+    """urllib-compatible HTTPError raised by the persistent-connection path."""
+    def __init__(self, url: str, code: int, reason: str, body_bytes: bytes):
+        super().__init__(url, code, reason, hdrs={}, fp=None)
+        self._body_bytes = body_bytes
+
+    def read(self) -> bytes:
+        return self._body_bytes
+
+
+def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
+    """
+    POST via a persistent HTTPS connection (HTTP keep-alive).
+
+    Returns an http.client.HTTPResponse.  The caller MUST drain the response
+    with ``response.read()`` (or iterate it fully) before the connection can
+    be reused for the next request.
+
+    Retries once on stale-connection errors (RemoteDisconnected, BrokenPipe …).
+    """
+    parsed = urllib.parse.urlparse(url)
+    host = parsed.netloc
+    path = parsed.path or "/"
+    if parsed.query:
+        path = f"{path}?{parsed.query}"
+
+    req_headers = dict(headers)
+    req_headers["Connection"] = "keep-alive"
+
+    for attempt in range(2):
+        conn = _http_conn_pool.get(host)
+        if conn is None:
+            conn = http.client.HTTPSConnection(
+                host, context=_get_or_create_ssl_ctx(), timeout=timeout
+            )
+            _http_conn_pool[host] = conn
+        try:
+            conn.request("POST", path, body=body, headers=req_headers)
+            resp = conn.getresponse()
+            if resp.status >= 400:
+                body_bytes = resp.read()  # fully drain before raising
+                raise _PersistentHTTPError(url, resp.status, resp.reason, body_bytes)
+            return resp
+        except _PersistentHTTPError:
+            raise
+        except (http.client.RemoteDisconnected, http.client.CannotSendRequest,
+                ConnectionResetError, BrokenPipeError, OSError):
+            # Stale connection — drop it and retry with a fresh one
+            try:
+                conn.close()
+            except Exception:
+                pass
+            _http_conn_pool.pop(host, None)
+            if attempt == 1:
+                raise
+
 
 # --- Cache Token Tracking (Anthropic Prompt Caching) ---
 last_cache_creation_tokens = 0  # Last cache creation tokens
@@ -269,17 +341,9 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
         _debug_in_think = False
 
         try:
-            req = urllib.request.Request(
-                url,
-                data=json.dumps(data).encode('utf-8'),
-                headers=headers
-            )
-
-            ssl_context = ssl.create_default_context()
-            ssl_context.check_hostname = True
-            ssl_context.verify_mode = ssl.CERT_REQUIRED
-
-            with urllib.request.urlopen(req, timeout=config.STREAM_API_TIMEOUT, context=ssl_context) as response:
+            _body = json.dumps(data).encode('utf-8')
+            response = _persistent_post(url, headers, _body, timeout=config.STREAM_API_TIMEOUT)
+            try:
                 usage_info = None
                 for line in response:
                     line = line.decode('utf-8').strip()
@@ -340,6 +404,11 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                         print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}\n")
 
                 return
+            finally:
+                try:
+                    response.read()
+                except Exception:
+                    pass
 
         except urllib.error.HTTPError as e:
             error_body = e.read().decode('utf-8')
@@ -801,15 +870,12 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         _perf = getattr(config, "PERF_TRACKING", False)
         try:
             _t_pre = time.time()
-            req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers)
+            _post_body = json.dumps(data).encode('utf-8')
             if _perf:
                 print(f"  \033[2m[PERF/setup] json_encode: {time.time()-_t_pre:.3f}s\033[0m")
 
-            # Create SSL context for more stable connections
+            # Persistent connection (skips TCP+SSL handshake on 2nd+ call)
             _t_pre = time.time()
-            ssl_context = ssl.create_default_context()
-            ssl_context.check_hostname = True
-            ssl_context.verify_mode = ssl.CERT_REQUIRED
             if _perf:
                 print(f"  \033[2m[PERF/setup] ssl_ctx: {time.time()-_t_pre:.3f}s\033[0m")
 
@@ -818,7 +884,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             _perf_ttft = None
             _perf_gen_elapsed = None
             _perf_chunks = 0
-            with urllib.request.urlopen(req, timeout=config.STREAM_API_TIMEOUT, context=ssl_context) as response:
+            response = _persistent_post(url, headers, _post_body, timeout=config.STREAM_API_TIMEOUT)
+            try:
                 _perf_connect = time.time() - _t_connect
                 # Parse Server-Sent Events (SSE)
                 usage_info = None
@@ -973,7 +1040,13 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 
                 # Success! Exit retry loop
                 return
-                
+            finally:
+                # Drain any unread bytes so the connection can be reused
+                try:
+                    response.read()
+                except Exception:
+                    pass
+
         except urllib.error.HTTPError as e:
             error_body = e.read().decode('utf-8')
 
@@ -1165,17 +1238,14 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
             _raw_caller = "call_llm_raw"
 
     try:
-        request = urllib.request.Request(
-            url,
-            data=json.dumps(data).encode('utf-8'),
-            headers=headers
-        )
+        _raw_body = json.dumps(data).encode('utf-8')
 
         if use_stream:
             full_content = []
             _prefix_printed = False
             _raw_t_connect = time.perf_counter()
-            with urllib.request.urlopen(request, timeout=config.STREAM_API_TIMEOUT) as response:
+            response = _persistent_post(url, headers, _raw_body, timeout=config.STREAM_API_TIMEOUT)
+            try:
                 _raw_connected = time.perf_counter()
                 _raw_t_first = None
                 for raw_line in response:
@@ -1220,6 +1290,11 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
                         pass
                 sys.stdout.write('\n')
                 sys.stdout.flush()
+            finally:
+                try:
+                    response.read()
+                except Exception:
+                    pass
             _raw_t_end = time.perf_counter()
             _raw_connect = _raw_connected - _raw_t_connect
             _raw_ttft = (_raw_t_first - _raw_t_connect) if _raw_t_first else _raw_connect
@@ -1245,10 +1320,10 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
 
         _raw_t_connect = time.perf_counter()
         try:
-            with urllib.request.urlopen(request, timeout=config.NONSTREAM_API_TIMEOUT) as response:
-                _raw_connected = time.perf_counter()
-                result = json.loads(response.read().decode('utf-8'))
-                _raw_t_end = time.perf_counter()
+            response = _persistent_post(url, headers, _raw_body, timeout=config.NONSTREAM_API_TIMEOUT)
+            _raw_connected = time.perf_counter()
+            result = json.loads(response.read().decode('utf-8'))
+            _raw_t_end = time.perf_counter()
         finally:
             if _spinner:
                 _spinner.stop()
