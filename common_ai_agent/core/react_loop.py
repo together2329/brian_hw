@@ -590,6 +590,22 @@ def run_react_agent_impl(
 
             combined_results: List[str] = []
 
+            # Print current todo banner before actions (not before thinking)
+            _todo_ops_set = {"todo_write", "todo_update", "todo_add", "todo_remove"}
+            _only_todo_ops = all(a[0] in _todo_ops_set for a in actions)
+            if (todo_tracker and todo_tracker.todos
+                    and not _only_todo_ops
+                    and not getattr(cfg, "DEBUG_MODE", False)):
+                _cur = todo_tracker.get_current_todo()
+                if _cur:
+                    _tidx = todo_tracker.current_index + 1
+                    _ttotal = len(todo_tracker.todos)
+                    _tstatus_icon = {"in_progress": "▶", "rejected": "✗"}.get(_cur.status, "•")
+                    print(
+                        f"\n  {Color.BOLD}{Color.CYAN}◆ Task {_tidx}/{_ttotal}"
+                        f"  {_tstatus_icon} {_cur.content}{Color.RESET}"
+                    )
+
             if len(actions) > 1 and getattr(cfg, "ENABLE_REACT_PARALLEL", False):
                 print(f"  ⚡ {len(actions)} actions (parallel)")
                 action_results = deps.execute_parallel_fn(actions, tracker, agent_mode=agent_mode)
