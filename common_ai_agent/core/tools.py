@@ -620,7 +620,7 @@ def grep_file(pattern, path, context_lines=2, recursive=False, **kwargs):
         # Final fallback
         return _grep_python(pattern, path, context_lines, recursive)
 
-def read_lines(path, start_line, end_line):
+def read_lines(path, start_line, end_line=None):
     """
     Reads a specific range of lines from a file.
     Args:
@@ -632,11 +632,19 @@ def read_lines(path, start_line, end_line):
     """
     try:
         # Coerce to int — LLM sometimes passes quoted numbers e.g. "260"
-        try:
-            start_line = int(start_line)
-            end_line = int(end_line)
-        except (TypeError, ValueError):
-            return f"Error: start_line and end_line must be integers (got start_line={start_line!r}, end_line={end_line!r})"
+        # or a range string e.g. start_line="345-380"
+        import re as _re
+        _range_m = _re.match(r'^(\d+)\s*[-–]\s*(\d+)$', str(start_line).strip())
+        if _range_m:
+            # "345-380" passed as start_line — split into start/end
+            start_line = int(_range_m.group(1))
+            end_line   = int(_range_m.group(2))
+        else:
+            try:
+                start_line = int(start_line)
+                end_line   = int(end_line) if end_line is not None else start_line + 50
+            except (TypeError, ValueError):
+                return f"Error: start_line and end_line must be integers (got start_line={start_line!r}, end_line={end_line!r})"
 
         if not os.path.exists(path):
             import glob

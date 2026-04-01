@@ -595,12 +595,21 @@ def run_react_agent_impl(
             _only_todo_ops = all(a[0] in _todo_ops_set for a in actions)
             if (todo_tracker and todo_tracker.todos
                     and not _only_todo_ops
-                    and not getattr(cfg, "DEBUG_MODE", False)):
+                    and not getattr(cfg, "DEBUG_MODE", False)
+                    and not todo_tracker.is_all_processed()):
                 _cur = todo_tracker.get_current_todo()
-                if _cur:
+                if _cur is None:
+                    # No in_progress task — find first non-approved todo
+                    _cur = next(
+                        (t for t in todo_tracker.todos if t.status not in ("approved", "rejected")),
+                        None
+                    )
+                    _tidx = (todo_tracker.todos.index(_cur) + 1) if _cur else 0
+                else:
                     _tidx = todo_tracker.current_index + 1
+                if _cur:
                     _ttotal = len(todo_tracker.todos)
-                    _tstatus_icon = {"in_progress": "▶", "rejected": "✗"}.get(_cur.status, "•")
+                    _tstatus_icon = {"in_progress": "▶", "rejected": "✗", "completed": "✓"}.get(_cur.status, "•")
                     print(
                         f"\n  {Color.BOLD}{Color.CYAN}◆ Task {_tidx}/{_ttotal}"
                         f"  {_tstatus_icon} {_cur.content}{Color.RESET}"
