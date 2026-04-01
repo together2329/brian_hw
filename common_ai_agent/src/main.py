@@ -1176,104 +1176,12 @@ def chat_loop():
                     # Store messages for verbose mode
                     context_tracker.messages = messages
 
-                # Handle /skill commands for manual skill control
-                if user_input.startswith('/skill ') or user_input.strip() == '/skill':
-                    skill_arg = user_input[7:].strip() if len(user_input) > 7 else ""
-
-                    try:
-                        from core.skill_system import get_skill_registry
-                        registry = get_skill_registry()
-
-                        if skill_arg == "list" or skill_arg == "":
-                            # List all available skills
-                            all_skills = registry.list_skills()
-                            print(Color.info("\n=== Available Skills ==="))
-                            for skill_name in sorted(all_skills):
-                                skill = registry.get_skill(skill_name)
-                                if skill:
-                                    priority_color = Color.CYAN if skill.priority >= 85 else Color.RESET
-                                    print(f"  • {Color.BOLD}{skill_name}{Color.RESET} {priority_color}(priority: {skill.priority}){Color.RESET}")
-                                    print(f"    {skill.description}")
-                            print()
-                            continue
-
-                        elif skill_arg == "active":
-                            # Show currently active skills
-                            forced = getattr(load_active_skills, 'forced_skills', set())
-                            disabled = getattr(load_active_skills, 'disabled_skills', set())
-
-                            print(Color.info("\n=== Active Skill Configuration ==="))
-                            if forced:
-                                print(Color.success("Force-Enabled:"))
-                                for skill_name in sorted(forced):
-                                    print(f"  ✅ {skill_name}")
-                            if disabled:
-                                print(Color.warning("Disabled:"))
-                                for skill_name in sorted(disabled):
-                                    print(f"  ❌ {skill_name}")
-                            if not forced and not disabled:
-                                print(Color.system("  (No manual overrides - using auto-detection)"))
-                            print()
-                            continue
-
-                        elif skill_arg.startswith("enable "):
-                            # Force-enable specific skill
-                            skill_name = skill_arg[7:].strip()
-                            if not hasattr(load_active_skills, 'forced_skills'):
-                                load_active_skills.forced_skills = set()
-                            if not hasattr(load_active_skills, 'disabled_skills'):
-                                load_active_skills.disabled_skills = set()
-
-                            # Check if skill exists
-                            if skill_name not in registry.list_skills():
-                                print(Color.error(f"❌ Skill '{skill_name}' not found. Use '/skill list' to see available skills."))
-                                continue
-
-                            load_active_skills.forced_skills.add(skill_name)
-                            # Remove from disabled if present
-                            load_active_skills.disabled_skills.discard(skill_name)
-
-                            print(Color.success(f"✅ Skill '{skill_name}' force-enabled (will be active in next turn)"))
-                            continue
-
-                        elif skill_arg.startswith("disable "):
-                            # Disable specific skill
-                            skill_name = skill_arg[8:].strip()
-                            if not hasattr(load_active_skills, 'disabled_skills'):
-                                load_active_skills.disabled_skills = set()
-                            if not hasattr(load_active_skills, 'forced_skills'):
-                                load_active_skills.forced_skills = set()
-
-                            load_active_skills.disabled_skills.add(skill_name)
-                            # Remove from forced if present
-                            load_active_skills.forced_skills.discard(skill_name)
-
-                            print(Color.warning(f"❌ Skill '{skill_name}' disabled (will not activate in next turn)"))
-                            continue
-
-                        elif skill_arg == "clear":
-                            # Clear all manual overrides
-                            load_active_skills.forced_skills = set()
-                            load_active_skills.disabled_skills = set()
-                            print(Color.success("✅ Manual skill overrides cleared (back to auto-detection)"))
-                            continue
-
-                        else:
-                            print(Color.info("\n=== Skill Control Commands ==="))
-                            print("  /skill list          - List all available skills")
-                            print("  /skill active        - Show manual overrides (forced/disabled)")
-                            print("  /skill enable <name> - Force-enable a specific skill")
-                            print("  /skill disable <name> - Disable a specific skill")
-                            print("  /skill clear         - Clear all manual overrides")
-                            print()
-                            continue
-
-                    except ImportError:
-                        print(Color.error("❌ Skill system not available"))
-                        continue
-                    except Exception as e:
-                        print(Color.error(f"❌ Error processing /skill command: {e}"))
-                        continue
+                # Handle /skills commands
+                if user_input.startswith('/skills') and (len(user_input) == 7 or user_input[7] == ' '):
+                    from core.skill_commands import handle_skills_command
+                    skill_arg = user_input[8:].strip() if len(user_input) > 8 else ""
+                    handle_skills_command(skill_arg, load_active_skills)
+                    continue
 
                 result = slash_registry.execute(user_input)
 
@@ -1412,11 +1320,6 @@ def chat_loop():
                             agent_mode = "plan_q"  # first turn: questions only, tools blocked
                             os.environ["PLAN_MODE"] = "true"
                             print(Color.success("\n✅ Plan mode: clarify → explore → refine → user confirms → execute.\n"))
-                            # Clear stale todos from previous session
-                            todo_file = Path(config.TODO_FILE)
-                            if todo_file.exists():
-                                todo_file.unlink()
-                            
                             # Refresh system prompt with Plan Mode instructions
                             if messages and messages[0].get("role") == "system":
                                 system_prompt_data = build_system_prompt(messages, agent_mode=agent_mode)

@@ -599,6 +599,15 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     if config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
         processed_messages = copy.deepcopy(messages)
         processed_messages = apply_cache_breakpoints(processed_messages)
+    elif any(isinstance(m.get("content"), list) for m in messages):
+        # Non-Anthropic provider: flatten list-of-blocks content to plain string
+        processed_messages = copy.deepcopy(messages)
+        for m in processed_messages:
+            if isinstance(m.get("content"), list):
+                m["content"] = "\n\n".join(
+                    block.get("text", "") for block in m["content"]
+                    if isinstance(block, dict) and block.get("type") == "text"
+                )
 
     resolved_model = model or config.MODEL_NAME
     url = f"{config.BASE_URL}/chat/completions"
@@ -763,6 +772,16 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     if config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
         processed_messages = copy.deepcopy(messages)
         processed_messages = apply_cache_breakpoints(processed_messages)
+    elif any(isinstance(m.get("content"), list) for m in messages):
+        # Non-Anthropic provider: flatten list-of-blocks content to plain string
+        # (optimized mode builds blocks for Anthropic cache; non-Anthropic needs strings)
+        processed_messages = copy.deepcopy(messages)
+        for m in processed_messages:
+            if isinstance(m.get("content"), list):
+                m["content"] = "\n\n".join(
+                    block.get("text", "") for block in m["content"]
+                    if isinstance(block, dict) and block.get("type") == "text"
+                )
     if _perf_pre:
         print(f"  \033[2m[PERF/setup] prompt_cache_prep: {time.time()-_t_pre:.3f}s\033[0m")
 

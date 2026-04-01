@@ -926,15 +926,14 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
         _tool_line("background_list", '', "List active sub-agents."),
     ]
 
-    # Spec Q&A tool (primary agent용)
-    if "spec_ask" in tool_list:
-        tool_lines["Spec Q&A"] = [
-            _tool_line("spec_ask", "spec, query",
-                       "Ask a question about a technical spec (pcie/ucie/nvme). "
-                       "Runs spec-navigator internally and returns a concise answer. "
-                       "Always use this for spec questions — do NOT use find_files or grep."),
+    # Spec navigation tools
+    if "spec_navigate" in tool_list:
+        tool_lines["Spec Navigation"] = [
+            _tool_line("spec_navigate", 'spec, node_id="root"',
+                       "Navigate PCIe/UCIe/NVMe spec by section ID. "
+                       "Start with node_id='root' for TOC, drill into sections. "
+                       "Leaf nodes contain full spec text. Use for ALL spec questions."),
         ]
-    # spec_navigate / spec_search: sub-agent 전용 (system prompt에 노출 안 함)
 
     # Verilog tools (conditional)
     if ENABLE_VERILOG_TOOLS and "analyze_verilog_module" in tool_list:
@@ -1068,26 +1067,88 @@ SYSTEM_PROMPT = build_base_system_prompt()
 # Mode Prompts
 # ============================================================
 
-PLAN_MODE_PROMPT = (
-    "\n\n🚨 === CRITICAL: PLAN MODE === 🚨\n"
-    "You are in PLAN MODE. You are FORBIDDEN from using any execution tools.\n"
-    "Your ONLY goal is to clarify requirements and propose a plan.\n"
-    "\n"
-    "Workflow: CLARIFY/RESEARCH → PROPOSE → FEEDBACK → CONFIRM → EXECUTE\n"
-    "\n"
-    "1. RESEARCH & PROPOSE:\n"
-    "   Use research tools (list_dir, read_file, grep_file) to understand the codebase.\n"
-    "   Then, propose a numbered plan as plain text.\n"
-    "   Only use todo_write if the user explicitly requests a todo list.\n"
-    "\n"
-    "2. THE PLAN:\n"
-    "   Present a concise numbered plan as plain text.\n"
-    "\n"
-    "3. EXECUTION FORBIDDEN:\n"
-    "   NEVER use write_file, replace_in_file, multi_replace_file_content, or run_command in this mode.\n"
-    "   Wait for the user to say 'y' or 'confirm' to transition to execution.\n"
-    "\n"
-    "RULES: RESEARCH TOOLS OK | EXECUTION TOOLS (WRITE/REPLACE/RUN) STRICTLY BLOCKED | "
-    "MANDATORY CONFIRMATION ('y') REQUIRED BEFORE PROCEEDING TO EXECUTE.\n"
-    "=================="
-)
+PLAN_MODE_PROMPT = """
+
+🚨 === PLAN MODE === 🚨
+You are in PLAN MODE. Writing and execution tools are BLOCKED — read-only.
+Your PRIMARY GOAL every turn: **research the codebase, then produce a todo list with `todo_write`**.
+
+════════════════════════════════════════
+WORKFLOW
+════════════════════════════════════════
+1. RESEARCH   → Use read_file, grep_file, list_dir to understand the codebase.
+2. TODO_WRITE → Call todo_write() to create a concrete, step-by-step task list.
+3. REFINE     → Discuss with the user. Update the list with todo_add / todo_remove.
+4. CONFIRM    → Wait for 'y' or 'confirm' before execution begins.
+
+════════════════════════════════════════
+TODO TOOLS (your main tools in this mode)
+════════════════════════════════════════
+todo_write(todos=[...])
+  Create or replace the entire task list. Call this as soon as you have a plan.
+  Each task dict:
+    {
+      "content":    "Short past-tense description (shown as completed label)",
+      "activeForm": "Present-progressive description (shown while in progress)",
+      "status":     "pending",          # pending | in_progress | completed
+      "priority":   "high",             # high | medium | low  (optional)
+      "detail":     "Implementation notes, constraints, acceptance criteria"  # optional
+    }
+  Strings are also accepted and auto-converted:
+    todo_write(["Step 1", "Step 2", "Step 3"])
+
+  Example:
+    Action: todo_write(todos=[
+      {"content": "Analyzed counter module", "activeForm": "Analyzing counter module", "status": "pending", "detail": "Read counter.v, identify ports and FSM states"},
+      {"content": "Wrote testbench skeleton", "activeForm": "Writing testbench skeleton", "status": "pending"},
+      {"content": "Added reset test cases", "activeForm": "Adding reset test cases", "status": "pending", "priority": "high"}
+    ])
+
+todo_add(content, activeForm="", priority="medium", detail="", index=None)
+  Add one task. index= inserts at position (1-based); omit to append.
+  Example:
+    Action: todo_add(content="Verified timing constraints", activeForm="Verifying timing constraints", priority="high", index=2)
+
+todo_remove(index)
+  Remove task by 1-based index.
+  Example:
+    Action: todo_remove(index=3)
+
+todo_update(index, status=None, content=None, detail=None, activeForm=None)
+  Edit an existing task (does NOT change status to completed — use during refinement).
+  Example:
+    Action: todo_update(index=1, detail="Also check edge cases for overflow")
+
+════════════════════════════════════════
+RULES
+════════════════════════════════════════
+- READ FREELY: use read_file, grep_file, list_dir, read_lines — reading is encouraged for research.
+- TODO TOOLS ALWAYS ALLOWED: todo_write, todo_add, todo_remove, todo_update — use freely at any point to refine the plan.
+- DO NOT WRITE FILES: write_file, replace_in_file, run_command are BLOCKED. Do not attempt them.
+- ALWAYS call todo_write before asking the user to confirm.
+- Keep refining the todo list as research reveals more detail — more planning is always better.
+- Keep tasks atomic (one clear deliverable per task).
+- Use `detail` for acceptance criteria or implementation notes.
+- Transition to execution only after user says 'y' / 'confirm' / 'go'.
+
+════════════════════════════════════════
+/todo REFERENCE  (user slash commands for task management)
+════════════════════════════════════════
+  /todo                     show current list
+  /todo add <text>          add a task
+  /todo rm <N>              remove task N
+  /todo mv <N> <M>          move task N to position M
+  /todo g <N> <text>        change task N content
+  /todo s <N> <status>      force status change
+  /todo s all <status>      force all tasks to a status
+  /todo e <N> <field> <val> edit a specific field
+
+Status values (for /todo s):
+  p=pending  i=in_progress  c=completed  a=approved  r=rejected
+
+Edit fields (for /todo e):
+  c=content  d=detail  cr=criteria  pr=priority  af=active_form  rr=rejection_reason  ar=approved_reason
+  field+  append instead of overwrite
+
+AI status flow: pending → in_progress → completed → approved
+=================="""

@@ -726,7 +726,7 @@ class SlashCommandRegistry:
         return f"STEP_MODE:{status}"
 
     def _cmd_skills(self, args: str) -> str:
-        """Show available skills"""
+        """Skill list and control — handled by main loop; fallback display here."""
         section = self._fmt_skills_section()
         if not section.strip():
             return "No skills loaded.\n"
@@ -744,32 +744,52 @@ class SlashCommandRegistry:
         lines.append(" 📄 Full Conversation Context")
         lines.append("=" * 60)
 
+        # Show active skill as a separate [SKILL] block before messages
+        try:
+            import sys as _sys
+            _main = _sys.modules.get('__main__') or _sys.modules.get('main')
+            _load_fn = getattr(_main, 'load_active_skills', None)
+            _active = getattr(_load_fn, 'active_skills', []) if _load_fn else []
+            if _active:
+                from core.skill_system import get_skill_registry
+                _reg = get_skill_registry()
+                for _sname in _active:
+                    _skill = _reg.get_skill(_sname)
+                    if _skill and _skill.content:
+                        lines.append(f"\n\033[1;33m[SKILL: {_sname}]\033[0m")
+                        for _sl in _skill.content.splitlines()[:30]:
+                            lines.append(f"  {_sl}")
+                        if len(_skill.content.splitlines()) > 30:
+                            lines.append(f"  \033[2m... ({len(_skill.content.splitlines())} lines total)\033[0m")
+        except Exception:
+            pass
+
         for i, msg in enumerate(tracker.messages):
             role = msg.get("role", "unknown").upper()
             raw_content = msg.get("content", "")
-            
-            # Handle structured content (list of blocks, common in Anthropic caching)
+
+            # Handle structured content — for SYSTEM, strip dynamic skill block
+            # (shown separately above as [SKILL]) and show only static base
             if isinstance(raw_content, list):
-                content = []
+                content_parts = []
                 for block in raw_content:
                     if isinstance(block, dict):
                         if block.get("type") == "text":
-                            content.append(block.get("text", ""))
+                            text = block.get("text", "")
+                            # Skip the injected ACTIVE SKILLS section (shown as [SKILL] above)
+                            if role == "SYSTEM" and "=== ACTIVE SKILLS ===" in text:
+                                continue
+                            content_parts.append(text)
                         elif block.get("type") == "tool_use":
-                            content.append(f"[Tool Use: {block.get('name')}]")
+                            content_parts.append(f"[Tool Use: {block.get('name')}]")
                     else:
-                        content.append(str(block))
-                content = "\n".join(content).strip()
+                        content_parts.append(str(block))
+                content = "\n".join(content_parts).strip()
             elif isinstance(raw_content, dict):
-                content = []
-                if "static" in raw_content:
-                    content.append(raw_content["static"])
-                if "dynamic" in raw_content:
-                    content.append(raw_content["dynamic"])
-                content = "\n".join(content).strip()
+                content = (raw_content.get("static", "") + "\n" + raw_content.get("dynamic", "")).strip()
             else:
                 content = str(raw_content).strip()
-            
+
             # Formatting based on role
             if role == "SYSTEM":
                 role_fmt = f"\033[1;35m[{role}]\033[0m" # Magenta bold
@@ -898,18 +918,35 @@ class SlashCommandRegistry:
         return "\n".join(lines) + "\n"
 
     def _fmt_skills_section(self) -> str:
-        """Load and format available skills."""
+        """Load and format available skills with active status."""
         try:
+            import sys
             from core.skill_system import get_skill_registry
             registry = get_skill_registry()
             skills = registry.get_skills_by_priority()
             if not skills:
                 return ""
 
-            lines = ["\n Skills · /skills"]
-            for skill in skills:
-                spoke = f"  +{len(skill.spoke_files)} refs" if skill.spoke_files else ""
-                lines.append(f" \033[2m└ {skill.name} (priority: {skill.priority}){spoke}\033[0m")
+            # Get active state from main.py's load_active_skills if available
+            main_mod = sys.modules.get('__main__') or sys.modules.get('main')
+            load_fn = getattr(main_mod, 'load_active_skills', None)
+            forced = getattr(load_fn, 'forced_skills', set()) if load_fn else set()
+            disabled = getattr(load_fn, 'disabled_skills', set()) if load_fn else set()
+            auto_active = getattr(load_fn, 'active_skills', []) if load_fn else []
+
+            lines = ["\n Skills  (/skills a <name|#> · /skills d <name|#> · /skills all · /skills clear)"]
+            for i, skill in enumerate(skills, 1):
+                n = skill.name
+                if n in forced:
+                    status = "\033[32m[ACTIVE]\033[0m"
+                elif n in disabled:
+                    status = "\033[31m[off]\033[0m   "
+                elif n in auto_active:
+                    status = "\033[36m[auto]\033[0m  "
+                else:
+                    status = "\033[2m[off]\033[0m   "
+                desc = (skill.description or "")[:55]
+                lines.append(f"  {i:2}  \033[1m{n:<26}\033[0m {status}  \033[2m{desc}\033[0m")
             return "\n".join(lines) + "\n"
         except Exception:
             return ""
@@ -1072,7 +1109,7 @@ class SlashCommandRegistry:
                 ("도구 & 설정", [
                     ("model",  "/model [1|2|name]  모델 전환. 인자 없으면 현재 모델 표시"),
                     ("tools",  "/tools             사용 가능한 도구 목록"),
-                    ("skills", "/skills            로드된 스킬 목록 및 활성화 상태"),
+                    ("skills", "/skills [a|d <name|#>|all|clear]  스킬 목록·활성화·비활성화"),
                     ("config", "/config            현재 설정 (.config) 주요 값 표시"),
                     ("status", "/status            에이전트 상태: 모델, API, 기능 활성화 여부"),
                 ]),

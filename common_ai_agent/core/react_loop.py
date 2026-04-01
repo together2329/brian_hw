@@ -352,6 +352,32 @@ def run_react_agent_impl(
                 elif isinstance(content, list):
                     messages[0]["content"].append({"type": "text", "text": ctx_msg})
 
+        # Plan mode: inject per-turn todo reminder into the last user message
+        if agent_mode in ("plan", "plan_q"):
+            _todo_state = ""
+            if todo_tracker and todo_tracker.todos:
+                _lines = [f"[Current todo list — {len(todo_tracker.todos)} tasks]"]
+                for _i, _t2 in enumerate(todo_tracker.todos, 1):
+                    _icon = {"pending": "⏸", "in_progress": "▶", "completed": "✅", "approved": "✅", "rejected": "❌"}.get(_t2.status, "•")
+                    _lines.append(f"  {_i}. {_icon} {_t2.content}")
+                _todo_state = "\n" + "\n".join(_lines)
+            else:
+                _todo_state = "\n[No todo list yet — call todo_write() to create one]"
+            _reminder = (
+                "\n\n---\n"
+                "⚠️  PLAN MODE REMINDER: Your job this turn is to produce or refine the todo list.\n"
+                "Call todo_write() with a complete task list before replying to the user."
+                + _todo_state
+            )
+            # Append to the last user message (ephemeral — not saved to history)
+            _user_idxs = [i for i, m in enumerate(messages) if m.get("role") == "user"]
+            if _user_idxs:
+                _ui = _user_idxs[-1]
+                _uc = messages[_ui].get("content", "")
+                if isinstance(_uc, str):
+                    messages[_ui] = dict(messages[_ui])  # shallow copy to avoid mutating history
+                    messages[_ui]["content"] = _uc + _reminder
+
         # Hook: BEFORE_LLM_CALL
         _t = time.time()
         if deps.hook_registry:
