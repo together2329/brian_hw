@@ -141,9 +141,16 @@ ENABLE_TOOL_DESCRIPTIONS = os.getenv("ENABLE_TOOL_DESCRIPTIONS", "true").lower()
 ENABLE_TYPE_VALIDATION = os.getenv("ENABLE_TYPE_VALIDATION", "true").lower() in ("true", "1", "yes")
 
 # Enable automatic linting after file writes (optional - uses external tools if available)
-# Checks Python files with compile() + pyflakes, Verilog files with iverilog
+# Checks Python files with compile() + pyflakes, Verilog files with configured simulator
 # Falls back gracefully if external tools not installed
 ENABLE_LINTING = os.getenv("ENABLE_LINTING", "true").lower() in ("true", "1", "yes")
+
+# Verilog simulator to use for linting and simulation
+# Options: "vcs" (default, Synopsys commercial), "iverilog" (open-source fallback)
+# Linter auto-falls back to iverilog if vcs binary not found.
+# Override: set VERILOG_SIMULATOR=iverilog in your shell or .env
+# VERILOG_SIMULATOR = os.getenv("VERILOG_SIMULATOR", "vcs")
+VERILOG_SIMULATOR = os.getenv("VERILOG_SIMULATOR", "vcs")
 
 # Enable automatic git version control (git init + add + commit on write/replace)
 GIT_VERSION_CONTROL_ENABLE = os.getenv("GIT_VERSION_CONTROL_ENABLE", "true").lower() in ("true", "1", "yes")

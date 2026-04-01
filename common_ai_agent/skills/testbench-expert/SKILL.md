@@ -18,13 +18,13 @@ related_skills: [verilog-expert]
 - 모든 reg 초기화 필수 (clk=0, reset=1) — 미초기화 시 X 전파
 - race condition 방지: stimulus는 `@(negedge clk)` 또는 `#1` 지연 후 변경
 - 무한 대기 방지: fork/join_any + timeout 패턴 사용
-- compile: `iverilog -g2012 -Wall -o sim tb.v dut.v` → `vvp sim`
+- compile: VCS → `vcs -full64 -sverilog -o sim tb.sv dut.sv` then `./sim`; iverilog fallback → `iverilog -g2012 -Wall -o sim tb.v dut.v` then `vvp sim`
 - self-checking testbench 권장: expected vs actual 비교
 
 ## Workflow
 1. read_file(module) → 포트/신호 파악
 2. generate_module_testbench(path, tb_type) 또는 직접 작성
-3. iverilog 컴파일 → vvp 실행
+3. 시뮬레이터 컴파일 → 실행 (VCS 기본, iverilog fallback — simulation.md 참조)
 4. 에러 시 read_lines → replace_in_file → 재컴파일
 
 ## References (read when needed)

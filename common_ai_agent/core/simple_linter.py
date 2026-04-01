@@ -3,7 +3,7 @@ Simple Linter (Zero-Dependency with Optional External Tools)
 
 Provides basic linting functionality using:
 1. Python built-in compile() for syntax checking
-2. Optional external tools (pyflakes, pylint, iverilog) if available
+2. Optional external tools (pyflakes, pylint, iverilog/vcs) if available
 3. Graceful degradation when tools not installed
 
 Zero-dependency core, optional enhancements.
@@ -12,8 +12,13 @@ Zero-dependency core, optional enhancements.
 import subprocess
 import shutil
 import os
+import sys
 from pathlib import Path
 from typing import Optional, List
+
+# Read simulator config without importing full config (avoid circular imports)
+# Default: vcs (Synopsys). Override with VERILOG_SIMULATOR=iverilog
+_VERILOG_SIMULATOR = os.getenv("VERILOG_SIMULATOR", "vcs")
 
 
 class LintError:
@@ -39,11 +44,12 @@ class SimpleLinter:
 
     Features:
     - Python: compile() (built-in) + pyflakes (optional)
-    - Verilog: iverilog (optional)
+    - Verilog: iverilog or vcs (configured via VERILOG_SIMULATOR env var)
     - Graceful fallback when external tools not available
     """
 
     def __init__(self):
+        self.simulator = _VERILOG_SIMULATOR
         self._check_available_tools()
 
     def _check_available_tools(self):
@@ -52,6 +58,7 @@ class SimpleLinter:
             'pyflakes': shutil.which('pyflakes') is not None,
             'pylint': shutil.which('pylint') is not None,
             'iverilog': shutil.which('iverilog') is not None,
+            'vcs': shutil.which('vcs') is not None,
             'verilator': shutil.which('verilator') is not None,
         }
 
@@ -60,17 +67,30 @@ class SimpleLinter:
         if language == 'python':
             return True  # Always available (built-in compile())
         elif language == 'verilog':
-            return self.tools['iverilog'] or self.tools['verilator']
+            # vcs preferred; fallback iverilog → verilator
+            return self.tools['vcs'] or self.tools['iverilog'] or self.tools['verilator']
         return False
+
+    def _effective_verilog_tool(self) -> str:
+        """Return the tool that will actually be used for Verilog linting."""
+        if self.simulator == 'vcs' and self.tools['vcs']:
+            return 'vcs'
+        if self.tools['iverilog']:
+            return 'iverilog'
+        if self.tools['verilator']:
+            return 'verilator'
+        return ''
 
     def get_available_tools_info(self) -> str:
         """Get human-readable info about available tools"""
-        lines = ["Available linting tools:"]
+        effective = self._effective_verilog_tool()
+        lines = [f"Available linting tools (Verilog simulator: {self.simulator} → using {effective or 'none'}):"]
         lines.append(f"  ✅ Python (built-in compile())")
 
         for tool, available in self.tools.items():
             status = "✅" if available else "❌"
-            lines.append(f"  {status} {tool}")
+            active = " [active]" if tool == effective else ""
+            lines.append(f"  {status} {tool}{active}")
 
         return "\n".join(lines)
 
@@ -165,11 +185,58 @@ class SimpleLinter:
         return errors
 
     def check_verilog(self, filepath: Path) -> List[LintError]:
-        """Check Verilog file using iverilog or verilator"""
+        """Check Verilog file using configured simulator (vcs → iverilog → verilator)."""
         errors = []
+        tool = self._effective_verilog_tool()
 
-        # Try iverilog first
-        if self.tools['iverilog']:
+        # VCS path (Synopsys commercial simulator)
+        if tool == 'vcs':
+            try:
+                result = subprocess.run(
+                    ['vcs', '-full64', '-sverilog', '-q', '-o', '/dev/null', str(filepath)],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                    cwd=filepath.parent
+                )
+                output = result.stderr + result.stdout
+                for line in output.strip().split('\n'):
+                    if not line.strip():
+                        continue
+                    # VCS error format: "filename", line N: error|warning: message
+                    # or: Error-[XXX] Description
+                    severity = "error"
+                    if 'warning' in line.lower():
+                        severity = "warning"
+                    elif 'error' not in line.lower():
+                        continue  # skip informational
+
+                    line_num = 0
+                    # Try to extract line number: `"file", line 10:`
+                    import re
+                    m = re.search(r'line\s+(\d+)', line)
+                    if m:
+                        line_num = int(m.group(1))
+
+                    # Clean up message
+                    msg = line.strip()
+                    errors.append(LintError(
+                        file=str(filepath),
+                        line=line_num,
+                        message=msg,
+                        severity=severity
+                    ))
+            except (subprocess.TimeoutExpired, Exception) as e:
+                errors.append(LintError(
+                    file=str(filepath),
+                    line=0,
+                    message=f"VCS linter error: {e}",
+                    severity="error"
+                ))
+            return errors
+
+        # iverilog fallback
+        if tool == 'iverilog':
             try:
                 result = subprocess.run(
                     ['iverilog', '-t', 'null', str(filepath)],
@@ -226,8 +293,8 @@ class SimpleLinter:
                     severity="error"
                 ))
 
-        # Try verilator if iverilog not available
-        elif self.tools['verilator']:
+        # verilator last resort
+        elif tool == 'verilator':
             try:
                 result = subprocess.run(
                     ['verilator', '--lint-only', str(filepath)],
