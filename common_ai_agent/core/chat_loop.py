@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, List, Literal, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 from lib.iteration_control import IterationTracker
 
@@ -53,7 +53,8 @@ class ChatLoopDeps:
     hook_registry: Optional[Any] = None   # phase9 gap: was missing, hooks not firing per-turn
 
 
-Control = Literal["continue", "break", "skip"]
+# "continue" | "break" | "skip"  (Literal not available in Python 3.7)
+Control = str
 
 
 # ---------------------------------------------------------------------------
