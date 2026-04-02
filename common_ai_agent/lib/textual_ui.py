@@ -188,7 +188,7 @@ class AgentTUI(App):
         super().__init__()
         self._run_agent_fn = run_agent_fn
         self._input_bridge = InputBridge()
-        self._stream_buf = ""   # accumulates streaming tokens until newline
+        self._response_buf = ""  # accumulates full LLM response for Markdown render
 
     def compose(self) -> ComposeResult:
         try:
@@ -239,29 +239,31 @@ class AgentTUI(App):
 
     # ── Input ─────────────────────────────────────────────────────────────────
 
+    def _flush_response(self) -> None:
+        """Render accumulated LLM response as Markdown."""
+        if not self._response_buf.strip():
+            self._response_buf = ""
+            return
+        from rich.markdown import Markdown
+        log = self.query_one("#main", RichLog)
+        log.write(Markdown(self._response_buf))
+        self._response_buf = ""
+
     def on_input_submitted(self, event: Input.Submitted) -> None:
         text = event.value.strip()
         event.input.value = ""
         if not text:
             return
+        self._flush_response()
         log = self.query_one("#main", RichLog)
-        # Flush any partial stream line
-        if self._stream_buf.strip():
-            log.write(RichText(self._stream_buf, style="#cccccc"))
-            self._stream_buf = ""
         log.write(RichText(f"\n> {text}", style="bold #5f87ff"))
         self._input_bridge.submit(text)
 
     # ── Message handlers ───────────────────────────────────────────────────────
 
     def on_stream_chunk(self, msg: StreamChunk) -> None:
-        """Buffer streaming tokens; flush on newline."""
-        log = self.query_one("#main", RichLog)
-        self._stream_buf += msg.text
-        # Flush complete lines
-        while "\n" in self._stream_buf:
-            line, self._stream_buf = self._stream_buf.split("\n", 1)
-            log.write(RichText(line, style="#cccccc"))
+        """Accumulate LLM response; rendered as Markdown when response is done."""
+        self._response_buf += msg.text + "\n"
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:
         log = self.query_one("#main", RichLog)
@@ -270,7 +272,8 @@ class AgentTUI(App):
         log.write(RichText(f"  {msg.text}", style="italic #555555"))
 
     def on_main_line(self, msg: MainLine) -> None:
-        """Tool output / system messages — render with ANSI → Rich."""
+        """System/tool output — flush pending response as Markdown first."""
+        self._flush_response()
         log = self.query_one("#main", RichLog)
         try:
             log.write(RichText.from_ansi(msg.text))
