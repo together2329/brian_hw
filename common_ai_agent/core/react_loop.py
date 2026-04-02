@@ -126,6 +126,11 @@ class ReactLoopDeps:
     esc_start_fn: Optional[Callable] = None  # () → None
     esc_stop_fn: Optional[Callable] = None   # () → None
 
+    # Optional Textual UI overrides (None = default sys.stdout behavior)
+    emit_content_fn: Optional[Callable] = None    # (line: str) → None
+    emit_reasoning_fn: Optional[Callable] = None  # (line: str, blank: bool) → None
+    emit_todo_fn: Optional[Callable] = None       # (text: str) → None
+
 
 # ---------------------------------------------------------------------------
 # Main ReAct loop implementation
@@ -425,6 +430,10 @@ def run_react_agent_impl(
             todo_label=_todo_label,
         ), flush=True)
 
+        # Notify Textual UI of current todo state
+        if deps.emit_todo_fn and todo_tracker and todo_tracker.todos:
+            deps.emit_todo_fn(todo_tracker.format_simple())
+
         # ----- Streaming LLM call -----
         from core.stream_parser import StreamParser
 
@@ -437,23 +446,35 @@ def run_react_agent_impl(
         _debug = getattr(cfg, "DEBUG_MODE", False)
 
         def _emit_content(line):
-            sys.stdout.write(f"  {line}\n")
-            sys.stdout.flush()
+            if deps.emit_content_fn:
+                deps.emit_content_fn(line)
+            else:
+                sys.stdout.write(f"  {line}\n")
+                sys.stdout.flush()
 
         def _emit_reasoning(line, blank=False):
-            if blank:
-                sys.stdout.write("\n")
+            if deps.emit_reasoning_fn:
+                deps.emit_reasoning_fn(line, blank)
             else:
-                sys.stdout.write(f"  {Color.DIM}{line}{Color.RESET}\n")
-            sys.stdout.flush()
+                if blank:
+                    sys.stdout.write("\n")
+                else:
+                    sys.stdout.write(f"  {Color.DIM}{line}{Color.RESET}\n")
+                sys.stdout.flush()
 
         def _emit_thought(line):
-            sys.stdout.write(f"  Thought:{line}\n")
-            sys.stdout.flush()
+            if deps.emit_content_fn:
+                deps.emit_content_fn(f"Thought:{line}")
+            else:
+                sys.stdout.write(f"  Thought:{line}\n")
+                sys.stdout.flush()
 
         def _emit_blank():
-            sys.stdout.write("\n")
-            sys.stdout.flush()
+            if deps.emit_content_fn:
+                deps.emit_content_fn("")
+            else:
+                sys.stdout.write("\n")
+                sys.stdout.flush()
 
         _parser = StreamParser(
             emit_fn=_emit_content,
@@ -931,6 +952,8 @@ def run_react_agent_impl(
                         todo_tracker.todos[next_idx].status = "in_progress"
                     todo_tracker.stagnation_count = 0
                     todo_tracker.save()
+                    if deps.emit_todo_fn:
+                        deps.emit_todo_fn(todo_tracker.format_simple())
                 elif todo_tracker.check_stagnation(max_stagnation=limit):
                     hint = todo_tracker.get_stagnation_hint()
                     print(

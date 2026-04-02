@@ -102,6 +102,11 @@ if getattr(config, 'ENABLE_DEEP_THINK', False) and not getattr(config, 'ENABLE_S
     except ImportError:
         pass
 
+# Textual TUI emit callbacks (set by textual_main.py; None = default terminal output)
+_textual_emit_content_fn = None
+_textual_emit_reasoning_fn = None
+_textual_emit_todo_fn = None
+
 # Legacy Sub-Agent System (deprecated - replaced by background agent system in v2)
 orchestrator = None
 if getattr(config, 'ENABLE_SUB_AGENTS', False):
@@ -922,6 +927,10 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
         load_snapshot_fn=_load_conv_snapshot,
         build_prompt_str_fn=_build_system_prompt_str,
         get_recovery_state_fn=lambda: (current_recovery_point, session_manager, current_session_id),
+        # Textual TUI callbacks (None in normal terminal mode)
+        emit_content_fn=_textual_emit_content_fn,
+        emit_reasoning_fn=_textual_emit_reasoning_fn,
+        emit_todo_fn=_textual_emit_todo_fn,
     )
     return _run_react_agent_impl(
         messages=messages,
@@ -1144,11 +1153,12 @@ def chat_loop():
             else:
                 is_plan_turn = (agent_mode in ('plan', 'plan_q'))
 
+                _input_fn = _loop_deps.input_fn or input
                 if agent_mode == 'plan_q':
-                    user_input = input(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
+                    user_input = _input_fn(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
                 elif agent_mode == 'plan':
                     print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} A plan is active. Confirm to execute or provide feedback.")
-                    user_input = input(Color.warning("Plan Confirmation [y/yc/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                    user_input = _input_fn(Color.warning("Plan Confirmation [y/yc/feedback] ") + Color.CYAN + "> " + Color.RESET)
                 else:
                     _em = getattr(config, 'EXECUTION_MODE', 'agent')
                     if _em == 'chat':
@@ -1158,7 +1168,7 @@ def chat_loop():
                         _em_prefix = f"[{_em}] "
                     else:
                         _em_prefix = ""
-                    user_input = input(_em_prefix + Color.user("> ") + Color.RESET)
+                    user_input = _input_fn(_em_prefix + Color.user("> ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
                 break
 
