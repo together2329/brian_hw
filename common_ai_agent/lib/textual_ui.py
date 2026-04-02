@@ -347,6 +347,79 @@ class AgentTUI(App):
         # Shorten long paths
         text = _shorten_path(text)
 
+        # ── Color-coded lines ───────────────────────────────────────────────
+
+        # Todo status bar: "N;[M/T] ▶ in_progress | task title"
+        m_todo_bar = re.match(r"^(\d+;\[\d+/\d+\])\s+([▶⏸✅•])\s+(\S+)\s*\|?\s*(.*)", text)
+        if m_todo_bar:
+            prefix, icon, status, title = m_todo_bar.groups()
+            t = RichText()
+            t.append(f"  {prefix} ", style=f"dim {_TEXT_FAINT}")
+            if icon == "▶":
+                t.append(f"{icon} ", style=f"bold {_GREEN}")
+                t.append(status, style=f"bold {_GREEN}")
+            elif icon in ("✅", "👀"):
+                t.append(f"{icon} ", style=f"dim {_GREEN}")
+                t.append(status, style=f"dim {_GREEN}")
+            else:
+                t.append(f"{icon} ", style=_TEXT_FAINT)
+                t.append(status, style=_TEXT_FAINT)
+            if title:
+                t.append(f"  {title}", style=_TEXT_DIM)
+            log.write(t)
+            return
+
+        # System messages: [Plan Mode], [System], [Error]
+        m_sys = re.match(r"^(\[(?:Plan Mode|System|Error|Warning)[^\]]*\])(.*)", text)
+        if m_sys:
+            tag, rest = m_sys.groups()
+            t = RichText()
+            if "Error" in tag:
+                t.append(f"  {tag}", style=f"bold {_RED}")
+            elif "Warning" in tag:
+                t.append(f"  {tag}", style=f"bold {_YELLOW}")
+            elif "Plan Mode" in tag:
+                t.append(f"  {tag}", style=f"bold {_ACCENT}")
+            else:
+                t.append(f"  {tag}", style=f"dim {_ACCENT}")
+            t.append(rest, style=_TEXT_DIM)
+            log.write(t)
+            return
+
+        # Tool calls: "• tool_name(...)" or "  tool_name(...)"
+        m_tool = re.match(r"^\s*[•·]\s*(\w+)\((.*)$", text)
+        if m_tool:
+            tool_name = m_tool.group(1)
+            args_part = m_tool.group(2)
+            # Color by tool category
+            _READ_TOOLS  = {"read_file","read_lines","grep_file","find_files","list_dir","git_diff","git_status","git_log"}
+            _WRITE_TOOLS = {"write_file","write_to_file","replace_in_file","replace_lines","replace_file_content"}
+            _EXEC_TOOLS  = {"run_command","background_task","background_output"}
+            _TODO_TOOLS  = {"todo_update","todo_write","todo_add","todo_remove"}
+            _GIT_TOOLS   = {"git_commit","git_push","git_checkout","git_branch","git_merge","git_stash"}
+            if tool_name in _READ_TOOLS:
+                color = _ACCENT
+            elif tool_name in _WRITE_TOOLS:
+                color = _YELLOW
+            elif tool_name in _EXEC_TOOLS:
+                color = "#e3b341"
+            elif tool_name in _TODO_TOOLS:
+                color = _GREEN
+            elif tool_name in _GIT_TOOLS:
+                color = "#bc8cff"
+            else:
+                color = _TEXT_DIM
+            t = RichText()
+            t.append(f"  {tool_name}", style=f"bold {color}")
+            t.append(f"({args_part}", style=f"dim {color}")
+            log.write(t)
+            return
+
+        # Tool result lines: "└ ..."
+        if re.match(r"^\s*[└|]", text):
+            log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
+            return
+
         try:
             log.write(RichText.from_ansi(text))
         except Exception:
