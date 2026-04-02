@@ -10,7 +10,6 @@ OpenCode-Inspired Features:
 """
 import json
 import socket
-from pathlib import Path
 import ssl
 import http.client
 import urllib.request
@@ -107,19 +106,13 @@ _ssl_ctx_cache: Optional[ssl.SSLContext] = None
 _http_conn_pool: Dict[str, http.client.HTTPSConnection] = {}
 _last_post_reused: bool = False  # set by _persistent_post; read by PERF logging
 
-# TOFU (Trust On First Use) — saved corporate CA cert path
-_TOFU_DIR = Path.home() / ".config" / "common_ai_agent"
-_TOFU_CERT_PATH = _TOFU_DIR / "corp_ca.pem"
-
-
 
 def _get_or_create_ssl_ctx() -> ssl.SSLContext:
     global _ssl_ctx_cache
     if _ssl_ctx_cache is None:
         ctx = ssl.create_default_context()
-        # Disable verification if: SSL_VERIFY=false OR TOFU cert already saved
-        # (TOFU cert is a peer/leaf cert, not a CA cert — can't use as cafile)
-        if not config.SSL_VERIFY or _TOFU_CERT_PATH.exists():
+        if not config.SSL_VERIFY:
+            # SSL_VERIFY=false: skip verification (corporate proxy / internal network)
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
         _ssl_ctx_cache = ctx
@@ -128,26 +121,21 @@ def _get_or_create_ssl_ctx() -> ssl.SSLContext:
 
 def _make_https_conn(host: str, timeout: int = 10) -> http.client.HTTPSConnection:
     """
-    Create an HTTPSConnection that respects HTTPS_PROXY / https_proxy env vars.
-    In corporate networks, direct HTTPS is often firewalled — the proxy does CONNECT
-    tunneling so http.client can complete the SSL handshake with the target host.
+    Create an HTTPSConnection respecting HTTPS_PROXY env var.
+    Corporate networks often block direct HTTPS — proxy does CONNECT tunneling.
     """
-    proxy = (os.environ.get("HTTPS_PROXY")
-             or os.environ.get("https_proxy")
-             or os.environ.get("ALL_PROXY")
-             or os.environ.get("all_proxy"))
+    proxy = (os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+             or os.environ.get("ALL_PROXY") or os.environ.get("all_proxy"))
     if proxy:
-        parsed_proxy = urllib.parse.urlparse(proxy)
+        p = urllib.parse.urlparse(proxy)
         conn = http.client.HTTPSConnection(
-            parsed_proxy.hostname,
-            parsed_proxy.port or 443,
-            context=_get_or_create_ssl_ctx(),
-            timeout=timeout,
+            p.hostname, p.port or 443,
+            context=_get_or_create_ssl_ctx(), timeout=timeout,
         )
         conn.set_tunnel(host)
     else:
         conn = http.client.HTTPSConnection(
-            host, context=_get_or_create_ssl_ctx(), timeout=timeout
+            host, context=_get_or_create_ssl_ctx(), timeout=timeout,
         )
     return conn
 
@@ -164,25 +152,20 @@ class _PersistentHTTPError(urllib.error.HTTPError):
 
 def warmup_connection() -> None:
     """
-    Pre-establish a live HTTP keep-alive connection to the LLM API host.
-    TOFU: if corp_ca.pem is absent, fetch and save the peer cert first,
-    then connect using the saved cert for all subsequent connections.
+    Pre-establish a live HTTPS keep-alive connection to the LLM API host.
+    Respects HTTPS_PROXY and SSL_VERIFY=false (corporate network support).
     Safe to call from a daemon thread — failures are silently ignored.
     """
-    global _ssl_ctx_cache
     t0 = time.perf_counter()
     try:
         parsed = urllib.parse.urlparse(config.BASE_URL)
         host = parsed.netloc
-        hostname = parsed.hostname or host
         if not host:
             return
         if _http_conn_pool.get(host) is not None:
             return  # already warm
 
-        conn = http.client.HTTPSConnection(
-            host, context=_get_or_create_ssl_ctx(), timeout=10
-        )
+        conn = _make_https_conn(host, timeout=10)
         base_path = parsed.path.rstrip('/') or '/'
         conn.request("GET", base_path, headers={
             "Authorization": f"Bearer {config.API_KEY}",
@@ -191,22 +174,6 @@ def warmup_connection() -> None:
         resp = conn.getresponse()
         resp.read()  # drain so connection is reusable
         _http_conn_pool[host] = conn
-
-        # TOFU: save peer cert from this connection (no extra round-trip)
-        if config.SSL_VERIFY and not _TOFU_CERT_PATH.exists():
-            try:
-                import base64
-                der = conn.sock.getpeercert(binary_form=True)
-                if der:
-                    pem = "-----BEGIN CERTIFICATE-----\n"
-                    pem += base64.encodebytes(der).decode('ascii')
-                    pem += "-----END CERTIFICATE-----\n"
-                    _TOFU_DIR.mkdir(parents=True, exist_ok=True)
-                    _TOFU_CERT_PATH.write_text(pem, encoding='utf-8')
-                    sys.stderr.write("\033[2m[LLM] CA cert saved (TOFU)\033[0m\n")
-                    sys.stderr.flush()
-            except Exception:
-                pass
 
         elapsed = time.perf_counter() - t0
         sys.stderr.write(f"\033[2m[LLM] connected ({elapsed:.2f}s)\033[0m\n")
@@ -245,9 +212,7 @@ def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
         conn = _http_conn_pool.get(host)
         _was_alive = conn is not None and conn.sock is not None
         if conn is None:
-            conn = http.client.HTTPSConnection(
-                host, context=_get_or_create_ssl_ctx(), timeout=timeout
-            )
+            conn = _make_https_conn(host, timeout=timeout)
             _http_conn_pool[host] = conn
         try:
             conn.request("POST", path, body=body, headers=req_headers)
