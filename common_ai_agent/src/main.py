@@ -1634,6 +1634,13 @@ def chat_loop():
                         # Regular command output (PLAN_AND_RUN already set user_input above — fall through)
                         if result:
                             print(result)
+                        # Refresh Textual sidebar after any slash command that may change todo state
+                        if _textual_emit_todo_fn and todo_tracker_main:
+                            todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE)) if Path(config.TODO_FILE).exists() else None
+                            if todo_tracker_main and todo_tracker_main.todos:
+                                _textual_emit_todo_fn(todo_tracker_main.format_simple())
+                            else:
+                                _textual_emit_todo_fn("")  # signal sidebar to clear
                         continue
 
             # Auto-extract preferences from user input (Mem0-style)

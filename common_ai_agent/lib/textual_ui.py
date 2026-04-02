@@ -132,7 +132,7 @@ class AgentTUI(App):
 
     /* ── Sidebar ── */
     #sidebar {{
-        width: 34;
+        width: 48;
         height: 100%;
         dock: right;
         border-left: solid {_BORDER_DIM};
@@ -302,8 +302,7 @@ class AgentTUI(App):
         self._flush_response()
         log = self.query_one("#main", RichLog)
         t = RichText()
-        t.append("\n  ❯ ", style=f"bold {_ACCENT}")
-        t.append(text, style=f"bold {_TEXT}")
+        t.append(f"\n  {text}", style=f"bold {_ACCENT}")
         log.write(t)
         self._input_bridge.submit(text)
 
@@ -354,6 +353,11 @@ class AgentTUI(App):
             log.write(RichText(text, style=_TEXT_DIM))
 
     def on_todo_update(self, msg: TodoUpdate) -> None:
+        # Empty signal → clear sidebar
+        if not msg.text.strip():
+            self.query_one("#task-title", Static).update("")
+            self.query_one("#todo", Static).update("")
+            return
         clean = _ANSI.sub("", msg.text).strip()
         items: list[tuple[str, str]] = []
         task_title = ""
@@ -381,7 +385,7 @@ class AgentTUI(App):
             t.append(task_title, style=_TEXT_DIM)
             self.query_one("#task-title", Static).update(t)
 
-        _MAX = 26
+        _MAX = 40
         out = RichText()
         first_active = True
         for kind, label in items:
