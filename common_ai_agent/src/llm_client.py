@@ -140,15 +140,13 @@ def _tofu_fetch_and_save(host: str, port: int = 443) -> bool:
 def _get_or_create_ssl_ctx() -> ssl.SSLContext:
     global _ssl_ctx_cache
     if _ssl_ctx_cache is None:
-        if not config.SSL_VERIFY:
-            ctx = ssl.create_default_context()
+        ctx = ssl.create_default_context()
+        # Disable verification if: SSL_VERIFY=false OR TOFU cert already saved
+        # (TOFU cert is a peer/leaf cert, not a CA cert — can't use as cafile)
+        if not config.SSL_VERIFY or _TOFU_CERT_PATH.exists():
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
-            _ssl_ctx_cache = ctx
-        elif _TOFU_CERT_PATH.exists():
-            _ssl_ctx_cache = ssl.create_default_context(cafile=str(_TOFU_CERT_PATH))
-        else:
-            _ssl_ctx_cache = ssl.create_default_context()
+        _ssl_ctx_cache = ctx
     return _ssl_ctx_cache
 
 
