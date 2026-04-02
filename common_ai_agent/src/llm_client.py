@@ -111,7 +111,7 @@ def _get_or_create_ssl_ctx() -> ssl.SSLContext:
     global _ssl_ctx_cache
     if _ssl_ctx_cache is None:
         # SSL_VERIFY=false → disable verification (corporate proxy / dev env)
-        if os.environ.get("SSL_VERIFY", "").lower() == "false":
+        if not config.SSL_VERIFY:
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE

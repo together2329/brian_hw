@@ -45,6 +45,7 @@ load_env_file()
 BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
 API_KEY = os.getenv("LLM_API_KEY", "your-openai-api-key-here")
 MODEL_NAME = os.getenv("LLM_MODEL_NAME", "gpt-4o-mini")
+SSL_VERIFY = os.getenv("SSL_VERIFY", "true").lower() != "false"  # set false for corporate proxy
 PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", MODEL_NAME)
 
 # ============================================================
