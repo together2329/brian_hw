@@ -826,6 +826,12 @@ def run_react_agent_impl(
 
                     combined_results.append(f"--- [Action {i+1}] {tool_name} ---\n{agent_observation}")
 
+                    # Refresh Textual sidebar immediately after todo changes
+                    if deps.emit_todo_fn and tool_name in ("todo_update", "todo_write", "todo_add", "todo_remove") and todo_tracker:
+                        todo_tracker.load()  # re-read from disk in case tool modified it
+                        if todo_tracker.todos:
+                            deps.emit_todo_fn(todo_tracker.format_simple())
+
             observation = "\n\n".join(combined_results)
 
             # Snapshot on task approval

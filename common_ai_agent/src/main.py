@@ -935,6 +935,11 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
         emit_content_fn=_textual_emit_content_fn,
         emit_reasoning_fn=_textual_emit_reasoning_fn,
         emit_todo_fn=_textual_emit_todo_fn,
+        # Disable EscapeWatcher in Textual mode — Textual owns stdin; raw tty read
+        # conflicts with Textual's input handling, causing false ESC triggers.
+        esc_check_fn=(lambda: False) if _textual_input_fn is not None else None,
+        esc_start_fn=(lambda: None) if _textual_input_fn is not None else None,
+        esc_stop_fn=(lambda: None) if _textual_input_fn is not None else None,
     )
     return _run_react_agent_impl(
         messages=messages,

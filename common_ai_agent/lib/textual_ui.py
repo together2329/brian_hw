@@ -121,7 +121,7 @@ class AgentTUI(App):
     /* ── Right sidebar ── */
     #sidebar {
         width: 26;
-        height: 1fr;
+        height: 100%;
         dock: right;
         border-left: solid #222222;
         padding: 0 1;
@@ -209,7 +209,7 @@ class AgentTUI(App):
             yield Static("", id="todo")
             yield Static(cwd, id="cwd-label")
         yield Static(
-            f" primary  {model}   esc interrupt",
+            f" primary  {model}   esc interrupt   ctrl+q quit",
             id="statusbar",
         )
         yield Input(placeholder="> ")
@@ -217,6 +217,11 @@ class AgentTUI(App):
     def on_mount(self) -> None:
         self.query_one(Input).focus()
         self._start_agent()
+
+    def action_quit(self) -> None:
+        self.exit()
+
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     @work(exclusive=True, thread=True)
     def _start_agent(self) -> None:
@@ -286,12 +291,14 @@ class AgentTUI(App):
                 # Remove leading "N." if present
                 task_title = re.sub(r"^\d+\.\s*", "", task_title)
             # Format each line
-            if s.startswith("✅"):
-                lines.append(f"[x] {s[1:].strip()}")
+            if s.startswith("✅") or s.startswith("👀"):
+                lines.append(f"[x] {s[1:].strip()}")   # completed / approved
             elif s.startswith("▶"):
-                lines.append(f"[ ] {s[1:].strip()}")   # active
+                lines.append(f"[>] {s[1:].strip()}")   # active
             elif s.startswith("⏸"):
                 lines.append(f"[ ] {s[1:].strip()}")   # pending
+            elif s.startswith("❌"):
+                lines.append(f"[-] {s[1:].strip()}")   # rejected
             elif s.startswith("•"):
                 lines.append(f"    {s}")
 
@@ -299,17 +306,25 @@ class AgentTUI(App):
         if task_title:
             self.query_one("#task-title", Static).update(task_title)
 
-        # Render todo list with styles
-        rendered = []
+        # Render todo list with Rich Text (avoids markup escaping issues)
+        from rich.text import Text as _RichText
+        out = _RichText()
+        first_active = True
         for line in lines:
             if line.startswith("[x]"):
-                rendered.append(f"[dim]{line}[/dim]")
-            elif line.startswith("[ ]") and not rendered:
-                # First pending = active task
-                rendered.append(f"[bold #ffffff]{line}[/bold #ffffff]")
+                out.append(line + "\n", style="dim #555555")
+            elif line.startswith("[>]"):
+                # Active task
+                if first_active:
+                    out.append(line + "\n", style="bold white")
+                    first_active = False
+                else:
+                    out.append(line + "\n", style="#888888")
             elif line.startswith("[ ]"):
-                rendered.append(f"[#555555]{line}[/#555555]")
+                out.append(line + "\n", style="#666666")
+            elif line.startswith("[-]"):
+                out.append(line + "\n", style="dim red")
             else:
-                rendered.append(f"[dim #444444]{line}[/dim #444444]")
+                out.append(line + "\n", style="dim #444444")
 
-        self.query_one("#todo", Static).update("\n".join(rendered))
+        self.query_one("#todo", Static).update(out)
