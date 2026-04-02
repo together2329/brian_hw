@@ -230,7 +230,7 @@ class AgentTUI(App):
             yield Static("", id="todo")
             yield Static(cwd, id="cwd-label")
         yield Static("", id="statusbar")
-        yield Input(placeholder="  ❯ ")
+        yield Input(placeholder="")
 
     def on_mount(self) -> None:
         self._update_statusbar()
