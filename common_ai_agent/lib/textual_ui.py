@@ -17,16 +17,23 @@ from textual.message import Message
 from textual.widgets import Input, RichLog, Static
 from textual import work
 
-_ANSI = re.compile(r"\x1b\[[0-9;]*[mK]")
+_ANSI   = re.compile(r"\x1b\[[0-9;]*[mK]")
+_NOISE  = re.compile(r"^[\s•·\-─—=*]+$")
+_ITER   = re.compile(r"primary\s+\d+/\d+")
+_TOKENS = re.compile(r"(✽|in\s+[\d.]+k?)\s+.*tokens")
 
-# Lines that are pure noise — single symbols, bare bullets, etc.
-_NOISE = re.compile(r"^[\s•·\-─—=*]+$")
-
-# Iteration header: "— primary N/1000 · model —"
-_ITER_HDR = re.compile(r"primary\s+\d+/\d+")
-
-# Token stats: "✽ in Xk · out Xk · sum Xk tokens · Xs"
-_TOKEN_STATS = re.compile(r"(✽|in\s+[\d.]+k?)\s+.*tokens")
+# ── Color palette (GitHub-dark inspired) ────────────────────────────────────
+_BG         = "#0d1117"
+_BG_INPUT   = "#161b22"
+_BORDER     = "#30363d"
+_BORDER_DIM = "#21262d"
+_ACCENT     = "#58a6ff"   # blue
+_GREEN      = "#3fb950"   # success
+_YELLOW     = "#d29922"   # warning
+_RED        = "#f85149"   # error
+_TEXT       = "#c9d1d9"   # normal text
+_TEXT_DIM   = "#6e7681"   # dim text
+_TEXT_FAINT = "#3d444d"   # very dim
 
 
 # ── Messages ─────────────────────────────────────────────────────────────────
@@ -65,7 +72,6 @@ class TextualCapture:
         while "\n" in self._buf:
             line, self._buf = self._buf.split("\n", 1)
             clean = _ANSI.sub("", line)
-            # Skip blank lines and pure-noise lines (stray bullets, etc.)
             if not clean.strip() or _NOISE.match(clean.strip()):
                 continue
             self._app.post_message(MainLine(clean))
@@ -91,17 +97,14 @@ class InputBridge:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _shorten_path(text: str, max_len: int = 72) -> str:
-    """Shorten a line containing a long absolute path using …/tail."""
+def _shorten_path(text: str, max_len: int = 76) -> str:
     if len(text) <= max_len:
         return text
-    # Find the longest /…/ segment
     m = re.search(r"(/[^\s)\"']{30,})", text)
     if not m:
         return text
     path = m.group(1)
     parts = path.split("/")
-    # Keep last 3 path components
     short = "/…/" + "/".join(parts[-3:]) if len(parts) > 3 else path
     return text.replace(path, short)
 
@@ -111,82 +114,92 @@ def _shorten_path(text: str, max_len: int = 72) -> str:
 class AgentTUI(App):
     TITLE = "common_ai_agent"
 
-    CSS = """
-    Screen {
-        background: #0f0f0f;
-        color: #cccccc;
-    }
+    CSS = f"""
+    Screen {{
+        background: {_BG};
+        color: {_TEXT};
+    }}
 
-    #main {
+    /* ── Main panel ── */
+    #main {{
         width: 1fr;
         height: 1fr;
-        background: #0f0f0f;
+        background: {_BG};
         scrollbar-size: 1 1;
-        scrollbar-color: #333333;
-        padding: 0 1;
-    }
+        scrollbar-color: {_BORDER};
+        padding: 0 2;
+    }}
 
-    #sidebar {
-        width: 32;
+    /* ── Sidebar ── */
+    #sidebar {{
+        width: 34;
         height: 100%;
         dock: right;
-        border-left: solid #222222;
+        border-left: solid {_BORDER_DIM};
         padding: 0 1;
-        background: #0f0f0f;
-    }
-    #task-title {
+        background: {_BG};
+    }}
+    #agent-label {{
         height: auto;
-        color: #aaaaaa;
-        padding: 0 0 1 0;
-        border-bottom: solid #222222;
-    }
-    #context {
-        height: auto;
-        color: #555555;
-        padding: 1 0;
-        border-bottom: solid #222222;
-    }
-    #todo-header {
-        height: auto;
-        color: #888888;
+        color: {_ACCENT};
         padding: 1 0 0 0;
-    }
-    #todo {
+        text-style: bold;
+    }}
+    #task-title {{
+        height: auto;
+        color: {_TEXT_DIM};
+        padding: 0 0 1 0;
+        border-bottom: solid {_BORDER_DIM};
+    }}
+    #context {{
+        height: auto;
+        color: {_TEXT_FAINT};
+        padding: 1 0;
+        border-bottom: solid {_BORDER_DIM};
+    }}
+    #todo-header {{
+        height: auto;
+        color: {_TEXT_DIM};
+        padding: 1 0 0 0;
+        text-style: bold;
+    }}
+    #todo {{
         height: 1fr;
-        color: #bbbbbb;
         overflow-y: auto;
         padding: 0;
-    }
-    #cwd-label {
+    }}
+    #cwd-label {{
         height: auto;
-        color: #444444;
+        color: {_TEXT_FAINT};
         padding: 1 0 0 0;
-        border-top: solid #222222;
+        border-top: solid {_BORDER_DIM};
         dock: bottom;
-    }
+    }}
 
-    #statusbar {
+    /* ── Status bar ── */
+    #statusbar {{
         height: 1;
         dock: bottom;
-        background: #161616;
-        color: #555555;
-        padding: 0 1;
-    }
+        background: {_BG_INPUT};
+        color: {_TEXT_FAINT};
+        padding: 0 2;
+    }}
 
-    Input {
+    /* ── Input ── */
+    Input {{
         height: 3;
         dock: bottom;
-        background: #111111;
+        background: {_BG_INPUT};
         border: none;
-        border-top: solid #222222;
-        padding: 0 1;
-        color: #eeeeee;
-    }
-    Input:focus {
+        border-top: solid {_BORDER_DIM};
+        padding: 0 2;
+        color: {_TEXT};
+    }}
+    Input:focus {{
         border: none;
-        border-top: solid #3a3a3a;
-        background: #131313;
-    }
+        border-top: solid {_BORDER};
+        background: {_BG_INPUT};
+    }}
     """
 
     BINDINGS = [("ctrl+q", "quit", "Quit")]
@@ -197,7 +210,6 @@ class AgentTUI(App):
         self._input_bridge = InputBridge()
         self._response_buf = ""
         self._generating = False
-        # Cache model name for status bar
         try:
             import config as _cfg
             self._model = getattr(_cfg, "MODEL_NAME", "")
@@ -209,15 +221,16 @@ class AgentTUI(App):
         home = os.path.expanduser("~")
         cwd = cwd_full.replace(home, "~") if cwd_full.startswith(home) else cwd_full
 
-        yield RichLog(id="main", highlight=False, wrap=True, markup=False)
+        yield RichLog(id="main", highlight=True, wrap=True, markup=False)
         with Vertical(id="sidebar"):
+            yield Static("common_ai_agent", id="agent-label")
             yield Static("", id="task-title")
             yield Static("", id="context")
-            yield Static("▼ Todo", id="todo-header")
+            yield Static("Todo", id="todo-header")
             yield Static("", id="todo")
             yield Static(cwd, id="cwd-label")
         yield Static("", id="statusbar")
-        yield Input(placeholder="> ")
+        yield Input(placeholder="  ❯ ")
 
     def on_mount(self) -> None:
         self._update_statusbar()
@@ -232,8 +245,15 @@ class AgentTUI(App):
     def _update_statusbar(self, extra: str = "") -> None:
         try:
             sb = self.query_one("#statusbar", Static)
-            base = f" primary  {self._model}   esc interrupt   ctrl+q quit"
-            sb.update(RichText(f"{base}   {extra}" if extra else base, style="#555555"))
+            t = RichText()
+            t.append(" ◆ ", style=f"bold {_ACCENT}")
+            t.append("primary", style=_TEXT_DIM)
+            t.append("  ", style="")
+            t.append(self._model, style=_TEXT_FAINT)
+            t.append("   ctrl+q quit", style=_TEXT_FAINT)
+            if extra:
+                t.append(f"   {extra}", style=f"italic {_YELLOW}")
+            sb.update(t)
         except Exception:
             pass
 
@@ -262,6 +282,11 @@ class AgentTUI(App):
             return
         from rich.markdown import Markdown
         log = self.query_one("#main", RichLog)
+        # Subtle "AI" gutter marker before response
+        marker = RichText()
+        marker.append("  ╭ ", style=f"dim {_ACCENT}")
+        marker.append("response", style=f"dim {_ACCENT}")
+        log.write(marker)
         log.write(Markdown(self._response_buf))
         self._response_buf = ""
         self._generating = False
@@ -276,7 +301,10 @@ class AgentTUI(App):
             return
         self._flush_response()
         log = self.query_one("#main", RichLog)
-        log.write(RichText(f"\n> {text}", style="bold #5f87ff"))
+        t = RichText()
+        t.append("\n  ❯ ", style=f"bold {_ACCENT}")
+        t.append(text, style=f"bold {_TEXT}")
+        log.write(t)
         self._input_bridge.submit(text)
 
     # ── Message handlers ───────────────────────────────────────────────────────
@@ -291,37 +319,45 @@ class AgentTUI(App):
         if msg.blank:
             return
         log = self.query_one("#main", RichLog)
-        log.write(RichText(f"  {msg.text}", style="italic #555555"))
+        t = RichText()
+        t.append(f"  {msg.text}", style=f"italic {_TEXT_DIM}")
+        log.write(t)
 
     def on_main_line(self, msg: MainLine) -> None:
-        """System/tool output — flush pending response first, then style the line."""
         self._flush_response()
         log = self.query_one("#main", RichLog)
         text = msg.text
 
-        # Iteration header → dim separator style
-        if _ITER_HDR.search(text):
-            log.write(RichText(""))
-            log.write(RichText(text, style="dim #444444"))
+        # Iteration header → accent dim separator
+        if _ITER.search(text):
+            # Extract: "primary N/1000 · model"
+            clean = re.sub(r"^[—\-\s]+|[—\-\s]+$", "", text).strip()
+            t = RichText()
+            t.append("\n  ")
+            t.append("─" * 2, style=f"dim {_BORDER}")
+            t.append(f"  {clean}  ", style=f"dim {_TEXT_FAINT}")
+            t.append("─" * 2, style=f"dim {_BORDER}")
+            log.write(t)
             return
 
-        # Token stats → dim right-aligned style
-        if _TOKEN_STATS.search(text):
-            log.write(RichText(text.strip(), style="dim #3a3a3a"))
+        # Token stats → very faint
+        if _TOKENS.search(text):
+            log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
             return
 
-        # Shorten long paths (e.g. Read(...) lines)
+        # Shorten long paths
         text = _shorten_path(text)
 
         try:
             log.write(RichText.from_ansi(text))
         except Exception:
-            log.write(RichText(text, style="#888888"))
+            log.write(RichText(text, style=_TEXT_DIM))
 
     def on_todo_update(self, msg: TodoUpdate) -> None:
         clean = _ANSI.sub("", msg.text).strip()
-        lines = []
+        items: list[tuple[str, str]] = []
         task_title = ""
+
         for line in clean.splitlines():
             s = line.strip()
             if not s or "── TODO ──" in s:
@@ -329,38 +365,47 @@ class AgentTUI(App):
             if s.startswith("▶") and not task_title:
                 task_title = re.sub(r"^\d+\.\s*", "", s[1:].strip())
             if s.startswith("✅") or s.startswith("👀"):
-                lines.append(("[x]", s[1:].strip()))
+                items.append(("done", s[1:].strip()))
             elif s.startswith("▶"):
-                lines.append(("[>]", s[1:].strip()))
+                items.append(("active", s[1:].strip()))
             elif s.startswith("⏸"):
-                lines.append(("[ ]", s[1:].strip()))
+                items.append(("pending", s[1:].strip()))
             elif s.startswith("❌"):
-                lines.append(("[-]", s[1:].strip()))
+                items.append(("rejected", s[1:].strip()))
             elif s.startswith("•"):
-                lines.append(("  •", s[1:].strip()))
+                items.append(("sub", s[1:].strip()))
 
         if task_title:
-            self.query_one("#task-title", Static).update(task_title)
+            # Update task title area
+            t = RichText()
+            t.append(task_title, style=_TEXT_DIM)
+            self.query_one("#task-title", Static).update(t)
 
-        _MAX = 28  # max chars per todo line (sidebar width - padding)
+        _MAX = 26
         out = RichText()
         first_active = True
-        for marker, label in lines:
-            # Truncate label to fit sidebar
+        for kind, label in items:
             if len(label) > _MAX:
                 label = label[:_MAX - 1] + "…"
-            line_str = f"{marker} {label}\n"
-            if marker == "[x]":
-                out.append(line_str, style="dim #555555")
-            elif marker == "[>]":
-                style = "bold white" if first_active else "#888888"
-                out.append(line_str, style=style)
-                first_active = False
-            elif marker == "[ ]":
-                out.append(line_str, style="#666666")
-            elif marker == "[-]":
-                out.append(line_str, style="dim red")
+            if kind == "done":
+                out.append("  ✓ ", style=f"dim {_TEXT_FAINT}")
+                out.append(label + "\n", style=f"dim {_TEXT_FAINT}")
+            elif kind == "active":
+                if first_active:
+                    out.append("  ◆ ", style=f"bold {_GREEN}")
+                    out.append(label + "\n", style=f"bold {_TEXT}")
+                    first_active = False
+                else:
+                    out.append("  ◆ ", style=_TEXT_DIM)
+                    out.append(label + "\n", style=_TEXT_DIM)
+            elif kind == "pending":
+                out.append("  ○ ", style=_TEXT_FAINT)
+                out.append(label + "\n", style=_TEXT_FAINT)
+            elif kind == "rejected":
+                out.append("  ✗ ", style=f"dim {_RED}")
+                out.append(label + "\n", style=f"dim {_RED}")
             else:
-                out.append(line_str, style="dim #444444")
+                out.append("    · ", style=f"dim {_TEXT_FAINT}")
+                out.append(label + "\n", style=f"dim {_TEXT_FAINT}")
 
         self.query_one("#todo", Static).update(out)
