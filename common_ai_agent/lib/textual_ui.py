@@ -1,20 +1,5 @@
 """
 lib/textual_ui.py — OpenCode-style Textual TUI for common_ai_agent
-
-Layout:
-  ┌──────────────────────────────────────┬──────────────────────┐
-  │ Main panel (75%)                     │ Sidebar (25%)        │
-  │                                      │  Task title          │
-  │  → Read file.v                       │  29,473 tokens       │
-  │    12 lines                          │  15% used            │
-  │                                      │                      │
-  │  LLM response text...                │  ▼ Todo              │
-  │                                      │  [x] Task 1          │
-  │  ■ primary · model-name              │  [ ] Task 2          │
-  ├──────────────────────────────────────│                      │
-  │ > input                              │  ~/cwd               │
-  │ primary  model  esc interrupt        └──────────────────────┘
-  └──────────────────────────────────────────────────────────────
 """
 
 from __future__ import annotations
@@ -34,30 +19,35 @@ from textual import work
 
 _ANSI = re.compile(r"\x1b\[[0-9;]*[mK]")
 
+# Lines that are pure noise — single symbols, bare bullets, etc.
+_NOISE = re.compile(r"^[\s•·\-─—=*]+$")
+
+# Iteration header: "— primary N/1000 · model —"
+_ITER_HDR = re.compile(r"primary\s+\d+/\d+")
+
+# Token stats: "✽ in Xk · out Xk · sum Xk tokens · Xs"
+_TOKEN_STATS = re.compile(r"(✽|in\s+[\d.]+k?)\s+.*tokens")
+
 
 # ── Messages ─────────────────────────────────────────────────────────────────
 
 class MainLine(Message):
-    """stdout line → main panel."""
     def __init__(self, text: str) -> None:
         self.text = text
         super().__init__()
 
 class StreamChunk(Message):
-    """LLM streaming token → main panel."""
     def __init__(self, text: str) -> None:
         self.text = text
         super().__init__()
 
 class ReasoningChunk(Message):
-    """LLM reasoning → main panel (dim)."""
     def __init__(self, text: str, blank: bool = False) -> None:
         self.text = text
         self.blank = blank
         super().__init__()
 
 class TodoUpdate(Message):
-    """Todo state → sidebar."""
     def __init__(self, text: str) -> None:
         self.text = text
         super().__init__()
@@ -75,8 +65,10 @@ class TextualCapture:
         while "\n" in self._buf:
             line, self._buf = self._buf.split("\n", 1)
             clean = _ANSI.sub("", line)
-            if clean.strip():
-                self._app.post_message(MainLine(clean))
+            # Skip blank lines and pure-noise lines (stray bullets, etc.)
+            if not clean.strip() or _NOISE.match(clean.strip()):
+                continue
+            self._app.post_message(MainLine(clean))
         return len(text)
 
     def flush(self) -> None: pass
@@ -97,6 +89,23 @@ class InputBridge:
         self._q.put(text)
 
 
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _shorten_path(text: str, max_len: int = 72) -> str:
+    """Shorten a line containing a long absolute path using …/tail."""
+    if len(text) <= max_len:
+        return text
+    # Find the longest /…/ segment
+    m = re.search(r"(/[^\s)\"']{30,})", text)
+    if not m:
+        return text
+    path = m.group(1)
+    parts = path.split("/")
+    # Keep last 3 path components
+    short = "/…/" + "/".join(parts[-3:]) if len(parts) > 3 else path
+    return text.replace(path, short)
+
+
 # ── App ───────────────────────────────────────────────────────────────────────
 
 class AgentTUI(App):
@@ -108,7 +117,6 @@ class AgentTUI(App):
         color: #cccccc;
     }
 
-    /* ── Main content panel ── */
     #main {
         width: 1fr;
         height: 1fr;
@@ -118,9 +126,8 @@ class AgentTUI(App):
         padding: 0 1;
     }
 
-    /* ── Right sidebar ── */
     #sidebar {
-        width: 26;
+        width: 32;
         height: 100%;
         dock: right;
         border-left: solid #222222;
@@ -158,7 +165,6 @@ class AgentTUI(App):
         dock: bottom;
     }
 
-    /* ── Status bar ── */
     #statusbar {
         height: 1;
         dock: bottom;
@@ -167,7 +173,6 @@ class AgentTUI(App):
         padding: 0 1;
     }
 
-    /* ── Input ── */
     Input {
         height: 3;
         dock: bottom;
@@ -184,19 +189,22 @@ class AgentTUI(App):
     }
     """
 
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
+
     def __init__(self, run_agent_fn: Callable) -> None:
         super().__init__()
         self._run_agent_fn = run_agent_fn
         self._input_bridge = InputBridge()
-        self._response_buf = ""  # accumulates full LLM response for Markdown render
-
-    def compose(self) -> ComposeResult:
+        self._response_buf = ""
+        self._generating = False
+        # Cache model name for status bar
         try:
             import config as _cfg
-            model = getattr(_cfg, "MODEL_NAME", "")
+            self._model = getattr(_cfg, "MODEL_NAME", "")
         except Exception:
-            model = ""
+            self._model = ""
 
+    def compose(self) -> ComposeResult:
         cwd_full = os.getcwd()
         home = os.path.expanduser("~")
         cwd = cwd_full.replace(home, "~") if cwd_full.startswith(home) else cwd_full
@@ -208,20 +216,28 @@ class AgentTUI(App):
             yield Static("▼ Todo", id="todo-header")
             yield Static("", id="todo")
             yield Static(cwd, id="cwd-label")
-        yield Static(
-            f" primary  {model}   esc interrupt   ctrl+q quit",
-            id="statusbar",
-        )
+        yield Static("", id="statusbar")
         yield Input(placeholder="> ")
 
     def on_mount(self) -> None:
+        self._update_statusbar()
         self.query_one(Input).focus()
         self._start_agent()
 
     def action_quit(self) -> None:
         self.exit()
 
-    BINDINGS = [("ctrl+q", "quit", "Quit")]
+    # ── Status bar ────────────────────────────────────────────────────────────
+
+    def _update_statusbar(self, extra: str = "") -> None:
+        try:
+            sb = self.query_one("#statusbar", Static)
+            base = f" primary  {self._model}   esc interrupt   ctrl+q quit"
+            sb.update(RichText(f"{base}   {extra}" if extra else base, style="#555555"))
+        except Exception:
+            pass
+
+    # ── Agent worker ─────────────────────────────────────────────────────────
 
     @work(exclusive=True, thread=True)
     def _start_agent(self) -> None:
@@ -237,17 +253,21 @@ class AgentTUI(App):
         finally:
             sys.stdout = _orig
 
-    # ── Input ─────────────────────────────────────────────────────────────────
+    # ── Response buffer ───────────────────────────────────────────────────────
 
     def _flush_response(self) -> None:
-        """Render accumulated LLM response as Markdown."""
         if not self._response_buf.strip():
             self._response_buf = ""
+            self._generating = False
             return
         from rich.markdown import Markdown
         log = self.query_one("#main", RichLog)
         log.write(Markdown(self._response_buf))
         self._response_buf = ""
+        self._generating = False
+        self._update_statusbar()
+
+    # ── Input ─────────────────────────────────────────────────────────────────
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         text = event.value.strip()
@@ -262,23 +282,41 @@ class AgentTUI(App):
     # ── Message handlers ───────────────────────────────────────────────────────
 
     def on_stream_chunk(self, msg: StreamChunk) -> None:
-        """Accumulate LLM response; rendered as Markdown when response is done."""
+        if not self._generating:
+            self._generating = True
+            self._update_statusbar("generating…")
         self._response_buf += msg.text + "\n"
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:
-        log = self.query_one("#main", RichLog)
         if msg.blank:
             return
+        log = self.query_one("#main", RichLog)
         log.write(RichText(f"  {msg.text}", style="italic #555555"))
 
     def on_main_line(self, msg: MainLine) -> None:
-        """System/tool output — flush pending response as Markdown first."""
+        """System/tool output — flush pending response first, then style the line."""
         self._flush_response()
         log = self.query_one("#main", RichLog)
+        text = msg.text
+
+        # Iteration header → dim separator style
+        if _ITER_HDR.search(text):
+            log.write(RichText(""))
+            log.write(RichText(text, style="dim #444444"))
+            return
+
+        # Token stats → dim right-aligned style
+        if _TOKEN_STATS.search(text):
+            log.write(RichText(text.strip(), style="dim #3a3a3a"))
+            return
+
+        # Shorten long paths (e.g. Read(...) lines)
+        text = _shorten_path(text)
+
         try:
-            log.write(RichText.from_ansi(msg.text))
+            log.write(RichText.from_ansi(text))
         except Exception:
-            log.write(RichText(msg.text, style="#888888"))
+            log.write(RichText(text, style="#888888"))
 
     def on_todo_update(self, msg: TodoUpdate) -> None:
         clean = _ANSI.sub("", msg.text).strip()
@@ -288,46 +326,41 @@ class AgentTUI(App):
             s = line.strip()
             if not s or "── TODO ──" in s:
                 continue
-            # Extract task title from in_progress item
             if s.startswith("▶") and not task_title:
-                task_title = s[1:].strip()
-                # Remove leading "N." if present
-                task_title = re.sub(r"^\d+\.\s*", "", task_title)
-            # Format each line
+                task_title = re.sub(r"^\d+\.\s*", "", s[1:].strip())
             if s.startswith("✅") or s.startswith("👀"):
-                lines.append(f"[x] {s[1:].strip()}")   # completed / approved
+                lines.append(("[x]", s[1:].strip()))
             elif s.startswith("▶"):
-                lines.append(f"[>] {s[1:].strip()}")   # active
+                lines.append(("[>]", s[1:].strip()))
             elif s.startswith("⏸"):
-                lines.append(f"[ ] {s[1:].strip()}")   # pending
+                lines.append(("[ ]", s[1:].strip()))
             elif s.startswith("❌"):
-                lines.append(f"[-] {s[1:].strip()}")   # rejected
+                lines.append(("[-]", s[1:].strip()))
             elif s.startswith("•"):
-                lines.append(f"    {s}")
+                lines.append(("  •", s[1:].strip()))
 
-        # Update task title in sidebar
         if task_title:
             self.query_one("#task-title", Static).update(task_title)
 
-        # Render todo list with Rich Text (avoids markup escaping issues)
-        from rich.text import Text as _RichText
-        out = _RichText()
+        _MAX = 28  # max chars per todo line (sidebar width - padding)
+        out = RichText()
         first_active = True
-        for line in lines:
-            if line.startswith("[x]"):
-                out.append(line + "\n", style="dim #555555")
-            elif line.startswith("[>]"):
-                # Active task
-                if first_active:
-                    out.append(line + "\n", style="bold white")
-                    first_active = False
-                else:
-                    out.append(line + "\n", style="#888888")
-            elif line.startswith("[ ]"):
-                out.append(line + "\n", style="#666666")
-            elif line.startswith("[-]"):
-                out.append(line + "\n", style="dim red")
+        for marker, label in lines:
+            # Truncate label to fit sidebar
+            if len(label) > _MAX:
+                label = label[:_MAX - 1] + "…"
+            line_str = f"{marker} {label}\n"
+            if marker == "[x]":
+                out.append(line_str, style="dim #555555")
+            elif marker == "[>]":
+                style = "bold white" if first_active else "#888888"
+                out.append(line_str, style=style)
+                first_active = False
+            elif marker == "[ ]":
+                out.append(line_str, style="#666666")
+            elif marker == "[-]":
+                out.append(line_str, style="dim red")
             else:
-                out.append(line + "\n", style="dim #444444")
+                out.append(line_str, style="dim #444444")
 
         self.query_one("#todo", Static).update(out)
