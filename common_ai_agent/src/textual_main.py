@@ -11,7 +11,7 @@ Terminal mode (unchanged):
 import os
 import sys
 
-# ── Path setup (identical to main.py) ──────────────────────────────────────
+# ── Path setup ──────────────────────────────────────────────────────────────
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 _project_root = os.path.dirname(_script_dir)
 sys.path.insert(0, _script_dir)
@@ -21,42 +21,52 @@ _vendor_dir = os.path.join(_project_root, "vendor")
 if _vendor_dir not in sys.path:
     sys.path.insert(0, _vendor_dir)
 
-# ── Textual availability check ──────────────────────────────────────────────
 try:
     import textual  # noqa: F401
 except ImportError:
     print("ERROR: Textual is not installed.  Run:  pip install textual")
     sys.exit(1)
 
-# ── Import agent ────────────────────────────────────────────────────────────
 import config
 import main as _agent
 
-from lib.textual_ui import AgentTUI
+from lib.textual_ui import AgentTUI, ContextUpdate
 
 
-# ---------------------------------------------------------------------------
-# Agent runner — called in AgentTUI worker thread
-# ---------------------------------------------------------------------------
+# ── Context info helper ───────────────────────────────────────────────────────
 
-def _run_agent(input_fn, emit_content_fn, emit_reasoning_fn, emit_todo_fn):
-    """Wire Textual callbacks into main.py and start chat_loop()."""
-    # Disable prompt_toolkit (conflicts with Textual)
+def _emit_context(app: AgentTUI) -> None:
+    """Read current token/skill state from main.py and post ContextUpdate."""
+    try:
+        tokens  = getattr(_agent.llm_client, "last_input_tokens", 0)
+        max_tok = getattr(config, "MAX_CONTEXT_TOKENS", 65536)
+        skill   = getattr(getattr(_agent, "load_active_skills", None), "_active_skill", None) or ""
+        app.post_message(ContextUpdate(tokens, max_tok, skill))
+    except Exception:
+        pass
+
+
+# ── Agent runner ──────────────────────────────────────────────────────────────
+
+def _run_agent(app: AgentTUI) -> None:
+    """Called inside the AgentTUI worker thread."""
     config.ENABLE_MULTILINE_INPUT = False
 
-    # Set module-level callbacks — picked up when chat_loop() creates _loop_deps
-    # and when run_react_agent() creates ReactLoopDeps
-    _agent._textual_input_fn = input_fn
-    _agent._textual_emit_content_fn = emit_content_fn
-    _agent._textual_emit_reasoning_fn = emit_reasoning_fn
-    _agent._textual_emit_todo_fn = emit_todo_fn
+    from lib.textual_ui import StreamChunk, ReasoningChunk, TodoUpdate
+
+    def _todo_and_context(text: str) -> None:
+        app.post_message(TodoUpdate(text))
+        _emit_context(app)
+
+    _agent._textual_input_fn          = app._input_bridge.get_input
+    _agent._textual_emit_content_fn   = lambda line: app.post_message(StreamChunk(line))
+    _agent._textual_emit_reasoning_fn = lambda line, blank=False: app.post_message(ReasoningChunk(line, blank))
+    _agent._textual_emit_todo_fn      = _todo_and_context
 
     _agent.chat_loop()
 
 
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
+# ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     AgentTUI(_run_agent).run()

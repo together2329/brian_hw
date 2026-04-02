@@ -59,6 +59,13 @@ class TodoUpdate(Message):
         self.text = text
         super().__init__()
 
+class ContextUpdate(Message):
+    def __init__(self, tokens: int, max_tokens: int, skill: str = "") -> None:
+        self.tokens = tokens
+        self.max_tokens = max_tokens
+        self.skill = skill
+        super().__init__()
+
 
 # ── stdout capture ────────────────────────────────────────────────────────────
 
@@ -210,6 +217,7 @@ class AgentTUI(App):
         self._input_bridge = InputBridge()
         self._response_buf = ""
         self._generating = False
+        self._in_diff = False   # True after a write/replace tool call
         try:
             import config as _cfg
             self._model = getattr(_cfg, "MODEL_NAME", "")
@@ -264,12 +272,7 @@ class AgentTUI(App):
         _orig = sys.stdout
         sys.stdout = TextualCapture(self)
         try:
-            self._run_agent_fn(
-                input_fn=self._input_bridge.get_input,
-                emit_content_fn=lambda line: self.post_message(StreamChunk(line)),
-                emit_reasoning_fn=lambda line, blank=False: self.post_message(ReasoningChunk(line, blank)),
-                emit_todo_fn=lambda text: self.post_message(TodoUpdate(text)),
-            )
+            self._run_agent_fn(self)  # passes app instance; textual_main.py wires all callbacks
         finally:
             sys.stdout = _orig
 
@@ -301,9 +304,16 @@ class AgentTUI(App):
             return
         self._flush_response()
         log = self.query_one("#main", RichLog)
+        # Full-width turn separator (OpenCode style)
+        sep = RichText()
+        sep.append("\n")
+        sep.append("─" * 80, style=f"dim {_BORDER_DIM}")
+        log.write(sep)
+        # User input line
         t = RichText()
-        t.append(f"\n  {text}", style=f"bold {_ACCENT}")
+        t.append(f"  {text}", style=f"bold {_ACCENT}")
         log.write(t)
+        self._in_diff = False
         self._input_bridge.submit(text)
 
     # ── Message handlers ───────────────────────────────────────────────────────
@@ -319,8 +329,25 @@ class AgentTUI(App):
             return
         log = self.query_one("#main", RichLog)
         t = RichText()
-        t.append(f"  {msg.text}", style=f"italic {_TEXT_DIM}")
+        # OpenCode-style: dim left bar + italic faint text
+        t.append("  ┆ ", style=f"dim {_BORDER}")
+        t.append(msg.text, style=f"italic {_TEXT_FAINT}")
         log.write(t)
+
+    def on_context_update(self, msg: ContextUpdate) -> None:
+        try:
+            ctx = self.query_one("#context", Static)
+            t = RichText()
+            if msg.tokens and msg.max_tokens:
+                pct = int(msg.tokens / msg.max_tokens * 100)
+                tk_str = f"{msg.tokens:,}"
+                t.append(f"{tk_str} tokens\n", style=_TEXT_DIM)
+                t.append(f"{pct}% used", style=f"dim {_YELLOW if pct > 60 else _TEXT_FAINT}")
+            if msg.skill:
+                t.append(f"\n{msg.skill}", style=f"dim {_ACCENT}")
+            ctx.update(t)
+        except Exception:
+            pass
 
     def on_main_line(self, msg: MainLine) -> None:
         self._flush_response()
@@ -350,11 +377,11 @@ class AgentTUI(App):
         # ── Color-coded lines ───────────────────────────────────────────────
 
         # Todo status bar: "N;[M/T] ▶ in_progress | task title"
-        m_todo_bar = re.match(r"^(\d+;\[\d+/\d+\])\s+([▶⏸✅•])\s+(\S+)\s*\|?\s*(.*)", text)
+        m_todo_bar = re.match(r"^\d+;\[(\d+/\d+)\]\s+([▶⏸✅•])\s+(\S+)\s*\|?\s*(.*)", text)
         if m_todo_bar:
-            prefix, icon, status, title = m_todo_bar.groups()
+            progress, icon, status, title = m_todo_bar.groups()
             t = RichText()
-            t.append(f"  {prefix} ", style=f"dim {_TEXT_FAINT}")
+            t.append(f"  [{progress}] ", style=f"dim {_TEXT_FAINT}")
             if icon == "▶":
                 t.append(f"{icon} ", style=f"bold {_GREEN}")
                 t.append(status, style=f"bold {_GREEN}")
@@ -386,12 +413,11 @@ class AgentTUI(App):
             log.write(t)
             return
 
-        # Tool calls: "• tool_name(...)" or "  tool_name(...)"
+        # Tool calls: "• tool_name(...)"
         m_tool = re.match(r"^\s*[•·]\s*(\w+)\((.*)$", text)
         if m_tool:
             tool_name = m_tool.group(1)
             args_part = m_tool.group(2)
-            # Color by tool category
             _READ_TOOLS  = {"read_file","read_lines","grep_file","find_files","list_dir","git_diff","git_status","git_log"}
             _WRITE_TOOLS = {"write_file","write_to_file","replace_in_file","replace_lines","replace_file_content"}
             _EXEC_TOOLS  = {"run_command","background_task","background_output"}
@@ -400,13 +426,13 @@ class AgentTUI(App):
             if tool_name in _READ_TOOLS:
                 color = _ACCENT
             elif tool_name in _WRITE_TOOLS:
-                color = _YELLOW
+                color, self._in_diff = _YELLOW, True
             elif tool_name in _EXEC_TOOLS:
                 color = "#e3b341"
             elif tool_name in _TODO_TOOLS:
                 color = _GREEN
             elif tool_name in _GIT_TOOLS:
-                color = "#bc8cff"
+                color, self._in_diff = "#bc8cff", True
             else:
                 color = _TEXT_DIM
             t = RichText()
@@ -414,6 +440,21 @@ class AgentTUI(App):
             t.append(f"({args_part}", style=f"dim {color}")
             log.write(t)
             return
+
+        # Diff lines (after write/replace/git tools)
+        if self._in_diff:
+            if re.match(r"^\+[^+]", text):
+                log.write(RichText(f"  {text}", style=f"bold {_GREEN}"))
+                return
+            if re.match(r"^-[^-]", text):
+                log.write(RichText(f"  {text}", style=f"bold {_RED}"))
+                return
+            if re.match(r"^@@", text):
+                log.write(RichText(f"  {text}", style=f"bold {_ACCENT}"))
+                return
+            # Non-diff line ends the diff block
+            if not re.match(r"^\s*[└|]", text):
+                self._in_diff = False
 
         # Tool result lines: "└ ..."
         if re.match(r"^\s*[└|]", text):
