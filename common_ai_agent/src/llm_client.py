@@ -109,7 +109,23 @@ _last_post_reused: bool = False  # set by _persistent_post; read by PERF logging
 def _get_or_create_ssl_ctx() -> ssl.SSLContext:
     global _ssl_ctx_cache
     if _ssl_ctx_cache is None:
-        _ssl_ctx_cache = ssl.create_default_context()
+        cafile = None
+        # Try certifi first
+        try:
+            import certifi
+            cafile = certifi.where()
+        except ImportError:
+            # Fallback: well-known system CA bundle paths (Linux distros)
+            for _p in (
+                "/etc/ssl/certs/ca-certificates.crt",   # Debian/Ubuntu
+                "/etc/pki/tls/certs/ca-bundle.crt",     # RHEL/CentOS
+                "/etc/ssl/ca-bundle.pem",               # openSUSE
+                "/usr/local/etc/openssl/cert.pem",      # Homebrew macOS
+            ):
+                if os.path.isfile(_p):
+                    cafile = _p
+                    break
+        _ssl_ctx_cache = ssl.create_default_context(cafile=cafile)
     return _ssl_ctx_cache
 
 
