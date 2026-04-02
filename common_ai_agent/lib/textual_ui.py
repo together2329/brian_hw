@@ -284,13 +284,17 @@ class AgentTUI(App):
             self._generating = False
             return
         from rich.markdown import Markdown
+        from rich.panel import Panel
+        from rich.padding import Padding
         log = self.query_one("#main", RichLog)
-        # Subtle "AI" gutter marker before response
-        marker = RichText()
-        marker.append("  ╭ ", style=f"dim {_ACCENT}")
-        marker.append("response", style=f"dim {_ACCENT}")
-        log.write(marker)
-        log.write(Markdown(self._response_buf))
+        # OpenCode-style: response in a subtle bordered panel
+        panel = Panel(
+            Markdown(self._response_buf),
+            border_style=f"dim {_BORDER_DIM}",
+            padding=(0, 1),
+            expand=True,
+        )
+        log.write(panel)
         self._response_buf = ""
         self._generating = False
         self._update_statusbar()
