@@ -213,7 +213,10 @@ class SlashCommandRegistry:
                      hidden=True)
 
     def _cmd_plan(self, args: str) -> str:
-        """Enter plan mode."""
+        """Enter plan mode. If task given, enter plan mode and run immediately."""
+        task = args.strip()
+        if task:
+            return f"PLAN_AND_RUN:{task}"
         return "AGENT_MODE:plan"
 
     def _cmd_make(self, args: str) -> str:

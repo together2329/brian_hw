@@ -1314,7 +1314,26 @@ def chat_loop():
                             print(Color.success("\n✅ Auto-compression disabled.\n"))
                         continue
 
-                    if result.startswith("AGENT_MODE:"):
+                    if result.startswith("PLAN_AND_RUN:"):
+                        # Enter plan mode AND immediately run with the given task
+                        task = result[len("PLAN_AND_RUN:"):]
+                        agent_mode = "plan_q"
+                        os.environ["PLAN_MODE"] = "true"
+                        if messages and messages[0].get("role") == "system":
+                            system_prompt_data = build_system_prompt(messages, agent_mode=agent_mode)
+                            if config.CACHE_OPTIMIZATION_MODE == "optimized" and isinstance(system_prompt_data, dict):
+                                blocks = []
+                                if system_prompt_data.get("static"):
+                                    blocks.append({"type": "text", "text": system_prompt_data["static"], "cache_control": {"type": "ephemeral"}})
+                                if system_prompt_data.get("dynamic"):
+                                    blocks.append({"type": "text", "text": system_prompt_data["dynamic"]})
+                                messages[0]["content"] = blocks if blocks else system_prompt_data.get("static", "")
+                            else:
+                                messages[0]["content"] = _build_system_prompt_str(messages=messages, agent_mode=agent_mode)
+                            save_conversation_history(messages)
+                        user_input = task  # fall through to LLM call
+
+                    elif result.startswith("AGENT_MODE:"):
                         agent_mode = result.split(":", 1)[1]
                         if agent_mode == "plan":
                             agent_mode = "plan_q"  # first turn: questions only, tools blocked
