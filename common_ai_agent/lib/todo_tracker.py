@@ -413,7 +413,7 @@ class TodoTracker:
         return "\n".join(lines)
 
     def format_simple(self) -> str:
-        """Simple list view — content + status icon only. Used by /todo (no -v)."""
+        """Simple list view — content + criteria. Used by /todo (no -v)."""
         if not self.todos:
             return ""
         icons = {
@@ -427,6 +427,10 @@ class TodoTracker:
         for i, todo in enumerate(self.todos):
             icon = icons.get(todo.status, "?")
             lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {todo.content}")
+            if todo.criteria:
+                for c in todo.criteria.splitlines():
+                    if c.strip():
+                        lines.append(f"       {Color.DIM}• {c.strip()}{Color.RESET}")
         lines.append("")
         return "\n".join(lines)
 

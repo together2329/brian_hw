@@ -243,10 +243,57 @@ MAN_PAGES: Dict[str, str] = {
  설정 (.config)
    TODO_FILE=current_todos.json   저장 파일 경로
 
+ TodoWrite 도구 입력 스펙
+   AI가 태스크를 생성할 때 사용하는 도구. 각 항목은 dict.
+
+   필수 필드:
+     content       str   태스크 설명 (목표, "동사+목적어" 형태)
+                         예) "로그인 API 401 오류 수정"
+
+   선택 필드:
+     activeForm    str   진행 중 표시 텍스트 (미입력 시 자동 생성)
+                         예) "로그인 API 401 오류 수정 중"
+     status        str   초기 상태 (기본: pending)
+                         pending / in_progress / completed / approved / rejected
+     priority      str   우선순위: high / medium / low (기본: medium)
+     detail        str   구체적 구현 방법 또는 접근 방식
+                         예) "HTTPError 핸들러에서 토큰 만료 케이스 분리"
+     criteria      str   완료 판단 기준 체크리스트 (줄바꿈 \\n 으로 구분)
+                         예) "유닛 테스트 통과\\n수동 로그인 확인\\n코드 리뷰 완료"
+
+   제약:
+     - in_progress 상태는 동시에 1개만 허용
+     - content 필수 (누락 시 에러)
+     - status 오타 시 에러 (aliases: todo→pending, done→completed 등)
+
+   예시 (full):
+     todo_write([
+       {{
+         "content":    "SSL 인증서 검증 오류 수정",
+         "activeForm": "SSL 인증서 검증 오류 수정 중",
+         "status":     "in_progress",
+         "priority":   "high",
+         "detail":     "_make_https_conn에서 SSL_VERIFY=false 옵션 분기 추가",
+         "criteria":   "사내 Linux에서 연결 성공\\nSSL_VERIFY=false 설정 시 우회 확인\\n기존 테스트 통과"
+       }},
+       {{
+         "content":  "PERF 로그 reused/new-conn 태그 확인",
+         "status":   "pending",
+         "priority": "low",
+         "criteria": "PERF=true 환경에서 reused 출력 확인"
+       }}
+     ])
+
+ /todo 표시 모드
+   /todo        아이콘 + 내용 + criteria 목록
+   /todo -v     전체 상세 (detail, criteria, 경과시간, 반려/승인 사유)
+   /make todo   대화 분석 → TodoWrite 자동 호출 (criteria 포함)
+
  관련 커맨드
    /plan    Plan Mode (태스크 자동 생성)
    /mode    실행 모드 전환 (agent/chat/step)
    /step    태스크 단위 일시정지 모드
+   /make    대화 기반 자동 생성: /make todo
 {_SEP}
 """,
 
