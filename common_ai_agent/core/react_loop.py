@@ -445,36 +445,47 @@ def run_react_agent_impl(
         _aborted = False
         _debug = getattr(cfg, "DEBUG_MODE", False)
 
+        # Terminal output buffer: batch writes every 30ms to reduce syscalls (#2 speedup)
+        _out_buf: list = []
+        _last_flush_t = [time.time()]
+        _FLUSH_INTERVAL = 0.03  # 30ms
+
+        def _flush_out():
+            if _out_buf:
+                sys.stdout.write("".join(_out_buf))
+                _out_buf.clear()
+                sys.stdout.flush()
+
+        def _buf_write(text: str) -> None:
+            _out_buf.append(text)
+            now = time.time()
+            if now - _last_flush_t[0] >= _FLUSH_INTERVAL:
+                _flush_out()
+                _last_flush_t[0] = now
+
         def _emit_content(line):
             if deps.emit_content_fn:
                 deps.emit_content_fn(line)
             else:
-                sys.stdout.write(f"  {line}\n")
-                sys.stdout.flush()
+                _buf_write(f"  {line}\n")
 
         def _emit_reasoning(line, blank=False):
             if deps.emit_reasoning_fn:
                 deps.emit_reasoning_fn(line, blank)
             else:
-                if blank:
-                    sys.stdout.write("\n")
-                else:
-                    sys.stdout.write(f"  {Color.DIM}{line}{Color.RESET}\n")
-                sys.stdout.flush()
+                _buf_write("\n" if blank else f"  {Color.DIM}{line}{Color.RESET}\n")
 
         def _emit_thought(line):
             if deps.emit_content_fn:
                 deps.emit_content_fn(f"Thought:{line}")
             else:
-                sys.stdout.write(f"  Thought:{line}\n")
-                sys.stdout.flush()
+                _buf_write(f"  Thought:{line}\n")
 
         def _emit_blank():
             if deps.emit_content_fn:
                 deps.emit_content_fn("")
             else:
-                sys.stdout.write("\n")
-                sys.stdout.flush()
+                _buf_write("\n")
 
         _parser = StreamParser(
             emit_fn=_emit_content,
@@ -533,6 +544,7 @@ def run_react_agent_impl(
             _thinking_stopped = True
 
         collected_content = _parser.flush()
+        _flush_out()  # drain any remaining buffered output
 
         llm_elapsed = time.time() - _stream_start
 
