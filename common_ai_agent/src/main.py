@@ -1585,6 +1585,11 @@ def chat_loop():
                         print(Color.success(f"\n✅ Model switched to: {config.MODEL_NAME}\n"))
                         continue
 
+                    if result.startswith("INJECT_PROMPT:"):
+                        # Replace user_input with the injected prompt and fall through to LLM
+                        user_input = result[len("INJECT_PROMPT:"):]
+                        # (do NOT continue — fall through to LLM call below)
+
                     else:
                         # Regular command output
                         if result:

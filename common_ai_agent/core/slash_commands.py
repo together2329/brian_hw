@@ -142,6 +142,9 @@ class SlashCommandRegistry:
         self.register('plan', self._cmd_plan,
                      'Plan Mode — 계획 후 실행: /plan <task>')
 
+        self.register('make', self._cmd_make,
+                     '대화 기반 자동 생성: /make todo')
+
         self.register('todo', self._cmd_todo,
                      'Todo 목록 보기/관리: /todo, /todo clear')
 
@@ -212,6 +215,23 @@ class SlashCommandRegistry:
     def _cmd_plan(self, args: str) -> str:
         """Enter plan mode."""
         return "AGENT_MODE:plan"
+
+    def _cmd_make(self, args: str) -> str:
+        """Generate artifacts from conversation context. /make todo"""
+        sub = args.strip().lower()
+        if sub == 'todo':
+            prompt = (
+                "지금까지의 대화 전체를 면밀히 분석하여 Todo List를 즉시 생성하라.\n\n"
+                "## 필수 규칙\n"
+                "1. 대화에서 언급된 모든 미완료 작업·요청·버그·개선사항을 빠짐없이 추출하라.\n"
+                "2. 이미 완료된 항목은 제외하고 **남은 작업만** 포함하라.\n"
+                "3. 각 항목은 '동사+목적어' 형태의 구체적 행동으로 작성하라 (예: '로그인 API 401 오류 수정').\n"
+                "4. 우선순위(높음→낮음) 순으로 정렬하라.\n"
+                "5. **반드시 TodoWrite 도구를 호출**하여 todo list를 저장하라 — 텍스트 출력만으로는 부족하다.\n\n"
+                "지금 바로 TodoWrite를 호출하라."
+            )
+            return f"INJECT_PROMPT:{prompt}"
+        return f"Usage: /make todo\nUnknown subcommand: {sub}\n"
 
     def _cmd_git(self, args: str) -> str:
         """Git operations. /git clear or /git diff."""
