@@ -44,13 +44,12 @@ def _run_agent(input_fn, emit_content_fn, emit_reasoning_fn, emit_todo_fn):
     # Disable prompt_toolkit (conflicts with Textual)
     config.ENABLE_MULTILINE_INPUT = False
 
-    # Set module-level emit callbacks (picked up by run_react_agent)
+    # Set module-level callbacks — picked up when chat_loop() creates _loop_deps
+    # and when run_react_agent() creates ReactLoopDeps
+    _agent._textual_input_fn = input_fn
     _agent._textual_emit_content_fn = emit_content_fn
     _agent._textual_emit_reasoning_fn = emit_reasoning_fn
     _agent._textual_emit_todo_fn = emit_todo_fn
-
-    # Override input function in ChatLoopDeps
-    _agent._loop_deps.input_fn = input_fn
 
     _agent.chat_loop()
 

@@ -188,7 +188,7 @@ class AgentTUI(App):
         yield Markdown("*Agent 대기 중...*", id="left")
         with Vertical(id="right"):
             yield Static("*Todo 없음*", id="todo", markup=True)
-            yield Log(id="log", highlight=True, markup=True)
+            yield Log(id="log", highlight=True)
         yield LoadingIndicator()
         yield Input(placeholder="> 명령을 입력하세요")
         yield Footer()

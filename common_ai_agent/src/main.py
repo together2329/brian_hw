@@ -102,10 +102,14 @@ if getattr(config, 'ENABLE_DEEP_THINK', False) and not getattr(config, 'ENABLE_S
     except ImportError:
         pass
 
-# Textual TUI emit callbacks (set by textual_main.py; None = default terminal output)
+# Textual TUI callbacks (set by textual_main.py before calling chat_loop())
 _textual_emit_content_fn = None
 _textual_emit_reasoning_fn = None
 _textual_emit_todo_fn = None
+_textual_input_fn = None  # replaces input() when set
+
+# ChatLoopDeps instance (set inside chat_loop(); exposed for textual_main.py)
+_loop_deps = None
 
 # Legacy Sub-Agent System (deprecated - replaced by background agent system in v2)
 orchestrator = None
@@ -1097,6 +1101,7 @@ def chat_loop():
         is_first_turn=is_first_turn,
         todo_tracker=todo_tracker_main,
     )
+    global _loop_deps
     _loop_deps = _ChatLoopDeps(
         cfg=config,
         run_react_agent_fn=run_react_agent,
@@ -1109,6 +1114,7 @@ def chat_loop():
         context_tracker=context_tracker,
         curator=curator,
         hook_registry=hook_registry,
+        input_fn=_textual_input_fn,  # None in terminal mode; set by textual_main.py
     )
 
     # ── Multiline input setup ──
