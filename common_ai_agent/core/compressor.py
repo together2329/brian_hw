@@ -150,17 +150,24 @@ def _compress_single(
 
     summary_content = ""
     try:
+        import sys
+        char_count = 0
+        print("[System] Compressing", end="", flush=True)
         for chunk in llm_call_fn(summary_request, suppress_spinner=True):
             if isinstance(chunk, tuple) and chunk[0] == "reasoning":
                 continue
             summary_content += chunk
+            char_count += len(chunk)
+            if char_count % 200 == 0:
+                print(".", end="", flush=True)
+        print(f" done ({len(summary_content)} chars)")
 
         return {
             "role": "system",
             "content": f"[Previous Conversation Summary ({len(messages)} messages)]: {summary_content}",
         }
     except Exception as e:
-        print(f"[System] Failed to generate summary: {e}")
+        print(f"\n[System] Failed to generate summary: {e}")
         return messages[0] if messages else {"role": "system", "content": "[Compression failed]"}
 
 

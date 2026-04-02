@@ -914,10 +914,25 @@ def run_react_agent_impl(
                     pass
 
             if todo_tracker and not todo_tracker.is_all_processed() and todo_tracker.todos:
-                if todo_tracker.check_stagnation(max_stagnation=getattr(cfg, "TODO_STAGNATION_LIMIT", 50)):
+                limit = getattr(cfg, "TODO_STAGNATION_LIMIT", 50)
+                auto_advance_threshold = getattr(cfg, "TODO_AUTO_ADVANCE_THRESHOLD", max(3, limit // 10))
+                count = getattr(todo_tracker, "stagnation_count", 0)
+                current = todo_tracker.get_current_todo()
+                # Auto-advance BEFORE hitting stagnation limit
+                if count >= auto_advance_threshold and current and current.status == "in_progress":
+                    idx = todo_tracker.current_index + 1
+                    print(
+                        f"\n[System] Auto-advancing task {idx} (no todo_update after {count} turns): \"{current.content}\""
+                    )
+                    todo_tracker.mark_completed(todo_tracker.current_index)
+                    next_idx = todo_tracker._get_next_pending()
+                    if next_idx is not None:
+                        todo_tracker.current_index = next_idx
+                        todo_tracker.todos[next_idx].status = "in_progress"
+                    todo_tracker.stagnation_count = 0
+                    todo_tracker.save()
+                elif todo_tracker.check_stagnation(max_stagnation=limit):
                     hint = todo_tracker.get_stagnation_hint()
-                    limit = getattr(cfg, "TODO_STAGNATION_LIMIT", 50)
-                    count = getattr(todo_tracker, "stagnation_count", limit)
                     print(
                         f"\n[System] Todo stagnation: tried {count}/{limit} times without progress.\n"
                         f"  {hint}\n"

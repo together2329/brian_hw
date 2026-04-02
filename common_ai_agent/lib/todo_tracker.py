@@ -528,9 +528,15 @@ class TodoTracker:
                 # Review instruction is already in the tool return value — no separate injection
                 return None
             else:
+                in_prog = current.status == "in_progress"
+                first_action = (
+                    f"⚠️ MANDATORY: When task is done, you MUST call todo_update(index={idx}, status='completed') as your FIRST Action — before writing any file or starting the next task."
+                    if in_prog else
+                    f"⚠️ MANDATORY: Start by calling todo_update(index={idx}, status='in_progress'), then do the work, then call todo_update(index={idx}, status='completed')."
+                )
                 prompt = (
                     f"[Task {idx}/{total}] {current.content}\n"
-                    f"→ When done, call: todo_update(index={idx}, status='completed')"
+                    f"{first_action}"
                 )
             # Append TODO_RULE if present
             rule = _load_todo_rule()

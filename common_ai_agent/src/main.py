@@ -1609,8 +1609,8 @@ def chat_loop():
                         user_input = result[len("INJECT_PROMPT:"):]
                         # (do NOT continue — fall through to LLM call below)
 
-                    else:
-                        # Regular command output
+                    elif not result.startswith("PLAN_AND_RUN:"):
+                        # Regular command output (PLAN_AND_RUN already set user_input above — fall through)
                         if result:
                             print(result)
                         continue

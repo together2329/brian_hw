@@ -577,6 +577,7 @@ REACT_ACTION_TIMEOUT = int(os.getenv("REACT_ACTION_TIMEOUT", "30"))
 # Displays real-time progress with ✅ ▶️ ⏸️ icons
 ENABLE_TODO_TRACKING = os.getenv("ENABLE_TODO_TRACKING", "true").lower() in ("true", "1", "yes")
 TODO_STAGNATION_LIMIT = int(os.getenv("TODO_STAGNATION_LIMIT", "50"))
+TODO_AUTO_ADVANCE_THRESHOLD = int(os.getenv("TODO_AUTO_ADVANCE_THRESHOLD", "5"))
 
 # Inject .UPD_RULE.md before default RULES in system prompt so it takes precedence.
 # true  = PROJECT RULES appear before default RULES (recommended)
