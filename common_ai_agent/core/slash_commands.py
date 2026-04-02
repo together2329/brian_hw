@@ -227,7 +227,11 @@ class SlashCommandRegistry:
                 "2. 이미 완료된 항목은 제외하고 **남은 작업만** 포함하라.\n"
                 "3. 각 항목은 '동사+목적어' 형태의 구체적 행동으로 작성하라 (예: '로그인 API 401 오류 수정').\n"
                 "4. 우선순위(높음→낮음) 순으로 정렬하라.\n"
-                "5. **반드시 TodoWrite 도구를 호출**하여 todo list를 저장하라 — 텍스트 출력만으로는 부족하다.\n\n"
+                "5. 각 항목에 반드시 다음을 포함하라:\n"
+                "   - **detail**: 구체적 구현 방법 또는 접근 방식\n"
+                "   - **criteria**: 완료 판단 기준 체크리스트 (줄바꿈으로 구분, 2~4개)\n"
+                "     예) '테스트 통과\n동작 확인\n코드 리뷰 완료'\n"
+                "6. **반드시 TodoWrite 도구를 호출**하여 todo list를 저장하라 — 텍스트 출력만으로는 부족하다.\n\n"
                 "지금 바로 TodoWrite를 호출하라."
             )
             return f"INJECT_PROMPT:{prompt}"
@@ -313,12 +317,14 @@ class SlashCommandRegistry:
                 except Exception:
                     pass
                 return "No active todo list.\n"
-            # Use TodoTracker's own premium formatting if possible
+            # -v flag: full detail (criteria, detail, times)
+            verbose = '-v' in args.split()
+
             try:
                 from lib.todo_tracker import TodoTracker
                 tracker = TodoTracker.load(todo_file)
                 if tracker:
-                    return tracker.format_progress()
+                    return tracker.format_progress() if verbose else tracker.format_simple()
             except ImportError:
                 pass
 

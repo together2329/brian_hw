@@ -412,6 +412,24 @@ class TodoTracker:
 
         return "\n".join(lines)
 
+    def format_simple(self) -> str:
+        """Simple list view — content + status icon only. Used by /todo (no -v)."""
+        if not self.todos:
+            return ""
+        icons = {
+            "pending":     Color.dim("⏸"),
+            "in_progress": Color.warning("▶"),
+            "completed":   Color.warning("👀"),
+            "approved":    Color.success("✅"),
+            "rejected":    Color.error("❌"),
+        }
+        lines = ["", f"  {Color.BOLD}{Color.CYAN}── TODO ──{Color.RESET}"]
+        for i, todo in enumerate(self.todos):
+            icon = icons.get(todo.status, "?")
+            lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {todo.content}")
+        lines.append("")
+        return "\n".join(lines)
+
     def print_debug_status(self):
         """[Debug] Print current todo list status to terminal."""
         if not self.todos:
