@@ -6,7 +6,8 @@ def load_env_file():
     # Load config files in order of priority (first loaded takes precedence)
     # .config has highest priority, then .env files
     search_paths = [
-        Path(__file__).parent.parent / '.config',  # common_ai_agent/.config (highest priority)
+        Path.home() / '.config' / 'common_ai_agent' / 'config',  # ~/.config/common_ai_agent/config (highest priority)
+        Path(__file__).parent.parent / '.config',  # common_ai_agent/.config
         Path(__file__).parent.parent / '.env',  # common_ai_agent/.env
         Path(__file__).parent / '.env',  # src/.env
     ]
