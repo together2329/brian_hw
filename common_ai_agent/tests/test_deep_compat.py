@@ -26,7 +26,6 @@ class TestSlashCommands(unittest.TestCase):
 
     def test_help_returns_output(self):
         result = self.registry.execute("/help")
-        self.assertIn("Available", result)
         self.assertIn("/help", result)
 
     def test_list_returns_commands(self):

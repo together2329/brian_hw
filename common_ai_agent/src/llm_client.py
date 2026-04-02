@@ -29,6 +29,7 @@ _project_root = os.path.dirname(_script_dir)
 sys.path.insert(0, _script_dir)
 sys.path.insert(0, os.path.join(_project_root, 'lib'))
 sys.path.insert(0, os.path.join(_project_root, 'core'))
+sys.path.insert(0, os.path.join(_project_root, 'vendor'))
 
 import config
 from display import Color
