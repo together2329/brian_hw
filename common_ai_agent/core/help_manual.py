@@ -5,9 +5,11 @@ Provides detailed command reference with options and usage examples.
 Access via: /man <topic>
 """
 
+from typing import Dict
+
 _SEP = "=" * 60
 
-MAN_PAGES: dict[str, str] = {
+MAN_PAGES: Dict[str, str] = {
 
     "guide": f"""
 {_SEP}
