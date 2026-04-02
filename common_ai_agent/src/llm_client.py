@@ -171,19 +171,17 @@ def warmup_connection() -> None:
         conn = http.client.HTTPSConnection(
             host, context=_get_or_create_ssl_ctx(), timeout=10
         )
-        _http_conn_pool[host] = conn
+        # GET LLM_BASE_URL via conn — completes SSL handshake + keeps conn alive in pool.
+        # http.client never throws for 4xx/5xx, only for network/SSL errors.
+        base_path = parsed.path.rstrip('/') or '/'
+        conn.request("GET", base_path, headers={
+            "Authorization": f"Bearer {config.API_KEY}",
+            "Connection": "keep-alive",
+        })
+        resp = conn.getresponse()
+        resp.read()  # drain so connection is reusable
 
-        # GET LLM_BASE_URL — any HTTP response (incl. 4xx) means server is reachable.
-        req = urllib.request.Request(
-            config.BASE_URL,
-            headers={"Authorization": f"Bearer {config.API_KEY}",
-                     "Connection": "keep-alive"},
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                resp.read()
-        except urllib.error.HTTPError:
-            pass  # server reachable, non-2xx is fine for warmup
+        _http_conn_pool[host] = conn  # store only after successful handshake
 
         elapsed = time.perf_counter() - t0
         sys.stderr.write(f"\033[2m[LLM] connected ({elapsed:.2f}s)\033[0m\n")
