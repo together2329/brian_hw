@@ -144,17 +144,17 @@ def warmup_connection() -> None:
         )
         _http_conn_pool[host] = conn
 
-        # Send a lightweight GET /models to complete a full HTTP round-trip.
-        # This keeps the connection alive (server won't close an idle-after-connect
-        # TCP connection within seconds if actual HTTP traffic occurred).
-        base_path = parsed.path.rstrip('/')  # e.g. "/api/v1"
-        warmup_path = base_path + "/models"
-        conn.request("GET", warmup_path, headers={
-            "Authorization": f"Bearer {config.API_KEY}",
-            "Connection": "keep-alive",
-        })
-        resp = conn.getresponse()
-        resp.read()  # drain so connection is available for reuse
+        # GET LLM_BASE_URL — any HTTP response (incl. 4xx) means server is reachable.
+        req = urllib.request.Request(
+            config.BASE_URL,
+            headers={"Authorization": f"Bearer {config.API_KEY}",
+                     "Connection": "keep-alive"},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                resp.read()
+        except urllib.error.HTTPError:
+            pass  # server reachable, non-2xx is fine for warmup
 
         elapsed = time.perf_counter() - t0
         sys.stderr.write(f"\033[2m[LLM] connected ({elapsed:.2f}s)\033[0m\n")
