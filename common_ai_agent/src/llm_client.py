@@ -140,39 +140,15 @@ def _tofu_fetch_and_save(host: str, port: int = 443) -> bool:
 def _get_or_create_ssl_ctx() -> ssl.SSLContext:
     global _ssl_ctx_cache
     if _ssl_ctx_cache is None:
-        # SSL_VERIFY=false → disable verification (corporate proxy / dev env)
         if not config.SSL_VERIFY:
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
             _ssl_ctx_cache = ctx
-            return _ssl_ctx_cache
-
-        # TOFU: use previously saved corporate CA cert
-        if _TOFU_CERT_PATH.exists():
+        elif _TOFU_CERT_PATH.exists():
             _ssl_ctx_cache = ssl.create_default_context(cafile=str(_TOFU_CERT_PATH))
-            return _ssl_ctx_cache
-
-        # Corporate CA bundle: REQUESTS_CA_BUNDLE or SSL_CERT_FILE env vars
-        cafile = (
-            os.environ.get("REQUESTS_CA_BUNDLE")
-            or os.environ.get("SSL_CERT_FILE")
-        )
-        if not cafile:
-            try:
-                import certifi
-                cafile = certifi.where()
-            except ImportError:
-                for _p in (
-                    "/etc/ssl/certs/ca-certificates.crt",   # Debian/Ubuntu
-                    "/etc/pki/tls/certs/ca-bundle.crt",     # RHEL/CentOS
-                    "/etc/ssl/ca-bundle.pem",               # openSUSE
-                    "/usr/local/etc/openssl/cert.pem",      # Homebrew macOS
-                ):
-                    if os.path.isfile(_p):
-                        cafile = _p
-                        break
-        _ssl_ctx_cache = ssl.create_default_context(cafile=cafile)
+        else:
+            _ssl_ctx_cache = ssl.create_default_context()
     return _ssl_ctx_cache
 
 
@@ -215,24 +191,31 @@ class _PersistentHTTPError(urllib.error.HTTPError):
 def warmup_connection() -> None:
     """
     Pre-establish a live HTTP keep-alive connection to the LLM API host.
-    Sends a real GET /models request so the server keeps the connection open.
-    (TCP-only connect() leaves the connection idle; servers close it within seconds.)
+    TOFU: if corp_ca.pem is absent, fetch and save the peer cert first,
+    then connect using the saved cert for all subsequent connections.
     Safe to call from a daemon thread — failures are silently ignored.
     """
+    global _ssl_ctx_cache
     t0 = time.perf_counter()
     try:
         parsed = urllib.parse.urlparse(config.BASE_URL)
         host = parsed.netloc
+        hostname = parsed.hostname or host
         if not host:
             return
         if _http_conn_pool.get(host) is not None:
             return  # already warm
 
+        # TOFU: fetch and save cert before first real connection
+        if config.SSL_VERIFY and not _TOFU_CERT_PATH.exists():
+            if _tofu_fetch_and_save(hostname):
+                _ssl_ctx_cache = None  # reload ctx with saved cert
+                sys.stderr.write("\033[2m[LLM] CA cert saved (TOFU)\033[0m\n")
+                sys.stderr.flush()
+
         conn = http.client.HTTPSConnection(
             host, context=_get_or_create_ssl_ctx(), timeout=10
         )
-        # GET LLM_BASE_URL via conn — completes SSL handshake + keeps conn alive in pool.
-        # http.client never throws for 4xx/5xx, only for network/SSL errors.
         base_path = parsed.path.rstrip('/') or '/'
         conn.request("GET", base_path, headers={
             "Authorization": f"Bearer {config.API_KEY}",
@@ -240,35 +223,15 @@ def warmup_connection() -> None:
         })
         resp = conn.getresponse()
         resp.read()  # drain so connection is reusable
-
-        _http_conn_pool[host] = conn  # store only after successful handshake
+        _http_conn_pool[host] = conn
 
         elapsed = time.perf_counter() - t0
         sys.stderr.write(f"\033[2m[LLM] connected ({elapsed:.2f}s)\033[0m\n")
         sys.stderr.flush()
-    except ssl.SSLError as e:
-        # SSL failure — try TOFU: grab cert from server and retry once
-        try:
-            parsed2 = urllib.parse.urlparse(config.BASE_URL)
-            host2 = parsed2.hostname or parsed2.netloc
-            _http_conn_pool.pop(parsed2.netloc, None)
-            if not _TOFU_CERT_PATH.exists() and _tofu_fetch_and_save(host2):
-                global _ssl_ctx_cache
-                _ssl_ctx_cache = None  # force reload with saved cert
-                sys.stderr.write("\033[2m[LLM] corporate CA saved (TOFU) — retrying...\033[0m\n")
-                sys.stderr.flush()
-                warmup_connection()  # retry once with TOFU cert
-                return
-        except Exception:
-            pass
-        elapsed = time.perf_counter() - t0
-        sys.stderr.write(f"\033[2m[LLM] warmup failed ({elapsed:.2f}s): {e}\033[0m\n")
-        sys.stderr.flush()
     except Exception as e:
         elapsed = time.perf_counter() - t0
         try:
-            parsed2 = urllib.parse.urlparse(config.BASE_URL)
-            _http_conn_pool.pop(parsed2.netloc, None)
+            _http_conn_pool.pop(urllib.parse.urlparse(config.BASE_URL).netloc, None)
         except Exception:
             pass
         sys.stderr.write(f"\033[2m[LLM] warmup failed ({elapsed:.2f}s): {e}\033[0m\n")
