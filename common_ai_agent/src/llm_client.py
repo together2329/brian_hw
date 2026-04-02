@@ -112,30 +112,6 @@ _TOFU_DIR = Path.home() / ".config" / "common_ai_agent"
 _TOFU_CERT_PATH = _TOFU_DIR / "corp_ca.pem"
 
 
-def _tofu_fetch_and_save(host: str, port: int = 443) -> bool:
-    """
-    TOFU: Connect without SSL verification, grab the peer certificate,
-    save it as a trusted CA for future connections.
-    Like SSH known_hosts — trust on first use, verify on subsequent uses.
-    Returns True if cert was saved successfully.
-    """
-    try:
-        import socket as _sock, base64
-        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        with _sock.create_connection((host, port), timeout=10) as raw:
-            with ctx.wrap_socket(raw, server_hostname=host) as tls:
-                der = tls.getpeercert(binary_form=True)
-        pem = "-----BEGIN CERTIFICATE-----\n"
-        pem += base64.encodebytes(der).decode('ascii')
-        pem += "-----END CERTIFICATE-----\n"
-        _TOFU_DIR.mkdir(parents=True, exist_ok=True)
-        _TOFU_CERT_PATH.write_text(pem, encoding='utf-8')
-        return True
-    except Exception:
-        return False
-
 
 def _get_or_create_ssl_ctx() -> ssl.SSLContext:
     global _ssl_ctx_cache
@@ -204,13 +180,6 @@ def warmup_connection() -> None:
         if _http_conn_pool.get(host) is not None:
             return  # already warm
 
-        # TOFU: fetch and save cert before first real connection
-        if config.SSL_VERIFY and not _TOFU_CERT_PATH.exists():
-            if _tofu_fetch_and_save(hostname):
-                _ssl_ctx_cache = None  # reload ctx with saved cert
-                sys.stderr.write("\033[2m[LLM] CA cert saved (TOFU)\033[0m\n")
-                sys.stderr.flush()
-
         conn = http.client.HTTPSConnection(
             host, context=_get_or_create_ssl_ctx(), timeout=10
         )
@@ -222,6 +191,22 @@ def warmup_connection() -> None:
         resp = conn.getresponse()
         resp.read()  # drain so connection is reusable
         _http_conn_pool[host] = conn
+
+        # TOFU: save peer cert from this connection (no extra round-trip)
+        if config.SSL_VERIFY and not _TOFU_CERT_PATH.exists():
+            try:
+                import base64
+                der = conn.sock.getpeercert(binary_form=True)
+                if der:
+                    pem = "-----BEGIN CERTIFICATE-----\n"
+                    pem += base64.encodebytes(der).decode('ascii')
+                    pem += "-----END CERTIFICATE-----\n"
+                    _TOFU_DIR.mkdir(parents=True, exist_ok=True)
+                    _TOFU_CERT_PATH.write_text(pem, encoding='utf-8')
+                    sys.stderr.write("\033[2m[LLM] CA cert saved (TOFU)\033[0m\n")
+                    sys.stderr.flush()
+            except Exception:
+                pass
 
         elapsed = time.perf_counter() - t0
         sys.stderr.write(f"\033[2m[LLM] connected ({elapsed:.2f}s)\033[0m\n")
