@@ -431,6 +431,7 @@ class TodoTracker:
                 for c in todo.criteria.splitlines():
                     if c.strip():
                         lines.append(f"       {Color.DIM}• {c.strip()}{Color.RESET}")
+                lines.append("")
         lines.append("")
         return "\n".join(lines)
 
