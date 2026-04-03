@@ -27,59 +27,135 @@ _TOKENS = re.compile(r"(✽|in\s+[\d.]+k?)\s+.*tokens")
 
 # ── Markdown post-processor ──────────────────────────────────────────────────
 
+def _is_table_row(line: str) -> bool:
+    s = line.strip()
+    return s.startswith("|") and s.endswith("|") and len(s) > 2
+
+def _is_sep_row(line: str) -> bool:
+    s = line.strip()
+    return bool(s.startswith("|") and re.match(r"^\|[\s|:\-]+\|$", s))
+
+def _col_count(line: str) -> int:
+    return max(1, line.strip().strip("|").count("|") + 1)
+
+def _make_sep(ncols: int) -> str:
+    return "|" + "|".join(" --- " for _ in range(ncols)) + "|"
+
+def _fix_table_block(rows: list) -> list:
+    """Normalise a contiguous block of | lines into a valid GFM table.
+    - Ensures separator row exists at position 1
+    - Pads all rows to the same column count
+    - Normalises any existing sep row to ` --- `
+    """
+    if not rows:
+        return rows
+
+    # Detect separator row among first three rows
+    sep_idx = next((i for i in range(min(3, len(rows))) if _is_sep_row(rows[i])), None)
+
+    if sep_idx is None:
+        # No separator found — insert after first row
+        ncols = _col_count(rows[0])
+        rows = [rows[0], _make_sep(ncols)] + rows[1:]
+        sep_idx = 1
+    else:
+        # Normalise existing separator
+        ncols = _col_count(rows[0])
+        rows[sep_idx] = _make_sep(ncols)
+
+    # Pad every row to ncols columns
+    fixed = []
+    for i, row in enumerate(rows):
+        s = row.strip()
+        cells = s.strip("|").split("|")
+        # Pad or trim to ncols
+        while len(cells) < ncols:
+            cells.append("")
+        cells = cells[:ncols]
+        if i == sep_idx:
+            fixed.append("|" + "|".join(" --- " for _ in cells) + "|")
+        else:
+            fixed.append("|" + "|".join(f" {c.strip()} " for c in cells) + "|")
+    return fixed
+
+
 def _fix_md(text: str) -> str:
     """Fix common LLM markdown quirks before passing to Rich Markdown renderer.
 
-    1. Lone backtick → triple fence (LLM sometimes writes ` instead of ```)
-    2. Compact separators: |-|-| → |---|---| (Rich needs at least 3 dashes)
-    3. Inline tables: '| A | B | | C | D |' → split into proper rows
-    4. Blank lines around code fences so Rich parses them as blocks
+    1. Lone backtick → triple fence
+    2. Table blocks: auto-insert separator, normalise sep cells, add blank lines around
+    3. Split inline tables ('| A | B | | C | D |') into separate rows
+    4. Blank lines around code fences
+    5. Collapse 2+ consecutive blank lines → 1
     """
-    lines: list[str] = []
+    # ── Pass 1: per-line pre-fixes (lone backtick, inline table split) ────────
+    pre: list[str] = []
     for line in text.splitlines():
-        # Fix lone backtick used as fence opener/closer
         if line.strip() == "`":
-            lines.append("```")
+            pre.append("```")
             continue
-
-        # Expand compact table separators: |-| or |:-:| → |---|
-        if re.match(r"^\|[-|: ]+\|$", line) and "---" not in line:
-            parts = [c for c in line.split("|") if c]
-            if all(re.match(r"^[:\-]+$", p.strip()) for p in parts):
-                lines.append("|" + "|".join("---" for _ in parts) + "|")
-                continue
-
-        # Split inline table rows: '| A | B | | C | D |' on '| |' boundaries
-        if re.match(r"^\|.+\|\s*\|", line):
-            rows = re.split(r"\|\s*\|", line)
-            for i, row in enumerate(rows):
-                row = row.strip()
-                if not row:
+        # Split inline table rows joined with '| |'
+        if re.match(r"^\|.+\|\s*\|", line) and not _is_sep_row(line):
+            parts = re.split(r"\|\s*\|", line)
+            merged: list[str] = []
+            for k, part in enumerate(parts):
+                part = part.strip()
+                if not part:
                     continue
-                if not row.startswith("|"):
-                    row = "| " + row
-                if not row.endswith("|"):
-                    row = row + " |"
-                lines.append(row)
-                if i == 0:
-                    cols = row.count("|") - 1
-                    lines.append("|" + "|".join(["---"] * cols) + "|")
+                if not part.startswith("|"):
+                    part = "| " + part
+                if not part.endswith("|"):
+                    part = part + " |"
+                merged.append(part)
+            if len(merged) > 1:
+                pre.extend(merged)
+                continue
+        pre.append(line)
+
+    # ── Pass 2: table block fixing + blank-line insertion ─────────────────────
+    out: list[str] = []
+    i = 0
+    while i < len(pre):
+        line = pre[i]
+
+        if _is_table_row(line):
+            # Collect the whole table block
+            block: list[str] = []
+            j = i
+            while j < len(pre) and _is_table_row(pre[j]):
+                block.append(pre[j])
+                j += 1
+
+            # Blank line before table
+            if out and out[-1].strip():
+                out.append("")
+
+            out.extend(_fix_table_block(block))
+
+            # Blank line after table
+            if j < len(pre) and pre[j].strip():
+                out.append("")
+
+            i = j
             continue
 
-        lines.append(line)
-
-    # Ensure blank lines around code fences; collapse 2+ consecutive blanks → 1
-    out: list[str] = []
-    for i, line in enumerate(lines):
+        # Code fence blank-line guard
         if line.startswith("```"):
             if out and out[-1].strip():
                 out.append("")
+
         # Collapse consecutive blank lines
         if not line.strip() and out and not out[-1].strip():
+            i += 1
             continue
+
         out.append(line)
-        if line.startswith("```") and i + 1 < len(lines) and lines[i + 1].strip():
+
+        if line.startswith("```") and i + 1 < len(pre) and pre[i + 1].strip():
             out.append("")
+
+        i += 1
+
     return "\n".join(out)
 
 
