@@ -112,6 +112,11 @@ REASONING_DISPLAY = os.getenv("REASONING_DISPLAY", "true").lower() in ("true", "
 # Non-streaming cleanly separates reasoning/content but shows nothing until complete.
 ENABLE_STREAMING = os.getenv("ENABLE_STREAMING", "true").lower() in ("true", "1", "yes")
 
+# Enable rich Markdown rendering for LLM textual output (Textual UI).
+# Disable to stream raw text line-by-line for maximum performance.
+# Default: true
+ENABLE_MARKDOWN_RENDER = os.getenv("ENABLE_MARKDOWN_RENDER", "true").lower() in ("true", "1", "yes")
+
 # Streaming token delay (milliseconds). 0 = disabled. Use for debugging display issues.
 STREAM_TOKEN_DELAY_MS = float(os.getenv("STREAM_TOKEN_DELAY_MS", "0"))
 
@@ -1039,6 +1044,12 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
         "   - Never analyze a file you haven't read. Never invent tool results.\n"
         "   - If tool fails, adapt search — don't pretend results exist.\n"
     )
+    if not ENABLE_MARKDOWN_RENDER:
+        rules_parts.append(
+            "\n7. TEXT FORMATTING:\n"
+            "   - Markdown rendering is DISABLED. Do NOT use markdown syntax "
+            "(like ``` , **, _, ##) in your thoughts or responses. Provide plain text only.\n"
+        )
     parts.append("".join(rules_parts))
 
     # Append Plan Mode instructions if active

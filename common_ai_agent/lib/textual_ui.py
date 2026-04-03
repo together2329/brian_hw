@@ -631,6 +631,15 @@ class AgentTUI(App):
         # used to show "generating…" immediately in non-streaming mode.
         if msg.text == "\x00":
             return
+        import config as _cfg
+        if not getattr(_cfg, "ENABLE_MARKDOWN_RENDER", True):
+            log = self.query_one("#main", RichLog)
+            log.write(msg.text)
+            try:
+                self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
+            except Exception:
+                pass
+            return
         self._response_buf += msg.text + "\n"
         # Debounced live Markdown preview — at most one render per 300 ms
         if not getattr(self, "_live_timer_pending", False):
