@@ -385,12 +385,16 @@ class AgentTUI(App):
         self._refresh_model_sidebar()
 
     def action_quit(self) -> None:
-        # Unblock the worker thread if it's waiting for input, then exit cleanly
+        self._do_exit()
+
+    def _do_exit(self) -> None:
+        """Unblock worker thread then force-kill the process."""
         try:
             self._input_bridge.submit("exit")
         except Exception:
             pass
         self.exit()
+        # os._exit called from textual_main.py after app.run() returns
 
     # ── Status bar ────────────────────────────────────────────────────────────
 
@@ -451,7 +455,7 @@ class AgentTUI(App):
         if not text:
             return
         if text.lower() in ("quit", "exit", "/quit", "/exit"):
-            self.exit()
+            self._do_exit()
             return
         self._flush_response()
         log = self.query_one("#main", RichLog)

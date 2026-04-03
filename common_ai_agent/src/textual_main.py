@@ -110,6 +110,9 @@ if __name__ == "__main__":
     if _TEXTUAL_OK:
         from lib.textual_ui import AgentTUI, ContextUpdate
         AgentTUI(_run_agent).run()
+        # Force-kill all remaining threads (LLM HTTP, tool subprocesses, ThreadPoolExecutor)
+        import os as _os
+        _os._exit(0)
     else:
         # Fallback: plain terminal mode
         print("[fallback] Running in terminal mode (src/main.py).")
