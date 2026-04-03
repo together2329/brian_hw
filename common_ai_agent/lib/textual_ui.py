@@ -100,15 +100,15 @@ class _LeftMarkdown(_RichMarkdown):
 # ── Color palette (GitHub-dark inspired) ────────────────────────────────────
 _BG         = "#0d1117"
 _BG_INPUT   = "#161b22"
-_BORDER     = "#30363d"
-_BORDER_DIM = "#21262d"
+_BORDER     = "#484f58"   # brighter border
+_BORDER_DIM = "#30363d"   # brighter dim border
 _ACCENT     = "#58a6ff"   # blue
 _GREEN      = "#3fb950"   # success
 _YELLOW     = "#d29922"   # warning
 _RED        = "#f85149"   # error
-_TEXT       = "#c9d1d9"   # normal text
-_TEXT_DIM   = "#6e7681"   # dim text
-_TEXT_FAINT = "#3d444d"   # very dim
+_TEXT       = "#e6edf3"   # normal text (brighter)
+_TEXT_DIM   = "#8b949e"   # dim text (brighter)
+_TEXT_FAINT = "#6e7681"   # very dim (was #3d444d)
 
 
 # ── Messages ─────────────────────────────────────────────────────────────────
@@ -229,47 +229,49 @@ class AgentTUI(App):
     }}
     #task-title {{
         height: auto;
-        color: {_TEXT_DIM};
+        color: {_TEXT};
         padding: 0 0 1 0;
         border-bottom: solid {_BORDER_DIM};
     }}
     #model-header {{
         height: auto;
-        color: {_TEXT_DIM};
+        color: {_TEXT};
         padding: 1 0 0 0;
         text-style: bold;
     }}
     #model {{
         height: auto;
+        color: {_TEXT_DIM};
         padding: 0 0 1 0;
         border-bottom: solid {_BORDER_DIM};
     }}
     #context-header {{
         height: auto;
-        color: {_TEXT_DIM};
+        color: {_TEXT};
         padding: 1 0 0 0;
         text-style: bold;
     }}
     #context {{
         height: auto;
-        color: {_TEXT_FAINT};
+        color: {_TEXT_DIM};
         padding: 0 0 1 0;
         border-bottom: solid {_BORDER_DIM};
     }}
     #skill-header {{
         height: auto;
-        color: {_TEXT_DIM};
+        color: {_TEXT};
         padding: 1 0 0 0;
         text-style: bold;
     }}
     #skill {{
         height: auto;
+        color: {_TEXT_DIM};
         padding: 0 0 1 0;
         border-bottom: solid {_BORDER_DIM};
     }}
     #todo-header {{
         height: auto;
-        color: {_TEXT_DIM};
+        color: {_TEXT};
         padding: 1 0 0 0;
         text-style: bold;
     }}
@@ -280,7 +282,7 @@ class AgentTUI(App):
     }}
     #cwd-label {{
         height: auto;
-        color: {_TEXT_FAINT};
+        color: {_TEXT_DIM};
         padding: 1 0 0 0;
         border-top: solid {_BORDER_DIM};
         dock: bottom;
@@ -291,7 +293,7 @@ class AgentTUI(App):
         height: 1;
         dock: bottom;
         background: {_BG_INPUT};
-        color: {_TEXT_FAINT};
+        color: {_TEXT_DIM};
         padding: 0 2;
     }}
 
@@ -670,24 +672,24 @@ class AgentTUI(App):
             if len(label) > _MAX:
                 label = label[:_MAX - 1] + "…"
             if kind == "done":
-                out.append("  ✓ ", style=f"dim {_TEXT_FAINT}")
-                out.append(label + "\n", style=f"dim {_TEXT_FAINT}")
+                out.append("  ✓ ", style=_TEXT_FAINT)
+                out.append(label + "\n", style=_TEXT_FAINT)
             elif kind == "active":
                 if first_active:
                     out.append("  ◆ ", style=f"bold {_GREEN}")
                     out.append(label + "\n", style=f"bold {_TEXT}")
                     first_active = False
                 else:
-                    out.append("  ◆ ", style=_TEXT_DIM)
-                    out.append(label + "\n", style=_TEXT_DIM)
+                    out.append("  ◆ ", style=_TEXT)
+                    out.append(label + "\n", style=_TEXT)
             elif kind == "pending":
-                out.append("  ○ ", style=_TEXT_FAINT)
-                out.append(label + "\n", style=_TEXT_FAINT)
+                out.append("  ○ ", style=_TEXT_DIM)
+                out.append(label + "\n", style=_TEXT_DIM)
             elif kind == "rejected":
-                out.append("  ✗ ", style=f"dim {_RED}")
-                out.append(label + "\n", style=f"dim {_RED}")
+                out.append("  ✗ ", style=_RED)
+                out.append(label + "\n", style=_RED)
             else:
-                out.append("    · ", style=f"dim {_TEXT_FAINT}")
-                out.append(label + "\n", style=f"dim {_TEXT_FAINT}")
+                out.append("    · ", style=_TEXT_FAINT)
+                out.append(label + "\n", style=_TEXT_FAINT)
 
         self.query_one("#todo", Static).update(out)
