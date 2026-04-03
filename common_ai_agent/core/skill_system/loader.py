@@ -139,6 +139,8 @@ class SkillLoader:
                 # Parse frontmatter
                 if yaml and frontmatter_text:
                     frontmatter = yaml.safe_load(frontmatter_text)
+                    if not isinstance(frontmatter, dict):
+                        frontmatter = {}
                 elif frontmatter_text:
                     # Fallback: simple key-value parsing
                     frontmatter = self._parse_simple_yaml(frontmatter_text)
