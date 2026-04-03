@@ -406,7 +406,9 @@ def run_react_agent_impl(
             print(f"  {Color.DIM}[PERF] before_llm_hook: {time.time()-_t:.3f}s{Color.RESET}")
 
         # Update terminal title with current non-approved task (always visible above input)
-        if todo_tracker and todo_tracker.todos:
+        # Skip in TUI mode — the escape sequence would be captured by TextualCapture and
+        # appear as garbled characters in the main log.
+        if not deps.emit_content_fn and todo_tracker and todo_tracker.todos:
             _title_cur = next(
                 (t for t in todo_tracker.todos if t.status != "approved"),
                 None
@@ -503,6 +505,10 @@ def run_react_agent_impl(
             _thinking_spinner = Spinner("Thinking")
             if hasattr(_thinking_spinner, "start"):
                 _thinking_spinner.start()
+        elif deps.emit_content_fn:
+            # Signal TUI "generating…" immediately — important for non-streaming mode
+            # where the first real StreamChunk only arrives after the full response.
+            deps.emit_content_fn("\x00")  # sentinel: activates statusbar without adding content
         _thinking_stopped = False
 
         try:

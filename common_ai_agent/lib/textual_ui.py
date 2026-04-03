@@ -13,6 +13,7 @@ from typing import Callable
 from rich.markdown import Markdown as _RichMarkdown
 from rich.markdown import Heading as _RichHeading
 from rich.text import Text as RichText
+from rich.table import Table as RichTable
 from textual.app import App, ComposeResult
 from textual.containers import Vertical
 from textual.message import Message
@@ -109,6 +110,7 @@ _RED        = "#f85149"   # error
 _TEXT       = "#e6edf3"   # normal text (brighter)
 _TEXT_DIM   = "#8b949e"   # dim text (brighter)
 _TEXT_FAINT = "#6e7681"   # very dim (was #3d444d)
+_ORANGE     = "#e5872d"   # tool action highlight
 
 
 # ── Messages ─────────────────────────────────────────────────────────────────
@@ -206,6 +208,12 @@ class AgentTUI(App):
         color: {_TEXT};
     }}
 
+    /* ── Main column (RichLog + live streaming area) ── */
+    #main-col {{
+        width: 1fr;
+        height: 1fr;
+    }}
+
     /* ── Main panel ── */
     #main {{
         width: 1fr;
@@ -300,6 +308,21 @@ class AgentTUI(App):
         padding: 0 2;
     }}
 
+    /* ── Live streaming preview ── */
+    #live {{
+        height: auto;
+        max-height: 12;
+        background: {_BG};
+        color: {_TEXT};
+        padding: 0 1;
+        border: solid {_BORDER_DIM};
+        margin: 0 1;
+        display: none;
+    }}
+    #live.active {{
+        display: block;
+    }}
+
     /* ── Input ── */
     Input {{
         height: 3;
@@ -346,7 +369,9 @@ class AgentTUI(App):
         home = os.path.expanduser("~")
         cwd = cwd_full.replace(home, "~") if cwd_full.startswith(home) else cwd_full
 
-        yield RichLog(id="main", highlight=True, wrap=True, markup=False)
+        with Vertical(id="main-col"):
+            yield RichLog(id="main", highlight=True, wrap=True, markup=False)
+            yield Static("", id="live")
         with Vertical(id="sidebar"):
             yield Static("common_ai_agent", id="agent-label")
             yield Static("", id="task-title")
@@ -370,9 +395,13 @@ class AgentTUI(App):
 
     def _init_sidebar(self) -> None:
         """Populate sidebar from on-disk state before first agent response."""
+        # ── Model ────────────────────────────────────────────────────────────
+        self._refresh_model_sidebar()
+
+        # ── Todo ─────────────────────────────────────────────────────────────
         try:
-            from lib.todo_tracker import TodoTracker
             import config as _cfg
+            from lib.todo_tracker import TodoTracker
             from pathlib import Path
             todo_path = Path(_cfg.TODO_FILE)
             if todo_path.exists():
@@ -381,8 +410,42 @@ class AgentTUI(App):
                     self.post_message(TodoUpdate(tt.format_simple()))
         except Exception:
             pass
-        # Show model info immediately (doesn't need agent to have run yet)
-        self._refresh_model_sidebar()
+
+        # ── Context + Skill ───────────────────────────────────────────────────
+        try:
+            import config as _cfg
+            from core.history_manager import load_conversation_history as _load_hist
+            from llm_client import estimate_message_tokens
+
+            # Max tokens: config uses chars ÷ 4
+            max_tok = getattr(_cfg, "MAX_CONTEXT_CHARS", 512000) // 4
+
+            saved_msgs = _load_hist()
+            ctx_tokens = sum(estimate_message_tokens(m) for m in saved_msgs) if saved_msgs else 0
+
+            # Skill: read from already-imported main module (no re-execution)
+            skill = ""
+            try:
+                import sys as _sys
+                _m = _sys.modules.get("main")
+                if _m:
+                    fn = getattr(_m, "load_active_skills", None)
+                    active_list = getattr(fn, "active_skills", []) or []
+                    forced      = getattr(fn, "forced_skills", set()) or set()
+                    auto        = getattr(fn, "_active_skill", None)
+                    names: list = list(active_list) or sorted(forced) or ([auto] if auto else [])
+                    skill = (f"{names[0]}, +{len(names)-1}" if len(names) > 2
+                             else ", ".join(names))
+            except Exception:
+                pass
+
+            # Plan mode badge
+            if os.environ.get("PLAN_MODE") == "true":
+                skill = f"[plan] {skill}" if skill else "[plan]"
+
+            self.post_message(ContextUpdate(ctx_tokens, max_tok, skill))
+        except Exception:
+            pass
 
     def action_quit(self) -> None:
         self._do_exit()
@@ -436,8 +499,6 @@ class AgentTUI(App):
         # OpenCode-style: response in a subtle bordered panel
         panel = Panel(
             _LeftMarkdown(_fix_md(self._response_buf)),
-            title="[dim]assistant[/dim]",
-            title_align="left",
             border_style=f"dim {_BORDER_DIM}",
             padding=(0, 1),
             expand=True,
@@ -446,6 +507,13 @@ class AgentTUI(App):
         self._response_buf = ""
         self._generating = False
         self._update_statusbar()
+        # Clear live preview
+        try:
+            live = self.query_one("#live", Static)
+            live.update("")
+            live.remove_class("active")
+        except Exception:
+            pass
 
     # ── Input ─────────────────────────────────────────────────────────────────
 
@@ -475,7 +543,26 @@ class AgentTUI(App):
         if not self._generating:
             self._generating = True
             self._update_statusbar("generating…")
+        # \x00 is a sentinel from the worker signalling "LLM call started" —
+        # used to show "generating…" immediately in non-streaming mode.
+        if msg.text == "\x00":
+            return
         self._response_buf += msg.text + "\n"
+        # Debounced live Markdown preview — at most one render per 300 ms
+        if not getattr(self, "_live_timer_pending", False):
+            self._live_timer_pending = True
+            self.set_timer(0.3, self._do_live_update)
+
+    def _do_live_update(self) -> None:
+        self._live_timer_pending = False
+        if not self._response_buf.strip():
+            return
+        try:
+            live = self.query_one("#live", Static)
+            live.update(_LeftMarkdown(_fix_md(self._response_buf)))
+            live.add_class("active")
+        except Exception:
+            pass
 
     def on_flush_response(self, msg: FlushResponse) -> None:
         """Worker signals stream done — render whatever accumulated in _response_buf."""
@@ -485,11 +572,16 @@ class AgentTUI(App):
         if msg.blank:
             return
         log = self.query_one("#main", RichLog)
-        t = RichText()
-        # OpenCode-style: dim left bar + italic faint text
-        t.append("  ┆ ", style=f"dim {_BORDER}")
-        t.append(msg.text, style=f"italic {_TEXT_FAINT}")
-        log.write(t)
+        # Use grid table so the text column wraps within its own width,
+        # keeping continuation lines aligned after the "  ┆ " prefix.
+        grid = RichTable.grid(padding=0)
+        grid.add_column(width=4, no_wrap=True)
+        grid.add_column(overflow="fold")
+        grid.add_row(
+            RichText("  ┆ ", style=f"dim {_BORDER}"),
+            RichText(msg.text, style=f"italic {_TEXT_FAINT}"),
+        )
+        log.write(grid)
 
     def on_context_update(self, msg: ContextUpdate) -> None:
         self._ctx_tokens = msg.tokens
@@ -589,32 +681,23 @@ class AgentTUI(App):
             log.write(t)
             return
 
-        # Tool calls: "• tool_name(...)"
-        m_tool = re.match(r"^\s*[•·]\s*(\w+)\((.*)$", text)
+        # Tool calls: "⏺ tool_name(...)" or "• tool_name(...)"
+        m_tool = re.match(r"^\s*[⏺•·]\s*(\w+)\((.*)$", text)
         if m_tool:
             self._in_diff = False  # reset diff state on every new tool call
             tool_name = m_tool.group(1)
             args_part = m_tool.group(2)
-            _READ_TOOLS  = {"read_file","read_lines","grep_file","find_files","list_dir","git_diff","git_status","git_log"}
             _WRITE_TOOLS = {"write_file","write_to_file","replace_in_file","replace_lines","replace_file_content"}
-            _EXEC_TOOLS  = {"run_command","background_task","background_output"}
-            _TODO_TOOLS  = {"todo_update","todo_write","todo_add","todo_remove"}
             _GIT_TOOLS   = {"git_commit","git_push","git_checkout","git_branch","git_merge","git_stash"}
-            if tool_name in _READ_TOOLS:
-                color = _ACCENT
-            elif tool_name in _WRITE_TOOLS:
-                color, self._in_diff = _GREEN, True
-            elif tool_name in _EXEC_TOOLS:
-                color = "#e3b341"
-            elif tool_name in _TODO_TOOLS:
-                color = _GREEN
+            if tool_name in _WRITE_TOOLS:
+                self._in_diff = True
             elif tool_name in _GIT_TOOLS:
-                color, self._in_diff = "#bc8cff", True
-            else:
-                color = _TEXT_DIM
+                self._in_diff = True
+            # Blank line before each action for breathing room
+            log.write(RichText(""))
             t = RichText()
-            t.append(f"  {tool_name}", style=f"bold {color}")
-            t.append(f"({args_part}", style=f"dim {color}")
+            t.append(f"  {tool_name}", style=f"bold {_ORANGE}")
+            t.append(f"({args_part}", style=f"dim {_ORANGE}")
             log.write(t)
             return
 

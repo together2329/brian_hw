@@ -987,7 +987,8 @@ def chat_loop():
     loaded_messages = load_conversation_history()
     if loaded_messages:
         messages = loaded_messages
-        print(Color.system("[System] Resuming from previous conversation.\n"))
+        if not _textual_emit_content_fn:
+            print(Color.system("[System] Resuming from previous conversation.\n"))
     else:
         messages = [
             {"role": "system", "content": _build_system_prompt_str(agent_mode=agent_mode)}
@@ -1051,23 +1052,24 @@ def chat_loop():
     if config.ENABLE_GRAPH and graph_lite:
         graph_lite.heal_embeddings()
 
-    # Compact startup banner
-    from lib.display import format_startup_banner
-    print(format_startup_banner(
-        base_url=config.BASE_URL,
-        model=config.MODEL_NAME,
-        features={
-            'rate_limit': config.RATE_LIMIT_DELAY,
-            'max_iter': config.MAX_ITERATIONS,
-            'cache': config.ENABLE_PROMPT_CACHING,
-            'compress': config.ENABLE_COMPRESSION,
-            'memory': config.ENABLE_MEMORY and memory_system,
-            'rag': config.ENABLE_RAG_AUTO_INDEX,
-        }
-    ))
+    if not _textual_emit_content_fn:
+        # Compact startup banner
+        from lib.display import format_startup_banner
+        print(format_startup_banner(
+            base_url=config.BASE_URL,
+            model=config.MODEL_NAME,
+            features={
+                'rate_limit': config.RATE_LIMIT_DELAY,
+                'max_iter': config.MAX_ITERATIONS,
+                'cache': config.ENABLE_PROMPT_CACHING,
+                'compress': config.ENABLE_COMPRESSION,
+                'memory': config.ENABLE_MEMORY and memory_system,
+                'rag': config.ENABLE_RAG_AUTO_INDEX,
+            }
+        ))
 
-    # Show initial context usage
-    show_context_usage(messages)
+        # Show initial context usage
+        show_context_usage(messages)
 
     # ACE Credit Assignment: Track conversation count for periodic curation
     conversation_count = 0
@@ -1160,9 +1162,10 @@ def chat_loop():
                     user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
                 elif agent_mode == 'plan':
                     print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
-                    print(f"  {Color.DIM}y   → execute plan now")
-                    print(f"  yc  → execute + compress context")
-                    print(f"  n   → cancel{Color.RESET}")
+                    print(f"  {Color.DIM}y        → execute plan now")
+                    print(f"  yc       → execute + compress context (clean up conversation)")
+                    print(f"  n        → cancel / revise")
+                    print(f"  <other>  → feedback / refinement{Color.RESET}")
                     _plan_prompt = ANSI(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
                     user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
                 else:
@@ -1175,10 +1178,10 @@ def chat_loop():
                     user_input = _input_fn(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
                 elif agent_mode == 'plan':
                     print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
-                    print(f"  {Color.DIM}y   → execute plan now")
-                    print(f"  yc  → execute + compress context (clean up conversation)")
-                    print(f"  n   → cancel / revise")
-                    print(f"  (anything else) → feedback / refinement{Color.RESET}")
+                    print(f"  {Color.DIM}y        → execute plan now")
+                    print(f"  yc       → execute + compress context (clean up conversation)")
+                    print(f"  n        → cancel / revise")
+                    print(f"  <other>  → feedback / refinement{Color.RESET}")
                     user_input = _input_fn(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
                 else:
                     _em = getattr(config, 'EXECUTION_MODE', 'agent')
