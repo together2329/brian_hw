@@ -240,18 +240,20 @@ class TodoTracker:
         self.save()
 
     def mark_approved(self, index: int):
-        """특정 todo를 approved로 변경 (완전 완료)."""
+        """특정 todo를 approved로 변경 (완전 완료).
+        LLM이 명시적으로 다음 task를 in_progress로 전환해야 함 — 자동 전환 없음.
+        """
         if not (0 <= index < len(self.todos)):
             return
 
         self.todos[index].status = "approved"
         self.todos[index].rejection_reason = ""
         if self.current_index == index:
+            # Point current_index at next actionable task, but do NOT
+            # auto-call mark_in_progress — the tool return value already
+            # instructs the LLM to call todo_update(status='in_progress').
             next_idx = self._get_next_pending()
-            if next_idx is not None:
-                self.mark_in_progress(next_idx)
-            else:
-                self.current_index = -1
+            self.current_index = next_idx if next_idx is not None else -1
         # completed_at shouldn't change
         self.save()
 
@@ -303,11 +305,12 @@ class TodoTracker:
         우선순위: rejected > completed (review needed) > pending.
         같은 priority 내에서는 원래 순서(index 오름차순) 유지.
         """
-        # Status priority: rejected=0 (must fix first), completed=1 (needs review), pending=2
-        STATUS_ORDER = {"rejected": 0, "completed": 1, "pending": 2}
+        # Status priority: rejected=0 (must fix first), pending=1
+        # completed is NOT included — LLM must explicitly approve/reject it
+        STATUS_ORDER = {"rejected": 0, "pending": 1}
         candidates = [
             (i, todo) for i, todo in enumerate(self.todos)
-            if todo.status in ("pending", "completed", "rejected")
+            if todo.status in ("pending", "rejected")
         ]
         if not candidates:
             return None
