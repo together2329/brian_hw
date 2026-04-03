@@ -1150,8 +1150,9 @@ def chat_loop():
         except Exception as e:
             print(Color.warning(f"  [Multiline] prompt_toolkit unavailable ({type(e).__name__}: {e}) — falling back to single-line input"))
 
-    print(Color.info("\nType 'exit' or 'quit' to stop."))
-    print(Color.info("Type /help for available slash commands.\n"))
+    if _textual_input_fn is None:
+        print(Color.info("\nType 'exit' or 'quit' to stop."))
+        print(Color.info("Type /help for available slash commands.\n"))
 
     # Wait up to 1s for warmup message to print before the first > prompt.
     # Prevents the [LLM] connected message from overwriting the prompt line.
