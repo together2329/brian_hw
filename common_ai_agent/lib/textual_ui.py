@@ -555,24 +555,8 @@ class AgentTUI(App):
 
         # ── Color-coded lines ───────────────────────────────────────────────
 
-        # Todo status bar: "N;[M/T] ▶ in_progress | task title"
-        m_todo_bar = re.match(r"^\d+;\[(\d+/\d+)\]\s+([▶⏸✅•])\s+(\S+)\s*\|?\s*(.*)", text)
-        if m_todo_bar:
-            progress, icon, status, title = m_todo_bar.groups()
-            t = RichText()
-            t.append(f"  [{progress}] ", style=f"dim {_TEXT_FAINT}")
-            if icon == "▶":
-                t.append(f"{icon} ", style=f"bold {_GREEN}")
-                t.append(status, style=f"bold {_GREEN}")
-            elif icon in ("✅", "👀"):
-                t.append(f"{icon} ", style=f"dim {_GREEN}")
-                t.append(status, style=f"dim {_GREEN}")
-            else:
-                t.append(f"{icon} ", style=_TEXT_FAINT)
-                t.append(status, style=_TEXT_FAINT)
-            if title:
-                t.append(f"  {title}", style=_TEXT_DIM)
-            log.write(t)
+        # Todo status bar: suppress from main log (shown in sidebar only)
+        if re.match(r"^\d+;\[(\d+/\d+)\]", text):
             return
 
         # System messages: [Plan Mode], [System], [Error]
