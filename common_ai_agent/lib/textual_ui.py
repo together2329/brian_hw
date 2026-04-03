@@ -492,8 +492,11 @@ class AgentTUI(App):
             t = RichText()
             if self._ctx_max_tokens:
                 pct = int(self._ctx_tokens / self._ctx_max_tokens * 100)
-                t.append(f"{self._ctx_tokens:,} tokens  ", style=_TEXT_DIM)
-                t.append(f"{pct}%", style=f"dim {_YELLOW if pct > 60 else _TEXT_FAINT}")
+                cur_k = f"{self._ctx_tokens / 1000:.1f}k"
+                max_k = f"{self._ctx_max_tokens / 1000:.0f}k"
+                pct_color = _YELLOW if pct >= 50 else _TEXT_FAINT
+                t.append(f"{cur_k} / {max_k}  ", style=_TEXT_DIM)
+                t.append(f"{pct}%", style=f"dim {pct_color}")
             self.query_one("#context", Static).update(t)
         except Exception:
             pass
