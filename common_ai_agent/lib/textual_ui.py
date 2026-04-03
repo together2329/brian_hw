@@ -819,11 +819,8 @@ class AgentTUI(App):
                 self._in_diff = True
             elif tool_name in _GIT_TOOLS:
                 self._in_diff = True
-            # One blank line before each tool call for separation.
-            # If coming from a result block, that blank also closes the result.
             if self._in_result:
                 self._in_result = False
-            log.write(RichText(""))
             t = RichText()
             t.append(f"  {tool_name}", style=f"bold {_ORANGE}")
             t.append(f"({args_part}", style=f"dim {_ORANGE}")
