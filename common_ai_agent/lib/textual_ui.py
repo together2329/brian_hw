@@ -15,7 +15,7 @@ from rich.markdown import Heading as _RichHeading
 from rich.text import Text as RichText
 from rich.table import Table as RichTable
 from textual.app import App, ComposeResult
-from textual.containers import Vertical
+from textual.containers import Vertical, VerticalScroll
 from textual.message import Message
 from textual.widgets import Input, RichLog, Static
 from textual import work
@@ -259,15 +259,15 @@ class InputBridge:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _shorten_path(text: str, max_len: int = 76) -> str:
+def _shorten_path(text: str, max_len: int = 140) -> str:
     if len(text) <= max_len:
         return text
-    m = re.search(r"(/[^\s)\"']{30,})", text)
+    m = re.search(r"(/[^\s)\"']{40,})", text)
     if not m:
         return text
     path = m.group(1)
     parts = path.split("/")
-    short = "/…/" + "/".join(parts[-3:]) if len(parts) > 3 else path
+    short = "/…/" + "/".join(parts[-4:]) if len(parts) > 4 else path
     return text.replace(path, short)
 
 
@@ -286,16 +286,16 @@ class AgentTUI(App):
     #main-col {{
         width: 1fr;
         height: 1fr;
+        overflow-y: scroll;
     }}
 
     /* ── Main panel ── */
     #main {{
         width: 1fr;
-        height: 1fr;
+        height: auto;
         background: {_BG};
-        scrollbar-size: 1 1;
-        scrollbar-color: {_BORDER};
         padding: 0 2;
+        overflow-y: hidden;
     }}
 
     /* ── Sidebar ── */
@@ -382,15 +382,14 @@ class AgentTUI(App):
         padding: 0 2;
     }}
 
-    /* ── Live streaming preview (docked overlay — no layout shift) ── */
+    /* ── Live streaming preview (flows naturally downwards) ── */
     #live {{
-        dock: bottom;
         height: auto;
-        max-height: 12;
+        max-height: 100%;
         background: {_BG};
         color: {_TEXT};
         padding: 0 1;
-        border-top: solid {_BORDER_DIM};
+        border-left: solid {_ACCENT};
         margin: 0 1;
         display: none;
     }}
@@ -446,7 +445,7 @@ class AgentTUI(App):
         home = os.path.expanduser("~")
         cwd = cwd_full.replace(home, "~") if cwd_full.startswith(home) else cwd_full
 
-        with Vertical(id="main-col"):
+        with VerticalScroll(id="main-col"):
             yield RichLog(id="main", highlight=True, wrap=True, markup=False)
             yield Static("", id="live")
         with Vertical(id="sidebar"):
@@ -497,7 +496,7 @@ class AgentTUI(App):
             # Max tokens: config uses chars ÷ 4
             max_tok = getattr(_cfg, "MAX_CONTEXT_CHARS", 512000) // 4
 
-            saved_msgs = _load_hist()
+            saved_msgs = _load_hist(silent=True)
             ctx_tokens = sum(estimate_message_tokens(m) for m in saved_msgs) if saved_msgs else 0
 
             # Skill: read from already-imported main module (no re-execution)
@@ -585,6 +584,10 @@ class AgentTUI(App):
         self._generating = False
         self._reasoning_open = False
         self._update_statusbar()
+        try:
+            self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
+        except Exception:
+            pass
         # Clear live preview
         try:
             live = self.query_one("#live", Static)
@@ -608,12 +611,15 @@ class AgentTUI(App):
         # Full-width turn separator (OpenCode style)
         from rich.rule import Rule
         log.write(Rule(style=f"dim {_BORDER_DIM}"))
-        # User input line
         t = RichText()
         t.append(f"  {text}", style=f"bold {_ACCENT}")
         log.write(t)
         self._in_diff = False
         self._input_bridge.submit(text)
+        try:
+            self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
+        except Exception:
+            pass
 
     # ── Message handlers ───────────────────────────────────────────────────────
 
@@ -625,17 +631,6 @@ class AgentTUI(App):
         # used to show "generating…" immediately in non-streaming mode.
         if msg.text == "\x00":
             return
-
-        import config
-        if not getattr(config, "ENABLE_MARKDOWN_RENDER", True):
-            log = self.query_one("#main", RichLog)
-            log.write(msg.text)
-            try:
-                self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
-            except Exception:
-                pass
-            return
-
         self._response_buf += msg.text + "\n"
         # Debounced live Markdown preview — at most one render per 300 ms
         if not getattr(self, "_live_timer_pending", False):
@@ -650,6 +645,10 @@ class AgentTUI(App):
             live = self.query_one("#live", Static)
             live.update(_LeftMarkdown(_fix_md(self._response_buf)))
             live.add_class("active")
+            try:
+                self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
+            except Exception:
+                pass
         except Exception:
             pass
 
@@ -658,6 +657,15 @@ class AgentTUI(App):
         self._flush_response()
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:
+        try:
+            self._handle_reasoning_chunk(msg)
+        finally:
+            try:
+                self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
+            except Exception:
+                pass
+
+    def _handle_reasoning_chunk(self, msg: ReasoningChunk) -> None:
         log = self.query_one("#main", RichLog)
         if msg.blank:
             # blank = paragraph separator within reasoning (not block end)
@@ -723,6 +731,15 @@ class AgentTUI(App):
             pass
 
     def on_main_line(self, msg: MainLine) -> None:
+        try:
+            self._handle_main_line(msg)
+        finally:
+            try:
+                self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
+            except Exception:
+                pass
+
+    def _handle_main_line(self, msg: MainLine) -> None:
         self._flush_response()
         log = self.query_one("#main", RichLog)
         text = msg.text
@@ -781,6 +798,15 @@ class AgentTUI(App):
             log.write(t)
             return
 
+        # Parallel run header
+        m_parallel = re.match(r"^\s*⚡\s+(.*)", text)
+        if m_parallel:
+            log.write(RichText(""))
+            t = RichText()
+            t.append(f"  ⚡ {m_parallel.group(1)}", style=f"bold {_YELLOW}")
+            log.write(t)
+            return
+
         # Tool calls: "⏺ tool_name(...)" or "• tool_name(...)"
         m_tool = re.match(r"^\s*[⏺•·]\s*(\w+)\((.*)$", text)
         if m_tool:
@@ -817,14 +843,14 @@ class AgentTUI(App):
                 log.write(RichText(f"  {text}", style=f"bold {_ACCENT}"))
                 return
             # Non-diff line ends the diff block
-            if not re.match(r"^\s*[└|]", text):
+            if not re.match(r"^\s*[└|│⎿]", text):
                 self._in_diff = False
 
-        # Tool result lines: "└ ..." or "| ..."
-        if re.match(r"^\s*[└|]", text):
+        # Tool result lines: "└", "|", "│", or "⎿"
+        if re.match(r"^\s*[└|│⎿]", text):
             self._in_result = True
             # Strip tree prefix to check if content is a diff line
-            inner = re.sub(r"^\s*[└|]\s*", "", text)
+            inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", text)
             if self._in_diff and re.match(r"^\+[^+]", inner):
                 log.write(RichText(f"  {text.strip()}", style=f"bold {_GREEN}"))
             elif self._in_diff and re.match(r"^-[^-]", inner):
