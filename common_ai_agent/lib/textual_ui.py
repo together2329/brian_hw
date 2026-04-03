@@ -284,7 +284,10 @@ class AgentTUI(App):
     }}
     """
 
-    BINDINGS = [("ctrl+q", "quit", "Quit")]
+    BINDINGS = [
+        ("ctrl+q", "quit", "Quit"),
+        ("ctrl+c", "quit", "Quit"),
+    ]
 
     def __init__(self, run_agent_fn: Callable) -> None:
         super().__init__()
@@ -402,6 +405,9 @@ class AgentTUI(App):
         text = event.value.strip()
         event.input.value = ""
         if not text:
+            return
+        if text.lower() in ("quit", "exit", "/quit", "/exit"):
+            self.exit()
             return
         self._flush_response()
         log = self.query_one("#main", RichLog)
