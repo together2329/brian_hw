@@ -40,12 +40,27 @@ def _emit_context(app: AgentTUI) -> None:
     try:
         tokens  = getattr(_agent.llm_client, "last_input_tokens", 0)
         max_tok = getattr(config, "MAX_CONTEXT_TOKENS", 65536)
-        fn = getattr(_agent, "load_active_skills", None)
-        active  = getattr(fn, "_active_skill", None)
-        forced  = getattr(fn, "forced_skills", set())
-        # Show forced skills (set by /skills enable/all) or auto-routed skill
-        all_active = sorted(forced) + ([active] if active and active not in forced else [])
-        skill = ", ".join(all_active) if all_active else ""
+        fn      = getattr(_agent, "load_active_skills", None)
+        forced  = getattr(fn, "forced_skills", set()) or set()
+        active_list = getattr(fn, "active_skills", []) or []
+        auto    = getattr(fn, "_active_skill", None)
+
+        # Priority: active_skills (final merged, set after each LLM call)
+        #           > forced_skills (user-explicit)
+        #           > _active_skill (auto-routed)
+        names: list[str] = []
+        if active_list:
+            names = list(active_list)
+        elif forced:
+            names = sorted(forced)
+        elif auto:
+            names = [auto]
+
+        if len(names) > 2:
+            skill = f"{names[0]}, +{len(names)-1}"
+        else:
+            skill = ", ".join(names)
+
         app.post_message(ContextUpdate(tokens, max_tok, skill))
     except Exception:
         pass
