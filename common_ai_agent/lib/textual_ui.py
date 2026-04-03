@@ -583,6 +583,7 @@ class AgentTUI(App):
         log.write(panel)
         self._response_buf = ""
         self._generating = False
+        self._reasoning_open = False
         self._update_statusbar()
         # Clear live preview
         try:
@@ -646,11 +647,12 @@ class AgentTUI(App):
         self._flush_response()
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:
-        if msg.blank:
-            # blank = end of reasoning block — reset header flag
-            self._reasoning_open = False
-            return
         log = self.query_one("#main", RichLog)
+        if msg.blank:
+            # blank = paragraph separator within reasoning (not block end)
+            # just add spacing, keep header open
+            log.write(RichText(""))
+            return
         # First chunk of a reasoning block: print "Reasoning" header
         if not self._reasoning_open:
             self._reasoning_open = True
