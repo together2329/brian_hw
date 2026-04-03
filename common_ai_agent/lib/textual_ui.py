@@ -810,10 +810,19 @@ class AgentTUI(App):
             if not re.match(r"^\s*[└|]", text):
                 self._in_diff = False
 
-        # Tool result lines: "└ ..."
+        # Tool result lines: "└ ..." or "| ..."
         if re.match(r"^\s*[└|]", text):
             self._in_result = True
-            log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
+            # Strip tree prefix to check if content is a diff line
+            inner = re.sub(r"^\s*[└|]\s*", "", text)
+            if self._in_diff and re.match(r"^\+[^+]", inner):
+                log.write(RichText(f"  {text.strip()}", style=f"bold {_GREEN}"))
+            elif self._in_diff and re.match(r"^-[^-]", inner):
+                log.write(RichText(f"  {text.strip()}", style=f"bold {_RED}"))
+            elif self._in_diff and re.match(r"^@@", inner):
+                log.write(RichText(f"  {text.strip()}", style=f"bold {_ACCENT}"))
+            else:
+                log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
             return
 
         # Non-result line after result block → trailing blank
