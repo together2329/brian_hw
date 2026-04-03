@@ -153,6 +153,8 @@ class SkillLoader:
 
             # Extract activation info
             activation_data = frontmatter.get('activation', {})
+            if not isinstance(activation_data, dict):
+                activation_data = {}
             activation = SkillActivation(
                 keywords=activation_data.get('keywords', []),
                 file_patterns=activation_data.get('file_patterns', []),
