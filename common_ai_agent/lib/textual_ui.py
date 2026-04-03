@@ -307,13 +307,11 @@ class AgentTUI(App):
         dock: bottom;
         background: {_BG_INPUT};
         border: none;
-        border-top: solid {_BORDER_DIM};
         padding: 0 2;
         color: {_TEXT};
     }}
     Input:focus {{
         border: none;
-        border-top: solid {_BORDER};
         background: {_BG_INPUT};
     }}
     """
