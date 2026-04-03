@@ -40,6 +40,9 @@ def _emit_context(app: AgentTUI) -> None:
     try:
         tokens  = getattr(_agent.llm_client, "last_input_tokens", 0)
         max_tok = getattr(config, "MAX_CONTEXT_TOKENS", 65536)
+        # Sync active model from config (may have changed via /model switch)
+        app._active_model = getattr(config, "MODEL_NAME", "") or app._active_model
+        app._refresh_model_sidebar()
         fn      = getattr(_agent, "load_active_skills", None)
         forced  = getattr(fn, "forced_skills", set()) or set()
         active_list = getattr(fn, "active_skills", []) or []

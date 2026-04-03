@@ -1274,6 +1274,8 @@ def chat_loop():
                         else:
                             print(Color.success("\n✅ Conversation history cleared.\n"))
                         show_context_usage(messages, use_actual=False)
+                        if _textual_emit_todo_fn:
+                            _textual_emit_todo_fn("")  # reset sidebar: tokens=0, clear todo
                         continue
 
                     if result == "GIT_CLEAR":
@@ -1621,6 +1623,8 @@ def chat_loop():
                         else:
                             config.MODEL_NAME = target
                         print(Color.success(f"\n✅ Model switched to: {config.MODEL_NAME}\n"))
+                        if _textual_emit_todo_fn:
+                            _textual_emit_todo_fn("")  # refresh sidebar model/context
                         continue
 
                     if result.startswith("INJECT_PROMPT:"):
