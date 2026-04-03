@@ -89,7 +89,7 @@ def _run_agent(app: AgentTUI) -> None:
     """Called inside the AgentTUI worker thread."""
     config.ENABLE_MULTILINE_INPUT = False
 
-    from lib.textual_ui import StreamChunk, ReasoningChunk, TodoUpdate
+    from lib.textual_ui import StreamChunk, ReasoningChunk, TodoUpdate, FlushResponse
 
     def _todo_and_context(text: str) -> None:
         app.post_message(TodoUpdate(text))
@@ -99,6 +99,7 @@ def _run_agent(app: AgentTUI) -> None:
     _agent._textual_emit_content_fn   = lambda line: app.post_message(StreamChunk(line))
     _agent._textual_emit_reasoning_fn = lambda line, blank=False: app.post_message(ReasoningChunk(line, blank))
     _agent._textual_emit_todo_fn      = _todo_and_context
+    _agent._textual_emit_flush_fn     = lambda: app.post_message(FlushResponse())
 
     _agent.chat_loop()
 

@@ -130,6 +130,7 @@ class ReactLoopDeps:
     emit_content_fn: Optional[Callable] = None    # (line: str) → None
     emit_reasoning_fn: Optional[Callable] = None  # (line: str, blank: bool) → None
     emit_todo_fn: Optional[Callable] = None       # (text: str) → None
+    emit_flush_fn: Optional[Callable] = None      # () → None  (signal stream done → flush panel)
 
 
 # ---------------------------------------------------------------------------
@@ -599,6 +600,10 @@ def run_react_agent_impl(
         if _perf:
             print(f"  {Color.DIM}[PERF] <<< LLM call end: {llm_elapsed:.3f}s{Color.RESET}")
 
+        # Signal TUI to flush accumulated content into a panel (guaranteed, no stdout dependency)
+        if deps.emit_flush_fn:
+            deps.emit_flush_fn()
+
         print()
 
         # Build assistant message
@@ -828,9 +833,10 @@ def run_react_agent_impl(
 
                     # Refresh Textual sidebar immediately after todo changes
                     if deps.emit_todo_fn and tool_name in ("todo_update", "todo_write", "todo_add", "todo_remove") and todo_tracker:
-                        todo_tracker.load()  # re-read from disk in case tool modified it
-                        if todo_tracker.todos:
-                            deps.emit_todo_fn(todo_tracker.format_simple())
+                        # load() is a classmethod — must capture return value
+                        _reloaded = type(todo_tracker).load()
+                        if _reloaded.todos:
+                            deps.emit_todo_fn(_reloaded.format_simple())
 
             observation = "\n\n".join(combined_results)
 

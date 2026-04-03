@@ -141,6 +141,10 @@ class ContextUpdate(Message):
         self.skill = skill
         super().__init__()
 
+class FlushResponse(Message):
+    """Sent by worker after LLM stream ends to ensure content panel is rendered."""
+    pass
+
 
 # ── stdout capture ────────────────────────────────────────────────────────────
 
@@ -471,6 +475,10 @@ class AgentTUI(App):
             self._generating = True
             self._update_statusbar("generating…")
         self._response_buf += msg.text + "\n"
+
+    def on_flush_response(self, msg: FlushResponse) -> None:
+        """Worker signals stream done — render whatever accumulated in _response_buf."""
+        self._flush_response()
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:
         if msg.blank:

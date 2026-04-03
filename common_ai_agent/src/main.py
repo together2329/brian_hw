@@ -106,6 +106,7 @@ if getattr(config, 'ENABLE_DEEP_THINK', False) and not getattr(config, 'ENABLE_S
 _textual_emit_content_fn = None
 _textual_emit_reasoning_fn = None
 _textual_emit_todo_fn = None
+_textual_emit_flush_fn = None   # () → signal stream done, flush content panel
 _textual_input_fn = None  # replaces input() when set
 
 # ChatLoopDeps instance (set inside chat_loop(); exposed for textual_main.py)
@@ -931,6 +932,7 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
         emit_content_fn=_textual_emit_content_fn,
         emit_reasoning_fn=_textual_emit_reasoning_fn,
         emit_todo_fn=_textual_emit_todo_fn,
+        emit_flush_fn=_textual_emit_flush_fn,
         # Disable EscapeWatcher in Textual mode — Textual owns stdin; raw tty read
         # conflicts with Textual's input handling, causing false ESC triggers.
         esc_check_fn=(lambda: False) if _textual_input_fn is not None else None,
