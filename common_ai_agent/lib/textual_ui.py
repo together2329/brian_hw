@@ -792,6 +792,7 @@ class AgentTUI(App):
             t.append(f"  {tool_name}", style=f"bold {_ORANGE}")
             t.append(f"({args_part}", style=f"dim {_ORANGE}")
             log.write(t)
+            log.write(RichText(""))
             return
 
         # Diff lines (after write/replace/git tools)
