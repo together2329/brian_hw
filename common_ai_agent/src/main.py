@@ -762,6 +762,10 @@ def compress_history(messages, todo_tracker=None, force=False, instruction=None,
         get_actual_tokens_fn=get_actual_tokens,
         last_input_tokens=llm_client.last_input_tokens,
         on_compressed_fn=lambda: setattr(llm_client, "last_input_tokens", 0),
+        emit_fn=(
+            (lambda md: (_textual_emit_content_fn(md), _textual_emit_flush_fn and _textual_emit_flush_fn()))
+            if _textual_emit_content_fn else None
+        ),
     )
 
 

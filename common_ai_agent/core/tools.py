@@ -2235,7 +2235,7 @@ def todo_write(todos=None, tasks=None):
     # Return formatted progress
     try:
         progress = todo_tracker.format_simple()
-        return f"✅ Todo list created:\n\n{progress}"
+        return f"✅ Todo list created:\n{progress}"
     except Exception as e:
         return f"Error formatting progress: {e}"
 

@@ -261,6 +261,7 @@ def compress_history(
     on_compressed_fn: Optional[Callable] = None,
     find_hook_fn: Optional[Callable] = None,
     hook_command_fn: Optional[Callable] = None,
+    emit_fn: Optional[Callable] = None,
 ) -> List[Dict]:
     """Compress conversation history when it exceeds the token limit.
 
@@ -526,5 +527,18 @@ def compress_history(
         f"  | tokens  {current_tokens:>6,} → {new_tokens:<6,} ({reduction_pct}% reduction)\n"
         f"  | kept    {keep_recent} recent  |  summarized {len(old_msgs)} → 1\n"
     )
+
+    # Emit summary as markdown (TUI) or print to stdout (terminal)
+    if compressed:
+        raw = compressed[0].get("content", "") if isinstance(compressed[0], dict) else ""
+        # Strip "[Previous Conversation Summary (N messages)]: " prefix
+        import re as _re
+        summary_text = _re.sub(r"^\[Previous Conversation Summary \(\d+ messages\)\]:\s*", "", raw)
+        if summary_text.strip():
+            md = f"## Compression Summary\n\n{summary_text.strip()}\n"
+            if emit_fn:
+                emit_fn(md)
+            else:
+                print(md)
 
     return new_history
