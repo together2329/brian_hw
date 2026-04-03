@@ -700,6 +700,8 @@ def show_context_usage(messages, use_actual=True):
         messages: list of message dicts
         use_actual: if True, use actual tokens from API (hybrid mode)
     """
+    if _textual_emit_content_fn is not None:
+        return  # TUI mode: context shown in sidebar, skip bar output
     if use_actual:
         current_tokens = get_actual_tokens(messages)
         source = "actual" if llm_client.last_input_tokens > 0 else "estimated"

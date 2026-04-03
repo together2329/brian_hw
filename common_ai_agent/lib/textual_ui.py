@@ -591,16 +591,8 @@ class AgentTUI(App):
             self._response_buf = ""
             self._generating = False
             return
-        from rich.panel import Panel
         log = self.query_one("#main", RichLog)
-        # OpenCode-style: response in a subtle bordered panel
-        panel = Panel(
-            _LeftMarkdown(_fix_md(self._response_buf)),
-            border_style=f"dim {_BORDER_DIM}",
-            padding=(0, 1),
-            expand=True,
-        )
-        log.write(panel)
+        log.write(_LeftMarkdown(_fix_md(self._response_buf)))
         self._response_buf = ""
         self._generating = False
         self._reasoning_open = False
@@ -691,8 +683,8 @@ class AgentTUI(App):
         grid.add_column(width=4, no_wrap=True)
         grid.add_column(overflow="fold")
         grid.add_row(
-            RichText("  ┆ ", style=f"dim {_BORDER}"),
-            RichText(msg.text, style=f"italic {_TEXT_FAINT}"),
+            RichText("  ┆ ", style=f"dim {_BORDER_DIM}"),
+            RichText(msg.text, style=f"dim italic {_TEXT_FAINT}"),
         )
         log.write(grid)
 
@@ -795,8 +787,8 @@ class AgentTUI(App):
             elif "Plan Mode" in tag:
                 t.append(f"  {tag}", style=f"bold {_ACCENT}")
             else:
-                t.append(f"  {tag}", style=f"dim {_ACCENT}")
-            t.append(rest, style=_TEXT_DIM)
+                t.append(f"  {tag}", style=f"dim {_TEXT_FAINT}")
+            t.append(rest, style=f"dim {_TEXT_DIM}")
             log.write(t)
             return
 
