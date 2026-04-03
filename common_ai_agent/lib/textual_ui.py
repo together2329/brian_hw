@@ -584,6 +584,10 @@ class AgentTUI(App):
         self._generating = False
         self._reasoning_open = False
         self._update_statusbar()
+        try:
+            self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
+        except Exception:
+            pass
         # Clear live preview
         try:
             live = self.query_one("#live", Static)
@@ -607,12 +611,15 @@ class AgentTUI(App):
         # Full-width turn separator (OpenCode style)
         from rich.rule import Rule
         log.write(Rule(style=f"dim {_BORDER_DIM}"))
-        # User input line
         t = RichText()
         t.append(f"  {text}", style=f"bold {_ACCENT}")
         log.write(t)
         self._in_diff = False
         self._input_bridge.submit(text)
+        try:
+            self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
+        except Exception:
+            pass
 
     # ── Message handlers ───────────────────────────────────────────────────────
 
@@ -650,6 +657,15 @@ class AgentTUI(App):
         self._flush_response()
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:
+        try:
+            self._handle_reasoning_chunk(msg)
+        finally:
+            try:
+                self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
+            except Exception:
+                pass
+
+    def _handle_reasoning_chunk(self, msg: ReasoningChunk) -> None:
         log = self.query_one("#main", RichLog)
         if msg.blank:
             # blank = paragraph separator within reasoning (not block end)
@@ -715,6 +731,15 @@ class AgentTUI(App):
             pass
 
     def on_main_line(self, msg: MainLine) -> None:
+        try:
+            self._handle_main_line(msg)
+        finally:
+            try:
+                self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
+            except Exception:
+                pass
+
+    def _handle_main_line(self, msg: MainLine) -> None:
         self._flush_response()
         log = self.query_one("#main", RichLog)
         text = msg.text
