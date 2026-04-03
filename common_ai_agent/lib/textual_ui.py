@@ -68,12 +68,15 @@ def _fix_md(text: str) -> str:
 
         lines.append(line)
 
-    # Ensure blank lines around code fences
+    # Ensure blank lines around code fences; collapse 2+ consecutive blanks → 1
     out: list[str] = []
     for i, line in enumerate(lines):
         if line.startswith("```"):
             if out and out[-1].strip():
                 out.append("")
+        # Collapse consecutive blank lines
+        if not line.strip() and out and not out[-1].strip():
+            continue
         out.append(line)
         if line.startswith("```") and i + 1 < len(lines) and lines[i + 1].strip():
             out.append("")
@@ -87,12 +90,7 @@ class _LeftHeading(_RichHeading):
     def __rich_console__(self, console, options):  # type: ignore[override]
         text = self.text
         text.justify = "left"
-        if self.tag == "h1":
-            yield RichText()
-            yield text
-            yield RichText()
-        else:
-            yield text
+        yield text
 
 class _LeftMarkdown(_RichMarkdown):
     elements = {**_RichMarkdown.elements, "heading_open": _LeftHeading}
@@ -758,20 +756,23 @@ class AgentTUI(App):
         items: list[tuple[str, str]] = []
         task_title = ""
 
+        _strip_num = lambda t: re.sub(r"^\d+\.\s*", "", t)
         for line in clean.splitlines():
             s = line.strip()
             if not s or "── TODO ──" in s:
                 continue
             if s.startswith("▶") and not task_title:
-                task_title = re.sub(r"^\d+\.\s*", "", s[1:].strip())
-            if s.startswith("✅") or s.startswith("👀"):
-                items.append(("done", s[1:].strip()))
+                task_title = _strip_num(s[1:].strip())
+            if s.startswith("✅"):
+                items.append(("approved", _strip_num(s[1:].strip())))
+            elif s.startswith("👀"):
+                items.append(("completed", _strip_num(s[1:].strip())))
             elif s.startswith("▶"):
-                items.append(("active", s[1:].strip()))
+                items.append(("active", _strip_num(s[1:].strip())))
             elif s.startswith("⏸"):
-                items.append(("pending", s[1:].strip()))
+                items.append(("pending", _strip_num(s[1:].strip())))
             elif s.startswith("❌"):
-                items.append(("rejected", s[1:].strip()))
+                items.append(("rejected", _strip_num(s[1:].strip())))
             elif s.startswith("•"):
                 items.append(("sub", s[1:].strip()))
 
@@ -781,31 +782,28 @@ class AgentTUI(App):
             t.append(task_title, style=_TEXT_DIM)
             self.query_one("#task-title", Static).update(t)
 
-        _MAX = 40
+        _MAX = 38
         out = RichText()
-        first_active = True
         for kind, label in items:
             if len(label) > _MAX:
                 label = label[:_MAX - 1] + "…"
-            if kind == "done":
-                out.append("  ✓ ", style=_TEXT_FAINT)
+            if kind == "approved":
+                out.append(" ✓ ", style=_TEXT_FAINT)
                 out.append(label + "\n", style=_TEXT_FAINT)
+            elif kind == "completed":
+                out.append(" ✓ ", style=f"bold {_GREEN}")
+                out.append(label + "\n", style=_GREEN)
             elif kind == "active":
-                if first_active:
-                    out.append("  ◆ ", style=f"bold {_GREEN}")
-                    out.append(label + "\n", style=f"bold {_TEXT}")
-                    first_active = False
-                else:
-                    out.append("  ◆ ", style=_TEXT)
-                    out.append(label + "\n", style=_TEXT)
+                out.append(" ◆ ", style=f"bold {_TEXT}")
+                out.append(label + "\n", style=f"bold {_TEXT}")
             elif kind == "pending":
-                out.append("  ○ ", style=_TEXT_DIM)
+                out.append(" ○ ", style=_TEXT_DIM)
                 out.append(label + "\n", style=_TEXT_DIM)
             elif kind == "rejected":
-                out.append("  ✗ ", style=_RED)
+                out.append(" ✗ ", style=_RED)
                 out.append(label + "\n", style=_RED)
             else:
-                out.append("    · ", style=_TEXT_FAINT)
+                out.append("   · ", style=_TEXT_FAINT)
                 out.append(label + "\n", style=_TEXT_FAINT)
 
         self.query_one("#todo", Static).update(out)
