@@ -499,7 +499,7 @@ class TodoTracker:
         """
         if self.current_index >= 0 and self.current_index < len(self.todos):
             status = self.todos[self.current_index].status
-            if status in ("in_progress", "rejected", "completed"):
+            if status in ("in_progress", "rejected", "completed", "pending"):
                 return False  # already valid
 
         # Find first actionable task

@@ -976,8 +976,9 @@ def chat_loop():
             if config.DEBUG_MODE:
                 print(Color.system(f"[System] Session ID: {current_session_id[:8]}"))
         except Exception as e:
-            print(Color.warning(f"[System] Session manager initialization failed: {e}"))
-            print(Color.warning("[System] Continuing without session recovery..."))
+            if not _textual_emit_content_fn:
+                print(Color.warning(f"[System] Session manager initialization failed: {e}"))
+                print(Color.warning("[System] Continuing without session recovery..."))
             session_manager = None
 
     # Default mode
@@ -1040,9 +1041,11 @@ def chat_loop():
         try:
             _default_path.parent.mkdir(parents=True, exist_ok=True)
             _default_path.write_text(_upd_rule_default, encoding="utf-8")
-            print(Color.info(f"[System] Created default .UPD_RULE.md at {_default_path}"))
+            if not _textual_emit_content_fn:
+                print(Color.info(f"[System] Created default .UPD_RULE.md at {_default_path}"))
         except Exception as e:
-            print(Color.warning(f"[System] Could not create .UPD_RULE.md: {e}"))
+            if not _textual_emit_content_fn:
+                print(Color.warning(f"[System] Could not create .UPD_RULE.md: {e}"))
     else:
         _loaded = [str(p) for p in _upd_rule_paths if p.exists()]
         if config.DEBUG_MODE:
@@ -1081,13 +1084,15 @@ def chat_loop():
         try:
             from tools import rag_index
             mode_str = "(fine-grained)" if config.RAG_FINE_GRAINED else ""
-            print(Color.system(f"[RAG] Checking for Verilog files to index... {mode_str}"))
+            if not _textual_emit_content_fn:
+                print(Color.system(f"[RAG] Checking for Verilog files to index... {mode_str}"))
             result = rag_index(".", fine_grained=config.RAG_FINE_GRAINED)
-            # Result contains indexing info (files indexed or skipped via hash)
-            if "Indexed" in result or "chunks" in result.lower():
-                print(Color.success(f"[RAG] {result}"))
-            else:
-                print(Color.system(f"[RAG] {result}"))
+            if not _textual_emit_content_fn:
+                # Result contains indexing info (files indexed or skipped via hash)
+                if "Indexed" in result or "chunks" in result.lower():
+                    print(Color.success(f"[RAG] {result}"))
+                else:
+                    print(Color.system(f"[RAG] {result}"))
         except Exception as e:
             print(Color.warning(f"[RAG] Auto-index skipped: {e}"))
 

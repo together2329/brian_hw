@@ -150,24 +150,19 @@ def _compress_single(
 
     summary_content = ""
     try:
-        import sys
-        char_count = 0
-        print("[System] Compressing", end="", flush=True)
+        print(f"  [Compress] Summarizing {len(messages)} messages...", end="", flush=True)
         for chunk in llm_call_fn(summary_request, suppress_spinner=True):
             if isinstance(chunk, tuple) and chunk[0] == "reasoning":
                 continue
             summary_content += chunk
-            char_count += len(chunk)
-            if char_count % 200 == 0:
-                print(".", end="", flush=True)
-        print(f" done ({len(summary_content)} chars)")
+        print(f" done ({len(summary_content):,} chars)")
 
         return {
             "role": "system",
             "content": f"[Previous Conversation Summary ({len(messages)} messages)]: {summary_content}",
         }
     except Exception as e:
-        print(f"\n[System] Failed to generate summary: {e}")
+        print(f"\n  [Compress] Failed: {e}")
         return messages[0] if messages else {"role": "system", "content": "[Compression failed]"}
 
 
@@ -192,13 +187,13 @@ def _compress_chunked(
     chunk_size = cfg.COMPRESSION_CHUNK_SIZE
     compressed = []
     total_chunks = (len(messages) + chunk_size - 1) // chunk_size
-    print(f"[System] Compressing {len(messages)} messages in {total_chunks} chunks...")
+    print(f"  [Compress] {len(messages)} messages in {total_chunks} chunks")
 
     for i in range(0, len(messages), chunk_size):
         chunk = messages[i : i + chunk_size]
         chunk_num = i // chunk_size + 1
 
-        print(f"[System] Chunk {chunk_num}/{total_chunks}...", end="", flush=True)
+        print(f"  [Compress] chunk {chunk_num}/{total_chunks}...", end="", flush=True)
 
         default_prompt = (
             "Summarize the following conversation segment concisely. "
@@ -320,12 +315,10 @@ def compress_history(
         return messages
 
     if not quiet:
-        print(f"\n[System] Compression triggered. Context: {current_tokens:,} {token_source} tokens.")
+        print(f"\n  [Compress] triggered — {current_tokens:,} {token_source} tokens")
 
     if not messages:
         return messages
-
-    print("[System] Using traditional compression...")
 
     # Pre-compact hook
     pre_hook_path = _find_hook_fn("pre_compact")
@@ -475,7 +468,7 @@ def compress_history(
 
     # Compress
     if mode == "chunked":
-        print(f"[System] Using chunked compression (chunk_size={cfg.COMPRESSION_CHUNK_SIZE})...")
+        print(f"  [Compress] chunked (chunk_size={cfg.COMPRESSION_CHUNK_SIZE})")
         compressed = _compress_chunked(old_msgs, cfg=cfg, llm_call_fn=llm_call_fn, instruction=instruction)
     else:
         compressed = [_compress_single(old_msgs, llm_call_fn=llm_call_fn, instruction=instruction)]
@@ -527,16 +520,11 @@ def compress_history(
         except Exception as e:
             print(f"[Hook] {post_hook_path.name} failed: {e}")
 
-    print("\n" + "=" * 60)
-    print("Compression Complete")
-    print("=" * 60)
-    print(f"Messages: {old_msg_count} → {new_msg_count} ({msg_reduction_pct}% reduction)")
     print(
-        f"Tokens:   {current_tokens:,} ({token_source}) → {new_tokens:,} (estimated) = "
-        f"{reduction_pct}% reduction"
+        f"\n  [Compress] done\n"
+        f"  | msgs    {old_msg_count:>6} → {new_msg_count:<6} ({msg_reduction_pct}% reduction)\n"
+        f"  | tokens  {current_tokens:>6,} → {new_tokens:<6,} ({reduction_pct}% reduction)\n"
+        f"  | kept    {keep_recent} recent  |  summarized {len(old_msgs)} → 1\n"
     )
-    print(f"Kept recent: {keep_recent} messages")
-    print(f"Summarized: {len(old_msgs)} → 1 summary")
-    print("=" * 60 + "\n")
 
     return new_history
