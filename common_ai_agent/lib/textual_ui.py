@@ -502,9 +502,19 @@ class AgentTUI(App):
                 self._refresh_model_sidebar()
             return
 
-        # Token stats → very faint
+        # Token stats → very faint + update sidebar token count
         if _TOKENS.search(text):
             log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
+            # Parse "sum 26.4k" or "in 26.3k" to update token counter
+            m_tok = re.search(r"\bsum\s+([\d.]+)(k?)", text)
+            if not m_tok:
+                m_tok = re.search(r"\bin\s+([\d.]+)(k?)", text)
+            if m_tok:
+                val = float(m_tok.group(1))
+                if m_tok.group(2) == "k":
+                    val *= 1000
+                self._ctx_tokens = int(val)
+                self._redraw_context()
             return
 
         # Shorten long paths
