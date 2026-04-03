@@ -1153,7 +1153,11 @@ def chat_loop():
                     _plan_prompt = ANSI(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
                     user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
                 elif agent_mode == 'plan':
-                    _plan_prompt = ANSI(Color.warning("Plan Confirmation [y/yc/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                    print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
+                    print(f"  {Color.DIM}y   → execute plan now")
+                    print(f"  yc  → execute + compress context")
+                    print(f"  n   → cancel{Color.RESET}")
+                    _plan_prompt = ANSI(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
                     user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
                 else:
                     user_input = _multiline_prompt.prompt(_prompt_text)
@@ -1164,8 +1168,12 @@ def chat_loop():
                 if agent_mode == 'plan_q':
                     user_input = _input_fn(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
                 elif agent_mode == 'plan':
-                    print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} A plan is active. Confirm to execute or provide feedback.")
-                    user_input = _input_fn(Color.warning("Plan Confirmation [y/yc/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                    print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
+                    print(f"  {Color.DIM}y   → execute plan now")
+                    print(f"  yc  → execute + compress context (clean up conversation)")
+                    print(f"  n   → cancel / revise")
+                    print(f"  (anything else) → feedback / refinement{Color.RESET}")
+                    user_input = _input_fn(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
                 else:
                     _em = getattr(config, 'EXECUTION_MODE', 'agent')
                     if _em == 'chat':
@@ -1199,7 +1207,12 @@ def chat_loop():
                     skill_arg = user_input[8:].strip() if len(user_input) > 8 else ""
                     handle_skills_command(skill_arg, load_active_skills)
                     if _textual_emit_todo_fn:
-                        _textual_emit_todo_fn("")  # trigger context/skill refresh in sidebar
+                        # Refresh sidebar: reload todo and send current state (don't wipe it)
+                        _tt = TodoTracker.load(Path(config.TODO_FILE)) if Path(config.TODO_FILE).exists() else None
+                        if _tt and _tt.todos:
+                            _textual_emit_todo_fn(_tt.format_simple())
+                        else:
+                            _textual_emit_todo_fn("")
                     continue
 
                 result = slash_registry.execute(user_input)
@@ -1624,7 +1637,12 @@ def chat_loop():
                             config.MODEL_NAME = target
                         print(Color.success(f"\n✅ Model switched to: {config.MODEL_NAME}\n"))
                         if _textual_emit_todo_fn:
-                            _textual_emit_todo_fn("")  # refresh sidebar model/context
+                            # Refresh sidebar: reload todo and send current state (don't wipe it)
+                            _tt = TodoTracker.load(Path(config.TODO_FILE)) if Path(config.TODO_FILE).exists() else None
+                            if _tt and _tt.todos:
+                                _textual_emit_todo_fn(_tt.format_simple())
+                            else:
+                                _textual_emit_todo_fn("")
                         continue
 
                     if result.startswith("INJECT_PROMPT:"):

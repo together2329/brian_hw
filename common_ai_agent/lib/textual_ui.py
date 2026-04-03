@@ -558,7 +558,9 @@ class AgentTUI(App):
         # ── Color-coded lines ───────────────────────────────────────────────
 
         # Todo status bar: suppress from main log (shown in sidebar only)
-        if re.match(r"^\d+;\[(\d+/\d+)\]", text):
+        # Strip ANSI before checking so escape codes don't break the match
+        _plain = _ANSI.sub("", text)
+        if re.match(r"^\d+;\[(\d+/\d+)\]", _plain):
             return
 
         # System messages: [Plan Mode], [System], [Error]

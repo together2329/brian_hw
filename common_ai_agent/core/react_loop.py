@@ -418,9 +418,9 @@ def run_react_agent_impl(
                 sys.stdout.write(f"\033]0;{_title_text}\007")
                 sys.stdout.flush()
 
-        # Print iteration header (with active_form of current todo if available)
+        # Print iteration header (task label only in terminal mode — sidebar shows it in TUI)
         _todo_label = ""
-        if todo_tracker and todo_tracker.todos:
+        if not deps.emit_todo_fn and todo_tracker and todo_tracker.todos:
             _cur = todo_tracker.get_current_todo()
             if _cur and _cur.active_form and _cur.active_form != _cur.content:
                 _todo_label = _cur.active_form
