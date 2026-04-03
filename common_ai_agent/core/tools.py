@@ -2328,6 +2328,15 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                 "If you truly need to re-work this task, use status='rejected' with a specific reason."
             )
 
+        # Protection: completed task must be reviewed (approved/rejected), not reset to in_progress
+        if item.status == "completed" and status == "in_progress":
+            return (
+                f"Status Conflict: Task {index} is already 'completed' and awaiting review.\n"
+                f"→ Approve: todo_update(index={index}, status='approved', reason='<evidence>')\n"
+                f"→ Reject:  todo_update(index={index}, status='rejected', reason='<problem>')\n"
+                "Do NOT reset to 'in_progress' without going through review."
+            )
+
         # Enforce state machine: must go through 'completed' before 'approved'
         if status == "approved" and item.status not in ("completed", "approved"):
             return (

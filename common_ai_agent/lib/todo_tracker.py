@@ -237,6 +237,8 @@ class TodoTracker:
         self.todos[index].status = "completed"
         self.todos[index].completed_at = time.time()
         self.todos[index].rejection_reason = ""
+        # Keep current_index pointing at this task so review prompt targets it
+        self.current_index = index
         self.save()
 
     def mark_approved(self, index: int):
@@ -528,8 +530,13 @@ class TodoTracker:
                     f"Fix the issue, then call: todo_update(index={idx}, status='in_progress')"
                 )
             elif current.status == "completed":
-                # Review instruction is already in the tool return value — no separate injection
-                return None
+                # Inject review reminder — LLM must explicitly approve or reject
+                prompt = (
+                    f"[Task {idx}/{total} REVIEW REQUIRED] \"{current.content}\"\n"
+                    f"You marked this task completed. Now perform a CRITICAL review before approving.\n"
+                    f"→ Pass → todo_update(index={idx}, status='approved', reason='<concrete evidence>')\n"
+                    f"→ Issue → todo_update(index={idx}, status='rejected', reason='<exact problem>')"
+                )
             else:
                 in_prog = current.status == "in_progress"
                 first_action = (
@@ -557,12 +564,17 @@ class TodoTracker:
                     prompt += f"\n\n=== PROJECT RULES (reminder) ===\n{upd_rule}"
             return prompt
 
-        unreviewed = [i for i, t in enumerate(self.todos) if t.status == "completed"]
+        # No current task set — check for unreviewed completed tasks
+        unreviewed = [(i, t) for i, t in enumerate(self.todos) if t.status == "completed"]
         if unreviewed:
-            # Review instruction is already in the tool return value — no separate injection
-            return None
+            i, t = unreviewed[0]
+            idx = i + 1
+            return (
+                f"[Task {idx}/{total} REVIEW REQUIRED] \"{t.content}\"\n"
+                f"→ Pass → todo_update(index={idx}, status='approved', reason='<concrete evidence>')\n"
+                f"→ Issue → todo_update(index={idx}, status='rejected', reason='<exact problem>')"
+            )
 
-        # Next task instruction is already in the 'approved' tool return — no separate injection
         return None
 
     def get_minimal_context(self, step_idx: int) -> str:

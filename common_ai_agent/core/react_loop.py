@@ -976,17 +976,13 @@ def run_react_agent_impl(
                 auto_advance_threshold = getattr(cfg, "TODO_AUTO_ADVANCE_THRESHOLD", max(3, limit // 10))
                 count = getattr(todo_tracker, "stagnation_count", 0)
                 current = todo_tracker.get_current_todo()
-                # Auto-advance BEFORE hitting stagnation limit
+                # Stagnation: mark current task completed and let review prompt drive next step
                 if count >= auto_advance_threshold and current and current.status == "in_progress":
                     idx = todo_tracker.current_index + 1
                     print(
-                        f"\n[System] Auto-advancing task {idx} (no todo_update after {count} turns): \"{current.content}\""
+                        f"\n[System] Stagnation detected on task {idx} after {count} turns — marking completed for review."
                     )
                     todo_tracker.mark_completed(todo_tracker.current_index)
-                    next_idx = todo_tracker._get_next_pending()
-                    if next_idx is not None:
-                        todo_tracker.current_index = next_idx
-                        todo_tracker.todos[next_idx].status = "in_progress"
                     todo_tracker.stagnation_count = 0
                     todo_tracker.save()
                     if deps.emit_todo_fn:
