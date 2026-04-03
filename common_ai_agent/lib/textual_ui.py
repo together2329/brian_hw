@@ -274,7 +274,7 @@ def _shorten_path(text: str, max_len: int = 140) -> str:
 # ── App ───────────────────────────────────────────────────────────────────────
 
 class AgentTUI(App):
-    TITLE = "common_ai_agent"
+    TITLE = "UPD Agent"
 
     CSS = f"""
     Screen {{
@@ -449,7 +449,7 @@ class AgentTUI(App):
             yield RichLog(id="main", highlight=True, wrap=True, markup=False, auto_scroll=True)
             yield Static("", id="live")
         with Vertical(id="sidebar"):
-            yield Static("common_ai_agent", id="agent-label")
+            yield Static("UPD Agent", id="agent-label")
             yield Static("", id="task-title")
             yield Static("Model", id="model-header")
             yield Static("", id="model")
@@ -465,6 +465,10 @@ class AgentTUI(App):
 
     def on_mount(self) -> None:
         self._update_statusbar()
+        log = self.query_one("#main", RichLog)
+        t = RichText()
+        t.append("  UPD Agent", style=f"bold {_ACCENT}")
+        log.write(t)
         self.query_one(Input).focus()
         self._start_agent()
         self.set_timer(0.1, self._init_sidebar)
