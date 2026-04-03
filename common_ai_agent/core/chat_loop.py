@@ -51,6 +51,7 @@ class ChatLoopDeps:
     context_tracker: Optional[Any] = None
     curator: Optional[Any] = None
     hook_registry: Optional[Any] = None   # phase9 gap: was missing, hooks not firing per-turn
+    input_fn: Optional[Callable] = None   # override for Textual TUI (default: built-in input())
 
 
 # "continue" | "break" | "skip"  (Literal not available in Python 3.7)

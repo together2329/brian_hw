@@ -102,6 +102,15 @@ if getattr(config, 'ENABLE_DEEP_THINK', False) and not getattr(config, 'ENABLE_S
     except ImportError:
         pass
 
+# Textual TUI callbacks (set by textual_main.py before calling chat_loop())
+_textual_emit_content_fn = None
+_textual_emit_reasoning_fn = None
+_textual_emit_todo_fn = None
+_textual_input_fn = None  # replaces input() when set
+
+# ChatLoopDeps instance (set inside chat_loop(); exposed for textual_main.py)
+_loop_deps = None
+
 # Legacy Sub-Agent System (deprecated - replaced by background agent system in v2)
 orchestrator = None
 if getattr(config, 'ENABLE_SUB_AGENTS', False):
@@ -479,11 +488,7 @@ def load_active_skills(messages, allowed_tools=None):
             if skill:
                 skill_prompts.append(skill.format_for_prompt())
 
-        # forced skills output (llm-routed already printed above)
-        if skill_prompts:
-            for skill_name in active_skill_names:
-                if skill_name in forced_skills:
-                    print(Color.system(f"  [skill] {skill_name} (forced)"))
+        # forced skill print suppressed — shown in TUI sidebar instead
 
         return skill_prompts
 
@@ -922,6 +927,15 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
         load_snapshot_fn=_load_conv_snapshot,
         build_prompt_str_fn=_build_system_prompt_str,
         get_recovery_state_fn=lambda: (current_recovery_point, session_manager, current_session_id),
+        # Textual TUI callbacks (None in normal terminal mode)
+        emit_content_fn=_textual_emit_content_fn,
+        emit_reasoning_fn=_textual_emit_reasoning_fn,
+        emit_todo_fn=_textual_emit_todo_fn,
+        # Disable EscapeWatcher in Textual mode — Textual owns stdin; raw tty read
+        # conflicts with Textual's input handling, causing false ESC triggers.
+        esc_check_fn=(lambda: False) if _textual_input_fn is not None else None,
+        esc_start_fn=(lambda: None) if _textual_input_fn is not None else None,
+        esc_stop_fn=(lambda: None) if _textual_input_fn is not None else None,
     )
     return _run_react_agent_impl(
         messages=messages,
@@ -1088,6 +1102,7 @@ def chat_loop():
         is_first_turn=is_first_turn,
         todo_tracker=todo_tracker_main,
     )
+    global _loop_deps
     _loop_deps = _ChatLoopDeps(
         cfg=config,
         run_react_agent_fn=run_react_agent,
@@ -1100,6 +1115,7 @@ def chat_loop():
         context_tracker=context_tracker,
         curator=curator,
         hook_registry=hook_registry,
+        input_fn=_textual_input_fn,  # None in terminal mode; set by textual_main.py
     )
 
     # ── Multiline input setup ──
@@ -1144,11 +1160,12 @@ def chat_loop():
             else:
                 is_plan_turn = (agent_mode in ('plan', 'plan_q'))
 
+                _input_fn = _loop_deps.input_fn or input
                 if agent_mode == 'plan_q':
-                    user_input = input(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
+                    user_input = _input_fn(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
                 elif agent_mode == 'plan':
                     print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} A plan is active. Confirm to execute or provide feedback.")
-                    user_input = input(Color.warning("Plan Confirmation [y/yc/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                    user_input = _input_fn(Color.warning("Plan Confirmation [y/yc/feedback] ") + Color.CYAN + "> " + Color.RESET)
                 else:
                     _em = getattr(config, 'EXECUTION_MODE', 'agent')
                     if _em == 'chat':
@@ -1158,7 +1175,7 @@ def chat_loop():
                         _em_prefix = f"[{_em}] "
                     else:
                         _em_prefix = ""
-                    user_input = input(_em_prefix + Color.user("> ") + Color.RESET)
+                    user_input = _input_fn(_em_prefix + Color.user("> ") + Color.RESET)
             if user_input.lower() in ["exit", "quit"]:
                 break
 
@@ -1181,6 +1198,8 @@ def chat_loop():
                     from core.skill_commands import handle_skills_command
                     skill_arg = user_input[8:].strip() if len(user_input) > 8 else ""
                     handle_skills_command(skill_arg, load_active_skills)
+                    if _textual_emit_todo_fn:
+                        _textual_emit_todo_fn("")  # trigger context/skill refresh in sidebar
                     continue
 
                 result = slash_registry.execute(user_input)
@@ -1613,6 +1632,13 @@ def chat_loop():
                         # Regular command output (PLAN_AND_RUN already set user_input above — fall through)
                         if result:
                             print(result)
+                        # Refresh Textual sidebar after any slash command that may change todo state
+                        if _textual_emit_todo_fn and todo_tracker_main:
+                            todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE)) if Path(config.TODO_FILE).exists() else None
+                            if todo_tracker_main and todo_tracker_main.todos:
+                                _textual_emit_todo_fn(todo_tracker_main.format_simple())
+                            else:
+                                _textual_emit_todo_fn("")  # signal sidebar to clear
                         continue
 
             # Auto-extract preferences from user input (Mem0-style)

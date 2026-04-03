@@ -126,6 +126,11 @@ class ReactLoopDeps:
     esc_start_fn: Optional[Callable] = None  # () → None
     esc_stop_fn: Optional[Callable] = None   # () → None
 
+    # Optional Textual UI overrides (None = default sys.stdout behavior)
+    emit_content_fn: Optional[Callable] = None    # (line: str) → None
+    emit_reasoning_fn: Optional[Callable] = None  # (line: str, blank: bool) → None
+    emit_todo_fn: Optional[Callable] = None       # (text: str) → None
+
 
 # ---------------------------------------------------------------------------
 # Main ReAct loop implementation
@@ -425,6 +430,10 @@ def run_react_agent_impl(
             todo_label=_todo_label,
         ), flush=True)
 
+        # Notify Textual UI of current todo state
+        if deps.emit_todo_fn and todo_tracker and todo_tracker.todos:
+            deps.emit_todo_fn(todo_tracker.format_simple())
+
         # ----- Streaming LLM call -----
         from core.stream_parser import StreamParser
 
@@ -436,24 +445,47 @@ def run_react_agent_impl(
         _aborted = False
         _debug = getattr(cfg, "DEBUG_MODE", False)
 
+        # Terminal output buffer: batch writes every 30ms to reduce syscalls (#2 speedup)
+        _out_buf: list = []
+        _last_flush_t = [time.time()]
+        _FLUSH_INTERVAL = 0.03  # 30ms
+
+        def _flush_out():
+            if _out_buf:
+                sys.stdout.write("".join(_out_buf))
+                _out_buf.clear()
+                sys.stdout.flush()
+
+        def _buf_write(text: str) -> None:
+            _out_buf.append(text)
+            now = time.time()
+            if now - _last_flush_t[0] >= _FLUSH_INTERVAL:
+                _flush_out()
+                _last_flush_t[0] = now
+
         def _emit_content(line):
-            sys.stdout.write(f"  {line}\n")
-            sys.stdout.flush()
+            if deps.emit_content_fn:
+                deps.emit_content_fn(line)
+            else:
+                _buf_write(f"  {line}\n")
 
         def _emit_reasoning(line, blank=False):
-            if blank:
-                sys.stdout.write("\n")
+            if deps.emit_reasoning_fn:
+                deps.emit_reasoning_fn(line, blank)
             else:
-                sys.stdout.write(f"  {Color.DIM}{line}{Color.RESET}\n")
-            sys.stdout.flush()
+                _buf_write("\n" if blank else f"  {Color.DIM}{line}{Color.RESET}\n")
 
         def _emit_thought(line):
-            sys.stdout.write(f"  Thought:{line}\n")
-            sys.stdout.flush()
+            if deps.emit_content_fn:
+                deps.emit_content_fn(f"Thought:{line}")
+            else:
+                _buf_write(f"  Thought:{line}\n")
 
         def _emit_blank():
-            sys.stdout.write("\n")
-            sys.stdout.flush()
+            if deps.emit_content_fn:
+                deps.emit_content_fn("")
+            else:
+                _buf_write("\n")
 
         _parser = StreamParser(
             emit_fn=_emit_content,
@@ -512,6 +544,7 @@ def run_react_agent_impl(
             _thinking_stopped = True
 
         collected_content = _parser.flush()
+        _flush_out()  # drain any remaining buffered output
 
         llm_elapsed = time.time() - _stream_start
 
@@ -793,6 +826,12 @@ def run_react_agent_impl(
 
                     combined_results.append(f"--- [Action {i+1}] {tool_name} ---\n{agent_observation}")
 
+                    # Refresh Textual sidebar immediately after todo changes
+                    if deps.emit_todo_fn and tool_name in ("todo_update", "todo_write", "todo_add", "todo_remove") and todo_tracker:
+                        todo_tracker.load()  # re-read from disk in case tool modified it
+                        if todo_tracker.todos:
+                            deps.emit_todo_fn(todo_tracker.format_simple())
+
             observation = "\n\n".join(combined_results)
 
             # Snapshot on task approval
@@ -931,6 +970,8 @@ def run_react_agent_impl(
                         todo_tracker.todos[next_idx].status = "in_progress"
                     todo_tracker.stagnation_count = 0
                     todo_tracker.save()
+                    if deps.emit_todo_fn:
+                        deps.emit_todo_fn(todo_tracker.format_simple())
                 elif todo_tracker.check_stagnation(max_stagnation=limit):
                     hint = todo_tracker.get_stagnation_hint()
                     print(
