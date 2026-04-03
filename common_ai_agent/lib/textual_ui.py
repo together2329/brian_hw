@@ -297,6 +297,9 @@ class AgentTUI(App):
         self._generating = False
         self._in_diff = False   # True after a write/replace tool call
         self._active_model = ""
+        self._ctx_tokens = 0
+        self._ctx_max_tokens = 65536
+        self._ctx_skill = ""
         try:
             import config as _cfg
             self._model = getattr(_cfg, "MODEL_NAME", "")
@@ -440,40 +443,37 @@ class AgentTUI(App):
         log.write(t)
 
     def on_context_update(self, msg: ContextUpdate) -> None:
+        self._ctx_tokens = msg.tokens
+        self._ctx_max_tokens = msg.max_tokens
+        self._ctx_skill = msg.skill
+        self._redraw_context()
+
+    def _redraw_context(self) -> None:
+        """Redraw the #context sidebar widget from stored state."""
         try:
-            ctx = self.query_one("#context", Static)
+            def _short(name: str) -> str:
+                return name.split("/")[-1] if "/" in name else name
+
             t = RichText()
-            if msg.max_tokens:
-                pct = int(msg.tokens / msg.max_tokens * 100)
-                tk_str = f"{msg.tokens:,}"
-                t.append(f"{tk_str} tokens  ", style=_TEXT_DIM)
+            # Token usage
+            if self._ctx_max_tokens:
+                pct = int(self._ctx_tokens / self._ctx_max_tokens * 100)
+                t.append(f"{self._ctx_tokens:,} tokens  ", style=_TEXT_DIM)
                 t.append(f"{pct}%\n", style=f"dim {_YELLOW if pct > 60 else _TEXT_FAINT}")
-            if msg.skill:
-                t.append(f"skill  ", style=f"dim {_TEXT_FAINT}")
-                t.append(f"{msg.skill}\n", style=f"{_ACCENT}")
-            self._render_model_block(t)
-            ctx.update(t)
+            # Skill
+            if self._ctx_skill:
+                t.append(f"{self._ctx_skill}\n", style=_ACCENT)
+            # Active model
+            active = _short(self._active_model) if self._active_model else _short(self._primary_model)
+            if active:
+                t.append(active, style=f"dim {_TEXT_DIM}")
+            self.query_one("#context", Static).update(t)
         except Exception:
             pass
-
-    def _render_model_block(self, t: RichText) -> None:
-        """Append active model line to a RichText object."""
-        def _short(name: str) -> str:
-            return name.split("/")[-1] if "/" in name else name
-
-        active = _short(self._active_model) if self._active_model else _short(self._primary_model)
-        if active:
-            t.append(active, style=f"dim {_TEXT_DIM}")
 
     def _refresh_model_sidebar(self) -> None:
-        """Re-render context widget with updated active model."""
-        try:
-            ctx = self.query_one("#context", Static)
-            t = RichText()
-            self._render_model_block(t)
-            ctx.update(t)
-        except Exception:
-            pass
+        """Called when active model changes — redraw context with current state."""
+        self._redraw_context()
 
     def on_main_line(self, msg: MainLine) -> None:
         self._flush_response()
