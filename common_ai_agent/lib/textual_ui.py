@@ -832,23 +832,22 @@ class AgentTUI(App):
         items: list[tuple[str, str]] = []
         task_title = ""
 
-        _strip_num = lambda t: re.sub(r"^\d+\.\s*", "", t)
         for line in clean.splitlines():
             s = line.strip()
             if not s or "── TODO ──" in s:
                 continue
             if s.startswith("▶") and not task_title:
-                task_title = _strip_num(s[1:].strip())
+                task_title = s[1:].strip()
             if s.startswith("✅"):
-                items.append(("approved", _strip_num(s[1:].strip())))
+                items.append(("approved", s[1:].strip()))
             elif s.startswith("👀"):
-                items.append(("completed", _strip_num(s[1:].strip())))
+                items.append(("completed", s[1:].strip()))
             elif s.startswith("▶"):
-                items.append(("active", _strip_num(s[1:].strip())))
+                items.append(("active", s[1:].strip()))
             elif s.startswith("⏸"):
-                items.append(("pending", _strip_num(s[1:].strip())))
+                items.append(("pending", s[1:].strip()))
             elif s.startswith("❌"):
-                items.append(("rejected", _strip_num(s[1:].strip())))
+                items.append(("rejected", s[1:].strip()))
             elif s.startswith("•"):
                 items.append(("sub", s[1:].strip()))
 
@@ -870,10 +869,10 @@ class AgentTUI(App):
                 out.append(" ✓ ", style=f"bold {_GREEN}")
                 out.append(label + "\n", style=_GREEN)
             elif kind == "active":
-                out.append(" ◆ ", style=f"bold {_TEXT}")
+                out.append(" ▶ ", style=f"bold {_TEXT}")
                 out.append(label + "\n", style=f"bold {_TEXT}")
             elif kind == "pending":
-                out.append(" ○ ", style=_TEXT_DIM)
+                out.append(" · ", style=_TEXT_DIM)
                 out.append(label + "\n", style=_TEXT_DIM)
             elif kind == "rejected":
                 out.append(" ✗ ", style=_RED)
