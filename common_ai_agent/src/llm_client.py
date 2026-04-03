@@ -682,8 +682,6 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     finally:
         if _spinner:
             _spinner.stop()
-            sys.stderr.write(f"  \033[36m✽\033[0m \033[2mThinking...\033[0m\n")
-            sys.stderr.flush()
 
     msg = result["choices"][0]["message"]
     usage = result.get("usage", {})
