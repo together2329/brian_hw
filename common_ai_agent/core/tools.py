@@ -1551,6 +1551,12 @@ def replace_lines(path, start_line, end_line, new_content):
         lines_removed = end_line - start_line + 1
         result = f"Replaced lines {start_line}-{end_line} ({lines_removed} lines) in {path}\n"
         result += f"\n{diff_output}"
+        
+        added = len(new_content.splitlines())
+        hint = f"--- old ---\n{old_content[start_line-1:end_line][:400]}\n--- new ---\n{new_content[:400]}" if isinstance(old_content, list) else ""
+        import threading as _t
+        _t.Thread(target=_git_auto_commit, args=(path, "replace_lines"), kwargs={"stats": f"+{added}/-{lines_removed} lines", "content_hint": hint}, daemon=False).start()
+        
         return result
     except Exception as e:
         return f"Error replacing lines: {e}"

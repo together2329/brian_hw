@@ -15,7 +15,7 @@ from rich.markdown import Heading as _RichHeading
 from rich.text import Text as RichText
 from rich.table import Table as RichTable
 from textual.app import App, ComposeResult
-from textual.containers import Vertical
+from textual.containers import Vertical, VerticalScroll
 from textual.message import Message
 from textual.widgets import Input, RichLog, Static
 from textual import work
@@ -286,16 +286,16 @@ class AgentTUI(App):
     #main-col {{
         width: 1fr;
         height: 1fr;
+        overflow-y: scroll;
     }}
 
     /* ── Main panel ── */
     #main {{
         width: 1fr;
-        height: 1fr;
+        height: auto;
         background: {_BG};
-        scrollbar-size: 1 1;
-        scrollbar-color: {_BORDER};
         padding: 0 2;
+        overflow-y: hidden;
     }}
 
     /* ── Sidebar ── */
@@ -382,15 +382,14 @@ class AgentTUI(App):
         padding: 0 2;
     }}
 
-    /* ── Live streaming preview (docked overlay — no layout shift) ── */
+    /* ── Live streaming preview (flows naturally downwards) ── */
     #live {{
-        dock: bottom;
         height: auto;
-        max-height: 12;
+        max-height: 100%;
         background: {_BG};
         color: {_TEXT};
         padding: 0 1;
-        border-top: solid {_BORDER_DIM};
+        border-left: solid {_ACCENT};
         margin: 0 1;
         display: none;
     }}
@@ -446,7 +445,7 @@ class AgentTUI(App):
         home = os.path.expanduser("~")
         cwd = cwd_full.replace(home, "~") if cwd_full.startswith(home) else cwd_full
 
-        with Vertical(id="main-col"):
+        with VerticalScroll(id="main-col"):
             yield RichLog(id="main", highlight=True, wrap=True, markup=False)
             yield Static("", id="live")
         with Vertical(id="sidebar"):
@@ -639,6 +638,10 @@ class AgentTUI(App):
             live = self.query_one("#live", Static)
             live.update(_LeftMarkdown(_fix_md(self._response_buf)))
             live.add_class("active")
+            try:
+                self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
+            except Exception:
+                pass
         except Exception:
             pass
 
@@ -815,14 +818,14 @@ class AgentTUI(App):
                 log.write(RichText(f"  {text}", style=f"bold {_ACCENT}"))
                 return
             # Non-diff line ends the diff block
-            if not re.match(r"^\s*[└|]", text):
+            if not re.match(r"^\s*[└|│⎿]", text):
                 self._in_diff = False
 
-        # Tool result lines: "└", "|", or "⎿"
-        if re.match(r"^\s*[└|⎿]", text):
+        # Tool result lines: "└", "|", "│", or "⎿"
+        if re.match(r"^\s*[└|│⎿]", text):
             self._in_result = True
             # Strip tree prefix to check if content is a diff line
-            inner = re.sub(r"^\s*[└|⎿]\s*", "", text)
+            inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", text)
             if self._in_diff and re.match(r"^\+[^+]", inner):
                 log.write(RichText(f"  {text.strip()}", style=f"bold {_GREEN}"))
             elif self._in_diff and re.match(r"^-[^-]", inner):
