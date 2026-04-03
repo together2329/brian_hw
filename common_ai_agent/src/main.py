@@ -488,11 +488,7 @@ def load_active_skills(messages, allowed_tools=None):
             if skill:
                 skill_prompts.append(skill.format_for_prompt())
 
-        # forced skills output (llm-routed already printed above)
-        if skill_prompts:
-            for skill_name in active_skill_names:
-                if skill_name in forced_skills:
-                    print(Color.system(f"  [skill] {skill_name} (forced)"))
+        # forced skill print suppressed — shown in TUI sidebar instead
 
         return skill_prompts
 
