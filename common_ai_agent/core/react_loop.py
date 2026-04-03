@@ -930,7 +930,7 @@ def run_react_agent_impl(
             messages = deps.process_obs_fn(observation, messages, todo_tracker=todo_tracker)
 
             # Todo continuation reminder
-            _last_tool_was_todo = tool_name in ("todo_update", "todo_write", "todo_add")
+            _last_tool_was_todo = tool_name in ("todo_update", "todo_write", "todo_add", "todo_remove")
             if (todo_tracker and todo_tracker.todos
                     and not todo_tracker.is_all_processed()
                     and not _last_tool_was_todo):
@@ -979,9 +979,10 @@ def run_react_agent_impl(
                 # Stagnation: mark current task completed and let review prompt drive next step
                 if count >= auto_advance_threshold and current and current.status == "in_progress":
                     idx = todo_tracker.current_index + 1
-                    print(
-                        f"\n[System] Stagnation detected on task {idx} after {count} turns — marking completed for review."
-                    )
+                    if not deps.emit_content_fn:
+                        print(
+                            f"\n[System] Stagnation detected on task {idx} after {count} turns — marking completed for review."
+                        )
                     todo_tracker.mark_completed(todo_tracker.current_index)
                     todo_tracker.stagnation_count = 0
                     todo_tracker.save()

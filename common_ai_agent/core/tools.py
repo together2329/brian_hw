@@ -2353,9 +2353,8 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                     f"→ todo_update(index={index}, status='approved', reason='<what you checked>')"
                 )
             item.rejection_reason = ""
-            todo_tracker.mark_approved(idx)
+            todo_tracker.mark_approved(idx)  # internally calls save()
             _git_tag_todo(index, "approved", item.content)
-            todo_tracker.save()
             next_todo = todo_tracker.get_current_todo()
             if next_todo:
                 next_idx = todo_tracker.current_index + 1
@@ -2366,8 +2365,7 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             return f"✅ Task {index} approved. [{reason}] All tasks complete! 🏁"
         elif status == "completed":
             item.rejection_reason = ""
-            todo_tracker.mark_completed(idx)
-            todo_tracker.save()
+            todo_tracker.mark_completed(idx)  # internally calls save()
             review_steps = (
                 f"Task {index} marked completed. Now perform a CRITICAL, ADVERSARIAL review.\n"
                 f"You are a skeptical reviewer — your job is to find problems, not to approve.\n\n"
@@ -2385,8 +2383,7 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
         elif status == "rejected":
             if not reason:
                 return "Error: You MUST provide a 'reason' when marking a task as 'rejected'. What needs to be fixed?"
-            todo_tracker.mark_rejected(idx, reason)
-            todo_tracker.save()
+            todo_tracker.mark_rejected(idx, reason)  # internally calls save()
             return (
                 f"❌ Task {index} rejected: {reason}\n"
                 f"→ Fix, then: todo_update(index={index}, status='in_progress')"
