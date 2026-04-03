@@ -805,10 +805,6 @@ class AgentTUI(App):
         m_tool = re.match(r"^\s*[⏺•·]\s*(\w+)\((.*)$", text)
         if m_tool:
             self._in_diff = False  # reset diff state on every new tool call
-            # Close any open result block with a trailing blank line
-            if self._in_result:
-                log.write(RichText(""))
-                self._in_result = False
             tool_name = m_tool.group(1)
             args_part = m_tool.group(2)
             _WRITE_TOOLS = {"write_file","write_to_file","replace_in_file","replace_lines","replace_file_content"}
@@ -817,7 +813,10 @@ class AgentTUI(App):
                 self._in_diff = True
             elif tool_name in _GIT_TOOLS:
                 self._in_diff = True
-            # Blank line before each action for breathing room
+            # One blank line before each tool call for separation.
+            # If coming from a result block, that blank also closes the result.
+            if self._in_result:
+                self._in_result = False
             log.write(RichText(""))
             t = RichText()
             t.append(f"  {tool_name}", style=f"bold {_ORANGE}")
