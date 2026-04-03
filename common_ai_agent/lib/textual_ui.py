@@ -221,7 +221,6 @@ class AgentTUI(App):
         width: 48;
         height: 100%;
         dock: right;
-        border-left: solid {_BORDER_DIM};
         padding: 0 1;
         background: {_BG};
     }}
@@ -307,7 +306,7 @@ class AgentTUI(App):
         dock: bottom;
         background: {_BG_INPUT};
         border: none;
-        padding: 0 2;
+        padding: 1 2;
         color: {_TEXT};
     }}
     Input:focus {{
