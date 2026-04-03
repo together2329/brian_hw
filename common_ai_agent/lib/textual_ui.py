@@ -259,15 +259,15 @@ class InputBridge:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _shorten_path(text: str, max_len: int = 76) -> str:
+def _shorten_path(text: str, max_len: int = 140) -> str:
     if len(text) <= max_len:
         return text
-    m = re.search(r"(/[^\s)\"']{30,})", text)
+    m = re.search(r"(/[^\s)\"']{40,})", text)
     if not m:
         return text
     path = m.group(1)
     parts = path.split("/")
-    short = "/…/" + "/".join(parts[-3:]) if len(parts) > 3 else path
+    short = "/…/" + "/".join(parts[-4:]) if len(parts) > 4 else path
     return text.replace(path, short)
 
 
@@ -497,7 +497,7 @@ class AgentTUI(App):
             # Max tokens: config uses chars ÷ 4
             max_tok = getattr(_cfg, "MAX_CONTEXT_CHARS", 512000) // 4
 
-            saved_msgs = _load_hist()
+            saved_msgs = _load_hist(silent=True)
             ctx_tokens = sum(estimate_message_tokens(m) for m in saved_msgs) if saved_msgs else 0
 
             # Skill: read from already-imported main module (no re-execution)
@@ -770,6 +770,15 @@ class AgentTUI(App):
             log.write(t)
             return
 
+        # Parallel run header
+        m_parallel = re.match(r"^\s*⚡\s+(.*)", text)
+        if m_parallel:
+            log.write(RichText(""))
+            t = RichText()
+            t.append(f"  ⚡ {m_parallel.group(1)}", style=f"bold {_YELLOW}")
+            log.write(t)
+            return
+
         # Tool calls: "⏺ tool_name(...)" or "• tool_name(...)"
         m_tool = re.match(r"^\s*[⏺•·]\s*(\w+)\((.*)$", text)
         if m_tool:
@@ -809,11 +818,11 @@ class AgentTUI(App):
             if not re.match(r"^\s*[└|]", text):
                 self._in_diff = False
 
-        # Tool result lines: "└ ..." or "| ..."
-        if re.match(r"^\s*[└|]", text):
+        # Tool result lines: "└", "|", or "⎿"
+        if re.match(r"^\s*[└|⎿]", text):
             self._in_result = True
             # Strip tree prefix to check if content is a diff line
-            inner = re.sub(r"^\s*[└|]\s*", "", text)
+            inner = re.sub(r"^\s*[└|⎿]\s*", "", text)
             if self._in_diff and re.match(r"^\+[^+]", inner):
                 log.write(RichText(f"  {text.strip()}", style=f"bold {_GREEN}"))
             elif self._in_diff and re.match(r"^-[^-]", inner):

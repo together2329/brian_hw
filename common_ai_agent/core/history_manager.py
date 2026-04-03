@@ -44,11 +44,12 @@ def save_conversation_history(
             print(f"[System] Failed to save history: {e}")
 
 
-def load_conversation_history(cfg=None) -> Optional[List[Dict[str, Any]]]:
+def load_conversation_history(cfg=None, silent=False) -> Optional[List[Dict[str, Any]]]:
     """Load conversation history from JSON file if it exists.
 
     Args:
-        cfg: Config namespace. Defaults to importing the config module.
+        cfg:    Config namespace. Defaults to importing the config module.
+        silent: If True, suppress the "[System] Loaded" print message.
 
     Returns:
         List of message dicts, or None if not available.
@@ -63,11 +64,12 @@ def load_conversation_history(cfg=None) -> Optional[List[Dict[str, Any]]]:
         if os.path.exists(cfg.HISTORY_FILE):
             with open(cfg.HISTORY_FILE, 'r', encoding='utf-8') as f:
                 messages = json.load(f)
-            try:
-                from lib.display import Color  # type: ignore
-                print(Color.success(f"[System] Loaded {len(messages)} messages from {cfg.HISTORY_FILE}"))
-            except ImportError:
-                print(f"[System] Loaded {len(messages)} messages from {cfg.HISTORY_FILE}")
+            if not silent:
+                try:
+                    from lib.display import Color  # type: ignore
+                    print(Color.success(f"[System] Loaded {len(messages)} messages from {cfg.HISTORY_FILE}"))
+                except ImportError:
+                    print(f"[System] Loaded {len(messages)} messages from {cfg.HISTORY_FILE}")
             return messages
     except Exception as e:
         try:

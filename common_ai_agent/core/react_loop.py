@@ -699,11 +699,22 @@ def run_react_agent_impl(
 
             if len(actions) > 1 and getattr(cfg, "ENABLE_REACT_PARALLEL", False):
                 print(f"  ⚡ {len(actions)} actions (parallel)")
+                
+                # Pre-declare _INLINE_TOOLS to share with parallel rendering
+                _INLINE_TOOLS = {"read_file", "read_lines", "grep_file", "find_files", "list_dir",
+                                 "git_diff", "git_status", "write_file", "todo_write", "todo_update",
+                                 "todo_add", "todo_remove"}
+                                 
                 action_results = deps.execute_parallel_fn(actions, tracker, agent_mode=agent_mode)
                 for idx, tool_name, args_str, observation in action_results:
                     summary = _extract_tool_args_summary(tool_name, args_str)
                     print(format_tool_header(tool_name, summary))
-                    print(format_tool_result(observation))
+                    
+                    if tool_name in _INLINE_TOOLS:
+                        brief = format_tool_brief(tool_name, args_str, observation)
+                        print(f"  {Color.DIM}⎿  {brief}{Color.RESET}")
+                    else:
+                        print(format_tool_result(observation))
 
                     if deps.procedural_memory is not None:
                         try:
