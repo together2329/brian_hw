@@ -466,9 +466,26 @@ class AgentTUI(App):
     def on_mount(self) -> None:
         self._update_statusbar()
         log = self.query_one("#main", RichLog)
-        t = RichText()
-        t.append("  UPD Agent", style=f"bold {_ACCENT}")
-        log.write(t)
+        # ── Banner ────────────────────────────────────────────────────────────
+        from rich.panel import Panel
+        from rich.align import Align
+        banner_text = RichText()
+        banner_text.append("◆ ", style=f"bold {_ACCENT}")
+        banner_text.append("UPD Agent", style=f"bold white")
+        banner_text.append("  ─  Intelligent Coding Agent", style=f"dim {_TEXT_DIM}")
+        log.write(Panel(
+            Align.center(banner_text),
+            border_style=f"dim {_BORDER_DIM}",
+            padding=(0, 2),
+        ))
+        hint = RichText()
+        hint.append("  /help", style=f"bold {_ACCENT}")
+        hint.append(" commands  ·  ", style=_TEXT_FAINT)
+        hint.append("exit", style=f"bold {_ACCENT}")
+        hint.append(" to quit  ·  ", style=_TEXT_FAINT)
+        hint.append("ctrl+q", style=f"bold {_ACCENT}")
+        log.write(hint)
+        log.write(RichText(""))
         self.query_one(Input).focus()
         self._start_agent()
         self.set_timer(0.1, self._init_sidebar)
@@ -852,9 +869,13 @@ class AgentTUI(App):
             self._in_result = False
 
         try:
-            log.write(RichText.from_ansi(text))
+            ansi_text = RichText.from_ansi(text)
+            # Prepend 2-space indent to match all other line types
+            indented = RichText("  ")
+            indented.append_text(ansi_text)
+            log.write(indented)
         except Exception:
-            log.write(RichText(text, style=_TEXT_DIM))
+            log.write(RichText(f"  {text}", style=_TEXT_DIM))
 
     def on_todo_update(self, msg: TodoUpdate) -> None:
         # Empty signal → clear sidebar
