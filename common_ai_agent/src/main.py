@@ -1198,6 +1198,8 @@ def chat_loop():
                     from core.skill_commands import handle_skills_command
                     skill_arg = user_input[8:].strip() if len(user_input) > 8 else ""
                     handle_skills_command(skill_arg, load_active_skills)
+                    if _textual_emit_todo_fn:
+                        _textual_emit_todo_fn("")  # trigger context/skill refresh in sidebar
                     continue
 
                 result = slash_registry.execute(user_input)
