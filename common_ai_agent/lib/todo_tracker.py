@@ -290,16 +290,11 @@ class TodoTracker:
         return False
 
     def auto_advance(self):
-        """현재 todo 완료 후 자동으로 다음 pending todo로 이동 (priority 반영)."""
+        """현재 todo를 completed로 표시 — 다음 task 전환은 review 후 LLM이 명시적으로 수행."""
         if self.current_index >= 0 and self.current_index < len(self.todos):
             self.mark_completed(self.current_index)
-
-        next_idx = self._get_next_pending()
-        if next_idx is not None:
-            self.mark_in_progress(next_idx)
-            return
-
-        self.current_index = -1
+        # Do NOT auto-call mark_in_progress — state machine requires
+        # completed → approved before next task can become in_progress.
 
     def _get_next_pending(self) -> Optional[int]:
         """
@@ -569,11 +564,15 @@ class TodoTracker:
         if unreviewed:
             i, t = unreviewed[0]
             idx = i + 1
-            return (
+            prompt = (
                 f"[Task {idx}/{total} REVIEW REQUIRED] \"{t.content}\"\n"
                 f"→ Pass → todo_update(index={idx}, status='approved', reason='<concrete evidence>')\n"
                 f"→ Issue → todo_update(index={idx}, status='rejected', reason='<exact problem>')"
             )
+            rule = _load_todo_rule()
+            if rule:
+                prompt += f"\n\n=== TODO RULES ===\n{rule}"
+            return prompt
 
         return None
 
