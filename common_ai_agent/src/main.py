@@ -900,9 +900,13 @@ def _load_conv_snapshot(task_num: int) -> Optional[list]:
 
 def run_react_agent(messages, tracker, task_description, mode='interactive', preface_enabled=True, agent_mode='normal', todo_tracker=None):
     """Wrapper: delegates to core.react_loop with main.py live dependencies injected."""
+    # In TUI mode suppress stderr spinner so it doesn't bleed through Textual's display
+    _is_tui = _textual_emit_content_fn is not None
+    _llm_fn = (lambda msg, stop=None: chat_completion_stream(msg, stop=stop, suppress_spinner=True)) \
+        if _is_tui else chat_completion_stream
     deps = ReactLoopDeps(
         cfg=config,
-        llm_call_fn=chat_completion_stream,
+        llm_call_fn=_llm_fn,
         compress_fn=compress_history,
         build_prompt_fn=build_system_prompt,
         process_obs_fn=process_observation,

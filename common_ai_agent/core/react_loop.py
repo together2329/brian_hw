@@ -498,7 +498,8 @@ def run_react_agent_impl(
         )
 
         _thinking_spinner = None
-        if not _debug:
+        # Skip stderr spinner in TUI mode — statusbar handles "generating…" feedback
+        if not _debug and not deps.emit_content_fn:
             _thinking_spinner = Spinner("Thinking")
             if hasattr(_thinking_spinner, "start"):
                 _thinking_spinner.start()
@@ -757,12 +758,18 @@ def run_react_agent_impl(
                             "Only read/search tools are available."
                         )
                     elif tool_name in _SLOW_TOOLS and not _debug:
-                        friendly = _friendly_tool_name(tool_name)
-                        with Spinner(f"  running…"):
+                        # In TUI mode skip stderr spinner; terminal mode shows spinner
+                        if deps.emit_content_fn:
                             observation = deps.execute_tool_fn(tool_name, args_str)
+                        else:
+                            with Spinner(f"  running…"):
+                                observation = deps.execute_tool_fn(tool_name, args_str)
                     elif tool_name in _WRITE_TOOLS and not _debug:
-                        with Spinner(f"  writing…"):
+                        if deps.emit_content_fn:
                             observation = deps.execute_tool_fn(tool_name, args_str)
+                        else:
+                            with Spinner(f"  writing…"):
+                                observation = deps.execute_tool_fn(tool_name, args_str)
                     else:
                         observation = deps.execute_tool_fn(tool_name, args_str)
 
