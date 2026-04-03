@@ -508,7 +508,7 @@ class TodoTracker:
 
     def get_continuation_prompt(self) -> Optional[str]:
         """미완료 todo가 있으면 1-line 리마인더 반환. .TODO_RULE.md가 있으면 태스크 시작 시 주입."""
-        if not self.todos or self.is_all_processed():
+        if not self.todos or self.is_all_completed():
             return None
 
         # Auto-recover if current_index is broken (-1 or pointing at approved task)
