@@ -293,11 +293,16 @@ class AgentTUI(App):
         self._response_buf = ""
         self._generating = False
         self._in_diff = False   # True after a write/replace tool call
+        self._active_model = ""
         try:
             import config as _cfg
             self._model = getattr(_cfg, "MODEL_NAME", "")
+            self._primary_model  = getattr(_cfg, "PRIMARY_MODEL",  self._model)
+            self._secondary_model = getattr(_cfg, "SECONDARY_MODEL", self._model)
         except Exception:
             self._model = ""
+            self._primary_model = ""
+            self._secondary_model = ""
 
     def compose(self) -> ComposeResult:
         cwd_full = os.getcwd()
@@ -334,13 +339,8 @@ class AgentTUI(App):
                     self.post_message(TodoUpdate(tt.format_simple()))
         except Exception:
             pass
-        try:
-            import main as _agent
-            import config as _cfg
-            skill = getattr(getattr(_agent, "load_active_skills", None), "_active_skill", None) or ""
-            self.post_message(ContextUpdate(0, getattr(_cfg, "MAX_CONTEXT_TOKENS", 65536), skill))
-        except Exception:
-            pass
+        # Show model info immediately (doesn't need agent to have run yet)
+        self._refresh_model_sidebar()
 
     def action_quit(self) -> None:
         self.exit()
@@ -437,13 +437,43 @@ class AgentTUI(App):
         try:
             ctx = self.query_one("#context", Static)
             t = RichText()
-            if msg.tokens and msg.max_tokens:
+            if msg.max_tokens:
                 pct = int(msg.tokens / msg.max_tokens * 100)
                 tk_str = f"{msg.tokens:,}"
-                t.append(f"{tk_str} tokens\n", style=_TEXT_DIM)
-                t.append(f"{pct}% used", style=f"dim {_YELLOW if pct > 60 else _TEXT_FAINT}")
+                t.append(f"{tk_str} tokens  ", style=_TEXT_DIM)
+                t.append(f"{pct}%\n", style=f"dim {_YELLOW if pct > 60 else _TEXT_FAINT}")
             if msg.skill:
-                t.append(f"\n{msg.skill}", style=f"dim {_ACCENT}")
+                t.append(f"skill  ", style=f"dim {_TEXT_FAINT}")
+                t.append(f"{msg.skill}\n", style=f"{_ACCENT}")
+            self._render_model_block(t)
+            ctx.update(t)
+        except Exception:
+            pass
+
+    def _render_model_block(self, t: RichText) -> None:
+        """Append model info lines to a RichText object."""
+        def _short(name: str) -> str:
+            # "provider/model-name" → "model-name"
+            return name.split("/")[-1] if "/" in name else name
+
+        primary   = _short(self._primary_model)
+        secondary = _short(self._secondary_model)
+        active    = _short(self._active_model) if self._active_model else primary
+
+        t.append("base   ", style=f"dim {_TEXT_FAINT}")
+        t.append(f"{primary}\n", style=_TEXT_DIM)
+        if secondary and secondary != primary:
+            t.append("2nd    ", style=f"dim {_TEXT_FAINT}")
+            t.append(f"{secondary}\n", style=_TEXT_DIM)
+        t.append("active ", style=f"dim {_TEXT_FAINT}")
+        t.append(f"{active}", style=f"bold {_GREEN}" if active != primary else _TEXT_DIM)
+
+    def _refresh_model_sidebar(self) -> None:
+        """Re-render context widget with updated active model."""
+        try:
+            ctx = self.query_one("#context", Static)
+            t = RichText()
+            self._render_model_block(t)
             ctx.update(t)
         except Exception:
             pass
@@ -453,16 +483,12 @@ class AgentTUI(App):
         log = self.query_one("#main", RichLog)
         text = msg.text
 
-        # Iteration header → accent dim separator
+        # Iteration header — hide from log, extract active model for sidebar
         if _ITER.search(text):
-            # Extract: "primary N/1000 · model"
-            clean = re.sub(r"^[—\-\s]+|[—\-\s]+$", "", text).strip()
-            t = RichText()
-            t.append("\n  ")
-            t.append("─" * 2, style=f"dim {_BORDER}")
-            t.append(f"  {clean}  ", style=f"dim {_TEXT_FAINT}")
-            t.append("─" * 2, style=f"dim {_BORDER}")
-            log.write(t)
+            m_model = re.search(r"[·•]\s*(\S+)\s*$", text)
+            if m_model:
+                self._active_model = m_model.group(1)
+                self._refresh_model_sidebar()
             return
 
         # Token stats → very faint
