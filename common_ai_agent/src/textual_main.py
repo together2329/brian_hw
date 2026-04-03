@@ -23,22 +23,9 @@ if _vendor_dir not in sys.path:
 
 try:
     import textual  # noqa: F401
-except ImportError:
-    import subprocess
-    print("Textual not found — installing into vendor...")
-    try:
-        subprocess.check_call([
-            sys.executable, "-m", "pip", "install",
-            "--target", _vendor_dir, "--no-deps", "--quiet",
-            "textual==3.5.0", "rich>=13.0", "markdown-it-py>=3.0",
-            "mdurl", "pygments", "platformdirs",
-        ])
-        import textual  # noqa: F401
-        print("Done.")
-    except Exception as e:
-        print(f"ERROR: Could not install textual: {e}")
-        print("Run manually:  pip install textual")
-        sys.exit(1)
+except Exception as e:
+    print(f"ERROR: Cannot import textual from vendor ({_vendor_dir}): {e}")
+    sys.exit(1)
 
 import config
 import main as _agent
