@@ -350,6 +350,8 @@ class AgentTUI(App):
         self._response_buf = ""
         self._generating = False
         self._in_diff = False   # True after a write/replace tool call
+        self._in_result = False # True while showing └/| result lines
+        self._reasoning_open = False  # True while a reasoning block is open
         self._active_model = ""
         self._ctx_tokens = 0
         self._ctx_max_tokens = 65536
@@ -570,10 +572,17 @@ class AgentTUI(App):
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:
         if msg.blank:
+            # blank = end of reasoning block — reset header flag
+            self._reasoning_open = False
             return
         log = self.query_one("#main", RichLog)
-        # Use grid table so the text column wraps within its own width,
-        # keeping continuation lines aligned after the "  ┆ " prefix.
+        # First chunk of a reasoning block: print "Reasoning" header
+        if not self._reasoning_open:
+            self._reasoning_open = True
+            hdr = RichText()
+            hdr.append("  Reasoning", style=f"dim italic {_TEXT_FAINT}")
+            log.write(hdr)
+        # Hanging-indent grid: "  ┆ " fixed col + wrapping text col
         grid = RichTable.grid(padding=0)
         grid.add_column(width=4, no_wrap=True)
         grid.add_column(overflow="fold")
@@ -668,6 +677,9 @@ class AgentTUI(App):
         m_sys = re.match(r"^(\[(?:Plan Mode|System|Error|Warning)[^\]]*\])(.*)", text)
         if m_sys:
             tag, rest = m_sys.groups()
+            # Blank line before Plan Mode to visually separate from previous output
+            if "Plan Mode" in tag:
+                log.write(RichText(""))
             t = RichText()
             if "Error" in tag:
                 t.append(f"  {tag}", style=f"bold {_RED}")
@@ -685,6 +697,10 @@ class AgentTUI(App):
         m_tool = re.match(r"^\s*[⏺•·]\s*(\w+)\((.*)$", text)
         if m_tool:
             self._in_diff = False  # reset diff state on every new tool call
+            # Close any open result block with a trailing blank line
+            if self._in_result:
+                log.write(RichText(""))
+                self._in_result = False
             tool_name = m_tool.group(1)
             args_part = m_tool.group(2)
             _WRITE_TOOLS = {"write_file","write_to_file","replace_in_file","replace_lines","replace_file_content"}
@@ -718,8 +734,14 @@ class AgentTUI(App):
 
         # Tool result lines: "└ ..."
         if re.match(r"^\s*[└|]", text):
+            self._in_result = True
             log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
             return
+
+        # Non-result line after result block → trailing blank
+        if self._in_result:
+            log.write(RichText(""))
+            self._in_result = False
 
         try:
             log.write(RichText.from_ansi(text))
