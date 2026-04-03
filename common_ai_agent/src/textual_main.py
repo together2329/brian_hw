@@ -35,14 +35,16 @@ if sys.version_info < (3, 8):
 
 try:
     import textual  # noqa: F401
+    _TEXTUAL_OK = True
 except Exception as e:
-    print(f"ERROR: Cannot import textual from vendor ({_vendor_dir}): {e}")
-    sys.exit(1)
+    print(f"[warn] Textual unavailable ({e}) — falling back to terminal mode.")
+    _TEXTUAL_OK = False
 
 import config
 import main as _agent
 
-from lib.textual_ui import AgentTUI, ContextUpdate
+if _TEXTUAL_OK:
+    from lib.textual_ui import AgentTUI, ContextUpdate
 
 
 # ── Context info helper ───────────────────────────────────────────────────────
@@ -104,4 +106,10 @@ def _run_agent(app: AgentTUI) -> None:
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    AgentTUI(_run_agent).run()
+    if _TEXTUAL_OK:
+        from lib.textual_ui import AgentTUI, ContextUpdate
+        AgentTUI(_run_agent).run()
+    else:
+        # Fallback: plain terminal mode
+        print("[fallback] Running in terminal mode (src/main.py).")
+        _agent.chat_loop()
