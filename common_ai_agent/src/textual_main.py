@@ -21,6 +21,18 @@ _vendor_dir = os.path.join(_project_root, "vendor")
 if _vendor_dir not in sys.path:
     sys.path.insert(0, _vendor_dir)
 
+# ── Python 3.7 compatibility: backport typing helpers via typing_extensions ──
+if sys.version_info < (3, 8):
+    import typing
+    try:
+        import typing_extensions as _te
+        for _attr in ("get_args", "get_origin", "Literal", "Protocol",
+                      "TypedDict", "Final", "Annotated", "get_type_hints"):
+            if not hasattr(typing, _attr) and hasattr(_te, _attr):
+                setattr(typing, _attr, getattr(_te, _attr))
+    except ImportError:
+        pass
+
 try:
     import textual  # noqa: F401
 except Exception as e:
