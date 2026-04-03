@@ -107,6 +107,7 @@ _textual_emit_content_fn = None
 _textual_emit_reasoning_fn = None
 _textual_emit_todo_fn = None
 _textual_emit_flush_fn = None   # () → signal stream done, flush content panel
+_textual_emit_context_fn = None  # (tokens, max_tokens) → update context sidebar directly
 _textual_input_fn = None  # replaces input() when set
 
 # ChatLoopDeps instance (set inside chat_loop(); exposed for textual_main.py)
@@ -1306,6 +1307,10 @@ def chat_loop():
                         else:
                             print(Color.success("\n✅ Conversation history cleared.\n"))
                         show_context_usage(messages, use_actual=False)
+                        if _textual_emit_context_fn:
+                            _limit = config.MAX_CONTEXT_CHARS // 4
+                            _est = sum(estimate_message_tokens(m) for m in messages)
+                            _textual_emit_context_fn(_est, _limit)
                         if _textual_emit_todo_fn:
                             _textual_emit_todo_fn("")  # reset sidebar: tokens=0, clear todo
                         continue
