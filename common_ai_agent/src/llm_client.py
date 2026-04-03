@@ -399,8 +399,8 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
     global last_cache_creation_tokens, last_cache_read_tokens
     global total_cache_created, total_cache_read
 
-    max_retries = 3
-    initial_delay = 2
+    _RETRY_DELAYS = [60, 120, 300, 600, 1200]  # 429/5xx backoff schedule (seconds)
+    max_retries = len(_RETRY_DELAYS) + 1
 
     for retry_count in range(max_retries):
         _reasoning_started = False
@@ -483,8 +483,8 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             is_retryable = e.code == 429 or (500 <= e.code < 600)
 
             if is_retryable and retry_count < max_retries - 1:
-                delay = initial_delay * (2 ** retry_count)
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] HTTP {e.code}: {e.reason}"))
+                delay = _RETRY_DELAYS[retry_count]
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {e.reason}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
                 continue
@@ -507,8 +507,8 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
         except socket.timeout as e:
             # socket.timeout (OSError subclass) not always caught by URLError
             if retry_count < max_retries - 1:
-                delay = initial_delay * (2 ** retry_count)
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] Read timeout ({config.STREAM_API_TIMEOUT}s): {e}"))
+                delay = _RETRY_DELAYS[retry_count]
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Read timeout ({config.STREAM_API_TIMEOUT}s): {e}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
                 continue
@@ -517,9 +517,9 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
 
         except (urllib.error.URLError, ssl.SSLError) as e:
             if retry_count < max_retries - 1:
-                delay = initial_delay * (2 ** retry_count)
+                delay = _RETRY_DELAYS[retry_count]
                 error_msg = str(e.reason) if hasattr(e, 'reason') else str(e)
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] Connection Error: {error_msg}"))
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Connection Error: {error_msg}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
                 continue
@@ -531,8 +531,8 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
         except Exception as e:
             error_type = type(e).__name__
             if retry_count < max_retries - 1:
-                delay = initial_delay * (2 ** retry_count)
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] {error_type}: {e}"))
+                delay = _RETRY_DELAYS[retry_count]
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] {error_type}: {e}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
                 continue
