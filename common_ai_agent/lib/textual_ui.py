@@ -457,22 +457,13 @@ class AgentTUI(App):
             pass
 
     def _render_model_block(self, t: RichText) -> None:
-        """Append model info lines to a RichText object."""
+        """Append active model line to a RichText object."""
         def _short(name: str) -> str:
-            # "provider/model-name" → "model-name"
             return name.split("/")[-1] if "/" in name else name
 
-        primary   = _short(self._primary_model)
-        secondary = _short(self._secondary_model)
-        active    = _short(self._active_model) if self._active_model else primary
-
-        t.append("base   ", style=f"dim {_TEXT_FAINT}")
-        t.append(f"{primary}\n", style=_TEXT_DIM)
-        if secondary and secondary != primary:
-            t.append("2nd    ", style=f"dim {_TEXT_FAINT}")
-            t.append(f"{secondary}\n", style=_TEXT_DIM)
-        t.append("active ", style=f"dim {_TEXT_FAINT}")
-        t.append(f"{active}", style=f"bold {_GREEN}" if active != primary else _TEXT_DIM)
+        active = _short(self._active_model) if self._active_model else _short(self._primary_model)
+        if active:
+            t.append(active, style=f"dim {_TEXT_DIM}")
 
     def _refresh_model_sidebar(self) -> None:
         """Re-render context widget with updated active model."""
