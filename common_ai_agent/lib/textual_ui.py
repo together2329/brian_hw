@@ -382,14 +382,15 @@ class AgentTUI(App):
         padding: 0 2;
     }}
 
-    /* ── Live streaming preview ── */
+    /* ── Live streaming preview (docked overlay — no layout shift) ── */
     #live {{
+        dock: bottom;
         height: auto;
         max-height: 12;
         background: {_BG};
         color: {_TEXT};
         padding: 0 1;
-        border: solid {_BORDER_DIM};
+        border-top: solid {_BORDER_DIM};
         margin: 0 1;
         display: none;
     }}
