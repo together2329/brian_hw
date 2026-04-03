@@ -15,7 +15,7 @@ from rich.markdown import Heading as _RichHeading
 from rich.text import Text as RichText
 from rich.table import Table as RichTable
 from textual.app import App, ComposeResult
-from textual.containers import Vertical, VerticalScroll
+from textual.containers import Vertical
 from textual.message import Message
 from textual.widgets import Input, RichLog, Static
 from textual import work
@@ -445,8 +445,8 @@ class AgentTUI(App):
         home = os.path.expanduser("~")
         cwd = cwd_full.replace(home, "~") if cwd_full.startswith(home) else cwd_full
 
-        with VerticalScroll(id="main-col"):
-            yield RichLog(id="main", highlight=True, wrap=True, markup=False)
+        with Vertical(id="main-col"):
+            yield RichLog(id="main", highlight=True, wrap=True, markup=False, auto_scroll=True)
             yield Static("", id="live")
         with Vertical(id="sidebar"):
             yield Static("common_ai_agent", id="agent-label")
@@ -584,10 +584,6 @@ class AgentTUI(App):
         self._generating = False
         self._reasoning_open = False
         self._update_statusbar()
-        try:
-            self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
-        except Exception:
-            pass
         # Clear live preview
         try:
             live = self.query_one("#live", Static)
@@ -616,10 +612,6 @@ class AgentTUI(App):
         log.write(t)
         self._in_diff = False
         self._input_bridge.submit(text)
-        try:
-            self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
-        except Exception:
-            pass
 
     # ── Message handlers ───────────────────────────────────────────────────────
 
@@ -635,10 +627,6 @@ class AgentTUI(App):
         if not getattr(_cfg, "ENABLE_MARKDOWN_RENDER", True):
             log = self.query_one("#main", RichLog)
             log.write(msg.text)
-            try:
-                self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
-            except Exception:
-                pass
             return
         self._response_buf += msg.text + "\n"
         # Debounced live Markdown preview — at most one render per 300 ms
@@ -654,10 +642,6 @@ class AgentTUI(App):
             live = self.query_one("#live", Static)
             live.update(_LeftMarkdown(_fix_md(self._response_buf)))
             live.add_class("active")
-            try:
-                self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
-            except Exception:
-                pass
         except Exception:
             pass
 
@@ -666,13 +650,7 @@ class AgentTUI(App):
         self._flush_response()
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:
-        try:
-            self._handle_reasoning_chunk(msg)
-        finally:
-            try:
-                self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
-            except Exception:
-                pass
+        self._handle_reasoning_chunk(msg)
 
     def _handle_reasoning_chunk(self, msg: ReasoningChunk) -> None:
         log = self.query_one("#main", RichLog)
@@ -740,13 +718,7 @@ class AgentTUI(App):
             pass
 
     def on_main_line(self, msg: MainLine) -> None:
-        try:
-            self._handle_main_line(msg)
-        finally:
-            try:
-                self.query_one("#main-col", VerticalScroll).scroll_end(animate=False)
-            except Exception:
-                pass
+        self._handle_main_line(msg)
 
     def _handle_main_line(self, msg: MainLine) -> None:
         self._flush_response()
