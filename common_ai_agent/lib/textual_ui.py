@@ -239,6 +239,17 @@ class AgentTUI(App):
         padding: 1 0;
         border-bottom: solid {_BORDER_DIM};
     }}
+    #model-header {{
+        height: auto;
+        color: {_TEXT_DIM};
+        padding: 1 0 0 0;
+        text-style: bold;
+    }}
+    #model {{
+        height: auto;
+        padding: 0 0 1 0;
+        border-bottom: solid {_BORDER_DIM};
+    }}
     #todo-header {{
         height: auto;
         color: {_TEXT_DIM};
@@ -320,6 +331,8 @@ class AgentTUI(App):
             yield Static("common_ai_agent", id="agent-label")
             yield Static("", id="task-title")
             yield Static("", id="context")
+            yield Static("Model", id="model-header")
+            yield Static("", id="model")
             yield Static("Todo", id="todo-header")
             yield Static("", id="todo")
             yield Static(cwd, id="cwd-label")
@@ -449,31 +462,32 @@ class AgentTUI(App):
         self._redraw_context()
 
     def _redraw_context(self) -> None:
-        """Redraw the #context sidebar widget from stored state."""
+        """Redraw the #context sidebar widget (tokens + skill)."""
         try:
-            def _short(name: str) -> str:
-                return name.split("/")[-1] if "/" in name else name
-
             t = RichText()
-            # Token usage
             if self._ctx_max_tokens:
                 pct = int(self._ctx_tokens / self._ctx_max_tokens * 100)
                 t.append(f"{self._ctx_tokens:,} tokens  ", style=_TEXT_DIM)
                 t.append(f"{pct}%\n", style=f"dim {_YELLOW if pct > 60 else _TEXT_FAINT}")
-            # Skill
             if self._ctx_skill:
-                t.append(f"{self._ctx_skill}\n", style=_ACCENT)
-            # Active model
-            active = _short(self._active_model) if self._active_model else _short(self._primary_model)
-            if active:
-                t.append(active, style=f"dim {_TEXT_DIM}")
+                t.append(self._ctx_skill, style=_ACCENT)
             self.query_one("#context", Static).update(t)
         except Exception:
             pass
 
     def _refresh_model_sidebar(self) -> None:
-        """Called when active model changes — redraw context with current state."""
-        self._redraw_context()
+        """Update #model widget with current active model name."""
+        try:
+            def _short(name: str) -> str:
+                return name.split("/")[-1] if "/" in name else name
+
+            active = _short(self._active_model) if self._active_model else _short(self._primary_model)
+            t = RichText()
+            if active:
+                t.append(active, style=_TEXT_DIM)
+            self.query_one("#model", Static).update(t)
+        except Exception:
+            pass
 
     def on_main_line(self, msg: MainLine) -> None:
         self._flush_response()
