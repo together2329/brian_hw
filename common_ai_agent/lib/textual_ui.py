@@ -591,8 +591,14 @@ class AgentTUI(App):
             self._response_buf = ""
             self._generating = False
             return
+        from rich.panel import Panel
         log = self.query_one("#main", RichLog)
-        log.write(_LeftMarkdown(_fix_md(self._response_buf)))
+        log.write(Panel(
+            _LeftMarkdown(_fix_md(self._response_buf)),
+            border_style=f"dim {_BORDER_DIM}",
+            padding=(0, 1),
+            expand=True,
+        ))
         self._response_buf = ""
         self._generating = False
         self._reasoning_open = False
