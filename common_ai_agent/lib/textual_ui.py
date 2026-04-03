@@ -474,7 +474,7 @@ class AgentTUI(App):
         banner_text.append("UPD Agent", style=f"bold white")
         banner_text.append("  ─  Intelligent Coding Agent", style=f"dim {_TEXT_DIM}")
         log.write(Panel(
-            Align.center(banner_text),
+            banner_text,
             border_style=f"dim {_BORDER_DIM}",
             padding=(0, 2),
         ))
