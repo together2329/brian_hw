@@ -10,6 +10,8 @@ import re
 import sys
 from typing import Callable
 
+from rich.markdown import Markdown as _RichMarkdown
+from rich.markdown import Heading as _RichHeading
 from rich.text import Text as RichText
 from textual.app import App, ComposeResult
 from textual.containers import Vertical
@@ -21,6 +23,67 @@ _ANSI   = re.compile(r"\x1b\[[0-9;]*[mK]")
 _NOISE  = re.compile(r"^[\s•·\-─—=*]+$")
 _ITER   = re.compile(r"primary\s+\d+/\d+")
 _TOKENS = re.compile(r"(✽|in\s+[\d.]+k?)\s+.*tokens")
+
+# ── Markdown post-processor ──────────────────────────────────────────────────
+
+def _fix_md(text: str) -> str:
+    """Fix common LLM markdown quirks before passing to Rich Markdown renderer.
+
+    1. Inline tables: '| A | B | | C | D |' → split into proper rows on '\n'
+    2. Ensure blank line before/after code fences so Rich parses them as blocks
+    """
+    lines: list[str] = []
+    for line in text.splitlines():
+        # Split inline table rows separated by '| |' or '||'
+        if re.match(r"^\|.+\|\s*\|", line):
+            # Each '||' boundary is a row separator
+            rows = re.split(r"\|\s*\|", line)
+            for i, row in enumerate(rows):
+                row = row.strip()
+                if not row:
+                    continue
+                if not row.startswith("|"):
+                    row = "| " + row
+                if not row.endswith("|"):
+                    row = row + " |"
+                # Insert separator row after header (first row)
+                lines.append(row)
+                if i == 0:
+                    # Guess column count for separator
+                    cols = row.count("|") - 1
+                    lines.append("|" + "|".join(["---"] * cols) + "|")
+        else:
+            lines.append(line)
+
+    # Ensure blank lines around code fences
+    out: list[str] = []
+    for i, line in enumerate(lines):
+        if line.startswith("```"):
+            if out and out[-1].strip():
+                out.append("")
+        out.append(line)
+        if line.startswith("```") and i + 1 < len(lines) and lines[i + 1].strip():
+            out.append("")
+    return "\n".join(out)
+
+
+# ── Left-aligned Markdown headings ───────────────────────────────────────────
+
+class _LeftHeading(_RichHeading):
+    """Override Rich Heading to render left-aligned instead of centered."""
+    def __rich_console__(self, console, options):  # type: ignore[override]
+        text = self.text
+        text.justify = "left"
+        if self.tag == "h1":
+            yield RichText()
+            yield text
+            yield RichText()
+        else:
+            yield text
+
+class _LeftMarkdown(_RichMarkdown):
+    elements = {**_RichMarkdown.elements, "heading_open": _LeftHeading}
+
 
 # ── Color palette (GitHub-dark inspired) ────────────────────────────────────
 _BG         = "#0d1117"
@@ -283,13 +346,13 @@ class AgentTUI(App):
             self._response_buf = ""
             self._generating = False
             return
-        from rich.markdown import Markdown
         from rich.panel import Panel
-        from rich.padding import Padding
         log = self.query_one("#main", RichLog)
         # OpenCode-style: response in a subtle bordered panel
         panel = Panel(
-            Markdown(self._response_buf),
+            _LeftMarkdown(_fix_md(self._response_buf)),
+            title="[dim]assistant[/dim]",
+            title_align="left",
             border_style=f"dim {_BORDER_DIM}",
             padding=(0, 1),
             expand=True,
@@ -309,10 +372,8 @@ class AgentTUI(App):
         self._flush_response()
         log = self.query_one("#main", RichLog)
         # Full-width turn separator (OpenCode style)
-        sep = RichText()
-        sep.append("\n")
-        sep.append("─" * 80, style=f"dim {_BORDER_DIM}")
-        log.write(sep)
+        from rich.rule import Rule
+        log.write(Rule(style=f"dim {_BORDER_DIM}"))
         # User input line
         t = RichText()
         t.append(f"  {text}", style=f"bold {_ACCENT}")
@@ -420,6 +481,7 @@ class AgentTUI(App):
         # Tool calls: "• tool_name(...)"
         m_tool = re.match(r"^\s*[•·]\s*(\w+)\((.*)$", text)
         if m_tool:
+            self._in_diff = False  # reset diff state on every new tool call
             tool_name = m_tool.group(1)
             args_part = m_tool.group(2)
             _READ_TOOLS  = {"read_file","read_lines","grep_file","find_files","list_dir","git_diff","git_status","git_log"}
@@ -430,7 +492,7 @@ class AgentTUI(App):
             if tool_name in _READ_TOOLS:
                 color = _ACCENT
             elif tool_name in _WRITE_TOOLS:
-                color, self._in_diff = _YELLOW, True
+                color, self._in_diff = _GREEN, True
             elif tool_name in _EXEC_TOOLS:
                 color = "#e3b341"
             elif tool_name in _TODO_TOOLS:

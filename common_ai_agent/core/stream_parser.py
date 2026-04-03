@@ -248,9 +248,13 @@ class StreamParser:
 
     def _emit_dedup(self, text: str) -> None:
         text = _dedup_line(text)
-        if text not in self._seen:
+        # Backtick fences (```) must always be emitted — closing fence is
+        # identical to opening and would otherwise be swallowed by dedup.
+        is_fence = text.startswith("```")
+        if is_fence or text not in self._seen:
             self._emit(text)
-            self._seen.add(text)
+            if not is_fence:
+                self._seen.add(text)
             self._content_emitted = True
 
     def _strip_think(self, text: str) -> Tuple[str, bool, bool, str]:
