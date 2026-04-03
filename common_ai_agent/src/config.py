@@ -112,6 +112,12 @@ REASONING_DISPLAY = os.getenv("REASONING_DISPLAY", "true").lower() in ("true", "
 # Non-streaming cleanly separates reasoning/content but shows nothing until complete.
 ENABLE_STREAMING = os.getenv("ENABLE_STREAMING", "true").lower() in ("true", "1", "yes")
 
+# Enable rich Markdown rendering for LLM textual output (Textual UI)
+# Disable this to stream raw text line-by-line for maximum performance.
+# Default: true
+ENABLE_MARKDOWN_RENDER = os.getenv("ENABLE_MARKDOWN_RENDER", "true").lower() in ("true", "1", "yes")
+
+
 # Streaming token delay (milliseconds). 0 = disabled. Use for debugging display issues.
 STREAM_TOKEN_DELAY_MS = float(os.getenv("STREAM_TOKEN_DELAY_MS", "0"))
 
