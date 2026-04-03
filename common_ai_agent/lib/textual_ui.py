@@ -29,14 +29,27 @@ _TOKENS = re.compile(r"(✽|in\s+[\d.]+k?)\s+.*tokens")
 def _fix_md(text: str) -> str:
     """Fix common LLM markdown quirks before passing to Rich Markdown renderer.
 
-    1. Inline tables: '| A | B | | C | D |' → split into proper rows on '\n'
-    2. Ensure blank line before/after code fences so Rich parses them as blocks
+    1. Lone backtick → triple fence (LLM sometimes writes ` instead of ```)
+    2. Compact separators: |-|-| → |---|---| (Rich needs at least 3 dashes)
+    3. Inline tables: '| A | B | | C | D |' → split into proper rows
+    4. Blank lines around code fences so Rich parses them as blocks
     """
     lines: list[str] = []
     for line in text.splitlines():
-        # Split inline table rows separated by '| |' or '||'
+        # Fix lone backtick used as fence opener/closer
+        if line.strip() == "`":
+            lines.append("```")
+            continue
+
+        # Expand compact table separators: |-| or |:-:| → |---|
+        if re.match(r"^\|[-|: ]+\|$", line) and "---" not in line:
+            parts = [c for c in line.split("|") if c]
+            if all(re.match(r"^[:\-]+$", p.strip()) for p in parts):
+                lines.append("|" + "|".join("---" for _ in parts) + "|")
+                continue
+
+        # Split inline table rows: '| A | B | | C | D |' on '| |' boundaries
         if re.match(r"^\|.+\|\s*\|", line):
-            # Each '||' boundary is a row separator
             rows = re.split(r"\|\s*\|", line)
             for i, row in enumerate(rows):
                 row = row.strip()
@@ -46,14 +59,13 @@ def _fix_md(text: str) -> str:
                     row = "| " + row
                 if not row.endswith("|"):
                     row = row + " |"
-                # Insert separator row after header (first row)
                 lines.append(row)
                 if i == 0:
-                    # Guess column count for separator
                     cols = row.count("|") - 1
                     lines.append("|" + "|".join(["---"] * cols) + "|")
-        else:
-            lines.append(line)
+            continue
+
+        lines.append(line)
 
     # Ensure blank lines around code fences
     out: list[str] = []
@@ -307,6 +319,28 @@ class AgentTUI(App):
         self._update_statusbar()
         self.query_one(Input).focus()
         self._start_agent()
+        self.set_timer(0.1, self._init_sidebar)
+
+    def _init_sidebar(self) -> None:
+        """Populate sidebar from on-disk state before first agent response."""
+        try:
+            from lib.todo_tracker import TodoTracker
+            import config as _cfg
+            from pathlib import Path
+            todo_path = Path(_cfg.TODO_FILE)
+            if todo_path.exists():
+                tt = TodoTracker.load(todo_path)
+                if tt and tt.todos:
+                    self.post_message(TodoUpdate(tt.format_simple()))
+        except Exception:
+            pass
+        try:
+            import main as _agent
+            import config as _cfg
+            skill = getattr(getattr(_agent, "load_active_skills", None), "_active_skill", None) or ""
+            self.post_message(ContextUpdate(0, getattr(_cfg, "MAX_CONTEXT_TOKENS", 65536), skill))
+        except Exception:
+            pass
 
     def action_quit(self) -> None:
         self.exit()
