@@ -296,7 +296,7 @@ class AgentTUI(App):
         width: 1fr;
         height: auto;
         background: {_BG};
-        padding: 0 2;
+        padding: 0 2 2 2;
         overflow-y: hidden;
     }}
 
@@ -402,6 +402,7 @@ class AgentTUI(App):
         max-height: 100%;
         background: {_BG};
         color: {_TEXT};
+        padding: 0 2;
         display: none;
     }}
     #live.active {{
@@ -650,12 +651,14 @@ class AgentTUI(App):
             return
         self._flush_response()
         log = self.query_one("#main", RichLog)
-        # Full-width turn separator (OpenCode style)
+        # Blank line + full-width turn separator (OpenCode style)
+        log.write(RichText(""))
         from rich.rule import Rule
         log.write(Rule(style=f"dim {_BORDER_DIM}"))
         t = RichText()
         t.append(f"  {text}", style=f"bold {_ACCENT}")
         log.write(t)
+        log.write(RichText(""))
         self._in_diff = False
         self._input_bridge.submit(text)
         self._scroll_down()
@@ -771,14 +774,14 @@ class AgentTUI(App):
                 return f"${tok / 1_000_000 * rate:.4f}"
 
             t = RichText()
-            in_str  = _fk(self._sess_in_tok)
+            _non_cch = max(0, self._sess_in_tok - self._sess_cache_tok)
+            in_str  = _fk(_non_cch)
             cch_str = _fk(self._sess_cache_tok)
             out_str = _fk(self._sess_out_tok)
             tot     = self._sess_sum_tok
 
             if pricing_on:
                 # non-cached input billed at full rate; cached portion at cache rate
-                _non_cch = max(0, self._sess_in_tok - self._sess_cache_tok)
                 cost_in  = _non_cch             / 1_000_000 * self._cost_in_pm
                 cost_cch = self._sess_cache_tok  / 1_000_000 * self._cost_cch_pm
                 cost_out = self._sess_out_tok    / 1_000_000 * self._cost_out_pm
@@ -940,6 +943,7 @@ class AgentTUI(App):
                 self._in_diff = True
             if self._in_result:
                 self._in_result = False
+            log.write(RichText(""))
             t = RichText()
             t.append(f"  {tool_name}", style=f"bold {_ORANGE}")
             t.append(f"({args_part}", style=f"dim {_ORANGE}")
