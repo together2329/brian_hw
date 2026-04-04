@@ -269,10 +269,9 @@ TURN_PROTECTION_COUNT = int(os.getenv("TURN_PROTECTION_COUNT", "3"))
 # ============================================================
 # Prompt Caching Configuration
 # ============================================================
-# Enable Anthropic Prompt Caching (manual control only)
-# Set to true only when using Anthropic Claude models
-# Cost savings: 90% for cached tokens
-ENABLE_PROMPT_CACHING = os.getenv("ENABLE_PROMPT_CACHING", "false").lower() in ("true", "1", "yes")
+# Enable prompt caching — works with Anthropic (explicit) and Z.AI/OpenAI (implicit)
+# Default: true. Set ENABLE_PROMPT_CACHING=false in .config to disable.
+ENABLE_PROMPT_CACHING = os.getenv("ENABLE_PROMPT_CACHING", "true").lower() in ("true", "1", "yes")
 
 # Prompt Caching Optimization Mode
 # Options:
@@ -281,6 +280,13 @@ ENABLE_PROMPT_CACHING = os.getenv("ENABLE_PROMPT_CACHING", "false").lower() in (
 # Default: "legacy" (backward compatible)
 # NOTE: Only effective when ENABLE_PROMPT_CACHING=true and using Anthropic models
 CACHE_OPTIMIZATION_MODE = os.getenv("CACHE_OPTIMIZATION_MODE", "legacy").lower()
+
+# Token Cost Configuration (per 1M tokens, USD)
+# Set these in .config to enable cost tracking in the sidebar.
+# Example for GLM-5.1: LLM_COST_INPUT_PER_M=0.14 LLM_COST_CACHE_PER_M=0.07 LLM_COST_OUTPUT_PER_M=0.28
+LLM_COST_INPUT_PER_M  = float(os.getenv("LLM_COST_INPUT_PER_M",  "0"))
+LLM_COST_CACHE_PER_M  = float(os.getenv("LLM_COST_CACHE_PER_M",  "0"))
+LLM_COST_OUTPUT_PER_M = float(os.getenv("LLM_COST_OUTPUT_PER_M", "0"))
 
 # Feature Flags
 ENABLE_VERILOG_TOOLS = os.getenv("ENABLE_VERILOG_TOOLS", "false").lower() in ("true", "1", "yes")

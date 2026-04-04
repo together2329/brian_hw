@@ -573,31 +573,10 @@ def save_procedural_trajectory(task_description, actions_taken, outcome, iterati
 def on_conversation_end(messages):
     """
     Extract and save knowledge from conversation to graph.
-    Now uses A-MEM auto-linking for intelligent connections.
-    Also displays session statistics including cache usage.
 
     Args:
         messages: Full message history
     """
-    # Display cache statistics if caching was enabled
-    if config.ENABLE_PROMPT_CACHING and llm_client.total_cache_read > 0:
-        print(f"\n{Color.info('='*60)}")
-        print(f"{Color.info('[Session Cache Statistics]')}")
-        print(f"{Color.info('='*60)}")
-        print(f"{Color.info(f'  Total Cache Created: {llm_client.total_cache_created:,} tokens')}")
-        print(f"{Color.success(f'  Total Cache Hits: {llm_client.total_cache_read:,} tokens')}")
-
-        # Calculate total savings (cache reads are 90% cheaper)
-        total_savings = int(llm_client.total_cache_read * 0.9)
-        print(f"{Color.success(f'  Estimated Cost Savings: ~{total_savings:,} tokens worth!')}")
-
-        # Calculate efficiency percentage
-        if llm_client.total_cache_created > 0:
-            efficiency = (llm_client.total_cache_read / llm_client.total_cache_created) * 100
-            print(f"{Color.success(f'  Cache Efficiency: {efficiency:.1f}% (hits/created)')}")
-
-        print(f"{Color.info('='*60)}\n")
-
     if not (config.ENABLE_GRAPH and config.GRAPH_AUTO_EXTRACT and graph_lite):
         return
 

@@ -302,6 +302,7 @@ def get_provider_config(provider_id: str = None, model_id: str = None) -> Provid
         "anthropic": "https://api.anthropic.com/v1",
         "openai": "https://api.openai.com/v1",
         "openrouter": "https://openrouter.ai/api/v1",
+        "zai": "https://api.z.ai/api/coding/paas/v4",
         "google": "https://generativelanguage.googleapis.com/v1beta",
         "groq": "https://api.groq.com/openai/v1",
         "together": "https://api.together.xyz/v1",
@@ -367,7 +368,9 @@ def chat_completion_with_config(
     }
 
     if stop:
-        data["stop"] = stop
+        # Z.AI allows max 4 stop sequences
+        _stop = stop[:4] if "z.ai" in url else stop
+        data["stop"] = _stop
 
     # Apply temperature/top_p
     if temperature is not None:
@@ -632,6 +635,10 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         resolved_model = resolved_model[len("openrouter/"):]
         url = "https://openrouter.ai/api/v1/chat/completions"
         api_key = os.environ.get("OPENROUTER_API_KEY", config.API_KEY)
+    elif resolved_model and resolved_model.startswith("zai/"):
+        resolved_model = resolved_model[len("zai/"):]
+        url = "https://api.z.ai/api/coding/paas/v4/chat/completions"
+        api_key = os.environ.get("ZAI_API_KEY", config.API_KEY)
 
     headers = {
         "Content-Type": "application/json",
@@ -645,7 +652,9 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         "stream": False,
     }
     if stop:
-        data["stop"] = stop
+        # Z.AI allows max 4 stop sequences
+        _stop = stop[:4] if "z.ai" in url else stop
+        data["stop"] = _stop
     if config.MAX_OUTPUT_TOKENS > 0:
         data["max_tokens"] = config.MAX_OUTPUT_TOKENS
 
@@ -688,6 +697,16 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     if usage:
         last_input_tokens = usage.get("prompt_tokens", usage.get("input_tokens", 0))
         last_output_tokens = usage.get("completion_tokens", usage.get("output_tokens", 0))
+        # Parse cache stats — Anthropic and OpenAI/Z.AI formats, gated by config
+        if config.ENABLE_PROMPT_CACHING:
+            _cct = usage.get("cache_creation_input_tokens", 0)
+            _crt = usage.get("cache_read_input_tokens", 0)
+            _ptd = usage.get("prompt_tokens_details") or {}
+            _crt = _crt or _ptd.get("cached_tokens", 0)
+            last_cache_creation_tokens = _cct
+            last_cache_read_tokens     = _crt
+            total_cache_created += _cct
+            total_cache_read    += _crt
 
     # Record call (nonstream: ttft = connect+read, decode = 0)
     _record_call(
@@ -803,15 +822,17 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     # Determine API key for the request
     api_key = config.API_KEY
 
-    # If model override uses "openrouter/..." format, route to OpenRouter
+    # If model override uses "provider/..." format, route accordingly
     if model and "/" in model:
         parts = model.split("/", 1)
         provider = parts[0]
         if provider == "openrouter":
             url = "https://openrouter.ai/api/v1/chat/completions"
-            # Use OpenRouter API key if available
             openrouter_key = os.environ.get("OPENROUTER_API_KEY", config.API_KEY)
             api_key = openrouter_key
+        elif provider == "zai":
+            url = "https://api.z.ai/api/coding/paas/v4/chat/completions"
+            api_key = os.environ.get("ZAI_API_KEY", config.API_KEY)
 
     headers = {
         "Content-Type": "application/json",
@@ -841,7 +862,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     }
 
     if stop:
-        data["stop"] = stop
+        # Z.AI allows max 4 stop sequences
+        _stop = stop[:4] if "z.ai" in url else stop
+        data["stop"] = _stop
 
     if config.MAX_OUTPUT_TOKENS > 0:
         data["max_tokens"] = config.MAX_OUTPUT_TOKENS
@@ -1092,30 +1115,20 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                         print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
                         print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}\n")
 
-                # Display usage information if available and caching is enabled
-                if usage_info and config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
-                    input_tokens = usage_info.get("input_tokens", 0)
-                    output_tokens = usage_info.get("output_tokens", 0)
+                # Parse cache token usage — supports both Anthropic and OpenAI/Z.AI formats
+                if usage_info and config.ENABLE_PROMPT_CACHING:
+                    # Anthropic: cache_creation_input_tokens / cache_read_input_tokens
+                    # OpenAI / Z.AI: prompt_tokens_details.cached_tokens (read-only, implicit)
                     cache_creation_tokens = usage_info.get("cache_creation_input_tokens", 0)
                     cache_read_tokens = usage_info.get("cache_read_input_tokens", 0)
+                    _ptd = usage_info.get("prompt_tokens_details") or {}
+                    cache_read_tokens = cache_read_tokens or _ptd.get("cached_tokens", 0)
 
                     # Update cache token tracking
                     last_cache_creation_tokens = cache_creation_tokens
                     last_cache_read_tokens = cache_read_tokens
                     total_cache_created += cache_creation_tokens
                     total_cache_read += cache_read_tokens
-
-                    if cache_creation_tokens > 0 or cache_read_tokens > 0:
-                        print(f"\n\n{Color.info('[Token Usage]')}")
-                        print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
-                        print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
-                        if cache_creation_tokens > 0:
-                            print(f"{Color.info(f'  Cache Created: {cache_creation_tokens:,} tokens (Total Session: {total_cache_created:,})')}")
-                        if cache_read_tokens > 0:
-                            savings = int(cache_read_tokens * 0.9)
-                            total_savings = int(total_cache_read * 0.9)
-                            print(f"{Color.success(f'  Cache Hit: {cache_read_tokens:,} tokens (saved ~{savings:,} tokens)')}")
-                            print(f"{Color.success(f'  Total Session Cache Hits: {total_cache_read:,} tokens (saved ~{total_savings:,} tokens!)')}\n")
                 
                 # Success! Exit retry loop
                 return
@@ -1270,11 +1283,15 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
     url = f"{config.BASE_URL}/chat/completions"
     api_key = config.API_KEY
 
-    # Route to OpenRouter if model specifies it
+    # Route to OpenRouter or Z.AI if model specifies it
     if resolved_model and resolved_model.startswith("openrouter/"):
         resolved_model = resolved_model[len("openrouter/"):]
         url = "https://openrouter.ai/api/v1/chat/completions"
         api_key = os.environ.get("OPENROUTER_API_KEY", config.API_KEY)
+    elif resolved_model and resolved_model.startswith("zai/"):
+        resolved_model = resolved_model[len("zai/"):]
+        url = "https://api.z.ai/api/coding/paas/v4/chat/completions"
+        api_key = os.environ.get("ZAI_API_KEY", config.API_KEY)
 
     headers = {
         "Content-Type": "application/json",
@@ -1297,7 +1314,9 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         "stream": use_stream
     }
     if stop:
-        data["stop"] = stop
+        # Z.AI allows max 4 stop sequences
+        _stop = stop[:4] if "z.ai" in url else stop
+        data["stop"] = _stop
     if max_tokens is not None:
         data["max_tokens"] = max_tokens
     if extra_body:

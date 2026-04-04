@@ -600,7 +600,17 @@ def run_react_agent_impl(
             _in_tok, _out_tok = deps.get_llm_tokens_fn()
             _fk = lambda n: f"{n/1000:.1f}k" if n >= 1000 else str(n)
             if _in_tok > 0 and _out_tok > 0:
-                token_str = f"in {_fk(_in_tok)} · out {_fk(_out_tok)} · sum {_fk(_in_tok + _out_tok)}"
+                _usage = deps.get_llm_usage_fn() if deps.get_llm_usage_fn else {}
+                _cw = _usage.get("cache_created", 0)
+                _cr = _usage.get("cache_read", 0)
+                _in_str = f"{_fk(_in_tok)}"
+                if _cw > 0 and _cr > 0:
+                    _in_str += f" (cache write {_fk(_cw)} read {_fk(_cr)})"
+                elif _cw > 0:
+                    _in_str += f" (cache write {_fk(_cw)})"
+                elif _cr > 0:
+                    _in_str += f" (cache {_fk(_cr)})"
+                token_str = f"in {_in_str} · out {_fk(_out_tok)} · sum {_fk(_in_tok + _out_tok)}"
             else:
                 token_str = f"~{_fk(len(collected_content)//4)}"
             print(f"\n  {Color.DIM}✽ {token_str} tokens · {elapsed_str}{Color.RESET}")

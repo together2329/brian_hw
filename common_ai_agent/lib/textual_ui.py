@@ -356,6 +356,18 @@ class AgentTUI(App):
         padding: 0 0 1 0;
         border-bottom: solid {_BORDER_DIM};
     }}
+    #cost-header {{
+        height: auto;
+        color: {_TEXT};
+        padding: 1 0 0 0;
+        text-style: bold;
+    }}
+    #cost {{
+        height: auto;
+        color: {_TEXT_DIM};
+        padding: 0 0 1 0;
+        border-bottom: solid {_BORDER_DIM};
+    }}
     #todo-header {{
         height: auto;
         color: {_TEXT};
@@ -390,9 +402,6 @@ class AgentTUI(App):
         max-height: 100%;
         background: {_BG};
         color: {_TEXT};
-        padding: 0 1;
-        border-left: solid {_ACCENT};
-        margin: 0 1;
         display: none;
     }}
     #live.active {{
@@ -432,6 +441,12 @@ class AgentTUI(App):
         self._ctx_tokens = 0
         self._ctx_max_tokens = 65536
         self._ctx_skill = ""
+        # Session cost tracking (reset on /clear)
+        self._sess_in_tok = 0
+        self._sess_cache_tok = 0
+        self._sess_out_tok = 0
+        self._sess_sum_tok = 0
+        self._cost_in_pm = self._cost_cch_pm = self._cost_out_pm = 0.0
         try:
             import config as _cfg
             self._model = getattr(_cfg, "MODEL_NAME", "")
@@ -457,6 +472,8 @@ class AgentTUI(App):
             yield Static("", id="model")
             yield Static("Context", id="context-header")
             yield Static("", id="context")
+            yield Static("Cost", id="cost-header")
+            yield Static("", id="cost")
             yield Static("Skill", id="skill-header")
             yield Static("", id="skill")
             yield Static("Todo", id="todo-header")
@@ -670,8 +687,14 @@ class AgentTUI(App):
         if not self._response_buf.strip():
             return
         try:
+            from rich.panel import Panel
             live = self.query_one("#live", Static)
-            live.update(_LeftMarkdown(_fix_md(self._response_buf)))
+            live.update(Panel(
+                _LeftMarkdown(_fix_md(self._response_buf)),
+                border_style=f"dim {_BORDER_DIM}",
+                padding=(0, 1),
+                expand=True,
+            ))
             live.add_class("active")
             self._scroll_down()
         except Exception:
@@ -696,7 +719,7 @@ class AgentTUI(App):
         if not self._reasoning_open:
             self._reasoning_open = True
             hdr = RichText()
-            hdr.append("  Reasoning", style=f"dim italic {_TEXT_FAINT}")
+            hdr.append("  Reasoning", style=f"italic {_TEXT_DIM}")
             log.write(hdr)
         # Hanging-indent grid: "  ┆ " fixed col + wrapping text col
         grid = RichTable.grid(padding=0)
@@ -704,7 +727,7 @@ class AgentTUI(App):
         grid.add_column(overflow="fold")
         grid.add_row(
             RichText("  ┆ ", style=f"dim {_BORDER_DIM}"),
-            RichText(msg.text, style=f"dim italic {_TEXT_FAINT}"),
+            RichText(msg.text, style=f"italic {_TEXT_DIM}"),
         )
         log.write(grid)
 
@@ -736,8 +759,48 @@ class AgentTUI(App):
         except Exception:
             pass
 
+    def _redraw_cost(self) -> None:
+        """Redraw #cost widget with session token usage and cost."""
+        try:
+            pricing_on = self._cost_in_pm > 0 or self._cost_out_pm > 0
+
+            def _fk(n: int) -> str:
+                return f"{n/1000:.1f}k" if n >= 1000 else str(n)
+
+            def _fc(tok: int, rate: float) -> str:
+                return f"${tok / 1_000_000 * rate:.4f}"
+
+            t = RichText()
+            in_str  = _fk(self._sess_in_tok)
+            cch_str = _fk(self._sess_cache_tok)
+            out_str = _fk(self._sess_out_tok)
+            tot     = self._sess_sum_tok
+
+            if pricing_on:
+                cost_in  = self._sess_in_tok   / 1_000_000 * self._cost_in_pm
+                cost_cch = self._sess_cache_tok / 1_000_000 * self._cost_cch_pm
+                cost_out = self._sess_out_tok   / 1_000_000 * self._cost_out_pm
+                cost_tot = cost_in + cost_cch + cost_out
+
+                t.append(f"Input         {in_str:>6}  ${cost_in:.4f}\n",  style=_TEXT_DIM)
+                if self._sess_cache_tok > 0:
+                    t.append(f"Cached Input  {cch_str:>6}  ${cost_cch:.4f}\n", style=_TEXT_DIM)
+                t.append(f"Output        {out_str:>6}  ${cost_out:.4f}\n", style=_TEXT_DIM)
+                t.append(f"Total         {_fk(tot):>6}  ", style=_TEXT_DIM)
+                t.append(f"${cost_tot:.4f}", style=f"bold {_ACCENT}")
+            else:
+                t.append(f"Input         {in_str}\n",  style=_TEXT_DIM)
+                if self._sess_cache_tok > 0:
+                    t.append(f"Cached Input  {cch_str}\n", style=_TEXT_DIM)
+                t.append(f"Output        {out_str}\n", style=_TEXT_DIM)
+                t.append(f"Total         {_fk(tot)}",  style=_TEXT_DIM)
+
+            self.query_one("#cost", Static).update(t)
+        except Exception:
+            pass
+
     def _refresh_model_sidebar(self) -> None:
-        """Update #model widget with current active model name."""
+        """Update #model widget with current active model name, and reload pricing."""
         try:
             def _short(name: str) -> str:
                 return name.split("/")[-1] if "/" in name else name
@@ -747,6 +810,17 @@ class AgentTUI(App):
             if active:
                 t.append(active, style=_TEXT_DIM)
             self.query_one("#model", Static).update(t)
+
+            # Load pricing from model_pricing.py based on active model
+            try:
+                from lib.model_pricing import get_pricing
+                p = get_pricing(active)
+                if p:
+                    self._cost_in_pm  = p.input
+                    self._cost_cch_pm = p.cache
+                    self._cost_out_pm = p.output
+            except Exception:
+                pass
         except Exception:
             pass
 
@@ -761,16 +835,26 @@ class AgentTUI(App):
 
         # Iteration header — hide from log, extract active model for sidebar
         if _ITER.search(text):
-            m_model = re.search(r"[·•]\s*(\S+)\s*$", text)
+            m_model = re.search(r"[·•]\s*(\S+)", text)
             if m_model:
                 self._active_model = m_model.group(1)
                 self._refresh_model_sidebar()
             return
 
-        # Token stats → very faint + update sidebar token count
+        # Token stats → very faint + update sidebar token count + cost
         if _TOKENS.search(text):
             log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
-            # Parse "sum 26.4k" or "in 26.3k" to update token counter
+
+            def _parse_tok(pattern: str) -> int:
+                m = re.search(pattern, text)
+                if not m:
+                    return 0
+                v = float(m.group(1))
+                if m.group(2) == "k":
+                    v *= 1000
+                return int(v)
+
+            # Update context token counter (sum or fallback to in)
             m_tok = re.search(r"\bsum\s+([\d.]+)(k?)", text)
             if not m_tok:
                 m_tok = re.search(r"\bin\s+([\d.]+)(k?)", text)
@@ -780,7 +864,30 @@ class AgentTUI(App):
                     val *= 1000
                 self._ctx_tokens = int(val)
                 self._redraw_context()
+
+            # Accumulate session tokens for cost tracking
+            # Format: ✽ in 1.5k (cache 1.4k) · out 136 · sum 1.6k ...
+            # _in = total input (includes cache hits); subtract _cch to avoid double-billing
+            _in  = _parse_tok(r"\bin\s+([\d.]+)(k?)")
+            _cch = _parse_tok(r"\bcache\s+([\d.]+)(k?)")
+            _out = _parse_tok(r"\bout\s+([\d.]+)(k?)")
+            _sum = _parse_tok(r"\bsum\s+([\d.]+)(k?)")
+            if _in > 0 or _out > 0:
+                self._sess_in_tok    += max(0, _in - _cch)  # non-cached input only
+                self._sess_cache_tok += _cch
+                self._sess_out_tok   += _out
+                # Use parsed sum for total to avoid k-rounding compounding error
+                self._sess_sum_tok   += _sum if _sum > 0 else (_in + _out)
+                self._redraw_cost()
             return
+
+        # /clear → reset session cost counters
+        if "Conversation history cleared" in text or "All cleared" in text:
+            self._sess_in_tok = 0
+            self._sess_cache_tok = 0
+            self._sess_out_tok = 0
+            self._sess_sum_tok = 0
+            self._redraw_cost()
 
         # Shorten long paths
         text = _shorten_path(text)
