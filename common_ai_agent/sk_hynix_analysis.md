@@ -964,3 +964,124 @@ Low      │ Taiwan       │ EUV          │ HBM tech     │ ESG/Key      │
 ```
 
 ---
+
+## 9. Valuation & Stock Performance
+
+### 9.1 Current Valuation Metrics (as of Mid-2025)
+
+| Metric | SK Hynix (000660.KS) | Samsung Electronics | Micron Technology |
+|--------|---------------------|--------------------|--------------------|
+| **Market Cap** | ~₩125T (~$95B) | ~₩430T (~$330B) | ~$120B |
+| **Share Price** | ~₩170,000-180,000 | ~₩58,000-62,000 | ~$95-105 |
+| **Trailing P/E** | ~12-14x | ~18-20x | ~18-22x |
+| **Forward P/E (2025E)** | ~8-10x | ~14-16x | ~13-15x |
+| **P/B Ratio** | ~1.8-2.2x | ~1.3-1.5x | ~2.0-2.5x |
+| **EV/EBITDA** | ~7-8x | ~9-10x | ~8-10x |
+| **Dividend Yield** | ~1.2-1.5% | ~2.0-2.5% | ~0.5% |
+| **EV/Revenue** | ~3.5-4.0x | ~2.5-3.0x | ~3.5-4.0x |
+
+> **Key observation**: SK Hynix trades at a significant discount to peers on forward P/E (~8-10x vs 13-16x), reflecting memory sector cyclicality. If HBM-driven earnings materialize, re-rating potential is substantial.
+
+---
+
+### 9.2 Stock Price Performance
+
+| Period | SK Hynix | Samsung | Micron | SOX Index |
+|--------|----------|---------|--------|-----------|
+| **1-Year** | +65-75% | +25-35% | +50-60% | +30-40% |
+| **3-Year** | +40-50% | -5-5% | +20-30% | +25-35% |
+| **5-Year** | +120-140% | +15-25% | +60-80% | +100-120% |
+| **From 2022 Low** | +250-300% | +60-80% | +150-180% | +80-100% |
+
+#### 52-Week Range
+
+| Metric | Value |
+|--------|-------|
+| **52-Week High** | ~₩195,000-205,000 |
+| **52-Week Low** | ~₩95,000-105,000 |
+| **Current vs High** | ~-10-15% |
+| **Current vs Low** | ~+70-80% |
+
+---
+
+### 9.3 Analyst Coverage & Price Targets
+
+| Brokerage | Rating | Price Target (₩) | Upside/Downside |
+|-----------|--------|-------------------|-----------------|
+| **KB Securities** | Buy | 220,000 | +25-30% |
+| **NH Investment** | Buy | 210,000 | +20-25% |
+| **Samsung Securities** | Buy | 200,000 | +15-20% |
+| **Hana Financial** | Buy | 195,000 | +12-18% |
+| **Meritz** | Buy | 230,000 | +30-35% |
+| **Goldman Sachs** | Buy | ₩210,000 equivalent | +20-25% |
+| **Morgan Stanley** | Overweight | ₩200,000 equivalent | +15-20% |
+| **Consensus** | **Strong Buy** | **~₩205,000-215,000** | **+18-25%** |
+
+> Overwhelmingly bullish consensus. Main risk to targets: memory cycle turning earlier than expected.
+
+---
+
+### 9.4 Ownership Structure
+
+| Category | % Holding | Trend |
+|----------|-----------|-------|
+| **SK Group (Chey family)** | ~20-21% | Stable |
+| **National Pension Service (Korea)** | ~8-9% | Increasing |
+| **Foreign investors** | ~45-50% | Increasing (AI narrative) |
+| **Domestic institutions** | ~10-12% | Stable |
+| **Treasury stock** | ~3-4% | Stable |
+| **Retail/Other** | ~8-10% | Declining |
+
+#### Foreign Ownership Trend
+
+| Period | Foreign % | Trend Driver |
+|--------|-----------|-------------|
+| Early 2023 | ~38-40% | Post-crash low |
+| Late 2023 | ~42-44% | HBM3E narrative building |
+| Mid 2024 | ~46-48% | AI supercycle recognition |
+| Mid 2025 | ~48-52% | Peak HBM earnings expectation |
+
+> **Key signal**: Foreign ownership rising steadily — indicates global institutional conviction in HBM/AI thesis. When foreign ownership peaks historically, it often coincides with price peaks.
+
+---
+
+### 9.5 Earnings Estimates & Valuation Scenarios
+
+#### Consensus Earnings Estimates
+
+| Metric | 2024A | 2025E | 2026E | 2027E |
+|--------|-------|-------|-------|-------|
+| **Revenue (₩T)** | ~66T | ~82-85T | ~90-95T | ~85-90T |
+| **Operating Profit (₩T)** | ~19T | ~28-32T | ~33-38T | ~28-32T |
+| **Operating Margin** | ~29% | ~34-38% | ~37-40% | ~33-36% |
+| **EPS (₩)** | ~12,000 | ~18,000-20,000 | ~22,000-25,000 | ~18,000-20,000 |
+| **EPS Growth** | - | +50-65% | +20-30% | -10 to -15% |
+
+#### Valuation Scenarios
+
+| Scenario | 2025E EPS | Applied P/E | Target Price (₩) | Probability |
+|----------|-----------|-------------|-------------------|-------------|
+| **Bull** | ₩22,000 | 14x | 308,000 | 20% |
+| **Base** | ₩19,000 | 11x | 209,000 | 55% |
+| **Bear** | ₩14,000 | 8x | 112,000 | 25% |
+
+---
+
+### 9.6 Relative Valuation Assessment
+
+```
+                     SK Hynix    Samsung    Micron
+                     ────────    ────────   ──────
+Fwd P/E (2025E):      8-10x      14-16x     13-15x    ← Significant discount
+P/B:                  1.8-2.2x   1.3-1.5x   2.0-2.5x
+EV/EBITDA:            7-8x       9-10x      8-10x     ← Cheapest on cash flow
+Revenue Growth:       +25-30%    +10-15%    +20-25%   ← Fastest grower
+OP Margin (2025E):    34-38%     12-15%*    28-32%    ← Highest margin
+Dividend Yield:       1.2-1.5%   2.0-2.5%   0.5%
+
+* Samsung includes foundry/consumer drag on margins
+```
+
+> **Conclusion**: SK Hynix is the cheapest memory stock on forward P/E and EV/EBITDA despite having the highest operating margins and fastest revenue growth — driven by HBM dominance. If the market re-rates memory sector to reflect AI-driven structural change, significant upside exists.
+
+---
