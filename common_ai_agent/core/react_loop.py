@@ -981,7 +981,7 @@ def run_react_agent_impl(
                         break
 
             # Plan mode iteration limit: don't let it loop indefinitely
-            if agent_mode in ("plan", "plan_q") and tracker.iterations >= 2:
+            if agent_mode in ("plan", "plan_q") and tracker.current >= 2:
                 break
 
         else:
