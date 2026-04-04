@@ -156,13 +156,20 @@ def _fix_md(text: str) -> str:
 
         i += 1
 
-    return "\n".join(out)
+    # ── Pass 3: strip blank lines right before headings (Rich adds its own) ──
+    final: list[str] = []
+    for line in out:
+        if re.match(r"^#{1,6}\s", line) and final and not final[-1].strip():
+            final.pop()  # remove blank line before heading
+        final.append(line)
+
+    return "\n".join(final)
 
 
-# ── Left-aligned Markdown headings ───────────────────────────────────────────
+# ── Left-aligned Markdown headings (compact) ────────────────────────────────
 
 class _LeftHeading(_RichHeading):
-    """Override Rich Heading to render left-aligned instead of centered."""
+    """Override Rich Heading to render left-aligned and compact (no extra blank lines)."""
     def __rich_console__(self, console, options):  # type: ignore[override]
         text = self.text
         text.justify = "left"
