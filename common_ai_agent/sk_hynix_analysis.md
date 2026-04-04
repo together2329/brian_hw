@@ -537,3 +537,153 @@ NAND Market Share (2024)
 | **T** | Samsung HBM recovery, China self-sufficiency, cycle downturn | Geopolitics, customer diversification away, YMTC | China competition, capital intensity, tech catch-up |
 
 ---
+
+## 6. DRAM & NAND Industry Cycle & Pricing Trends
+
+### 6.1 Memory Cycle Phase Assessment (Mid-2025)
+
+```
+                    MEMORY CYCLE POSITION
+  ┌─────────────────────────────────────────────────┐
+  │                                                 │
+  │  Trough    Recovery    Expansion    Peak    Decline
+  │    │          │            │          │        │
+  │    ▼          ▼            ▼          ▼        ▼
+  │  Q1'23    Q3'23       Q1'24      >>> Q2'25 <<< │
+  │                                 Current Phase   │
+  └─────────────────────────────────────────────────┘
+  
+  Phase: Late Expansion / Near Peak
+  - DRAM: Strong upcycle, but growth rate decelerating
+  - NAND: Moderate recovery, oversupply risk emerging
+  - HBM: Structural supercycle (insulated from commodity cycle)
+```
+
+#### Historical Cycle Context
+
+| Cycle | Peak | Trough | Duration | Driver |
+|-------|------|--------|----------|--------|
+| 2017-2019 | Q3 2018 | Q1 2019 | 18 months | Data center oversupply, crypto bust |
+| 2020-2022 | Q2 2021 | Q3 2022 | 15 months | COVID demand boom, then bust |
+| 2022-2025 | Q4 2024? | Q1 2023 | ~24 months? | AI-driven structural demand |
+| **This cycle is longer** due to AI capex being multi-year and HBM being supply-constrained. |
+
+---
+
+### 6.2 DRAM Inventory Levels
+
+| Metric | Q1 2023 (Trough) | Q4 2023 | Q4 2024 | Q1 2025 | Assessment |
+|--------|-------------------|---------|---------|---------|------------|
+| **Industry Inventory (weeks)** | 16-20 wk | 10-12 wk | 6-8 wk | 7-9 wk | Healthy-tight |
+| **SK Hynix Inventory** | ~18 wk | ~10 wk | ~6 wk | ~7 wk | Lean |
+| **Channel Inventory** | Bloated | Normal | Low | Normal | Balanced |
+
+> Inventory has normalized from crisis levels. SK Hynix maintains lean inventory, prioritizing HBM allocation over commodity DRAM.
+
+---
+
+### 6.3 DRAM ASP (Average Selling Price) Trends
+
+#### Commodity DRAM ASP Index (Q1 2023 = 100)
+
+| Quarter | DDR4 ASP | DDR5 ASP | LPDDR5X ASP | HBM3E ASP | Overall DRAM |
+|---------|----------|----------|-------------|-----------|--------------|
+| Q1 2023 | 100 | 100 | 100 | N/A | 100 |
+| Q2 2023 | 85 | 95 | 90 | N/A | 90 |
+| Q3 2023 | 90 | 105 | 100 | N/A | 98 |
+| Q4 2023 | 110 | 130 | 120 | 150 | 125 |
+| Q1 2024 | 120 | 145 | 135 | 200 | 145 |
+| Q2 2024 | 130 | 155 | 145 | 250 | 165 |
+| Q3 2024 | 125 | 150 | 140 | 280 | 160 |
+| Q4 2024 | 120 | 145 | 135 | 300 | 155 |
+| Q1 2025E | 110 | 140 | 130 | 310 | 148 |
+| Q2 2025E | 108 | 138 | 128 | 320 | 145 |
+
+```
+DRAM ASP Trend
+  320│                              █  HBM3E
+     │                         █  │
+  240│                    █  │     │
+     │               █  │     │
+  160│          █  █  │     │     │ ← DDR5
+     │     █  │  │     │     │     │
+   80│█  │  │     │     │     │     │ ← DDR4
+     └──┼──┼──┼──┼──┼──┼──┼──┼──┼──
+      Q1 Q2 Q3 Q4 Q1 Q2 Q3 Q4 Q1 Q2
+      '23           '24           '25
+```
+
+#### Key ASP Observations
+- **Commodity DRAM (DDR4/DDR5)**: Peaked Q2 2024, gradually softening as supply catches up
+- **HBM ASP**: Still rising — supply-constrained, 5-8x premium holding firm
+- **LPDDR5X**: Stable — supported by AI smartphone cycle (Apple, Samsung)
+- **Overall**: Modest ASP decline expected H2 2025 for commodity, HBM remains strong
+
+---
+
+### 6.4 NAND Flash Pricing Trends
+
+| Quarter | NAND ASP ($/GB) | QoQ Change | Supply/Demand |
+|---------|-----------------|------------|---------------|
+| Q1 2023 | $0.045 | -20% | Severe oversupply |
+| Q2 2023 | $0.040 | -11% | Oversupply, production cuts |
+| Q3 2023 | $0.042 | +5% | Cuts taking effect |
+| Q4 2023 | $0.048 | +14% | Recovery begins |
+| Q1 2024 | $0.055 | +15% | Tight supply, AI SSD demand |
+| Q2 2024 | $0.058 | +5% | Stable |
+| Q3 2024 | $0.052 | -10% | Oversupply returning |
+| Q4 2024 | $0.048 | -8% | Price competition |
+| Q1 2025E | $0.045 | -6% | Weak demand, high inventory |
+| Q2 2025E | $0.044 | -2% | Bottoming |
+
+> **NAND is in a softer cycle than DRAM** — AI demand benefits DRAM/HBM disproportionately. NAND oversupply risk is real in 2025.
+
+---
+
+### 6.5 Supply/Demand Forecast
+
+#### DRAM Supply vs. Demand Growth
+
+| Year | Bit Supply Growth | Bit Demand Growth | Supply-Demand Gap | Pricing Outlook |
+|------|-------------------|-------------------|-------------------|-----------------|
+| 2023 | -5% | -8% | Tight | Recovery (+) |
+| 2024 | +15% | +25% | **Deficit** | Strong up (+) |
+| 2025E | +20% | +18% | Balanced/Slight surplus | Mixed (HBM+, Commodity -) |
+| 2026E | +22% | +20% | Slight surplus | Pressure on commodity |
+
+#### DRAM Bit Growth by Application
+
+| Application | 2024 Growth | 2025E Growth | 2026E Growth |
+|-------------|-------------|--------------|--------------|
+| Server (AI) | +80% | +50% | +40% |
+| Server (Traditional) | +15% | +12% | +10% |
+| Mobile | +10% | +8% | +8% |
+| PC/Client | +12% | +10% | +8% |
+| Automotive/Industrial | +20% | +18% | +15% |
+| Graphics | +25% | +20% | +15% |
+
+---
+
+### 6.6 Capex Impact on Future Supply
+
+| Company | 2024 Capex | 2025 Capex Plan | Focus |
+|---------|-----------|-----------------|-------|
+| Samsung | ~₩30T | ~₩35T+ | HBM, foundry, next-gen NAND |
+| SK Hynix | ~₩12.5T | **~₩20T+** | HBM4, Bucheon fab, DRAM migration |
+| Micron | ~$8B | ~$14B+ | Idaho fab (HBM), 1β ramp |
+
+> **Industry capex surge in 2025** could create oversupply in 2026-2027 if AI demand growth slows. This is the primary cycle risk.
+
+---
+
+### 6.7 Cycle Outlook Summary
+
+| Factor | DRAM | NAND | HBM |
+|--------|------|------|-----|
+| **Current Phase** | Late upcycle | Flat/softening | Structural supercycle |
+| **Near-term (6mo)** | Modest ASP decline | Bottoming | Strong, supply-constrained |
+| **Medium-term (12-18mo)** | Balanced-to-soft | Recovery possible | Strong, driven by HBM4 |
+| **Key Risk** | Commodity oversupply | Persistent oversupply | Samsung yield improvement |
+| **SK Hynix Net** | Positive (HBM offsets) | Neutral-negative | Very positive |
+
+---
