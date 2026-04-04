@@ -769,9 +769,9 @@ class SlashCommandRegistry:
         from lib.display import Color
         
         lines = []
-        lines.append("\n" + "=" * 60)
-        lines.append(" 📄 Full Conversation Context")
-        lines.append("=" * 60)
+        lines.append("\n\033[2m" + "=" * 60 + "\033[0m")
+        lines.append("\033[1m 📄 Full Conversation Context\033[0m")
+        lines.append("\033[2m" + "=" * 60 + "\033[0m")
 
         # Show active skill as a separate [SKILL] block before messages
         try:
@@ -846,7 +846,7 @@ class SlashCommandRegistry:
             
             lines.append("\033[2m" + "-" * 40 + "\033[0m") # Dim separator
 
-        lines.append("\n" + "=" * 60)
+        lines.append("\n\033[2m" + "=" * 60 + "\033[0m")
         return "\n".join(lines) + "\n"
 
     def _cmd_context(self, args: str) -> str:
