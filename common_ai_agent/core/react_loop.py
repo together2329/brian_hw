@@ -776,15 +776,24 @@ def run_react_agent_impl(
                         agent_mode in ("plan", "plan_q")
                         and tool_name in getattr(cfg, "PLAN_MODE_BLOCKED_TOOLS", set())
                     )
+                    _is_normal_blocked = (
+                        agent_mode not in ("plan", "plan_q")
+                        and tool_name in getattr(cfg, "NORMAL_MODE_BLOCKED_TOOLS", set())
+                    )
 
                     # Show what we're about to do — before execution so long ops aren't silent
-                    if not _debug and not _is_plan_blocked:
+                    if not _debug and not _is_plan_blocked and not _is_normal_blocked:
                         print(format_tool_header(tool_name, summary))
 
                     if _is_plan_blocked:
                         observation = (
                             f"[Plan Mode] '{tool_name}' is blocked. "
                             "Only read/search tools are available."
+                        )
+                    elif _is_normal_blocked:
+                        observation = (
+                            f"[Execution Mode] '{tool_name}' is blocked. "
+                            "Use plan mode (todo_write) for task planning."
                         )
                     elif tool_name in _SLOW_TOOLS and not _debug:
                         # In TUI mode skip stderr spinner; terminal mode shows spinner
@@ -837,7 +846,7 @@ def run_react_agent_impl(
                                      "git_diff", "git_status", "write_file", "todo_write", "todo_update",
                                      "todo_add", "todo_remove"}
                     elapsed_suffix = f" · {tool_elapsed:.1f}s" if tool_elapsed >= 1.0 else ""
-                    if _is_plan_blocked:
+                    if _is_plan_blocked or _is_normal_blocked:
                         print(format_tool_header(tool_name, summary))
                         print(format_tool_result(observation))
                     elif _debug:
@@ -885,8 +894,8 @@ def run_react_agent_impl(
                     except Exception:
                         pass
 
-            # Break after todo_write (plan step-by-step)
-            if _is_todo_write:
+            # Break after todo_write (plan step-by-step) — only in plan mode
+            if _is_todo_write and agent_mode in ("plan", "plan_q"):
                 break
 
             # Consecutive error tracking
