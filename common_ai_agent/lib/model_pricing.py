@@ -5,7 +5,7 @@ Source: https://docs.z.ai/guides/overview/pricing
 Update this file when pricing changes.
 """
 
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 
 class Pricing(NamedTuple):
@@ -34,7 +34,7 @@ _TABLE: dict[str, Pricing] = {
 }
 
 
-def get_pricing(model_name: str) -> Pricing | None:
+def get_pricing(model_name: str) -> Optional[Pricing]:
     """Return Pricing for model_name by longest prefix match, or None if unknown."""
     name = model_name.lower().split("/")[-1]  # strip provider prefix
     best_key = ""
