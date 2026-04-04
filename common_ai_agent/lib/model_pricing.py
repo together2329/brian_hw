@@ -5,7 +5,7 @@ Source: https://docs.z.ai/guides/overview/pricing
 Update this file when pricing changes.
 """
 
-from typing import NamedTuple, Optional
+from typing import Dict, NamedTuple, Optional
 
 
 class Pricing(NamedTuple):
@@ -16,7 +16,7 @@ class Pricing(NamedTuple):
 
 # Model prefix → pricing
 # Matched by longest prefix of the active model name (case-insensitive).
-_TABLE: dict[str, Pricing] = {
+_TABLE: Dict[str, Pricing] = {
     "glm-5":   Pricing(input=1.00, cache=0.20, output=3.20),
     "glm-4.7": Pricing(input=0.60, cache=0.11, output=2.20),
     "glm-4.6": Pricing(input=0.60, cache=0.11, output=2.20),
