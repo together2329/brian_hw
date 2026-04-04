@@ -93,6 +93,10 @@ def build_system_prompt(
     if agent_mode in ('plan', 'plan_q'):
         blocked = getattr(cfg, 'PLAN_MODE_BLOCKED_TOOLS', set())
         _at = {t for t in _at if t not in blocked}
+    else:
+        # Normal/execution mode: block plan-only tools (todo_write, todo_remove)
+        normal_blocked = getattr(cfg, 'NORMAL_MODE_BLOCKED_TOOLS', set())
+        _at = {t for t in _at if t not in normal_blocked}
 
     is_plan = agent_mode in ('plan', 'plan_q')
     todo_active = (

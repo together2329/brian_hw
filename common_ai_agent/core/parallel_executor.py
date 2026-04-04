@@ -199,6 +199,17 @@ def execute_actions_parallel(
             else:
                 tool_name, args_str = action_tuple
 
+            # Mode-based tool blocking (legacy path)
+            is_any_plan = agent_mode in ("plan", "plan_q")
+            if is_any_plan and tool_name in getattr(cfg, "PLAN_MODE_BLOCKED_TOOLS", set()):
+                results.append((idx, tool_name, args_str,
+                    f"[Plan Mode] '{tool_name}' is blocked. Only read/search tools are available."))
+                continue
+            if not is_any_plan and tool_name in getattr(cfg, "NORMAL_MODE_BLOCKED_TOOLS", set()):
+                results.append((idx, tool_name, args_str,
+                    f"[Execution Mode] '{tool_name}' is blocked. Use plan mode for task planning."))
+                continue
+
             if tool_name in PARALLEL_ELIGIBLE_TOOLS:
                 parallel_batch.append((idx, tool_name, args_str))
                 continue
