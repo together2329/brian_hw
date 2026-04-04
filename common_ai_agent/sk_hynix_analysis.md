@@ -834,3 +834,133 @@ DRAM ASP Trend
 | **Overall Memory Tech** | 🥇 #1 (HBM-weighted) | Strong, but HBM gap | Catching up |
 
 ---
+
+## 8. Risk Factors & Headwinds
+
+### 8.1 Geopolitical Risk — China Exposure
+
+| Risk Factor | Detail | Severity |
+|-------------|--------|----------|
+| **Wuxi Fab (DRAM)** | ~20% of total DRAM output, legacy nodes (1x/1y nm) | 🔴 High |
+| **Dalian Fab (NAND)** | Ex-Intel 3D NAND fab, ~10% of NAND output | 🟡 Medium |
+| **Chongqing** | NAND packaging & test facility | 🟡 Medium |
+| **US Export Controls** | Restrictions on advanced equipment to China; could limit Wuxi upgrades | 🔴 High |
+| **China Retaliation Risk** | Potential restrictions on Korean companies in China | 🟡 Medium |
+| **YMTC Competition** | Yangtze Memory gaining share in domestic China market | 🟡 Medium |
+
+#### Quantitative Exposure
+
+| Metric | Value |
+|--------|-------|
+| **Revenue from China fabs** | ~25-30% of total output |
+| **Wuxi DRAM capacity** | ~120K wafers/month |
+| **Dalian NAND capacity** | ~60K wafers/month |
+| **Mitigation** | Bucheon M8X fab (Korea) as hedge; shifting HBM to Korea-only production |
+| **Worst-case impact** | Full China exit would cost ~₩15-20T revenue, 2-3 years to relocate |
+
+> **Key insight**: SK Hynix has greater China fab exposure than Samsung or Micron. This is the single largest structural risk. However, HBM production is entirely Korea-based, insulating the highest-margin business.
+
+---
+
+### 8.2 Cyclical Downturn Risk
+
+| Indicator | Current Status | Risk Level |
+|-----------|---------------|------------|
+| **Cycle Phase** | Late expansion (Q2 2025) | 🟡 Elevated |
+| **DRAM Inventory** | 8-10 weeks (healthy = 8-12) | 🟢 Normal |
+| **NAND Inventory** | 12-14 weeks (healthy = 10-14) | 🟡 Building |
+| **Capex Surge** | Industry ~$90B+ in 2025 | 🔴 High |
+| **Bit Supply Growth** | DRAM ~20%, NAND ~30% YoY | 🟡 Moderate |
+| **HBM Supply/Demand** | Tight through 2026 | 🟢 Low risk |
+
+#### Historical Cycle Pattern
+
+| Cycle Peak | DRAM Decline | Duration | SK Hynix Revenue Impact |
+|------------|-------------|----------|------------------------|
+| **2018 Q3** | -60% ASP | 6 quarters | Revenue fell ~50% |
+| **2022 Q3** | -55% ASP | 5 quarters | Revenue fell ~60%, operating loss |
+| **Next risk window** | Potential 2026 H2-2027 | TBD | HBM provides buffer |
+
+> **Mitigant**: HBM is structurally different from commodity DRAM. Long-term supply agreements with NVIDIA (2+ year contracts) provide revenue visibility even during commodity downturns. HBM expected to be ~35-40% of DRAM revenue by 2026.
+
+---
+
+### 8.3 Customer Concentration Risk
+
+| Customer | Revenue Exposure (est.) | Risk |
+|----------|------------------------|------|
+| **NVIDIA** | ~25-30% (HBM-heavy) | 🔴 Critical |
+| **Apple** | ~10-12% (LPDDR5X, NAND) | 🟡 High |
+| **Samsung (as customer)** | ~5-8% | 🟢 Medium |
+| **Top 5 customers** | ~55-65% of revenue | 🔴 High |
+
+#### NVIDIA Dependency Analysis
+
+| Factor | Detail |
+|--------|--------|
+| **HBM3E supply to NVIDIA** | Primary supplier for H100, B200, GB200 |
+| **Contract structure** | Long-term agreements (LTAs) through 2026+ |
+| **Risk scenario** | If NVIDIA loses AI GPU share to AMD/custom ASICs, SK Hynix HBM demand drops |
+| **Mitigation** | Diversifying to AMD (MI350), Intel (Gaudi), custom ASIC builders (Broadcom, Marvell) |
+| **NVIDIA alternatives** | Samsung and Micron are qualified/certifying as 2nd/3rd sources |
+
+> **Key risk**: NVIDIA is both SK Hynix's biggest customer and its strongest competitive moat. Loss of NVIDIA preference would be catastrophic for HBM margins.
+
+---
+
+### 8.4 Competitive Threats
+
+#### Samsung HBM Recovery
+
+| Factor | Current Gap | Samsung Trajectory |
+|--------|------------|-------------------|
+| **HBM3E yield** | ~15-20% behind SK Hynix | Improving; target parity by 2026 |
+| **Thermal performance** | Failed NVIDIA qualification initially | Re-designed; re-qualifying |
+| **Scale advantage** | 2x DRAM capacity | Can out-invest if focused |
+| **Foundry bundling** | Can offer memory + foundry | Unique value proposition vs. SK Hynix |
+| **Timeline to close gap** | — | 12-18 months for HBM3E, possibly competitive at HBM4 |
+
+#### Micron HBM Ascension
+
+| Factor | Status |
+|--------|--------|
+| **HBM3E qualification** | Qualified with NVIDIA for H200 |
+| **1β nm advantage** | Most advanced DRAM process in production |
+| **US government support** | CHIPS Act funding (~$6.1B+), Idaho HBM fab |
+| **HBM market share target** | ~20-25% by 2026 |
+| **Cost structure** | Potentially lower (no China fab risk, US subsidies) |
+
+---
+
+### 8.5 Additional Risk Factors
+
+| Risk | Probability | Impact | Description |
+|------|------------|--------|-------------|
+| **KRW appreciation** | Medium | Medium | 10% KRW rise → ~5-7% margin compression |
+| **EUV equipment shortage** | Low-Medium | High | ASML supply constraints could slow 1c nm migration |
+| **HBM technology disruption** | Low | Critical | Alternative architectures (CXL, PIM, optical I/O) could displace HBM long-term |
+| **Taiwan geopolitical risk** | Low | Critical | TSMC disruption would impact HBM4 base die production |
+| **ESG/regulatory** | Low | Low-Medium | Carbon taxes, water usage restrictions at Korean fabs |
+| **Key person risk** | Low | Medium | Leadership transition (Chey Tae-won era → next generation) |
+| **NAND oversupply** | Medium | Medium | Industry capacity additions exceed AI-driven demand |
+
+---
+
+### 8.6 Risk Severity Matrix
+
+```
+Impact →    Critical          High              Medium            Low
+         ┌──────────────┬──────────────┬──────────────┬──────────────┐
+Prob ↑   │              │              │              │              |
+High     │              │ China export │ NAND cycle   │              │
+         │              │  controls    │ downturn     │              │
+         ├──────────────┼──────────────┼──────────────┼──────────────┤
+Medium   │              │ NVIDIA       │ Samsung      │ KRW forex    │
+         │              │ concentration│ HBM recovery │              │
+         ├──────────────┼──────────────┼──────────────┼──────────────┤
+Low      │ Taiwan       │ EUV          │ HBM tech     │ ESG/Key      │
+         │ disruption   │ shortage     │ disruption   │ person       │
+         └──────────────┴──────────────┴──────────────┴──────────────┘
+```
+
+---
