@@ -489,15 +489,34 @@ def compress_history(
             ]
 
     # Compress
-    if mode == "chunked":
-        print(f"  [Compress] chunked (chunk_size={cfg.COMPRESSION_CHUNK_SIZE})")
-        compressed = _compress_chunked(old_msgs, cfg=cfg, llm_call_fn=llm_call_fn, instruction=instruction)
-    else:
-        compressed = [_compress_single(old_msgs, llm_call_fn=llm_call_fn, instruction=instruction)]
+    compressed = None
+    try:
+        if mode == "chunked":
+            print(f"  [Compress] chunked (chunk_size={cfg.COMPRESSION_CHUNK_SIZE})")
+            compressed = _compress_chunked(old_msgs, cfg=cfg, llm_call_fn=llm_call_fn, instruction=instruction)
+        else:
+            compressed = [_compress_single(old_msgs, llm_call_fn=llm_call_fn, instruction=instruction)]
+    except Exception as exc:
+        print(f"  [Compress] LLM compression failed entirely: {exc}")
 
-    new_history = system_msgs + important_msgs + compressed + todo_preservation + recent_msgs
+    if compressed is not None:
+        new_history = system_msgs + important_msgs + compressed + todo_preservation + recent_msgs
+    else:
+        new_history = system_msgs + important_msgs + todo_preservation + recent_msgs
 
     new_tokens = sum(_est(m) for m in new_history)
+
+    # Emergency pruning: if still over limit after compression, tail-truncate
+    if new_tokens > limit_tokens:
+        print(f"  [Compress] EMERGENCY: still {new_tokens:,} tokens (limit {limit_tokens:,}), pruning to tail")
+        emergency_keep = max(4, len(todo_preservation) + len(system_msgs) + 2)
+        prunable = [m for m in new_history if m not in system_msgs and m not in todo_preservation]
+        kept_system = [m for m in new_history if m in system_msgs or m in todo_preservation]
+        # Keep only the last few messages
+        pruned = prunable[-emergency_keep:]
+        new_history = kept_system + pruned
+        new_tokens = sum(_est(m) for m in new_history)
+        print(f"  [Compress] Emergency prune: {len(prunable)} → {len(pruned)} messages ({new_tokens:,} tokens)")
     reduction_pct = int((1 - new_tokens / current_tokens) * 100) if current_tokens > 0 else 0
     old_msg_count = len(messages)
     new_msg_count = len(new_history)
