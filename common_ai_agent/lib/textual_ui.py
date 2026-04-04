@@ -444,6 +444,7 @@ class AgentTUI(App):
         self._generating = False
         self._in_diff = False   # True after a write/replace tool call
         self._in_result = False # True while showing └/| result lines
+        self._in_parallel = False  # True during parallel action block
         self._reasoning_open = False  # True while a reasoning block is open
         self._active_model = ""
         self._ctx_tokens = 0
@@ -727,6 +728,9 @@ class AgentTUI(App):
             return
         # First chunk of a reasoning block: print "Reasoning" header
         if not self._reasoning_open:
+            if self._in_parallel:
+                self._in_parallel = False
+                log.write(RichText(""))
             self._reasoning_open = True
             hdr = RichText()
             hdr.append("  Reasoning", style=f"italic {_TEXT_DIM}")
@@ -847,6 +851,7 @@ class AgentTUI(App):
 
         # Iteration header — hide from log, extract active model for sidebar
         if _ITER.search(text):
+            self._in_parallel = False
             m_model = re.search(r"[·•]\s*(\S+)", text)
             if m_model:
                 self._active_model = m_model.group(1)
@@ -930,6 +935,7 @@ class AgentTUI(App):
         # Parallel run header
         m_parallel = re.match(r"^\s*⚡\s+(.*)", text)
         if m_parallel:
+            self._in_parallel = True
             log.write(RichText(""))
             t = RichText()
             t.append(f"  ⚡ {m_parallel.group(1)}", style=f"bold {_YELLOW}")
@@ -950,7 +956,8 @@ class AgentTUI(App):
                 self._in_diff = True
             if self._in_result:
                 self._in_result = False
-            log.write(RichText(""))
+            if not self._in_parallel:
+                log.write(RichText(""))
             t = RichText()
             t.append(f"  {tool_name}", style=f"bold {_ORANGE}")
             t.append(f"({args_part}", style=f"dim {_ORANGE}")
