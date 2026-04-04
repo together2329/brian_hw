@@ -1043,36 +1043,28 @@ class AgentTUI(App):
             t.append(task_title, style=_TEXT_DIM)
             self.query_one("#task-title", Static).update(t)
 
-        # Only show if there are non-approved items; display the last non-approved one
-        non_approved = [(k, l) for k, l in items if k != "approved"]
-        if not non_approved:
-            self.query_one("#todo", Static).update("")
-            return
-
-        # Show progress counter + last non-approved item
-        approved_count = sum(1 for k, _ in items if k == "approved")
-        total = len(items)
         _MAX = 38
         out = RichText()
-        out.append(f" [{approved_count}/{total}] ", style=_TEXT_FAINT)
-
-        kind, label = non_approved[-1]
-        if len(label) > _MAX:
-            label = label[:_MAX - 1] + "…"
-        if kind == "completed":
-            out.append("✓ ", style=f"bold {_GREEN}")
-            out.append(label, style=_GREEN)
-        elif kind == "active":
-            out.append("▶ ", style=f"bold {_TEXT}")
-            out.append(label, style=f"bold {_TEXT}")
-        elif kind == "pending":
-            out.append("· ", style=_TEXT_DIM)
-            out.append(label, style=_TEXT_DIM)
-        elif kind == "rejected":
-            out.append("✗ ", style=_RED)
-            out.append(label, style=_RED)
-        else:
-            out.append("· ", style=_TEXT_FAINT)
-            out.append(label, style=_TEXT_FAINT)
+        for kind, label in items:
+            if len(label) > _MAX:
+                label = label[:_MAX - 1] + "…"
+            if kind == "approved":
+                out.append(" ✓ ", style=_TEXT_FAINT)
+                out.append(label + "\n", style=_TEXT_FAINT)
+            elif kind == "completed":
+                out.append(" ✓ ", style=f"bold {_GREEN}")
+                out.append(label + "\n", style=_GREEN)
+            elif kind == "active":
+                out.append(" ▶ ", style=f"bold {_TEXT}")
+                out.append(label + "\n", style=f"bold {_TEXT}")
+            elif kind == "pending":
+                out.append(" · ", style=_TEXT_DIM)
+                out.append(label + "\n", style=_TEXT_DIM)
+            elif kind == "rejected":
+                out.append(" ✗ ", style=_RED)
+                out.append(label + "\n", style=_RED)
+            else:
+                out.append("   · ", style=_TEXT_FAINT)
+                out.append(label + "\n", style=_TEXT_FAINT)
 
         self.query_one("#todo", Static).update(out)
