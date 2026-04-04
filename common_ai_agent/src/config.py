@@ -64,6 +64,9 @@ RATE_LIMIT_DELAY = float(os.getenv("RATE_LIMIT_DELAY", "5"))
 # Increased to allow for error recovery attempts (3 retries per error)
 MAX_ITERATIONS = int(os.getenv("MAX_ITERATIONS", "100"))
 
+# Maximum iterations per turn in Plan Mode (to prevent infinite research loops)
+PLAN_MODE_MAX_ITERATIONS = int(os.getenv("PLAN_MODE_MAX_ITERATIONS", "3"))
+
 # API timeout in seconds (how long to wait for API response)
 # Set to 0 to disable timeout (not recommended)
 API_TIMEOUT = int(os.getenv("API_TIMEOUT", "600"))

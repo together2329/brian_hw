@@ -981,8 +981,10 @@ def run_react_agent_impl(
                         break
 
             # Plan mode iteration limit: don't let it loop indefinitely
-            if agent_mode in ("plan", "plan_q") and tracker.current >= 2:
-                break
+            if agent_mode in ("plan", "plan_q"):
+                _plan_max = getattr(cfg, "PLAN_MODE_MAX_ITERATIONS", 3)
+                if tracker.current >= _plan_max:
+                    break
 
         else:
             # No actions branch
