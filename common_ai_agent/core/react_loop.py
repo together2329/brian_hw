@@ -932,8 +932,9 @@ def run_react_agent_impl(
                 except Exception:
                     pass
 
-            # Prepend step header from todo_tracker
-            if todo_tracker and todo_tracker.todos:
+            # Prepend step header from todo_tracker (execution mode only)
+            if (todo_tracker and todo_tracker.todos 
+                and agent_mode not in ("plan", "plan_q")):
                 current_todo = todo_tracker.get_current_todo()
                 total = len(todo_tracker.todos)
                 completed = sum(1 for t in todo_tracker.todos if t.status == "approved")
@@ -950,11 +951,12 @@ def run_react_agent_impl(
 
             messages = deps.process_obs_fn(observation, messages, todo_tracker=todo_tracker)
 
-            # Todo continuation reminder
+            # Todo continuation reminder (execution mode only)
             _last_tool_was_todo = tool_name in ("todo_update", "todo_write", "todo_add", "todo_remove")
             if (todo_tracker and todo_tracker.todos
                     and not todo_tracker.is_all_processed()
-                    and not _last_tool_was_todo):
+                    and not _last_tool_was_todo
+                    and agent_mode not in ("plan", "plan_q")):
                 reminder = todo_tracker.get_continuation_prompt()
                 if reminder:
                     last_content = messages[-1].get("content", "") if messages else ""
