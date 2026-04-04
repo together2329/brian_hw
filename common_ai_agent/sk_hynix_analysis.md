@@ -186,3 +186,120 @@ SK Holdings
 ```
 
 ---
+
+## 3. Financial Statements Analysis
+
+### 3.1 Revenue Trend (Quarterly, ₩ Trillion)
+
+| Quarter | Revenue | YoY Change | QoQ Change | Driver |
+|---------|---------|------------|------------|--------|
+| **Q1 2023** | 5.1T | -58% | -34% | Memory downturn trough |
+| **Q2 2023** | 7.3T | -47% | +43% | Inventory correction, price stabilization |
+| **Q3 2023** | 9.1T | -18% | +25% | DDR5 adoption, server demand recovery |
+| **Q4 2023** | 11.3T | +47% | +24% | HBM3 ramp, AI demand surge |
+| **Q1 2024** | 12.4T | +144% | +10% | HBM3E mass production begins |
+| **Q2 2024** | 16.4T | +125% | +32% | AI server DRAM boom, ASP recovery |
+| **Q3 2024** | 17.6T | +94% | +7% | HBM3E volume, enterprise SSD |
+| **Q4 2024** | 19.8T | +75% | +13% | Record quarter, HBM3E 12-layer ramp |
+| **Q1 2025E** | 17.0T | +37% | -14% | Seasonal, but HBM still strong |
+| **Q2 2025E** | 20.0T+ | +22% | +18% | HBM4 prep, DDR5 server cycle |
+
+> **Revenue CAGR (2023→2025): ~80%+** — fastest growth in company history driven by AI.
+
+---
+
+### 3.2 Annual Income Statement (₩ Trillion)
+
+| Metric | 2021 | 2022 | 2023 | 2024 | 2025E |
+|--------|------|------|------|------|-------|
+| **Revenue** | 42.0T | 44.6T | 32.8T | 66.1T | 75T+ |
+| **COGS** | 29.4T | 37.8T | 29.6T | 38.0T | 42T |
+| **Gross Profit** | 12.6T | 6.8T | 3.2T | 28.1T | 33T+ |
+| **Gross Margin** | 30.0% | 15.2% | 9.8% | 42.5% | ~44% |
+| **Operating Profit** | 8.5T | 1.8T | -2.0T | 23.5T | 28T+ |
+| **Operating Margin** | 20.2% | 4.0% | -6.1% | 35.6% | ~37% |
+| **Net Income** | 6.2T | 1.6T | -3.4T | 19.4T | 23T+ |
+| **Net Margin** | 14.8% | 3.6% | -10.4% | 29.3% | ~31% |
+
+#### Profitability Trajectory
+
+```
+Operating Margin (%)
+ 40% │                                    ████ 35.6%
+     │                              ████  │
+ 30% │                              29.3% │
+     │                        ████  │     │
+ 20% │  20.2%                 │     │     │
+     │   ████                 │     │     │
+ 10% │   │              9.8%  │     │     │
+     │   │    15.2%      │    │     │     │
+  0% │   │     ████      │    │     │     │
+     │   │      │   4.0% │    │     │     │
+-10% │   │      │    │  -6.1% │     │     │
+     └───┼──────┼────┼───┼─────┼─────┼─────
+        2021   2022  2023 2024  2025E
+              ↑ Trough         ↑ AI supercycle
+```
+
+---
+
+### 3.3 Balance Sheet Highlights (₩ Trillion, End of 2024)
+
+| Item | Amount | Notes |
+|------|--------|-------|
+| **Total Assets** | ~90T | Major expansion from ~65T (2023) |
+| **Cash & Equivalents** | ~12T | Strong cash generation |
+| **Total Debt** | ~18T | Including long-term bonds |
+| **Shareholders' Equity** | ~55T | Book value growing rapidly |
+| **Debt-to-Equity** | ~0.33x | Conservative leverage |
+| **Net Debt** | ~6T | Cash-rich after debt repayment |
+
+---
+
+### 3.4 Cash Flow & Capital Expenditure (₩ Trillion)
+
+| Metric | 2022 | 2023 | 2024 | 2025E |
+|--------|------|------|------|-------|
+| **Operating Cash Flow** | 9.5T | 4.2T | 28.0T | 32T+ |
+| **Capex** | 10.3T | 6.8T | 12.5T | 20T+ |
+| **Free Cash Flow** | -0.8T | -2.6T | 15.5T | 12T+ |
+| **FCF Margin** | -1.8% | -7.9% | 23.4% | ~16% |
+
+> **2025 Capex surge**: ₩20T+ planned — largest ever, for HBM4 capacity and Bucheon new fab.
+
+---
+
+### 3.5 Key Financial Ratios
+
+| Ratio | 2022 | 2023 | 2024 | 2025E |
+|-------|------|------|------|-------|
+| **ROE** | 4.3% | -8.2% | 35.3% | ~42% |
+| **ROA** | 2.5% | -5.0% | 21.6% | ~26% |
+| **ROIC** | 3.8% | -7.0% | 30.0% | ~35% |
+| **Asset Turnover** | 0.69x | 0.50x | 0.73x | ~0.83x |
+| **Current Ratio** | 1.8x | 2.1x | 2.5x | ~2.3x |
+
+#### ROE DuPont Breakdown (2024)
+
+```
+ROE = Net Margin × Asset Turnover × Equity Multiplier
+35.3% =  29.3%    ×     0.73x      ×     1.64x
+              ↑           ↑               ↑
+        Strong pricing  Good utilization  Moderate leverage
+```
+
+---
+
+### 3.6 Dividend & Shareholder Returns
+
+| Item | Detail |
+|------|--------|
+| **Dividend Policy** | Annual dividend, ~20-25% payout ratio target |
+| **2024 DPS** | ~₩2,000/share (estimated) |
+| **Dividend Yield** | ~1.0-1.5% |
+| **Buybacks** | Occasional, not systematic |
+| **Treasury Shares** | Held but limited |
+
+> SK Hynix prioritizes reinvestment (HBM4, new fabs) over shareholder returns during growth phase.
+
+---
