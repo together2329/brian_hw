@@ -287,6 +287,8 @@ class AgentTUI(App):
         width: 1fr;
         height: 1fr;
         overflow-y: scroll;
+        scrollbar-size: 1 1;
+        scrollbar-color: {_BORDER_DIM};
     }}
 
     /* ── Main panel ── */
@@ -586,6 +588,13 @@ class AgentTUI(App):
 
     # ── Response buffer ───────────────────────────────────────────────────────
 
+    def _scroll_down(self) -> None:
+        """Scroll #main-col to the bottom so latest content is visible."""
+        try:
+            self.query_one("#main-col").scroll_end(animate=False)
+        except Exception:
+            pass
+
     def _flush_response(self) -> None:
         if not self._response_buf.strip():
             self._response_buf = ""
@@ -603,6 +612,7 @@ class AgentTUI(App):
         self._generating = False
         self._reasoning_open = False
         self._update_statusbar()
+        self._scroll_down()
         # Clear live preview
         try:
             live = self.query_one("#live", Static)
@@ -631,6 +641,7 @@ class AgentTUI(App):
         log.write(t)
         self._in_diff = False
         self._input_bridge.submit(text)
+        self._scroll_down()
 
     # ── Message handlers ───────────────────────────────────────────────────────
 
@@ -646,6 +657,7 @@ class AgentTUI(App):
         if not getattr(_cfg, "ENABLE_MARKDOWN_RENDER", True):
             log = self.query_one("#main", RichLog)
             log.write(msg.text)
+            self._scroll_down()
             return
         self._response_buf += msg.text + "\n"
         # Debounced live Markdown preview — at most one render per 300 ms
@@ -661,6 +673,7 @@ class AgentTUI(App):
             live = self.query_one("#live", Static)
             live.update(_LeftMarkdown(_fix_md(self._response_buf)))
             live.add_class("active")
+            self._scroll_down()
         except Exception:
             pass
 
@@ -670,6 +683,7 @@ class AgentTUI(App):
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:
         self._handle_reasoning_chunk(msg)
+        self._scroll_down()
 
     def _handle_reasoning_chunk(self, msg: ReasoningChunk) -> None:
         log = self.query_one("#main", RichLog)
@@ -738,6 +752,7 @@ class AgentTUI(App):
 
     def on_main_line(self, msg: MainLine) -> None:
         self._handle_main_line(msg)
+        self._scroll_down()
 
     def _handle_main_line(self, msg: MainLine) -> None:
         self._flush_response()
