@@ -1153,13 +1153,19 @@ def chat_loop():
                     _plan_prompt = ANSI(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
                     user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
                 elif agent_mode == 'plan':
-                    print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
-                    print(f"  {Color.DIM}y        → execute plan now")
-                    print(f"  yc       → execute + compress context (clean up conversation)")
-                    print(f"  n        → cancel / revise")
-                    print(f"  <other>  → feedback / refinement{Color.RESET}")
-                    _plan_prompt = ANSI(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
-                    user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
+                    _has_non_approved = todo_tracker_main and any(
+                        t.status != 'approved' for t in todo_tracker_main.todos
+                    ) if todo_tracker_main else False
+                    if _has_non_approved:
+                        print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
+                        print(f"  {Color.DIM}y        → execute plan now")
+                        print(f"  yc       → execute + compress context (clean up conversation)")
+                        print(f"  n        → cancel / revise")
+                        print(f"  <other>  → feedback / refinement{Color.RESET}")
+                        _plan_prompt = ANSI(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                        user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
+                    else:
+                        user_input = _multiline_prompt.prompt(_prompt_text)
                 else:
                     user_input = _multiline_prompt.prompt(_prompt_text)
             else:
@@ -1169,12 +1175,18 @@ def chat_loop():
                 if agent_mode == 'plan_q':
                     user_input = _input_fn(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
                 elif agent_mode == 'plan':
-                    print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
-                    print(f"  {Color.DIM}y        → execute plan now")
-                    print(f"  yc       → execute + compress context (clean up conversation)")
-                    print(f"  n        → cancel / revise")
-                    print(f"  <other>  → feedback / refinement{Color.RESET}")
-                    user_input = _input_fn(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                    _has_non_approved = todo_tracker_main and any(
+                        t.status != 'approved' for t in todo_tracker_main.todos
+                    ) if todo_tracker_main else False
+                    if _has_non_approved:
+                        print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
+                        print(f"  {Color.DIM}y        → execute plan now")
+                        print(f"  yc       → execute + compress context (clean up conversation)")
+                        print(f"  n        → cancel / revise")
+                        print(f"  <other>  → feedback / refinement{Color.RESET}")
+                        user_input = _input_fn(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                    else:
+                        user_input = _input_fn(Color.user("> ") + Color.RESET)
                 else:
                     _em = getattr(config, 'EXECUTION_MODE', 'agent')
                     if _em == 'chat':
