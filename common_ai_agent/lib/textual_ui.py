@@ -434,6 +434,7 @@ class AgentTUI(App):
     BINDINGS = [
         ("ctrl+q", "quit", "Quit"),
         ("ctrl+c", "quit", "Quit"),
+        ("escape", "stop", "Stop"),
     ]
 
     def __init__(self, run_agent_fn: Callable) -> None:
@@ -456,6 +457,7 @@ class AgentTUI(App):
         self._sess_out_tok = 0
         self._sess_sum_tok = 0
         self._cost_in_pm = self._cost_cch_pm = self._cost_out_pm = 0.0
+        self._interrupt = False
         try:
             import config as _cfg
             self._model = getattr(_cfg, "MODEL_NAME", "")
@@ -583,6 +585,26 @@ class AgentTUI(App):
             pass
         self.exit()
         # os._exit called from textual_main.py after app.run() returns
+
+    def action_stop(self) -> None:
+        """Interrupt current agent execution."""
+        if self._generating:
+            self._interrupt = True
+            log = self.query_one("#main", RichLog)
+            t = RichText()
+            t.append("\n  ⎋ ", style=f"bold {_YELLOW}")
+            t.append("ESC — Stopping generation after current chunk…", style=_TEXT_DIM)
+            log.write(t)
+            self._scroll_down()
+        else:
+            self._update_statusbar("No active generation to stop")
+
+    def check_and_reset_interrupt(self) -> bool:
+        """Thread-safe check for interrupt flag."""
+        if self._interrupt:
+            self._interrupt = False
+            return True
+        return False
 
     # ── Status bar ────────────────────────────────────────────────────────────
 

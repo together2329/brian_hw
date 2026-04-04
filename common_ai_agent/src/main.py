@@ -109,6 +109,7 @@ _textual_emit_todo_fn = None
 _textual_emit_flush_fn = None   # () → signal stream done, flush content panel
 _textual_emit_context_fn = None  # (tokens, max_tokens) → update context sidebar directly
 _textual_input_fn = None  # replaces input() when set
+_textual_esc_check_fn = None # () → bool: TUI interrupt check
 
 # ChatLoopDeps instance (set inside chat_loop(); exposed for textual_main.py)
 _loop_deps = None
@@ -925,7 +926,8 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
         emit_flush_fn=_textual_emit_flush_fn,
         # Disable EscapeWatcher in Textual mode — Textual owns stdin; raw tty read
         # conflicts with Textual's input handling, causing false ESC triggers.
-        esc_check_fn=(lambda: False) if _textual_input_fn is not None else None,
+        # Instead, use the TUI's mapped escape key via the callback.
+        esc_check_fn=_textual_esc_check_fn if _textual_input_fn is not None else None,
         esc_start_fn=(lambda: None) if _textual_input_fn is not None else None,
         esc_stop_fn=(lambda: None) if _textual_input_fn is not None else None,
     )

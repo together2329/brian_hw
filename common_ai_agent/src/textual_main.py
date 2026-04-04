@@ -107,6 +107,7 @@ def _run_agent(app: AgentTUI) -> None:
     _agent._textual_emit_todo_fn      = _todo_and_context
     _agent._textual_emit_flush_fn     = lambda: app.post_message(FlushResponse())
     _agent._textual_emit_context_fn   = lambda tok, max_tok: app.post_message(ContextUpdate(tok, max_tok, app._ctx_skill))
+    _agent._textual_esc_check_fn     = app.check_and_reset_interrupt
 
     _agent.chat_loop()
 
