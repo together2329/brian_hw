@@ -132,13 +132,23 @@ def _compress_single(
     Returns:
         A single system message dict containing the summary.
     """
+    MAX_COMPRESS_CHARS = 80_000  # ~20K tokens, leaves room for prompt + output
     summary_prompt = instruction if instruction else STRUCTURED_SUMMARY_PROMPT
 
     conversation_text = ""
     for m in messages:
         role = m.get("role", "unknown")
-        content = str(m.get("content", ""))
+        content = str(m.get("content", ""))[:1000]  # Truncate per-message
         conversation_text += f"{role}: {content}\n"
+
+    # Truncate total if still too long (head + tail strategy)
+    if len(conversation_text) > MAX_COMPRESS_CHARS:
+        half = MAX_COMPRESS_CHARS // 2
+        conversation_text = (
+            conversation_text[:half]
+            + "\n\n... [truncated] ...\n\n"
+            + conversation_text[-half:]
+        )
 
     summary_request = [
         {
