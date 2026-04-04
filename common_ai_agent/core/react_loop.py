@@ -978,11 +978,19 @@ def run_react_agent_impl(
                     if _chat_iter_count >= _chat_max:
                         break
 
+            # Plan mode iteration limit: don't let it loop indefinitely
+            if agent_mode in ("plan", "plan_q") and tracker.iterations >= 2:
+                break
+
         else:
             # No actions branch
             if getattr(cfg, "EXECUTION_MODE", "agent") == "chat":
                 if getattr(cfg, "CHAT_MAX_ITERATIONS", 1) > 0:
                     break
+
+            # Plan mode: if no tools were called, break immediately to ask user
+            if agent_mode in ("plan", "plan_q"):
+                break
 
             if getattr(cfg, "ENABLE_TODO_TRACKING", False):
                 try:
