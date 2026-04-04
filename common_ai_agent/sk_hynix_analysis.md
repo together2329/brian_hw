@@ -687,3 +687,150 @@ DRAM ASP Trend
 | **SK Hynix Net** | Positive (HBM offsets) | Neutral-negative | Very positive |
 
 ---
+
+## 7. Technology & R&D Capabilities
+
+### 7.1 DRAM Process Technology Roadmap
+
+| Node | Effective Size | EUV Required | SK Hynix Status | Volume Timeline |
+|------|---------------|--------------|-----------------|-----------------|
+| **1Y nm** | ~12-13nm | No (DUV) | Legacy production | Since 2020 |
+| **1a nm** | ~10-12nm | Partial (1-2 layers) | Volume production | Since 2023 |
+| **1b nm** | ~10nm | Yes (2-3 layers) | Ramp-up | 2024-2025 |
+| **1c nm** | ~8-9nm | Yes (3-4 layers) | Development | 2026 |
+| **1d nm / 0a nm** | <8nm | Yes (4+ layers) | Early research | 2027+ |
+
+#### DRAM Scaling Challenges
+
+| Challenge | Impact | SK Hynix Approach |
+|-----------|--------|-------------------|
+| **Cell Capacitance** | Charge leakage at smaller nodes | New dielectric materials (ZrO₂-based) |
+| **Pattern Resolution** | Sub-10nm requires EUV | Multi-patterning EUV adoption |
+| **Refresh Overhead** | More errors at smaller nodes | ECC + on-die error correction |
+| **Cost per Bit** | EUV increases wafer cost | Offset by density improvement |
+| **Thermal** | Higher density = more heat | Advanced thermal solutions for HBM |
+
+---
+
+### 7.2 HBM Technology — SK Hynix's Core Competence
+
+#### HBM3E 12-Layer (36GB) — Current Flagship
+
+| Parameter | Specification |
+|-----------|---------------|
+| **Capacity** | 36GB per stack (12 × 3GB dies) |
+| **Bandwidth** | ~1.2 TB/s per stack |
+| **I/O Width** | 1024-bit |
+| **Data Rate** | 9.6 Gbps/pin |
+| **TSV Count** | ~60,000+ per die |
+| **Package Height** | ~775μm (within JEDEC spec) |
+| **Thermal** | Thermal compression bonding + underfill |
+| **Power Efficiency** | ~30% better than HBM3 |
+
+#### HBM4 Development (Target: H1 2026)
+
+| Parameter | Target |
+|-----------|--------|
+| **Capacity** | 48GB+ (16-layer possible) |
+| **Bandwidth** | ~2 TB/s |
+| **Base Die** | **Logic-containing base die** (custom I/O, PHY) |
+| **Process** | 1b nm DRAM + advanced logic base |
+| **TSV Density** | 2x vs. HBM3E |
+| **Custom I/O** | Support for multiple protocols (NVIDIA, AMD, custom ASICs) |
+| **Manufacturing** | Bucheon M8X fab (dedicated) |
+
+#### Key Technology Differentiators
+
+1. **TSV (Through-Silicon Via) Yield**: SK Hynix achieves ~80%+ yield on 12-layer stacking — **best in industry**
+2. **Thermal Management**: Proprietary thermal compression bonding and underfill — critical for B200's 1000W+ TDP
+3. **Base Die Integration**: HBM4 will feature logic on base die — SK Hynix co-developing with TSMC
+4. **Advanced Packaging**: EMIB-style interconnect expertise from Intel NAND acquisition experience
+
+---
+
+### 7.3 NAND Flash Technology
+
+#### 4D NAND Architecture
+
+| Generation | Layers | Bits/Cell | Die Capacity | Status |
+|------------|--------|-----------|-------------|--------|
+| 128-layer | 128 | TLC/QLC | 512Gb | Legacy |
+| 176-layer | 176 | TLC/QLC | 1Tb | Volume |
+| 238-layer | 238 | TLC | 2Tb | Ramp-up (2025) |
+| **321-layer** | **321** | **TLC** | **4Tb** | **Development (2026)** |
+
+#### 4D NAND Innovation (vs. Samsung V-NAND)
+
+| Feature | SK Hynix 4D NAND | Samsung V-NAND |
+|---------|-------------------|----------------|
+| **Architecture** | CTF (Charge Trap Flash) + CMOS under array | CTF + TSV |
+| **CMOS Placement** | **Under memory array** (4D) | Beside memory array (3D) |
+| **Die Size Advantage** | ~20% smaller | Baseline |
+| **Cost per Bit** | Lower | Higher |
+| **Scaling Path** | Easier to 300+ layers | More complex at 300+ |
+| **QLC Support** | Strong | Weaker |
+
+> SK Hynix's 4D architecture (CMOS under array) gives a structural cost advantage at higher layer counts.
+
+---
+
+### 7.4 EUV Adoption Strategy
+
+| Process | EUV Layers | ASML Machines (est.) | Timeline |
+|---------|-----------|---------------------|----------|
+| 1a nm DRAM | 1-2 layers | ~5 | Since 2023 |
+| 1b nm DRAM | 2-3 layers | ~8-10 | 2024-2025 |
+| 1c nm DRAM | 3-4 layers | ~12+ | 2026 |
+| HBM4 base die | Advanced logic | Through TSMC partnership | 2026 |
+
+> SK Hynix is investing heavily in EUV to maintain parity with Samsung. Unlike Micron (which uses multi-patterning DUV), SK Hynix committed to EUV for 1b nm and beyond.
+
+---
+
+### 7.5 R&D Investment
+
+| Metric | 2022 | 2023 | 2024 | 2025E |
+|--------|------|------|------|-------|
+| **R&D Spend (₩T)** | ~3.8T | ~3.0T | ~5.5T | ~7.0T |
+| **R&D as % Revenue** | 8.5% | 9.1% | 8.3% | ~9.3% |
+| **R&D Headcount** | ~5,500 | ~5,800 | ~6,500 | ~7,000+ |
+| **Key Focus Areas** | DDR5, 176L NAND | HBM3E, 238L | HBM3E 12L, 1b nm | HBM4, 1c nm, 321L |
+| **Patents (cumulative)** | ~18,000 | ~20,000 | ~22,000 | ~24,000 |
+
+#### R&D Priorities (2025)
+
+| Priority | Area | Investment Focus |
+|----------|------|------------------|
+| 🥇 **#1** | HBM4 development | Logic base die, 16-layer stacking, TSV density |
+| 🥈 **#2** | 1b/1c nm DRAM | EUV process optimization, yield improvement |
+| 🥉 **#3** | 321-layer NAND | 4D architecture extension, QLC optimization |
+| #4 | Advanced packaging | Co-packaged optics, chiplet integration |
+| #5 | Automotive/Industrial | AEC-Q100 qualified memory, LPDDR5X Auto |
+
+---
+
+### 7.6 Strategic Technology Partnerships
+
+| Partner | Collaboration |
+|---------|---------------|
+| **TSMC** | HBM4 base die manufacturing (logic layer) |
+| **NVIDIA** | Co-development of custom HBM for GPU/accelerators |
+| **ASML** | EUV lithography equipment and process optimization |
+| **TEL (Tokyo Electron)** | Deposition and etch equipment for NAND/DRAM |
+| **Applied Materials** | Process equipment for 1b/1c nm migration |
+| **Hanmi Semiconductor** | TC bonding equipment for HBM |
+| **IST (Integrated Silicon Technology)** | Known good die (KGD) testing |
+
+---
+
+### 7.7 Technology Leadership Assessment
+
+| Dimension | SK Hynix Rank | vs. Samsung | vs. Micron |
+|-----------|---------------|-------------|------------|
+| **HBM Technology** | 🥇 #1 | 12-18 months ahead | 24+ months ahead |
+| **DRAM Process** | 🥈 #2 | EUV slightly behind | Multi-patterning competitive |
+| **NAND Architecture** | 🥈 #2 | 4D advantage vs. V-NAND | Different approach, comparable |
+| **Advanced Packaging** | 🥇 #1 | HBM TSV yield leader | Not yet competitive |
+| **Overall Memory Tech** | 🥇 #1 (HBM-weighted) | Strong, but HBM gap | Catching up |
+
+---
