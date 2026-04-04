@@ -420,3 +420,120 @@ HBM Market Share (2024)
 SK Hynix's HBM3E 12-layer (36GB) is currently the **only product** qualified for NVIDIA B200 in volume. This gives SK Hynix pricing power of ~3-5x gross margin vs. commodity DRAM.
 
 ---
+
+## 5. Competitive Landscape
+
+### 5.1 DRAM Market Share (2024)
+
+| Company | Share | Revenue (est.) | Strengths | Weaknesses |
+|---------|-------|----------------|-----------|------------|
+| **Samsung** | ~40% | ~$44B | Scale, vertical integration, foundry tie-in | HBM yield issues, late to HBM3E |
+| **SK Hynix** | ~32% | ~$38B | HBM leadership, NVIDIA partnership | Smaller scale, limited product breadth |
+| **Micron** | ~23% | ~$25B | US-based, strong enterprise, 1β node | Late to HBM, small mobile share |
+| **Others (Nanya, etc.)** | ~5% | ~$5B | Niche/specialty | Marginal players |
+
+```
+DRAM Market Share (2024)
+  Samsung   ████████████████████████  40%
+  SK Hynix  ███████████████████       32%
+  Micron    █████████████             23%
+  Others    ███                        5%
+```
+
+---
+
+### 5.2 NAND Flash Market Share (2024)
+
+| Company | Share | Layers | Strengths | Weaknesses |
+|---------|-------|--------|-----------|------------|
+| **Samsung** | ~35% | 236-layer (V-NAND) | First mover, broad portfolio | Aggressive pricing cannibalizes margins |
+| **SK Hynix** | ~20% | 238-layer (4D NAND) | Solidigm integration, enterprise SSD | Smaller consumer presence |
+| **Kioxia (WDC JV)** | ~17% | 218-layer (BiCS) | Apple supply, joint fab with WDC | Financial instability, delayed IPO |
+| **Western Digital** | ~13% | 218-layer (BiCS) | Consumer market (SanDisk), data center | Margin pressure, split from Kioxia |
+| **Micron** | ~10% | 232-layer | Crucial consumer brand, data center | Lagging in layers, exiting 3D XPoint |
+| **YMTC (China)** | ~5% | 232-layer (Xtacking) | Aggressive pricing, China market | US sanctions, limited export access |
+
+```
+NAND Market Share (2024)
+  Samsung       ██████████████████████   35%
+  SK Hynix      ████████████             20%
+  Kioxia/WDC    ██████████               17%
+  Western Dig.  ████████                 13%
+  Micron        ██████                   10%
+  YMTC          ███                       5%
+```
+
+---
+
+### 5.3 Technology Node Comparison
+
+#### DRAM Process Nodes
+
+| Node | Samsung | SK Hynix | Micron |
+|------|---------|----------|--------|
+| **1a nm** (10-12nm) | ✅ Volume | ✅ Volume | ✅ Volume |
+| **1b nm** (10nm) | ✅ Volume | ✅ Ramp-up | ✅ Volume (1β) |
+| **1c nm** (sub-10nm) | 🔧 Development | 🔧 Development | 🔧 Development |
+| **EUV Adoption** | Partial (since 2020) | Partial (2024+) | Not yet (Multi-Patterning) |
+| **Leading Edge** | 1b nm EUV | 1b nm (DUV + EUV mix) | 1β nm (Multi-Patterning) |
+
+> Samsung leads in EUV adoption, Micron leads in conventional multi-patterning density, SK Hynix leads in **HBM packaging** (which matters more for AI revenue).
+
+#### NAND Layer Count
+
+| Company | Current | Next-gen | Development |
+|---------|---------|----------|-------------|
+| Samsung | 236-layer | ~300-layer | 400+ layer |
+| SK Hynix | 238-layer | 321-layer | 400+ layer |
+| Micron | 232-layer | ~280-layer | 430+ layer (2028) |
+| Kioxia/WDC | 218-layer | ~300-layer | TBD |
+| YMTC | 232-layer | ~300-layer | TBD |
+
+---
+
+### 5.4 HBM Race Status (Critical Battleground)
+
+| Dimension | SK Hynix | Samsung | Micron |
+|-----------|----------|---------|--------|
+| **HBM3** | ✅ First to volume | ✅ 6 months later | ❌ Skipped |
+| **HBM3E 8-layer** | ✅ First (Q1 2024) | ✅ Qualified (Q3 2024) | ✅ Samples (Q4 2024) |
+| **HBM3E 12-layer** | ✅ Mass prod (Q1 2025) | ⏳ Qualifying | ⏳ Development |
+| **HBM4** | 🎯 Target: H1 2026 | 🎯 Target: H2 2026 | 🎯 Target: 2027 |
+| **TSV Yield** | ~80%+ (best) | ~60-70% | ~50-60% |
+| **Thermal Solution** | Advanced (best) | Good | Improving |
+| **NVIDIA Qualification** | All products qualified | HBM3E qualified late '24 | HBM3E qualified early '25 |
+| **HBM Revenue (2024)** | ~$4.6B | ~$3.4B | ~$0.9B |
+
+#### Competitive Assessment
+
+- **SK Hynix**: 12-18 month lead in HBM. This is their **most valuable strategic moat**.
+- **Samsung**: Massive scale advantage but lost HBM leadership due to yield/thermal issues. Recovering aggressively.
+- **Micron**: Late to HBM but has cost structure advantages (US-based, no China fab risk). Growing share.
+
+---
+
+### 5.5 Cost Structure Comparison (DRAM, 2024)
+
+| Metric | Samsung | SK Hynix | Micron |
+|--------|---------|----------|--------|
+| **Gross Margin** | ~38% | ~42% | ~32% |
+| **R&D as % Revenue** | ~10% | ~9% | ~11% |
+| **Capex/Revenue** | ~25% | ~19% | ~25% |
+| **Wafer Cost (DRAM)** | Lowest (scale + EUV) | Competitive | Higher (no EUV yet) |
+| **Manufacturing Efficiency** | Best-in-class | Very good | Good |
+| **SG&A as % Revenue** | ~8% | ~7% | ~10% |
+
+> SK Hynix enjoys best-in-class gross margins in 2024 due to HBM premium pricing, despite Samsung's lower wafer cost.
+
+---
+
+### 5.6 Competitive SWOT Summary
+
+| | SK Hynix | Samsung | Micron |
+|---|----------|---------|--------|
+| **S** | HBM #1, NVIDIA lock-in, fast execution | Scale, vertical integration, foundry | US location, enterprise strength, 1β node |
+| **W** | Smaller scale, China exposure, limited foundry | HBM yield gaps, unfocused strategy | Small HBM share, late market timing |
+| **O** | AI supercycle, HBM4, custom HBM for ASICs | HBM catch-up, foundry-memory bundles | US gov support (CHIPS Act), data center growth |
+| **T** | Samsung HBM recovery, China self-sufficiency, cycle downturn | Geopolitics, customer diversification away, YMTC | China competition, capital intensity, tech catch-up |
+
+---
