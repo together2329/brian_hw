@@ -303,3 +303,120 @@ ROE = Net Margin × Asset Turnover × Equity Multiplier
 > SK Hynix prioritizes reinvestment (HBM4, new fabs) over shareholder returns during growth phase.
 
 ---
+
+## 4. HBM / AI Memory Market & SK Hynix Positioning
+
+### 4.1 HBM Market Overview
+
+| Metric | 2023 | 2024 | 2025E | 2026E |
+|--------|------|------|-------|-------|
+| **HBM TAM** | $4.0B | $8.9B | $17B+ | $25B+ |
+| **YoY Growth** | +50% | +122% | +91% | +47% |
+| **HBM as % of DRAM** | ~3% | ~8% | ~15% | ~20%+ |
+| **Total DRAM TAM** | $85B | $110B | $135B | $150B |
+
+> HBM is the fastest-growing segment in semiconductor history — driven entirely by AI accelerator demand.
+
+---
+
+### 4.2 HBM Market Share (2024)
+
+| Company | Share | Key Customers | Status |
+|---------|-------|---------------|--------|
+| **SK Hynix** | **~52%** | NVIDIA (H200, B200), AMD (MI300) | #1, sole HBM3E supplier to NVIDIA initially |
+| **Samsung** | ~38% | NVIDIA (qualified), Google (TPU), custom ASICs | Catching up, HBM3E qualified late 2024 |
+| **Micron** | ~10% | NVIDIA (qualified HBM3E), AMD | Small but growing, HBM3E production 2025 |
+
+```
+HBM Market Share (2024)
+  SK Hynix  ████████████████████████████  52%
+  Samsung   ██████████████████████        38%
+  Micron    █████                         10%
+```
+
+---
+
+### 4.3 NVIDIA Supply Relationship — Strategic Moat
+
+#### Why SK Hynix Leads in NVIDIA HBM
+
+| Factor | SK Hynix Advantage |
+|--------|--------------------|
+| **First-mover in HBM3E** | Mass production 6+ months ahead of Samsung/Micron |
+| **TSV Yield** | Industry-leading ~80%+ yield on 12-layer stacking |
+| **Thermal Performance** | Superior thermal management (critical for B200 1000W+ TDP) |
+| **Co-development** | Deep technical collaboration with NVIDIA since HBM2E era |
+| **Capacity Commitment** | Dedicated HBM lines at Icheon M15X/M16X fabs |
+
+#### NVIDIA HBM Procurement (Estimated)
+
+| GPU | HBM Type | Supplier Split (SK Hynix : Samsung : Micron) |
+|-----|----------|-----------------------------------------------|
+| H100 (2023) | HBM3 | 60 : 30 : 10 |
+| H200 (2024) | HBM3E 8-layer | **80 : 15 : 5** |
+| B200 (2025) | HBM3E 12-layer | **60 : 25 : 15** |
+| B300/Next-gen (2026) | HBM4 | 50 : 30 : 20 (estimated) |
+
+> SK Hynix's share dilutes as Samsung/Micron ramp, but it remains **primary supplier** through 2026+.
+
+---
+
+### 4.4 HBM Roadmap & Technology Differentiation
+
+| Generation | SK Hynix | Samsung | Micron |
+|------------|----------|---------|--------|
+| **HBM3** (2023) | ✅ Volume | ✅ Volume | ❌ Skipped |
+| **HBM3E 8-layer** (2024) | ✅ Mass prod | ✅ Qualified | ✅ Samples |
+| **HBM3E 12-layer** (2025) | ✅ Mass prod | ⏳ Qualification | ⏳ Development |
+| **HBM4** (2026) | 🔧 Development | 🔧 Development | 🔧 Development |
+| **HBM4E / HBM5** (2027+) | 📋 Planning | 📋 Planning | 📋 Planning |
+
+#### SK Hynix HBM4 Roadmap
+
+- **Target**: 2026 H2 mass production
+- **Capacity**: 48GB+ per stack, ~2 TB/s bandwidth
+- **Architecture**: Base die with logic (custom I/O), possible 16-layer stacking
+- **Manufacturing**: Bucheon new fab (M8X) dedicated to HBM4
+- **Investment**: ₩20T+ capex in 2025, significant portion for HBM4 capacity
+
+---
+
+### 4.5 AI-Driven Memory Demand Outlook
+
+#### AI Accelerator DRAM Requirements
+
+| Accelerator | HBM Capacity | # of Stacks | DRAM per Unit |
+|-------------|-------------|-------------|---------------|
+| NVIDIA H100 | 80GB | 5 × HBM3 | 80 GB |
+| NVIDIA H200 | 141GB | 6 × HBM3E | 141 GB |
+| NVIDIA B200 | 192GB | 8 × HBM3E | 192 GB |
+| NVIDIA B300 | 288GB (est) | 8 × HBM4 | 288 GB |
+| Google TPU v6 | ~128GB | Custom HBM | ~128 GB |
+| AMD MI400 | ~256GB (est) | 8 × HBM4 | ~256 GB |
+
+#### AI Server DRAM Demand Projection
+
+| Year | AI GPU Shipments (M units) | HBM Demand (GB) | HBM Revenue |
+|------|---------------------------|------------------|-------------|
+| 2023 | ~2.0M | ~160B GB | ~$4B |
+| 2024 | ~3.5M | ~500B GB | ~$9B |
+| 2025E | ~6.0M | ~1,200B GB | ~$17B |
+| 2026E | ~8.0M | ~2,300B GB | ~$25B |
+
+---
+
+### 4.6 Pricing Power & ASP Trend
+
+| HBM Generation | ASP (est.) | vs. Standard DRAM Premium |
+|----------------|-----------|--------------------------|
+| HBM3 | ~$25-30/GB | 5-6x premium |
+| HBM3E 8-layer | ~$30-40/GB | 6-8x premium |
+| HBM3E 12-layer | ~$35-45/GB | 7-9x premium |
+| HBM4 (projected) | ~$40-55/GB | 8-11x premium |
+
+> **Pricing power**: SK Hynix commands significant premium due to limited supply and strong demand. HBM pricing is expected to remain elevated through 2026 as demand outpaces supply additions.
+
+#### Key Insight
+SK Hynix's HBM3E 12-layer (36GB) is currently the **only product** qualified for NVIDIA B200 in volume. This gives SK Hynix pricing power of ~3-5x gross margin vs. commodity DRAM.
+
+---
