@@ -173,7 +173,18 @@ def _compress_single(
         }
     except Exception as e:
         print(f"\n  [Compress] Failed: {e}")
-        return messages[0] if messages else {"role": "system", "content": "[Compression failed]"}
+        # Return all messages as a single system message on failure
+        # (was returning messages[0] which dropped ALL other messages)
+        if not messages:
+            return {"role": "system", "content": "[Compression failed]"}
+        combined = "\n".join(
+            f"{m.get('role', 'unknown')}: {str(m.get('content', ''))[:500]}"
+            for m in messages
+        )
+        return {
+            "role": "system",
+            "content": f"[Previous Conversation Summary ({len(messages)} messages, compression failed)]: {combined}",
+        }
 
 
 def _compress_chunked(
