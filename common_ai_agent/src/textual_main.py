@@ -110,6 +110,9 @@ def _run_agent(app: AgentTUI) -> None:
     _agent._textual_esc_check_fn     = app.check_and_reset_interrupt
 
     _agent.chat_loop()
+    # After chat_loop finishes, the conversation history has been saved.
+    # Now signal the app to close cleanly.
+    app.exit()
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
@@ -118,9 +121,7 @@ if __name__ == "__main__":
     if _TEXTUAL_OK:
         from lib.textual_ui import AgentTUI, ContextUpdate
         AgentTUI(_run_agent).run()
-        # Force-kill all remaining threads (LLM HTTP, tool subprocesses, ThreadPoolExecutor)
-        import os as _os
-        _os._exit(0)
+        # Clean exit: history is saved by Agent runner, then app.exit() is called.
     else:
         # Fallback: plain terminal mode
         print("[fallback] Running in terminal mode (src/main.py).")

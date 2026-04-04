@@ -111,10 +111,7 @@ class RAGDatabase:
         self._rate_lock = threading.Lock()
         self._last_call_ts = 0.0
         
-        try:
-            from . import config
-        except ImportError:
-            import config
+        import config
         # RAG_RATE_LIMIT_DELAY_MS is in milliseconds, convert to seconds
         rate_limit_ms = config.RAG_RATE_LIMIT_DELAY_MS
         self.rate_limit_delay = rate_limit_ms / 1000.0  # Convert ms to seconds
@@ -150,7 +147,7 @@ class RAGDatabase:
 
         # Get current system dimension
         try:
-            from src import llm_client
+            import llm_client
             current_dim = llm_client.get_embedding_dimension()
         except:
             # If we can't get current dim (e.g. API error), skip validation
@@ -1124,7 +1121,7 @@ Return ONLY valid JSON:
     def _classify_chunk_llm(self, chunk: Chunk) -> Dict[str, Any]:
         """Classify a single chunk using LLM."""
         try:
-            from src import llm_client
+            import llm_client
             
             # Throttle classification calls to prevent rate limits
             self._throttle()
@@ -1591,7 +1588,7 @@ Return ONLY valid JSON:
         Example: "OHC" -> "OHC (Orthogonal Header Content) definition in PCIe"
         """
         try:
-            from src import llm_client
+            import llm_client
             
             # Build dynamic examples from extracted acronyms
             acronym_context = ""
@@ -1662,14 +1659,10 @@ Return ONLY valid JSON:
         
         # Load DEBUG_RAG setting
         try:
-            from . import config as cfg
+            import config as cfg
             debug_rag = cfg.DEBUG_RAG
         except:
-            try:
-                import config as cfg
-                debug_rag = cfg.DEBUG_RAG
-            except:
-                debug_rag = False
+            debug_rag = False
         
         if debug_rag:
             print(f"[RAG DEBUG] Query: {query}")
@@ -1767,12 +1760,12 @@ Return ONLY valid JSON:
         """
         try:
             self._throttle()
-            from src import llm_client
+            import llm_client
             return llm_client.get_embedding(text)
         except Exception as e:
             # Fallback for errors: return zero vector with correct dimension
             try:
-                from src import llm_client
+                import llm_client
                 dim = llm_client.get_embedding_dimension()
             except:
                 try:
@@ -1989,9 +1982,6 @@ def get_rag_db() -> RAGDatabase:
     """Get or create global RAG database instance."""
     global _rag_db
     if _rag_db is None:
-        try:
-            from . import config
-        except ImportError:
-            import config
+        import config
         _rag_db = RAGDatabase(rag_dir=config.RAG_DIR, fine_grained=config.RAG_FINE_GRAINED)
     return _rag_db

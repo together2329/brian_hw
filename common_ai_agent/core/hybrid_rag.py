@@ -21,7 +21,7 @@ from datetime import datetime
 
 # Import config (prioritize src.config)
 try:
-    from src import config
+    import config
 except ImportError:
     try:
         import config

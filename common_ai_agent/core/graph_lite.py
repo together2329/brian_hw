@@ -515,7 +515,7 @@ class GraphLite:
             
             # Import config at runtime to avoid circular dependency
             try:
-                from src import config
+                import config
                 threshold = config.AMEM_SIMILARITY_THRESHOLD
             except:
                 threshold = 0.6
@@ -530,7 +530,7 @@ class GraphLite:
         candidates.sort(reverse=True, key=lambda x: x[0])
         
         try:
-            from src import config
+            import config
             max_candidates = config.AMEM_MAX_CANDIDATES
         except:
             max_candidates = 10
@@ -600,7 +600,7 @@ Indices to link:"""
             
             # Get temperature from config
             try:
-                from src import config
+                import config
                 temperature = config.AMEM_LINK_TEMPERATURE
             except:
                 temperature = 0.3
@@ -655,12 +655,12 @@ Indices to link:"""
             Embedding vector (list of floats)
         """
         try:
-            from src import llm_client
+            import llm_client
             return llm_client.get_embedding(text)
         except Exception as e:
             # Fallback for errors: return zero vector with correct dimension
             try:
-                from src import llm_client
+                import llm_client
                 dim = llm_client.get_embedding_dimension()
             except:
                 dim = 1536

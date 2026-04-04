@@ -33,11 +33,11 @@ sys.path.insert(0, _script_dir)  # src directory (highest priority for src modul
 sys.path.insert(0, _project_root)  # common_ai_agent directory (for lib, core, agents)
 
 import config
+import llm_client
 from core import tools
 from core.slash_commands import get_registry as get_slash_command_registry
 from core.context_tracker import get_tracker as get_context_tracker
 from core.session_manager import SessionManager, RecoveryPoint
-import llm_client
 from lib.display import Color
 from llm_client import chat_completion_stream, call_llm_raw, estimate_message_tokens, get_actual_tokens
 from lib.memory import MemorySystem

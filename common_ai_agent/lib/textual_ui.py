@@ -579,12 +579,11 @@ class AgentTUI(App):
 
     def _do_exit(self) -> None:
         """Unblock worker thread then force-kill the process."""
+        self._update_statusbar("Saving and exiting...")
         try:
             self._input_bridge.submit("exit")
         except Exception:
-            pass
-        self.exit()
-        # os._exit called from textual_main.py after app.run() returns
+            self.exit()
 
     def action_stop(self) -> None:
         """Interrupt current agent execution."""

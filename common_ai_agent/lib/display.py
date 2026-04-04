@@ -766,11 +766,16 @@ def _extract_tool_args_summary(tool_name: str, args_str: str) -> str:
     """Extract a human-readable summary from tool args"""
     import re
 
+    def _get_val(key_pat, text):
+        # Robustly extract quoted string (handles triple and escaped quotes)
+        m = re.search(key_pat + r'(?:"""(.*?)"""|\'\'\'(.*?)\'\'\'|"((?:[^"\\]|\\.)*)"|\'((?:[^\'\\]|\\.)*)\')', text, re.DOTALL)
+        if m: return next((g for g in m.groups() if g is not None), "")
+        return ""
+
     # Extract path (+ optional line range / content preview) for file tools
     if tool_name in ('read_file', 'read_lines', 'write_file', 'replace_in_file', 'replace_lines'):
-        match = re.search(r'(?:path\s*=\s*)?["\']([^"\']+)["\']', args_str)
-        if match:
-            path = match.group(1)
+        path = _get_val(r'(?:path\s*=\s*)?', args_str)
+        if path:
             if tool_name == 'read_lines':
                 start_m = re.search(r'start(?:_line)?\s*=\s*(\d+)', args_str)
                 end_m   = re.search(r'end(?:_line)?\s*=\s*(\d+)', args_str)
@@ -794,31 +799,30 @@ def _extract_tool_args_summary(tool_name: str, args_str: str) -> str:
 
     # Extract pattern + path for grep/find
     if tool_name in ('grep_file', 'find_files'):
-        pattern_match = re.search(r'(?:pattern\s*=\s*)?["\']([^"\']+)["\']', args_str)
-        path_match = re.search(r'path\s*=\s*["\']([^"\']+)["\']', args_str)
+        pattern = _get_val(r'(?:pattern\s*=\s*)?', args_str)
+        path = _get_val(r'path\s*=\s*', args_str)
         parts = []
-        if pattern_match:
-            parts.append(f'"{pattern_match.group(1)}"')
-        if path_match:
-            parts.append(f'in {path_match.group(1)}')
+        if pattern:
+            parts.append(f'"{pattern}"')
+        if path:
+            parts.append(f'in {path}')
         return ' '.join(parts) if parts else args_str[:60]
 
     # Extract command for run_command
     if tool_name == 'run_command':
-        match = re.search(r'(?:command\s*=\s*)?["\']([^"\']+)["\']', args_str)
-        if match:
-            cmd = match.group(1)
+        cmd = _get_val(r'(?:command\s*=\s*)?', args_str)
+        if cmd:
             return cmd[:60] + ('...' if len(cmd) > 60 else '')
 
     # Extract agent + prompt for background_task
     if tool_name == 'background_task':
-        agent_match = re.search(r'agent\s*=\s*["\']([^"\']+)["\']', args_str)
-        prompt_match = re.search(r'prompt\s*=\s*["\']([^"\']{0,40})', args_str)
+        agent = _get_val(r'agent\s*=\s*', args_str)
+        prompt = _get_val(r'prompt\s*=\s*', args_str)
         parts = []
-        if agent_match:
-            parts.append(f'→ {agent_match.group(1)}')
-        if prompt_match:
-            parts.append(f'"{prompt_match.group(1)}..."')
+        if agent:
+            parts.append(f'→ {agent}')
+        if prompt:
+            parts.append(f'"{prompt[:40]}..."')
         return ' '.join(parts) if parts else args_str[:60]
 
     # Extract tasks/todos count for todo_write

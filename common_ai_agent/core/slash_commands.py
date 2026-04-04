@@ -855,11 +855,8 @@ class SlashCommandRegistry:
             # Get actual token counts from context tracker
             import config
             import sys
-            # Import llm_client from the right location
-            if 'llm_client' in sys.modules:
-                llm_client = sys.modules['llm_client']
-            else:
-                from src import llm_client
+            # Import llm_client (should already be in sys.modules from main.py)
+            import llm_client
 
             from core.context_tracker import get_tracker
 
