@@ -881,13 +881,7 @@ class AgentTUI(App):
                 self._redraw_cost()
             return
 
-        # /clear → reset session cost counters
-        if "Conversation history cleared" in text or "All cleared" in text:
-            self._sess_in_tok = 0
-            self._sess_cache_tok = 0
-            self._sess_out_tok = 0
-            self._sess_sum_tok = 0
-            self._redraw_cost()
+        # /clear → cost counters intentionally NOT reset (accumulate for entire session)
 
         # Shorten long paths
         text = _shorten_path(text)
