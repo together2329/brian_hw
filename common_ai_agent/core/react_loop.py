@@ -400,8 +400,10 @@ def run_react_agent_impl(
                 messages = hook_ctx.messages
                 if hook_ctx.metadata.get("compression_needed"):
                     messages = deps.compress_fn(messages, todo_tracker=todo_tracker, force=True)
-            except Exception:
-                pass
+            except Exception as exc:
+                import traceback
+                print(f"  [Hook] Error in before_llm_call hook: {exc}")
+                traceback.print_exc()
         if _perf:
             print(f"  {Color.DIM}[PERF] before_llm_hook: {time.time()-_t:.3f}s{Color.RESET}")
 
