@@ -777,9 +777,11 @@ class AgentTUI(App):
             tot     = self._sess_sum_tok
 
             if pricing_on:
-                cost_in  = self._sess_in_tok   / 1_000_000 * self._cost_in_pm
-                cost_cch = self._sess_cache_tok / 1_000_000 * self._cost_cch_pm
-                cost_out = self._sess_out_tok   / 1_000_000 * self._cost_out_pm
+                # non-cached input billed at full rate; cached portion at cache rate
+                _non_cch = max(0, self._sess_in_tok - self._sess_cache_tok)
+                cost_in  = _non_cch             / 1_000_000 * self._cost_in_pm
+                cost_cch = self._sess_cache_tok  / 1_000_000 * self._cost_cch_pm
+                cost_out = self._sess_out_tok    / 1_000_000 * self._cost_out_pm
                 cost_tot = cost_in + cost_cch + cost_out
 
                 t.append(f"Input         {in_str:>6}  ${cost_in:.4f}\n",  style=_TEXT_DIM)
@@ -867,13 +869,14 @@ class AgentTUI(App):
 
             # Accumulate session tokens for cost tracking
             # Format: ✽ in 1.5k (cache 1.4k) · out 136 · sum 1.6k ...
-            # _in = total input (includes cache hits); subtract _cch to avoid double-billing
+            # _sess_in_tok = total input (matches token line display)
+            # cost is split in _redraw_cost: non-cached at full rate, cached at cache rate
             _in  = _parse_tok(r"\bin\s+([\d.]+)(k?)")
             _cch = _parse_tok(r"\bcache\s+([\d.]+)(k?)")
             _out = _parse_tok(r"\bout\s+([\d.]+)(k?)")
             _sum = _parse_tok(r"\bsum\s+([\d.]+)(k?)")
             if _in > 0 or _out > 0:
-                self._sess_in_tok    += max(0, _in - _cch)  # non-cached input only
+                self._sess_in_tok    += _in   # total input (includes cached portion)
                 self._sess_cache_tok += _cch
                 self._sess_out_tok   += _out
                 # Use parsed sum for total to avoid k-rounding compounding error
