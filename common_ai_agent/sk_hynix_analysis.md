@@ -1085,3 +1085,210 @@ Dividend Yield:       1.2-1.5%   2.0-2.5%   0.5%
 > **Conclusion**: SK Hynix is the cheapest memory stock on forward P/E and EV/EBITDA despite having the highest operating margins and fastest revenue growth — driven by HBM dominance. If the market re-rates memory sector to reflect AI-driven structural change, significant upside exists.
 
 ---
+
+## 10. Investment Thesis & Final Assessment
+
+### 10.1 Executive Summary
+
+SK Hynix (KRX: 000660) is the **world's leading HBM memory supplier** and the primary beneficiary of the AI infrastructure buildout. With ~52% HBM market share, a 12-18 month technology lead over Samsung and 24+ months over Micron, and deep integration into NVIDIA's GPU supply chain, SK Hynix occupies a uniquely advantaged position in the semiconductor industry.
+
+| Key Metric | Value | Significance |
+|------------|-------|-------------|
+| **HBM Market Share** | ~52% | Dominant #1, NVIDIA primary supplier |
+| **Forward P/E (2025E)** | ~8-10x | Cheapest among memory peers |
+| **Operating Margin (2025E)** | ~34-38% | Highest in memory industry |
+| **Revenue Growth (2025E)** | ~25-30% | Fastest among major memory companies |
+| **HBM Technology Lead** | 12-18 months | Moat vs. Samsung & Micron |
+| **China Fab Exposure** | ~25-30% output | Largest structural risk |
+| **NVIDIA Revenue Dependency** | ~25-30% | Double-edged sword (moat + concentration) |
+| **Consensus Target** | ₩205,000-215,000 | ~+18-25% upside |
+
+**Investment Rating: OVERWEIGHT / BUY**
+
+---
+
+### 10.2 Bull Case — "AI Memory Monopoly"
+
+| Driver | Detail |
+|--------|--------|
+| **HBM Supercycle Extends** | AI capex grows 30%+ through 2027; HBM TAM reaches $30B+ by 2027 |
+| **NVIDIA Dominance Persists** | Blackwell/Rubin ramp drives massive HBM3E/HBM4 demand |
+| **P/E Re-rating** | Market recognizes HBM as structural (not cyclical); P/E expands to 14-16x |
+| **Samsung Fails to Catch Up** | Samsung HBM yield/thermal issues persist through HBM4 generation |
+| **China Risk Managed** | US-China tensions stabilize; Wuxi/Dalian operations continue |
+| **Custom HBM for ASICs** | Broadcom/Marvell custom chips create new HBM demand vector |
+
+**Bull Target: ₩280,000-310,000 (65-80% upside)**
+**Probability: 25-30%**
+
+---
+
+### 10.3 Base Case — "HBM Premium with Cycle Risk"
+
+| Driver | Detail |
+|--------|--------|
+| **HBM Growth** | HBM TAM grows to $15-20B by 2026; SK Hynix maintains 45-50% share |
+| **Commodity DRAM Normal** | DRAM cycle peaks in 2026; moderate ASP correction 15-20% |
+| **Samsung Partial Recovery** | Samsung qualifies HBM3E but SK Hynix keeps NVIDIA primary |
+| **China Tension Managed** | No full China exit but Wuxi upgrade restrictions tighten |
+| **Margin Expansion** | Operating margin peaks at 37-40% in 2026 then normalizes to 30-33% |
+| **Valuation** | Modest P/E expansion to 11-12x as market partially prices structural HBM change |
+
+**Base Target: ₩200,000-220,000 (18-30% upside)**
+**Probability: 50-55%**
+
+---
+
+### 10.4 Bear Case — "Cycle Turns, Moat Erodes"
+
+| Driver | Detail |
+|--------|--------|
+| **Memory Cycle Crash** | Industry oversupply in 2026-27; DRAM ASP falls 40-50% |
+| **Samsung Catches Up** | Samsung achieves HBM parity at HBM4; NVIDIA dual-sources equally |
+| **NVIDIA Share Loss** | AMD/custom ASICs take 20-30% of AI accelerator market |
+| **China Escalation** | US forces technology transfer restrictions; Wuxi operations disrupted |
+| **AI Demand Disappointment** | LLM ROI questions slow AI capex growth; HBM orders cut |
+| **Margin Collapse** | Operating margin falls to 15-20%; HBM premium erodes with competition |
+
+**Bear Target: ₩100,000-120,000 (-30 to -40% downside)**
+**Probability: 20-25%**
+
+---
+
+### 10.5 Comprehensive SWOT Analysis
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        SK HYNIX — SWOT                              │
+├─────────────────────────────┬───────────────────────────────────────┤
+│       STRENGTHS             │           WEAKNESSES                  │
+├─────────────────────────────┼───────────────────────────────────────┤
+│ ★ HBM #1 globally (52%     │ ✦ Smaller scale vs Samsung (1/3 rev) │
+│   market share, 12-18mo     │ ✦ High China fab exposure (~25-30%)  │
+│   technology lead)          │ ✦ NVIDIA customer concentration      │
+│ ★ NVIDIA primary supplier   │   (~25-30% of revenue)               │
+│   with multi-year LTAs      │ ✦ No foundry/fabless capabilities   │
+│ ★ Fastest execution speed   │ ✦ Limited consumer brand presence    │
+│   in memory industry        │ ✦ KRW currency risk                  │
+│ ★ 4D NAND cost advantage    │ ✦ EUV dependency on ASML supply      │
+│ ★ Best HBM TSV yield (~80%) │                                       │
+│ ★ Strong balance sheet      │                                       │
+│   (D/E 0.33x)               │                                       │
+├─────────────────────────────┼───────────────────────────────────────┤
+│       OPPORTUNITIES         │           THREATS                     │
+├─────────────────────────────┼───────────────────────────────────────┤
+│ ◆ AI supercycle (HBM TAM    │ ⚠ Samsung HBM recovery               │
+│   $5B→$25B+ by 2026)       │ ⚠ Memory cycle downturn (2026-27)    │
+│ ◆ HBM4 with logic base die  │ ⚠ US-China tech war escalation       │
+│   (new paradigm)            │ ⚠ Micron HBM share gains + CHIPS Act │
+│ ◆ Custom HBM for ASICs      │ ⚠ Alternative memory architectures   │
+│   (Broadcom, Marvell)       │   (CXL, PIM, compute-in-memory)      │
+│ ◆ Automotive memory growth  │ ⚠ YMTC competition in China market   │
+│   (LPDDR5X Auto, GDDR7)    │ ⚠ Taiwan geopolitical risk (TSMC     │
+│ ◆ 321-layer NAND ramp       │   dependency for HBM4 base die)      │
+│   (cost leadership)         │ ⚠ NVIDIA ASIC/internal memory risk   │
+│ ◆ P/E re-rating potential   │                                       │
+│   (8-10x → 12-14x)         │                                       │
+└─────────────────────────────┴───────────────────────────────────────┘
+```
+
+---
+
+### 10.6 Key Metrics Dashboard
+
+| Category | Metric | Value | Assessment |
+|----------|--------|-------|------------|
+| **Growth** | Revenue CAGR (3Y) | ~25%+ | ✅ Strong |
+| **Growth** | HBM Revenue Growth (YoY) | ~200%+ | ✅ Exceptional |
+| **Profitability** | Gross Margin (2025E) | ~45-50% | ✅ Expanding |
+| **Profitability** | Operating Margin (2025E) | ~34-38% | ✅ Industry-leading |
+| **Profitability** | ROE (TTM) | ~35% | ✅ Excellent |
+| **Profitability** | ROIC (TTM) | ~30% | ✅ Excellent |
+| **Financial Health** | D/E Ratio | 0.33x | ✅ Conservative |
+| **Financial Health** | Net Cash Position | ~₩5T+ | ✅ Net cash |
+| **Financial Health** | FCF Margin | ~20%+ | ✅ Strong cash generation |
+| **Valuation** | Forward P/E | 8-10x | ✅ Cheap vs peers |
+| **Valuation** | EV/EBITDA | 7-8x | ✅ Below sector avg |
+| **Market Position** | HBM Share | ~52% | ✅ Dominant |
+| **Market Position** | DRAM Share | ~32% | ✅ #2 globally |
+| **Technology** | HBM Lead vs Samsung | 12-18 months | ✅ Wide moat |
+| **Technology** | NAND Layers (next-gen) | 321 (development) | ✅ Competitive |
+| **Risk** | China Exposure | ~25-30% output | ⚠ High |
+| **Risk** | Customer Concentration | Top-5 = 55-65% | ⚠ Elevated |
+| **Risk** | Cycle Phase | Late expansion | ⚠ Monitor |
+
+---
+
+### 10.7 Investment Decision Framework
+
+```
+                        RISK ←─────────────────────→ OPPORTUNITY
+                         │                              │
+                    Low Risk                    High Opportunity
+                         │                              │
+               ┌─────────┼──────────────────────────────┤
+               │         │                              │
+    AVOID ────│─── ╳     │                              │
+               │         │                              │
+               │    ┌────┼──────────────────────────┐   │
+               │    │    │   ★ SK HYNIX             │   │
+               │    │    │                          │   │
+  REDUCE ─────│────┤    │   • HBM dominant #1      │   │
+               │    │    │   • Cheapest valuation   │   │
+               │    │    │   • Best margins         │   │
+               │    │    │   • Fastest growth       │   │
+  HOLD ───────│────┤    │                          │   │
+               │    │    │   RISKS:                 │   │
+               │    │    │   • China exposure       │   │
+               │    │    │   • Cycle risk           │   │
+  ACCUMULATE ─│────┤    │   • NVIDIA dependency    │   │
+               │    │    │                          │   │
+               │    │    │   VERDICT: BUY           │   │
+  STRONG BUY ─│────┤    │   Target: ₩200-220K      │   │
+               │    │    │   Upside: +18-30%        │   │
+               │    └────┼──────────────────────────┘   │
+               │         │                              │
+               └─────────┼──────────────────────────────┘
+                         │                              │
+                    High Risk                    Low Opportunity
+```
+
+---
+
+### 10.8 Conclusion & Outlook
+
+**Time Horizon: 12-18 Months**
+
+SK Hynix represents the **purest play on AI memory demand** in the global semiconductor industry. The investment thesis rests on three pillars:
+
+1. **HBM Dominance** (~52% share, 12-18 month lead): SK Hynix's HBM technology lead is the widest competitive moat in the memory industry. This is not easily replicable — it requires years of TSV stacking expertise, thermal management IP, and deep NVIDIA co-development relationships. Samsung and Micron are catching up but remain 1-2 generations behind.
+
+2. **Valuation Disconnect** (8-10x forward P/E): Despite industry-leading margins, fastest growth, and structural HBM tailwinds, SK Hynix trades at a 30-40% discount to Samsung and Micron on forward P/E. This reflects historical memory cycle discounting. If the market recognizes that HBM creates a more stable earnings base, significant re-rating potential exists.
+
+3. **AI Capex Super-Cycle**: Global AI infrastructure spending is projected to grow 25-35% annually through 2027-2028. Every NVIDIA GPU (H100, B200, GB200, Rubin) requires HBM. SK Hynix is the primary supplier. This creates multi-year revenue visibility uncommon in the cyclical memory industry.
+
+**Key Risks to Monitor**:
+- Samsung HBM3E/HBM4 qualification progress (quarterly check)
+- DRAM inventory levels and ASP trends (monthly)
+- US-China technology restrictions (ongoing regulatory monitoring)
+- NVIDIA quarterly guidance and AI capex commentary (quarterly)
+- Industry capex announcements and capacity additions (quarterly)
+
+**Final Rating: BUY | Target: ₩200,000-220,000 | Upside: +18-30%**
+
+---
+
+### 10.9 Report Information
+
+| Item | Detail |
+|------|--------|
+| **Company** | SK Hynix Co., Ltd. (KRX: 000660) |
+| **Report Date** | June 2025 |
+| **Analysis Scope** | 10 sections covering corporate structure, business segments, financials, HBM/AI market, competitive landscape, industry cycles, technology/R&D, risk factors, valuation, and investment thesis |
+| **Data Sources** | SK Hynix quarterly reports, industry research (TrendForce, Yole), analyst reports, public filings |
+| **Disclaimer** | This report is for informational purposes only and does not constitute investment advice. All projections are estimates based on available data and industry analysis. Past performance does not guarantee future results. |
+
+---
+
+*Report compiled by Common AI Agent — Comprehensive SK Hynix Analysis*
+*Last updated: June 2025*
