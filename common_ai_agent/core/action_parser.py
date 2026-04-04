@@ -187,8 +187,15 @@ def _strip_native_tool_tokens(text: str) -> str:
     text = re.sub(r'<\|(?:tool_call|tool_calls|functions)[^|]*\|>', '', text)
     text = re.sub(r'</?(?:tool_call|tool|action|execute|func\w*|p(?:ar|aram)\w*)>', '', text)
 
-    # Pattern 4: Bare function calls without Action: prefix (Qwen style)
+    # Pattern 4: Bare function calls without Action: prefix (Qwen / GLM style)
+    # First split inline tool calls: "tool1(...) tool2(...)" → separate lines
     _tools_pattern = '|'.join(re.escape(t) for t in KNOWN_TOOLS)
+    text = re.sub(
+        r'\)\s+(' + _tools_pattern + r')\s*\(',
+        r')\nAction: \1(',
+        text,
+    )
+    # Then catch remaining bare calls at line start
     text = re.sub(
         r'^(\s*)(' + _tools_pattern + r')\s*\(',
         r'\1Action: \2(',
