@@ -218,18 +218,21 @@ def preemptive_compactor(context: HookContext) -> HookContext:
     if not context.messages:
         return context
 
-    # Estimate current context size
+    # Estimate current context size in TOKENS (chars // 4)
+    # Must match compressor.py which uses: limit_tokens = MAX_CONTEXT_CHARS // 4
     total_chars = sum(
         len(str(m.get("content", ""))) for m in context.messages
     )
+    total_tokens = total_chars // 4
+    limit_tokens = context.max_context_chars // 4
 
-    threshold_chars = int(context.max_context_chars * context.compression_threshold)
+    threshold_tokens = int(limit_tokens * context.compression_threshold)
 
-    if total_chars > threshold_chars:
+    if total_tokens > threshold_tokens:
         context.metadata["compression_needed"] = True
         context.metadata["current_context_chars"] = total_chars
-        context.metadata["threshold_chars"] = threshold_chars
-        usage_pct = (total_chars / context.max_context_chars) * 100
+        context.metadata["threshold_chars"] = threshold_tokens * 4  # store as chars for display
+        usage_pct = (total_tokens / limit_tokens) * 100
         context.metadata["context_usage_pct"] = usage_pct
 
     return context
