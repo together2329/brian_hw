@@ -1,0 +1,23 @@
+# Tool: tmux_kill_pane
+
+Kill a tmux pane.
+
+## Signature
+tmux_kill_pane(pane="agentic:0.2")
+
+## Description
+
+Terminates a tmux pane by address.
+
+## Parameters
+
+- `pane` (str, required) - tmux pane address (e.g. 'agentic:0.2')
+
+## Good Examples
+
+✅ **tmux_kill_pane(pane="agentic:0.2")**
+   Kill pane 0.2
+
+## See Also
+
+- tmux_list_panes - Find pane addresses first

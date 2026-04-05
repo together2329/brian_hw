@@ -1,0 +1,33 @@
+# Tool: cmux_send
+
+Send text input to modifiable_ai_agent (Enter automatically appended).
+
+## Signature
+cmux_send(text="command or message")
+
+## Description
+
+Sends a text string to the modifiable_ai_agent surface via cmux CLI.
+Enter is automatically appended, so the text is submitted as a command or message.
+
+## Parameters
+
+- `text` (str, required) - Text to send
+
+## Good Examples
+
+✅ **cmux_send(text="hello")**
+   Send a message to modifiable_ai_agent
+
+✅ **cmux_send(text="python3 src/textual_main.py")**
+   Send a shell command to the surface
+
+## When to Use
+
+- Send a prompt or instruction to modifiable_ai_agent
+- Submit a shell command to the surface terminal
+
+## See Also
+
+- cmux_send_key - Send special keys (ctrl+c, escape, etc.)
+- cmux_capture - Read screen output after sending

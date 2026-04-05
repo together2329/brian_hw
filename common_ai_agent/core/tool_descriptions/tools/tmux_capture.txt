@@ -1,0 +1,31 @@
+# Tool: tmux_capture
+
+Capture screen text from a tmux pane.
+
+## Signature
+tmux_capture(pane="agentic:0.0", lines=200)
+
+## Description
+
+Captures the visible text of a tmux pane using `tmux capture-pane`.
+Default pane is agentic:0.0 (modifiable_ai_agent).
+Prefer cmux_capture when cmux is available — tmux_capture is a fallback.
+
+## Parameters
+
+- `pane` (str, optional, default: "agentic:0.0") - tmux pane address
+- `lines` (int, optional, default: 200) - Max lines to return
+
+## Good Examples
+
+✅ **tmux_capture()**
+   Capture modifiable_ai_agent pane
+
+✅ **tmux_capture(pane="agentic:0.1", lines=50)**
+   Capture a different pane
+
+## See Also
+
+- cmux_capture - Preferred alternative via cmux socket
+- tmux_send_keys - Send input to a pane
+- tmux_list_panes - List all panes
