@@ -1014,6 +1014,8 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
         "- Multiple Actions per turn = parallel execution.\n"
         "- Use triple quotes for multi-line: content=\"\"\"...\"\"\".\n"
         "- NEVER generate \"Observation:\" — the system provides it.\n"
+        "- NEVER say 'Let me check...' or 'I will...' without an Action in the same turn.\n"
+        "- If you need information, call the tool NOW — do not narrate first.\n"
     )
 
     # Tool table
