@@ -1,33 +1,44 @@
 # Tool: cmux_send
 
-Send text input to modifiable_ai_agent (Enter automatically appended).
+Send text to modifiable_ai_agent, press Enter, and capture the screen result.
 
 ## Signature
-cmux_send(text="command or message")
+cmux_send(text, capture_delay=1.5, capture_lines=80)
 
 ## Description
 
-Sends a text string to the modifiable_ai_agent surface via cmux CLI.
-Enter is automatically appended, so the text is submitted as a command or message.
+Sends text to the modifiable_ai_agent surface, automatically appends Enter,
+waits for the command to execute, then captures and returns the screen output.
+
+No need to call cmux_capture separately after cmux_send — the result is already included.
 
 ## Parameters
 
-- `text` (str, required) - Text to send
+- `text` (str, required) - Text or shell command to send
+- `capture_delay` (float, optional, default: 1.5) - Seconds to wait before capturing (increase for slow commands)
+- `capture_lines` (int, optional, default: 80) - Lines to capture
 
 ## Good Examples
 
-✅ **cmux_send(text="hello")**
-   Send a message to modifiable_ai_agent
+✅ **cmux_send(text="ls -la")**
+   Run command and see result immediately
 
-✅ **cmux_send(text="python3 src/textual_main.py")**
-   Send a shell command to the surface
+✅ **cmux_send(text="git status", capture_delay=2.0)**
+   Allow extra time for slower commands
+
+## Bad Examples
+
+❌ cmux_send(text="python3 textual_main.py")
+   Missing cd — use cmux_restart_modifiable() to launch the app
 
 ## When to Use
 
-- Send a prompt or instruction to modifiable_ai_agent
-- Submit a shell command to the surface terminal
+- Send a shell command and check the output
+- Send a prompt/message to modifiable_ai_agent's chat interface
+- Any time you need to interact with the modifiable surface
 
 ## See Also
 
-- cmux_send_key - Send special keys (ctrl+c, escape, etc.)
-- cmux_capture - Read screen output after sending
+- cmux_restart_modifiable - Launch/restart modifiable_ai_agent (use this, not cmux_send)
+- cmux_send_key - Send special keys only (ctrl+c, escape, etc.) — no auto-capture
+- cmux_capture - Manually capture screen without sending anything
