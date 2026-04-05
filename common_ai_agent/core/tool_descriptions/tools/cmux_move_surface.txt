@@ -1,0 +1,12 @@
+# Tool: cmux_move_surface
+Drag a surface into a new split pane.
+
+## Signature
+cmux_move_surface(surface="surface:14", direction="right")
+
+## Good Examples
+✅ cmux_move_surface(surface="surface:16", direction="right") — split surface:16 to right
+
+## See Also
+- cmux_tree - See full layout with refs
+- cmux_new_pane - Create a new empty pane

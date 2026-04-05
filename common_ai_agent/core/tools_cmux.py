@@ -196,6 +196,53 @@ def cmux_new_pane(direction: str = "right", command: str = "") -> str:
     return f"New pane ({direction}) created.\n{result}"
 
 
+def cmux_list_panes(workspace: str = "") -> str:
+    """현재 workspace의 pane 목록을 반환한다."""
+    cmd = "cmux list-panes"
+    if workspace:
+        cmd += f" --workspace {shlex.quote(workspace)}"
+    return _run(cmd)
+
+
+def cmux_focus_pane(pane: str) -> str:
+    """
+    특정 pane으로 포커스를 이동한다.
+
+    Args:
+        pane: pane ref (예: 'pane:1', 'pane:2')
+    """
+    return _run(f"cmux focus-pane --pane {shlex.quote(pane)}")
+
+
+def cmux_resize_pane(pane: str, direction: str, amount: int = 5) -> str:
+    """
+    pane 크기를 조절한다.
+
+    Args:
+        pane:      pane ref (예: 'pane:1')
+        direction: 'L' (왼쪽 확장) | 'R' (오른쪽 확장) | 'U' (위 확장) | 'D' (아래 확장)
+        amount:    조절 크기 (기본: 5)
+    """
+    dir_flag = f"-{direction.upper()}"
+    return _run(f"cmux resize-pane --pane {shlex.quote(pane)} {dir_flag} --amount {amount}")
+
+
+def cmux_move_surface(surface: str, direction: str) -> str:
+    """
+    surface를 드래그해서 새 split pane으로 분리한다.
+
+    Args:
+        surface:   surface ref (예: 'surface:14')
+        direction: 분리 방향 — 'left' | 'right' | 'up' | 'down'
+
+    Returns:
+        성공/실패 메시지
+    """
+    return _run(
+        f"cmux drag-surface-to-split --surface {shlex.quote(surface)} {shlex.quote(direction)}"
+    )
+
+
 def cmux_new_workspace(name: str = "", command: str = "", cwd: str = "") -> str:
     """
     새 cmux workspace를 만든다.
@@ -228,4 +275,8 @@ CMUX_TOOLS = {
     "cmux_set_surface":        cmux_set_surface,
     "cmux_new_pane":           cmux_new_pane,
     "cmux_new_workspace":      cmux_new_workspace,
+    "cmux_list_panes":         cmux_list_panes,
+    "cmux_focus_pane":         cmux_focus_pane,
+    "cmux_resize_pane":        cmux_resize_pane,
+    "cmux_move_surface":       cmux_move_surface,
 }

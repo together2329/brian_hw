@@ -1,0 +1,12 @@
+# Tool: cmux_list_panes
+List panes in the current cmux workspace.
+
+## Signature
+cmux_list_panes(workspace="")
+
+## Good Examples
+✅ cmux_list_panes() — show all panes in current workspace
+
+## See Also
+- cmux_tree - See full layout with refs
+- cmux_new_pane - Create a new empty pane
