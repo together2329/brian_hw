@@ -1,0 +1,27 @@
+# Tool: cmux_tree
+
+List all cmux workspaces, panes, and surfaces.
+
+## Signature
+cmux_tree()
+
+## Description
+
+Runs `cmux tree` to show the full structure of active cmux sessions.
+Use this to find surface references needed by other cmux tools.
+
+## Good Examples
+
+✅ **cmux_tree()**
+   Show all surfaces and their refs
+
+## When to Use
+
+- Find the correct surface ref for modifiable_ai_agent
+- Verify cmux is running and surfaces are active
+- Debug which surfaces are available
+
+## See Also
+
+- cmux_set_surface - Save a surface ref for use by other cmux tools
+- cmux_capture - Capture a specific surface's screen

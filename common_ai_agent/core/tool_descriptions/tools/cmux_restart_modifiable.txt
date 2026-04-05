@@ -1,0 +1,26 @@
+# Tool: cmux_restart_modifiable
+
+Quit and restart modifiable_ai_agent via cmux.
+
+## Signature
+cmux_restart_modifiable()
+
+## Description
+
+Sends ctrl+q then ctrl+c to stop the running Textual app, then relaunches
+modifiable_ai_agent. Use after modifying modifiable_ai_agent's code to apply changes.
+
+## Good Examples
+
+✅ **cmux_restart_modifiable()**
+   Restart after code changes
+
+## When to Use
+
+- After editing modifiable_ai_agent source files
+- When modifiable_ai_agent is unresponsive
+
+## See Also
+
+- cmux_send_key - Send individual keys
+- cmux_capture - Check screen after restart

@@ -1,0 +1,28 @@
+# Tool: tmux_new_window
+
+Create a new window in the agentic tmux session.
+
+## Signature
+tmux_new_window(name="", command="")
+
+## Description
+
+Creates a new tmux window in the "agentic" session, optionally with a name and startup command.
+
+## Parameters
+
+- `name` (str, optional) - Window name
+- `command` (str, optional) - Command to run in the new window
+
+## Good Examples
+
+✅ **tmux_new_window(name="build", command="make all")**
+   Open new window and start building
+
+✅ **tmux_new_window(name="logs")**
+   Open empty named window
+
+## See Also
+
+- tmux_list_panes - Check existing panes/windows
+- tmux_kill_pane - Close a pane

@@ -1,0 +1,25 @@
+# Tool: tmux_list_panes
+
+List all panes in the agentic tmux session.
+
+## Signature
+tmux_list_panes()
+
+## Description
+
+Returns all pane indices, IDs, dimensions, and current commands
+in the "agentic" tmux session.
+
+## Good Examples
+
+✅ **tmux_list_panes()**
+   Show all active panes
+
+## When to Use
+
+- Find pane addresses before using tmux_capture or tmux_send_keys
+- Check which processes are running in each pane
+
+## See Also
+
+- cmux_tree - Preferred alternative for cmux-based setup

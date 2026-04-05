@@ -1,0 +1,35 @@
+# Tool: cmux_capture
+
+Capture the current screen text of modifiable_ai_agent via cmux socket.
+
+## Signature
+cmux_capture(lines=200)
+
+## Description
+
+Reads the visible output of the modifiable_ai_agent surface using the cmux CLI.
+Use this to observe the current state of modifiable_ai_agent before sending commands.
+
+## Parameters
+
+- `lines` (int, optional, default: 200) - Maximum number of lines to capture
+
+## Good Examples
+
+✅ **cmux_capture()**
+   Capture last 200 lines of modifiable_ai_agent screen
+
+✅ **cmux_capture(lines=50)**
+   Capture only last 50 lines
+
+## When to Use
+
+- Check what modifiable_ai_agent is currently displaying
+- Verify a command was received and processed
+- Read output after sending a command
+
+## See Also
+
+- cmux_send - Send text input to modifiable_ai_agent
+- cmux_send_key - Send special keys
+- cmux_tree - List all cmux surfaces

@@ -1,0 +1,26 @@
+# Tool: tmux_send_keys
+
+Send text input to a tmux pane (Enter automatically appended).
+
+## Signature
+tmux_send_keys(keys="command", pane="agentic:0.0")
+
+## Description
+
+Sends keystrokes to a tmux pane using `tmux send-keys`.
+Enter is automatically appended.
+
+## Parameters
+
+- `keys` (str, required) - Text or keys to send
+- `pane` (str, optional, default: "agentic:0.0") - tmux pane address
+
+## Good Examples
+
+✅ **tmux_send_keys(keys="python3 main.py")**
+   Run a command in modifiable_ai_agent pane
+
+## See Also
+
+- cmux_send - Preferred alternative via cmux socket
+- tmux_capture - Read pane output

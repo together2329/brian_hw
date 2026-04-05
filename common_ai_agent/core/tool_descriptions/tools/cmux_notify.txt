@@ -1,0 +1,24 @@
+# Tool: cmux_notify
+
+Send a macOS notification via cmux.
+
+## Signature
+cmux_notify(title="Title", body="")
+
+## Description
+
+Sends a macOS system notification using the cmux CLI.
+
+## Parameters
+
+- `title` (str, required) - Notification title
+- `body` (str, optional) - Notification body text
+
+## Good Examples
+
+✅ **cmux_notify(title="Done", body="Task completed")**
+   Notify user when a long task finishes
+
+## When to Use
+
+- Alert the user when a long-running task completes

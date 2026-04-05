@@ -1,0 +1,30 @@
+# Tool: cmux_set_surface
+
+Save the modifiable_ai_agent surface reference to config.
+
+## Signature
+cmux_set_surface(surface_ref="surface:1")
+
+## Description
+
+Persists the cmux surface reference for modifiable_ai_agent to
+~/.config/agentic_test/surfaces.json. All other cmux tools read this
+config to know which surface to target.
+
+## Parameters
+
+- `surface_ref` (str, required) - cmux surface ref (e.g. 'surface:1', UUID)
+
+## Good Examples
+
+✅ **cmux_set_surface(surface_ref="surface:1")**
+   Set default surface
+
+## When to Use
+
+- After running cmux_tree() to identify the correct surface
+- When cmux tools are targeting the wrong surface
+
+## See Also
+
+- cmux_tree - Find available surface refs

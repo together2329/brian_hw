@@ -1,0 +1,37 @@
+# Tool: cmux_send_key
+
+Send a special key to modifiable_ai_agent via cmux.
+
+## Signature
+cmux_send_key(key="ctrl+c")
+
+## Description
+
+Sends a special keystroke to the modifiable_ai_agent surface.
+Use this for control sequences, escape, enter, or other non-text keys.
+
+## Parameters
+
+- `key` (str, required) - Key to send (e.g. 'ctrl+c', 'ctrl+q', 'enter', 'escape')
+
+## Good Examples
+
+✅ **cmux_send_key(key="ctrl+c")**
+   Interrupt running process
+
+✅ **cmux_send_key(key="ctrl+q")**
+   Quit Textual app
+
+✅ **cmux_send_key(key="escape")**
+   Send Escape key
+
+## When to Use
+
+- Interrupt a running process in modifiable_ai_agent
+- Quit or close the Textual UI
+- Send navigation or control keys
+
+## See Also
+
+- cmux_send - Send text input
+- cmux_restart_modifiable - Full restart of modifiable_ai_agent
