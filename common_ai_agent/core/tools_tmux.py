@@ -31,6 +31,46 @@ from pathlib import Path
 TMUX_SESSION = "agentic"
 MOD_PANE     = f"{TMUX_SESSION}:0.0"   # modifiable_ai_agent (기본 fallback)
 
+_PROJECT_CONFIG = Path(__file__).parent.parent / ".config"
+
+
+def _read_project_config() -> dict:
+    result = {}
+    if not _PROJECT_CONFIG.exists():
+        return result
+    for line in _PROJECT_CONFIG.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" in line:
+            k, _, v = line.partition("=")
+            result[k.strip()] = v.strip()
+    return result
+
+
+def _mod_dir() -> str:
+    cfg = _read_project_config()
+    if cfg.get("MODIFIABLE_DIR"):
+        p = Path(cfg["MODIFIABLE_DIR"])
+        if p.exists():
+            return str(p)
+    base = Path(__file__).parent.parent.parent
+    for c in [
+        base / "AGENTIC_TEST" / "modifiable_ai_agent",
+        base / "brian_hw_modifiable",
+        base / "modifiable_ai_agent",
+    ]:
+        if c.exists():
+            return str(c)
+    return ""
+
+
+def _mod_script(mod_dir: str) -> str:
+    for sub in ["src/textual_main.py", "textual_main.py"]:
+        if (Path(mod_dir) / sub).exists():
+            return sub
+    return "src/textual_main.py"
+
 
 def _run(cmd: str, timeout: int = 10) -> str:
     result = subprocess.run(
@@ -107,18 +147,9 @@ def tmux_restart_modifiable(mod_dir: str = "", pane: str = MOD_PANE) -> str:
         재시작 후 화면 텍스트
     """
     if not mod_dir:
-        # 이 파일(common_ai_agent/core/)의 부모 2단계 위에서 sibling 탐색
-        base = Path(__file__).parent.parent.parent
-        candidates = [
-            base / "brian_hw_modifiable",
-            base / "modifiable_ai_agent",
-        ]
-        for c in candidates:
-            if c.exists():
-                mod_dir = str(c)
-                break
-        if not mod_dir:
-            return f"Error: modifiable_ai_agent directory not found. Pass mod_dir explicitly."
+        mod_dir = _mod_dir()
+    if not mod_dir:
+        return "Error: modifiable_ai_agent directory not found. Set MODIFIABLE_DIR in .config."
 
     # 1) Ctrl+Q로 Textual 앱 정상 종료
     _run(f"tmux send-keys -t {shlex.quote(pane)} C-q")
@@ -128,8 +159,9 @@ def tmux_restart_modifiable(mod_dir: str = "", pane: str = MOD_PANE) -> str:
     _run(f"tmux send-keys -t {shlex.quote(pane)} C-c")
     time.sleep(1.0)
 
+    script = _mod_script(mod_dir)
     # 3) 재시작
-    cmd = f"cd {shlex.quote(mod_dir)} && python3 src/textual_main.py"
+    cmd = f"cd {shlex.quote(mod_dir)} && python3 {script}"
     _run(f"tmux send-keys -t {shlex.quote(pane)} {shlex.quote(cmd)} Enter")
     time.sleep(2.5)
 

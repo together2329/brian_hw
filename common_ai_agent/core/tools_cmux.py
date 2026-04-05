@@ -41,6 +41,55 @@ from pathlib import Path
 _CONFIG_PATH = Path.home() / ".config" / "agentic_test" / "surfaces.json"
 _MOD_SURFACE_DEFAULT = "surface:1"   # fallback (setup 전)
 
+# 프로젝트 .config 파일 (MODIFIABLE_DIR 등 읽기)
+_PROJECT_CONFIG = Path(__file__).parent.parent / ".config"
+
+
+def _read_project_config() -> dict:
+    """프로젝트 .config 파일에서 KEY=VALUE 파싱."""
+    result = {}
+    if not _PROJECT_CONFIG.exists():
+        return result
+    for line in _PROJECT_CONFIG.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" in line:
+            k, _, v = line.partition("=")
+            result[k.strip()] = v.strip()
+    return result
+
+
+def _mod_dir() -> str:
+    """modifiable_ai_agent 디렉터리 경로를 반환한다."""
+    # 1) 프로젝트 .config 우선
+    cfg = _read_project_config()
+    if cfg.get("MODIFIABLE_DIR"):
+        p = Path(cfg["MODIFIABLE_DIR"])
+        if p.exists():
+            return str(p)
+
+    # 2) 상위 디렉터리 후보 탐색
+    base = Path(__file__).parent.parent.parent
+    candidates = [
+        base / "AGENTIC_TEST" / "modifiable_ai_agent",
+        base / "brian_hw_modifiable",
+        base / "modifiable_ai_agent",
+    ]
+    for c in candidates:
+        if c.exists():
+            return str(c)
+    return ""
+
+
+def _mod_script(mod_dir: str) -> str:
+    """modifiable_ai_agent 실행 스크립트 경로를 반환한다."""
+    for sub in ["src/textual_main.py", "textual_main.py"]:
+        p = Path(mod_dir) / sub
+        if p.exists():
+            return sub
+    return "src/textual_main.py"  # fallback
+
 
 def _run(cmd: str, timeout: int = 10) -> str:
     result = subprocess.run(
@@ -121,7 +170,15 @@ def cmux_restart_modifiable() -> str:
         재시작 후 화면 텍스트
     """
     surface = _mod_surface()
-    mod_dir = str(Path(__file__).parent.parent.parent / "modifiable_ai_agent")
+    mod_dir = _mod_dir()
+
+    if not mod_dir:
+        return (
+            "Error: modifiable_ai_agent directory not found.\n"
+            "Set MODIFIABLE_DIR in common_ai_agent/.config and retry."
+        )
+
+    script = _mod_script(mod_dir)
 
     # 1) Ctrl+Q 로 Textual 앱 종료 시도
     _run(f"cmux send-key --surface {surface} ctrl+q")
@@ -132,13 +189,13 @@ def cmux_restart_modifiable() -> str:
     time.sleep(1.0)
 
     # 3) 재시작
-    cmd = f"cd {shlex.quote(mod_dir)} && python3 src/textual_main.py"
+    cmd = f"cd {shlex.quote(mod_dir)} && python3 {script}"
     _run(f"cmux send --surface {surface} {shlex.quote(cmd)}")
     time.sleep(2.5)
 
     # 4) 재시작 후 화면 확인
     screen = cmux_capture()
-    return f"modifiable_ai_agent restarted.\n\nCurrent screen:\n{screen}"
+    return f"modifiable_ai_agent restarted ({mod_dir}).\n\nCurrent screen:\n{screen}"
 
 
 def cmux_notify(title: str, body: str = "") -> str:
