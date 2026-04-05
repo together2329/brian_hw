@@ -1,0 +1,34 @@
+# Tool: cmux_new_workspace
+
+Create a new cmux workspace.
+
+## Signature
+cmux_new_workspace(name="", command="", cwd="")
+
+## Description
+
+Runs `cmux new-workspace` to create a new workspace in the current window.
+Optionally sets a name, working directory, and startup command.
+
+## Parameters
+
+- `name` (str, optional) - Workspace name
+- `command` (str, optional) - Command to run after creation (Enter auto-appended)
+- `cwd` (str, optional) - Working directory for the workspace
+
+## Good Examples
+
+✅ **cmux_new_workspace(name="modifiable", cwd="/path/to/project", command="python3 src/textual_main.py")**
+   Create named workspace and launch app
+
+✅ **cmux_new_workspace(name="build")**
+   Create empty named workspace
+
+## When to Use
+
+- Need a completely separate workspace (not just a split pane)
+- Setting up a new project environment
+
+## See Also
+
+- cmux_new_pane - Split current workspace instead

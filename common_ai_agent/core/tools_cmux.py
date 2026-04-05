@@ -175,6 +175,49 @@ def cmux_set_surface(surface_ref: str) -> str:
     return f"modifiable surface set to: {surface_ref}"
 
 
+def cmux_new_pane(direction: str = "right", command: str = "") -> str:
+    """
+    현재 workspace에 새 pane을 만든다 (split).
+
+    Args:
+        direction: 분할 방향 — 'left', 'right', 'up', 'down' (기본: 'right')
+        command:   새 pane에서 실행할 명령어 (선택)
+
+    Returns:
+        성공/실패 메시지
+    """
+    cmd = f"cmux new-pane --direction {shlex.quote(direction)}"
+    result = _run(cmd)
+    if command:
+        import time
+        time.sleep(0.5)
+        safe = shlex.quote(command)
+        _run(f"cmux send {safe}")
+    return f"New pane ({direction}) created.\n{result}"
+
+
+def cmux_new_workspace(name: str = "", command: str = "", cwd: str = "") -> str:
+    """
+    새 cmux workspace를 만든다.
+
+    Args:
+        name:    workspace 이름 (선택)
+        command: 생성 후 실행할 명령어 (선택)
+        cwd:     작업 디렉터리 (선택)
+
+    Returns:
+        성공/실패 메시지
+    """
+    cmd = "cmux new-workspace"
+    if name:
+        cmd += f" --name {shlex.quote(name)}"
+    if cwd:
+        cmd += f" --cwd {shlex.quote(cwd)}"
+    if command:
+        cmd += f" --command {shlex.quote(command)}"
+    return _run(cmd)
+
+
 CMUX_TOOLS = {
     "cmux_capture":            cmux_capture,
     "cmux_send":               cmux_send,
@@ -183,4 +226,6 @@ CMUX_TOOLS = {
     "cmux_notify":             cmux_notify,
     "cmux_tree":               cmux_tree,
     "cmux_set_surface":        cmux_set_surface,
+    "cmux_new_pane":           cmux_new_pane,
+    "cmux_new_workspace":      cmux_new_workspace,
 }
