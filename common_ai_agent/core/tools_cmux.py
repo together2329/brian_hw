@@ -142,9 +142,10 @@ def cmux_send(text: str, capture_delay: float = 1.5, capture_lines: int = 80) ->
         화면 캡처 결과 (명령 실행 결과 확인 가능)
     """
     surface = _mod_surface()
-    # 텍스트 전송 (cmux send는 Enter를 자동으로 붙이지 않음 → send-key enter 별도 전송)
-    _run(f"cmux send --surface {surface} {shlex.quote(text)}")
-    _run(f"cmux send-key --surface {surface} enter")
+    # cmux send does NOT auto-add Enter.
+    # Append \n escape sequence (backslash-n) which cmux interprets as Enter.
+    text_with_enter = text + "\\n"   # "\\n" in Python = backslash + n (2 chars, not newline)
+    _run(f"cmux send --surface {surface} {shlex.quote(text_with_enter)}")
     time.sleep(capture_delay)
     screen = _run(f"cmux read-screen --surface {surface} --lines {capture_lines}")
     return f"Sent: {text!r}\n\n--- screen after ---\n{screen}"
