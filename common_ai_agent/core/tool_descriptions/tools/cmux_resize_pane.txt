@@ -1,0 +1,12 @@
+# Tool: cmux_resize_pane
+Resize a cmux pane.
+
+## Signature
+cmux_resize_pane(pane="pane:1", direction="R", amount=5)
+
+## Good Examples
+✅ cmux_resize_pane(pane="pane:1", direction="R", amount=10) — expand right
+
+## See Also
+- cmux_tree - See full layout with refs
+- cmux_new_pane - Create a new empty pane

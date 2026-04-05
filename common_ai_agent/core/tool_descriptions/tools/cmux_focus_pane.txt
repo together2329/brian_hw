@@ -1,0 +1,12 @@
+# Tool: cmux_focus_pane
+Move focus to a specific cmux pane.
+
+## Signature
+cmux_focus_pane(pane="pane:1")
+
+## Good Examples
+✅ cmux_focus_pane(pane="pane:2") — focus pane:2
+
+## See Also
+- cmux_tree - See full layout with refs
+- cmux_new_pane - Create a new empty pane

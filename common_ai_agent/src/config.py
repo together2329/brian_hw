@@ -966,8 +966,12 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
             _tool_line("cmux_restart_modifiable", '',                      "Quit and restart modifiable_ai_agent."),
             _tool_line("cmux_set_surface",        'surface_ref',           "Save surface ref to config for other cmux tools."),
             _tool_line("cmux_notify",             'title, body=""',        "Send macOS notification."),
-            _tool_line("cmux_new_pane",           'direction="right", command=""', "Split current workspace: create new pane (left/right/up/down)."),
-            _tool_line("cmux_new_workspace",      'name="", command="", cwd=""',   "Create a new cmux workspace, optionally running a command."),
+            _tool_line("cmux_new_pane",           'direction="right", command=""',       "Split current workspace: create new pane (left/right/up/down)."),
+            _tool_line("cmux_new_workspace",      'name="", command="", cwd=""',         "Create a new cmux workspace, optionally running a command."),
+            _tool_line("cmux_list_panes",         'workspace=""',                        "List panes in current (or given) workspace."),
+            _tool_line("cmux_focus_pane",         'pane',                                "Move focus to a pane by ref (e.g. 'pane:1')."),
+            _tool_line("cmux_resize_pane",        'pane, direction, amount=5',           "Resize a pane: direction L/R/U/D, amount in cells."),
+            _tool_line("cmux_move_surface",       'surface, direction',                  "Drag a surface into a new split pane (left/right/up/down)."),
         ]
 
     # tmux tools (conditional)
