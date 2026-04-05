@@ -21,6 +21,16 @@ Use this to find surface references needed by other cmux tools.
 - Verify cmux is running and surfaces are active
 - Debug which surfaces are available
 
+## How to Identify modifiable_ai_agent Surface
+
+After running cmux_tree(), look for a surface that is:
+1. Type: terminal (not browser)
+2. Running python3 / textual_main.py (modifiable_ai_agent)
+3. NOT your own terminal (common_ai_agent is also a python3 process — distinguish by pane or workspace)
+
+If ambiguous, ask the user which surface ref belongs to modifiable_ai_agent
+rather than guessing.
+
 ## See Also
 
 - cmux_set_surface - Save a surface ref for use by other cmux tools

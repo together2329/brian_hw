@@ -11,14 +11,29 @@ Persists the cmux surface reference for modifiable_ai_agent to
 ~/.config/agentic_test/surfaces.json. All other cmux tools read this
 config to know which surface to target.
 
+IMPORTANT: Run cmux_tree() first to list all surfaces, then identify
+modifiable_ai_agent by looking for a surface that is:
+- A terminal type (NOT browser)
+- Running "python3" or "textual_main.py" (modifiable_ai_agent's process)
+- NOT the surface currently running this agent (common_ai_agent)
+
+If you are unsure which surface is modifiable_ai_agent, ask the user.
+Do NOT guess — picking the wrong surface (e.g. the agent's own terminal
+or a browser) will cause errors or capture the wrong screen.
+
 ## Parameters
 
 - `surface_ref` (str, required) - cmux surface ref (e.g. 'surface:1', UUID)
 
 ## Good Examples
 
-✅ **cmux_set_surface(surface_ref="surface:1")**
-   Set default surface
+✅ **cmux_tree() → identify surface running modifiable_ai_agent → cmux_set_surface(surface_ref="surface:2")**
+   Correct workflow: tree first, then set
+
+## Bad Examples
+
+❌ **cmux_set_surface(surface_ref="surface:14")**  ← if surface:14 is this agent's own terminal
+   Wrong: would capture/send to self instead of modifiable_ai_agent
 
 ## When to Use
 
@@ -28,3 +43,4 @@ config to know which surface to target.
 ## See Also
 
 - cmux_tree - Find available surface refs
+- cmux_capture - Verify the surface shows modifiable_ai_agent after setting
