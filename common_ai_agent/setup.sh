@@ -121,7 +121,7 @@ PYEOF
 
 # ── Step 4: common_ai_agent 실행 (오른쪽 새 pane) ─────────────────────────
 echo "[4] common_ai_agent 시작 (오른쪽 pane)..."
-cmux new-pane --direction right
+cmux new-split right
 sleep 1
 cmux send "cd '$ACT_DIR' && python3 src/textual_main.py"
 

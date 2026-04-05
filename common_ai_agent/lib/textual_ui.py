@@ -944,7 +944,7 @@ class AgentTUI(App):
             return
 
         # System messages: [Plan Mode], [System], [Error]
-        m_sys = re.match(r"^(\[(?:Plan Mode|System|Error|Warning)[^\]]*\])(.*)", text)
+        m_sys = re.match(r"^(\[(?:Plan Mode|System|Error|Warning)[^\]]*\])(.*)", _plain)
         if m_sys:
             tag, rest = m_sys.groups()
             # Blank line before Plan Mode to visually separate from previous output
@@ -964,7 +964,7 @@ class AgentTUI(App):
             return
 
         # Parallel run header
-        m_parallel = re.match(r"^\s*⚡\s+(.*)", text)
+        m_parallel = re.match(r"^\s*⚡\s+(.*)", _plain)
         if m_parallel:
             self._in_parallel = True
             log.write(RichText(""))
@@ -974,7 +974,7 @@ class AgentTUI(App):
             return
 
         # Tool calls: "⏺ tool_name(...)" or "• tool_name(...)"
-        m_tool = re.match(r"^\s*[⏺•·]\s*(\w+)\((.*)$", text)
+        m_tool = re.match(r"^\s*[⏺•·]\s*(\w+)\((.*)$", _plain)
         if m_tool:
             self._in_diff = False  # reset diff state on every new tool call
             tool_name = m_tool.group(1)
@@ -997,32 +997,32 @@ class AgentTUI(App):
 
         # Diff lines (after write/replace/git tools)
         if self._in_diff:
-            if re.match(r"^\+[^+]", text):
-                log.write(RichText(f"  {text}", style=f"bold {_GREEN}"))
+            if re.match(r"^\+[^+]", _plain):
+                log.write(RichText(f"  {_plain}", style=f"bold {_GREEN}"))
                 return
-            if re.match(r"^-[^-]", text):
-                log.write(RichText(f"  {text}", style=f"bold {_RED}"))
+            if re.match(r"^-[^-]", _plain):
+                log.write(RichText(f"  {_plain}", style=f"bold {_RED}"))
                 return
-            if re.match(r"^@@", text):
-                log.write(RichText(f"  {text}", style=f"bold {_ACCENT}"))
+            if re.match(r"^@@", _plain):
+                log.write(RichText(f"  {_plain}", style=f"bold {_ACCENT}"))
                 return
             # Non-diff line ends the diff block
-            if not re.match(r"^\s*[└|│⎿]", text):
+            if not re.match(r"^\s*[└|│⎿]", _plain):
                 self._in_diff = False
 
         # Tool result lines: "└", "|", "│", or "⎿"
-        if re.match(r"^\s*[└|│⎿]", text):
+        if re.match(r"^\s*[└|│⎿]", _plain):
             self._in_result = True
             # Strip tree prefix to check if content is a diff line
-            inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", text)
+            inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", _plain)
             if self._in_diff and re.match(r"^\+[^+]", inner):
-                log.write(RichText(f"  {text.strip()}", style=f"bold {_GREEN}"))
+                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_GREEN}"))
             elif self._in_diff and re.match(r"^-[^-]", inner):
-                log.write(RichText(f"  {text.strip()}", style=f"bold {_RED}"))
+                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_RED}"))
             elif self._in_diff and re.match(r"^@@", inner):
-                log.write(RichText(f"  {text.strip()}", style=f"bold {_ACCENT}"))
+                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_ACCENT}"))
             else:
-                log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
+                log.write(RichText(f"  {_plain.strip()}", style=f"dim {_TEXT_FAINT}"))
             return
 
         # Non-result line after result block → trailing blank
