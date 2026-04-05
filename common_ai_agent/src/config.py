@@ -221,6 +221,8 @@ LARGE_FILE_PREVIEW_LINES = int(os.getenv("LARGE_FILE_PREVIEW_LINES", "100"))  # 
 # Approximate token limit (1 token ~= 4 chars)
 # Default: 262144 chars (~65K tokens) - matches Claude's 200K context
 MAX_CONTEXT_CHARS = int(os.getenv("MAX_CONTEXT_CHARS", "512000"))  # Gemini Flash 3: 128K tokens * 4 chars/token
+# Hard token limit for the model context window (0 = disable dynamic output capping)
+MAX_CONTEXT_TOKENS = int(os.getenv("MAX_CONTEXT_TOKENS", "0"))
 # Threshold to trigger compression (0.0 to 1.0)
 # Default: 0.9 (90% of 128K = ~115K tokens)
 # Old value 0.8 was too conservative, causing compression every iteration

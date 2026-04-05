@@ -2724,3 +2724,25 @@ try:
     AVAILABLE_TOOLS["spec_navigate"] = spec_navigate
 except ImportError:
     pass  # spec_navigate_tool not available
+
+# tmux integration tools — observe/control modifiable_ai_agent pane
+try:
+    from core.tools_tmux import TMUX_TOOLS
+    AVAILABLE_TOOLS.update(TMUX_TOOLS)
+except ImportError:
+    try:
+        from tools_tmux import TMUX_TOOLS
+        AVAILABLE_TOOLS.update(TMUX_TOOLS)
+    except ImportError:
+        pass  # tools_tmux not available
+
+# cmux integration tools — observe/control modifiable_ai_agent via cmux socket
+try:
+    from core.tools_cmux import CMUX_TOOLS
+    AVAILABLE_TOOLS.update(CMUX_TOOLS)
+except ImportError:
+    try:
+        from tools_cmux import CMUX_TOOLS
+        AVAILABLE_TOOLS.update(CMUX_TOOLS)
+    except ImportError:
+        pass  # tools_cmux not available

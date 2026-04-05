@@ -42,6 +42,41 @@ actual_token_cache = {}
 last_input_tokens = 0  # Last reported input tokens from API
 last_output_tokens = 0  # Last reported output tokens from API
 
+# Minimum output tokens floor — never cap below this value even if context is tight
+_MIN_OUTPUT_TOKENS = 512
+# Safety buffer: leave this many tokens between input usage and context limit
+_OUTPUT_SAFETY_BUFFER = 200
+
+
+def compute_safe_max_tokens(used_tokens: int = 0) -> int:
+    """
+    Return a safe max_tokens value that fits within the remaining context window.
+
+    When MAX_CONTEXT_TOKENS is configured, caps the response budget to:
+        min(MAX_OUTPUT_TOKENS, context_limit - effective_input - safety_buffer)
+
+    If compression is enabled, input is guaranteed to stay below
+    MAX_CONTEXT_TOKENS * COMPRESSION_THRESHOLD, so we clamp used_tokens to that
+    ceiling. This ensures remaining is always >= limit * (1 - threshold) - buffer,
+    making _MIN_OUTPUT_TOKENS floor safe.
+
+    Falls back to MAX_OUTPUT_TOKENS when MAX_CONTEXT_TOKENS is not set (0).
+    """
+    base = config.MAX_OUTPUT_TOKENS
+    if config.MAX_CONTEXT_TOKENS <= 0 or base <= 0:
+        return base
+    tokens = used_tokens or last_input_tokens
+    if tokens <= 0:
+        return base
+    # Compression guarantees input never exceeds threshold * limit.
+    # Clamp tokens to that ceiling so remaining calculation reflects reality.
+    if config.ENABLE_COMPRESSION and 0 < config.COMPRESSION_THRESHOLD < 1:
+        compression_ceiling = int(config.MAX_CONTEXT_TOKENS * config.COMPRESSION_THRESHOLD)
+        tokens = min(tokens, compression_ceiling)
+    remaining = config.MAX_CONTEXT_TOKENS - tokens - _OUTPUT_SAFETY_BUFFER
+    safe = min(base, remaining)
+    return max(safe, _MIN_OUTPUT_TOKENS)
+
 # --- LLM Call Performance Log ---
 @dataclass
 class LLMCallRecord:
@@ -656,7 +691,7 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         _stop = stop[:4] if "z.ai" in url else stop
         data["stop"] = _stop
     if config.MAX_OUTPUT_TOKENS > 0:
-        data["max_tokens"] = config.MAX_OUTPUT_TOKENS
+        data["max_tokens"] = compute_safe_max_tokens()
 
     # Show spinner while waiting (suppressed during compression)
     _spinner = None
@@ -867,7 +902,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         data["stop"] = _stop
 
     if config.MAX_OUTPUT_TOKENS > 0:
-        data["max_tokens"] = config.MAX_OUTPUT_TOKENS
+        data["max_tokens"] = compute_safe_max_tokens()
 
     # Debug: Log request details
     if config.DEBUG_MODE:
