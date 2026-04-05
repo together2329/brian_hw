@@ -7,20 +7,35 @@ cmux_restart_modifiable()
 
 ## Description
 
-Sends ctrl+q then ctrl+c to stop the running Textual app, then relaunches
-modifiable_ai_agent. Use after modifying modifiable_ai_agent's code to apply changes.
+Automatically resolves the modifiable_ai_agent directory from .config (MODIFIABLE_DIR),
+sends ctrl+q + ctrl+c to stop the running app, then relaunches with the correct path.
+
+**Do NOT search for textual_main.py manually. Do NOT use cmux_send to launch it.
+Just call cmux_restart_modifiable() — it handles everything.**
 
 ## Good Examples
 
 ✅ **cmux_restart_modifiable()**
-   Restart after code changes
+   The only correct way to (re)start modifiable_ai_agent
+
+## Bad Alternatives (NEVER DO THESE)
+
+❌ Find("**/textual_main.py") then cmux_send(...)
+   Unnecessary — path is already in .config
+
+❌ cmux_send(text="python3 textual_main.py")
+   Wrong path, wrong directory
+
+❌ cmux_send(text="cd /some/path && python3 src/textual_main.py")
+   Use cmux_restart_modifiable() instead
 
 ## When to Use
 
+- User asks to start / restart / relaunch modifiable_ai_agent
 - After editing modifiable_ai_agent source files
-- When modifiable_ai_agent is unresponsive
+- When modifiable_ai_agent is unresponsive or stopped
 
 ## See Also
 
-- cmux_send_key - Send individual keys
 - cmux_capture - Check screen after restart
+- cmux_send_key - Send individual keys if needed
