@@ -295,6 +295,8 @@ LLM_COST_OUTPUT_PER_M = float(os.getenv("LLM_COST_OUTPUT_PER_M", "0"))
 
 # Feature Flags
 ENABLE_VERILOG_TOOLS = os.getenv("ENABLE_VERILOG_TOOLS", "false").lower() in ("true", "1", "yes")
+ENABLE_CMUX_TOOLS = os.getenv("CMUX_ENABLE", "false").lower() in ("true", "1", "yes")
+ENABLE_TMUX_TOOLS = os.getenv("TMUX_ENABLE", "false").lower() in ("true", "1", "yes")
 
 # Maximum cache breakpoints (1-4, Anthropic allows up to 4)
 # Default: 3 (System message + 2 dynamic points in history)
@@ -952,6 +954,28 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
                        "Navigate PCIe/UCIe/NVMe spec by section ID. "
                        "Start with node_id='root' for TOC, drill into sections. "
                        "Leaf nodes contain full spec text. Use for ALL spec questions."),
+        ]
+
+    # cmux tools (conditional)
+    if ENABLE_CMUX_TOOLS and "cmux_capture" in tool_list:
+        tool_lines["cmux (modifiable_ai_agent)"] = [
+            _tool_line("cmux_tree",               '',                      "List all cmux surfaces. Run first to find surface refs."),
+            _tool_line("cmux_capture",            'lines=200',             "Capture modifiable_ai_agent screen text."),
+            _tool_line("cmux_send",               'text',                  "Send text to modifiable_ai_agent (Enter auto-appended)."),
+            _tool_line("cmux_send_key",           'key',                   "Send special key (ctrl+c, ctrl+q, escape, enter)."),
+            _tool_line("cmux_restart_modifiable", '',                      "Quit and restart modifiable_ai_agent."),
+            _tool_line("cmux_set_surface",        'surface_ref',           "Save surface ref to config for other cmux tools."),
+            _tool_line("cmux_notify",             'title, body=""',        "Send macOS notification."),
+        ]
+
+    # tmux tools (conditional)
+    if ENABLE_TMUX_TOOLS and "tmux_capture" in tool_list:
+        tool_lines["tmux"] = [
+            _tool_line("tmux_list_panes",         '',                      "List all panes in the agentic tmux session."),
+            _tool_line("tmux_capture",            'pane="agentic:0.0", lines=200', "Capture pane screen text."),
+            _tool_line("tmux_send_keys",          'keys, pane="agentic:0.0"',      "Send keys to a pane (Enter auto-appended)."),
+            _tool_line("tmux_new_window",         'name="", command=""',   "Create a new tmux window."),
+            _tool_line("tmux_kill_pane",          'pane',                  "Kill a tmux pane."),
         ]
 
     # Verilog tools (conditional)
