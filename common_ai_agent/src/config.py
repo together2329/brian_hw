@@ -966,6 +966,8 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
             _tool_line("cmux_restart_modifiable", '',                      "Quit and restart modifiable_ai_agent."),
             _tool_line("cmux_set_surface",        'surface_ref',           "Save surface ref to config for other cmux tools."),
             _tool_line("cmux_notify",             'title, body=""',        "Send macOS notification."),
+            _tool_line("cmux_new_pane",           'direction="right", command=""', "Split current workspace: create new pane (left/right/up/down)."),
+            _tool_line("cmux_new_workspace",      'name="", command="", cwd=""',   "Create a new cmux workspace, optionally running a command."),
         ]
 
     # tmux tools (conditional)

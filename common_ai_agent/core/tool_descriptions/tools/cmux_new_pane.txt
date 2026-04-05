@@ -1,0 +1,37 @@
+# Tool: cmux_new_pane
+
+Split the current cmux workspace by creating a new pane.
+
+## Signature
+cmux_new_pane(direction="right", command="")
+
+## Description
+
+Runs `cmux new-pane --direction <direction>` to split the current workspace.
+Optionally sends a command to the new pane immediately after creation.
+
+## Parameters
+
+- `direction` (str, optional, default: "right") - Split direction: left / right / up / down
+- `command` (str, optional) - Command to run in the new pane
+
+## Good Examples
+
+✅ **cmux_new_pane(direction="right")**
+   Split right, empty pane
+
+✅ **cmux_new_pane(direction="right", command="python3 src/textual_main.py")**
+   Split right and launch app immediately
+
+✅ **cmux_new_pane(direction="down")**
+   Split downward
+
+## When to Use
+
+- User asks to split window / create new pane
+- Need to run a second process alongside current one
+
+## See Also
+
+- cmux_new_workspace - Create a separate workspace instead
+- cmux_tree - Verify layout after splitting
