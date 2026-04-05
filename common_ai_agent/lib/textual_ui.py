@@ -241,9 +241,13 @@ class TextualCapture:
         while "\n" in self._buf:
             line, self._buf = self._buf.split("\n", 1)
             clean = _ANSI.sub("", line)
-            if not clean.strip() or _NOISE.match(clean.strip()):
+            has_ansi = (clean != line)
+            # Skip empty lines; for non-ANSI lines, also skip noise (pure separators)
+            if not clean.strip():
                 continue
-            self._app.post_message(MainLine(clean))
+            if not has_ansi and _NOISE.match(clean.strip()):
+                continue
+            self._app.post_message(MainLine(line))  # pass raw line (preserve ANSI for RichText.from_ansi)
         return len(text)
 
     def flush(self) -> None: pass
@@ -922,14 +926,20 @@ class AgentTUI(App):
 
         # /clear → cost counters intentionally NOT reset (accumulate for entire session)
 
-        # Shorten long paths
-        text = _shorten_path(text)
+        # Strip ANSI for pattern matching; keep raw for rendering
+        _plain = _ANSI.sub("", text)
+
+        # If line contains ANSI codes, skip path shortening (would corrupt escape sequences)
+        if _plain != text:
+            # ANSI present — use _plain for all pattern matching below
+            pass
+        else:
+            text = _shorten_path(text)
+            _plain = text
 
         # ── Color-coded lines ───────────────────────────────────────────────
 
         # Todo status bar: suppress from main log (shown in sidebar only)
-        # Strip ANSI before checking so escape codes don't break the match
-        _plain = _ANSI.sub("", text)
         if re.match(r"^\d+;\[(\d+/\d+)\]", _plain):
             return
 
