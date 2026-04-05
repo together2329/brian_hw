@@ -1,17 +1,33 @@
 """
-core/tools_cmux.py — cmux integration tools for action_ai_agent
+core/tools_cmux.py — cmux integration tools for common_ai_agent
 
-action_ai_agent가 cmux CLI를 통해 modifiable_ai_agent surface를
+common_ai_agent가 cmux CLI를 통해 modifiable_ai_agent surface를
 읽고 조작하는 도구 모음.
 
-cmux 명령어:
-  cmux read-screen --surface <ref>         화면 텍스트 캡처
-  cmux send --surface <ref> <text>         텍스트 입력 전송
-  cmux send-key --surface <ref> <key>      키 전송 (ctrl+c 등)
-  cmux notify --title <t> --body <b>       알림 전송
-  cmux respawn-pane --surface <ref>        pane 재시작
-  cmux list-panes --workspace <ref>        pane 목록
-  cmux tree                                전체 구조 출력
+실제 cmux 명령어 (cmux --help 기준):
+  cmux read-screen [--surface <ref>] [--lines <n>]      화면 텍스트 캡처
+  cmux send [--surface <ref>] <text>                    텍스트 입력 전송
+  cmux send-key [--surface <ref>] <key>                 키 전송 (ctrl+c 등)
+  cmux notify --title <t> [--body <b>]                  알림 전송
+  cmux respawn-pane [--surface <ref>] [--command <cmd>] pane 재시작
+  cmux list-panes [--workspace <ref>]                   pane 목록
+  cmux tree [--all]                                     전체 구조 출력
+  cmux new-split <left|right|up|down>                   현재 pane 분할
+  cmux new-workspace [--name] [--cwd] [--command]       새 workspace 생성
+  cmux new-pane [--direction <dir>]                     현재 workspace에 탭형 pane 추가
+  cmux focus-pane --pane <ref>                          pane 포커스 이동
+  cmux resize-pane --pane <ref> (-L|-R|-U|-D) [--amount <n>]  pane 크기 조절
+  cmux drag-surface-to-split --surface <ref> <dir>      surface를 split으로 이동
+  cmux move-surface --surface <ref> [--pane <ref>]      surface를 다른 pane으로 이동
+  cmux select-workspace --workspace <ref>               workspace 포커스
+  cmux close-surface [--surface <ref>]                  surface 닫기
+  cmux break-pane [--pane <ref>]                        pane을 독립 workspace로 분리
+  cmux swap-pane --pane <ref> --target-pane <ref>       두 pane 위치 교환
+
+환경변수 (cmux 터미널 내에서 자동 설정):
+  CMUX_WORKSPACE_ID  현재 workspace ID
+  CMUX_SURFACE_ID    현재 surface ID
+  → --surface/--workspace 생략 시 현재 pane이 기본값
 """
 
 import json
@@ -175,25 +191,50 @@ def cmux_set_surface(surface_ref: str) -> str:
     return f"modifiable surface set to: {surface_ref}"
 
 
-def cmux_new_pane(direction: str = "right", command: str = "") -> str:
+def cmux_new_split(direction: str = "right", command: str = "") -> str:
     """
-    현재 workspace에 새 pane을 만든다 (split).
+    현재 pane을 분할하여 새 split pane을 만든다 (new-split).
 
     Args:
         direction: 분할 방향 — 'left', 'right', 'up', 'down' (기본: 'right')
         command:   새 pane에서 실행할 명령어 (선택)
 
     Returns:
+        성공/실패 메시지 (새 surface ref 포함)
+    """
+    result = _run(f"cmux new-split {shlex.quote(direction)}")
+    if command and "Error" not in result:
+        time.sleep(0.5)
+        _run(f"cmux send {shlex.quote(command)}")
+    return f"Split {direction} created.\n{result}"
+
+
+# backward-compat alias
+def cmux_new_pane(direction: str = "right", command: str = "") -> str:
+    """cmux_new_split의 별칭 (하위 호환)."""
+    return cmux_new_split(direction=direction, command=command)
+
+
+def cmux_new_workspace(name: str = "", command: str = "", cwd: str = "") -> str:
+    """
+    새 cmux workspace를 만든다.
+
+    Args:
+        name:    workspace 이름 (선택)
+        command: 생성 후 실행할 명령어 (선택)
+        cwd:     작업 디렉터리 (선택)
+
+    Returns:
         성공/실패 메시지
     """
-    cmd = f"cmux new-pane --direction {shlex.quote(direction)}"
-    result = _run(cmd)
+    cmd = "cmux new-workspace"
+    if name:
+        cmd += f" --name {shlex.quote(name)}"
+    if cwd:
+        cmd += f" --cwd {shlex.quote(cwd)}"
     if command:
-        import time
-        time.sleep(0.5)
-        safe = shlex.quote(command)
-        _run(f"cmux send {safe}")
-    return f"New pane ({direction}) created.\n{result}"
+        cmd += f" --command {shlex.quote(command)}"
+    return _run(cmd)
 
 
 def cmux_list_panes(workspace: str = "") -> str:
@@ -243,25 +284,83 @@ def cmux_move_surface(surface: str, direction: str) -> str:
     )
 
 
-def cmux_new_workspace(name: str = "", command: str = "", cwd: str = "") -> str:
+def cmux_select_workspace(workspace: str) -> str:
     """
-    새 cmux workspace를 만든다.
+    특정 workspace로 포커스를 이동한다.
 
     Args:
-        name:    workspace 이름 (선택)
-        command: 생성 후 실행할 명령어 (선택)
-        cwd:     작업 디렉터리 (선택)
+        workspace: workspace ref (예: 'workspace:1', 'workspace:2')
 
     Returns:
         성공/실패 메시지
     """
-    cmd = "cmux new-workspace"
-    if name:
-        cmd += f" --name {shlex.quote(name)}"
-    if cwd:
-        cmd += f" --cwd {shlex.quote(cwd)}"
-    if command:
-        cmd += f" --command {shlex.quote(command)}"
+    return _run(f"cmux select-workspace --workspace {shlex.quote(workspace)}")
+
+
+def cmux_close_surface(surface: str = "") -> str:
+    """
+    surface를 닫는다.
+
+    Args:
+        surface: surface ref (생략 시 현재 surface)
+
+    Returns:
+        성공/실패 메시지
+    """
+    cmd = "cmux close-surface"
+    if surface:
+        cmd += f" --surface {shlex.quote(surface)}"
+    return _run(cmd)
+
+
+def cmux_break_pane(pane: str = "") -> str:
+    """
+    pane을 독립적인 새 workspace로 분리한다 (break-pane).
+
+    Args:
+        pane: pane ref (생략 시 현재 pane)
+
+    Returns:
+        성공/실패 메시지
+    """
+    cmd = "cmux break-pane"
+    if pane:
+        cmd += f" --pane {shlex.quote(pane)}"
+    return _run(cmd)
+
+
+def cmux_swap_pane(pane: str, target_pane: str) -> str:
+    """
+    두 pane의 위치를 교환한다.
+
+    Args:
+        pane:        교환할 pane ref
+        target_pane: 교환 대상 pane ref
+
+    Returns:
+        성공/실패 메시지
+    """
+    return _run(
+        f"cmux swap-pane --pane {shlex.quote(pane)} --target-pane {shlex.quote(target_pane)}"
+    )
+
+
+def cmux_rename_workspace(name: str, workspace: str = "") -> str:
+    """
+    workspace 이름을 변경한다.
+
+    Args:
+        name:      새 이름
+        workspace: workspace ref (생략 시 현재 workspace)
+
+    Returns:
+        성공/실패 메시지
+    """
+    # rename-workspace [--workspace <ref>] <title>
+    cmd = "cmux rename-workspace"
+    if workspace:
+        cmd += f" --workspace {shlex.quote(workspace)}"
+    cmd += f" {shlex.quote(name)}"
     return _run(cmd)
 
 
@@ -273,10 +372,16 @@ CMUX_TOOLS = {
     "cmux_notify":             cmux_notify,
     "cmux_tree":               cmux_tree,
     "cmux_set_surface":        cmux_set_surface,
-    "cmux_new_pane":           cmux_new_pane,
+    "cmux_new_split":          cmux_new_split,
+    "cmux_new_pane":           cmux_new_pane,          # alias → cmux_new_split
     "cmux_new_workspace":      cmux_new_workspace,
     "cmux_list_panes":         cmux_list_panes,
     "cmux_focus_pane":         cmux_focus_pane,
     "cmux_resize_pane":        cmux_resize_pane,
     "cmux_move_surface":       cmux_move_surface,
+    "cmux_select_workspace":   cmux_select_workspace,
+    "cmux_close_surface":      cmux_close_surface,
+    "cmux_break_pane":         cmux_break_pane,
+    "cmux_swap_pane":          cmux_swap_pane,
+    "cmux_rename_workspace":   cmux_rename_workspace,
 }
