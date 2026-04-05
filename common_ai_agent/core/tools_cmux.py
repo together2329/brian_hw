@@ -129,20 +129,25 @@ def cmux_capture(lines: int = 200) -> str:
     return _run(f"cmux read-screen --surface {surface} --lines {lines}")
 
 
-def cmux_send(text: str) -> str:
+def cmux_send(text: str, capture_delay: float = 1.5, capture_lines: int = 80) -> str:
     """
-    modifiable_ai_agent에 텍스트를 입력한다 (Enter 자동 추가).
+    modifiable_ai_agent에 텍스트를 입력하고 Enter를 전송한 뒤, 화면을 캡처해 반환한다.
 
     Args:
-        text: 전송할 텍스트
+        text:          전송할 텍스트
+        capture_delay: 캡처 전 대기 시간 초 (기본: 1.5s — 명령 실행 완료 대기)
+        capture_lines: 캡처할 라인 수 (기본: 80)
 
     Returns:
-        성공/실패 메시지
+        화면 캡처 결과 (명령 실행 결과 확인 가능)
     """
     surface = _mod_surface()
-    safe = shlex.quote(text)
-    result = _run(f"cmux send --surface {surface} {safe}")
-    return f"Sent to modifiable ({surface}): {text!r}\n{result}"
+    # 텍스트 전송 (cmux send는 Enter를 자동으로 붙이지 않음 → send-key enter 별도 전송)
+    _run(f"cmux send --surface {surface} {shlex.quote(text)}")
+    _run(f"cmux send-key --surface {surface} enter")
+    time.sleep(capture_delay)
+    screen = _run(f"cmux read-screen --surface {surface} --lines {capture_lines}")
+    return f"Sent: {text!r}\n\n--- screen after ---\n{screen}"
 
 
 def cmux_send_key(key: str) -> str:
