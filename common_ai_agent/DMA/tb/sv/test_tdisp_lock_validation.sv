@@ -586,12 +586,6 @@ module test_tdisp_lock_validation;
         @(posedge clk);
 
         check_response(1'b0, ERR_INSUFFICIENT_ENTROPY, "Nonce entropy");
-
-        // Ack response
-        rsp_done = 1'b1;
-        @(posedge clk);
-        rsp_done = 1'b0;
-        @(posedge clk);
     endtask
 
     //=========================================================================
@@ -610,11 +604,11 @@ module test_tdisp_lock_validation;
         // Verify ctx_fw_update_locked is set
         total_checks++;
         if (!ctx_fw_update_locked) begin
-            $error("[LOCK-VAL] FAIL: ctx_fw_update_locked not set with NO_FW_UPDATE=1);
+            $error("[LOCK-VAL] FAIL: ctx_fw_update_locked not set with NO_FW_UPDATE=1");
             total_failed++;
             record_result("NO_FW_UPDATE ctx", 1'b0, "fw_update_locked not set");
         end else begin
-            $display("[LOCK-VAL] PASS: NO_FW_UPDATE flag -> ctx_fw_update_locked=1);
+            $display("[LOCK-VAL] PASS: NO_FW_UPDATE flag -> ctx_fw_update_locked=1");
             record_result("NO_FW_UPDATE ctx", 1'b1);
         end
 
@@ -625,11 +619,11 @@ module test_tdisp_lock_validation;
 
         total_checks++;
         if (ctx_fw_update_locked) begin
-            $error("[LOCK-VAL] FAIL: ctx_fw_update_locked set with NO_FW_UPDATE=0);
+            $error("[LOCK-VAL] FAIL: ctx_fw_update_locked set with NO_FW_UPDATE=0");
             total_failed++;
             record_result("NO_FW_UPDATE=0 ctx", 1'b0, "fw_update_locked incorrectly set");
         end else begin
-            $display("[LOCK-VAL] PASS: NO_FW_UPDATE=0 -> ctx_fw_update_locked=0);
+            $display("[LOCK-VAL] PASS: NO_FW_UPDATE=0 -> ctx_fw_update_locked=0");
             record_result("NO_FW_UPDATE=0 ctx", 1'b1);
         end
     endtask
@@ -823,11 +817,6 @@ module test_tdisp_lock_validation;
         @(posedge clk); // LCK_RESPOND
 
         check_response(1'b1, ERR_RESERVED, "Lock while busy (first)");
-
-        rsp_done = 1'b1;
-        @(posedge clk);
-        rsp_done = 1'b0;
-        @(posedge clk);
     endtask
 
     //=========================================================================
@@ -912,7 +901,7 @@ module test_tdisp_lock_validation;
             total_failed++;
             record_result("Nonce valid", 1'b0, "not set");
         end else begin
-            $display("[LOCK-VAL] PASS: ctx_nonce_valid=1);
+            $display("[LOCK-VAL] PASS: ctx_nonce_valid=1");
             record_result("Nonce valid", 1'b1);
         end
     endtask
