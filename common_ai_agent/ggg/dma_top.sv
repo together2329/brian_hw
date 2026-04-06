@@ -177,7 +177,7 @@ module dma_top #(
     // =========================================================================
     // AXI4-Lite Slave Interface - Write Path
     // =========================================================================
-    logic [1:0] axi_aw_state;
+    logic [2:0] axi_aw_state;
     logic [ADDR_WIDTH-1:0] awaddr_reg;
 
     always_ff @(posedge clk or negedge rst_n) begin
@@ -187,35 +187,38 @@ module dma_top #(
             s_axi_bvalid  <= 1'b0;
             s_axi_bresp   <= 2'b00;
             awaddr_reg    <= '0;
-            axi_aw_state  <= 2'd0;
+            axi_aw_state  <= 3'd0;
         end else begin
             case (axi_aw_state)
-                2'd0: begin // Wait for AWVALID
+                3'd0: begin // Wait for AWVALID
                     s_axi_awready <= 1'b1;
                     s_axi_wready  <= 1'b0;
                     s_axi_bvalid  <= 1'b0;
                     if (s_axi_awvalid) begin
                         awaddr_reg    <= s_axi_awaddr;
                         s_axi_awready <= 1'b0;
-                        axi_aw_state  <= 2'd1;
+                        axi_aw_state  <= 3'd1;
                     end
                 end
-                2'd1: begin // Wait for WVALID
+                3'd1: begin // Wait for WVALID
                     s_axi_wready <= 1'b1;
                     if (s_axi_wvalid) begin
                         s_axi_wready <= 1'b0;
-                        axi_aw_state <= 2'd2;
+                        axi_aw_state <= 3'd2;
                     end
                 end
-                2'd2: begin // Send BRESP
+                3'd2: begin // Assert BVALID
                     s_axi_bvalid <= 1'b1;
                     s_axi_bresp  <= 2'b00;
+                    axi_aw_state <= 3'd3;
+                end
+                3'd3: begin // Wait for BREADY
                     if (s_axi_bready) begin
                         s_axi_bvalid <= 1'b0;
-                        axi_aw_state <= 2'd0;
+                        axi_aw_state <= 3'd0;
                     end
                 end
-                default: axi_aw_state <= 2'd0;
+                default: axi_aw_state <= 3'd0;
             endcase
         end
     end
