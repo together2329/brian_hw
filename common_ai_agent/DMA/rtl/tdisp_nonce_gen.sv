@@ -16,8 +16,9 @@ module tdisp_nonce_gen #(
 
     //--- Nonce generation request (from lock_ctrl) ---
     input  logic                            gen_req_i,               // Request nonce generation
+    input  logic [$clog2(NUM_TDI)-1:0]      gen_tdi_index_i,         // TDI index for generated nonce
     output logic                            gen_ack_o,               // Nonce ready
-    output logic [NONCE_WIDTH-1:0]          gen_nonce_o,             // Generated nonce
+    output logic [NONCE_WIDTH-1:0]          gen_nonce_o              // Generated nonce
 
     //--- Nonce validation request (from start_interface handler) ---
     input  logic                            val_req_i,               // Request nonce validation
