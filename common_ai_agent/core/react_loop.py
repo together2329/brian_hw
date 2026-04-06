@@ -896,9 +896,6 @@ def run_react_agent_impl(
             # Plan mode: don't break after todo_write — agent may want to
             # continue researching or refining the changes in subsequent turns.
             # The loop will stop naturally when the agent produces text with no tool calls.
-            # [removed break after todo_write]
-            # if _is_todo_write and agent_mode in ("plan", "plan_q"):
-                break
 
             # Consecutive error tracking
             if observation == last_error_observation:
