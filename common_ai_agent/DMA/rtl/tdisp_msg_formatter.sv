@@ -391,6 +391,12 @@ module tdisp_msg_formatter #(
                             rsp_type_q  <= RSP_TDISP_ERROR;
                             build_error_o <= 1'b1;
                         end
+
+                        // Special case: MMIO report data not valid for REPORT
+                        if (rsp_type_i == RSP_DEVICE_INTERFACE_REPORT && !mmio_valid_i) begin
+                            rsp_type_q  <= RSP_TDISP_ERROR;
+                            build_error_o <= 1'b1;
+                        end
                     end
                 end
 
