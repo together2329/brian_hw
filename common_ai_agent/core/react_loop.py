@@ -566,7 +566,10 @@ def run_react_agent_impl(
             break
 
         # Empty response → retry
-        if not collected_content.strip():
+        # Exception: native tool call mode — empty content + _native_calls is valid
+        # (LLM called a tool without generating text content, which is normal)
+        _has_native = bool(_native_calls)
+        if not collected_content.strip() and not _has_native:
             if _llm_retry < getattr(cfg, "LLM_RETRY_COUNT", 1):
                 _llm_retry += 1
                 print(f"\n  LLM empty response, retrying ({_llm_retry}/{cfg.LLM_RETRY_COUNT})...")
@@ -583,7 +586,8 @@ def run_react_agent_impl(
 
         # If stripping thinking tags left nothing, the model only produced reasoning.
         # Treat like an empty response (retry) rather than adding empty content to history.
-        if not collected_content.strip():
+        # Exception: native tool calls present = valid response with no text.
+        if not collected_content.strip() and not _has_native:
             if _llm_retry < getattr(cfg, "LLM_RETRY_COUNT", 1):
                 _llm_retry += 1
                 print(f"\n  LLM only generated reasoning (no content), retrying ({_llm_retry}/{cfg.LLM_RETRY_COUNT})...")
@@ -673,7 +677,7 @@ def run_react_agent_impl(
 
         # Parse actions
         _t = time.time()
-        _use_native = getattr(cfg, "ENABLE_NATIVE_TOOL_CALLS", False) and bool(_native_calls)
+        _use_native = _has_native  # True when native tool_calls were received
         if _use_native:
             # Native mode: tool calls already structured as {id, name, arguments}
             import json as _json
