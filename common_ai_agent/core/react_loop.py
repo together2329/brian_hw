@@ -690,8 +690,9 @@ def run_react_agent_impl(
                 }
                 for tc in _native_calls
             ]
+            # GLM/Z.AI requires content=null (not "") when tool_calls are present
             if not assistant_msg["content"]:
-                assistant_msg["content"] = ""
+                assistant_msg["content"] = None
         messages.append(assistant_msg)
 
         # Hook: AFTER_LLM_CALL
@@ -1053,6 +1054,12 @@ def run_react_agent_impl(
                         pass
 
                 if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                    # Native mode: append pending tool messages first to keep
+                    # message structure valid (assistant tool_calls must be matched)
+                    if _use_native and _native_obs_pairs:
+                        for _cid, _obs in _native_obs_pairs:
+                            messages.append({"role": "tool", "content": _obs, "tool_call_id": _cid})
+                        _native_obs_pairs = []
                     messages.append({
                         "role": "user",
                         "content": (
