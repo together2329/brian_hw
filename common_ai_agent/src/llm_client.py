@@ -473,10 +473,19 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
                                 content = delta.get("content", "")
 
+                                # Bleed fix: GLM-4.7 can emit reasoning tail and content start
+                                # in the same delta chunk. Merge into reasoning when both are
+                                # present and content begins mid-sentence.
+                                if reasoning and content:
+                                    first_char = content.lstrip()[:1]
+                                    if first_char and (first_char.islower() or first_char.isdigit() or first_char in ',;:'):
+                                        reasoning = reasoning + content
+                                        content = ""
+
                                 if reasoning:
                                     yield ("reasoning", reasoning)
                                 if content:
-                                    yield ("content", content)
+                                    yield content
 
                                 # Accumulate native tool_calls across chunks.
                                 # name arrives only in the first chunk; arguments are fragmented.
@@ -782,7 +791,7 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     # and put the tail in content. Since we have the full text, we can reliably fix it.
     if reasoning and content:
         first_char = content.lstrip()[:1]
-        if first_char and (first_char.islower() or first_char in ',;:'):
+        if first_char and (first_char.islower() or first_char.isdigit() or first_char in ',;:'):
             # Content starts mid-sentence → find first sentence boundary
             m = re.search(r'[.!?]\s*[A-Z\n]', content)
             if m:
@@ -1096,10 +1105,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                 # Streaming bleed fix: same model as GLM-4.7 can split a
                                 # reasoning token mid-word and put the tail in content.
                                 # Detect by: same delta has both fields AND content starts
-                                # mid-sentence (lowercase / punctuation-continuation).
+                                # mid-sentence (lowercase / digit / punctuation-continuation).
                                 if reasoning and content:
                                     first_char = content.lstrip()[:1]
-                                    if first_char and (first_char.islower() or first_char in ',;:'):
+                                    if first_char and (first_char.islower() or first_char.isdigit() or first_char in ',;:'):
                                         reasoning = reasoning + content
                                         content = ""
 
