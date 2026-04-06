@@ -248,11 +248,11 @@ module dma_top #(
             int_en_reg     <= 1'b0;
             soft_reset_reg <= 1'b0;
         end else if (reg_wr_en && !dma_busy) begin
-            case (awaddr_reg[3:0])
-                ADDR_SRC_LO[3:0]:   src_addr_reg <= reg_wdata;
-                ADDR_DST_LO[3:0]:   dst_addr_reg <= reg_wdata;
-                ADDR_XFER_LEN[3:0]: xfer_len_reg <= reg_wdata;
-                ADDR_CTRL[3:0]: begin
+            case (awaddr_reg[7:0])
+                ADDR_SRC_LO[7:0]:   src_addr_reg <= reg_wdata;
+                ADDR_DST_LO[7:0]:   dst_addr_reg <= reg_wdata;
+                ADDR_XFER_LEN[7:0]: xfer_len_reg <= reg_wdata;
+                ADDR_CTRL[7:0]: begin
                     int_en_reg     <= reg_wdata[CTRL_INT_EN];
                     soft_reset_reg <= reg_wdata[CTRL_SOFT_RESET];
                 end
