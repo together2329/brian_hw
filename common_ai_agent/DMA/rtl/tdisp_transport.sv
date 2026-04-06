@@ -515,6 +515,7 @@ module tdisp_transport #(
                 //==============================================================
                 TX_IDLE: begin
                     tx_byte_cnt_q <= '0;
+                    tx_mac_beat_q <= '0;
                     if (tdisp_tx_tvalid) begin
                         // Capture whether this should be secured
                         tx_is_secured_q  <= session_active_q;
