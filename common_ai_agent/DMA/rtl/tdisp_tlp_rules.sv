@@ -149,7 +149,6 @@ module tdisp_tlp_rules #(
                     // Start address + num_pages * PAGE_SIZE
                     automatic logic [ADDR_WIDTH-1:0] range_start = mmio_start_addr_i[t][r];
                     automatic logic [ADDR_WIDTH-1:0] range_end;
-                    automatic logic [ADDR_WIDTH-1:0] addr_mask;
 
                     range_end = range_start + (mmio_num_pages_i[t][r] * PAGE_SIZE) - 1;
 
