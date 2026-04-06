@@ -990,11 +990,9 @@ def run_react_agent_impl(
                     if _chat_iter_count >= _chat_max:
                         break
 
-            # Plan mode iteration limit: don't let it loop indefinitely
-            if agent_mode in ("plan", "plan_q"):
-                _plan_max = getattr(cfg, "PLAN_MODE_MAX_ITERATIONS", 3)
-                if tracker.current >= _plan_max:
-                    break
+            # Plan mode: no special iteration limit.
+            # Agent stops naturally on no-tool turns (presenting plan to user).
+            # Global MAX_ITERATIONS cap serves as ultimate safety net.
 
         else:
             # No actions branch
