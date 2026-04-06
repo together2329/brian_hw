@@ -298,9 +298,7 @@ module tdisp_tlp_rules #(
                         violation_code = ERR_INVALID_DEVICE_CONFIGURATION;
                     end
 
-                    // MSI-X lock: writes to MSI-X table/PBA blocked when locked
-                    // (requires external MSI-X address comparator to set this flag)
-                    // tdi_msix_locked_i gates MSI-X range write access externally
+                    // MSI-X lock enforcement handled by PCIe core MSI-X address gate
                 end
 
                 //------------------------------------------
