@@ -136,7 +136,8 @@ module tdisp_lock_ctrl #(
         page_ok    = valid_page_size_i;
 
         // Cache line size must match request's sys_cache_line_size flag
-        cls_ok     = (lock_flags_q.sys_cache_line_size == dev_cache_line_size_i[0]);
+        cls_ok     = (lock_flags_q.sys_cache_line_size == dev_cache_line_size_i[0]) &&
+                     (dev_cache_line_size_i == CLS_64B || dev_cache_line_size_i == CLS_128B);
 
         // Reserved flags must be zero
         reserved_flags_ok = (lock_flags_q.reserved == '0);
