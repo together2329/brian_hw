@@ -189,16 +189,53 @@ module tdisp_msg_formatter #(
         case (rsp_type_q)
             //----------------------------------------------------------
             RSP_TDISP_VERSION: begin
+                // Payload: VERSION_COUNT(1 byte) + VERSION_ENTRY[0..N-1] (2 bytes each)
+                // First beat packs count + start of entries; subsequent beats are pure entry data
                 case (byte_cnt_q)
-                    16'd16: begin // First payload byte
-                        payload_buf[7:0] = version_count_i;
+                    16'd16: begin
+                        // Byte 0: count, Bytes 1-3: first 1.5 entries
+                        payload_buf[7:0]   = version_count_i;
+                        payload_buf[15:8]  = version_entries_i[7:0];
+                        payload_buf[23:16] = version_entries_i[15:8];
+                        payload_buf[31:24] = version_entries_i[23:16];
+                        if (DATA_WIDTH >= 64) begin
+                            payload_buf[39:32] = version_entries_i[31:24];
+                            payload_buf[47:40] = version_entries_i[39:32];
+                            payload_buf[55:48] = version_entries_i[47:40];
+                            payload_buf[63:56] = version_entries_i[55:48];
+                        end
                     end
-                    16'd20: begin // Version entries start at offset 17
-                        payload_buf = version_entries_i[DATA_WIDTH-1:0];
+                    16'd20: begin
+                        // Entries continuing, offset into version_entries_i = (20-17)*8 = 24
+                        payload_buf = version_entries_i[24*1 +: DATA_WIDTH];
+                    end
+                    16'd24: begin
+                        // offset = (24-17)*8 = 56
+                        payload_buf = version_entries_i[56 +: DATA_WIDTH];
+                    end
+                    16'd28: begin
+                        // offset = (28-17)*8 = 88
+                        payload_buf = version_entries_i[88 +: DATA_WIDTH];
+                    end
+                    16'd32: begin
+                        // offset = (32-17)*8 = 120
+                        payload_buf = version_entries_i[120 +: DATA_WIDTH];
+                    end
+                    16'd36: begin
+                        // offset = (36-17)*8 = 152
+                        payload_buf = version_entries_i[152 +: DATA_WIDTH];
+                    end
+                    16'd40: begin
+                        // offset = (40-17)*8 = 184
+                        payload_buf = version_entries_i[184 +: DATA_WIDTH];
+                    end
+                    16'd44: begin
+                        // offset = (44-17)*8 = 216
+                        payload_buf = version_entries_i[216 +: DATA_WIDTH];
+                        payload_last = 1'b1; // Max entries reached
                     end
                     default: begin
-                        // Additional version entries if needed
-                        payload_buf = version_entries_i[DATA_WIDTH-1:0];
+                        payload_buf = '0;
                     end
                 endcase
             end
