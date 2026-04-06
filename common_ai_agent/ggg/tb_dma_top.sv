@@ -767,14 +767,14 @@ module tb_dma_top;
             dst_addr = 32'h0000_1000;
             xfer_len = 32'h4;  // 1 word (fits within memory)
 
-            load_src_mem(src_addr, 1, 32'hBOUNDARY);
+            load_src_mem(src_addr, 1, 32'hB04D0000);
             configure_dma(src_addr, dst_addr, xfer_len, 1'b0);
             start_dma;
 
             wait_dma_done(1000, success);
             check_result("boundary_transfer_done", success);
 
-            verify_dst_mem(dst_addr, 1, 32'hBOUNDARY, errors);
+            verify_dst_mem(dst_addr, 1, 32'hB04D0000, errors);
             check_result("boundary_transfer_data", (errors == 0));
         end
     endtask
