@@ -114,6 +114,9 @@ module tdisp_tdi_mgr #(
     logic                  mmio_non_tee_q  [NUM_TDI][BUS_WIDTH];
     logic                  mmio_valid_q    [NUM_TDI][BUS_WIDTH];
 
+    // P2P address mask (per TDI, from LOCK_INTERFACE bind_p2p_addr_mask)
+    logic [63:0]           p2p_addr_mask_q [NUM_TDI];
+
     //==========================================================================
     // Write port arbitration priorities (highest to lowest):
     //   1. Error (security violation) - immediate transition to ERROR
