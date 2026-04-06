@@ -462,6 +462,7 @@ class AgentTUI(App):
         self._generating = False
         self._in_diff = False   # True after a write/replace tool call
         self._in_edit = False   # True for edit/replace tools (subset of _in_diff)
+        self._current_tool = ""  # Name of currently executing tool (non-write/edit)
         self._in_result = False # True while showing └/| result lines
         self._in_parallel = False  # True during parallel action block
         self._reasoning_open = False  # True while a reasoning block is open
@@ -470,6 +471,7 @@ class AgentTUI(App):
         self._ctx_max_tokens = 65536
         self._ctx_skill = ""
         self._ctx_mode = "normal"
+        self._mode_locked = False   # True = ignore mode from ContextUpdate temporarily
         # Session cost tracking (reset on /clear)
         self._sess_in_tok = 0
         self._sess_cache_tok = 0
@@ -679,6 +681,7 @@ class AgentTUI(App):
         self._response_buf = ""
         self._generating = False
         self._reasoning_open = False
+        self._current_tool = ""
         self._update_activity()
         self._update_statusbar()
         self._scroll_down()
@@ -712,15 +715,21 @@ class AgentTUI(App):
         log.write(RichText(""))
         self._in_diff = False
         self._in_edit = False
+        self._reasoning_open = True  # reasoning model starts reasoning immediately on submit
         self._update_activity()
         # Immediately reflect plan/normal mode from slash command or plan confirmation
         _cmd = text.strip().lower().split()[0] if text.strip() else ""
+        _in_plan = os.environ.get("PLAN_MODE") == "true" or "plan" in self._ctx_mode.lower()
         if _cmd in ("/plan", "plan"):
             self._ctx_mode = "plan"
+            self._mode_locked = True
+            self.set_timer(2.0, lambda: setattr(self, "_mode_locked", False))
             self._redraw_mode()
         elif (_cmd in ("/mode",) and "normal" in text.lower()) or \
-             (_cmd in ("y", "yc", "yes", "confirm") and "plan" in self._ctx_mode.lower()):
+             (_cmd in ("y", "yc", "yes", "confirm", "n") and _in_plan):
             self._ctx_mode = "normal"
+            self._mode_locked = True
+            self.set_timer(2.0, lambda: setattr(self, "_mode_locked", False))
             self._redraw_mode()
         self._input_bridge.submit(text)
         self._scroll_down()
@@ -731,11 +740,15 @@ class AgentTUI(App):
         if not self._generating:
             self._generating = True
             self._update_statusbar("generating…")
-            self._update_activity()
-        # \x00 is a sentinel from the worker signalling "LLM call started" —
-        # used to show "generating…" immediately in non-streaming mode.
+        # \x00 sentinel = new LLM call started → Reasoning... first
         if msg.text == "\x00":
+            self._reasoning_open = True
+            self._update_activity()
             return
+        # First content chunk: reasoning done → Generating...
+        if self._reasoning_open:
+            self._reasoning_open = False
+            self._update_activity()
         import config as _cfg
         if not getattr(_cfg, "ENABLE_MARKDOWN_RENDER", True):
             log = self.query_one("#main", RichLog)
@@ -805,7 +818,7 @@ class AgentTUI(App):
         self._ctx_tokens = msg.tokens
         self._ctx_max_tokens = msg.max_tokens
         self._ctx_skill = msg.skill
-        if msg.mode:
+        if msg.mode and not getattr(self, "_mode_locked", False):
             self._ctx_mode = msg.mode
         self._redraw_context()
         self._redraw_mode()
@@ -830,10 +843,12 @@ class AgentTUI(App):
                 label = "Writing..."
             elif self._in_parallel:
                 label = "Executing..."
+            elif self._current_tool:
+                label = f"Action ({self._current_tool})"
             elif self._generating:
                 label = "Generating..."
             else:
-                label = ""
+                label = "Waiting for input..."
             a = RichText()
             if label:
                 a.append(label, style=f"italic dim {_TEXT_DIM}")
@@ -1056,6 +1071,7 @@ class AgentTUI(App):
             _WRITE_TOOLS = {"write_file", "write_to_file"}
             _EDIT_TOOLS  = {"replace_in_file", "replace_lines", "replace_file_content"}
             _GIT_TOOLS   = {"git_commit","git_push","git_checkout","git_branch","git_merge","git_stash"}
+            self._current_tool = ""
             if tool_name in _WRITE_TOOLS:
                 self._in_diff = True
                 self._in_edit = False
@@ -1065,6 +1081,8 @@ class AgentTUI(App):
             elif tool_name in _GIT_TOOLS:
                 self._in_diff = True
                 self._in_edit = False
+            else:
+                self._current_tool = tool_name
             self._update_activity()
             if self._in_result:
                 self._in_result = False
@@ -1095,6 +1113,9 @@ class AgentTUI(App):
         # Tool result lines: "└", "|", "│", or "⎿"
         if re.match(r"^\s*[└|│⎿]", text):
             self._in_result = True
+            if self._current_tool:
+                self._current_tool = ""
+                self._update_activity()
             # Strip tree prefix to check if content is a diff line
             inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", text)
             if self._in_diff and re.match(r"^\+[^+]", inner):
@@ -1155,11 +1176,19 @@ class AgentTUI(App):
             elif s.startswith("•"):
                 items.append(("sub", s[1:].strip()))
 
+        # All tasks done → hide todo section entirely
+        if items and all(k == "approved" for k, _ in items):
+            self.query_one("#task-title", Static).update("")
+            self.query_one("#todo-header", Static).update("")
+            self.query_one("#todo", Static).update("")
+            return
+
         if task_title:
-            # Update task title area
             t = RichText()
             t.append(task_title, style=_TEXT_DIM)
             self.query_one("#task-title", Static).update(t)
+        # Restore header in case it was hidden before
+        self.query_one("#todo-header", Static).update("Todo")
 
         _MAX = 38
         out = RichText()
