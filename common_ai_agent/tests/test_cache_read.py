@@ -181,12 +181,16 @@ def _call_streaming(messages: list, system: str, model: str,
     url = f"{base_url.rstrip('/')}/chat/completions"
     all_messages = [{"role": "system", "content": system}] + messages
 
-    # Build Anthropic cache_control blocks if provider is Anthropic
-    _is_anthropic = "anthropic" in base_url or "claude" in model.lower()
+    # Anthropic: inject cache_control blocks (explicit caching protocol).
+    # OpenAI / Z.AI: implicit caching — send plain string, provider decides internally.
+    #   cache_control list blocks in system content cause HTTP 400 on OpenAI-compat APIs.
+    _is_anthropic = "anthropic.com" in base_url.lower() or "claude" in model.lower()
     if _is_anthropic and getattr(_cfg, "ENABLE_PROMPT_CACHING", False):
         all_messages[0]["content"] = [
             {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
         ]
+    # else: plain string content — implicit caching (if supported) via
+    #       prompt_tokens_details.cached_tokens in usage response
 
     payload = json.dumps({
         "model": model,
@@ -459,6 +463,62 @@ class TestCacheRead:
 
         assert usage is not None, "get_last_usage() returned None — check llm_client globals"
         assert "input" in usage and usage["input"] > 0, "input tokens missing from usage"
+
+    def test_zai_implicit_cache(self, capsys):
+        """
+        Z.AI (GLM) implicit caching probe — raw HTTP, plain string system prompt.
+
+        Z.AI does NOT support Anthropic cache_control blocks.
+        It may support implicit caching like OpenAI, returning:
+            usage.prompt_tokens_details.cached_tokens
+
+        This test:
+          - Sends identical plain-string system prompt twice to Z.AI
+          - Reports what usage fields come back
+          - Does NOT assert cache hit (Z.AI caching support is unconfirmed)
+          - Marks xfail if cached_tokens stays 0 both calls → provider likely has no caching
+
+        Run to discover whether Z.AI returns cached_tokens at all.
+        """
+        zai_model   = "z-ai/glm-4.7"
+        zai_base    = getattr(_cfg, "BASE_URL", "")
+        zai_api_key = getattr(_cfg, "API_KEY",  "")
+
+        calls_usage = []
+        try:
+            for i in range(1, 3):
+                t0 = time.time()
+                usage = _call_streaming(
+                    [{"role": "user", "content": "Reply with one word: Ready"}],
+                    system=_CACHE_SYSTEM_PROMPT,
+                    model=zai_model,
+                    base_url=zai_base,
+                    api_key=zai_api_key,
+                )
+                elapsed = time.time() - t0
+                calls_usage.append((i, usage, elapsed))
+        except Exception as e:
+            pytest.skip(f"Z.AI not reachable: {e}")
+
+        with capsys.disabled():
+            print(f"\n{_BOLD}── Z.AI implicit cache probe ({zai_model}) ──{_R}")
+            for num, u, elapsed in calls_usage:
+                status = (
+                    f"{_GREEN}[CACHE HIT ✓]{_R}" if u.cached  else
+                    f"{_CYAN}[CACHE WRITE]{_R}"  if u.written else
+                    f"{_GRAY}[NO CACHE]   {_R}"
+                )
+                print(f"  Call {num}  {status}  "
+                      f"in={_fmt(u.input_tokens)} out={_fmt(u.output_tokens)}  "
+                      f"{u.cache_label()}  {_DIM}({elapsed:.2f}s){_R}")
+                print(f"         {_DIM}raw usage: {u.raw}{_R}")
+
+            any_cached = any(u.cached for _, u, _ in calls_usage)
+            if any_cached:
+                print(f"\n{_GREEN}[INFO] Z.AI returned cached_tokens — implicit caching works.{_R}")
+            else:
+                print(f"\n{_YELLOW}[INFO] Z.AI returned no cached_tokens — "
+                      f"implicit caching not confirmed for this model/endpoint.{_R}")
 
 
 # ── null context manager ──────────────────────────────────────────────────────
