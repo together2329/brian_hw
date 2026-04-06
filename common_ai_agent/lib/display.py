@@ -423,6 +423,26 @@ def format_tool_header(tool_name: str, args_summary: str = "", idx: int = 0, tot
     return f"⏺ {Color.BOLD}{name}{Color.RESET}"
 
 
+def _ansi_safe_truncate(text, max_visible):
+    import re as _re
+    _ANSI_RE = _re.compile(r"\x1b\[[0-9;]*[mK]")
+    result = []
+    visible = 0
+    i = 0
+    while i < len(text) and visible < max_visible:
+        m2 = _ANSI_RE.match(text, i)
+        if m2:
+            result.append(m2.group())
+            i = m2.end()
+        else:
+            result.append(text[i])
+            visible += 1
+            i += 1
+    if i < len(text):
+        result.append(Color.RESET)
+    return ''.join(result)
+
+
 def format_tool_result(output: str, max_lines: int = 5, max_chars: int = 300) -> str:
     """
     Format tool result with tree structure.
@@ -439,14 +459,14 @@ def format_tool_result(output: str, max_lines: int = 5, max_chars: int = 300) ->
         result_lines = []
         for i, line in enumerate(lines):
             prefix = TREE['end'] if i == len(lines) - 1 else TREE['pipe']
-            result_lines.append(f"  {Color.DIM}{prefix} {line[:120]}{Color.RESET}")
+            result_lines.append(f"  {Color.DIM}{prefix} {_ansi_safe_truncate(line, 120)}{Color.RESET}")
         return '\n'.join(result_lines)
 
     # Long output — show preview
     preview_lines = lines[:max_lines]
     result_lines = []
     for line in preview_lines:
-        result_lines.append(f"  {Color.DIM}{TREE['pipe']} {line[:120]}{Color.RESET}")
+        result_lines.append(f"  {Color.DIM}{TREE['pipe']} {_ansi_safe_truncate(line, 120)}{Color.RESET}")
     result_lines.append(f"  {Color.DIM}{TREE['end']} ... ({len(lines)} lines, {total_chars:,} chars){Color.RESET}")
     return '\n'.join(result_lines)
 
