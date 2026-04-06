@@ -1088,8 +1088,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         print()
 
     # Retry logic for transient errors
-    max_retries = 3
-    initial_delay = 2  # seconds
+    max_retries = 5
+    initial_delay = 60  # seconds — doubles each retry: 60, 120, 240, 480, 960
     _fallback_used = False  # True after switching to SECONDARY_MODEL
 
     for retry_count in range(max_retries):
@@ -1386,7 +1386,12 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             # socket.timeout (OSError subclass) not always caught by URLError
             if retry_count < max_retries - 1:
                 delay = initial_delay * (2 ** retry_count)
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] Read timeout ({config.STREAM_API_TIMEOUT}s): {e}"))
+                # Reset stale connection so next attempt gets a fresh socket
+                try:
+                    _http_conn_pool.pop(urllib.parse.urlparse(url).netloc, None)
+                except Exception:
+                    pass
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Read timeout ({config.STREAM_API_TIMEOUT}s): {e}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
                 continue
@@ -1397,7 +1402,11 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             # Explicit SSL error handling (backup catch)
             if retry_count < max_retries - 1:
                 delay = initial_delay * (2 ** retry_count)
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] SSL Handshake Error: {e}"))
+                try:
+                    _http_conn_pool.pop(urllib.parse.urlparse(url).netloc, None)
+                except Exception:
+                    pass
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] SSL Handshake Error: {e}"))
                 print(Color.warning(f"This is usually a temporary network/server issue."))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
@@ -1413,11 +1422,15 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             return
 
         except Exception as e:
-            # Catch-all for unexpected errors
+            # Catch-all for unexpected errors (incl. ResponseNotReady from stale connection)
             error_type = type(e).__name__
             if retry_count < max_retries - 1:
                 delay = initial_delay * (2 ** retry_count)
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] Unexpected error ({error_type}): {e}"))
+                try:
+                    _http_conn_pool.pop(urllib.parse.urlparse(url).netloc, None)
+                except Exception:
+                    pass
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Unexpected error ({error_type}): {e}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
                 continue
