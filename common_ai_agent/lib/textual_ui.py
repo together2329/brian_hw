@@ -995,37 +995,35 @@ class AgentTUI(App):
             log.write(t)
             return
 
+
         # Diff lines (after write/replace/git tools)
         if self._in_diff:
-            if re.match(r"^\+[^+]", _plain):
-                log.write(RichText(f"  {_plain}", style=f"bold {_GREEN}"))
+            if re.match(r"^\+[^+]", text):
+                log.write(RichText(f"  {text}", style=f"bold {_GREEN}"))
                 return
-            if re.match(r"^-[^-]", _plain):
-                log.write(RichText(f"  {_plain}", style=f"bold {_RED}"))
+            if re.match(r"^-[^-]", text):
+                log.write(RichText(f"  {text}", style=f"bold {_RED}"))
                 return
-            if re.match(r"^@@", _plain):
-                log.write(RichText(f"  {_plain}", style=f"bold {_ACCENT}"))
+            if re.match(r"^@@", text):
+                log.write(RichText(f"  {text}", style=f"bold {_ACCENT}"))
                 return
             # Non-diff line ends the diff block
-            if not re.match(r"^\s*[└|│⎿]", _plain):
+            if not re.match(r"^\s*[└|│⎿]", text):
                 self._in_diff = False
 
         # Tool result lines: "└", "|", "│", or "⎿"
-        if re.match(r"^\s*[└|│⎿]", _plain):
+        if re.match(r"^\s*[└|│⎿]", text):
             self._in_result = True
             # Strip tree prefix to check if content is a diff line
-            inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", _plain)
-            # Also strip optional line-number prefix from format_diff_snippet
-            # e.g. "    42 -old line" or "    42 +new line" or "    42→context"
-            _diff_inner = re.sub(r"^\s*\d+\s*", "", inner)
-            if self._in_diff and re.match(r"^\+[^+]", _diff_inner):
-                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_GREEN}"))
-            elif self._in_diff and re.match(r"^-[^-]", _diff_inner):
-                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_RED}"))
-            elif self._in_diff and re.match(r"^@@", _diff_inner):
-                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_ACCENT}"))
+            inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", text)
+            if self._in_diff and re.match(r"^\+[^+]", inner):
+                log.write(RichText(f"  {text.strip()}", style=f"bold {_GREEN}"))
+            elif self._in_diff and re.match(r"^-[^-]", inner):
+                log.write(RichText(f"  {text.strip()}", style=f"bold {_RED}"))
+            elif self._in_diff and re.match(r"^@@", inner):
+                log.write(RichText(f"  {text.strip()}", style=f"bold {_ACCENT}"))
             else:
-                log.write(RichText(f"  {_plain.strip()}", style=f"dim {_TEXT_FAINT}"))
+                log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
             return
 
         # Non-result line after result block → trailing blank
