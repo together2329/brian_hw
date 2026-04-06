@@ -3,6 +3,7 @@
 //------------------------------------------------------------
 // Verifies:
 //   1. Synchronous reset clears count to 0
+//  1b. All 256 bits individually verified zero after reset
 //   2. Count increments by 1 each clock cycle
 //   3. Upper bits remain 0 during short counting
 //   4. Reset re-sync works correctly
