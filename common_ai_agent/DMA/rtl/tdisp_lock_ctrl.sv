@@ -215,8 +215,20 @@ module tdisp_lock_ctrl #(
                         // All checks passed - request nonce
                         state_q    <= LCK_NONCE_REQ;
                     end else begin
-                        // Validation failed - report error
-                        state_q    <= LCK_ERROR;
+                        // Validation failed - priority-encoded error code
+                        if (!state_ok)              error_code_q <= ERR_INVALID_INTERFACE_STATE;
+                        else if (!iface_id_ok)      error_code_q <= ERR_INVALID_INTERFACE;
+                        else if (!stream_ok)        error_code_q <= ERR_INVALID_DEVICE_CONFIGURATION;
+                        else if (!keys_ok)          error_code_q <= ERR_INVALID_DEVICE_CONFIGURATION;
+                        else if (!spdm_ok)          error_code_q <= ERR_INVALID_DEVICE_CONFIGURATION;
+                        else if (!tc0_ok)           error_code_q <= ERR_INVALID_DEVICE_CONFIGURATION;
+                        else if (!phantom_ok)       error_code_q <= ERR_INVALID_DEVICE_CONFIGURATION;
+                        else if (!bar_ok)           error_code_q <= ERR_INVALID_DEVICE_CONFIGURATION;
+                        else if (!page_ok)          error_code_q <= ERR_INVALID_DEVICE_CONFIGURATION;
+                        else if (!cls_ok)           error_code_q <= ERR_INVALID_DEVICE_CONFIGURATION;
+                        else if (!reserved_flags_ok)error_code_q <= ERR_INVALID_REQUEST;
+                        else                        error_code_q <= ERR_UNSPECIFIED;
+                        state_q <= LCK_ERROR;
                     end
                 end
 
