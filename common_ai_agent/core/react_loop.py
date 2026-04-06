@@ -682,7 +682,7 @@ def run_react_agent_impl(
 
         # Completion signal check
         if not actions and deps.detect_completion_fn(collected_content):
-            print(f"\n  {Color.DIM}Ending ReAct loop.{Color.RESET}\n")
+            print(f"\n{Color.DIM}{Color.GRAY}Ending ReAct loop.{Color.RESET}\n")
             break
 
         # Hallucinated Observation check
