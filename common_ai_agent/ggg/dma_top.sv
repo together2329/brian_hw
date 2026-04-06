@@ -411,7 +411,7 @@ module dma_top #(
     // =========================================================================
     // FIFO control signals
     // =========================================================================
-    assign fifo_wr_en = (dma_state == DMA_READ) && m_axi_rvalid && m_axi_rready;
+    assign fifo_wr_en = m_axi_rvalid && m_axi_rready;
     assign fifo_rd_en = (dma_state == DMA_WRITE) && m_axi_wvalid && m_axi_wready;
 
     // =========================================================================
@@ -422,7 +422,7 @@ module dma_top #(
     assign m_axi_arsize  = $clog2(DATA_WIDTH/8);
     assign m_axi_arburst = 2'b01; // INCR
     assign m_axi_arvalid = rd_req && !fifo_full;
-    assign m_axi_rready  = (dma_state == DMA_READ) && !fifo_full;
+    assign m_axi_rready  = !fifo_full;
 
     // =========================================================================
     // AXI4 Master Write Interface
