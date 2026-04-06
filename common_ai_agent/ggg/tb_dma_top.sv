@@ -860,6 +860,10 @@ module tb_dma_top;
         test_back_to_back;            // Test 4
         test_large_transfer;          // Test 5
         test_soft_reset;              // Test 8
+        test_zero_length_transfer;    // Test 9
+        test_boundary_address_transfer; // Test 10
+        test_same_src_dst;            // Test 11
+        test_unconfigured_dma;        // Test 12
         test_reset_during_transfer;   // Test 7 (destructive, last)
 
         // Print summary
