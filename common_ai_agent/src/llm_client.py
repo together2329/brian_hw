@@ -849,6 +849,30 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     block.get("text", "") for block in m["content"]
                     if isinstance(block, dict) and block.get("type") == "text"
                 )
+    # Sanitize messages for strict APIs (GLM-5.1/Z.AI, etc.):
+    # 1. Merge stray system messages into position 0
+    # 2. Merge consecutive same-role messages (user+user, assistant+assistant)
+    if processed_messages is messages:
+        processed_messages = copy.deepcopy(messages)
+    _merged = []
+    for m in processed_messages:
+        if not _merged:
+            _merged.append(m)
+            continue
+        if m.get("role") == "system":
+            if _merged[0].get("role") == "system":
+                _merged[0]["content"] += "\n\n" + str(m.get("content", ""))
+            else:
+                _merged.insert(0, m)
+            continue
+        if _merged[-1].get("role") == m.get("role"):
+            _merged[-1]["content"] += "\n\n" + str(m.get("content", ""))
+            continue
+        _merged.append(m)
+    if _merged and _merged[0].get("role") != "system":
+        _merged.insert(0, {"role": "system", "content": "You are a helpful AI coding assistant."})
+    processed_messages = _merged
+
     if _perf_pre:
         print(f"  \033[2m[PERF/setup] prompt_cache_prep: {time.time()-_t_pre:.3f}s\033[0m")
 

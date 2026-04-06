@@ -500,9 +500,26 @@ def compress_history(
         print(f"  [Compress] LLM compression failed entirely: {exc}")
 
     if compressed is not None:
-        new_history = system_msgs + important_msgs + compressed + todo_preservation + recent_msgs
+        raw_history = system_msgs + important_msgs + compressed + todo_preservation + recent_msgs
     else:
-        new_history = system_msgs + important_msgs + todo_preservation + recent_msgs
+        raw_history = system_msgs + important_msgs + todo_preservation + recent_msgs
+
+    # Consolidate all system messages into a single leading system message.
+    # Strict APIs (GLM-5.1/Z.AI, etc.) reject system messages mid-conversation,
+    # causing HTTP 400 "The messages parameter is illegal".
+    _sys_parts = []
+    _non_sys = []
+    for m in raw_history:
+        if m.get("role") == "system":
+            _sys_parts.append(str(m.get("content", "")))
+        else:
+            _non_sys.append(m)
+
+    if _sys_parts:
+        _merged = "\n\n".join(p for p in _sys_parts if p.strip())
+        new_history = [{"role": "system", "content": _merged}] + _non_sys
+    else:
+        new_history = _non_sys
 
     new_tokens = sum(_est(m) for m in new_history)
 

@@ -263,7 +263,7 @@ def run_react_agent_impl(
                     "Use the above analysis to guide your response. "
                     "Continue with the ReAct loop if more actions are needed."
                 )
-                messages.append({"role": "system", "content": guidance})
+                messages.append({"role": "user", "content": guidance})
         except Exception:
             pass
 
@@ -282,7 +282,7 @@ def run_react_agent_impl(
                 if msg.get("role") != "system":
                     context_parts.append(f"{msg['role']}: {str(msg.get('content',''))[:200]}")
             deep_think_result = engine.think(task=task_description, context="\n".join(context_parts))
-            messages.append({"role": "system", "content": engine.format_strategy_guidance(deep_think_result)})
+            messages.append({"role": "user", "content": engine.format_strategy_guidance(deep_think_result)})
             referenced_node_ids = deep_think_result.referenced_node_ids
         except Exception:
             pass
