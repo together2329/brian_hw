@@ -17,10 +17,11 @@ module tdisp_tlp_rules #(
     //--- Per-TDI context inputs (from tdisp_tdi_mgr) ---
     input  tdisp_types::tdisp_state_e       tdi_state_i      [NUM_TDI],
     input  logic                            tdi_xt_enabled_i  [NUM_TDI], // Per-TDI XT mode
-    input  logic                            tdi_msix_locked_i [NUM_TDI],
     input  logic                            tdi_fw_locked_i   [NUM_TDI],
     input  logic                            tdi_p2p_enabled_i [NUM_TDI],
     input  logic                            tdi_req_redirect_i[NUM_TDI],
+    // Note: MSI-X lock enforcement (lock_msix flag) handled by PCIe core's
+    // MSI-X address gate, which has access to MSI-X Table Offset/BIR.
 
     //--- TLP input (from PCIe core upstream) ---
     input  logic                            tlp_valid_i,          // TLP header valid
