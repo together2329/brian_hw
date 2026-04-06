@@ -395,15 +395,22 @@ def todo_continuation_enforcer(context: HookContext) -> HookContext:
                 is_stopping = any(sig in content.lower() for sig in completion_signals)
 
                 if is_stopping:
-                    # Inject reminder
-                    completed = sum(1 for t in todo_tracker.todos if t.status == "completed")
+                    # Inject reminder with explicit todo_update instruction
+                    completed = sum(
+                        1 for t in todo_tracker.todos
+                        if t.status in ("completed", "approved")
+                    )
                     remaining = len(todo_tracker.todos) - completed
+                    cur_idx = todo_tracker.todos.index(current) + 1
                     reminder = {
                         "role": "user",
                         "content": (
                             f"[System] {completed}/{len(todo_tracker.todos)} tasks done, {remaining} remaining.\n"
-                            f"Current task: {current.content}\n"
-                            f"Please continue working on the remaining tasks."
+                            f"Current task {cur_idx}: {current.content}\n"
+                            f"If the work is done, mark it complete:\n"
+                            f"Action: todo_update\n"
+                            f"Action Input: {{\"index\": {cur_idx}, \"status\": \"completed\"}}\n"
+                            f"Then continue to the next task."
                         )
                     }
                     context.messages.append(reminder)

@@ -682,8 +682,13 @@ def run_react_agent_impl(
                 print(format_tool_header("todo_write", "Auto-parsed from markdown plan"))
                 print(format_tool_result(observation, max_lines=1000, max_chars=100000))
 
-        # Completion signal check
-        if not actions and deps.detect_completion_fn(collected_content):
+        # Completion signal check — skip if there are still incomplete todos
+        _todo_still_active = (
+            todo_tracker is not None
+            and not todo_tracker.is_all_processed()
+            and todo_tracker.todos
+        )
+        if not actions and deps.detect_completion_fn(collected_content) and not _todo_still_active:
             print(f"\n{Color.DIM}{Color.GRAY}Ending ReAct loop.{Color.RESET}\n")
             break
 

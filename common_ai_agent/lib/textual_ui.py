@@ -715,7 +715,13 @@ class AgentTUI(App):
         log.write(RichText(""))
         self._in_diff = False
         self._in_edit = False
-        self._reasoning_open = True  # reasoning model starts reasoning immediately on submit
+        # Slash commands (/plan, /compact, etc.) don't always trigger an LLM call.
+        # Don't eagerly set Reasoning... for them — the \x00 sentinel handles it
+        # when an LLM call actually starts.  For normal input, set it immediately
+        # so reasoning models show feedback right away.
+        _is_slash_cmd = text.startswith("/")
+        if not _is_slash_cmd:
+            self._reasoning_open = True
         self._update_activity()
         # Immediately reflect plan/normal mode from slash command or plan confirmation
         _cmd = text.strip().lower().split()[0] if text.strip() else ""
