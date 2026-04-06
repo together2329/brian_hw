@@ -77,7 +77,6 @@ module tdisp_tlp_rules #(
     //==========================================================================
     // TLP classification (combinational)
     //==========================================================================
-    logic [2:0]  tlp_fmt;
     logic [4:0]  tlp_type;
     logic        is_mem_read;
     logic        is_mem_write;
@@ -86,11 +85,14 @@ module tdisp_tlp_rules #(
     logic        is_completion;
     logic        is_msg;
     logic        is_write;
-    logic        is_read;
+    logic        is_ats_translated;  // ATS-translated request (AT != 0)
+    logic        is_p2p_request;     // P2P request from different bus
     logic [ADDR_WIDTH-1:0] tlp_addr;
 
+    // ATS Address Type encoding: 00= untranslated, 01= translated, 10= reserved, 11= prefetch
+    localparam logic [1:0] AT_UNTRANSLATED = 2'b00;
+
     always_comb begin
-        tlp_fmt  = tlp_header_dw0_i[31:29];
         tlp_type = tlp_header_dw0_i[28:24];
 
         // Classify TLP type
@@ -104,8 +106,15 @@ module tdisp_tlp_rules #(
 
         is_write = is_mem_write || (tlp_type == TLP_IOWR) ||
                    (tlp_type == TLP_CFGWR0) || (tlp_type == TLP_CFGWR1);
-        is_read  = is_mem_read  || (tlp_type == TLP_IORD) ||
-                   (tlp_type == TLP_CFGRD0) || (tlp_type == TLP_CFGRD1);
+
+        // ATS detection: translated request has AT != 00
+        is_ats_translated = (tlp_at_i != AT_UNTRANSLATED) && (is_mem_read || is_mem_write);
+
+        // P2P detection: requester on a different bus number (Bus=upper 8 bits of Requester ID)
+        // P2P requests come from peer devices, not the host
+        // For simplicity: P2P if requester bus != 0 (host is always bus 0)
+        // Production: compare against device's own bus number
+        is_p2p_request = (tlp_requester_id_i[15:8] != 8'b0);
 
         // Extract address
         if (tlp_is_4dw_i) begin
