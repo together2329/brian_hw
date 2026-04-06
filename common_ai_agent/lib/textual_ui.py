@@ -218,10 +218,11 @@ class TodoUpdate(Message):
         super().__init__()
 
 class ContextUpdate(Message):
-    def __init__(self, tokens: int, max_tokens: int, skill: str = "") -> None:
+    def __init__(self, tokens: int, max_tokens: int, skill: str = "", mode: str = "") -> None:
         self.tokens = tokens
         self.max_tokens = max_tokens
         self.skill = skill
+        self.mode = mode
         super().__init__()
 
 class FlushResponse(Message):
@@ -328,6 +329,18 @@ class AgentTUI(App):
     #task-title {{
         height: auto;
         color: {_TEXT};
+        padding: 0 0 1 0;
+        border-bottom: solid {_BORDER_DIM};
+    }}
+    #mode {{
+        height: auto;
+        color: {_TEXT_DIM};
+        padding: 1 0 0 0;
+        text-style: bold;
+    }}
+    #activity {{
+        height: auto;
+        color: {_TEXT_DIM};
         padding: 0 0 1 0;
         border-bottom: solid {_BORDER_DIM};
     }}
@@ -448,6 +461,7 @@ class AgentTUI(App):
         self._response_buf = ""
         self._generating = False
         self._in_diff = False   # True after a write/replace tool call
+        self._in_edit = False   # True for edit/replace tools (subset of _in_diff)
         self._in_result = False # True while showing └/| result lines
         self._in_parallel = False  # True during parallel action block
         self._reasoning_open = False  # True while a reasoning block is open
@@ -455,6 +469,7 @@ class AgentTUI(App):
         self._ctx_tokens = 0
         self._ctx_max_tokens = 65536
         self._ctx_skill = ""
+        self._ctx_mode = "normal"
         # Session cost tracking (reset on /clear)
         self._sess_in_tok = 0
         self._sess_cache_tok = 0
@@ -483,6 +498,8 @@ class AgentTUI(App):
         with Vertical(id="sidebar"):
             yield Static("UPD Agent", id="agent-label")
             yield Static("", id="task-title")
+            yield Static("", id="mode")
+            yield Static("", id="activity")
             yield Static("Model", id="model-header")
             yield Static("", id="model")
             yield Static("Context", id="context-header")
@@ -662,6 +679,7 @@ class AgentTUI(App):
         self._response_buf = ""
         self._generating = False
         self._reasoning_open = False
+        self._update_activity()
         self._update_statusbar()
         self._scroll_down()
         # Clear live preview
@@ -693,6 +711,17 @@ class AgentTUI(App):
         log.write(t)
         log.write(RichText(""))
         self._in_diff = False
+        self._in_edit = False
+        self._update_activity()
+        # Immediately reflect plan/normal mode from slash command or plan confirmation
+        _cmd = text.strip().lower().split()[0] if text.strip() else ""
+        if _cmd in ("/plan", "plan"):
+            self._ctx_mode = "plan"
+            self._redraw_mode()
+        elif (_cmd in ("/mode",) and "normal" in text.lower()) or \
+             (_cmd in ("y", "yc", "yes", "confirm") and "plan" in self._ctx_mode.lower()):
+            self._ctx_mode = "normal"
+            self._redraw_mode()
         self._input_bridge.submit(text)
         self._scroll_down()
 
@@ -702,6 +731,7 @@ class AgentTUI(App):
         if not self._generating:
             self._generating = True
             self._update_statusbar("generating…")
+            self._update_activity()
         # \x00 is a sentinel from the worker signalling "LLM call started" —
         # used to show "generating…" immediately in non-streaming mode.
         if msg.text == "\x00":
@@ -757,6 +787,7 @@ class AgentTUI(App):
                 self._in_parallel = False
                 log.write(RichText(""))
             self._reasoning_open = True
+            self._update_activity()
             hdr = RichText()
             hdr.append("  Reasoning", style=f"italic {_TEXT_DIM}")
             log.write(hdr)
@@ -774,7 +805,41 @@ class AgentTUI(App):
         self._ctx_tokens = msg.tokens
         self._ctx_max_tokens = msg.max_tokens
         self._ctx_skill = msg.skill
+        if msg.mode:
+            self._ctx_mode = msg.mode
         self._redraw_context()
+        self._redraw_mode()
+
+    def _redraw_mode(self) -> None:
+        try:
+            mode = (self._ctx_mode or "normal").capitalize()
+            style = _TEXT
+            m = RichText()
+            m.append(mode, style=style)
+            self.query_one("#mode", Static).update(m)
+        except Exception:
+            pass
+
+    def _update_activity(self) -> None:
+        try:
+            if self._reasoning_open:
+                label = "Reasoning..."
+            elif self._in_edit:
+                label = "Editing..."
+            elif self._in_diff:
+                label = "Writing..."
+            elif self._in_parallel:
+                label = "Executing..."
+            elif self._generating:
+                label = "Generating..."
+            else:
+                label = ""
+            a = RichText()
+            if label:
+                a.append(label, style=f"italic dim {_TEXT_DIM}")
+            self.query_one("#activity", Static).update(a)
+        except Exception:
+            pass
 
     def _redraw_context(self) -> None:
         """Redraw #context (tokens) and #skill widgets from stored state."""
@@ -885,7 +950,13 @@ class AgentTUI(App):
 
         # Token stats → very faint + update sidebar token count + cost
         if _TOKENS.search(text):
-            log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
+            try:
+                import config as _tcfg
+                _show_tok = getattr(_tcfg, "SHOW_TOKEN_STATS", True)
+            except Exception:
+                _show_tok = True
+            if _show_tok:
+                log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
 
             def _parse_tok(pattern: str) -> int:
                 m = re.search(pattern, text)
@@ -950,6 +1021,8 @@ class AgentTUI(App):
             # Blank line before Plan Mode to visually separate from previous output
             if "Plan Mode" in tag:
                 log.write(RichText(""))
+                self._ctx_mode = "plan"
+                self._redraw_mode()
             t = RichText()
             if "Error" in tag:
                 t.append(f"  {tag}", style=f"bold {_RED}")
@@ -977,14 +1050,22 @@ class AgentTUI(App):
         m_tool = re.match(r"^\s*[⏺•·]\s*(\w+)\((.*)$", _plain)
         if m_tool:
             self._in_diff = False  # reset diff state on every new tool call
+            self._in_edit = False
             tool_name = m_tool.group(1)
             args_part = m_tool.group(2)
-            _WRITE_TOOLS = {"write_file","write_to_file","replace_in_file","replace_lines","replace_file_content"}
+            _WRITE_TOOLS = {"write_file", "write_to_file"}
+            _EDIT_TOOLS  = {"replace_in_file", "replace_lines", "replace_file_content"}
             _GIT_TOOLS   = {"git_commit","git_push","git_checkout","git_branch","git_merge","git_stash"}
             if tool_name in _WRITE_TOOLS:
                 self._in_diff = True
+                self._in_edit = False
+            elif tool_name in _EDIT_TOOLS:
+                self._in_diff = True
+                self._in_edit = True
             elif tool_name in _GIT_TOOLS:
                 self._in_diff = True
+                self._in_edit = False
+            self._update_activity()
             if self._in_result:
                 self._in_result = False
             if not self._in_parallel:
@@ -1030,6 +1111,11 @@ class AgentTUI(App):
         if self._in_result:
             log.write(RichText(""))
             self._in_result = False
+
+        # Plan mode exit detection ("✅ Normal mode.")
+        if "Normal mode" in _plain:
+            self._ctx_mode = "normal"
+            self._redraw_mode()
 
         try:
             ansi_text = RichText.from_ansi(text)

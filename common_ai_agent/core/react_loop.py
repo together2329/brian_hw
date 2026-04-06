@@ -589,7 +589,9 @@ def run_react_agent_impl(
                 collected_content = collected_content[_first_marker.start():]
 
         # Token summary line
-        if not getattr(cfg, "DEBUG_MODE", False) and getattr(cfg, "SHOW_TOKEN_STATS", True):
+        _show_tok = getattr(cfg, "SHOW_TOKEN_STATS", True)
+        _show_tok_sidebar = getattr(cfg, "SHOW_TOKEN_STATS_SIDEBAR", True)
+        if not getattr(cfg, "DEBUG_MODE", False) and (_show_tok or _show_tok_sidebar):
             elapsed_str = f"{llm_elapsed:.1f}s" if llm_elapsed < 60 else f"{int(llm_elapsed//60)}m{int(llm_elapsed%60):02d}s"
             _in_tok, _out_tok = deps.get_llm_tokens_fn()
             _fk = lambda n: f"{n/1000:.1f}k" if n >= 1000 else str(n)

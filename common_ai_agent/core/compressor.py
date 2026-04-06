@@ -511,7 +511,16 @@ def compress_history(
     _non_sys = []
     for m in raw_history:
         if m.get("role") == "system":
-            _sys_parts.append(str(m.get("content", "")))
+            _content = m.get("content", "")
+            if isinstance(_content, list):
+                # Extract plain text from cache_control block format
+                _text = "\n".join(
+                    block.get("text", "") for block in _content
+                    if isinstance(block, dict) and block.get("type") == "text"
+                )
+            else:
+                _text = str(_content)
+            _sys_parts.append(_text)
         else:
             _non_sys.append(m)
 

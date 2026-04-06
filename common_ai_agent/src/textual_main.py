@@ -78,13 +78,18 @@ def _emit_context(app: AgentTUI) -> None:
         else:
             skill = ", ".join(names)
 
+        mode = "plan" if os.environ.get("PLAN_MODE") == "true" else "normal"
+
         # Don't overwrite sidebar with 0 — keep _init_sidebar estimate until
         # the first real LLM call provides an actual token count.
         if tokens > 0:
-            app.post_message(ContextUpdate(tokens, max_tok, skill))
+            app.post_message(ContextUpdate(tokens, max_tok, skill, mode))
         elif skill:
             # No token data yet, but skill changed — update skill display only
-            app.post_message(ContextUpdate(app._ctx_tokens, max_tok, skill))
+            app.post_message(ContextUpdate(app._ctx_tokens, max_tok, skill, mode))
+        elif mode != getattr(app, "_ctx_mode", "normal"):
+            # Mode changed without token/skill update — emit to sync mode display
+            app.post_message(ContextUpdate(app._ctx_tokens, max_tok, app._ctx_skill, mode))
     except Exception:
         pass
 
