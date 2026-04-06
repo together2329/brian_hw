@@ -302,29 +302,31 @@ module tb_dma_top;
         input logic [DATA_WIDTH-1:0] data
     );
         begin
-            // AW phase
+            // AW phase - drive address
             @(posedge clk);
-            s_axi_awaddr  <= addr;
-            s_axi_awvalid <= 1'b1;
-            s_axi_wdata   <= data;
-            s_axi_wstrb   <= {(DATA_WIDTH/8){1'b1}};
-            s_axi_wvalid  <= 1'b1;
-            s_axi_bready  <= 1'b1;
+            s_axi_awaddr  = addr;
+            s_axi_awvalid = 1'b1;
+            s_axi_bready  = 1'b1;
 
-            // Wait for AW ready
-            wait(s_axi_awready == 1'b1);
+            // Wait for AWREADY
+            while (!s_axi_awready) @(posedge clk);
             @(posedge clk);
-            s_axi_awvalid <= 1'b0;
+            s_axi_awvalid = 1'b0;
 
-            // Wait for W ready
-            wait(s_axi_wready == 1'b1);
+            // W phase - drive data after AW accepted
+            s_axi_wdata   = data;
+            s_axi_wstrb   = {(DATA_WIDTH/8){1'b1}};
+            s_axi_wvalid  = 1'b1;
+
+            // Wait for WREADY
+            while (!s_axi_wready) @(posedge clk);
             @(posedge clk);
-            s_axi_wvalid <= 1'b0;
+            s_axi_wvalid = 1'b0;
 
             // Wait for B response
-            wait(s_axi_bvalid == 1'b1);
+            while (!s_axi_bvalid) @(posedge clk);
             @(posedge clk);
-            s_axi_bready <= 1'b0;
+            s_axi_bready = 1'b0;
 
             $display("[AXI_WR] Addr=0x%08h Data=0x%08h at time %0t", addr, data, $time);
         end
@@ -340,20 +342,20 @@ module tb_dma_top;
         begin
             // AR phase
             @(posedge clk);
-            s_axi_araddr  <= addr;
-            s_axi_arvalid <= 1'b1;
-            s_axi_rready  <= 1'b1;
+            s_axi_araddr  = addr;
+            s_axi_arvalid = 1'b1;
+            s_axi_rready  = 1'b1;
 
-            // Wait for AR ready
-            wait(s_axi_arready == 1'b1);
+            // Wait for ARREADY
+            while (!s_axi_arready) @(posedge clk);
             @(posedge clk);
-            s_axi_arvalid <= 1'b0;
+            s_axi_arvalid = 1'b0;
 
-            // Wait for R valid
-            wait(s_axi_rvalid == 1'b1);
-            @(posedge clk);
+            // Wait for RVALID
+            while (!s_axi_rvalid) @(posedge clk);
             data = s_axi_rdata;
-            s_axi_rready <= 1'b0;
+            @(posedge clk);
+            s_axi_rready = 1'b0;
 
             $display("[AXI_RD] Addr=0x%08h Data=0x%08h at time %0t", addr, data, $time);
         end
