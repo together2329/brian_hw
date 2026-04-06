@@ -1,14 +1,19 @@
 //------------------------------------------------------------
-// Testbench for Simple 128-bit Up Counter
+// Testbench for Simple 256-bit Up Counter (Enhanced)
 //------------------------------------------------------------
 // Verifies:
 //   1. Synchronous reset clears count to 0
 //   2. Count increments by 1 each clock cycle
 //   3. Upper bits remain 0 during short counting
 //   4. Reset re-sync works correctly
+//   5. Multiple reset pulses work correctly
+//   6. Count increments over a longer period (100 cycles)
+//   7. Reset during counting clears correctly
+//   8. Counting resumes after multiple resets
+//   9. All individual bits [7:0] toggle correctly
+//  10. Upper 248 bits [255:8] remain zero throughout
 //------------------------------------------------------------
-// Note: Full wrap-around test (2^128 cycles) is infeasible.
-// Only counting behavior and reset are verified.
+// Note: Full wrap-around test (2^256 cycles) is infeasible.
 
 `timescale 1ns / 1ps
 
@@ -17,7 +22,11 @@ module counter_tb;
     // Signals
     reg           clk;
     reg           rst;
-    wire [127:0]  count;
+    wire [255:0]  count;
+
+    // Pass/fail counters
+    integer pass_count;
+    integer fail_count;
 
     // Instantiate DUT
     counter uut (
@@ -32,56 +41,155 @@ module counter_tb;
         forever #5 clk = ~clk;
     end
 
+    // Helper task for checking
+    task check_value;
+        input [255:0] expected;
+        input [255:0] actual;
+        input [256*8-1:0] test_name;
+    begin
+        if (actual !== expected) begin
+            $display("FAIL: %s - expected %0d, got %0d", test_name, expected, actual);
+            fail_count = fail_count + 1;
+        end else begin
+            $display("PASS: %s - count=%0d", test_name, actual);
+            pass_count = pass_count + 1;
+        end
+    end
+    endtask
+
     // Stimulus
     initial begin
+        pass_count = 0;
+        fail_count = 0;
+
         // Init
         rst = 1;
 
-        // Monitor
         $monitor("time=%0t  rst=%b  count=%0d", $time, rst, count);
 
-        // Hold reset for 2 cycles
-        #20 rst = 0;
+        //=== Check 1: Reset clears to 0 ===
+        #20;
+        check_value(256'd0, count, "Reset clears count to 0");
 
-        // Wait for count to reach a few values (10 cycles)
-        #100;
+        //=== Check 2: Count increments after reset release ===
+        rst = 0;
+        #100; // 10 cycles
+        check_value(256'd10, count, "Count increments to 10");
 
-        // Check 1: Verify count is incrementing (should be 10)
-        if (count != 128'd10) begin
-            $display("FAIL: expected count=10, got count=%0d", count);
+        //=== Check 3: Upper bits [255:8] are zero ===
+        if (count[255:8] !== 248'd0) begin
+            $display("FAIL: upper bits non-zero at count=10, count[255:8]=%0d", count[255:8]);
+            fail_count = fail_count + 1;
         end else begin
-            $display("PASS: count=%0d at expected time", count);
+            $display("PASS: upper bits [255:8] are zero at count=10);
+            pass_count = pass_count + 1;
         end
 
-        // Check 2: Verify upper bits [127:8] are all zero
-        if (count[127:8] != 120'd0) begin
-            $display("FAIL: upper bits non-zero, count[127:8]=%0d", count[127:8]);
-        end else begin
-            $display("PASS: upper bits [127:8] are zero");
-        end
-
-        // Check 3: Reset re-sync
+        //=== Check 4: Reset re-sync ===
         rst = 1;
         #10 rst = 0;
+        #50; // 5 cycles
+        check_value(256'd5, count, "Reset re-sync, count=5);
 
-        // Wait 5 cycles
-        #50;
+        //=== Check 5: Multiple reset pulses ===
+        rst = 1;
+        #10 rst = 0;
+        #30; // 3 cycles → count=3
+        check_value(256'd3, count, "After 2nd reset, count=3);
 
-        // count should be 5 after reset and 5 increments
-        if (count != 128'd5) begin
-            $display("FAIL: expected count=5 after re-sync, got count=%0d", count);
+        rst = 1;
+        #10 rst = 0;
+        #70; // 7 cycles → count=7
+        check_value(256'd7, count, "After 3rd reset, count=7);
+
+        //=== Check 6: Longer counting period (100 cycles) ===
+        rst = 1;
+        #10 rst = 0;
+        #1000; // 100 cycles
+        check_value(256'd100, count, "Long count to 100");
+
+        //=== Check 7: Upper bits still zero after long count ===
+        if (count[255:8] !== 248'd0) begin
+            $display("FAIL: upper bits non-zero at count=100, count[255:8]=%0d", count[255:8]);
+            fail_count = fail_count + 1;
         end else begin
-            $display("PASS: count=%0d after reset re-sync", count);
+            $display("PASS: upper bits [255:8] still zero at count=100);
+            pass_count = pass_count + 1;
         end
 
-        // Check 4: Verify upper bits still zero after re-sync
-        if (count[127:8] != 120'd0) begin
-            $display("FAIL: upper bits non-zero after re-sync, count[127:8]=%0d", count[127:8]);
+        //=== Check 8: Reset during active counting ===
+        rst = 1;
+        #10 rst = 0;
+        #50; // count=5
+        rst = 1; // sudden reset mid-count
+        #10;
+        check_value(256'd0, count, "Mid-count reset clears to 0");
+
+        //=== Check 9: Counting resumes after mid-count reset ===
+        rst = 0;
+        #30; // 3 cycles
+        check_value(256'd3, count, "Counting resumes after mid-count reset");
+
+        //=== Check 10: Individual bit toggle verification ===
+        rst = 1;
+        #10 rst = 0;
+        // Count to 255 (all lower 8 bits set) — 255 cycles
+        #2550;
+        check_value(256'd255, count, "All lower 8 bits set (count=255)");
+
+        // Verify bit pattern: 255 = 8'b11111111
+        if (count[7:0] !== 8'hFF) begin
+            $display("FAIL: lower 8 bits not all 1s, got %b", count[7:0]);
+            fail_count = fail_count + 1;
         end else begin
-            $display("PASS: upper bits [127:8] still zero after re-sync");
+            $display("PASS: all lower 8 bits are 1 (8'hFF)");
+            pass_count = pass_count + 1;
         end
 
-        $display("--- All tests done ---");
+        // Upper bits still zero
+        if (count[255:8] !== 248'd0) begin
+            $display("FAIL: upper bits non-zero at count=255, count[255:8]=%0d", count[255:8]);
+            fail_count = fail_count + 1;
+        end else begin
+            $display("PASS: upper bits [255:8] zero at count=255);
+            pass_count = pass_count + 1;
+        end
+
+        //=== Check 11: Next value rolls to 256 ===
+        #10;
+        check_value(256'd256, count, "Count=256 (bit 8 sets)");
+
+        // Verify bit 8 is set
+        if (count[8] !== 1'b1) begin
+            $display("FAIL: bit 8 not set at count=256);
+            fail_count = fail_count + 1;
+        end else begin
+            $display("PASS: bit 8 correctly set at count=256);
+            pass_count = pass_count + 1;
+        end
+
+        if (count[7:0] !== 8'd0) begin
+            $display("FAIL: lower 8 bits not zero at count=256, got %b", count[7:0]);
+            fail_count = fail_count + 1;
+        end else begin
+            $display("PASS: lower 8 bits rolled to 0 at count=256);
+            pass_count = pass_count + 1;
+        end
+
+        //=== Final Summary ===
+        $display("");
+        $display("========================================");
+        $display("  TEST SUMMARY");
+        $display("  PASSED: %0d", pass_count);
+        $display("  FAILED: %0d", fail_count);
+        $display("  TOTAL : %0d", pass_count + fail_count);
+        $display("========================================");
+
+        if (fail_count > 0)
+            $display("  *** SOME TESTS FAILED ***");
+        else
+            $display("  *** ALL TESTS PASSED ***");
+
         $finish;
     end
 
