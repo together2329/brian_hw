@@ -152,23 +152,9 @@ module tdisp_lock_ctrl #(
     end
 
     //==========================================================================
-    // Error code selection (priority-encoded)
+    // Error code selection moved into LCK_VALIDATE state (registered)
+    // to avoid multiple-driver conflict with always_ff
     //==========================================================================
-    always_comb begin
-        error_code_q = ERR_INVALID_DEVICE_CONFIGURATION; // Default
-
-        if (!state_ok)          error_code_q = ERR_REQUEST_SEQUENCE_NUMBER;
-        else if (!iface_id_ok)  error_code_q = ERR_INVALID_INTERFACE_ID;
-        else if (!stream_ok)    error_code_q = ERR_INVALID_DEVICE_CONFIGURATION;
-        else if (!keys_ok)      error_code_q = ERR_INVALID_DEVICE_CONFIGURATION;
-        else if (!spdm_ok)      error_code_q = ERR_INVALID_DEVICE_CONFIGURATION;
-        else if (!tc0_ok)       error_code_q = ERR_INVALID_DEVICE_CONFIGURATION;
-        else if (!phantom_ok)   error_code_q = ERR_INVALID_DEVICE_CONFIGURATION;
-        else if (!bar_ok)       error_code_q = ERR_INVALID_DEVICE_CONFIGURATION;
-        else if (!page_ok)      error_code_q = ERR_INVALID_DEVICE_CONFIGURATION;
-        else if (!cls_ok)       error_code_q = ERR_INVALID_DEVICE_CONFIGURATION;
-        else if (!reserved_flags_ok) error_code_q = ERR_INVALID_REQUEST;
-    end
 
     //==========================================================================
     // Main FSM
