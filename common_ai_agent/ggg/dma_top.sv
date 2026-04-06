@@ -200,19 +200,22 @@ module dma_top #(
                         axi_aw_state  <= 3'd1;
                     end
                 end
-                3'd1: begin // Wait for WVALID
+                3'd1: begin // Assert WREADY
                     s_axi_wready <= 1'b1;
+                    axi_aw_state <= 3'd2;
+                end
+                3'd2: begin // Wait for WVALID
                     if (s_axi_wvalid) begin
                         s_axi_wready <= 1'b0;
-                        axi_aw_state <= 3'd2;
+                        axi_aw_state <= 3'd3;
                     end
                 end
-                3'd2: begin // Assert BVALID
+                3'd3: begin // Assert BVALID
                     s_axi_bvalid <= 1'b1;
                     s_axi_bresp  <= 2'b00;
-                    axi_aw_state <= 3'd3;
+                    axi_aw_state <= 3'd4;
                 end
-                3'd3: begin // Wait for BREADY
+                3'd4: begin // Wait for BREADY
                     if (s_axi_bready) begin
                         s_axi_bvalid <= 1'b0;
                         axi_aw_state <= 3'd0;
