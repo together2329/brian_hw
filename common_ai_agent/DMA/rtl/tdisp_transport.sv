@@ -701,13 +701,30 @@ module tdisp_transport #(
                 //==============================================================
                 TX_SEC_MAC: begin
                     // Append MAC placeholder (production: actual MAC from crypto engine)
-                    // MAC is MAC_WIDTH bytes of zeros (placeholder)
+                    // MAC is MAC_WIDTH bytes; needs ceil(MAC_WIDTH/BYTES_PER_BEAT) beats
                     if (doe_tx_tready) begin
                         doe_tx_tdata  <= '0;  // MAC placeholder
-                        doe_tx_tkeep  <= '1;
                         doe_tx_tvalid <= 1'b1;
-                        doe_tx_tlast  <= 1'b1;
-                        tx_state_q    <= TX_COMPLETE;
+                        tx_mac_beat_q <= tx_mac_beat_q + MAC_BEAT_W'(1);
+
+                        if (tx_mac_beat_q >= MAC_BEAT_W'(MAC_BEATS - 1)) begin
+                            // Last MAC beat
+                            doe_tx_tlast <= 1'b1;
+                            // Partial tkeep for last beat if MAC doesn't fill exactly
+                            if ((MAC_WIDTH % BYTES_PER_BEAT) != 0 && MAC_BEATS > 1) begin
+                                doe_tx_tkeep <= '0;
+                                for (int b = 0; b < BYTES_PER_BEAT; b++) begin
+                                    if (b < (MAC_WIDTH % BYTES_PER_BEAT))
+                                        doe_tx_tkeep[b] <= 1'b1;
+                                end
+                            end else begin
+                                doe_tx_tkeep <= '1;
+                            end
+                            tx_state_q <= TX_COMPLETE;
+                        end else begin
+                            doe_tx_tkeep <= '1;
+                            doe_tx_tlast <= 1'b0;
+                        end
                     end
                 end
 
