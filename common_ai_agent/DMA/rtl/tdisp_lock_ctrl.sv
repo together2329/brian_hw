@@ -55,7 +55,9 @@ module tdisp_lock_ctrl #(
     output logic [63:0]                     ctx_mmio_offset_o,        // Bound MMIO offset
     output logic [63:0]                     ctx_p2p_mask_o,           // P2P address mask
     output logic [NONCE_WIDTH-1:0]          ctx_nonce_o,              // Generated nonce
-    output logic                            ctx_nonce_valid_o,        // Nonce is valid
+    
+        output logic                        ctx_nonce_valid_o,        // Nonce is valid
+        output logic                        ctx_fw_update_locked_o,   // FW update lock status
 
     //--- Response interface ---
     output logic                            rsp_valid_o,              // Response ready
