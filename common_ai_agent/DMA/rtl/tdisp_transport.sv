@@ -170,6 +170,11 @@ module tdisp_transport #(
     logic                          tx_rsp_pulse_q;
     logic [$clog2(NUM_TDI)-1:0]    tx_rsp_tdi_q;
 
+    // MAC transmission tracking
+    localparam int unsigned MAC_BEATS = (MAC_WIDTH + BYTES_PER_BEAT - 1) / BYTES_PER_BEAT;
+    localparam int unsigned MAC_BEAT_W = (MAC_BEATS > 1) ? $clog2(MAC_BEATS) : 1;
+    logic [MAC_BEAT_W-1:0] tx_mac_beat_q;
+
     //==========================================================================
     // Outstanding Request Tracking
     //==========================================================================
