@@ -151,6 +151,7 @@ module tdisp_tdi_mgr #(
                     mmio_non_tee_q[t][r] <= 1'b0;
                     mmio_valid_q[t][r]   <= 1'b0;
                 end
+                p2p_addr_mask_q[t] <= '0;
             end
         end else begin
             //=== Priority 1: Error state (unconditional) ===
