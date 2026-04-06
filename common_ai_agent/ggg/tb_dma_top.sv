@@ -404,21 +404,20 @@ module tb_dma_top;
         begin
             success = 1'b0;
             cycle_count = 0;
-            while (cycle_count < timeout_cycles) begin
+            while (cycle_count < timeout_cycles && success === 1'b0) begin
                 axi_lite_read(ADDR_STATUS, status_val);
                 if (status_val[1] == 1'b1) begin  // DONE bit
                     success = 1'b1;
                     $display("[INFO] DMA completed successfully at time %0t", $time);
-                    return;
-                end
-                if (status_val[2] == 1'b1) begin  // ERROR bit
+                end else if (status_val[2] == 1'b1) begin  // ERROR bit
                     success = 1'b0;
                     $display("[ERROR] DMA error detected at time %0t", $time);
-                    return;
+                end else begin
+                    cycle_count++;
                 end
-                cycle_count++;
             end
-            $display("[ERROR] DMA timeout after %0d cycles at time %0t", timeout_cycles, $time);
+            if (cycle_count >= timeout_cycles && success === 1'b0)
+                $display("[ERROR] DMA timeout after %0d cycles at time %0t", timeout_cycles, $time);
         end
     endtask
 
