@@ -337,15 +337,22 @@ module dma_top #(
             pending_reads <= '0;
         end else begin
             dma_state <= dma_state_next;
-            case (dma_state)
-                DMA_IDLE: begin
-                    if (start_pulse) begin
-                        src_addr_cnt    <= src_addr_reg;
-                        dst_addr_cnt    <= dst_addr_reg;
-                        bytes_remaining <= xfer_len_reg;
-                        pending_reads   <= '0;
-                    end
-                end
+           // Debug: track state transitions
+           if (dma_state != dma_state_next) begin
+               $display("[DMA DBG] %0t: state %0d -> %0d, bytes_rem=%0d, pend=%0d, fifo_cnt=%0d, arvalid=%b, arready=%b, rvalid=%b, rready=%b",
+                   $time, dma_state, dma_state_next, bytes_remaining, pending_reads, fifo_count,
+                   m_axi_arvalid, m_axi_arready, m_axi_rvalid, m_axi_rready);
+           end
+           case (dma_state)
+               DMA_IDLE: begin
+                   if (start_pulse) begin
+                       src_addr_cnt    <= src_addr_reg;
+                       dst_addr_cnt    <= dst_addr_reg;
+                       bytes_remaining <= xfer_len_reg;
+                       pending_reads   <= '0;
+                       $display("[DMA DBG] %0t: Starting DMA src=%08h dst=%08h len=%0d", $time, src_addr_reg, dst_addr_reg, xfer_len_reg);
+                   end
+               end
                 DMA_READ: begin
                     if (m_axi_arready && m_axi_arvalid) begin
                         src_addr_cnt <= src_addr_cnt + (DATA_WIDTH/8);
