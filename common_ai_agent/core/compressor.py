@@ -434,8 +434,25 @@ def compress_history(
             return messages
 
         if keep_recent == 0:
-            recent_msgs = []
-            old_msgs = other_msgs
+            # Even with keep_recent=0, preserve the last user message and any trailing
+            # messages after it. Strict APIs (GLM-5.1 etc.) require at least one user
+            # message; without it the conversation is [system, assistant] which causes
+            # HTTP 400 "messages parameter is illegal".
+            _last_user_idx = next(
+                (i for i in range(len(other_msgs) - 1, -1, -1)
+                 if other_msgs[i].get("role") == "user"),
+                None
+            )
+            if _last_user_idx is not None and _last_user_idx > 0:
+                recent_msgs = other_msgs[_last_user_idx:]   # last user + any trailing
+                old_msgs = other_msgs[:_last_user_idx]
+            elif _last_user_idx == 0:
+                # Only user message is the first one; keep it, compress the rest
+                recent_msgs = other_msgs[:1]
+                old_msgs = other_msgs[1:]
+            else:
+                recent_msgs = []
+                old_msgs = other_msgs
         else:
             recent_msgs = other_msgs[-keep_recent:]
             old_msgs = other_msgs[:-keep_recent]
