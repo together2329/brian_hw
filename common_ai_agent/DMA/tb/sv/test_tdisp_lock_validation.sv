@@ -333,6 +333,11 @@ module test_tdisp_lock_validation;
                 record_result(context, 1'b1);
             end
         end
+        // Acknowledge the response so FSM can return to IDLE
+        rsp_done = 1'b1;
+        @(posedge clk);
+        rsp_done = 1'b0;
+        @(posedge clk);
     endtask
 
     //==========================================================================
