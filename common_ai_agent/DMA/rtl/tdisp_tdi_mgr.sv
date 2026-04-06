@@ -97,6 +97,9 @@ module tdisp_tdi_mgr #(
     output logic                            mmio_is_non_tee_o  [NUM_TDI][BUS_WIDTH],
     output logic                            mmio_range_valid_o [NUM_TDI][BUS_WIDTH],
 
+    //--- P2P address mask output (for P2P stream binding) ---
+    output logic [63:0]                     p2p_addr_mask_o    [NUM_TDI],
+
     //--- Outstanding request tracking ---
     output logic [7:0]                      outstanding_reqs_o [NUM_TDI]
 );
