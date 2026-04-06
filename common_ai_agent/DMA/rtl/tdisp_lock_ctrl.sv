@@ -185,7 +185,6 @@ module tdisp_lock_ctrl #(
             rsp_error_o    <= 1'b0;
             rsp_error_code_o <= ERR_INVALID_REQUEST;
             rsp_nonce_o    <= '0;
-            rsp_done_o     <= 1'b0;
             ctx_new_state_o  <= TDI_CONFIG_UNLOCKED;
             ctx_lock_flags_o <= '0;
             ctx_stream_id_o  <= '0;
