@@ -111,7 +111,20 @@ module tdisp_nonce_gen #(
     gen_state_e     gen_state_q;
     logic [2:0]     gen_count_q;           // 0..7 rounds
     logic [NONCE_WIDTH-1:0] gen_buf_q;     // Accumulating nonce buffer
-    logic [$clog2(NUM_TDI)-1:0] gen_tdi_q; // TDI index for storage
+
+    // Store-interface signals (driven combinationally from FSM state)
+    always_comb begin
+        gen_store_pulse = 1'b0;
+        gen_nonce_final = '0;
+        gen_tdi_target  = '0;
+        if (gen_state_q == GEN_COMPLETE) begin
+            gen_store_pulse = 1'b1;
+            gen_nonce_final = gen_buf_q;
+            gen_tdi_target  = gen_tdi_q;
+        end
+    end
+
+    logic [$clog2(NUM_TDI)-1:0] gen_tdi_q; // Latched TDI index for storage
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -134,8 +147,7 @@ module tdisp_nonce_gen #(
                     if (gen_req_i) begin
                         gen_count_q <= '0;
                         gen_buf_q   <= '0;
-                        gen_tdi_q   <= val_tdi_index_i; // Reuse val port for index
-                        // Capture TDI index from gen_ack context - use inv port
+                        gen_tdi_q   <= gen_tdi_index_i; // Latch TDI index from port
                         lfsr_en     <= 1'b1;
                         gen_state_q <= GEN_RUN;
                     end
@@ -159,12 +171,6 @@ module tdisp_nonce_gen #(
                     // Output completed nonce
                     gen_nonce_o <= gen_buf_q;
                     gen_ack_o   <= 1'b1;
-
-                    // Store to per-TDI array
-                    if (gen_tdi_q < NUM_TDI) begin
-                        nonce_store_q[gen_tdi_q]  <= gen_buf_q;
-                        nonce_valid_q[gen_tdi_q]  <= 1'b1;
-                    end
 
                     // Check entropy (simple heuristic: nonce should not be all zeros)
                     entropy_warn_o <= (gen_buf_q == '0);
