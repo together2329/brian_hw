@@ -634,7 +634,7 @@ module tdisp_transport #(
                             doe_tx_tdata[7:0]   <= tx_session_id_q[15:8];
                             doe_tx_tdata[15:8]  <= tx_session_id_q[23:16];
                             doe_tx_tdata[23:16] <= tx_session_id_q[31:24];
-                            doe_tx_tdata[31:16] <= SPDM_VD_RESPONSE;
+                            doe_tx_tdata[31:24] <= SPDM_VD_RESPONSE;
                         end else begin
                             doe_tx_tdata[7:0]   <= 8'h00;  // Param1
                             doe_tx_tdata[15:8]  <= 8'h00;  // Param2
