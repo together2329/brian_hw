@@ -8,8 +8,6 @@ module tdisp_lock_ctrl #(
     parameter int unsigned NUM_TDI           = 4,
     parameter int unsigned INTERFACE_ID_WIDTH= 96,
     parameter int unsigned NONCE_WIDTH       = 256,
-    parameter int unsigned ADDR_WIDTH        = 64,
-    parameter int unsigned NUM_IDE_STREAMS   = 4,
     parameter int unsigned MAX_OUTSTANDING   = 8
 ) (
     input  logic                            clk,
