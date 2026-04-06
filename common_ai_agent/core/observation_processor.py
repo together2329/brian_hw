@@ -141,5 +141,15 @@ def process_observation(
                 except ImportError:
                     print(f"[System] Observation force-truncated to {observation_tokens:,} tokens")
 
+    # Append action reminder so the model sees it as the last tokens before generating.
+    # More effective than system prompt alone — system prompt gets buried in long context.
+    if getattr(cfg, "ACTION_REMINDER", True):
+        reminder = getattr(
+            cfg,
+            "ACTION_REMINDER_TEXT",
+            "If further action is needed, output it now: Action: tool_name(param=value)",
+        )
+        observation_msg["content"] += f"\n\n[System] {reminder}"
+
     messages.append(observation_msg)
     return messages

@@ -77,6 +77,7 @@ class StreamParser:
         emit_blank_fn: Optional[Callable[[], None]] = None,
         reasoning_display: bool = True,
         reasoning_in_context: bool = False,
+        debug_mode: bool = False,
     ) -> None:
         self._emit = emit_fn
         self._emit_reasoning = emit_reasoning_fn
@@ -85,6 +86,7 @@ class StreamParser:
 
         self.reasoning_display = reasoning_display
         self.reasoning_in_context = reasoning_in_context
+        self.debug_mode = debug_mode
 
         # internal state
         self.state: int = self.NOISE
@@ -232,6 +234,8 @@ class StreamParser:
 
             if ai >= 0 and (ti < 0 or ai < ti):
                 self.state = self.ACTION
+                if self.debug_mode:
+                    self._emit(text[ai:])  # show full Action: line in debug
             elif ti >= 0:
                 thought = text[ti + 8:]
                 if thought and thought not in self._seen:
@@ -239,7 +243,8 @@ class StreamParser:
                     self._seen.add(thought)
                 self.state = self.CONTENT
             elif self.state == self.ACTION:
-                pass  # inside action block, suppress
+                if self.debug_mode:
+                    self._emit(text)  # show action body lines in debug
             else:
                 if self.state == self.NOISE:
                     self.state = self.CONTENT

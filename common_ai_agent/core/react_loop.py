@@ -499,6 +499,7 @@ def run_react_agent_impl(
             emit_blank_fn=_emit_blank,
             reasoning_display=getattr(cfg, "REASONING_DISPLAY", False),
             reasoning_in_context=getattr(cfg, "REASONING_IN_CONTEXT", False),
+            debug_mode=_debug,
         )
 
         _thinking_spinner = None
@@ -523,15 +524,6 @@ def run_react_agent_impl(
                 if _esc_check():
                     _aborted = True
                     break
-
-                if _debug:
-                    # In debug mode just collect, skip display
-                    if isinstance(chunk, tuple) and len(chunk) == 2 and chunk[0] == "reasoning":
-                        if getattr(cfg, "REASONING_IN_CONTEXT", False):
-                            _parser.collected += chunk[1]
-                    else:
-                        _parser.collected += chunk  # type: ignore[operator]
-                    continue
 
                 if getattr(cfg, "STREAM_TOKEN_DELAY_MS", 0) > 0:
                     time.sleep(cfg.STREAM_TOKEN_DELAY_MS / 1000.0)
@@ -664,6 +656,15 @@ def run_react_agent_impl(
         actions = parse_all_actions(collected_content, debug=getattr(cfg, "DEBUG_MODE", False))
         if _perf:
             print(f"  {Color.DIM}[PERF] parse_actions: {time.time()-_t:.3f}s{Color.RESET}")
+
+        # Debug: show parse result and full collected_content (including Action: block)
+        if getattr(cfg, "DEBUG_MODE", False):
+            _has_action_kw = "action:" in collected_content.lower()
+            print(f"  {Color.DIM}[DEBUG] actions={actions}  has_action_kw={_has_action_kw}  "
+                  f"detect_completion={deps.detect_completion_fn(collected_content)}{Color.RESET}")
+            if _has_action_kw:
+                print(f"  {Color.DIM}[DEBUG] collected_content ({len(collected_content)} chars):\n"
+                      f"{collected_content}\n[DEBUG END]{Color.RESET}")
 
         # Chat mode 0: respond only
         if getattr(cfg, "EXECUTION_MODE", "agent") == "chat":
@@ -1045,12 +1046,25 @@ def run_react_agent_impl(
                 # Don't break — continue
             else:
                 visible = deps.strip_thinking_fn(collected_content).strip()
-                if len(visible) < 10 and final_answer_attempts < 2:
+                if final_answer_attempts < 2:
                     final_answer_attempts += 1
-                    messages.append({
-                        "role": "user",
-                        "content": "Please provide your final answer to the user based on your research so far.",
-                    })
+                    if visible:
+                        # Model produced output but no Action and no completion signal.
+                        # Ask it to either act or finish explicitly.
+                        messages.append({
+                            "role": "user",
+                            "content": (
+                                "[System] You did not output an Action. "
+                                "If you need to use a tool, output it now:\n"
+                                "Action: tool_name(param=value)\n"
+                                "If the task is complete, state so explicitly."
+                            ),
+                        })
+                    else:
+                        messages.append({
+                            "role": "user",
+                            "content": "Please provide your final answer to the user based on your research so far.",
+                        })
                 else:
                     break
 
