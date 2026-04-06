@@ -154,6 +154,12 @@ FULL_PROMPT_DEBUG_LINE_LIMIT_COUNT = int(os.getenv("FULL_PROMPT_DEBUG_LINE_LIMIT
 ENABLE_TOOL_DESCRIPTIONS = os.getenv("ENABLE_TOOL_DESCRIPTIONS", "true").lower() in ("true", "1", "yes")
 
 # ============================================================
+# Native Tool Call Support (Function Calling)
+# ============================================================
+# When true: uses structured JSON tool_calls API instead of ReAct text parsing.
+ENABLE_NATIVE_TOOL_CALLS = os.getenv("ENABLE_NATIVE_TOOL_CALLS", "false").lower() in ("true", "1", "yes")
+
+# ============================================================
 # Type Validation & Linting (Zero-Dependency Features)
 # ============================================================
 # Enable parameter type validation (always available - uses standard library only)
@@ -1016,25 +1022,36 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     )
 
     # Format
-    parts.append(
-        "FORMAT (strict ReAct loop):\n"
-        "Thought: [reasoning]\n"
-        "Action: tool_name(arg=\"value\")\n"
-        "- Multiple Actions per turn = parallel execution.\n"
-        "- Use triple quotes for multi-line: content=\"\"\"...\"\"\".\n"
-        "- NEVER generate \"Observation:\" — the system provides it.\n"
-        "- NEVER say 'Let me check...' or 'I will...' without an Action in the same turn.\n"
-        "- If you need information, call the tool NOW — do not narrate first.\n"
-    )
+    _native_mode = os.getenv("ENABLE_NATIVE_TOOL_CALLS", "false").lower() in ("true", "1", "yes")
+    if _native_mode:
+        parts.append(
+            "Use the provided function tools to complete tasks. "
+            "Call tools when you need information or to take actions. "
+            "You may call multiple tools in one turn for parallel execution.\n"
+        )
+    else:
+        parts.append(
+            "FORMAT (strict ReAct loop):\n"
+            "Thought: [reasoning]\n"
+            "Action: tool_name(arg=\"value\")\n"
+            "- Multiple Actions per turn = parallel execution.\n"
+            "- Use triple quotes for multi-line: content=\"\"\"...\"\"\".\n"
+            "- NEVER generate \"Observation:\" — the system provides it.\n"
+            "- NEVER say 'Let me check...' or 'I will...' without an Action in the same turn.\n"
+            "- If you need information, call the tool NOW — do not narrate first.\n"
+        )
 
-    # Tool table
-    parts.append("TOOLS:\n")
-    for category, lines in tool_lines.items():
-        available = [l for l in lines if l is not None]
-        if available:
-            parts.append(f"{category}:")
-            parts.extend(available)
-            parts.append("")
+    # Tool table (skip in native mode — LLM sees schemas via API tools param)
+    if _native_mode:
+        parts.append("TOOLS: (use function tools provided by the API)\n")
+    else:
+        parts.append("TOOLS:\n")
+        for category, lines in tool_lines.items():
+            available = [l for l in lines if l is not None]
+            if available:
+                parts.append(f"{category}:")
+                parts.extend(available)
+                parts.append("")
 
     # .UPD_RULE.md — load early so PROJECT RULES can override defaults below
     _upd_rule_paths = [

@@ -368,7 +368,8 @@ def chat_completion_with_config(
     provider_config: ProviderConfig = None,
     stop: List[str] = None,
     temperature: float = None,
-    top_p: float = None
+    top_p: float = None,
+    tools: List[Dict] = None,
 ):
     """
     Chat completion with explicit provider configuration.
@@ -418,6 +419,10 @@ def chat_completion_with_config(
     elif provider_config.top_p is not None:
         data["top_p"] = provider_config.top_p
 
+    if tools:
+        data["tools"] = tools
+        data["tool_choice"] = "auto"
+
     if config.DEBUG_MODE:
         print(Color.info(f"\n[Agent-Aware API Call]"))
         print(Color.info(f"  Provider: {provider_config.provider_id}"))
@@ -425,10 +430,10 @@ def chat_completion_with_config(
         print(Color.info(f"  URL: {url}"))
 
     # Reuse existing streaming logic
-    yield from _execute_streaming_request(url, headers, data, messages)
+    yield from _execute_streaming_request(url, headers, data, messages, native_mode=bool(tools))
 
 
-def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: List):
+def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: List, native_mode: bool = False):
     """
     Execute streaming request with retry logic.
     Internal helper for chat_completion functions.
@@ -503,20 +508,35 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                         except json.JSONDecodeError:
                             continue
 
-                # Emit accumulated tool calls as Action: lines after stream ends
-                for idx in sorted(_pending_tool_calls):
-                    tc_info = _pending_tool_calls[idx]
-                    tc_name = tc_info["name"]
-                    tc_args_str = tc_info["arguments"]
-                    if tc_name and tc_args_str:
-                        try:
-                            tc_args = json.loads(tc_args_str)
-                            args_formatted = ", ".join(
-                                f'{k}={json.dumps(v)}' for k, v in tc_args.items()
-                            )
-                            yield f"\nAction: {tc_name}({args_formatted})\n"
-                        except (json.JSONDecodeError, AttributeError):
-                            pass
+                # Emit accumulated tool calls after stream ends.
+                if _pending_tool_calls:
+                    if native_mode:
+                        import uuid as _uuid
+                        _native_calls = []
+                        for idx in sorted(_pending_tool_calls):
+                            tc_info = _pending_tool_calls[idx]
+                            if tc_info["name"]:
+                                _native_calls.append({
+                                    "id": f"call_{_uuid.uuid4().hex[:16]}",
+                                    "name": tc_info["name"],
+                                    "arguments": tc_info["arguments"] or "{}",
+                                })
+                        if _native_calls:
+                            yield ("native_tool_calls", _native_calls)
+                    else:
+                        for idx in sorted(_pending_tool_calls):
+                            tc_info = _pending_tool_calls[idx]
+                            tc_name = tc_info["name"]
+                            tc_args_str = tc_info["arguments"]
+                            if tc_name and tc_args_str:
+                                try:
+                                    tc_args = json.loads(tc_args_str)
+                                    args_formatted = ", ".join(
+                                        f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                                    )
+                                    yield f"\nAction: {tc_name}({args_formatted})\n"
+                                except (json.JSONDecodeError, AttributeError):
+                                    pass
 
                 if usage_info:
                     input_tokens = usage_info.get("input_tokens") or usage_info.get("prompt_tokens", 0)
@@ -823,7 +843,7 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
             yield '\n'
 
 
-def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=False, caller_tag=None, suppress_spinner=False):
+def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=False, caller_tag=None, suppress_spinner=False, tools=None):
     """
     Sends a chat completion request to the LLM using urllib.
     Yields content chunks from the SSE stream.
@@ -876,6 +896,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     # Sanitize messages for strict APIs (GLM-5.1/Z.AI, etc.):
     # 1. Merge stray system messages into position 0
     # 2. Merge consecutive same-role messages (user+user, assistant+assistant)
+    # Note: "tool" role messages must NOT be merged — they need unique tool_call_id.
+    # Note: "assistant" messages with tool_calls must NOT be merged (native tool mode).
     if processed_messages is messages:
         processed_messages = copy.deepcopy(messages)
     _merged = []
@@ -889,13 +911,34 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             else:
                 _merged.insert(0, m)
             continue
-        if _merged[-1].get("role") == m.get("role"):
-            _merged[-1]["content"] += "\n\n" + str(m.get("content", ""))
+        # Never merge tool messages or messages with tool_calls
+        _is_tool_msg = m.get("role") == "tool"
+        _prev_has_tool_calls = bool(_merged[-1].get("tool_calls"))
+        _cur_has_tool_calls = bool(m.get("tool_calls"))
+        if (not _is_tool_msg and not _prev_has_tool_calls and not _cur_has_tool_calls
+                and _merged[-1].get("role") == m.get("role")):
+            _merged[-1]["content"] = str(_merged[-1].get("content", "") or "") + "\n\n" + str(m.get("content", ""))
             continue
         _merged.append(m)
     if _merged and _merged[0].get("role") != "system":
         _merged.insert(0, {"role": "system", "content": "You are a helpful AI coding assistant."})
     processed_messages = _merged
+
+    # Strip internal-only fields (turn_id, timestamp, _tokens) before sending to API
+    _API_ROLES = {"system", "user", "assistant", "tool"}
+    _processed_clean = []
+    for m in processed_messages:
+        if m.get("role") not in _API_ROLES:
+            continue
+        clean = {"role": m["role"]}
+        if "content" in m:
+            clean["content"] = m["content"]
+        if "tool_calls" in m:
+            clean["tool_calls"] = m["tool_calls"]
+        if "tool_call_id" in m:
+            clean["tool_call_id"] = m["tool_call_id"]
+        _processed_clean.append(clean)
+    processed_messages = _processed_clean
 
     if _perf_pre:
         print(f"  \033[2m[PERF/setup] prompt_cache_prep: {time.time()-_t_pre:.3f}s\033[0m")
@@ -951,6 +994,11 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
     if config.MAX_OUTPUT_TOKENS > 0:
         data["max_tokens"] = compute_safe_max_tokens()
+
+    # Native tool call support: inject tools schema when provided
+    if tools:
+        data["tools"] = tools
+        data["tool_choice"] = "auto"
 
     # Debug: Log request details
     if config.DEBUG_MODE:
@@ -1154,20 +1202,42 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                         except json.JSONDecodeError:
                             continue
 
-                # Emit accumulated tool calls as Action: lines after stream ends
-                for idx in sorted(_pending_tool_calls):
-                    tc_info = _pending_tool_calls[idx]
-                    tc_name = tc_info["name"]
-                    tc_args_str = tc_info["arguments"]
-                    if tc_name and tc_args_str:
-                        try:
-                            tc_args = json.loads(tc_args_str)
-                            args_formatted = ", ".join(
-                                f'{k}={json.dumps(v)}' for k, v in tc_args.items()
-                            )
-                            yield f"\nAction: {tc_name}({args_formatted})\n"
-                        except (json.JSONDecodeError, AttributeError):
-                            pass
+                # Emit accumulated tool calls after stream ends.
+                # Native mode (tools param set): yield structured tuple for react_loop.
+                # Legacy mode: convert to Action: text lines for ReAct parser.
+                if _pending_tool_calls:
+                    if tools:
+                        # Native tool call mode — yield structured list for react_loop
+                        import uuid as _uuid
+                        _native_calls = []
+                        for idx in sorted(_pending_tool_calls):
+                            tc_info = _pending_tool_calls[idx]
+                            tc_name = tc_info["name"]
+                            tc_args_str = tc_info["arguments"]
+                            if tc_name:
+                                call_id = f"call_{_uuid.uuid4().hex[:16]}"
+                                _native_calls.append({
+                                    "id": call_id,
+                                    "name": tc_name,
+                                    "arguments": tc_args_str or "{}",
+                                })
+                        if _native_calls:
+                            yield ("native_tool_calls", _native_calls)
+                    else:
+                        # Legacy ReAct mode — convert to Action: text
+                        for idx in sorted(_pending_tool_calls):
+                            tc_info = _pending_tool_calls[idx]
+                            tc_name = tc_info["name"]
+                            tc_args_str = tc_info["arguments"]
+                            if tc_name and tc_args_str:
+                                try:
+                                    tc_args = json.loads(tc_args_str)
+                                    args_formatted = ", ".join(
+                                        f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                                    )
+                                    yield f"\nAction: {tc_name}({args_formatted})\n"
+                                except (json.JSONDecodeError, AttributeError):
+                                    pass
 
                 # Print PERF/LLM summary after streaming completes (clean, no mid-stream interleave)
                 if _perf:

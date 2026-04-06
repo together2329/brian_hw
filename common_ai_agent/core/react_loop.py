@@ -442,8 +442,13 @@ def run_react_agent_impl(
         # ----- Streaming LLM call -----
         from core.stream_parser import StreamParser
 
-        _stop_seqs = ["Observation:", "<|call|>", "tool_call_begin",
-                      "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"]
+        # In native tool call mode, the LLM uses structured tool_calls (not Action: text),
+        # so ReAct stop sequences are not needed.
+        if getattr(cfg, "ENABLE_NATIVE_TOOL_CALLS", False):
+            _stop_seqs = []
+        else:
+            _stop_seqs = ["Observation:", "<|call|>", "tool_call_begin",
+                          "tool_calls_section_begin", "<|tool_call|>", "<tool_call>"]
         if _perf:
             print(f"  {Color.DIM}[PERF] >>> LLM call start{Color.RESET}")
         _stream_start = time.time()
@@ -514,6 +519,7 @@ def run_react_agent_impl(
             deps.emit_content_fn("\x00")  # sentinel: activates statusbar without adding content
         _thinking_stopped = False
 
+        _native_calls = []  # populated when ENABLE_NATIVE_TOOL_CALLS=true
         try:
             for chunk in deps.llm_call_fn(messages, stop=_stop_seqs):
                 if not _thinking_stopped and _thinking_spinner:
@@ -527,6 +533,11 @@ def run_react_agent_impl(
 
                 if getattr(cfg, "STREAM_TOKEN_DELAY_MS", 0) > 0:
                     time.sleep(cfg.STREAM_TOKEN_DELAY_MS / 1000.0)
+
+                # Native tool call sentinel: ("native_tool_calls", [...])
+                if isinstance(chunk, tuple) and len(chunk) == 2 and chunk[0] == "native_tool_calls":
+                    _native_calls = chunk[1]
+                    continue
 
                 _parser.feed(chunk)
 
@@ -629,6 +640,18 @@ def run_react_agent_impl(
         usage = deps.get_llm_usage_fn()
         if usage:
             assistant_msg["_tokens"] = usage
+        # Native mode: attach tool_calls to assistant message (required by API message format)
+        if _use_native and _native_calls:
+            assistant_msg["tool_calls"] = [
+                {
+                    "id": tc["id"],
+                    "type": "function",
+                    "function": {"name": tc["name"], "arguments": tc["arguments"]},
+                }
+                for tc in _native_calls
+            ]
+            if not assistant_msg["content"]:
+                assistant_msg["content"] = ""
         messages.append(assistant_msg)
 
         # Hook: AFTER_LLM_CALL
@@ -650,12 +673,25 @@ def run_react_agent_impl(
 
         # Parse actions
         _t = time.time()
-        try:
-            from core.action_parser import parse_all_actions
-        except ImportError:
-            parse_all_actions = lambda text, debug=False: []
-
-        actions = parse_all_actions(collected_content, debug=getattr(cfg, "DEBUG_MODE", False))
+        _use_native = getattr(cfg, "ENABLE_NATIVE_TOOL_CALLS", False) and bool(_native_calls)
+        if _use_native:
+            # Native mode: tool calls already structured as {id, name, arguments}
+            import json as _json
+            actions = []
+            for _tc in _native_calls:
+                try:
+                    _kwargs = _json.loads(_tc["arguments"] or "{}")
+                    # Format as kwarg string for existing tool dispatcher
+                    _args_str = ", ".join(f'{k}={_json.dumps(v)}' for k, v in _kwargs.items())
+                except Exception:
+                    _args_str = _tc.get("arguments", "")
+                actions.append((_tc["name"], _args_str, "sequential"))
+        else:
+            try:
+                from core.action_parser import parse_all_actions
+            except ImportError:
+                parse_all_actions = lambda text, debug=False: []
+            actions = parse_all_actions(collected_content, debug=getattr(cfg, "DEBUG_MODE", False))
         if _perf:
             print(f"  {Color.DIM}[PERF] parse_actions: {time.time()-_t:.3f}s{Color.RESET}")
 
@@ -715,6 +751,7 @@ def run_react_agent_impl(
             _is_todo_write = any(a[0] == "todo_write" for a in actions)
 
             combined_results: List[str] = []
+            _native_obs_pairs: List = []  # [(call_id, obs)] for native mode
 
             _SERIAL_ONLY = {"todo_update", "todo_write", "todo_add", "todo_remove"}
             _has_serial_only = any(a[0] in _SERIAL_ONLY for a in actions)
@@ -929,6 +966,9 @@ def run_react_agent_impl(
                             agent_observation = "\n".join(_obs_lines[:5]) + "\n\n(Remaining output truncated.)"
 
                     combined_results.append(f"--- [Action {i+1}] {tool_name} ---\n{agent_observation}")
+                    # Track native call ID → observation for tool role messages
+                    if _use_native and i < len(_native_calls):
+                        _native_obs_pairs.append((_native_calls[i]["id"], agent_observation))
 
                     # Refresh Textual sidebar immediately after todo changes
                     if deps.emit_todo_fn and tool_name in ("todo_update", "todo_write", "todo_add", "todo_remove") and todo_tracker:
@@ -1014,7 +1054,18 @@ def run_react_agent_impl(
                     header_parts.append("→ Interpret the result below in context of the current goal")
                     observation = "\n".join(header_parts) + "\n\n" + observation
 
-            messages = deps.process_obs_fn(observation, messages, todo_tracker=todo_tracker)
+            if _use_native and _native_obs_pairs:
+                # Native mode: add individual tool role messages with matching tool_call_id.
+                # This satisfies the OpenAI API requirement that every tool_call in the
+                # assistant message has a corresponding tool response message.
+                for _call_id, _obs in _native_obs_pairs:
+                    messages.append({
+                        "role": "tool",
+                        "content": _obs,
+                        "tool_call_id": _call_id,
+                    })
+            else:
+                messages = deps.process_obs_fn(observation, messages, todo_tracker=todo_tracker)
 
             # Todo continuation reminder — inject WITH observation so next LLM
             # call knows what to do. Apply in all modes (plan included).

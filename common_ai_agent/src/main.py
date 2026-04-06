@@ -889,8 +889,20 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
     """Wrapper: delegates to core.react_loop with main.py live dependencies injected."""
     # In TUI mode suppress stderr spinner so it doesn't bleed through Textual's display
     _is_tui = _textual_emit_content_fn is not None
-    _llm_fn = (lambda msg, stop=None: chat_completion_stream(msg, stop=stop, suppress_spinner=True)) \
-        if _is_tui else chat_completion_stream
+    # Native tool call mode: pass tools schemas to LLM API
+    _native_tools = None
+    if getattr(config, "ENABLE_NATIVE_TOOL_CALLS", False):
+        try:
+            from core.tool_schema import get_tool_schemas
+            _native_tools = get_tool_schemas(list(tools.AVAILABLE_TOOLS.keys()))
+        except Exception:
+            pass
+    if _native_tools:
+        _llm_fn = (lambda msg, stop=None, _t=_native_tools: chat_completion_stream(msg, stop=stop, suppress_spinner=True, tools=_t)) \
+            if _is_tui else (lambda msg, stop=None, _t=_native_tools: chat_completion_stream(msg, stop=stop, tools=_t))
+    else:
+        _llm_fn = (lambda msg, stop=None: chat_completion_stream(msg, stop=stop, suppress_spinner=True)) \
+            if _is_tui else chat_completion_stream
     deps = ReactLoopDeps(
         cfg=config,
         llm_call_fn=_llm_fn,
