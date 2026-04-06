@@ -59,13 +59,6 @@ module tdisp_tlp_rules #(
     //==========================================================================
     // Local parameters for TLP type classification
     //==========================================================================
-    // TLP format field (bits 31:29 of DW0)
-    localparam logic [2:0] FMT_NO_DATA   = 3'b000;
-    localparam logic [2:0] FMT_WITH_DATA = 3'b010;
-    localparam logic [2:0] FMT_4DW_NO_DATA   = 3'b001;
-    localparam logic [2:0] FMT_4DW_WITH_DATA = 3'b011;
-    localparam logic [2:0] FMT_TLP_PREFIX    = 3'b100;
-
     // TLP type field (bits 28:24 of DW0)
     localparam logic [4:0] TLP_MRD   = 5'b00000; // Memory Read
     localparam logic [4:0] TLP_MRD64 = 5'b01000; // Memory Read 64-bit
