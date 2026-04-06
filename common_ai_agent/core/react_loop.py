@@ -703,7 +703,8 @@ def run_react_agent_impl(
             _todo_ops = {"todo_write", "todo_update", "todo_add", "todo_remove"}
             _has_todo_op = any(a[0] in _todo_ops for a in actions)
             _is_todo_write = any(a[0] == "todo_write" for a in actions)
-            if _has_todo_op and agent_mode in ("plan", "plan_q"):
+            # [removed single-todo-op restriction]
+            # if _has_todo_op and agent_mode in ("plan", "plan_q"):
                 _todo_action = next(a for a in actions if a[0] in _todo_ops)
                 actions = [_todo_action]
 
@@ -894,8 +895,11 @@ def run_react_agent_impl(
                     except Exception:
                         pass
 
-            # Break after todo_write (plan step-by-step) — only in plan mode
-            if _is_todo_write and agent_mode in ("plan", "plan_q"):
+            # Plan mode: don't break after todo_write — agent may want to
+            # continue researching or refining the changes in subsequent turns.
+            # The loop will stop naturally when the agent produces text with no tool calls.
+            # [removed break after todo_write]
+            # if _is_todo_write and agent_mode in ("plan", "plan_q"):
                 break
 
             # Consecutive error tracking
