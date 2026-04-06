@@ -53,6 +53,7 @@ module tdisp_lock_ctrl #(
     output tdisp_types::tdisp_lock_flags_s  ctx_lock_flags_o,         // Lock flags to bind
     output logic [7:0]                      ctx_stream_id_o,          // Bound stream ID
     output logic [63:0]                     ctx_mmio_offset_o,        // Bound MMIO offset
+    output logic [63:0]                     ctx_p2p_mask_o,           // P2P address mask
     output logic [NONCE_WIDTH-1:0]          ctx_nonce_o,              // Generated nonce
     output logic                            ctx_nonce_valid_o,        // Nonce is valid
 
