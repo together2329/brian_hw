@@ -1015,11 +1015,14 @@ class AgentTUI(App):
             self._in_result = True
             # Strip tree prefix to check if content is a diff line
             inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", _plain)
-            if self._in_diff and re.match(r"^\+[^+]", inner):
+            # Also strip optional line-number prefix from format_diff_snippet
+            # e.g. "    42 -old line" or "    42 +new line" or "    42→context"
+            _diff_inner = re.sub(r"^\s*\d+\s*", "", inner)
+            if self._in_diff and re.match(r"^\+[^+]", _diff_inner):
                 log.write(RichText(f"  {_plain.strip()}", style=f"bold {_GREEN}"))
-            elif self._in_diff and re.match(r"^-[^-]", inner):
+            elif self._in_diff and re.match(r"^-[^-]", _diff_inner):
                 log.write(RichText(f"  {_plain.strip()}", style=f"bold {_RED}"))
-            elif self._in_diff and re.match(r"^@@", inner):
+            elif self._in_diff and re.match(r"^@@", _diff_inner):
                 log.write(RichText(f"  {_plain.strip()}", style=f"bold {_ACCENT}"))
             else:
                 log.write(RichText(f"  {_plain.strip()}", style=f"dim {_TEXT_FAINT}"))
