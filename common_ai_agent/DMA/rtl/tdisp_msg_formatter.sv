@@ -23,8 +23,8 @@ module tdisp_msg_formatter #(
     input  tdisp_types::tdisp_state_e       tdi_state_i,
 
     //--- TDISP_VERSION specific inputs ---
-    input  logic [7:0]                      version_count_i,         // Number of version entries
-    input  logic [255:0]                    version_entries_i,       // Version entry array
+    input  logic [7:0]                      version_count_i,         // Number of 2-byte version entries
+    input  logic [511:0]                    version_entries_i,       // Version entry array (up to 32 entries)
 
     //--- TDISP_CAPABILITIES specific inputs ---
     input  logic                            xt_mode_supported_i,     // DSM caps: XT mode
@@ -48,7 +48,7 @@ module tdisp_msg_formatter #(
     // (no extra inputs needed beyond rsp_type and interface_id)
 
     //--- BIND/UNBIND P2P specific inputs ---
-    input  logic [7:0]                      p2p_stream_id_i,         // P2P stream ID
+    input  logic [7:0]                      p2p_stream_id_i,         // P2P stream ID for BIND/UNBIND
 
     //--- SET_MMIO_ATTRIBUTE specific inputs ---
     // (response is just ack, no extra inputs)
