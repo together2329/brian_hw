@@ -726,6 +726,103 @@ module tb_dma_top;
         end
     endtask
 
+    // Test 9: Zero-length transfer (should not start)
+    task automatic test_zero_length_transfer;
+        logic [ADDR_WIDTH-1:0] src_addr, dst_addr;
+        logic [DATA_WIDTH-1:0] status_val;
+        begin
+            $display("\n========================================");
+            $display("TEST 9: Zero-Length Transfer");
+            $display("========================================");
+
+            src_addr = 32'h0000_F000;
+            dst_addr = 32'h0000_F100;
+
+            configure_dma(src_addr, dst_addr, 32'h0, 1'b0);  // 0 bytes
+            start_dma;
+
+            // Check status - should be IDLE (not busy)
+            repeat(10) @(posedge clk);
+            axi_lite_read(ADDR_STATUS, status_val);
+            check_result("zero_length_not_busy", (status_val[0] == 1'b0));
+
+            // Verify DMA did not write anything to destination
+            axi_lite_read(ADDR_STATUS, status_val);
+            check_result("zero_length_no_error", (status_val[2] == 1'b0));
+        end
+    endtask
+
+    // Test 10: Boundary address transfer
+    task automatic test_boundary_address_transfer;
+        logic [ADDR_WIDTH-1:0] src_addr, dst_addr, xfer_len;
+        logic success;
+        int errors;
+        begin
+            $display("\n========================================");
+            $display("TEST 10: Boundary Address Transfer");
+            $display("========================================");
+
+            // Use addresses near memory boundaries
+            src_addr = 32'h0000_FFF0;  // Near 64KB boundary
+            dst_addr = 32'h0000_1000;
+            xfer_len = 32'h4;  // 1 word (fits within memory)
+
+            load_src_mem(src_addr, 1, 32'hBOUNDARY);
+            configure_dma(src_addr, dst_addr, xfer_len, 1'b0);
+            start_dma;
+
+            wait_dma_done(1000, success);
+            check_result("boundary_transfer_done", success);
+
+            verify_dst_mem(dst_addr, 1, 32'hBOUNDARY, errors);
+            check_result("boundary_transfer_data", (errors == 0));
+        end
+    endtask
+
+    // Test 11: Same source and destination address
+    task automatic test_same_src_dst;
+        logic [ADDR_WIDTH-1:0] addr;
+        logic success;
+        int errors;
+        begin
+            $display("\n========================================");
+            $display("TEST 11: Same Source and Destination Address");
+            $display("========================================");
+
+            addr = 32'h0000_5000;
+            load_src_mem(addr, 4, 32'hFEEDFACE);
+
+            configure_dma(addr, addr, 32'h10, 1'b0);  // src == dst, 4 words
+            start_dma;
+
+            wait_dma_done(2000, success);
+            check_result("same_src_dst_done", success);
+
+            verify_dst_mem(addr, 4, 32'hFEEDFACE, errors);
+            check_result("same_src_dst_data", (errors == 0));
+        end
+    endtask
+
+    // Test 12: DMA without configuration (registers at default 0)
+    task automatic test_unconfigured_dma;
+        logic [DATA_WIDTH-1:0] status_val;
+        begin
+            $display("\n========================================");
+            $display("TEST 12: Unconfigured DMA Start");
+            $display("========================================");
+
+            // Apply soft reset to clear registers
+            axi_lite_write(ADDR_CTRL, 32'h00000004);
+
+            // Start with all-zero config (src=0, dst=0, len=0)
+            start_dma;
+
+            repeat(10) @(posedge clk);
+            axi_lite_read(ADDR_STATUS, status_val);
+            check_result("unconfigured_dma_idle", (status_val[0] == 1'b0));
+        end
+    endtask
+
     // =========================================================================
     // Main Test Sequence
     // =========================================================================
