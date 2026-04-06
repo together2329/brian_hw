@@ -197,7 +197,6 @@ module tdisp_lock_ctrl #(
             // Default pulse clears
             nonce_req_o    <= 1'b0;
             ctx_update_o   <= 1'b0;
-            rsp_done_o     <= 1'b0;
 
             case (state_q)
                 //----------------------------------------------------------
