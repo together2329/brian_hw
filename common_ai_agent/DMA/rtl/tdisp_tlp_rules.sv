@@ -25,17 +25,11 @@ module tdisp_tlp_rules #(
     //--- TLP input (from PCIe core upstream) ---
     input  logic                            tlp_valid_i,          // TLP header valid
     input  logic [31:0]                     tlp_header_dw0_i,     // TLP DW0 (fmt+type)
-    input  logic [31:0]                     tlp_header_dw1_i,     // TLP DW1 (req_id, tag, addr)
-    input  logic [31:0]                     tlp_header_dw2_i,     // TLP DW2 (address)
+    input  logic [31:0]                     tlp_header_dw2_i,     // TLP DW2 (address low)
     input  logic [31:0]                     tlp_header_dw3_i,     // TLP DW3 (address high, 4DW)
     input  logic                            tlp_is_4dw_i,         // 4DW header flag
-    input  logic [11:0]                     tlp_byte_count_i,     // Byte count
-    input  logic [15:0]                     tlp_requester_id_i,   // Requester ID
-    input  logic [7:0]                      tlp_tag_i,            // Tag
-    input  logic [2:0]                      tlp_tc_i,             // Traffic class
-    input  logic                            tlp_td_i,             // TLP digest flag
-    input  logic                            tlp_ep_i,             // Error poisoned
-    input  logic [1:0]                      tlp_at_i,             // Address type
+    input  logic [15:0]                     tlp_requester_id_i,   // Requester ID (for P2P check)
+    input  logic [1:0]                      tlp_at_i,             // Address type (for ATS redirect)
 
     //--- XT/T bit inputs from IDE ---
     input  logic                            tlp_tee_originator_i, // T bit: 1=TEE originator
