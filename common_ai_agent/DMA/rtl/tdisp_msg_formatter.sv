@@ -478,4 +478,15 @@ module tdisp_msg_formatter #(
         end
     end
 
+    //==========================================================================
+    // Unused signal tie-offs to prevent synthesis warnings
+    // These inputs are reserved for future extension / debug instrumentation
+    //==========================================================================
+    logic [7:0] unused_signals;
+    always_comb begin
+        unused_signals = '0;
+        unused_signals[0] = tdi_index_i[0];
+        unused_signals[1] = p2p_stream_id_i[0];
+    end
+
 endmodule : tdisp_msg_formatter
