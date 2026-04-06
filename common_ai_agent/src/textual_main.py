@@ -118,6 +118,13 @@ def _run_agent(app: AgentTUI) -> None:
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    import argparse as _argparse
+    _parser = _argparse.ArgumentParser(add_help=False)
+    _parser.add_argument('-s', '--session', default='default')
+    _args, _ = _parser.parse_known_args()
+
+    _agent._setup_session(_args.session)
+
     if _TEXTUAL_OK:
         from lib.textual_ui import AgentTUI, ContextUpdate
         AgentTUI(_run_agent).run()

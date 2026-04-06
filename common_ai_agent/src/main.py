@@ -943,7 +943,24 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
     )
 
 
-# --- 7. Main Loop ---
+# --- 7. Session Setup ---
+
+def _setup_session(session_name: str = 'default') -> Path:
+    """Create .session/<name>/ and redirect HISTORY_FILE / TODO_FILE into it."""
+    session_dir = Path.cwd() / '.session' / session_name
+    session_dir.mkdir(parents=True, exist_ok=True)
+
+    config.HISTORY_FILE = str(session_dir / 'conversation_history.json')
+    config.TODO_FILE    = str(session_dir / 'current_todos.json')
+
+    # todo_tracker captures TODO_FILE at import time — patch the module variable too
+    import lib.todo_tracker as _tt
+    _tt.TODO_FILE = session_dir / 'current_todos.json'
+
+    return session_dir
+
+
+# --- 8. Main Loop ---
 
 def chat_loop():
     # Pre-warm TCP+SSL connection in parallel while the rest of startup runs
@@ -1781,6 +1798,13 @@ def _ensure_git_repo():
 
 
 if __name__ == "__main__":
+    import argparse as _argparse
+    _parser = _argparse.ArgumentParser(add_help=False)
+    _parser.add_argument('-s', '--session', default='default')
+    _args, _ = _parser.parse_known_args()
+
+    _setup_session(_args.session)
+
     if getattr(config, 'GIT_VERSION_CONTROL_ENABLE', True):
         _ensure_git_repo()
 
@@ -1812,4 +1836,5 @@ if __name__ == "__main__":
         except Exception as e:
             print(Color.warning(f"[Warning] Failed to save knowledge: {e}"))
     else:
+        print(Color.system(f"[Session] {_args.session}"))
         chat_loop()
