@@ -160,11 +160,20 @@ def _llm_commit_summary(path: str, content_hint: str) -> str:
         result = _lc.call_llm_raw(prompt=prompt, model=model, temperature=temperature)
         return result.strip()[:60]
     except Exception as e:
-        print(f"[Git] commit summary LLM failed ({model}): {e}")
+        # Silent failure — don't pollute console with LLM errors during commits
+        if getattr(_cfg, 'DEBUG_MODE', False):
+            print(f"[Git] commit summary LLM failed ({model}): {e}")
+        # After 3 consecutive failures, disable summary mode for this session
+        _commit_llm_failures[0] += 1
+        if _commit_llm_failures[0] >= 3:
+            os.environ['GIT_COMMIT_MSG_MODE'] = 'simple'
+            if getattr(_cfg, 'DEBUG_MODE', False):
+                print("[Git] Auto-switched to simple commit mode after 3 LLM failures")
         return ""
 
 
 _git_lock = __import__('threading').Lock()
+_commit_llm_failures = [0]  # Mutable counter for LLM commit failures
 
 
 def _git_auto_commit(path: str, operation: str, stats: str = "", content_hint: str = ""):
