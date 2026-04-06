@@ -190,6 +190,7 @@ module tdisp_lock_ctrl #(
             ctx_lock_flags_o <= '0;
             ctx_stream_id_o  <= '0;
             ctx_mmio_offset_o<= '0;
+            ctx_p2p_mask_o   <= '0;
             ctx_nonce_o      <= '0;
             ctx_nonce_valid_o<= 1'b0;
             ctx_tdi_index_o  <= '0;
