@@ -292,11 +292,7 @@ module test_tdisp_lock_validation;
             @(posedge clk);
         end
 
-        // Acknowledge response
-        rsp_done = 1'b1;
-        @(posedge clk);
-        rsp_done = 1'b0;
-        @(posedge clk);
+        // NOTE: Response ack (rsp_done) is handled by check_response task
     endtask
 
     //==========================================================================
