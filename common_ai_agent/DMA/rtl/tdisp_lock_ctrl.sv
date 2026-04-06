@@ -141,6 +141,9 @@ module tdisp_lock_ctrl #(
         // Reserved flags must be zero
         reserved_flags_ok = (lock_flags_q.reserved == '0);
 
+        // FW update check: no_fw_update=1 is valid even if FW not supported (no-op)
+        // fw_update_supported_i is used downstream for context tracking
+
         // All checks pass
         all_checks_pass = state_ok   & iface_id_ok & stream_ok &
                           keys_ok    & spdm_ok      & tc0_ok    &
