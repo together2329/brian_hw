@@ -1016,12 +1016,12 @@ def run_react_agent_impl(
 
             messages = deps.process_obs_fn(observation, messages, todo_tracker=todo_tracker)
 
-            # Todo continuation reminder (execution mode only)
+            # Todo continuation reminder — inject WITH observation so next LLM
+            # call knows what to do. Apply in all modes (plan included).
             _last_tool_was_todo = tool_name in ("todo_update", "todo_write", "todo_add", "todo_remove")
             if (todo_tracker and todo_tracker.todos
                     and not todo_tracker.is_all_processed()
-                    and not _last_tool_was_todo
-                    and agent_mode not in ("plan", "plan_q")):
+                    and not _last_tool_was_todo):
                 reminder = todo_tracker.get_continuation_prompt()
                 if reminder:
                     last_content = messages[-1].get("content", "") if messages else ""
@@ -1100,19 +1100,16 @@ def run_react_agent_impl(
                 # Don't break — continue
             else:
                 visible = deps.strip_thinking_fn(collected_content).strip()
-                if final_answer_attempts < 2:
+                if final_answer_attempts < 1:
                     final_answer_attempts += 1
                     if visible:
-                        # Model produced output but no Action and no completion signal.
-                        # Ask it to output the next Action — do NOT suggest "say complete"
-                        # which causes premature loop termination.
+                        # Model produced output but no Action — ask once more.
+                        # Do NOT suggest "say complete" which causes premature loop exit.
                         messages.append({
                             "role": "user",
                             "content": (
-                                "[System] You described what to do but did not output an Action. "
-                                "Output the Action now:\n"
-                                "Action: tool_name\n"
-                                "Action Input: {\"param\": \"value\"}"
+                                "[System] If further action is needed, output it now: "
+                                "Action: tool_name(param=value)"
                             ),
                         })
                     else:
