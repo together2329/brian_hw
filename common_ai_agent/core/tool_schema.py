@@ -192,6 +192,19 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         "List all active sub-agent tasks.",
         {},
     ),
+
+    # ── Spec Navigation ───────────────────────────────────────────────────────
+    "spec_navigate": _fn(
+        "spec_navigate",
+        "Navigate PCIe/UCIe/NVMe spec by section ID. "
+        "Start with node_id='root' for TOC, drill into sections. "
+        "Leaf nodes contain full spec text. Use for ALL spec questions.",
+        {
+            "spec": {"type": "string", "description": "Spec name: pcie, ucie, nvme, etc."},
+            "node_id": {"type": "string", "description": "Section node ID (default: 'root' for TOC)"},
+        },
+        required=["spec"],
+    ),
 }
 
 
