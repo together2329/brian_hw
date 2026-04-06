@@ -583,6 +583,12 @@ ENABLE_ENHANCED_PARALLEL = os.getenv("ENABLE_ENHANCED_PARALLEL", "true").lower()
 # Maximum parallel workers for ReAct actions
 REACT_MAX_WORKERS = int(os.getenv("REACT_MAX_WORKERS", "5"))
 
+# Lines to preview when write_file runs (parallel or sequential). 0 = disable (show brief)
+WRITE_PREVIEW_LINES = int(os.getenv("WRITE_PREVIEW_LINES", "15"))
+
+# Max lines to show for edit/replace tool results. 0 = disable (show brief)
+EDIT_PREVIEW_MAX_LINES = int(os.getenv("EDIT_PREVIEW_MAX_LINES", "50"))
+
 # Timeout for a parallel action batch (seconds)
 REACT_ACTION_TIMEOUT = int(os.getenv("REACT_ACTION_TIMEOUT", "30"))
 

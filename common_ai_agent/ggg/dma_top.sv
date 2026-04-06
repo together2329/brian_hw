@@ -385,26 +385,23 @@ module dma_top #(
             DMA_READ: begin
                 rd_req = 1'b1;
                 if (bytes_remaining == 0) begin
-                    // Always go to WRITE to drain FIFO (data may be
-                    // arriving this cycle but count not yet updated)
                     dma_state_next = DMA_WRITE;
                 end else if (fifo_count >= FIFO_DEPTH - 1) begin
                     dma_state_next = DMA_WAIT_WR;
                 end
             end
             DMA_WAIT_WR: begin
-                if (fifo_empty && bytes_remaining == 0)
+                if (fifo_empty && pending_reads == 0)
                     dma_state_next = DMA_DONE_ST;
                 else if (!fifo_full)
                     dma_state_next = DMA_READ;
             end
             DMA_WRITE: begin
                 wr_req = 1'b1;
-                if (fifo_empty) begin
-                    if (bytes_remaining == 0)
-                        dma_state_next = DMA_DONE_ST;
-                    else
-                        dma_state_next = DMA_READ;
+                if (fifo_empty && pending_reads == 0) begin
+                    dma_state_next = DMA_DONE_ST;
+                end else if (fifo_empty && pending_reads > 0) begin
+                    dma_state_next = DMA_READ;
                 end
             end
             DMA_DONE_ST: begin
