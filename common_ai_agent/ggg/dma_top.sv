@@ -334,6 +334,7 @@ module dma_top #(
             src_addr_cnt  <= '0;
             dst_addr_cnt  <= '0;
             bytes_remaining <= '0;
+            pending_reads <= '0;
         end else begin
             dma_state <= dma_state_next;
             case (dma_state)
@@ -342,6 +343,7 @@ module dma_top #(
                         src_addr_cnt    <= src_addr_reg;
                         dst_addr_cnt    <= dst_addr_reg;
                         bytes_remaining <= xfer_len_reg;
+                        pending_reads   <= '0;
                     end
                 end
                 DMA_READ: begin
@@ -355,6 +357,12 @@ module dma_top #(
                         dst_addr_cnt <= dst_addr_cnt + (DATA_WIDTH/8);
                     end
                 end
+                default: ;
+            endcase
+            // Track pending reads (issued but not yet received)
+            case ({(m_axi_arready && m_axi_arvalid), (m_axi_rvalid && m_axi_rready)})
+                2'b10: pending_reads <= pending_reads + 1;
+                2'b01: pending_reads <= pending_reads - 1;
                 default: ;
             endcase
         end

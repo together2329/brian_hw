@@ -711,20 +711,47 @@ def run_react_agent_impl(
 
             combined_results: List[str] = []
 
-            if len(actions) > 1 and getattr(cfg, "ENABLE_REACT_PARALLEL", False):
+            _SERIAL_ONLY = {"todo_update", "todo_write", "todo_add", "todo_remove"}
+            _has_serial_only = any(a[0] in _SERIAL_ONLY for a in actions)
+
+            if len(actions) > 1 and getattr(cfg, "ENABLE_REACT_PARALLEL", False) and not _has_serial_only:
                 print(f"  ⚡ {len(actions)} actions (parallel)")
                 
                 # Pre-declare _INLINE_TOOLS to share with parallel rendering
                 _INLINE_TOOLS = {"read_file", "read_lines", "grep_file", "find_files", "list_dir",
-                                 "git_diff", "git_status", "write_file", "todo_write", "todo_update",
+                                 "git_diff", "git_status", "todo_write", "todo_update",
                                  "todo_add", "todo_remove"}
-                                 
+                _DIFF_TOOLS   = {"replace_in_file", "replace_lines", "replace_file_content",
+                               "git_commit", "git_push", "git_checkout", "git_branch"}
+                _WRITE_TOOLS  = {"write_file", "write_to_file"}
+
+                _write_preview_lines = getattr(cfg, "PARALLEL_WRITE_PREVIEW_LINES", 15)
+
+                def _write_preview(obs: str) -> str:
+                    """Show first N lines of written content (N from config)."""
+                    if _write_preview_lines <= 0:
+                        brief = format_tool_brief(tool_name, args_str, obs)
+                        return f"  {Color.DIM}⎿  {brief}{Color.RESET}"
+                    lines = obs.strip().splitlines()
+                    shown = lines[:_write_preview_lines]
+                    out = [f"  {Color.DIM}| {l}{Color.RESET}" for l in shown]
+                    if len(lines) > _write_preview_lines:
+                        out.append(f"  {Color.DIM}⎿ ... ({len(lines)} lines total){Color.RESET}")
+                    elif out:
+                        out[-1] = out[-1].replace("| ", "⎿ ", 1)
+                    return "\n".join(out)
+
                 action_results = deps.execute_parallel_fn(actions, tracker, agent_mode=agent_mode)
                 for idx, tool_name, args_str, observation in action_results:
                     summary = _extract_tool_args_summary(tool_name, args_str)
                     print(format_tool_header(tool_name, summary))
-                    
-                    if tool_name in _INLINE_TOOLS:
+
+                    if tool_name in _WRITE_TOOLS:
+                        print(_write_preview(observation))
+                    elif tool_name in _DIFF_TOOLS:
+                        # Show full diff output same as sequential mode
+                        print(format_tool_result(observation))
+                    elif tool_name in _INLINE_TOOLS:
                         brief = format_tool_brief(tool_name, args_str, observation)
                         print(f"  {Color.DIM}⎿  {brief}{Color.RESET}")
                     else:
@@ -857,8 +884,28 @@ def run_react_agent_impl(
                     elif tool_name == "background_task":
                         first_line = observation.splitlines()[0] if observation.strip() else "started"
                         print(f"  {Color.DIM}{first_line}{elapsed_suffix}{Color.RESET}")
-                    elif tool_name in ("replace_in_file", "replace_lines"):
-                        print(format_tool_result(observation, max_lines=1000, max_chars=100000))
+                    elif tool_name in ("replace_in_file", "replace_lines", "replace_file_content"):
+                        _edit_max = getattr(cfg, "EDIT_PREVIEW_MAX_LINES", 1000)
+                        if _edit_max <= 0:
+                            brief = format_tool_brief(tool_name, args_str, observation)
+                            print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")
+                        else:
+                            print(format_tool_result(observation, max_lines=_edit_max, max_chars=_edit_max * 120))
+                    elif tool_name in ("write_file", "write_to_file"):
+                        _wr_lines = getattr(cfg, "WRITE_PREVIEW_LINES", 15)
+                        if _wr_lines <= 0:
+                            brief = format_tool_brief(tool_name, args_str, observation)
+                            print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")
+                        else:
+                            lines = observation.strip().splitlines()
+                            shown = lines[:_wr_lines]
+                            for ln in shown[:-1]:
+                                print(f"  {Color.DIM}| {ln}{Color.RESET}")
+                            if shown:
+                                print(f"  {Color.DIM}⎿ {shown[-1]}{Color.RESET}" if len(lines) <= _wr_lines
+                                      else f"  {Color.DIM}| {shown[-1]}{Color.RESET}")
+                            if len(lines) > _wr_lines:
+                                print(f"  {Color.DIM}⎿ ... ({len(lines)} lines total){Color.RESET}")
                     elif tool_name in ("todo_update", "todo_write") and agent_mode in ("plan", "plan_q"):
                         print(format_tool_result(observation, max_lines=1000, max_chars=100000))
                     elif tool_name in _INLINE_TOOLS:
