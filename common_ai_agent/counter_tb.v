@@ -176,7 +176,27 @@ module counter_tb;
             pass_count = pass_count + 1;
         end
 
-        //=== Check 12: Monotonicity — count increases by exactly 1 ===
+        //=== Check 12: Count hold during reset ===
+        rst = 1;
+        begin : hold_block
+            integer hold_i;
+            for (hold_i = 0; hold_i < 10; hold_i = hold_i + 1) begin
+                #10; // one clock cycle
+                if (count !== 256'd0) begin
+                    $display("FAIL: count changed during reset at sample %0d, count=%0d", hold_i, count);
+                    fail_count = fail_count + 1;
+                end
+            end
+        end
+        if (count !== 256'd0) begin
+            $display("FAIL: count hold during reset — count=%0d, expected 0", count);
+            fail_count = fail_count + 1;
+        end else begin
+            $display("PASS: count held at 0 during 10-cycle reset");
+            pass_count = pass_count + 1;
+        end
+
+        //=== Check 13: Monotonicity — count increases by exactly 1 ===
         rst = 1;
         #10 rst = 0;
         begin : mono_block
