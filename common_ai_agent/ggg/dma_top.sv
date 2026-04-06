@@ -260,7 +260,7 @@ module dma_top #(
     // =========================================================================
     // AXI4-Lite Slave Interface - Read Path
     // =========================================================================
-    logic [1:0] axi_ar_state;
+    logic [2:0] axi_ar_state;
     logic [ADDR_WIDTH-1:0] araddr_reg;
 
     always_ff @(posedge clk or negedge rst_n) begin
@@ -270,19 +270,19 @@ module dma_top #(
             s_axi_rresp   <= 2'b00;
             s_axi_rdata   <= '0;
             araddr_reg    <= '0;
-            axi_ar_state  <= 2'd0;
+            axi_ar_state  <= 3'd0;
         end else begin
             case (axi_ar_state)
-                2'd0: begin // Wait for ARVALID
+                3'd0: begin // Wait for ARVALID
                     s_axi_arready <= 1'b1;
                     s_axi_rvalid  <= 1'b0;
                     if (s_axi_arvalid) begin
                         araddr_reg    <= s_axi_araddr;
                         s_axi_arready <= 1'b0;
-                        axi_ar_state  <= 2'd1;
+                        axi_ar_state  <= 3'd1;
                     end
                 end
-                2'd1: begin // Send RDATA
+                3'd1: begin // Assert RVALID, drive RDATA
                     s_axi_rvalid <= 1'b1;
                     s_axi_rresp  <= 2'b00;
                     case (araddr_reg[3:0])
@@ -294,12 +294,15 @@ module dma_top #(
                         ADDR_INT_STAT[3:0]: s_axi_rdata <= {31'd0, int_pending};
                         default:            s_axi_rdata <= '0;
                     endcase
+                    axi_ar_state <= 3'd2;
+                end
+                3'd2: begin // Wait for RREADY
                     if (s_axi_rready) begin
                         s_axi_rvalid <= 1'b0;
-                        axi_ar_state <= 2'd0;
+                        axi_ar_state <= 3'd0;
                     end
                 end
-                default: axi_ar_state <= 2'd0;
+                default: axi_ar_state <= 3'd0;
             endcase
         end
     end
