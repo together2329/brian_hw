@@ -505,6 +505,7 @@ module tdisp_transport #(
             tx_is_response_q    <= 1'b0;
             tx_rsp_pulse_q      <= 1'b0;
             tx_rsp_tdi_q        <= '0;
+            tx_mac_beat_q       <= '0;
 
             doe_tx_tdata        <= '0;
             doe_tx_tkeep        <= '0;
