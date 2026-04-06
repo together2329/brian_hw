@@ -73,14 +73,14 @@ module dma_top #(
     // =========================================================================
     // Register Map (offset addresses)
     // =========================================================================
-    localparam ADDR_SRC_LO   = 4'h0;  // Source address [31:0]
-    localparam ADDR_SRC_HI   = 4'h4;  // Source address [63:32] (reserved for 64-bit)
-    localparam ADDR_DST_LO   = 4'h8;  // Destination address [31:0]
-    localparam ADDR_DST_HI   = 4'hC;  // Destination address [63:32] (reserved)
-    localparam ADDR_XFER_LEN = 4'h10; // Transfer length in bytes
-    localparam ADDR_CTRL     = 4'h14; // Control register
-    localparam ADDR_STATUS   = 4'h18; // Status register
-    localparam ADDR_INT_STAT = 4'h1C; // Interrupt status register
+    localparam ADDR_SRC_LO   = 8'h00;  // Source address [31:0]
+    localparam ADDR_SRC_HI   = 8'h04;  // Source address [63:32] (reserved for 64-bit)
+    localparam ADDR_DST_LO   = 8'h08;  // Destination address [31:0]
+    localparam ADDR_DST_HI   = 8'h0C;  // Destination address [63:32] (reserved)
+    localparam ADDR_XFER_LEN = 8'h10;  // Transfer length in bytes
+    localparam ADDR_CTRL     = 8'h14;  // Control register
+    localparam ADDR_STATUS   = 8'h18;  // Status register
+    localparam ADDR_INT_STAT = 8'h1C;  // Interrupt status register
 
     // =========================================================================
     // Control/Status Register Bits
