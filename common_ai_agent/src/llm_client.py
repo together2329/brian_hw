@@ -451,6 +451,9 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             response = _persistent_post(url, headers, _body, timeout=config.STREAM_API_TIMEOUT)
             try:
                 usage_info = None
+                # Accumulate native tool calls across streaming chunks.
+                # OpenAI streaming sends name in first chunk, arguments fragmented across many.
+                _pending_tool_calls: Dict[int, Dict] = {}
                 for line in response:
                     line = line.decode('utf-8').strip()
                     if line.startswith("data: "):
@@ -475,24 +478,36 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                 if content:
                                     yield ("content", content)
 
-                                # Handle native tool_calls (models like Qwen, Mistral, etc.)
+                                # Accumulate native tool_calls across chunks.
+                                # name arrives only in the first chunk; arguments are fragmented.
                                 tool_calls = delta.get("tool_calls", [])
                                 for tc in tool_calls:
+                                    idx = tc.get("index", 0)
+                                    if idx not in _pending_tool_calls:
+                                        _pending_tool_calls[idx] = {"name": "", "arguments": ""}
                                     func = tc.get("function", {})
-                                    tc_name = func.get("name", "")
-                                    tc_args_str = func.get("arguments", "")
-                                    if tc_name and tc_args_str:
-                                        try:
-                                            tc_args = json.loads(tc_args_str)
-                                            args_formatted = ", ".join(
-                                                f'{k}={json.dumps(v)}' for k, v in tc_args.items()
-                                            )
-                                            yield f"\nAction: {tc_name}({args_formatted})\n"
-                                        except (json.JSONDecodeError, AttributeError):
-                                            pass
+                                    if func.get("name"):
+                                        _pending_tool_calls[idx]["name"] = func["name"]
+                                    if func.get("arguments"):
+                                        _pending_tool_calls[idx]["arguments"] += func["arguments"]
 
                         except json.JSONDecodeError:
                             continue
+
+                # Emit accumulated tool calls as Action: lines after stream ends
+                for idx in sorted(_pending_tool_calls):
+                    tc_info = _pending_tool_calls[idx]
+                    tc_name = tc_info["name"]
+                    tc_args_str = tc_info["arguments"]
+                    if tc_name and tc_args_str:
+                        try:
+                            tc_args = json.loads(tc_args_str)
+                            args_formatted = ", ".join(
+                                f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                            )
+                            yield f"\nAction: {tc_name}({args_formatted})\n"
+                        except (json.JSONDecodeError, AttributeError):
+                            pass
 
                 if usage_info:
                     input_tokens = usage_info.get("input_tokens") or usage_info.get("prompt_tokens", 0)
@@ -1051,6 +1066,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 usage_info = None
                 _t_first_token = None
                 _total_tokens_streamed = 0
+                # Accumulate native tool calls across streaming chunks.
+                _pending_tool_calls: Dict[int, Dict] = {}
                 for line in response:
                     line = line.decode('utf-8').strip()
                     if line.startswith("data: "):
@@ -1112,26 +1129,36 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                 if content:
                                     yield content
 
-                                # Handle native tool_calls
+                                # Accumulate native tool_calls across chunks.
+                                # name arrives only in the first chunk; arguments are fragmented.
                                 tool_calls = delta.get("tool_calls", [])
                                 for tc in tool_calls:
+                                    idx = tc.get("index", 0)
+                                    if idx not in _pending_tool_calls:
+                                        _pending_tool_calls[idx] = {"name": "", "arguments": ""}
                                     func = tc.get("function", {})
-                                    tc_name = func.get("name", "")
-                                    tc_args_str = func.get("arguments", "")
-                                    if tc_name and tc_args_str:
-                                        try:
-                                            tc_args = json.loads(tc_args_str)
-                                            args_formatted = ", ".join(
-                                                f'{k}={json.dumps(v)}' for k, v in tc_args.items()
-                                            )
-                                            action_text = f"\nAction: {tc_name}({args_formatted})\n"
-                                            yield action_text
-                                        except (json.JSONDecodeError, AttributeError):
-                                            # Partial JSON from streaming - accumulate
-                                            pass
+                                    if func.get("name"):
+                                        _pending_tool_calls[idx]["name"] = func["name"]
+                                    if func.get("arguments"):
+                                        _pending_tool_calls[idx]["arguments"] += func["arguments"]
 
                         except json.JSONDecodeError:
                             continue
+
+                # Emit accumulated tool calls as Action: lines after stream ends
+                for idx in sorted(_pending_tool_calls):
+                    tc_info = _pending_tool_calls[idx]
+                    tc_name = tc_info["name"]
+                    tc_args_str = tc_info["arguments"]
+                    if tc_name and tc_args_str:
+                        try:
+                            tc_args = json.loads(tc_args_str)
+                            args_formatted = ", ".join(
+                                f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                            )
+                            yield f"\nAction: {tc_name}({args_formatted})\n"
+                        except (json.JSONDecodeError, AttributeError):
+                            pass
 
                 # Print PERF/LLM summary after streaming completes (clean, no mid-stream interleave)
                 if _perf:
