@@ -731,7 +731,9 @@ module tdisp_transport #(
     always_comb begin
         tdisp_tx_tready = 1'b0;
         case (tx_state_q)
-            TX_IDLE:          tdisp_tx_tready = 1'b1; // Accept immediately
+            // TX_IDLE does NOT assert tready — tdisp_tx_tvalid is only used as
+            // a trigger to begin header transmission. The formatter must hold its
+            // first beat until TX_TDISP_PAYLOAD drives tready via doe_tx_tready.
             TX_TDISP_PAYLOAD: tdisp_tx_tready = doe_tx_tready;
             default:          tdisp_tx_tready = 1'b0;
         endcase
