@@ -278,19 +278,28 @@ module tdisp_tlp_rules #(
                         end
                     end
 
-                    // MSI-X lock enforcement
-                    if (tdi_msix_locked_i[matched_tdi] && is_write) begin
-                        // MSI-X table/PBA writes blocked when locked
-                        // (Address match against MSI-X range would be done externally;
-                        //  this flag gates the general policy)
-                        // For now, allow; MSI-X check handled by dedicated comparator
+                    // ATS request redirect enforcement (all_request_redirect flag)
+                    // When redirect enabled: ATS-translated requests are redirected
+                    // to non-TEE memory ranges; block if accessing TEE memory
+                    if (is_ats_translated && tdi_req_redirect_i[matched_tdi]) begin
+                        if (tdi_tee_mem_match[matched_tdi] && !tlp_tee_originator_i) begin
+                            // Non-TEE ATS-translated access to TEE memory: BLOCKED
+                            policy_allow   = 1'b0;
+                            violation_code = ERR_INVALID_INTERFACE_STATE;
+                        end
                     end
 
-                    // P2P access check
-                    if (!tdi_p2p_enabled_i[matched_tdi] && is_write) begin
-                        // P2P writes blocked if P2P not enabled
-                        // Simplified: actual P2P detection needs bus number comparison
+                    // P2P access enforcement
+                    // When P2P not enabled, block peer-to-peer requests
+                    if (is_p2p_request && !tdi_p2p_enabled_i[matched_tdi] &&
+                        (is_mem_read || is_mem_write)) begin
+                        policy_allow   = 1'b0;
+                        violation_code = ERR_INVALID_DEVICE_CONFIGURATION;
                     end
+
+                    // MSI-X lock: writes to MSI-X table/PBA blocked when locked
+                    // (requires external MSI-X address comparator to set this flag)
+                    // tdi_msix_locked_i gates MSI-X range write access externally
                 end
 
                 //------------------------------------------
