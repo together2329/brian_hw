@@ -178,7 +178,7 @@ GIT_VERSION_CONTROL_ENABLE = os.getenv("GIT_VERSION_CONTROL_ENABLE", "true").low
 # Commit message verbosity: "simple" | "summary"
 GIT_COMMIT_MSG_MODE = os.getenv("GIT_COMMIT_MSG_MODE", "simple")
 # Cheap LLM model for generating git commit summaries
-GIT_COMMIT_SUMMARY_MODEL = os.getenv("GIT_COMMIT_SUMMARY_MODEL", "openrouter/qwen/qwen-2.5-7b-instruct")
+GIT_COMMIT_SUMMARY_MODEL = os.getenv("GIT_COMMIT_SUMMARY_MODEL", MODEL_NAME)
 
 # Secondary model: lightweight tasks (spec summarization, etc.)
 SECONDARY_MODEL = os.getenv("SECONDARY_MODEL", MODEL_NAME)
