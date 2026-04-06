@@ -122,8 +122,8 @@ module tdisp_tlp_rules #(
 
         // Extract address
         if (tlp_is_4dw_i) begin
-            // 64-bit address from DW2[31:2] ++ DW3
-            tlp_addr = {tlp_header_dw2_i[31:2], tlp_header_dw3_i, 2'b00};
+            // 64-bit address: DW2 = upper 32 bits, DW3 = lower 30 bits [31:2]
+            tlp_addr = {tlp_header_dw2_i, tlp_header_dw3_i[31:2], 2'b00};
         end else begin
             // 32-bit address from DW2[31:2]
             tlp_addr = {32'b0, tlp_header_dw2_i[31:2], 2'b00};
