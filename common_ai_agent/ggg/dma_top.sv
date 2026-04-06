@@ -443,10 +443,21 @@ module dma_top #(
     // Status & Interrupt
     // =========================================================================
     assign dma_busy  = (dma_state != DMA_IDLE);
-    assign dma_done  = (dma_state == DMA_DONE_ST);
     assign dma_error = (dma_state == DMA_ERROR_ST) ||
                        (m_axi_rresp == 2'b10) || (m_axi_rresp == 2'b11) ||
                        (m_axi_bresp == 2'b10) || (m_axi_bresp == 2'b11);
+
+    // Latch done flag so polling can observe it
+    logic dma_done_latched;
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            dma_done_latched <= 1'b0;
+        else if (dma_state == DMA_DONE_ST)
+            dma_done_latched <= 1'b1;
+        else if (start_pulse)
+            dma_done_latched <= 1'b0;
+    end
+    assign dma_done = dma_done_latched;
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n)
