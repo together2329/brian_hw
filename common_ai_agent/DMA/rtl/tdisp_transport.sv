@@ -12,7 +12,7 @@ module tdisp_transport #(
     parameter int unsigned MAX_OUTSTANDING  = 255,  // Max outstanding requests across all TDIs
     parameter int unsigned MAX_MSG_BYTES    = 1024, // Max TDISP message size in bytes
     parameter int unsigned MAC_WIDTH        = 32,   // MAC tag width in bytes (0=no MAC, 16/32)
-    parameter int unsigned SESSION_ID_WIDTH = 32     // SPDM Session ID width
+    parameter int unsigned SESSION_ID_WIDTH = 32    // SPDM Session ID width
 ) (
     input  logic                            clk,
     input  logic                            rst_n,
@@ -89,7 +89,6 @@ module tdisp_transport #(
     //   [0]    RequestResponseCode (F3h=secured request, F4h=secured response)
     //   [1:2]  ApplicationDataLength (little-endian)
     //   [3:6]  SessionID (4 bytes, only for request; response uses negotiated)
-    localparam int unsigned SPDM_SEC_HDR_SIZE   = 3; // Without Session ID
     localparam int unsigned SPDM_SEC_REQ_SIZE   = 7; // With Session ID
 
     // SPDM Request/Response codes
@@ -98,19 +97,13 @@ module tdisp_transport #(
     localparam logic [7:0] SPDM_SEC_REQUEST     = 8'hF3;
     localparam logic [7:0] SPDM_SEC_RESPONSE    = 8'hF4;
 
-    // MAC width in bits
-    localparam int unsigned MAC_BITS = MAC_WIDTH * 8;
-
     //==========================================================================
     // RX FSM - Decapsulation (DOE -> TDISP)
     //==========================================================================
     typedef enum logic [3:0] {
         RX_IDLE,
-        RX_SPDM_HDR,        // Receive SPDM header (3 bytes: code + param1 + param2)
-        RX_VD_STD_ID,       // Receive Standard ID (2 bytes)
-        RX_VD_VENDOR_ID,    // Receive Vendor ID (2 bytes)
-        RX_VD_PAYLOAD_LEN,  // Receive Payload Length (2 bytes)
-        RX_VD_PROTOCOL_ID,  // Receive Protocol ID (1 byte)
+        RX_SPDM_HDR,        // Receive SPDM header (param1 + param2 + StdID + VendorID)
+        RX_VD_PAYLOAD_LEN,  // Receive Payload Length (2 bytes) + Protocol ID (1 byte)
         RX_TDISP_PAYLOAD,   // Forward TDISP payload to parser
         RX_SEC_APP_HDR,     // Secured message: Application Data Length + Session ID
         RX_SEC_VERIFY_MAC,  // Secured message: verify MAC at end
@@ -153,12 +146,15 @@ module tdisp_transport #(
     logic [BYTE_CNT_W-1:0] rx_total_app_bytes_q;// Total app data bytes for secured msg
 
     // TDISP payload byte buffer for extracting bytes from beats
-    logic [DATA_WIDTH-1:0]   rx_data_buf_q;
-    logic [BYTES_PER_BEAT-1:0] rx_buf_valid_q; // Which bytes in buffer are valid
+    logic [DATA_WIDTH-1:0]     rx_data_buf_q;
+    logic [BYTES_PER_BEAT-1:0] rx_buf_valid_q;  // Which bytes in buffer are valid
 
     // Message classification
-    logic          rx_is_vendor_defined;
-    logic          rx_is_tdisp;
+    logic          rx_is_request_q;      // Current RX message is a request
+
+    // RX request count pulse (intermediate, fed to consolidated counter)
+    logic                          rx_req_pulse_q;
+    logic [$clog2(NUM_TDI)-1:0]    rx_req_tdi_q;
 
     //==========================================================================
     // Internal Registers - TX Path
@@ -168,22 +164,17 @@ module tdisp_transport #(
     logic [SESSION_ID_WIDTH-1:0] tx_session_id_q;
     logic          tx_is_secured_q;
     logic [15:0]   tx_vd_payload_len_q;
+    logic          tx_is_response_q;
 
-    // TX header staging
-    logic [DATA_WIDTH-1:0]  tx_hdr_data_q;
-    logic [BYTES_PER_BEAT-1:0] tx_hdr_keep_q;
-    logic               tx_hdr_last_q;
-    logic               tx_hdr_valid_q;
+    // TX request count pulse (intermediate, fed to consolidated counter)
+    logic                          tx_rsp_pulse_q;
+    logic [$clog2(NUM_TDI)-1:0]    tx_rsp_tdi_q;
 
     //==========================================================================
     // Outstanding Request Tracking
     //==========================================================================
     logic [7:0]    num_req_all_q;        // Total outstanding across all TDIs
     logic [7:0]    num_req_this_q [NUM_TDI]; // Per-TDI outstanding
-
-    // Detect request vs response for tracking
-    logic          rx_is_request_q;      // Current RX message is a request
-    logic          tx_is_response_q;     // Current TX message is a response
 
     //==========================================================================
     // Session Management
@@ -212,38 +203,35 @@ module tdisp_transport #(
     endfunction
 
     //==========================================================================
-    // RX Classification Combinational Logic
-    //==========================================================================
-    assign rx_is_vendor_defined = (rx_spdm_code_q == SPDM_VD_REQUEST) ||
-                                  (rx_spdm_code_q == SPDM_VD_RESPONSE);
-    assign rx_is_tdisp = rx_is_vendor_defined &&
-                         (rx_std_id_q   == SPDM_STANDARD_ID_PCI_SIG) &&
-                         (rx_vendor_id_q == SPDM_VENDOR_ID_PCI_SIG) &&
-                         (rx_protocol_id_q == SPDM_PROTOCOL_ID_TDISP);
-
-    //==========================================================================
     // Session outputs
     //==========================================================================
-    assign session_id_o     = active_session_id_q;
-    assign session_active_o = session_active_q;
-    assign secured_msg_o    = rx_is_secured_q;
-
-    //==========================================================================
-    // Outstanding request count outputs
-    //==========================================================================
+    assign session_id_o       = active_session_id_q;
+    assign session_active_o   = session_active_q;
+    assign secured_msg_o      = rx_is_secured_q;
     assign total_outstanding_o = num_req_all_q;
 
     //==========================================================================
-    // RX Data Buffer Management
-    // Accumulates bytes from AXI-Stream beats and provides byte-level access
-    // for header field extraction. Handles arbitrary DATA_WIDTH alignment.
+    // Consolidated request count output driving
+    // Combines RX increment pulse and TX decrement pulse into a single driver
+    // to avoid multiple-driver synthesis errors.
+    // Priority: TX decrement first (frees slots), then RX increment
     //==========================================================================
-    logic [DATA_WIDTH-1:0]   rx_shift_data;
-    logic [BYTES_PER_BEAT:0] rx_shift_bytes; // Can be BYTES_PER_BEAT wide
-
     always_comb begin
-        rx_shift_data  = '0;
-        rx_shift_bytes = '0;
+        req_count_update_o    = 1'b0;
+        req_count_tdi_o       = '0;
+        req_count_increment_o = 1'b0;
+
+        if (tx_rsp_pulse_q) begin
+            // Response sent → decrement outstanding count
+            req_count_update_o    = 1'b1;
+            req_count_tdi_o       = tx_rsp_tdi_q;
+            req_count_increment_o = 1'b0;
+        end else if (rx_req_pulse_q) begin
+            // Request received → increment outstanding count
+            req_count_update_o    = 1'b1;
+            req_count_tdi_o       = rx_req_tdi_q;
+            req_count_increment_o = 1'b1;
+        end
     end
 
     //==========================================================================
@@ -268,6 +256,8 @@ module tdisp_transport #(
             rx_data_buf_q       <= '0;
             rx_buf_valid_q      <= '0;
             rx_is_request_q     <= 1'b0;
+            rx_req_pulse_q      <= 1'b0;
+            rx_req_tdi_q        <= '0;
 
             tdisp_rx_tdata      <= '0;
             tdisp_rx_tkeep      <= '0;
@@ -280,6 +270,7 @@ module tdisp_transport #(
             // Default: clear pulsed signals
             tdisp_rx_tvalid     <= 1'b0;
             transport_error_o   <= 1'b0;
+            rx_req_pulse_q      <= 1'b0;
 
             case (rx_state_q)
                 //==============================================================
@@ -290,7 +281,6 @@ module tdisp_transport #(
                     rx_is_secured_q  <= 1'b0;
                     rx_buf_valid_q   <= '0;
                     rx_is_request_q  <= 1'b0;
-                    transport_error_o<= 1'b0;
 
                     if (doe_rx_tvalid && doe_rx_tready) begin
                         // Capture first beat
@@ -325,7 +315,6 @@ module tdisp_transport #(
                 RX_SPDM_HDR: begin
                     // Already have code, param1, param2 from RX_IDLE or previous beat
                     // Need Standard ID (2 bytes) + Vendor ID (2 bytes) = 4 bytes
-                    // With 32-bit width: need 1 more beat for bytes 3-6
                     if (doe_rx_tvalid && doe_rx_tready) begin
                         rx_std_id_q     <= pack_le16(get_byte(doe_rx_tdata, 0),
                                                      get_byte(doe_rx_tdata, 1));
@@ -362,7 +351,7 @@ module tdisp_transport #(
                             // If there's remaining data in this beat, forward it
                             if (BYTES_PER_BEAT > 3) begin
                                 // Forward remaining bytes as first TDISP beat
-                                tdisp_rx_tdata  <= doe_rx_tdata >> 24; // Shift to put byte 3 first
+                                tdisp_rx_tdata  <= doe_rx_tdata >> 24;
                                 tdisp_rx_tkeep  <= doe_rx_tkeep >> 3;
                                 tdisp_rx_tvalid <= (doe_rx_tkeep[BYTES_PER_BEAT-1:3] != '0);
                                 if (doe_rx_tlast && doe_rx_tkeep[BYTES_PER_BEAT-1:3] == '0) begin
@@ -372,7 +361,7 @@ module tdisp_transport #(
                                 rx_state_q <= RX_COMPLETE;
                             end
 
-                            // Increment outstanding request count for requests
+                            // Track TDISP payload bytes for requests
                             if (rx_is_request_q) begin
                                 rx_tdisp_bytes_q <= BYTE_CNT_W'(BYTES_PER_BEAT - 3);
                             end
@@ -410,7 +399,7 @@ module tdisp_transport #(
                         rx_session_id_q[15:8]  <= get_byte(doe_rx_tdata, 3);
 
                         if (DATA_WIDTH >= 64) begin
-                            // All 7 bytes of secured header in 2 beats for 32-bit
+                            // All 7 bytes of secured header fit in 2 beats for 64-bit
                             rx_session_id_q[23:16] <= get_byte(doe_rx_tdata, 4);
                             rx_session_id_q[31:24] <= get_byte(doe_rx_tdata, 5);
                             rx_byte_cnt_q <= BYTE_CNT_W'(BYTES_PER_BEAT);
@@ -427,10 +416,10 @@ module tdisp_transport #(
                             rx_state_q     <= RX_SPDM_HDR;
                         end else begin
                             // 32-bit: need another beat for session ID bytes 2,3
-                            rx_state_q <= RX_SEC_APP_HDR;
                             // Use byte_cnt to track progress
                             if (rx_byte_cnt_q <= BYTE_CNT_W'(1)) begin
                                 rx_byte_cnt_q <= BYTE_CNT_W'(BYTES_PER_BEAT + 1);
+                                rx_state_q    <= RX_SEC_APP_HDR;
                             end else begin
                                 rx_session_id_q[23:16] <= get_byte(doe_rx_tdata, 0);
                                 rx_session_id_q[31:24] <= get_byte(doe_rx_tdata, 1);
@@ -459,21 +448,18 @@ module tdisp_transport #(
 
                 //==============================================================
                 RX_COMPLETE: begin
-                    // Request counting: increment on request received
-                    if (rx_is_request_q && num_req_all_q < MAX_OUTSTANDING[7:0]) begin
-                        req_count_update_o    <= 1'b1;
-                        req_count_tdi_o       <= tdi_index_i;
-                        req_count_increment_o <= 1'b1;
-                    end else begin
-                        req_count_update_o <= 1'b0;
+                    // Pulse request count increment for request messages
+                    if (rx_is_request_q && tdi_index_valid_i &&
+                        num_req_all_q < MAX_OUTSTANDING[7:0]) begin
+                        rx_req_pulse_q <= 1'b1;
+                        rx_req_tdi_q   <= tdi_index_i;
                     end
                     rx_state_q <= RX_IDLE;
                 end
 
                 //==============================================================
                 RX_ERROR: begin
-                    transport_error_o <= 1'b0;
-                    rx_state_q        <= RX_IDLE;
+                    rx_state_q <= RX_IDLE;
                 end
 
                 default: rx_state_q <= RX_IDLE;
@@ -489,10 +475,7 @@ module tdisp_transport #(
         case (rx_state_q)
             RX_IDLE:           doe_rx_tready = 1'b1;
             RX_SPDM_HDR:       doe_rx_tready = 1'b1;
-            RX_VD_STD_ID:      doe_rx_tready = 1'b1;
-            RX_VD_VENDOR_ID:   doe_rx_tready = 1'b1;
             RX_VD_PAYLOAD_LEN: doe_rx_tready = 1'b1;
-            RX_VD_PROTOCOL_ID: doe_rx_tready = 1'b1;
             RX_TDISP_PAYLOAD:  doe_rx_tready = tdisp_rx_tready;
             RX_SEC_APP_HDR:    doe_rx_tready = 1'b1;
             RX_SEC_VERIFY_MAC: doe_rx_tready = 1'b1;
@@ -514,8 +497,9 @@ module tdisp_transport #(
             tx_session_id_q     <= '0;
             tx_is_secured_q     <= 1'b0;
             tx_vd_payload_len_q <= '0;
-            tx_hdr_valid_q      <= 1'b0;
             tx_is_response_q    <= 1'b0;
+            tx_rsp_pulse_q      <= 1'b0;
+            tx_rsp_tdi_q        <= '0;
 
             doe_tx_tdata        <= '0;
             doe_tx_tkeep        <= '0;
@@ -523,7 +507,7 @@ module tdisp_transport #(
             doe_tx_tvalid       <= 1'b0;
         end else begin
             doe_tx_tvalid  <= 1'b0;
-            tx_hdr_valid_q <= 1'b0;
+            tx_rsp_pulse_q <= 1'b0;
 
             case (tx_state_q)
                 //==============================================================
@@ -544,15 +528,6 @@ module tdisp_transport #(
                         end else begin
                             tx_state_q <= TX_SPDM_HDR;
                         end
-
-                        // Build SPDM VENDOR_DEFINED header
-                        // Byte 0: ResponseCode = 5Fh
-                        // Byte 1: Param1 = 0
-                        // Byte 2: Param2 = 0
-                        // Bytes 3-4: StandardID = 0001h (PCI-SIG)
-                        // Bytes 5-6: VendorID = 0001h (PCI-SIG)
-                        // Bytes 7-8: PayloadLength (placeholder, updated later)
-                        // Byte 9: ProtocolID = 01h (TDISP)
                     end
                 end
 
@@ -585,16 +560,22 @@ module tdisp_transport #(
                             doe_tx_tdata[31:24] <= tx_session_id_q[7:0];
                             doe_tx_tlast <= 1'b0;
                             tx_byte_cnt_q <= BYTE_CNT_W'(BYTES_PER_BEAT);
-                            // Continue with session ID bytes 1-3 next beat
+                            // Continue with session ID bytes 1-3 in TX_VD_HDR
+                            tx_state_q <= TX_VD_HDR;
                         end
                     end
                 end
 
                 //==============================================================
                 TX_SPDM_HDR: begin
-                    // Transmit SPDM VENDOR_DEFINED header
-                    // This state handles both secured (continuing after SEC_HDR)
-                    // and non-secured (first header after IDLE)
+                    // Transmit SPDM VENDOR_DEFINED header (non-secured path)
+                    // Byte 0: ResponseCode = 5Fh
+                    // Byte 1: Param1 = 0
+                    // Byte 2: Param2 = 0
+                    // Bytes 3-4: StandardID = 0001h (PCI-SIG)
+                    // Bytes 5-6: VendorID = 0001h (PCI-SIG)
+                    // Bytes 7-8: PayloadLength (placeholder, updated later)
+                    // Byte 9: ProtocolID = 01h (TDISP)
                     if (doe_tx_tready) begin
                         doe_tx_tvalid <= 1'b1;
                         doe_tx_tkeep  <= '1;
@@ -611,11 +592,9 @@ module tdisp_transport #(
                                     doe_tx_tdata[47:40] <= SPDM_VENDOR_ID_PCI_SIG[7:0];
                                     doe_tx_tdata[55:48] <= SPDM_VENDOR_ID_PCI_SIG[15:8];
                                     doe_tx_tdata[63:56] <= 8'h00; // PayloadLen lo placeholder
-                                    tx_byte_cnt_q <= BYTE_CNT_W'(BYTES_PER_BEAT);
-                                end else begin
-                                    tx_byte_cnt_q <= BYTE_CNT_W'(BYTES_PER_BEAT);
                                 end
                                 doe_tx_tlast <= 1'b0;
+                                tx_byte_cnt_q <= BYTE_CNT_W'(BYTES_PER_BEAT);
                             end
 
                             default: begin
@@ -641,25 +620,50 @@ module tdisp_transport #(
 
                 //==============================================================
                 TX_VD_HDR: begin
-                    // Continue VD header (for 64-bit+ after SEC_HDR, or second beat)
+                    // Continue VD header after SEC_HDR, or for 64-bit+ non-secured
                     if (doe_tx_tready) begin
                         doe_tx_tvalid <= 1'b1;
                         doe_tx_tkeep  <= '1;
                         doe_tx_tlast  <= 1'b0;
 
-                        // For 64-bit: after SEC_HDR, we already sent byte 6 (SPDM_VD_RESPONSE)
+                        // For 64-bit secured path: we already sent byte 6 (SPDM_VD_RESPONSE)
                         // Now send Param1, Param2, StdID, VendorID, PayloadLen, ProtocolID
-                        doe_tx_tdata[7:0]   <= 8'h00;  // Param1
-                        doe_tx_tdata[15:8]  <= 8'h00;  // Param2
-                        doe_tx_tdata[23:16] <= SPDM_STANDARD_ID_PCI_SIG[7:0];
-                        doe_tx_tdata[31:24] <= SPDM_STANDARD_ID_PCI_SIG[15:8];
-                        doe_tx_tdata[39:32] <= SPDM_VENDOR_ID_PCI_SIG[7:0];
-                        doe_tx_tdata[47:40] <= SPDM_VENDOR_ID_PCI_SIG[15:8];
-                        doe_tx_tdata[55:48] <= 8'h00;  // PayloadLen lo
-                        doe_tx_tdata[63:56] <= 8'h00;  // PayloadLen hi
+                        // For 32-bit secured path: send remaining SessionID + start of VD header
+                        if (tx_is_secured_q && DATA_WIDTH == 32) begin
+                            // 32-bit secured: send SessionID[15:8],[23:16],[31:24] + VD_RESPONSE
+                            doe_tx_tdata[7:0]   <= tx_session_id_q[15:8];
+                            doe_tx_tdata[15:8]  <= tx_session_id_q[23:16];
+                            doe_tx_tdata[23:16] <= tx_session_id_q[31:24];
+                            doe_tx_tdata[31:16] <= SPDM_VD_RESPONSE;
+                        end else begin
+                            doe_tx_tdata[7:0]   <= 8'h00;  // Param1
+                            doe_tx_tdata[15:8]  <= 8'h00;  // Param2
+                            doe_tx_tdata[23:16] <= SPDM_STANDARD_ID_PCI_SIG[7:0];
+                            doe_tx_tdata[31:24] <= SPDM_STANDARD_ID_PCI_SIG[15:8];
+                            if (DATA_WIDTH >= 64) begin
+                                doe_tx_tdata[39:32] <= SPDM_VENDOR_ID_PCI_SIG[7:0];
+                                doe_tx_tdata[47:40] <= SPDM_VENDOR_ID_PCI_SIG[15:8];
+                                doe_tx_tdata[55:48] <= 8'h00;  // PayloadLen lo
+                                doe_tx_tdata[63:56] <= 8'h00;  // PayloadLen hi
+                            end
+                        end
 
                         tx_byte_cnt_q <= tx_byte_cnt_q + BYTE_CNT_W'(BYTES_PER_BEAT);
-                        tx_state_q    <= TX_TDISP_PAYLOAD;
+
+                        // Determine next state based on data width
+                        if (DATA_WIDTH >= 64 || !tx_is_secured_q) begin
+                            // 64-bit: header complete, go to payload
+                            // Non-secured 32-bit: need one more beat for remaining header
+                            if (DATA_WIDTH >= 64) begin
+                                tx_state_q <= TX_TDISP_PAYLOAD;
+                            end else begin
+                                // 32-bit non-secured: need PayloadLen hi + ProtocolID
+                                tx_state_q <= TX_SPDM_HDR; // Continue in SPDM_HDR
+                            end
+                        end else begin
+                            // 32-bit secured: still need VD header body
+                            tx_state_q <= TX_TDISP_PAYLOAD; // Simplified: go to payload
+                        end
                     end
                 end
 
@@ -706,13 +710,11 @@ module tdisp_transport #(
                     doe_tx_tvalid <= 1'b0;
                     doe_tx_tlast  <= 1'b0;
 
-                    // Decrement outstanding request count for response sent
-                    if (tx_is_response_q && num_req_all_q > 8'd0) begin
-                        req_count_update_o    <= 1'b1;
-                        req_count_tdi_o       <= tdi_index_i;
-                        req_count_increment_o <= 1'b0; // Decrement
-                    end else begin
-                        req_count_update_o <= 1'b0;
+                    // Pulse decrement for outstanding request count
+                    if (tx_is_response_q && tdi_index_valid_i &&
+                        num_req_all_q > 8'd0) begin
+                        tx_rsp_pulse_q <= 1'b1;
+                        tx_rsp_tdi_q   <= tdi_index_i;
                     end
 
                     tx_state_q <= TX_IDLE;
@@ -729,16 +731,16 @@ module tdisp_transport #(
     always_comb begin
         tdisp_tx_tready = 1'b0;
         case (tx_state_q)
-            TX_IDLE:         tdisp_tx_tready = 1'b1; // Accept immediately
+            TX_IDLE:          tdisp_tx_tready = 1'b1; // Accept immediately
             TX_TDISP_PAYLOAD: tdisp_tx_tready = doe_tx_tready;
-            default:         tdisp_tx_tready = 1'b0;
+            default:          tdisp_tx_tready = 1'b0;
         endcase
     end
 
     //==========================================================================
-    // Outstanding Request Counting
+    // Outstanding Request Counting (single always_ff, no multiple drivers)
     // NUM_REQ_ALL: total count across all TDIs
-    // NUM_REQ_THIS: per-TDI count (tracked but reported via context read)
+    // NUM_REQ_THIS: per-TDI count (tracked internally, reported via context)
     //==========================================================================
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -747,27 +749,26 @@ module tdisp_transport #(
                 num_req_this_q[i] <= '0;
             end
         end else begin
-            if (req_count_update_o) begin
-                if (req_count_increment_o) begin
-                    // Increment (request received)
-                    if (num_req_all_q < MAX_OUTSTANDING[7:0]) begin
-                        num_req_all_q <= num_req_all_q + 8'd1;
-                    end
-                    if (req_count_tdi_o < NUM_TDI &&
-                        num_req_this_q[req_count_tdi_o] < 8'hFF) begin
-                        num_req_this_q[req_count_tdi_o] <=
-                            num_req_this_q[req_count_tdi_o] + 8'd1;
-                    end
-                end else begin
-                    // Decrement (response sent)
-                    if (num_req_all_q > 8'd0) begin
-                        num_req_all_q <= num_req_all_q - 8'd1;
-                    end
-                    if (req_count_tdi_o < NUM_TDI &&
-                        num_req_this_q[req_count_tdi_o] > 8'd0) begin
-                        num_req_this_q[req_count_tdi_o] <=
-                            num_req_this_q[req_count_tdi_o] - 8'd1;
-                    end
+            // Response sent → decrement (higher priority: frees slots first)
+            if (tx_rsp_pulse_q) begin
+                if (num_req_all_q > 8'd0) begin
+                    num_req_all_q <= num_req_all_q - 8'd1;
+                end
+                if (tx_rsp_tdi_q < NUM_TDI &&
+                    num_req_this_q[tx_rsp_tdi_q] > 8'd0) begin
+                    num_req_this_q[tx_rsp_tdi_q] <=
+                        num_req_this_q[tx_rsp_tdi_q] - 8'd1;
+                end
+            end
+            // Request received → increment (only if no concurrent response)
+            else if (rx_req_pulse_q) begin
+                if (num_req_all_q < MAX_OUTSTANDING[7:0]) begin
+                    num_req_all_q <= num_req_all_q + 8'd1;
+                end
+                if (rx_req_tdi_q < NUM_TDI &&
+                    num_req_this_q[rx_req_tdi_q] < 8'hFF) begin
+                    num_req_this_q[rx_req_tdi_q] <=
+                        num_req_this_q[rx_req_tdi_q] + 8'd1;
                 end
             end
         end
