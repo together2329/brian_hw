@@ -222,13 +222,15 @@ module tdisp_msg_formatter #(
                     16'd32: begin
                         payload_buf = req_msgs_supported_i[4*DATA_WIDTH-1:3*DATA_WIDTH];
                     end
-                    16'd36: begin // LOCK_INTERFACE_FLAGS_SUPPORTED (2 bytes) + Reserved(3) + ADDR_W(1) + NUM(2)
+                    16'd36: begin // LOCK_INTERFACE_FLAGS_SUPPORTED (2 bytes) + Reserved (2 bytes)
                         payload_buf[15:0]  = lock_iface_flags_sup_i;
-                        payload_buf[23:16] = '0;       // Reserved
-                        payload_buf[31:24] = '0;       // Reserved (part)
-                        payload_buf[39:32] = dev_addr_width_i;
-                        payload_buf[47:40] = num_req_this_i;
-                        payload_buf[55:48] = num_req_all_i;
+                        payload_buf[31:16] = '0;       // Reserved (first 2 of 3 bytes)
+                    end
+                    16'd40: begin // Reserved (1 byte) + ADDR_W(1) + NUM_THIS(1) + NUM_ALL(1)
+                        payload_buf[7:0]   = '0;               // Reserved (3rd byte)
+                        payload_buf[15:8]  = dev_addr_width_i;
+                        payload_buf[23:16] = num_req_this_i;
+                        payload_buf[31:24] = num_req_all_i;
                         payload_last = 1'b1;
                     end
                     default: begin
