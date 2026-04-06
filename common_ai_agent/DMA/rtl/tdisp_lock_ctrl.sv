@@ -61,7 +61,7 @@ module tdisp_lock_ctrl #(
     output logic                            rsp_error_o,              // 0=success, 1=error
     output tdisp_types::tdisp_error_code_e  rsp_error_code_o,         // Error code if error
     output logic [NONCE_WIDTH-1:0]          rsp_nonce_o,              // Nonce for success response
-    output logic                            rsp_done_o,               // Response consumed
+    input  logic                            rsp_done_i,               // Response consumed (ack from consumer)
 
     //--- Status ---
     output logic                            busy_o                    // Controller is processing
