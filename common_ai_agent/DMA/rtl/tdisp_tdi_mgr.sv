@@ -61,6 +61,16 @@ module tdisp_tdi_mgr #(
     input  logic [$clog2(NUM_TDI)-1:0]      xt_tdi_index_i,
     input  logic                            xt_enabled_i,
 
+    //--- Interface ID initialization (from firmware/config at boot) ---
+    input  logic                            iface_id_update_i,
+    input  logic [$clog2(NUM_TDI)-1:0]      iface_id_tdi_index_i,
+    input  logic [INTERFACE_ID_WIDTH-1:0]   iface_id_value_i,
+
+    //--- Outstanding request tracking ---
+    input  logic                            req_count_update_i,
+    input  logic [$clog2(NUM_TDI)-1:0]      req_count_tdi_index_i,
+    input  logic                            req_count_increment_i, // 1=+1, 0=-1
+
     //=== Context read ports ==================================================
 
     //--- TDI lookup by INTERFACE_ID (for message routing) ---
