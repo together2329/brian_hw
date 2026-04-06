@@ -174,12 +174,11 @@ VERILOG_SIMULATOR = os.getenv("VERILOG_SIMULATOR", "vcs")
 GIT_VERSION_CONTROL_ENABLE = os.getenv("GIT_VERSION_CONTROL_ENABLE", "true").lower() in ("true", "1", "yes")
 # Commit message verbosity: "simple" | "summary"
 GIT_COMMIT_MSG_MODE = os.getenv("GIT_COMMIT_MSG_MODE", "simple")
-# Cheap LLM model for generating git commit summaries
-GIT_COMMIT_SUMMARY_MODEL = os.getenv("GIT_COMMIT_SUMMARY_MODEL", MODEL_NAME)
-
-# Secondary model: lightweight tasks (spec summarization, etc.)
-SECONDARY_MODEL = os.getenv("SECONDARY_MODEL", MODEL_NAME)
 GIT_COMMIT_SUMMARY_TEMPERATURE = float(os.getenv("GIT_COMMIT_SUMMARY_TEMPERATURE", "0.3"))
+
+# Secondary model: lightweight tasks (git commit summary, spec summarization, etc.)
+# Uses same LLM_BASE_URL / LLM_API_KEY — no separate auth needed.
+SECONDARY_MODEL = os.getenv("SECONDARY_MODEL", MODEL_NAME)
 
 # Enable LSP integration (optional - requires LSP server installed)
 # Uses pylsp, pyright, or jedi-language-server for advanced diagnostics

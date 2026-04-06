@@ -138,7 +138,11 @@ def _find_git_root(path: str):
 
 
 def _llm_commit_summary(path: str, content_hint: str) -> str:
-    """Call cheap LLM to generate a short commit message. Returns '' on failure."""
+    """Call LLM to generate a short commit message. Returns '' on failure.
+
+    Uses the same LLM_BASE_URL / LLM_API_KEY / LLM_MODEL_NAME as the main agent
+    so no separate API key is needed.
+    """
     try:
         import config as _cfg
         import sys as _sys
@@ -148,7 +152,8 @@ def _llm_commit_summary(path: str, content_hint: str) -> str:
         if _src not in _sys.path:
             _sys.path.insert(0, _src)
         import llm_client as _lc
-        model = getattr(_cfg, 'GIT_COMMIT_SUMMARY_MODEL', 'openrouter/qwen/qwen-2.5-7b-instruct')
+        # Use SECONDARY_MODEL (same endpoint/key as main LLM, no extra auth needed)
+        model = getattr(_cfg, 'SECONDARY_MODEL', None) or getattr(_cfg, 'MODEL_NAME', None)
         temperature = getattr(_cfg, 'GIT_COMMIT_SUMMARY_TEMPERATURE', 0.3)
         prompt = (
             f"Write a git commit message in 60 chars or less (no quotes, no markdown) "
@@ -158,6 +163,8 @@ def _llm_commit_summary(path: str, content_hint: str) -> str:
             f"Reply with ONLY the commit message."
         )
         result = _lc.call_llm_raw(prompt=prompt, model=model, temperature=temperature)
+        if not result or result.startswith("Error"):
+            raise ValueError(result)
         return result.strip()[:60]
     except Exception as e:
         # Silent failure — don't pollute console with LLM errors during commits
