@@ -198,6 +198,7 @@ module tdisp_lock_ctrl #(
             ctx_p2p_mask_o   <= '0;
             ctx_nonce_o      <= '0;
             ctx_nonce_valid_o<= 1'b0;
+            ctx_fw_update_locked_o <= 1'b0;
             ctx_tdi_index_o  <= '0;
             busy_o          <= 1'b0;
         end else begin
