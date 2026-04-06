@@ -111,6 +111,7 @@ module tdisp_nonce_gen #(
     gen_state_e     gen_state_q;
     logic [2:0]     gen_count_q;           // 0..7 rounds
     logic [NONCE_WIDTH-1:0] gen_buf_q;     // Accumulating nonce buffer
+    logic [$clog2(NUM_TDI)-1:0] gen_tdi_q; // Latched TDI index for storage
 
     // Store-interface signals (driven combinationally from FSM state)
     always_comb begin
@@ -123,8 +124,6 @@ module tdisp_nonce_gen #(
             gen_tdi_target  = gen_tdi_q;
         end
     end
-
-    logic [$clog2(NUM_TDI)-1:0] gen_tdi_q; // Latched TDI index for storage
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
