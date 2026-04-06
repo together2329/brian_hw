@@ -960,19 +960,26 @@ class SlashCommandRegistry:
             disabled = getattr(load_fn, 'disabled_skills', set()) if load_fn else set()
             auto_active = getattr(load_fn, 'active_skills', []) if load_fn else []
 
+            # active_skills = final merged list actually injected this turn
+            _ORANGE = "\033[38;5;208m"
+            _RESET  = "\033[0m"
+            _DIM    = "\033[2m"
+            _BOLD   = "\033[1m"
+
             lines = ["\n Skills  (/skills a <name|#> · /skills d <name|#> · /skills all · /skills clear)"]
             for i, skill in enumerate(skills, 1):
                 n = skill.name
-                if n in forced:
-                    status = "\033[32m[ACTIVE]\033[0m"
+                injected = n in auto_active or n in forced
+                if injected:
+                    # Orange [SKILL] — actually loaded into system prompt
+                    status = f"{_ORANGE}[SKILL]{_RESET} "
                 elif n in disabled:
                     status = "\033[31m[off]\033[0m   "
-                elif n in auto_active:
-                    status = "\033[36m[auto]\033[0m  "
                 else:
-                    status = "\033[2m[off]\033[0m   "
+                    status = f"{_DIM}[off]{_RESET}   "
                 desc = (skill.description or "")[:55]
-                lines.append(f"  {i:2}  \033[1m{n:<26}\033[0m {status}  \033[2m{desc}\033[0m")
+                name_fmt = f"{_ORANGE}{_BOLD}{n:<26}{_RESET}" if injected else f"{_DIM}{n:<26}{_RESET}"
+                lines.append(f"  {i:2}  {name_fmt} {status}  {_DIM}{desc}{_RESET}")
             return "\n".join(lines) + "\n"
         except Exception:
             return ""

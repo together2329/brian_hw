@@ -466,7 +466,7 @@ def load_active_skills(messages, allowed_tools=None):
                 load_active_skills._cached_skill = routed
                 load_active_skills._active_skill = routed  # None clears, name sets
                 if routed:
-                    print(Color.system(f"  [skill] {routed} (llm-routed)"))
+                    print(f"  \033[38;5;208m[skill] {routed}\033[0m \033[2m(llm-routed)\033[0m")
 
         auto_detected = [routed] if routed else []
 
