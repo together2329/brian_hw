@@ -699,14 +699,12 @@ def run_react_agent_impl(
             continue
 
         if actions:
-            # Plan mode: restrict to single todo op
+            # Track todo ops for plan mode flow control
+            # Plan mode: allow research + todo ops together (don't restrict to single todo op)
+            # Agent can read files AND update the plan in the same turn
             _todo_ops = {"todo_write", "todo_update", "todo_add", "todo_remove"}
             _has_todo_op = any(a[0] in _todo_ops for a in actions)
             _is_todo_write = any(a[0] == "todo_write" for a in actions)
-            # [removed single-todo-op restriction]
-            # if _has_todo_op and agent_mode in ("plan", "plan_q"):
-                _todo_action = next(a for a in actions if a[0] in _todo_ops)
-                actions = [_todo_action]
 
             combined_results: List[str] = []
 
