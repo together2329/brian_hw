@@ -260,6 +260,7 @@ module tdisp_lock_ctrl #(
                     ctx_lock_flags_o  <= lock_flags_q;
                     ctx_stream_id_o   <= stream_id_q;
                     ctx_mmio_offset_o <= mmio_offset_q;
+                    ctx_p2p_mask_o    <= p2p_mask_q;
                     ctx_nonce_o       <= nonce_q;
                     ctx_nonce_valid_o <= 1'b1;
                     state_q           <= LCK_RESPOND;
