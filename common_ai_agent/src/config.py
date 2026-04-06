@@ -79,6 +79,9 @@ NONSTREAM_API_TIMEOUT = int(os.getenv("NONSTREAM_API_TIMEOUT", "1800"))
 # Maximum output tokens per LLM response (0 = no limit)
 MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "16000"))
 
+# Maximum reasoning/thinking tokens (GLM, DeepSeek etc.). 0 = no limit.
+MAX_REASONING_TOKENS = int(os.getenv("MAX_REASONING_TOKENS", "0"))
+
 # Save conversation history to file
 SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")
 HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")

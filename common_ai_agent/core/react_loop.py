@@ -290,6 +290,7 @@ def run_react_agent_impl(
     # --- Start ESC watcher ---
     _esc_start()
     _llm_retry = 0
+    _reasoning_recovery_done = False  # True after one compress-and-retry for reasoning overflow
 
     # ======================================================================
     # Main loop
@@ -591,10 +592,33 @@ def run_react_agent_impl(
         if not collected_content.strip() and not _has_native:
             if _llm_retry < getattr(cfg, "LLM_RETRY_COUNT", 1):
                 _llm_retry += 1
-                print(f"\n  LLM only generated reasoning (no content), retrying ({_llm_retry}/{cfg.LLM_RETRY_COUNT})...")
+                # Native mode: inject a nudge so the model calls a tool instead of reasoning again
+                if getattr(cfg, "ENABLE_NATIVE_TOOL_CALLS", False):
+                    messages.append({
+                        "role": "user",
+                        "content": "[System] You produced only reasoning with no tool call or answer. "
+                                   "Please call the appropriate tool now, or provide your final answer directly."
+                    })
+                    print(f"\n  LLM reasoning-only, injecting nudge and retrying ({_llm_retry}/{cfg.LLM_RETRY_COUNT})...")
+                else:
+                    print(f"\n  LLM only generated reasoning (no content), retrying ({_llm_retry}/{cfg.LLM_RETRY_COUNT})...")
                 continue
+
+            # Recovery: reasoning overflow likely caused by full context window.
+            # Force-compress history and retry once before giving up.
+            if not _reasoning_recovery_done and deps.compress_fn:
+                _reasoning_recovery_done = True
+                _llm_retry = 0
+                try:
+                    from lib.display import Color as _C
+                    print(_C.warning("\n  [Recovery] Reasoning overflow detected — compressing context and retrying..."))
+                except Exception:
+                    print("\n  [Recovery] Reasoning overflow — compressing context and retrying...")
+                messages = deps.compress_fn(messages, force=True, quiet=False, todo_tracker=todo_tracker)
+                continue
+
             _llm_retry = 0
-            print(f"\n  LLM failed after {getattr(cfg, 'LLM_RETRY_COUNT', 1)} retry. Returning to input.")
+            print(f"\n  LLM failed after retries. Returning to input.")
             break
 
         # Strip echoed system prompt prefix
