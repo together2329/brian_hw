@@ -348,8 +348,8 @@ module tdisp_tlp_rules #(
                 tlp_blocked_o   <= ~policy_allow;
                 tlp_tdi_index_o <= matched_tdi;
 
-                if (!policy_allow) begin
-                    // Capture violation for FSM
+                if (!policy_allow && !violation_pending_q) begin
+                    // Capture first violation for FSM (hold until acked)
                     violation_valid_o   <= 1'b1;
                     violation_pending_q <= 1'b1;
                     violation_tdi_o     <= matched_tdi;
