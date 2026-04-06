@@ -141,6 +141,7 @@ module dma_top #(
     // AXI handshake internal signals
     logic                  rd_req;
     logic                  wr_req;
+    logic [$clog2(FIFO_DEPTH):0] pending_reads;
 
     // =========================================================================
     // FIFO Logic
