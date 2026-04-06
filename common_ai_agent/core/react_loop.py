@@ -569,6 +569,7 @@ def run_react_agent_impl(
         # Exception: native tool call mode — empty content + _native_calls is valid
         # (LLM called a tool without generating text content, which is normal)
         _has_native = bool(_native_calls)
+        _use_native = _has_native  # True when native tool_calls were received
         if not collected_content.strip() and not _has_native:
             if _llm_retry < getattr(cfg, "LLM_RETRY_COUNT", 1):
                 _llm_retry += 1
@@ -677,7 +678,6 @@ def run_react_agent_impl(
 
         # Parse actions
         _t = time.time()
-        _use_native = _has_native  # True when native tool_calls were received
         if _use_native:
             # Native mode: tool calls already structured as {id, name, arguments}
             import json as _json
