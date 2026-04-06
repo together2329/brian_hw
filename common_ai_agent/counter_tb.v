@@ -1,20 +1,23 @@
 //------------------------------------------------------------
-// Testbench for Simple 18-bit Up Counter
+// Testbench for Simple 128-bit Up Counter
 //------------------------------------------------------------
 // Verifies:
 //   1. Synchronous reset clears count to 0
 //   2. Count increments by 1 each clock cycle
-//   3. Count wraps around from 262143 to 0
+//   3. Upper bits remain 0 during short counting
+//   4. Reset re-sync works correctly
 //------------------------------------------------------------
+// Note: Full wrap-around test (2^128 cycles) is infeasible.
+// Only counting behavior and reset are verified.
 
 `timescale 1ns / 1ps
 
 module counter_tb;
 
     // Signals
-    reg          clk;
-    reg          rst;
-    wire [17:0]  count;
+    reg           clk;
+    reg           rst;
+    wire [127:0]  count;
 
     // Instantiate DUT
     counter uut (
@@ -40,46 +43,42 @@ module counter_tb;
         // Hold reset for 2 cycles
         #20 rst = 0;
 
-        // Wait for count to reach a few values
+        // Wait for count to reach a few values (10 cycles)
         #100;
 
-        // Verify count is incrementing (should be 10 at this point)
-        if (count != 18'd10) begin
+        // Check 1: Verify count is incrementing (should be 10)
+        if (count != 128'd10) begin
             $display("FAIL: expected count=10, got count=%0d", count);
         end else begin
             $display("PASS: count=%0d at expected time", count);
         end
 
-        // Test wrap-around by counting to max value
-        // Reset first to sync, then wait 262143 cycles to reach max
+        // Check 2: Verify upper bits [127:8] are all zero
+        if (count[127:8] != 120'd0) begin
+            $display("FAIL: upper bits non-zero, count[127:8]=%0d", count[127:8]);
+        end else begin
+            $display("PASS: upper bits [127:8] are zero");
+        end
+
+        // Check 3: Reset re-sync
         rst = 1;
         #10 rst = 0;
 
-        // Wait 262143 cycles (262143 * 10ns = 2621430ns)
-        // This is ~2.6ms sim time — acceptable for Verilog simulation
-        #2621430;
+        // Wait 5 cycles
+        #50;
 
-        // count should be 262143 (18'h3FFFF) now
-        if (count != 18'd262143) begin
-            $display("FAIL: expected count=262143, got count=%0d", count);
+        // count should be 5 after reset and 5 increments
+        if (count != 128'd5) begin
+            $display("FAIL: expected count=5 after re-sync, got count=%0d", count);
         end else begin
-            $display("PASS: count=262143 (max), about to wrap");
+            $display("PASS: count=%0d after reset re-sync", count);
         end
 
-        // Wait one more cycle — should wrap to 0
-        #10;
-        if (count != 18'd0) begin
-            $display("FAIL: expected count=0 (wrap), got count=%0d", count);
+        // Check 4: Verify upper bits still zero after re-sync
+        if (count[127:8] != 120'd0) begin
+            $display("FAIL: upper bits non-zero after re-sync, count[127:8]=%0d", count[127:8]);
         end else begin
-            $display("PASS: count wrapped from 262143 to 0");
-        end
-
-        // A few more cycles to confirm counting resumes
-        #30;
-        if (count != 18'd3) begin
-            $display("FAIL: expected count=3 after wrap, got count=%0d", count);
-        end else begin
-            $display("PASS: counting resumed after wrap, count=%0d", count);
+            $display("PASS: upper bits [127:8] still zero after re-sync");
         end
 
         $display("--- All tests done ---");
