@@ -197,6 +197,26 @@ module tdisp_tdi_mgr #(
             if (xt_mode_update_i && xt_tdi_index_i < NUM_TDI) begin
                 tdi_ctx_q[xt_tdi_index_i].xt_mode_enabled <= xt_enabled_i;
             end
+
+            //=== Priority 8: Interface ID initialization (boot/config) ===
+            if (iface_id_update_i && iface_id_tdi_index_i < NUM_TDI) begin
+                tdi_ctx_q[iface_id_tdi_index_i].interface_id <= iface_id_value_i;
+            end
+
+            //=== Outstanding request counting (saturating) ===
+            if (req_count_update_i && req_count_tdi_index_i < NUM_TDI) begin
+                if (req_count_increment_i) begin
+                    if (tdi_ctx_q[req_count_tdi_index_i].outstanding_reqs < 8'hFF) begin
+                        tdi_ctx_q[req_count_tdi_index_i].outstanding_reqs <=
+                            tdi_ctx_q[req_count_tdi_index_i].outstanding_reqs + 8'd1;
+                    end
+                end else begin
+                    if (tdi_ctx_q[req_count_tdi_index_i].outstanding_reqs > 8'd0) begin
+                        tdi_ctx_q[req_count_tdi_index_i].outstanding_reqs <=
+                            tdi_ctx_q[req_count_tdi_index_i].outstanding_reqs - 8'd1;
+                    end
+                end
+            end
         end
     end
 
