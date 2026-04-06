@@ -268,6 +268,7 @@ module tdisp_tdi_mgr #(
             tdi_p2p_enabled_o[t]  = tdi_ctx_q[t].p2p_enabled;
             tdi_req_redirect_o[t] = tdi_ctx_q[t].all_req_redirect;
             outstanding_reqs_o[t] = tdi_ctx_q[t].outstanding_reqs;
+            p2p_addr_mask_o[t]    = p2p_addr_mask_q[t];
 
             for (int r = 0; r < BUS_WIDTH; r++) begin
                 mmio_start_addr_o[t][r]  = mmio_start_q[t][r];
