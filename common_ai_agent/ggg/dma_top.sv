@@ -319,7 +319,7 @@ module dma_top #(
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n)
             start_pulse <= 1'b0;
-        else if (reg_wr_en && !dma_busy && (awaddr_reg[3:0] == ADDR_CTRL[3:0]) && reg_wdata[CTRL_START])
+        else if (reg_wr_en && !dma_busy && (awaddr_reg[7:0] == ADDR_CTRL[7:0]) && reg_wdata[CTRL_START])
             start_pulse <= 1'b1;
         else
             start_pulse <= 1'b0;
