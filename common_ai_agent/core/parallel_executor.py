@@ -16,6 +16,9 @@ from core.action_dependency import ActionDependencyAnalyzer, FileConflictDetecto
 # Read-only tools eligible for automatic parallel execution (legacy mode)
 # ---------------------------------------------------------------------------
 
+# Tools that must NEVER execute in parallel with any other tool
+SERIAL_ONLY_TOOLS = frozenset({"todo_update", "todo_write"})
+
 PARALLEL_ELIGIBLE_TOOLS = frozenset({
     "read_file",
     "read_lines",
@@ -143,6 +146,17 @@ def execute_actions_parallel(
 
         for batch in batches:
             if batch.parallel and len(batch.actions) > 1 and getattr(cfg, "ENABLE_REACT_PARALLEL", True):
+                # todo_update/todo_write must never run in parallel — execute only the first action
+                if any(tool_name in SERIAL_ONLY_TOOLS for _, tool_name, _ in batch.actions):
+                    first_idx, first_tool, first_args = batch.actions[0]
+                    observation = execute_tool_fn(first_tool, first_args)
+                    results.append((first_idx, first_tool, first_args, observation))
+                    for idx, tool_name, args_str in batch.actions[1:]:
+                        results.append((idx, tool_name, args_str,
+                            f"[Skipped] '{tool_name}' was queued in parallel with todo_update — "
+                            "todo tools must run alone. Re-issue this call separately."))
+                    continue
+
                 allowed_actions = []
                 for idx, tool_name, args_str in batch.actions:
                     is_any_plan = agent_mode in ("plan", "plan_q")
@@ -177,6 +191,17 @@ def execute_actions_parallel(
         def flush_parallel():
             nonlocal parallel_batch
             if not parallel_batch:
+                return
+            # todo_update/todo_write must never run in parallel — execute only the first action
+            if any(t in SERIAL_ONLY_TOOLS for _, t, _ in parallel_batch):
+                first_idx, first_tool, first_args = parallel_batch[0]
+                observation = execute_tool_fn(first_tool, first_args)
+                results.append((first_idx, first_tool, first_args, observation))
+                for idx, tool_name, args_str in parallel_batch[1:]:
+                    results.append((idx, tool_name, args_str,
+                        f"[Skipped] '{tool_name}' was queued in parallel with todo_update — "
+                        "todo tools must run alone. Re-issue this call separately."))
+                parallel_batch = []
                 return
             if len(parallel_batch) == 1 or not getattr(cfg, "ENABLE_REACT_PARALLEL", True):
                 idx, tool_name, args_str = parallel_batch[0]
