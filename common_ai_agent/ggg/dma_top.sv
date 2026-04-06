@@ -227,7 +227,7 @@ module dma_top #(
     logic [DATA_WIDTH-1:0] reg_wdata;
     logic                  reg_wr_en;
 
-    assign reg_wr_en  = (axi_aw_state == 2'd1) && s_axi_wvalid;
+    assign reg_wr_en  = (axi_aw_state == 3'd1) && s_axi_wvalid;
     assign reg_wdata  = s_axi_wdata;
 
     always_ff @(posedge clk or negedge rst_n) begin
