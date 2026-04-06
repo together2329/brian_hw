@@ -269,6 +269,7 @@ module tdisp_lock_ctrl #(
                     ctx_p2p_mask_o    <= p2p_mask_q;
                     ctx_nonce_o       <= nonce_q;
                     ctx_nonce_valid_o <= 1'b1;
+                    ctx_fw_update_locked_o <= lock_flags_q.no_fw_update & fw_update_supported_i;
                     state_q           <= LCK_RESPOND;
                 end
 
