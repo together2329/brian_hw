@@ -134,10 +134,11 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
     ),
     "todo_update": _fn(
         "todo_update",
-        "Update task status. index is 1-based.",
+        "Update task status. index is 1-based. IMPORTANT: status='approved' or 'rejected' REQUIRES a 'reason' argument describing what was verified.",
         {
             "index": {"type": "integer", "description": "Task index (1-based)"},
             "status": {"type": "string", "description": "New status: pending/active/completed/approved/rejected"},
+            "reason": {"type": "string", "description": "REQUIRED when status is 'approved' or 'rejected'. Describe what you verified (e.g. 'read output — correct, tests passed')."},
             "content": {"type": "string", "description": "Optional: update task content"},
             "detail": {"type": "string", "description": "Optional: update task detail"},
         },
