@@ -83,13 +83,9 @@ module tdisp_transport #(
     //   [5:6]  VendorID  (little-endian) = 0001h (PCI-SIG)
     //   [7:8]  PayloadLength (little-endian)
     //   [9]    ProtocolID = 01h (TDISP)
-    localparam int unsigned SPDM_VD_HDR_SIZE    = 10;
+    // SPDM VENDOR_DEFINED header is 10 bytes (documented above)
 
-    // SPDM Secured Message App header layout:
-    //   [0]    RequestResponseCode (F3h=secured request, F4h=secured response)
-    //   [1:2]  ApplicationDataLength (little-endian)
-    //   [3:6]  SessionID (4 bytes, only for request; response uses negotiated)
-    localparam int unsigned SPDM_SEC_REQ_SIZE   = 7; // With Session ID
+    // SPDM Secured Message App header is 7 bytes with Session ID (documented above)
 
     // SPDM Request/Response codes
     localparam logic [7:0] SPDM_VD_REQUEST      = 8'h5E;
