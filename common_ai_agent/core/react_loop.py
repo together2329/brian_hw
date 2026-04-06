@@ -1104,14 +1104,15 @@ def run_react_agent_impl(
                     final_answer_attempts += 1
                     if visible:
                         # Model produced output but no Action and no completion signal.
-                        # Ask it to either act or finish explicitly.
+                        # Ask it to output the next Action — do NOT suggest "say complete"
+                        # which causes premature loop termination.
                         messages.append({
                             "role": "user",
                             "content": (
-                                "[System] You did not output an Action. "
-                                "If you need to use a tool, output it now:\n"
-                                "Action: tool_name(param=value)\n"
-                                "If the task is complete, state so explicitly."
+                                "[System] You described what to do but did not output an Action. "
+                                "Output the Action now:\n"
+                                "Action: tool_name\n"
+                                "Action Input: {\"param\": \"value\"}"
                             ),
                         })
                     else:

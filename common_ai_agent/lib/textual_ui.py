@@ -446,6 +446,10 @@ class AgentTUI(App):
         border: none;
         background: {_BG_INPUT};
     }}
+    Input > .input--cursor {{
+        background: {_BORDER};
+        color: {_TEXT};
+    }}
     """
 
     BINDINGS = [
