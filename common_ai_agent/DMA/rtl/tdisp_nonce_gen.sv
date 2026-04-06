@@ -71,13 +71,13 @@ module tdisp_nonce_gen #(
     end
 
     //==========================================================================
-    // Per-TDI nonce storage
+    // Per-TDI nonce storage (consolidated to single always_ff)
     //==========================================================================
     logic [NONCE_WIDTH-1:0] nonce_store_q [NUM_TDI];
     logic [NUM_TDI-1:0]     nonce_valid_q;     // Per-TDI nonce valid flag
-
-    // Nonce storage read port for validation
-    logic [NONCE_WIDTH-1:0] stored_nonce;
+    logic                   gen_store_pulse;   // Pulse from generation FSM to store
+    logic [NONCE_WIDTH-1:0] gen_nonce_final;   // Final nonce value to store
+    logic [$clog2(NUM_TDI)-1:0] gen_tdi_target;// Target TDI for storage
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -86,19 +86,16 @@ module tdisp_nonce_gen #(
                 nonce_valid_q[i] <= 1'b0;
             end
         end else begin
-            // Invalidation (highest priority - clear after use)
-            if (inv_req_i && val_tdi_index_i < NUM_TDI) begin
+            // Generation store (lower priority)
+            if (gen_store_pulse && gen_tdi_target < NUM_TDI) begin
+                nonce_store_q[gen_tdi_target] <= gen_nonce_final;
+                nonce_valid_q[gen_tdi_target] <= 1'b1;
+            end
+            // Invalidation (highest priority - one-time use enforcement)
+            if (inv_req_i && inv_tdi_index_i < NUM_TDI) begin
                 nonce_valid_q[inv_tdi_index_i] <= 1'b0;
                 nonce_store_q[inv_tdi_index_i]  <= '0;
             end
-        end
-    end
-
-    // Read stored nonce combinationally
-    always_comb begin
-        stored_nonce = '0;
-        if (val_tdi_index_i < NUM_TDI) begin
-            stored_nonce = nonce_store_q[val_tdi_index_i];
         end
     end
 
