@@ -71,6 +71,26 @@ module counter_tb;
         #20;
         check_value(256'd0, count, "Reset clears count to 0");
 
+        //=== Check 1b: All 256 bits individually zero after reset ===
+        begin : allbits_block
+            integer bit_i;
+            integer allbits_fail;
+            allbits_fail = 0;
+            for (bit_i = 0; bit_i < 256; bit_i = bit_i + 1) begin
+                if (count[bit_i] !== 1'b0) begin
+                    $display("FAIL: bit[%0d] is 1 after reset, expected 0", bit_i);
+                    allbits_fail = allbits_fail + 1;
+                end
+            end
+            if (allbits_fail > 0) begin
+                $display("FAIL: %0d of 256 bits non-zero after reset", allbits_fail);
+                fail_count = fail_count + 1;
+            end else begin
+                $display("PASS: all 256 bits individually verified zero after reset");
+                pass_count = pass_count + 1;
+            end
+        end
+
         //=== Check 2: Count increments after reset release ===
         rst = 0;
         #100; // 10 cycles
