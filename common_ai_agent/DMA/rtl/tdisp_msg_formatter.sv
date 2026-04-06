@@ -114,7 +114,7 @@ module tdisp_msg_formatter #(
         payload_len = 16'd0;
         case (rsp_type_q)
             RSP_TDISP_VERSION: begin
-                payload_len = 16'd1 + version_count_i; // count + entries
+                payload_len = 16'd1 + {version_count_i, 1'b0}; // count(1B) + entries(2B each)
             end
             RSP_TDISP_CAPABILITIES: begin
                 payload_len = 16'd28; // DSM_CAPS(4)+REQ_MSGS(16)+LOCK_FLAGS(2)+Rsvd(3)+ADDR_W(1)+NUM_THIS(1)+NUM_ALL(1)
