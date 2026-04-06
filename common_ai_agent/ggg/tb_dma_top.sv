@@ -429,15 +429,15 @@ module tb_dma_top;
         int cycle_count;
         begin
             success = 1'b0;
-            for (cycle_count = 0; cycle_count < timeout_cycles; cycle_count++) begin
+            for (cycle_count = 0; cycle_count < timeout_cycles && success === 1'b0; cycle_count++) begin
                 @(posedge clk);
                 if (dma_irq) begin
                     success = 1'b1;
                     $display("[INFO] DMA interrupt received at time %0t", $time);
-                    return;
                 end
             end
-            $display("[ERROR] DMA interrupt timeout after %0d cycles", timeout_cycles);
+            if (success === 1'b0)
+                $display("[ERROR] DMA interrupt timeout after %0d cycles", timeout_cycles);
         end
     endtask
 
