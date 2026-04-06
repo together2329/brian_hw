@@ -126,14 +126,49 @@ module test_tdisp_tlp_rules;
     tlp_test_result_t results [$];
 
     //==========================================================================
-    // DUT Instantiation
+    // DUT Instantiation (explicit port connections — TB signals lack _i/_o)
     //==========================================================================
     tdisp_tlp_rules #(
         .NUM_TDI   (NUM_TDI),
         .ADDR_WIDTH(ADDR_WIDTH),
         .BUS_WIDTH (BUS_WIDTH),
         .PAGE_SIZE (PAGE_SIZE)
-    ) dut (.*);
+    ) dut (
+        .clk                (clk),
+        .rst_n              (rst_n),
+        // Per-TDI context
+        .tdi_state_i        (tdi_state),
+        .tdi_xt_enabled_i   (tdi_xt_enabled),
+        .tdi_fw_locked_i    (tdi_fw_locked),
+        .tdi_p2p_enabled_i  (tdi_p2p_enabled),
+        .tdi_req_redirect_i (tdi_req_redirect),
+        // TLP input
+        .tlp_valid_i        (tlp_valid),
+        .tlp_header_dw0_i   (tlp_header_dw0),
+        .tlp_header_dw2_i   (tlp_header_dw2),
+        .tlp_header_dw3_i   (tlp_header_dw3),
+        .tlp_is_4dw_i       (tlp_is_4dw),
+        .tlp_requester_id_i (tlp_requester_id),
+        .tlp_at_i           (tlp_at),
+        // XT/T bit inputs
+        .tlp_tee_originator_i (tlp_tee_originator),
+        .tlp_xt_enabled_i     (tlp_xt_enabled),
+        // MMIO range attributes
+        .mmio_start_addr_i  (mmio_start_addr),
+        .mmio_num_pages_i   (mmio_num_pages),
+        .mmio_is_non_tee_i  (mmio_is_non_tee),
+        .mmio_range_valid_i (mmio_range_valid),
+        // Access decision output
+        .tlp_allow_o        (tlp_allow),
+        .tlp_blocked_o      (tlp_blocked),
+        .tlp_tdi_index_o    (tlp_tdi_index),
+        .tlp_violation_irq_o(tlp_violation_irq),
+        // Violation report
+        .violation_valid_o  (violation_valid),
+        .violation_tdi_o    (violation_tdi),
+        .violation_code_o   (violation_code),
+        .violation_ack_i    (violation_ack)
+    );
 
     //==========================================================================
     // Helper: Build TLP DW0 from fmt/type
