@@ -81,7 +81,7 @@ module counter_tb;
             $display("FAIL: upper bits non-zero at count=10, count[255:8]=%0d", count[255:8]);
             fail_count = fail_count + 1;
         end else begin
-            $display("PASS: upper bits [255:8] are zero at count=10);
+            $display("PASS: upper bits [255:8] are zero at count=10");
             pass_count = pass_count + 1;
         end
 
@@ -89,18 +89,18 @@ module counter_tb;
         rst = 1;
         #10 rst = 0;
         #50; // 5 cycles
-        check_value(256'd5, count, "Reset re-sync, count=5);
+        check_value(256'd5, count, "Reset re-sync, count=5");
 
         //=== Check 5: Multiple reset pulses ===
         rst = 1;
         #10 rst = 0;
         #30; // 3 cycles → count=3
-        check_value(256'd3, count, "After 2nd reset, count=3);
+        check_value(256'd3, count, "After 2nd reset, count=3");
 
         rst = 1;
         #10 rst = 0;
         #70; // 7 cycles → count=7
-        check_value(256'd7, count, "After 3rd reset, count=7);
+        check_value(256'd7, count, "After 3rd reset, count=7");
 
         //=== Check 6: Longer counting period (100 cycles) ===
         rst = 1;
@@ -113,7 +113,7 @@ module counter_tb;
             $display("FAIL: upper bits non-zero at count=100, count[255:8]=%0d", count[255:8]);
             fail_count = fail_count + 1;
         end else begin
-            $display("PASS: upper bits [255:8] still zero at count=100);
+            $display("PASS: upper bits [255:8] still zero at count=100");
             pass_count = pass_count + 1;
         end
 
@@ -151,7 +151,7 @@ module counter_tb;
             $display("FAIL: upper bits non-zero at count=255, count[255:8]=%0d", count[255:8]);
             fail_count = fail_count + 1;
         end else begin
-            $display("PASS: upper bits [255:8] zero at count=255);
+            $display("PASS: upper bits [255:8] zero at count=255");
             pass_count = pass_count + 1;
         end
 
@@ -161,10 +161,10 @@ module counter_tb;
 
         // Verify bit 8 is set
         if (count[8] !== 1'b1) begin
-            $display("FAIL: bit 8 not set at count=256);
+            $display("FAIL: bit 8 not set at count=256");
             fail_count = fail_count + 1;
         end else begin
-            $display("PASS: bit 8 correctly set at count=256);
+            $display("PASS: bit 8 correctly set at count=256");
             pass_count = pass_count + 1;
         end
 
@@ -172,8 +172,36 @@ module counter_tb;
             $display("FAIL: lower 8 bits not zero at count=256, got %b", count[7:0]);
             fail_count = fail_count + 1;
         end else begin
-            $display("PASS: lower 8 bits rolled to 0 at count=256);
+            $display("PASS: lower 8 bits rolled to 0 at count=256");
             pass_count = pass_count + 1;
+        end
+
+        //=== Check 12: Monotonicity — count increases by exactly 1 ===
+        rst = 1;
+        #10 rst = 0;
+        begin : mono_block
+            reg [255:0] prev_count;
+            integer mono_pass, mono_fail, mono_i;
+            mono_pass = 0;
+            mono_fail = 0;
+            prev_count = count; // should be 0
+            for (mono_i = 0; mono_i < 50; mono_i = mono_i + 1) begin
+                #10; // one clock cycle
+                if (count !== prev_count + 256'd1) begin
+                    $display("FAIL: monotonicity at sample %0d, expected %0d, got %0d", mono_i, prev_count + 256'd1, count);
+                    mono_fail = mono_fail + 1;
+                end else begin
+                    mono_pass = mono_pass + 1;
+                end
+                prev_count = count;
+            end
+            if (mono_fail > 0) begin
+                $display("FAIL: monotonicity — %0d of 50 samples failed", mono_fail);
+                fail_count = fail_count + 1;
+            end else begin
+                $display("PASS: monotonicity — all 50 samples incremented by exactly 1");
+                pass_count = pass_count + 1;
+            end
         end
 
         //=== Final Summary ===
