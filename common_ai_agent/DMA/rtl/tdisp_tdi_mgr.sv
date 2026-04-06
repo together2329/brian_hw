@@ -171,6 +171,7 @@ module tdisp_tdi_mgr #(
                 tdi_ctx_q[lock_ctx_tdi_index_i].p2p_enabled      <= lock_ctx_flags_i.bind_p2p;
                 tdi_ctx_q[lock_ctx_tdi_index_i].all_req_redirect <= lock_ctx_flags_i.all_request_redirect;
                 tdi_ctx_q[lock_ctx_tdi_index_i].msix_locked      <= lock_ctx_flags_i.lock_msix;
+                p2p_addr_mask_q[lock_ctx_tdi_index_i]            <= lock_ctx_p2p_mask_i;
             end
             //=== Priority 3: START_INTERFACE commit ===
             else if (start_ctx_update_i && start_ctx_tdi_index_i < NUM_TDI) begin
