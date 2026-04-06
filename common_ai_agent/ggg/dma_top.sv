@@ -289,13 +289,13 @@ module dma_top #(
                 3'd1: begin // Assert RVALID, drive RDATA
                     s_axi_rvalid <= 1'b1;
                     s_axi_rresp  <= 2'b00;
-                    case (araddr_reg[3:0])
-                        ADDR_SRC_LO[3:0]:   s_axi_rdata <= src_addr_reg;
-                        ADDR_DST_LO[3:0]:   s_axi_rdata <= dst_addr_reg;
-                        ADDR_XFER_LEN[3:0]: s_axi_rdata <= xfer_len_reg;
-                        ADDR_CTRL[3:0]:     s_axi_rdata <= {28'd0, soft_reset_reg, int_en_reg, 1'b0};
-                        ADDR_STATUS[3:0]:   s_axi_rdata <= {28'd0, dma_error, dma_done, dma_busy};
-                        ADDR_INT_STAT[3:0]: s_axi_rdata <= {31'd0, int_pending};
+                    case (araddr_reg[7:0])
+                        ADDR_SRC_LO[7:0]:   s_axi_rdata <= src_addr_reg;
+                        ADDR_DST_LO[7:0]:   s_axi_rdata <= dst_addr_reg;
+                        ADDR_XFER_LEN[7:0]: s_axi_rdata <= xfer_len_reg;
+                        ADDR_CTRL[7:0]:     s_axi_rdata <= {28'd0, soft_reset_reg, int_en_reg, 1'b0};
+                        ADDR_STATUS[7:0]:   s_axi_rdata <= {28'd0, dma_error, dma_done, dma_busy};
+                        ADDR_INT_STAT[7:0]: s_axi_rdata <= {31'd0, int_pending};
                         default:            s_axi_rdata <= '0;
                     endcase
                     axi_ar_state <= 3'd2;
