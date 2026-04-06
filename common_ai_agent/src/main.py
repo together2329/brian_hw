@@ -1171,15 +1171,64 @@ def chat_loop():
     # Prevents the [LLM] connected message from overwriting the prompt line.
     _warmup_thread.join(timeout=1.0)
 
+    # ── Keepalive / Auto-continue ──────────────────────────────────────────
+    # Injects KEEPALIVE_MESSAGE if no activity for KEEPALIVE_INTERVAL seconds.
+    import threading as _threading
+    _keepalive_last_activity = [time.time()]   # mutable container for thread access
+    _keepalive_waiting = [False]               # True only while blocked on input prompt
+    _keepalive_stop = _threading.Event()
+
+    def _keepalive_thread_fn():
+        _interval = getattr(config, "KEEPALIVE_INTERVAL", 0)
+        _msg = getattr(config, "KEEPALIVE_MESSAGE", "keep going")
+        if _interval <= 0:
+            return
+        while not _keepalive_stop.is_set():
+            _keepalive_stop.wait(timeout=min(60, _interval))
+            if _keepalive_stop.is_set():
+                break
+            _interval = getattr(config, "KEEPALIVE_INTERVAL", 0)
+            if _interval <= 0:
+                continue
+            if not _keepalive_waiting[0]:
+                continue
+            idle = time.time() - _keepalive_last_activity[0]
+            if idle < _interval:
+                continue
+            # Inject keepalive input
+            print(f"\n[Keepalive] No activity for {int(idle)}s — injecting '{_msg}'")
+            _keepalive_last_activity[0] = time.time()
+            # prompt_toolkit path
+            if _multiline_prompt is not None:
+                try:
+                    app = _multiline_prompt.app
+                    if app is not None:
+                        app.exit(result=_msg)
+                        continue
+                except Exception:
+                    pass
+            # Fallback: write to stdin (works for plain input())
+            try:
+                import os as _os
+                _os.write(sys.stdin.fileno(), (_msg + "\n").encode())
+            except Exception:
+                pass
+
+    if getattr(config, "KEEPALIVE_INTERVAL", 0) > 0:
+        _kt = _threading.Thread(target=_keepalive_thread_fn, daemon=True, name="keepalive")
+        _kt.start()
+        _iv = getattr(config, "KEEPALIVE_INTERVAL", 0)
+        print(Color.info(f"[Keepalive] Active — will inject '{getattr(config, 'KEEPALIVE_MESSAGE', 'keep going')}' after {_iv}s idle\n"))
 
     while True:
         try:
             if config.ENABLE_TODO_TRACKING:
                 todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE))
 
+            _keepalive_waiting[0] = True
             if _multiline_prompt:
                 is_plan_turn = (agent_mode in ('plan', 'plan_q'))
-                
+
                 if agent_mode == 'plan_q':
                     _plan_prompt = ANSI(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
                     user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
@@ -1228,6 +1277,8 @@ def chat_loop():
                     else:
                         _em_prefix = ""
                     user_input = _input_fn(_em_prefix + Color.user("> ") + Color.RESET)
+            _keepalive_waiting[0] = False
+            _keepalive_last_activity[0] = time.time()
             if user_input.lower() in ["exit", "quit"]:
                 break
 

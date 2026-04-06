@@ -162,6 +162,10 @@ ENABLE_TOOL_DESCRIPTIONS = os.getenv("ENABLE_TOOL_DESCRIPTIONS", "true").lower()
 # When true: uses structured JSON tool_calls API instead of ReAct text parsing.
 ENABLE_NATIVE_TOOL_CALLS = os.getenv("ENABLE_NATIVE_TOOL_CALLS", "false").lower() in ("true", "1", "yes")
 
+# Keepalive: auto-inject message after N seconds of idle (0 = disabled)
+KEEPALIVE_INTERVAL = int(os.getenv("KEEPALIVE_INTERVAL", "0"))
+KEEPALIVE_MESSAGE = os.getenv("KEEPALIVE_MESSAGE", "keep going")
+
 # ============================================================
 # Type Validation & Linting (Zero-Dependency Features)
 # ============================================================

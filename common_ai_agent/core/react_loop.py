@@ -576,6 +576,17 @@ def run_react_agent_impl(
                 _llm_retry += 1
                 print(f"\n  LLM empty response, retrying ({_llm_retry}/{cfg.LLM_RETRY_COUNT})...")
                 continue
+            # Recovery: reasoning likely consumed all output tokens → compress and retry
+            if not _reasoning_recovery_done and deps.compress_fn:
+                _reasoning_recovery_done = True
+                _llm_retry = 0
+                try:
+                    from lib.display import Color as _C
+                    print(_C.warning("\n  [Recovery] Empty response after reasoning — compressing context and retrying..."))
+                except Exception:
+                    print("\n  [Recovery] Empty response after reasoning — compressing context and retrying...")
+                messages = deps.compress_fn(messages, force=True, quiet=False, todo_tracker=todo_tracker)
+                continue
             _llm_retry = 0
             print(f"\n  LLM failed after {getattr(cfg, 'LLM_RETRY_COUNT', 1)} retry. Returning to input.")
             break
