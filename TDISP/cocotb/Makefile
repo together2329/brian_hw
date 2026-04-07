@@ -13,7 +13,7 @@ MODULE        ?= test_full_lifecycle
 
 # --- Source file paths ---
 HDL_DIR   := $(shell pwd)/hdl
-RTL_DIR   := $(shell pwd)/../.
+RTL_DIR   := $(shell pwd)/..
 
 # RTL source files (order matters for iverilog)
 RTL_SRCS = \
