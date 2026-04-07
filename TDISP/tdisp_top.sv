@@ -243,7 +243,7 @@ module tdisp_top
     logic                resp_ready;
     tdisp_resp_code_e    resp_msg_type;
     logic [INTERFACE_ID_WIDTH-1:0] resp_interface_id;
-    logic [7:0]          resp_payload [MAX_REPORT_SIZE-1:0];
+    logic [7:0]          resp_payload [REPORT_BUF_SIZE-1:0];
     logic [15:0]         resp_payload_len;
 
     // =========================================================================
