@@ -499,7 +499,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
     global last_cache_creation_tokens, last_cache_read_tokens
     global total_cache_created, total_cache_read
 
-    _RETRY_DELAYS = [60, 120, 300, 600, 1200]  # 429/5xx backoff schedule (seconds)
+    _RETRY_DELAYS = [5, 10, 20, 40, 80]  # inactivity/timeout backoff (seconds)
     max_retries = len(_RETRY_DELAYS) + 1
 
     for retry_count in range(max_retries):
@@ -1165,7 +1165,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
     # Retry logic for transient errors
     max_retries = 5
-    initial_delay = 60  # seconds — doubles each retry: 60, 120, 240, 480, 960
+    initial_delay = 5   # seconds — doubles each retry: 5, 10, 20, 40, 80
     _fallback_used = False  # True after switching to SECONDARY_MODEL
 
     for retry_count in range(max_retries):
@@ -1403,7 +1403,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             is_retryable = e.code == 429 or (500 <= e.code < 600)
 
             if is_retryable and retry_count < max_retries - 1:
-                delay = initial_delay * (2 ** retry_count)
+                # 429 rate-limit needs longer back-off; other 5xx use fast retry
+                rate_limit_delay = 60 * (2 ** retry_count)  # 60, 120, 240…
+                delay = rate_limit_delay if e.code == 429 else initial_delay * (2 ** retry_count)
                 print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] HTTP {e.code}: {e.reason}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
