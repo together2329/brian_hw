@@ -791,7 +791,7 @@ module tdisp_req_handler
                             resp_msg_type_r <= RESP_TDISP_ERROR;
                         end else begin
                             // Lock succeeded u2014 return nonce
-                            lock_req_pulse[lock_done_tdi_idx] <= 1'b1;
+                            lock_req_pulse_r[lock_done_tdi_idx] <= 1'b1;
                             build_lock_resp_payload(resp_payload_r, resp_payload_len_r,
                                                     lock_nonce_out);
                             resp_msg_type_r <= RESP_LOCK_INTERFACE;
