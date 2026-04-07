@@ -30,7 +30,7 @@ Good: web_search(query="PCIe 6.0 FLR mechanism", limit=3)
 Good: web_search(query="Python urllib timeout handling" limit=5)
   Find coding solutions not in the local codebase
 
-Good: web_search(query=\RVerilog synthesis pitfalls 2024\RP limit=5 tbs="qdr:y")
+Good: web_search(query="Verilog synthesis pitfalls 2024", limit=5, tbs="qdr:y")
   Time-filtered search for recent results
 
 # Bad Examples
