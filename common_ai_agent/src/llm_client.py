@@ -20,6 +20,7 @@ import copy
 import re
 import sys
 import os
+import threading
 from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
 
@@ -433,6 +434,62 @@ def chat_completion_with_config(
     yield from _execute_streaming_request(url, headers, data, messages, native_mode=bool(tools))
 
 
+def _make_stream_watchdog(response, inactivity_s: int, last_data_ref: list):
+    """
+    Daemon thread that watches the stream for inactivity.
+
+    - Prints a spinner to stderr every 10 s when there's been a > 5 s gap
+      (so the user can see the model is still generating).
+    - Closes *response* and sets triggered[0]=True if no data arrives for
+      *inactivity_s* seconds (truly stuck / dead connection).
+
+    Usage::
+
+        _last = [time.time()]
+        _stop, _triggered = _make_stream_watchdog(response, inactivity_s, _last)
+        try:
+            for line in response:
+                _last[0] = time.time()
+                ...
+        finally:
+            _stop.set()
+        if _triggered[0]:
+            raise socket.timeout(f"No data for {inactivity_s}s")
+    """
+    _stop = threading.Event()
+    _triggered = [False]
+    _SPIN_EVERY = 10   # seconds between spinner prints
+    _SPIN_AFTER = 5    # only start spinning after this idle gap
+
+    def _run():
+        _last_spin = time.time()
+        while not _stop.is_set():
+            now = time.time()
+            elapsed = now - last_data_ref[0]
+            if elapsed >= inactivity_s:
+                _triggered[0] = True
+                try:
+                    response.close()
+                except Exception:
+                    pass
+                break
+            if elapsed > _SPIN_AFTER and now - _last_spin >= _SPIN_EVERY:
+                _last_spin = now
+                sys.stderr.write(
+                    f"\r\033[2m  ⏳ streaming… {int(elapsed)}s? idle "
+                    f"(limit {inactivity_s}s?)\033[0m\033[K"
+                )
+                sys.stderr.flush()
+            _stop.wait(1)
+        # clear spinner line
+        sys.stderr.write("\r\033[K")
+        sys.stderr.flush()
+
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+    return _stop, _triggered
+
+
 def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: List, native_mode: bool = False):
     """
     Execute streaming request with retry logic.
@@ -454,12 +511,16 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
         try:
             _body = json.dumps(data).encode('utf-8')
             response = _persistent_post(url, headers, _body, timeout=config.STREAM_API_TIMEOUT)
+            _inactivity_s = getattr(config, 'STREAM_INACTIVITY_TIMEOUT', 120)
+            _last_data = [time.time()]
+            _wd_stop, _wd_triggered = _make_stream_watchdog(response, _inactivity_s, _last_data)
             try:
                 usage_info = None
                 # Accumulate native tool calls across streaming chunks.
                 # OpenAI streaming sends name in first chunk, arguments fragmented across many.
                 _pending_tool_calls: Dict[int, Dict] = {}
                 for line in response:
+                    _last_data[0] = time.time()
                     line = line.decode('utf-8').strip()
                     if line.startswith("data: "):
                         data_str = line[6:]
@@ -555,10 +616,13 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
 
                 return
             finally:
+                _wd_stop.set()
                 try:
                     response.read()
                 except Exception:
                     pass
+            if _wd_triggered[0]:
+                raise socket.timeout(f"No data for {_inactivity_s}s (inactivity)")
 
         except urllib.error.HTTPError as e:
             error_body = e.read().decode('utf-8')
@@ -587,14 +651,16 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             return
 
         except socket.timeout as e:
-            # socket.timeout (OSError subclass) not always caught by URLError
+            # Covers both real socket timeouts and inactivity-watchdog triggers
+            inactivity_triggered = getattr(e, '_inactivity', False) or 'inactivity' in str(e).lower()
+            label = f"Inactivity ({_inactivity_s}s)" if inactivity_triggered else f"Read timeout ({config.STREAM_API_TIMEOUT}s)"
             if retry_count < max_retries - 1:
                 delay = _RETRY_DELAYS[retry_count]
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Read timeout ({config.STREAM_API_TIMEOUT}s): {e}"))
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] {label}: {e}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
                 continue
-            yield f"\n{Color.error(f'[Read Timeout]: {e}')}\n"
+            yield f"\n{Color.error(f'[{label}]: {e}')}\n"
             return
 
         except (urllib.error.URLError, ssl.SSLError) as e:
@@ -611,6 +677,16 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             return
 
         except Exception as e:
+            # Watchdog closed the connection → convert to socket.timeout for retry
+            if 'wd_triggered' in dir() and _wd_triggered[0]:
+                if retry_count < max_retries - 1:
+                    delay = _RETRY_DELAYS[retry_count]
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Inactivity ({_inactivity_s}s): no data received"))
+                    print(Color.warning(f"Waiting {delay}s before retry...\n"))
+                    time.sleep(delay)
+                    continue
+                yield f"\n{Color.error(f'[Inactivity Timeout]: no data for {_inactivity_s}s')}\n"
+                return
             error_type = type(e).__name__
             if retry_count < max_retries - 1:
                 delay = _RETRY_DELAYS[retry_count]
@@ -1117,6 +1193,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             _perf_gen_elapsed = None
             _perf_chunks = 0
             response = _persistent_post(url, headers, _post_body, timeout=config.STREAM_API_TIMEOUT)
+            _inactivity_s = getattr(config, 'STREAM_INACTIVITY_TIMEOUT', 120)
+            _last_data = [time.time()]
+            _wd_stop, _wd_triggered = _make_stream_watchdog(response, _inactivity_s, _last_data)
             try:
                 _perf_connect = time.time() - _t_connect
                 # Parse Server-Sent Events (SSE)
@@ -1126,6 +1205,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 # Accumulate native tool calls across streaming chunks.
                 _pending_tool_calls: Dict[int, Dict] = {}
                 for line in response:
+                    _last_data[0] = time.time()
                     line = line.decode('utf-8').strip()
                     if line.startswith("data: "):
                         data_str = line[6:] # Remove "data: " prefix
@@ -1296,65 +1376,60 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 # Success! Exit retry loop
                 return
             finally:
+                _wd_stop.set()
                 # Drain any unread bytes so the connection can be reused
                 try:
                     response.read()
                 except Exception:
                     pass
+            if _wd_triggered[0]:
+                raise socket.timeout(f"No data for {_inactivity_s}s (inactivity)")
 
         except urllib.error.HTTPError as e:
             error_body = e.read().decode('utf-8')
 
-            # Detect quota/token exhaustion → fall back to SECONDARY_MODEL
-            _body_lower = error_body.lower()
-            _is_quota_error = (e.code == 401)
-            if _is_quota_error and not _fallback_used and config.SECONDARY_MODEL and config.SECONDARY_MODEL != resolved_model:
-                _fallback_used = True
-                resolved_model = config.SECONDARY_MODEL
-                print(Color.warning(f"\n[Fallback] Quota/token limit hit ({e.code}). Switching to secondary model: {resolved_model}\n"))
-                continue
+            # 401: company token limit exhausted → fall back or show once and stop
+            if e.code == 401:
+                if not _fallback_used and config.SECONDARY_MODEL and config.SECONDARY_MODEL != resolved_model:
+                    _fallback_used = True
+                    resolved_model = config.SECONDARY_MODEL
+                    print(Color.warning(f"\n[Fallback] Token quota exhausted (401). Switching to: {resolved_model}\n"))
+                    continue
+                # No fallback available — report once and stop (no retry loop for 401)
+                yield f"\n{Color.error('[401 Unauthorized] Token quota exhausted — please top up your API credits.')}\n"
+                return
 
             # Check if error is retryable (rate limit / server error)
             is_retryable = e.code == 429 or (500 <= e.code < 600)
 
             if is_retryable and retry_count < max_retries - 1:
-                # Calculate exponential backoff delay
                 delay = initial_delay * (2 ** retry_count)
                 print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] HTTP {e.code}: {e.reason}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
                 continue
-            
+
             # Non-retryable error or max retries reached
             yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
 
-            # Try to parse error JSON
             try:
                 error_json = json.loads(error_body)
-                yield f"{Color.error('Error Details:')}\n"
                 if 'error' in error_json:
                     error_info = error_json['error']
                     if isinstance(error_info, dict):
-                        error_type = error_info.get('type', 'unknown')
-                        error_message = error_info.get('message', 'No message')
-                        yield f"{Color.error(f'  Type: {error_type}')}\n"
-                        yield f"{Color.error(f'  Message: {error_message}')}\n"
+                        error_message = error_info.get('message', '')
+                        if error_message:
+                            yield f"{Color.error(f'  {error_message}')}\n"
                     else:
                         yield f"{Color.error(f'  {error_info}')}\n"
-                else:
-                    yield f"{Color.error(f'  {error_json}')}\n"
             except:
-                yield f"{Color.error(f'Raw Error Body:')}\n{error_body[:500]}\n"
+                yield f"{Color.error(f'  {error_body[:300]}')}\n"
 
-            # Debug: Show request info that caused error
             if config.DEBUG_MODE:
                 yield f"\n{Color.info('[Debug Info]')}\n"
-                yield f"{Color.info(f'  Model: {resolved_model} (config default: {config.MODEL_NAME})')}\n"
+                yield f"{Color.info(f'  Model: {resolved_model}')}\n"
                 yield f"{Color.info(f'  URL: {url}')}\n"
-                yield f"{Color.info(f'  Message count: {len(processed_messages)}')}\n"
-                total_chars = sum(len(str(m.get('content', ''))) for m in processed_messages)
-                yield f"{Color.info(f'  Estimated tokens: {total_chars // 4:,}')}\n"
-            
+
             return
 
         except urllib.error.URLError as e:
@@ -1381,7 +1456,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             return
 
         except socket.timeout as e:
-            # socket.timeout (OSError subclass) not always caught by URLError
+            # Covers real socket timeouts and inactivity-watchdog triggers
+            inactivity_triggered = 'inactivity' in str(e).lower()
+            label = f"Inactivity ({_inactivity_s}s, no data)" if inactivity_triggered else f"Read timeout ({config.STREAM_API_TIMEOUT}s)"
             if retry_count < max_retries - 1:
                 delay = initial_delay * (2 ** retry_count)
                 # Reset stale connection so next attempt gets a fresh socket
@@ -1389,11 +1466,11 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     _http_conn_pool.pop(urllib.parse.urlparse(url).netloc, None)
                 except Exception:
                     pass
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Read timeout ({config.STREAM_API_TIMEOUT}s): {e}"))
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] {label}: {e}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
                 continue
-            yield f"\n{Color.error(f'[Read Timeout]: {e}')}\n"
+            yield f"\n{Color.error(f'[{label}]: {e}')}\n"
             return
 
         except ssl.SSLError as e:
@@ -1420,7 +1497,21 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             return
 
         except Exception as e:
-            # Catch-all for unexpected errors (incl. ResponseNotReady from stale connection)
+            # Catch-all for unexpected errors (incl. ResponseNotReady from stale connection,
+            # or watchdog-closed connection raising OSError/IncompleteRead)
+            if _wd_triggered[0]:
+                if retry_count < max_retries - 1:
+                    delay = initial_delay * (2 ** retry_count)
+                    try:
+                        _http_conn_pool.pop(urllib.parse.urlparse(url).netloc, None)
+                    except Exception:
+                        pass
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Inactivity ({_inactivity_s}s): no data received"))
+                    print(Color.warning(f"Waiting {delay}s before retry...\n"))
+                    time.sleep(delay)
+                    continue
+                yield f"\n{Color.error(f'[Inactivity Timeout]: no data for {_inactivity_s}s')}\n"
+                return
             error_type = type(e).__name__
             if retry_count < max_retries - 1:
                 delay = initial_delay * (2 ** retry_count)
