@@ -129,7 +129,7 @@ module counter_tb;
         wait_clks(1);
         check("count down q=1", 1, 1'b0, 1'b0);
         wait_clks(1);
-        check("count down q=0", 0, 1'b0, 1'b0);
+        check("count down q=0, zero flag", 0, 1'b0, 1'b1);
 
         // ===================================================================
         // Test 4: Hold (Enable = 0)
