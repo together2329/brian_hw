@@ -15,24 +15,20 @@
 //   - Local memory interface (BRAM/FIFO)
 // ============================================================================
 module pcie_dma #(
-    parameter int unsigned DATA_WIDTH     = 128,
-    parameter int unsigned ADDR_WIDTH     = 64,
-    parameter int unsigned MAX_PAYLOAD    = 256,   // bytes (128, 256, 512, 1024)
-    parameter int unsigned MAX_OUTSTANDING = 32,   // max outstanding read tags
-    parameter int unsigned KEEP_WIDTH     = DATA_WIDTH / 8
+    parameter int unsigned DATA_WIDTH      = 128,
+    parameter int unsigned ADDR_WIDTH      = 64,
+    parameter int unsigned MAX_PAYLOAD     = 256,
+    parameter int unsigned MAX_OUTSTANDING = 32,
+    parameter int unsigned KEEP_WIDTH      = DATA_WIDTH / 8
 )(
-    // ----------------------------------------------------------------
     // Clock & Reset
-    // ----------------------------------------------------------------
     input  logic                          clk,
     input  logic                          rst_n,
 
-    // ----------------------------------------------------------------
-    // Descriptor / CSR Interface (simple register access)
-    // ----------------------------------------------------------------
+    // Descriptor / CSR Interface
     input  logic [63:0]                   csr_src_addr,
     input  logic [63:0]                   csr_dst_addr,
-    input  logic [31:0]                   csr_xfer_len,  // bytes
+    input  logic [31:0]                   csr_xfer_len,
     input  logic                          csr_direction,  // 0=PCIe->Local, 1=Local->PCIe
     input  logic                          csr_start,
     output logic                          csr_busy,
@@ -40,19 +36,15 @@ module pcie_dma #(
     output logic                          csr_error,
     output logic [31:0]                   csr_status,
 
-    // ----------------------------------------------------------------
     // TLP TX Stream (to PCIe core)
-    // ----------------------------------------------------------------
     output logic [DATA_WIDTH-1:0]         tx_tlp_data,
     output logic [KEEP_WIDTH-1:0]         tx_tlp_keep,
     output logic                          tx_tlp_valid,
-    output logic                          tx_tlp_sop,    // Start of TLP
-    output logic                          tx_tlp_eop,    // End of TLP
+    output logic                          tx_tlp_sop,
+    output logic                          tx_tlp_eop,
     input  logic                          tx_tlp_ready,
 
-    // ----------------------------------------------------------------
     // TLP RX Stream (from PCIe core)
-    // ----------------------------------------------------------------
     input  logic [DATA_WIDTH-1:0]         rx_tlp_data,
     input  logic [KEEP_WIDTH-1:0]         rx_tlp_keep,
     input  logic                          rx_tlp_valid,
@@ -60,9 +52,7 @@ module pcie_dma #(
     input  logic                          rx_tlp_eop,
     output logic                          rx_tlp_ready,
 
-    // ----------------------------------------------------------------
     // Local Memory Interface (to BRAM/FIFO)
-    // ----------------------------------------------------------------
     output logic [ADDR_WIDTH-1:0]         lcl_mem_addr,
     output logic [DATA_WIDTH-1:0]         lcl_mem_wdata,
     output logic                          lcl_mem_wen,
@@ -70,59 +60,52 @@ module pcie_dma #(
     output logic                          lcl_mem_ren,
     input  logic                          lcl_mem_rvalid,
 
-    // ----------------------------------------------------------------
     // Interrupt
-    // ----------------------------------------------------------------
     output logic                          irq
 );
 
     import pcie_dma_pkg::*;
 
     // ----------------------------------------------------------------
-    // Internal Signals
+    // Internal Signals - all same-width to avoid type mismatch
     // ----------------------------------------------------------------
-    dma_state_t   state_reg;
-    logic [63:0]  current_addr;
-    logic [63:0]  bytes_remaining;   // promote to 64-bit to avoid width mismatch
-    logic [63:0]  bytes_requested;
-    logic [63:0]  bytes_completed;
-    logic [7:0]   next_tag;
-    logic [7:0]   outstanding_cnt;
+    dma_state_t             state_reg;
 
-    // Local address pointer for BRAM writes
-    logic [ADDR_WIDTH-1:0] lcl_wr_ptr;
-    logic [ADDR_WIDTH-1:0] lcl_rd_ptr;
+    logic [63:0]            cur_addr;
+    logic [63:0]            xfer_left;       // bytes remaining
+    logic [63:0]            xfer_done;       // bytes completed
+    logic [63:0]            xfer_requested;  // bytes requested (reads)
+    logic [7:0]             next_tag;
+    logic [7:0]             outstanding_cnt;
+
+    logic [ADDR_WIDTH-1:0]  lcl_wr_ptr;
+    logic [ADDR_WIDTH-1:0]  lcl_rd_ptr;
 
     // ----------------------------------------------------------------
-    // TLP Construction Helpers
+    // Derived signals
     // ----------------------------------------------------------------
-    logic [31:0] tlp_dw0;
-    logic [31:0] tlp_dw1;
-    logic [31:0] tlp_dw2;
-    logic [31:0] tlp_dw3;
-    logic        use_4dw;
-
-    // Determine if we need 4DW header (address > 4GB boundary)
-    assign use_4dw = (current_addr[63:32] != 32'h0);
-
-    // Request size calculation (combinational, used in state machine)
-    logic [63:0] req_bytes_read;
-    logic [63:0] req_bytes_write;
+    logic       use_4dw;
+    logic [7:0] max_outstanding_8;
     logic [63:0] max_payload_64;
-    assign max_payload_64  = 64'(MAX_PAYLOAD);
-    assign req_bytes_read  = (bytes_remaining >= max_payload_64) ? max_payload_64 : bytes_remaining;
-    assign req_bytes_write = (bytes_remaining >= max_payload_64) ? max_payload_64 : bytes_remaining;
+
+    assign use_4dw           = (cur_addr[63:32] != 32'h0);
+    assign max_outstanding_8 = 8'(MAX_OUTSTANDING);
+    assign max_payload_64    = 64'(MAX_PAYLOAD);
+
+    // Request size for current beat
+    logic [63:0] req_size;
+    assign req_size = (xfer_left >= max_payload_64) ? max_payload_64 : xfer_left;
 
     // ----------------------------------------------------------------
-    // DMA State Machine
+    // DMA State Machine (sequential)
     // ----------------------------------------------------------------
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             state_reg       <= DMA_IDLE;
-            current_addr    <= '0;
-            bytes_remaining <= '0;
-            bytes_requested <= '0;
-            bytes_completed <= '0;
+            cur_addr        <= '0;
+            xfer_left       <= '0;
+            xfer_done       <= '0;
+            xfer_requested  <= '0;
             next_tag        <= '0;
             outstanding_cnt <= '0;
             lcl_wr_ptr      <= '0;
@@ -133,22 +116,21 @@ module pcie_dma #(
             csr_status      <= '0;
             irq             <= 1'b0;
         end else begin
-            // Default: pulse signals
-            csr_done  <= 1'b0;
-            irq       <= 1'b0;
+            csr_done <= 1'b0;
+            irq      <= 1'b0;
 
             case (state_reg)
-                // ----------------------------------------------------
+
                 DMA_IDLE: begin
                     csr_busy <= 1'b0;
                     if (csr_start) begin
                         csr_busy        <= 1'b1;
                         csr_error       <= 1'b0;
                         csr_status      <= '0;
-                        current_addr    <= csr_src_addr;
-                        bytes_remaining <= 64'(csr_xfer_len);
-                        bytes_requested <= '0;
-                        bytes_completed <= '0;
+                        cur_addr        <= csr_src_addr;
+                        xfer_left       <= {32'h0, csr_xfer_len};
+                        xfer_done       <= '0;
+                        xfer_requested  <= '0;
                         next_tag        <= '0;
                         outstanding_cnt <= '0;
                         lcl_wr_ptr      <= '0;
@@ -157,33 +139,25 @@ module pcie_dma #(
                     end
                 end
 
-                // ----------------------------------------------------
                 DMA_SETUP: begin
-                    if (bytes_remaining == '0) begin
+                    if (xfer_left == 64'd0) begin
                         state_reg <= DMA_DONE;
                     end else if (csr_direction == 1'b0) begin
-                        // PCIe -> Local: Issue Memory Read TLPs
                         state_reg <= DMA_READ;
                     end else begin
-                        // Local -> PCIe: Issue Memory Write TLPs
                         state_reg <= DMA_WRITE;
                     end
                 end
 
-                // ----------------------------------------------------
                 DMA_READ: begin
-                    // Issue Memory Read requests until we run out of
-                    // tags or bytes
-                    if (bytes_remaining > '0 && outstanding_cnt < 8'(MAX_OUTSTANDING)) begin
+                    if ((xfer_left > 64'd0) && (outstanding_cnt < max_outstanding_8)) begin
                         if (tx_tlp_ready) begin
-                            current_addr    <= current_addr + req_bytes_read;
-                            bytes_remaining <= bytes_remaining - req_bytes_read;
-                            bytes_requested <= bytes_requested + req_bytes_read;
+                            cur_addr        <= cur_addr + req_size;
+                            xfer_left       <= xfer_left - req_size;
+                            xfer_requested  <= xfer_requested + req_size;
                             next_tag        <= next_tag + 8'd1;
                             outstanding_cnt <= outstanding_cnt + 8'd1;
-
-                            // Done issuing reads?
-                            if (bytes_remaining <= req_bytes_read) begin
+                            if (xfer_left <= req_size) begin
                                 state_reg <= DMA_WAIT;
                             end
                         end
@@ -192,17 +166,14 @@ module pcie_dma #(
                     end
                 end
 
-                // ----------------------------------------------------
                 DMA_WRITE: begin
-                    // Issue Memory Write TLPs with data from local memory
-                    if (bytes_remaining > '0) begin
+                    if (xfer_left > 64'd0) begin
                         if (tx_tlp_ready) begin
-                            current_addr    <= current_addr + req_bytes_write;
-                            bytes_remaining <= bytes_remaining - req_bytes_write;
-                            bytes_completed <= bytes_completed + req_bytes_write;
-                            lcl_rd_ptr      <= lcl_rd_ptr + req_bytes_write[ADDR_WIDTH-1:0];
-
-                            if (bytes_remaining <= req_bytes_write) begin
+                            cur_addr   <= cur_addr + req_size;
+                            xfer_left  <= xfer_left - req_size;
+                            xfer_done  <= xfer_done + req_size;
+                            lcl_rd_ptr <= lcl_rd_ptr + lcl_rd_ptr'(req_size);
+                            if (xfer_left <= req_size) begin
                                 state_reg <= DMA_DONE;
                             end
                         end
@@ -211,26 +182,22 @@ module pcie_dma #(
                     end
                 end
 
-                // ----------------------------------------------------
                 DMA_WAIT: begin
-                    // Wait for all outstanding read completions
-                    if (outstanding_cnt == '0) begin
+                    if (outstanding_cnt == 8'd0) begin
                         state_reg <= DMA_DONE;
                     end
                 end
 
-                // ----------------------------------------------------
                 DMA_DONE: begin
                     csr_busy   <= 1'b0;
                     csr_done   <= 1'b1;
-                    csr_status <= 32'h0000_0001; // Success
+                    csr_status <= 32'h0000_0001;
                     if (csr_start == 1'b0) begin
                         csr_done  <= 1'b0;
                         state_reg <= DMA_IDLE;
                     end
                 end
 
-                // ----------------------------------------------------
                 DMA_ERROR: begin
                     csr_busy  <= 1'b0;
                     csr_error <= 1'b1;
@@ -238,34 +205,27 @@ module pcie_dma #(
                     state_reg <= DMA_IDLE;
                 end
 
-                // ----------------------------------------------------
                 default: begin
                     state_reg <= DMA_IDLE;
                 end
             endcase
 
-            // Handle RX completions (for DMA reads)
+            // Handle RX completions (for DMA reads) u2014 runs in parallel
             if (rx_tlp_valid && rx_tlp_sop) begin
-                // Check for Completion with Data (CPLD)
-                logic [4:0] rx_type;
-                rx_type = rx_tlp_data[28:24]; // Type field in DW0
+                if (rx_tlp_data[28:24] == TYPE_CPLD) begin
+                    logic [31:0] cpl_bc;
+                    cpl_bc = {20'h0, rx_tlp_data[43:32]};
 
-                if (rx_type == TYPE_CPLD) begin
-                    // Extract byte count from completion
-                    logic [31:0] cpl_byte_count;
-                    cpl_byte_count = 32'(rx_tlp_data[43:32]); // Byte Count in DW1
+                    xfer_done  <= xfer_done + {32'h0, cpl_bc};
+                    lcl_wr_ptr <= lcl_wr_ptr + lcl_wr_ptr'(cpl_bc);
 
-                    bytes_completed <= bytes_completed + 64'(cpl_byte_count);
-                    lcl_wr_ptr      <= lcl_wr_ptr + ADDR_WIDTH'(cpl_byte_count);
-
-                    if (outstanding_cnt > '0) begin
+                    if (outstanding_cnt > 8'd0) begin
                         outstanding_cnt <= outstanding_cnt - 8'd1;
                     end
 
-                    // Write data to local memory
                     lcl_mem_wen   <= 1'b1;
                     lcl_mem_addr  <= lcl_wr_ptr;
-                    lcl_mem_wdata <= rx_tlp_data; // Simplified: real design needs alignment
+                    lcl_mem_wdata <= rx_tlp_data;
                 end
             end else begin
                 lcl_mem_wen <= 1'b0;
@@ -275,10 +235,6 @@ module pcie_dma #(
 
     // ----------------------------------------------------------------
     // TLP TX Construction (combinational)
-    //   For simplicity, this module builds one TLP per clock.
-    //   - 3DW header = 96 bits, fits in 128-bit data with room for payload
-    //   - 4DW header = 128 bits, occupies a full 128-bit beat
-    //   When DATA_WIDTH >= 256, header + payload can fit in one beat.
     // ----------------------------------------------------------------
     always_comb begin
         tx_tlp_data  = '0;
@@ -287,62 +243,44 @@ module pcie_dma #(
         tx_tlp_sop   = 1'b0;
         tx_tlp_eop   = 1'b0;
 
-        tlp_dw0 = '0;
-        tlp_dw1 = '0;
-        tlp_dw2 = '0;
-        tlp_dw3 = '0;
-
         if (state_reg == DMA_READ) begin
-            // Build Memory Read TLP header (no data payload for MRd)
             tx_tlp_valid = 1'b1;
             tx_tlp_sop   = 1'b1;
             tx_tlp_eop   = 1'b1;
 
             if (use_4dw) begin
-                // 4DW Memory Read: 128-bit header, no data
-                tlp_dw0 = {FMT_4DW_NO_DATA, TYPE_MRD, 9'b0, 1'b0, 1'b0, 10'd0};
-                tlp_dw1 = {16'h0000, next_tag, 4'b0000, 4'b1111}; // Requester ID=0, Tag, BE
-                tlp_dw2 = current_addr[63:32];
-                tlp_dw3 = {current_addr[31:2], 2'b00};
-                tx_tlp_data = {tlp_dw3, tlp_dw2, tlp_dw1, tlp_dw0};
-                tx_tlp_keep = 16'hFFFF;
+                tx_tlp_data[31:0]   = {FMT_4DW_NO_DATA, TYPE_MRD, 9'b0, 1'b0, 1'b0, 10'd0};
+                tx_tlp_data[63:32]  = {16'h0000, next_tag, 4'b0000, 4'b1111};
+                tx_tlp_data[95:64]  = cur_addr[63:32];
+                tx_tlp_data[127:96] = {cur_addr[31:2], 2'b00};
+                tx_tlp_keep = {KEEP_WIDTH{1'b1}};
             end else begin
-                // 3DW Memory Read: 96-bit header, no data
-                tlp_dw0 = {FMT_3DW_NO_DATA, TYPE_MRD, 9'b0, 1'b0, 1'b0, 10'd0};
-                tlp_dw1 = {16'h0000, next_tag, 4'b0000, 4'b1111};
-                tlp_dw2 = {current_addr[31:2], 2'b00};
-                tx_tlp_data[95:0]  = {tlp_dw2, tlp_dw1, tlp_dw0};
-                tx_tlp_keep        = 16'h0FFF;
+                tx_tlp_data[31:0]  = {FMT_3DW_NO_DATA, TYPE_MRD, 9'b0, 1'b0, 1'b0, 10'd0};
+                tx_tlp_data[63:32] = {16'h0000, next_tag, 4'b0000, 4'b1111};
+                tx_tlp_data[95:64] = {cur_addr[31:2], 2'b00};
+                tx_tlp_keep[11:0]  = 12'hFFF;
             end
         end else if (state_reg == DMA_WRITE) begin
-            // Build Memory Write TLP header + data
             tx_tlp_valid = 1'b1;
             tx_tlp_sop   = 1'b1;
             tx_tlp_eop   = 1'b1;
 
             if (use_4dw) begin
-                // 4DW MWr: header in first 128 bits
-                // For DATA_WIDTH=128, header only (data on next beat in real design)
-                // For DATA_WIDTH>=256, header + payload in one beat
-                tlp_dw0 = {FMT_4DW_DATA, TYPE_MWR, 9'b0, 1'b0, 1'b0, 10'd0};
-                tlp_dw1 = {16'h0000, 8'd0, 4'b0000, 4'b1111};
-                tlp_dw2 = current_addr[63:32];
-                tlp_dw3 = {current_addr[31:2], 2'b00};
-                // Place header in lower bits
-                tx_tlp_data[127:0] = {tlp_dw3, tlp_dw2, tlp_dw1, tlp_dw0};
-                if (DATA_WIDTH >= 256) begin : gen_4dw_payload
-                    // Append payload after 128-bit header
-                    tx_tlp_data[DATA_WIDTH-1:128] = lcl_mem_rdata[DATA_WIDTH-128-1:0];
+                // 4DW header = 128 bits, payload follows (only if DATA_WIDTH > 128)
+                tx_tlp_data[31:0]   = {FMT_4DW_DATA, TYPE_MWR, 9'b0, 1'b0, 1'b0, 10'd0};
+                tx_tlp_data[63:32]  = {16'h0000, 8'd0, 4'b0000, 4'b1111};
+                tx_tlp_data[95:64]  = cur_addr[63:32];
+                tx_tlp_data[127:96] = {cur_addr[31:2], 2'b00};
+                if (DATA_WIDTH > 128) begin : mwr_4dw_payload
+                    tx_tlp_data[DATA_WIDTH-1:128] = lcl_mem_rdata[DATA_WIDTH-129:0];
                 end
                 tx_tlp_keep = {KEEP_WIDTH{1'b1}};
             end else begin
-                // 3DW MWr: 96-bit header + 32 bits of data in 128-bit beat
-                tlp_dw0 = {FMT_3DW_DATA, TYPE_MWR, 9'b0, 1'b0, 1'b0, 10'd0};
-                tlp_dw1 = {16'h0000, 8'd0, 4'b0000, 4'b1111};
-                tlp_dw2 = {current_addr[31:2], 2'b00};
-                // Header (96 bits) + payload (DATA_WIDTH-96 bits)
-                tx_tlp_data[95:0] = {tlp_dw2, tlp_dw1, tlp_dw0};
-                if (DATA_WIDTH > 96) begin : gen_3dw_payload
+                // 3DW header = 96 bits, payload in remaining bits
+                tx_tlp_data[31:0]  = {FMT_3DW_DATA, TYPE_MWR, 9'b0, 1'b0, 1'b0, 10'd0};
+                tx_tlp_data[63:32] = {16'h0000, 8'd0, 4'b0000, 4'b1111};
+                tx_tlp_data[95:64] = {cur_addr[31:2], 2'b00};
+                if (DATA_WIDTH > 96) begin : mwr_3dw_payload
                     tx_tlp_data[DATA_WIDTH-1:96] = lcl_mem_rdata[DATA_WIDTH-97:0];
                 end
                 tx_tlp_keep = {KEEP_WIDTH{1'b1}};
@@ -351,14 +289,12 @@ module pcie_dma #(
     end
 
     // ----------------------------------------------------------------
-    // Local memory read control (for DMA Write path)
+    // Local memory read control
     // ----------------------------------------------------------------
-    assign lcl_mem_ren   = (state_reg == DMA_WRITE) ? 1'b1 : 1'b0;
-    assign lcl_mem_addr  = (state_reg == DMA_WRITE) ? lcl_rd_ptr : lcl_wr_ptr;
+    assign lcl_mem_ren  = (state_reg == DMA_WRITE) ? 1'b1 : 1'b0;
+    assign lcl_mem_addr = (state_reg == DMA_WRITE) ? lcl_rd_ptr : lcl_wr_ptr;
 
-    // ----------------------------------------------------------------
-    // RX always ready to accept completions
-    // ----------------------------------------------------------------
+    // RX always ready
     assign rx_tlp_ready = 1'b1;
 
 endmodule : pcie_dma
