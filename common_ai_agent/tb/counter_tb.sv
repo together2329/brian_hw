@@ -212,6 +212,7 @@ module counter_tb;
         rst_n   = 1'b0;
         wait_clks(2);
         check("reset asserted", '0, 1'b0, 1'b0);
+        en      = 1'b0;       // Disable before releasing reset
         rst_n   = 1'b1;
         wait_clks(1);
         check("after reset release", '0, 1'b0, 1'b0);
