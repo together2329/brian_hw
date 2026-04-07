@@ -722,11 +722,11 @@ module tb_tdisp;
                             recv_buf[TDISP_MSG_HEADER_SIZE+4]};
                 if (err_code[15:0] == expected_error_code) begin
                     test_pass++;
-                    ("[PASS] %s: error_code=0x%04h (expected 0x%04h), error_data=0x%08h",
+                    $display("[PASS] %s: error_code=0x%04h (expected 0x%04h), error_data=0x%08h",
                              test_name, err_code[15:0], expected_error_code, err_data);
                 end else begin
                     test_fail++;
-                    ("[FAIL] %s: error_code=0x%04h (expected 0x%04h)",
+                    $display("[FAIL] %s: error_code=0x%04h (expected 0x%04h)",
                              test_name, err_code[15:0], expected_error_code);
                 end
             end
