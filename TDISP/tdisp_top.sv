@@ -200,7 +200,7 @@ module tdisp_top
     // =========================================================================
     output logic                                 vdm_req_valid,
     output logic [INTERFACE_ID_WIDTH-1:0]        vdm_req_interface_id,
-    output logic [7:0]                           vdm_req_payload [MAX_REPORT_SIZE-1:0],
+    output logic [7:0]                           vdm_req_payload [REPORT_BUF_SIZE-1:0],
     output logic [15:0]                          vdm_req_payload_len,
     input  logic                                 vdm_resp_ready,
 
