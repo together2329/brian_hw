@@ -192,16 +192,23 @@ class SimpleLinter:
         # VCS path (Synopsys commercial simulator)
         if tool == 'vcs':
             try:
+                # Use -parse for syntax/lint-only analysis — skips elaboration and
+                # linking so single-file checks don't produce spurious link errors
+                # (Error-[LNK], unresolved references, etc.) from missing top-level.
                 result = subprocess.run(
-                    ['vcs', '-full64', '-sverilog', '-q', '-o', '/dev/null', str(filepath)],
+                    ['vcs', '-full64', '-sverilog', '-q', '+lint=all', '-parse', str(filepath)],
                     capture_output=True,
                     text=True,
                     timeout=30,
                     cwd=filepath.parent
                 )
                 output = result.stderr + result.stdout
+                import re
                 for line in output.strip().split('\n'):
                     if not line.strip():
+                        continue
+                    # Skip link-phase errors — irrelevant for single-file lint
+                    if re.search(r'Error-\[LNK\]|unresolved reference|cannot find|not found in|link error', line, re.IGNORECASE):
                         continue
                     # VCS error format: "filename", line N: error|warning: message
                     # or: Error-[XXX] Description
@@ -212,18 +219,14 @@ class SimpleLinter:
                         continue  # skip informational
 
                     line_num = 0
-                    # Try to extract line number: `"file", line 10:`
-                    import re
                     m = re.search(r'line\s+(\d+)', line)
                     if m:
                         line_num = int(m.group(1))
 
-                    # Clean up message
-                    msg = line.strip()
                     errors.append(LintError(
                         file=str(filepath),
                         line=line_num,
-                        message=msg,
+                        message=line.strip(),
                         severity=severity
                     ))
             except (subprocess.TimeoutExpired, Exception) as e:

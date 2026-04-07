@@ -259,23 +259,6 @@ def write_file(path: str, content: str) -> str:
 
         result = f"Successfully wrote to '{path}'."
 
-        # Optional linting
-        if ENABLE_LINTING:
-            try:
-                from core.simple_linter import SimpleLinter
-                linter = SimpleLinter()
-
-                # Check file
-                errors = linter.check_file(path)
-
-                if errors:
-                    # Format errors
-                    error_msg = linter.format_errors(errors, max_errors=5)
-                    result += f"\n\n⚠️  Linting results:\n{error_msg}\n"
-            except Exception:
-                # Linting failed, but file was written successfully
-                pass
-
         import threading as _t
         _t.Thread(target=_git_auto_commit, args=(path, "write"), kwargs={"content_hint": content[:800]}, daemon=False).start()
         return result
