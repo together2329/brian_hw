@@ -374,8 +374,10 @@ def run_react_agent_impl(
                 _todo_state = "\n[No todo list yet — call todo_write() to create one]"
             _pre_llm_reminder = (
                 "\n\n---\n"
-                "⚠️  PLAN MODE REMINDER: Your job this turn is to produce or refine the todo list.\n"
-                "Call todo_write() with a complete task list before replying to the user."
+                "⚠️  PLAN MODE REMINDER: Research and refine the task list.\n"
+                "• Use todo_write / todo_add / todo_remove to manage tasks.\n"
+                "🚫 todo_update is BLOCKED in plan mode — do not call it.\n"
+                "• Do not write files or run commands — read only."
                 + _todo_state
             )
         elif (todo_tracker and todo_tracker.todos
@@ -939,10 +941,18 @@ def run_react_agent_impl(
                         print(format_tool_header(tool_name, summary))
 
                     if _is_plan_blocked:
-                        observation = (
-                            f"[Plan Mode] '{tool_name}' is blocked. "
-                            "Only read/search tools are available."
-                        )
+                        if tool_name == "todo_update":
+                            observation = (
+                                "[Plan Mode] 'todo_update' is blocked in plan mode. "
+                                "Use todo_write to replace the list, todo_add to add tasks, "
+                                "or todo_remove to delete tasks. "
+                                "todo_update is for execution mode only."
+                            )
+                        else:
+                            observation = (
+                                f"[Plan Mode] '{tool_name}' is blocked. "
+                                "Only read/search and todo planning tools are available."
+                            )
                     elif _is_normal_blocked:
                         observation = (
                             f"[Execution Mode] '{tool_name}' is blocked. "

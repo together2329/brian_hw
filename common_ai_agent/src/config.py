@@ -1150,7 +1150,8 @@ PLAN_MODE_BLOCKED_TOOLS = frozenset({
     'write_file', 'replace_in_file', 'replace_lines',
     'replace_file_content', 'multi_replace_file_content',
     'apply_diffs', 'run_command', 'git_revert',
-    'background_task', 'background_output', 'spawn_explore'
+    'background_task', 'background_output', 'spawn_explore',
+    'todo_update',  # Plan mode: use todo_write/todo_add/todo_remove; todo_update is for execution
 })
 
 # Tools only available in Plan Mode (blocked in Normal/Execution mode)
@@ -1171,85 +1172,83 @@ SYSTEM_PROMPT = build_base_system_prompt()
 PLAN_MODE_PROMPT = """
 
 🚨 === PLAN MODE === 🚨
-You are in PLAN MODE. Writing and execution tools are BLOCKED — read-only.
-Your PRIMARY GOAL every turn: **research the codebase, then produce a todo list with `todo_write`**.
+You are in PLAN MODE. Your job is to research and build a concrete task list — NOT to execute.
 
 ════════════════════════════════════════
 WORKFLOW
 ════════════════════════════════════════
 1. RESEARCH   → Use read_file, grep_file, list_dir to understand the codebase.
-2. TODO_WRITE → Call todo_write() to create a concrete, step-by-step task list.
-3. REFINE     → Discuss with the user. Update the list with todo_add / todo_remove.
-4. CONFIRM    → Wait for 'y' or 'confirm' before execution begins.
+2. TODO_WRITE → Call todo_write() to create a complete, step-by-step task list.
+3. REFINE     → Adjust with todo_add / todo_remove based on user feedback.
+4. CONFIRM    → Wait for user approval ('y' / 'confirm' / 'go') before execution.
 
 ════════════════════════════════════════
-TODO TOOLS (your main tools in this mode)
+ALLOWED TODO TOOLS
 ════════════════════════════════════════
 todo_write(todos=[...])
-  Create or replace the entire task list. Call this as soon as you have a plan.
-  Each task dict:
+  Create or fully replace the task list. Use this first to establish the plan.
+  Each task:
     {
-      "content":    "Short past-tense description (shown as completed label)",
-      "activeForm": "Present-progressive description (shown while in progress)",
-      "status":     "pending",          # pending | in_progress | completed
-      "priority":   "high",             # high | medium | low  (optional)
-      "detail":     "Implementation notes, constraints, acceptance criteria"  # optional
+      "content":    "Short past-tense label (shown when completed)",
+      "activeForm": "Present-progressive label (shown while running)",
+      "status":     "pending",   # always pending in plan mode
+      "priority":   "high",      # high | medium | low
+      "detail":     "Acceptance criteria, constraints, implementation notes"
     }
-  Strings are also accepted and auto-converted:
+  Strings also accepted:
     todo_write(["Step 1", "Step 2", "Step 3"])
 
   Example:
-    Action: todo_write(todos=[
-      {"content": "Analyzed counter module", "activeForm": "Analyzing counter module", "status": "pending", "detail": "Read counter.v, identify ports and FSM states"},
-      {"content": "Wrote testbench skeleton", "activeForm": "Writing testbench skeleton", "status": "pending"},
-      {"content": "Added reset test cases", "activeForm": "Adding reset test cases", "status": "pending", "priority": "high"}
+    todo_write(todos=[
+      {"content": "Analyzed counter module", "activeForm": "Analyzing counter module",
+       "status": "pending", "detail": "Read counter.v, identify ports and FSM states"},
+      {"content": "Wrote testbench", "activeForm": "Writing testbench", "status": "pending"},
+      {"content": "Added reset tests", "activeForm": "Adding reset tests",
+       "status": "pending", "priority": "high"}
     ])
 
 todo_add(content, activeForm="", priority="medium", detail="", index=None)
-  Add one task. index= inserts at position (1-based); omit to append.
+  Append or insert one task. index= is 1-based; omit to append at end.
   Example:
-    Action: todo_add(content="Verified timing constraints", activeForm="Verifying timing constraints", priority="high", index=2)
+    todo_add(content="Verified timing constraints", activeForm="Verifying timing constraints",
+             priority="high", index=2)
 
 todo_remove(index)
-  Remove task by 1-based index.
+  Remove a task by 1-based index.
   Example:
-    Action: todo_remove(index=3)
+    todo_remove(index=3)
 
-todo_update(index, status=None, content=None, detail=None, activeForm=None)
-  Edit an existing task (does NOT change status to completed — use during refinement).
-  Example:
-    Action: todo_update(index=1, detail="Also check edge cases for overflow")
+════════════════════════════════════════
+BLOCKED IN PLAN MODE
+════════════════════════════════════════
+🚫 todo_update  — DO NOT call todo_update in plan mode. It is blocked.
+                  Use todo_add to add tasks, todo_remove to delete, todo_write to replace.
+                  todo_update is for execution mode only (marking tasks in_progress / completed).
+🚫 write_file, replace_in_file, replace_lines — file writing is blocked.
+🚫 run_command, background_task — execution is blocked.
 
 ════════════════════════════════════════
 RULES
 ════════════════════════════════════════
-- READ FREELY: use read_file, grep_file, list_dir, read_lines — reading is encouraged for research.
-- TODO TOOLS ALWAYS ALLOWED: todo_write, todo_add, todo_remove, todo_update — use freely at any point to refine the plan.
-- DO NOT WRITE FILES: write_file, replace_in_file, run_command are BLOCKED. Do not attempt them.
-- ALWAYS call todo_write before asking the user to confirm.
-- Keep refining the todo list as research reveals more detail — more planning is always better.
-- Keep tasks atomic (one clear deliverable per task).
-- Use `detail` for acceptance criteria or implementation notes.
-- Transition to execution only after user says 'y' / 'confirm' / 'go'.
+- Read freely: read_file, grep_file, list_dir, read_lines are all available.
+- Always call todo_write before asking the user to confirm.
+- Keep tasks atomic — one clear deliverable per task.
+- Use detail= for acceptance criteria or implementation notes.
+- Refine the list as research reveals more — do not rush to confirm.
+- Do not begin execution until user explicitly approves.
 
 ════════════════════════════════════════
-/todo REFERENCE  (user slash commands for task management)
+/todo REFERENCE  (user slash commands)
 ════════════════════════════════════════
   /todo                     show current list
   /todo add <text>          add a task
   /todo rm <N>              remove task N
   /todo mv <N> <M>          move task N to position M
   /todo g <N> <text>        change task N content
-  /todo s <N> <status>      force status change
+  /todo s <N> <status>      force status (p/i/c/a/r)
   /todo s all <status>      force all tasks to a status
-  /todo e <N> <field> <val> edit a specific field
+  /todo e <N> <field> <val> edit a field
 
-Status values (for /todo s):
-  p=pending  i=in_progress  c=completed  a=approved  r=rejected
-
-Edit fields (for /todo e):
-  c=content  d=detail  cr=criteria  pr=priority  af=active_form  rr=rejection_reason  ar=approved_reason
-  field+  append instead of overwrite
-
+Edit fields: c=content  d=detail  cr=criteria  pr=priority  af=active_form
 AI status flow: pending → in_progress → completed → approved
 =================="""
