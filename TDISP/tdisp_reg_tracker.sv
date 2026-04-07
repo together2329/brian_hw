@@ -87,6 +87,17 @@ module tdisp_reg_tracker
     input  logic                            tracking_enable,
 
     // =========================================================================
+    // Capability base addresses (discovered during PCIe enumeration)
+    //   These are the base offsets for each capability structure in config space.
+    //   Used to dynamically classify registers that belong to capabilities whose
+    //   positions are not fixed u2014 the fundamental mechanism for routing addresses
+    //   to CAT_DEV_CTRL, CAT_MSIX, and CAT_POWER_MGMT.
+    // =========================================================================
+    input  logic [REG_ADDR_WIDTH-1:0]       pcie_cap_base,    // PCI Express Capability base
+    input  logic [REG_ADDR_WIDTH-1:0]       msix_cap_base,    // MSI-X Capability base
+    input  logic [REG_ADDR_WIDTH-1:0]       pm_cap_base,      // PCI Power Management Capability base
+
+    // =========================================================================
     // Lock configuration u2014 MSI-X lock status from lock_handler
     // =========================================================================
     input  logic                            msix_table_locked,
