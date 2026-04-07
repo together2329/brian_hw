@@ -338,21 +338,22 @@ class _AgentInput(Input):
                 count = ol.option_count
                 if count > 0:
                     current = ol.highlighted
-                    if current is None:
-                        ol.highlighted = 0
-                    else:
-                        ol.highlighted = (current + 1) % count
-                    # Fill input with highlighted option (preview)
-                    opt = ol.get_option_at_index(ol.highlighted)
-                    self.value = str(opt.prompt)
-                    self.cursor_position = len(self.value)
+                    next_idx = 0 if current is None else (current + 1) % count
+                    ol.highlighted = next_idx
+                    # Fill input — hide dropdown first so on_input_changed
+                    # doesn't rebuild and reset highlighted
+                    opt_text = str(ol.get_option_at_index(next_idx).prompt)
+                    ol.remove_class("visible")
+                    self.value = opt_text
+                    self.action_end()          # cursor → end of value
+                    ol.add_class("visible")    # re-show so user can keep cycling
                 event.prevent_default()
                 event.stop()
                 return
             # Fallback: accept inline suggestion
             if self._suggestion:
                 self.value = self._suggestion
-                self.cursor_position = len(self._suggestion)
+                self.action_end()
                 event.prevent_default()
                 event.stop()
                 return
@@ -864,9 +865,9 @@ class AgentTUI(App):
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
         """Accept a completion from the dropdown."""
         inp = self.query_one(_AgentInput)
-        inp.value = str(event.option.prompt)
-        inp.cursor_position = len(inp.value)
         self.query_one("#completion-list", OptionList).remove_class("visible")
+        inp.value = str(event.option.prompt)
+        inp.action_end()
         inp.focus()
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
