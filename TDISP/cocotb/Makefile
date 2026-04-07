@@ -80,24 +80,14 @@ endif
 export COCOTB_TIMEOUT ?= 60
 
 # ============================================================================
-# Targets
+# Include cocotb's standard Makefile.sim u2014 this MUST be at top level
+# (include is a Make directive, not a shell command)
 # ============================================================================
+include $(shell cocotb-config --makefiles)/Makefile.sim
 
-# Default: run the MODULE test
-.PHONY: all
-all: run
-
-# Run cocotb test
-.PHONY: run
-run:
-	@echo "=== Running cocotb test: MODULE=$(MODULE) SIM=$(SIM) ==="
-	$(MAKE) -C . sim
-
-# Internal sim target (delegates to cocotb's makefiles)
-.PHONY: sim
-sim:
-	cocotb-config --makefiles > /dev/null 2>&1 || (echo "ERROR: cocotb not installed. Run: pip install cocotb" && exit 1)
-	include $$(cocotb-config --makefiles)/Makefile.sim
+# ============================================================================
+# Additional Targets
+# ============================================================================
 
 # Run all tests sequentially
 .PHONY: test_all
