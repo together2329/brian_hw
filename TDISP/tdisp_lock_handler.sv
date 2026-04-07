@@ -330,6 +330,7 @@ module tdisp_lock_handler
             lock_snapshot_req_r  <= 1'b0;
             lock_snapshot_tdi_idx_r <= '0;
             entropy_req_r        <= 1'b0;
+            entropy_timeout      <= '0;
             for (int i = 0; i < NUM_TDI; i++) begin
                 nonce_reg[i]     <= '0;
                 tdi_lock_cfg[i]  <= '0;
