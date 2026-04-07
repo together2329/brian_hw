@@ -306,21 +306,21 @@ class TdispRespReceiver:
             if int(bus.tx_valid.value):
                 break
 
-        # Collect bytes
-        while True:
-            await ReadOnly()
-            byte_val = int(bus.tx_valid.value) and int(bus.tx_data.value)
-            last = int(bus.tx_last.value)
-            valid = int(bus.tx_valid.value)
+        # Collect bytes u2014 we already have first valid byte from the wait loop
+        raw.append(int(bus.tx_data.value) & 0xFF)
+        self._bytes_received += 1
 
-            if valid:
-                raw.append(int(bus.tx_data.value) & 0xFF)
-                self._bytes_received += 1
+        if not int(bus.tx_last.value):
+            while True:
+                await RisingEdge(self._dut.clk)
+                await ReadOnly()
 
-                if last:
-                    break
+                if int(bus.tx_valid.value):
+                    raw.append(int(bus.tx_data.value) & 0xFF)
+                    self._bytes_received += 1
 
-            await RisingEdge(self._dut.clk)
+                    if int(bus.tx_last.value):
+                        break
 
         # Wait one more edge to ensure clean state
         await RisingEdge(self._dut.clk)
