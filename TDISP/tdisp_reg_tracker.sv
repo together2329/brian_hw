@@ -127,35 +127,47 @@ module tdisp_reg_tracker
     } reg_category_e;
 
     // =========================================================================
-    // PCIe Configuration Space Register Offsets (Type 0 header)
+    // PCIe Capability relative register offsets within capability structures
     // =========================================================================
-    localparam logic [11:0] ADDR_CACHE_LINE_SIZE   = 12'h00C;  // Bits [7:0] of offset 0x0C
-    localparam logic [11:0] ADDR_LATENCY_TIMER     = 12'h00D;
-    localparam logic [11:0] ADDR_INTERRUPT_LINE    = 12'h03C;
-    localparam logic [11:0] ADDR_COMMAND           = 12'h004;
-    localparam logic [11:0] ADDR_STATUS            = 12'h006;
-    localparam logic [11:0] ADDR_BIST              = 12'h00F;
-    localparam logic [11:0] ADDR_BAR0              = 12'h010;
-    localparam logic [11:0] ADDR_BAR1              = 12'h014;
-    localparam logic [11:0] ADDR_BAR2              = 12'h018;
-    localparam logic [11:0] ADDR_BAR3              = 12'h01C;
-    localparam logic [11:0] ADDR_BAR4              = 12'h020;
-    localparam logic [11:0] ADDR_BAR5              = 12'h024;
-    localparam logic [11:0] ADDR_EXPANSION_ROM     = 12'h030;
+    // Device Control registers: relative offsets within PCIe Cap structure
+    localparam logic [11:0] PCIE_CAP_DC1_OFFSET = 12'h008;  // Device Control (base+0x08)
+    localparam logic [11:0] PCIE_CAP_DC2_OFFSET = 12'h028;  // Device Control 2 (base+0x28)
+    localparam logic [11:0] PCIE_CAP_DC3_OFFSET = 12'h044;  // Device Control 3 (base+0x44)
+    localparam logic [11:0] PCIE_CAP_END_OFFSET = 12'h048;  // End of PCIe Cap structure
 
-    // PCI Express Capability offsets (base at cap_offset, relative here)
-    localparam logic [11:0] CAP_OFFSET_MASK        = 12'hFFC;  // Cap pointer aligned
+    // MSI-X Capability register: relative offset within MSI-X Cap structure
+    localparam logic [11:0] MSIX_CAP_MSG_CTRL_OFFSET = 12'h000;  // Message Control (base+0x00)
 
-    // Device Control Register offsets (relative to PCIe capability base)
-    // Offset +0x08 = Device Control, +0x28 = Device Control 2, etc.
-    // These are encoded as absolute offsets for capability at standard location.
-    // In practice, the capability base is runtime-discovered. Here we use
-    // a table-driven approach with address ranges.
+    // Power Management Capability: PMCSR register offset
+    localparam logic [11:0] PM_CAP_PMCSR_OFFSET     = 12'h004;  // PMCSR (base+0x04)
+    localparam logic [11:0] PM_CAP_END_OFFSET        = 12'h008;  // End of PM Cap structure
+
+    // =========================================================================
+    // Capability-range matching helpers
+    //   Returns true if addr falls within [base + rel_offset, base + rel_offset + 2)
+    //   i.e., matches a DWORD-aligned register in the capability structure.
+    // =========================================================================
+    function automatic logic addr_in_cap_dword(
+        input logic [REG_ADDR_WIDTH-1:0] addr,
+        input logic [REG_ADDR_WIDTH-1:0] cap_base,
+        input logic [REG_ADDR_WIDTH-1:0] rel_offset
+    );
+        addr_in_cap_dword = (addr & 12'hFFC) == ((cap_base + rel_offset) & 12'hFFC);
+    endfunction
+
+    function automatic logic addr_in_cap_range(
+        input logic [REG_ADDR_WIDTH-1:0] addr,
+        input logic [REG_ADDR_WIDTH-1:0] cap_base,
+        input logic [REG_ADDR_WIDTH-1:0] range_size
+    );
+        addr_in_cap_range = (addr >= cap_base) && (addr < cap_base + range_size);
+    endfunction
 
     // =========================================================================
     // Register address classification u2014 combinational
     //   Maps a config space address to its Table 11-3 category.
-    //   Uses a priority-encoded case structure.
+    //   Capability-positioned registers (DEV_CTRL, MSI-X, POWER_MGMT) use
+    //   dynamic base addresses provided as input ports.
     // =========================================================================
     reg_category_e  write_category;
     logic [255:0]   classified_reg_name;
