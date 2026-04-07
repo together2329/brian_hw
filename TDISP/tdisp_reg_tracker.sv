@@ -503,6 +503,9 @@ module tdisp_reg_tracker
 
             // Only evaluate when tracking is enabled and a write occurs
             if (tracking_enable && reg_write_valid) begin
+                // Capture function ID for diagnostic output (used by all error paths)
+                error_tdi_idx_r <= tdi_function_id;
+
                 case (write_category)
 
                     // ==========================================================
