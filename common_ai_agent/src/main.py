@@ -1181,16 +1181,30 @@ def chat_loop():
                 _os._exit(0)
 
             class _AtFileCompleter(Completer):
-                """Auto-complete file/folder paths after '@' in the prompt."""
-                def get_completions(self, document, complete_event):
-                    text = document.text_before_cursor
-                    # Find the last '@' in the current input
+                """Auto-complete: '/' → slash commands, '@' → file/folder paths."""
+
+                def _slash_completions(self, text):
+                    """Yield slash command completions when input starts with '/'."""
+                    try:
+                        from core.slash_commands import get_registry
+                        reg = get_registry()
+                        all_cmds = reg.get_completions()  # e.g. ['/help', '/plan', ...]
+                    except Exception:
+                        return
+                    for cmd in all_cmds:
+                        if cmd.lower().startswith(text.lower()):
+                            yield Completion(
+                                cmd,
+                                start_position=-len(text),
+                                display=cmd,
+                            )
+
+                def _file_completions(self, text):
+                    """Yield file/folder completions for the path after '@'."""
                     at_pos = text.rfind('@')
                     if at_pos == -1:
                         return
-                    partial = text[at_pos + 1:]  # text after '@'
-
-                    # Split into directory prefix and filename stem
+                    partial = text[at_pos + 1:]
                     if '/' in partial:
                         dir_part, stem = partial.rsplit('/', 1)
                         base_dir = _os_comp.path.join('.', dir_part)
@@ -1198,28 +1212,33 @@ def chat_loop():
                         dir_part = ''
                         stem = partial
                         base_dir = '.'
-
                     try:
                         entries = _os_comp.listdir(base_dir)
                     except OSError:
                         return
-
                     for name in sorted(entries):
                         if name.startswith('.'):
-                            continue  # skip hidden files
+                            continue
                         if stem and not name.lower().startswith(stem.lower()):
                             continue
-                        full = (_os_comp.path.join(dir_part, name)
-                                if dir_part else name)
+                        full = _os_comp.path.join(dir_part, name) if dir_part else name
                         is_dir = _os_comp.path.isdir(_os_comp.path.join(base_dir, name))
-                        display = name + '/' if is_dir else name
                         completion_text = full + '/' if is_dir else full
                         yield Completion(
                             completion_text,
                             start_position=-len(partial),
-                            display=display,
+                            display=name + '/' if is_dir else name,
                             display_meta='dir' if is_dir else '',
                         )
+
+                def get_completions(self, document, complete_event):
+                    text = document.text_before_cursor
+                    # Slash command: only when input starts with '/'
+                    if text.startswith('/'):
+                        yield from self._slash_completions(text)
+                    # @ file completion
+                    elif '@' in text:
+                        yield from self._file_completions(text)
 
             # Input history: persist to file so ↑/↓ works across sessions
             try:
