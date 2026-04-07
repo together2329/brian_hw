@@ -290,7 +290,7 @@ package tdisp_pkg;
     //   Returns the expected success response code for a given request code
     // =========================================================================
     function automatic logic [7:0] tdisp_resp_code_for_req(
-        input logic [7:0] req_code
+        input tdisp_req_code_e req_code
     );
         case (req_code)
             REQ_GET_TDISP_VERSION:           return RESP_TDISP_VERSION;
