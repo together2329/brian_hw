@@ -529,31 +529,20 @@ module tdisp_lock_handler
 
                 default: l_state <= L_IDLE;
             endcase
-        end
-    end
 
-    // =========================================================================
-    // Nonce lifecycle management u2014 destroy on state transitions
-    //   Per u00a711.3.9:
-    //   - Destroy nonce when TDI transitions out of CONFIG_LOCKED to
-    //     CONFIG_UNLOCKED or ERROR
-    //   - Invalidate (consume) nonce when TDI transitions to RUN
-    //     (done implicitly u2014 nonce no longer needed for START validation)
-    // =========================================================================
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
+            // =================================================================
+            // Nonce lifecycle management u2014 destroy on state transitions
+            //   Per u00a711.3.9:
+            //   - Destroy nonce when TDI leaves CONFIG_LOCKED/RUN to
+            //     CONFIG_UNLOCKED or ERROR
+            //   - Inlined here to avoid multi-driver on nonce_reg[]
+            //   - Guard: don't clobber nonce just written in L_COMPLETE_OK
+            // =================================================================
             for (int i = 0; i < NUM_TDI; i++) begin
-                nonce_reg[i] <= '0;
-            end
-        end else begin
-            for (int i = 0; i < NUM_TDI; i++) begin
-                // Destroy nonce when leaving CONFIG_LOCKED to ERROR or CONFIG_UNLOCKED
-                // (Note: RUN transition is a consume, but zeroing is safe)
                 if (tdi_state[i] != TDI_STATE_CONFIG_LOCKED &&
                     tdi_state[i] != TDI_STATE_RUN) begin
-                    // Only zero if not being written in main FSM same cycle
-                    // Use a guard: don't clobber the nonce just written
-                    if (l_state != L_COMPLETE_OK || active_tdi != TDI_INDEX_WIDTH'(i)) begin
+                    if (!(l_state == L_COMPLETE_OK &&
+                          active_tdi == TDI_INDEX_WIDTH'(i))) begin
                         nonce_reg[i] <= '0;
                     end
                 end
