@@ -492,12 +492,14 @@ module tdisp_reg_tracker
             error_reg_addr_r       <= '0;
             error_reg_name_r       <= '0;
             error_reg_description_r <= '0;
+            error_tdi_idx_r        <= '0;
         end else begin
             // Default: clear pulse each cycle
             error_trigger_r        <= 1'b0;
             error_reg_addr_r       <= '0;
             error_reg_name_r       <= '0;
             error_reg_description_r <= '0;
+            error_tdi_idx_r        <= '0;
 
             // Only evaluate when tracking is enabled and a write occurs
             if (tracking_enable && reg_write_valid) begin
