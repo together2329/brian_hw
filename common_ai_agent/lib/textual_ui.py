@@ -733,6 +733,7 @@ class AgentTUI(App):
 
     BINDINGS = [
         ("ctrl+q", "quit", "Quit"),
+        ("ctrl+shift+c", "copy_last", "Copy last response"),
         ("escape", "stop", "Stop"),
     ]
 
@@ -741,6 +742,7 @@ class AgentTUI(App):
         self._run_agent_fn = run_agent_fn
         self._input_bridge = InputBridge()
         self._response_buf = ""
+        self._last_response_text = ""  # plain text of last flushed response
         self._generating = False
         self._in_diff = False   # True after a write/replace tool call
         self._in_edit = False   # True for edit/replace tools (subset of _in_diff)
@@ -891,6 +893,16 @@ class AgentTUI(App):
         except Exception:
             self.exit()
 
+    def action_copy_last(self) -> None:
+        """Copy the last assistant response to system clipboard."""
+        text = self._last_response_text.strip()
+        if not text:
+            return
+        _clipboard_copy(text)
+        # Brief visual feedback in status bar
+        self._update_statusbar("  ✓ Copied to clipboard")
+        self.set_timer(2.0, self._update_statusbar)
+
     def action_stop(self) -> None:
         """Interrupt current agent execution."""
         if self._generating:
@@ -961,6 +973,7 @@ class AgentTUI(App):
             padding=(0, 1),
             expand=True,
         ))
+        self._last_response_text = self._response_buf  # ← save for copy
         self._response_buf = ""
         self._generating = False
         self._reasoning_open = False
