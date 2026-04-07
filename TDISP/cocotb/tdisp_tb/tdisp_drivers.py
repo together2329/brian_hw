@@ -27,12 +27,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections import deque
-from dataclasses import dataclass, field
-from typing import Optional, Dict, List, Any
+from dataclasses import dataclass
+from typing import Optional, List
 
 import cocotb
-from cocotb.triggers import RisingEdge, ReadOnly, Timer, Event, First
+from cocotb.triggers import RisingEdge, ReadOnly
 
 from tdisp_buses import (
     DoeBus, RegWriteBus, EgressTlpBus, IngressTlpBus,
