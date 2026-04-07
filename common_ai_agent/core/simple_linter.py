@@ -20,9 +20,14 @@ from typing import Optional, List
 _VERILOG_SIMULATOR = os.getenv("VERILOG_SIMULATOR", "vcs")
 
 # pyslang: IEEE 1800-2017 SystemVerilog parser — preferred over external binaries
+# Controlled by ENABLE_PYSLANG env var (default: true). Falls back if not installed.
+_ENABLE_PYSLANG = os.getenv("ENABLE_PYSLANG", "true").lower() in ("true", "1", "yes")
 try:
-    import pyslang as _pyslang
-    HAS_PYSLANG = True
+    if _ENABLE_PYSLANG:
+        import pyslang as _pyslang
+        HAS_PYSLANG = True
+    else:
+        HAS_PYSLANG = False
 except ImportError:
     HAS_PYSLANG = False
 

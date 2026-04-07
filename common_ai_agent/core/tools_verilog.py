@@ -9,9 +9,15 @@ import glob
 from typing import Dict, List, Optional, Any
 
 # pyslang: IEEE 1800-2017 SV parser — enables AST-level analysis without external binaries
+# Controlled by ENABLE_PYSLANG env var (default: true). Falls back to regex if unavailable.
+import os as _os
+_ENABLE_PYSLANG = _os.getenv("ENABLE_PYSLANG", "true").lower() in ("true", "1", "yes")
 try:
-    import pyslang as _pyslang
-    HAS_PYSLANG = True
+    if _ENABLE_PYSLANG:
+        import pyslang as _pyslang
+        HAS_PYSLANG = True
+    else:
+        HAS_PYSLANG = False
 except ImportError:
     HAS_PYSLANG = False
 

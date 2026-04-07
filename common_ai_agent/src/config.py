@@ -178,11 +178,13 @@ ENABLE_TYPE_VALIDATION = os.getenv("ENABLE_TYPE_VALIDATION", "true").lower() in 
 # Falls back gracefully if external tools not installed
 ENABLE_LINTING = os.getenv("ENABLE_LINTING", "true").lower() in ("true", "1", "yes")
 
-# Verilog simulator to use for linting and simulation
-# Options: "vcs" (default, Synopsys commercial), "iverilog" (open-source fallback)
-# Linter auto-falls back to iverilog if vcs binary not found.
-# Override: set VERILOG_SIMULATOR=iverilog in your shell or .env
-# VERILOG_SIMULATOR = os.getenv("VERILOG_SIMULATOR", "vcs")
+# pyslang: IEEE 1800-2017 SV parser/linter (pip install pyslang, no binary needed)
+# When true AND pyslang is importable, used as primary Verilog linter + AST tools.
+# Falls back to VERILOG_SIMULATOR if pyslang not installed or ENABLE_PYSLANG=false.
+ENABLE_PYSLANG = os.getenv("ENABLE_PYSLANG", "true").lower() in ("true", "1", "yes")
+
+# Verilog simulator fallback (used when pyslang unavailable or ENABLE_PYSLANG=false)
+# Options: "vcs" (default, Synopsys commercial), "iverilog" (open-source), "verilator"
 VERILOG_SIMULATOR = os.getenv("VERILOG_SIMULATOR", "vcs")
 
 # Enable automatic git version control (git init + add + commit on write/replace)
