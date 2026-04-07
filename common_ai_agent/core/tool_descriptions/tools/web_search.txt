@@ -1,0 +1,108 @@
+# Tool: web_search
+
+Search the web via Firecrawl and get scraped markdown results.
+Use for information NOT available locally.
+
+# Signature
+web_search(query="search query" limit=5 lang="en" tbs="")
+
+# Description
+
+Searches the web using the Firecrawl Search API and returns scraped
+markdown content for each result. Gateway to information beyond the
+local codebase -- documentation, error solutions, API references,
+current events, and more.
+
+Requires Firecrawl service running (default: http://localhost:3002).
+If the service is down, the tool returns an error gracefully.
+
+Key Parameters:
+- query  - Natural language search query (required)
+- limit  - Max results, 1-20 (default: 5)
+- lang   - Language code: en, ko, ja, etc. (default: en)
+- tbs    - Time filter: qdr:d (day), qdr:w (week), qdr:m (month), qdr:y (year)
+
+# Good Examples
+
+Good: web_search(query="PCIe 6.0 FLR mechanism", limit=3)
+  Search for PCIe FLR documentation online
+
+Good: web_search(query="Python urllib timeout handling" limit=5)
+  Find coding solutions not in the local codebase
+
+Good: web_search(query=\RVerilog synthesis pitfalls 2024\RP limit=5 tbs="qdr:y")
+  Time-filtered search for recent results
+
+# Bad Examples
+
+Bad: web_search(query="grep_file")
+  Use rag_search or grep_file for local tools.
+
+Bad: web_search(query="*.v files")
+  Use find_files() for local file searches.
+
+Bad: web_search(query="")
+  Empty query is useless.
+
+# When to Use
+
+- External documentation lookup -- APIs, libraries, frameworks
+- Error message solutions -- find fixes online
+- Protocol/specification reference not in local specs
+- Current information -- versions, releases, deprecations
+- Code examples -- recipes, patterns, tutorials
+- Fact verification -- confirm facts before claims
+
+# When NOT to Use
+
+- Local code search --> Use rag_search() or grep_file()
+- Local file reading --> Use read_file() or read_lines()
+- Known docs in project --> Use rag_search() with categories="spec"
+- Verilog signal tracing --> Use rag_search() or grep_file()
+- File discovery --> Use find_files()
+
+# Tool Precedence
+
+Decision Tree:
+
+  Need information?
+  |-- In LOCAL codebase?
+  |   |-- Exact pattern?      -> grep_file()  (fastest)
+  |   |-- Conceptual?        -> rag_search() (semantic)
+  |   +-- Known file?        -> read_file()  (direct)
+  |-- EXTERNAL / online?
+  |   |-- Known URL?          -> web_fetch()   targeted
+  |   +-- Need to search?     -> web_search()  broad
+  +-- Structured data needed? -> web_extract() AI extraction
+
+Priority: Always check local files and RAG before the web.
+
+# Error Recovery
+
+- Firecrawl service is not reachable
+  1. Check if Firecrawl is running: curl http://localhost:3002/health
+  2. Start Firecrawl if needed
+  3. Verify FIRECRAWL_API_URL in environment or .config
+  4. Fall back to answering from local knowledge
+
+- No results found for query
+  1. Rephrase query with different keywords
+  2. Remove time filter (tbs="")
+  3. Try a broader search term
+  4. Check if the topic exists in local RAG instead
+
+- Firecrawl API error (HTTP 429)
+  1. Rate limited -- wait and retry
+  2. Reduce limit parameter (e.g. limit=3)
+
+- Timeout errors
+  1. Increase FIRECRAWL_TIMEOUT environment variable
+  2. Try a simpler query with fewer results
+  3. Use web_fetch() with a known URL instead
+
+# See Also
+
+- web_fetch   - Scrape a specific URL (when you know the URL)
+- web_extract - AI-powered structured data extraction from URLs
+- rag_search  - Semantic search in LOCAL codebase
+- grep_file   - Exact pattern matching in local files
