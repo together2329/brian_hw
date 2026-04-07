@@ -462,10 +462,17 @@ class _AgentInput(Input):
                 event.stop()
                 return
 
-        # ── ↑: history back ──────────────────────────────────────────────────
+        # ── ↑: history back / dropdown navigate up ───────────────────────────
         elif event.key == "up":
             if ol is not None and "visible" in ol.classes:
-                pass  # let dropdown handle it
+                count = ol.option_count
+                if count > 0:
+                    current = ol.highlighted
+                    prev_idx = (count - 1) if current is None else max(0, current - 1)
+                    ol.highlighted = prev_idx
+                event.prevent_default()
+                event.stop()
+                return
             elif self._hist:
                 if self._hist_pos == -1:
                     self._hist_draft = self.value
@@ -477,10 +484,17 @@ class _AgentInput(Input):
                 event.stop()
                 return
 
-        # ── ↓: history forward ───────────────────────────────────────────────
+        # ── ↓: history forward / dropdown navigate down ──────────────────────
         elif event.key == "down":
             if ol is not None and "visible" in ol.classes:
-                pass  # let dropdown handle it
+                count = ol.option_count
+                if count > 0:
+                    current = ol.highlighted
+                    next_idx = 0 if current is None else min(count - 1, current + 1)
+                    ol.highlighted = next_idx
+                event.prevent_default()
+                event.stop()
+                return
             elif self._hist_pos >= 0:
                 if self._hist_pos > 0:
                     self._hist_pos -= 1
@@ -493,9 +507,18 @@ class _AgentInput(Input):
                 event.stop()
                 return
 
-        # ── Enter: close dropdown then submit ────────────────────────────────
+        # ── Enter: accept highlighted dropdown item or submit ─────────────────
         elif event.key == "enter":
             if ol is not None and "visible" in ol.classes:
+                highlighted = ol.highlighted
+                if highlighted is not None:
+                    opt_text = str(ol.get_option_at_index(highlighted).prompt)
+                    ol.remove_class("visible")
+                    self.value = opt_text
+                    self.action_end()
+                    event.prevent_default()
+                    event.stop()
+                    return
                 ol.remove_class("visible")
             self._hist_pos = -1   # reset history browsing on submit
 

@@ -29,6 +29,16 @@ echo "  modifiable : $MOD_DIR"
 echo "  agent      : $ACT_DIR"
 echo ""
 
+# ── Step 0: 의존성 설치 (pyslang 등 native 패키지) ───────────────────────
+echo "[0] 의존성 확인 (pyslang)..."
+PYSLANG_SO=$(ls "$ACT_DIR/vendor/pyslang/pyslang"*.so 2>/dev/null | head -1)
+if [ -z "$PYSLANG_SO" ]; then
+    echo "    pyslang .so not found — installing to vendor/..."
+    pip3 install pyslang --target "$ACT_DIR/vendor/" --quiet && echo "    pyslang installed."
+else
+    echo "    pyslang already in vendor: $(basename "$PYSLANG_SO")"
+fi
+
 # ── Step 1: modifiable_ai_agent 워크스페이스 생성 ─────────────────────────
 echo "[1] modifiable_ai_agent 워크스페이스 생성..."
 cmux new-workspace \

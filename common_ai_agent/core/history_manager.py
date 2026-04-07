@@ -8,6 +8,41 @@ import os
 from typing import List, Dict, Any, Optional
 
 
+def _full_history_path(cfg) -> str:
+    """Derive full_conversation_history.json path from HISTORY_FILE location."""
+    return os.path.join(os.path.dirname(cfg.HISTORY_FILE), 'full_conversation_history.json')
+
+
+def _append_to_full_history(messages: List[Dict[str, Any]], cfg) -> None:
+    """Append new messages to the append-only full history file.
+
+    Reads existing full history to find how many messages were already saved,
+    then appends only the new ones. Never overwrites — survives compression.
+    """
+    full_path = _full_history_path(cfg)
+    try:
+        if os.path.exists(full_path):
+            with open(full_path, 'r', encoding='utf-8') as f:
+                existing = json.load(f)
+            if not isinstance(existing, list):
+                existing = []
+        else:
+            existing = []
+
+        # Only append messages beyond what's already stored
+        new_count = len(messages) - len(existing)
+        if new_count <= 0:
+            return
+
+        new_messages = messages[len(existing):]
+        existing.extend(new_messages)
+
+        with open(full_path, 'w', encoding='utf-8') as f:
+            json.dump(existing, f, indent=2, ensure_ascii=False)
+    except Exception:
+        pass  # Never let full-history errors break the main save
+
+
 def save_conversation_history(
     messages: List[Dict[str, Any]],
     cfg=None,
@@ -30,6 +65,8 @@ def save_conversation_history(
     try:
         with open(cfg.HISTORY_FILE, 'w', encoding='utf-8') as f:
             json.dump(messages, f, indent=2, ensure_ascii=False)
+        # Also append new messages to the append-only full history
+        _append_to_full_history(messages, cfg)
         if not silent:
             try:
                 from lib.display import Color  # type: ignore

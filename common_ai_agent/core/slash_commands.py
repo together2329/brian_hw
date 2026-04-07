@@ -1103,70 +1103,91 @@ class SlashCommandRegistry:
     def _cmd_help(self, args: str) -> str:
         """Show help. /help for core commands, /help -v for all."""
         verbose = args.strip() in ('-v', '--verbose', 'v')
-        SEP = "=" * 60
+        W = 64
+        SEP  = "─" * W
+        SEP2 = "═" * W
         output = []
 
         if not verbose:
             # --- Core (brief) view ---
+            output.append("\n" + SEP2)
+            output.append("  Common AI Agent  |  /help -v 전체 목록")
+            output.append(SEP2)
+            groups_brief = [
+                ("컨텍스트",  ["context", "clear", "compact", "compression", "window", "snapshot"]),
+                ("모드",      ["plan", "mode", "step"]),
+                ("도구/설정", ["model", "tools", "skills", "config", "status"]),
+                ("태스크",    ["todo", "git"]),
+                ("도움말",    ["help", "list", "man"]),
+            ]
+            for grp, names in groups_brief:
+                cmds_in_grp = [(n, self.commands[n]) for n in names if n in self.commands]
+                if not cmds_in_grp:
+                    continue
+                output.append(f"\n  {grp}")
+                for name, cmd in cmds_in_grp:
+                    if cmd.get('hidden', False):
+                        continue
+                    aliases = ""
+                    if cmd['aliases']:
+                        aliases = f"  (={', '.join('/' + a for a in cmd['aliases'])})"
+                    output.append(f"    /{name:<12}{cmd['description']}{aliases}")
             output.append("\n" + SEP)
-            output.append(" Common AI Agent")
-            output.append(SEP)
-            output.append("")
-            for name, cmd in self.commands.items():
-                if not cmd.get('hidden', False):
-                    output.append(f"  /{name:<8} {cmd['description']}")
-            output.append("")
-            output.append(SEP)
-            output.append("💡 /help -v 전체 커맨드  |  TAB 자동완성  |  /man guide 시작 가이드")
-            output.append(SEP)
+            output.append("  TAB 자동완성  |  ↑↓ 히스토리  |  /man <topic> 상세 도움말")
+            output.append(SEP2)
         else:
-            # --- Verbose view: grouped with detail ---
-            output.append("\n" + SEP)
-            output.append(" Common AI Agent — Full Command Reference")
-            output.append(SEP)
+            # --- Verbose view: grouped with full detail ---
+            output.append("\n" + SEP2)
+            output.append("  Common AI Agent — 전체 커맨드 레퍼런스")
+            output.append(SEP2)
 
             groups = [
                 ("컨텍스트 & 히스토리", [
-                    ("context",     "/context [-v|debug]  컨텍스트 토큰 사용량 시각화. -v: 전체 대화 내용 표시"),
-                    ("clear",       "/clear [N]           대화 기록 완전 초기화. N 지정 시 최근 N쌍 유지"),
-                    ("compact",     "/compact [--keep N]  AI로 요약 압축. 맥락 유지하며 컨텍스트 절약"),
-                    ("compression", "/compression [N]     N 메시지 초과 시 자동 압축. 0=비활성화"),
-                    ("window",      "/window [N]          LLM에 최근 N쌍만 전송. 0=비활성화"),
-                    ("snapshot",    "/snapshot save|load|list|delete  대화 스냅샷 저장/복원"),
+                    ("context",     "context [-v|debug]",  "컨텍스트 토큰 사용량 시각화. -v: 전체 대화 표시"),
+                    ("clear",       "clear [N]",           "대화 기록 초기화. N 지정 시 최근 N쌍 유지"),
+                    ("compact",     "compact [--keep N]",  "AI 요약 압축. 맥락 유지하며 컨텍스트 절약"),
+                    ("compression", "compression [N]",     "N 메시지 초과 시 자동 압축. 0=비활성화"),
+                    ("window",      "window [N]",          "LLM에 최근 N쌍만 전송. 0=비활성화"),
+                    ("snapshot",    "snapshot <subcmd>",   "save|load|list|delete — 대화 스냅샷 관리"),
                 ]),
                 ("에이전트 & 모드", [
-                    ("plan",  "/plan [task]   계획 수립 모드 진입. 탐색→계획→승인→실행"),
-                    ("mode",  "/mode normal   Plan Mode 종료, 일반 모드 복귀"),
-                    ("step",  "/step          태스크 단위 일시정지 토글 (각 액션 후 멈춤)"),
+                    ("plan", "plan [task]",  "계획 수립 모드. 탐색→계획→승인→실행"),
+                    ("mode", "mode normal",  "Plan Mode 종료, 일반 모드 복귀"),
+                    ("step", "step",         "태스크 단위 일시정지 토글 (각 액션 후 멈춤)"),
                 ]),
                 ("도구 & 설정", [
-                    ("model",  "/model [1|2|name]  모델 전환. 인자 없으면 현재 모델 표시"),
-                    ("tools",  "/tools             사용 가능한 도구 목록"),
-                    ("skills", "/skills [a|d <name|#>|all|clear]  스킬 목록·활성화·비활성화"),
-                    ("config", "/config            현재 설정 (.config) 주요 값 표시"),
-                    ("status", "/status            에이전트 상태: 모델, API, 기능 활성화 여부"),
+                    ("model",  "model [1|2|name]",          "모델 전환. 인자 없으면 현재 모델 표시"),
+                    ("tools",  "tools",                     "사용 가능한 도구 목록"),
+                    ("skills", "skills [a|d <name|#>|all]", "스킬 목록·활성화·비활성화"),
+                    ("config", "config",                    "현재 설정 (.config) 주요 값 표시"),
+                    ("status", "status",                    "에이전트 상태: 모델, API, 기능 활성화 여부"),
                 ]),
                 ("태스크 관리", [
-                    ("todo", "/todo [subcmd]  Todo 목록 관리. /man todo 로 전체 서브커맨드 확인"),
-                    ("git",  "/git diff|clear  Git 변경사항 확인 / .git 디렉토리 삭제"),
+                    ("todo", "todo [subcmd]",   "Todo 관리. /man todo 서브커맨드 전체 확인"),
+                    ("git",  "git diff|clear",  "Git 변경사항 확인 / .git 디렉토리 삭제"),
                 ]),
                 ("도움말", [
-                    ("help", "/help [-v]      기본: 핵심 커맨드. -v: 이 전체 목록"),
-                    ("list", "/list           슬래시 커맨드 이름만 간단히 나열 (/ls)"),
-                    ("man",  "/man <topic>    상세 매뉴얼. topic: plan todo compact context skills git model clear guide"),
+                    ("help", "help [-v]",    "기본: 핵심 커맨드. -v: 이 전체 목록"),
+                    ("list", "list",         "슬래시 커맨드 이름만 간단히 나열"),
+                    ("man",  "man <topic>",  "상세 매뉴얼 (plan|todo|compact|context|skills|git|model|clear|guide)"),
                 ]),
             ]
+            CMD_W = 26
             for group_name, items in groups:
-                output.append(f"\n[{group_name}]")
-                for name, desc in items:
-                    if name in self.commands:
-                        cmd = self.commands[name]
-                        aliases = f"  ({', '.join('/' + a for a in cmd['aliases'])})" if cmd['aliases'] else ""
-                        output.append(f"  {desc}{aliases}")
+                output.append(f"\n  ┌─ {group_name} {'─' * max(0, W - len(group_name) - 5)}")
+                for name, usage, desc in items:
+                    if name not in self.commands:
+                        continue
+                    cmd = self.commands[name]
+                    aliases = ""
+                    if cmd['aliases']:
+                        aliases = f"  (={', '.join('/' + a for a in cmd['aliases'])})"
+                    cmd_str = f"/{usage}"
+                    output.append(f"  │  {cmd_str:<{CMD_W}} {desc}{aliases}")
 
             output.append("\n" + SEP)
-            output.append("💡 /man <topic> 상세 매뉴얼  |  TAB 자동완성")
-            output.append(SEP)
+            output.append("  TAB 자동완성  |  ↑↓ 히스토리  |  /man <topic> 상세 도움말")
+            output.append(SEP2)
 
         return "\n".join(output)
 
@@ -1178,7 +1199,12 @@ class SlashCommandRegistry:
     def _cmd_list(self, args: str) -> str:
         """Quick command list (alternative to TAB)"""
         commands = sorted(self.get_completions())
-        return "Available: " + " ".join(commands)
+        # Display in columns: 4 per row
+        col_w = max(len(c) for c in commands) + 2
+        rows = []
+        for i in range(0, len(commands), 4):
+            rows.append("  " + "".join(c.ljust(col_w) for c in commands[i:i+4]))
+        return "Commands:\n" + "\n".join(rows)
 
     def _cmd_tools(self, args: str) -> str:
         """Show available tools"""
