@@ -413,7 +413,7 @@ module tb_tdisp;
                 end
                 begin : recv_timeout
                     repeat(timeout_cycles) @(posedge clk);
-                    ("[TB-ERROR] recv_tdisp_msg timed out after %0d cycles", timeout_cycles);
+                    $display("[TB-ERROR] recv_tdisp_msg timed out after %0d cycles", timeout_cycles);
                     disable recv_body;
                 end
             join_any
@@ -708,7 +708,7 @@ module tb_tdisp;
             test_count++;
             if (resp_msg_type != RESP_TDISP_ERROR) begin
                 test_fail++;
-                ("[FAIL] %s: expected ERROR response (0x7F), got 0x%02h",
+                $display("[FAIL] %s: expected ERROR response (0x7F), got 0x%02h",
                          test_name, resp_msg_type);
             end else begin
                 // Parse error_code from payload bytes [0:3] and error_data from [4:7]
