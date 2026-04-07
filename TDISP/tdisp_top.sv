@@ -234,7 +234,7 @@ module tdisp_top
     // Internal Wiring u2014 Codec u2194 Req Handler
     // =========================================================================
     tdisp_msg_header_s   parsed_hdr;
-    logic [7:0]          parsed_payload [MAX_REPORT_SIZE-1:0];
+    logic [7:0]          parsed_payload [REPORT_BUF_SIZE-1:0];
     logic [15:0]         parsed_payload_len;
     logic                parsed_valid;
     logic                parsed_error;
