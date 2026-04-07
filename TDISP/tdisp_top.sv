@@ -52,7 +52,7 @@ module tdisp_top
     // -------------------------------------------------------------------------
     // Buffer depths
     // -------------------------------------------------------------------------
-    parameter int MAX_REPORT_SIZE = MAX_REPORT_SIZE   // Max payload buffer (bytes)
+    parameter int REPORT_BUF_SIZE = MAX_REPORT_SIZE   // Max payload buffer (bytes)
 )(
     input  logic clk,
     input  logic rst_n,
