@@ -268,6 +268,114 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         },
         required=["urls"],
     ),
+
+    # ── Verilog / SystemVerilog Analysis ────────────────────────────────────
+    "analyze_verilog_module": _fn(
+        "analyze_verilog_module",
+        "Parse a Verilog/SV file and extract module structure: name, ports, parameters, signals, submodule instances, and metrics. Use this before writing testbenches or making RTL changes.",
+        {
+            "path": {"type": "string", "description": "Path to .v or .sv file"},
+            "deep": {"type": "boolean", "description": "If true, also analyze timing paths and logic complexity (slower)"},
+        },
+        required=["path"],
+    ),
+    "find_signal_usage": _fn(
+        "find_signal_usage",
+        "Search all Verilog files in a directory for uses of a specific signal — shows declarations, drivers, and readers with file:line references.",
+        {
+            "directory": {"type": "string", "description": "Directory to search recursively"},
+            "signal_name": {"type": "string", "description": "Signal name to search for"},
+        },
+        required=["directory", "signal_name"],
+    ),
+    "find_module_definition": _fn(
+        "find_module_definition",
+        "Search for where a module is defined across all .v/.sv files in a directory. Returns file path, line number, and port count.",
+        {
+            "module_name": {"type": "string", "description": "Module name to find"},
+            "directory": {"type": "string", "description": "Directory to search (default: current directory)"},
+        },
+        required=["module_name"],
+    ),
+    "extract_module_hierarchy": _fn(
+        "extract_module_hierarchy",
+        "Build the instantiation hierarchy tree starting from a top module, scanning all .v/.sv files in a directory. Returns ASCII tree showing which modules instantiate which.",
+        {
+            "top_module": {"type": "string", "description": "Name of the top-level module"},
+            "directory": {"type": "string", "description": "Directory to scan for module definitions"},
+        },
+        required=["top_module"],
+    ),
+    "find_potential_issues": _fn(
+        "find_potential_issues",
+        "Static analysis of a Verilog file to detect undriven signals, multiple drivers, and combinational loops. Returns list of warnings.",
+        {
+            "path": {"type": "string", "description": "Path to .v or .sv file"},
+        },
+        required=["path"],
+    ),
+    "generate_module_testbench": _fn(
+        "generate_module_testbench",
+        "Auto-generate a SystemVerilog testbench from a module's port declarations. Handles clock/reset, DUT instantiation, and basic stimulus.",
+        {
+            "path": {"type": "string", "description": "Path to .v or .sv file to generate testbench for"},
+            "tb_type": {"type": "string", "enum": ["basic", "random"], "description": "Testbench style: 'basic' (directed) or 'random' (constrained random)"},
+        },
+        required=["path"],
+    ),
+    "analyze_timing_paths": _fn(
+        "analyze_timing_paths",
+        "Estimate combinational logic depth from assign statements in a Verilog file. Warns about deep paths (>5 levels) that may cause timing violations.",
+        {
+            "path": {"type": "string", "description": "Path to .v or .sv file"},
+        },
+        required=["path"],
+    ),
+    "generate_module_docs": _fn(
+        "generate_module_docs",
+        "Auto-generate Markdown documentation for a Verilog module: port table, parameters, description, and metrics.",
+        {
+            "path": {"type": "string", "description": "Path to .v or .sv file"},
+        },
+        required=["path"],
+    ),
+    "suggest_optimizations": _fn(
+        "suggest_optimizations",
+        "Analyze a Verilog file for optimization opportunities: resource sharing, FSM encoding, expensive operators (division/modulo).",
+        {
+            "path": {"type": "string", "description": "Path to .v or .sv file"},
+        },
+        required=["path"],
+    ),
+    # ── pyslang-powered AST tools ────────────────────────────────────────────
+    "sv_get_ports": _fn(
+        "sv_get_ports",
+        "Extract precise port information from a Verilog/SV file using pyslang AST — returns name, direction, type, and width for each port. More accurate than regex parsing.",
+        {
+            "path": {"type": "string", "description": "Path to .v or .sv file"},
+        },
+        required=["path"],
+    ),
+    "sv_get_hierarchy": _fn(
+        "sv_get_hierarchy",
+        "Extract submodule instantiation hierarchy from a single Verilog/SV file using pyslang. Works without needing all dependent files to be present.",
+        {
+            "path": {"type": "string", "description": "Path to .v or .sv file"},
+        },
+        required=["path"],
+    ),
+    "sv_compile": _fn(
+        "sv_compile",
+        "Compile multiple Verilog/SV files together using pyslang and report all cross-reference errors and warnings. No VCS or iverilog needed.",
+        {
+            "files": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "List of .v or .sv file paths to compile together",
+            },
+        },
+        required=["files"],
+    ),
 }
 
 

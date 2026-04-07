@@ -1,12 +1,19 @@
 """
 Verilog Analysis Tools Plugin for Common AI Agent.
 Provides specialized tools for analyzing, debugging, and verifying Verilog code.
-Zero-dependency implementation using Python's re module.
+Core: Python re module (zero-dependency). Enhanced: pyslang (pip install pyslang).
 """
 import os
 import re
 import glob
 from typing import Dict, List, Optional, Any
+
+# pyslang: IEEE 1800-2017 SV parser — enables AST-level analysis without external binaries
+try:
+    import pyslang as _pyslang
+    HAS_PYSLANG = True
+except ImportError:
+    HAS_PYSLANG = False
 
 # --- Phase 1: Foundation Tools ---
 
@@ -721,6 +728,168 @@ def suggest_optimizations(path: str) -> List[str]:
         
     return suggestions
 
+# ─────────────────────────────────────────────────────────────────────────────
+# pyslang-powered tools (require: pip install pyslang)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def sv_get_ports(path: str) -> List[Dict[str, Any]]:
+    """
+    Extract port list from a Verilog/SV file using pyslang AST.
+    Returns accurate direction, type, and width — no regex parsing ambiguity.
+
+    Args:
+        path: Path to .v / .sv file
+
+    Returns:
+        List of dicts: [{"name": "clk", "direction": "input", "type": "logic", "width": 1}, ...]
+        On error or pyslang unavailable, returns {"error": "..."} in a list.
+    """
+    if not HAS_PYSLANG:
+        return [{"error": "pyslang not installed. Run: pip install pyslang"}]
+    if not os.path.exists(path):
+        return [{"error": f"File not found: {path}"}]
+
+    try:
+        tree = _pyslang.SyntaxTree.fromFile(path)
+        comp = _pyslang.Compilation()
+        comp.addSyntaxTree(tree)
+
+        ports = []
+        for inst in comp.getRoot().topInstances:
+            for port in inst.body.portList:
+                t = port.type
+                type_str = str(t)
+                # Extract width from type string e.g. "logic[7:0]" → 8
+                width = 1
+                m = re.search(r'\[(\d+):(\d+)\]', type_str)
+                if m:
+                    width = abs(int(m.group(1)) - int(m.group(2))) + 1
+                base_type = re.sub(r'\[.*?\]', '', type_str).strip() or 'logic'
+                direction = str(port.direction).replace('ArgumentDirection.', '').lower()
+                ports.append({
+                    "name": port.name,
+                    "direction": direction,
+                    "type": base_type,
+                    "width": width,
+                    "type_full": type_str,
+                })
+        return ports
+    except Exception as e:
+        return [{"error": str(e)}]
+
+
+def sv_get_hierarchy(path: str) -> Dict[str, Any]:
+    """
+    Extract module instantiation hierarchy from a single SV/Verilog file using pyslang.
+    Does NOT require full compilation — works with a single file even if submodules are missing.
+
+    Args:
+        path: Path to .v / .sv file
+
+    Returns:
+        Dict with top module name and list of instances:
+        {
+          "top": "counter",
+          "instances": [{"instance": "u_sub", "module": "sub_module"}, ...]
+          "parameters": ["WIDTH=8"]
+        }
+    """
+    if not HAS_PYSLANG:
+        return {"error": "pyslang not installed. Run: pip install pyslang"}
+    if not os.path.exists(path):
+        return {"error": f"File not found: {path}"}
+
+    try:
+        tree = _pyslang.SyntaxTree.fromFile(path)
+        comp = _pyslang.Compilation()
+        comp.addSyntaxTree(tree)
+
+        root = comp.getRoot()
+        top_instances = list(root.topInstances)
+        if not top_instances:
+            return {"error": "No top-level module found"}
+
+        top_inst = top_instances[0]
+        top_name = top_inst.definition.name
+
+        # Parameters
+        params = []
+        for p in top_inst.body.parameters:
+            params.append(f"{p.name}={p.value}")
+
+        # Sub-instances via visitor
+        sub_instances = []
+        def visitor(node):
+            if node.kind == _pyslang.SymbolKind.Instance:
+                sub_instances.append({
+                    "instance": node.name,
+                    "module": node.definition.name,
+                })
+            return _pyslang.VisitAction.Advance
+
+        top_inst.body.visit(visitor)
+
+        return {
+            "top": top_name,
+            "parameters": params,
+            "instances": sub_instances,
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def sv_compile(files: List[str]) -> str:
+    """
+    Compile multiple SV/Verilog files together using pyslang and report all diagnostics.
+    Useful for cross-reference checking (unresolved ports, type mismatches, etc.)
+    across a multi-file design. Does not require VCS/iverilog.
+
+    Args:
+        files: List of .v / .sv file paths
+
+    Returns:
+        Formatted string with all errors and warnings, or "No issues found."
+    """
+    if not HAS_PYSLANG:
+        return "pyslang not installed. Run: pip install pyslang"
+
+    missing = [f for f in files if not os.path.exists(f)]
+    if missing:
+        return f"Files not found: {', '.join(missing)}"
+
+    try:
+        comp = _pyslang.Compilation()
+        sm = None
+        for f in files:
+            tree = _pyslang.SyntaxTree.fromFile(f)
+            if sm is None:
+                sm = tree.sourceManager
+            comp.addSyntaxTree(tree)
+
+        diags = comp.getAllDiagnostics()
+        if not diags:
+            return f"✅ No issues found across {len(files)} file(s)."
+
+        engine = _pyslang.DiagnosticEngine(sm)
+        lines = []
+        errors = warnings = 0
+        for d in diags:
+            loc = d.location
+            line_num = sm.getLineNumber(loc) if loc else 0
+            msg = engine.formatMessage(d)
+            if d.isError():
+                lines.append(f"❌ Line {line_num}: {msg}")
+                errors += 1
+            else:
+                lines.append(f"⚠️  Line {line_num}: {msg}")
+                warnings += 1
+
+        summary = f"{errors} error(s), {warnings} warning(s) across {len(files)} file(s):"
+        return summary + "\n" + "\n".join(lines)
+    except Exception as e:
+        return f"Compilation error: {e}"
+
+
 # Export tools registry
 VERILOG_TOOLS = {
     "analyze_verilog_module": analyze_verilog_module,
@@ -732,5 +901,9 @@ VERILOG_TOOLS = {
     "analyze_timing_paths": analyze_timing_paths,
     "generate_waveform_dict": generate_waveform_dict,
     "generate_module_docs": generate_module_docs,
-    "suggest_optimizations": suggest_optimizations
+    "suggest_optimizations": suggest_optimizations,
+    # pyslang-powered (AST-level)
+    "sv_get_ports": sv_get_ports,
+    "sv_get_hierarchy": sv_get_hierarchy,
+    "sv_compile": sv_compile,
 }

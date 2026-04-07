@@ -3,10 +3,9 @@ Simple Linter (Zero-Dependency with Optional External Tools)
 
 Provides basic linting functionality using:
 1. Python built-in compile() for syntax checking
-2. Optional external tools (pyflakes, pylint, iverilog/vcs) if available
-3. Graceful degradation when tools not installed
-
-Zero-dependency core, optional enhancements.
+2. pyslang (pip install pyslang) — preferred Verilog/SV linter, no binary needed
+3. Optional external tools (pyflakes, pylint, iverilog/vcs) as fallback
+4. Graceful degradation when tools not installed
 """
 
 import subprocess
@@ -19,6 +18,13 @@ from typing import Optional, List
 # Read simulator config without importing full config (avoid circular imports)
 # Default: vcs (Synopsys). Override with VERILOG_SIMULATOR=iverilog
 _VERILOG_SIMULATOR = os.getenv("VERILOG_SIMULATOR", "vcs")
+
+# pyslang: IEEE 1800-2017 SystemVerilog parser — preferred over external binaries
+try:
+    import pyslang as _pyslang
+    HAS_PYSLANG = True
+except ImportError:
+    HAS_PYSLANG = False
 
 
 class LintError:
@@ -55,6 +61,7 @@ class SimpleLinter:
     def _check_available_tools(self):
         """Check which external tools are available"""
         self.tools = {
+            'pyslang': HAS_PYSLANG,
             'pyflakes': shutil.which('pyflakes') is not None,
             'pylint': shutil.which('pylint') is not None,
             'iverilog': shutil.which('iverilog') is not None,
@@ -67,12 +74,15 @@ class SimpleLinter:
         if language == 'python':
             return True  # Always available (built-in compile())
         elif language == 'verilog':
-            # vcs preferred; fallback iverilog → verilator
-            return self.tools['vcs'] or self.tools['iverilog'] or self.tools['verilator']
+            # pyslang preferred (no binary); fallback vcs → iverilog → verilator
+            return (self.tools['pyslang'] or self.tools['vcs']
+                    or self.tools['iverilog'] or self.tools['verilator'])
         return False
 
     def _effective_verilog_tool(self) -> str:
         """Return the tool that will actually be used for Verilog linting."""
+        if self.tools['pyslang']:
+            return 'pyslang'
         if self.simulator == 'vcs' and self.tools['vcs']:
             return 'vcs'
         if self.tools['iverilog']:
@@ -84,7 +94,7 @@ class SimpleLinter:
     def get_available_tools_info(self) -> str:
         """Get human-readable info about available tools"""
         effective = self._effective_verilog_tool()
-        lines = [f"Available linting tools (Verilog simulator: {self.simulator} → using {effective or 'none'}):"]
+        lines = [f"Available linting tools (Verilog: using {effective or 'none'}):"]
         lines.append(f"  ✅ Python (built-in compile())")
 
         for tool, available in self.tools.items():
@@ -184,10 +194,45 @@ class SimpleLinter:
 
         return errors
 
+    def _check_verilog_pyslang(self, filepath: Path) -> List[LintError]:
+        """Lint using pyslang — IEEE 1800-2017 compliant, no binary required."""
+        errors = []
+        try:
+            tree = _pyslang.SyntaxTree.fromFile(str(filepath))
+            comp = _pyslang.Compilation()
+            comp.addSyntaxTree(tree)
+
+            sm = tree.sourceManager
+            engine = _pyslang.DiagnosticEngine(sm)
+
+            for diag in comp.getAllDiagnostics():
+                severity = "error" if diag.isError() else "warning"
+                loc = diag.location
+                line = sm.getLineNumber(loc) if loc else 0
+                message = engine.formatMessage(diag)
+                errors.append(LintError(
+                    file=str(filepath),
+                    line=line,
+                    message=message,
+                    severity=severity,
+                ))
+        except Exception as e:
+            errors.append(LintError(
+                file=str(filepath),
+                line=0,
+                message=f"pyslang error: {e}",
+                severity="error",
+            ))
+        return errors
+
     def check_verilog(self, filepath: Path) -> List[LintError]:
-        """Check Verilog file using configured simulator (vcs → iverilog → verilator)."""
+        """Check Verilog/SV file. Uses pyslang (preferred) → vcs → iverilog → verilator."""
         errors = []
         tool = self._effective_verilog_tool()
+
+        # pyslang path (preferred — no binary required)
+        if tool == 'pyslang':
+            return self._check_verilog_pyslang(filepath)
 
         # VCS path (Synopsys commercial simulator)
         if tool == 'vcs':

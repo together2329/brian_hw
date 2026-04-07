@@ -2713,6 +2713,10 @@ try:
         "analyze_timing_paths": tools_verilog.analyze_timing_paths,
         "generate_module_docs": tools_verilog.generate_module_docs,
         "suggest_optimizations": tools_verilog.suggest_optimizations,
+        # pyslang-powered AST tools
+        "sv_get_ports": tools_verilog.sv_get_ports,
+        "sv_get_hierarchy": tools_verilog.sv_get_hierarchy,
+        "sv_compile": tools_verilog.sv_compile,
     })
 except ImportError:
     pass  # tools_verilog not available
