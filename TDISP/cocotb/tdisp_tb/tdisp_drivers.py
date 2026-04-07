@@ -42,10 +42,6 @@ from tdisp_constants import (
     TdispMsgHeader,
     build_tdisp_message,
     parse_tdisp_message,
-    RespCode,
-    ReqCode,
-    unpack_error_resp,
-    REQ_CODE_NAMES,
     RESP_CODE_NAMES,
 )
 
