@@ -17,7 +17,8 @@ from rich.table import Table as RichTable
 from textual.app import App, ComposeResult
 from textual.containers import Vertical
 from textual.message import Message
-from textual.widgets import Input, RichLog, Static
+from textual.widgets import Input, OptionList, RichLog, Static
+from textual.widgets._option_list import Option as _Option
 from textual.suggester import Suggester
 from textual.events import Key
 from textual import work
@@ -321,16 +322,50 @@ class _AgentSuggester(Suggester):
 # ── Custom Input: Tab accepts suggestion ──────────────────────────────────────
 
 class _AgentInput(Input):
-    """Input widget where Tab accepts the current suggestion (instead of moving focus)."""
+    """Input widget where Tab navigates/accepts the completion dropdown or inline suggestion."""
+
+    def _get_completion_list(self) -> OptionList | None:
+        try:
+            return self.app.query_one("#completion-list", OptionList)
+        except Exception:
+            return None
 
     async def _on_key(self, event: Key) -> None:
-        if event.key == "tab" and self._suggestion:
-            # Accept the full suggestion
-            self.value = self._suggestion
-            self.cursor_position = len(self._suggestion)
-            event.prevent_default()
-            event.stop()
-            return
+        ol = self._get_completion_list()
+        if event.key == "tab":
+            if ol is not None and "visible" in ol.classes:
+                # Cycle highlight forward through options
+                count = ol.option_count
+                if count > 0:
+                    current = ol.highlighted
+                    if current is None:
+                        ol.highlighted = 0
+                    else:
+                        ol.highlighted = (current + 1) % count
+                    # Fill input with highlighted option (preview)
+                    opt = ol.get_option_at_index(ol.highlighted)
+                    self.value = str(opt.prompt)
+                    self.cursor_position = len(self.value)
+                event.prevent_default()
+                event.stop()
+                return
+            # Fallback: accept inline suggestion
+            if self._suggestion:
+                self.value = self._suggestion
+                self.cursor_position = len(self._suggestion)
+                event.prevent_default()
+                event.stop()
+                return
+        elif event.key == "enter":
+            # If dropdown is visible, accept current highlight and submit
+            if ol is not None and "visible" in ol.classes:
+                ol.remove_class("visible")
+        elif event.key == "escape":
+            if ol is not None and "visible" in ol.classes:
+                ol.remove_class("visible")
+                event.prevent_default()
+                event.stop()
+                return
         await super()._on_key(event)
 
 
@@ -511,6 +546,29 @@ class AgentTUI(App):
         display: block;
     }}
 
+    /* ── Completion dropdown ── */
+    #completion-list {{
+        dock: bottom;
+        margin-bottom: 3;
+        display: none;
+        max-height: 12;
+        background: {_BG_INPUT};
+        border: solid {_BORDER_DIM};
+        padding: 0 1;
+    }}
+    #completion-list.visible {{
+        display: block;
+    }}
+    #completion-list > .option-list--option {{
+        background: {_BG_INPUT};
+        color: {_TEXT};
+        padding: 0 1;
+    }}
+    #completion-list > .option-list--option-highlighted {{
+        background: {_BORDER_DIM};
+        color: white;
+    }}
+
     /* ── Input ── */
     Input {{
         height: 3;
@@ -596,6 +654,7 @@ class AgentTUI(App):
             yield Static("", id="todo")
             yield Static(cwd, id="cwd-label")
         yield Static("", id="statusbar")
+        yield OptionList(id="completion-list")
         yield _AgentInput(placeholder="", suggester=_AgentSuggester())
 
     def on_mount(self) -> None:
@@ -776,6 +835,39 @@ class AgentTUI(App):
             pass
 
     # ── Input ─────────────────────────────────────────────────────────────────
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        """Show/hide completion dropdown while typing."""
+        value = event.value
+        ol = self.query_one("#completion-list", OptionList)
+        if value.startswith('/') and ' ' not in value:
+            # Load slash commands
+            cmds: list[str] = []
+            try:
+                try:
+                    from slash_commands import get_registry  # type: ignore
+                except ImportError:
+                    from core.slash_commands import get_registry  # type: ignore
+                cmds = get_registry().get_completions()
+            except Exception:
+                pass
+            matches = [c for c in cmds if c.lower().startswith(value.lower()) and c != value]
+            if matches:
+                ol.clear_options()
+                for m in matches:
+                    ol.add_option(_Option(m))
+                ol.highlighted = None
+                ol.add_class("visible")
+                return
+        ol.remove_class("visible")
+
+    def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
+        """Accept a completion from the dropdown."""
+        inp = self.query_one(_AgentInput)
+        inp.value = str(event.option.prompt)
+        inp.cursor_position = len(inp.value)
+        self.query_one("#completion-list", OptionList).remove_class("visible")
+        inp.focus()
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         text = event.value.strip()
