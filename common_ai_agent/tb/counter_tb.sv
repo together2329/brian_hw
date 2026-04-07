@@ -179,10 +179,10 @@ module counter_tb;
         load    = 1'b0;
         en      = 1'b1;
         up_down = 1'b0;
-        check("loaded 0", '0, 1'b0, 1'b0);
+        check("at 0, zero=1", '0, 1'b0, 1'b1);
         wait_clks(1);
-        check("underflow: 0->MAX", {WIDTH{1'b1}}, 1'b0, 1'b1);
-        // Verify zero clears on next cycle
+        check("wrapped to MAX, zero=0", {WIDTH{1'b1}}, 1'b0, 1'b0);
+        // Verify counter continues
         wait_clks(1);
         check("after underflow q=MAX-1", {WIDTH{1'b1}} - 1, 1'b0, 1'b0);
 
