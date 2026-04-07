@@ -1023,6 +1023,14 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
             _tool_line("suggest_optimizations", 'path', "Optimization suggestions."),
         ]
 
+    # Web tools (conditional — requires Firecrawl)
+    if ENABLE_WEB_TOOLS and "web_search" in tool_list:
+        tool_lines["Web"] = [
+            _tool_line("web_search", 'query, limit=5, lang="en", tbs=""', "Search the web via Firecrawl. Returns titles, URLs, content."),
+            _tool_line("web_fetch", 'url, formats="markdown"', "Scrape a URL and return markdown/html content."),
+            _tool_line("web_extract", 'urls, prompt="", schema=""', "Extract structured data from URLs using AI."),
+        ]
+
     # ── BUILD PROMPT ──
     parts = []
 
