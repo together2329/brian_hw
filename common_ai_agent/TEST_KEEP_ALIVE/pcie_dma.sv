@@ -252,8 +252,8 @@ module pcie_dma #(
 
                 if (rx_type == TYPE_CPLD) begin
                     // Extract byte count from completion
-                    logic [11:0] cpl_byte_count;
-                    cpl_byte_count = rx_tlp_data[43:32]; // Byte Count in DW1
+                    logic [31:0] cpl_byte_count;
+                    cpl_byte_count = 32'(rx_tlp_data[43:32]); // Byte Count in DW1
 
                     bytes_completed <= bytes_completed + 64'(cpl_byte_count);
                     lcl_wr_ptr      <= lcl_wr_ptr + ADDR_WIDTH'(cpl_byte_count);
