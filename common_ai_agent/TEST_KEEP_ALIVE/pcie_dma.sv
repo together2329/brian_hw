@@ -19,7 +19,6 @@ module pcie_dma #(
     parameter int unsigned ADDR_WIDTH     = 64,
     parameter int unsigned MAX_PAYLOAD    = 256,   // bytes (128, 256, 512, 1024)
     parameter int unsigned MAX_OUTSTANDING = 32,   // max outstanding read tags
-    parameter int unsigned STRB_WIDTH     = DATA_WIDTH / 8,
     parameter int unsigned KEEP_WIDTH     = DATA_WIDTH / 8
 )(
     // ----------------------------------------------------------------
@@ -84,9 +83,9 @@ module pcie_dma #(
     // ----------------------------------------------------------------
     dma_state_t   state_reg;
     logic [63:0]  current_addr;
-    logic [31:0]  bytes_remaining;
-    logic [31:0]  bytes_requested;
-    logic [31:0]  bytes_completed;
+    logic [63:0]  bytes_remaining;   // promote to 64-bit to avoid width mismatch
+    logic [63:0]  bytes_requested;
+    logic [63:0]  bytes_completed;
     logic [7:0]   next_tag;
     logic [7:0]   outstanding_cnt;
 
@@ -107,10 +106,10 @@ module pcie_dma #(
     assign use_4dw = (current_addr[63:32] != 32'h0);
 
     // Request size calculation (combinational, used in state machine)
-    logic [31:0] req_bytes_read;
-    logic [31:0] req_bytes_write;
-    assign req_bytes_read  = (bytes_remaining >= MAX_PAYLOAD) ? 32'(MAX_PAYLOAD) : bytes_remaining;
-    assign req_bytes_write = (bytes_remaining >= MAX_PAYLOAD) ? 32'(MAX_PAYLOAD) : bytes_remaining;
+    logic [63:0] req_bytes_read;
+    logic [63:0] req_bytes_write;
+    assign req_bytes_read  = (bytes_remaining >= 64'(MAX_PAYLOAD)) ? 64'(MAX_PAYLOAD) : bytes_remaining;
+    assign req_bytes_write = (bytes_remaining >= 64'(MAX_PAYLOAD)) ? 64'(MAX_PAYLOAD) : bytes_remaining;
 
     // ----------------------------------------------------------------
     // DMA State Machine
@@ -145,7 +144,7 @@ module pcie_dma #(
                         csr_error       <= 1'b0;
                         csr_status      <= '0;
                         current_addr    <= csr_src_addr;
-                        bytes_remaining <= csr_xfer_len;
+                        bytes_remaining <= 64'(csr_xfer_len);
                         bytes_requested <= '0;
                         bytes_completed <= '0;
                         next_tag        <= '0;
@@ -175,7 +174,7 @@ module pcie_dma #(
                     // tags or bytes
                     if (bytes_remaining > '0 && outstanding_cnt < 8'(MAX_OUTSTANDING)) begin
                         if (tx_tlp_ready) begin
-                            current_addr    <= current_addr + 64'(req_bytes_read);
+                            current_addr    <= current_addr + req_bytes_read;
                             bytes_remaining <= bytes_remaining - req_bytes_read;
                             bytes_requested <= bytes_requested + req_bytes_read;
                             next_tag        <= next_tag + 8'd1;
@@ -196,10 +195,10 @@ module pcie_dma #(
                     // Issue Memory Write TLPs with data from local memory
                     if (bytes_remaining > '0) begin
                         if (tx_tlp_ready) begin
-                            current_addr    <= current_addr + 64'(req_bytes_write);
+                            current_addr    <= current_addr + req_bytes_write;
                             bytes_remaining <= bytes_remaining - req_bytes_write;
                             bytes_completed <= bytes_completed + req_bytes_write;
-                            lcl_rd_ptr      <= lcl_rd_ptr + ADDR_WIDTH'(req_bytes_write);
+                            lcl_rd_ptr      <= lcl_rd_ptr + req_bytes_write[ADDR_WIDTH-1:0];
 
                             if (bytes_remaining <= req_bytes_write) begin
                                 state_reg <= DMA_DONE;
@@ -224,7 +223,6 @@ module pcie_dma #(
                     csr_done   <= 1'b1;
                     csr_status <= 32'h0000_0001; // Success
                     if (csr_start == 1'b0) begin
-                        // Wait for start to deassert
                         csr_done  <= 1'b0;
                         state_reg <= DMA_IDLE;
                     end
@@ -255,7 +253,7 @@ module pcie_dma #(
                     logic [11:0] cpl_byte_count;
                     cpl_byte_count = rx_tlp_data[43:32]; // Byte Count in DW1
 
-                    bytes_completed <= bytes_completed + 32'(cpl_byte_count);
+                    bytes_completed <= bytes_completed + 64'(cpl_byte_count);
                     lcl_wr_ptr      <= lcl_wr_ptr + ADDR_WIDTH'(cpl_byte_count);
 
                     if (outstanding_cnt > '0) begin
@@ -275,6 +273,10 @@ module pcie_dma #(
 
     // ----------------------------------------------------------------
     // TLP TX Construction (combinational)
+    //   For simplicity, this module builds one TLP per clock.
+    //   - 3DW header = 96 bits, fits in 128-bit data with room for payload
+    //   - 4DW header = 128 bits, occupies a full 128-bit beat
+    //   When DATA_WIDTH >= 256, header + payload can fit in one beat.
     // ----------------------------------------------------------------
     always_comb begin
         tx_tlp_data  = '0;
@@ -289,46 +291,59 @@ module pcie_dma #(
         tlp_dw3 = '0;
 
         if (state_reg == DMA_READ) begin
-            // Build Memory Read TLP header
+            // Build Memory Read TLP header (no data payload for MRd)
             tx_tlp_valid = 1'b1;
             tx_tlp_sop   = 1'b1;
             tx_tlp_eop   = 1'b1;
 
             if (use_4dw) begin
-                // 4DW Memory Read
+                // 4DW Memory Read: 128-bit header, no data
                 tlp_dw0 = {FMT_4DW_NO_DATA, TYPE_MRD, 9'b0, 1'b0, 1'b0, 10'd0};
                 tlp_dw1 = {16'h0000, next_tag, 4'b0000, 4'b1111}; // Requester ID=0, Tag, BE
                 tlp_dw2 = current_addr[63:32];
                 tlp_dw3 = {current_addr[31:2], 2'b00};
-                tx_tlp_data[127:0] = {tlp_dw3, tlp_dw2, tlp_dw1, tlp_dw0};
-                tx_tlp_keep        = {KEEP_WIDTH{1'b1}};
+                tx_tlp_data = {tlp_dw3, tlp_dw2, tlp_dw1, tlp_dw0};
+                tx_tlp_keep = 16'hFFFF;
             end else begin
-                // 3DW Memory Read
+                // 3DW Memory Read: 96-bit header, no data
                 tlp_dw0 = {FMT_3DW_NO_DATA, TYPE_MRD, 9'b0, 1'b0, 1'b0, 10'd0};
                 tlp_dw1 = {16'h0000, next_tag, 4'b0000, 4'b1111};
                 tlp_dw2 = {current_addr[31:2], 2'b00};
                 tx_tlp_data[95:0]  = {tlp_dw2, tlp_dw1, tlp_dw0};
-                tx_tlp_keep        = {{(KEEP_WIDTH-12){1'b0}}, 12'hFFF};
+                tx_tlp_keep        = 16'h0FFF;
             end
         end else if (state_reg == DMA_WRITE) begin
             // Build Memory Write TLP header + data
             tx_tlp_valid = 1'b1;
             tx_tlp_sop   = 1'b1;
-            tx_tlp_eop   = 1'b1; // Simplified: single-beat per payload
+            tx_tlp_eop   = 1'b1;
 
             if (use_4dw) begin
+                // 4DW MWr: header in first 128 bits
+                // For DATA_WIDTH=128, header only (data on next beat in real design)
+                // For DATA_WIDTH>=256, header + payload in one beat
                 tlp_dw0 = {FMT_4DW_DATA, TYPE_MWR, 9'b0, 1'b0, 1'b0, 10'd0};
                 tlp_dw1 = {16'h0000, 8'd0, 4'b0000, 4'b1111};
                 tlp_dw2 = current_addr[63:32];
                 tlp_dw3 = {current_addr[31:2], 2'b00};
-                tx_tlp_data[127:0] = {lcl_mem_rdata[DATA_WIDTH-1:128], tlp_dw3, tlp_dw2, tlp_dw1, tlp_dw0};
-                tx_tlp_keep        = {KEEP_WIDTH{1'b1}};
+                // Place header in lower bits
+                tx_tlp_data[127:0] = {tlp_dw3, tlp_dw2, tlp_dw1, tlp_dw0};
+                if (DATA_WIDTH >= 256) begin : gen_4dw_payload
+                    // Append payload after 128-bit header
+                    tx_tlp_data[DATA_WIDTH-1:128] = lcl_mem_rdata[DATA_WIDTH-128-1:0];
+                end
+                tx_tlp_keep = {KEEP_WIDTH{1'b1}};
             end else begin
+                // 3DW MWr: 96-bit header + 32 bits of data in 128-bit beat
                 tlp_dw0 = {FMT_3DW_DATA, TYPE_MWR, 9'b0, 1'b0, 1'b0, 10'd0};
                 tlp_dw1 = {16'h0000, 8'd0, 4'b0000, 4'b1111};
                 tlp_dw2 = {current_addr[31:2], 2'b00};
-                tx_tlp_data[DATA_WIDTH-1:0] = {lcl_mem_rdata[DATA_WIDTH-1:96], tlp_dw2, tlp_dw1, tlp_dw0};
-                tx_tlp_keep                 = {KEEP_WIDTH{1'b1}};
+                // Header (96 bits) + payload (DATA_WIDTH-96 bits)
+                tx_tlp_data[95:0] = {tlp_dw2, tlp_dw1, tlp_dw0};
+                if (DATA_WIDTH > 96) begin : gen_3dw_payload
+                    tx_tlp_data[DATA_WIDTH-1:96] = lcl_mem_rdata[DATA_WIDTH-97:0];
+                end
+                tx_tlp_keep = {KEEP_WIDTH{1'b1}};
             end
         end
     end
