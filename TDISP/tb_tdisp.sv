@@ -1374,7 +1374,11 @@ module tb_tdisp;
         // 11b: Memory request in CONFIG_LOCKED state u2014 should be rejected
         // First stop, then re-lock without starting
         send_stop_interface_req(0);
-        recv_tdisp_msg; // drain response
+        begin
+            logic [7:0] drain_type;
+            int         drain_len;
+            recv_tdisp_msg(drain_type, drain_len);
+        end
         repeat(5) @(posedge clk);
 
         send_lock_interface_req(0, 16'h0000, ide_default_stream_id,
@@ -1397,7 +1401,11 @@ module tb_tdisp;
 
         // Clean up
         send_stop_interface_req(0);
-        recv_tdisp_msg;
+        begin
+            logic [7:0] drain_type;
+            int         drain_len;
+            recv_tdisp_msg(drain_type, drain_len);
+        end
         check_state(0, TDI_STATE_CONFIG_UNLOCKED, "T11d_UNLOCKED");
 
         // =====================================================================
@@ -1649,10 +1657,4 @@ module tb_tdisp;
 
     // =========================================================================
     // Waveform dump (for simulation debug)
-    // =========================================================================
-    initial begin
-        $dumpfile("tb_tdisp.vcd");
-        $dumpvars(0, tb_tdisp);
-    end
-
-endmodule
+    // ======================================================
