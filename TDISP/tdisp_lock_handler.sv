@@ -478,7 +478,17 @@ module tdisp_lock_handler
                     entropy_req_r <= 1'b1;
                     if (entropy_valid) begin
                         generated_nonce <= entropy_data;
+                        entropy_timeout <= '0;
                         l_state         <= L_WAIT_SNAPSHOT;
+                    end else begin
+                        // Timeout: if entropy not available after ~65K cycles,
+                        // return INSUFFICIENT_ENTROPY per u00a711.3.9
+                        entropy_timeout <= entropy_timeout + 16'd1;
+                        if (entropy_timeout >= 16'hFFFF) begin
+                            pending_error   <= ERR_INSUFFICIENT_ENTROPY;
+                            entropy_timeout <= '0;
+                            l_state         <= L_COMPLETE_ERR;
+                        end
                     end
                 end
 
