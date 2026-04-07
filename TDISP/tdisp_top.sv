@@ -300,7 +300,7 @@ module tdisp_top
     // =========================================================================
     tdisp_msg_codec #(
         .DATA_WIDTH      (DATA_WIDTH),
-        .MAX_REPORT_SIZE (MAX_REPORT_SIZE)
+        .MAX_REPORT_SIZE (REPORT_BUF_SIZE)
     ) u_codec (
         .clk                (clk),
         .rst_n              (rst_n),
@@ -344,7 +344,7 @@ module tdisp_top
     // =========================================================================
     tdisp_req_handler #(
         .NUM_TDI         (NUM_TDI),
-        .MAX_REPORT_SIZE (MAX_REPORT_SIZE)
+        .MAX_REPORT_SIZE (REPORT_BUF_SIZE)
     ) u_req_handler (
         .clk                (clk),
         .rst_n              (rst_n),
