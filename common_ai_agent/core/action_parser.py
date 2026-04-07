@@ -131,7 +131,7 @@ def _strip_native_tool_tokens(text: str) -> str:
             name = data.get("name", "")
             args = data.get("arguments", {})
             if name and isinstance(args, dict):
-                args_str = ", ".join(f'{k}={json.dumps(v)}' for k, v in args.items())
+                args_str = ", ".join(f'{k}={json.dumps(v, ensure_ascii=False)}' for k, v in args.items())
                 return f"\nAction: {name}({args_str})\n"
         except (json.JSONDecodeError, AttributeError):
             pass
@@ -140,7 +140,7 @@ def _strip_native_tool_tokens(text: str) -> str:
     def _xml_params_to_action(tool_name: str, params_block: str) -> str:
         params = re.findall(r'<(\w+)>(.*?)</\1>', params_block, re.DOTALL)
         if tool_name and params:
-            args_str = ", ".join(f'{k}={json.dumps(v)}' for k, v in params)
+            args_str = ", ".join(f'{k}={json.dumps(v, ensure_ascii=False)}' for k, v in params)
             return f"\nAction: {tool_name}({args_str})\n"
         elif tool_name:
             return f"\nAction: {tool_name}()\n"
@@ -393,7 +393,7 @@ def parse_implicit_actions(
         json_str = match.group(2)
         try:
             args_dict = json.loads(json_str)
-            args_str = ", ".join(f'{k}={json.dumps(v)}' for k, v in args_dict.items())
+            args_str = ", ".join(f'{k}={json.dumps(v, ensure_ascii=False)}' for k, v in args_dict.items())
             actions.append((tool_name, args_str))
             if debug:
                 print(f"[DEBUG] Parsed implicit action: {tool_name}({args_str})")

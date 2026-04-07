@@ -283,27 +283,26 @@ class _AgentSuggester(Suggester):
             pass
 
     async def get_suggestion(self, value: str) -> str | None:
-        # Slash command completion
-        if value.startswith('/') and ' ' not in value:
-            if not self._slash_cmds:
-                self._load_slash_cmds()
-            for cmd in self._slash_cmds:
-                if cmd.lower().startswith(value.lower()) and cmd != value:
-                    return cmd
+        try:
+            # Slash command completion
+            if value.startswith('/') and ' ' not in value:
+                if not self._slash_cmds:
+                    self._load_slash_cmds()
+                for cmd in self._slash_cmds:
+                    if cmd.lower().startswith(value.lower()) and cmd != value:
+                        return cmd
 
-        # @ file/folder completion
-        if '@' in value:
-            at_pos = value.rfind('@')
-            partial = value[at_pos + 1:]
-            # Only suggest if partial has no spaces (middle of a word)
-            if ' ' not in partial:
-                if '/' in partial:
-                    dir_part, stem = partial.rsplit('/', 1)
-                    base = dir_part or '.'
-                else:
-                    dir_part, stem = '', partial
-                    base = '.'
-                try:
+            # @ file/folder completion
+            if '@' in value:
+                at_pos = value.rfind('@')
+                partial = value[at_pos + 1:]
+                if ' ' not in partial:
+                    if '/' in partial:
+                        dir_part, stem = partial.rsplit('/', 1)
+                        base = dir_part or '.'
+                    else:
+                        dir_part, stem = '', partial
+                        base = '.'
                     for name in sorted(os.listdir(base)):
                         if name.startswith('.'):
                             continue
@@ -313,8 +312,8 @@ class _AgentSuggester(Suggester):
                         if os.path.isdir(os.path.join(base, name)):
                             full += '/'
                         return value[:at_pos + 1] + full
-                except OSError:
-                    pass
+        except Exception:
+            pass
 
         return None
 

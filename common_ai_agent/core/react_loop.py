@@ -769,7 +769,7 @@ def run_react_agent_impl(
                 try:
                     _kwargs = _json.loads(_tc["arguments"] or "{}")
                     # Format as kwarg string for existing tool dispatcher
-                    _args_str = ", ".join(f'{k}={_json.dumps(v)}' for k, v in _kwargs.items())
+                    _args_str = ", ".join(f'{k}={_json.dumps(v, ensure_ascii=False)}' for k, v in _kwargs.items())
                 except Exception:
                     _args_str = _tc.get("arguments", "")
                 actions.append((_tc["name"], _args_str, "sequential"))
