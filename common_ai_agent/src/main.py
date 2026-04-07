@@ -1257,12 +1257,15 @@ def chat_loop():
             except Exception:
                 _history = InMemoryHistory()
 
+            from prompt_toolkit.shortcuts import CompleteStyle
+
             _multiline_prompt = PromptSession(
                 multiline=False,
                 key_bindings=_kb,
                 history=_history,
                 completer=_AtFileCompleter(),
                 complete_while_typing=True,
+                complete_style=CompleteStyle.MULTI_COLUMN,
             )
             _prompt_text = ANSI(Color.user("> ") + Color.RESET)
         except Exception as e:
