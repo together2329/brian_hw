@@ -264,7 +264,7 @@ package tdisp_pkg;
     //   per Table 11-4 legal states mapping
     // =========================================================================
     function automatic logic tdisp_state_is_legal_for_req(
-        input logic [7:0]           req_code,
+        input tdisp_req_code_e      req_code,
         input tdisp_tdi_state_e     current_state
     );
         case (req_code)
