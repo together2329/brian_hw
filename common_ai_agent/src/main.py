@@ -179,6 +179,15 @@ try:
 except ImportError as e:
     print(Color.warning(f"[System] Failed to load spec tools: {e}"))
 
+if getattr(config, 'ENABLE_WEB_TOOLS', False):
+    try:
+        from core.tools_web import WEB_TOOLS
+        tools.AVAILABLE_TOOLS.update(WEB_TOOLS)
+        if config.DEBUG_MODE:
+            print(Color.system("[System] Web tools plugin loaded successfully 🌐"))
+    except ImportError as e:
+        print(Color.warning(f"[System] Failed to load web tools: {e}"))
+
 # --- 1. No Vendor Path Needed ---
 # We are using standard libraries only.
 
