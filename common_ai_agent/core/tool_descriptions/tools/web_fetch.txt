@@ -21,7 +21,7 @@ Key Parameters:
 # Good Examples
 
 Good: web_fetch(url="https://docs.python.org/3/library/urllib.html")
-  Fetch Python uurlib documentation
+  Fetch Python urllib documentation
 
 Good: web_fetch(url="https://pcisig.com/specifications", formats="markdown")
   Scrape a specification index page
