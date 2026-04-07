@@ -239,19 +239,56 @@ module tdisp_reg_tracker
 
             default: begin
                 // -----------------------------------------------------------------
-                // Extended Capability space (offset 0x100+) is handled below
-                // using address-range matching for capability blocks.
-                // For addresses not explicitly decoded, apply conservative
-                // default: ERROR (fail-safe u2014 any unknown register write
-                // during locked state triggers error per security principle).
+                // Dynamic capability-range matching using runtime base addresses.
+                // Priority-ordered: PCIe Cap > MSI-X Cap > PM Cap > Extended Cap.
+                // Addresses not matching any capability fall to conservative ERROR.
                 // -----------------------------------------------------------------
-                if (reg_write_addr >= 12'h100) begin
-                    // Extended capability space u2014 classify by capability type
-                    // In a real implementation, capability base addresses are
-                    // discovered at enumeration. Here we decode common offsets.
+
+                // --- PCI Express Capability (CAT_DEV_CTRL for Device Control regs) ---
+                // PCIe Capability structure spans from pcie_cap_base for ~72 bytes.
+                // Device Control 1 at base+0x08, Device Control 2 at base+0x28,
+                // Device Control 3 at base+0x44. Other PCIe cap registers are ALLOWED.
+                if (addr_in_cap_range(reg_write_addr, pcie_cap_base, PCIE_CAP_END_OFFSET)) begin
+                    if (addr_in_cap_dword(reg_write_addr, pcie_cap_base, PCIE_CAP_DC1_OFFSET) ||
+                        addr_in_cap_dword(reg_write_addr, pcie_cap_base, PCIE_CAP_DC2_OFFSET) ||
+                        addr_in_cap_dword(reg_write_addr, pcie_cap_base, PCIE_CAP_DC3_OFFSET)) begin
+                        write_category      = CAT_DEV_CTRL;
+                        classified_reg_name = 256'h446576696365436f6e74726f6c;  // "DeviceControl"
+                        classified_reg_desc = 256'h4465764374726c312f322f3320637269746963616c2062697473;  // "DevCtrl1/2/3 critical bits"
+                    end else begin
+                        // Other PCIe capability registers (Link Control, Slot, etc.)
+                        write_category      = CAT_ALLOWED;
+                        classified_reg_name = 256'h506349654361704f74686572;  // "PCIeCapOther"
+                    end
+                end
+                // --- MSI-X Capability (CAT_MSIX) ---
+                // MSI-X Capability structure: 8 bytes at msix_cap_base.
+                // Any write to this range when table is locked u2192 error (checked later).
+                else if (addr_in_cap_range(reg_write_addr, msix_cap_base, 12'h008)) begin
+                    write_category      = CAT_MSIX;
+                    classified_reg_name = 256'h4d534978436170;  // "MSIXCap"
+                    classified_reg_desc = 256'h4d53492d58206c6f636b6564206d6f646966;  // "MSI-X locked modif"
+                end
+                // --- PCI Power Management Capability (CAT_POWER_MGMT for PMCSR) ---
+                // PM Cap structure: 8 bytes at pm_cap_base.
+                // PMCSR is at pm_cap_base + 0x04. PowerState bits [1:0] checked later.
+                else if (addr_in_cap_range(reg_write_addr, pm_cap_base, PM_CAP_END_OFFSET)) begin
+                    if (addr_in_cap_dword(reg_write_addr, pm_cap_base, PM_CAP_PMCSR_OFFSET)) begin
+                        write_category      = CAT_POWER_MGMT;
+                        classified_reg_name = 256'h506f7765724d67745f504d435352;  // "PowerMgmt_PMCSR"
+                        classified_reg_desc = 256'h4433207374617465206c6f737320636865636b;  // "D3 state loss check"
+                    end else begin
+                        // PM Cap other registers (PMC, PM Status) u2014 ALLOWED
+                        write_category      = CAT_ALLOWED;
+                        classified_reg_name = 256'h506f7765724d67744f74686572;  // "PowerMgmtOther"
+                    end
+                end
+                // --- Extended Capability space (offset 0x100+) ---
+                else if (reg_write_addr >= 12'h100) begin
                     write_category = classify_extended_cap(reg_write_addr);
-                end else begin
-                    // Standard header space, unmapped u2192 conservative ERROR
+                end
+                // --- Standard header space, unmapped u2192 conservative ERROR ---
+                else begin
                     write_category      = CAT_RESERVED_CAT;
                 end
             end
