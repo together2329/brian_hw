@@ -456,6 +456,12 @@ module tdisp_req_handler
             lock_cmd_valid       <= 1'b0;
             mmio_attr_update_valid <= 1'b0;
             vdm_req_valid        <= 1'b0;
+            lock_req_pulse_r     <= '0;
+            start_req_pulse_r    <= '0;
+            stop_req_pulse_r     <= '0;
+            bind_pulse_r         <= '0;
+            unbind_pulse_r       <= '0;
+            bind_stream_id_r     <= bind_stream_id_r; // hold unless overridden
 
             case (h_state)
 
