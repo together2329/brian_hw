@@ -382,16 +382,21 @@ module tdisp_req_handler
     end
 
     // =========================================================================
-    // Mux control pulses to per-TDI arrays (default 0)
+    // Pulse registers for per-TDI control (registered, default 0 each cycle)
     // =========================================================================
-    always_comb begin
-        lock_req_pulse  = '0;
-        start_req_pulse = '0;
-        stop_req_pulse  = '0;
-        bind_pulse      = '0;
-        unbind_pulse    = '0;
-        bind_stream_id  = '0;
-    end
+    logic [NUM_TDI-1:0] lock_req_pulse_r;
+    logic [NUM_TDI-1:0] start_req_pulse_r;
+    logic [NUM_TDI-1:0] stop_req_pulse_r;
+    logic [NUM_TDI-1:0] bind_pulse_r;
+    logic [NUM_TDI-1:0] unbind_pulse_r;
+    logic [7:0]         bind_stream_id_r;
+
+    assign lock_req_pulse  = lock_req_pulse_r;
+    assign start_req_pulse = start_req_pulse_r;
+    assign stop_req_pulse  = stop_req_pulse_r;
+    assign bind_pulse      = bind_pulse_r;
+    assign unbind_pulse    = unbind_pulse_r;
+    assign bind_stream_id  = bind_stream_id_r;
 
     // =========================================================================
     // Outstanding request counter tracking
