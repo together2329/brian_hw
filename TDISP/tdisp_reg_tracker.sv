@@ -446,33 +446,6 @@ module tdisp_reg_tracker
     endfunction
 
     // =========================================================================
-    // PCIe Capability Register Classification (within capability block)
-    //   The PCIe Capability structure occupies up to 60+ bytes at its base.
-    //   Key registers at standard offsets within the capability block:
-    //     +0x08 = Device Control Register
-    //     +0x0A = Device Status Register
-    //     +0x10 = Link Control Register
-    //     +0x12 = Link Status Register
-    //     +0x28 = Device Control 2 Register
-    //     +0x30 = Link Control 2 Register
-    //     +0x32 = Link Status 2 Register
-    //     +0x34 = 16.0 GT/s Control (or Slot)
-    //     +0x44 = Device Control 3 Register
-    //     +0x46 = Device Status 3 Register
-    //
-    //   For this module, we use a secondary decode for registers within
-    //   the PCIe capability range. The capability base is provided via
-    //   the address's capability-relative offset.
-    // =========================================================================
-
-    // MSI-X Capability detection: MSI-X Capability structure:
-    //   Offset +0x00: Message Control (16 bits) u2014 bit 7 = Function Mask,
-    //                 bit 6 = MSI-X Enable
-    //   The capability base is discovered at enumeration. Here we assume
-    //   the MSI-X cap is within the standard capability space (0x40u20130xFF).
-    //   A more precise implementation would parameterize capability bases.
-
-    // =========================================================================
     // Command Register critical bit definitions (Table 11-3)
     //   Bit 1 = Memory Space Enable
     //   Bit 2 = Bus Master Enable
@@ -488,7 +461,6 @@ module tdisp_reg_tracker
     //   Bit  7 = Initiate Function Level Reset
     //   Bit 11 = Enable No Snoop
     //   Bit 12 = 10-bit Tag Requester Enable
-    //   Bit 15 (DC2) / additional bits for DC2/DC3
     //
     //   For Device Control 2:
     //   Bit  4 = 14-bit Tag Requester Enable
