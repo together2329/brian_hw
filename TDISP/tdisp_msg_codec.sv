@@ -1,11 +1,11 @@
 // ============================================================================
 // Module:    tdisp_msg_codec.sv
-// Purpose:   TDISP Message Parser / Encoder u2014 serializes and deserializes
+// Purpose:   TDISP Message Parser / Encoder - serializes and deserializes
 //            TDISP request/response messages over a byte-serial AXI-S-like
 //            transport (SPDM/DOE).
 // Spec:      PCI Express Base Specification Revision 7.0, Section 11.3
 //
-// Parser:  IDLE u2192 HDR u2192 PAYLOAD u2192 DONE
+// Parser:  IDLE -> HDR -> PAYLOAD -> DONE
 //   - Ingests incoming byte stream, validates header, extracts payload.
 //   - Outputs parsed tdisp_msg_header_s + payload byte array.
 //
@@ -14,14 +14,14 @@
 //   - Emits formatted TDISP response byte-by-byte with header.
 //
 // Little-Endian: All multi-byte fields are emitted/received in little-endian
-//   byte order per u00a711.3.3.
+//   byte order per Section 11.3.3.
 // ============================================================================
 
 module tdisp_msg_codec
     import tdisp_pkg::*;
 #(
-    parameter int DATA_WIDTH     = 8,         // Bytes per beat (8 = byte-serial)
-    parameter int MAX_REPORT_SIZE = 4096       // Max payload buffer depth in bytes
+    parameter int DATA_WIDTH      = 8,          // Bits per beat (8 = byte-serial)
+    parameter int MAX_REPORT_SIZE = 4096         // Max payload buffer depth in bytes
 )(
     input  logic clk,
     input  logic rst_n,
@@ -29,11 +29,11 @@ module tdisp_msg_codec
     // =========================================================================
     // Negotiated version (set once during version negotiation)
     // =========================================================================
-    input  logic [7:0]  negotiated_version,    // Active TDISP version (e.g. 8'h10)
-    input  logic        version_valid,         // High once version is negotiated
+    input  logic [7:0]  negotiated_version,     // Active TDISP version (e.g. 8'h10)
+    input  logic        version_valid,          // High once version is negotiated
 
     // =========================================================================
-    // RX Interface u2014 Request Parser (AXI-S-like, byte-serial)
+    // RX Interface - Request Parser (AXI-S-like, byte-serial)
     // =========================================================================
     input  logic                      rx_valid,
     input  logic [DATA_WIDTH-1:0]     rx_data,
@@ -46,11 +46,11 @@ module tdisp_msg_codec
     output tdisp_msg_header_s         parsed_hdr,
     output logic [7:0]                parsed_payload [MAX_REPORT_SIZE-1:0],
     output logic [15:0]               parsed_payload_len,
-    output logic                      parsed_valid,   // Pulse: complete message ready
-    output logic                      parsed_error,   // Pulse: malformed message
+    output logic                      parsed_valid,    // Pulse: complete message ready
+    output logic                      parsed_error,    // Pulse: malformed message
 
     // =========================================================================
-    // TX Interface u2014 Response Encoder (AXI-S-like, byte-serial)
+    // TX Interface - Response Encoder (AXI-S-like, byte-serial)
     // =========================================================================
     output logic                      tx_valid,
     output logic [DATA_WIDTH-1:0]     tx_data,
@@ -60,20 +60,19 @@ module tdisp_msg_codec
     // =========================================================================
     // Response Inputs (from req_handler)
     // =========================================================================
-    input  logic                      resp_valid,          // Handshake: request to send
-    output logic                      resp_ready,          // Handshake: encoder can accept
-    input  tdisp_resp_code_e          resp_msg_type,       // Response code
+    input  logic                      resp_valid,           // Handshake: request to send
+    output logic                      resp_ready,           // Handshake: encoder can accept
+    input  tdisp_resp_code_e          resp_msg_type,        // Response code
     input  logic [INTERFACE_ID_WIDTH-1:0] resp_interface_id, // 96-bit INTERFACE_ID
     input  logic [7:0]                resp_payload [MAX_REPORT_SIZE-1:0],
-    input  logic [15:0]               resp_payload_len    // Total payload bytes
+    input  logic [15:0]               resp_payload_len      // Total payload bytes
 );
 
     // =========================================================================
     // Local constants
     // =========================================================================
-    localparam int HDR_BYTES      = TDISP_MSG_HEADER_SIZE; // 16 bytes
-    localparam int HDR_BYTE_WIDTH = $clog2(HDR_BYTES+1);   // 4 bits to index 0..15
-    localparam int PAYLOAD_DEPTH  = $clog2(MAX_REPORT_SIZE+1);
+    localparam int HDR_BYTES      = TDISP_MSG_HEADER_SIZE;  // 16 bytes
+    localparam int CNT_WIDTH      = 16;  // Wide enough for all counters/comparisons
 
     // =========================================================================
     // Parser state definition
@@ -99,21 +98,21 @@ module tdisp_msg_codec
     // =========================================================================
     // Parser internal signals
     // =========================================================================
-    parse_state_e parse_state;
-    logic [HDR_BYTE_WIDTH-1:0]  hdr_byte_cnt;
-    logic [PAYLOAD_DEPTH-1:0]   payload_byte_cnt;
-    logic [15:0]                expected_payload_len;
-    logic [7:0]                 hdr_byte_buf [HDR_BYTES-1:0];
+    parse_state_e          parse_state;
+    logic [CNT_WIDTH-1:0]  hdr_byte_cnt;
+    logic [CNT_WIDTH-1:0]  payload_byte_cnt;
+    logic [15:0]           expected_payload_len;
+    logic [7:0]            hdr_byte_buf [HDR_BYTES-1:0];
 
     // =========================================================================
     // Encoder internal signals
     // =========================================================================
-    enc_state_e enc_state;
-    logic [HDR_BYTE_WIDTH-1:0]  enc_hdr_idx;
-    logic [PAYLOAD_DEPTH-1:0]   enc_payload_idx;
-    logic [PAYLOAD_DEPTH-1:0]   enc_payload_total;
-    logic [7:0]                 enc_hdr_buf [HDR_BYTES-1:0];
-    logic                       enc_accepted;     // Captured resp inputs
+    enc_state_e            enc_state;
+    logic [CNT_WIDTH-1:0]  enc_hdr_idx;
+    logic [CNT_WIDTH-1:0]  enc_payload_idx;
+    logic [CNT_WIDTH-1:0]  enc_payload_total;
+    logic [7:0]            enc_hdr_buf [HDR_BYTES-1:0];
+    logic                  enc_accepted;      // Captured resp inputs
 
     // =========================================================================
     // Function: Compute expected payload length from request message type
@@ -122,18 +121,18 @@ module tdisp_msg_codec
     // =========================================================================
     function automatic logic [15:0] expected_payload_length(input logic [7:0] msg_type);
         case (msg_type)
-            8'h81: return 16'd0;    // GET_TDISP_VERSION
-            8'h82: return 16'd4;    // GET_TDISP_CAPABILITIES (TSM_CAPS)
-            8'h83: return 16'd20;   // LOCK_INTERFACE_REQUEST
-            8'h84: return 16'd4;    // GET_DEVICE_INTERFACE_REPORT
-            8'h85: return 16'd0;    // GET_DEVICE_INTERFACE_STATE
-            8'h86: return 16'd32;   // START_INTERFACE_REQUEST (NONCE)
-            8'h87: return 16'd0;    // STOP_INTERFACE_REQUEST
-            8'h88: return 16'd2;    // BIND_P2P_STREAM_REQUEST
-            8'h89: return 16'd1;    // UNBIND_P2P_STREAM_REQUEST
-            8'h8A: return 16'd16;   // SET_MMIO_ATTRIBUTE_REQUEST
-            8'h8B: return 16'hFFFF; // VDM_REQUEST u2014 variable length
-            8'h8C: return 16'd4;    // SET_TDISP_CONFIG_REQUEST
+            8'h81: return 16'd0;     // GET_TDISP_VERSION
+            8'h82: return 16'd4;     // GET_TDISP_CAPABILITIES (TSM_CAPS)
+            8'h83: return 16'd20;    // LOCK_INTERFACE_REQUEST
+            8'h84: return 16'd4;     // GET_DEVICE_INTERFACE_REPORT
+            8'h85: return 16'd0;     // GET_DEVICE_INTERFACE_STATE
+            8'h86: return 16'd32;    // START_INTERFACE_REQUEST (NONCE)
+            8'h87: return 16'd0;     // STOP_INTERFACE_REQUEST
+            8'h88: return 16'd2;     // BIND_P2P_STREAM_REQUEST
+            8'h89: return 16'd1;     // UNBIND_P2P_STREAM_REQUEST
+            8'h8A: return 16'd16;    // SET_MMIO_ATTRIBUTE_REQUEST
+            8'h8B: return 16'hFFFF;  // VDM_REQUEST - variable length
+            8'h8C: return 16'd4;     // SET_TDISP_CONFIG_REQUEST
             default: return 16'd0;
         endcase
     endfunction
@@ -151,20 +150,49 @@ module tdisp_msg_codec
     endfunction
 
     // =========================================================================
-    // Parser: assemble header struct from byte buffer (little-endian)
+    // Assemble header struct from byte buffer - combinational (no function
+    // with unpacked array port; directly assigned in always block).
     // =========================================================================
-    function automatic tdisp_msg_header_s assemble_hdr(input logic [7:0] buf [HDR_BYTES-1:0]);
-        tdisp_msg_header_s h;
-        h.tdisp_version = buf[0];
-        h.msg_type      = buf[1];
-        // Little-endian: bytes 2 (LSB), 3 (MSB)
-        h.reserved      = {buf[3], buf[2]};
-        // Little-endian: bytes 4..15
-        h.interface_id  = {buf[15], buf[14], buf[13], buf[12],
-                           buf[11], buf[10], buf[ 9], buf[ 8],
-                           buf[ 7], buf[ 6], buf[ 5], buf[ 4]};
-        return h;
-    endfunction
+    tdisp_msg_header_s assembled_hdr;
+
+    always_comb begin
+        assembled_hdr.tdisp_version = hdr_byte_buf[0];
+        assembled_hdr.msg_type      = hdr_byte_buf[1];
+        // Little-endian: byte 2=LSB, byte 3=MSB
+        assembled_hdr.reserved      = {hdr_byte_buf[3], hdr_byte_buf[2]};
+        // Little-endian: bytes 4..15 (byte 4 = LSB, byte 15 = MSB)
+        assembled_hdr.interface_id  = {hdr_byte_buf[15], hdr_byte_buf[14],
+                                       hdr_byte_buf[13], hdr_byte_buf[12],
+                                       hdr_byte_buf[11], hdr_byte_buf[10],
+                                       hdr_byte_buf[9],  hdr_byte_buf[8],
+                                       hdr_byte_buf[7],  hdr_byte_buf[6],
+                                       hdr_byte_buf[5],  hdr_byte_buf[4]};
+    end
+
+    // =========================================================================
+    // Build encoder header buffer - combinational (inlined, no ref argument)
+    // =========================================================================
+    logic [7:0] enc_hdr_buf_next [HDR_BYTES-1:0];
+
+    always_comb begin
+        enc_hdr_buf_next[0]  = negotiated_version;
+        enc_hdr_buf_next[1]  = resp_msg_type;
+        enc_hdr_buf_next[2]  = 8'd0;  // Reserved LSB
+        enc_hdr_buf_next[3]  = 8'd0;  // Reserved MSB
+        // INTERFACE_ID: 96 bits = 12 bytes, little-endian (byte 4 = LSB)
+        enc_hdr_buf_next[4]  = resp_interface_id[7:0];
+        enc_hdr_buf_next[5]  = resp_interface_id[15:8];
+        enc_hdr_buf_next[6]  = resp_interface_id[23:16];
+        enc_hdr_buf_next[7]  = resp_interface_id[31:24];
+        enc_hdr_buf_next[8]  = resp_interface_id[39:32];
+        enc_hdr_buf_next[9]  = resp_interface_id[47:40];
+        enc_hdr_buf_next[10] = resp_interface_id[55:48];
+        enc_hdr_buf_next[11] = resp_interface_id[63:56];
+        enc_hdr_buf_next[12] = resp_interface_id[71:64];
+        enc_hdr_buf_next[13] = resp_interface_id[79:72];
+        enc_hdr_buf_next[14] = resp_interface_id[87:80];
+        enc_hdr_buf_next[15] = resp_interface_id[95:88];
+    end
 
     // =========================================================================
     // Parser State Machine
@@ -195,7 +223,7 @@ module tdisp_msg_codec
                 PARSE_IDLE: begin
                     if (rx_valid && rx_ready) begin
                         hdr_byte_buf[0] <= rx_data;
-                        hdr_byte_cnt    <= HDR_BYTE_WIDTH'(1);
+                        hdr_byte_cnt    <= CNT_WIDTH'(1);
                         parse_state     <= PARSE_HDR;
                     end
                 end
@@ -213,7 +241,7 @@ module tdisp_msg_codec
                         hdr_byte_buf[hdr_byte_cnt] <= rx_data;
 
                         // Early validation on byte 1 (MessageType)
-                        if (hdr_byte_cnt == HDR_BYTE_WIDTH'(1)) begin
+                        if (hdr_byte_cnt == CNT_WIDTH'(1)) begin
                             if (!is_known_req_code(rx_data)) begin
                                 parse_state  <= PARSE_ERROR;
                                 parsed_error <= 1'b1;
@@ -221,25 +249,25 @@ module tdisp_msg_codec
                         end
 
                         // Validate reserved bytes (must be 0)
-                        if (hdr_byte_cnt == HDR_BYTE_WIDTH'(2) && rx_data != 8'd0) begin
+                        if (hdr_byte_cnt == CNT_WIDTH'(2) && rx_data != 8'd0) begin
                             parse_state  <= PARSE_ERROR;
                             parsed_error <= 1'b1;
                         end
-                        if (hdr_byte_cnt == HDR_BYTE_WIDTH'(3) && rx_data != 8'd0) begin
+                        if (hdr_byte_cnt == CNT_WIDTH'(3) && rx_data != 8'd0) begin
                             parse_state  <= PARSE_ERROR;
                             parsed_error <= 1'b1;
                         end
 
-                        if (hdr_byte_cnt == HDR_BYTE_WIDTH'(HDR_BYTES - 1)) begin
-                            // Header complete u2014 compute expected payload length
-                            logic [7:0] saved_msg_type;
-                            // The msg_type byte was stored at index 1
-                            saved_msg_type = hdr_byte_buf[1];
-                            // If we just wrote byte 15, the msg_type is already in buf[1]
+                        // Check if this is the last header byte (byte 15)
+                        if (hdr_byte_cnt == CNT_WIDTH'(HDR_BYTES - 1)) begin
+                            // Header complete - compute expected payload length.
+                            // Note: hdr_byte_buf[1] already holds msg_type from
+                            // an earlier cycle. The current rx_data goes to buf[15]
+                            // (INTERFACE_ID MSB), so using hdr_byte_buf[1] is safe.
                             expected_payload_len <= expected_payload_length(hdr_byte_buf[1]);
 
                             if (expected_payload_length(hdr_byte_buf[1]) == 16'd0) begin
-                                // No payload u2014 go to DONE
+                                // No payload - go directly to DONE
                                 parse_state <= PARSE_DONE;
                             end else begin
                                 parse_state      <= PARSE_PAYLOAD;
@@ -247,7 +275,7 @@ module tdisp_msg_codec
                             end
                         end
 
-                        hdr_byte_cnt <= hdr_byte_cnt + HDR_BYTE_WIDTH'(1);
+                        hdr_byte_cnt <= hdr_byte_cnt + CNT_WIDTH'(1);
                     end
                 end
 
@@ -258,21 +286,21 @@ module tdisp_msg_codec
                 // -------------------------------------------------------------
                 PARSE_PAYLOAD: begin
                     if (rx_valid && rx_ready) begin
-                        if (payload_byte_cnt < MAX_REPORT_SIZE) begin
+                        if (payload_byte_cnt < CNT_WIDTH'(MAX_REPORT_SIZE)) begin
                             parsed_payload[payload_byte_cnt] <= rx_data;
                         end
-                        payload_byte_cnt <= payload_byte_cnt + 1;
+                        payload_byte_cnt <= payload_byte_cnt + CNT_WIDTH'(1);
 
                         // Check termination conditions
                         if (expected_payload_len == 16'hFFFF) begin
-                            // VDM u2014 variable length, end on rx_last
+                            // VDM - variable length, end on rx_last
                             if (rx_last) begin
-                                parsed_payload_len <= payload_byte_cnt + 1;
+                                parsed_payload_len <= payload_byte_cnt[15:0] + 16'd1;
                                 parse_state        <= PARSE_DONE;
                             end
                         end else begin
                             // Fixed-length payload
-                            if (payload_byte_cnt == PAYLOAD_DEPTH'(expected_payload_len) - 1) begin
+                            if (payload_byte_cnt == CNT_WIDTH'(expected_payload_len) - CNT_WIDTH'(1)) begin
                                 parsed_payload_len <= expected_payload_len;
                                 parse_state        <= PARSE_DONE;
                             end
@@ -281,28 +309,24 @@ module tdisp_msg_codec
                 end
 
                 // -------------------------------------------------------------
-                // PARSE_DONE: Emit parsed_valid, assemble header, return to IDLE
+                // PARSE_DONE: Emit parsed_valid, latch header, return to IDLE
                 // -------------------------------------------------------------
                 PARSE_DONE: begin
-                    parsed_hdr       <= assemble_hdr(hdr_byte_buf);
-                    parsed_payload_len <= parsed_payload_len; // hold
-                    parsed_valid     <= 1'b1;
-                    parse_state      <= PARSE_IDLE;
-                    hdr_byte_cnt     <= '0;
-                    payload_byte_cnt <= '0;
+                    parsed_hdr         <= assembled_hdr;
+                    parsed_valid       <= 1'b1;
+                    parse_state        <= PARSE_IDLE;
+                    hdr_byte_cnt       <= '0;
+                    payload_byte_cnt   <= '0;
                 end
 
                 // -------------------------------------------------------------
-                // PARSE_ERROR: Emit parsed_error, return to IDLE
-                //   Drain any remaining bytes until rx_last or timeout.
+                // PARSE_ERROR: Drain bad message, return to IDLE
+                //   Wait for rx_last or for data to stop before accepting new.
                 // -------------------------------------------------------------
                 PARSE_ERROR: begin
-                    // Wait for end of current (bad) message before accepting new one
                     if (rx_valid && rx_ready && rx_last) begin
                         parse_state <= PARSE_IDLE;
-                    end
-                    // Also allow immediate return if data has stopped
-                    if (!rx_valid) begin
+                    end else if (!rx_valid) begin
                         parse_state <= PARSE_IDLE;
                     end
                 end
@@ -313,73 +337,46 @@ module tdisp_msg_codec
     end
 
     // Parser ready: accept data when in IDLE, HDR, or PAYLOAD states
-    assign rx_ready = (parse_state inside {PARSE_IDLE, PARSE_HDR, PARSE_PAYLOAD}) ? 1'b1 : 1'b0;
-
-    // =========================================================================
-    // Encoder: Build header byte buffer from response parameters
-    //   Header layout (little-endian):
-    //     [0]   = TDISPVersion
-    //     [1]   = MessageType (response code)
-    //     [2:3] = Reserved = 0
-    //     [4:15]= INTERFACE_ID (96-bit, little-endian)
-    // =========================================================================
-    function automatic void build_enc_hdr(
-        input logic [7:0]                        ver,
-        input logic [7:0]                        msg_type,
-        input logic [INTERFACE_ID_WIDTH-1:0]     iface_id,
-        ref   logic [7:0]                        buf [HDR_BYTES-1:0]
-    );
-        buf[0] = ver;
-        buf[1] = msg_type;
-        buf[2] = 8'd0;  // Reserved LSB
-        buf[3] = 8'd0;  // Reserved MSB
-        // INTERFACE_ID: 96 bits = 12 bytes, little-endian (byte 4 = LSB)
-        buf[4]  = iface_id[7:0];
-        buf[5]  = iface_id[15:8];
-        buf[6]  = iface_id[23:16];
-        buf[7]  = iface_id[31:24];
-        buf[8]  = iface_id[39:32];
-        buf[9]  = iface_id[47:40];
-        buf[10] = iface_id[55:48];
-        buf[11] = iface_id[63:56];
-        buf[12] = iface_id[71:64];
-        buf[13] = iface_id[79:72];
-        buf[14] = iface_id[87:80];
-        buf[15] = iface_id[95:88];
-    endfunction
+    always_comb begin
+        case (parse_state)
+            PARSE_IDLE, PARSE_HDR, PARSE_PAYLOAD: rx_ready = 1'b1;
+            default: rx_ready = 1'b0;
+        endcase
+    end
 
     // =========================================================================
     // Encoder State Machine
     // =========================================================================
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            enc_state       <= ENC_IDLE;
-            enc_hdr_idx     <= '0;
-            enc_payload_idx <= '0;
+            enc_state         <= ENC_IDLE;
+            enc_hdr_idx       <= '0;
+            enc_payload_idx   <= '0;
             enc_payload_total <= '0;
-            enc_accepted    <= 1'b0;
-            tx_valid        <= 1'b0;
-            tx_data         <= '0;
-            tx_last         <= 1'b0;
-            resp_ready      <= 1'b0;
+            enc_accepted      <= 1'b0;
+            tx_valid          <= 1'b0;
+            tx_data           <= '0;
+            tx_last           <= 1'b0;
+            resp_ready        <= 1'b0;
             for (int i = 0; i < HDR_BYTES; i++) begin
                 enc_hdr_buf[i] <= 8'd0;
             end
         end else begin
-            tx_valid <= 1'b0;
-            tx_last  <= 1'b0;
+            tx_valid   <= 1'b0;
+            tx_last    <= 1'b0;
             resp_ready <= 1'b0;
 
             case (enc_state)
                 // -------------------------------------------------------------
-                // ENC_IDLE: Wait for resp_valid handshakde
+                // ENC_IDLE: Wait for resp_valid handshake
                 // -------------------------------------------------------------
                 ENC_IDLE: begin
                     if (resp_valid && !enc_accepted) begin
-                        // Capture response parameters and build header
-                        build_enc_hdr(negotiated_version, resp_msg_type,
-                                      resp_interface_id, enc_hdr_buf);
-                        enc_payload_total <= resp_payload_len;
+                        // Capture response header from combinational logic
+                        for (int i = 0; i < HDR_BYTES; i++) begin
+                            enc_hdr_buf[i] <= enc_hdr_buf_next[i];
+                        end
+                        enc_payload_total <= CNT_WIDTH'(resp_payload_len);
                         enc_accepted      <= 1'b1;
                         enc_hdr_idx       <= '0;
                         enc_payload_idx   <= '0;
@@ -396,10 +393,10 @@ module tdisp_msg_codec
                     tx_data  <= enc_hdr_buf[enc_hdr_idx];
 
                     if (tx_ready) begin
-                        if (enc_hdr_idx == HDR_BYTE_WIDTH'(HDR_BYTES - 1)) begin
-                            // Header sent
+                        if (enc_hdr_idx == CNT_WIDTH'(HDR_BYTES - 1)) begin
+                            // Header sent completely
                             if (enc_payload_total == '0) begin
-                                // No payload u2014 send tx_last and finish
+                                // No payload - send tx_last and finish
                                 tx_last    <= 1'b1;
                                 enc_state  <= ENC_DONE;
                             end else begin
@@ -407,7 +404,7 @@ module tdisp_msg_codec
                                 enc_state       <= ENC_PAYLOAD;
                             end
                         end else begin
-                            enc_hdr_idx <= enc_hdr_idx + HDR_BYTE_WIDTH'(1);
+                            enc_hdr_idx <= enc_hdr_idx + CNT_WIDTH'(1);
                         end
                     end
                 end
@@ -420,12 +417,12 @@ module tdisp_msg_codec
                     tx_data  <= resp_payload[enc_payload_idx];
 
                     if (tx_ready) begin
-                        if (enc_payload_idx == PAYLOAD_DEPTH'(enc_payload_total) - 1) begin
+                        if (enc_payload_idx == enc_payload_total - CNT_WIDTH'(1)) begin
                             // Last payload byte
                             tx_last    <= 1'b1;
                             enc_state  <= ENC_DONE;
                         end else begin
-                            enc_payload_idx <= enc_payload_idx + 1;
+                            enc_payload_idx <= enc_payload_idx + CNT_WIDTH'(1);
                         end
                     end
                 end
@@ -448,11 +445,6 @@ module tdisp_msg_codec
     // =========================================================================
     // pragma synthesis_off
     `ifdef FORMAL
-        // Assert: parser should not be in ERROR state permanently
-        assert property (@(posedge clk) disable iff (!rst_n)
-            parse_state != PARSE_ERROR |-> 1'b1)
-        else $error("Parser stuck in ERROR state");
-
         // Assert: encoder tx_last only with tx_valid
         assert property (@(posedge clk) disable iff (!rst_n)
             tx_last |-> tx_valid)
