@@ -4,7 +4,7 @@ Search the web via Firecrawl and get scraped markdown results.
 Use for information NOT available locally.
 
 # Signature
-web_search(query="search query" limit=5 lang="en" tbs="")
+web_search(query="search query", limit=5, lang="en", tbs="")
 
 # Description
 
