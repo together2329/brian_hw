@@ -451,11 +451,13 @@ module tdisp_reg_tracker
     logic [REG_ADDR_WIDTH-1:0] error_reg_addr_r;
     logic [255:0] error_reg_name_r;
     logic [255:0] error_reg_description_r;
+    logic [TDI_INDEX_WIDTH-1:0] error_tdi_idx_r;
 
-    assign error_trigger        = error_trigger_r;
-    assign error_reg_addr       = error_reg_addr_r;
-    assign error_reg_name       = error_reg_name_r;
+    assign error_trigger         = error_trigger_r;
+    assign error_reg_addr        = error_reg_addr_r;
+    assign error_reg_name        = error_reg_name_r;
     assign error_reg_description = error_reg_description_r;
+    assign error_tdi_idx         = error_tdi_idx_r;
 
     // =========================================================================
     // Command Register bit-change detection
