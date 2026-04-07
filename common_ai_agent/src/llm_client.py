@@ -507,6 +507,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
         _content_label_printed = False
         _debug_line_buf = ""
         _debug_in_think = False
+        _wd_stop, _wd_triggered = None, [False]  # init before try so except can always reference
 
         try:
             _body = json.dumps(data).encode('utf-8')
@@ -516,6 +517,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             _wd_stop, _wd_triggered = _make_stream_watchdog(response, _inactivity_s, _last_data)
             try:
                 usage_info = None
+                _yielded_something = False
                 # Accumulate native tool calls across streaming chunks.
                 # OpenAI streaming sends name in first chunk, arguments fragmented across many.
                 _pending_tool_calls: Dict[int, Dict] = {}
@@ -550,8 +552,10 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
 
                                 if reasoning:
                                     yield ("reasoning", reasoning)
+                                    _yielded_something = True
                                 if content:
                                     yield content
+                                    _yielded_something = True
 
                                 # Accumulate native tool_calls across chunks.
                                 # name arrives only in the first chunk; arguments are fragmented.
@@ -571,6 +575,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
 
                 # Emit accumulated tool calls after stream ends.
                 if _pending_tool_calls:
+                    _yielded_something = True
                     if native_mode:
                         import uuid as _uuid
                         _native_calls = []
@@ -614,9 +619,17 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                         print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
                         print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}\n")
 
-                return
+                # Empty response (HTTP 200 but no content/reasoning/tool_calls) — retry
+                if not _yielded_something and retry_count < max_retries - 1:
+                    delay = _RETRY_DELAYS[retry_count]
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Empty response from LLM. Waiting {delay}s...\n"))
+                    time.sleep(delay)
+                    # fall through to finally, then loop continues
+                else:
+                    return
             finally:
-                _wd_stop.set()
+                if _wd_stop is not None:
+                    _wd_stop.set()
                 try:
                     response.read()
                 except Exception:
@@ -678,7 +691,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
 
         except Exception as e:
             # Watchdog closed the connection → convert to socket.timeout for retry
-            if 'wd_triggered' in dir() and _wd_triggered[0]:
+            if _wd_triggered[0]:
                 if retry_count < max_retries - 1:
                     delay = _RETRY_DELAYS[retry_count]
                     print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Inactivity ({_inactivity_s}s): no data received"))
@@ -1174,6 +1187,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         _content_label_printed = False
         _debug_line_buf = ""
         _debug_in_think = False
+        _wd_stop, _wd_triggered = None, [False]  # init before try so except can always reference
 
         _perf = getattr(config, "PERF_TRACKING", False)
         try:
@@ -1202,6 +1216,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 usage_info = None
                 _t_first_token = None
                 _total_tokens_streamed = 0
+                _yielded_something = False
                 # Accumulate native tool calls across streaming chunks.
                 _pending_tool_calls: Dict[int, Dict] = {}
                 for line in response:
@@ -1261,8 +1276,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
                                 if reasoning:
                                     yield ("reasoning", reasoning)
+                                    _yielded_something = True
                                 if content:
                                     yield content
+                                    _yielded_something = True
 
                                 # Accumulate native tool_calls across chunks.
                                 # name arrives only in the first chunk; arguments are fragmented.
@@ -1284,6 +1301,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 # Native mode (tools param set): yield structured tuple for react_loop.
                 # Legacy mode: convert to Action: text lines for ReAct parser.
                 if _pending_tool_calls:
+                    _yielded_something = True
                     if tools:
                         # Native tool call mode — yield structured list for react_loop
                         import uuid as _uuid
@@ -1373,10 +1391,17 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     total_cache_created += cache_creation_tokens
                     total_cache_read += cache_read_tokens
                 
-                # Success! Exit retry loop
-                return
+                # Empty response (HTTP 200 but no content/reasoning/tool_calls) — retry
+                if not _yielded_something and retry_count < max_retries - 1:
+                    delay = initial_delay * (2 ** retry_count)
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] Empty response from LLM. Waiting {delay}s...\n"))
+                    time.sleep(delay)
+                    # fall through to finally, then loop continues
+                else:
+                    return  # Success (or exhausted retries with empty response)
             finally:
-                _wd_stop.set()
+                if _wd_stop is not None:
+                    _wd_stop.set()
                 # Drain any unread bytes so the connection can be reused
                 try:
                     response.read()
