@@ -1259,13 +1259,27 @@ def chat_loop():
 
             from prompt_toolkit.shortcuts import CompleteStyle
 
+            from prompt_toolkit.filters import is_done
+            from prompt_toolkit.keys import Keys
+
+            @_kb.add('enter')
+            def _enter_submit(event):
+                """Enter = submit."""
+                event.current_buffer.validate_and_handle()
+
+            @_kb.add('escape', 'enter')
+            def _alt_enter_newline(event):
+                """Alt+Enter (Esc→Enter) = insert newline."""
+                event.current_buffer.insert_text('\n')
+
             _multiline_prompt = PromptSession(
-                multiline=False,
+                multiline=True,
                 key_bindings=_kb,
                 history=_history,
                 completer=_AtFileCompleter(),
                 complete_while_typing=True,
                 complete_style=CompleteStyle.COLUMN,
+                prompt_continuation=lambda width, line_number, wrap_count: '... ',
             )
             _prompt_text = ANSI(Color.user("> ") + Color.RESET)
         except Exception as e:
