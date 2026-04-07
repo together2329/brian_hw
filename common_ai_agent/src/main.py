@@ -1166,8 +1166,18 @@ def chat_loop():
             if _vendor_dir not in sys.path:
                 sys.path.insert(0, _vendor_dir)
             from prompt_toolkit import PromptSession, ANSI
+            from prompt_toolkit.key_binding import KeyBindings
 
-            _multiline_prompt = PromptSession(multiline=False)
+            _kb = KeyBindings()
+
+            @_kb.add('escape')
+            def _esc_exit(event):
+                print("\n[ESC] Exiting...")
+                save_conversation_history(messages, silent=True)
+                import os as _os
+                _os._exit(0)
+
+            _multiline_prompt = PromptSession(multiline=False, key_bindings=_kb)
             _prompt_text = ANSI(Color.user("> ") + Color.RESET)
         except Exception as e:
             print(Color.warning(f"  [Multiline] prompt_toolkit unavailable ({type(e).__name__}: {e}) — falling back to single-line input"))
@@ -1179,6 +1189,45 @@ def chat_loop():
     # Wait up to 1s for warmup message to print before the first > prompt.
     # Prevents the [LLM] connected message from overwriting the prompt line.
     _warmup_thread.join(timeout=1.0)
+
+    # ── ESC monitor — exit during agent execution (not at prompt) ──────────
+    # Only active while _keepalive_waiting[0] == False (i.e. agent is running).
+    # At the prompt, prompt_toolkit key binding handles ESC instead.
+    # Reads /dev/tty in cbreak mode — restored immediately when going back to prompt.
+    import threading as _threading
+    _esc_active = [False]   # set True only during agent execution
+
+    def _esc_monitor_fn():
+        try:
+            import termios as _termios, select as _select, os as _os2
+            _fd = _os2.open('/dev/tty', _os2.O_RDONLY | _os2.O_NOCTTY)
+            _saved = _termios.tcgetattr(_fd)
+            while True:
+                # Only intercept ESC when agent is running (not at prompt)
+                if not _esc_active[0]:
+                    _select.select([], [], [], 0.1)
+                    continue
+                # Enter cbreak temporarily
+                _cur = _termios.tcgetattr(_fd)
+                _cur[3] &= ~(_termios.ICANON | _termios.ECHO)
+                _cur[6][_termios.VMIN] = 0
+                _cur[6][_termios.VTIME] = 1
+                _termios.tcsetattr(_fd, _termios.TCSANOW, _cur)
+                try:
+                    r, _, _ = _select.select([_fd], [], [], 0.15)
+                    if r and _esc_active[0]:
+                        ch = _os2.read(_fd, 4)
+                        if ch and ch[0:1] == b'\x1b' and len(ch) == 1:
+                            print("\n[ESC] Exiting...")
+                            save_conversation_history(messages, silent=True)
+                            _os2._exit(0)
+                finally:
+                    _termios.tcsetattr(_fd, _termios.TCSADRAIN, _saved)
+        except Exception:
+            pass  # non-tty environment — skip silently
+
+    _esc_thread = _threading.Thread(target=_esc_monitor_fn, daemon=True, name="esc-monitor")
+    _esc_thread.start()
 
     # ── Keepalive / Auto-continue ──────────────────────────────────────────
     # Injects KEEPALIVE_MESSAGE if no activity for KEEPALIVE_INTERVAL seconds.
@@ -1246,6 +1295,7 @@ def chat_loop():
                 todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE))
 
             _keepalive_waiting[0] = True
+            _esc_active[0] = False   # at prompt: ESC handled by prompt_toolkit key binding
             if _multiline_prompt:
                 is_plan_turn = (agent_mode in ('plan', 'plan_q'))
 
@@ -1298,6 +1348,7 @@ def chat_loop():
                         _em_prefix = ""
                     user_input = _input_fn(_em_prefix + Color.user("> ") + Color.RESET)
             _keepalive_waiting[0] = False
+            _esc_active[0] = True    # agent running: ESC monitor takes over
             _keepalive_last_activity[0] = time.time()
             if user_input.lower() in ["exit", "quit"]:
                 break
