@@ -1168,6 +1168,8 @@ def chat_loop():
             from prompt_toolkit import PromptSession, ANSI
             from prompt_toolkit.key_binding import KeyBindings
             from prompt_toolkit.history import FileHistory, InMemoryHistory
+            from prompt_toolkit.completion import Completer, Completion
+            import os as _os_comp, glob as _glob_comp
 
             _kb = KeyBindings()
 
@@ -1177,6 +1179,47 @@ def chat_loop():
                 save_conversation_history(messages, silent=True)
                 import os as _os
                 _os._exit(0)
+
+            class _AtFileCompleter(Completer):
+                """Auto-complete file/folder paths after '@' in the prompt."""
+                def get_completions(self, document, complete_event):
+                    text = document.text_before_cursor
+                    # Find the last '@' in the current input
+                    at_pos = text.rfind('@')
+                    if at_pos == -1:
+                        return
+                    partial = text[at_pos + 1:]  # text after '@'
+
+                    # Split into directory prefix and filename stem
+                    if '/' in partial:
+                        dir_part, stem = partial.rsplit('/', 1)
+                        base_dir = _os_comp.path.join('.', dir_part)
+                    else:
+                        dir_part = ''
+                        stem = partial
+                        base_dir = '.'
+
+                    try:
+                        entries = _os_comp.listdir(base_dir)
+                    except OSError:
+                        return
+
+                    for name in sorted(entries):
+                        if name.startswith('.'):
+                            continue  # skip hidden files
+                        if stem and not name.lower().startswith(stem.lower()):
+                            continue
+                        full = (_os_comp.path.join(dir_part, name)
+                                if dir_part else name)
+                        is_dir = _os_comp.path.isdir(_os_comp.path.join(base_dir, name))
+                        display = name + '/' if is_dir else name
+                        completion_text = full + '/' if is_dir else full
+                        yield Completion(
+                            completion_text,
+                            start_position=-len(partial),
+                            display=display,
+                            display_meta='dir' if is_dir else '',
+                        )
 
             # Input history: persist to file so ↑/↓ works across sessions
             try:
@@ -1189,6 +1232,8 @@ def chat_loop():
                 multiline=False,
                 key_bindings=_kb,
                 history=_history,
+                completer=_AtFileCompleter(),
+                complete_while_typing=False,  # only on Tab
             )
             _prompt_text = ANSI(Color.user("> ") + Color.RESET)
         except Exception as e:
