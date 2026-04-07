@@ -680,7 +680,7 @@ module tdisp_req_handler
                             // STOP_INTERFACE_REQUEST
                             // ==================================================
                             REQ_STOP_INTERFACE: begin
-                                stop_req_pulse[active_tdi_idx] <= 1'b1;
+                                stop_req_pulse_r[active_tdi_idx] <= 1'b1;
                                 resp_msg_type_r    <= RESP_STOP_INTERFACE;
                                 resp_payload_len_r <= 16'd0;
                                 h_state <= H_SEND_RESP;
