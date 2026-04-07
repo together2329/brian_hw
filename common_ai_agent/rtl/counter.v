@@ -6,7 +6,7 @@
 //============================================================================
 
 module counter #(
-    parameter int WIDTH = 8
+    parameter WIDTH = 8
 )(
     input  wire             clk,       // Clock (posedge active)
     input  wire             rst_n,     // Async active-low reset
