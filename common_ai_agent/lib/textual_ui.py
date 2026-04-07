@@ -19,6 +19,7 @@ from textual.containers import Vertical
 from textual.message import Message
 from textual.widgets import Input, RichLog, Static
 from textual.suggester import Suggester
+from textual.events import Key
 from textual import work
 
 _ANSI   = re.compile(r"\x1b\[[0-9;]*[mK]")
@@ -317,6 +318,22 @@ class _AgentSuggester(Suggester):
         return None
 
 
+# ── Custom Input: Tab accepts suggestion ──────────────────────────────────────
+
+class _AgentInput(Input):
+    """Input widget where Tab accepts the current suggestion (instead of moving focus)."""
+
+    async def _on_key(self, event: Key) -> None:
+        if event.key == "tab" and self._suggestion:
+            # Accept the full suggestion
+            self.value = self._suggestion
+            self.cursor_position = len(self._suggestion)
+            event.prevent_default()
+            event.stop()
+            return
+        await super()._on_key(event)
+
+
 # ── Input bridge ──────────────────────────────────────────────────────────────
 
 class InputBridge:
@@ -579,7 +596,7 @@ class AgentTUI(App):
             yield Static("", id="todo")
             yield Static(cwd, id="cwd-label")
         yield Static("", id="statusbar")
-        yield Input(placeholder="", suggester=_AgentSuggester())
+        yield _AgentInput(placeholder="", suggester=_AgentSuggester())
 
     def on_mount(self) -> None:
         self._update_statusbar()
@@ -604,7 +621,7 @@ class AgentTUI(App):
         hint.append("ctrl+q", style=f"bold {_ACCENT}")
         log.write(hint)
         log.write(RichText(""))
-        self.query_one(Input).focus()
+        self.query_one(_AgentInput).focus()
         self._start_agent()
         self.set_timer(0.1, self._init_sidebar)
 
