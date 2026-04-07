@@ -143,8 +143,6 @@ class TdispReqDriver:
             self._idle = False
             await self._send_bytes(msg)
             self._idle = True
-            self._send_event.set()
-            self._send_event.clear()
 
     async def _send_bytes(self, msg: bytes):
         """Send all bytes of a message over the DOE RX bus.
