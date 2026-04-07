@@ -634,12 +634,12 @@ class StatusBus:
     def deassert_reset_to_unlocked(self):
         self.dut.reset_to_unlocked.value = 0
 
-    def pulse_reset_to_unlocked(self, cycles: int = 5):
+    async def pulse_reset_to_unlocked(self, cycles: int = 5):
         """Pulse reset_to_unlocked for a number of clock cycles."""
         import cocotb
         self.assert_reset_to_unlocked()
         for _ in range(cycles):
-            yield cocotb.triggers.RisingEdge(self.dut.clk)
+            await cocotb.triggers.RisingEdge(self.dut.clk)
         self.deassert_reset_to_unlocked()
 
 
