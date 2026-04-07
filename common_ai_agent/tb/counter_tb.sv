@@ -74,6 +74,7 @@ module counter_tb;
     // -----------------------------------------------------------------------
     task automatic wait_clks(input int n);
         repeat(n) @(posedge clk);
+        #1;  // Allow combinational flags to settle after clock edge
     endtask
 
     // -----------------------------------------------------------------------
