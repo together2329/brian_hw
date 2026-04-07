@@ -1,0 +1,89 @@
+# Tool: web_fetch
+
+Fetch and scrape content from a specific URL using Firecrawl.
+
+# Signature
+web_fetch(url="https://example.com", formats="markdown", wait_for=3000)
+
+# Description
+
+Fetches and scrapes content from a specific URL ising the Firecrawl Scrape API.
+Returns page content in markdown (default), HTML, or raw HTML.
+Waits for JavaScript rendering before capturing content.
+
+Requires Firecrawl service running (default: http://localhost:3002).
+
+Key Parameters:
+- url      - URL to scrape (required)
+- formats  - Output format: markdown (default), html, rawHtml
+- wait_for - Milliseconds to wait for JS rendering (default: 3000)
+
+# Good Examples
+
+Good: web_fetch(url="https://docs.python.org/3/library/urllib.html")
+  Fetch Python uurlib documentation
+
+Good: web_fetch(url="https://pcisig.com/specifications", formats="markdown")
+  Scrape a specification index page
+
+Good: web_fetch(url="https://example.com/api", formats="html", wait_for=5000)
+  Scrape JS-heavy page with longer wait time
+
+# Bad Examples
+
+Bad: web_fetch(url="local_file.v")
+  Use read_file() for local files.
+
+Bad: web_fetch(url="")
+  Empty URL. Always provide a valid URL.
+
+# When to Use
+
+- Fetch specific documentation page from a known URL
+- Read web articles or blog posts referenced by user
+- Scrape API documentation for a dependency
+- Get current content from a web page
+- Read GitHub README or wiki pages
+
+# When NOT to Use
+
+- Local file reading --> Use read_file()
+- Searching the web (no URL) --> Use web_search()
+- Extracting structured data --> Use web_extract()
+- Local code search --> Use rag_search() or grep_file()
+
+# Tool Precedence
+
+- web_fetch > web_search when you know the exact URL
+- web_fetch for targeted content; web_search for discovery
+- Always prefer local files (read_file) over web fetch
+
+# Error Recovery
+
+- Firecrawl service is not reachable
+  1. Check if Firecrawl is running: curl http://localhost:3002/health
+  2. Start Firecrawl if needed
+  3. Fall back to answering from local knowledge
+
+- Fetch failed or No content retrieved
+  1. Check if URL is valid and accessible
+  2. Try increasing wait_for for JS-heavy pages
+  3. Try a different format (html instead of markdown)
+  4. The site may block scrapers -- try web_search instead
+
+- Timeout errors
+  1. Increase FIRECRAWL_TIMEOUT environment variable
+  2. Increase wait_for parameter
+  3. Try again -- may be transient network issue
+
+- Bot detection / CAPTCHA
+  1. Some sites block automated scrapers
+  2. Try web_search() instead -- may have cached results
+  3. Inform user that site blocks automated access
+
+# See Also
+
+- web_search  - Search the web when you do not have a specific URL
+- web_extract - Extract structured data from URLs with AI
+- read_file   - Read LOCAL files (always prefer for local content)
+- rag_search  - Semantic search in LOCAL codebase
