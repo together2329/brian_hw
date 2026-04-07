@@ -669,7 +669,7 @@ module tdisp_req_handler
                                     resp_msg_type_r <= RESP_TDISP_ERROR;
                                     h_state <= H_SEND_RESP;
                                 end else begin
-                                    start_req_pulse[active_tdi_idx] <= 1'b1;
+                                    start_req_pulse_r[active_tdi_idx] <= 1'b1;
                                     resp_msg_type_r    <= RESP_START_INTERFACE;
                                     resp_payload_len_r <= 16'd0;
                                     h_state <= H_SEND_RESP;
