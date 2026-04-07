@@ -485,6 +485,12 @@ module tdisp_req_handler
                         // Set response INTERFACE_ID (echo from request)
                         resp_iface_id_r <= parsed_hdr.interface_id;
 
+                        // Increment outstanding counters u2014 request now in-flight
+                        if (iface_found) begin
+                            req_cnt_this[iface_tdi_idx] <= req_cnt_this[iface_tdi_idx] + 8'd1;
+                        end
+                        req_cnt_all <= req_cnt_all + 8'd1;
+
                         h_state <= H_DISPATCH;
                     end
                 end
