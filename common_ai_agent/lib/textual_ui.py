@@ -414,6 +414,27 @@ class _AgentInput(Input):
         except Exception:
             return None
 
+    # ── System clipboard actions (override Textual's internal-only versions) ──
+
+    def action_copy(self) -> None:
+        """Ctrl+C — copy selection (or full value) to SYSTEM clipboard."""
+        sel = self.selection
+        if not sel.is_empty:
+            text = self.value[min(sel.start, sel.end):max(sel.start, sel.end)]
+        else:
+            text = self.value
+        self.app.copy_to_clipboard(text)   # OSC 52 (iTerm2/Wezterm)
+        _clipboard_copy(text)              # pbcopy / xclip
+
+    def action_paste(self) -> None:
+        """Ctrl+V — paste from SYSTEM clipboard."""
+        text = _clipboard_paste()          # pbpaste / xclip
+        if text:
+            start, end = self.selection
+            self.replace(text, start, end)
+        else:
+            super().action_paste()         # fallback: Textual internal clipboard
+
     # ── Key handler ──────────────────────────────────────────────────────────
 
     async def _on_key(self, event: Key) -> None:
@@ -472,30 +493,6 @@ class _AgentInput(Input):
                 event.prevent_default()
                 event.stop()
                 return
-
-        # ── Ctrl+V: paste from system clipboard ──────────────────────────────
-        elif event.key == "ctrl+v":
-            text = _clipboard_paste()
-            if text:
-                start, end = self.selection
-                self.replace(text, start, end)
-            event.prevent_default()
-            event.stop()
-            return
-
-        # ── Ctrl+C: copy selected text (or full value) ────────────────────────
-        elif event.key == "ctrl+c":
-            sel = self.selection
-            if not sel.is_empty:
-                copied = self.value[min(sel.start, sel.end):max(sel.start, sel.end)]
-            else:
-                copied = self.value
-            # OSC 52 (iTerm2 etc.) + subprocess fallback
-            self.app.copy_to_clipboard(copied)
-            _clipboard_copy(copied)
-            event.prevent_default()
-            event.stop()
-            return
 
         # ── Enter: close dropdown then submit ────────────────────────────────
         elif event.key == "enter":
