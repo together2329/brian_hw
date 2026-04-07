@@ -359,8 +359,10 @@ def run_react_agent_impl(
                 elif isinstance(content, list):
                     messages[0]["content"].append({"type": "text", "text": ctx_msg})
 
-        # Plan mode: inject per-turn todo reminder into the last user message
+        # Per-turn todo state injection — ephemeral (appended to last user message copy,
+        # never saved to history). Ensures LLM always knows the current todo state.
         if agent_mode in ("plan", "plan_q"):
+            # Plan mode: show full list + strict instruction to call todo_write
             _todo_state = ""
             if todo_tracker and todo_tracker.todos:
                 _lines = [f"[Current todo list — {len(todo_tracker.todos)} tasks]"]
@@ -370,12 +372,30 @@ def run_react_agent_impl(
                 _todo_state = "\n" + "\n".join(_lines)
             else:
                 _todo_state = "\n[No todo list yet — call todo_write() to create one]"
-            _reminder = (
+            _pre_llm_reminder = (
                 "\n\n---\n"
                 "⚠️  PLAN MODE REMINDER: Your job this turn is to produce or refine the todo list.\n"
                 "Call todo_write() with a complete task list before replying to the user."
                 + _todo_state
             )
+        elif (todo_tracker and todo_tracker.todos
+              and not todo_tracker.is_all_processed()):
+            # Execution mode: inject current task reminder so the LLM always knows
+            # what to work on next — critical after todo_write when no post-execution
+            # reminder was injected (because _last_tool_was_todo skips it).
+            _exec_reminder = todo_tracker.get_continuation_prompt()
+            _recent_user = [
+                m.get("content", "") for m in messages[-6:]
+                if m.get("role") == "user"
+            ]
+            if _exec_reminder and not any(_exec_reminder in c for c in _recent_user):
+                _pre_llm_reminder = "\n\n" + _exec_reminder
+            else:
+                _pre_llm_reminder = ""
+        else:
+            _pre_llm_reminder = ""
+
+        if _pre_llm_reminder:
             # Append to the last user message (ephemeral — not saved to history)
             _user_idxs = [i for i, m in enumerate(messages) if m.get("role") == "user"]
             if _user_idxs:
@@ -383,7 +403,7 @@ def run_react_agent_impl(
                 _uc = messages[_ui].get("content", "")
                 if isinstance(_uc, str):
                     messages[_ui] = dict(messages[_ui])  # shallow copy to avoid mutating history
-                    messages[_ui]["content"] = _uc + _reminder
+                    messages[_ui]["content"] = _uc + _pre_llm_reminder
 
         # Hook: BEFORE_LLM_CALL
         _t = time.time()
