@@ -810,11 +810,11 @@ module tdisp_req_handler
                 H_SEND_RESP: begin
                     resp_valid <= 1'b1;
                     if (resp_ready) begin
-                        // Increment outstanding counters
+                        // Decrement outstanding counters u2014 response dispatched
                         if (tdi_found) begin
-                            req_cnt_this[active_tdi_idx] <= req_cnt_this[active_tdi_idx] + 8'd1;
+                            req_cnt_this[active_tdi_idx] <= req_cnt_this[active_tdi_idx] - 8'd1;
                         end
-                        req_cnt_all <= req_cnt_all + 8'd1;
+                        req_cnt_all <= req_cnt_all - 8'd1;
                         h_state <= H_IDLE;
                     end
                 end
