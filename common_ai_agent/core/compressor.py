@@ -460,6 +460,27 @@ def compress_history(
         if not old_msgs:
             return messages
 
+    # Native tool call pair integrity: ensure no assistant message with tool_calls
+    # is split from its corresponding role:tool response messages across the
+    # old_msgs/recent_msgs boundary. If the last message in old_msgs is an assistant
+    # with tool_calls, move those orphaned tool messages from recent_msgs into old_msgs
+    # so they are compressed together (and the sequence remains valid).
+    if old_msgs and recent_msgs:
+        if (old_msgs[-1].get("role") == "assistant"
+                and old_msgs[-1].get("tool_calls")):
+            # Collect the tool_call_ids that need responses
+            _needed_ids = {tc["id"] for tc in old_msgs[-1]["tool_calls"]}
+            _move: list = []
+            for _m in list(recent_msgs):
+                if _m.get("role") == "tool" and _m.get("tool_call_id") in _needed_ids:
+                    _move.append(_m)
+                    _needed_ids.discard(_m.get("tool_call_id"))
+                else:
+                    break  # tool messages are always contiguous after their assistant msg
+            if _move:
+                old_msgs = old_msgs + _move
+                recent_msgs = recent_msgs[len(_move):]
+
     # Choose compression mode
     mode = cfg.COMPRESSION_MODE.lower() if hasattr(cfg, "COMPRESSION_MODE") else "traditional"
 

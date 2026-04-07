@@ -603,13 +603,21 @@ def run_react_agent_impl(
         if not collected_content.strip() and not _has_native:
             if _llm_retry < getattr(cfg, "LLM_RETRY_COUNT", 1):
                 _llm_retry += 1
-                # Native mode: inject a nudge so the model calls a tool instead of reasoning again
+                # Native mode: inject a nudge so the model calls a tool instead of reasoning again.
+                # Guard: if the last assistant message already has tool_calls, adding a user
+                # message would violate the API contract (tool role messages must come first).
+                # In that case skip the nudge — the tool execution path will handle it.
                 if getattr(cfg, "ENABLE_NATIVE_TOOL_CALLS", False):
-                    messages.append({
-                        "role": "user",
-                        "content": "[System] You produced only reasoning with no tool call or answer. "
-                                   "Please call the appropriate tool now, or provide your final answer directly."
-                    })
+                    _last_has_tool_calls = bool(
+                        messages and messages[-1].get("role") == "assistant"
+                        and messages[-1].get("tool_calls")
+                    )
+                    if not _last_has_tool_calls:
+                        messages.append({
+                            "role": "user",
+                            "content": "[System] You produced only reasoning with no tool call or answer. "
+                                       "Please call the appropriate tool now, or provide your final answer directly."
+                        })
                     print(f"\n  LLM reasoning-only, injecting nudge and retrying ({_llm_retry}/{cfg.LLM_RETRY_COUNT})...")
                 else:
                     print(f"\n  LLM only generated reasoning (no content), retrying ({_llm_retry}/{cfg.LLM_RETRY_COUNT})...")
@@ -696,8 +704,13 @@ def run_react_agent_impl(
         messages.append(assistant_msg)
 
         # Hook: AFTER_LLM_CALL
-        _t = time.time()
-        if deps.hook_registry:
+        # In native mode: deferred until after tool role messages are added (below),
+        # so hooks see a complete and valid assistant+tool message sequence.
+        # In legacy mode: run now (no tool role messages to wait for).
+        def _run_after_llm_hook():
+            nonlocal messages
+            if not deps.hook_registry:
+                return
             try:
                 from core.hooks import HookContext, HookPoint
                 hook_ctx = HookContext(
@@ -709,6 +722,10 @@ def run_react_agent_impl(
                 messages = hook_ctx.messages
             except Exception:
                 pass
+
+        _t = time.time()
+        if not _use_native:
+            _run_after_llm_hook()
         if _perf:
             print(f"  {Color.DIM}[PERF] after_llm_hook: {time.time()-_t:.3f}s{Color.RESET}")
 
@@ -768,8 +785,9 @@ def run_react_agent_impl(
             print(f"\n{Color.DIM}{Color.GRAY}Ending ReAct loop.{Color.RESET}\n")
             break
 
-        # Hallucinated Observation check
-        if "Observation:" in collected_content and not actions:
+        # Hallucinated Observation check (legacy ReAct mode only — native mode never
+        # outputs "Observation:" text, so this check is a safe no-op there)
+        if not _use_native and "Observation:" in collected_content and not actions:
             print("  [System] ⚠️  Agent hallucinated an Observation. Correcting...")
             messages.append({
                 "role": "user",
@@ -853,6 +871,9 @@ def run_react_agent_impl(
                             pass
 
                     combined_results.append(f"--- [Action {idx+1}] {tool_name} ---\n{observation}")
+                    # Native mode: map result back to its tool_call_id using original action index
+                    if _use_native and idx < len(_native_calls):
+                        _native_obs_pairs.append((_native_calls[idx]["id"], observation))
             else:
                 for i, action_tuple in enumerate(actions):
                     if _esc_check():
@@ -1019,6 +1040,16 @@ def run_react_agent_impl(
 
             observation = "\n\n".join(combined_results)
 
+            # Native mode: ensure every tool_call_id in the assistant message has a
+            # corresponding tool response. If the loop exited early (ESC, error, parallel
+            # index mismatch), add placeholder messages for any unmatched calls so the
+            # API message sequence remains valid.
+            if _use_native and len(_native_obs_pairs) < len(_native_calls):
+                _covered_ids = {cid for cid, _ in _native_obs_pairs}
+                for _tc in _native_calls:
+                    if _tc["id"] not in _covered_ids:
+                        _native_obs_pairs.append((_tc["id"], "[Tool was not executed]"))
+
             # Snapshot on task approval
             if "✅ Task" in observation and "approved" in observation:
                 _m = re.search(r"Task (\d+) approved", observation)
@@ -1112,6 +1143,9 @@ def run_react_agent_impl(
                         "content": _content,
                         "tool_call_id": _call_id,
                     })
+                # Deferred AFTER_LLM_CALL hook: now that tool role messages are in place,
+                # hooks see a complete and valid assistant+tool sequence.
+                _run_after_llm_hook()
             else:
                 observation = _step_header + observation
                 messages = deps.process_obs_fn(observation, messages, todo_tracker=todo_tracker)
