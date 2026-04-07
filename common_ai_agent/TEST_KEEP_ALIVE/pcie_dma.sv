@@ -108,8 +108,10 @@ module pcie_dma #(
     // Request size calculation (combinational, used in state machine)
     logic [63:0] req_bytes_read;
     logic [63:0] req_bytes_write;
-    assign req_bytes_read  = (bytes_remaining >= 64'(MAX_PAYLOAD)) ? 64'(MAX_PAYLOAD) : bytes_remaining;
-    assign req_bytes_write = (bytes_remaining >= 64'(MAX_PAYLOAD)) ? 64'(MAX_PAYLOAD) : bytes_remaining;
+    logic [63:0] max_payload_64;
+    assign max_payload_64  = 64'(MAX_PAYLOAD);
+    assign req_bytes_read  = (bytes_remaining >= max_payload_64) ? max_payload_64 : bytes_remaining;
+    assign req_bytes_write = (bytes_remaining >= max_payload_64) ? max_payload_64 : bytes_remaining;
 
     // ----------------------------------------------------------------
     // DMA State Machine
