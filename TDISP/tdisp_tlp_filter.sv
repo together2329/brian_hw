@@ -101,7 +101,6 @@ module tdisp_tlp_filter
     // Address type constants (AT field in TLP header)
     // =========================================================================
     localparam logic [ADDR_TYPE_WIDTH-1:0] AT_UNTRANSLATED = 2'b00;
-    localparam logic [ADDR_TYPE_WIDTH-1:0] AT_TRANSLATED   = 2'b10;
 
     // =========================================================================
     // Internal egress classification result
