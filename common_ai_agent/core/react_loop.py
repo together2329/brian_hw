@@ -1083,8 +1083,9 @@ def run_react_agent_impl(
                 except Exception:
                     pass
 
-            # Prepend step header from todo_tracker (execution mode only)
-            if (todo_tracker and todo_tracker.todos 
+            # Build step header from todo_tracker (execution mode only)
+            _step_header = ""
+            if (todo_tracker and todo_tracker.todos
                 and agent_mode not in ("plan", "plan_q")):
                 current_todo = todo_tracker.get_current_todo()
                 total = len(todo_tracker.todos)
@@ -1098,22 +1099,24 @@ def run_react_agent_impl(
                     if current_todo.criteria:
                         header_parts.append(f"Criteria: {current_todo.criteria}")
                     header_parts.append("→ Interpret the result below in context of the current goal")
-                    observation = "\n".join(header_parts) + "\n\n" + observation
+                    _step_header = "\n".join(header_parts) + "\n\n"
 
             if _use_native and _native_obs_pairs:
                 # Native mode: add individual tool role messages with matching tool_call_id.
-                # This satisfies the OpenAI API requirement that every tool_call in the
-                # assistant message has a corresponding tool response message.
-                for _call_id, _obs in _native_obs_pairs:
+                # Inject the step header into the first tool message so the LLM knows
+                # which task it is working on (in legacy mode this goes via process_obs_fn).
+                for _i, (_call_id, _obs) in enumerate(_native_obs_pairs):
+                    _content = (_step_header + _obs) if _i == 0 and _step_header else _obs
                     messages.append({
                         "role": "tool",
-                        "content": _obs,
+                        "content": _content,
                         "tool_call_id": _call_id,
                     })
             else:
+                observation = _step_header + observation
                 messages = deps.process_obs_fn(observation, messages, todo_tracker=todo_tracker)
 
-            # Todo continuation reminder — inject WITH observation so next LLM
+            # Todo continuation reminder — inject as a user message so the next LLM
             # call knows what to do. Apply in all modes (plan included).
             _last_tool_was_todo = tool_name in ("todo_update", "todo_write", "todo_add", "todo_remove")
             if (todo_tracker and todo_tracker.todos
@@ -1121,8 +1124,12 @@ def run_react_agent_impl(
                     and not _last_tool_was_todo):
                 reminder = todo_tracker.get_continuation_prompt()
                 if reminder:
-                    last_content = messages[-1].get("content", "") if messages else ""
-                    if reminder not in last_content:
+                    # Check all recent user messages to avoid duplicate injection
+                    _recent_user_contents = [
+                        m.get("content", "") for m in messages[-4:]
+                        if m.get("role") == "user"
+                    ]
+                    if not any(reminder in c for c in _recent_user_contents):
                         messages.append({"role": "user", "content": reminder})
 
             if _perf:
