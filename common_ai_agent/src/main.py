@@ -1187,14 +1187,6 @@ def chat_loop():
             def _ctrlq_exit(event):
                 _do_exit("Ctrl+Q")
 
-            @_kb.add('tab')
-            def _tab_complete(event):
-                buf = event.app.current_buffer
-                if buf.complete_state:
-                    buf.complete_next()
-                else:
-                    buf.start_completion(select_first=False)
-
             class _AtFileCompleter(Completer):
                 """Auto-complete: '/' → slash commands, '@' → file/folder paths."""
 
@@ -1270,7 +1262,7 @@ def chat_loop():
                 key_bindings=_kb,
                 history=_history,
                 completer=_AtFileCompleter(),
-                complete_while_typing=False,  # only on Tab
+                complete_while_typing=True,
             )
             _prompt_text = ANSI(Color.user("> ") + Color.RESET)
         except Exception as e:
