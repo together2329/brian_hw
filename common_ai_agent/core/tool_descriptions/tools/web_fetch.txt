@@ -7,7 +7,7 @@ web_fetch(url="https://example.com", formats="markdown", wait_for=3000)
 
 # Description
 
-Fetches and scrapes content from a specific URL ising the Firecrawl Scrape API.
+Fetches and scrapes content from a specific URL using the Firecrawl Scrape API.
 Returns page content in markdown (default), HTML, or raw HTML.
 Waits for JavaScript rendering before capturing content.
 
