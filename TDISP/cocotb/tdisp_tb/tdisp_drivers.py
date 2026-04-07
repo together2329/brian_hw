@@ -100,8 +100,7 @@ class TdispReqDriver:
     async def send_message(self, msg: bytes):
         """Enqueue a complete TDISP message (header + payload) for sending.
 
-        Returns immediately after enqueuing.  Use wait_drained() or
-        wait_sent() to synchronize.
+        Returns immediately after enqueuing.  Use wait_sent() to synchronize.
         """
         if len(msg) < TDISP_MSG_HEADER_SIZE:
             raise ValueError(
