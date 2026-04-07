@@ -67,9 +67,9 @@ class TdispReqDriver:
 
     Usage:
         driver = TdispReqDriver(doe_bus, dut)
-        await driver.start()              # launches background drain coroutine
+        driver.start()                       # launches background drain coroutine
         await driver.send_message(msg_bytes)
-        resp_hdr, resp_payload = await driver.send_and_wait(msg_bytes, receiver)
+        await driver.wait_sent()             # blocks until TX complete
     """
 
     def __init__(self, doe_bus: DoeBus, dut):
