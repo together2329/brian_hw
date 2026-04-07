@@ -1265,7 +1265,7 @@ def chat_loop():
                 history=_history,
                 completer=_AtFileCompleter(),
                 complete_while_typing=True,
-                complete_style=CompleteStyle.MULTI_COLUMN,
+                complete_style=CompleteStyle.COLUMN,
             )
             _prompt_text = ANSI(Color.user("> ") + Color.RESET)
         except Exception as e:
