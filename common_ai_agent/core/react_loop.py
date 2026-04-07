@@ -397,6 +397,13 @@ def run_react_agent_impl(
         else:
             _pre_llm_reminder = ""
 
+        # In ReAct text mode, append a one-line action-format hint so the model
+        # knows it can emit an Action in THIS turn (no extra round-trip needed).
+        _native = getattr(cfg, "ENABLE_NATIVE_TOOL_CALLS", False)
+        if not _native and not plan_mode:
+            _action_hint = "\n[If a tool is needed, output: Action: tool_name(param=value)]"
+            _pre_llm_reminder = _pre_llm_reminder + _action_hint
+
         if _pre_llm_reminder:
             # Append to the last user message (ephemeral copy — avoids mutating history).
             # Skip if the reminder text is already present in that message (dedup).
@@ -1269,23 +1276,17 @@ def run_react_agent_impl(
                 # Don't break — continue
             else:
                 visible = deps.strip_thinking_fn(collected_content).strip()
-                if final_answer_attempts < 1:
+                if visible:
+                    # Model gave a complete answer with no Action → accept and exit.
+                    # The action hint is already injected into the user message
+                    # (pre_llm_reminder), so no extra round-trip is needed.
+                    break
+                elif final_answer_attempts < 1:
                     final_answer_attempts += 1
-                    if visible:
-                        # Model produced output but no Action — ask once more.
-                        # Do NOT suggest "say complete" which causes premature loop exit.
-                        messages.append({
-                            "role": "user",
-                            "content": (
-                                "[System] If further action is needed, output it now: "
-                                "Action: tool_name(param=value)"
-                            ),
-                        })
-                    else:
-                        messages.append({
-                            "role": "user",
-                            "content": "Please provide your final answer to the user based on your research so far.",
-                        })
+                    messages.append({
+                        "role": "user",
+                        "content": "Please provide your final answer to the user based on your research so far.",
+                    })
                 else:
                     break
 
