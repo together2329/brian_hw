@@ -8,7 +8,7 @@ SIM ?= icarus
 
 # --- Top-level module and testbench ---
 TOPLEVEL_LANG = verilog
-TOPLEVEL      = tdisp_top
+TOPLEVEL      = tb_tdisp_cocotb
 MODULE        ?= test_full_lifecycle
 
 # --- Source file paths ---
