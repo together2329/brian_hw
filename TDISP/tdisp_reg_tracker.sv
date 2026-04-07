@@ -669,7 +669,14 @@ module tdisp_reg_tracker
             error_trigger |-> tracking_enable)
         else $error("error_trigger asserted while tracking disabled");
 
-        // Assert: error_reg_addr is valid when error_trigger asserts
+        // Assert: tracking_enable is consistent with tdi_state
+        //   tracking_enable should be asserted only when TDI is in CONFIG_LOCKED or RUN
+        assert property (@(posedge clk) disable iff (!rst_n)
+            tracking_enable |-> tdi_state == TDI_STATE_CONFIG_LOCKED ||
+                               tdi_state == TDI_STATE_RUN)
+        else $error("tracking_enable asserted but TDI not in CONFIG_LOCKED/RUN state");
+
+        // Assert: error_tdi_idx is valid when error_trigger asserts
         assert property (@(posedge clk) disable iff (!rst_n)
             error_trigger |-> error_reg_addr != '0)
         else $error("error_reg_addr is zero when error_trigger asserted");
