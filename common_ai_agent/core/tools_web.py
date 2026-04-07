@@ -111,7 +111,11 @@ def _truncate_result(data: dict, max_chars: int = _MAX_RESULT_CHARS) -> str:
     text = json.dumps(data, indent=2, ensure_ascii=False)
     if len(text) > max_chars:
         truncated = text[:max_chars]
-        return truncated + f"\\n\\n... [Truncated: {len(text)} total chars, showing first {max_chars}]"
+        trailer = (
+            "\n\n... [Truncated: %d total chars, showing first %d]"
+            % (len(text), max_chars)
+        )
+        return truncated + trailer
     return text
 
 
