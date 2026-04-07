@@ -50,8 +50,6 @@
 module tdisp_reg_tracker
     import tdisp_pkg::*;
 #(
-    parameter int NUM_TDI = MAX_NUM_TDI,
-
     // Width of register write address bus (standard PCIe config space = 12 bits)
     parameter int REG_ADDR_WIDTH = 12,
 
