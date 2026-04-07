@@ -1159,7 +1159,7 @@ def chat_loop():
 
     # ── Multiline input setup ──
     _multiline_prompt = None
-    if config.ENABLE_MULTILINE_INPUT:
+    if config.ENABLE_MULTILINE_INPUT and _textual_input_fn is None:
         try:
             # Add vendored packages to path (use resolve() for absolute path on all platforms)
             _vendor_dir = str(Path(__file__).resolve().parent.parent / 'vendor')
