@@ -543,10 +543,8 @@ module tdisp_req_handler
                                                 ERR_INVALID_INTERFACE_STATE, 32'd0);
                             resp_msg_type_r <= RESP_TDISP_ERROR;
                         end else begin
-                            // Apply config
+                            // Apply config u2014 reconstruct from bytes (little-endian 4 bytes)
                             automatic tdisp_set_config_req_s config_req;
-                            config_req = tdisp_set_config_req_s'(saved_payload);
-                            // Reconstruct from bytes (little-endian 4 bytes)
                             logic [31:0] config_word;
                             config_word = {saved_payload[3], saved_payload[2],
                                            saved_payload[1], saved_payload[0]};
