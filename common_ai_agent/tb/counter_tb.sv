@@ -162,6 +162,7 @@ module counter_tb;
         load    = 1'b0;
         en      = 1'b1;
         up_down = 1'b1;
+        #1;  // Allow combinational flags to settle
         check("at MAX, overflow=1", {WIDTH{1'b1}}, 1'b1, 1'b0);
         wait_clks(1);
         check("wrapped to 0, overflow=0", '0, 1'b0, 1'b0);
