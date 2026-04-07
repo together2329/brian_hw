@@ -135,9 +135,6 @@ module tdisp_reg_tracker
     localparam logic [11:0] PCIE_CAP_DC3_OFFSET = 12'h044;  // Device Control 3 (base+0x44)
     localparam logic [11:0] PCIE_CAP_END_OFFSET = 12'h048;  // End of PCIe Cap structure
 
-    // MSI-X Capability register: relative offset within MSI-X Cap structure
-    localparam logic [11:0] MSIX_CAP_MSG_CTRL_OFFSET = 12'h000;  // Message Control (base+0x00)
-
     // Power Management Capability: PMCSR register offset
     localparam logic [11:0] PM_CAP_PMCSR_OFFSET     = 12'h004;  // PMCSR (base+0x04)
     localparam logic [11:0] PM_CAP_END_OFFSET        = 12'h008;  // End of PM Cap structure
