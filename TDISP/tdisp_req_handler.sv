@@ -703,8 +703,8 @@ module tdisp_req_handler
                                                         ERR_INVALID_REQUEST, {16'd0, sid, 8'd1});
                                     resp_msg_type_r <= RESP_TDISP_ERROR;
                                 end else begin
-                                    bind_stream_id <= sid;
-                                    bind_pulse[active_tdi_idx] <= 1'b1;
+                                    bind_stream_id_r <= sid;
+                                    bind_pulse_r[active_tdi_idx] <= 1'b1;
                                     resp_msg_type_r    <= RESP_BIND_P2P_STREAM;
                                     resp_payload_len_r <= 16'd0;
                                 end
