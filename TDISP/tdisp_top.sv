@@ -80,7 +80,7 @@ module tdisp_top
     // Device Capabilities & Interface Report (static / slow-changing)
     // =========================================================================
     input  tdisp_caps_s               device_caps,
-    input  logic [7:0]                report_data [MAX_REPORT_SIZE-1:0],
+    input  logic [7:0]                report_data [REPORT_BUF_SIZE-1:0],
     input  logic [15:0]               report_total_len,
 
     // =========================================================================
