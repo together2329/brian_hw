@@ -128,16 +128,34 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
     # ── Task Management ───────────────────────────────────────────────────────
     "todo_write": _fn(
         "todo_write",
-        "Create a task list (Plan Mode only). tasks is a JSON array of {content, activeForm, status} objects.",
-        {"tasks": {"type": "string", "description": "JSON array of task objects"}},
-        required=["tasks"],
+        "Create or replace the task list. Pass todos as a real array (not a JSON string).",
+        {
+            "todos": {
+                "type": "array",
+                "description": "List of task objects",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "content":    {"type": "string", "description": "Imperative description (e.g. 'Run tests')"},
+                        "activeForm": {"type": "string", "description": "Present-continuous description (e.g. 'Running tests')"},
+                        "status":     {"type": "string", "enum": ["pending", "in_progress", "completed"], "description": "Task status"},
+                    },
+                    "required": ["content", "activeForm", "status"],
+                },
+            }
+        },
+        required=["todos"],
     ),
     "todo_update": _fn(
         "todo_update",
         "Update task status. index is 1-based. IMPORTANT: status='approved' or 'rejected' REQUIRES a 'reason' argument describing what was verified.",
         {
             "index": {"type": "integer", "description": "Task index (1-based)"},
-            "status": {"type": "string", "description": "New status: pending/active/completed/approved/rejected"},
+            "status": {
+                "type": "string",
+                "enum": ["pending", "in_progress", "completed", "approved", "rejected"],
+                "description": "New status for the task",
+            },
             "reason": {"type": "string", "description": "REQUIRED when status is 'approved' or 'rejected'. Describe what you verified (e.g. 'read output — correct, tests passed')."},
             "content": {"type": "string", "description": "Optional: update task content"},
             "detail": {"type": "string", "description": "Optional: update task detail"},
@@ -171,7 +189,11 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         "background_task",
         "Delegate a task to a sub-agent (explore/execute/review).",
         {
-            "agent": {"type": "string", "description": "Agent type: explore, execute, or review"},
+            "agent": {
+                "type": "string",
+                "enum": ["explore", "execute", "review"],
+                "description": "Agent type",
+            },
             "prompt": {"type": "string", "description": "Task description for the sub-agent"},
         },
         required=["agent", "prompt"],

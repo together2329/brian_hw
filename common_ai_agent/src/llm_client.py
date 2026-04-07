@@ -1150,15 +1150,13 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
                                 content = delta.get("content", "")
 
-                                # Streaming bleed fix: same model as GLM-4.7 can split a
-                                # reasoning token mid-word and put the tail in content.
-                                # Detect by: same delta has both fields AND content starts
-                                # mid-sentence (lowercase / digit / punctuation-continuation).
+                                # Streaming bleed fix: when both reasoning_content and content
+                                # arrive in the same delta, the content is always a bleed-over
+                                # from the reasoning tail (observed consistently on GLM-4.7).
+                                # Real content starts in its own delta (reasoning field absent).
                                 if reasoning and content:
-                                    first_char = content.lstrip()[:1]
-                                    if first_char and (first_char.islower() or first_char.isdigit() or first_char in ',;:'):
-                                        reasoning = reasoning + content
-                                        content = ""
+                                    reasoning = reasoning + content
+                                    content = ""
 
                                 # Handle reasoning and content for debug display
                                 if config.DEBUG_MODE:

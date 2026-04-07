@@ -97,6 +97,7 @@ class StreamParser:
         self._seen: Set[str] = set()
         self._content_emitted: bool = False
         self._reasoning_emitted: bool = False  # track if any reasoning was displayed
+        self._has_tuple_reasoning: bool = False  # True once ("reasoning", ...) tuple arrives
 
         # collected raw text (for callers that need to parse actions from it)
         self.collected: str = ""
@@ -122,6 +123,7 @@ class StreamParser:
         if token_type == "reasoning":
             if not chunk:
                 return
+            self._has_tuple_reasoning = True  # upstream already separated reasoning
             if self.reasoning_display:
                 self._rbuf += chunk
                 self._flush_reasoning_lines()
@@ -183,6 +185,7 @@ class StreamParser:
         self._seen = set()
         self._content_emitted = False
         self._reasoning_emitted = False
+        self._has_tuple_reasoning = False
         self.collected = ""
 
     # ------------------------------------------------------------------
@@ -213,7 +216,12 @@ class StreamParser:
                 self._buf = stripped + self._buf
                 continue
 
-            text, entered, exited, reasoning = self._strip_think(raw_line)
+            if self._has_tuple_reasoning:
+                # Upstream already sent reasoning as ("reasoning", ...) tuples —
+                # skip <think> tag extraction to avoid double-emitting reasoning.
+                text, entered, exited, reasoning = raw_line, False, False, ""
+            else:
+                text, entered, exited, reasoning = self._strip_think(raw_line)
 
             if reasoning:
                 self._emit_reasoning(reasoning)

@@ -1,4 +1,4 @@
-\"\"\"
+"""
 core/tools_web.py — Firecrawl-powered web tools for common_ai_agent
 
 Provides web search, fetch, and extract capabilities via locally-hosted
@@ -13,7 +13,7 @@ Configuration (.config):
   ENABLE_WEB_TOOLS=true          # Enable/disable (default: false)
   FIRECRAWL_API_URL=http://localhost:3002  # Firecrawl endpoint
   FIRECRAWL_TIMEOUT=30           # Request timeout in seconds
-\"\"\"
+"""
 
 import json
 import os
@@ -27,12 +27,12 @@ from typing import Dict, Optional
 # ---------------------------------------------------------------------------
 
 def _get_api_url() -> str:
-    \"\"\"Read Firecrawl API URL from environment.\"\"\"
+    """Read Firecrawl API URL from environment."""
     return os.environ.get("FIRECRAWL_API_URL", "http://localhost:3002")
 
 
 def _get_timeout() -> int:
-    \"\"\"Read request timeout from environment.\"\"\"
+    """Read request timeout from environment."""
     try:
         return int(os.environ.get("FIRECRAWL_TIMEOUT", "30"))
     except (ValueError, TypeError):
@@ -44,7 +44,7 @@ def _get_timeout() -> int:
 # ---------------------------------------------------------------------------
 
 def _firecrawl_request(endpoint: str, payload: dict) -> dict:
-    \"\"\"
+    """
     Send a POST request to the Firecrawl API.
 
     Args:
@@ -56,7 +56,7 @@ def _firecrawl_request(endpoint: str, payload: dict) -> dict:
 
     Raises:
         RuntimeError: If Firecrawl service is unreachable or returns error
-    \"\"\"
+    """
     api_url = _get_api_url()
     timeout = _get_timeout()
     url = f"{api_url.rstrip('/')}/{endpoint.lstrip('/')}"
@@ -104,10 +104,10 @@ _MAX_RESULT_CHARS = 8000
 
 
 def _truncate_result(data: dict, max_chars: int = _MAX_RESULT_CHARS) -> str:
-    \"\"\"
+    """
     Serialize result dict to JSON string, truncating if too large.
     Large responses are trimmed to avoid context bloat.
-    \"\"\"
+    """
     text = json.dumps(data, indent=2, ensure_ascii=False)
     if len(text) > max_chars:
         truncated = text[:max_chars]
@@ -124,7 +124,7 @@ def _truncate_result(data: dict, max_chars: int = _MAX_RESULT_CHARS) -> str:
 # ---------------------------------------------------------------------------
 
 def web_search(query: str, limit: int = 5, lang: str = "en", tbs: str = "") -> str:
-    \"\"\"
+    """
     Search the web using Firecrawl Search API. Returns scraped content
     (markdown) for each result.
 
@@ -137,7 +137,7 @@ def web_search(query: str, limit: int = 5, lang: str = "en", tbs: str = "") -> s
 
     Returns:
         JSON string with search results (title, url, content for each)
-    \"\"\"
+    """
     limit = max(1, min(20, int(limit)))
 
     payload = {
@@ -183,7 +183,7 @@ def web_search(query: str, limit: int = 5, lang: str = "en", tbs: str = "") -> s
 # ---------------------------------------------------------------------------
 
 def web_fetch(url: str, formats: str = "markdown", wait_for: int = 3000) -> str:
-    \"\"\"
+    """
     Fetch and scrape content from a specific URL using Firecrawl Scrape API.
 
     Args:
@@ -193,7 +193,7 @@ def web_fetch(url: str, formats: str = "markdown", wait_for: int = 3000) -> str:
 
     Returns:
         Scraped content in requested format
-    \"\"\"
+    """
     payload = {
         "url": url,
         "formats": [formats] if isinstance(formats, str) else formats,
@@ -249,7 +249,7 @@ def web_extract(
     prompt: str = "",
     schema: str = "",
 ) -> str:
-    \"\"\"
+    """
     Extract structured data from URLs using Firecrawl AI-powered Extract API.
     Useful for pulling specific fields (price, title, date, etc.) from web pages.
 
@@ -262,7 +262,7 @@ def web_extract(
 
     Returns:
         Extracted structured data as JSON
-    \"\"\"
+    """
     # Parse URLs
     if isinstance(urls, str):
         url_list = [u.strip() for u in urls.split(",") if u.strip()]
@@ -305,12 +305,12 @@ def web_extract(
 
 
 def _poll_extract_job(job_id: str, max_wait: int = 60, interval: int = 3) -> dict:
-    \"\"\"
+    """
     Poll Firecrawl extract job until complete.
 
     Returns:
         Final result dict, or error string on failure.
-    \"\"\"
+    """
     import time
 
     api_url = _get_api_url()
