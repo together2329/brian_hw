@@ -18,6 +18,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Vertical
 from textual.message import Message
 from textual.widgets import Input, RichLog, Static
+from textual.suggester import Suggester
 from textual import work
 
 _ANSI   = re.compile(r"\x1b\[[0-9;]*[mK]")
@@ -254,6 +255,66 @@ class TextualCapture:
     def flush(self) -> None: pass
     def isatty(self) -> bool: return False
     def fileno(self) -> int: raise OSError("no fd")
+
+
+# ── Autocomplete suggester ────────────────────────────────────────────────────
+
+class _AgentSuggester(Suggester):
+    """Suggest slash commands and @ file paths in the TUI input."""
+
+    def __init__(self) -> None:
+        super().__init__(use_cache=False, case_sensitive=False)
+        self._slash_cmds: list[str] = []
+        self._load_slash_cmds()
+
+    def _load_slash_cmds(self) -> None:
+        try:
+            from slash_commands import get_registry  # type: ignore
+        except ImportError:
+            try:
+                from core.slash_commands import get_registry  # type: ignore
+            except ImportError:
+                return
+        try:
+            self._slash_cmds = get_registry().get_completions()
+        except Exception:
+            pass
+
+    async def get_suggestion(self, value: str) -> str | None:
+        # Slash command completion
+        if value.startswith('/') and ' ' not in value:
+            if not self._slash_cmds:
+                self._load_slash_cmds()
+            for cmd in self._slash_cmds:
+                if cmd.lower().startswith(value.lower()) and cmd != value:
+                    return cmd
+
+        # @ file/folder completion
+        if '@' in value:
+            at_pos = value.rfind('@')
+            partial = value[at_pos + 1:]
+            # Only suggest if partial has no spaces (middle of a word)
+            if ' ' not in partial:
+                if '/' in partial:
+                    dir_part, stem = partial.rsplit('/', 1)
+                    base = dir_part or '.'
+                else:
+                    dir_part, stem = '', partial
+                    base = '.'
+                try:
+                    for name in sorted(os.listdir(base)):
+                        if name.startswith('.'):
+                            continue
+                        if stem and not name.lower().startswith(stem.lower()):
+                            continue
+                        full = f"{dir_part}/{name}" if dir_part else name
+                        if os.path.isdir(os.path.join(base, name)):
+                            full += '/'
+                        return value[:at_pos + 1] + full
+                except OSError:
+                    pass
+
+        return None
 
 
 # ── Input bridge ──────────────────────────────────────────────────────────────
@@ -518,7 +579,7 @@ class AgentTUI(App):
             yield Static("", id="todo")
             yield Static(cwd, id="cwd-label")
         yield Static("", id="statusbar")
-        yield Input(placeholder="")
+        yield Input(placeholder="", suggester=_AgentSuggester())
 
     def on_mount(self) -> None:
         self._update_statusbar()
