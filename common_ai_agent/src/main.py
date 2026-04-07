@@ -1173,12 +1173,19 @@ def chat_loop():
 
             _kb = KeyBindings()
 
-            @_kb.add('escape')
-            def _esc_exit(event):
-                print("\n[ESC] Exiting...")
+            def _do_exit(label="ESC"):
+                print(f"\n[{label}] Saving & exiting...")
                 save_conversation_history(messages, silent=True)
                 import os as _os
                 _os._exit(0)
+
+            @_kb.add('escape')
+            def _esc_exit(event):
+                _do_exit("ESC")
+
+            @_kb.add('c-q')
+            def _ctrlq_exit(event):
+                _do_exit("Ctrl+Q")
 
             class _AtFileCompleter(Completer):
                 """Auto-complete: '/' → slash commands, '@' → file/folder paths."""
