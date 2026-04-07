@@ -1204,22 +1204,33 @@ def chat_loop():
             idle = time.time() - _keepalive_last_activity[0]
             if idle < _interval:
                 continue
-            # Inject keepalive input
-            print(f"\n[Keepalive] No activity for {int(idle)}s — injecting '{_msg}'")
+            # Inject keepalive input — include todo continuation reminder if available
+            _full_msg = _msg
+            try:
+                if getattr(config, "ENABLE_TODO_TRACKING", False):
+                    from lib.todo_tracker import TodoTracker as _TodoTracker
+                    _tracker = _TodoTracker.load(Path(config.TODO_FILE))
+                    if _tracker and _tracker.todos and not _tracker.is_all_processed():
+                        _reminder = _tracker.get_continuation_prompt()
+                        if _reminder:
+                            _full_msg = _msg + "\n\n" + _reminder
+            except Exception:
+                pass
+            print(f"\n[Keepalive] No activity for {int(idle)}s — injecting keepalive")
             _keepalive_last_activity[0] = time.time()
             # prompt_toolkit path
             if _multiline_prompt is not None:
                 try:
                     app = _multiline_prompt.app
                     if app is not None:
-                        app.exit(result=_msg)
+                        app.exit(result=_full_msg)
                         continue
                 except Exception:
                     pass
             # Fallback: write to stdin (works for plain input())
             try:
                 import os as _os
-                _os.write(sys.stdin.fileno(), (_msg + "\n").encode())
+                _os.write(sys.stdin.fileno(), (_full_msg + "\n").encode())
             except Exception:
                 pass
 
