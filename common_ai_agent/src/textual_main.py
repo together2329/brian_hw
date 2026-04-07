@@ -12,7 +12,11 @@ import os
 import sys
 
 # ── Path setup ──────────────────────────────────────────────────────────────
-_script_dir = os.path.dirname(os.path.abspath(__file__))
+try:
+    _script_dir = os.path.dirname(os.path.abspath(__file__))
+except (OSError, FileNotFoundError):
+    # CWD no longer exists (e.g. deleted dir) — fall back to argv[0]
+    _script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
 _project_root = os.path.dirname(_script_dir)
 sys.path.insert(0, _script_dir)
 sys.path.insert(0, _project_root)

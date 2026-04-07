@@ -473,24 +473,26 @@ class _AgentInput(Input):
                 event.stop()
                 return
 
-        # ── Ctrl+V: paste ────────────────────────────────────────────────────
+        # ── Ctrl+V: paste from system clipboard ──────────────────────────────
         elif event.key == "ctrl+v":
             text = _clipboard_paste()
             if text:
-                self.insert(text, self.cursor_position)
+                start, end = self.selection
+                self.replace(text, start, end)
             event.prevent_default()
             event.stop()
             return
 
-        # ── Ctrl+C: copy selected / full value ───────────────────────────────
+        # ── Ctrl+C: copy selected text (or full value) ────────────────────────
         elif event.key == "ctrl+c":
             sel = self.selection
             if not sel.is_empty:
-                start = min(sel.start, sel.end)
-                end   = max(sel.start, sel.end)
-                _clipboard_copy(self.value[start:end])
+                copied = self.value[min(sel.start, sel.end):max(sel.start, sel.end)]
             else:
-                _clipboard_copy(self.value)
+                copied = self.value
+            # OSC 52 (iTerm2 etc.) + subprocess fallback
+            self.app.copy_to_clipboard(copied)
+            _clipboard_copy(copied)
             event.prevent_default()
             event.stop()
             return
@@ -733,7 +735,7 @@ class AgentTUI(App):
 
     BINDINGS = [
         ("ctrl+q", "quit", "Quit"),
-        ("ctrl+shift+c", "copy_last", "Copy last response"),
+        ("ctrl+y", "copy_last", "Copy last response"),
         ("escape", "stop", "Stop"),
     ]
 
@@ -894,13 +896,15 @@ class AgentTUI(App):
             self.exit()
 
     def action_copy_last(self) -> None:
-        """Copy the last assistant response to system clipboard."""
+        """Copy the last assistant response to system clipboard (Ctrl+Y)."""
         text = self._last_response_text.strip()
         if not text:
             return
+        # OSC 52 via Textual driver (iTerm2, Wezterm, Alacritty …)
+        self.copy_to_clipboard(text)
+        # Also pbcopy/xclip for macOS Terminal.app fallback
         _clipboard_copy(text)
-        # Brief visual feedback in status bar
-        self._update_statusbar("  ✓ Copied to clipboard")
+        self._update_statusbar("  ✓ Copied to clipboard  (Ctrl+Y)")
         self.set_timer(2.0, self._update_statusbar)
 
     def action_stop(self) -> None:
