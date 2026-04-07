@@ -396,13 +396,14 @@ def run_react_agent_impl(
             _pre_llm_reminder = ""
 
         if _pre_llm_reminder:
-            # Append to the last user message (ephemeral — not saved to history)
+            # Append to the last user message (ephemeral copy — avoids mutating history).
+            # Skip if the reminder text is already present in that message (dedup).
             _user_idxs = [i for i, m in enumerate(messages) if m.get("role") == "user"]
             if _user_idxs:
                 _ui = _user_idxs[-1]
                 _uc = messages[_ui].get("content", "")
-                if isinstance(_uc, str):
-                    messages[_ui] = dict(messages[_ui])  # shallow copy to avoid mutating history
+                if isinstance(_uc, str) and _pre_llm_reminder.strip() not in _uc:
+                    messages[_ui] = dict(messages[_ui])  # shallow copy
                     messages[_ui]["content"] = _uc + _pre_llm_reminder
 
         # Hook: BEFORE_LLM_CALL

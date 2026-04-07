@@ -302,12 +302,12 @@ class TodoTracker:
         우선순위: rejected > completed (review needed) > pending.
         같은 priority 내에서는 원래 순서(index 오름차순) 유지.
         """
-        # Status priority: rejected=0 (must fix first), pending=1
-        # completed is NOT included — LLM must explicitly approve/reject it
-        STATUS_ORDER = {"rejected": 0, "pending": 1}
+        # Status priority: rejected=0 (must fix first), completed=1 (review needed), pending=2
+        # completed IS included — it still needs explicit approve/reject from LLM.
+        STATUS_ORDER = {"rejected": 0, "completed": 1, "pending": 2}
         candidates = [
             (i, todo) for i, todo in enumerate(self.todos)
-            if todo.status in ("pending", "rejected")
+            if todo.status in ("pending", "rejected", "completed")
         ]
         if not candidates:
             return None
