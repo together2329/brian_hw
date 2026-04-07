@@ -248,7 +248,11 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         "Waits for JavaScript rendering.",
         {
             "url": {"type": "string", "description": "URL to scrape"},
-            "formats": {"type": "string", "description": "Output format: 'markdown' (default), 'html', or 'rawHtml'"},
+            "formats": {
+                "type": "string",
+                "enum": ["markdown", "html", "rawHtml"],
+                "description": "Output format (default: 'markdown')",
+            },
             "wait_for": {"type": "integer", "description": "Milliseconds to wait for JS rendering (default: 3000)"},
         },
         required=["url"],
