@@ -76,7 +76,6 @@ class TdispReqDriver:
         self._bus = doe_bus
         self._dut = dut
         self._queue: asyncio.Queue[bytes] = asyncio.Queue()
-        self._send_event = Event()
         self._task: Optional[cocotb.coroutine] = None
         self._idle = True
         self._bytes_sent = 0
