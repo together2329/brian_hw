@@ -1117,25 +1117,33 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
         rules_parts.append("   - ALWAYS read_file/read_lines BEFORE replace_in_file. Copy exact text including indentation.\n")
         rules_parts.append("   - Include 5+ lines of context in old_text for unique matching.\n")
 
+    if not plan_mode:
+        rules_parts.append(
+            "\n3. TODO TOOLS:\n"
+            "   - In normal/execution mode, do NOT call todo_write. It is reserved for Plan Mode.\n"
+            "   - Use todo_update to mark tasks in_progress/completed, todo_add to add a task.\n"
+            "   - If you feel the need to rewrite the entire task list, switch to Plan Mode instead.\n"
+        )
+
     rules_parts.append(
-        "\n3. LARGE FILE STRATEGY:\n"
+        "\n4. LARGE FILE STRATEGY:\n"
         "   - Files >500 lines: grep_file first → read_lines on found sections. Never blind-read.\n"
         "\n"
-        "4. SEARCH PRIORITY: grep_file > find_files > list_dir.\n"
+        "5. SEARCH PRIORITY: grep_file > find_files > list_dir.\n"
         "   - Search in current directory (.) first. NEVER expand to parent dirs unless explicitly told.\n"
         "   - If not found in ., report it — do not guess other locations.\n"
         "\n"
-        "5. SURGICAL EDITING:\n"
+        "6. SURGICAL EDITING:\n"
         "   - Replace ONLY the specific changed block. Never replace entire classes/functions for small changes.\n"
         "   - Always include 5+ lines of surrounding context in old_text for unique matching.\n"
         "\n"
-        "6. ANTI-HALLUCINATION:\n"
+        "7. ANTI-HALLUCINATION:\n"
         "   - Never analyze a file you haven't read. Never invent tool results.\n"
         "   - If tool fails, adapt search — don't pretend results exist.\n"
     )
     if not ENABLE_MARKDOWN_RENDER:
         rules_parts.append(
-            "\n7. TEXT FORMATTING:\n"
+            "\n8. TEXT FORMATTING:\n"
             "   - Markdown rendering is DISABLED. Do NOT use markdown syntax "
             "(like ``` , **, _, ##) in your thoughts or responses. Provide plain text only.\n"
         )
