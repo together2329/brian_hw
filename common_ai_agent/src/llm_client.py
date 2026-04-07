@@ -1213,7 +1213,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                             tc_name = tc_info["name"]
                             tc_args_str = tc_info["arguments"]
                             if tc_name:
-                                call_id = f"call_{_uuid.uuid4().hex[:16]}"
+                                call_id = f"call_{_uuid.uuid4().hex}"  # full 32-char hex — no collision risk
                                 _native_calls.append({
                                     "id": call_id,
                                     "name": tc_name,
