@@ -1187,13 +1187,24 @@ def chat_loop():
             def _ctrlq_exit(event):
                 _do_exit("Ctrl+Q")
 
+            @_kb.add('tab')
+            def _tab_complete(event):
+                buf = event.app.current_buffer
+                if buf.complete_state:
+                    buf.complete_next()
+                else:
+                    buf.start_completion(select_first=False)
+
             class _AtFileCompleter(Completer):
                 """Auto-complete: '/' → slash commands, '@' → file/folder paths."""
 
                 def _slash_completions(self, text):
                     """Yield slash command completions when input starts with '/'."""
                     try:
-                        from core.slash_commands import get_registry
+                        try:
+                            from slash_commands import get_registry
+                        except ImportError:
+                            from core.slash_commands import get_registry
                         reg = get_registry()
                         all_cmds = reg.get_completions()  # e.g. ['/help', '/plan', ...]
                     except Exception:
