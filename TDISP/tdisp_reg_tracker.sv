@@ -503,15 +503,6 @@ module tdisp_reg_tracker
     // =========================================================================
 
     // =========================================================================
-    // MSI-X Capability address detection helper
-    //   Standard MSI-X capability structure: offset 0x40u20130x4C (typical)
-    //   MSI-X Message Control is at cap_base + 0x02
-    //   For this implementation, we detect MSI-X writes by address range.
-    //   A parameterized approach would use the discovered cap_offset.
-    // =========================================================================
-    localparam logic [11:0] MSIX_CAP_BASE = 12'h040;  // Typical MSI-X base
-
-    // =========================================================================
     // Main register write tracker u2014 single always_ff block
     //   Per project convention: single always_ff for all sequential logic.
     //   Combinational classification is done above.
