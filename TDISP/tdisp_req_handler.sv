@@ -853,22 +853,6 @@ module tdisp_req_handler
     assign xt_bit_for_locked_msix = xt_bit_for_locked_msix_r;
 
     // =========================================================================
-    // Outstanding request counter decrement on response completion
-    // This is a simplified model u2014 in a full implementation, counters would
-    // decrement when the response is transmitted on the wire. Here we track
-    // the delta between requests received and responses dispatched.
-    // =========================================================================
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            // Counters already reset in main FSM
-        end else begin
-            // When resp_valid && resp_ready, the request is fully consumed
-            // The increment is done in H_SEND_RESP; decrement would be done
-            // by external completion tracking (e.g., when DOE delivery is done).
-        end
-    end
-
-    // =========================================================================
     // Assertions
     // =========================================================================
     // pragma synthesis_off
