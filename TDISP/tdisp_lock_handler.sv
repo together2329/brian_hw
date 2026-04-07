@@ -150,6 +150,7 @@ module tdisp_lock_handler
 
     // Nonce generation holding register
     logic [NONCE_WIDTH-1:0]   generated_nonce;
+    logic [15:0]              entropy_timeout;
 
     // =========================================================================
     // Outputs from registered state
