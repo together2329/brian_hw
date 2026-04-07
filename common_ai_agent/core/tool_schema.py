@@ -206,6 +206,42 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         },
         required=["spec"],
     ),
+
+    # ── Web Tools (Firecrawl) ────────────────────────────────────────────────
+    "web_search": _fn(
+        "web_search",
+        "Search the web using Firecrawl. Returns scraped markdown content for each result. "
+        "Use for finding current information, documentation, or answers not in local files.",
+        {
+            "query": {"type": "string", "description": "Search query string"},
+            "limit": {"type": "integer", "description": "Maximum number of results (1-20, default: 5)"},
+            "lang": {"type": "string", "description": "Language code (default: 'en', 'ko' for Korean)"},
+            "tbs": {"type": "string", "description": "Time filter: 'qdr:d' (day), 'qdr:w' (week), 'qdr:m' (month), 'qdr:y' (year), '' (any)"},
+        },
+        required=["query"],
+    ),
+    "web_fetch": _fn(
+        "web_fetch",
+        "Fetch and scrape content from a specific URL. Returns page content in markdown (default), HTML, or raw HTML format. "
+        "Waits for JavaScript rendering.",
+        {
+            "url": {"type": "string", "description": "URL to scrape"},
+            "formats": {"type": "string", "description": "Output format: 'markdown' (default), 'html', or 'rawHtml'"},
+            "wait_for": {"type": "integer", "description": "Milliseconds to wait for JS rendering (default: 3000)"},
+        },
+        required=["url"],
+    ),
+    "web_extract": _fn(
+        "web_extract",
+        "Extract structured data from URLs using AI-powered extraction. "
+        "Provide a natural language prompt describing what to extract and optional JSON schema for output structure.",
+        {
+            "urls": {"type": "string", "description": "URL(s) to extract from. Single URL or comma-separated list"},
+            "prompt": {"type": "string", "description": "Natural language instruction for what to extract (e.g. 'Extract product name, price, and availability')"},
+            "schema": {"type": "string", "description": "JSON schema defining output structure (optional)"},
+        },
+        required=["urls"],
+    ),
 }
 
 
