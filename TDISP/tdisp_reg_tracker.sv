@@ -99,7 +99,8 @@ module tdisp_reg_tracker
     output logic                            error_trigger,
     output logic [REG_ADDR_WIDTH-1:0]       error_reg_addr,
     output logic [255:0]                    error_reg_name,
-    output logic [255:0]                    error_reg_description
+    output logic [255:0]                    error_reg_description,
+    output logic [TDI_INDEX_WIDTH-1:0]      error_tdi_idx        // Function ID that caused error
 );
 
     // =========================================================================
