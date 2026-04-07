@@ -437,6 +437,12 @@ module tdisp_req_handler
             xt_bit_for_locked_msix_r <= 1'b0;
             mmio_attr_update_valid   <= 1'b0;
             vdm_req_valid        <= 1'b0;
+            lock_req_pulse_r     <= '0;
+            start_req_pulse_r    <= '0;
+            stop_req_pulse_r     <= '0;
+            bind_pulse_r         <= '0;
+            unbind_pulse_r       <= '0;
+            bind_stream_id_r     <= '0;
             for (int i = 0; i < NUM_TDI; i++) begin
                 req_cnt_this[i] <= 8'd0;
             end
