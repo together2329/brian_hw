@@ -2762,3 +2762,14 @@ except ImportError:
         AVAILABLE_TOOLS.update(CMUX_TOOLS)
     except ImportError:
         pass  # tools_cmux not available
+
+# web tools — Firecrawl-powered search, fetch, extract
+try:
+    from core.tools_web import WEB_TOOLS
+    AVAILABLE_TOOLS.update(WEB_TOOLS)
+except ImportError:
+    try:
+        from tools_web import WEB_TOOLS
+        AVAILABLE_TOOLS.update(WEB_TOOLS)
+    except ImportError:
+        pass  # tools_web not available
