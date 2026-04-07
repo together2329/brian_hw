@@ -319,10 +319,94 @@ class _AgentSuggester(Suggester):
         return None
 
 
-# ── Custom Input: Tab accepts suggestion ──────────────────────────────────────
+# ── Clipboard helpers ─────────────────────────────────────────────────────────
+
+def _clipboard_paste() -> str:
+    import subprocess
+    try:
+        if sys.platform == "darwin":
+            return subprocess.run(["pbpaste"], capture_output=True, text=True).stdout
+        for cmd in [["xclip", "-selection", "clipboard", "-o"],
+                    ["xsel", "--clipboard", "--output"]]:
+            try:
+                return subprocess.run(cmd, capture_output=True, text=True).stdout
+            except FileNotFoundError:
+                continue
+    except Exception:
+        pass
+    return ""
+
+
+def _clipboard_copy(text: str) -> None:
+    import subprocess
+    try:
+        if sys.platform == "darwin":
+            subprocess.run(["pbcopy"], input=text.encode(), check=False)
+            return
+        for cmd in [["xclip", "-selection", "clipboard"],
+                    ["xsel", "--clipboard", "--input"]]:
+            try:
+                subprocess.run(cmd, input=text.encode(), check=False)
+                return
+            except FileNotFoundError:
+                continue
+    except Exception:
+        pass
+
+
+# ── Custom Input: history + copy/paste + Tab completion ───────────────────────
 
 class _AgentInput(Input):
-    """Input widget where Tab navigates/accepts the completion dropdown or inline suggestion."""
+    """
+    Input with:
+    - ↑/↓  input history
+    - Ctrl+V  paste from system clipboard
+    - Ctrl+C  copy selected text (or full value) to clipboard
+    - Tab     cycle completion dropdown / accept inline suggestion
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._hist: list[str] = []   # newest first
+        self._hist_pos: int = -1     # -1 = not browsing
+        self._hist_draft: str = ""   # saved draft before browsing
+        self._load_history()
+
+    # ── History persistence ───────────────────────────────────────────────────
+
+    def _history_path(self):
+        try:
+            import config as _cfg
+            from pathlib import Path
+            return Path(_cfg.TODO_FILE).parent / "input_history.txt"
+        except Exception:
+            return None
+
+    def _load_history(self) -> None:
+        p = self._history_path()
+        if p and p.exists():
+            try:
+                lines = p.read_text(encoding="utf-8").splitlines()
+                self._hist = [l for l in reversed(lines) if l.strip()]
+            except Exception:
+                pass
+
+    def save_to_history(self, text: str) -> None:
+        if not text.strip():
+            return
+        # Skip duplicate of last entry
+        if self._hist and self._hist[0] == text:
+            return
+        self._hist.insert(0, text)
+        p = self._history_path()
+        if p:
+            try:
+                with open(p, "a", encoding="utf-8") as f:
+                    f.write(text + "\n")
+            except Exception:
+                pass
+
+    # ── Completion dropdown ───────────────────────────────────────────────────
 
     def _get_completion_list(self) -> OptionList | None:
         try:
@@ -330,43 +414,101 @@ class _AgentInput(Input):
         except Exception:
             return None
 
+    # ── Key handler ──────────────────────────────────────────────────────────
+
     async def _on_key(self, event: Key) -> None:
         ol = self._get_completion_list()
+
+        # ── Tab: completion dropdown / inline suggestion ──────────────────────
         if event.key == "tab":
             if ol is not None and "visible" in ol.classes:
-                # Cycle highlight forward through options
                 count = ol.option_count
                 if count > 0:
                     current = ol.highlighted
                     next_idx = 0 if current is None else (current + 1) % count
                     ol.highlighted = next_idx
-                    # Fill input — hide dropdown first so on_input_changed
-                    # doesn't rebuild and reset highlighted
                     opt_text = str(ol.get_option_at_index(next_idx).prompt)
                     ol.remove_class("visible")
                     self.value = opt_text
-                    self.action_end()          # cursor → end of value
-                    ol.add_class("visible")    # re-show so user can keep cycling
+                    self.action_end()
+                    ol.add_class("visible")
                 event.prevent_default()
                 event.stop()
                 return
-            # Fallback: accept inline suggestion
             if self._suggestion:
                 self.value = self._suggestion
                 self.action_end()
                 event.prevent_default()
                 event.stop()
                 return
+
+        # ── ↑: history back ──────────────────────────────────────────────────
+        elif event.key == "up":
+            if ol is not None and "visible" in ol.classes:
+                pass  # let dropdown handle it
+            elif self._hist:
+                if self._hist_pos == -1:
+                    self._hist_draft = self.value
+                if self._hist_pos < len(self._hist) - 1:
+                    self._hist_pos += 1
+                    self.value = self._hist[self._hist_pos]
+                    self.action_end()
+                event.prevent_default()
+                event.stop()
+                return
+
+        # ── ↓: history forward ───────────────────────────────────────────────
+        elif event.key == "down":
+            if ol is not None and "visible" in ol.classes:
+                pass  # let dropdown handle it
+            elif self._hist_pos >= 0:
+                if self._hist_pos > 0:
+                    self._hist_pos -= 1
+                    self.value = self._hist[self._hist_pos]
+                else:
+                    self._hist_pos = -1
+                    self.value = self._hist_draft
+                self.action_end()
+                event.prevent_default()
+                event.stop()
+                return
+
+        # ── Ctrl+V: paste ────────────────────────────────────────────────────
+        elif event.key == "ctrl+v":
+            text = _clipboard_paste()
+            if text:
+                self.insert(text, self.cursor_position)
+            event.prevent_default()
+            event.stop()
+            return
+
+        # ── Ctrl+C: copy selected / full value ───────────────────────────────
+        elif event.key == "ctrl+c":
+            sel = self.selection
+            if not sel.is_empty:
+                start = min(sel.start, sel.end)
+                end   = max(sel.start, sel.end)
+                _clipboard_copy(self.value[start:end])
+            else:
+                _clipboard_copy(self.value)
+            event.prevent_default()
+            event.stop()
+            return
+
+        # ── Enter: close dropdown then submit ────────────────────────────────
         elif event.key == "enter":
-            # If dropdown is visible, accept current highlight and submit
             if ol is not None and "visible" in ol.classes:
                 ol.remove_class("visible")
+            self._hist_pos = -1   # reset history browsing on submit
+
+        # ── Escape: close dropdown ───────────────────────────────────────────
         elif event.key == "escape":
             if ol is not None and "visible" in ol.classes:
                 ol.remove_class("visible")
                 event.prevent_default()
                 event.stop()
                 return
+
         await super()._on_key(event)
 
 
@@ -591,7 +733,6 @@ class AgentTUI(App):
 
     BINDINGS = [
         ("ctrl+q", "quit", "Quit"),
-        ("ctrl+c", "quit", "Quit"),
         ("escape", "stop", "Stop"),
     ]
 
@@ -875,6 +1016,11 @@ class AgentTUI(App):
         event.input.value = ""
         if not text:
             return
+        # Save to history
+        try:
+            self.query_one(_AgentInput).save_to_history(text)
+        except Exception:
+            pass
         if text.lower() in ("quit", "exit", "/quit", "/exit"):
             self._do_exit()
             return
