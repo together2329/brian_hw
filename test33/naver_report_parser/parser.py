@@ -144,19 +144,26 @@ class ReportParser:
         # "▶ Analyst 박준영" / "이수림 반도체" / "최보영 연구위원"
         if not parsed.analyst:
             # Pattern: "▶ Analyst 이름" or "Analyst 이름"
-            m = re.search(r"(?:▶\s*)?[Aa]nalyst\s+(\S+)", page1)
+            m = re.search(r"(?:▶\s*)?[Aa]nalyst\s+([가-힣]{2,4})", page1)
             if m:
                 parsed.analyst = m.group(1)
             else:
-                # Pattern: "이름 연구위원" or "이름 애널리스트"
-                m = re.search(r"^(\S{2,4})\s+(?:연구위원|애널리스트|수석연구원|연구원)", page1, re.MULTILINE)
+                # Pattern: "한글이름 연구위원/애널리스트/수석연구원" (anywhere in page)
+                m = re.search(r"([가-힣]{2,4})\s+(?:연구위원|애널리스트|수석연구원|연구원)", page1)
                 if m:
                     parsed.analyst = m.group(1)
                 else:
-                    # Pattern: "이름 부서명" with email (DS투자증권 style)
-                    m = re.search(r"(\S{2,4})\s+\S+\s*\n.*?[\w.-]+@[\w.-]+", page1)
+                    # Pattern: "한글이름 부서명" near email (DS투자증권 style)
+                    m = re.search(r"([가-힣]{2,4})\s+[가-힣]+\s*\n.*?[\w.-]+@[\w.-]+", page1)
                     if m:
                         parsed.analyst = m.group(1)
+                    else:
+                        # Pattern: "한글이름" right before email on same line
+                        m = re.search(r"([가-힣]{2,4})\d{6,}@", page1)
+                        if not m:
+                            m = re.search(r"([가-힣]{2,4})\s+[\w.-]+@[\w.-]+", page1)
+                        if m:
+                            parsed.analyst = m.group(1)
 
         # ── Stock code from "(005930)" or "(066570)" pattern ──
         if not parsed.stock_code:
