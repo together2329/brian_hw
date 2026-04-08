@@ -1539,6 +1539,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     if output_tokens > 0:
                         last_output_tokens = output_tokens
 
+                    # Update rate limiter with actual token usage
+                    _total = input_tokens + output_tokens
+                    if _total > 0:
+                        get_rate_limiter().update_actual_usage(_total)
 
                     # Display actual token usage (always show for visibility)
                     if config.DEBUG_MODE:
