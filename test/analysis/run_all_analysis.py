@@ -267,7 +267,7 @@ def print_console_report(stages: list, summaries: list):
 def generate_markdown_report(stages: list, summaries: list) -> str:
     """Generate unified Markdown report."""
     n_pass = sum(1 for s in summaries if s["status"] == "PASS")
-    n_fail = len(summaries) - n_fail if False else len(summaries) - n_pass
+    n_fail = len(summaries) - n_pass
     total_time = sum(s["elapsed_s"] for s in stages)
 
     lines = [
