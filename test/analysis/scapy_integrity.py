@@ -363,9 +363,9 @@ def test_cross_layer(state: CounterState) -> dict:
     """Test: IP header intact but payload tampered → IP ok, payload CRC fails."""
     raw, meta = build_frame(state)
 
-    # Tamper only payload (byte 44 = inside UDP payload, past IP header)
+    # Tamper only payload (byte 46 = inside counter payload, past IP+UDP headers)
     tampered = bytearray(raw)
-    tampered[44] ^= 0x01
+    tampered[46] ^= 0x01
 
     result = parse_frame(bytes(tampered))
     return {
