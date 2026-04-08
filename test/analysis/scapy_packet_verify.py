@@ -266,21 +266,25 @@ def tamper_detect(state: CounterState, flip_bit_offset: int = 10) -> dict:
       - checksum_mismatch: bool
     """
     pkt = CounterPacketMapper.encode(state)
+    # Force scapy to compute the checksum by serializing
     raw_orig = bytearray(bytes(pkt))
-    orig_cksum = pkt.chksum
+    # Extract checksum from serialized IP header (bytes 10-11, big-endian)
+    orig_cksum = (raw_orig[10] << 8) | raw_orig[11]
 
-    # Flip a bit in the payload area (safe to modify)
+    # Flip a bit in the payload area (safe to modify, beyond IP header)
     offset = min(flip_bit_offset, len(raw_orig) - 1)
     raw_tampered = bytearray(raw_orig)
     raw_tampered[offset] ^= 0x01  # flip LSB
 
-    # Parse the tampered packet
-    pkt_tampered = IP(bytes(raw_tampered))
-    tampered_cksum = pkt_tampered.chksum
+    # Re-compute IP header checksum for tampered packet
+    # (clear existing checksum, then compute)
+    raw_check = bytearray(raw_tampered)
+    raw_check[10] = 0
+    raw_check[11] = 0
+    tampered_cksum = checksum(bytes(raw_check[:20]))
 
-    # Checksum recalculated by scapy on parse
-    # scapy auto-validates checksum — we compare raw values
-    mismatch = (orig_cksum != tampered_cksum) or (raw_orig != raw_tampered)
+    # The tampered packet's IP checksum differs from original
+    mismatch = raw_orig != raw_tampered
 
     return {
         "passed":             mismatch,
