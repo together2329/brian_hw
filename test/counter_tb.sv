@@ -536,6 +536,40 @@ module counter_tb;
             $display("  [INFO] Full up-cycle completed, count_out=%0d", count_out);
         end
 
+        // Test 7.3b: Full down-cycle MAX→0→MAX
+        $display("[Test 7.3b] Full down-cycle MAX→0→MAX");
+        begin
+            logic [WIDTH-1:0] expected_val;
+            apply_reset;
+            // Load MAX value
+            load = 1; data_in = {WIDTH{1'b1}}; en = 1;
+            tick(1);
+            load = 0;
+            up_down = 1; // count down
+
+            // Count from MAX down through 0 and wrap back to MAX
+            expected_val = {WIDTH{1'b1}}; // MAX
+            for (int i = 0; i <= (1 << WIDTH); i++) begin
+                if (i < (1 << WIDTH)) begin
+                    if (count_out !== expected_val) begin
+                        $display("  [FAIL] Full cycle down step %0d: expected %0d, got %0d",
+                                 i, expected_val, count_out);
+                        fail_count++;
+                    end else begin
+                        pass_count++;
+                    end
+                    test_count++;
+                end
+                tick(1);
+                // Decrement with underflow wrap
+                if (expected_val == '0)
+                    expected_val = {WIDTH{1'b1}};
+                else
+                    expected_val = expected_val - 1'b1;
+            end
+            $display("  [INFO] Full down-cycle completed, count_out=%0d", count_out);
+        end
+
         // ============================================================
         // GROUP 8: Parameterization Tests
         // Note: These are covered implicitly by the WIDTH parameter.
