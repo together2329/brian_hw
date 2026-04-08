@@ -5,7 +5,7 @@ sample DUT outputs, and compare them automatically.
 """
 
 import cocotb
-from cocotb.triggers import RisingEdge
+from cocotb.triggers import RisingEdge, NextTimeStep
 from cocotb.clock import Clock
 
 from counter_txn import CounterTxn, CounterOutput
