@@ -157,31 +157,8 @@ module tdisp_dsm #(
          nonce_lfsr[NONCE_WIDTH-1] ^ nonce_lfsr[NONCE_WIDTH-4] ^ 
          nonce_lfsr[NONCE_WIDTH-9] ^ nonce_lfsr[NONCE_WIDTH-12]};
 
-    always @(posedge clk) begin
-        if (!rst_n) begin
-            nonce_lfsr  <= {NONCE_WIDTH{1'b1}}; // Non-zero seed
-            nonce_valid <= 1'b0;
-            current_nonce <= {NONCE_WIDTH{1'b0}};
-        end else begin
-            // Always advance LFSR
-            nonce_lfsr <= lfsr_feedback;
-
-            // Capture nonce when locking
-            if (tdi_state == STATE_CONFIG_LOCKED && !nonce_valid) begin
-                current_nonce <= lfsr_feedback;
-                nonce_valid   <= 1'b1;
-            end
-
-            // Invalidate nonce on STOP or error from CONFIG_LOCKED
-            if (tdi_state == STATE_CONFIG_UNLOCKED) begin
-                nonce_valid   <= 1'b0;
-                current_nonce <= {NONCE_WIDTH{1'b0}};
-            end
-        end
-    end
-
     // ==================================================================
-    // Main FSM — TDI State Machine
+    // Main FSM — TDI State Machine (SINGLE always block — no multi-driver)
     // ==================================================================
     always @(posedge clk) begin
         if (!rst_n) begin
