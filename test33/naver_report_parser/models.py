@@ -54,6 +54,32 @@ class ParsedReport:
     full_text: str = ""
     tables: list = field(default_factory=list)
 
+    def to_dict(self) -> dict:
+        """Return a JSON-serializable dict of extracted fields (excludes raw text/tables)."""
+        return {
+            "stock_name": self.stock_name,
+            "stock_code": self.stock_code,
+            "title": self.title,
+            "broker": self.broker,
+            "report_date": self.report_date,
+            "analyst": self.analyst,
+            "investment_opinion": self.investment_opinion,
+            "target_price": self.target_price,
+            "current_price": self.current_price,
+            "upside": self.upside,
+            "revenue": self.revenue,
+            "op_income": self.op_income,
+            "net_income": self.net_income,
+            "eps": self.eps,
+            "per": self.per,
+            "pbr": self.pbr,
+            "roe": self.roe,
+        }
+
+    def to_json(self, indent: int = 2, ensure_ascii: bool = False) -> str:
+        """Return a JSON string of extracted fields."""
+        return json.dumps(self.to_dict(), indent=indent, ensure_ascii=ensure_ascii)
+
     def summary(self) -> str:
         lines = []
         lines.append(f"═══════════════════════════════════════════")
