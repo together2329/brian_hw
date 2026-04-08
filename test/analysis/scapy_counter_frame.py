@@ -562,7 +562,7 @@ def run_all_tests(width: int = 8) -> dict:
             "payload_layout": "[count_out:2B][data_in:2B][flags:1B][rsv:1B]"
                               "[width:1B][magic:1B][crc:1B] = 9B",
             "magic": f"0x{MAGIC_BYTE:02X}",
-            "total_frame_size": "50 bytes",
+            "total_frame_size": "51 bytes",
         },
         "summary": summary,
         "payload_results": payload_results,
