@@ -96,7 +96,7 @@ class _RateLimiter:
     def _requests_in_window(self) -> int:
         return len(self._request_log)
 
-    def acquire(self, estimated_tokens: int | None = None):
+    def acquire(self, estimated_tokens: Optional[int] = None):
         """
         Block until the request can proceed without exceeding limits.
         Uses estimated_tokens for the TPM check; if None, uses internal estimate.
