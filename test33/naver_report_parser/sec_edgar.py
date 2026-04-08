@@ -833,15 +833,17 @@ class SECEdgarClient:
     ) -> List[dict]:
         """Find XBRL values for a list of possible tags in a taxonomy.
 
-        Tries each tag in priority order.  For a given tag, returns only
-        values matching the requested *form* (e.g. "10-K").  If a tag
-        exists but contains **no** entries for the requested form, it is
-        skipped so that the next tag in the list can be tried instead.
-        Only when **all** tags fail to produce a form-filtered match do
-        we fall back to returning unfiltered data from the first tag that
-        has any values at all.
+        Aggregates form-filtered values from **all** matching tags, not
+        just the first.  This is important because a company may report
+        under different XBRL tags in different periods (e.g. one tag for
+        older filings, another for recent ones).  The caller
+        (``_extract_periods``) deduplicates by end_date and keeps the
+        largest absolute value per metric.
+
+        Falls back to unfiltered data only if NO tag has any form match.
         """
-        # Pass 1 — strict form filter
+        # Pass 1 — collect form-filtered values from ALL tags
+        all_filtered: List[dict] = []
         for tag in tags:
             if tag not in taxonomy:
                 continue
@@ -849,8 +851,10 @@ class SECEdgarClient:
             units = tag_data.get("units", {})
             for unit_key, values in units.items():
                 filtered = [v for v in values if v.get("form") == form]
-                if filtered:
-                    return filtered
+                all_filtered.extend(filtered)
+
+        if all_filtered:
+            return all_filtered
 
         # Pass 2 — fallback: first tag with any data (cross-form)
         for tag in tags:
