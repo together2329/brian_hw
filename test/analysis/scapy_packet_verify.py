@@ -407,21 +407,29 @@ def run_all_tests(width: int = 8) -> dict:
     tamper_pass = 0
     tamper_fail = 0
     for i, state in enumerate(states[:5]):  # Test first 5 states
-        for offset in [10, 15, 20]:
+        # Test both header flips (offset<20) and payload flips (offset>=20)
+        for offset in [8, 12, 24]:
             result = tamper_detect(state, flip_bit_offset=offset)
             result["test_index"] = i
+            region = "header" if offset < 20 else "payload"
             result["description"] = (f"State #{i}: count_out={state.count_out}, "
-                                     f"flip@byte{offset}")
+                                     f"flip@byte{offset}({region})")
             tamper_results.append(result)
             if result["passed"]:
                 tamper_pass += 1
-                print(f"  ✅ State #{i} flip@{offset}: "
-                      f"checksum mismatch detected "
-                      f"(0x{result['original_checksum']:04x} → "
-                      f"0x{result['tampered_checksum']:04x})")
+                if result["checksum_mismatch"]:
+                    print(f"  ✅ State #{i} flip@{offset}({region}): "
+                          f"HEADER checksum mismatch detected "
+                          f"(0x{result['original_checksum']:04x} → "
+                          f"0x{result['tampered_checksum']:04x})")
+                else:
+                    print(f"  ✅ State #{i} flip@{offset}({region}): "
+                          f"PAYLOAD content mismatch detected, header checksum intact "
+                          f"(0x{result['original_checksum']:04x})")
             else:
                 tamper_fail += 1
-                print(f"  ❌ State #{i} flip@{offset}: FAIL — no mismatch")
+                reason = "header checksum should differ" if offset < 20 else "unexpected result"
+                print(f"  ❌ State #{i} flip@{offset}({region}): FAIL — {reason}")
 
     # --- Test 3: Boundary Values ---
     print("\n[TEST 3] Boundary value tests")
