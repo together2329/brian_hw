@@ -1121,11 +1121,15 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     _perf_pre = getattr(config, "PERF_TRACKING", False)
     _t_pre = time.time()
 
-    # Rate limiting: Configurable delay (skip for sub-agents)
-    if config.RATE_LIMIT_DELAY > 0 and not skip_rate_limit:
-        if config.DEBUG_MODE:
-            print(Color.info(f"[System] Waiting {config.RATE_LIMIT_DELAY}s for rate limit..."))
-        time.sleep(config.RATE_LIMIT_DELAY)
+    # Rate limiting: TPM/RPM bucket if configured, else legacy fixed delay
+    if not skip_rate_limit:
+        _rl = get_rate_limiter()
+        if _rl.active:
+            _rl.acquire(estimated_tokens=last_input_tokens + last_output_tokens if last_input_tokens > 0 else None)
+        elif config.RATE_LIMIT_DELAY > 0:
+            if config.DEBUG_MODE:
+                print(Color.info(f"[System] Waiting {config.RATE_LIMIT_DELAY}s for rate limit..."))
+            time.sleep(config.RATE_LIMIT_DELAY)
     if _perf_pre:
         print(f"  \033[2m[PERF/setup] rate_limit: {time.time()-_t_pre:.3f}s\033[0m")
 
