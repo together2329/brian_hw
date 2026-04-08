@@ -1033,6 +1033,10 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     if usage:
         last_input_tokens = usage.get("prompt_tokens", usage.get("input_tokens", 0))
         last_output_tokens = usage.get("completion_tokens", usage.get("output_tokens", 0))
+        # Update rate limiter with actual token usage
+        _total = last_input_tokens + last_output_tokens
+        if _total > 0:
+            get_rate_limiter().update_actual_usage(_total)
         # Parse cache stats — Anthropic and OpenAI/Z.AI formats, gated by config
         if config.ENABLE_PROMPT_CACHING:
             _cct = usage.get("cache_creation_input_tokens", 0)
