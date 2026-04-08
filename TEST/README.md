@@ -105,12 +105,10 @@ Inputs are evaluated in this order inside `always_ff`:
 
 ### Waveform Viewing
 
-A VCD file (`tb_counter.vcd`) is generated in the build directory. View with:
+A VCD file (`tb_counter.vcd`) is generated in the project root directory. View with:
 
 ```bash
-gtkwave build/tb_counter.vcd &
-# or
-docker run --rm -v $(pwd):/data -p 8080:8080 ghcr.io/wavedrom/wavedrom
+gtkwave tb_counter.vcd &
 ```
 
 ## Customization
