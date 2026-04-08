@@ -239,8 +239,10 @@ module counter_tb;
         $display("[Test 2.2] Up-count full rollover");
         apply_reset;
         en = 1; up_down = 0;
-        tick((1 << WIDTH)); // Count 2^WIDTH cycles — should roll over to 0
-        check_both('0, 1'b0, "Test 2.2: After full rollover (overflow should be cleared)");
+        tick((1 << WIDTH)); // Count 2^WIDTH cycles — wraps from MAX to 0
+        check_both('0, 1'b1, "Test 2.2: At wrap point, overflow=1");
+        tick(1); // One more tick — overflow clears, count increments
+        check_both('d1, 1'b0, "Test 2.2: Overflow cleared, count=1");
 
         // Test 2.3: Up overflow
         $display("[Test 2.3] Up overflow pulse");
