@@ -75,6 +75,13 @@ RPM_LIMIT = int(os.getenv("RPM_LIMIT", "0"))
 # Set to 0 to disable.
 RATE_LIMIT_DELAY = float(os.getenv("RATE_LIMIT_DELAY", "5"))
 
+# MCP (Model Context Protocol) integration
+# Set ENABLE_MCP=true and configure servers in .mcp.json
+ENABLE_MCP      = os.getenv("ENABLE_MCP", "false").lower() in ("true", "1", "yes")
+MCP_CONFIG_PATH = os.getenv("MCP_CONFIG_PATH", ".mcp.json")
+# Secrets for MCP servers — referenced as ${VAR} in .mcp.json env blocks
+MCP_Z_AI_API_KEY = os.getenv("MCP_Z_AI_API_KEY", "")
+
 # Maximum number of ReAct loop iterations
 # Increased to allow for error recovery attempts (3 retries per error)
 MAX_ITERATIONS = int(os.getenv("MAX_ITERATIONS", "100"))
@@ -176,10 +183,6 @@ ENABLE_TOOL_DESCRIPTIONS = os.getenv("ENABLE_TOOL_DESCRIPTIONS", "true").lower()
 # ============================================================
 # When true: uses structured JSON tool_calls API instead of ReAct text parsing.
 ENABLE_NATIVE_TOOL_CALLS = os.getenv("ENABLE_NATIVE_TOOL_CALLS", "false").lower() in ("true", "1", "yes")
-
-# Keepalive: auto-inject message after N seconds of idle (0 = disabled)
-KEEPALIVE_INTERVAL = int(os.getenv("KEEPALIVE_INTERVAL", "0"))
-KEEPALIVE_MESSAGE = os.getenv("KEEPALIVE_MESSAGE", "keep going")
 
 # ============================================================
 # Type Validation & Linting (Zero-Dependency Features)

@@ -385,5 +385,18 @@ def get_tool_schemas(allowed_tools: List[str]) -> List[Dict]:
     Tools not in TOOL_SCHEMAS are silently skipped (e.g. verilog, cmux, tmux tools
     that are conditionally loaded — they won't be callable in native mode unless
     schemas are added above).
+
+    MCP tools registered via register_dynamic_schema() are included automatically.
     """
-    return [TOOL_SCHEMAS[t] for t in allowed_tools if t in TOOL_SCHEMAS]
+    merged = {**TOOL_SCHEMAS, **_dynamic_schemas}
+    return [merged[t] for t in allowed_tools if t in merged]
+
+
+# ── Dynamic schema registry (for MCP and other runtime-discovered tools) ──────
+
+_dynamic_schemas: Dict[str, Dict] = {}
+
+
+def register_dynamic_schema(name: str, schema: Dict) -> None:
+    """Register a tool schema discovered at runtime (e.g. from an MCP server)."""
+    _dynamic_schemas[name] = schema

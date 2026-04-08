@@ -2810,3 +2810,28 @@ except ImportError:
         AVAILABLE_TOOLS.update(WEB_TOOLS)
     except ImportError:
         pass  # tools_web not available
+
+# MCP tools — dynamically loaded from .mcp.json
+_MCP_MANAGER = None
+try:
+    import config as _config
+    if getattr(_config, 'ENABLE_MCP', False):
+        try:
+            import sys as _sys
+            import os as _os
+            # Ensure mcp/ package is importable from project root
+            _mcp_root = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+            if _mcp_root not in _sys.path:
+                _sys.path.insert(0, _mcp_root)
+            import mcp as _mcp_module
+            from core.tool_schema import register_dynamic_schema
+            _mcp_config = getattr(_config, 'MCP_CONFIG_PATH', '.mcp.json')
+            _MCP_MANAGER = _mcp_module.init(_mcp_config)
+            AVAILABLE_TOOLS.update(_MCP_MANAGER.get_tools())
+            for _schema in _MCP_MANAGER.get_schemas():
+                register_dynamic_schema(_schema["function"]["name"], _schema)
+        except Exception as _e:
+            import sys as _sys
+            print(f"[MCP] Failed to load: {_e}", file=_sys.stderr)
+except ImportError:
+    pass  # config not available in this context

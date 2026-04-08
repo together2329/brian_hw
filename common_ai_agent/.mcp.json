@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "z_ai_image": {
+      "command": "npx",
+      "args": ["-y", "@z_ai/mcp-server"],
+      "env": {
+        "Z_AI_API_KEY": "${MCP_Z_AI_API_KEY}",
+        "Z_AI_MODE": "ZAI"
+      }
+    }
+  }
+}

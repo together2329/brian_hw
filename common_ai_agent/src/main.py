@@ -1296,176 +1296,73 @@ def chat_loop():
     # Prevents the [LLM] connected message from overwriting the prompt line.
     _warmup_thread.join(timeout=1.0)
 
-    # ── Keepalive / Auto-continue ──────────────────────────────────────────
-    # Injects KEEPALIVE_MESSAGE if no activity for KEEPALIVE_INTERVAL seconds.
-    #
-    # Design:
-    #   - Uses prompt_toolkit's event loop (call_soon_threadsafe + app.exit)
-    #     to safely inject input from a background thread.
-    #   - Timer only counts down while waiting for user input (prompt() blocking).
-    #     During LLM work the timer is paused (reset on next prompt display).
-    #   - On each prompt() call, a pre_run hook arms the keepalive so it can
-    #     call app.exit() from inside the event loop — the only reliable way.
-    #
-    import threading as _threading
-    _keepalive_last_activity = [time.time()]   # mutable container for thread access
-    _keepalive_stop = _threading.Event()
-
-    def _keepalive_build_message():
-        """Build keepalive message with todo continuation context."""
-        _msg = getattr(config, "KEEPALIVE_MESSAGE", "keep going")
-        try:
-            if getattr(config, "ENABLE_TODO_TRACKING", False):
-                from lib.todo_tracker import TodoTracker as _TodoTracker
-                _tracker = _TodoTracker.load(Path(config.TODO_FILE))
-                if _tracker and _tracker.todos and not _tracker.is_all_processed():
-                    _reminder = _tracker.get_continuation_prompt()
-                    if _reminder:
-                        return _msg + "\n\n" + _reminder
-        except Exception:
-            pass
-        return _msg
-
-    def _keepalive_thread_fn():
-        """Background thread: polls idle time and triggers injection via event loop."""
-        _interval = getattr(config, "KEEPALIVE_INTERVAL", 0)
-        if _interval <= 0:
-            return
-        while not _keepalive_stop.is_set():
-            _keepalive_stop.wait(timeout=min(5, _interval))
-            if _keepalive_stop.is_set():
-                break
-            _interval = getattr(config, "KEEPALIVE_INTERVAL", 0)
-            if _interval <= 0:
-                continue
-            idle = time.time() - _keepalive_last_activity[0]
-            if idle < _interval:
-                continue
-
-            # ── Idle threshold reached: inject keepalive ──
-            _full_msg = _keepalive_build_message()
-            _elapsed = int(idle)
-            _keepalive_last_activity[0] = time.time()  # reset to prevent re-fire
-
-            # Path A: prompt_toolkit — schedule app.exit() inside the event loop
-            if _multiline_prompt is not None:
-                try:
-                    _app = _multiline_prompt.app
-                    _loop = getattr(_app, 'loop', None)
-                    if _loop is not None and getattr(_app, '_is_running', False):
-                        # print from background thread (safe)
-                        print(f"\n[Keepalive] No activity for {_elapsed}s — injecting keepalive")
-                        # Schedule app.exit(result=...) on the event loop thread
-                        _loop.call_soon_threadsafe(lambda: _app.exit(result=_full_msg))
-                        continue
-                except Exception:
-                    pass
-                # Fallback A2: try app.exit directly if loop not available but app is running
-                try:
-                    if getattr(_app, 'future', None) is not None and not _app.future.done():
-                        print(f"\n[Keepalive] No activity for {_elapsed}s — injecting keepalive")
-                        _app.exit(result=_full_msg)
-                        continue
-                except Exception:
-                    pass
-
-            # Path B: plain input() — write to /dev/tty (what the terminal actually reads)
-            try:
-                print(f"\n[Keepalive] No activity for {_elapsed}s — injecting keepalive")
-                import os as _os
-                try:
-                    _tty_fd = _os.open('/dev/tty', _os.O_RDWR | _os.O_NOCTTY)
-                    _os.write(_tty_fd, (_full_msg + "\n").encode())
-                    _os.close(_tty_fd)
-                except Exception:
-                    # Last resort: stdin
-                    _os.write(sys.stdin.fileno(), (_full_msg + "\n").encode())
-            except Exception:
-                pass
-
-    def _keepalive_arm():
-        """pre_run hook: reset timer when prompt() starts waiting for input."""
-        _keepalive_last_activity[0] = time.time()
-
-    # Register pre_run hook on prompt_toolkit so keepalive resets each prompt
-    if _multiline_prompt is not None and getattr(config, "KEEPALIVE_INTERVAL", 0) > 0:
-        try:
-            _keepalive_arm  # ensure defined
-            _multiline_prompt.app.pre_run_callables.append(_keepalive_arm)
-        except Exception:
-            pass
-
-    if getattr(config, "KEEPALIVE_INTERVAL", 0) > 0:
-        _kt = _threading.Thread(target=_keepalive_thread_fn, daemon=True, name="keepalive")
-        _kt.start()
-        _iv = getattr(config, "KEEPALIVE_INTERVAL", 0)
-        print(Color.info(f"[Keepalive] Active — will inject '{getattr(config, 'KEEPALIVE_MESSAGE', 'keep going')}' after {_iv}s idle\n"))
-
     while True:
         try:
             if config.ENABLE_TODO_TRACKING:
                 todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE))
 
-            # Reset keepalive timer — entering input wait state.
-            # The pre_run hook also resets for prompt_toolkit, but we set it
-            # here too so the timer is armed even for plain input() path.
-            _keepalive_last_activity[0] = time.time()
-            if _multiline_prompt:
-                is_plan_turn = (agent_mode in ('plan', 'plan_q'))
+            try:
+                if _multiline_prompt:
+                    is_plan_turn = (agent_mode in ('plan', 'plan_q'))
 
-                if agent_mode == 'plan_q':
-                    _plan_prompt = ANSI(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
-                    user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
-                elif agent_mode == 'plan':
-                    _has_non_approved = todo_tracker_main and any(
-                        t.status != 'approved' for t in todo_tracker_main.todos
-                    ) if todo_tracker_main else False
-                    if _has_non_approved:
-                        print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
-                        print(f"  {Color.DIM}y        → execute plan now")
-                        print(f"  yc       → execute + compress context (clean up conversation)")
-                        print(f"  n        → cancel / revise")
-                        print(f"  <other>  → feedback / refinement{Color.RESET}")
-                        _plan_prompt = ANSI(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                    if agent_mode == 'plan_q':
+                        _plan_prompt = ANSI(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
                         user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
+                    elif agent_mode == 'plan':
+                        _has_non_approved = todo_tracker_main and any(
+                            t.status != 'approved' for t in todo_tracker_main.todos
+                        ) if todo_tracker_main else False
+                        if _has_non_approved:
+                            print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
+                            print(f"  {Color.DIM}y        → execute plan now")
+                            print(f"  yc       → execute + compress context (clean up conversation)")
+                            print(f"  n        → cancel / revise")
+                            print(f"  <other>  → feedback / refinement{Color.RESET}")
+                            _plan_prompt = ANSI(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                            user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
+                        else:
+                            user_input = _multiline_prompt.prompt(_prompt_text)
                     else:
                         user_input = _multiline_prompt.prompt(_prompt_text)
                 else:
-                    user_input = _multiline_prompt.prompt(_prompt_text)
-            else:
-                is_plan_turn = (agent_mode in ('plan', 'plan_q'))
+                    is_plan_turn = (agent_mode in ('plan', 'plan_q'))
 
-                _input_fn = _loop_deps.input_fn or input
-                if agent_mode == 'plan_q':
-                    user_input = _input_fn(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
-                elif agent_mode == 'plan':
-                    _has_non_approved = todo_tracker_main and any(
-                        t.status != 'approved' for t in todo_tracker_main.todos
-                    ) if todo_tracker_main else False
-                    if _has_non_approved:
-                        print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
-                        print(f"  {Color.DIM}y        → execute plan now")
-                        print(f"  yc       → execute + compress context (clean up conversation)")
-                        print(f"  n        → cancel / revise")
-                        print(f"  <other>  → feedback / refinement{Color.RESET}")
-                        user_input = _input_fn(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                    _input_fn = _loop_deps.input_fn or input
+                    if agent_mode == 'plan_q':
+                        user_input = _input_fn(Color.warning("Plan Mode ") + Color.CYAN + "> " + Color.RESET)
+                    elif agent_mode == 'plan':
+                        _has_non_approved = todo_tracker_main and any(
+                            t.status != 'approved' for t in todo_tracker_main.todos
+                        ) if todo_tracker_main else False
+                        if _has_non_approved:
+                            print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
+                            print(f"  {Color.DIM}y        → execute plan now")
+                            print(f"  yc       → execute + compress context (clean up conversation)")
+                            print(f"  n        → cancel / revise")
+                            print(f"  <other>  → feedback / refinement{Color.RESET}")
+                            user_input = _input_fn(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
+                        else:
+                            user_input = _input_fn(Color.user("> ") + Color.RESET)
                     else:
-                        user_input = _input_fn(Color.user("> ") + Color.RESET)
-                else:
-                    _em = getattr(config, 'EXECUTION_MODE', 'agent')
-                    if _em == 'chat':
-                        _ci = getattr(config, 'CHAT_MAX_ITERATIONS', 1)
-                        _em_prefix = f"[chat:{_ci}] "
-                    elif _em != 'agent':
-                        _em_prefix = f"[{_em}] "
-                    else:
-                        _em_prefix = ""
-                    user_input = _input_fn(_em_prefix + Color.user("> ") + Color.RESET)
-            _keepalive_last_activity[0] = time.time()  # reset timer: activity detected
+                        _em = getattr(config, 'EXECUTION_MODE', 'agent')
+                        if _em == 'chat':
+                            _ci = getattr(config, 'CHAT_MAX_ITERATIONS', 1)
+                            _em_prefix = f"[chat:{_ci}] "
+                        elif _em != 'agent':
+                            _em_prefix = f"[{_em}] "
+                        else:
+                            _em_prefix = ""
+                        user_input = _input_fn(_em_prefix + Color.user("> ") + Color.RESET)
+            except KeyboardInterrupt:
+                # Real user Ctrl+C — re-raise to outer handler
+                raise
+
             if user_input.lower() in ["exit", "quit"]:
                 break
 
             if not user_input.strip():
+                if getattr(config, "DEBUG_MODE", False):
+                    print(f"[Keepalive] DEBUG: user_input was empty/whitespace, skipping: {repr(user_input[:80])}")
                 continue
 
             # Handle slash commands
@@ -1987,6 +1884,7 @@ def chat_loop():
 
             # Delegate per-turn processing to core/chat_loop
             _loop_state, _ctrl = _process_chat_turn(user_input, _loop_state, _loop_deps)
+
             messages = _loop_state.messages
             agent_mode = _loop_state.agent_mode
             rolling_window_size = _loop_state.rolling_window_size

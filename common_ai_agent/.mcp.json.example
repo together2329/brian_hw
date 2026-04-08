@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "z_ai_image": {
+      "command": "npx",
+      "args": ["-y", "@z_ai/mcp-server"],
+      "env": {
+        "Z_AI_API_KEY": "${MCP_Z_AI_API_KEY}",
+        "Z_AI_MODE": "ZAI"
+      }
+    },
+    "brave_search": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/allowed/dir"],
+      "env": {}
+    }
+  }
+}
