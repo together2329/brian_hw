@@ -99,6 +99,9 @@ class ReportParser:
                 self._extract_investment_opinion(parsed, pages_text, all_tables)
                 self._extract_financials(parsed, pages_text, all_tables)
 
+            # Auto-calculate upside if not extracted but we have prices
+            self._compute_upside(parsed)
+
         return parsed
 
     def parse_url(self, pdf_url: str) -> ParsedReport:
