@@ -662,6 +662,14 @@ UPD_RULE_PERIODIC_INJECT = os.getenv("UPD_RULE_PERIODIC_INJECT", "false").lower(
 TODO_AUTO_ADVANCE = os.getenv("TODO_AUTO_ADVANCE", "true").lower() in ("true", "1", "yes")
 
 # ============================================================
+# Proactive Mode Configuration
+# ============================================================
+# When enabled, the agent will show a proactive message after idle timeout
+PROACTIVE_ENABLED = os.getenv("PROACTIVE_ENABLED", "false").lower() in ("true", "1", "yes")
+PROACTIVE_IDLE_SECONDS = int(os.getenv("PROACTIVE_IDLE_SECONDS", "30"))
+PROACTIVE_MESSAGE = os.getenv("PROACTIVE_MESSAGE", "🤔 Still here? Need help with anything?")
+
+# ============================================================
 # TodoWrite Tool (Claude Code Integration)
 # ============================================================
 # Enable TodoWrite as an explicit tool (in addition to auto-parsing)

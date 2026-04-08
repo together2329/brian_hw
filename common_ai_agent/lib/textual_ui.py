@@ -8,6 +8,7 @@ import os
 import queue
 import re
 import sys
+import time
 from typing import Callable
 
 from rich.markdown import Markdown as _RichMarkdown
@@ -872,15 +873,26 @@ class AgentTUI(App):
         self._sess_sum_tok = 0
         self._cost_in_pm = self._cost_cch_pm = self._cost_out_pm = 0.0
         self._interrupt = False
+        # ── Proactive mode state ─────────────────────────────────────
+        self._proactive_enabled = False
+        self._proactive_idle_seconds = 30
+        self._proactive_message = ''
+        self._last_input_time = 0.0
+        self._proactive_timer = None
         try:
             import config as _cfg
             self._model = getattr(_cfg, "MODEL_NAME", "")
             self._primary_model  = getattr(_cfg, "PRIMARY_MODEL",  self._model)
             self._secondary_model = getattr(_cfg, "SECONDARY_MODEL", self._model)
+            # Load proactive mode config
+            self._proactive_enabled = getattr(_cfg, "PROACTIVE_ENABLED", False)
+            self._proactive_idle_seconds = getattr(_cfg, "PROACTIVE_IDLE_SECONDS", 30)
+            self._proactive_message = getattr(_cfg, "PROACTIVE_MESSAGE", '🤔 Still here? Need help with anything?')
         except Exception:
             self._model = ""
             self._primary_model = ""
             self._secondary_model = ""
+        self._last_input_time = time.time()
 
     def compose(self) -> ComposeResult:
         cwd_full = os.getcwd()
@@ -936,6 +948,8 @@ class AgentTUI(App):
         self.query_one(_AgentInput).focus()
         self._start_agent()
         self.set_timer(0.1, self._init_sidebar)
+        # Start proactive idle timer
+        self._start_proactive_timer()
 
     def _init_sidebar(self) -> None:
         """Populate sidebar from on-disk state before first agent response."""
@@ -1201,6 +1215,9 @@ class AgentTUI(App):
         event.input.value = ""
         if not text:
             return
+        # Reset proactive idle timer on user input
+        self._last_input_time = time.time()
+        self._start_proactive_timer()
         # Save to history
         try:
             self.query_one(_AgentInput).save_to_history(text)
@@ -1360,12 +1377,55 @@ class AgentTUI(App):
                 label = f"Action ({self._current_tool})"
             elif self._generating:
                 label = "Generating..."
+            elif self._proactive_enabled and (time.time() - self._last_input_time) >= self._proactive_idle_seconds:
+                label = self._proactive_message
             else:
                 label = "Waiting for input..."
             a = RichText()
             if label:
                 a.append(label, style=f"italic dim {_TEXT_DIM}")
             self.query_one("#activity", Static).update(a)
+        except Exception:
+            pass
+
+    # ── Proactive idle timer ────────────────────────────────────────────
+
+    def _start_proactive_timer(self) -> None:
+        """Cancel any running proactive timer and schedule a new one."""
+        if not self._proactive_enabled:
+            return
+        if self._proactive_timer is not None:
+            try:
+                self._proactive_timer.stop()
+            except Exception:
+                pass
+            self._proactive_timer = None
+        self._proactive_timer = self.set_timer(
+            self._proactive_idle_seconds, self._check_proactive_idle
+        )
+
+    def _check_proactive_idle(self) -> None:
+        """Callback after idle threshold: show proactive message if still idle."""
+        if not self._proactive_enabled:
+            return
+        self._proactive_timer = None
+        elapsed = time.time() - self._last_input_time
+        if elapsed < self._proactive_idle_seconds:
+            # User typed something recently; reschedule
+            self._start_proactive_timer()
+            return
+        # Still idle — update activity sidebar
+        try:
+            a = RichText()
+            a.append(self._proactive_message, style=f"bold {_ACCENT}")
+            self.query_one("#activity", Static).update(a)
+        except Exception:
+            pass
+        # Also post into main log
+        try:
+            log = self.query_one("#main", RichLog)
+            from rich.text import Text
+            log.write(Text(self._proactive_message, style=f"italic {_ACCENT}"))
         except Exception:
             pass
 
