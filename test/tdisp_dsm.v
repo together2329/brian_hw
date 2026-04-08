@@ -51,7 +51,7 @@ module tdisp_dsm #(
     output reg                            spdm_resp_valid, // Response valid
     input  wire                           spdm_resp_ready, // Response ready (backpressure)
     output reg  [DATA_WIDTH-1:0]          spdm_resp_data,  // Response data word
-    output reg  [7:0]                     spdm_resp_len,   // Response length in words
+    output wire [7:0]                     spdm_resp_len,   // Response length in words (mirrors resp_total_words)
 
     // ── TDI State Output ────────────────────────────────────────────
     output reg  [2:0]                     tdi_state,       // Current TDI state
