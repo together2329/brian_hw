@@ -372,6 +372,7 @@ def execute_tool(tool_name, args_str):
         available_tools=tools.AVAILABLE_TOOLS,
         debug=getattr(config, "DEBUG_MODE", False),
         hook_registry=hook_registry,
+        global_timeout=getattr(config, "REACT_TOOL_GLOBAL_TIMEOUT", 300),
     )
 
 # --- 5. Context Management ---
