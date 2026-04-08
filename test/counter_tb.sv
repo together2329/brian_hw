@@ -599,16 +599,59 @@ module counter_tb;
         $display("");
         $display("--- Group 8: Parameterization Tests ---");
 
-        // Test 8.1: WIDTH=8 (already running — verify basic operation)
-        $display("[Test 8.1] WIDTH=%0d basic verification", WIDTH);
-        apply_reset;
-        en = 1; up_down = 0;
-        tick(1);
-        check_value('d1, "Test 8.1: WIDTH=8 count=1");
-        tick(1);
-        check_value('d2, "Test 8.1: WIDTH=8 count=2");
-        $display("  [INFO] WIDTH=%0d parameter verified in this testbench", WIDTH);
-        $display("  [INFO] For WIDTH=4 and WIDTH=16, re-run with different parameter overrides");
+        // Test 8.1: WIDTH=4 parameterized counter
+        $display("[Test 8.1] WIDTH=4 parameterized counter test");
+        begin
+            // Reset and count up through full range 0→15
+            apply_reset;
+            en = 1; up_down = 0; load = 0;
+            // Count from 0 to 15 (16 ticks), should wrap
+            for (int i = 0; i < 15; i++) begin
+                tick(1);
+            end
+            test_count++;
+            if (count_out_4 !== 4'd15) begin
+                $display("  [FAIL] WIDTH=4 count up to 15: got %0d", count_out_4);
+                fail_count++;
+            end else begin
+                pass_count++;
+                $display("  [PASS] WIDTH=4 count up to 15: got %0d", count_out_4);
+            end
+            // One more tick should wrap to 0 and set overflow
+            tick(1);
+            test_count++;
+            if (count_out_4 !== 4'd0 || overflow_4 !== 1'b1) begin
+                $display("  [FAIL] WIDTH=4 wrap: count=%0d overflow=%0b (expected 0,1)", count_out_4, overflow_4);
+                fail_count++;
+            end else begin
+                pass_count++;
+                $display("  [PASS] WIDTH=4 wrap: count=%0d overflow=%0b", count_out_4, overflow_4);
+            end
+            // Count down from 0 → should wrap to 15
+            up_down = 1;
+            tick(1);
+            test_count++;
+            if (count_out_4 !== 4'd15 || overflow_4 !== 1'b1) begin
+                $display("  [FAIL] WIDTH=4 down-wrap: count=%0d overflow=%0b (expected 15,1)", count_out_4, overflow_4);
+                fail_count++;
+            end else begin
+                pass_count++;
+                $display("  [PASS] WIDTH=4 down-wrap: count=%0d overflow=%0b", count_out_4, overflow_4);
+            end
+            // Load a value
+            load = 1; data_in = '0; up_down = 0;
+            tick(1);
+            load = 0;
+            test_count++;
+            if (count_out_4 !== 4'd0) begin
+                $display("  [FAIL] WIDTH=4 load 0: got %0d", count_out_4);
+                fail_count++;
+            end else begin
+                pass_count++;
+                $display("  [PASS] WIDTH=4 load 0: got %0d", count_out_4);
+            end
+            $display("  [INFO] WIDTH=4 parameterized counter verified");
+        end
 
         // ============================================================
         // Final Summary
