@@ -935,8 +935,13 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     """
     global last_input_tokens, last_output_tokens
 
-    if config.RATE_LIMIT_DELAY > 0 and not skip_rate_limit:
-        time.sleep(config.RATE_LIMIT_DELAY)
+    # Rate limiting: TPM/RPM bucket if configured, else legacy fixed delay
+    if not skip_rate_limit:
+        _rl = get_rate_limiter()
+        if _rl.active:
+            _rl.acquire(estimated_tokens=last_input_tokens + last_output_tokens if last_input_tokens > 0 else None)
+        elif config.RATE_LIMIT_DELAY > 0:
+            time.sleep(config.RATE_LIMIT_DELAY)
 
     # Apply prompt caching if enabled
     processed_messages = messages
