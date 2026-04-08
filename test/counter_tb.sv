@@ -69,6 +69,7 @@ module counter_tb;
     localparam WIDTH16 = 16;
     logic [WIDTH16-1:0] count_out_16;
     logic               overflow_16;
+    logic [WIDTH16-1:0] data_in_16;
 
     counter #(
         .WIDTH(WIDTH16)
@@ -78,7 +79,7 @@ module counter_tb;
         .en        (en),
         .load      (load),
         .up_down   (up_down),
-        .data_in   (data_in),
+        .data_in   (data_in_16),
         .count_out (count_out_16),
         .overflow  (overflow_16)
     );
