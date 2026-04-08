@@ -140,23 +140,23 @@ def _compute_crc(payload_bytes: bytes) -> int:
 
 
 def encode_payload(state: CounterState) -> bytes:
-    """Serialize CounterState into 8-byte structured payload."""
+    """Serialize CounterState into structured payload."""
     errs = state.validate()
     if errs:
         raise ValueError(f"Invalid CounterState: {errs}")
 
     flags = _pack_flags(state)
-    # Pack without CRC first (7 bytes)
-    partial = struct.pack(
-        ">HHBBB",
+    # Pack structured header (7 bytes)
+    header = struct.pack(
+        PAYLOAD_HDR,
         state.count_out & 0xFFFF,
         state.data_in   & 0xFFFF,
         flags,
         0,                  # reserved byte
         state.width,
     )
-    # Add magic + CRC
-    pre_crc = partial + bytes([MAGIC_BYTE])
+    # Append magic + CRC
+    pre_crc = header + bytes([MAGIC_BYTE])
     crc = _compute_crc(pre_crc)
     return pre_crc + bytes([crc])
 
