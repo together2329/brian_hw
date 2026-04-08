@@ -412,15 +412,28 @@ module tdisp_dsm #(
                         8'd10: received_nonce[223:192] <= spdm_req_data;
                         8'd11: begin
                             received_nonce[255:224] <= spdm_req_data;
-                            // Bug#5 hook: nonce validation goes here
-                            // For now, assume nonce matches
-                            tdi_state       <= STATE_RUN;
-                            nonce_valid     <= 1'b0;
-                            resp_msg_type   <= RESP_START_INTERFACE;
-                            resp_total_words <= 8'd1;
-                            spdm_resp_valid  <= 1'b1;
-                            spdm_req_ready   <= 1'b0;
-                            req_parsed       <= 1'b0; // ready for next request
+                            // Nonce validation: received_nonce[223:0] is settled,
+                            // but [255:224] NBA hasn't taken effect — use spdm_req_data directly.
+                            if ((received_nonce[223:0] != current_nonce[223:0]) ||
+                                (spdm_req_data != current_nonce[255:224])) begin
+                                // §11.3.14: Nonce mismatch → INVALID_NONCE
+                                pending_error    <= ERR_INVALID_NONCE;
+                                resp_msg_type    <= RESP_TDISP_ERROR;
+                                resp_total_words <= 8'd8;
+                                spdm_resp_valid  <= 1'b1;
+                                spdm_req_ready   <= 1'b0;
+                                error_irq        <= 1'b1;
+                                last_error_code  <= ERR_INVALID_NONCE;
+                                req_parsed       <= 1'b0;
+                            end else begin
+                                tdi_state       <= STATE_RUN;
+                                nonce_valid     <= 1'b0;
+                                resp_msg_type   <= RESP_START_INTERFACE;
+                                resp_total_words <= 8'd1;
+                                spdm_resp_valid  <= 1'b1;
+                                spdm_req_ready   <= 1'b0;
+                                req_parsed       <= 1'b0; // ready for next request
+                            end
                         end
 
                         default: begin
