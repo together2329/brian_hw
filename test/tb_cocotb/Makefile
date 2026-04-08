@@ -15,7 +15,9 @@ SIM             ?= icarus
 # --- Top-level RTL module ---
 TOPLEVEL_LANG    = verilog
 TOPLEVEL         = counter
-MODULE           ?= tests
+
+# --- Test modules (cocotb 2.0+ uses COCOTB_TEST_MODULES) ---
+ALL_TEST_MODULES := tests.test_reset,tests.test_up_count,tests.test_down_count,tests.test_enable,tests.test_load,tests.test_direction_switch,tests.test_stress,tests.test_param_width
 
 # --- Width parameter (overridable) ---
 WIDTH           ?= 8
@@ -27,9 +29,11 @@ VERILOG_SOURCES  = $(shell pwd)/../counter.v
 COMPILE_ARGS    += -P counter.WIDTH=$(WIDTH)
 
 # --- Test selection ---
-# Run a specific test file (e.g., make TEST=test_reset)
+# Run all tests by default; override with TEST=test_reset for a single module
 ifneq ($(TEST),)
-  MODULE = tests.$(TEST)
+  COCOTB_TEST_MODULES := tests.$(TEST)
+else
+  COCOTB_TEST_MODULES := $(ALL_TEST_MODULES)
 endif
 
 # --- Python path: include tb_cocotb root for imports ---
