@@ -996,11 +996,14 @@ class AgentTUI(App):
         """Exit alternate screen and reset terminal before force-kill."""
         try:
             import sys as _sys
-            # \x1b[?1049l  exit alternate screen buffer (restores original terminal)
-            # \x1b[?25h    show cursor
-            # \x1b[0m      reset all attributes
-            # \x1b[2J\x1b[H clear screen, cursor home
-            _sys.stdout.write("\x1b[?1049l\x1b[?25h\x1b[0m\x1b[2J\x1b[H")
+            _sys.stdout.write(
+                "\x1b[?1049l"   # exit alternate screen buffer
+                "\x1b[?25h"     # show cursor
+                "\x1b[0m"       # reset all attributes / colors
+                "\x1b[3J"       # clear scrollback buffer
+                "\x1b[2J"       # clear visible screen
+                "\x1b[H"        # cursor to top-left
+            )
             _sys.stdout.flush()
         except Exception:
             pass
@@ -1045,15 +1048,21 @@ class AgentTUI(App):
     def action_stop(self) -> None:
         """ESC: interrupt current agent execution. Always works regardless of state."""
         self._interrupt = True      # works even if _generating flag is stale
+        # Close any open reasoning block and clear live preview
+        self._reasoning_open = False
+        self._generating = False
+        try:
+            live = self.query_one("#live", Static)
+            live.update("")
+            live.remove_class("active")
+        except Exception:
+            pass
         log = self.query_one("#main", RichLog)
         t = RichText()
-        t.append("\n  ⎋ ", style=f"bold {_YELLOW}")
-        if self._generating:
-            t.append("Stopping… (force-quit in 5s if stuck)", style=_TEXT_DIM)
-            self.set_timer(5.0, self._esc_watchdog)
-        else:
-            t.append("Interrupt sent.", style=_TEXT_DIM)
+        t.append("\n  [ESC] ", style=f"bold {_YELLOW}")
+        t.append("Interrupted.", style=_TEXT_DIM)
         log.write(t)
+        self._update_statusbar()
         self._scroll_down()
 
     def _esc_watchdog(self) -> None:
