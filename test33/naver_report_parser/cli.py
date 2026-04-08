@@ -129,8 +129,15 @@ def _crawl_and_analyze(
     """
     # Step 1: Crawl report listings
     _log(f"🔍 [{stock_code}] 리포트 목록 조회 중...", verbose)
-    crawler = NaverReportCrawler()
-    report_list = crawler.fetch_latest(stock_code, count=count)
+    try:
+        crawler = NaverReportCrawler()
+        report_list = crawler.fetch_latest(stock_code, count=count)
+    except CrawlError as e:
+        _log(f"❌ 크롤링 오류: {e}", verbose)
+        return [], []
+    except Exception as e:
+        _log(f"❌ 예상치 못한 오류: {e}", verbose)
+        return [], []
 
     if not report_list:
         _log(f"📭 리포트를 찾을 수 없습니다: {stock_code}", verbose)
