@@ -147,42 +147,44 @@ def extract_ports(mod):
             ph = sub.header
             decl = sub.declarator
 
-            # Direction: input / output / inout
+            # Direction: use kind name to avoid trivia pollution
             direction = _token_text(ph.direction)
 
-            # Determine type: wire vs reg
+            # Determine type: wire vs reg (from netType or dataType kind)
             net_or_var = ""
             if hasattr(ph, 'netType') and ph.netType:
                 net_or_var = _token_text(ph.netType)
             elif hasattr(ph, 'varKeyword') and ph.varKeyword:
                 net_or_var = "var"
 
-            # Data type (includes bus width like [WIDTH-1:0])
+            # If netType empty, infer from dataType kind
             dt = ph.dataType
-            dt_text = _token_text(dt)
-            width_spec = ""
+            dt_kind = _kind_name(dt)
+            if not net_or_var:
+                if 'RegType' in dt_kind:
+                    net_or_var = "reg"
+                else:
+                    net_or_var = "wire"
 
-            # Check declarator dimensions (alternative width source)
-            dims = decl.dimensions
-            if dims:
-                width_spec = _token_text(dims)
-
-            # Parse width from dataType text if present
-            if dt_text and '[' in dt_text:
-                width_spec = dt_text.strip()
-            elif width_spec:
-                pass  # already set from dimensions
-            else:
-                width_spec = "1-bit"
+            # Width: extract from dataType text (e.g. "[WIDTH-1:0]")
+            dt_text = str(dt).strip()
+            # Clean trivia from dt_text (may have embedded comments)
+            # Just look for bracket expressions
+            width_spec = "1-bit"
+            if '[' in dt_text:
+                import re
+                m = re.search(r'\[.*?\]', dt_text)
+                if m:
+                    width_spec = m.group(0)
 
             port_name = decl.name.value
 
             ports.append({
                 "name": port_name,
                 "direction": direction,
-                "type": net_or_var if net_or_var else ("reg" if "RegType" in _kind_name(dt) else "wire"),
+                "type": net_or_var,
                 "width": width_spec,
-                "data_type_kind": _kind_name(dt),
+                "data_type_kind": dt_kind,
             })
     return ports
 
