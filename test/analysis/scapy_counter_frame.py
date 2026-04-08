@@ -560,7 +560,7 @@ def run_all_tests(width: int = 8) -> dict:
         "frame_format": {
             "layers": "Ether(14B) / IP(20B) / UDP(8B) / Payload(8B)",
             "payload_layout": "[count_out:2B][data_in:2B][flags:1B][rsv:1B]"
-                              "[width:1B][magic:1B][crc:1B]",
+                              "[width:1B][magic:1B][crc:1B] = 9B",
             "magic": f"0x{MAGIC_BYTE:02X}",
             "total_frame_size": "50 bytes",
         },
