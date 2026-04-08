@@ -451,13 +451,13 @@ class ReportParser:
         for i, cell in enumerate(header):
             cell = cell.strip()
             # Prefer columns with E/F/P suffix (estimates)
-            m = re.match(r"(20\d{2})[EFP]", cell)
+            m = re.match(r"(20\d{2})[EFP]", cell, re.IGNORECASE)
             if m:
                 year = int(m.group(1))
                 if year > best_year:
                     best_year = year
                     best = i
-            # Also consider plain year columns
+            # Also consider plain year columns (but lower priority than E/F/P)
             m = re.match(r"(20\d{2})$", cell)
             if m and best is None:
                 year = int(m.group(1))
@@ -466,6 +466,14 @@ class ReportParser:
                     best = i
 
         return best
+
+    @staticmethod
+    def _compute_upside(parsed: ParsedReport) -> None:
+        """Auto-calculate upside from target_price and current_price if not set."""
+        if parsed.upside is None and parsed.target_price and parsed.current_price:
+            parsed.upside = round(
+                (parsed.target_price - parsed.current_price) / parsed.current_price * 100, 1
+            )
 
     @staticmethod
     def _safe_int(text: str) -> Optional[int]:
