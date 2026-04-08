@@ -157,7 +157,10 @@ module tdisp_dsm #(
          nonce_lfsr[NONCE_WIDTH-1] ^ nonce_lfsr[NONCE_WIDTH-4] ^ 
          nonce_lfsr[NONCE_WIDTH-9] ^ nonce_lfsr[NONCE_WIDTH-12]};
 
-    // ==================================================================
+   // Response length tracks internal resp_total_words (Bug#2 fix)
+   assign spdm_resp_len = resp_total_words;
+
+   // ==================================================================
     // Main FSM — TDI State Machine (SINGLE always block — no multi-driver)
     // ==================================================================
     always @(posedge clk) begin
