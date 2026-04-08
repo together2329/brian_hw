@@ -153,17 +153,27 @@ class ReportParser:
                 if m:
                     parsed.analyst = m.group(1)
                 else:
-                    # Pattern: "한글이름 부서명" near email (DS투자증권 style)
-                    m = re.search(r"([가-힣]{2,4})\s+[가-힣]+\s*\n.*?[\w.-]+@[\w.-]+", page1)
+                    # Pattern: "한글이름 부서명" near email, possibly multiple lines away
+                    m = re.search(
+                        r"([가-힣]{2,4})\s+[가-힣]+\s*\n[\s\S]*?[\w.-]+@[\w.-]+",
+                        page1,
+                    )
                     if m:
                         parsed.analyst = m.group(1)
                     else:
-                        # Pattern: "한글이름" right before email on same line
-                        m = re.search(r"([가-힣]{2,4})\d{6,}@", page1)
-                        if not m:
-                            m = re.search(r"([가-힣]{2,4})\s+[\w.-]+@[\w.-]+", page1)
+                        # Pattern: Korean name alone on a line, near email
+                        m = re.search(
+                            r"^([가-힣]{2,4})\s*$",
+                            page1,
+                            re.MULTILINE,
+                        )
                         if m:
                             parsed.analyst = m.group(1)
+                        else:
+                            # Pattern: "한글이름" right before email
+                            m = re.search(r"([가-힣]{2,4})\s+[\w.-]+@[\w.-]+", page1)
+                            if m:
+                                parsed.analyst = m.group(1)
 
         # ── Stock code from "(005930)" or "(066570)" pattern ──
         if not parsed.stock_code:
