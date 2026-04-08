@@ -402,8 +402,11 @@ class _AgentInput(Input):
                 from core.slash_commands import get_registry  # type: ignore
             cmds = get_registry().get_completions()
             matches = [c for c in cmds if c.lower().startswith(value.lower())]
-            if not force:
-                matches = [c for c in matches if c != value]
+            non_exact = [c for c in matches if c != value]
+            if non_exact:
+                matches = non_exact
+            elif not force:
+                matches = []
             if matches:
                 ol.clear_options()
                 for m in matches:
@@ -441,8 +444,12 @@ class _AgentInput(Input):
                 if os.path.isdir(os.path.join(base, name)):
                     full += '/'
                 file_matches.append(value[:at_pos + 1] + full)
-            if not force:
-                file_matches = [m for m in file_matches if m != value]
+            non_exact = [m for m in file_matches if m != value]
+            if non_exact:
+                file_matches = non_exact       # always prefer non-exact matches
+            elif not force:
+                file_matches = []              # exact only → hide unless forced
+            # else: force=True + only exact match → show it so user knows it's valid
             if file_matches:
                 ol.clear_options()
                 for m in file_matches:
