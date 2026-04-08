@@ -174,19 +174,19 @@ class CounterPacketMapper:
         # Reconstruct count_out from TTL (low byte) + IP.id (high byte)
         count_out = (ttl & 0xFF) | ((ip_id & 0xFF) << 8)
 
-        # Single-bit fields
+        # Single-bit fields — use int() to avoid scapy FlagValue strings
         overflow = tos & 0x1
-        up_down  = flags & 0x1
-        en       = (flags >> 2) & 0x1
-        load     = (frag >> 8) & 0x1
+        up_down  = int(flags) & 0x1
+        en       = (int(flags) >> 2) & 0x1
+        load     = (int(frag) >> 8) & 0x1
 
-        # Decode payload for data_in
+        # Decode payload for data_in (lossless: 2 bytes)
         data_in = 0
         if pkt.haslayer(Raw):
             raw_bytes = bytes(pkt[Raw].load)
-            if len(raw_bytes) >= 3:
-                # First 2 bytes = count_out echo, byte 3 = flags
-                data_in = (raw_bytes[2] & 0x1)  # LSB indicates non-zero data_in
+            if len(raw_bytes) >= 5:
+                # Bytes 2-3 = data_in (big-endian uint16)
+                data_in = struct.unpack(">H", raw_bytes[2:4])[0]
 
         # Determine width from count_out value
         if count_out > 0xFF:
