@@ -118,10 +118,53 @@ class ReportParser:
     # ── PDF Download ───────────────────────────────────────────────────────
 
     def _download_pdf(self, url: str) -> bytes:
-        """Download a PDF file and return its raw bytes."""
-        resp = self.session.get(url, timeout=PDF_TIMEOUT)
-        resp.raise_for_status()
-        return resp.content
+        """Download a PDF file and return its raw bytes, with retry."""
+        import time
+
+        last_exc: Exception | None = None
+
+        for attempt in range(1, PDF_MAX_RETRIES + 1):
+            try:
+                resp = self.session.get(url, timeout=PDF_TIMEOUT)
+                resp.raise_for_status()
+
+                # Validate that response looks like a PDF
+                content_type = resp.headers.get("Content-Type", "")
+                if "pdf" not in content_type and not resp.content[:5].startswith(b"%PDF"):
+                    logger.warning(
+                        "Response may not be a PDF (Content-Type: %s, URL: %s)",
+                        content_type, url,
+                    )
+
+                return resp.content
+
+            except requests.exceptions.ConnectionError as e:
+                last_exc = e
+                logger.warning("PDF download connection error (attempt %d/%d): %s", attempt, PDF_MAX_RETRIES, e)
+            except requests.exceptions.Timeout as e:
+                last_exc = e
+                logger.warning("PDF download timeout (attempt %d/%d): %s", attempt, PDF_MAX_RETRIES, e)
+            except requests.exceptions.HTTPError as e:
+                status = e.response.status_code if e.response is not None else None
+                raise PDFDownloadError(
+                    f"PDF 다운로드 HTTP {status} 오류: {e}",
+                    url=url,
+                    detail=str(e),
+                ) from e
+            except requests.exceptions.RequestException as e:
+                last_exc = e
+                logger.warning("PDF download error (attempt %d/%d): %s", attempt, PDF_MAX_RETRIES, e)
+
+            if attempt < PDF_MAX_RETRIES:
+                wait = PDF_RETRY_BACKOFF * (2 ** (attempt - 1))
+                logger.info("Retrying PDF download in %.1fs ...", wait)
+                time.sleep(wait)
+
+        raise PDFDownloadError(
+            f"PDF 다운로드 실패 ({PDF_MAX_RETRIES}회 재시도): {last_exc}",
+            url=url,
+            detail=str(last_exc),
+        ) from last_exc
 
     # ── Metadata Extraction ────────────────────────────────────────────────
 
