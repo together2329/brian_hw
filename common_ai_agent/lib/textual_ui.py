@@ -393,6 +393,45 @@ class _AgentInput(Input):
         except Exception:
             return None
 
+    def _show_at_dropdown(self, value: str, ol: OptionList, force: bool = False) -> None:
+        """Populate and show the @ file completion dropdown.
+
+        force=True: show even if current value exactly matches one entry
+                    (used when user explicitly presses Tab a second time).
+        """
+        try:
+            at_pos = value.rfind('@')
+            after_at = value[at_pos + 1:]
+            if ' ' in after_at:
+                return
+            partial = after_at
+            if '/' in partial:
+                dir_part, stem = partial.rsplit('/', 1)
+                base = dir_part or '.'
+            else:
+                dir_part, stem = '', partial
+                base = '.'
+            file_matches: list[str] = []
+            for name in sorted(os.listdir(base)):
+                if name.startswith('.'):
+                    continue
+                if stem and not name.lower().startswith(stem.lower()):
+                    continue
+                full = f"{dir_part}/{name}" if dir_part else name
+                if os.path.isdir(os.path.join(base, name)):
+                    full += '/'
+                file_matches.append(value[:at_pos + 1] + full)
+            if not force:
+                file_matches = [m for m in file_matches if m != value]
+            if file_matches:
+                ol.clear_options()
+                for m in file_matches:
+                    ol.add_option(_Option(m))
+                ol.highlighted = None
+                ol.add_class("visible")
+        except Exception:
+            pass
+
     # ── System clipboard actions (override Textual's internal-only versions) ──
 
     def action_copy(self) -> None:
@@ -441,6 +480,13 @@ class _AgentInput(Input):
                 event.prevent_default()
                 event.stop()
                 return
+            # No dropdown, no inline suggestion — re-trigger @ file dropdown on second Tab
+            if '@' in self.value and ol is not None:
+                self._show_at_dropdown(self.value, ol, force=True)
+                if "visible" in ol.classes:
+                    event.prevent_default()
+                    event.stop()
+                    return
 
         # ── ↑: history back / dropdown navigate up ───────────────────────────
         elif event.key == "up":
@@ -1021,38 +1067,10 @@ class AgentTUI(App):
 
         # ── @ file/folder dropdown ────────────────────────────────────────────
         if '@' in value:
-            at_pos = value.rfind('@')
-            after_at = value[at_pos + 1:]
-            if ' ' not in after_at:
-                partial = after_at
-                try:
-                    if '/' in partial:
-                        dir_part, stem = partial.rsplit('/', 1)
-                        base = dir_part or '.'
-                    else:
-                        dir_part, stem = '', partial
-                        base = '.'
-                    file_matches: list[str] = []
-                    for name in sorted(os.listdir(base)):
-                        if name.startswith('.'):
-                            continue
-                        if stem and not name.lower().startswith(stem.lower()):
-                            continue
-                        full = f"{dir_part}/{name}" if dir_part else name
-                        if os.path.isdir(os.path.join(base, name)):
-                            full += '/'
-                        file_matches.append(value[:at_pos + 1] + full)
-                    # Exclude exact match — value already completed, no re-suggestion
-                    file_matches = [m for m in file_matches if m != value]
-                    if file_matches:
-                        ol.clear_options()
-                        for m in file_matches:
-                            ol.add_option(_Option(m))
-                        ol.highlighted = None
-                        ol.add_class("visible")
-                        return
-                except Exception:
-                    pass
+            inp = self.query_one(_AgentInput)
+            inp._show_at_dropdown(value, ol, force=False)
+            if "visible" in ol.classes:
+                return
 
         ol.remove_class("visible")
 
