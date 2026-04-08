@@ -114,11 +114,21 @@ def crc32(data: bytes) -> int:
 
 
 def payload_crc8(data: bytes) -> int:
-    """XOR-based single-byte CRC for counter payload."""
-    crc = 0
+    """CRC-8/SMBUS (polynomial 0x07, init 0x00) for counter payload.
+    
+    Proper polynomial CRC-8 instead of simple XOR, so that multi-byte
+    burst errors (e.g. 0xFF ^ 0xFF = 0x00 cancellation) are reliably
+    detected.
+    """
+    crc = 0x00
     for b in data:
         crc ^= b
-    return crc & 0xFF
+        for _ in range(8):
+            if crc & 0x80:
+                crc = ((crc << 1) ^ 0x07) & 0xFF
+            else:
+                crc = (crc << 1) & 0xFF
+    return crc
 
 
 # ======================================================================
