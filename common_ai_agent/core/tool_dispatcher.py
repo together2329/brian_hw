@@ -64,9 +64,13 @@ def _call_with_timeout(
     tool_name: str,
 ):
     """
-    Call *func* with a hard timeout.  Uses a worker thread so we can enforce
+    Call *func* with a hard timeout.  Uses a daemon thread so we can enforce
     a wall-clock limit even for blocking / C-extension calls that don't
     cooperate with Python-level interrupts.
+
+    Note: the daemon thread may continue running in the background after
+    timeout, but it will not block the caller and will be cleaned up when
+    the process exits.
 
     Returns the function result, or raises _ToolTimeoutError on timeout.
     """
@@ -75,22 +79,23 @@ def _call_with_timeout(
 
     result_container = [None]
     error_container = [None]
+    done_event = threading.Event()
 
     def _worker():
         try:
             result_container[0] = func(*args, **kwargs)
         except Exception as exc:
             error_container[0] = exc
+        finally:
+            done_event.set()
 
-    import concurrent.futures
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(_worker)
-        try:
-            future.result(timeout=timeout)
-        except concurrent.futures.TimeoutError:
-            raise _ToolTimeoutError(
-                f"Tool '{tool_name}' exceeded global timeout of {timeout}s"
-            )
+    worker_thread = threading.Thread(target=_worker, daemon=True)
+    worker_thread.start()
+
+    if not done_event.wait(timeout=timeout):
+        raise _ToolTimeoutError(
+            f"Tool '{tool_name}' exceeded global timeout of {timeout}s"
+        )
 
     if error_container[0] is not None:
         raise error_container[0]
