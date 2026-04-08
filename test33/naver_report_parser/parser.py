@@ -223,49 +223,83 @@ class ReportParser:
     ) -> None:
         """Extract investment opinion, target price, current price, upside."""
         page1 = pages_text[0] if pages_text else ""
+        full_text = "\n".join(pages_text)
 
         # ── Investment opinion from page 1 text ──
-        # Common patterns: "Buy", "Sell", "Hold", "매수", "매도", "중립"
-        opinion_patterns = [
-            (r"\b(Buy)\b", "Buy"),
-            (r"\b(Sell)\b", "Sell"),
-            (r"\b(Hold)\b", "Hold"),
-            (r"\b(OutPerform)\b", "OutPerform"),
-            (r"\b(UnderPerform)\b", "UnderPerform"),
-            (r"\b(MarketPerform)\b", "MarketPerform"),
-            (r"매수", "매수"),
-            (r"매도", "매도"),
-            (r"중립", "중립"),
-        ]
-        for pattern, label in opinion_patterns:
-            if re.search(pattern, page1):
-                parsed.investment_opinion = label
-                break
+        if not parsed.investment_opinion:
+            # "BUY (유지)", "Buy", "매수", "Sell", "Hold", "Trading Buy" etc.
+            opinion_patterns = [
+                (r"\bBUY\b", "Buy"),
+                (r"\bBuy\b", "Buy"),
+                (r"\bSELL\b", "Sell"),
+                (r"\bSell\b", "Sell"),
+                (r"\bHOLD\b", "Hold"),
+                (r"\bHold\b", "Hold"),
+                (r"\bOutPerform\b", "OutPerform"),
+                (r"\bUnderPerform\b", "UnderPerform"),
+                (r"\bMarketPerform\b", "MarketPerform"),
+                (r"\bTrading\s+Buy\b", "Trading Buy"),
+                (r"\b매수\b", "매수"),
+                (r"\b매도\b", "매도"),
+                (r"\b중립\b", "중립"),
+                (r"\b보유\b", "보유"),
+            ]
+            for pattern, label in opinion_patterns:
+                if re.search(pattern, page1):
+                    parsed.investment_opinion = label
+                    break
 
-        # ── Target price ──
-        m = re.search(r"목표주가[^:]*:?\s*([\d,]+)\s*원", page1)
-        if m:
-            parsed.target_price = int(m.group(1).replace(",", ""))
+            # Fallback: search page 2 as well (some brief reports)
+            if not parsed.investment_opinion and len(pages_text) > 1:
+                for pattern, label in opinion_patterns:
+                    if re.search(pattern, pages_text[1]):
+                        parsed.investment_opinion = label
+                        break
 
-        # ── Current price ──
-        m = re.search(r"현재\s*주가[^)]*\)?\s*([\d,]+)\s*원", page1)
-        if m:
-            parsed.current_price = int(m.group(1).replace(",", ""))
+        # ── Target price: various patterns ──
+        # "목표주가(상향): 300,000원" / "목표주가(12M) 300,000원" / "목표주가 300,000원"
+        if not parsed.target_price:
+            m = re.search(r"목표주가[^:\s]*[:\s]*([\d,]+)\s*원", full_text)
+            if m:
+                parsed.target_price = int(m.group(1).replace(",", ""))
+
+        # ── Current price: various patterns ──
+        # "현재 주가(4/7) 196,500원" / "현재주가(04/06) 193,100원" / "현재 주가 196,500원"
+        if not parsed.current_price:
+            m = re.search(r"현재\s*주가[^:\s]*[:\s]*([\d,]+)\s*원", full_text)
+            if m:
+                parsed.current_price = int(m.group(1).replace(",", ""))
 
         # ── Upside ──
-        m = re.search(r"상승여력\s*[▲▲]?\s*([\d.]+)\s*%", page1)
-        if m:
-            parsed.upside = float(m.group(1))
+        if parsed.upside is None:
+            m = re.search(r"상승여력\s*[▲]?\s*([\d.]+)\s*%", full_text)
+            if m:
+                parsed.upside = float(m.group(1))
 
         # ── Fallback: extract from investment opinion table ──
         for tbl in tables:
             if not tbl or len(tbl) < 2:
                 continue
             flat = " ".join(str(c) for row in tbl for c in (row or []))
+
             if "목표주가" in flat and not parsed.target_price:
-                m = re.search(r"([\d,]+)\s*원", flat)
+                m = re.search(r"목표주가[^:]*[:\s]*([\d,]+)\s*원", flat)
+                if not m:
+                    m = re.search(r"([\d,]+)\s*원", flat)
                 if m:
                     parsed.target_price = int(m.group(1).replace(",", ""))
+
+            if "현재주가" in flat and not parsed.current_price:
+                m = re.search(r"현재주가[^:]*[:\s]*([\d,]+)\s*원", flat)
+                if not m:
+                    m = re.search(r"현재주가[^\d]*([\d,]+)", flat)
+                if m:
+                    parsed.current_price = int(m.group(1).replace(",", ""))
+
+            if "상승여력" in flat and parsed.upside is None:
+                m = re.search(r"상승여력[^\d]*([\d.]+)", flat)
+                if m:
+                    parsed.upside = float(m.group(1))
 
     # ── Financial Data Extraction ──────────────────────────────────────────
 
