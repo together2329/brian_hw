@@ -222,7 +222,7 @@ class CounterPacketMapper:
         parsed = IP(raw)
         decoded = CounterPacketMapper.decode(parsed)
 
-        # Compare fields
+        # Compare ALL fields including data_in (lossless round-trip)
         mismatches = []
         orig_dict = {
             "count_out": state.count_out,
@@ -230,6 +230,7 @@ class CounterPacketMapper:
             "up_down":   state.up_down,
             "en":        state.en,
             "load":      state.load,
+            "data_in":   state.data_in,
         }
         dec_dict = {
             "count_out": decoded.count_out,
@@ -237,6 +238,7 @@ class CounterPacketMapper:
             "up_down":   decoded.up_down,
             "en":        decoded.en,
             "load":      decoded.load,
+            "data_in":   decoded.data_in,
         }
 
         for field in orig_dict:
