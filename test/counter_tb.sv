@@ -64,6 +64,26 @@ module counter_tb;
     );
 
     // ----------------------------------------------------------------
+    // WIDTH=16 DUT for parameterization test
+    // ----------------------------------------------------------------
+    localparam WIDTH16 = 16;
+    logic [WIDTH16-1:0] count_out_16;
+    logic               overflow_16;
+
+    counter #(
+        .WIDTH(WIDTH16)
+    ) uut_16 (
+        .clk       (clk),
+        .rst_n     (rst_n),
+        .en        (en),
+        .load      (load),
+        .up_down   (up_down),
+        .data_in   (data_in),
+        .count_out (count_out_16),
+        .overflow  (overflow_16)
+    );
+
+    // ----------------------------------------------------------------
     // Clock Generation
     // ----------------------------------------------------------------
     initial clk = 0;
