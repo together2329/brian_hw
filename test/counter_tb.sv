@@ -730,7 +730,7 @@ module counter_tb;
                 $display("  [PASS] WIDTH=16 count up to 500: got %0d", count_out_16);
             end
             // Load 16'hFFFF (MAX) and verify wrap
-            load = 1; data_in = 16'hFFFF;
+            load = 1; data_in_16 = 16'hFFFF;
             tick(1);
             load = 0;
             test_count++;
