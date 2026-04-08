@@ -57,6 +57,7 @@ def dispatch_tool(
     available_tools: Dict[str, Callable],
     debug: bool = False,
     hook_registry: Any = None,
+    global_timeout: int = 0,
 ) -> str:
     """
     Dispatch a single tool call.
@@ -67,6 +68,7 @@ def dispatch_tool(
         available_tools: Mapping of tool_name → callable.
         debug:           If True, print parsed args before calling.
         hook_registry:   Optional HookRegistry for AFTER_TOOL_EXEC / ON_ERROR hooks.
+        global_timeout:  Max seconds for any single tool call. 0 = no limit.
 
     Returns:
         String result (tool output, converted if non-string, or error message).
