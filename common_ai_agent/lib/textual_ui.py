@@ -232,13 +232,6 @@ class FlushResponse(Message):
     """Sent by worker after LLM stream ends to ensure content panel is rendered."""
     pass
 
-class StopRequested(Message):
-    """Posted by _AgentInput when ESC is pressed — bubbles up to AgentTUI."""
-    pass
-
-class QuitRequested(Message):
-    """Posted by _AgentInput when Ctrl+Q is pressed — bubbles up to AgentTUI."""
-    pass
 
 
 # ── stdout capture ────────────────────────────────────────────────────────────
@@ -615,21 +608,15 @@ class _AgentInput(Input):
                 ol.remove_class("visible")
             self._hist_pos = -1   # reset history browsing on submit
 
-        # ── Escape: close dropdown, then stop generation ─────────────────────
+        # ── Escape: close dropdown — let event bubble to App BINDINGS → action_stop
         elif event.key == "escape":
             if ol is not None and "visible" in ol.classes:
                 ol.remove_class("visible")
-            self.post_message(StopRequested())
-            event.prevent_default()
-            event.stop()
-            return
+            # Do NOT call event.stop() — let Key bubble to App so BINDINGS fire action_stop
 
-        # ── Ctrl+Q: immediate force-exit ─────────────────────────────────────
+        # ── Ctrl+Q: let event bubble to App BINDINGS → action_quit ───────────
         elif event.key == "ctrl+q":
-            self.post_message(QuitRequested())
-            event.prevent_default()
-            event.stop()
-            return
+            pass  # Do NOT stop — let Key bubble to App BINDINGS → action_quit
 
         await super()._on_key(event)
 
@@ -1269,13 +1256,6 @@ class AgentTUI(App):
         """Worker signals stream done — render whatever accumulated in _response_buf."""
         self._flush_response()
 
-    def on_stop_requested(self, msg: StopRequested) -> None:
-        """ESC pressed in _AgentInput — stop generation."""
-        self.action_stop()
-
-    def on_quit_requested(self, msg: QuitRequested) -> None:
-        """Ctrl+Q pressed in _AgentInput — force exit."""
-        self.action_quit()
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:
         self._handle_reasoning_chunk(msg)
