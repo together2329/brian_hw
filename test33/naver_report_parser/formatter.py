@@ -101,7 +101,7 @@ def _format_single_report(r: ParsedReport, idx: int) -> str:
     return "\n".join(lines)
 
 
-def _format_compact_table(reports: List[ParsedReport]) -> str:
+def format_compact_table(reports: List[ParsedReport]) -> str:
     """Format reports as a compact comparison table."""
     lines = []
 
