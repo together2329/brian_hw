@@ -1424,8 +1424,6 @@ class AgentTUI(App):
                 label = f"Action ({self._current_tool})"
             elif self._generating:
                 label = "Generating..."
-            elif self._proactive_enabled and (time.time() - self._last_input_time) >= self._proactive_idle_seconds:
-                label = self._proactive_message
             else:
                 label = "Waiting for input..."
             a = RichText()
