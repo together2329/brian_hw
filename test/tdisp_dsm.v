@@ -180,6 +180,8 @@ module tdisp_dsm #(
             req_msg_type         <= 8'h0;
             req_interface_id     <= {INTERFACE_ID_WIDTH{1'b0}};
             req_parsed           <= 1'b0;
+            req_word_counter     <= 8'd0;
+            received_nonce       <= {NONCE_WIDTH{1'b0}};
             pending_error        <= 32'h0;
             lock_no_fw_update    <= 1'b0;
             lock_msix_locked     <= 1'b0;
