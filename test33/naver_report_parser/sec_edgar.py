@@ -838,17 +838,19 @@ class SECEdgarClient:
     ) -> List[dict]:
         """Find XBRL values for a list of possible tags in a taxonomy.
 
-        Aggregates form-filtered values from **all** matching tags, not
-        just the first.  This is important because a company may report
-        under different XBRL tags in different periods (e.g. one tag for
-        older filings, another for recent ones).  The caller
-        (``_extract_periods``) deduplicates by end_date and keeps the
-        largest absolute value per metric.
+        When multiple tags have data for the requested *form*, picks the
+        tag whose **most recent entry** has the newest ``end`` date.  This
+        avoids mixing tags that report at different cadences (e.g. one
+        tag current to 2025 while another stopped in 2018).
 
         Falls back to unfiltered data only if NO tag has any form match.
         """
-        # Pass 1 — collect form-filtered values from ALL tags
-        all_filtered: List[dict] = []
+        # Pass 1 — among all tags with form-filtered data, pick the one
+        # whose latest entry has the most recent end_date.
+        best_tag: Optional[str] = None
+        best_latest_end: str = ""
+        best_values: List[dict] = []
+
         for tag in tags:
             if tag not in taxonomy:
                 continue
@@ -856,10 +858,17 @@ class SECEdgarClient:
             units = tag_data.get("units", {})
             for unit_key, values in units.items():
                 filtered = [v for v in values if v.get("form") == form]
-                all_filtered.extend(filtered)
+                if not filtered:
+                    continue
+                # Find the latest end date in this tag's filtered values
+                latest_end = max(v.get("end", "") for v in filtered)
+                if latest_end > best_latest_end:
+                    best_latest_end = latest_end
+                    best_tag = tag
+                    best_values = filtered
 
-        if all_filtered:
-            return all_filtered
+        if best_values:
+            return best_values
 
         # Pass 2 — fallback: first tag with any data (cross-form)
         for tag in tags:
