@@ -354,37 +354,24 @@ def run_command(command, timeout=60):
         try:
             stdout_str, stderr_str = proc.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
-            # Timeout — kill the entire process group
-            partial_stdout = ""
-            partial_stderr = ""
-            try:
-                # Non-blocking read of partial output
-                import selectors
-                sel = selectors.DefaultSelector()
-                if proc.stdout:
-                    sel.register(proc.stdout, selectors.EVENT_READ)
-                if proc.stderr:
-                    sel.register(proc.stderr, selectors.EVENT_READ)
-                for key, _ in sel.select(timeout=0.5):
-                    chunk = key.fileobj.read()
-                    if chunk:
-                        if key.fileobj == proc.stdout:
-                            partial_stdout = chunk
-                        else:
-                            partial_stderr = chunk
-                sel.close()
-            except Exception:
-                pass
-
-            # Kill process group
+            # Timeout — kill the entire process group first
             _kill_process_group(proc)
 
-            # Build message with any partial output we captured
+            # After kill, call communicate() again to join internal threads
+            # and collect whatever partial output was produced.
+            try:
+                stdout_str, stderr_str = proc.communicate(timeout=5)
+            except (subprocess.TimeoutExpired, Exception):
+                stdout_str, stderr_str = "", ""
+
+            stdout_str = stdout_str or ""
+            stderr_str = stderr_str or ""
+
             partial_parts = []
-            if partial_stdout and partial_stdout.strip():
-                partial_parts.append(f"Partial STDOUT:\n{partial_stdout.strip()}")
-            if partial_stderr and partial_stderr.strip():
-                partial_parts.append(f"Partial STDERR:\n{partial_stderr.strip()}")
+            if stdout_str.strip():
+                partial_parts.append(f"Partial STDOUT:\n{stdout_str.strip()}")
+            if stderr_str.strip():
+                partial_parts.append(f"Partial STDERR:\n{stderr_str.strip()}")
 
             partial_info = "\n".join(partial_parts)
             if partial_info:
