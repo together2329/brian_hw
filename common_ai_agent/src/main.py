@@ -1084,11 +1084,13 @@ def chat_loop():
     if not _textual_emit_content_fn:
         # Compact startup banner
         from lib.display import format_startup_banner
+        _rl = get_rate_limiter()
+        _rl_info = f"TPM={config.TPM_LIMIT} RPM={config.RPM_LIMIT}" if _rl.active else f"delay={config.RATE_LIMIT_DELAY}s"
         print(format_startup_banner(
             base_url=config.BASE_URL,
             model=config.MODEL_NAME,
             features={
-                'rate_limit': config.RATE_LIMIT_DELAY,
+                'rate_limit': _rl_info,
                 'max_iter': config.MAX_ITERATIONS,
                 'cache': config.ENABLE_PROMPT_CACHING,
                 'compress': config.ENABLE_COMPRESSION,
