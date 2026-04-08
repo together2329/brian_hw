@@ -393,6 +393,26 @@ class _AgentInput(Input):
         except Exception:
             return None
 
+    def _show_slash_dropdown(self, value: str, ol: OptionList, force: bool = False) -> None:
+        """Populate and show the / command completion dropdown."""
+        try:
+            try:
+                from slash_commands import get_registry  # type: ignore
+            except ImportError:
+                from core.slash_commands import get_registry  # type: ignore
+            cmds = get_registry().get_completions()
+            matches = [c for c in cmds if c.lower().startswith(value.lower())]
+            if not force:
+                matches = [c for c in matches if c != value]
+            if matches:
+                ol.clear_options()
+                for m in matches:
+                    ol.add_option(_Option(m))
+                ol.highlighted = None
+                ol.add_class("visible")
+        except Exception:
+            pass
+
     def _show_at_dropdown(self, value: str, ol: OptionList, force: bool = False) -> None:
         """Populate and show the @ file completion dropdown.
 
@@ -458,19 +478,16 @@ class _AgentInput(Input):
     async def _on_key(self, event: Key) -> None:
         ol = self._get_completion_list()
 
-        # ── Tab: completion dropdown / inline suggestion ──────────────────────
+        # ── Tab: highlight-only cycling / re-open dropdown ───────────────────
         if event.key == "tab":
             if ol is not None and "visible" in ol.classes:
+                # Just move highlight — do NOT set self.value (avoids on_input_changed
+                # rebuilding the dropdown and losing the original match list)
                 count = ol.option_count
                 if count > 0:
                     current = ol.highlighted
                     next_idx = 0 if current is None else (current + 1) % count
                     ol.highlighted = next_idx
-                    opt_text = str(ol.get_option_at_index(next_idx).prompt)
-                    ol.remove_class("visible")
-                    self.value = opt_text
-                    self.action_end()
-                    ol.add_class("visible")
                 event.prevent_default()
                 event.stop()
                 return
@@ -480,13 +497,21 @@ class _AgentInput(Input):
                 event.prevent_default()
                 event.stop()
                 return
-            # No dropdown, no inline suggestion — re-trigger @ file dropdown on second Tab
-            if '@' in self.value and ol is not None:
-                self._show_at_dropdown(self.value, ol, force=True)
-                if "visible" in ol.classes:
-                    event.prevent_default()
-                    event.stop()
-                    return
+            # No dropdown, no inline suggestion — re-open with all matches
+            if ol is not None:
+                value = self.value
+                if value.startswith('/') and ' ' not in value:
+                    self._show_slash_dropdown(value, ol, force=True)
+                    if "visible" in ol.classes:
+                        event.prevent_default()
+                        event.stop()
+                        return
+                elif '@' in value:
+                    self._show_at_dropdown(value, ol, force=True)
+                    if "visible" in ol.classes:
+                        event.prevent_default()
+                        event.stop()
+                        return
 
         # ── ↑: history back / dropdown navigate up ───────────────────────────
         elif event.key == "up":
@@ -1045,29 +1070,16 @@ class AgentTUI(App):
         value = event.value
         ol = self.query_one("#completion-list", OptionList)
 
+        inp = self.query_one(_AgentInput)
+
         # ── Slash command dropdown ────────────────────────────────────────────
         if value.startswith('/') and ' ' not in value:
-            cmds: list[str] = []
-            try:
-                try:
-                    from slash_commands import get_registry  # type: ignore
-                except ImportError:
-                    from core.slash_commands import get_registry  # type: ignore
-                cmds = get_registry().get_completions()
-            except Exception:
-                pass
-            matches = [c for c in cmds if c.lower().startswith(value.lower()) and c != value]
-            if matches:
-                ol.clear_options()
-                for m in matches:
-                    ol.add_option(_Option(m))
-                ol.highlighted = None
-                ol.add_class("visible")
+            inp._show_slash_dropdown(value, ol, force=False)
+            if "visible" in ol.classes:
                 return
 
         # ── @ file/folder dropdown ────────────────────────────────────────────
-        if '@' in value:
-            inp = self.query_one(_AgentInput)
+        elif '@' in value:
             inp._show_at_dropdown(value, ol, force=False)
             if "visible" in ol.classes:
                 return
