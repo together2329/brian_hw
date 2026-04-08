@@ -50,6 +50,153 @@ _MIN_OUTPUT_TOKENS = 512
 _OUTPUT_SAFETY_BUFFER = 200
 
 
+# ── Token-Bucket Rate Limiter ────────────────────────────────────────────
+class _RateLimiter:
+    """
+    Sliding-window rate limiter for TPM (Tokens Per Minute) and RPM (Requests Per Minute).
+    Thread-safe. Each acquire() blocks until the request + its estimated token cost
+    fits within the configured per-minute budget.
+
+    Design:
+      - Uses a deque of (timestamp, token_cost) to track a sliding 60s window.
+      - For RPM: each request costs 1 "token" unit.
+      - For TPM: each request costs the actual input+output token count from the
+        *previous* call (predictive), or a configurable estimate for the first call.
+      - When both RPM and TPM limits are set, acquire() waits for whichever
+        constraint is tighter.
+      - When either limit is 0, that dimension is skipped entirely.
+    """
+
+    def __init__(self, tpm: int = 0, rpm: int = 0, window_s: float = 60.0):
+        self.tpm = tpm
+        self.rpm = rpm
+        self._window = window_s
+        self._lock = threading.Lock()
+        # Sliding window entries: (timestamp, estimated_token_count)
+        self._token_log: deque = deque()
+        self._request_log: deque = deque()
+        # Estimate for first call (tokens); updated after each real usage.
+        self._default_token_estimate = 2000
+
+    @property
+    def active(self) -> bool:
+        return self.tpm > 0 or self.rpm > 0
+
+    def _purge(self, now: float):
+        """Remove entries older than the sliding window."""
+        cutoff = now - self._window
+        while self._token_log and self._token_log[0][0] < cutoff:
+            self._token_log.popleft()
+        while self._request_log and self._request_log[0][0] < cutoff:
+            self._request_log.popleft()
+
+    def _tokens_in_window(self) -> int:
+        return sum(t for _, t in self._token_log)
+
+    def _requests_in_window(self) -> int:
+        return len(self._request_log)
+
+    def acquire(self, estimated_tokens: int | None = None):
+        """
+        Block until the request can proceed without exceeding limits.
+        Uses estimated_tokens for the TPM check; if None, uses internal estimate.
+        """
+        if not self.active:
+            return
+
+        est = estimated_tokens if estimated_tokens is not None else self._default_token_estimate
+
+        with self._lock:
+            now = time.time()
+            self._purge(now)
+
+            wait_s = 0.0
+
+            # TPM constraint
+            if self.tpm > 0:
+                current_tokens = self._tokens_in_window()
+                remaining_budget = self.tpm - current_tokens
+                if remaining_budget <= 0:
+                    # Window is full — wait until oldest entry expires
+                    wait_s = max(wait_s, self._token_log[0][0] + self._window - now + 0.1)
+                elif est > remaining_budget:
+                    # Not enough room — wait proportionally
+                    # Find how long until enough tokens free up
+                    need = est - remaining_budget
+                    # Approximate: how many seconds to free 'need' tokens?
+                    # Walk through entries to find when 'need' tokens worth of entries expire
+                    freed = 0
+                    for ts, t in self._token_log:
+                        freed += t
+                        if freed >= need:
+                            t_wait = ts + self._window - now + 0.1
+                            wait_s = max(wait_s, t_wait)
+                            break
+
+            # RPM constraint
+            if self.rpm > 0:
+                current_reqs = self._requests_in_window()
+                remaining_reqs = self.rpm - current_reqs
+                if remaining_reqs <= 0:
+                    wait_s = max(wait_s, self._request_log[0][0] + self._window - now + 0.1)
+
+            if wait_s > 0:
+                cap = 65.0  # never wait more than window+epsilon
+                wait_s = min(wait_s, cap)
+                if config.DEBUG_MODE:
+                    print(Color.info(f"[RateLimiter] Waiting {wait_s:.1f}s "
+                                     f"(tokens_in_window={self._tokens_in_window()}/{self.tpm} "
+                                     f"reqs_in_window={self._requests_in_window()}/{self.rpm})"))
+                time.sleep(wait_s)
+
+            # Record this request
+            now = time.time()
+            self._request_log.append((now, 1))
+            self._token_log.append((now, est))
+
+    def update_actual_usage(self, actual_tokens: int):
+        """
+        After receiving real usage from the API, update the last entry's token count
+        and refine the default estimate for future calls.
+        """
+        if not self.active:
+            return
+        with self._lock:
+            if self._token_log:
+                ts, _ = self._token_log.pop()
+                self._token_log.append((ts, actual_tokens))
+            # Exponential moving average for future estimates
+            old = self._default_token_estimate
+            self._default_token_estimate = int(0.7 * actual_tokens + 0.3 * old)
+
+    def status(self) -> dict:
+        """Return current rate limiter status for display."""
+        with self._lock:
+            self._purge(time.time())
+            return {
+                "tpm_limit": self.tpm,
+                "rpm_limit": self.rpm,
+                "tokens_used": self._tokens_in_window(),
+                "requests_used": self._requests_in_window(),
+                "window_s": self._window,
+            }
+
+
+# Module-level singleton — initialized lazily from config
+_rate_limiter: Optional[_RateLimiter] = None
+
+
+def get_rate_limiter() -> _RateLimiter:
+    """Get or create the global rate limiter singleton."""
+    global _rate_limiter
+    if _rate_limiter is None:
+        _rate_limiter = _RateLimiter(
+            tpm=getattr(config, 'TPM_LIMIT', 0),
+            rpm=getattr(config, 'RPM_LIMIT', 0),
+        )
+    return _rate_limiter
+
+
 def compute_safe_max_tokens(used_tokens: int = 0) -> int:
     """
     Return a safe max_tokens value that fits within the remaining context window.
