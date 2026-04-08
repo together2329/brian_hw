@@ -1056,8 +1056,14 @@ class AgentTUI(App):
             # No active generation — ESC is a no-op (avoids poisoning next command)
             return
         self._interrupt = True
-        # Close open reasoning block and clear live preview visually
+        # Reset all activity flags so sidebar shows "Waiting for input..." immediately
         self._reasoning_open = False
+        self._generating = False
+        self._in_edit = False
+        self._in_diff = False
+        self._in_parallel = False
+        self._current_tool = ""
+        # Clear live preview
         try:
             live = self.query_one("#live", Static)
             live.update("")
@@ -1069,6 +1075,7 @@ class AgentTUI(App):
         t.append("\n  [ESC] ", style=f"bold {_YELLOW}")
         t.append("Interrupted.", style=_TEXT_DIM)
         log.write(t)
+        self._update_activity()   # sidebar: → "Waiting for input..."
         self._update_statusbar()
         self._scroll_down()
 
