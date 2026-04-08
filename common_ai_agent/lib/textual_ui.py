@@ -873,6 +873,7 @@ class AgentTUI(App):
         self._sess_sum_tok = 0
         self._cost_in_pm = self._cost_cch_pm = self._cost_out_pm = 0.0
         self._interrupt = False
+        self._compressing = False  # True during context compression — suppresses proactive
         # ── Proactive mode state ─────────────────────────────────────
         self._proactive_enabled = False
         self._proactive_idle_seconds = 30
@@ -951,8 +952,7 @@ class AgentTUI(App):
         self.query_one(_AgentInput).focus()
         self._start_agent()
         self.set_timer(0.1, self._init_sidebar)
-        # Start proactive idle timer
-        self._start_proactive_timer()
+        # Proactive timer does NOT start here — it starts after first user input
 
     def _init_sidebar(self) -> None:
         """Populate sidebar from on-disk state before first agent response."""
@@ -1011,6 +1011,7 @@ class AgentTUI(App):
     @staticmethod
     def _restore_terminal() -> None:
         """Exit alternate screen and reset terminal before force-kill."""
+        import subprocess
         try:
             # Write directly to /dev/tty — bypasses Textual's stdout capture
             with open("/dev/tty", "w") as _tty:
@@ -1029,6 +1030,14 @@ class AgentTUI(App):
                 _sys.stdout.flush()
             except Exception:
                 pass
+        # Restore terminal line discipline (echo, canonical mode, etc.)
+        # Textual puts the terminal into raw mode; _os._exit() bypasses the
+        # normal Textual cleanup, leaving the tty in raw mode and causing
+        # zsh to print "command not found" on every keystroke.
+        try:
+            subprocess.run(["stty", "sane"], timeout=2)
+        except Exception:
+            pass
 
     def action_quit(self) -> None:
         """Ctrl+Q: immediate force-exit."""
@@ -1076,6 +1085,7 @@ class AgentTUI(App):
         # Reset all activity flags so sidebar shows "Waiting for input..." immediately
         self._reasoning_open = False
         self._generating = False
+        self._compressing = False
         self._in_edit = False
         self._in_diff = False
         self._in_parallel = False
@@ -1270,6 +1280,9 @@ class AgentTUI(App):
     # ── Message handlers ───────────────────────────────────────────────────────
 
     def on_stream_chunk(self, msg: StreamChunk) -> None:
+        # End of compression — LLM is responding again
+        if self._compressing:
+            self._compressing = False
         if not self._generating:
             self._generating = True
             self._update_statusbar("generating…")
@@ -1315,9 +1328,8 @@ class AgentTUI(App):
     def on_flush_response(self, msg: FlushResponse) -> None:
         """Worker signals stream done — render whatever accumulated in _response_buf."""
         self._flush_response()
-        # Restart proactive idle timer after LLM response completes
-        if self._proactive_enabled:
-            self._start_proactive_timer()
+        # Clear compression state after LLM response completes
+        self._compressing = False
 
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:
@@ -1399,7 +1411,7 @@ class AgentTUI(App):
 
     def _start_proactive_timer(self) -> None:
         """Cancel any running proactive timer and schedule a new one."""
-        if not self._proactive_enabled:
+        if not self._proactive_enabled or self._compressing:
             return
         if self._proactive_timer is not None:
             try:
@@ -1417,8 +1429,8 @@ class AgentTUI(App):
             return
         self._proactive_timer = None
         # If agent is still generating (LLM call / tool use / reasoning),
-        # don't inject — reschedule instead.
-        if self._generating:
+        # or compressing context — don't inject, reschedule instead.
+        if self._generating or self._compressing:
             self._start_proactive_timer()
             return
         # Check cycle limit (0 = unlimited)
@@ -1439,6 +1451,9 @@ class AgentTUI(App):
             self._input_bridge.submit(self._proactive_message)
         except Exception:
             pass
+        # Schedule next proactive check after this injection's response completes
+        # Use a longer delay to account for response generation time
+        self.set_timer(self._proactive_idle_seconds, self._check_proactive_idle)
 
     def _redraw_context(self) -> None:
         """Redraw #context (tokens) and #skill widgets from stored state."""
@@ -1598,6 +1613,16 @@ class AgentTUI(App):
 
         # Strip ANSI for pattern matching; keep raw for rendering
         _plain = _ANSI.sub("", text)
+
+        # Detect compression start/end to suppress proactive mode during compression
+        if re.search(r'\[Compress\]', _plain) or 'Preemptive compression' in _plain:
+            self._compressing = True
+            if self._proactive_timer is not None:
+                try:
+                    self._proactive_timer.stop()
+                except Exception:
+                    pass
+                self._proactive_timer = None
 
         # Model switched → immediately update sidebar (before path shortening)
         m_model_switch = re.search(r"Model switched to:\s*(\S+)", _plain)
