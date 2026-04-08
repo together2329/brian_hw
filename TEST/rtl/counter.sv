@@ -4,6 +4,8 @@
 //              and asynchronous reset.
 // ============================================================================
 
+`timescale 1ns/1ps
+
 module counter #(
     parameter int WIDTH = 8  // Counter width in bits
 )(
