@@ -447,101 +447,105 @@ module tdisp_dsm #(
                     end
                 end
             end
+        end
+    end
 
-            // ── Response data generation ──
-            if (spdm_resp_valid && !spdm_resp_ready) begin
-                // Hold data until ready
-            end else if (spdm_resp_valid && spdm_resp_ready) begin
-                // Generate response word based on message type and word index
-                case (resp_msg_type)
-                    RESP_TDISP_VERSION: begin
-                        case (resp_word_idx)
-                            8'd0: spdm_resp_data <= {16'h0000, TDISP_VERSION, RESP_TDISP_VERSION};
-                            8'd1: spdm_resp_data <= {24'h0000, 8'd1}; // VERSION_NUM_COUNT = 1
-                            8'd2: spdm_resp_data <= {24'h0000, TDISP_VERSION}; // Entry: V1.0
-                            default: spdm_resp_data <= {DATA_WIDTH{1'b0}};
-                        endcase
-                    end
+    // ==================================================================
+    // Response data generation — combinational (Bug#6: no registered delay)
+    // Directly muxes resp_msg_type + resp_word_idx → spdm_resp_data.
+    // Word 0 is available the same cycle spdm_resp_valid is asserted.
+    // ==================================================================
+    always @(*) begin
+        spdm_resp_data = {DATA_WIDTH{1'b0}};
+        if (spdm_resp_valid) begin
+            case (resp_msg_type)
+                RESP_TDISP_VERSION: begin
+                    case (resp_word_idx)
+                        8'd0: spdm_resp_data = {16'h0000, TDISP_VERSION, RESP_TDISP_VERSION};
+                        8'd1: spdm_resp_data = {24'h0000, 8'd1}; // VERSION_NUM_COUNT = 1
+                        8'd2: spdm_resp_data = {24'h0000, TDISP_VERSION}; // Entry: V1.0
+                        default: spdm_resp_data = {DATA_WIDTH{1'b0}};
+                    endcase
+                end
 
-                    RESP_TDISP_CAPABILITIES: begin
-                        case (resp_word_idx)
-                            8'd0: spdm_resp_data <= {16'h0000, TDISP_VERSION, RESP_TDISP_CAPABILITIES};
-                            8'd1: spdm_resp_data <= 32'h00000001; // DSM_CAPS: XT_MODE_SUPPORTED
-                            8'd2: spdm_resp_data <= 32'h0000007F; // REQ_MSGS_SUPPORTED (bits 0-6)
-                            8'd3: spdm_resp_data <= 32'h0000001F; // REQ_MSGS_SUPPORTED (upper)
-                            8'd4: spdm_resp_data <= 32'h00000000;
-                            8'd5: spdm_resp_data <= 32'h00000000;
-                            8'd6: spdm_resp_data <= 32'h00000000;
-                            8'd7: spdm_resp_data <= 32'h00000000; // End of REQ_MSGS_SUPPORTED
-                            8'd8: spdm_resp_data <= {16'h0000, 16'h001F}; // LOCK_INTERFACE_FLAGS_SUPPORTED
-                            8'd9: spdm_resp_data <= 32'h00000000; // Reserved
-                            8'd10: spdm_resp_data <= {24'h0000, 8'd52}; // DEV_ADDR_WIDTH = 52
-                            8'd11: spdm_resp_data <= {24'h0000, 8'd1};  // NUM_REQ_THIS = 1
-                            8'd12: spdm_resp_data <= {24'h0000, 8'd1};  // NUM_REQ_ALL = 1
-                            default: spdm_resp_data <= {DATA_WIDTH{1'b0}};
-                        endcase
-                    end
+                RESP_TDISP_CAPABILITIES: begin
+                    case (resp_word_idx)
+                        8'd0: spdm_resp_data = {16'h0000, TDISP_VERSION, RESP_TDISP_CAPABILITIES};
+                        8'd1: spdm_resp_data = 32'h00000001; // DSM_CAPS: XT_MODE_SUPPORTED
+                        8'd2: spdm_resp_data = 32'h0000007F; // REQ_MSGS_SUPPORTED (bits 0-6)
+                        8'd3: spdm_resp_data = 32'h0000001F; // REQ_MSGS_SUPPORTED (upper)
+                        8'd4: spdm_resp_data = 32'h00000000;
+                        8'd5: spdm_resp_data = 32'h00000000;
+                        8'd6: spdm_resp_data = 32'h00000000;
+                        8'd7: spdm_resp_data = 32'h00000000; // End of REQ_MSGS_SUPPORTED
+                        8'd8: spdm_resp_data = {16'h0000, 16'h001F}; // LOCK_INTERFACE_FLAGS_SUPPORTED
+                        8'd9: spdm_resp_data = 32'h00000000; // Reserved
+                        8'd10: spdm_resp_data = {24'h0000, 8'd52}; // DEV_ADDR_WIDTH = 52
+                        8'd11: spdm_resp_data = {24'h0000, 8'd1};  // NUM_REQ_THIS = 1
+                        8'd12: spdm_resp_data = {24'h0000, 8'd1};  // NUM_REQ_ALL = 1
+                        default: spdm_resp_data = {DATA_WIDTH{1'b0}};
+                    endcase
+                end
 
-                    RESP_LOCK_INTERFACE: begin
-                        case (resp_word_idx)
-                            8'd0: spdm_resp_data <= {16'h0000, TDISP_VERSION, RESP_LOCK_INTERFACE};
-                            // §11.3.9 Table 11-12: START_INTERFACE_NONCE (32 bytes = 8 words)
-                            8'd1: spdm_resp_data <= current_nonce[31:0];
-                            8'd2: spdm_resp_data <= current_nonce[63:32];
-                            8'd3: spdm_resp_data <= current_nonce[95:64];
-                            8'd4: spdm_resp_data <= current_nonce[127:96];
-                            8'd5: spdm_resp_data <= current_nonce[159:128];
-                            8'd6: spdm_resp_data <= current_nonce[191:160];
-                            8'd7: spdm_resp_data <= current_nonce[223:192];
-                            8'd8: spdm_resp_data <= current_nonce[255:224];
-                            default: spdm_resp_data <= {DATA_WIDTH{1'b0}};
-                        endcase
-                    end
+                RESP_LOCK_INTERFACE: begin
+                    case (resp_word_idx)
+                        8'd0: spdm_resp_data = {16'h0000, TDISP_VERSION, RESP_LOCK_INTERFACE};
+                        // §11.3.9 Table 11-12: START_INTERFACE_NONCE (32 bytes = 8 words)
+                        8'd1: spdm_resp_data = current_nonce[31:0];
+                        8'd2: spdm_resp_data = current_nonce[63:32];
+                        8'd3: spdm_resp_data = current_nonce[95:64];
+                        8'd4: spdm_resp_data = current_nonce[127:96];
+                        8'd5: spdm_resp_data = current_nonce[159:128];
+                        8'd6: spdm_resp_data = current_nonce[191:160];
+                        8'd7: spdm_resp_data = current_nonce[223:192];
+                        8'd8: spdm_resp_data = current_nonce[255:224];
+                        default: spdm_resp_data = {DATA_WIDTH{1'b0}};
+                    endcase
+                end
 
-                    RESP_DEVICE_INTERFACE_REPORT: begin
-                        case (resp_word_idx)
-                            8'd0: spdm_resp_data <= {16'h0000, TDISP_VERSION, RESP_DEVICE_INTERFACE_REPORT};
-                            8'd1: spdm_resp_data <= {16'h0004, 16'h0000}; // PORTION_LENGTH=4, REMAINDER_LENGTH=0
-                            8'd2: spdm_resp_data <= {16'h0000, 16'h0000}; // INTERFACE_INFO
-                            8'd3: spdm_resp_data <= 32'h00000000; // Reserved
-                            8'd4: spdm_resp_data <= 32'h00000000; // MSI_X_MESSAGE_CONTROL
-                            8'd5: spdm_resp_data <= 32'h00000000; // LNR_CONTROL + TPH_CONTROL
-                            default: spdm_resp_data <= {DATA_WIDTH{1'b0}};
-                        endcase
-                    end
+                RESP_DEVICE_INTERFACE_REPORT: begin
+                    case (resp_word_idx)
+                        8'd0: spdm_resp_data = {16'h0000, TDISP_VERSION, RESP_DEVICE_INTERFACE_REPORT};
+                        8'd1: spdm_resp_data = {16'h0004, 16'h0000}; // PORTION_LENGTH=4, REMAINDER_LENGTH=0
+                        8'd2: spdm_resp_data = {16'h0000, 16'h0000}; // INTERFACE_INFO
+                        8'd3: spdm_resp_data = 32'h00000000; // Reserved
+                        8'd4: spdm_resp_data = 32'h00000000; // MSI_X_MESSAGE_CONTROL
+                        8'd5: spdm_resp_data = 32'h00000000; // LNR_CONTROL + TPH_CONTROL
+                        default: spdm_resp_data = {DATA_WIDTH{1'b0}};
+                    endcase
+                end
 
-                    RESP_DEVICE_INTERFACE_STATE: begin
-                        case (resp_word_idx)
-                            8'd0: spdm_resp_data <= {16'h0000, TDISP_VERSION, RESP_DEVICE_INTERFACE_STATE};
-                            8'd1: spdm_resp_data <= {24'h0000, tdi_state}; // TDI_STATE
-                            default: spdm_resp_data <= {DATA_WIDTH{1'b0}};
-                        endcase
-                    end
+                RESP_DEVICE_INTERFACE_STATE: begin
+                    case (resp_word_idx)
+                        8'd0: spdm_resp_data = {16'h0000, TDISP_VERSION, RESP_DEVICE_INTERFACE_STATE};
+                        8'd1: spdm_resp_data = {24'h0000, tdi_state}; // TDI_STATE
+                        default: spdm_resp_data = {DATA_WIDTH{1'b0}};
+                    endcase
+                end
 
-                    RESP_START_INTERFACE: begin
-                        // §11.3.15: START_INTERFACE_RESPONSE (no additional payload)
-                        spdm_resp_data <= {16'h0000, TDISP_VERSION, RESP_START_INTERFACE};
-                    end
+                RESP_START_INTERFACE: begin
+                    // §11.3.15: START_INTERFACE_RESPONSE (no additional payload)
+                    spdm_resp_data = {16'h0000, TDISP_VERSION, RESP_START_INTERFACE};
+                end
 
-                    RESP_STOP_INTERFACE: begin
-                        // §11.3.17: STOP_INTERFACE_RESPONSE (no additional payload)
-                        spdm_resp_data <= {16'h0000, TDISP_VERSION, RESP_STOP_INTERFACE};
-                    end
+                RESP_STOP_INTERFACE: begin
+                    // §11.3.17: STOP_INTERFACE_RESPONSE (no additional payload)
+                    spdm_resp_data = {16'h0000, TDISP_VERSION, RESP_STOP_INTERFACE};
+                end
 
-                    RESP_TDISP_ERROR: begin
-                        case (resp_word_idx)
-                            8'd0: spdm_resp_data <= {16'h0000, TDISP_VERSION, RESP_TDISP_ERROR};
-                            8'd1: spdm_resp_data <= pending_error; // ERROR_CODE
-                            8'd2: spdm_resp_data <= 32'h00000000; // ERROR_DATA
-                            default: spdm_resp_data <= {DATA_WIDTH{1'b0}};
-                        endcase
-                    end
+                RESP_TDISP_ERROR: begin
+                    case (resp_word_idx)
+                        8'd0: spdm_resp_data = {16'h0000, TDISP_VERSION, RESP_TDISP_ERROR};
+                        8'd1: spdm_resp_data = pending_error; // ERROR_CODE
+                        8'd2: spdm_resp_data = 32'h00000000; // ERROR_DATA
+                        default: spdm_resp_data = {DATA_WIDTH{1'b0}};
+                    endcase
+                end
 
-                    default: begin
-                        spdm_resp_data <= {DATA_WIDTH{1'b0}};
-                    end
-                endcase
-            end
+                default: begin
+                    spdm_resp_data = {DATA_WIDTH{1'b0}};
+                end
+            endcase
         end
     end
 
