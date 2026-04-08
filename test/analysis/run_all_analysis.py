@@ -321,7 +321,7 @@ def generate_markdown_report(stages: list, summaries: list) -> str:
         elif stg["id"] == "static" and isinstance(jd, dict):
             s = jd.get("summary", {})
             lines.append(f"- Critical: {s.get('critical', '?')}")
-            lines.append(f"- Warnings: {s.get('warnings', '?')}")
+            lines.append(f"- Warnings: {s.get('warning', '?')}")
             lines.append(f"- Info: {s.get('info', '?')}\n")
 
         elif stg["id"] == "timing" and isinstance(jd, dict):
