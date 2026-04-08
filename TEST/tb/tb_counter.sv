@@ -101,6 +101,17 @@ module tb_counter;
     endtask
 
     // ------------------------------------------------------------------
+    // Helper: drive inputs after the clock edge, then wait N cycles
+    //         so inputs are cleanly captured on subsequent edges.
+    // ------------------------------------------------------------------
+    task wait_n_cycles(input int n);
+        repeat(n) begin
+            @(posedge clk);
+            #1;
+        end
+    endtask
+
+    // ------------------------------------------------------------------
     // Main stimulus
     // ------------------------------------------------------------------
     initial begin
@@ -118,95 +129,95 @@ module tb_counter;
 
         // ---- Test 2: Count up ----
         $display("\n--- Test 2: Count up ---");
+        @(posedge clk); #1;
         enable  = 1'b1;
         up_down = 1'b1;
-        repeat(5) @(posedge clk);
-        #1; // Small delay to sample after outputs settle
+        wait_n_cycles(5);
         check_value(5, 1'b0, 1'b0, "Count up to 5");
 
         // ---- Test 3: Count down ----
         $display("\n--- Test 3: Count down ---");
+        @(posedge clk); #1;
         up_down = 1'b0;
-        repeat(3) @(posedge clk);
-        #1;
+        wait_n_cycles(3);
         check_value(2, 1'b0, 1'b0, "Count down to 2");
 
         // ---- Test 4: Count down to zero (underflow) ----
         $display("\n--- Test 4: Underflow detection ---");
-        repeat(2) @(posedge clk);
-        #1;
+        wait_n_cycles(2);
         check_value(0, 1'b1, 1'b0, "Count down to 0");
-        @(posedge clk);
-        #1;
+        wait_n_cycles(1);
         check_value({WIDTH{1'b1}}, 1'b0, 1'b1, "Underflow wrap (0-1 = max), overflow=1");
 
         // ---- Test 5: Load value ----
         $display("\n--- Test 5: Load ---");
+        @(posedge clk); #1;
         load    = 1'b1;
         data_in = 8'hA5;
-        @(posedge clk);
-        #1;
+        wait_n_cycles(1);
         load = 1'b0;
         check_value(8'hA5, 1'b0, 1'b0, "Load 0xA5");
 
         // ---- Test 6: Load overrides enable ----
         $display("\n--- Test 6: Load overrides enable ---");
+        @(posedge clk); #1;
         load    = 1'b1;
         data_in = 8'h10;
         enable  = 1'b1;
         up_down = 1'b1;
-        @(posedge clk);
-        #1;
+        wait_n_cycles(1);
         load = 1'b0;
         check_value(8'h10, 1'b0, 1'b0, "Load overrides count-up");
 
         // ---- Test 7: Disable counting ----
         $display("\n--- Test 7: Disable ---");
+        @(posedge clk); #1;
         enable = 1'b0;
-        repeat(5) @(posedge clk);
-        #1;
+        wait_n_cycles(5);
         check_value(8'h10, 1'b0, 1'b0, "Hold at 0x10 with enable=0");
 
         // ---- Test 8: Overflow at max value ----
         $display("\n--- Test 8: Overflow at max ---");
+        @(posedge clk); #1;
         load    = 1'b1;
         data_in = {WIDTH{1'b1}};  // Load max value
         enable  = 1'b1;
-        @(posedge clk);
-        #1;
+        wait_n_cycles(1);
         load = 1'b0;
         check_value({WIDTH{1'b1}}, 1'b0, 1'b0, "Loaded max value");
-        @(posedge clk);
-        #1;
+        wait_n_cycles(1);
         check_value('0, 1'b1, 1'b1, "Overflow: max+1 = 0, overflow=1");
 
         // ---- Test 9: Enable toggling ----
         $display("\n--- Test 9: Enable toggling ---");
         apply_reset();
+        @(posedge clk); #1;
         enable  = 1'b1;
         up_down = 1'b1;
-        @(posedge clk); #1;
+        wait_n_cycles(1);
         check_value(1, 1'b0, 1'b0, "Enabled: count=1");
+        @(posedge clk); #1;
         enable = 1'b0;
-        @(posedge clk); #1;
+        wait_n_cycles(1);
         check_value(1, 1'b0, 1'b0, "Disabled: hold at 1");
-        enable = 1'b1;
         @(posedge clk); #1;
+        enable = 1'b1;
+        wait_n_cycles(1);
         check_value(2, 1'b0, 1'b0, "Re-enabled: count=2");
 
         // ---- Test 10: Zero flag with load ----
         $display("\n--- Test 10: Zero flag with load ---");
+        @(posedge clk); #1;
         load    = 1'b1;
         data_in = '0;
-        @(posedge clk);
-        #1;
+        wait_n_cycles(1);
         load = 1'b0;
         check_value('0, 1'b1, 1'b0, "Load zero, zero flag=1");
 
         // ------------------------------------------------------------------
         // Final report
         // ------------------------------------------------------------------
-        repeat(4) @(posedge clk);
+        wait_n_cycles(4);
         $display("\n==========================================================");
         $display("  TEST SUMMARY");
         $display("  Total : %0d", num_tests);
