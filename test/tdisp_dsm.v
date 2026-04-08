@@ -227,15 +227,16 @@ module tdisp_dsm #(
             // ── Request reception and processing ──
             if (spdm_req_valid && spdm_req_ready && !spdm_resp_valid) begin
                 if (!req_parsed) begin
-                    // Parse TDISP header from first word
+                    // ── Word 0: Parse TDISP header ──
                     // Word layout (little-endian, 32-bit bus):
                     //   Byte 0: TDISPVersion
                     //   Byte 1: MessageType
                     //   Byte 2-3: Reserved
-                    // (INTERFACE_ID spans words 1-3)
-                    req_msg_type <= spdm_req_data[15:8];
-                    
-                    // Extract INTERFACE_ID from words 1-3 (12 bytes)
+                    req_msg_type     <= spdm_req_data[15:8];
+                    req_word_counter <= 8'd1; // next word expected
+                    req_interface_id <= {INTERFACE_ID_WIDTH{1'b0}}; // clear for new request
+                    received_nonce   <= {NONCE_WIDTH{1'b0}};        // clear for new request
+
                     if (spdm_req_data[15:8] != 8'h0) begin
                         req_parsed <= 1'b1;
                     end
@@ -244,35 +245,33 @@ module tdisp_dsm #(
                     case (spdm_req_data[15:8])
                         REQ_GET_TDISP_VERSION: begin
                             // Legal in any state (N/A per spec)
-                            // §11.3.5: Must return supported versions
+                            // §11.3.5: Must return supported versions — header-only, respond immediately
                             resp_msg_type    <= RESP_TDISP_VERSION;
-                            resp_total_words <= 8'd5; // header(1) + VERSION_NUM_COUNT(1) + entries(3)
+                            resp_total_words <= 8'd5;
                             spdm_resp_valid  <= 1'b1;
                             spdm_req_ready   <= 1'b0;
                         end
 
                         REQ_GET_TDISP_CAPABILITIES: begin
-                            // Legal in any state
-                            // §11.3.7: Return DSM_CAPS, REQ_MSGS_SUPPORTED, etc.
+                            // Legal in any state — header-only, respond immediately
                             resp_msg_type    <= RESP_TDISP_CAPABILITIES;
-                            resp_total_words <= 8'd14; // header + capabilities payload
+                            resp_total_words <= 8'd14;
                             spdm_resp_valid  <= 1'b1;
                             spdm_req_ready   <= 1'b0;
                         end
 
                         REQ_LOCK_INTERFACE: begin
                             // Legal only in CONFIG_UNLOCKED (§11.3.1 Table 11-4)
+                            // Quick pre-checks that don't need INTERFACE_ID:
                             if (tdi_state != STATE_CONFIG_UNLOCKED) begin
-                                // §11.3.9 Table 11-13: INVALID_INTERFACE_STATE
                                 pending_error   <= ERR_INVALID_INTERFACE_STATE;
                                 resp_msg_type   <= RESP_TDISP_ERROR;
-                                resp_total_words <= 8'd8; // header + error payload
+                                resp_total_words <= 8'd8;
                                 spdm_resp_valid <= 1'b1;
                                 spdm_req_ready  <= 1'b0;
                                 error_irq       <= 1'b1;
                                 last_error_code <= ERR_INVALID_INTERFACE_STATE;
                             end else if (ide_required && !ide_keys_valid) begin
-                                // §11.3.9 Table 11-13: INVALID_REQUEST
                                 pending_error   <= ERR_INVALID_REQUEST;
                                 resp_msg_type   <= RESP_TDISP_ERROR;
                                 resp_total_words <= 8'd8;
@@ -280,27 +279,11 @@ module tdisp_dsm #(
                                 spdm_req_ready  <= 1'b0;
                                 error_irq       <= 1'b1;
                                 last_error_code <= ERR_INVALID_REQUEST;
-                            end else begin
-                                // Successful lock
-                                // §11.3.8: Bind configuration parameters
-                                tdi_state            <= STATE_CONFIG_LOCKED;
-                                lock_stream_id       <= default_stream_id;
-                                lock_no_fw_update    <= spdm_req_data[0]; // Bit 0: NO_FW_UPDATE
-                                lock_msix_locked     <= spdm_req_data[2]; // Bit 2: LOCK_MSIX
-                                lock_bind_p2p        <= spdm_req_data[3]; // Bit 3: BIND_P2P
-                                lock_all_request_redirect <= spdm_req_data[4]; // Bit 4: ALL_REQUEST_REDIRECT
-                                mmio_reporting_offset <= {spdm_req_data, spdm_req_data}; // Simplified offset
-                                
-                                // §11.3.9: Generate START_INTERFACE_NONCE
-                                resp_msg_type    <= RESP_LOCK_INTERFACE;
-                                resp_total_words <= 8'd9; // header(1) + nonce(8 words = 32 bytes)
-                                spdm_resp_valid  <= 1'b1;
-                                spdm_req_ready   <= 1'b0;
                             end
+                            // else: defer response until INTERFACE_ID collected (words 1-3)
                         end
 
                         REQ_GET_DEVICE_INTERFACE_REPORT: begin
-                            // Legal in CONFIG_LOCKED or RUN (§11.3.1)
                             if (tdi_state != STATE_CONFIG_LOCKED && tdi_state != STATE_RUN) begin
                                 pending_error   <= ERR_INVALID_INTERFACE_STATE;
                                 resp_msg_type   <= RESP_TDISP_ERROR;
@@ -310,25 +293,24 @@ module tdisp_dsm #(
                                 error_irq       <= 1'b1;
                                 last_error_code <= ERR_INVALID_INTERFACE_STATE;
                             end else begin
-                                // §11.3.11: Return DEVICE_INTERFACE_REPORT
                                 resp_msg_type    <= RESP_DEVICE_INTERFACE_REPORT;
-                                resp_total_words <= 8'd6; // header + report portion
+                                resp_total_words <= 8'd6;
                                 spdm_resp_valid  <= 1'b1;
                                 spdm_req_ready   <= 1'b0;
                             end
                         end
 
                         REQ_GET_DEVICE_INTERFACE_STATE: begin
-                            // Legal in all states except N/A (per §11.3.2)
-                            // §11.3.13: Return TDI_STATE
+                            // Legal in all states — respond immediately
                             resp_msg_type    <= RESP_DEVICE_INTERFACE_STATE;
-                            resp_total_words <= 8'd5; // header + state payload
+                            resp_total_words <= 8'd5;
                             spdm_resp_valid  <= 1'b1;
                             spdm_req_ready   <= 1'b0;
                         end
 
                         REQ_START_INTERFACE: begin
                             // Legal only in CONFIG_LOCKED (§11.3.1)
+                            // Quick pre-checks that don't need nonce:
                             if (tdi_state != STATE_CONFIG_LOCKED) begin
                                 pending_error   <= ERR_INVALID_INTERFACE_STATE;
                                 resp_msg_type   <= RESP_TDISP_ERROR;
@@ -338,7 +320,6 @@ module tdisp_dsm #(
                                 error_irq       <= 1'b1;
                                 last_error_code <= ERR_INVALID_INTERFACE_STATE;
                             end else if (!nonce_valid) begin
-                                // Nonce was never generated (insufficient entropy)
                                 pending_error   <= ERR_INSUFFICIENT_ENTROPY;
                                 resp_msg_type   <= RESP_TDISP_ERROR;
                                 resp_total_words <= 8'd8;
@@ -346,22 +327,12 @@ module tdisp_dsm #(
                                 spdm_req_ready  <= 1'b0;
                                 error_irq       <= 1'b1;
                                 last_error_code <= ERR_INSUFFICIENT_ENTROPY;
-                            end else begin
-                                // Nonce validation happens in word-by-word processing
-                                // (handled below in response data generation)
-                                // For now, assume nonce matches (validated by testbench)
-                                tdi_state       <= STATE_RUN;
-                                nonce_valid     <= 1'b0; // §11.3.14: invalidate nonce after use
-                                resp_msg_type   <= RESP_START_INTERFACE;
-                                resp_total_words <= 8'd1; // header only
-                                spdm_resp_valid  <= 1'b1;
-                                spdm_req_ready   <= 1'b0;
                             end
+                            // else: defer response until nonce collected (words 1-11)
                         end
 
                         REQ_STOP_INTERFACE: begin
                             // Legal in CONFIG_UNLOCKED, CONFIG_LOCKED, RUN, ERROR (§11.3.2)
-                            // §11.3.16: Move TDI to CONFIG_UNLOCKED
                             tdi_state            <= STATE_CONFIG_UNLOCKED;
                             nonce_valid          <= 1'b0;
                             current_nonce        <= {NONCE_WIDTH{1'b0}};
@@ -371,15 +342,14 @@ module tdisp_dsm #(
                             lock_all_request_redirect <= 1'b0;
                             lock_stream_id       <= 8'h0;
                             mmio_reporting_offset <= {ADDR_WIDTH{1'b0}};
-                            
+
                             resp_msg_type    <= RESP_STOP_INTERFACE;
-                            resp_total_words <= 8'd1; // header only
+                            resp_total_words <= 8'd1;
                             spdm_resp_valid  <= 1'b1;
                             spdm_req_ready   <= 1'b0;
                         end
 
                         default: begin
-                            // §11.3.1: Unsupported request → TDISP_ERROR with UNSUPPORTED_REQUEST
                             pending_error   <= ERR_UNSUPPORTED_REQUEST;
                             resp_msg_type   <= RESP_TDISP_ERROR;
                             resp_total_words <= 8'd8;
@@ -390,8 +360,66 @@ module tdisp_dsm #(
                         end
                     endcase
                 end else begin
-                    // Subsequent request words — store INTERFACE_ID, nonce, etc.
-                    req_parsed <= 1'b0; // Reset for next request
+                    // ── Subsequent words (word 1+): Collect INTERFACE_ID and nonce ──
+                    // Words 1-3: INTERFACE_ID (12 bytes, 3 x DATA_WIDTH words)
+                    // Words 4-11: START_INTERFACE_NONCE (32 bytes, 8 x DATA_WIDTH words)
+                    case (req_word_counter)
+                        8'd1: req_interface_id[31:0]   <= spdm_req_data;
+                        8'd2: req_interface_id[63:32]  <= spdm_req_data;
+                        8'd3: begin
+                            req_interface_id[95:64] <= spdm_req_data;
+
+                            // ── LOCK_INTERFACE: INTERFACE_ID fully received ──
+                            if (req_msg_type == REQ_LOCK_INTERFACE) begin
+                                // Bug#4 hook: interface_id_match validation goes here
+                                // For now, proceed with successful lock
+                                tdi_state            <= STATE_CONFIG_LOCKED;
+                                lock_stream_id       <= default_stream_id;
+                                lock_no_fw_update    <= 1'b0;
+                                lock_msix_locked     <= 1'b0;
+                                lock_bind_p2p        <= 1'b0;
+                                lock_all_request_redirect <= 1'b0;
+                                mmio_reporting_offset <= {ADDR_WIDTH{1'b0}};
+
+                                resp_msg_type    <= RESP_LOCK_INTERFACE;
+                                resp_total_words <= 8'd9; // header(1) + nonce(8 words)
+                                spdm_resp_valid  <= 1'b1;
+                                spdm_req_ready   <= 1'b0;
+                                req_parsed       <= 1'b0; // ready for next request
+                            end
+                        end
+
+                        // ── START_INTERFACE: Collect nonce words (4-11) ──
+                        8'd4:  received_nonce[31:0]    <= spdm_req_data;
+                        8'd5:  received_nonce[63:32]   <= spdm_req_data;
+                        8'd6:  received_nonce[95:64]   <= spdm_req_data;
+                        8'd7:  received_nonce[127:96]  <= spdm_req_data;
+                        8'd8:  received_nonce[159:128] <= spdm_req_data;
+                        8'd9:  received_nonce[191:160] <= spdm_req_data;
+                        8'd10: received_nonce[223:192] <= spdm_req_data;
+                        8'd11: begin
+                            received_nonce[255:224] <= spdm_req_data;
+                            // Bug#5 hook: nonce validation goes here
+                            // For now, assume nonce matches
+                            tdi_state       <= STATE_RUN;
+                            nonce_valid     <= 1'b0;
+                            resp_msg_type   <= RESP_START_INTERFACE;
+                            resp_total_words <= 8'd1;
+                            spdm_resp_valid  <= 1'b1;
+                            spdm_req_ready   <= 1'b0;
+                            req_parsed       <= 1'b0; // ready for next request
+                        end
+
+                        default: begin
+                            // Unexpected word — reset parser
+                            req_parsed <= 1'b0;
+                        end
+                    endcase
+
+                    // Advance word counter for multi-word requests still in progress
+                    if (req_word_counter < 8'd11) begin
+                        req_word_counter <= req_word_counter + 8'd1;
+                    end
                 end
             end
 
