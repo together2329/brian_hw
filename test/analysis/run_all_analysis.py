@@ -308,10 +308,15 @@ def generate_markdown_report(stages: list, summaries: list) -> str:
         lines.append(f"## {stg['label']} — Detail\n")
 
         if stg["id"] == "pyslang" and isinstance(jd, dict):
-            lines.append(f"- Module: `{jd.get('module', '?')}`")
-            lines.append(f"- Ports: {jd.get('port_count', '?')}")
-            lines.append(f"- Parameters: {jd.get('param_count', '?')}")
-            lines.append(f"- Always blocks: {jd.get('always_block_count', '?')}\n")
+            mod_data = jd.get("counter", jd)
+            meta = mod_data.get("metadata", {})
+            ports = mod_data.get("ports", [])
+            params = mod_data.get("parameters", [])
+            always_blocks = mod_data.get("always_blocks", [])
+            lines.append(f"- Module: `{meta.get('module_name', '?')}`")
+            lines.append(f"- Ports: {len(ports)}")
+            lines.append(f"- Parameters: {len(params)}")
+            lines.append(f"- Always blocks: {len(always_blocks)}\n")
 
         elif stg["id"] == "static" and isinstance(jd, dict):
             s = jd.get("summary", {})
