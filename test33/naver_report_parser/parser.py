@@ -11,7 +11,6 @@ from typing import List, Optional
 
 import pdfplumber
 import requests
-from bs4 import BeautifulSoup
 
 from .models import ParsedReport, ReportInfo
 
