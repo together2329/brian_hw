@@ -182,11 +182,24 @@ class CounterPacketMapper:
 
         # Decode payload for data_in (lossless: 2 bytes)
         data_in = 0
-        if pkt.haslayer(Raw):
+        if pkt.haslayer(UDP) and pkt.haslayer(Raw):
+            # scapy properly parsed UDP layer — Raw.load is the actual payload
             raw_bytes = bytes(pkt[Raw].load)
-            if len(raw_bytes) >= 5:
-                # Bytes 2-3 = data_in (big-endian uint16)
-                data_in = struct.unpack(">H", raw_bytes[2:4])[0]
+        elif pkt.haslayer(Raw):
+            # scapy failed to parse UDP — Raw.load includes 8-byte UDP header
+            # This happens after serialize→re-parse in some scapy versions
+            raw_bytes = bytes(pkt[Raw].load)
+            if len(raw_bytes) > 8:
+                raw_bytes = raw_bytes[8:]  # skip UDP header (sport/dport/len/cksum)
+            else:
+                raw_bytes = b""
+        else:
+            raw_bytes = b""
+
+        if len(raw_bytes) >= 5:
+            # Payload format: [count_out:2B][data_in:2B][flags:1B]
+            # Bytes 2-3 = data_in (big-endian uint16)
+            data_in = struct.unpack(">H", raw_bytes[2:4])[0]
 
         # Determine width from count_out value
         if count_out > 0xFF:
