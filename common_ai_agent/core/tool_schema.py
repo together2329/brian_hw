@@ -376,6 +376,97 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         },
         required=["files"],
     ),
+
+    # ── cmux tools ──────────────────────────────────────────────────────────
+    "cmux_tree": _fn(
+        "cmux_tree",
+        "List all cmux surfaces and workspaces. Run first to find surface refs.",
+        {},
+    ),
+    "cmux_capture": _fn(
+        "cmux_capture",
+        "Capture the modifiable_ai_agent screen text.",
+        {"lines": {"type": "integer", "description": "Max lines to capture (default 200)"}},
+    ),
+    "cmux_send": _fn(
+        "cmux_send",
+        "Send text to modifiable_ai_agent (Enter is auto-appended). Returns screen after send.",
+        {"text": {"type": "string", "description": "Text to send"}},
+        required=["text"],
+    ),
+    "cmux_send_key": _fn(
+        "cmux_send_key",
+        "Send a special key to modifiable_ai_agent (e.g. 'ctrl+c', 'ctrl+q', 'escape', 'enter').",
+        {"key": {"type": "string", "description": "Key to send"}},
+        required=["key"],
+    ),
+    "cmux_restart_modifiable": _fn(
+        "cmux_restart_modifiable",
+        "Quit and restart modifiable_ai_agent.",
+        {},
+    ),
+    "cmux_set_surface": _fn(
+        "cmux_set_surface",
+        "Save a surface ref to config so other cmux tools use it by default.",
+        {"surface_ref": {"type": "string", "description": "Surface ref (e.g. 'surface:1')"}},
+        required=["surface_ref"],
+    ),
+    "cmux_notify": _fn(
+        "cmux_notify",
+        "Send a macOS notification.",
+        {
+            "title": {"type": "string", "description": "Notification title"},
+            "body":  {"type": "string", "description": "Notification body (optional)"},
+        },
+        required=["title"],
+    ),
+    "cmux_list_panes": _fn(
+        "cmux_list_panes",
+        "List panes in the current (or given) workspace.",
+        {"workspace": {"type": "string", "description": "Workspace ref (optional)"}},
+    ),
+    "cmux_new_pane": _fn(
+        "cmux_new_pane",
+        "Split the current workspace to create a new pane.",
+        {
+            "direction": {"type": "string", "description": "Split direction: left|right|up|down (default right)"},
+            "command":   {"type": "string", "description": "Command to run in the new pane (optional)"},
+        },
+    ),
+    "cmux_new_workspace": _fn(
+        "cmux_new_workspace",
+        "Create a new cmux workspace, optionally running a command.",
+        {
+            "name":    {"type": "string", "description": "Workspace name (optional)"},
+            "command": {"type": "string", "description": "Command to run (optional)"},
+            "cwd":     {"type": "string", "description": "Working directory (optional)"},
+        },
+    ),
+    "cmux_focus_pane": _fn(
+        "cmux_focus_pane",
+        "Move focus to a pane by ref (e.g. 'pane:1').",
+        {"pane": {"type": "string", "description": "Pane ref"}},
+        required=["pane"],
+    ),
+    "cmux_resize_pane": _fn(
+        "cmux_resize_pane",
+        "Resize a pane. direction: L|R|U|D, amount in cells.",
+        {
+            "pane":      {"type": "string",  "description": "Pane ref"},
+            "direction": {"type": "string",  "description": "L|R|U|D"},
+            "amount":    {"type": "integer", "description": "Cells to resize (default 5)"},
+        },
+        required=["pane", "direction"],
+    ),
+    "cmux_move_surface": _fn(
+        "cmux_move_surface",
+        "Drag a surface into a new split pane.",
+        {
+            "surface":   {"type": "string", "description": "Surface ref"},
+            "direction": {"type": "string", "description": "left|right|up|down"},
+        },
+        required=["surface", "direction"],
+    ),
 }
 
 
