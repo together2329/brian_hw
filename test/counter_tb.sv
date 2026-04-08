@@ -471,32 +471,35 @@ module counter_tb;
         // Test 7.2: Random stimulus with reference model
         $display("[Test 7.2] Random stimulus — 500 cycles");
         begin
+            int rand_fails = 0;
             apply_reset;
             ref_count    = '0;
             ref_overflow = 1'b0;
-            
+
             for (int i = 0; i < 500; i++) begin
                 // Constrained random stimulus
                 en      = $urandom_range(0, 1);
                 load    = $urandom_range(0, 1);
                 up_down = $urandom_range(0, 1);
                 data_in = $urandom_range(0, (1 << WIDTH) - 1);
-                
+
                 // Update reference model
                 update_ref;
-                
+
                 tick(1);
-                
+
                 // Check every cycle
+                test_count++;
                 if (count_out !== ref_count || overflow !== ref_overflow) begin
                     $display("  [FAIL] Random cycle %0d: DUT count=%0d overflow=%0b | REF count=%0d overflow=%0b",
                              i, count_out, overflow, ref_count, ref_overflow);
                     fail_count++;
+                    rand_fails++;
+                end else begin
+                    pass_count++;
                 end
-                test_count++;
             end
-            $display("  [INFO] Random stimulus: 500 cycles completed");
-            pass_count += 500; // Passed cycles already counted above as no fails
+            $display("  [INFO] Random stimulus: 500 cycles completed, %0d fails", rand_fails);
         end
 
         // ============================================================
