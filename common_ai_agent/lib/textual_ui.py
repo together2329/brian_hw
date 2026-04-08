@@ -284,37 +284,17 @@ class _AgentSuggester(Suggester):
 
     async def get_suggestion(self, value: str) -> str | None:
         try:
-            # Slash command completion
+            # Slash command inline suggestion (first match preview)
             if value.startswith('/') and ' ' not in value:
                 if not self._slash_cmds:
                     self._load_slash_cmds()
                 for cmd in self._slash_cmds:
                     if cmd.lower().startswith(value.lower()) and cmd != value:
                         return cmd
-
-            # @ file/folder completion
-            if '@' in value:
-                at_pos = value.rfind('@')
-                partial = value[at_pos + 1:]
-                if ' ' not in partial:
-                    if '/' in partial:
-                        dir_part, stem = partial.rsplit('/', 1)
-                        base = dir_part or '.'
-                    else:
-                        dir_part, stem = '', partial
-                        base = '.'
-                    for name in sorted(os.listdir(base)):
-                        if name.startswith('.'):
-                            continue
-                        if stem and not name.lower().startswith(stem.lower()):
-                            continue
-                        full = f"{dir_part}/{name}" if dir_part else name
-                        if os.path.isdir(os.path.join(base, name)):
-                            full += '/'
-                        return value[:at_pos + 1] + full
         except Exception:
             pass
 
+        # @ file completion is handled by the OptionList dropdown in on_input_changed
         return None
 
 
@@ -1018,8 +998,9 @@ class AgentTUI(App):
         """Show/hide completion dropdown while typing."""
         value = event.value
         ol = self.query_one("#completion-list", OptionList)
+
+        # ── Slash command dropdown ────────────────────────────────────────────
         if value.startswith('/') and ' ' not in value:
-            # Load slash commands
             cmds: list[str] = []
             try:
                 try:
@@ -1037,6 +1018,40 @@ class AgentTUI(App):
                 ol.highlighted = None
                 ol.add_class("visible")
                 return
+
+        # ── @ file/folder dropdown ────────────────────────────────────────────
+        if '@' in value:
+            at_pos = value.rfind('@')
+            after_at = value[at_pos + 1:]
+            if ' ' not in after_at:
+                partial = after_at
+                try:
+                    if '/' in partial:
+                        dir_part, stem = partial.rsplit('/', 1)
+                        base = dir_part or '.'
+                    else:
+                        dir_part, stem = '', partial
+                        base = '.'
+                    file_matches: list[str] = []
+                    for name in sorted(os.listdir(base)):
+                        if name.startswith('.'):
+                            continue
+                        if stem and not name.lower().startswith(stem.lower()):
+                            continue
+                        full = f"{dir_part}/{name}" if dir_part else name
+                        if os.path.isdir(os.path.join(base, name)):
+                            full += '/'
+                        file_matches.append(value[:at_pos + 1] + full)
+                    if file_matches:
+                        ol.clear_options()
+                        for m in file_matches:
+                            ol.add_option(_Option(m))
+                        ol.highlighted = None
+                        ol.add_class("visible")
+                        return
+                except Exception:
+                    pass
+
         ol.remove_class("visible")
 
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
