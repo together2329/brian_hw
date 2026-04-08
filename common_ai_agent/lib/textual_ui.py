@@ -1042,6 +1042,8 @@ class AgentTUI(App):
                         if os.path.isdir(os.path.join(base, name)):
                             full += '/'
                         file_matches.append(value[:at_pos + 1] + full)
+                    # Exclude exact match — value already completed, no re-suggestion
+                    file_matches = [m for m in file_matches if m != value]
                     if file_matches:
                         ol.clear_options()
                         for m in file_matches:
