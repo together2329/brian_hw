@@ -23,6 +23,7 @@ import os
 import threading
 from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
+from collections import deque
 
 # Add paths for imports
 _script_dir = os.path.dirname(os.path.abspath(__file__))
