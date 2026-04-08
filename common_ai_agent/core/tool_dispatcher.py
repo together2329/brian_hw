@@ -50,6 +50,53 @@ def clear_agent_metadata() -> None:
 # Core dispatch
 # ---------------------------------------------------------------------------
 
+class _ToolTimeoutError(Exception):
+    """Raised when a tool exceeds the global timeout."""
+    pass
+
+
+def _call_with_timeout(
+    func: Callable,
+    args: list,
+    kwargs: dict,
+    *,
+    timeout: int,
+    tool_name: str,
+):
+    """
+    Call *func* with a hard timeout.  Uses a worker thread so we can enforce
+    a wall-clock limit even for blocking / C-extension calls that don't
+    cooperate with Python-level interrupts.
+
+    Returns the function result, or raises _ToolTimeoutError on timeout.
+    """
+    if timeout <= 0:
+        return func(*args, **kwargs)
+
+    result_container = [None]
+    error_container = [None]
+
+    def _worker():
+        try:
+            result_container[0] = func(*args, **kwargs)
+        except Exception as exc:
+            error_container[0] = exc
+
+    import concurrent.futures
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(_worker)
+        try:
+            future.result(timeout=timeout)
+        except concurrent.futures.TimeoutError:
+            raise _ToolTimeoutError(
+                f"Tool '{tool_name}' exceeded global timeout of {timeout}s"
+            )
+
+    if error_container[0] is not None:
+        raise error_container[0]
+    return result_container[0]
+
+
 def dispatch_tool(
     tool_name: str,
     args_str: str,
