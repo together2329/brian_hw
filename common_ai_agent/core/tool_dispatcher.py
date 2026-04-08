@@ -125,7 +125,12 @@ def dispatch_tool(
         if debug:
             print(f"[DEBUG] Parsed args: {parsed_args}, kwargs: {parsed_kwargs}")
 
-        result = func(*parsed_args, **parsed_kwargs)
+        # Execute tool with optional global timeout
+        result = _call_with_timeout(
+            func, parsed_args, parsed_kwargs,
+            timeout=global_timeout,
+            tool_name=tool_name,
+        )
 
         # Store AgentResult metadata in thread-local; clear for normal tools
         if hasattr(result, "__class__") and result.__class__.__name__ == "AgentResult":
