@@ -991,6 +991,20 @@ class AgentTUI(App):
         except Exception:
             pass
 
+    @staticmethod
+    def _restore_terminal() -> None:
+        """Exit alternate screen and reset terminal before force-kill."""
+        try:
+            import sys as _sys
+            # \x1b[?1049l  exit alternate screen buffer (restores original terminal)
+            # \x1b[?25h    show cursor
+            # \x1b[0m      reset all attributes
+            # \x1b[2J\x1b[H clear screen, cursor home
+            _sys.stdout.write("\x1b[?1049l\x1b[?25h\x1b[0m\x1b[2J\x1b[H")
+            _sys.stdout.flush()
+        except Exception:
+            pass
+
     def action_quit(self) -> None:
         """Ctrl+Q: immediate force-exit."""
         import os as _os
@@ -1000,10 +1014,12 @@ class AgentTUI(App):
             self._input_bridge.submit("exit")
         except Exception:
             pass
+        self._restore_terminal()
         _os._exit(0)
 
     def _force_exit(self) -> None:
         import os as _os
+        self._restore_terminal()
         _os._exit(0)
 
     def _do_exit(self) -> None:
