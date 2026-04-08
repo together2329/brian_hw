@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from .crawler import NaverReportCrawler
+from .errors import CrawlError, NaverReportError, PDFError
 from .formatter import format_table, format_json, format_csv, format_compact_table, format_summary_line
 from .models import ParsedReport, ReportInfo
 from .parser import ReportParser
