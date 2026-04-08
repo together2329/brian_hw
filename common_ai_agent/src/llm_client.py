@@ -261,8 +261,9 @@ def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
         except _PersistentHTTPError:
             raise
         except (http.client.RemoteDisconnected, http.client.CannotSendRequest,
+                http.client.BadStatusLine,
                 ConnectionResetError, BrokenPipeError, OSError):
-            # Stale connection — drop it and retry with a fresh one
+            # Stale connection (or leftover bytes from prev SSE stream) — drop and retry fresh
             try:
                 conn.close()
             except Exception:
@@ -624,6 +625,15 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                     delay = _RETRY_DELAYS[retry_count]
                     print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Empty response from LLM. Waiting {delay}s...\n"))
                     time.sleep(delay)
+                    # Drop pooled connection: SSE stream may not be fully drained,
+                    # leaving tail bytes that cause BadStatusLine on the next request.
+                    try:
+                        _parsed_url = urllib.parse.urlparse(url)
+                        _stale_conn = _http_conn_pool.pop(_parsed_url.netloc, None)
+                        if _stale_conn is not None:
+                            _stale_conn.close()
+                    except Exception:
+                        pass
                     # fall through to finally, then loop continues
                 else:
                     return
