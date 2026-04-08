@@ -1405,7 +1405,7 @@ class AgentTUI(App):
         )
 
     def _check_proactive_idle(self) -> None:
-        """Callback after idle threshold: show proactive message if still idle."""
+        """Callback after idle threshold: inject proactive prompt to trigger LLM call."""
         if not self._proactive_enabled:
             return
         self._proactive_timer = None
@@ -1414,18 +1414,11 @@ class AgentTUI(App):
             # User typed something recently; reschedule
             self._start_proactive_timer()
             return
-        # Still idle — update activity sidebar
+        # Still idle — inject proactive prompt into agent input queue
+        # This triggers an actual LLM call
+        self._last_input_time = time.time()
         try:
-            a = RichText()
-            a.append(self._proactive_message, style=f"bold {_ACCENT}")
-            self.query_one("#activity", Static).update(a)
-        except Exception:
-            pass
-        # Also post into main log
-        try:
-            log = self.query_one("#main", RichLog)
-            from rich.text import Text
-            log.write(Text(self._proactive_message, style=f"italic {_ACCENT}"))
+            self._input_bridge.submit(self._proactive_message)
         except Exception:
             pass
 
