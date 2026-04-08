@@ -155,58 +155,6 @@ class ReportParser:
         if not parsed.analyst:
             parsed.analyst = self._find_analyst(page1)
 
-    @classmethod
-    def _find_analyst(cls, page1: str) -> str:
-        """Try multiple patterns to extract analyst name from page 1."""
-        skip = cls._ANALYST_SKIP
-
-        # Pattern 1: "▶ Analyst 이름" or "Analyst 이름"
-        m = re.search(r"(?:▶\s*)?[Aa]nalyst\s+([가-힣]{2,4})", page1)
-        if m and m.group(1) not in skip:
-            return m.group(1)
-
-        # Pattern 2: "한글이름 연구위원/애널리스트/수석연구원"
-        m = re.search(r"([가-힣]{2,4})\s+(?:연구위원|애널리스트|수석연구원|연구원)", page1)
-        if m and m.group(1) not in skip:
-            return m.group(1)
-
-        # Pattern 3: "한글이름 부서키워드" + email nearby
-        _dept_kw = r"(?:반도체|증권|투자|금융|은행|자산|운용|리서치|전략|경제|기업|산업)"
-        for m in re.finditer(r"([가-힣]{2,4})\s+" + _dept_kw, page1):
-            name = m.group(1)
-            if name in skip:
-                continue
-            after = page1[m.end(): m.end() + 500]
-            if re.search(r"[\w.-]+@[\w.-]+", after):
-                return name
-
-        # Pattern 4: "한글이름\n" with email within 500 chars after
-        for m in re.finditer(
-            r"([가-힣]{2,4})\s+[가-힣]+\s*\n[\s\S]*?[\w.-]+@[\w.-]+", page1
-        ):
-            if m.group(1) not in skip:
-                return m.group(1)
-
-        # Pattern 5: Korean name alone on a line, with email nearby
-        for m in re.finditer(r"^([가-힣]{2,4})\s*$", page1, re.MULTILINE):
-            name = m.group(1)
-            if name in skip:
-                continue
-            after = page1[m.end(): m.end() + 300]
-            if re.search(r"[\w.-]+@[\w.-]+", after):
-                return name
-            if re.match(
-                r"\s*(?:연구위원|애널리스트|수석연구원|연구원)", page1[m.end():]
-            ):
-                return name
-
-        # Pattern 6: "한글이름" right before email
-        for m in re.finditer(r"([가-힣]{2,4})\s+[\w.-]+@[\w.-]+", page1):
-            if m.group(1) not in skip:
-                return m.group(1)
-
-        return ""
-
         # ── Stock code from "(005930)" or "(066570)" pattern ──
         if not parsed.stock_code:
             m = re.search(r"\((\d{6})\)", page1)
@@ -261,6 +209,60 @@ class ReportParser:
                 if m:
                     parsed.broker = m.group(1)
                     break
+
+    # ── Analyst Extraction ──────────────────────────────────────────────
+
+    @classmethod
+    def _find_analyst(cls, page1: str) -> str:
+        """Try multiple patterns to extract analyst name from page 1."""
+        skip = cls._ANALYST_SKIP
+
+        # Pattern 1: "▶ Analyst 이름" or "Analyst 이름"
+        m = re.search(r"(?:▶\s*)?[Aa]nalyst\s+([가-힣]{2,4})", page1)
+        if m and m.group(1) not in skip:
+            return m.group(1)
+
+        # Pattern 2: "한글이름 연구위원/애널리스트/수석연구원"
+        m = re.search(r"([가-힣]{2,4})\s+(?:연구위원|애널리스트|수석연구원|연구원)", page1)
+        if m and m.group(1) not in skip:
+            return m.group(1)
+
+        # Pattern 3: "한글이름 부서키워드" + email nearby
+        _dept_kw = r"(?:반도체|증권|투자|금융|은행|자산|운용|리서치|전략|경제|기업|산업)"
+        for m in re.finditer(r"([가-힣]{2,4})\s+" + _dept_kw, page1):
+            name = m.group(1)
+            if name in skip:
+                continue
+            after = page1[m.end(): m.end() + 500]
+            if re.search(r"[\w.-]+@[\w.-]+", after):
+                return name
+
+        # Pattern 4: "한글이름\n" with email within 500 chars after
+        for m in re.finditer(
+            r"([가-힣]{2,4})\s+[가-힣]+\s*\n[\s\S]*?[\w.-]+@[\w.-]+", page1
+        ):
+            if m.group(1) not in skip:
+                return m.group(1)
+
+        # Pattern 5: Korean name alone on a line, with email nearby
+        for m in re.finditer(r"^([가-힣]{2,4})\s*$", page1, re.MULTILINE):
+            name = m.group(1)
+            if name in skip:
+                continue
+            after = page1[m.end(): m.end() + 300]
+            if re.search(r"[\w.-]+@[\w.-]+", after):
+                return name
+            if re.match(
+                r"\s*(?:연구위원|애널리스트|수석연구원|연구원)", page1[m.end():]
+            ):
+                return name
+
+        # Pattern 6: "한글이름" right before email
+        for m in re.finditer(r"([가-힣]{2,4})\s+[\w.-]+@[\w.-]+", page1):
+            if m.group(1) not in skip:
+                return m.group(1)
+
+        return ""
 
     # ── Investment Opinion Extraction ──────────────────────────────────────
 
