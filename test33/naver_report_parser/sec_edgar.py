@@ -46,7 +46,7 @@ TARGET_STOCKS = {
     "MU":   {"cik": "0000723125", "name": "Micron Technology, Inc.",       "sic": "3674"},
     "LITE": {"cik": "0001633978", "name": "Lumentum Holdings Inc.",        "sic": "3661"},
     "COHR": {"cik": "0000820318", "name": "Coherent Corp.",               "sic": "3661"},
-    "GLW":  {"cik": "000024741",  "name": "Corning Inc.",                  "sic": "3229"},
+    "GLW":  {"cik": "0000024741", "name": "Corning Inc.",                  "sic": "3229"},
     "FN":   {"cik": "0001408710", "name": "Fabrinet",                      "sic": "3674"},
 }
 
