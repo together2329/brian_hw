@@ -213,6 +213,10 @@ def dispatch_tool(
 
         return result
 
+    except _ToolTimeoutError as e:
+        _agent_metadata.last_result = None
+        return f"Error: {e}"
+
     except Exception as e:
         error_detail = traceback.format_exc()
         _agent_metadata.last_result = None
