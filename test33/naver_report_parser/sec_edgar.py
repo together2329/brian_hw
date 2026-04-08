@@ -795,10 +795,15 @@ class SECEdgarClient:
             if data.get("revenue") is None:
                 continue
 
-            # Determine fiscal_year from the highest filing fy for this end_date.
-            # For annual: fy_highest is the filing year, end_date is the period.
-            # We use fy_highest for consistency with SEC metadata.
-            fy = data["fy_highest"]
+            # Determine fiscal_year from the end_date (actual period end), not from
+            # fy_highest which is the filing year and is the same for both current
+            # and restated prior-year data in a single filing.
+            end_date_str = data["end_date"]
+            end_year = int(end_date_str[:4])
+            fy = end_year
+            # For companies with non-calendar fiscal years (e.g. MU ends in Aug),
+            # the fiscal year label typically matches the calendar year of the end date.
+            # The XBRL fp=FY entry's end_date tells us the true period.
 
             p = FinancialPeriod(
                 fiscal_year=fy,
