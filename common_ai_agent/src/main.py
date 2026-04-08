@@ -1295,57 +1295,102 @@ def chat_loop():
 
     # ── Keepalive / Auto-continue ──────────────────────────────────────────
     # Injects KEEPALIVE_MESSAGE if no activity for KEEPALIVE_INTERVAL seconds.
+    #
+    # Design:
+    #   - Uses prompt_toolkit's event loop (call_soon_threadsafe + app.exit)
+    #     to safely inject input from a background thread.
+    #   - Timer only counts down while waiting for user input (prompt() blocking).
+    #     During LLM work the timer is paused (reset on next prompt display).
+    #   - On each prompt() call, a pre_run hook arms the keepalive so it can
+    #     call app.exit() from inside the event loop — the only reliable way.
+    #
     import threading as _threading
     _keepalive_last_activity = [time.time()]   # mutable container for thread access
-    _keepalive_waiting = [False]               # True only while blocked on input prompt
     _keepalive_stop = _threading.Event()
 
-    def _keepalive_thread_fn():
-        _interval = getattr(config, "KEEPALIVE_INTERVAL", 0)
+    def _keepalive_build_message():
+        """Build keepalive message with todo continuation context."""
         _msg = getattr(config, "KEEPALIVE_MESSAGE", "keep going")
+        try:
+            if getattr(config, "ENABLE_TODO_TRACKING", False):
+                from lib.todo_tracker import TodoTracker as _TodoTracker
+                _tracker = _TodoTracker.load(Path(config.TODO_FILE))
+                if _tracker and _tracker.todos and not _tracker.is_all_processed():
+                    _reminder = _tracker.get_continuation_prompt()
+                    if _reminder:
+                        return _msg + "\n\n" + _reminder
+        except Exception:
+            pass
+        return _msg
+
+    def _keepalive_thread_fn():
+        """Background thread: polls idle time and triggers injection via event loop."""
+        _interval = getattr(config, "KEEPALIVE_INTERVAL", 0)
         if _interval <= 0:
             return
         while not _keepalive_stop.is_set():
-            _keepalive_stop.wait(timeout=min(60, _interval))
+            _keepalive_stop.wait(timeout=min(5, _interval))
             if _keepalive_stop.is_set():
                 break
             _interval = getattr(config, "KEEPALIVE_INTERVAL", 0)
             if _interval <= 0:
                 continue
-            if not _keepalive_waiting[0]:
-                continue
             idle = time.time() - _keepalive_last_activity[0]
             if idle < _interval:
                 continue
-            # Inject keepalive input — include todo continuation reminder if available
-            _full_msg = _msg
-            try:
-                if getattr(config, "ENABLE_TODO_TRACKING", False):
-                    from lib.todo_tracker import TodoTracker as _TodoTracker
-                    _tracker = _TodoTracker.load(Path(config.TODO_FILE))
-                    if _tracker and _tracker.todos and not _tracker.is_all_processed():
-                        _reminder = _tracker.get_continuation_prompt()
-                        if _reminder:
-                            _full_msg = _msg + "\n\n" + _reminder
-            except Exception:
-                pass
-            print(f"\n[Keepalive] No activity for {int(idle)}s — injecting keepalive")
-            _keepalive_last_activity[0] = time.time()
-            # prompt_toolkit path
+
+            # ── Idle threshold reached: inject keepalive ──
+            _full_msg = _keepalive_build_message()
+            _elapsed = int(idle)
+            _keepalive_last_activity[0] = time.time()  # reset to prevent re-fire
+
+            # Path A: prompt_toolkit — schedule app.exit() inside the event loop
             if _multiline_prompt is not None:
                 try:
-                    app = _multiline_prompt.app
-                    if app is not None:
-                        app.exit(result=_full_msg)
+                    _app = _multiline_prompt.app
+                    _loop = getattr(_app, 'loop', None)
+                    if _loop is not None and getattr(_app, '_is_running', False):
+                        # print from background thread (safe)
+                        print(f"\n[Keepalive] No activity for {_elapsed}s — injecting keepalive")
+                        # Schedule app.exit(result=...) on the event loop thread
+                        _loop.call_soon_threadsafe(lambda: _app.exit(result=_full_msg))
                         continue
                 except Exception:
                     pass
-            # Fallback: write to stdin (works for plain input())
+                # Fallback A2: try app.exit directly if loop not available but app is running
+                try:
+                    if getattr(_app, 'future', None) is not None and not _app.future.done():
+                        print(f"\n[Keepalive] No activity for {_elapsed}s — injecting keepalive")
+                        _app.exit(result=_full_msg)
+                        continue
+                except Exception:
+                    pass
+
+            # Path B: plain input() — write to /dev/tty (what the terminal actually reads)
             try:
+                print(f"\n[Keepalive] No activity for {_elapsed}s — injecting keepalive")
                 import os as _os
-                _os.write(sys.stdin.fileno(), (_full_msg + "\n").encode())
+                try:
+                    _tty_fd = _os.open('/dev/tty', _os.O_RDWR | _os.O_NOCTTY)
+                    _os.write(_tty_fd, (_full_msg + "\n").encode())
+                    _os.close(_tty_fd)
+                except Exception:
+                    # Last resort: stdin
+                    _os.write(sys.stdin.fileno(), (_full_msg + "\n").encode())
             except Exception:
                 pass
+
+    def _keepalive_arm():
+        """pre_run hook: reset timer when prompt() starts waiting for input."""
+        _keepalive_last_activity[0] = time.time()
+
+    # Register pre_run hook on prompt_toolkit so keepalive resets each prompt
+    if _multiline_prompt is not None and getattr(config, "KEEPALIVE_INTERVAL", 0) > 0:
+        try:
+            _keepalive_arm  # ensure defined
+            _multiline_prompt.app.pre_run_callables.append(_keepalive_arm)
+        except Exception:
+            pass
 
     if getattr(config, "KEEPALIVE_INTERVAL", 0) > 0:
         _kt = _threading.Thread(target=_keepalive_thread_fn, daemon=True, name="keepalive")
