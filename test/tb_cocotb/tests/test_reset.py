@@ -7,7 +7,7 @@ Tests:
 """
 
 import cocotb
-from cocotb.triggers import RisingEdge, ReadOnly
+from cocotb.triggers import RisingEdge, ReadOnly, NextTimeStep
 from cocotb.clock import Clock
 
 from counter_env import CounterEnv
