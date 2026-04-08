@@ -153,17 +153,25 @@ class ReportParser:
                 if m:
                     parsed.analyst = m.group(1)
                 else:
-                    # Pattern: "한글이름 부서명" near email, possibly multiple lines away
-                    # Use finditer to skip false positives like "조원", "억원"
-                    for m in re.finditer(
-                        r"([가-힣]{2,4})\s+[가-힣]+\s*\n[\s\S]*?[\w.-]+@[\w.-]+",
-                        page1,
-                    ):
-                        if m.group(1) not in ("조원", "억원", "만원", "백만", "으로", "으로서"):
-                            parsed.analyst = m.group(1)
-                            break
+                    # Pattern: "한글이름 부서키워드" (e.g., "이수림 반도체", "김록호 리서치")
+                    _dept_kw = r"(?:반도체|증권|투자|금융|은행|자산|운용|리서치|전략|경제|기업|산업)"
+                    m = re.search(
+                        r"([가-힣]{2,4})\s+" + _dept_kw, page1
+                    )
+                    if m:
+                        parsed.analyst = m.group(1)
+                    else:
+                        # Pattern: "한글이름 + KoreanWord" near email
+                        # Use finditer to skip false positives
+                        for m in re.finditer(
+                            r"([가-힣]{2,4})\s+[가-힣]+\s*\n[\s\S]*?[\w.-]+@[\w.-]+",
+                            page1,
+                        ):
+                            if m.group(1) not in ("조원", "억원", "만원", "백만", "으로", "으로서"):
+                                parsed.analyst = m.group(1)
+                                break
 
-                    if not parsed.analyst:
+                        if not parsed.analyst:
                         # Pattern: Korean name alone on a line, with email nearby
                         # Skip if it's a stock name or generic word
                         _skip = {"삼성전자", "투자의견", "매수", "매도", "보유", "중립"}
