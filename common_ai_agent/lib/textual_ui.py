@@ -351,6 +351,12 @@ class _AgentInput(Input):
         self._hist_draft: str = ""   # saved draft before browsing
         self._load_history()
 
+    def check_consume_key(self, key: str, character: str | None) -> bool:
+        """Tell Textual we own Tab — prevents Screen's tab→focus_next binding from firing."""
+        if key == "tab":
+            return True
+        return super().check_consume_key(key, character)
+
     # ── History persistence ───────────────────────────────────────────────────
 
     def _history_path(self):
@@ -443,17 +449,19 @@ class _AgentInput(Input):
                 full = f"{dir_part}/{name}" if dir_part else name
                 if os.path.isdir(os.path.join(base, name)):
                     full += '/'
-                file_matches.append(value[:at_pos + 1] + full)
-            non_exact = [m for m in file_matches if m != value]
+                full_replacement = value[:at_pos + 1] + full
+                # Display only the filename portion (avoids showing the prefix when
+                # multiple @ tokens are in the input)
+                file_matches.append((full, full_replacement))  # (display, full_value)
+            non_exact = [(d, v) for d, v in file_matches if v != value]
             if non_exact:
-                file_matches = non_exact       # always prefer non-exact matches
+                file_matches = non_exact
             elif not force:
-                file_matches = []              # exact only → hide unless forced
-            # else: force=True + only exact match → show it so user knows it's valid
+                file_matches = []
             if file_matches:
                 ol.clear_options()
-                for m in file_matches:
-                    ol.add_option(_Option(m))
+                for display, full_val in file_matches:
+                    ol.add_option(_Option(display, id=full_val))
                 ol.highlighted = None
                 ol.add_class("visible")
         except Exception:
@@ -492,14 +500,20 @@ class _AgentInput(Input):
                 if count > 0:
                     current = ol.highlighted
                     next_idx = 0 if current is None else (current + 1) % count
-                    opt_text = str(ol.get_option_at_index(next_idx).prompt)
+                    opt = ol.get_option_at_index(next_idx)
+                    # Use id (full replacement) when set, else prompt
+                    opt_value = opt.id or str(opt.prompt)
+                    opt_display = str(opt.prompt)
 
-                    if current is not None and opt_text.endswith('/'):
+                    if current is not None and opt_display.endswith('/'):
                         # Already highlighted a directory → navigate into it
                         ol.remove_class("visible")
-                        self.value = opt_text
+                        self.value = opt_value
                         self.action_end()
-                        # on_input_changed fires → shows directory contents
+                        # Directly refresh directory contents without waiting for on_input_changed
+                        ol_ref = self._get_completion_list()
+                        if ol_ref is not None:
+                            self._show_at_dropdown(opt_value, ol_ref, force=False)
                     else:
                         # First Tab on this item: just highlight (no value change)
                         ol.highlighted = next_idx
@@ -578,9 +592,10 @@ class _AgentInput(Input):
             if ol is not None and "visible" in ol.classes:
                 highlighted = ol.highlighted
                 if highlighted is not None:
-                    opt_text = str(ol.get_option_at_index(highlighted).prompt)
+                    opt = ol.get_option_at_index(highlighted)
+                    opt_value = opt.id or str(opt.prompt)
                     ol.remove_class("visible")
-                    self.value = opt_text
+                    self.value = opt_value
                     self.action_end()
                     event.prevent_default()
                     event.stop()
@@ -970,10 +985,22 @@ class AgentTUI(App):
             pass
 
     def action_quit(self) -> None:
-        self._do_exit()
+        """Ctrl+Q: interrupt any ongoing generation then exit."""
+        self._interrupt = True          # signal streaming to stop
+        self._update_statusbar("Exiting…")
+        try:
+            self._input_bridge.submit("exit")   # unblock worker if waiting for input
+        except Exception:
+            pass
+        # Force-kill after 1.5 s in case the worker is mid-stream and slow to respond
+        self.set_timer(1.5, self._force_exit)
+
+    def _force_exit(self) -> None:
+        import os as _os
+        _os._exit(0)
 
     def _do_exit(self) -> None:
-        """Unblock worker thread then force-kill the process."""
+        """Clean exit path (called from /quit, /exit commands)."""
         self._update_statusbar("Saving and exiting...")
         try:
             self._input_bridge.submit("exit")
@@ -993,17 +1020,17 @@ class AgentTUI(App):
         self.set_timer(2.0, self._update_statusbar)
 
     def action_stop(self) -> None:
-        """Interrupt current agent execution."""
+        """ESC: interrupt current agent execution. Always works regardless of state."""
+        self._interrupt = True      # works even if _generating flag is stale
+        log = self.query_one("#main", RichLog)
+        t = RichText()
+        t.append("\n  ⎋ ", style=f"bold {_YELLOW}")
         if self._generating:
-            self._interrupt = True
-            log = self.query_one("#main", RichLog)
-            t = RichText()
-            t.append("\n  ⎋ ", style=f"bold {_YELLOW}")
-            t.append("ESC — Stopping generation after current chunk…", style=_TEXT_DIM)
-            log.write(t)
-            self._scroll_down()
+            t.append("Stopping generation after current token…", style=_TEXT_DIM)
         else:
-            self._update_statusbar("No active generation to stop")
+            t.append("Interrupt sent.", style=_TEXT_DIM)
+        log.write(t)
+        self._scroll_down()
 
     def check_and_reset_interrupt(self) -> bool:
         """Thread-safe check for interrupt flag."""
@@ -1105,7 +1132,8 @@ class AgentTUI(App):
         """Accept a completion from the dropdown."""
         inp = self.query_one(_AgentInput)
         self.query_one("#completion-list", OptionList).remove_class("visible")
-        inp.value = str(event.option.prompt)
+        # Use id (full replacement value) when set, else fall back to prompt
+        inp.value = event.option.id or str(event.option.prompt)
         inp.action_end()
         inp.focus()
 
