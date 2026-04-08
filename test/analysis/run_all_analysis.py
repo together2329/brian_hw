@@ -187,7 +187,13 @@ def extract_summary(stage_result: dict) -> dict:
     # ── Per-stage summary extraction ──
     if sid == "pyslang":
         info["status"] = "PASS" if stage_result["exit_code"] == 0 else "FAIL"
-        info["detail"] = f"module={jd.get('module','?')} ports={jd.get('port_count','?')}"
+        # pyslang JSON is {"counter": {"metadata": {...}, "ports": [...], ...}}
+        mod_data = jd.get("counter", jd)
+        meta = mod_data.get("metadata", {})
+        ports = mod_data.get("ports", [])
+        params = mod_data.get("parameters", [])
+        info["detail"] = (f"module={meta.get('module_name','?')} "
+                          f"ports={len(ports)} params={len(params)}")
 
     elif sid == "static":
         s = jd.get("summary", {})
