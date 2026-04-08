@@ -371,21 +371,31 @@ module tdisp_dsm #(
 
                             // ── LOCK_INTERFACE: INTERFACE_ID fully received ──
                             if (req_msg_type == REQ_LOCK_INTERFACE) begin
-                                // Bug#4 hook: interface_id_match validation goes here
-                                // For now, proceed with successful lock
-                                tdi_state            <= STATE_CONFIG_LOCKED;
-                                lock_stream_id       <= default_stream_id;
-                                lock_no_fw_update    <= 1'b0;
-                                lock_msix_locked     <= 1'b0;
-                                lock_bind_p2p        <= 1'b0;
-                                lock_all_request_redirect <= 1'b0;
-                                mmio_reporting_offset <= {ADDR_WIDTH{1'b0}};
+                                if (!interface_id_match) begin
+                                    // §11.3.9: INTERFACE_ID mismatch → INVALID_INTERFACE
+                                    pending_error    <= ERR_INVALID_INTERFACE;
+                                    resp_msg_type    <= RESP_TDISP_ERROR;
+                                    resp_total_words <= 8'd8;
+                                    spdm_resp_valid  <= 1'b1;
+                                    spdm_req_ready   <= 1'b0;
+                                    error_irq        <= 1'b1;
+                                    last_error_code  <= ERR_INVALID_INTERFACE;
+                                    req_parsed       <= 1'b0;
+                                end else begin
+                                    tdi_state            <= STATE_CONFIG_LOCKED;
+                                    lock_stream_id       <= default_stream_id;
+                                    lock_no_fw_update    <= 1'b0;
+                                    lock_msix_locked     <= 1'b0;
+                                    lock_bind_p2p        <= 1'b0;
+                                    lock_all_request_redirect <= 1'b0;
+                                    mmio_reporting_offset <= {ADDR_WIDTH{1'b0}};
 
-                                resp_msg_type    <= RESP_LOCK_INTERFACE;
-                                resp_total_words <= 8'd9; // header(1) + nonce(8 words)
-                                spdm_resp_valid  <= 1'b1;
-                                spdm_req_ready   <= 1'b0;
-                                req_parsed       <= 1'b0; // ready for next request
+                                    resp_msg_type    <= RESP_LOCK_INTERFACE;
+                                    resp_total_words <= 8'd9; // header(1) + nonce(8 words)
+                                    spdm_resp_valid  <= 1'b1;
+                                    spdm_req_ready   <= 1'b0;
+                                    req_parsed       <= 1'b0; // ready for next request
+                                end
                             end
                         end
 
