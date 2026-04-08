@@ -427,7 +427,7 @@ def run_all_tests(width: int = 8) -> dict:
     print("\n[TEST 2] Single-bit flip detection — Payload CRC-8")
     t2_results, t2p, t2f = [], 0, 0
     for i, st in enumerate(states[:5]):
-        for byte_off in [42, 44, 46, 49]:
+        for byte_off in [42, 44, 46, 49]:  # Payload = bytes 42..50 (9 bytes)
             r = test_single_bit_payload(st, flip_byte=byte_off)
             r["test_index"] = i
             t2_results.append(r)
