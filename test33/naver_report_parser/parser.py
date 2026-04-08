@@ -125,27 +125,48 @@ class ReportParser:
 
         lines = page1.split("\n")
 
-        # ── Date: first line typically "2026년 4월 8일" ──
+        # ── Date: "2026년 4월 8일" or "2026/04/08" or "2026.04.07" ──
         for line in lines:
-            m = re.match(r"(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일", line.strip())
+            stripped = line.strip()
+            m = re.match(r"(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일", stripped)
+            if m:
+                if not parsed.report_date:
+                    parsed.report_date = f"{m.group(1)}.{m.group(2).zfill(2)}.{m.group(3).zfill(2)}"
+                break
+            # "2026/04/08" or "2026.04.07"
+            m = re.match(r"(\d{4})[/.](\d{1,2})[/.](\d{1,2})", stripped)
             if m:
                 if not parsed.report_date:
                     parsed.report_date = f"{m.group(1)}.{m.group(2).zfill(2)}.{m.group(3).zfill(2)}"
                 break
 
-        # ── Analyst: "▶ Analyst 박준영 ..." or "Analyst 이름" ──
-        m = re.search(r"(?:▶\s*)?[Aa]nalyst\s+(\S+)", page1)
-        if m:
-            parsed.analyst = m.group(1)
+        # ── Analyst: various patterns ──
+        # "▶ Analyst 박준영" / "이수림 반도체" / "최보영 연구위원"
+        if not parsed.analyst:
+            # Pattern: "▶ Analyst 이름" or "Analyst 이름"
+            m = re.search(r"(?:▶\s*)?[Aa]nalyst\s+(\S+)", page1)
+            if m:
+                parsed.analyst = m.group(1)
+            else:
+                # Pattern: "이름 연구위원" or "이름 애널리스트"
+                m = re.search(r"^(\S{2,4})\s+(?:연구위원|애널리스트|수석연구원|연구원)", page1, re.MULTILINE)
+                if m:
+                    parsed.analyst = m.group(1)
+                else:
+                    # Pattern: "이름 부서명" with email (DS투자증권 style)
+                    m = re.search(r"(\S{2,4})\s+\S+\s*\n.*?[\w.-]+@[\w.-]+", page1)
+                    if m:
+                        parsed.analyst = m.group(1)
 
-        # ── Stock code from "(005930)" pattern ──
+        # ── Stock code from "(005930)" or "(066570)" pattern ──
         if not parsed.stock_code:
             m = re.search(r"\((\d{6})\)", page1)
             if m:
                 parsed.stock_code = m.group(1)
 
-        # ── Stock name: line right after "기업분석" / "산업분석" etc. ──
+        # ── Stock name: various patterns ──
         if not parsed.stock_name:
+            # Pattern 1: line after "기업분석" / "산업분석" etc.
             for i, line in enumerate(lines):
                 stripped = line.strip()
                 if stripped in ("기업분석", "산업분석", "기업분석(report)", "기업실적"):
@@ -153,22 +174,44 @@ class ReportParser:
                         parsed.stock_name = lines[i + 1].strip()
                     break
 
-        # ── Title: typically right after the stock code line ──
+            # Pattern 2: "삼성전자(005930)" in text
+            if not parsed.stock_name:
+                m = re.search(r"([가-힣A-Z]+(?:전자|증권|건설|화학|제약|바이오|에너지|시스템|머티리얼|디스플레이|하이닉스|자동차|중공업|전기|금융|생명|카드|물산|로템|에어|航空航天))\s*\(\d{6}\)", page1)
+                if m:
+                    parsed.stock_name = m.group(1)
+
+            # Pattern 3: standalone line with known stock name (before stock code)
+            if not parsed.stock_name:
+                m = re.search(r"^([가-힣]{2,10})\s*\n\s*\(?(\d{6})\)?", page1, re.MULTILINE)
+                if m:
+                    parsed.stock_name = m.group(1)
+
+        # ── Title: various patterns ──
         if not parsed.title:
+            # Pattern 1: after stock code line
             for i, line in enumerate(lines):
                 if re.search(r"\(\d{6}\)", line):
                     if i + 1 < len(lines):
                         candidate = lines[i + 1].strip()
-                        # Skip analyst line
                         if candidate and "Analyst" not in candidate and "▶" not in candidate:
                             parsed.title = candidate
                     break
 
-        # ── Broker: often appears as "[증권사명리서치]" on page 2+ ──
-        if not parsed.broker and len(pages_text) > 1:
-            m = re.search(r"\[(\S+리서치)\]", pages_text[1])
-            if m:
-                parsed.broker = m.group(1)
+            # Pattern 2: "삼성전자(066570) TITLE" on same line
+            if not parsed.title:
+                m = re.search(r"\(\d{6}\)\s*(.+?)(?:\n|$)", page1)
+                if m:
+                    candidate = m.group(1).strip()
+                    if candidate and len(candidate) > 5:
+                        parsed.title = candidate
+
+        # ── Broker: "[증권사명리서치]" on page 2+ ──
+        if not parsed.broker:
+            for pt in pages_text[1:3]:
+                m = re.search(r"\[(\S+리서치)\]", pt)
+                if m:
+                    parsed.broker = m.group(1)
+                    break
 
     # ── Investment Opinion Extraction ──────────────────────────────────────
 
