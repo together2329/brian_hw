@@ -162,7 +162,9 @@ def encode_payload(state: CounterState) -> bytes:
 
 
 def decode_payload(raw: bytes) -> Tuple[Optional[CounterState], List[str]]:
-    """Deserialize 8-byte payload back into CounterState.
+    """Deserialize payload back into CounterState.
+    
+    Layout: [count_out:2B][data_in:2B][flags:1B][rsv:1B][width:1B][magic:1B][crc:1B] = 9B
     
     Returns (CounterState or None, list of warning strings).
     """
@@ -170,7 +172,7 @@ def decode_payload(raw: bytes) -> Tuple[Optional[CounterState], List[str]]:
     if len(raw) < PAYLOAD_SIZE:
         return None, [f"Payload too short: {len(raw)} < {PAYLOAD_SIZE}"]
 
-    # Check CRC
+    # Check CRC (XOR of all bytes before last)
     pre_crc = raw[:PAYLOAD_SIZE - 1]
     expected_crc = raw[PAYLOAD_SIZE - 1]
     computed_crc = _compute_crc(pre_crc)
@@ -178,12 +180,13 @@ def decode_payload(raw: bytes) -> Tuple[Optional[CounterState], List[str]]:
         return None, [f"CRC mismatch: expected=0x{expected_crc:02x}, "
                       f"computed=0x{computed_crc:02x}"]
 
-    # Check magic byte
-    magic = raw[6]
+    # Check magic byte (at offset 7)
+    magic = raw[7]
     if magic != MAGIC_BYTE:
         return None, [f"Magic byte wrong: 0x{magic:02x} != 0x{MAGIC_BYTE:02x}"]
 
-    count_out, data_in, flags, rsv, width = struct.unpack(">HHBBB", raw[:5])
+    # Unpack header (first 5 fields, 7 bytes)
+    count_out, data_in, flags, rsv, width = struct.unpack(PAYLOAD_HDR, raw[:7])
 
     overflow, up_down, en, load = _unpack_flags(flags)
 
