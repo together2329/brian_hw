@@ -43,6 +43,7 @@ async def _reset_check_loop(dut, env, stimulus_txns, rst_cycle_idx,
             expected = env.ref_model.step(txn, rst_n=0)  # ref model reset
             env.scoreboard.compare(expected, actual, cycle=i,
                                    test_name=test_name)
+            await NextTimeStep()  # escape ReadOnly before next iteration
         else:
             # ---- Normal cycle ----
             dut.en.value      = txn.en
@@ -60,6 +61,7 @@ async def _reset_check_loop(dut, env, stimulus_txns, rst_cycle_idx,
             expected = env.ref_model.step(txn, rst_n=1)
             env.scoreboard.compare(expected, actual, cycle=i,
                                    test_name=test_name)
+            await NextTimeStep()  # escape ReadOnly before next iteration
 
 
 # ======================================================================
