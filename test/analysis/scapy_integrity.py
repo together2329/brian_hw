@@ -412,7 +412,7 @@ def run_all_tests(width: int = 8) -> dict:
     print("\n[TEST 1] Single-bit flip detection — IP header checksum")
     t1_results, t1p, t1f = [], 0, 0
     for i, st in enumerate(states[:5]):
-        for byte_off in [8, 12, 16]:
+        for byte_off in [16, 22, 28]:  # IP header = bytes 14..33
             r = test_single_bit_ip_header(st, flip_byte=byte_off)
             r["test_index"] = i
             t1_results.append(r)
