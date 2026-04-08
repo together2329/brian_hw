@@ -877,6 +877,8 @@ class AgentTUI(App):
         self._proactive_enabled = False
         self._proactive_idle_seconds = 30
         self._proactive_message = ''
+        self._proactive_max_cycles = 3
+        self._proactive_cycle_count = 0
         self._last_input_time = 0.0
         self._proactive_timer = None
         try:
@@ -888,6 +890,7 @@ class AgentTUI(App):
             self._proactive_enabled = getattr(_cfg, "PROACTIVE_ENABLED", False)
             self._proactive_idle_seconds = getattr(_cfg, "PROACTIVE_IDLE_SECONDS", 30)
             self._proactive_message = getattr(_cfg, "PROACTIVE_MESSAGE", '🤔 Still here? Need help with anything?')
+            self._proactive_max_cycles = getattr(_cfg, "PROACTIVE_MAX_CYCLES", 3)
         except Exception:
             self._model = ""
             self._primary_model = ""
@@ -1215,8 +1218,9 @@ class AgentTUI(App):
         event.input.value = ""
         if not text:
             return
-        # Reset proactive idle timer on user input
+        # Reset proactive idle timer and cycle counter on user input
         self._last_input_time = time.time()
+        self._proactive_cycle_count = 0  # Reset cycles on real user input
         self._start_proactive_timer()
         # Save to history
         try:
@@ -1311,6 +1315,9 @@ class AgentTUI(App):
     def on_flush_response(self, msg: FlushResponse) -> None:
         """Worker signals stream done — render whatever accumulated in _response_buf."""
         self._flush_response()
+        # Restart proactive idle timer after LLM response completes
+        if self._proactive_enabled:
+            self._start_proactive_timer()
 
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:
@@ -1409,6 +1416,15 @@ class AgentTUI(App):
         if not self._proactive_enabled:
             return
         self._proactive_timer = None
+        # If agent is still generating (LLM call / tool use / reasoning),
+        # don't inject — reschedule instead.
+        if self._generating:
+            self._start_proactive_timer()
+            return
+        # Check cycle limit (0 = unlimited)
+        if self._proactive_max_cycles > 0 and self._proactive_cycle_count >= self._proactive_max_cycles:
+            print(f"[Proactive] Max cycles ({self._proactive_max_cycles}) reached — stopping.")
+            return
         elapsed = time.time() - self._last_input_time
         if elapsed < self._proactive_idle_seconds:
             # User typed something recently; reschedule
@@ -1417,6 +1433,8 @@ class AgentTUI(App):
         # Still idle — inject proactive prompt into agent input queue
         # This triggers an actual LLM call
         self._last_input_time = time.time()
+        self._proactive_cycle_count += 1
+        print(f"[Proactive] Injecting ({self._proactive_cycle_count}/{self._proactive_max_cycles}): {self._proactive_message!r}")
         try:
             self._input_bridge.submit(self._proactive_message)
         except Exception:

@@ -668,6 +668,7 @@ TODO_AUTO_ADVANCE = os.getenv("TODO_AUTO_ADVANCE", "true").lower() in ("true", "
 PROACTIVE_ENABLED = os.getenv("PROACTIVE_ENABLED", "false").lower() in ("true", "1", "yes")
 PROACTIVE_IDLE_SECONDS = int(os.getenv("PROACTIVE_IDLE_SECONDS", "30"))
 PROACTIVE_MESSAGE = os.getenv("PROACTIVE_MESSAGE", "🤔 Still here? Need help with anything?")
+PROACTIVE_MAX_CYCLES = int(os.getenv("PROACTIVE_MAX_CYCLES", "10"))  # Max proactive injections before stopping (0 = unlimited)
 
 # ============================================================
 # TodoWrite Tool (Claude Code Integration)
