@@ -170,6 +170,7 @@ async def test_reset_priority_over_load(dut):
     assert actual == expected, (
         f"Reset-over-load failed: expected {expected}, got {actual}"
     )
+    await NextTimeStep()  # escape ReadOnly
 
     # Update ref model to match
     env.ref_model.step(CounterTxn(en=1, load=1, data_in=0xDD), rst_n=0)
