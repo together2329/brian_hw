@@ -5,9 +5,9 @@ Crawls the company research report listing pages at:
 
 Supports filtering by:
   - Stock code  (searchType=itemCode, itemCode=005930)
-  - Keyword     (searchType=keyword, keyword=삼성전자)
+  - Keyword     (searchType=itemName, keywordData=삼성전자)
   - Broker      (brokerCode=...)
-  - Date range  (writeFromDate, writeToDate)
+  - Date range  (writeFromDate, writeToDate)  — format: YYYY-MM-DD
 """
 from __future__ import annotations
 
