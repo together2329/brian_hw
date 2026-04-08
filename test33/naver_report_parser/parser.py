@@ -154,12 +154,18 @@ class ReportParser:
                     parsed.analyst = m.group(1)
                 else:
                     # Pattern: "한글이름 부서키워드" (e.g., "이수림 반도체", "김록호 리서치")
+                    # Only match if email appears within 500 chars after
                     _dept_kw = r"(?:반도체|증권|투자|금융|은행|자산|운용|리서치|전략|경제|기업|산업)"
-                    m = re.search(
+                    for m in re.finditer(
                         r"([가-힣]{2,4})\s+" + _dept_kw, page1
-                    )
-                    if m:
-                        parsed.analyst = m.group(1)
+                    ):
+                        name = m.group(1)
+                        if name in ("매수", "매도", "보유", "중립", "적극"):
+                            continue
+                        after = page1[m.end() : m.end() + 500]
+                        if re.search(r"[\w.-]+@[\w.-]+", after):
+                            parsed.analyst = name
+                            break
                     else:
                         # Pattern: "한글이름 + KoreanWord" near email
                         # Use finditer to skip false positives
