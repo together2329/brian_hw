@@ -138,6 +138,8 @@ module tdisp_dsm #(
     reg  [7:0]             req_msg_type;
     reg  [INTERFACE_ID_WIDTH-1:0] req_interface_id;
     reg                    req_parsed;
+    reg  [7:0]             req_word_counter;   // Bug#3: track word index
+    reg  [NONCE_WIDTH-1:0] received_nonce;     // Bug#5 prep: received nonce from START_INTERFACE
 
     // Error tracking
     reg  [31:0]            pending_error;
