@@ -989,15 +989,15 @@ class AgentTUI(App):
             pass
 
     def action_quit(self) -> None:
-        """Ctrl+Q: interrupt any ongoing generation then exit."""
-        self._interrupt = True          # signal streaming to stop
+        """Ctrl+Q: immediate force-exit."""
+        import os as _os
+        self._interrupt = True
         self._update_statusbar("Exiting…")
         try:
-            self._input_bridge.submit("exit")   # unblock worker if waiting for input
+            self._input_bridge.submit("exit")
         except Exception:
             pass
-        # Force-kill after 1.5 s in case the worker is mid-stream and slow to respond
-        self.set_timer(1.5, self._force_exit)
+        _os._exit(0)
 
     def _force_exit(self) -> None:
         import os as _os
@@ -1030,11 +1030,18 @@ class AgentTUI(App):
         t = RichText()
         t.append("\n  ⎋ ", style=f"bold {_YELLOW}")
         if self._generating:
-            t.append("Stopping generation after current token…", style=_TEXT_DIM)
+            t.append("Stopping… (force-quit in 5s if stuck)", style=_TEXT_DIM)
+            self.set_timer(5.0, self._esc_watchdog)
         else:
             t.append("Interrupt sent.", style=_TEXT_DIM)
         log.write(t)
         self._scroll_down()
+
+    def _esc_watchdog(self) -> None:
+        """Force-kill if ESC was pressed but generation is still running after 5s."""
+        if self._generating:
+            import os as _os
+            _os._exit(0)
 
     def check_and_reset_interrupt(self) -> bool:
         """Thread-safe check for interrupt flag."""
