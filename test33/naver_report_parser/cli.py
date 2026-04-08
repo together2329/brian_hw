@@ -275,4 +275,14 @@ def main(argv: Optional[List[str]] = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except NaverReportError as e:
+        print(f"❌ 오류: {e}", file=sys.stderr)
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print("\n⏹ 중단됨", file=sys.stderr)
+        sys.exit(130)
+    except Exception as e:
+        print(f"❌ 예상치 못한 오류: {e}", file=sys.stderr)
+        sys.exit(1)
