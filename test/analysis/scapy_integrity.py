@@ -239,7 +239,7 @@ def parse_frame(frame_bytes: bytes) -> dict:
             if magic != MAGIC_BYTE:
                 result["warnings"].append(f"Magic byte wrong: 0x{magic:02x}")
             else:
-                co, di, fl, rsv, w = struct.unpack(">HHBBB", raw_payload[:5])
+                co, di, fl, rsv, w = struct.unpack(">HHBBB", raw_payload[:7])
                 result["payload_decoded"] = CounterState(
                     count_out=co,
                     overflow=(fl >> 4) & 0x1,
