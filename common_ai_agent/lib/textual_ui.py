@@ -995,14 +995,23 @@ class AgentTUI(App):
     def _restore_terminal() -> None:
         """Exit alternate screen and reset terminal before force-kill."""
         try:
-            import sys as _sys, os as _os
-            # 1. Exit alternate screen + show cursor + reset colors
+            import sys as _sys
+            fd = _sys.stdout.fileno()
+            # Exit alternate screen, show cursor, reset colors
             _sys.stdout.write("\x1b[?1049l\x1b[?25h\x1b[0m")
             _sys.stdout.flush()
-            # 2. Full terminal clear (portable: tput clear, fallback: clear)
-            _os.system("tput clear 2>/dev/null || clear 2>/dev/null")
+            # Full clear via tput (writes directly to /dev/tty so it works even
+            # when stdout is captured by Textual's driver)
+            import subprocess as _sp
+            _sp.run(["tput", "clear"], stdout=_sys.stdout, stderr=_sp.DEVNULL)
+            _sys.stdout.flush()
         except Exception:
-            pass
+            try:
+                import sys as _sys
+                _sys.stdout.write("\x1b[2J\x1b[H")
+                _sys.stdout.flush()
+            except Exception:
+                pass
 
     def action_quit(self) -> None:
         """Ctrl+Q: immediate force-exit."""
@@ -1042,11 +1051,13 @@ class AgentTUI(App):
         self.set_timer(2.0, self._update_statusbar)
 
     def action_stop(self) -> None:
-        """ESC: interrupt current agent execution. Always works regardless of state."""
-        self._interrupt = True      # works even if _generating flag is stale
-        # Close any open reasoning block and clear live preview
+        """ESC: interrupt current agent execution."""
+        if not self._generating:
+            # No active generation — ESC is a no-op (avoids poisoning next command)
+            return
+        self._interrupt = True
+        # Close open reasoning block and clear live preview visually
         self._reasoning_open = False
-        self._generating = False
         try:
             live = self.query_one("#live", Static)
             live.update("")
