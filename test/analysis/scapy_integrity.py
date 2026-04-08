@@ -195,8 +195,12 @@ def parse_frame(frame_bytes: bytes) -> dict:
         result["warnings"].append("Frame too short for IP header")
         return result
 
-    # --- IP Header Checksum ---
-    ip_hdr = frame_bytes[:20]
+    # --- IP Header Checksum (IP header starts at byte 14 after Ethernet) ---
+    if len(frame_bytes) < 34:  # Need at least 14 (Ether) + 20 (IP)
+        result["warnings"].append("Frame too short for IP header")
+        return result
+
+    ip_hdr = frame_bytes[14:34]  # IP header = bytes 14..33
     stored = (ip_hdr[10] << 8) | ip_hdr[11]
     computed = ip_header_checksum(ip_hdr)
     result["stored_ip_checksum"] = stored
