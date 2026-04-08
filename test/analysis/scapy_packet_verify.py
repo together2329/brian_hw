@@ -627,12 +627,15 @@ def generate_markdown_report(results: dict) -> str:
 
     # Tamper details
     lines.append("\n## Tamper Detection Details\n")
-    lines.append("| # | Flip Offset | Orig Byte | Tampered | Checksum Changed |")
-    lines.append("|---|-------------|-----------|----------|------------------|")
+    lines.append("| # | Offset | Region | Orig Byte | Tampered | Header CKSUM Changed | Passed |")
+    lines.append("|---|--------|--------|-----------|----------|----------------------|--------|")
     for r in results["tamper_results"]:
-        changed = "✅" if r["checksum_mismatch"] else "❌"
-        lines.append(f"| {r['test_index']} | byte {r['flip_offset']} | "
-                     f"0x{r['original_byte']:02x} | 0x{r['tampered_byte']:02x} | {changed} |")
+        cksum_ch = "✅ changed" if r["checksum_mismatch"] else "intact"
+        passed = "✅" if r["passed"] else "❌"
+        region = "header" if r.get("flip_in_header", False) else "payload"
+        lines.append(f"| {r['test_index']} | byte {r['flip_offset']} | {region} | "
+                     f"0x{r['original_byte']:02x} | 0x{r['tampered_byte']:02x} | "
+                     f"{cksum_ch} | {passed} |")
 
     return "\n".join(lines)
 
