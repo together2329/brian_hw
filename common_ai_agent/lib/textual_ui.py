@@ -232,6 +232,14 @@ class FlushResponse(Message):
     """Sent by worker after LLM stream ends to ensure content panel is rendered."""
     pass
 
+class StopRequested(Message):
+    """Posted by _AgentInput when ESC is pressed — bubbles up to AgentTUI."""
+    pass
+
+class QuitRequested(Message):
+    """Posted by _AgentInput when Ctrl+Q is pressed — bubbles up to AgentTUI."""
+    pass
+
 
 # ── stdout capture ────────────────────────────────────────────────────────────
 
@@ -611,15 +619,14 @@ class _AgentInput(Input):
         elif event.key == "escape":
             if ol is not None and "visible" in ol.classes:
                 ol.remove_class("visible")
-            # Always fire action_stop directly (bypasses BINDINGS chain)
-            self.app.action_stop()
+            self.post_message(StopRequested())
             event.prevent_default()
             event.stop()
             return
 
         # ── Ctrl+Q: immediate force-exit ─────────────────────────────────────
         elif event.key == "ctrl+q":
-            self.app.action_quit()
+            self.post_message(QuitRequested())
             event.prevent_default()
             event.stop()
             return
@@ -1261,6 +1268,14 @@ class AgentTUI(App):
     def on_flush_response(self, msg: FlushResponse) -> None:
         """Worker signals stream done — render whatever accumulated in _response_buf."""
         self._flush_response()
+
+    def on_stop_requested(self, msg: StopRequested) -> None:
+        """ESC pressed in _AgentInput — stop generation."""
+        self.action_stop()
+
+    def on_quit_requested(self, msg: QuitRequested) -> None:
+        """Ctrl+Q pressed in _AgentInput — force exit."""
+        self.action_quit()
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:
         self._handle_reasoning_chunk(msg)
