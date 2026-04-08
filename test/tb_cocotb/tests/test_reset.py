@@ -61,8 +61,6 @@ async def _reset_check_loop(dut, env, stimulus_txns, rst_cycle_idx,
             env.scoreboard.compare(expected, actual, cycle=i,
                                    test_name=test_name)
 
-            await RisingEdge(dut.clk)
-
 
 # ======================================================================
 # Test 1.1 — Synchronous reset clears count and overflow
