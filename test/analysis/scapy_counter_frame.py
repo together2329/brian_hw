@@ -63,8 +63,8 @@ except ImportError:
 # ======================================================================
 
 MAGIC_BYTE    = 0xA5        # Frame integrity marker
-PAYLOAD_FMT   = ">HHBBBxB"  # count_out(2) data_in(2) flags(1) rsv(1) width(1) magic(1) crc(1)
-PAYLOAD_SIZE  = struct.calcsize(PAYLOAD_FMT)  # 8 bytes
+PAYLOAD_HDR   = ">HHBBB"    # count_out(2) data_in(2) flags(1) rsv(1) width(1) = 7 bytes
+PAYLOAD_SIZE  = struct.calcsize(PAYLOAD_HDR) + 2  # 7 + magic(1) + crc(1) = 9 bytes
 SRC_MAC       = "00:aa:bb:cc:dd:01"
 DST_MAC       = "00:aa:bb:cc:dd:02"
 SRC_IP        = "192.168.1.10"
