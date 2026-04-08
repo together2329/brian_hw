@@ -1,5 +1,6 @@
 """Data models for Naver Finance research reports."""
-from dataclasses import dataclass, field
+import json
+from dataclasses import dataclass, field, asdict
 from typing import Optional
 
 
