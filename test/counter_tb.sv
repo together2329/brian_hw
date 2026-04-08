@@ -119,7 +119,7 @@ module counter_tb;
             if (count_out !== exp_count || overflow !== exp_overflow) begin
                 $display("  [FAIL] %s: expected count=%0d overflow=%0b, got count=%0d overflow=%0b",
                          test_name, exp_count, exp_overflow, count_out, overflow);
-                fail_count++;
+                fail_count += 2;
             end else begin
                 $display("  [PASS] %s: count=%0d overflow=%0b", test_name, count_out, overflow);
                 pass_count += 2;
