@@ -73,6 +73,7 @@ module tb_counter;
             repeat(4) @(posedge clk);
             rst_n = 1'b1;
             @(posedge clk);
+            #1; // End safely between edges (posedge + 1ns)
         end
     endtask
 
