@@ -11,6 +11,7 @@ Supports filtering by:
 """
 from __future__ import annotations
 
+import logging
 import re
 import time
 from typing import List, Optional
@@ -19,7 +20,10 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
+from .errors import CrawlError, NetworkError, ParseError
 from .models import ReportInfo
+
+logger = logging.getLogger(__name__)
 
 # ── Constants ──────────────────────────────────────────────────────────────
 BASE_URL = "https://finance.naver.com/research/company_list.naver"
