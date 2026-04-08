@@ -2791,14 +2791,20 @@ except ImportError:
 
 # cmux integration tools — observe/control modifiable_ai_agent via cmux socket
 try:
-    from core.tools_cmux import CMUX_TOOLS
-    AVAILABLE_TOOLS.update(CMUX_TOOLS)
-except ImportError:
+    import config as _cmux_cfg
+    _cmux_enabled = getattr(_cmux_cfg, "ENABLE_CMUX_TOOLS", False)
+except Exception:
+    _cmux_enabled = False
+if _cmux_enabled:
     try:
-        from tools_cmux import CMUX_TOOLS
+        from core.tools_cmux import CMUX_TOOLS
         AVAILABLE_TOOLS.update(CMUX_TOOLS)
     except ImportError:
-        pass  # tools_cmux not available
+        try:
+            from tools_cmux import CMUX_TOOLS
+            AVAILABLE_TOOLS.update(CMUX_TOOLS)
+        except ImportError:
+            pass  # tools_cmux not available
 
 # web tools — Firecrawl-powered search, fetch, extract
 try:
