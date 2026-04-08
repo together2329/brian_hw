@@ -42,9 +42,12 @@ except ImportError:
 # ======================================================================
 
 def _token_text(tok) -> str:
-    """Safely extract text from a pyslang token."""
+    """Safely extract text from a pyslang token (strips trivia)."""
     if tok is None:
         return ""
+    # Use kind name for keyword tokens to avoid trivia pollution
+    if hasattr(tok, 'kind') and 'Keyword' in tok.kind.name:
+        return tok.kind.name.replace('Keyword', '').lower()
     return str(tok).strip()
 
 
