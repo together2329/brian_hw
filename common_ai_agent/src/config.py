@@ -625,6 +625,11 @@ EDIT_PREVIEW_MAX_LINES = int(os.getenv("EDIT_PREVIEW_MAX_LINES", "50"))
 # Timeout for a parallel action batch (seconds)
 REACT_ACTION_TIMEOUT = int(os.getenv("REACT_ACTION_TIMEOUT", "30"))
 
+# Global timeout for ANY single tool execution (seconds).
+# This is the last-resort safety net — if a tool hangs beyond this, it is force-killed.
+# Applies to both serial and parallel tool execution paths.
+REACT_TOOL_GLOBAL_TIMEOUT = int(os.getenv("REACT_TOOL_GLOBAL_TIMEOUT", "300"))
+
 # ============================================================
 # Todo Tracking System (Phase 2 - Claude Code Style)
 # ============================================================
