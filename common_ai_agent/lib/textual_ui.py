@@ -607,13 +607,22 @@ class _AgentInput(Input):
                 ol.remove_class("visible")
             self._hist_pos = -1   # reset history browsing on submit
 
-        # ── Escape: close dropdown ───────────────────────────────────────────
+        # ── Escape: close dropdown, then stop generation ─────────────────────
         elif event.key == "escape":
             if ol is not None and "visible" in ol.classes:
                 ol.remove_class("visible")
-                event.prevent_default()
-                event.stop()
-                return
+            # Always fire action_stop directly (bypasses BINDINGS chain)
+            self.app.action_stop()
+            event.prevent_default()
+            event.stop()
+            return
+
+        # ── Ctrl+Q: immediate force-exit ─────────────────────────────────────
+        elif event.key == "ctrl+q":
+            self.app.action_quit()
+            event.prevent_default()
+            event.stop()
+            return
 
         await super()._on_key(event)
 
