@@ -78,22 +78,23 @@ class CounterEnv:
         """Drive one transaction through DUT and check against ref model.
 
         Steps:
-            1. Drive inputs on rising edge.
-            2. Wait for next rising edge (outputs registered).
-            3. Sample DUT outputs.
+            1. Apply inputs to DUT pins (combinational).
+            2. Wait for rising edge — DUT registers inputs.
+            3. Sample DUT outputs (ReadOnly phase).
             4. Predict expected outputs via ref model.
             5. Compare via scoreboard.
 
+        Safe for back-to-back calls: no stale-input edge between invocations.
+
         Returns True if check passed.
         """
-        # Drive stimulus
-        await RisingEdge(self.dut.clk)
+        # Apply inputs before the edge
         await self.driver._set_signals(txn)
 
-        # Wait for outputs to register
+        # Rising edge: DUT samples inputs and produces new outputs
         await RisingEdge(self.dut.clk)
 
-        # Sample actual DUT output
+        # Sample actual DUT output in ReadOnly phase
         actual = await self.monitor.sample_now()
 
         # Predict expected output (ref model advances one step)
