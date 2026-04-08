@@ -995,20 +995,20 @@ class AgentTUI(App):
     def _restore_terminal() -> None:
         """Exit alternate screen and reset terminal before force-kill."""
         try:
-            import sys as _sys
-            fd = _sys.stdout.fileno()
-            # Exit alternate screen, show cursor, reset colors
-            _sys.stdout.write("\x1b[?1049l\x1b[?25h\x1b[0m")
-            _sys.stdout.flush()
-            # Full clear via tput (writes directly to /dev/tty so it works even
-            # when stdout is captured by Textual's driver)
-            import subprocess as _sp
-            _sp.run(["tput", "clear"], stdout=_sys.stdout, stderr=_sp.DEVNULL)
-            _sys.stdout.flush()
+            # Write directly to /dev/tty — bypasses Textual's stdout capture
+            with open("/dev/tty", "w") as _tty:
+                _tty.write(
+                    "\x1b[?1049l"   # exit alternate screen
+                    "\x1b[?25h"     # show cursor
+                    "\x1b[0m"       # reset colors/attrs
+                    "\x1b[2J"       # clear screen
+                    "\x1b[H"        # cursor home
+                )
+                _tty.flush()
         except Exception:
             try:
                 import sys as _sys
-                _sys.stdout.write("\x1b[2J\x1b[H")
+                _sys.stdout.write("\x1b[?1049l\x1b[?25h\x1b[0m\x1b[2J\x1b[H")
                 _sys.stdout.flush()
             except Exception:
                 pass

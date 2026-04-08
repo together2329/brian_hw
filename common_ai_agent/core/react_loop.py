@@ -594,6 +594,8 @@ def run_react_agent_impl(
 
         if _aborted:
             print("\n  ⎋ Aborted by ESC. Returning to input prompt.")
+            if deps.emit_flush_fn:
+                deps.emit_flush_fn()   # signal TUI to flush + reset _generating
             break
 
         # Empty response → retry
