@@ -183,9 +183,27 @@ module tdisp_dsm #(
             lock_all_request_redirect <= 1'b0;
             lock_stream_id       <= 8'h0;
             mmio_reporting_offset <= {ADDR_WIDTH{1'b0}};
+            nonce_lfsr            <= {NONCE_WIDTH{1'b1}}; // Non-zero LFSR seed
+            nonce_valid           <= 1'b0;
+            current_nonce         <= {NONCE_WIDTH{1'b0}};
         end else begin
             // Default: deassert error IRQ after 1 cycle
             error_irq <= 1'b0;
+
+            // ── LFSR Nonce Generator (always advances) ──
+            nonce_lfsr <= lfsr_feedback;
+
+            // Capture nonce when entering CONFIG_LOCKED (one-shot)
+            if (tdi_state == STATE_CONFIG_LOCKED && !nonce_valid) begin
+                current_nonce <= lfsr_feedback;
+                nonce_valid   <= 1'b1;
+            end
+
+            // Invalidate nonce when returning to CONFIG_UNLOCKED
+            if (tdi_state == STATE_CONFIG_UNLOCKED) begin
+                nonce_valid   <= 1'b0;
+                current_nonce <= {NONCE_WIDTH{1'b0}};
+            end
 
             // ── Response transmission handshake ──
             if (spdm_resp_valid && spdm_resp_ready) begin
