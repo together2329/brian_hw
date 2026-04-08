@@ -370,8 +370,11 @@ module tdisp_dsm #(
                             req_interface_id[95:64] <= spdm_req_data;
 
                             // ── LOCK_INTERFACE: INTERFACE_ID fully received ──
+                            // Timing note: req_interface_id[95:64] NBA hasn't taken
+                            // effect yet, so compare spdm_req_data directly for upper word.
                             if (req_msg_type == REQ_LOCK_INTERFACE) begin
-                                if (!interface_id_match) begin
+                                if ((req_interface_id[63:0] != configured_interface_id[63:0]) ||
+                                    (spdm_req_data != configured_interface_id[95:64])) begin
                                     // §11.3.9: INTERFACE_ID mismatch → INVALID_INTERFACE
                                     pending_error    <= ERR_INVALID_INTERFACE;
                                     resp_msg_type    <= RESP_TDISP_ERROR;
