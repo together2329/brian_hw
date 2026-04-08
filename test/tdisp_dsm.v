@@ -173,7 +173,6 @@ module tdisp_dsm #(
             last_error_code      <= 32'h0;
             spdm_req_ready       <= 1'b1;
             spdm_resp_valid      <= 1'b0;
-            spdm_resp_data       <= {DATA_WIDTH{1'b0}};
             resp_msg_type        <= 8'h0;
             resp_word_idx        <= 8'd0;
             resp_total_words     <= 8'd0;
