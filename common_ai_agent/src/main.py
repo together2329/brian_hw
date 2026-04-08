@@ -1458,8 +1458,7 @@ def chat_loop():
                     else:
                         _em_prefix = ""
                     user_input = _input_fn(_em_prefix + Color.user("> ") + Color.RESET)
-            _keepalive_waiting[0] = False
-            _keepalive_last_activity[0] = time.time()
+            _keepalive_last_activity[0] = time.time()  # reset timer: activity detected
             if user_input.lower() in ["exit", "quit"]:
                 break
 
