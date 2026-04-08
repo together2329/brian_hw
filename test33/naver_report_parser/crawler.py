@@ -135,14 +135,70 @@ class NaverReportCrawler:
 
         return params
 
-    def _fetch_page(self, params: dict) -> List[ReportInfo]:
-        """Fetch and parse a single listing page."""
-        resp = self.session.get(BASE_URL, params=params, timeout=15)
-        resp.encoding = ENCODING
-        resp.raise_for_status()
+    # Retry settings
+    MAX_RETRIES = 3
+    RETRY_BACKOFF = 1.0  # base seconds for exponential backoff
 
-        soup = BeautifulSoup(resp.text, "html.parser")
-        return self._parse_listing(soup)
+    def _fetch_page(self, params: dict) -> List[ReportInfo]:
+        """Fetch and parse a single listing page with retry and encoding fallback."""
+        url = BASE_URL
+        last_exc: Exception | None = None
+
+        for attempt in range(1, self.MAX_RETRIES + 1):
+            try:
+                resp = self.session.get(url, params=params, timeout=15)
+
+                # ── Encoding: try euc-kr first, fallback to utf-8 ──
+                try:
+                    resp.encoding = ENCODING
+                    _ = resp.text  # force decode
+                except (UnicodeDecodeError, UnicodeError):
+                    logger.debug("EUC-KR decode failed, falling back to UTF-8 for %s", resp.url)
+                    resp.encoding = "utf-8"
+
+                resp.raise_for_status()
+
+                soup = BeautifulSoup(resp.text, "html.parser")
+                return self._parse_listing(soup)
+
+            except requests.exceptions.ConnectionError as e:
+                last_exc = e
+                logger.warning("Connection error (attempt %d/%d): %s", attempt, self.MAX_RETRIES, e)
+            except requests.exceptions.Timeout as e:
+                last_exc = e
+                logger.warning("Timeout (attempt %d/%d): %s", attempt, self.MAX_RETRIES, e)
+            except requests.exceptions.HTTPError as e:
+                status = e.response.status_code if e.response is not None else None
+                # Don't retry 4xx client errors (except 429)
+                if status and 400 <= status < 500 and status != 429:
+                    raise NetworkError(
+                        f"HTTP {status} 오류: {e}",
+                        url=url,
+                        status_code=status,
+                        detail=str(e),
+                    ) from e
+                last_exc = e
+                logger.warning("HTTP error %s (attempt %d/%d): %s", status, attempt, self.MAX_RETRIES, e)
+            except requests.exceptions.RequestException as e:
+                last_exc = e
+                logger.warning("Request error (attempt %d/%d): %s", attempt, self.MAX_RETRIES, e)
+            except Exception as e:
+                raise ParseError(
+                    f"HTML 파싱 실패: {e}",
+                    detail=str(e),
+                ) from e
+
+            # Exponential backoff before retry
+            if attempt < self.MAX_RETRIES:
+                wait = self.RETRY_BACKOFF * (2 ** (attempt - 1))
+                logger.info("Retrying in %.1fs ...", wait)
+                time.sleep(wait)
+
+        raise NetworkError(
+            f"네트워크 오류 ({self.MAX_RETRIES}회 재시도 실패): {last_exc}",
+            url=url,
+            detail=str(last_exc),
+        ) from last_exc
 
     def _parse_listing(self, soup: BeautifulSoup) -> List[ReportInfo]:
         """Parse the HTML table of report listings into ReportInfo objects."""
