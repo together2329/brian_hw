@@ -67,9 +67,9 @@ class NaverReportCrawler:
         broker_code : str, optional
             Broker code filter (Naver internal code).
         date_from : str, optional
-            Start date ``"YYYYMMDD"``.
+            Start date ``"YYYY-MM-DD"``.
         date_to : str, optional
-            End date ``"YYYYMMDD"``.
+            End date ``"YYYY-MM-DD"``.
         max_pages : int
             Maximum number of listing pages to crawl (default 1 = latest).
 
