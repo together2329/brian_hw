@@ -533,7 +533,7 @@ def run_all_tests(width: int = 8) -> dict:
         "module": "counter",
         "integrity_mechanisms": {
             "ip_header_checksum": "RFC 1071 — detects IP header corruption",
-            "payload_crc8":       "XOR checksum — detects payload corruption",
+            "payload_crc8":       "CRC-8/SMBUS (poly 0x07) — detects payload corruption",
             "fcs_crc32":          "Ethernet CRC-32 — full frame integrity",
         },
         "summary": summary,
