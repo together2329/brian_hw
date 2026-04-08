@@ -442,7 +442,7 @@ module counter_tb;
         tick(1);
         check_value('d9, "Test 6.3: Direction switch took effect");
         tick(1);
-        check_value('d8, "Test 6.4: Continuing down");
+        check_value('d8, "Test 6.3: Continuing down");
 
         // ============================================================
         // GROUP 7: Edge & Stress Tests
