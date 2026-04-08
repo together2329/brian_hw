@@ -499,8 +499,10 @@ class ReportParser:
         Prefers columns like '2026E', '2026F', '2026P', or the rightmost
         year-like column.
         """
-        best: Optional[int] = None
-        best_year: int = 0
+        est_best: Optional[int] = None
+        est_best_year: int = 0
+        plain_best: Optional[int] = None
+        plain_best_year: int = 0
 
         for i, cell in enumerate(header):
             cell = cell.strip()
@@ -508,18 +510,20 @@ class ReportParser:
             m = re.match(r"(20\d{2})[EFP]", cell, re.IGNORECASE)
             if m:
                 year = int(m.group(1))
-                if year > best_year:
-                    best_year = year
-                    best = i
-            # Also consider plain year columns (but lower priority than E/F/P)
+                if year > est_best_year:
+                    est_best_year = year
+                    est_best = i
+                continue
+            # Also track plain year columns (lower priority than E/F/P)
             m = re.match(r"(20\d{2})$", cell)
-            if m and best is None:
+            if m:
                 year = int(m.group(1))
-                if year > best_year:
-                    best_year = year
-                    best = i
+                if year > plain_best_year:
+                    plain_best_year = year
+                    plain_best = i
 
-        return best
+        # Prefer estimate column (E/F/P) over plain year
+        return est_best if est_best is not None else plain_best
 
     @staticmethod
     def _compute_upside(parsed: ParsedReport) -> None:
