@@ -119,8 +119,8 @@ class NaverReportCrawler:
             params["searchType"] = "itemCode"
             params["itemCode"] = stock_code
         elif keyword:
-            params["searchType"] = "keyword"
-            params["keyword"] = keyword
+            params["searchType"] = "itemName"
+            params["keywordData"] = keyword
 
         if broker_code:
             params["brokerCode"] = broker_code
