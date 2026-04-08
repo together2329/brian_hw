@@ -699,6 +699,11 @@ class SECEdgarClient:
     ) -> List[FinancialPeriod]:
         """Extract financial periods from XBRL company facts.
 
+        The SEC XBRL API returns restated prior-year data alongside current-year
+        data in each filing (e.g. FY2025 10-K contains end=2023, end=2024, AND
+        end=2025 entries all with fy=2025). We use **end_date** as the unique
+        period identifier and pick values from the most recent filing.
+
         Parameters
         ----------
         facts : dict
@@ -715,66 +720,72 @@ class SECEdgarClient:
         us_gaap = facts.get("facts", {}).get("us-gaap", {})
         dei = facts.get("facts", {}).get("dei", {})
 
-        # Collect all periods seen across metrics
-        period_keys: Dict[Tuple[int, str], dict] = {}
+        # Use end_date as the unique key.  For each (end_date, metric) keep
+        # the value from the filing with the highest fy (most recent filing).
+        # Structure: { end_date: { "end_date": str, "fy_highest": int, metrics... } }
+        periods_by_end: Dict[str, dict] = {}
+
+        def _merge_metric(v: dict, metric_name: str) -> None:
+            """Merge a single XBRL value into periods_by_end."""
+            end_date = v.get("end", "")
+            if not end_date:
+                return
+            fy = v.get("fy", 0)
+            fp = v.get("fp", "")
+
+            if end_date not in periods_by_end:
+                periods_by_end[end_date] = {
+                    "end_date": end_date,
+                    "fy_highest": fy,
+                    "fiscal_period": fp,
+                    "form": v.get("form", form),
+                    "filed_date": v.get("filed", ""),
+                }
+            entry = periods_by_end[end_date]
+
+            # Prefer data from the most recent filing (highest fy)
+            if fy > entry["fy_highest"]:
+                entry["fy_highest"] = fy
+                entry["fiscal_period"] = fp
+                entry["filed_date"] = v.get("filed", "")
+                entry["form"] = v.get("form", form)
+
+            # Set metric value — prefer latest filing's data
+            if metric_name not in entry or fy >= entry.get(f"_metric_fy_{metric_name}", 0):
+                entry[metric_name] = v.get("val")
+                entry[f"_metric_fy_{metric_name}"] = fy
 
         # For each metric, extract values for the requested form
         for metric_name, tags in ALL_METRIC_TAGS.items():
             values = self._find_xbrl_values(us_gaap, tags, form=form)
             for v in values:
-                fy = v.get("fy")
-                fp = v.get("fp")
-                if fy is None or fp is None:
-                    continue
-                key = (fy, fp)
-                if key not in period_keys:
-                    period_keys[key] = {
-                        "fiscal_year": fy,
-                        "fiscal_period": fp,
-                        "form": v.get("form", form),
-                        "end_date": v.get("end", ""),
-                        "filed_date": v.get("filed", ""),
-                    }
-                period_keys[key][metric_name] = v.get("val")
+                _merge_metric(v, metric_name)
 
         # Also get shares outstanding from DEI taxonomy
         shares_tags = ["EntityCommonStockSharesOutstanding"]
         shares_vals = self._find_xbrl_values(dei, shares_tags, form=form)
         for v in shares_vals:
-            fy = v.get("fy")
-            fp = v.get("fp")
-            if fy is None or fp is None:
-                continue
-            key = (fy, fp)
-            if key not in period_keys:
-                period_keys[key] = {
-                    "fiscal_year": fy,
-                    "fiscal_period": fp,
-                    "form": v.get("form", form),
-                    "end_date": v.get("end", ""),
-                    "filed_date": v.get("filed", ""),
-                }
-            period_keys[key]["shares_outstanding"] = v.get("val")
+            _merge_metric(v, "shares_outstanding")
 
-        # Sort by fiscal year (desc) then fiscal period (desc)
-        sorted_keys = sorted(
-            period_keys.keys(),
-            key=lambda k: (k[0], k[1]),
-            reverse=True,
-        )
+        # Sort by end_date descending and pick the top `limit` periods with revenue
+        sorted_ends = sorted(periods_by_end.keys(), reverse=True)
 
-        # Take the top `limit` periods that have at least revenue
         periods: List[FinancialPeriod] = []
-        for key in sorted_keys:
-            data = period_keys[key]
+        for end_date in sorted_ends:
+            data = periods_by_end[end_date]
             if data.get("revenue") is None:
                 continue
 
+            # Determine fiscal_year from the highest filing fy for this end_date.
+            # For annual: fy_highest is the filing year, end_date is the period.
+            # We use fy_highest for consistency with SEC metadata.
+            fy = data["fy_highest"]
+
             p = FinancialPeriod(
-                fiscal_year=data["fiscal_year"],
-                fiscal_period=data["fiscal_period"],
+                fiscal_year=fy,
+                fiscal_period=data.get("fiscal_period", "FY" if form == "10-K" else ""),
                 form=data.get("form", form),
-                end_date=data.get("end_date", ""),
+                end_date=data["end_date"],
                 filed_date=data.get("filed_date", ""),
                 revenue=data.get("revenue"),
                 gross_profit=data.get("gross_profit"),
