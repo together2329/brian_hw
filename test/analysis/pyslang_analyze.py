@@ -63,11 +63,12 @@ def _kind_name(obj) -> str:
 def extract_module_metadata(mod):
     """Extract module name and basic metadata."""
     header = mod.header
+    # Use kind name to avoid trivia (comments) attached to moduleKeyword
+    mk = header.moduleKeyword
+    mk_text = mk.kind.name.replace('Keyword', '').lower() if hasattr(mk, 'kind') else str(mk).strip()
     return {
         "module_name": header.name.value,
-        "module_keyword": _token_text(header.moduleKeyword),
-        "start_line": mod.sourceRange.startLine if hasattr(mod.sourceRange, 'startLine') else "N/A",
-        "end_line": mod.sourceRange.endLine if hasattr(mod.sourceRange, 'endLine') else "N/A",
+        "module_keyword": mk_text,
     }
 
 
