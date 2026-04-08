@@ -4,8 +4,8 @@ Crawls the company research report listing pages at:
     https://finance.naver.com/research/company_list.naver
 
 Supports filtering by:
-  - Stock code  (searchType=itemCode, keywordData=005930)
-  - Keyword     (searchType=itemName, keywordData=삼성전자)
+  - Stock code  (searchType=itemCode, itemCode=005930)
+  - Keyword     (searchType=keyword, keyword=삼성전자)
   - Broker      (brokerCode=...)
   - Date range  (writeFromDate, writeToDate)
 """
