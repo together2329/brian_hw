@@ -198,7 +198,7 @@ def extract_summary(stage_result: dict) -> dict:
     elif sid == "static":
         s = jd.get("summary", {})
         crit = s.get("critical", "?")
-        warn = s.get("warnings", "?")
+        warn = s.get("warning", "?")
         info["status"] = "PASS" if stage_result["exit_code"] == 0 else "FAIL"
         info["detail"] = f"critical={crit} warnings={warn}"
 
