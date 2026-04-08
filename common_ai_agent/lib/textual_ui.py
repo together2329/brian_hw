@@ -995,16 +995,12 @@ class AgentTUI(App):
     def _restore_terminal() -> None:
         """Exit alternate screen and reset terminal before force-kill."""
         try:
-            import sys as _sys
-            _sys.stdout.write(
-                "\x1b[?1049l"   # exit alternate screen buffer
-                "\x1b[?25h"     # show cursor
-                "\x1b[0m"       # reset all attributes / colors
-                "\x1b[3J"       # clear scrollback buffer
-                "\x1b[2J"       # clear visible screen
-                "\x1b[H"        # cursor to top-left
-            )
+            import sys as _sys, os as _os
+            # 1. Exit alternate screen + show cursor + reset colors
+            _sys.stdout.write("\x1b[?1049l\x1b[?25h\x1b[0m")
             _sys.stdout.flush()
+            # 2. Full terminal clear (portable: tput clear, fallback: clear)
+            _os.system("tput clear 2>/dev/null || clear 2>/dev/null")
         except Exception:
             pass
 
