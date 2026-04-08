@@ -653,6 +653,7 @@ def _shorten_path(text: str, max_len: int = 140) -> str:
 
 class AgentTUI(App):
     TITLE = "UPD Agent"
+    _saved_tty_attrs = None  # saved in on_mount; used by _restore_terminal staticmethod
 
     CSS = f"""
     Screen {{
@@ -927,6 +928,15 @@ class AgentTUI(App):
         yield _AgentInput(placeholder="", suggester=_AgentSuggester())
 
     def on_mount(self) -> None:
+        # Save original tty settings (class-level) so the staticmethod
+        # _restore_terminal can do an exact restore instead of relying on stty sane.
+        try:
+            import termios, sys as _sys, os as _os
+            fd = _sys.stdin.fileno()
+            if _os.isatty(fd):
+                AgentTUI._saved_tty_attrs = termios.tcgetattr(fd)
+        except Exception:
+            pass
         self._update_statusbar()
         log = self.query_one("#main", RichLog)
         # ── Banner ────────────────────────────────────────────────────────────
@@ -1039,10 +1049,22 @@ class AgentTUI(App):
         # Textual puts the terminal into raw mode; _os._exit() bypasses the
         # normal Textual cleanup, leaving the tty in raw mode and causing
         # zsh to print "command not found" on every keystroke.
+        # Try termios restore first (exact saved state), fall back to stty sane.
+        _restored = False
         try:
-            subprocess.run(["stty", "sane"], timeout=2)
+            import termios, sys as _sys
+            _attrs = getattr(AgentTUI, "_saved_tty_attrs", None)
+            if _attrs is not None:
+                fd = _sys.stdin.fileno()
+                termios.tcsetattr(fd, termios.TCSANOW, _attrs)
+                _restored = True
         except Exception:
             pass
+        if not _restored:
+            try:
+                subprocess.run(["stty", "sane"], timeout=2)
+            except Exception:
+                pass
 
     def action_quit(self) -> None:
         """Ctrl+Q: immediate force-exit."""
@@ -1115,6 +1137,7 @@ class AgentTUI(App):
         """Force-kill if ESC was pressed but generation is still running after 5s."""
         if self._generating:
             import os as _os
+            self._restore_terminal()
             _os._exit(0)
 
     def check_and_reset_interrupt(self) -> bool:
@@ -1721,28 +1744,31 @@ class AgentTUI(App):
 
 
         # Diff lines (after write/replace/git tools)
+        # Use _plain (ANSI-stripped) for matching since ANSI codes obscure markers
         if self._in_diff:
-            if re.match(r"^\+[^+]", text):
+            if re.match(r"^\+[^+]", _plain):
                 log.write(RichText(f"  {text}", style=f"bold {_GREEN}"))
                 return
-            if re.match(r"^-[^-]", text):
+            if re.match(r"^-[^-]", _plain):
                 log.write(RichText(f"  {text}", style=f"bold {_RED}"))
                 return
-            if re.match(r"^@@", text):
+            if re.match(r"^@@", _plain):
                 log.write(RichText(f"  {text}", style=f"bold {_ACCENT}"))
                 return
-            # Non-diff line ends the diff block
-            if not re.match(r"^\s*[└|│⎿]", text):
+            # Non-diff line ends the diff block (check _plain for tree chars)
+            if not re.match(r"^\s*[└|│⎿]", _plain):
                 self._in_diff = False
 
-        # Tool result lines: "└", "|", "│", or "⎿"
-        if re.match(r"^\s*[└|│⎿]", text):
+        # Tool result lines: "└", "|", "│", or "⎿" (check _plain for tree chars)
+        if re.match(r"^\s*[└|│⎿]", _plain):
             self._in_result = True
             if self._current_tool:
                 self._current_tool = ""
                 self._update_activity()
-            # Strip tree prefix to check if content is a diff line
-            inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", text)
+            # Strip tree prefix, then line-number prefix (e.g. "    42 " or "    42→"),
+            # using _plain to reveal +/- markers from format_diff_snippet output
+            inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", _plain)
+            inner = re.sub(r"^\s*\d+\s*[→ ]?\s*", "", inner)
             if self._in_diff and re.match(r"^\+[^+]", inner):
                 log.write(RichText(f"  {text.strip()}", style=f"bold {_GREEN}"))
             elif self._in_diff and re.match(r"^-[^-]", inner):
