@@ -97,6 +97,9 @@ class CounterEnv:
         # Sample actual DUT output in ReadOnly phase
         actual = await self.monitor.sample_now()
 
+        # Escape ReadOnly phase so next _set_signals can write
+        await NextTimeStep()
+
         # Predict expected output (ref model advances one step)
         expected = self.ref_model.step(txn, rst_n=1)
 
