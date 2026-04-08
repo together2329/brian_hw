@@ -814,22 +814,35 @@ class SECEdgarClient:
     ) -> List[dict]:
         """Find XBRL values for a list of possible tags in a taxonomy.
 
-        Returns the first matching tag's values filtered by form type.
+        Tries each tag in priority order.  For a given tag, returns only
+        values matching the requested *form* (e.g. "10-K").  If a tag
+        exists but contains **no** entries for the requested form, it is
+        skipped so that the next tag in the list can be tried instead.
+        Only when **all** tags fail to produce a form-filtered match do
+        we fall back to returning unfiltered data from the first tag that
+        has any values at all.
         """
+        # Pass 1 — strict form filter
         for tag in tags:
             if tag not in taxonomy:
                 continue
             tag_data = taxonomy[tag]
             units = tag_data.get("units", {})
             for unit_key, values in units.items():
-                # Filter by form type
                 filtered = [v for v in values if v.get("form") == form]
                 if filtered:
                     return filtered
-            # If no exact form match, return all
+
+        # Pass 2 — fallback: first tag with any data (cross-form)
+        for tag in tags:
+            if tag not in taxonomy:
+                continue
+            tag_data = taxonomy[tag]
+            units = tag_data.get("units", {})
             for unit_key, values in units.items():
                 if values:
                     return values
+
         return []
 
 
