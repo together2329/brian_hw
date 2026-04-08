@@ -261,41 +261,62 @@ class CounterPacketMapper:
 # ======================================================================
 
 def tamper_detect(state: CounterState, flip_bit_offset: int = 10) -> dict:
-    """Verify that tampering (bit flip) is detected via IP checksum.
+    """Verify that tampering (bit flip) is detected via IP header checksum.
+
+    The tampered packet's header checksum is recomputed. If the flip is in
+    the IP header (bytes 0-19), the recomputed checksum will differ from
+    the original. If the flip is in the payload, we verify that the header
+    checksum remains the same (header integrity preserved) but the raw
+    bytes differ (content tampered).
 
     Returns dict with:
-      - passed: True if checksum mismatch was detected
-      - original_checksum: valid packet checksum
-      - tampered_checksum: checksum after bit flip
-      - checksum_mismatch: bool
+      - passed: True if tampering was properly detected
+      - original_checksum: original IP header checksum
+      - tampered_checksum: recomputed checksum from tampered IP header
+      - checksum_mismatch: True if header checksum changed (header tampered)
+      - content_mismatch: True if raw bytes differ (content tampered)
     """
     pkt = CounterPacketMapper.encode(state)
-    # Force scapy to compute the checksum by serializing
+    # Serialize to force checksum computation
     raw_orig = bytearray(bytes(pkt))
-    # Extract checksum from serialized IP header (bytes 10-11, big-endian)
+    # Extract original checksum from IP header bytes 10-11 (big-endian)
     orig_cksum = (raw_orig[10] << 8) | raw_orig[11]
 
-    # Flip a bit in the payload area (safe to modify, beyond IP header)
+    # Flip a bit at the specified offset
     offset = min(flip_bit_offset, len(raw_orig) - 1)
     raw_tampered = bytearray(raw_orig)
     raw_tampered[offset] ^= 0x01  # flip LSB
 
-    # Re-compute IP header checksum for tampered packet
-    # (clear existing checksum, then compute)
+    # Re-compute IP header checksum for the tampered packet
+    # (zero out existing checksum field first)
     raw_check = bytearray(raw_tampered)
     raw_check[10] = 0
     raw_check[11] = 0
     tampered_cksum = checksum(bytes(raw_check[:20]))
 
-    # The tampered packet's IP checksum differs from original
-    mismatch = raw_orig != raw_tampered
+    # Detect header tampering: recomputed checksum != original
+    header_tampered = (orig_cksum != tampered_cksum)
+    # Detect content tampering: raw bytes differ
+    content_tampered = (raw_orig != raw_tampered)
+
+    # For header flips: checksum should detect the change
+    # For payload flips: header checksum stays same but content differs
+    # Test passes if we correctly identify the tampering scenario
+    if offset < 20:
+        # Flip in IP header — checksum MUST differ
+        passed = header_tampered and content_tampered
+    else:
+        # Flip in payload — header checksum same but content differs
+        passed = content_tampered and (not header_tampered)
 
     return {
-        "passed":             mismatch,
+        "passed":             passed,
         "original_checksum":  orig_cksum,
         "tampered_checksum":  tampered_cksum,
-        "checksum_mismatch":  orig_cksum != tampered_cksum,
+        "checksum_mismatch":  header_tampered,
+        "content_mismatch":   content_tampered,
         "flip_offset":        offset,
+        "flip_in_header":     offset < 20,
         "original_byte":      raw_orig[offset],
         "tampered_byte":      raw_tampered[offset],
     }
