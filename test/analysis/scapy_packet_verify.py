@@ -129,14 +129,16 @@ class CounterPacketMapper:
         # Frag offset: bit 8 = load
         frag = (state.load & 0x1) << 8
 
-        # Payload: data_in as packed binary + metadata
-        payload = struct.pack(">HB",
+        # Payload: data_in as packed binary + metadata (lossless)
+        # Format: [count_out:2B][data_in:2B][flags:1B]
+        # This preserves the full data_in value for round-trip fidelity.
+        payload = struct.pack(">HHB",
                               state.count_out & 0xFFFF,
+                              state.data_in & 0xFFFF,
                               (state.overflow << 4) |
                               (state.up_down << 3) |
                               (state.en << 2) |
-                              (state.load << 1) |
-                              (1 if state.data_in else 0))
+                              (state.load << 1))
 
         # Build the packet: Ether/IP/UDP/Raw
         pkt = IP(
