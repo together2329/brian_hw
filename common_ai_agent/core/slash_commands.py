@@ -1003,11 +1003,15 @@ class SlashCommandRegistry:
         if not name:
             marker1 = " ◀ active" if _config.MODEL_NAME == _config.PRIMARY_MODEL else ""
             marker2 = " ◀ active" if _config.MODEL_NAME == _config.SECONDARY_MODEL else ""
-            return (
-                f"Current model: {_config.MODEL_NAME}\n"
-                f"  1: {_config.PRIMARY_MODEL}{marker1}\n"
-                f"  2: {_config.SECONDARY_MODEL}{marker2}"
-            )
+            lines = [
+                f"Current model: {_config.MODEL_NAME}",
+                f"  1: {_config.PRIMARY_MODEL}{marker1}",
+                f"  2: {_config.SECONDARY_MODEL}{marker2}",
+            ]
+            if _config.PRIMARY_MODEL == _config.SECONDARY_MODEL:
+                lines.append("  (tip: set PRIMARY_MODEL / SECONDARY_MODEL in .config to use different models)")
+            lines.append("  usage: /model 1|2|<model-name>")
+            return "\n".join(lines)
         if name == "1":
             return "MODEL_SWITCH:1"
         if name == "2":

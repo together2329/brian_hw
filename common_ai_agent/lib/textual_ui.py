@@ -1478,6 +1478,17 @@ class AgentTUI(App):
         # Strip ANSI for pattern matching; keep raw for rendering
         _plain = _ANSI.sub("", text)
 
+        # Model switched → immediately update sidebar (before path shortening)
+        m_model_switch = re.search(r"Model switched to:\s*(\S+)", _plain)
+        if m_model_switch:
+            self._active_model = m_model_switch.group(1)
+            self._refresh_model_sidebar()
+        # "  Model: <name>" line from LLM calls (chat mode has no iteration header)
+        elif re.match(r"^\s*Model:\s*(\S+)", _plain):
+            m_ml = re.match(r"^\s*Model:\s*(\S+)", _plain)
+            self._active_model = m_ml.group(1)
+            self._refresh_model_sidebar()
+
         # If line contains ANSI codes, skip path shortening (would corrupt escape sequences)
         if _plain != text:
             # ANSI present — use _plain for all pattern matching below
