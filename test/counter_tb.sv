@@ -653,6 +653,46 @@ module counter_tb;
             $display("  [INFO] WIDTH=4 parameterized counter verified");
         end
 
+        // Test 8.2: WIDTH=8 (default DUT) explicit verification
+        $display("[Test 8.2] WIDTH=8 parameterized counter test");
+        begin
+            apply_reset;
+            en = 1; up_down = 0; load = 0;
+            // Count up to 200
+            tick(200);
+            test_count++;
+            if (count_out !== 8'd200) begin
+                $display("  [FAIL] WIDTH=8 count up to 200: got %0d", count_out);
+                fail_count++;
+            end else begin
+                pass_count++;
+                $display("  [PASS] WIDTH=8 count up to 200: got %0d", count_out);
+            end
+            // Load MAX and verify wrap
+            load = 1; data_in = 8'hFF;
+            tick(1);
+            load = 0;
+            test_count++;
+            if (count_out !== 8'd255) begin
+                $display("  [FAIL] WIDTH=8 load 255: got %0d", count_out);
+                fail_count++;
+            end else begin
+                pass_count++;
+                $display("  [PASS] WIDTH=8 load 255: got %0d", count_out);
+            end
+            // One more tick → wrap to 0 with overflow
+            tick(1);
+            test_count++;
+            if (count_out !== 8'd0 || overflow !== 1'b1) begin
+                $display("  [FAIL] WIDTH=8 wrap 255→0: count=%0d overflow=%0b", count_out, overflow);
+                fail_count++;
+            end else begin
+                pass_count++;
+                $display("  [PASS] WIDTH=8 wrap 255→0: count=%0d overflow=%0b", count_out, overflow);
+            end
+            $display("  [INFO] WIDTH=8 parameterized counter verified");
+        end
+
         // ============================================================
         // Final Summary
         // ============================================================
