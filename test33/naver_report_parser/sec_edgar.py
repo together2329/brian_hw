@@ -750,10 +750,29 @@ class SECEdgarClient:
                 entry["filed_date"] = v.get("filed", "")
                 entry["form"] = v.get("form", form)
 
-            # Set metric value — prefer latest filing's data
-            if metric_name not in entry or fy >= entry.get(f"_metric_fy_{metric_name}", 0):
-                entry[metric_name] = v.get("val")
-                entry[f"_metric_fy_{metric_name}"] = fy
+            # Set metric value — when multiple XBRL entries exist for the
+            # same end_date (e.g. consolidated + segment breakdowns), keep
+            # the value with the **largest absolute magnitude** because the
+            # consolidated total is always the biggest.  Within the same fy,
+            # prefer the larger value; across different fy values, prefer the
+            # most recent filing's data.
+            val = v.get("val")
+            if val is not None:
+                existing_fy = entry.get(f"_metric_fy_{metric_name}", 0)
+                existing_val = entry.get(metric_name)
+                should_set = False
+                if metric_name not in entry or existing_val is None:
+                    should_set = True
+                elif fy > existing_fy:
+                    # Newer filing — accept its value
+                    should_set = True
+                elif fy == existing_fy and abs(val) > abs(existing_val):
+                    # Same filing, same end_date — keep larger absolute value
+                    # (consolidated total > segment values)
+                    should_set = True
+                if should_set:
+                    entry[metric_name] = val
+                    entry[f"_metric_fy_{metric_name}"] = fy
 
         # For each metric, extract values for the requested form
         for metric_name, tags in ALL_METRIC_TAGS.items():
