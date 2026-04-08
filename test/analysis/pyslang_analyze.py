@@ -198,15 +198,9 @@ def extract_always_blocks(mod):
     blocks = []
     for member in mod.members:
         if member.kind.name == 'AlwaysBlock':
-            stmt = member.statement
-            stmt_text = str(stmt).strip()
+            raw = str(member)
 
-            # Find signal assignments (left-hand side of <= or =)
-            assigned_signals = set()
-            _find_assignments(stmt, assigned_signals)
-
-            # Detect sensitivity from raw text (pyslang doesn't expose it cleanly)
-            raw = str(member).strip()
+            # Detect sensitivity
             sensitivity = ""
             if "@(posedge clk)" in raw:
                 sensitivity = "posedge clk"
@@ -215,50 +209,24 @@ def extract_always_blocks(mod):
             elif "@(*)" in raw or "@ *" in raw:
                 sensitivity = "* (combinational)"
 
+            # Find signal assignments via regex (more reliable than AST walk)
+            import re
+            nb_assigns = sorted(set(re.findall(r'(\w+)\s*<=', raw)))
+            b_assigns = sorted(set(re.findall(r'(\w+)\s*=\s*(?![=])', raw)))
+            # Remove keywords that aren't signals
+            keywords = {'if', 'else', 'begin', 'end', 'always'}
+            nb_assigns = [s for s in nb_assigns if s not in keywords]
+            b_assigns = [s for s in b_assigns if s not in keywords]
+
             blocks.append({
                 "sensitivity": sensitivity,
-                "assigned_signals": sorted(assigned_signals),
+                "assigned_signals_nb": nb_assigns,   # nonblocking (sequential)
+                "assigned_signals_b": b_assigns,      # blocking (combinational)
+                "assigned_signals": sorted(set(nb_assigns + b_assigns)),
                 "line_count": raw.count('\n') + 1,
                 "type": "sequential" if "posedge" in sensitivity or "negedge" in sensitivity else "combinational",
             })
     return blocks
-
-
-def _find_assignments(node, signals: set, depth=0):
-    """Recursively find signal names on LHS of assignments."""
-    if depth > 50:
-        return
-    kind_name = _kind_name(node)
-
-    # Look for NonblockingAssignmentStatement or BlockingAssignmentStatement
-    if 'Assignment' in kind_name and 'Statement' in kind_name:
-        if hasattr(node, 'left'):
-            lhs_text = _token_text(node.left) if node.left else ""
-            if lhs_text:
-                # Extract just the signal name (before any [ or .)
-                sig = lhs_text.split('[')[0].split('.')[0].strip()
-                if sig and not sig.startswith('//'):
-                    signals.add(sig)
-
-    # Recurse into children
-    for attr_name in dir(node):
-        if attr_name.startswith('_') or attr_name in ('kind', 'parent', 'sourceRange', 'to_json'):
-            continue
-        try:
-            child = getattr(node, attr_name)
-            if child is None:
-                continue
-            if hasattr(child, 'kind'):
-                _find_assignments(child, signals, depth + 1)
-            elif hasattr(child, '__iter__'):
-                try:
-                    for item in child:
-                        if hasattr(item, 'kind'):
-                            _find_assignments(item, signals, depth + 1)
-                except TypeError:
-                    pass
-        except Exception:
-            pass
 
 
 # ======================================================================
