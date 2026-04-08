@@ -392,51 +392,100 @@ class ReportParser:
                     if parsed.net_income is None and val is not None:
                         parsed.net_income = val
 
-        # ── Extract PER, PBR, ROE from text ──
-        # Page 1 often has "P/B 2.0배, P/E 4.4배"
-        m = re.search(r"P/E\s*([\d.]+)\s*배", full_text)
-        if m:
-            parsed.per = float(m.group(1))
+        # ── Fallback: extract revenue/op_income from text patterns ──
+        # "매출액 133조원" / "영업이익 57.2조원" etc. in full text
+        if parsed.revenue is None:
+            m = re.search(r"매출액[^\d]*([\d,.]+)\s*조\s*원", full_text)
+            if m:
+                parsed.revenue = int(float(m.group(1).replace(",", "")) * 10000)
 
-        m = re.search(r"P/B\s*([\d.]+)\s*배", full_text)
-        if m:
-            parsed.pbr = float(m.group(1))
+        if parsed.op_income is None:
+            m = re.search(r"영업이익[^\d]*([\d,.]+)\s*조\s*원", full_text)
+            if m:
+                parsed.op_income = int(float(m.group(1).replace(",", "")) * 10000)
 
-        # ROE from tables
-        for tbl in tables:
-            if not tbl or len(tbl) < 2:
-                continue
-            for row in tbl:
-                cells = [str(c).strip() if c else "" for c in row]
-                label = cells[0] if cells else ""
-                if "ROE" in label.upper():
-                    for cell in cells[1:]:
-                        m = re.match(r"([\d.]+)", cell)
-                        if m:
-                            parsed.roe = float(m.group(1))
+        if parsed.net_income is None:
+            m = re.search(r"(?:당기순이익|순이익)[^\d]*([\d,.]+)\s*조\s*원", full_text)
+            if m:
+                parsed.net_income = int(float(m.group(1).replace(",", "")) * 10000)
+
+        # ── Extract PER, PBR from text ──
+        # "P/B 2.0배" / "P/E 4.4배" / "PER 4.4배" / "PBR 2.0배"
+        if parsed.per is None:
+            m = re.search(r"(?:P/E|PER)\s*([\d.]+)\s*배", full_text)
+            if m:
+                parsed.per = float(m.group(1))
+
+        if parsed.pbr is None:
+            m = re.search(r"(?:P/B|PBR)\s*([\d.]+)\s*배", full_text)
+            if m:
+                parsed.pbr = float(m.group(1))
+
+        # ── ROE from tables ──
+        if parsed.roe is None:
+            for tbl in tables:
+                if not tbl or len(tbl) < 2:
+                    continue
+                header = [str(c).strip() if c else "" for c in tbl[0]]
+                col_index = self._find_estimate_col(header)
+                for row in tbl:
+                    cells = [str(c).strip() if c else "" for c in row]
+                    label = cells[0] if cells else ""
+                    if "ROE" in label.upper():
+                        if col_index is not None and col_index < len(cells):
+                            val = self._safe_float(cells[col_index])
+                            if val is not None:
+                                parsed.roe = val
+                                break
+                        else:
+                            # Fallback: first numeric cell
+                            for cell in cells[1:]:
+                                m = re.match(r"([\d.]+)", cell)
+                                if m:
+                                    parsed.roe = float(m.group(1))
+                                    break
                             break
-            if parsed.roe is not None:
-                break
+                if parsed.roe is not None:
+                    break
+
+        # ── ROE from text ──
+        if parsed.roe is None:
+            m = re.search(r"ROE\s*[\(（]?[^)）]*[\)）]?\s*([\d.]+)\s*%?", full_text)
+            if m:
+                parsed.roe = float(m.group(1))
 
         # ── EPS from text/tables ──
-        m = re.search(r"EPS\s*[\(（][^)）]*[\)）]?\s*([\d,]+)", full_text)
-        if m:
-            parsed.eps = float(m.group(1).replace(",", ""))
+        if parsed.eps is None:
+            # "EPS(2026E) 27,819" / "EPS 2,225"
+            m = re.search(r"EPS\s*[\(（][^)）]*[\)）]?\s*([\d,]+)", full_text)
+            if m:
+                parsed.eps = float(m.group(1).replace(",", ""))
+            else:
+                # "EPS 2,225원" or "EPS 2225"
+                m = re.search(r"EPS\s*([\d,]+)", full_text)
+                if m:
+                    parsed.eps = float(m.group(1).replace(",", ""))
 
         # EPS from financial tables
         if parsed.eps is None:
             for tbl in tables:
                 if not tbl or len(tbl) < 2:
                     continue
+                header = [str(c).strip() if c else "" for c in tbl[0]]
+                col_index = self._find_estimate_col(header)
                 for row in tbl:
                     cells = [str(c).strip() if c else "" for c in row]
                     label = cells[0] if cells else ""
                     if "EPS" in label.upper():
-                        col = self._find_estimate_col(
-                            [str(c).strip() if c else "" for c in tbl[0]]
-                        )
-                        if col and col < len(cells):
-                            parsed.eps = self._safe_float(cells[col])
+                        if col_index is not None and col_index < len(cells):
+                            parsed.eps = self._safe_float(cells[col_index])
+                        else:
+                            # Last numeric cell
+                            for cell in reversed(cells[1:]):
+                                val = self._safe_float(cell)
+                                if val is not None:
+                                    parsed.eps = val
+                                    break
                         break
 
     # ── Utility Methods ────────────────────────────────────────────────────
