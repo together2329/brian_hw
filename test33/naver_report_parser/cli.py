@@ -218,6 +218,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(f"📄 PDF 분석: {args.pdf}", file=sys.stderr)
         try:
             parsed = _analyze_single_pdf(args.pdf)
+        except PDFError as e:
+            print(f"❌ PDF 분석 오류: {e}", file=sys.stderr)
+            return 1
         except Exception as e:
             print(f"❌ PDF 분석 실패: {e}", file=sys.stderr)
             return 1
