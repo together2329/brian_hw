@@ -84,6 +84,9 @@ async def test_sync_reset(dut):
         f"Load failed: expected {expected_after_load}, got {actual_after_load}"
     )
 
+    # Escape ReadOnly before driving signals
+    await NextTimeStep()
+
     # Now apply reset
     dut.rst_n.value = 0
     await RisingEdge(dut.clk)   # DUT sees reset
