@@ -1403,7 +1403,10 @@ def chat_loop():
             if config.ENABLE_TODO_TRACKING:
                 todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE))
 
-            _keepalive_waiting[0] = True
+            # Reset keepalive timer — entering input wait state.
+            # The pre_run hook also resets for prompt_toolkit, but we set it
+            # here too so the timer is armed even for plain input() path.
+            _keepalive_last_activity[0] = time.time()
             if _multiline_prompt:
                 is_plan_turn = (agent_mode in ('plan', 'plan_q'))
 
