@@ -35,7 +35,7 @@ def format_table(reports: List[ParsedReport], compact: bool = False) -> str:
         return "📭 분석된 리포트가 없습니다."
 
     if compact:
-        return _format_compact_table(reports)
+        return format_compact_table(reports)
 
     parts = []
     for i, r in enumerate(reports, 1):
