@@ -761,6 +761,11 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                     if output_tokens > 0:
                         last_output_tokens = output_tokens
 
+                    # Update rate limiter with actual token usage
+                    _total = input_tokens + output_tokens
+                    if _total > 0:
+                        get_rate_limiter().update_actual_usage(_total)
+
                     if config.DEBUG_MODE:
                         total_tokens = input_tokens + output_tokens
                         print(f"\n{Color.info('[Token Usage]')}")
