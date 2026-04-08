@@ -437,9 +437,13 @@ def main():
             elif r["id"] == "timing":
                 entry["warning_count"] = len(jd.get("warnings", []))
             elif r["id"] == "pyslang":
+                mod_data = jd.get("counter", jd)
+                meta = mod_data.get("metadata", {})
                 entry["module_info"] = {
-                    k: jd.get(k) for k in ("module", "port_count", "param_count",
-                                            "always_block_count") if k in jd
+                    "module_name": meta.get("module_name", "?"),
+                    "port_count": len(mod_data.get("ports", [])),
+                    "param_count": len(mod_data.get("parameters", [])),
+                    "always_block_count": len(mod_data.get("always_blocks", [])),
                 }
             elif r["id"] == "xref":
                 results_list = jd if isinstance(jd, list) else jd.get("results", [])
