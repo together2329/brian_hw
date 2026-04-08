@@ -349,6 +349,7 @@ class _AgentInput(Input):
         self._hist: list[str] = []   # newest first
         self._hist_pos: int = -1     # -1 = not browsing
         self._hist_draft: str = ""   # saved draft before browsing
+        self._skip_dropdown: bool = False  # suppress on_input_changed dropdown after accept
         self._load_history()
 
     def check_consume_key(self, key: str, character: str | None) -> bool:
@@ -508,9 +509,11 @@ class _AgentInput(Input):
                     if current is not None and opt_display.endswith('/'):
                         # Already highlighted a directory → navigate into it
                         ol.remove_class("visible")
+                        self._skip_dropdown = True   # suppress on_input_changed
                         self.value = opt_value
                         self.action_end()
-                        # Directly refresh directory contents without waiting for on_input_changed
+                        # Directly refresh directory contents synchronously
+                        self._skip_dropdown = False
                         ol_ref = self._get_completion_list()
                         if ol_ref is not None:
                             self._show_at_dropdown(opt_value, ol_ref, force=False)
@@ -595,6 +598,7 @@ class _AgentInput(Input):
                     opt = ol.get_option_at_index(highlighted)
                     opt_value = opt.id or str(opt.prompt)
                     ol.remove_class("visible")
+                    self._skip_dropdown = True   # suppress on_input_changed re-show
                     self.value = opt_value
                     self.action_end()
                     event.prevent_default()
@@ -1114,6 +1118,12 @@ class AgentTUI(App):
 
         inp = self.query_one(_AgentInput)
 
+        # Suppress dropdown immediately after accepting a completion
+        if inp._skip_dropdown:
+            inp._skip_dropdown = False
+            ol.remove_class("visible")
+            return
+
         # ── Slash command dropdown ────────────────────────────────────────────
         if value.startswith('/') and ' ' not in value:
             inp._show_slash_dropdown(value, ol, force=False)
@@ -1129,10 +1139,10 @@ class AgentTUI(App):
         ol.remove_class("visible")
 
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
-        """Accept a completion from the dropdown."""
+        """Accept a completion from the dropdown (mouse click)."""
         inp = self.query_one(_AgentInput)
         self.query_one("#completion-list", OptionList).remove_class("visible")
-        # Use id (full replacement value) when set, else fall back to prompt
+        inp._skip_dropdown = True   # suppress on_input_changed re-show
         inp.value = event.option.id or str(event.option.prompt)
         inp.action_end()
         inp.focus()
