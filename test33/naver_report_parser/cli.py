@@ -167,8 +167,10 @@ def _crawl_and_analyze(
                 else f"{label} ✅ 완료",
                 verbose,
             )
+        except PDFError as e:
+            _log(f"{label} ❌ PDF 오류: {e}", verbose)
         except Exception as e:
-            _log(f"{label} ❌ 실패: {e}", verbose)
+            _log(f"{label} ❌ 예상치 못한 오류: {e}", verbose)
 
         if i < len(report_list) - 1:
             time.sleep(delay)
