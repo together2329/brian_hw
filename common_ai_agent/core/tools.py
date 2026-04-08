@@ -320,10 +320,16 @@ def run_command(command, timeout=60):
     """
     Runs a shell command and returns output.
 
+    Uses Popen with process-group kill to guarantee child cleanup on timeout.
+    Returns partial output when possible instead of silently dropping it.
+
     Args:
         command: The shell command to run.
         timeout: Optional timeout in seconds (default: 60).
     """
+    import signal
+    import time
+
     try:
         # Strictly block mv and rm as per user request
         if _is_dangerous_command(command):
@@ -332,48 +338,105 @@ def run_command(command, timeout=60):
         # Translate Unix commands to Windows equivalents
         command = _translate_command_for_windows(command)
 
-        import time
-
-        result = subprocess.run(
+        # Use Popen for fine-grained process group control
+        proc = subprocess.Popen(
             command,
             shell=True,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
-            timeout=timeout
+            # Create new process group so we can kill the entire tree
+            preexec_fn=os.setsid if hasattr(os, 'setsid') else None,
+            # Windows: create new process group via CREATE_NEW_PROCESS_GROUP
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == 'win32' else 0,
         )
-        
-        stdout_str = result.stdout or ""
-        stderr_str = result.stderr or ""
-        
+
+        try:
+            stdout_str, stderr_str = proc.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            # Timeout — kill the entire process group
+            partial_stdout = ""
+            partial_stderr = ""
+            try:
+                # Non-blocking read of partial output
+                import selectors
+                sel = selectors.DefaultSelector()
+                if proc.stdout:
+                    sel.register(proc.stdout, selectors.EVENT_READ)
+                if proc.stderr:
+                    sel.register(proc.stderr, selectors.EVENT_READ)
+                for key, _ in sel.select(timeout=0.5):
+                    chunk = key.fileobj.read()
+                    if chunk:
+                        if key.fileobj == proc.stdout:
+                            partial_stdout = chunk
+                        else:
+                            partial_stderr = chunk
+                sel.close()
+            except Exception:
+                pass
+
+            # Kill process group
+            _kill_process_group(proc)
+
+            # Build message with any partial output we captured
+            partial_parts = []
+            if partial_stdout and partial_stdout.strip():
+                partial_parts.append(f"Partial STDOUT:\n{partial_stdout.strip()}")
+            if partial_stderr and partial_stderr.strip():
+                partial_parts.append(f"Partial STDERR:\n{partial_stderr.strip()}")
+
+            partial_info = "\n".join(partial_parts)
+            if partial_info:
+                return f"Error: Command timed out after {timeout}s.\n{partial_info}"
+            else:
+                return f"Error: Command timed out after {timeout}s."
+
+        stdout_str = stdout_str or ""
+        stderr_str = stderr_str or ""
+
         full_output = stdout_str
         if stderr_str:
             full_output += f"\nSTDERR:\n{stderr_str}"
-        
+
         full_output = full_output.strip()
-        
+
         # Output Truncation Logic
         MAX_CHARS = 2000
         if len(full_output) > MAX_CHARS:
             timestamp = int(time.time())
             log_filename = f"cmd_output_{timestamp}.txt"
             log_path = os.path.abspath(log_filename)
-            
+
             try:
                 with open(log_path, "w", encoding="utf-8") as f:
                     f.write(full_output)
-                
+
                 summary = full_output[:500] + f"\n\n... (Output truncated via run_command tool) ...\n... (Total extracted chars: {len(full_output)}) ...\n\n[Full output saved to: {log_path}]\n"
                 if stderr_str:
                      summary += f"[STDERR was present check log for details]"
                 return summary
             except Exception as write_err:
                 return full_output[:MAX_CHARS] + f"\n... (Truncated, and failed to write log: {write_err})"
-        
+
         return full_output
-    except subprocess.TimeoutExpired:
-        return "Error: Command timed out."
     except Exception as e:
         return f"Error running command: {e}"
+
+
+def _kill_process_group(proc):
+    """Kill a subprocess and its entire process group (children included)."""
+    import signal
+    try:
+        pgid = os.getpgid(proc.pid)
+        os.killpg(pgid, signal.SIGKILL)
+    except (OSError, ProcessLookupError):
+        pass
+    try:
+        proc.kill()
+        proc.wait(timeout=3)
+    except Exception:
+        pass
 
 
 def _is_dangerous_command(command: str) -> bool:
