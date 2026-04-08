@@ -56,8 +56,23 @@ PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", MODEL_NAME)
 # API_KEY = os.getenv("LLM_API_KEY", "sk-or-v1-...")
 # MODEL_NAME = os.getenv("LLM_MODEL_NAME", "meta-llama/llama-3.3-70b-instruct:free")
 
-# Rate limiting (seconds to wait between API calls)
-# Set to 0 to disable rate limiting
+# Rate limiting
+# ──────────────────────────────────────────────────────────────────────────────
+# TPM (Tokens Per Minute): max tokens allowed in a 60s sliding window.
+#   Set to 0 to disable. Typical values:
+#     Free tier:  20,000   |   Pro tier:  200,000   |   Enterprise: 2,000,000
+# RPM (Requests Per Minute): max API calls in a 60s sliding window.
+#   Set to 0 to disable. Typical values:
+#     Free tier:  10       |   Pro tier:  60         |   Enterprise: 500
+#
+# These replace the old RATE_LIMIT_DELAY (fixed delay between calls).
+# If both TPM/RPM are 0, falls back to RATE_LIMIT_DELAY behavior.
+# ──────────────────────────────────────────────────────────────────────────────
+TPM_LIMIT = int(os.getenv("TPM_LIMIT", "0"))
+RPM_LIMIT = int(os.getenv("RPM_LIMIT", "0"))
+
+# Legacy: fixed delay (seconds) between API calls. Ignored when TPM/RPM > 0.
+# Set to 0 to disable.
 RATE_LIMIT_DELAY = float(os.getenv("RATE_LIMIT_DELAY", "5"))
 
 # Maximum number of ReAct loop iterations
