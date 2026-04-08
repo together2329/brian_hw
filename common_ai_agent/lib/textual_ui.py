@@ -485,16 +485,24 @@ class _AgentInput(Input):
     async def _on_key(self, event: Key) -> None:
         ol = self._get_completion_list()
 
-        # ── Tab: highlight-only cycling / re-open dropdown ───────────────────
+        # ── Tab: highlight-only cycling / directory navigation ───────────────
         if event.key == "tab":
             if ol is not None and "visible" in ol.classes:
-                # Just move highlight — do NOT set self.value (avoids on_input_changed
-                # rebuilding the dropdown and losing the original match list)
                 count = ol.option_count
                 if count > 0:
                     current = ol.highlighted
                     next_idx = 0 if current is None else (current + 1) % count
-                    ol.highlighted = next_idx
+                    opt_text = str(ol.get_option_at_index(next_idx).prompt)
+
+                    if current is not None and opt_text.endswith('/'):
+                        # Already highlighted a directory → navigate into it
+                        ol.remove_class("visible")
+                        self.value = opt_text
+                        self.action_end()
+                        # on_input_changed fires → shows directory contents
+                    else:
+                        # First Tab on this item: just highlight (no value change)
+                        ol.highlighted = next_idx
                 event.prevent_default()
                 event.stop()
                 return
