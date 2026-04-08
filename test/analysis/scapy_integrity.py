@@ -261,8 +261,11 @@ def parse_frame(frame_bytes: bytes) -> dict:
 # Integrity Test Functions
 # ======================================================================
 
-def test_single_bit_ip_header(state: CounterState, flip_byte: int = 10) -> dict:
-    """Test: single bit-flip in IP header is detected by IP checksum."""
+def test_single_bit_ip_header(state: CounterState, flip_byte: int = 20) -> dict:
+    """Test: single bit-flip in IP header is detected by IP checksum.
+    
+    flip_byte is offset within the full frame (IP header = bytes 14..33).
+    """
     raw, meta = build_frame(state)
     tampered = bytearray(raw)
     tampered[flip_byte] ^= 0x01
