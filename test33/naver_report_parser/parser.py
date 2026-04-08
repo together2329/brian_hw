@@ -172,27 +172,27 @@ class ReportParser:
                                 break
 
                         if not parsed.analyst:
-                        # Pattern: Korean name alone on a line, with email nearby
-                        # Skip if it's a stock name or generic word
-                        _skip = {"삼성전자", "투자의견", "매수", "매도", "보유", "중립"}
-                        for m in re.finditer(
-                            r"^([가-힣]{2,4})\s*$", page1, re.MULTILINE
-                        ):
-                            name = m.group(1)
-                            if name in _skip:
-                                continue
-                            # Verify: email should appear within 300 chars after
-                            after = page1[m.end() : m.end() + 300]
-                            if re.search(r"[\w.-]+@[\w.-]+", after):
-                                parsed.analyst = name
-                                break
-                            # Also accept if followed by 연구원/Analyst title
-                            if re.match(
-                                r"\s*(?:연구위원|애널리스트|수석연구원|연구원)",
-                                page1[m.end() :],
+                            # Pattern: Korean name alone on a line, with email nearby
+                            # Skip if it's a stock name or generic word
+                            _skip = {"삼성전자", "투자의견", "매수", "매도", "보유", "중립"}
+                            for m in re.finditer(
+                                r"^([가-힣]{2,4})\s*$", page1, re.MULTILINE
                             ):
-                                parsed.analyst = name
-                                break
+                                name = m.group(1)
+                                if name in _skip:
+                                    continue
+                                # Verify: email should appear within 300 chars after
+                                after = page1[m.end() : m.end() + 300]
+                                if re.search(r"[\w.-]+@[\w.-]+", after):
+                                    parsed.analyst = name
+                                    break
+                                # Also accept if followed by 연구원/Analyst title
+                                if re.match(
+                                    r"\s*(?:연구위원|애널리스트|수석연구원|연구원)",
+                                    page1[m.end() :],
+                                ):
+                                    parsed.analyst = name
+                                    break
                         if not parsed.analyst:
                             # Pattern: "한글이름" right before email
                             m = re.search(
