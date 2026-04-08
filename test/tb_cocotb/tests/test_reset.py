@@ -102,6 +102,7 @@ async def test_sync_reset(dut):
     assert actual == expected, (
         f"Reset failed: expected {expected}, got {actual}"
     )
+    await NextTimeStep()  # escape ReadOnly
 
     # Sync ref model and verify scoreboard
     env.ref_model.reset()
