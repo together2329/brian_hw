@@ -6,12 +6,14 @@ pdfplumber: text, tables, investment opinions, target prices, financials.
 from __future__ import annotations
 
 import io
+import logging
 import re
 from typing import List, Optional
 
 import pdfplumber
 import requests
 
+from .errors import PDFDownloadError, PDFParseError
 from .models import ParsedReport, ReportInfo
 
 # ── Constants ──────────────────────────────────────────────────────────────
@@ -24,6 +26,10 @@ HEADERS = {
     "Referer": "https://finance.naver.com/",
 }
 PDF_TIMEOUT = 30  # seconds
+PDF_MAX_RETRIES = 2
+PDF_RETRY_BACKOFF = 1.0  # base seconds
+
+logger = logging.getLogger(__name__)
 
 
 class ReportParser:
