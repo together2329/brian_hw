@@ -98,6 +98,7 @@ def process_chat_turn(
         if inp in ("y", "yes", "confirm", "proceed", "진행", "확인", "ok", "네", "예", "ㅇㅇ", "yc"):
             do_compress = (inp == "yc")
             state.agent_mode = "normal"
+            import os as _os; _os.environ["PLAN_MODE"] = "false"
 
             # Rebuild system prompt to restore full toolset
             if state.messages and state.messages[0].get("role") == "system":
