@@ -457,7 +457,7 @@ def run_all_tests(width: int = 8) -> dict:
     print("\n[TEST 4] CRC-32 FCS protection")
     t4_results, t4p, t4f = [], 0, 0
     for i, st in enumerate(states[:5]):
-        for flip in [20, 30, 45]:
+        for flip in [20, 30, 46]:  # Various positions across frame
             r = test_fcs_protection(st, flip_byte=flip)
             r["test_index"] = i
             t4_results.append(r)
