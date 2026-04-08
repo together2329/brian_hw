@@ -81,19 +81,35 @@ class ReportParser:
             parsed.broker = report.broker
             parsed.report_date = report.report_date
 
-        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+        try:
+            pdf_file = pdfplumber.open(io.BytesIO(pdf_bytes))
+        except Exception as e:
+            pdf_url = getattr(report, "pdf_url", None) if report else None
+            raise PDFParseError(
+                f"PDF 파일을 열 수 없습니다 (손상/암호화): {e}",
+                pdf_url=pdf_url,
+                detail=str(e),
+            ) from e
+
+        with pdf_file as pdf:
             pages_text: List[str] = []
             all_tables: list = []
 
-            for page in pdf.pages:
-                # Extract text
-                text = page.extract_text() or ""
-                pages_text.append(text)
+            for page_num, page in enumerate(pdf.pages, 1):
+                try:
+                    # Extract text
+                    text = page.extract_text() or ""
+                    pages_text.append(text)
 
-                # Extract tables
-                tables = page.extract_tables()
-                for tbl in tables:
-                    all_tables.append(tbl)
+                    # Extract tables
+                    tables = page.extract_tables()
+                    for tbl in tables:
+                        all_tables.append(tbl)
+                except Exception as e:
+                    logger.warning(
+                        "Page %d 파싱 건너뜀: %s", page_num, e,
+                    )
+                    pages_text.append("")  # placeholder to keep page alignment
 
             full_text = "\n\n".join(pages_text)
             parsed.full_text = full_text
@@ -101,9 +117,12 @@ class ReportParser:
 
             # Parse structured fields from text
             if pages_text:
-                self._extract_metadata(parsed, pages_text)
-                self._extract_investment_opinion(parsed, pages_text, all_tables)
-                self._extract_financials(parsed, pages_text, all_tables)
+                try:
+                    self._extract_metadata(parsed, pages_text)
+                    self._extract_investment_opinion(parsed, pages_text, all_tables)
+                    self._extract_financials(parsed, pages_text, all_tables)
+                except Exception as e:
+                    logger.warning("정보 추출 중 오류 (부분 결과 반환): %s", e)
 
             # Auto-calculate upside if not extracted but we have prices
             self._compute_upside(parsed)
