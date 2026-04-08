@@ -713,6 +713,57 @@ module counter_tb;
             $display("  [INFO] WIDTH=8 parameterized counter verified");
         end
 
+        // Test 8.3: WIDTH=16 parameterized counter test
+        $display("[Test 8.3] WIDTH=16 parameterized counter test");
+        begin
+            apply_reset;
+            en = 1; up_down = 0; load = 0;
+            // Count up 500 ticks
+            tick(500);
+            test_count++;
+            if (count_out_16 !== 16'd500) begin
+                $display("  [FAIL] WIDTH=16 count up to 500: got %0d", count_out_16);
+                fail_count++;
+            end else begin
+                pass_count++;
+                $display("  [PASS] WIDTH=16 count up to 500: got %0d", count_out_16);
+            end
+            // Load 16'hFFFF (MAX) and verify wrap
+            load = 1; data_in = 16'hFFFF;
+            tick(1);
+            load = 0;
+            test_count++;
+            if (count_out_16 !== 16'hFFFF) begin
+                $display("  [FAIL] WIDTH=16 load 0xFFFF: got %0d", count_out_16);
+                fail_count++;
+            end else begin
+                pass_count++;
+                $display("  [PASS] WIDTH=16 load 0xFFFF: got %0d", count_out_16);
+            end
+            // One more tick → wrap to 0 with overflow
+            tick(1);
+            test_count++;
+            if (count_out_16 !== 16'd0 || overflow_16 !== 1'b1) begin
+                $display("  [FAIL] WIDTH=16 wrap: count=%0d overflow=%0b", count_out_16, overflow_16);
+                fail_count++;
+            end else begin
+                pass_count++;
+                $display("  [PASS] WIDTH=16 wrap: count=%0d overflow=%0b", count_out_16, overflow_16);
+            end
+            // Count down from 0 → underflow to 0xFFFF
+            up_down = 1;
+            tick(1);
+            test_count++;
+            if (count_out_16 !== 16'hFFFF || overflow_16 !== 1'b1) begin
+                $display("  [FAIL] WIDTH=16 down-wrap: count=%0d overflow=%0b", count_out_16, overflow_16);
+                fail_count++;
+            end else begin
+                pass_count++;
+                $display("  [PASS] WIDTH=16 down-wrap: count=%0d overflow=%0b", count_out_16, overflow_16);
+            end
+            $display("  [INFO] WIDTH=16 parameterized counter verified");
+        end
+
         // ============================================================
         // Final Summary
         // ============================================================
