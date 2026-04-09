@@ -37,12 +37,13 @@ if sys.version_info < (3, 8):
     except ImportError:
         pass
 
-# Increase escape-sequence timeout from 100ms → 500ms.
-# When moving the terminal window, macOS sends \x1b[O (FOCUSOUT) as separate
-# byte chunks. If \x1b arrives >100ms before [O, Textual fires a spurious ESC
-# key. 500ms gives enough margin for the full sequence to arrive intact.
+# Increase escape-sequence timeout to 1000ms (ncurses standard default).
+# When moving a cmux tab or terminal window, focus/resize escape sequences
+# (\x1b[O, \x1b[8;...t, etc.) can arrive in chunks with >100ms gaps.
+# Textual's default 100ms ESCAPE_DELAY fires spurious ESC in those gaps.
+# Force-set (not setdefault) so existing env values don't override this.
 import os as _os
-_os.environ.setdefault("ESCDELAY", "500")
+_os.environ["ESCDELAY"] = "1000"
 
 try:
     import textual  # noqa: F401

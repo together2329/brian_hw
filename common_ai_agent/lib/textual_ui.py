@@ -1113,7 +1113,11 @@ class AgentTUI(App):
         self._last_blur_time = time.time()
 
     def on_app_focus(self) -> None:
-        """Restore input focus when terminal window is refocused."""
+        """Restore input focus when terminal window is refocused.
+        Also extend the ESC debounce window — tab drags send FOCUSIN
+        AFTER the spurious ESC fires, so this catches the trailing edge."""
+        import time
+        self._last_blur_time = time.time()
         try:
             self.query_one(_AgentInput).focus()
         except Exception:
@@ -1128,7 +1132,7 @@ class AgentTUI(App):
         # Moving the terminal window sends \x1b[O (FOCUSOUT) which can cause
         # Textual's xterm parser to time out and fire a spurious ESC key.
         import time
-        if time.time() - self._last_blur_time < 0.3:
+        if time.time() - self._last_blur_time < 1.0:
             return
         self._interrupt = True
         self._esc_fired = True
