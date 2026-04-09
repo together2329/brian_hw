@@ -214,7 +214,14 @@ class XTermParser(Parser[Message]):
                 try:
                     new_character = yield read1(constants.ESCAPE_DELAY)
                 except ParseTimeout:
-                    send_escape()
+                    # Only fire ESC if the sequence is exactly \x1b with no
+                    # follow-up bytes.  A real ESC keypress sends \x1b alone.
+                    # Partial escape sequences (resize, focus events, etc.) from
+                    # terminal/cmux will have accumulated extra bytes in sequence,
+                    # so len(sequence) > 1 — discard them silently instead of
+                    # misinterpreting them as ESC keypresses.
+                    if sequence == ESC:
+                        send_escape()
                     break
                 except ParseEOF:
                     send_escape()
