@@ -882,6 +882,7 @@ class AgentTUI(App):
         self._proactive_cycle_count = 0
         self._last_input_time = 0.0
         self._proactive_timer = None
+        self._last_blur_time = 0.0  # track focus-loss for spurious ESC debounce
         try:
             import config as _cfg
             self._model = getattr(_cfg, "MODEL_NAME", "")
@@ -1106,10 +1107,21 @@ class AgentTUI(App):
         """Called from InputBridge.get_input() when agent thread is back at prompt."""
         self._esc_fired = False
 
+    def on_app_blur(self) -> None:
+        """Record when the terminal loses focus — used to debounce spurious ESC."""
+        import time
+        self._last_blur_time = time.time()
+
     def action_stop(self) -> None:
         """ESC: interrupt current agent execution."""
         if not self._generating:
             # No active generation — ESC is a no-op (avoids poisoning next command)
+            return
+        # Ignore ESC events that arrive within 300ms of a focus-loss event.
+        # Moving the terminal window sends \x1b[O (FOCUSOUT) which can cause
+        # Textual's xterm parser to time out and fire a spurious ESC key.
+        import time
+        if time.time() - self._last_blur_time < 0.3:
             return
         self._interrupt = True
         self._esc_fired = True
