@@ -708,7 +708,6 @@ class AgentTUI(App):
         height: 3;
         color: {_TEXT_DIM};
         padding: 0 0 1 0;
-        border-bottom: solid {_BORDER_DIM};
     }}
     #model-header {{
         height: auto;
@@ -720,7 +719,6 @@ class AgentTUI(App):
         height: auto;
         color: {_TEXT_DIM};
         padding: 0 0 1 0;
-        border-bottom: solid {_BORDER_DIM};
     }}
     #context-header {{
         height: auto;
@@ -732,7 +730,6 @@ class AgentTUI(App):
         height: auto;
         color: {_TEXT_DIM};
         padding: 0 0 1 0;
-        border-bottom: solid {_BORDER_DIM};
     }}
     #skill-header {{
         height: auto;
@@ -744,7 +741,6 @@ class AgentTUI(App):
         height: auto;
         color: {_TEXT_DIM};
         padding: 0 0 1 0;
-        border-bottom: solid {_BORDER_DIM};
     }}
     #cost-header {{
         height: auto;
@@ -756,7 +752,6 @@ class AgentTUI(App):
         height: auto;
         color: {_TEXT_DIM};
         padding: 0 0 1 0;
-        border-bottom: solid {_BORDER_DIM};
     }}
     #todo-header {{
         height: auto;
@@ -774,7 +769,6 @@ class AgentTUI(App):
         height: auto;
         color: {_TEXT_DIM};
         padding: 1 0 0 0;
-        border-top: solid {_BORDER_DIM};
         dock: bottom;
     }}
 
