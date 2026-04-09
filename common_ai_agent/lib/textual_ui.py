@@ -1143,6 +1143,10 @@ class AgentTUI(App):
         self._update_activity()   # sidebar: → "Waiting for input..."
         self._update_statusbar()
         self._scroll_down()
+        try:
+            self.query_one(_AgentInput).focus()
+        except Exception:
+            pass
 
     def _esc_watchdog(self) -> None:
         """Warn if agent thread is still blocked 5s after ESC; Ctrl+Q to force-quit."""
