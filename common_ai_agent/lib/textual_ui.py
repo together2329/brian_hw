@@ -625,10 +625,14 @@ class _AgentInput(Input):
 # ── Input bridge ──────────────────────────────────────────────────────────────
 
 class InputBridge:
-    def __init__(self) -> None:
+    def __init__(self, on_idle=None) -> None:
         self._q: queue.Queue[str] = queue.Queue()
+        self._on_idle = on_idle
 
     def get_input(self, prompt: str = "") -> str:
+        # Agent thread is back at the input prompt → idle signal
+        if self._on_idle:
+            self._on_idle()
         return self._q.get()
 
     def submit(self, text: str) -> None:
@@ -845,7 +849,8 @@ class AgentTUI(App):
     def __init__(self, run_agent_fn: Callable) -> None:
         super().__init__()
         self._run_agent_fn = run_agent_fn
-        self._input_bridge = InputBridge()
+        self._esc_fired = False  # True from ESC until agent returns to get_input()
+        self._input_bridge = InputBridge(on_idle=self._on_agent_idle)
         self._response_buf = ""
         self._last_response_text = ""  # plain text of last flushed response
         self._generating = False
@@ -1097,12 +1102,18 @@ class AgentTUI(App):
         self._update_statusbar("  ✓ Copied to clipboard  (Ctrl+Y)")
         self.set_timer(2.0, self._update_statusbar)
 
+    def _on_agent_idle(self) -> None:
+        """Called from InputBridge.get_input() when agent thread is back at prompt."""
+        self._esc_fired = False
+
     def action_stop(self) -> None:
         """ESC: interrupt current agent execution."""
         if not self._generating:
             # No active generation — ESC is a no-op (avoids poisoning next command)
             return
         self._interrupt = True
+        self._esc_fired = True
+        self.set_timer(5.0, self._esc_watchdog)  # safety net if thread stays blocked
         # Reset all activity flags so sidebar shows "Waiting for input..." immediately
         self._reasoning_open = False
         self._generating = False
@@ -1128,8 +1139,8 @@ class AgentTUI(App):
         self._scroll_down()
 
     def _esc_watchdog(self) -> None:
-        """Force-kill if ESC was pressed but generation is still running after 5s."""
-        if self._generating:
+        """Force-kill if agent thread is still blocked 5s after ESC."""
+        if self._esc_fired:
             import os as _os
             self._restore_terminal()
             _os._exit(0)
