@@ -1,5 +1,51 @@
 import os
+import sys
 from pathlib import Path
+
+
+def _apply_workspace_env_early():
+    """
+    Parse -w/--workspace from sys.argv BEFORE load_env_file() runs,
+    so workspace.json [env] overrides have priority over .env/.config files.
+    Only sets env vars that are not already set in the shell environment.
+    """
+    workspace_name = None
+    argv = sys.argv[1:]
+    for i, arg in enumerate(argv):
+        if arg in ('-w', '--workspace') and i + 1 < len(argv):
+            workspace_name = argv[i + 1]
+            break
+        if arg.startswith('--workspace='):
+            workspace_name = arg.split('=', 1)[1]
+            break
+    if not workspace_name:
+        return
+
+    # Locate workflow directory relative to this file (src/ → .. → workflow/)
+    workflow_root = Path(__file__).parent.parent.parent / "new_feature" / "workflow"
+    ws_json = workflow_root / workspace_name / "workspace.json"
+    if not ws_json.exists():
+        # Fallback: look for workflow/ next to common_ai_agent
+        workflow_root2 = Path(__file__).parent.parent / "workflow"
+        ws_json = workflow_root2 / workspace_name / "workspace.json"
+    if not ws_json.exists():
+        return
+
+    try:
+        import json
+        data = json.loads(ws_json.read_text(encoding="utf-8"))
+        env_overrides = data.get("env", {})
+        for key, value in env_overrides.items():
+            if key and value is not None and key not in os.environ:
+                os.environ[key] = str(value)
+        # Signal which workspace is active
+        if "ACTIVE_WORKSPACE" not in os.environ:
+            os.environ["ACTIVE_WORKSPACE"] = workspace_name
+    except Exception:
+        pass
+
+
+_apply_workspace_env_early()
 
 # Load .env file if it exists
 def load_env_file():
@@ -101,7 +147,12 @@ NONSTREAM_API_TIMEOUT = int(os.getenv("NONSTREAM_API_TIMEOUT", "1800"))
 # Maximum output tokens per LLM response (0 = no limit)
 MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "16000"))
 
-# Maximum reasoning/thinking tokens (GLM, DeepSeek etc.). 0 = no limit.
+# Maximum reasoning/thinking tokens (GLM, DeepSeek etc.).
+# For reasoning models, this EXPANDS the max_tokens budget so reasoning
+# tokens don't eat into the visible content budget:
+#   effective max_tokens = MAX_OUTPUT_TOKENS + MAX_REASONING_TOKENS
+# Set to 0 to disable the expansion.
+# Recommended: 8000-16000 to give the model room to think AND produce content.
 MAX_REASONING_TOKENS = int(os.getenv("MAX_REASONING_TOKENS", "0"))
 
 # Save conversation history to file

@@ -1,0 +1,25 @@
+{
+  "name": "Bug Fix",
+  "description": "Standard bug investigation and fix workflow",
+  "trigger_keywords": ["bug", "fix", "error", "broken", "issue"],
+  "tasks": [
+    {
+      "content": "Reproduced the bug and identified root cause",
+      "activeForm": "Reproducing and analyzing bug...",
+      "priority": "high",
+      "detail": "Read error messages, trace call stack, identify the exact failing line/condition"
+    },
+    {
+      "content": "Implemented fix",
+      "activeForm": "Implementing fix...",
+      "priority": "high",
+      "detail": "Surgical edit — minimal change to fix the root cause. Do not refactor surrounding code."
+    },
+    {
+      "content": "Verified fix resolves the issue",
+      "activeForm": "Verifying fix...",
+      "priority": "high",
+      "detail": "Re-run the failing scenario. Confirm the error no longer occurs."
+    }
+  ]
+}

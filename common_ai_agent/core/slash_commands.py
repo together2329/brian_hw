@@ -298,6 +298,11 @@ class SlashCommandRegistry:
             if subcmd == 'revert':
                 rest = args.strip().split()
                 return self._todo_revert(rest[1:], todo_file)
+            if subcmd == 'templates':
+                return self._todo_list_templates()
+            if subcmd == 'template':
+                tname = parts[1] if len(parts) > 1 else ''
+                return self._todo_load_template(tname, todo_file)
 
             if not todo_file.exists():
                 # Check if there's a recent write failure to surface
@@ -702,6 +707,76 @@ class SlashCommandRegistry:
         lines.append("💡 태스크 실행 중 매 continuation prompt에 자동 첨부됩니다.")
         lines.append(f"{SEP}")
         return "\n".join(lines) + "\n"
+
+    def _todo_list_templates(self) -> str:
+        """List available todo templates from the active workspace and default."""
+        try:
+            import builtins as _b
+            registry = getattr(_b, "_TODO_TEMPLATE_REGISTRY", None)
+            if registry is None:
+                # Try importing from workflow.loader
+                try:
+                    from workflow.loader import get_todo_template_registry
+                    registry = get_todo_template_registry()
+                except ImportError:
+                    pass
+            if registry:
+                names = registry.list_templates()
+                if names:
+                    lines = ["\nAvailable todo templates:"]
+                    for name in names:
+                        tmpl = registry.get_template(name)
+                        desc = tmpl.get("description", "") if tmpl else ""
+                        task_count = len(tmpl.get("tasks", [])) if tmpl else 0
+                        lines.append(f"  {name:<20} {task_count} tasks  {desc}")
+                    lines.append("\nUsage: /todo template <name>")
+                    return "\n".join(lines) + "\n"
+            return "No todo templates available. Load a workspace with -w <name> to get templates.\n"
+        except Exception as e:
+            return f"Error listing templates: {e}\n"
+
+    def _todo_load_template(self, template_name: str, todo_file) -> str:
+        """Load a todo template and write it to the todo file. /todo template <name>"""
+        if not template_name:
+            return "Usage: /todo template <name>\nSee /todo templates for available templates.\n"
+        try:
+            import builtins as _b
+            import json
+            from pathlib import Path
+            registry = getattr(_b, "_TODO_TEMPLATE_REGISTRY", None)
+            if registry is None:
+                try:
+                    from workflow.loader import get_todo_template_registry
+                    registry = get_todo_template_registry()
+                except ImportError:
+                    pass
+            if not registry:
+                return "No todo template registry available. Load a workspace with -w <name>.\n"
+            tmpl = registry.get_template(template_name)
+            if not tmpl:
+                available = ", ".join(registry.list_templates()) or "(none)"
+                return f"Template '{template_name}' not found.\nAvailable: {available}\n"
+
+            tasks = tmpl.get("tasks", [])
+            if not tasks:
+                return f"Template '{template_name}' has no tasks.\n"
+
+            # Write tasks to todo file using TodoTracker
+            try:
+                from lib.todo_tracker import TodoTracker
+                tracker = TodoTracker(persist_path=Path(todo_file))
+                tracker.add_todos(tasks)
+                tracker.save()
+                desc = tmpl.get("description", "")
+                return (
+                    f"Loaded template '{template_name}': {len(tasks)} tasks added.\n"
+                    + (f"Description: {desc}\n" if desc else "")
+                    + "Run /todo to see the list.\n"
+                )
+            except Exception as e:
+                return f"Error writing todo file: {e}\n"
+        except Exception as e:
+            return f"Error loading template: {e}\n"
 
     def _todo_revert(self, args: list, todo_file) -> str:
         """Return revert signal: /todo revert <N> [--hard] [--reset-conv] [reason]"""

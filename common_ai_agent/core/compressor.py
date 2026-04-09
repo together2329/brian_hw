@@ -24,7 +24,7 @@ from typing import Any, Callable, Dict, List, Optional
 # Prompt constant
 # ---------------------------------------------------------------------------
 
-STRUCTURED_SUMMARY_PROMPT = """You are summarizing conversation history for an AI coding agent.
+_STRUCTURED_SUMMARY_PROMPT_DEFAULT = """You are summarizing conversation history for an AI coding agent.
 Goal: Preserve ALL context needed to continue the work seamlessly, while eliminating redundancy.
 
 What to KEEP:
@@ -66,6 +66,37 @@ Be thorough on facts. Skip nothing important.
 [Coding style, language preference, workflow constraints]
 
 Omit sections with nothing to report."""
+
+
+def _load_default_compression_prompt() -> str:
+    """
+    Load compression prompt from the active workspace, falling back to default.
+    Priority: builtins._WORKSPACE_HOOK_MESSAGES["compression_system"]
+              → workflow/default/compression_prompt.md
+              → built-in default
+    """
+    import builtins as _b
+    # 1. Active workspace hook message
+    msgs = getattr(_b, "_WORKSPACE_HOOK_MESSAGES", {})
+    if msgs.get("compression_system"):
+        return msgs["compression_system"]
+
+    # 2. workflow/default/compression_prompt.md (adjacent to common_ai_agent/)
+    candidates = [
+        Path(__file__).parent.parent.parent / "new_feature" / "workflow" / "default" / "compression_prompt.md",
+        Path(__file__).parent.parent / "workflow" / "default" / "compression_prompt.md",
+    ]
+    for p in candidates:
+        if p.exists():
+            try:
+                return p.read_text(encoding="utf-8").strip()
+            except Exception:
+                pass
+
+    return _STRUCTURED_SUMMARY_PROMPT_DEFAULT
+
+
+STRUCTURED_SUMMARY_PROMPT = _load_default_compression_prompt()
 
 
 # ---------------------------------------------------------------------------

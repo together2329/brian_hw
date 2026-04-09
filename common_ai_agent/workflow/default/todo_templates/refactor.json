@@ -1,0 +1,25 @@
+{
+  "name": "Refactor",
+  "description": "Safe refactoring workflow — behavior-preserving changes only",
+  "trigger_keywords": ["refactor", "clean up", "reorganize", "restructure"],
+  "tasks": [
+    {
+      "content": "Documented current behavior before refactoring",
+      "activeForm": "Documenting current behavior...",
+      "priority": "high",
+      "detail": "Read all affected files. Note what each part does. Identify all callers/dependents."
+    },
+    {
+      "content": "Refactored code",
+      "activeForm": "Refactoring...",
+      "priority": "high",
+      "detail": "Behavior-preserving changes only. Do not add features or fix bugs as part of refactor."
+    },
+    {
+      "content": "Verified behavior is unchanged after refactor",
+      "activeForm": "Verifying behavior...",
+      "priority": "high",
+      "detail": "Run the same scenarios as before. All outputs must match pre-refactor behavior."
+    }
+  ]
+}
