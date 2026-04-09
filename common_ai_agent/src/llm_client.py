@@ -289,6 +289,25 @@ def print_call_summary() -> None:
 _ssl_ctx_cache: Optional[ssl.SSLContext] = None
 _http_conn_pool: Dict[str, http.client.HTTPSConnection] = {}
 _last_post_reused: bool = False  # set by _persistent_post; read by PERF logging
+_active_stream_response = None   # current streaming response; closed by cancel_current_stream()
+
+
+def cancel_current_stream() -> None:
+    """Close the active streaming HTTP response to unblock the agent thread immediately."""
+    global _active_stream_response, _http_conn_pool
+    resp = _active_stream_response
+    if resp is not None:
+        try:
+            resp.close()
+        except Exception:
+            pass
+    # Also close the pooled connection so next request gets a fresh one
+    for conn in list(_http_conn_pool.values()):
+        try:
+            conn.close()
+        except Exception:
+            pass
+    _http_conn_pool.clear()
 
 
 def _get_or_create_ssl_ctx() -> ssl.SSLContext:
@@ -661,6 +680,8 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
         try:
             _body = json.dumps(data).encode('utf-8')
             response = _persistent_post(url, headers, _body, timeout=config.STREAM_API_TIMEOUT)
+            global _active_stream_response
+            _active_stream_response = response
             _inactivity_s = getattr(config, 'STREAM_INACTIVITY_TIMEOUT', 120)
             _last_data = [time.time()]
             _wd_stop, _wd_triggered = _make_stream_watchdog(response, _inactivity_s, _last_data)
@@ -793,6 +814,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             finally:
                 if _wd_stop is not None:
                     _wd_stop.set()
+                _active_stream_response = None  # stream done
                 try:
                     response.read()
                 except Exception:

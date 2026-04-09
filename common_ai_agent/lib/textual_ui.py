@@ -1114,6 +1114,12 @@ class AgentTUI(App):
         self._interrupt = True
         self._esc_fired = True
         self.set_timer(5.0, self._esc_watchdog)  # safety net if thread stays blocked
+        # Cancel active LLM HTTP stream so the agent thread unblocks immediately
+        try:
+            from llm_client import cancel_current_stream
+            cancel_current_stream()
+        except Exception:
+            pass
         # Reset all activity flags so sidebar shows "Waiting for input..." immediately
         self._reasoning_open = False
         self._generating = False
