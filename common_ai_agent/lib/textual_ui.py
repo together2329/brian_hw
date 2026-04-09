@@ -1112,6 +1112,13 @@ class AgentTUI(App):
         import time
         self._last_blur_time = time.time()
 
+    def on_app_focus(self) -> None:
+        """Restore input focus when terminal window is refocused."""
+        try:
+            self.query_one(_AgentInput).focus()
+        except Exception:
+            pass
+
     def action_stop(self) -> None:
         """ESC: interrupt current agent execution."""
         if not self._generating:
