@@ -298,7 +298,6 @@ def run_react_agent_impl(
     while True:
         # ESC abort check
         if _esc_check():
-            print("\n  ⎋ Aborted by ESC. Returning to input prompt.")
             break
 
         # Iteration limit
@@ -593,7 +592,6 @@ def run_react_agent_impl(
         llm_elapsed = time.time() - _stream_start
 
         if _aborted:
-            print("\n  ⎋ Aborted by ESC. Returning to input prompt.")
             if deps.emit_flush_fn:
                 deps.emit_flush_fn()   # signal TUI to flush + reset _generating
             break
