@@ -14,11 +14,29 @@ ReAct 루프의 lifecycle에 훅을 삽입하여 context 관리, tool output 제
 - ON_SESSION_END: cleanup
 """
 
+import builtins
 import time
 import re
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set
+
+
+def _get_hook_message(key: str, default: str, **kwargs) -> str:
+    """
+    Look up a hook message template from the active workspace, falling back to default.
+    Templates support str.format(**kwargs) substitution.
+    The workspace loader stores messages in builtins._WORKSPACE_HOOK_MESSAGES
+    to avoid circular imports.
+    """
+    try:
+        msgs = getattr(builtins, "_WORKSPACE_HOOK_MESSAGES", {})
+        tmpl = msgs.get(key, "")
+        if tmpl:
+            return tmpl.format(**kwargs) if kwargs else tmpl
+    except Exception:
+        pass
+    return default.format(**kwargs) if kwargs else default
 
 
 # ============================================================
@@ -193,11 +211,21 @@ def tool_output_truncator(context: HookContext) -> HookContext:
     total_lines = output.count('\n')
     shown_lines = truncated.count('\n')
 
-    context.tool_output = (
-        f"{truncated}\n\n"
+    _default_truncated_msg = (
         f"[Truncated: showing {shown_lines}/{total_lines} lines, "
         f"{len(truncated)}/{len(output)} chars. "
         f"Use read_lines(path, offset, limit) for specific sections.]"
+    )
+    context.tool_output = (
+        f"{truncated}\n\n"
+        + _get_hook_message(
+            "tool_truncated",
+            _default_truncated_msg,
+            shown_lines=shown_lines,
+            total_lines=total_lines,
+            shown_chars=len(truncated),
+            total_chars=len(output),
+        )
     )
 
     return context
@@ -336,13 +364,19 @@ def emergency_recovery(context: HookContext) -> HookContext:
 
             # Create summary of removed messages
             removed_count = len(context.messages) - 5
+            _topic = _extract_topic(context.messages)
+            _default_recovery_msg = (
+                f"[Emergency Recovery] {removed_count} messages were removed "
+                f"due to context limit. The conversation was about: {_topic}"
+            )
             summary = {
                 "role": "system",
-                "content": (
-                    f"[Emergency Recovery] {removed_count} messages were removed "
-                    f"due to context limit. The conversation was about: "
-                    f"{_extract_topic(context.messages)}"
-                )
+                "content": _get_hook_message(
+                    "emergency_recovery",
+                    _default_recovery_msg,
+                    removed_count=removed_count,
+                    topic=_topic,
+                ),
             }
 
             context.messages = [system_msg, summary] + recent
@@ -402,16 +436,25 @@ def todo_continuation_enforcer(context: HookContext) -> HookContext:
                     )
                     remaining = len(todo_tracker.todos) - completed
                     cur_idx = todo_tracker.todos.index(current) + 1
+                    _default_continuation = (
+                        f"[System] {completed}/{len(todo_tracker.todos)} tasks done, {remaining} remaining.\n"
+                        f"Current task {cur_idx}: {current.content}\n"
+                        f"If the work is done, mark it complete:\n"
+                        f"Action: todo_update\n"
+                        f"Action Input: {{\"index\": {cur_idx}, \"status\": \"completed\"}}\n"
+                        f"Then continue to the next task."
+                    )
                     reminder = {
                         "role": "user",
-                        "content": (
-                            f"[System] {completed}/{len(todo_tracker.todos)} tasks done, {remaining} remaining.\n"
-                            f"Current task {cur_idx}: {current.content}\n"
-                            f"If the work is done, mark it complete:\n"
-                            f"Action: todo_update\n"
-                            f"Action Input: {{\"index\": {cur_idx}, \"status\": \"completed\"}}\n"
-                            f"Then continue to the next task."
-                        )
+                        "content": _get_hook_message(
+                            "todo_continuation",
+                            _default_continuation,
+                            completed=completed,
+                            total=len(todo_tracker.todos),
+                            remaining=remaining,
+                            cur_idx=cur_idx,
+                            content=current.content,
+                        ),
                     }
                     context.messages.append(reminder)
                     context.metadata["continuation_injected"] = True

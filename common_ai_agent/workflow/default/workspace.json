@@ -1,0 +1,24 @@
+{
+  "_schema": "workspace v1",
+  "_comment": "Copy this folder and modify to create your own workspace. Run with: python src/main.py -w <name>",
+
+  "meta": {
+    "name": "default",
+    "description": "Default behavior — extracted from common_ai_agent source",
+    "version": "1.0"
+  },
+
+  "env": {
+    "_comment": "Env vars to override. Shell env > workspace.json > .config > .env"
+  },
+
+  "prompt": {
+    "system_prompt_mode": "append",
+    "plan_prompt_mode": "append"
+  },
+
+  "skills": {
+    "force_activate": [],
+    "disable": []
+  }
+}

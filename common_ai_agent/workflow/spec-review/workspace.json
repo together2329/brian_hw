@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "name": "spec-review",
+    "description": "PCIe / NVMe / UCIe specification document analysis workspace",
+    "version": "1.0"
+  },
+
+  "env": {
+    "CLAUDE_FLOW_MODE": "auto",
+    "ENABLE_WEB_TOOLS": "false",
+    "MAX_ITERATIONS": "150",
+    "COMPRESSION_THRESHOLD": "0.80"
+  },
+
+  "prompt": {
+    "system_prompt_mode": "prepend",
+    "plan_prompt_mode": "append"
+  },
+
+  "skills": {
+    "force_activate": ["pcie-expert", "nvme-expert", "ucie-expert", "spec-navigator"],
+    "disable": []
+  }
+}

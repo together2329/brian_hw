@@ -137,6 +137,13 @@ class TodoItem:
     rejection_reason: str = ""
     approved_reason: str = ""
 
+    # ── Loop iteration fields ──────────────────────────────
+    loop: bool = False                  # Enable loop mode
+    max_loop_iterations: int = 0        # 0 = unlimited
+    exit_condition: str = ""            # Loop exits when tool_output contains this string
+    loop_count: int = 0                 # Current loop attempt count
+    loop_exit_reason: str = ""          # Recorded when loop exits
+
     def __post_init__(self):
         if self.created_at is None:
             self.created_at = time.time()
@@ -151,6 +158,17 @@ class TodoItem:
         if self.status == "in_progress":
             return time.time() - self.created_at
         return None
+
+    def get_active_form(self) -> str:
+        """active_form에서 {loop_count}/{max_loop_iterations} 치환 후 반환."""
+        text = self.active_form or self.content
+        try:
+            max_iter = self.max_loop_iterations if self.max_loop_iterations > 0 else "∞"
+            text = text.replace("{loop_count}", str(self.loop_count))
+            text = text.replace("{max_loop_iterations}", str(max_iter))
+        except Exception:
+            pass
+        return text
 
 
 class TodoTracker:
@@ -200,6 +218,11 @@ class TodoTracker:
                 criteria=todo_dict.get("criteria", ""),
                 rejection_reason=todo_dict.get("rejection_reason", ""),
                 approved_reason=todo_dict.get("approved_reason", ""),
+                loop=bool(todo_dict.get("loop", False)),
+                max_loop_iterations=int(todo_dict.get("max_loop_iterations", 0)),
+                exit_condition=todo_dict.get("exit_condition", ""),
+                loop_count=int(todo_dict.get("loop_count", 0)),
+                loop_exit_reason=todo_dict.get("loop_exit_reason", ""),
             ))
 
         # Find current in_progress item
@@ -229,17 +252,61 @@ class TodoTracker:
         self.current_index = index
         self.save()
 
-    def mark_completed(self, index: int):
-        """특정 todo를 completed로 변경하고 완료 시간 기록."""
-        if not (0 <= index < len(self.todos)):
-            return
+    def mark_completed(self, index: int, tool_output: str = "") -> bool:
+        """
+        특정 todo를 completed로 변경하고 완료 시간 기록.
 
-        self.todos[index].status = "completed"
-        self.todos[index].completed_at = time.time()
-        self.todos[index].rejection_reason = ""
+        Loop 모드일 경우 exit_condition / max_loop_iterations를 검사:
+          - exit_condition이 tool_output에 포함되거나 max에 도달 → approved (자동)
+          - 그 외 → in_progress로 복귀 (루프 재시작), 반환값 False
+
+        Returns:
+            True  = normal completion (status set to completed or auto-approved)
+            False = loop restarted (status reset to in_progress)
+        """
+        if not (0 <= index < len(self.todos)):
+            return True
+
+        todo = self.todos[index]
+
+        if todo.loop:
+            todo.loop_count += 1
+            exit_met = bool(todo.exit_condition and todo.exit_condition in tool_output)
+            max_reached = (todo.max_loop_iterations > 0
+                           and todo.loop_count >= todo.max_loop_iterations)
+
+            if exit_met:
+                todo.status = "approved"
+                todo.loop_exit_reason = f"Exit condition met after {todo.loop_count} iteration(s)"
+                todo.approved_reason = todo.loop_exit_reason
+                todo.completed_at = time.time()
+                self.current_index = index
+                self.save()
+                return True
+            elif max_reached:
+                todo.status = "approved"
+                todo.loop_exit_reason = f"Max iterations ({todo.max_loop_iterations}) reached"
+                todo.approved_reason = todo.loop_exit_reason
+                todo.completed_at = time.time()
+                self.current_index = index
+                self.save()
+                return True
+            else:
+                # Loop restart: keep in_progress
+                todo.status = "in_progress"
+                todo.completed_at = None
+                self.current_index = index
+                self.save()
+                return False  # signal: loop restarted
+
+        # Normal (non-loop) completion
+        todo.status = "completed"
+        todo.completed_at = time.time()
+        todo.rejection_reason = ""
         # Keep current_index pointing at this task so review prompt targets it
         self.current_index = index
         self.save()
+        return True
 
     def mark_approved(self, index: int):
         """특정 todo를 approved로 변경 (완전 완료).
@@ -520,29 +587,79 @@ class TodoTracker:
         if current:
             idx = self.current_index + 1
             if current.status == "rejected":
-                prompt = (
+                _default = (
                     f"[Task {idx}/{total} REJECTED] {current.rejection_reason}\n"
                     f"Fix the issue, then call: todo_update(index={idx}, status='in_progress')"
                 )
+                try:
+                    import builtins as _b
+                    _msgs = getattr(_b, "_WORKSPACE_HOOK_MESSAGES", {})
+                    _tmpl = _msgs.get("todo_rejected", "")
+                    prompt = _tmpl.format(idx=idx, total=total,
+                                         rejection_reason=current.rejection_reason) if _tmpl else _default
+                except Exception:
+                    prompt = _default
             elif current.status == "completed":
                 # Inject review reminder — LLM must explicitly approve or reject
-                prompt = (
+                _default = (
                     f"[Task {idx}/{total} REVIEW REQUIRED] \"{current.content}\"\n"
                     f"You marked this task completed. Now perform a CRITICAL review before approving.\n"
                     f"→ Pass → todo_update(index={idx}, status='approved', reason='<concrete evidence>')\n"
                     f"→ Issue → todo_update(index={idx}, status='rejected', reason='<exact problem>')"
                 )
+                try:
+                    import builtins as _b
+                    _msgs = getattr(_b, "_WORKSPACE_HOOK_MESSAGES", {})
+                    _tmpl = _msgs.get("todo_review", "")
+                    prompt = _tmpl.format(idx=idx, total=total, content=current.content) if _tmpl else _default
+                except Exception:
+                    prompt = _default
             else:
                 in_prog = current.status == "in_progress"
-                first_action = (
-                    f"⚠️ MANDATORY: When task is done, you MUST call todo_update(index={idx}, status='completed') as your FIRST Action — before writing any file or starting the next task."
-                    if in_prog else
-                    f"⚠️ MANDATORY: Start by calling todo_update(index={idx}, status='in_progress'), then do the work, then call todo_update(index={idx}, status='completed')."
-                )
-                prompt = (
-                    f"[Task {idx}/{total}] {current.content}\n"
-                    f"{first_action}"
-                )
+                # Loop task in progress: show loop iteration info
+                if in_prog and current.loop and current.loop_count > 0:
+                    max_iter = current.max_loop_iterations or "∞"
+                    _default = (
+                        f"[Task {idx}/{total} LOOP {current.loop_count}/{max_iter}] "
+                        f"{current.get_active_form()}\n"
+                        f"Exit condition: \"{current.exit_condition}\"\n"
+                        f"⚠️ MANDATORY: Run the task, then call todo_update(index={idx}, status='completed', "
+                        f"tool_output='<output>') — loop will auto-continue or exit."
+                    )
+                    try:
+                        import builtins as _b
+                        _msgs = getattr(_b, "_WORKSPACE_HOOK_MESSAGES", {})
+                        _tmpl = _msgs.get("todo_loop_continue", "")
+                        prompt = _tmpl.format(
+                            idx=idx, total=total,
+                            loop_count=current.loop_count,
+                            max_loop=max_iter,
+                            content=current.content,
+                            exit_condition=current.exit_condition,
+                        ) if _tmpl else _default
+                    except Exception:
+                        prompt = _default
+                else:
+                    first_action = (
+                        f"⚠️ MANDATORY: When task is done, you MUST call todo_update(index={idx}, status='completed') as your FIRST Action — before writing any file or starting the next task."
+                        if in_prog else
+                        f"⚠️ MANDATORY: Start by calling todo_update(index={idx}, status='in_progress'), then do the work, then call todo_update(index={idx}, status='completed')."
+                    )
+                    _default = (
+                        f"[Task {idx}/{total}] {current.content}\n"
+                        f"{first_action}"
+                    )
+                    try:
+                        import builtins as _b
+                        _msgs = getattr(_b, "_WORKSPACE_HOOK_MESSAGES", {})
+                        _tmpl = _msgs.get("todo_continuation", "")
+                        prompt = _tmpl.format(
+                            idx=idx, total=total,
+                            content=current.content,
+                            first_action=first_action,
+                        ) if _tmpl else _default
+                    except Exception:
+                        prompt = _default
             # Append TODO_RULE if present
             rule = _load_todo_rule()
             if rule:
@@ -624,6 +741,11 @@ class TodoTracker:
                     "criteria": t.criteria,
                     "rejection_reason": t.rejection_reason,
                     "approved_reason": t.approved_reason,
+                    "loop": t.loop,
+                    "max_loop_iterations": t.max_loop_iterations,
+                    "exit_condition": t.exit_condition,
+                    "loop_count": t.loop_count,
+                    "loop_exit_reason": t.loop_exit_reason,
                 }
                 for t in self.todos
             ],

@@ -1,0 +1,31 @@
+{
+  "name": "Spec Analysis",
+  "description": "Standard workflow for analyzing a hardware specification topic",
+  "trigger_keywords": ["spec", "pcie", "nvme", "ucie", "analyze spec", "spec question"],
+  "tasks": [
+    {
+      "content": "Mapped spec structure for relevant sections",
+      "activeForm": "Mapping spec structure...",
+      "priority": "high",
+      "detail": "Call spec_navigate(spec, 'root') then navigate to the relevant chapter. Identify all sections to analyze."
+    },
+    {
+      "content": "Analyzed primary spec sections",
+      "activeForm": "Analyzing spec sections...",
+      "priority": "high",
+      "detail": "Use spec_search + spec_navigate. Quote verbatim. Record section numbers. Never answer from memory."
+    },
+    {
+      "content": "Cross-referenced related sections",
+      "activeForm": "Cross-referencing...",
+      "priority": "medium",
+      "detail": "Check for normative references, related registers, and dependent sections."
+    },
+    {
+      "content": "Summarized findings with section citations",
+      "activeForm": "Summarizing findings...",
+      "priority": "high",
+      "detail": "Structured summary: section references, verbatim quotes, conclusions, open questions."
+    }
+  ]
+}

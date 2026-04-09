@@ -46,6 +46,9 @@ class SkillLoader:
         else:
             self.builtin_dir = self._detect_builtin_dir()
 
+        # Extra skill directories (added by workspace loader)
+        self.extra_dirs: list = []
+
         # Cache for loaded skills
         self._cache: Dict[str, Skill] = {}
 
@@ -83,6 +86,15 @@ class SkillLoader:
             if skill:
                 self._cache[skill_name] = skill
                 return skill
+
+        # Try extra directories (workspace-provided skill dirs)
+        for extra_dir in self.extra_dirs:
+            extra_path = Path(extra_dir) / skill_name / "SKILL.md"
+            if extra_path.exists():
+                skill = self._parse_skill_file(extra_path)
+                if skill:
+                    self._cache[skill_name] = skill
+                    return skill
 
         # Try builtin directory
         if self.builtin_dir:
@@ -254,11 +266,20 @@ class SkillLoader:
                 if skill_dir.is_dir() and (skill_dir / "SKILL.md").exists():
                     skills.append(skill_dir.name)
 
+        # Extra directories (workspace-provided)
+        for extra_dir in self.extra_dirs:
+            extra_path = Path(extra_dir)
+            if extra_path.exists():
+                for skill_dir in extra_path.iterdir():
+                    if skill_dir.is_dir() and (skill_dir / "SKILL.md").exists():
+                        if skill_dir.name not in skills:
+                            skills.append(skill_dir.name)
+
         # Builtin skills
         if self.builtin_dir and self.builtin_dir.exists():
             for skill_dir in self.builtin_dir.iterdir():
                 if skill_dir.is_dir() and (skill_dir / "SKILL.md").exists():
-                    # Add only if not already in user skills
+                    # Add only if not already in user or extra skills
                     if skill_dir.name not in skills:
                         skills.append(skill_dir.name)
 

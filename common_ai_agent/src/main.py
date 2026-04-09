@@ -114,6 +114,149 @@ _textual_esc_check_fn = None # () → bool: TUI interrupt check
 # ChatLoopDeps instance (set inside chat_loop(); exposed for textual_main.py)
 _loop_deps = None
 
+# Active workspace configuration (set by _setup_workspace())
+_workspace_config = None
+
+
+def _setup_workspace(name: str) -> None:
+    """
+    Load and activate a named workspace from workflow/<name>/.
+    Patches prompts, compression, hook messages, skill loader, and todo templates.
+    Called from __main__ before chat_loop().
+    """
+    global _workspace_config
+    if not name or name == 'none':
+        return
+
+    # Locate workflow directory
+    _script_dir_ws = os.path.dirname(os.path.abspath(__file__))
+    _project_root_ws = os.path.dirname(_script_dir_ws)
+    candidates = [
+        os.path.join(os.path.dirname(_project_root_ws), "new_feature", "workflow"),
+        os.path.join(_project_root_ws, "workflow"),
+    ]
+    workflow_root = None
+    for c in candidates:
+        if os.path.isdir(os.path.join(c, name)):
+            workflow_root = c
+            break
+    if workflow_root is None:
+        print(f"[Workspace] Warning: workspace '{name}' not found in any workflow directory.")
+        return
+
+    # Import loader
+    sys.path.insert(0, os.path.dirname(workflow_root))
+    try:
+        from workflow.loader import (
+            load_workspace, merge_prompt, patch_todo_rules,
+            register_script_hooks, get_todo_template_registry,
+        )
+    except ImportError as e:
+        print(f"[Workspace] Cannot import workflow.loader: {e}")
+        return
+
+    ws = load_workspace(name, workflow_root=workflow_root)
+    if ws is None:
+        print(f"[Workspace] Failed to load workspace '{name}'.")
+        return
+    _workspace_config = ws
+
+    # ── 1. Inject hook messages into builtins ─────────────────────────────
+    import builtins as _b
+    if ws.hook_messages:
+        _b._WORKSPACE_HOOK_MESSAGES = ws.hook_messages
+
+    # ── 2. Patch system prompt ─────────────────────────────────────────────
+    if ws.system_prompt_text:
+        try:
+            import core.prompt_builder as _pb
+            orig_build = _pb.build_system_prompt
+            _ws_text = ws.system_prompt_text
+            _ws_mode = ws.system_prompt_mode
+
+            def _patched_build_system_prompt(ctx=None, **kwargs):
+                base = orig_build(ctx, **kwargs) if ctx is not None else orig_build(**kwargs)
+                return merge_prompt(base, _ws_text, _ws_mode)
+
+            _pb.build_system_prompt = _patched_build_system_prompt
+        except Exception:
+            pass
+
+    # ── 3. Patch plan prompt ───────────────────────────────────────────────
+    if ws.plan_prompt_text:
+        try:
+            if hasattr(config, 'PLAN_MODE_PROMPT'):
+                config.PLAN_MODE_PROMPT = merge_prompt(
+                    config.PLAN_MODE_PROMPT, ws.plan_prompt_text, ws.plan_prompt_mode
+                )
+        except Exception:
+            pass
+
+    # ── 4. Patch compression prompt ────────────────────────────────────────
+    if ws.compression_prompt_text:
+        try:
+            import core.compressor as _comp
+            _comp.STRUCTURED_SUMMARY_PROMPT = merge_prompt(
+                _comp.STRUCTURED_SUMMARY_PROMPT,
+                ws.compression_prompt_text,
+                "replace",
+            )
+            # Also store in hook messages so future reloads pick it up
+            _b._WORKSPACE_HOOK_MESSAGES["compression_system"] = _comp.STRUCTURED_SUMMARY_PROMPT
+        except Exception:
+            pass
+
+    # ── 5. Register script hooks ───────────────────────────────────────────
+    if ws.script_hooks:
+        try:
+            from core.hooks import HookRegistry
+            registry = HookRegistry()
+            register_script_hooks(ws, registry)
+        except Exception:
+            pass
+
+    # ── 6. Patch todo rules ────────────────────────────────────────────────
+    patch_todo_rules(ws)
+
+    # ── 7. Register todo templates ─────────────────────────────────────────
+    if ws.todo_templates_dir:
+        try:
+            registry = get_todo_template_registry()
+            registry.load_from_dir(ws.todo_templates_dir)
+            _b._TODO_TEMPLATE_REGISTRY = registry
+        except Exception:
+            pass
+
+    # ── 8. Register extra skills ───────────────────────────────────────────
+    if ws.extra_skills_dir:
+        try:
+            from core.skill_system.loader import SkillLoader
+            # Find the global skill loader instance if it exists
+            import core.skill_system as _ss
+            if hasattr(_ss, '_loader'):
+                _ss._loader.extra_dirs.append(str(ws.extra_skills_dir))
+        except Exception:
+            pass
+
+    # ── 9. Force-activate / disable skills ────────────────────────────────
+    if ws.force_skills:
+        try:
+            _current = os.environ.get("FORCE_SKILLS", "")
+            _combined = ",".join(filter(None, [_current] + ws.force_skills))
+            os.environ["FORCE_SKILLS"] = _combined
+        except Exception:
+            pass
+    if ws.disable_skills:
+        try:
+            _current = os.environ.get("DISABLE_SKILLS", "")
+            _combined = ",".join(filter(None, [_current] + ws.disable_skills))
+            os.environ["DISABLE_SKILLS"] = _combined
+        except Exception:
+            pass
+
+    print(f"[Workspace] '{name}' loaded from {workflow_root}/{name}")
+
+
 # Legacy Sub-Agent System (deprecated - replaced by background agent system in v2)
 orchestrator = None
 if getattr(config, 'ENABLE_SUB_AGENTS', False):
@@ -1946,9 +2089,14 @@ if __name__ == "__main__":
     import argparse as _argparse
     _parser = _argparse.ArgumentParser(add_help=False)
     _parser.add_argument('-s', '--session', default='default')
+    _parser.add_argument('-w', '--workspace', default=None,
+                         help='Workspace name (e.g. default, verilog, spec-review)')
     _args, _ = _parser.parse_known_args()
 
     _setup_session(_args.session)
+
+    if _args.workspace:
+        _setup_workspace(_args.workspace)
 
     if getattr(config, 'GIT_VERSION_CONTROL_ENABLE', True):
         _ensure_git_repo()
