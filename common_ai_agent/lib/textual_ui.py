@@ -699,13 +699,13 @@ class AgentTUI(App):
         padding: 0 0 1 0;
     }}
     #mode {{
-        height: auto;
+        height: 2;
         color: {_TEXT_DIM};
         padding: 1 0 0 0;
         text-style: bold;
     }}
     #activity {{
-        height: auto;
+        height: 3;
         color: {_TEXT_DIM};
         padding: 0 0 1 0;
         border-bottom: solid {_BORDER_DIM};
