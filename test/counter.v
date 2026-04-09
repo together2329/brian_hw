@@ -5,7 +5,7 @@
 //============================================================================
 
 module counter #(
-    parameter WIDTH = 8  // Counter bit width
+    parameter WIDTH = 32 // Counter bit width
 )(
     input  wire             clk,       // Clock
     input  wire             rst_n,     // Active-low synchronous reset
@@ -17,8 +17,10 @@ module counter #(
     output reg              overflow   // Overflow/underflow pulse (1 cycle)
 );
 
-    // Maximum count value
+    // Maximum count value (configurable)
     localparam [WIDTH-1:0] MAX_VAL = {WIDTH{1'b1}};
+    // Minimum count value
+    localparam [WIDTH-1:0] MIN_VAL = {WIDTH{1'b0}};
 
     always @(posedge clk) begin
         if (!rst_n) begin
@@ -41,7 +43,7 @@ module counter #(
                 end
             end else begin
                 // Count down
-                if (count_out == {WIDTH{1'b0}}) begin
+                if (count_out == MIN_VAL) begin
                     count_out <= MAX_VAL;
                     overflow  <= 1'b1;
                 end else begin
