@@ -697,7 +697,6 @@ class AgentTUI(App):
         height: auto;
         color: {_TEXT};
         padding: 0 0 1 0;
-        border-bottom: solid {_BORDER_DIM};
     }}
     #mode {{
         height: 2;
