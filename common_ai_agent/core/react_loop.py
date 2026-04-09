@@ -399,7 +399,8 @@ def run_react_agent_impl(
         # In ReAct text mode, append a one-line action-format hint so the model
         # knows it can emit an Action in THIS turn (no extra round-trip needed).
         _native = getattr(cfg, "ENABLE_NATIVE_TOOL_CALLS", False)
-        if not _native and not plan_mode:
+        _plan_mode = "plan" in agent_mode  # True for 'plan' and 'plan_q'
+        if not _native and not _plan_mode:
             _action_hint = "\n[If a tool is needed, output: Action: tool_name(param=value)]"
             _pre_llm_reminder = _pre_llm_reminder + _action_hint
 
