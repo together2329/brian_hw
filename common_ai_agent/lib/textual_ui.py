@@ -697,6 +697,7 @@ class AgentTUI(App):
         height: auto;
         color: {_TEXT};
         padding: 0 0 1 0;
+        border-bottom: solid {_BORDER_DIM};
     }}
     #mode {{
         height: 2;
@@ -1766,13 +1767,13 @@ class AgentTUI(App):
             inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", _plain)
             inner = re.sub(r"^\s*\d+\s*[→ ]?\s*", "", inner)
             if self._in_diff and re.match(r"^\+[^+]", inner):
-                log.write(RichText(f"  {text.strip()}", style=f"bold {_GREEN}"))
+                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_GREEN}"))
             elif self._in_diff and re.match(r"^-[^-]", inner):
-                log.write(RichText(f"  {text.strip()}", style=f"bold {_RED}"))
+                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_RED}"))
             elif self._in_diff and re.match(r"^@@", inner):
-                log.write(RichText(f"  {text.strip()}", style=f"bold {_ACCENT}"))
+                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_ACCENT}"))
             else:
-                log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
+                log.write(RichText(f"  {_plain.strip()}", style=f"dim {_TEXT_FAINT}"))
             # Clear tool indicator after writing so sidebar update doesn't race with log write
             if self._current_tool:
                 self._current_tool = ""
