@@ -443,18 +443,20 @@ class _AgentInput(Input):
             else:
                 dir_part, stem = '', partial
                 base = '.'
+            # Expand ~ and resolve relative paths so os.listdir always works
+            base_abs = os.path.abspath(os.path.expanduser(base))
+            if not os.path.isdir(base_abs):
+                return
             file_matches: list[str] = []
-            for name in sorted(os.listdir(base)):
+            for name in sorted(os.listdir(base_abs)):
                 if name.startswith('.'):
                     continue
                 if stem and not name.lower().startswith(stem.lower()):
                     continue
                 full = f"{dir_part}/{name}" if dir_part else name
-                if os.path.isdir(os.path.join(base, name)):
+                if os.path.isdir(os.path.join(base_abs, name)):
                     full += '/'
                 full_replacement = value[:at_pos + 1] + full
-                # Display only the filename portion (avoids showing the prefix when
-                # multiple @ tokens are in the input)
                 file_matches.append((full, full_replacement))  # (display, full_value)
             non_exact = [(d, v) for d, v in file_matches if v != value]
             if non_exact:
