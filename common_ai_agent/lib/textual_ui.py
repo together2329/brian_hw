@@ -697,7 +697,6 @@ class AgentTUI(App):
         height: auto;
         color: {_TEXT};
         padding: 0 0 1 0;
-        border-bottom: solid {_BORDER_DIM};
     }}
     #mode {{
         height: auto;
@@ -768,6 +767,7 @@ class AgentTUI(App):
     #todo {{
         height: 1fr;
         overflow-y: auto;
+        scrollbar-size: 0 0;
         padding: 0;
     }}
     #cwd-label {{
@@ -1191,6 +1191,10 @@ class AgentTUI(App):
             return
         from rich.panel import Panel
         log = self.query_one("#main", RichLog)
+        # If we're coming straight from a result block, insert a blank line separator
+        if self._in_result:
+            log.write(RichText(""))
+            self._in_result = False
         log.write(Panel(
             _LeftMarkdown(_fix_md(self._response_buf)),
             border_style=f"dim {_BORDER_DIM}",
@@ -1381,15 +1385,10 @@ class AgentTUI(App):
             hdr = RichText()
             hdr.append("  Reasoning", style=f"italic {_TEXT_DIM}")
             log.write(hdr)
-        # Hanging-indent grid: "  ┆ " fixed col + wrapping text col
-        grid = RichTable.grid(padding=0)
-        grid.add_column(width=4, no_wrap=True)
-        grid.add_column(overflow="fold")
-        grid.add_row(
-            RichText("  ┆ ", style=f"dim {_BORDER_DIM}"),
-            RichText(msg.text, style=f"italic {_TEXT_DIM}"),
-        )
-        log.write(grid)
+        t = RichText()
+        t.append("  ┆ ", style=f"dim {_BORDER_DIM}")
+        t.append(msg.text, style=f"italic {_TEXT_DIM}")
+        log.write(t)
 
     def on_context_update(self, msg: ContextUpdate) -> None:
         self._ctx_tokens = msg.tokens
@@ -1637,6 +1636,8 @@ class AgentTUI(App):
 
         # /clear → cost counters intentionally NOT reset (accumulate for entire session)
 
+        # Strip emoji variation selectors (U+FE0F) that break terminal column width
+        text = text.replace("\ufe0f", "")
         # Strip ANSI for pattern matching; keep raw for rendering
         _plain = _ANSI.sub("", text)
 
@@ -1760,9 +1761,6 @@ class AgentTUI(App):
         # Tool result lines: "└", "|", "│", or "⎿" (check _plain for tree chars)
         if re.match(r"^\s*[└|│⎿]", _plain):
             self._in_result = True
-            if self._current_tool:
-                self._current_tool = ""
-                self._update_activity()
             # Strip tree prefix, then line-number prefix (e.g. "    42 " or "    42→"),
             # using _plain to reveal +/- markers from format_diff_snippet output
             inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", _plain)
@@ -1775,6 +1773,10 @@ class AgentTUI(App):
                 log.write(RichText(f"  {text.strip()}", style=f"bold {_ACCENT}"))
             else:
                 log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
+            # Clear tool indicator after writing so sidebar update doesn't race with log write
+            if self._current_tool:
+                self._current_tool = ""
+                self._update_activity()
             return
 
         # Non-result line after result block → trailing blank
