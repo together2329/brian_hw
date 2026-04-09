@@ -1139,11 +1139,20 @@ class AgentTUI(App):
         self._scroll_down()
 
     def _esc_watchdog(self) -> None:
-        """Force-kill if agent thread is still blocked 5s after ESC."""
-        if self._esc_fired:
-            import os as _os
-            self._restore_terminal()
-            _os._exit(0)
+        """Warn if agent thread is still blocked 5s after ESC; Ctrl+Q to force-quit."""
+        if not self._esc_fired:
+            return
+        # Thread is still running — show hint instead of force-killing
+        try:
+            log = self.query_one("#main", RichLog)
+            t = RichText()
+            t.append("  [still processing... press ", style=_TEXT_DIM)
+            t.append("Ctrl+Q", style=f"bold {_YELLOW}")
+            t.append(" to force quit]", style=_TEXT_DIM)
+            log.write(t)
+            self._scroll_down()
+        except Exception:
+            pass
 
     def check_and_reset_interrupt(self) -> bool:
         """Thread-safe check for interrupt flag."""
