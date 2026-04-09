@@ -290,11 +290,13 @@ _ssl_ctx_cache: Optional[ssl.SSLContext] = None
 _http_conn_pool: Dict[str, http.client.HTTPSConnection] = {}
 _last_post_reused: bool = False  # set by _persistent_post; read by PERF logging
 _active_stream_response = None   # current streaming response; closed by cancel_current_stream()
+_stream_cancelled = False        # set by cancel_current_stream(); prevents retry loop
 
 
 def cancel_current_stream() -> None:
     """Close the active streaming HTTP response to unblock the agent thread immediately."""
-    global _active_stream_response, _http_conn_pool
+    global _active_stream_response, _http_conn_pool, _stream_cancelled
+    _stream_cancelled = True
     resp = _active_stream_response
     if resp is not None:
         try:
@@ -671,6 +673,11 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
     max_retries = len(_RETRY_DELAYS) + 1
 
     for retry_count in range(max_retries):
+        # If ESC cancelled the stream, stop retrying immediately
+        global _stream_cancelled
+        if _stream_cancelled:
+            _stream_cancelled = False
+            return
         _reasoning_started = False
         _content_label_printed = False
         _debug_line_buf = ""
