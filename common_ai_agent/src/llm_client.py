@@ -197,6 +197,12 @@ def get_rate_limiter() -> _RateLimiter:
     return _rate_limiter
 
 
+def _is_reasoning_model() -> bool:
+    """Heuristic: does the current model produce reasoning/thinking tokens?"""
+    name = getattr(config, 'MODEL_NAME', '').lower()
+    return any(k in name for k in ('glm', 'deepseek', 'qwq', 'r1', 'reasoning'))
+
+
 def compute_safe_max_tokens(used_tokens: int = 0) -> int:
     """
     Return a safe max_tokens value that fits within the remaining context window.
@@ -204,10 +210,10 @@ def compute_safe_max_tokens(used_tokens: int = 0) -> int:
     When MAX_CONTEXT_TOKENS is configured, caps the response budget to:
         min(MAX_OUTPUT_TOKENS, context_limit - effective_input - safety_buffer)
 
-    If compression is enabled, input is guaranteed to stay below
-    MAX_CONTEXT_TOKENS * COMPRESSION_THRESHOLD, so we clamp used_tokens to that
-    ceiling. This ensures remaining is always >= limit * (1 - threshold) - buffer,
-    making _MIN_OUTPUT_TOKENS floor safe.
+    For reasoning models (GLM, DeepSeek etc.), reasoning tokens count against
+    max_tokens.  When MAX_REASONING_TOKENS > 0, we expand the budget so the
+    model has room for both reasoning AND visible content:
+        effective_budget = MAX_OUTPUT_TOKENS + MAX_REASONING_TOKENS
 
     Falls back to MAX_OUTPUT_TOKENS when MAX_CONTEXT_TOKENS is not set (0).
     """
@@ -223,7 +229,15 @@ def compute_safe_max_tokens(used_tokens: int = 0) -> int:
         compression_ceiling = int(config.MAX_CONTEXT_TOKENS * config.COMPRESSION_THRESHOLD)
         tokens = min(tokens, compression_ceiling)
     remaining = config.MAX_CONTEXT_TOKENS - tokens - _OUTPUT_SAFETY_BUFFER
-    safe = min(base, remaining)
+
+    # Reasoning models: expand budget to include reasoning token allowance
+    # so reasoning doesn't eat into the visible content budget.
+    if _is_reasoning_model() and config.MAX_REASONING_TOKENS > 0:
+        effective_budget = base + config.MAX_REASONING_TOKENS
+    else:
+        effective_budget = base
+
+    safe = min(effective_budget, remaining)
     return max(safe, _MIN_OUTPUT_TOKENS)
 
 # --- LLM Call Performance Log ---
