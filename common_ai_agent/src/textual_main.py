@@ -37,6 +37,13 @@ if sys.version_info < (3, 8):
     except ImportError:
         pass
 
+# Increase escape-sequence timeout from 100ms → 500ms.
+# When moving the terminal window, macOS sends \x1b[O (FOCUSOUT) as separate
+# byte chunks. If \x1b arrives >100ms before [O, Textual fires a spurious ESC
+# key. 500ms gives enough margin for the full sequence to arrive intact.
+import os as _os
+_os.environ.setdefault("ESCDELAY", "500")
+
 try:
     import textual  # noqa: F401
     _TEXTUAL_OK = True
