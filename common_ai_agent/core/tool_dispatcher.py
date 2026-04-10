@@ -229,6 +229,24 @@ def dispatch_tool(
         if debug:
             print(f"[DEBUG] Parsed args: {parsed_args}, kwargs: {parsed_kwargs}")
 
+        # Final safety net: detect positional args that would collide with kwargs.
+        # This is a belt-and-suspenders check after all auto-fixes above.
+        if parsed_args:
+            try:
+                _sig = inspect.signature(func)
+                _pnames = list(_sig.parameters.keys())
+                _fixed = []
+                for _i, _val in enumerate(parsed_args):
+                    _name = _pnames[_i] if _i < len(_pnames) else None
+                    if _name and _name in parsed_kwargs:
+                        if debug:
+                            print(f"[DEBUG] Final safety: dropping pos[{_i}] (param '{_name}' already in kwargs)")
+                    else:
+                        _fixed.append(_val)
+                parsed_args = _fixed
+            except (ValueError, TypeError):
+                pass
+
         # Execute tool with optional global timeout
         result = _call_with_timeout(
             func, parsed_args, parsed_kwargs,
@@ -292,5 +310,5 @@ def dispatch_tool(
         return (
             f"Error parsing/executing arguments: {e}\n"
             f"{error_detail}\n"
-            f"args_str was: {args_str[:200]}"
+            f"args_str was: {args_str[:500]}"
         )
