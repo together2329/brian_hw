@@ -158,6 +158,28 @@ def check_workflow_files(root: Path) -> tuple[bool, str]:
         "workflow/spec-review/scripts/hooks.json",
         "workflow/spec-review/scripts/post_session.sh",
         "workflow/spec-review/todo_templates/spec-analysis.json",
+        # MAS workspaces
+        "workflow/mas_gen/workspace.json",
+        "workflow/mas_gen/system_prompt.md",
+        "workflow/mas_gen/scripts/hooks.json",
+        "workflow/mas_gen/scripts/handoff_rtl.sh",
+        "workflow/mas_gen/scripts/handoff_tb.sh",
+        "workflow/mas_gen/scripts/gen_doc.sh",
+        "workflow/mas_gen/scripts/mas_status.sh",
+        "workflow/mas_gen/todo_templates/full-project.json",
+        "workflow/rtl_gen/workspace.json",
+        "workflow/rtl_gen/system_prompt.md",
+        "workflow/rtl_gen/scripts/hooks.json",
+        "workflow/rtl_gen/scripts/lint.sh",
+        "workflow/rtl_gen/scripts/syn_check.sh",
+        "workflow/rtl_gen/todo_templates/rtl-impl.json",
+        "workflow/tb_gen/workspace.json",
+        "workflow/tb_gen/system_prompt.md",
+        "workflow/tb_gen/scripts/hooks.json",
+        "workflow/tb_gen/scripts/sim.sh",
+        "workflow/tb_gen/scripts/check_sim_pass.sh",
+        "workflow/tb_gen/scripts/gen_tc.sh",
+        "workflow/tb_gen/todo_templates/tb-impl.json",
     ]
     missing = [f for f in required if not (root / f).exists()]
     if missing:

@@ -1,0 +1,36 @@
+{
+  "name": "tb-impl",
+  "description": "TB implementation: read DUT → gen TC skeleton → write TB → sim loop",
+  "tasks": [
+    {
+      "content": "Read DUT source and spec",
+      "detail": "Read <module>.sv AND <module>_spec.md. List all: ports (name/width), functional scenarios, edge cases, reset values. Do not write code yet.",
+      "priority": "high"
+    },
+    {
+      "content": "Generate test case list and tc_<module>.sv skeleton",
+      "detail": "Use /gen-tc <module>. Then fill in: tc_reset (verify reset values), tc_normal_op (basic function), tc_boundary (min/max), plus 2+ edge cases from spec. Each task uses pass_cnt/fail_cnt refs.",
+      "priority": "high"
+    },
+    {
+      "content": "Write tb_<module>.sv (top-level testbench)",
+      "detail": "Include: `include tc_<module>.sv, DUT instantiation, clock (always #5 clk=~clk), reset sequence, call all tc_ tasks in order, print final pass/fail count, $finish.",
+      "priority": "high"
+    },
+    {
+      "content": "[SIM] Simulation passed: 0 errors, 0 warnings",
+      "activeForm": "Running simulation (attempt {loop_count}/{max_loop_iterations})...",
+      "detail": "Run /sim tb_<module>.sv. If fail: check [FAIL] lines, diagnose DUT vs TB bug. Fix TB bugs here; DUT bugs → [MAS ESCALATE] rtl_gen.",
+      "loop": true,
+      "max_loop_iterations": 15,
+      "exit_condition": "0 errors, 0 warnings",
+      "validator": "bash workflow/tb_gen/scripts/check_sim_pass.sh",
+      "priority": "high"
+    },
+    {
+      "content": "Coverage review: all branches exercised",
+      "detail": "Run /coverage <module>. Add tc_ tasks for any uncovered branches. Re-run sim if new TCs added.",
+      "priority": "normal"
+    }
+  ]
+}

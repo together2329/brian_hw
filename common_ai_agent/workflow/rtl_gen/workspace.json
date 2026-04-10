@@ -1,0 +1,15 @@
+{
+  "name": "rtl_gen",
+  "description": "RTL generation agent — spawned by mas_gen for module implementation",
+  "env": {
+    "MAX_ITERATIONS": "150",
+    "ENABLE_MARKDOWN_RENDER": "false"
+  },
+  "skills": {
+    "force_activate": ["verilog-expert"],
+    "disable": []
+  },
+  "system_prompt_mode": "prepend",
+  "plan_prompt_mode": "prepend",
+  "compression_prompt_mode": "replace"
+}

@@ -1,0 +1,41 @@
+{
+  "name": "full-project",
+  "description": "Full MAS RTL project: SPEC → RTL → TB → SIM loop → DOC",
+  "tasks": [
+    {
+      "content": "[SPEC] Define module interface and requirements",
+      "detail": "Output: module name, parameter list with defaults, port list (name/width/direction), clock/reset convention, functional description. Write to <module>_spec.md.",
+      "priority": "high"
+    },
+    {
+      "content": "[RTL] Implement module: <module_name>.sv",
+      "detail": "Use /gen-rtl <module_name>. Follow rtl_gen rules: nonblocking in always_ff, blocking in always_comb, all FF have reset, no latches. Output: <module>.sv. Gate: lint 0 errors.",
+      "priority": "high"
+    },
+    {
+      "content": "[RTL] Lint check: 0 errors",
+      "detail": "Run lint on <module>.sv. Fix all errors before proceeding to TB. This is a hard gate — tb_gen cannot start until lint is clean.",
+      "priority": "high"
+    },
+    {
+      "content": "[TB] Generate testbench and test cases",
+      "detail": "Use /gen-tb <module_name>. Follow tb_gen rules. Output: tb_<module>.sv (top-level), tc_<module>.sv (test cases `included). Cover: reset, normal operation, edge cases, corner cases.",
+      "priority": "high"
+    },
+    {
+      "content": "[SIM] Simulation passed: 0 errors, 0 warnings",
+      "activeForm": "Running simulation (attempt {loop_count}/{max_loop_iterations})...",
+      "detail": "Run simulation. Fix bugs in DUT (rtl_gen context) or TB (tb_gen context) as needed. Loop until 0 errors, 0 warnings.",
+      "loop": true,
+      "max_loop_iterations": 15,
+      "exit_condition": "0 errors, 0 warnings",
+      "validator": "bash workflow/tb_gen/scripts/check_sim_pass.sh",
+      "priority": "high"
+    },
+    {
+      "content": "[DOC] Generate and complete module documentation",
+      "detail": "Use /gen-doc <module_name> to create skeleton. Fill in: functional description, timing diagram, design notes, simulation results. Output: <module>_spec.md (final).",
+      "priority": "normal"
+    }
+  ]
+}

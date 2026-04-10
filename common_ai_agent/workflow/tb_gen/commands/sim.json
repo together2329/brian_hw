@@ -1,0 +1,7 @@
+{
+  "name": "sim",
+  "description": "Compile and run simulation (iverilog+vvp or verilator)",
+  "aliases": ["s"],
+  "handler": "bash:scripts/sim.sh",
+  "usage": "/sim [tb_module.sv]"
+}

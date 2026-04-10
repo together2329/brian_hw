@@ -1,0 +1,31 @@
+{
+  "name": "rtl-impl",
+  "description": "RTL implementation: spec read → header → FF blocks → comb blocks → lint",
+  "tasks": [
+    {
+      "content": "Read module spec: <module>_spec.md",
+      "detail": "Extract: module name, parameters, port list (name/width/direction), clock/reset convention, functional requirements. Do not write any code yet.",
+      "priority": "high"
+    },
+    {
+      "content": "Write module header (parameters and port declarations)",
+      "detail": "module <name> #(params) (ports); All ports with explicit direction+type+width. Add `default_nettype none at top.",
+      "priority": "high"
+    },
+    {
+      "content": "Implement always_ff blocks (registers)",
+      "detail": "One always_ff per clock domain. Nonblocking (<=) only. All registers have reset. Pattern: if(!rst_n) q<=0; else q<=d;",
+      "priority": "high"
+    },
+    {
+      "content": "Implement always_comb blocks (combinational logic)",
+      "detail": "Blocking (=) only. Default assignment at top of each block (no latches). Case statements with default.",
+      "priority": "high"
+    },
+    {
+      "content": "Lint check passed: 0 errors",
+      "detail": "Run /lint <module>.sv. Fix all errors. Warnings: fix width mismatches; document others.",
+      "priority": "high"
+    }
+  ]
+}
