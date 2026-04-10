@@ -1064,8 +1064,8 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         _ns_read = _t_done - _t_connected
         if _perf:
             print(f"  \033[2m[PERF/LLM] response_read: {_ns_read:.3f}s\033[0m")
-    except urllib.error.HTTPError:
-        raise  # Let streaming caller handle 401/429/5xx properly (no silent empty-response)
+    except (urllib.error.HTTPError, socket.timeout, urllib.error.URLError, ssl.SSLError):
+        raise  # Let streaming caller handle 401/429/5xx/timeout properly (no silent empty-response)
     except Exception as e:
         if _spinner:
             _spinner.stop()
@@ -1171,7 +1171,42 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
     # Non-streaming mode: fetch full response then yield line-by-line
     if not config.ENABLE_STREAMING:
-        yield from _chat_completion_nonstream(messages, stop=stop, model=model, skip_rate_limit=skip_rate_limit, suppress_spinner=suppress_spinner)
+        _ns_delays = [5, 10, 20, 40, 80]
+        _ns_max = len(_ns_delays) + 1
+        for _ns_retry in range(_ns_max):
+            try:
+                yield from _chat_completion_nonstream(messages, stop=stop, model=model, skip_rate_limit=skip_rate_limit, suppress_spinner=suppress_spinner)
+                return
+            except urllib.error.HTTPError as e:
+                if e.code == 401:
+                    yield f"\n{Color.error('[401 Unauthorized] Token quota exhausted — please top up your API credits.')}\n"
+                    return
+                is_retryable = e.code == 429 or (500 <= e.code < 600)
+                if is_retryable and _ns_retry < _ns_max - 1:
+                    delay = 60 * (2 ** _ns_retry) if e.code == 429 else _ns_delays[_ns_retry]
+                    print(Color.warning(f"\n[Retry {_ns_retry + 1}/{_ns_max - 1}] HTTP {e.code}: {e.reason}. Waiting {delay}s...\n"))
+                    time.sleep(delay)
+                    continue
+                yield f"\n{Color.error(f'[HTTP {e.code}]: {e.reason}')}\n"
+                return
+            except socket.timeout as e:
+                if _ns_retry < _ns_max - 1:
+                    delay = _ns_delays[_ns_retry]
+                    print(Color.warning(f"\n[Retry {_ns_retry + 1}/{_ns_max - 1}] Timeout: {e}. Waiting {delay}s...\n"))
+                    time.sleep(delay)
+                    continue
+                yield f"\n{Color.error(f'[Timeout]: {e}')}\n"
+                return
+            except (urllib.error.URLError, ssl.SSLError) as e:
+                if _ns_retry < _ns_max - 1:
+                    delay = _ns_delays[_ns_retry]
+                    err_msg = str(e.reason) if hasattr(e, 'reason') else str(e)
+                    print(Color.warning(f"\n[Retry {_ns_retry + 1}/{_ns_max - 1}] Connection error: {err_msg}. Waiting {delay}s...\n"))
+                    time.sleep(delay)
+                    continue
+                err_msg = str(e.reason) if hasattr(e, 'reason') else str(e)
+                yield f"\n{Color.error(f'[Connection Error]: {err_msg}')}\n"
+                return
         return
 
     _perf_pre = getattr(config, "PERF_TRACKING", False)
