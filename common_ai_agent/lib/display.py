@@ -782,9 +782,17 @@ def _format_tokens(n: int) -> str:
     return str(n)
 
 
-def _extract_tool_args_summary(tool_name: str, args_str: str) -> str:
+def _extract_tool_args_summary(tool_name: str, args_str) -> str:
     """Extract a human-readable summary from tool args"""
     import re
+
+    # Handle dict kwargs (native mode) by normalizing to string
+    if isinstance(args_str, dict):
+        import json as _json
+        args_str = ", ".join(
+            f'{k}={_json.dumps(v, ensure_ascii=False)}'
+            for k, v in args_str.items()
+        )
 
     def _get_val(key_pat, text):
         # Robustly extract quoted string (handles triple and escaped quotes)

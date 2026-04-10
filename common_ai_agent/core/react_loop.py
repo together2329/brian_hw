@@ -769,11 +769,12 @@ def run_react_agent_impl(
             for _tc in _native_calls:
                 try:
                     _kwargs = _json.loads(_tc["arguments"] or "{}")
-                    # Format as kwarg string for existing tool dispatcher
-                    _args_str = ", ".join(f'{k}={_json.dumps(v, ensure_ascii=False)}' for k, v in _kwargs.items())
                 except Exception:
-                    _args_str = _tc.get("arguments", "")
-                actions.append((_tc["name"], _args_str, "sequential"))
+                    _kwargs = {}
+                # Pass pre-parsed kwargs directly to dispatcher — avoids lossy
+                # json.dumps → parse_value round-trip that corrupts complex strings
+                # (especially write_file content with backslashes/quotes).
+                actions.append((_tc["name"], _kwargs, "sequential"))
         else:
             try:
                 from core.action_parser import parse_all_actions
@@ -847,7 +848,7 @@ def run_react_agent_impl(
 
             if len(actions) > 1 and getattr(cfg, "ENABLE_REACT_PARALLEL", False) and not _has_serial_only:
                 print(f"  ⚡ {len(actions)} actions (parallel)")
-                
+
                 # Pre-declare _INLINE_TOOLS to share with parallel rendering
                 _INLINE_TOOLS = {"read_file", "read_lines", "grep_file", "find_files", "list_dir",
                                  "git_diff", "git_status", "todo_write", "todo_update",
@@ -872,7 +873,16 @@ def run_react_agent_impl(
                         out[-1] = out[-1].replace("| ", "⎿ ", 1)
                     return "\n".join(out)
 
-                action_results = deps.execute_parallel_fn(actions, tracker, agent_mode=agent_mode)
+                # Normalize native dict kwargs to string for parallel executor
+                # (parallel executor passes args_str to execute_tool_fn)
+                import json as _json
+                _parallel_actions = []
+                for a in actions:
+                    _t, _a, _h = a if len(a) == 3 else (*a, None)
+                    if isinstance(_a, dict):
+                        _a = ", ".join(f'{k}={_json.dumps(v, ensure_ascii=False)}' for k, v in _a.items())
+                    _parallel_actions.append((_t, _a, _h) if _h else (_t, _a))
+                action_results = deps.execute_parallel_fn(_parallel_actions, tracker, agent_mode=agent_mode)
                 for idx, tool_name, args_str, observation in action_results:
                     summary = _extract_tool_args_summary(tool_name, args_str)
                     print(format_tool_header(tool_name, summary))
@@ -911,20 +921,33 @@ def run_react_agent_impl(
                         break
 
                     if len(action_tuple) == 3:
-                        tool_name, args_str, _hint = action_tuple
+                        tool_name, _raw_args, _hint = action_tuple
                     else:
-                        tool_name, args_str = action_tuple
+                        tool_name, _raw_args = action_tuple
 
-                    summary = _extract_tool_args_summary(tool_name, args_str)
+                    # Native mode passes dict kwargs; legacy passes string.
+                    # Normalize: save dict for dispatch, build display string for UI.
+                    if isinstance(_raw_args, dict):
+                        _native_kwargs = _raw_args
+                        import json as _json
+                        _args_display = ", ".join(
+                            f'{k}={_json.dumps(v, ensure_ascii=False)}'
+                            for k, v in _raw_args.items()
+                        )
+                    else:
+                        _native_kwargs = None
+                        _args_display = str(_raw_args)
+
+                    summary = _extract_tool_args_summary(tool_name, _args_display)
                     # For todo_update: inject previous status so header shows "#N prev → new"
                     if tool_name == "todo_update" and todo_tracker:
                         import re as _re
-                        _idx_m = _re.search(r'index\s*=\s*(\d+)', args_str)
+                        _idx_m = _re.search(r'index\s*=\s*(\d+)', _args_display)
                         if _idx_m:
                             _idx = int(_idx_m.group(1)) - 1
                             if 0 <= _idx < len(todo_tracker.todos):
                                 _prev = todo_tracker.todos[_idx].status
-                                _new_m = _re.search(r'status\s*=\s*["\']([^"\']+)["\']', args_str)
+                                _new_m = _re.search(r'status\s*=\s*["\']([^"\']+)["\']', _args_display)
                                 if _new_m and _prev != _new_m.group(1):
                                     summary = f"#{_idx + 1} {_prev} → {_new_m.group(1)}"
                     tracker.record_tool(tool_name)
@@ -969,25 +992,25 @@ def run_react_agent_impl(
                     elif tool_name in _SLOW_TOOLS and not _debug:
                         # In TUI mode skip stderr spinner; terminal mode shows spinner
                         if deps.emit_content_fn:
-                            observation = deps.execute_tool_fn(tool_name, args_str)
+                            observation = deps.execute_tool_fn(tool_name, _args_display, pre_parsed_kwargs=_native_kwargs)
                         else:
                             with Spinner(f"  running…"):
-                                observation = deps.execute_tool_fn(tool_name, args_str)
+                                observation = deps.execute_tool_fn(tool_name, _args_display, pre_parsed_kwargs=_native_kwargs)
                     elif tool_name in _WRITE_TOOLS and not _debug:
                         if deps.emit_content_fn:
-                            observation = deps.execute_tool_fn(tool_name, args_str)
+                            observation = deps.execute_tool_fn(tool_name, _args_display, pre_parsed_kwargs=_native_kwargs)
                         else:
                             with Spinner(f"  writing…"):
-                                observation = deps.execute_tool_fn(tool_name, args_str)
+                                observation = deps.execute_tool_fn(tool_name, _args_display, pre_parsed_kwargs=_native_kwargs)
                     else:
-                        observation = deps.execute_tool_fn(tool_name, args_str)
+                        observation = deps.execute_tool_fn(tool_name, _args_display, pre_parsed_kwargs=_native_kwargs)
 
                     tool_elapsed = time.time() - tool_start
                     if _perf:
                         print(f"  {Color.DIM}[PERF] <<< tool/{tool_name}: {tool_elapsed:.3f}s{Color.RESET}")
 
                     # Lint error warning for todo_update(completed)
-                    if tool_name == "todo_update" and "completed" in args_str:
+                    if tool_name == "todo_update" and "completed" in _args_display:
                         _has_lint = any(
                             "❌" in r and ("error" in r.lower() or "linting" in r.lower())
                             for r in combined_results
@@ -1006,7 +1029,7 @@ def run_react_agent_impl(
                             from lib.procedural_memory import Action
                             action_result = "error" if is_error else "success"
                             actions_taken.append(Action(
-                                tool=tool_name, args=args_str[:100],
+                                tool=tool_name, args=_args_display[:100],
                                 result=action_result, observation=observation[:200],
                             ))
                         except Exception:
@@ -1029,14 +1052,14 @@ def run_react_agent_impl(
                     elif tool_name in ("replace_in_file", "replace_lines", "replace_file_content"):
                         _edit_max = getattr(cfg, "EDIT_PREVIEW_MAX_LINES", 1000)
                         if _edit_max <= 0:
-                            brief = format_tool_brief(tool_name, args_str, observation)
+                            brief = format_tool_brief(tool_name, _args_display, observation)
                             print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")
                         else:
                             print(format_tool_result(observation, max_lines=_edit_max, max_chars=_edit_max * 120))
                     elif tool_name in ("write_file", "write_to_file"):
                         _wr_lines = getattr(cfg, "WRITE_PREVIEW_LINES", 15)
                         if _wr_lines <= 0:
-                            brief = format_tool_brief(tool_name, args_str, observation)
+                            brief = format_tool_brief(tool_name, _args_display, observation)
                             print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")
                         else:
                             lines = observation.strip().splitlines()
@@ -1051,7 +1074,7 @@ def run_react_agent_impl(
                     elif tool_name in ("todo_update", "todo_write") and agent_mode in ("plan", "plan_q"):
                         print(format_tool_result(observation, max_lines=1000, max_chars=100000))
                     elif tool_name in _INLINE_TOOLS:
-                        brief = format_tool_brief(tool_name, args_str, observation)
+                        brief = format_tool_brief(tool_name, _args_display, observation)
                         print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")
                     else:
                         print(format_tool_result(observation))

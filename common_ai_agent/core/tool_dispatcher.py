@@ -104,8 +104,9 @@ def _call_with_timeout(
 
 def dispatch_tool(
     tool_name: str,
-    args_str: str,
+    args_str: str = "",
     *,
+    pre_parsed_kwargs: Optional[Dict[str, Any]] = None,
     available_tools: Dict[str, Callable],
     debug: bool = False,
     hook_registry: Any = None,
@@ -115,12 +116,17 @@ def dispatch_tool(
     Dispatch a single tool call.
 
     Args:
-        tool_name:       Name of the tool to invoke.
-        args_str:        Raw argument string (e.g. 'path="a.py", start_line=1').
-        available_tools: Mapping of tool_name → callable.
-        debug:           If True, print parsed args before calling.
-        hook_registry:   Optional HookRegistry for AFTER_TOOL_EXEC / ON_ERROR hooks.
-        global_timeout:  Max seconds for any single tool call. 0 = no limit.
+        tool_name:          Name of the tool to invoke.
+        args_str:           Raw argument string (e.g. 'path="a.py", start_line=1').
+                            Ignored when pre_parsed_kwargs is provided.
+        pre_parsed_kwargs:  Already-parsed keyword arguments (e.g. from native tool calls).
+                            When provided, skips string parsing entirely — avoids lossy
+                            json.dumps → parse_value round-trip that can corrupt complex
+                            string values (especially write_file content).
+        available_tools:    Mapping of tool_name → callable.
+        debug:              If True, print parsed args before calling.
+        hook_registry:      Optional HookRegistry for AFTER_TOOL_EXEC / ON_ERROR hooks.
+        global_timeout:     Max seconds for any single tool call. 0 = no limit.
 
     Returns:
         String result (tool output, converted if non-string, or error message).
@@ -140,7 +146,19 @@ def dispatch_tool(
     func = available_tools[tool_name]
 
     try:
-        parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
+        if pre_parsed_kwargs is not None:
+            # Native mode: use pre-parsed kwargs directly, skip string parsing.
+            # Build a display-only args_str for logging/hook context.
+            parsed_args = []
+            parsed_kwargs = pre_parsed_kwargs
+            if not args_str:
+                import json as _json
+                args_str = ", ".join(
+                    f'{k}={_json.dumps(v, ensure_ascii=False)}'
+                    for k, v in parsed_kwargs.items()
+                )
+        else:
+            parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
 
         # Auto-fix: grep_file(path, ...) — LLM swapped pattern and path
         if tool_name == "grep_file" and parsed_args:
@@ -171,6 +189,40 @@ def dispatch_tool(
                     else:
                         fixed_positional.append(val)
                 parsed_args = fixed_positional
+
+                # Truncate excess positional args that exceed function parameters
+                # (prevents "takes N positional arguments but M were given" errors)
+                max_positional = sum(
+                    1 for p in sig.parameters.values()
+                    if p.kind in (
+                        inspect.Parameter.POSITIONAL_ONLY,
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    )
+                )
+                if len(parsed_args) > max_positional:
+                    if debug:
+                        print(f"[DEBUG] Truncating {len(parsed_args)} positional args to {max_positional} for {tool_name}")
+                    parsed_args = parsed_args[:max_positional]
+            except (ValueError, TypeError):
+                pass
+
+        # Strip kwargs the function doesn't accept (no **kwargs param)
+        # This runs regardless of whether there are positional args.
+        if parsed_kwargs:
+            try:
+                sig = inspect.signature(func)
+                has_var_keyword = any(
+                    p.kind == inspect.Parameter.VAR_KEYWORD
+                    for p in sig.parameters.values()
+                )
+                if not has_var_keyword:
+                    accepted = set(sig.parameters.keys())
+                    extra = set(parsed_kwargs.keys()) - accepted
+                    if extra:
+                        if debug:
+                            print(f"[DEBUG] Stripping unknown kwargs for {tool_name}: {extra}")
+                        for k in extra:
+                            del parsed_kwargs[k]
             except (ValueError, TypeError):
                 pass
 

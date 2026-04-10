@@ -166,5 +166,201 @@ class TestAgentMetadata(unittest.TestCase):
         self.assertNotEqual(main_val, {"agent": "thread-local"})
 
 
+# ---------------------------------------------------------------------------
+# TestPreParsedKwargs — native mode direct dict dispatch
+# ---------------------------------------------------------------------------
+
+class TestPreParsedKwargs(unittest.TestCase):
+    """Tests for pre_parsed_kwargs parameter (native tool call mode)."""
+
+    def setUp(self):
+        from core.tool_dispatcher import dispatch_tool
+        self._fn = dispatch_tool
+
+    def test_pre_parsed_kwargs_bypass_string_parsing(self):
+        """pre_parsed_kwargs dict is passed directly to the tool function."""
+        fn = _make_tool("native_result")
+        result = self._fn(
+            "my_tool",
+            pre_parsed_kwargs={"x": "hello", "y": 42},
+            available_tools={"my_tool": fn},
+        )
+        self.assertEqual(result, "native_result")
+        fn.assert_called_once_with(x="hello", y=42)
+
+    def test_pre_parsed_kwargs_with_complex_content(self):
+        """Content with newlines/backslashes passes through uncorrupted."""
+        captured = {}
+        def capture_tool(path="", content=""):
+            captured["content"] = content
+            return "ok"
+
+        original = "line1\nline2\ttab\\slash\nend"
+        self._fn(
+            "write",
+            pre_parsed_kwargs={"path": "/tmp/t.txt", "content": original},
+            available_tools={"write": capture_tool},
+        )
+        self.assertEqual(captured["content"], original)
+
+    def test_pre_parsed_kwargs_empty_dict(self):
+        """Empty dict is a valid pre_parsed_kwargs (no args)."""
+        fn = _make_tool("ok")
+        result = self._fn(
+            "my_tool",
+            pre_parsed_kwargs={},
+            available_tools={"my_tool": fn},
+        )
+        self.assertEqual(result, "ok")
+        fn.assert_called_once_with()
+
+    def test_pre_parsed_kwargs_builds_display_args_str(self):
+        """When args_str is empty, builds one from kwargs for logging."""
+        fn = MagicMock(side_effect=RuntimeError("boom"))
+        result = self._fn(
+            "my_tool",
+            pre_parsed_kwargs={"x": "hello"},
+            available_tools={"my_tool": fn},
+        )
+        # Error message should include the display args_str
+        self.assertIn("hello", result)
+
+    def test_pre_parsed_kwargs_preserves_existing_args_str(self):
+        """When args_str is provided, it's used for display/error context."""
+        fn = MagicMock(side_effect=RuntimeError("custom_err"))
+        result = self._fn(
+            "my_tool",
+            args_str="custom_display=true",
+            pre_parsed_kwargs={"x": "hello"},
+            available_tools={"my_tool": fn},
+        )
+        self.assertIn("custom_display", result)
+
+
+# ---------------------------------------------------------------------------
+# TestArgumentSafetyNets — excess positional & unknown kwargs
+# ---------------------------------------------------------------------------
+
+class TestArgumentSafetyNets(unittest.TestCase):
+    """Tests for truncating excess positional args and stripping unknown kwargs."""
+
+    def setUp(self):
+        from core.tool_dispatcher import dispatch_tool
+        self._fn = dispatch_tool
+
+    def test_excess_positional_args_truncated(self):
+        """5 positional args to a 3-param function should be truncated."""
+        def three_params(a, b, c=None):
+            return f"a={a}, b={b}, c={c}"
+
+        result = self._fn(
+            "three_params",
+            "1, 2, 3, 4, 5",
+            available_tools={"three_params": three_params},
+        )
+        # Should NOT crash with "takes 3 positional arguments but 5 were given"
+        self.assertNotIn("Error", result)
+        self.assertIn("a=1", result)
+
+    def test_unknown_kwargs_stripped(self):
+        """Unknown kwargs are silently removed before calling the function."""
+        def strict_params(path, start_line=None, end_line=None):
+            return f"path={path}"
+
+        result = self._fn(
+            "strict_params",
+            'path="foo.py", start_line=1, end_line=10, bogus_param="hello"',
+            available_tools={"strict_params": strict_params},
+        )
+        # Should NOT crash with "got an unexpected keyword argument"
+        self.assertNotIn("Error", result)
+
+    def test_unknown_kwargs_stripped_with_no_positional(self):
+        """Kwargs stripping works when there are zero positional args."""
+        def strict_params(path=""):
+            return f"path={path}"
+
+        result = self._fn(
+            "strict_params",
+            'path="foo.py", extra_kwarg=True',
+            available_tools={"strict_params": strict_params},
+        )
+        self.assertNotIn("Error", result)
+
+    def test_var_keyword_function_keeps_all_kwargs(self):
+        """Functions with **kwargs should NOT have kwargs stripped."""
+        def flexible(path="", **kwargs):
+            return f"path={path}, extra={kwargs.get('extra', 'none')}"
+
+        result = self._fn(
+            "flexible",
+            'path="foo.py", extra="kept"',
+            available_tools={"flexible": flexible},
+        )
+        self.assertNotIn("Error", result)
+        self.assertIn("kept", result)
+
+    def test_combined_excess_positional_and_unknown_kwargs(self):
+        """Both fixes work together: excess positional + unknown kwargs."""
+        def tool(a, b=None):
+            return f"a={a}, b={b}"
+
+        result = self._fn(
+            "tool",
+            '"val", 1, 2, 3, bogus=True',
+            available_tools={"tool": tool},
+        )
+        self.assertNotIn("Error", result)
+
+    def test_read_lines_with_5_positional_no_crash(self):
+        """Regression: read_lines('10, 20, 30, 40, 50') must not crash."""
+        from core.tools import AVAILABLE_TOOLS
+        result = self._fn(
+            "read_lines",
+            "10, 20, 30, 40, 50",
+            available_tools=AVAILABLE_TOOLS,
+        )
+        # Should get a meaningful error about invalid path, not a TypeError
+        self.assertNotIn("positional argument", result)
+
+    def test_read_lines_with_unknown_kwarg_no_crash(self):
+        """Regression: read_lines(..., bogus=True) must not crash."""
+        from core.tools import AVAILABLE_TOOLS
+        result = self._fn(
+            "read_lines",
+            'path="core/tools.py", start_line=1, end_line=5, bogus=True',
+            available_tools=AVAILABLE_TOOLS,
+        )
+        self.assertNotIn("unexpected keyword", result)
+
+
+# ---------------------------------------------------------------------------
+# TestDisplayArgSummary — dict args in _extract_tool_args_summary
+# ---------------------------------------------------------------------------
+
+class TestDisplayArgSummary(unittest.TestCase):
+    """Tests for _extract_tool_args_summary handling both str and dict."""
+
+    def test_string_args(self):
+        from lib.display import _extract_tool_args_summary
+        result = _extract_tool_args_summary("read_file", 'path="foo.py"')
+        self.assertIn("foo.py", result)
+
+    def test_dict_args(self):
+        from lib.display import _extract_tool_args_summary
+        result = _extract_tool_args_summary("read_file", {"path": "foo.py"})
+        self.assertIn("foo.py", result)
+
+    def test_dict_args_read_lines(self):
+        from lib.display import _extract_tool_args_summary
+        result = _extract_tool_args_summary(
+            "read_lines",
+            {"path": "foo.py", "start_line": 10, "end_line": 20},
+        )
+        self.assertIn("foo.py", result)
+        self.assertIn("10", result)
+        self.assertIn("20", result)
+
+
 if __name__ == "__main__":
     unittest.main()

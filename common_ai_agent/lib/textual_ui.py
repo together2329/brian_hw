@@ -1764,9 +1764,12 @@ class AgentTUI(App):
             self._in_edit = False
             tool_name = m_tool.group(1)
             args_part = m_tool.group(2)
-            _WRITE_TOOLS = {"write_file", "write_to_file"}
-            _EDIT_TOOLS  = {"replace_in_file", "replace_lines", "replace_file_content"}
-            _GIT_TOOLS   = {"git_commit","git_push","git_checkout","git_branch","git_merge","git_stash"}
+            # Match BOTH original names (write_file) and friendly names (Write/Edit)
+            # since format_tool_header uses _friendly_tool_name()
+            _WRITE_TOOLS = {"write_file", "write_to_file", "Write"}
+            _EDIT_TOOLS  = {"replace_in_file", "replace_lines", "replace_file_content", "Edit"}
+            _GIT_TOOLS   = {"git_commit","git_push","git_checkout","git_branch","git_merge","git_stash",
+                           "Git_Commit","Git_Push","Git_Checkout","Git_Branch","Git_Merge","Git_Stash"}
             self._current_tool = ""
             if tool_name in _WRITE_TOOLS:
                 self._in_diff = True

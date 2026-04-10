@@ -365,10 +365,11 @@ def get_shared_context():
     return _shared_context_storage.context
 
 
-def execute_tool(tool_name, args_str):
+def execute_tool(tool_name, args_str="", *, pre_parsed_kwargs=None):
     return _dispatch_tool(
         tool_name,
         args_str,
+        pre_parsed_kwargs=pre_parsed_kwargs,
         available_tools=tools.AVAILABLE_TOOLS,
         debug=getattr(config, "DEBUG_MODE", False),
         hook_registry=hook_registry,
