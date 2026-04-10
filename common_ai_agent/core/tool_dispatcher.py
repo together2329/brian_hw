@@ -151,6 +151,21 @@ def dispatch_tool(
             # Build a display-only args_str for logging/hook context.
             parsed_args = []
             parsed_kwargs = pre_parsed_kwargs
+
+            # Fallback: if LLM sent malformed JSON (e.g. {"path" "{}"} missing colon),
+            # json.loads fails upstream and pre_parsed_kwargs arrives as {}.
+            # The function will then error with "missing required argument".
+            # Try to recover by text-parsing the display args_str.
+            if not parsed_kwargs and args_str:
+                try:
+                    _fb_args, _fb_kwargs = parse_tool_arguments(args_str)
+                    if _fb_kwargs:
+                        parsed_kwargs = _fb_kwargs
+                        if debug:
+                            print(f"[DEBUG] Native mode fallback: recovered kwargs from args_str: {list(_fb_kwargs.keys())}")
+                except Exception:
+                    pass
+
             if not args_str:
                 import json as _json
                 args_str = ", ".join(

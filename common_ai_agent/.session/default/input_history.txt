@@ -9,3 +9,5 @@ Run(command) Error Parsing/excuting arguments: Unclosed string.. as well
 Why ? is this tool schema issue ?
 git push
 Read Error parsing/executing arguemetns: read_file() msissing 1 req
+Error parsing/excuting argumentsL read_file() missing 1 required positional argument: 'path' -> function name read_file arguments {\"path\" \"{}" ??? why... tool schema issue ? or ?
+Could you make test_tool_call with tool call schema to check argument ?
