@@ -699,7 +699,7 @@ def show_context_usage(messages, use_actual=True):
         current_tokens = sum(estimate_message_tokens(m) for m in messages)
         source = "estimated"
 
-    limit_tokens = config.MAX_CONTEXT_CHARS // 4
+    limit_tokens = config.MAX_CONTEXT_TOKENS
     threshold_tokens = int(limit_tokens * config.COMPRESSION_THRESHOLD)
 
     usage_pct = int((current_tokens / limit_tokens) * 100) if limit_tokens > 0 else 0
@@ -1023,7 +1023,7 @@ def chat_loop():
         ]
 
     # Initialize context tracker
-    max_tokens = config.MAX_CONTEXT_CHARS // 4  # Convert chars to tokens
+    max_tokens = config.MAX_CONTEXT_TOKENS
     context_tracker = get_context_tracker(max_tokens=max_tokens)
 
     # Update tracker with initial context
@@ -1463,7 +1463,7 @@ def chat_loop():
                             print(Color.success("\n✅ Conversation history cleared.\n"))
                         show_context_usage(messages, use_actual=False)
                         if _textual_emit_context_fn:
-                            _limit = config.MAX_CONTEXT_CHARS // 4
+                            _limit = config.MAX_CONTEXT_TOKENS
                             _est = sum(estimate_message_tokens(m) for m in messages)
                             _textual_emit_context_fn(_est, _limit)
                         if _textual_emit_todo_fn:

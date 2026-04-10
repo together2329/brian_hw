@@ -40,7 +40,7 @@ def process_observation(
     if estimate_tokens_fn is None:
         from llm_client import estimate_message_tokens as estimate_tokens_fn  # type: ignore
 
-    limit_tokens = cfg.MAX_CONTEXT_CHARS // 4
+    limit_tokens = cfg.MAX_CONTEXT_TOKENS
     threshold_tokens = int(limit_tokens * cfg.COMPRESSION_THRESHOLD)
 
     observation_msg: Dict[str, Any] = {"role": "user", "content": f"Observation: {observation}"}

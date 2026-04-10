@@ -366,7 +366,7 @@ MAN_PAGES: Dict[str, str] = {
    80% 이상   /clear 또는 /compact 필요
 
  설정 (.config)
-   MAX_CONTEXT_CHARS=262144    최대 컨텍스트 크기 (~65K 토큰)
+   MAX_CONTEXT_TOKENS=200000    최대 컨텍스트 크기 (토큰 단위)
    COMPRESSION_THRESHOLD=0.8  자동 압축 시작 임계값
 
  관련 커맨드

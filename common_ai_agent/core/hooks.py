@@ -51,7 +51,7 @@ class HookContext:
     tool_output: Optional[str] = None
 
     # Context management
-    max_context_chars: int = 512000
+    max_context_tokens: int = 128000
     compression_threshold: float = 0.80
 
     # ON_ERROR
@@ -218,13 +218,13 @@ def preemptive_compactor(context: HookContext) -> HookContext:
     if not context.messages:
         return context
 
-    # Estimate current context size in TOKENS (chars // 4)
-    # Must match compressor.py which uses: limit_tokens = MAX_CONTEXT_CHARS // 4
+    # Estimate current context size in TOKENS
+    # Must match compressor.py which uses: limit_tokens = MAX_CONTEXT_TOKENS
     total_chars = sum(
         len(str(m.get("content", ""))) for m in context.messages
     )
     total_tokens = total_chars // 4
-    limit_tokens = context.max_context_chars // 4
+    limit_tokens = context.max_context_tokens
 
     threshold_tokens = int(limit_tokens * context.compression_threshold)
 

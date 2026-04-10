@@ -990,8 +990,8 @@ class AgentTUI(App):
             from core.history_manager import load_conversation_history as _load_hist
             from llm_client import estimate_message_tokens
 
-            # Max tokens: config uses chars ÷ 4
-            max_tok = getattr(_cfg, "MAX_CONTEXT_CHARS", 512000) // 4
+            # Max tokens from config
+            max_tok = getattr(_cfg, "MAX_CONTEXT_TOKENS", 128000)
 
             saved_msgs = _load_hist(silent=True)
             ctx_tokens = sum(estimate_message_tokens(m) for m in saved_msgs) if saved_msgs else 0

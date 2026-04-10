@@ -11,7 +11,7 @@ def _make_cfg(**overrides):
     """Build a minimal config-like namespace."""
     defaults = dict(
         ENABLE_COMPRESSION=True,
-        MAX_CONTEXT_CHARS=400000,
+        MAX_CONTEXT_TOKENS=100000,
         PREEMPTIVE_COMPRESSION_THRESHOLD=0.85,
         COMPRESSION_THRESHOLD=0.95,
         COMPRESSION_KEEP_RECENT=10,

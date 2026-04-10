@@ -35,7 +35,7 @@ def _make_cfg(**overrides):
         STEP_BY_STEP_MODE=False,
         TODO_STAGNATION_LIMIT=3,
         MODEL_NAME="test-model",
-        MAX_CONTEXT_CHARS=400000,
+        MAX_CONTEXT_TOKENS=100000,
     )
     defaults.update(overrides)
     return types.SimpleNamespace(**defaults)

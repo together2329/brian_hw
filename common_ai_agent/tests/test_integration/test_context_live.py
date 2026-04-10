@@ -25,8 +25,8 @@ def simulate_chat_session():
 
     # Step 1: Initialize like chat_loop does
     print("\n[1] Initializing context tracker...")
-    max_tokens = config.MAX_CONTEXT_CHARS // 4
-    print(f"    MAX_CONTEXT_CHARS: {config.MAX_CONTEXT_CHARS}")
+    max_tokens = config.MAX_CONTEXT_TOKENS
+    print(f"    MAX_CONTEXT_TOKENS: {config.MAX_CONTEXT_TOKENS}")
     print(f"    max_tokens: {max_tokens}")
 
     context_tracker = get_tracker(max_tokens=max_tokens)

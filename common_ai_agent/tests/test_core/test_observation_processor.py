@@ -22,7 +22,7 @@ def _make_config(**overrides):
     """Return a simple namespace that mimics config attributes."""
     import types
     cfg = types.SimpleNamespace(
-        MAX_CONTEXT_CHARS=400_000,
+        MAX_CONTEXT_TOKENS=100_000,
         COMPRESSION_THRESHOLD=0.8,
         LARGE_FILE_PREVIEW_LINES=50,
         MAX_OBSERVATION_CHARS=50_000,
@@ -91,7 +91,7 @@ class TestLargeObservation(unittest.TestCase):
     def setUp(self):
         # Very tight limit so even small obs triggers truncation
         self.cfg = _make_config(
-            MAX_CONTEXT_CHARS=1_000,
+            MAX_CONTEXT_TOKENS=1_000,
             MAX_OBSERVATION_CHARS=500,
             LARGE_FILE_PREVIEW_LINES=3,
         )
@@ -140,7 +140,7 @@ class TestCompressFnCallback(unittest.TestCase):
 
     def test_compress_fn_called_when_threshold_exceeded(self):
         cfg = _make_config(
-            MAX_CONTEXT_CHARS=400,   # limit_tokens = 100
+            MAX_CONTEXT_TOKENS=100,   # limit_tokens = 100
             COMPRESSION_THRESHOLD=0.5,
             ENABLE_COMPRESSION=True,
         )

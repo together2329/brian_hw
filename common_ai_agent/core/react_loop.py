@@ -422,7 +422,7 @@ def run_react_agent_impl(
                 from core.hooks import HookContext, HookPoint
                 hook_ctx = HookContext(
                     messages=messages,
-                    max_context_chars=getattr(cfg, "MAX_CONTEXT_CHARS", 400000),
+                    max_context_tokens=getattr(cfg, "MAX_CONTEXT_TOKENS", 128000),
                     compression_threshold=getattr(cfg, "PREEMPTIVE_COMPRESSION_THRESHOLD", 0.85),
                     iteration=tracker.current,
                     metadata={"todo_tracker": todo_tracker} if todo_tracker else {},

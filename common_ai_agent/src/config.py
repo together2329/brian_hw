@@ -249,11 +249,9 @@ MAX_OBSERVATION_CHARS = int(os.getenv("MAX_OBSERVATION_CHARS", "20000"))  # ~500
 LARGE_FILE_PREVIEW_LINES = int(os.getenv("LARGE_FILE_PREVIEW_LINES", "100"))  # Number of lines to show in preview
 
 # Context Management
-# Approximate token limit (1 token ~= 4 chars)
-# Default: 262144 chars (~65K tokens) - matches Claude's 200K context
-MAX_CONTEXT_CHARS = int(os.getenv("MAX_CONTEXT_CHARS", "512000"))  # Gemini Flash 3: 128K tokens * 4 chars/token
-# Hard token limit for the model context window (0 = disable dynamic output capping)
-MAX_CONTEXT_TOKENS = int(os.getenv("MAX_CONTEXT_TOKENS", "0"))
+# Token limit for the model context window (0 = no limit, use estimated from chars)
+# Set to your model's actual context window size for best results.
+MAX_CONTEXT_TOKENS = int(os.getenv("MAX_CONTEXT_TOKENS", "128000"))  # Default: 128K tokens
 # Threshold to trigger compression (0.0 to 1.0)
 # Default: 0.9 (90% of 128K = ~115K tokens)
 # Old value 0.8 was too conservative, causing compression every iteration

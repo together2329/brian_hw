@@ -27,7 +27,7 @@ def test_context_in_main():
 
     # Step 1: Simulate chat_loop initialization
     print("\n[Step 1] Initializing like chat_loop...")
-    max_tokens = config.MAX_CONTEXT_CHARS // 4
+    max_tokens = config.MAX_CONTEXT_TOKENS
     context_tracker = get_tracker(max_tokens=max_tokens)
 
     # Create initial messages

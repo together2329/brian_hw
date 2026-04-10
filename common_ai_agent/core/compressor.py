@@ -294,7 +294,7 @@ def compress_history(
         keep_recent: Number of recent messages to keep (None = cfg default).
         dry_run: If True, return preview without modifying state.
         quiet: Suppress informational prints.
-        cfg: Config namespace (ENABLE_COMPRESSION, MAX_CONTEXT_CHARS, etc.).
+        cfg: Config namespace (ENABLE_COMPRESSION, MAX_CONTEXT_TOKENS, etc.).
         llm_call_fn: Callable for LLM streaming (replaces chat_completion_stream).
         estimate_tokens_fn: Per-message token estimator (falls back to char//4).
         get_actual_tokens_fn: Returns total token count for all messages.
@@ -313,7 +313,7 @@ def compress_history(
     _find_hook_fn = find_hook_fn if find_hook_fn is not None else _find_hook
     _hook_cmd_fn = hook_command_fn if hook_command_fn is not None else _hook_command
 
-    limit_tokens = cfg.MAX_CONTEXT_CHARS // 4
+    limit_tokens = cfg.MAX_CONTEXT_TOKENS
     preemptive_threshold = int(limit_tokens * cfg.PREEMPTIVE_COMPRESSION_THRESHOLD)
     emergency_threshold = int(limit_tokens * cfg.COMPRESSION_THRESHOLD)
 

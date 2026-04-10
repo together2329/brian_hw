@@ -890,7 +890,7 @@ class SlashCommandRegistry:
                 debug_lines.append(f"  actual_percentage (assistant only): {actual_pct:.1f}%")
                 debug_lines.append(f"  will_use_saved_tokens: {actual_pct >= 50.0}")
 
-                debug_lines.append(f"  config.MAX_CONTEXT_CHARS: {config.MAX_CONTEXT_CHARS:,}")
+                debug_lines.append(f"  config.MAX_CONTEXT_TOKENS: {config.MAX_CONTEXT_TOKENS:,}")
                 debug_lines.append(f"  tracker.max_tokens: {tracker.max_tokens:,}")
                 debug_lines.append("==================\n")
 

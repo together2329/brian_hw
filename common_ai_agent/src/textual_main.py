@@ -65,7 +65,7 @@ def _emit_context(app: AgentTUI) -> None:
     """Read current token/skill state from main.py and post ContextUpdate."""
     try:
         tokens  = getattr(_agent.llm_client, "last_input_tokens", 0)
-        max_tok = getattr(config, "MAX_CONTEXT_CHARS", 512000) // 4
+        max_tok = getattr(config, "MAX_CONTEXT_TOKENS", 128000)
         # Sync active model from config (may have changed via /model switch)
         app._active_model = getattr(config, "MODEL_NAME", "") or app._active_model
         app._refresh_model_sidebar()

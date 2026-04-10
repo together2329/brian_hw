@@ -210,11 +210,11 @@ def run_system(runs: int, messages: List[Dict]) -> List[Dict]:
         # ── compress (check only, no actual compression for short history) ──
         t0 = time.perf_counter()
         try:
-            limit_chars = getattr(config, "MAX_CONTEXT_CHARS", 262144)
+            limit_tokens = getattr(config, "MAX_CONTEXT_TOKENS", 128000)
             threshold = getattr(config, "COMPRESSION_THRESHOLD", 0.8)
-            total_chars = sum(len(str(m.get("content", ""))) for m in messages)
+            total_tokens = sum(len(str(m.get("content", ""))) // 4 for m in messages)
             # just measure the check, not actual compression
-            _ = total_chars > limit_chars * threshold
+            _ = total_tokens > limit_tokens * threshold
         except Exception:
             pass
         r["compress_check"] = time.perf_counter() - t0
