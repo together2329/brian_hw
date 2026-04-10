@@ -982,6 +982,8 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     Yields ("reasoning", text) tuples for reasoning, plain strings for content.
     """
     global last_input_tokens, last_output_tokens
+    global last_cache_creation_tokens, last_cache_read_tokens
+    global total_cache_created, total_cache_read
 
     # Rate limiting: TPM/RPM bucket if configured, else legacy fixed delay
     if not skip_rate_limit:
