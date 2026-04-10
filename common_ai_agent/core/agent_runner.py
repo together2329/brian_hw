@@ -271,14 +271,14 @@ def run_agent_session(
                     if not func:
                         observation = f"Error: Tool '{tool_name}' not found."
                     else:
-                        parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
-                        observation = func(*parsed_args, **parsed_kwargs)
-                        if not isinstance(observation, str):
-                            import json
-                            try:
-                                observation = json.dumps(observation, indent=2, ensure_ascii=False)
-                            except Exception:
-                                observation = str(observation)
+                        # Use dispatch_tool for all safety nets (positional truncation,
+                        # unknown kwarg stripping, grep auto-fix, timeout, alias resolution)
+                        from tool_dispatcher import dispatch_tool as _dispatch
+                        observation = _dispatch(
+                            tool_name, args_str,
+                            available_tools=tools_module.AVAILABLE_TOOLS,
+                            global_timeout=300,
+                        )
                 except Exception as e:
                     observation = f"Error executing {tool_name}: {e}"
 
