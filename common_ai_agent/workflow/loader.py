@@ -92,6 +92,9 @@ class WorkspaceConfig:
     # Script hook specs (populated during load)
     script_hooks: list = field(default_factory=list)
 
+    # Custom slash commands directory (workflow/<name>/commands/)
+    commands_dir: Optional[Path] = None
+
 
 # ─────────────────────────────────────────────────────────────
 # Loader
@@ -147,6 +150,7 @@ def load_workspace(name: str, project_root: Path) -> WorkspaceConfig:
         extra_skills_dir=_opt_dir("skills"),
         force_skills=skills_cfg.get("force_activate", []),
         disable_skills=skills_cfg.get("disable", []),
+        commands_dir=_opt_dir("commands"),
     )
 
     # Load script hooks
@@ -483,3 +487,97 @@ _todo_template_registry = TodoTemplateRegistry()
 
 def get_todo_template_registry() -> TodoTemplateRegistry:
     return _todo_template_registry
+
+
+# ─────────────────────────────────────────────────────────────
+# Custom slash commands
+# ─────────────────────────────────────────────────────────────
+
+def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
+    """
+    Build a callable handler from a command spec dict.
+
+    handler types:
+      bash:<script>          — run scripts/<script> via bash, return stdout
+      todo:template:<name>   — return INJECT_TODO_TEMPLATE:<name> signal
+      prompt:<text>          — return INJECT_PROMPT:<text> signal
+      python:<fn>            — call register_hooks-style fn from workspace hooks.py
+    """
+    handler_str = spec.get("handler", "")
+
+    if handler_str.startswith("bash:"):
+        script_rel = handler_str[5:]
+        script_path = (ws.scripts_dir / script_rel) if ws.scripts_dir else None
+
+        def _bash_handler(args: str, _s=script_path, _ws=ws) -> str:
+            if _s is None or not _s.exists():
+                return f"[Error] Script not found: {script_rel}"
+            env = {
+                **os.environ,
+                "HOOK_WORKSPACE": _ws.name,
+                "HOOK_CMD_ARGS": args or "",
+                "BENCHMARK_LOG": str(_ws.workspace_dir / ".benchmark"),
+            }
+            try:
+                r = subprocess.run(
+                    ["bash", str(_s)], env=env,
+                    capture_output=True, text=True, timeout=30,
+                )
+                return (r.stdout or r.stderr or "(no output)").strip()
+            except subprocess.TimeoutExpired:
+                return "[Error] Script timed out (30s)"
+            except Exception as e:
+                return f"[Error] {e}"
+
+        return _bash_handler
+
+    if handler_str.startswith("todo:template:"):
+        tmpl_name = handler_str[14:]
+
+        def _tmpl_handler(args: str, _n=tmpl_name) -> str:
+            return f"INJECT_TODO_TEMPLATE:{_n}"
+
+        return _tmpl_handler
+
+    if handler_str.startswith("prompt:"):
+        text = handler_str[7:]
+
+        def _prompt_handler(args: str, _t=text) -> str:
+            return f"INJECT_PROMPT:{_t}"
+
+        return _prompt_handler
+
+    # Unknown — return error string
+    return lambda args: f"[Error] Unknown handler type: {handler_str}"
+
+
+def register_workspace_commands(ws: "WorkspaceConfig", slash_registry) -> None:
+    """
+    Load commands/*.json from the workspace and register each as a slash command.
+
+    JSON format:
+    {
+      "name": "lint",
+      "description": "Run RTL lint",
+      "aliases": ["l"],
+      "handler": "bash:scripts/lint.sh",
+      "usage": "/lint [file.v]"
+    }
+    """
+    if ws.commands_dir is None or not ws.commands_dir.exists():
+        return
+
+    for f in sorted(ws.commands_dir.glob("*.json")):
+        try:
+            spec = json.loads(f.read_text(encoding="utf-8"))
+            handler = _make_command_handler(spec, ws)
+            slash_registry.register(
+                name=spec["name"],
+                handler=handler,
+                description=spec.get("description", ""),
+                aliases=spec.get("aliases", []),
+            )
+        except Exception as e:
+            # Non-fatal: log and continue
+            import sys as _sys
+            print(f"[Workspace] Failed to load command {f.name}: {e}", file=_sys.stderr)

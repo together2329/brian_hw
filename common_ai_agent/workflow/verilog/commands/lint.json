@@ -1,0 +1,7 @@
+{
+  "name": "lint",
+  "description": "Run RTL lint check on Verilog/SystemVerilog files",
+  "aliases": ["l"],
+  "handler": "bash:scripts/lint.sh",
+  "usage": "/lint [file.v|file.sv]"
+}

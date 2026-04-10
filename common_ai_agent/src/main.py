@@ -150,12 +150,13 @@ def _setup_workspace(name: str) -> None:
         from workflow.loader import (
             load_workspace, merge_prompt, patch_todo_rules,
             register_script_hooks, get_todo_template_registry,
+            register_workspace_commands,
         )
     except ImportError as e:
         print(f"[Workspace] Cannot import workflow.loader: {e}")
         return
 
-    ws = load_workspace(name, workflow_root=workflow_root)
+    ws = load_workspace(name, project_root=Path(workflow_root).parent)
     if ws is None:
         print(f"[Workspace] Failed to load workspace '{name}'.")
         return
@@ -253,6 +254,14 @@ def _setup_workspace(name: str) -> None:
             os.environ["DISABLE_SKILLS"] = _combined
         except Exception:
             pass
+
+    # ── 10. Register workspace-specific slash commands ─────────────────────
+    try:
+        from core.slash_commands import get_registry as _get_slash_registry
+        _slash_reg = _get_slash_registry()
+        register_workspace_commands(ws, _slash_reg)
+    except Exception as e:
+        print(f"[Workspace] Warning: could not register commands: {e}")
 
     print(f"[Workspace] '{name}' loaded from {workflow_root}/{name}")
 

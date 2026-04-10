@@ -165,6 +165,58 @@ def check_workflow_files(root: Path) -> tuple[bool, str]:
     return True, f"All {len(required)} required files present"
 
 
+def check_todo_validator_support(root: Path) -> tuple[bool, str]:
+    """Verify validator field and run_validator() are in lib/todo_tracker.py."""
+    tt_path = root / "lib" / "todo_tracker.py"
+    if not tt_path.exists():
+        return False, "lib/todo_tracker.py not found"
+    text = tt_path.read_text(encoding="utf-8")
+    missing = []
+    for symbol in ["validator: str", "run_validator", "Validator failed", "Validator timed out"]:
+        if symbol not in text:
+            missing.append(symbol)
+    if missing:
+        return False, f"Missing in todo_tracker.py: {', '.join(missing)}"
+    return True, "validator field and run_validator() present"
+
+
+def check_workspace_commands_support(root: Path) -> tuple[bool, str]:
+    """Verify register_workspace_commands() is in workflow/loader.py and main.py."""
+    missing = []
+    loader_path = root / "workflow" / "loader.py"
+    if loader_path.exists():
+        text = loader_path.read_text(encoding="utf-8")
+        if "register_workspace_commands" not in text:
+            missing.append("register_workspace_commands() in loader.py")
+        if "commands_dir" not in text:
+            missing.append("commands_dir field in WorkspaceConfig")
+    else:
+        missing.append("workflow/loader.py not found")
+
+    main_path = root / "src" / "main.py"
+    if main_path.exists():
+        text = main_path.read_text(encoding="utf-8")
+        if "register_workspace_commands" not in text:
+            missing.append("register_workspace_commands() call in main.py")
+    else:
+        missing.append("src/main.py not found")
+
+    if missing:
+        return False, f"Missing: {', '.join(missing)}"
+    return True, "register_workspace_commands() wired in loader.py and main.py"
+
+
+def check_prompt_fragment_support(root: Path) -> tuple[bool, str]:
+    """Verify _load_prompt_fragment() is in src/config.py."""
+    cfg_path = root / "src" / "config.py"
+    if not cfg_path.exists():
+        return False, "src/config.py not found"
+    text = cfg_path.read_text(encoding="utf-8")
+    if "_load_prompt_fragment" not in text:
+        return False, "_load_prompt_fragment() not found in src/config.py"
+    return True, "_load_prompt_fragment() present — workflow/prompts/ wired into build_base_system_prompt()"
+
+
 def check_workspace_loadable(root: Path, workspace_name: str) -> tuple[bool, str]:
     """Try loading a workspace via loader.py."""
     try:
@@ -216,6 +268,9 @@ def run_checks(workspace: Optional[str] = None) -> int:
         ("skill_loader patch",      lambda: check_skill_loader_patch(root)),
         ("slash_commands patch",    lambda: check_slash_commands_patch(root)),
         ("todo_tracker patch",      lambda: check_todo_tracker_patch(root)),
+        ("todo validator support",  lambda: check_todo_validator_support(root)),
+        ("workspace commands",      lambda: check_workspace_commands_support(root)),
+        ("prompt fragment loader",  lambda: check_prompt_fragment_support(root)),
         ("workflow files",          lambda: check_workflow_files(root)),
     ]
 

@@ -144,6 +144,10 @@ class TodoItem:
     loop_count: int = 0                 # Current loop attempt count
     loop_exit_reason: str = ""          # Recorded when loop exits
 
+    # ── Validator (harness assertion) ──────────────────────
+    validator: str = ""                 # Shell command run before marking completed.
+                                        # returncode != 0 → auto-reject with stderr as reason.
+
     def __post_init__(self):
         if self.created_at is None:
             self.created_at = time.time()
@@ -169,6 +173,42 @@ class TodoItem:
         except Exception:
             pass
         return text
+
+    def run_validator(self, tool_output: str = "") -> Optional[str]:
+        """
+        Run self.validator shell command as a harness assertion.
+
+        Environment:
+          TODO_CONTENT   — task content string
+          TOOL_OUTPUT    — output passed to mark_completed()
+          EXIT_CONDITION — loop exit condition string
+
+        Returns:
+          None            — validator passed (or no validator set)
+          str             — failure reason (auto-becomes rejection_reason)
+        """
+        if not self.validator:
+            return None
+        import subprocess as _sp
+        env = {
+            **__import__("os").environ,
+            "TODO_CONTENT": self.content,
+            "TOOL_OUTPUT": tool_output,
+            "EXIT_CONDITION": self.exit_condition,
+        }
+        try:
+            r = _sp.run(
+                self.validator, shell=True,
+                capture_output=True, text=True, timeout=5, env=env,
+            )
+            if r.returncode != 0:
+                msg = (r.stderr or r.stdout or "Validator failed (non-zero exit)").strip()
+                return msg[:300]
+        except _sp.TimeoutExpired:
+            return "Validator timed out (5s)"
+        except Exception as e:
+            return f"Validator error: {e}"
+        return None
 
 
 class TodoTracker:
@@ -223,6 +263,7 @@ class TodoTracker:
                 exit_condition=todo_dict.get("exit_condition", ""),
                 loop_count=int(todo_dict.get("loop_count", 0)),
                 loop_exit_reason=todo_dict.get("loop_exit_reason", ""),
+                validator=todo_dict.get("validator", ""),
             ))
 
         # Find current in_progress item
@@ -299,7 +340,15 @@ class TodoTracker:
                 self.save()
                 return False  # signal: loop restarted
 
-        # Normal (non-loop) completion
+        # Normal (non-loop) completion — run validator first
+        validator_fail = todo.run_validator(tool_output)
+        if validator_fail:
+            todo.status = "rejected"
+            todo.rejection_reason = f"[Validator] {validator_fail}"
+            self.current_index = index
+            self.save()
+            return False  # auto-rejected by validator
+
         todo.status = "completed"
         todo.completed_at = time.time()
         todo.rejection_reason = ""
@@ -746,6 +795,7 @@ class TodoTracker:
                     "exit_condition": t.exit_condition,
                     "loop_count": t.loop_count,
                     "loop_exit_reason": t.loop_exit_reason,
+                    "validator": t.validator,
                 }
                 for t in self.todos
             ],
