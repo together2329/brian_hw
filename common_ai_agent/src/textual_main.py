@@ -138,9 +138,18 @@ if __name__ == "__main__":
     import argparse as _argparse
     _parser = _argparse.ArgumentParser(add_help=False)
     _parser.add_argument('-s', '--session', default='default')
+    _parser.add_argument('-w', '--workspace', default=None,
+                         help='Workspace name (e.g. mas_gen, rtl_gen, sim, lint)')
     _args, _ = _parser.parse_known_args()
 
     _agent._setup_session(_args.session)
+
+    # Apply workspace if specified (same as main.py -w)
+    if _args.workspace:
+        try:
+            _agent._setup_workspace(_args.workspace)
+        except Exception as _e:
+            print(f"[warn] Workspace '{_args.workspace}' failed to load: {_e}")
 
     if _TEXTUAL_OK:
         from lib.textual_ui import AgentTUI, ContextUpdate
