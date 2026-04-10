@@ -1,7 +1,0 @@
-{
-  "name": "report",
-  "description": "Show benchmark report for this session (sim attempts, pass/fail counts)",
-  "aliases": ["r"],
-  "handler": "bash:scripts/benchmark_report.sh",
-  "usage": "/report"
-}

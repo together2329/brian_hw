@@ -1,0 +1,7 @@
+{
+  "name": "report",
+  "description": "Generate lint_report.txt from last lint run",
+  "aliases": ["r"],
+  "handler": "bash:scripts/write_report.sh",
+  "usage": "/report"
+}

@@ -1,8 +1,8 @@
 {
-  "name": "verilog",
-  "description": "RTL development workspace — Verilog/SystemVerilog design and verification",
+  "name": "lint",
+  "description": "RTL lint verification workspace — runs lint, fixes errors/warnings, generates report",
   "env": {
-    "MAX_ITERATIONS": "200",
+    "MAX_ITERATIONS": "100",
     "ENABLE_MARKDOWN_RENDER": "false"
   },
   "skills": {

@@ -1,7 +1,0 @@
-{
-  "name": "sim",
-  "description": "Run Verilog/SystemVerilog simulation and log result to benchmark",
-  "aliases": ["s"],
-  "handler": "bash:scripts/sim.sh",
-  "usage": "/sim [testbench.sv]"
-}

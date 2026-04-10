@@ -1,0 +1,7 @@
+{
+  "name": "sim",
+  "description": "Compile and run simulation",
+  "aliases": ["s"],
+  "handler": "bash:scripts/sim.sh",
+  "usage": "/sim [tb_module.sv]"
+}

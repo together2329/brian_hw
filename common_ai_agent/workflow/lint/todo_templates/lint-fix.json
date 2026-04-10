@@ -1,0 +1,31 @@
+{
+  "name": "lint-fix",
+  "description": "Lint all RTL files, fix errors and warnings, generate lint_report.txt",
+  "tasks": [
+    {
+      "content": "Run /lint-all — get full error and warning list",
+      "detail": "Run /lint-all. Record: total errors, total warnings, per-file breakdown. Do not fix anything yet.",
+      "priority": "high"
+    },
+    {
+      "content": "Fix all lint errors (0 errors target)",
+      "detail": "Fix each error type: undeclared signals → add declarations; multiple drivers → remove duplicates; implicit nets → add `default_nettype none. Re-run /lint-all after each group.",
+      "priority": "high"
+    },
+    {
+      "content": "Fix lint warnings (latch, width mismatch, implicit)",
+      "detail": "Priority: latch inferred → add default in always_comb; width mismatch → add explicit slice; implicit net → declare logic. Document unfixable warnings.",
+      "priority": "high"
+    },
+    {
+      "content": "Lint clean: 0 errors, 0 warnings",
+      "detail": "Run /lint-all. Confirm 0 errors, 0 warnings. If warnings remain, document reason in lint_report.txt.",
+      "priority": "high"
+    },
+    {
+      "content": "Generate lint_report.txt",
+      "detail": "Run /report to write lint_report.txt. Verify file contains: date, files, tool, result, fixed list, remaining list.",
+      "priority": "normal"
+    }
+  ]
+}

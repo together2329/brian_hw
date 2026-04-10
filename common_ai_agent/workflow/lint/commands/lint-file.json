@@ -1,0 +1,7 @@
+{
+  "name": "lint-file",
+  "description": "Run lint on a specific file",
+  "aliases": ["lf"],
+  "handler": "bash:scripts/lint_file.sh",
+  "usage": "/lint-file <file.sv>"
+}

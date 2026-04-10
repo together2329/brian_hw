@@ -1,0 +1,7 @@
+{
+  "name": "lint-all",
+  "description": "Run lint on all RTL files in current directory",
+  "aliases": ["la"],
+  "handler": "bash:scripts/lint_all.sh",
+  "usage": "/lint-all"
+}
