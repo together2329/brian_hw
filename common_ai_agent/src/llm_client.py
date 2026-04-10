@@ -1075,7 +1075,10 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         if _spinner:
             _spinner.stop()
 
-    msg = result["choices"][0]["message"]
+    choices = result.get("choices") or []
+    if not choices:
+        return  # empty body (HTTP 200 but no content) — caller retry loop handles it
+    msg = choices[0]["message"]
     usage = result.get("usage", {})
     if usage:
         last_input_tokens = usage.get("prompt_tokens", usage.get("input_tokens", 0))
@@ -1173,12 +1176,25 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     if not config.ENABLE_STREAMING:
         _ns_delays = [5, 10, 20, 40, 80]
         _ns_max = len(_ns_delays) + 1
+        _ns_model = model  # track for fallback
+        _ns_fallback_used = False
         for _ns_retry in range(_ns_max):
             try:
-                yield from _chat_completion_nonstream(messages, stop=stop, model=model, skip_rate_limit=skip_rate_limit, suppress_spinner=suppress_spinner)
+                yield from _chat_completion_nonstream(messages, stop=stop, model=_ns_model, skip_rate_limit=skip_rate_limit, suppress_spinner=suppress_spinner)
                 return
             except urllib.error.HTTPError as e:
+                error_body = ""
+                try:
+                    error_body = e.read().decode('utf-8')
+                except Exception:
+                    pass
                 if e.code == 401:
+                    # Try fallback model before giving up
+                    if not _ns_fallback_used and config.SECONDARY_MODEL and config.SECONDARY_MODEL != (_ns_model or config.MODEL_NAME):
+                        _ns_fallback_used = True
+                        _ns_model = config.SECONDARY_MODEL
+                        print(Color.warning(f"\n[Fallback] 401 Unauthorized. Switching to: {_ns_model}\n"))
+                        continue
                     yield f"\n{Color.error('[401 Unauthorized] Token quota exhausted — please top up your API credits.')}\n"
                     return
                 is_retryable = e.code == 429 or (500 <= e.code < 600)
@@ -1187,7 +1203,20 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     print(Color.warning(f"\n[Retry {_ns_retry + 1}/{_ns_max - 1}] HTTP {e.code}: {e.reason}. Waiting {delay}s...\n"))
                     time.sleep(delay)
                     continue
-                yield f"\n{Color.error(f'[HTTP {e.code}]: {e.reason}')}\n"
+                yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
+                try:
+                    error_json = json.loads(error_body)
+                    if 'error' in error_json:
+                        error_info = error_json['error']
+                        if isinstance(error_info, dict):
+                            error_message = error_info.get('message', '')
+                            if error_message:
+                                yield f"{Color.error(f'  {error_message}')}\n"
+                        else:
+                            yield f"{Color.error(f'  {error_info}')}\n"
+                except Exception:
+                    if error_body:
+                        yield f"{Color.error(f'  {error_body[:300]}')}\n"
                 return
             except socket.timeout as e:
                 if _ns_retry < _ns_max - 1:
@@ -1206,6 +1235,15 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     continue
                 err_msg = str(e.reason) if hasattr(e, 'reason') else str(e)
                 yield f"\n{Color.error(f'[Connection Error]: {err_msg}')}\n"
+                return
+            except Exception as e:
+                error_type = type(e).__name__
+                if _ns_retry < _ns_max - 1:
+                    delay = _ns_delays[_ns_retry]
+                    print(Color.warning(f"\n[Retry {_ns_retry + 1}/{_ns_max - 1}] {error_type}: {e}. Waiting {delay}s...\n"))
+                    time.sleep(delay)
+                    continue
+                yield f"\n{Color.error(f'[{error_type}]: {e}')}\n"
                 return
         return
 
