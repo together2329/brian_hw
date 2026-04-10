@@ -1,0 +1,7 @@
+{
+  "name": "gen-tc",
+  "description": "Generate test case skeleton for uncovered scenarios",
+  "aliases": ["tc"],
+  "handler": "bash:scripts/gen_tc.sh",
+  "usage": "/gen-tc <module_name>"
+}

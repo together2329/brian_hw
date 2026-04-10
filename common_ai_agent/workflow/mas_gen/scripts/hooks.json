@@ -1,0 +1,28 @@
+{
+  "hooks": [
+    {
+      "script": "track_phase.sh",
+      "trigger": "after_tool",
+      "conditions": {
+        "tool_names": ["write_file", "replace_in_file"],
+        "file_extensions": [".sv", ".v", ".md"]
+      }
+    },
+    {
+      "script": "benchmark_tick.sh",
+      "trigger": "before_llm",
+      "conditions": {
+        "every_n_iterations": 1
+      }
+    },
+    {
+      "script": "gate_check.sh",
+      "trigger": "after_tool",
+      "conditions": {
+        "tool_names": ["run_command"],
+        "output_contains": ["0 errors", "PASS", "Error", "FAILED"],
+        "min_iteration": 1
+      }
+    }
+  ]
+}

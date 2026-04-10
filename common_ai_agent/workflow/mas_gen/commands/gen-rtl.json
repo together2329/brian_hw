@@ -1,0 +1,7 @@
+{
+  "name": "gen-rtl",
+  "description": "Hand off to rtl_gen context for RTL implementation",
+  "aliases": ["gr"],
+  "handler": "bash:scripts/handoff_rtl.sh",
+  "usage": "/gen-rtl <module_name>"
+}
