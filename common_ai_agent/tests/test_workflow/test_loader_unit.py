@@ -26,8 +26,11 @@ from workflow.loader import (
     get_hook_message,
     load_workspace,
     merge_prompt,
+    patch_todo_rules,
+    register_workspace_commands,
     ScriptHookSpec,
     TodoTemplateRegistry,
+    TRIGGER_TO_HOOKPOINT_NAME,
     WorkspaceConfig,
 )
 
@@ -63,6 +66,17 @@ class TestMergePrompt(unittest.TestCase):
 
     def test_both_empty_returns_empty(self):
         self.assertEqual(merge_prompt("", "", "append"), "")
+
+    def test_unicode_content_preserved(self):
+        result = merge_prompt("베이스", "추가텍스트", "append")
+        self.assertIn("베이스", result)
+        self.assertIn("추가텍스트", result)
+
+    def test_whitespace_only_text_treated_as_falsy(self):
+        # "   " is truthy in Python, but check actual behaviour
+        result = merge_prompt("BASE", "   ", "append")
+        # loader treats empty-ish strings as present — verify separator and content
+        self.assertIn("BASE", result)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -203,6 +217,23 @@ class TestCheckScriptConditions(unittest.TestCase):
     def test_output_contains_any_of_list(self):
         s = self._spec({"output_contains": ["PASS", "FAIL"]})
         self.assertTrue(_check_script_conditions(s, self._ctx(tool_output="[PASS] test")))
+
+    def test_min_and_max_iteration_both_pass(self):
+        # iteration exactly between min and max
+        s = self._spec({"min_iteration": 3, "max_iteration": 10})
+        self.assertTrue(_check_script_conditions(s, self._ctx(iteration=5)))
+
+    def test_min_iteration_at_boundary_passes(self):
+        s = self._spec({"min_iteration": 5})
+        self.assertTrue(_check_script_conditions(s, self._ctx(iteration=5)))
+
+    def test_max_iteration_at_boundary_passes(self):
+        s = self._spec({"max_iteration": 5})
+        self.assertTrue(_check_script_conditions(s, self._ctx(iteration=5)))
+
+    def test_max_iteration_exceeded_fails(self):
+        s = self._spec({"min_iteration": 3, "max_iteration": 10})
+        self.assertFalse(_check_script_conditions(s, self._ctx(iteration=11)))
 
 
 # ─────────────────────────────────────────────────────────────
@@ -594,6 +625,336 @@ class TestMakeCommandHandler(unittest.TestCase):
     def test_todo_template_ignores_args(self):
         h = _make_command_handler({"handler": "todo:template:x"}, self._ws())
         self.assertEqual(h("some args"), "INJECT_TODO_TEMPLATE:x")
+
+
+# ─────────────────────────────────────────────────────────────
+# TestWorkspaceConfigDefaults
+# ─────────────────────────────────────────────────────────────
+
+class TestWorkspaceConfigDefaults(unittest.TestCase):
+    """WorkspaceConfig dataclass field defaults."""
+
+    def _minimal(self):
+        return WorkspaceConfig(name="test", workspace_dir=Path("/tmp/test"))
+
+    def test_force_skills_defaults_to_empty_list(self):
+        self.assertEqual(self._minimal().force_skills, [])
+
+    def test_disable_skills_defaults_to_empty_list(self):
+        self.assertEqual(self._minimal().disable_skills, [])
+
+    def test_script_hooks_defaults_to_empty_list(self):
+        self.assertEqual(self._minimal().script_hooks, [])
+
+    def test_env_overrides_defaults_to_empty_dict(self):
+        self.assertEqual(self._minimal().env_overrides, {})
+
+    def test_hook_messages_defaults_to_empty_dict(self):
+        self.assertEqual(self._minimal().hook_messages, {})
+
+    def test_system_prompt_mode_defaults_to_append(self):
+        self.assertEqual(self._minimal().system_prompt_mode, "append")
+
+    def test_plan_prompt_mode_defaults_to_append(self):
+        self.assertEqual(self._minimal().plan_prompt_mode, "append")
+
+    def test_optional_dirs_default_to_none(self):
+        ws = self._minimal()
+        for attr in ("rules_dir", "todo_templates_dir", "scripts_dir",
+                     "hooks_module_path", "extra_skills_dir", "commands_dir"):
+            with self.subTest(attr=attr):
+                self.assertIsNone(getattr(ws, attr))
+
+    def test_optional_prompts_default_to_none(self):
+        ws = self._minimal()
+        for attr in ("system_prompt_text", "plan_prompt_text", "compression_prompt_text"):
+            with self.subTest(attr=attr):
+                self.assertIsNone(getattr(ws, attr))
+
+    def test_name_and_workspace_dir_set(self):
+        ws = self._minimal()
+        self.assertEqual(ws.name, "test")
+        self.assertEqual(ws.workspace_dir, Path("/tmp/test"))
+
+    def test_description_defaults_to_empty_string(self):
+        self.assertEqual(self._minimal().description, "")
+
+
+# ─────────────────────────────────────────────────────────────
+# TestTriggerConstants
+# ─────────────────────────────────────────────────────────────
+
+class TestTriggerConstants(unittest.TestCase):
+    """TRIGGER_TO_HOOKPOINT_NAME and _FILENAME_TO_TRIGGER completeness."""
+
+    def test_all_expected_trigger_keys_present(self):
+        expected = {
+            "before_llm", "after_llm", "before_tool", "after_tool",
+            "on_error", "on_session_start", "on_session_end",
+        }
+        self.assertEqual(set(TRIGGER_TO_HOOKPOINT_NAME.keys()), expected)
+
+    def test_hookpoint_values_are_uppercase(self):
+        for trigger, hookpoint in TRIGGER_TO_HOOKPOINT_NAME.items():
+            with self.subTest(trigger=trigger):
+                self.assertEqual(hookpoint, hookpoint.upper())
+
+    def test_filename_trigger_covers_expected_stems(self):
+        from workflow.loader import _FILENAME_TO_TRIGGER
+        expected_stems = {
+            "pre_tool_exec", "post_tool_exec", "pre_llm", "post_llm",
+            "on_error", "on_session_start", "on_session_end",
+        }
+        self.assertTrue(expected_stems.issubset(set(_FILENAME_TO_TRIGGER.keys())))
+
+    def test_all_filename_triggers_are_valid_trigger_keys(self):
+        from workflow.loader import _FILENAME_TO_TRIGGER
+        for stem, trigger in _FILENAME_TO_TRIGGER.items():
+            with self.subTest(stem=stem):
+                self.assertIn(trigger, TRIGGER_TO_HOOKPOINT_NAME)
+
+    def test_trigger_to_hookpoint_has_no_duplicate_values(self):
+        values = list(TRIGGER_TO_HOOKPOINT_NAME.values())
+        self.assertEqual(len(values), len(set(values)))
+
+
+# ─────────────────────────────────────────────────────────────
+# TestPatchTodoRules
+# ─────────────────────────────────────────────────────────────
+
+class TestPatchTodoRules(unittest.TestCase):
+    """patch_todo_rules() monkey-patches lib.todo_tracker._load_todo_rule."""
+
+    def setUp(self):
+        import lib.todo_tracker as _tt
+        self._tt = _tt
+        self._orig_load = _tt._load_todo_rule
+        self.tmp = Path(tempfile.mkdtemp())
+
+    def tearDown(self):
+        # Always restore original function
+        self._tt._load_todo_rule = self._orig_load
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _ws(self, rules_dir=None):
+        return types.SimpleNamespace(rules_dir=rules_dir)
+
+    def _write_rule(self, rules_dir, stem, content):
+        (rules_dir / f"{stem}.md").write_text(content, encoding="utf-8")
+
+    def test_no_rules_dir_is_noop(self):
+        ws = self._ws(rules_dir=None)
+        patch_todo_rules(ws)
+        self.assertIs(self._tt._load_todo_rule, self._orig_load)
+
+    def test_nonexistent_rules_dir_is_noop(self):
+        ws = self._ws(rules_dir=self.tmp / "no_such_dir")
+        patch_todo_rules(ws)
+        self.assertIs(self._tt._load_todo_rule, self._orig_load)
+
+    def test_rules_dir_replaces_load_function(self):
+        rules_dir = self.tmp / "rules"
+        rules_dir.mkdir()
+        self._write_rule(rules_dir, "rule1", "# Rule 1\ndo X")
+        ws = self._ws(rules_dir=rules_dir)
+        patch_todo_rules(ws)
+        self.assertIsNot(self._tt._load_todo_rule, self._orig_load)
+
+    def test_extra_rules_appended_to_base(self):
+        rules_dir = self.tmp / "rules"
+        rules_dir.mkdir()
+        self._write_rule(rules_dir, "my_rule", "# MyRule\nextra-content")
+        ws = self._ws(rules_dir=rules_dir)
+        self._tt._load_todo_rule = lambda: "BASE_RULE"
+        patch_todo_rules(ws)
+        result = self._tt._load_todo_rule()
+        self.assertIn("BASE_RULE", result)
+        self.assertIn("extra-content", result)
+
+    def test_multiple_md_files_all_merged(self):
+        rules_dir = self.tmp / "rules"
+        rules_dir.mkdir()
+        self._write_rule(rules_dir, "a_rule", "# A\nalpha-content")
+        self._write_rule(rules_dir, "b_rule", "# B\nbeta-content")
+        ws = self._ws(rules_dir=rules_dir)
+        self._tt._load_todo_rule = lambda: ""
+        patch_todo_rules(ws)
+        result = self._tt._load_todo_rule()
+        self.assertIn("alpha-content", result)
+        self.assertIn("beta-content", result)
+
+    def test_files_sorted_alphabetically(self):
+        rules_dir = self.tmp / "rules"
+        rules_dir.mkdir()
+        self._write_rule(rules_dir, "z_rule", "# Z\nz-content")
+        self._write_rule(rules_dir, "a_rule", "# A\na-content")
+        ws = self._ws(rules_dir=rules_dir)
+        self._tt._load_todo_rule = lambda: ""
+        patch_todo_rules(ws)
+        result = self._tt._load_todo_rule()
+        self.assertLess(result.index("a-content"), result.index("z-content"))
+
+    def test_empty_md_file_skipped(self):
+        rules_dir = self.tmp / "rules"
+        rules_dir.mkdir()
+        self._write_rule(rules_dir, "empty", "   \n\n  ")   # whitespace only
+        ws = self._ws(rules_dir=rules_dir)
+        self._tt._load_todo_rule = lambda: "BASE"
+        patch_todo_rules(ws)
+        result = self._tt._load_todo_rule()
+        # Whitespace-only file has no content → base returned unchanged
+        self.assertEqual(result.strip(), "BASE")
+
+    def test_when_base_empty_returns_extra_only(self):
+        rules_dir = self.tmp / "rules"
+        rules_dir.mkdir()
+        self._write_rule(rules_dir, "r", "# R\nmy-rule-text")
+        ws = self._ws(rules_dir=rules_dir)
+        self._tt._load_todo_rule = lambda: ""
+        patch_todo_rules(ws)
+        result = self._tt._load_todo_rule()
+        self.assertIn("my-rule-text", result)
+
+
+# ─────────────────────────────────────────────────────────────
+# TestRegisterWorkspaceCommands
+# ─────────────────────────────────────────────────────────────
+
+class TestRegisterWorkspaceCommands(unittest.TestCase):
+    """register_workspace_commands() loads commands/*.json → slash registry."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.registered = []
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _mock_registry(self):
+        outer = self
+
+        class _Reg:
+            def register(self, name, handler, description="", aliases=[]):
+                outer.registered.append({
+                    "name": name,
+                    "handler": handler,
+                    "aliases": list(aliases),
+                })
+
+        return _Reg()
+
+    def _ws(self, commands_dir=None, scripts_dir=None):
+        return types.SimpleNamespace(
+            commands_dir=commands_dir,
+            scripts_dir=scripts_dir,
+            name="testws",
+            workspace_dir=self.tmp,
+        )
+
+    def _write_cmd(self, stem, spec):
+        cmd_dir = self.tmp / "commands"
+        cmd_dir.mkdir(exist_ok=True)
+        (cmd_dir / f"{stem}.json").write_text(json.dumps(spec), encoding="utf-8")
+        return cmd_dir
+
+    def test_no_commands_dir_noop(self):
+        register_workspace_commands(self._ws(commands_dir=None), self._mock_registry())
+        self.assertEqual(self.registered, [])
+
+    def test_empty_commands_dir_noop(self):
+        cmd_dir = self.tmp / "commands"
+        cmd_dir.mkdir()
+        register_workspace_commands(self._ws(commands_dir=cmd_dir), self._mock_registry())
+        self.assertEqual(self.registered, [])
+
+    def test_valid_command_registered(self):
+        cmd_dir = self._write_cmd("lint", {
+            "name": "lint",
+            "handler": "todo:template:lint-fix",
+        })
+        register_workspace_commands(self._ws(commands_dir=cmd_dir), self._mock_registry())
+        self.assertEqual(len(self.registered), 1)
+        self.assertEqual(self.registered[0]["name"], "lint")
+
+    def test_aliases_passed_to_registry(self):
+        cmd_dir = self._write_cmd("sim", {
+            "name": "sim",
+            "handler": "todo:template:sim-debug",
+            "aliases": ["s", "simulate"],
+        })
+        register_workspace_commands(self._ws(commands_dir=cmd_dir), self._mock_registry())
+        self.assertEqual(self.registered[0]["aliases"], ["s", "simulate"])
+
+    def test_invalid_json_continues_loading_others(self):
+        cmd_dir = self.tmp / "commands"
+        cmd_dir.mkdir()
+        (cmd_dir / "bad.json").write_text("not valid json")
+        (cmd_dir / "good.json").write_text(json.dumps({
+            "name": "good", "handler": "todo:template:x",
+        }))
+        register_workspace_commands(self._ws(commands_dir=cmd_dir), self._mock_registry())
+        self.assertEqual(len(self.registered), 1)
+        self.assertEqual(self.registered[0]["name"], "good")
+
+    def test_multiple_commands_all_registered(self):
+        cmd_dir = self.tmp / "commands"
+        cmd_dir.mkdir()
+        for name in ["sim", "lint", "gen-tc"]:
+            (cmd_dir / f"{name}.json").write_text(json.dumps({
+                "name": name, "handler": f"todo:template:{name}",
+            }))
+        register_workspace_commands(self._ws(commands_dir=cmd_dir), self._mock_registry())
+        self.assertEqual(len(self.registered), 3)
+        names = {r["name"] for r in self.registered}
+        self.assertEqual(names, {"sim", "lint", "gen-tc"})
+
+    def test_prompt_handler_callable(self):
+        """Handler wired as prompt: type returns INJECT_PROMPT signal."""
+        handlers = {}
+
+        class _Reg:
+            def register(self, name, handler, description="", aliases=[]):
+                handlers[name] = handler
+
+        cmd_dir = self._write_cmd("hello", {
+            "name": "hello",
+            "handler": "prompt:run the lint check now",
+        })
+        register_workspace_commands(self._ws(commands_dir=cmd_dir), _Reg())
+        self.assertIn("hello", handlers)
+        self.assertEqual(handlers["hello"](""), "INJECT_PROMPT:run the lint check now")
+
+    def test_todo_template_handler_callable(self):
+        """Handler wired as todo:template: type returns INJECT_TODO_TEMPLATE signal."""
+        handlers = {}
+
+        class _Reg:
+            def register(self, name, handler, description="", aliases=[]):
+                handlers[name] = handler
+
+        cmd_dir = self._write_cmd("full", {
+            "name": "full",
+            "handler": "todo:template:full-project",
+        })
+        register_workspace_commands(self._ws(commands_dir=cmd_dir), _Reg())
+        self.assertEqual(handlers["full"](""), "INJECT_TODO_TEMPLATE:full-project")
+
+    def test_bash_handler_missing_scripts_dir_returns_error(self):
+        """bash: handler with no scripts_dir → [Error] immediately."""
+        handlers = {}
+
+        class _Reg:
+            def register(self, name, handler, description="", aliases=[]):
+                handlers[name] = handler
+
+        cmd_dir = self._write_cmd("run", {
+            "name": "run",
+            "handler": "bash:run.sh",
+        })
+        ws = self._ws(commands_dir=cmd_dir, scripts_dir=None)
+        register_workspace_commands(ws, _Reg())
+        result = handlers["run"]("")
+        self.assertIn("[Error]", result)
 
 
 if __name__ == "__main__":

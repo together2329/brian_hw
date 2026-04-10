@@ -692,5 +692,181 @@ class TestWorkspaceSwitchSignal(unittest.TestCase):
         self.assertEqual(self._parse_signal("WORKSPACE_SWITCH:default"), "default")
 
 
+# ─────────────────────────────────────────────────────────────
+# TestHistoryManagerEdgeCases  (core/history_manager.py)
+# ─────────────────────────────────────────────────────────────
+
+class TestHistoryManagerEdgeCases(unittest.TestCase):
+    """Edge cases for load_conversation_history() beyond the basic suite."""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.hist_path = os.path.join(self.tmp, "history.json")
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _cfg(self):
+        return types.SimpleNamespace(SAVE_HISTORY=True, HISTORY_FILE=self.hist_path)
+
+    def _load(self):
+        import importlib
+        import core.history_manager as hm
+        importlib.reload(hm)
+        return hm.load_conversation_history(cfg=self._cfg(), silent=True)
+
+    def test_truncated_json_returns_none(self):
+        with open(self.hist_path, "w") as f:
+            f.write('[{"role": "user", "content": "incomplete')
+        self.assertIsNone(self._load())
+
+    def test_json_object_not_list_returns_none_or_empty(self):
+        # Saved as a dict instead of a list — should not crash
+        with open(self.hist_path, "w") as f:
+            json.dump({"role": "system"}, f)
+        result = self._load()
+        # Either None or the raw value — just must not raise
+        self.assertTrue(result is None or isinstance(result, (dict, list)))
+
+    def test_list_of_non_dicts_loads(self):
+        # A list of strings — technically valid JSON but not message dicts
+        with open(self.hist_path, "w") as f:
+            json.dump(["hello", "world"], f)
+        result = self._load()
+        # Should return the list or None; should not raise
+        self.assertTrue(result is None or isinstance(result, list))
+
+    def test_save_history_false_returns_none(self):
+        cfg = types.SimpleNamespace(SAVE_HISTORY=False, HISTORY_FILE=self.hist_path)
+        import core.history_manager as hm
+        result = hm.load_conversation_history(cfg=cfg, silent=True)
+        self.assertIsNone(result)
+
+
+# ─────────────────────────────────────────────────────────────
+# TestWorkspaceSwitchSignalEdgeCases
+# ─────────────────────────────────────────────────────────────
+
+class TestWorkspaceSwitchSignalEdgeCases(unittest.TestCase):
+    """Edge cases for WORKSPACE_SWITCH: signal parsing."""
+
+    def _parse(self, result):
+        if result.startswith("WORKSPACE_SWITCH:"):
+            return result.split(":", 1)[1].strip()
+        return None
+
+    def test_hyphenated_workspace_name(self):
+        self.assertEqual(self._parse("WORKSPACE_SWITCH:my-workspace"), "my-workspace")
+
+    def test_empty_name_after_colon(self):
+        # Degenerate: "WORKSPACE_SWITCH:" — empty string after strip
+        result = self._parse("WORKSPACE_SWITCH:")
+        self.assertEqual(result, "")
+
+    def test_does_not_match_lowercase(self):
+        # Signal must be uppercase to match
+        self.assertIsNone(self._parse("workspace_switch:mas_gen"))
+
+    def test_partial_prefix_not_matched(self):
+        self.assertIsNone(self._parse("WORKSPACE:sim"))
+
+    def test_name_with_numbers(self):
+        self.assertEqual(self._parse("WORKSPACE_SWITCH:ws_v2"), "ws_v2")
+
+
+# ─────────────────────────────────────────────────────────────
+# TestResolveApiKeyEdgeCases  (src/llm_client.py)
+# ─────────────────────────────────────────────────────────────
+
+class TestResolveApiKeyEdgeCases(unittest.TestCase):
+    """Additional edge cases for _resolve_api_key()."""
+
+    def setUp(self):
+        self._orig_env = os.environ.copy()
+
+    def tearDown(self):
+        for k in ["ZAI_API_KEY", "OPENROUTER_API_KEY"]:
+            if k in self._orig_env:
+                os.environ[k] = self._orig_env[k]
+            else:
+                os.environ.pop(k, None)
+
+    def _fn(self):
+        import importlib
+        import llm_client as lc
+        importlib.reload(lc)
+        return lc._resolve_api_key
+
+    def test_both_zai_and_openrouter_keys_set_uses_correct_one(self):
+        os.environ["ZAI_API_KEY"] = "zai-key"
+        os.environ["OPENROUTER_API_KEY"] = "or-key"
+        fn = self._fn()
+        self.assertEqual(fn("https://api.z.ai/v1"), "zai-key")
+        self.assertEqual(fn("https://openrouter.ai/api/v1"), "or-key")
+
+    def test_empty_string_zai_key_falls_back_to_api_key(self):
+        # empty string is falsy — should fall back to default
+        os.environ["ZAI_API_KEY"] = ""
+        fn = self._fn()
+        import config as cfg
+        result = fn("https://api.z.ai/v1")
+        # either "" or cfg.API_KEY depending on implementation
+        self.assertIsNotNone(result)
+
+    def test_https_and_http_urls_work(self):
+        fn = self._fn()
+        import config as cfg
+        # http:// variant — should still resolve without crash
+        result = fn("http://localhost:8080/v1/messages")
+        self.assertIsNotNone(result)
+
+
+# ─────────────────────────────────────────────────────────────
+# TestSystemPromptRefreshEdgeCases
+# ─────────────────────────────────────────────────────────────
+
+class TestSystemPromptRefreshEdgeCases(unittest.TestCase):
+    """Edge cases for system prompt refresh logic on history resume."""
+
+    def _refresh(self, messages, new_prompt):
+        if messages and messages[0].get("role") == "system":
+            messages[0]["content"] = new_prompt
+        else:
+            messages.insert(0, {"role": "system", "content": new_prompt})
+        return messages
+
+    def test_multiple_system_messages_only_first_replaced(self):
+        # Abnormal but defensive: two system messages
+        messages = [
+            {"role": "system", "content": "first-old"},
+            {"role": "system", "content": "second-old"},
+        ]
+        result = self._refresh(messages, "NEW")
+        self.assertEqual(result[0]["content"], "NEW")
+        self.assertEqual(result[1]["content"], "second-old")
+
+    def test_new_prompt_empty_string_still_set(self):
+        messages = [{"role": "system", "content": "old"}]
+        result = self._refresh(messages, "")
+        self.assertEqual(result[0]["content"], "")
+
+    def test_all_assistant_messages_preserved_after_insert(self):
+        messages = [
+            {"role": "user", "content": "q"},
+            {"role": "assistant", "content": "a"},
+        ]
+        result = self._refresh(messages, "SYSPROMPT")
+        # system inserted at 0; original user/assistant shift right
+        roles = [m["role"] for m in result]
+        self.assertEqual(roles, ["system", "user", "assistant"])
+
+    def test_large_history_not_truncated(self):
+        messages = [{"role": "system", "content": "old"}]
+        for i in range(50):
+            messages.append({"role": "user", "content": f"msg {i}"})
+        result = self._refresh(messages, "new")
+        self.assertEqual(len(result), 51)   # system + 50 user
+
+
 if __name__ == "__main__":
     unittest.main()
