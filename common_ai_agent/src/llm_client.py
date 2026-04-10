@@ -1064,6 +1064,8 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         _ns_read = _t_done - _t_connected
         if _perf:
             print(f"  \033[2m[PERF/LLM] response_read: {_ns_read:.3f}s\033[0m")
+    except urllib.error.HTTPError:
+        raise  # Let streaming caller handle 401/429/5xx properly (no silent empty-response)
     except Exception as e:
         if _spinner:
             _spinner.stop()
