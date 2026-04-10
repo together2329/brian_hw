@@ -467,7 +467,8 @@ def parse_value(text: str) -> Tuple[Any, int]:
         quote = text[:3]
         end_pos = text.find(quote, 3)
         if end_pos == -1:
-            raise ValueError("Unclosed triple-quote string")
+            # Auto-close: treat rest of text as the string value
+            return text[3:], len(text)
         return text[3:end_pos], end_pos + 3
 
     # Regular quoted strings
@@ -494,7 +495,9 @@ def parse_value(text: str) -> Tuple[Any, int]:
             else:
                 value += text[i]
                 i += 1
-        raise ValueError("Unclosed string")
+        # Auto-close: treat rest of text as the string value instead of crashing.
+        # This handles truncated LLM output where the closing quote was cut off.
+        return value, len(text)
 
     # JSON list or dict
     if text.startswith('[') or text.startswith('{'):
