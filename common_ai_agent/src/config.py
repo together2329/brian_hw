@@ -978,6 +978,29 @@ Focus on using the right tools for the task at hand.
 LEGACY_SYSTEM_PROMPT = SYSTEM_PROMPT
 
 
+def _load_prompt_fragment(filename: str):
+    """
+    Load workflow/prompts/<filename>. Returns None if not found (→ hardcoded fallback).
+    Priority:
+      1. Active workspace prompts/<filename>   (workspace-specific override)
+      2. workflow/prompts/<filename>            (shared fragment)
+    """
+    import builtins as _b
+    candidates = []
+    ws_msgs = getattr(_b, "_WORKSPACE_HOOK_MESSAGES", {})
+    ws_dir = ws_msgs.get("_workspace_dir")
+    if ws_dir:
+        candidates.append(Path(ws_dir) / "prompts" / filename)
+    candidates.append(Path(__file__).parent.parent / "workflow" / "prompts" / filename)
+    for p in candidates:
+        try:
+            if p.exists():
+                return p.read_text(encoding="utf-8").strip()
+        except Exception:
+            pass
+    return None
+
+
 def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False, todo_active: bool = False) -> str:
     """
     Build compact system prompt (~5K tokens).
@@ -1120,8 +1143,9 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     parts = []
 
     # Identity
+    _identity = _load_prompt_fragment("identity.md")
     parts.append(
-        "You are Common AI Agent, an intelligent coding agent.\n"
+        (_identity + "\n") if _identity else "You are Common AI Agent, an intelligent coding agent.\n"
     )
 
     # Format
@@ -1133,15 +1157,18 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
             "You may call multiple tools in one turn for parallel execution.\n"
         )
     else:
+        _fmt = _load_prompt_fragment("format.md")
         parts.append(
-            "FORMAT (strict ReAct loop):\n"
-            "Thought: [reasoning]\n"
-            "Action: tool_name(arg=\"value\")\n"
-            "- Multiple Actions per turn = parallel execution.\n"
-            "- Use triple quotes for multi-line: content=\"\"\"...\"\"\".\n"
-            "- NEVER generate \"Observation:\" — the system provides it.\n"
-            "- NEVER say 'Let me check...' or 'I will...' without an Action in the same turn.\n"
-            "- If you need information, call the tool NOW — do not narrate first.\n"
+            (_fmt + "\n") if _fmt else (
+                "FORMAT (strict ReAct loop):\n"
+                "Thought: [reasoning]\n"
+                "Action: tool_name(arg=\"value\")\n"
+                "- Multiple Actions per turn = parallel execution.\n"
+                "- Use triple quotes for multi-line: content=\"\"\"...\"\"\".\n"
+                "- NEVER generate \"Observation:\" — the system provides it.\n"
+                "- NEVER say 'Let me check...' or 'I will...' without an Action in the same turn.\n"
+                "- If you need information, call the tool NOW — do not narrate first.\n"
+            )
         )
 
     # Tool table (skip in native mode — LLM sees schemas via API tools param)
@@ -1182,6 +1209,18 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     elif _upd_rule_text:
         # Legacy: append after rules (lower priority)
         parts.append("\n=== PROJECT RULES ===\n" + _upd_rule_text + "\n=====================")
+
+    # Core rules — try loading from file first, fall back to hardcoded
+    _rules_file = _load_prompt_fragment("rules_normal.md") if not plan_mode else None
+    if _rules_file:
+        parts.append(_rules_file + "\n")
+        # Append Plan Mode instructions if active
+        if plan_mode:
+            _plan_rules = _load_prompt_fragment("rules_plan.md")
+            if _plan_rules:
+                parts.append(_plan_rules + "\n")
+            parts.append(PLAN_MODE_PROMPT)
+        return "\n".join(parts)
 
     # Core rules (compressed) — PROJECT RULES above override these if they conflict
     rules_parts = [
@@ -1234,6 +1273,9 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
 
     # Append Plan Mode instructions if active
     if plan_mode:
+        _plan_rules = _load_prompt_fragment("rules_plan.md")
+        if _plan_rules:
+            parts.append(_plan_rules + "\n")
         parts.append(PLAN_MODE_PROMPT)
 
     return "\n".join(parts)

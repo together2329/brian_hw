@@ -1,0 +1,31 @@
+{
+  "name": "testbench",
+  "description": "Testbench development: stimulus → assertions → simulation loop",
+  "tasks": [
+    {
+      "content": "Review DUT interface and identify all test scenarios",
+      "detail": "Read the DUT source. List: corner cases, reset behavior, overflow conditions, protocol edge cases. Each scenario becomes a test vector.",
+      "priority": "high"
+    },
+    {
+      "content": "Write testbench with all test scenarios",
+      "detail": "tb_<module>.sv: instantiate DUT, generate clk, apply reset, implement all test vectors from task 1. Print PASS/FAIL per test. Sum totals at end.",
+      "priority": "high"
+    },
+    {
+      "content": "Simulation passed: 0 errors, 0 warnings",
+      "activeForm": "Running simulation (attempt {loop_count}/{max_loop_iterations})...",
+      "detail": "Run: bash scripts/sim.sh tb_<module>.sv. All tests must PASS. Fix DUT or testbench as needed.",
+      "loop": true,
+      "max_loop_iterations": 15,
+      "exit_condition": "0 errors, 0 warnings",
+      "validator": "bash scripts/check_sim_pass.sh",
+      "priority": "high"
+    },
+    {
+      "content": "Code coverage review (optional)",
+      "detail": "Check that all branches in the DUT are exercised. Add test vectors for uncovered branches if needed.",
+      "priority": "low"
+    }
+  ]
+}

@@ -1,154 +1,134 @@
 # Workflow Workspace System — Progress
 
 **Branch**: `feature_workflow`
-**Working dir**: `/Users/brian/Desktop/Project/new_feature/`
-**Source**: `/Users/brian/Desktop/Project/brian_hw/common_ai_agent/`
-**Verified**: `python3 workflow/integrate.py -w verilog` → 10/10 PASS
+**Working dir**: `/Users/brian/Desktop/Project/brian_hw_modifiable/common_ai_agent/`
+**Verified**: `python3 workflow/integrate.py -w verilog` → 13/13 PASS
 
 ---
 
-## Status: COMPLETE ✅
+## Status: Phase 2 COMPLETE ✅
 
-All 12 implementation steps finished. Both locations are in sync:
-- `new_feature/workflow/` — source of truth (git branch)
-- `brian_hw/common_ai_agent/workflow/` — live copy (where agent runs)
+All Phase 1 + Phase 2 implementation steps finished.
 
 ---
 
 ## What Was Built
 
-### workflow/ folder structure (40 files)
-
-```
-workflow/
-├── loader.py                        ✅ WorkspaceConfig, load_workspace(), merge_prompt(),
-│                                       patch_todo_rules(), register_script_hooks(),
-│                                       TodoTemplateRegistry, _check_script_conditions()
-├── integrate.py                     ✅ 10-check verification script
-│                                       Usage: python3 workflow/integrate.py -w <name>
-│
-├── prompts/                         ✅ Shared prompt fragments
-│   ├── format.md                    ReAct loop output format rules
-│   ├── rules_normal.md              Normal execution mode rules
-│   ├── rules_plan.md                Plan mode rules
-│   ├── identity.md                  Agent identity string
-│   ├── section_experience.md        PAST EXPERIENCE header template
-│   ├── section_knowledge.md         RELEVANT KNOWLEDGE header template
-│   └── section_skills.md            ACTIVE SKILLS header template
-│
-├── default/                         ✅ Default workspace (no-op overrides)
-│   ├── workspace.json
-│   ├── system_prompt.md
-│   ├── plan_prompt.md
-│   ├── todo_prompt.md               Template key/variable reference doc
-│   ├── compression_prompt.md        STRUCTURED_SUMMARY_PROMPT exact content
-│   ├── hook_messages.json           All 11 hook message templates
-│   ├── rules/default.md
-│   └── todo_templates/
-│       ├── bugfix.json
-│       ├── feature.json
-│       └── refactor.json
-│
-├── verilog/                         ✅ RTL design workspace
-│   ├── workspace.json               env overrides, force_skills: [verilog-expert, testbench-expert]
-│   ├── system_prompt.md             RTL-specific rules (prepend mode)
-│   ├── plan_prompt.md
-│   ├── compression_prompt.md
-│   ├── hook_messages.json           4 verilog-specific message overrides
-│   ├── rules/verilog-workflow.md
-│   ├── scripts/
-│   │   ├── hooks.json               4 scheduled hooks
-│   │   ├── benchmark_tick.sh        Records iter → .benchmark/iterations.jsonl
-│   │   ├── post_write.sh            Records .v/.sv write events → writes.jsonl
-│   │   ├── error_capture.sh         Snapshots errors → error_snapshots/
-│   │   └── benchmark_report.sh      Session summary on session end
-│   └── todo_templates/
-│       ├── rtl-module.json          4 tasks, last has loop=true, max=10, exit_condition
-│       └── testbench.json
-│
-└── spec-review/                     ✅ Hardware spec review workspace
-    ├── workspace.json               force_skills: [pcie-expert, nvme-expert, ucie-expert, spec-navigator]
-    ├── system_prompt.md             MANDATORY spec_search, cite §X.Y.Z
-    ├── plan_prompt.md
-    ├── compression_prompt.md        Preserves section refs verbatim
-    ├── rules/spec-review-rules.md   5 strict rules (no memory answers, etc.)
-    ├── scripts/
-    │   ├── hooks.json
-    │   └── post_session.sh          Saves session summary on end
-    └── todo_templates/
-        └── spec-analysis.json       4 tasks: map → analyze → cross-ref → summarize
-```
-
----
-
-## common_ai_agent Source Patches Applied
+### Phase 1 — Workspace Foundation
 
 | File | What changed |
 |------|-------------|
-| `src/config.py` | `_apply_workspace_env_early()` — applies workspace.json env BEFORE load_env_file() |
+| `workflow/loader.py` | `WorkspaceConfig`, `load_workspace()`, `merge_prompt()`, `patch_todo_rules()`, `register_script_hooks()`, `TodoTemplateRegistry`, `_check_script_conditions()` |
+| `workflow/integrate.py` | 13-check verification script |
+| `workflow/prompts/` | Shared prompt fragments (identity, format, rules_normal, rules_plan) |
+| `workflow/default/` | Default workspace (workspace.json, system_prompt, plan_prompt, compression_prompt, hook_messages, rules, todo_templates ×3) |
+| `workflow/spec-review/` | Spec review workspace (force_skills: pcie/nvme/ucie-expert) |
+| `src/config.py` | `_apply_workspace_env_early()` — workspace env before load_env_file() |
 | `src/main.py` | `_workspace_config`, `_setup_workspace(name)`, `-w/--workspace` argparse |
 | `core/hooks.py` | `_get_hook_message()` helper + replaced 3 hardcoded messages |
 | `core/compressor.py` | `_load_default_compression_prompt()` — loads from workflow/default/ first |
 | `core/skill_system/loader.py` | `extra_dirs: list` in SkillLoader |
 | `core/slash_commands.py` | `/todo templates` list + `/todo template <name>` load |
-| `lib/todo_tracker.py` | 5 loop fields in TodoItem, loop state machine in mark_completed(), get_active_form(), to_dict() serialization, get_continuation_prompt() loop branch |
+| `lib/todo_tracker.py` | 5 loop fields in TodoItem, loop state machine in `mark_completed()`, `get_active_form()`, serialization, continuation prompt branch |
+
+### Phase 2 — Harness Engineering System
+
+| Feature | Files | Description |
+|---------|-------|-------------|
+| **Custom slash commands** | `workflow/loader.py` — `register_workspace_commands()`, `_make_command_handler()` | Loads `commands/*.json` per workspace, registers into SlashCommandRegistry. Handlers: bash/todo-template/prompt |
+| **Todo Task Validator** | `lib/todo_tracker.py` — `validator` field + `run_validator()` | Shell command run before mark_completed(); non-zero = auto-reject with reason |
+| **Prompt fragment loader** | `src/config.py` — `_load_prompt_fragment()` | Loads `workflow/prompts/<file>` into identity/format/rules sections with hardcoded fallback |
+| **Plan mode rules** | `workflow/prompts/rules_plan.md` | 8 plan-mode-specific rules, injected before PLAN_MODE_PROMPT |
+| **main.py wiring** | `src/main.py` step 10 | `register_workspace_commands(ws, slash_registry)` called in `_setup_workspace()` |
+| **verilog workspace** | `workflow/verilog/` | RTL dev workspace — see structure below |
+
+---
+
+## workflow/verilog/ Structure
+
+```
+workflow/verilog/
+├── workspace.json               env: MAX_ITERATIONS=200, skills.force_activate: [verilog-expert]
+├── system_prompt.md             20 RTL rules (nonblocking/blocking, synthesis-safe, sim, lint)
+├── plan_prompt.md               7 RTL plan-mode rules (loop tasks, validators)
+├── compression_prompt.md        Preserves module names, port lists, sim status, file paths
+├── rules/
+│   └── verilog-workflow.md      Design/sim/lint/loop-task workflow rules
+├── commands/
+│   ├── lint.json                /lint [file.v] → bash:scripts/lint.sh
+│   ├── sim.json                 /sim [tb.sv]   → bash:scripts/sim.sh
+│   └── report.json              /report        → bash:scripts/benchmark_report.sh
+├── scripts/
+│   ├── hooks.json               3 hooks: post_write (.v/.sv), benchmark_tick (every iter), error_capture (on run_command errors)
+│   ├── benchmark_tick.sh        Records iteration timestamp → .benchmark
+│   ├── post_write.sh            Logs RTL file writes → .benchmark
+│   ├── error_capture.sh         Snapshots error lines from tool output → .benchmark
+│   ├── benchmark_report.sh      Session summary (iters, sim pass/fail, writes, error snaps)
+│   ├── lint.sh                  Lint via verilator or iverilog; logs result
+│   ├── sim.sh                   Compile+run simulation; logs PASS/FAIL
+│   └── check_sim_pass.sh        Validator: checks TOOL_OUTPUT contains "0 errors, 0 warnings"
+└── todo_templates/
+    ├── rtl-module.json           5 tasks: interface → internals → testbench → sim-loop (validator) → lint
+    └── testbench.json            4 tasks: scenarios → write tb → sim-loop (validator) → coverage
+```
 
 ---
 
 ## Key Design Decisions
 
-- **No circular imports**: hook messages stored in `builtins._WORKSPACE_HOOK_MESSAGES` so hooks.py never imports from workflow/
-- **Config priority**: shell env > workspace.json [env] > .config > .env (via _apply_workspace_env_early)
-- **Prompt merge modes**: prepend / append / replace — verilog uses prepend, spec-review uses replace
+- **No circular imports**: hook messages stored in `builtins._WORKSPACE_HOOK_MESSAGES`
+- **Config priority**: shell env > workspace.json [env] > .config > .env
+- **Prompt merge modes**: prepend / append / replace
 - **Loop state machine**: `mark_completed(tool_output=...)` → exit_condition check → approved or in_progress restart
-- **Script hook conditions**: 7 condition types (tool_names, file_extensions, every_n_iterations, min/max_iteration, output_contains, output_not_contains)
-- **TodoTemplateRegistry** methods: `list()` / `list_templates()` / `get()` / `get_template()` / `get_tasks()` (aliases for compatibility)
+- **Validator = assertion**: shell cmd, returncode != 0 → auto-reject, stderr = rejection_reason
+- **Commands = fixtures**: JSON spec → callable handler registered in SlashCommandRegistry at session start
+- **Script hook conditions**: 7 types (tool_names, file_extensions, every_n_iterations, min/max_iteration, output_contains, output_not_contains)
+- **Prompt fragments**: `_load_prompt_fragment(filename)` → workspace override → shared workflow/prompts/ → hardcoded fallback
 
 ---
 
 ## How to Use
 
 ```bash
-# Run verification
+# Verification
 cd common_ai_agent
-python3 workflow/integrate.py -w verilog     # all checks
-python3 workflow/integrate.py -w spec-review
+python3 workflow/integrate.py              # default workspace
+python3 workflow/integrate.py -w verilog   # 13/13 PASS
 
 # Run with workspace
-python3 src/main.py                          # no workspace (default behavior)
-python3 src/main.py -w default              # explicit default
-python3 src/main.py -w verilog             # RTL mode
-python3 src/main.py -w spec-review         # spec review mode
+python3 src/main.py                        # no workspace
+python3 src/main.py -w default            # explicit default
+python3 src/main.py -w verilog           # RTL mode (MAX_ITERATIONS=200, verilog-expert)
+python3 src/main.py -w spec-review       # spec review mode
 
-# In-session slash commands
-/todo templates                             # list available templates
-/todo template rtl-module                   # load 4-task RTL workflow (loop on sim)
-/todo template spec-analysis               # load 4-task spec analysis workflow
+# In-session — verilog workspace commands
+/lint [file.v]                            # RTL lint via verilator/iverilog
+/sim [tb.sv]                             # Run simulation, log to .benchmark
+/report                                  # Session benchmark summary
+
+# Todo templates
+/todo templates                           # list available
+/todo template rtl-module                # 5-task RTL workflow (loop+validator on sim)
+/todo template testbench                 # 4-task testbench workflow
+/todo template spec-analysis            # spec-review workspace template
 ```
 
 ---
 
-## Todo Loop Example
+## Todo Loop + Validator Example
 
 ```
 /todo template rtl-module
-# → Task 4: "Simulation passed: 0 errors, 0 warnings" with loop=true
+# Task 4: "Simulation passed: 0 errors, 0 warnings"
+# loop=true, max_loop_iterations=10, validator="bash scripts/check_sim_pass.sh"
 
 # Attempt 1 — sim fails:
 todo_update(index=4, status="completed", tool_output="Error: undeclared signal")
-# → exit_condition "0 errors, 0 warnings" NOT in output → loop_count=1, back to in_progress
+# → validator runs: exit 1 → auto-rejected with reason
+# → exit_condition NOT met → loop_count=1, back to in_progress
 
-# Attempt 2 — sim passes:
+# Attempt N — sim passes:
 todo_update(index=4, status="completed", tool_output="Simulation: 0 errors, 0 warnings")
-# → exit_condition met → status=approved automatically
+# → validator runs: exit 0 → OK
+# → exit_condition met → status=approved
 ```
-
----
-
-## Remaining / Future Work
-
-Nothing blocking. Possible extensions if needed:
-- `workflow/prompts/` fragments not yet wired into `build_base_system_prompt()` — currently informational only
-- No `verilog/system_prompt.md` content verified against actual verilog-expert skill (manual review recommended)
-- Benchmark `.jsonl` output format not yet consumed by any visualization tool
-- `/todo template` does not yet merge with existing todos (always appends) — could add `--replace` flag
