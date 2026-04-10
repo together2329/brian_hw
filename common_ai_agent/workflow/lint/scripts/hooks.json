@@ -1,0 +1,20 @@
+{
+  "hooks": [
+    {
+      "script": "auto_lint.sh",
+      "trigger": "after_tool",
+      "conditions": {
+        "tool_names": ["write_file", "replace_in_file"],
+        "file_extensions": [".sv", ".v"]
+      }
+    },
+    {
+      "script": "error_log.sh",
+      "trigger": "after_tool",
+      "conditions": {
+        "tool_names": ["run_command"],
+        "output_contains": ["Error", "error:", "Warning"]
+      }
+    }
+  ]
+}

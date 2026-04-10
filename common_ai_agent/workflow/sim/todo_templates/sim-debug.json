@@ -1,0 +1,26 @@
+{
+  "name": "sim-debug",
+  "description": "Simulation debug cycle: compile → run → fix loop → report",
+  "tasks": [
+    {
+      "content": "Compile testbench: 0 compile errors",
+      "detail": "Run /compile tb_<module>.sv. Fix all compile errors (undeclared signals, port mismatches, missing includes) before running simulation.",
+      "priority": "high"
+    },
+    {
+      "content": "Simulation passed: 0 errors, 0 warnings",
+      "activeForm": "Running simulation (attempt {loop_count}/{max_loop_iterations})...",
+      "detail": "Run /sim tb_<module>.sv. For each [FAIL]: check expected vs actual, grep RTL for signal driver, fix DUT or TB. DUT bugs → [SIM ESCALATE] rtl_gen.",
+      "loop": true,
+      "max_loop_iterations": 20,
+      "exit_condition": "0 errors, 0 warnings",
+      "validator": "bash workflow/sim/scripts/check_sim_pass.sh",
+      "priority": "high"
+    },
+    {
+      "content": "Generate sim_report.txt",
+      "detail": "Run /report. Verify: status=PASS, errors=0, warnings=0, all tests listed.",
+      "priority": "normal"
+    }
+  ]
+}

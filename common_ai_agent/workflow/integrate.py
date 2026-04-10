@@ -146,14 +146,6 @@ def check_workflow_files(root: Path) -> tuple[bool, str]:
         "workflow/default/todo_templates/bugfix.json",
         "workflow/default/todo_templates/feature.json",
         "workflow/default/todo_templates/refactor.json",
-        "workflow/verilog/workspace.json",
-        "workflow/verilog/scripts/hooks.json",
-        "workflow/verilog/scripts/benchmark_tick.sh",
-        "workflow/verilog/scripts/post_write.sh",
-        "workflow/verilog/scripts/error_capture.sh",
-        "workflow/verilog/scripts/benchmark_report.sh",
-        "workflow/verilog/todo_templates/rtl-module.json",
-        "workflow/verilog/todo_templates/testbench.json",
         "workflow/spec-review/workspace.json",
         "workflow/spec-review/scripts/hooks.json",
         "workflow/spec-review/scripts/post_session.sh",
@@ -180,6 +172,21 @@ def check_workflow_files(root: Path) -> tuple[bool, str]:
         "workflow/tb_gen/scripts/check_sim_pass.sh",
         "workflow/tb_gen/scripts/gen_tc.sh",
         "workflow/tb_gen/todo_templates/tb-impl.json",
+        # sim workspace
+        "workflow/sim/workspace.json",
+        "workflow/sim/system_prompt.md",
+        "workflow/sim/scripts/hooks.json",
+        "workflow/sim/scripts/sim.sh",
+        "workflow/sim/scripts/compile.sh",
+        "workflow/sim/scripts/check_sim_pass.sh",
+        "workflow/sim/todo_templates/sim-debug.json",
+        # lint workspace
+        "workflow/lint/workspace.json",
+        "workflow/lint/system_prompt.md",
+        "workflow/lint/scripts/hooks.json",
+        "workflow/lint/scripts/lint_all.sh",
+        "workflow/lint/scripts/lint_file.sh",
+        "workflow/lint/todo_templates/lint-fix.json",
     ]
     missing = [f for f in required if not (root / f).exists()]
     if missing:
