@@ -1,0 +1,326 @@
+# Workflow Workspace System — Guide
+
+## What Is This?
+
+A **workspace** is a named configuration that changes how the AI agent behaves for a specific task domain.
+When you start the agent with `-w <name>`, it loads rules, prompts, commands, scripts, and todo templates
+tailored to that domain.
+
+```
+python3 src/main.py -w <workspace_name>
+```
+
+---
+
+## Available Workspaces
+
+| Workspace | Purpose | Key Commands |
+|-----------|---------|--------------|
+| `mas_gen` | Master orchestrator — full RTL project (SPEC→RTL→TB→SIM→DOC) | `/gen-rtl`, `/gen-tb`, `/gen-doc`, `/status` |
+| `rtl_gen` | RTL module implementation | `/lint`, `/syn-check` |
+| `tb_gen` | Testbench + test case + simulation | `/sim`, `/coverage`, `/gen-tc` |
+| `sim` | Simulation only (compile, run, debug, report) | `/sim`, `/compile`, `/wave`, `/report` |
+| `lint` | Lint only (fix errors/warnings, report) | `/lint-all`, `/lint-file`, `/report` |
+| `spec-review` | Hardware spec analysis | — |
+| `default` | No-op, uses base behavior | — |
+
+---
+
+## Quick Start
+
+### Full RTL Project (recommended)
+
+```bash
+python3 src/main.py -w mas_gen
+
+# In session:
+/todo template full-project       # load 6-task project pipeline
+/status                           # check current phase and files
+```
+
+**Flow:** SPEC → RTL (rtl_gen) → TB (tb_gen) → SIM loop → DOC
+
+---
+
+### RTL Only
+
+```bash
+python3 src/main.py -w rtl_gen
+
+/todo template rtl-impl           # 5 tasks: read spec → header → FF → comb → lint
+/lint <module>.sv                 # run lint
+/syn-check <module>.sv            # synthesis feasibility check
+```
+
+---
+
+### Testbench Only
+
+```bash
+python3 src/main.py -w tb_gen
+
+/todo template tb-impl            # 5 tasks: read DUT → tc skeleton → TB → sim loop → coverage
+/gen-tc <module>                  # generate tc_<module>.sv skeleton
+/sim tb_<module>.sv               # run simulation
+/coverage <module>                # check branch coverage
+```
+
+---
+
+### Simulation Debug
+
+```bash
+python3 src/main.py -w sim
+
+/todo template sim-debug          # 3 tasks: compile → sim loop → report
+/compile tb_<module>.sv           # compile only (check errors)
+/sim tb_<module>.sv               # compile + run
+/wave <module>.vcd                # inspect waveform signals
+/report                           # generate sim_report.txt
+```
+
+---
+
+### Lint Fix
+
+```bash
+python3 src/main.py -w lint
+
+/todo template lint-fix           # 5 tasks: run → fix errors → fix warnings → clean → report
+/lint-all                         # lint all RTL files in directory
+/lint-file <file>.sv              # lint single file
+/report                           # generate lint_report.txt
+```
+
+---
+
+## Common Todo Templates
+
+| Template | Workspace | Tasks |
+|----------|-----------|-------|
+| `full-project` | mas_gen | SPEC → RTL → lint gate → TB → sim loop → DOC |
+| `rtl-impl` | rtl_gen | read spec → header → FF blocks → comb blocks → lint |
+| `tb-impl` | tb_gen | read DUT → tc skeleton → write TB → sim loop → coverage |
+| `sim-debug` | sim | compile → sim loop (max 20) → report |
+| `lint-fix` | lint | run → fix errors → fix warnings → clean → report |
+| `bugfix` | default | standard bug fix workflow |
+| `feature` | default | standard feature development |
+| `spec-analysis` | spec-review | spec map → analyze → cross-ref → summarize |
+
+Load any template:
+```
+/todo templates               # list all available
+/todo template <name>         # load template tasks
+```
+
+---
+
+## Simulation Loop (auto-retry)
+
+Simulation tasks use `loop=true` — they automatically retry on failure:
+
+```
+Task: "Simulation passed: 0 errors, 0 warnings"
+Active: "Running simulation (attempt 2/20)..."
+
+# On fail → loop_count++ → back to in_progress
+todo_update(index=N, status="completed", tool_output="2 errors, 0 warnings")
+# → validator fails → auto-rejected → loop restarts
+
+# On pass → approved
+todo_update(index=N, status="completed", tool_output="0 errors, 0 warnings")
+# → validator passes → status=approved → next task
+```
+
+---
+
+## MAS Agent Handoff Protocol
+
+When mas_gen delegates to a sub-agent:
+
+```
+/gen-rtl <module>     →  prints [MAS HANDOFF] → rtl_gen rules
+/gen-tb <module>      →  prints [MAS HANDOFF] → tb_gen rules
+```
+
+When sub-agent completes:
+```
+[MAS RESULT] rtl_gen DONE    ← report back to mas_gen
+```
+
+When sub-agent finds DUT bug:
+```
+[SIM ESCALATE] rtl_gen
+Signal  : out_data
+Expected: 8'h05
+Got     : 8'hxx
+```
+
+---
+
+## Quality Gates (mas_gen)
+
+```
+SPEC done
+  ↓
+RTL implemented → /lint 0 errors  ← gate: TB cannot start until here
+  ↓
+TB written → compiles
+  ↓
+SIM loop → 0 errors, 0 warnings  ← gate: DOC cannot start until here
+  ↓
+DOC generated
+```
+
+---
+
+## File Naming Convention
+
+```
+<module>.sv              RTL source (owned by rtl_gen)
+tb_<module>.sv           Testbench top (owned by tb_gen)
+tc_<module>.sv           Test cases, included by TB (owned by tb_gen)
+<module>_spec.md         Module spec doc (owned by mas_gen)
+<module>_wave.vcd        Simulation waveform (generated by sim)
+lint_report.txt          Lint results (generated by lint /report)
+sim_report.txt           Sim results (generated by sim /report)
+.benchmark               Session log (auto-written by scripts)
+```
+
+---
+
+## Workspace Internals
+
+Each workspace lives in `workflow/<name>/` with this structure:
+
+```
+workspace.json           env overrides, skills to force/disable
+system_prompt.md         agent rules (prepend/append/replace base prompt)
+plan_prompt.md           plan-mode specific rules
+compression_prompt.md    context compression format
+rules/                   reference rules (read by agent)
+commands/                custom slash commands (*.json)
+scripts/
+  hooks.json             hook schedule (trigger conditions)
+  *.sh                   command handlers and hook scripts
+todo_templates/
+  *.json                 reusable task sequences
+```
+
+### workspace.json options
+
+```json
+{
+  "name": "my-workspace",
+  "env": { "MAX_ITERATIONS": "200" },
+  "skills": {
+    "force_activate": ["skill-name"],
+    "disable": []
+  },
+  "system_prompt_mode": "prepend"   // prepend | append | replace
+}
+```
+
+### Custom command (commands/*.json)
+
+```json
+{
+  "name": "build",
+  "description": "Run build",
+  "aliases": ["b"],
+  "handler": "bash:scripts/build.sh",
+  "usage": "/build [target]"
+}
+```
+
+Handler types:
+- `bash:<script>` — run shell script, stdout returned as command output
+- `todo:template:<name>` — load todo template
+- `prompt:<text>` — inject system message
+
+### Hook trigger conditions (scripts/hooks.json)
+
+```json
+{
+  "hooks": [{
+    "script": "post_write.sh",
+    "trigger": "after_tool",
+    "conditions": {
+      "tool_names": ["write_file", "replace_in_file"],
+      "file_extensions": [".sv", ".v"],
+      "every_n_iterations": 1,
+      "min_iteration": 2,
+      "output_contains": ["Error"]
+    }
+  }]
+}
+```
+
+### Todo template with loop + validator
+
+```json
+{
+  "content": "Simulation passed: 0 errors, 0 warnings",
+  "activeForm": "Running simulation (attempt {loop_count}/{max_loop_iterations})...",
+  "loop": true,
+  "max_loop_iterations": 20,
+  "exit_condition": "0 errors, 0 warnings",
+  "validator": "bash scripts/check_sim_pass.sh"
+}
+```
+
+---
+
+## Adding a New Workspace
+
+```bash
+mkdir -p workflow/my-ws/{rules,commands,scripts,todo_templates}
+```
+
+Minimum required — `workspace.json`:
+```json
+{
+  "name": "my-ws",
+  "env": {},
+  "skills": { "force_activate": [], "disable": [] },
+  "system_prompt_mode": "prepend"
+}
+```
+
+Verify:
+```bash
+python3 workflow/integrate.py -w my-ws
+```
+
+---
+
+## Verification
+
+```bash
+cd common_ai_agent
+
+# Check all workspaces
+python3 workflow/integrate.py              # default
+python3 workflow/integrate.py -w sim
+python3 workflow/integrate.py -w lint
+python3 workflow/integrate.py -w mas_gen
+python3 workflow/integrate.py -w rtl_gen
+python3 workflow/integrate.py -w tb_gen
+
+# Expected: 13/13 PASS each
+```
+
+---
+
+## Prompts Folder
+
+`workflow/prompts/` = base system prompt fragments loaded into every agent session:
+
+| File | Content |
+|------|---------|
+| `identity.md` | Agent identity string |
+| `format.md` | ReAct loop format (Thought/Action/Observation) |
+| `rules_normal.md` | Execution mode rules (parallel tools, file ops, etc.) |
+| `rules_plan.md` | Plan mode rules (todo_write first, no file writes, etc.) |
+
+Each workspace's `system_prompt.md` is **layered on top** of these base fragments.
