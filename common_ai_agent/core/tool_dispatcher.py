@@ -237,27 +237,30 @@ def dispatch_tool(
         if parsed_kwargs:
             try:
                 sig = inspect.signature(func)
+                accepted = set(sig.parameters.keys())
                 has_var_keyword = any(
                     p.kind == inspect.Parameter.VAR_KEYWORD
                     for p in sig.parameters.values()
                 )
+
+                # Phase 1: remap aliases (e.g. file= → path=) for ALL functions.
+                # This must run even for **kwargs functions because the LLM
+                # might write search="…" instead of pattern="…" — the alias
+                # is a required positional-or-keyword param, not extra fluff.
+                remapped = set()
+                for k in list(parsed_kwargs.keys()):
+                    if k in accepted:
+                        continue  # already a valid param name
+                    alias = _PARAM_ALIASES.get(k)
+                    if alias and alias in accepted and alias not in parsed_kwargs:
+                        parsed_kwargs[alias] = parsed_kwargs.pop(k)
+                        remapped.add(k)
+                        if debug:
+                            print(f"[DEBUG] Remapped kwarg '{k}' → '{alias}' for {tool_name}")
+
+                # Phase 2: strip remaining unknown kwargs (no **kwargs param)
                 if not has_var_keyword:
-                    accepted = set(sig.parameters.keys())
                     extra = set(parsed_kwargs.keys()) - accepted
-
-                    # Phase 1: remap aliases (e.g. file= → path=)
-                    if extra:
-                        remapped = set()
-                        for k in list(extra):
-                            alias = _PARAM_ALIASES.get(k)
-                            if alias and alias in accepted and alias not in parsed_kwargs:
-                                parsed_kwargs[alias] = parsed_kwargs.pop(k)
-                                remapped.add(k)
-                                if debug:
-                                    print(f"[DEBUG] Remapped kwarg '{k}' → '{alias}' for {tool_name}")
-                        extra -= remapped
-
-                    # Phase 2: strip remaining unknown kwargs
                     if extra:
                         if debug:
                             print(f"[DEBUG] Stripping unknown kwargs for {tool_name}: {extra}")
