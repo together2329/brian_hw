@@ -420,24 +420,31 @@ def register_script_hooks(ws: WorkspaceConfig, registry,
 # Todo rule extension (monkey-patch)
 # ─────────────────────────────────────────────────────────────
 
-def patch_todo_rules(ws: WorkspaceConfig) -> None:
+def patch_todo_rules(ws: WorkspaceConfig, _base_rule_fn=None) -> None:
     """
     Monkey-patch lib.todo_tracker._load_todo_rule so that workspace
     rules/*.md files are appended to the project-level rules.
-    Safe no-op if rules_dir is absent.
-    """
-    if not ws.rules_dir or not ws.rules_dir.exists():
-        return
 
+    _base_rule_fn: the unpatched original function to use as base.
+                   If None, uses whatever _tt._load_todo_rule currently is.
+                   Pass the startup-saved original from main.py to prevent
+                   rule accumulation across repeated workspace switches.
+    """
     try:
         import lib.todo_tracker as _tt
     except ImportError:
         return
 
-    _orig = _tt._load_todo_rule
+    _base_fn = _base_rule_fn if _base_rule_fn is not None else _tt._load_todo_rule
+
+    if not ws.rules_dir or not ws.rules_dir.exists():
+        # No workspace rules — restore to base
+        if _base_rule_fn is not None:
+            _tt._load_todo_rule = _base_fn
+        return
 
     def _patched():
-        base = _orig()
+        base = _base_fn()
         extra_parts = []
         for f in sorted(ws.rules_dir.glob("*.md")):
             content = f.read_text(encoding="utf-8").strip()

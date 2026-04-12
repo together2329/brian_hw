@@ -215,9 +215,9 @@ class SlashCommandRegistry:
                      'Switch agent mode: /mode normal to exit plan mode',
                      hidden=True)
 
-        self.register('workspace', self._cmd_workspace,
-                     '워크플로우 전환: /workspace <name> | /workspace (현재)',
-                     aliases=['ws', 'flow'])
+        self.register('workflow', self._cmd_workspace,
+                     '워크플로우 전환: /workflow <name> | /workflow (현재)',
+                     aliases=['wf', 'workspace', 'ws'])
 
     def _cmd_workspace(self, args: str) -> str:
         """Switch workspace/workflow. /workspace <name> or /workspace to show current."""
@@ -237,11 +237,11 @@ class SlashCommandRegistry:
                     if os.path.isdir(p) and os.path.exists(os.path.join(p, "workspace.json")):
                         marker = " ◀ active" if d == current else ""
                         available.append(f"  {d}{marker}")
-            lines = [f"Current workspace: {current}"]
+            lines = [f"Current workflow: {current}"]
             if available:
                 lines.append("Available:")
                 lines.extend(available)
-            lines.append("Usage: /workspace <name>")
+            lines.append("Usage: /workflow <name>")
             return "\n".join(lines)
         return f"WORKSPACE_SWITCH:{name}"
 

@@ -71,6 +71,28 @@ from core.prompt_builder import (
     _build_system_prompt_str as _build_system_prompt_str_impl,
     PromptContext,
 )
+# Save the unpatched original so workspace switches always patch from a clean base
+import core.prompt_builder as _prompt_builder_module
+_ORIG_BUILD_SYSTEM_PROMPT = _prompt_builder_module.build_system_prompt
+
+# Save originals for plan and compression prompts so repeated workspace switches
+# always patch from clean base values, never accumulate.
+def _save_prompt_originals():
+    import config as _cfg
+    import core.compressor as _comp
+    _ORIG_PLAN_PROMPT = getattr(_cfg, 'PLAN_MODE_PROMPT', None)
+    _ORIG_COMPRESSION_PROMPT = getattr(_comp, 'STRUCTURED_SUMMARY_PROMPT', None)
+    return _ORIG_PLAN_PROMPT, _ORIG_COMPRESSION_PROMPT
+
+_ORIG_PLAN_PROMPT, _ORIG_COMPRESSION_PROMPT = _save_prompt_originals()
+
+# Save original todo rule loader so workspace switches always patch from a clean base
+try:
+    import lib.todo_tracker as _tt_module
+    _ORIG_LOAD_TODO_RULE = _tt_module._load_todo_rule
+except Exception:
+    _ORIG_LOAD_TODO_RULE = None
+
 from core.compressor import (
     compress_history as _compress_history_impl,
     STRUCTURED_SUMMARY_PROMPT,
@@ -168,15 +190,17 @@ def _setup_workspace(name: str) -> None:
         _b._WORKSPACE_HOOK_MESSAGES = ws.hook_messages
 
     # ── 2. Patch system prompt ─────────────────────────────────────────────
+    # Always patch from the unmodified original so repeated workspace switches
+    # don't chain-patch and accumulate multiple workspace prompts.
     if ws.system_prompt_text:
         try:
             import core.prompt_builder as _pb
-            orig_build = _pb.build_system_prompt
             _ws_text = ws.system_prompt_text
             _ws_mode = ws.system_prompt_mode
+            _orig = _ORIG_BUILD_SYSTEM_PROMPT  # never changes between switches
 
             def _patched_build_system_prompt(ctx=None, **kwargs):
-                base = orig_build(ctx, **kwargs) if ctx is not None else orig_build(**kwargs)
+                base = _orig(ctx, **kwargs) if ctx is not None else _orig(**kwargs)
                 if isinstance(base, dict):
                     base = (base.get("static", "") + "\n\n" + base.get("dynamic", "")).strip()
                 return merge_prompt(base, _ws_text, _ws_mode)
@@ -184,30 +208,44 @@ def _setup_workspace(name: str) -> None:
             _pb.build_system_prompt = _patched_build_system_prompt
         except Exception:
             pass
-
-    # ── 3. Patch plan prompt ───────────────────────────────────────────────
-    if ws.plan_prompt_text:
+    else:
+        # Workspace has no system_prompt — restore the original so the previous
+        # workspace's prompt doesn't bleed through.
         try:
-            if hasattr(config, 'PLAN_MODE_PROMPT'):
-                config.PLAN_MODE_PROMPT = merge_prompt(
-                    config.PLAN_MODE_PROMPT, ws.plan_prompt_text, ws.plan_prompt_mode
-                )
+            import core.prompt_builder as _pb
+            _pb.build_system_prompt = _ORIG_BUILD_SYSTEM_PROMPT
         except Exception:
             pass
 
+    # ── 3. Patch plan prompt ───────────────────────────────────────────────
+    try:
+        if ws.plan_prompt_text:
+            if hasattr(config, 'PLAN_MODE_PROMPT') and _ORIG_PLAN_PROMPT is not None:
+                config.PLAN_MODE_PROMPT = merge_prompt(
+                    _ORIG_PLAN_PROMPT, ws.plan_prompt_text, ws.plan_prompt_mode
+                )
+        else:
+            if _ORIG_PLAN_PROMPT is not None and hasattr(config, 'PLAN_MODE_PROMPT'):
+                config.PLAN_MODE_PROMPT = _ORIG_PLAN_PROMPT
+    except Exception:
+        pass
+
     # ── 4. Patch compression prompt ────────────────────────────────────────
-    if ws.compression_prompt_text:
-        try:
-            import core.compressor as _comp
+    try:
+        import core.compressor as _comp
+        if ws.compression_prompt_text:
+            base_comp = _ORIG_COMPRESSION_PROMPT or getattr(_comp, 'STRUCTURED_SUMMARY_PROMPT', "")
             _comp.STRUCTURED_SUMMARY_PROMPT = merge_prompt(
-                _comp.STRUCTURED_SUMMARY_PROMPT,
+                base_comp,
                 ws.compression_prompt_text,
                 "replace",
             )
-            # Also store in hook messages so future reloads pick it up
             _b._WORKSPACE_HOOK_MESSAGES["compression_system"] = _comp.STRUCTURED_SUMMARY_PROMPT
-        except Exception:
-            pass
+        else:
+            if _ORIG_COMPRESSION_PROMPT is not None:
+                _comp.STRUCTURED_SUMMARY_PROMPT = _ORIG_COMPRESSION_PROMPT
+    except Exception:
+        pass
 
     # ── 5. Register script hooks ───────────────────────────────────────────
     if ws.script_hooks:
@@ -219,7 +257,7 @@ def _setup_workspace(name: str) -> None:
             pass
 
     # ── 6. Patch todo rules ────────────────────────────────────────────────
-    patch_todo_rules(ws)
+    patch_todo_rules(ws, _base_rule_fn=_ORIG_LOAD_TODO_RULE)
 
     # ── 7. Register todo templates ─────────────────────────────────────────
     if ws.todo_templates_dir:

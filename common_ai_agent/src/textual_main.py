@@ -137,12 +137,13 @@ def _run_agent(app: AgentTUI) -> None:
 if __name__ == "__main__":
     import argparse as _argparse
     _parser = _argparse.ArgumentParser(add_help=False)
-    _parser.add_argument('-s', '--session', default='default')
+    _parser.add_argument('-s', '--session', default=None)
     _parser.add_argument('-w', '--workspace', default=None,
                          help='Workspace name (e.g. mas_gen, rtl_gen, sim, lint)')
     _args, _ = _parser.parse_known_args()
 
-    _agent._setup_session(_args.session)
+    _session_name = _args.session or _args.workspace or 'default'
+    _agent._setup_session(_session_name)
 
     # Apply workspace if specified (same as main.py -w)
     if _args.workspace:
