@@ -1,5 +1,0 @@
-List up all files ../
-quit
-/clear
-list up
-quit
