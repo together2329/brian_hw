@@ -1,0 +1,7 @@
+{
+  "name": "new-ip",
+  "description": "New IP from scratch: Requirements → Full MAS §1-§9 → RTL → TB → SIM → DOC",
+  "aliases": ["ni"],
+  "handler": "todo:template:new-ip",
+  "usage": "/new-ip"
+}

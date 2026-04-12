@@ -1,0 +1,7 @@
+{
+  "name": "legacy-ip-rtl",
+  "description": "Legacy IP RTL update: read existing RTL + MAS delta → apply targeted changes → regression lint",
+  "aliases": ["lir"],
+  "handler": "todo:template:legacy-ip-rtl",
+  "usage": "/legacy-ip-rtl"
+}

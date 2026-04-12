@@ -1,0 +1,7 @@
+{
+  "name": "legacy-ip-tb",
+  "description": "Legacy IP TB update: read existing TB + MAS delta → add new sequences → regression → coverage delta",
+  "aliases": ["lit"],
+  "handler": "todo:template:legacy-ip-tb",
+  "usage": "/legacy-ip-tb"
+}

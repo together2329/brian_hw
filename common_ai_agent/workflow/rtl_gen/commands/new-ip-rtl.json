@@ -1,0 +1,7 @@
+{
+  "name": "new-ip-rtl",
+  "description": "New IP RTL from scratch: MAS → ports → FSM → datapath → CSR → interrupt → memory → filelist → lint",
+  "aliases": ["nir"],
+  "handler": "todo:template:new-ip-rtl",
+  "usage": "/new-ip-rtl"
+}
