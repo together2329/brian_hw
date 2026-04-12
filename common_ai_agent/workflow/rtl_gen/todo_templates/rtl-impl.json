@@ -3,8 +3,8 @@
   "description": "RTL implementation: read MAS → header → registers → FSM → datapath → interrupt → memory → lint",
   "tasks": [
     {
-      "content": "Read Micro Architecture Spec: <module>_mas.md",
-      "detail": "Read <module>_mas.md. Extract from each section: §2 Module Hierarchy + port list (name/width/direction/clock domain), §3 Feature Operation + FSM state table, §4 Register FAM (offset/name/width/access/reset), §5 Interrupt sources + enable/status/clear logic, §6 Memory instances (type/depth/width/latency), §8 RTL Notes. Do not write any code yet.",
+      "content": "[FROM MAS] Read MAS handoff + extract all RTL requirements",
+      "detail": "This task is initiated from a [MAS HANDOFF] from mas_gen.\n\nSTEP 1 — Find the MAS file. Look for: <ip_name>/mas/<ip_name>_mas.md. If ip_name is unknown, scan the current directory for */mas/*_mas.md. Confirm the MAS has all §1–§9 sections.\n\nSTEP 2 — Extract from each section:\n- §2: Module Hierarchy + port list (name/width/direction/clock domain), parameters\n- §3: Feature Operation + FSM state table (states/transitions/outputs)\n- §4: Register FAM (offset/name/width/access/reset)\n- §5: Interrupt sources + enable/status/clear logic\n- §6: Memory instances (type/depth/width/latency)\n- §7: Timing + CDC crossings\n- §8: RTL coding style rules\n\nSTEP 3 — Create RTL file skeleton: <ip_name>/rtl/<ip_name>.sv (empty module stub). Do not implement anything yet.\n\nGate: MAS fully read, RTL file created.",
       "priority": "high"
     },
     {
