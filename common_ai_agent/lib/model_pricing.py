@@ -17,6 +17,7 @@ class Pricing(NamedTuple):
 # Model prefix → pricing
 # Matched by longest prefix of the active model name (case-insensitive).
 _TABLE: Dict[str, Pricing] = {
+    "glm-5.1": Pricing(input=1.40, cache=0.26, output=4.40),
     "glm-5":   Pricing(input=1.00, cache=0.20, output=3.20),
     "glm-4.7": Pricing(input=0.60, cache=0.11, output=2.20),
     "glm-4.6": Pricing(input=0.60, cache=0.11, output=2.20),
