@@ -564,7 +564,7 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
     return lambda args: f"[Error] Unknown handler type: {handler_str}"
 
 
-def register_workspace_commands(ws: "WorkspaceConfig", slash_registry) -> None:
+def register_workspace_commands(ws: "WorkspaceConfig", slash_registry) -> list:
     """
     Load commands/*.json from the workspace and register each as a slash command.
 
@@ -576,22 +576,32 @@ def register_workspace_commands(ws: "WorkspaceConfig", slash_registry) -> None:
       "handler": "bash:scripts/lint.sh",
       "usage": "/lint [file.v]"
     }
+
+    Returns:
+        List of registered command names (including aliases) so callers can
+        unregister them on workspace switch.
     """
+    registered_names = []
     if ws.commands_dir is None or not ws.commands_dir.exists():
-        return
+        return registered_names
 
     for f in sorted(ws.commands_dir.glob("*.json")):
         try:
             spec = json.loads(f.read_text(encoding="utf-8"))
             handler = _make_command_handler(spec, ws)
+            cmd_name = spec["name"]
             slash_registry.register(
-                name=spec["name"],
+                name=cmd_name,
                 handler=handler,
                 description=spec.get("description", ""),
                 aliases=spec.get("aliases", []),
-                usage=spec.get("usage", f"/{spec['name']}"),
+                usage=spec.get("usage", f"/{cmd_name}"),
             )
+            registered_names.append(cmd_name)
+            registered_names.extend(spec.get("aliases", []))
         except Exception as e:
             # Non-fatal: log and continue
             import sys as _sys
             print(f"[Workspace] Failed to load command {f.name}: {e}", file=_sys.stderr)
+
+    return registered_names

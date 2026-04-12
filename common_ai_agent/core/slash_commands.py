@@ -136,6 +136,15 @@ class SlashCommandRegistry:
             'usage': usage or f"/{name}",
         }
 
+    def unregister(self, name: str):
+        """Remove a slash command by name (safe no-op if not registered)."""
+        self.commands.pop(name, None)
+
+    def unregister_many(self, names: list):
+        """Remove multiple slash commands by name."""
+        for n in names:
+            self.commands.pop(n, None)
+
     def _register_builtin_commands(self):
         """Register built-in commands"""
         # --- Core commands (visible in /help) ---

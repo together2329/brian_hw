@@ -67,8 +67,6 @@ from core.history_manager import (
     load_conversation_history as _load_history_impl,
 )
 from core.prompt_builder import (
-    build_system_prompt as _build_system_prompt_impl,
-    _build_system_prompt_str as _build_system_prompt_str_impl,
     PromptContext,
 )
 # Save the unpatched original so workspace switches always patch from a clean base
@@ -138,6 +136,7 @@ _loop_deps = None
 
 # Active workspace configuration (set by _setup_workspace())
 _workspace_config = None
+_workspace_command_names = []       # track names so we can unregister on switch
 
 
 def _setup_workspace(name: str) -> None:
@@ -146,7 +145,7 @@ def _setup_workspace(name: str) -> None:
     Patches prompts, compression, hook messages, skill loader, and todo templates.
     Called from __main__ before chat_loop().
     """
-    global _workspace_config
+    global _workspace_config, _workspace_command_names
     if not name or name == 'none':
         return
 
@@ -186,8 +185,14 @@ def _setup_workspace(name: str) -> None:
 
     # ── 1. Inject hook messages into builtins ─────────────────────────────
     import builtins as _b
+    # Always reset to a fresh dict so stale keys from a previous workspace
+    # don't leak.  Include _workspace_dir so _load_prompt_fragment() can
+    # resolve workspace-specific prompt files.
+    _b._WORKSPACE_HOOK_MESSAGES = {
+        "_workspace_dir": str(ws.workspace_dir),
+    }
     if ws.hook_messages:
-        _b._WORKSPACE_HOOK_MESSAGES = ws.hook_messages
+        _b._WORKSPACE_HOOK_MESSAGES.update(ws.hook_messages)
 
     # ── 2. Patch system prompt ─────────────────────────────────────────────
     # Always patch from the unmodified original so repeated workspace switches
@@ -248,58 +253,77 @@ def _setup_workspace(name: str) -> None:
         pass
 
     # ── 5. Register script hooks ───────────────────────────────────────────
-    if ws.script_hooks:
-        try:
-            from core.hooks import HookRegistry
-            registry = HookRegistry()
-            register_script_hooks(ws, registry)
-        except Exception:
-            pass
+    # Clear any previously registered script hooks to avoid accumulation
+    # across workspace switches.  We reuse the global hook_registry so hooks
+    # actually fire during the ReAct loop.
+    try:
+        from core.hooks import HookRegistry, HookPoint
+        # Remove old script hooks (priority 900) if present
+        if hook_registry is not None:
+            for hp in HookPoint:
+                hook_registry._hooks[hp] = [
+                    (p, fn) for p, fn in hook_registry._hooks[hp] if p != 900
+                ]
+        _target_registry = hook_registry if hook_registry is not None else HookRegistry()
+        if ws.script_hooks:
+            register_script_hooks(ws, _target_registry)
+    except Exception:
+        pass
 
     # ── 6. Patch todo rules ────────────────────────────────────────────────
     patch_todo_rules(ws, _base_rule_fn=_ORIG_LOAD_TODO_RULE)
 
     # ── 7. Register todo templates ─────────────────────────────────────────
-    if ws.todo_templates_dir:
-        try:
-            registry = get_todo_template_registry()
+    # Reset the singleton so stale templates from a previous workspace don't
+    # accumulate.  Only the current workspace's templates should be active.
+    try:
+        registry = get_todo_template_registry()
+        registry._templates.clear()           # wipe previous workspace's templates
+        if ws.todo_templates_dir:
             registry.load_from_dir(ws.todo_templates_dir)
-            _b._TODO_TEMPLATE_REGISTRY = registry
-        except Exception:
-            pass
+        _b._TODO_TEMPLATE_REGISTRY = registry
+    except Exception:
+        pass
 
     # ── 8. Register extra skills ───────────────────────────────────────────
-    if ws.extra_skills_dir:
-        try:
-            from core.skill_system.loader import SkillLoader
-            # Find the global skill loader instance if it exists
-            import core.skill_system as _ss
-            if hasattr(_ss, '_loader'):
-                _ss._loader.extra_dirs.append(str(ws.extra_skills_dir))
-        except Exception:
-            pass
+    try:
+        import core.skill_system as _ss
+        if hasattr(_ss, '_loader') and hasattr(_ss._loader, 'extra_dirs'):
+            # Remove previous workspace skill dirs, add current
+            _ws_skill_dir = str(ws.extra_skills_dir) if ws.extra_skills_dir else None
+            # Only keep dirs that don't belong to any workflow (user-added dirs)
+            _ss._loader.extra_dirs = [
+                d for d in _ss._loader.extra_dirs
+                if '/workflow/' not in d.replace('\\', '/') or d == _ws_skill_dir
+            ]
+            if _ws_skill_dir and _ws_skill_dir not in _ss._loader.extra_dirs:
+                _ss._loader.extra_dirs.append(_ws_skill_dir)
+    except Exception:
+        pass
 
     # ── 9. Force-activate / disable skills ────────────────────────────────
+    # Replace (not append) so switching workspaces doesn't accumulate skills
+    # from previous workspaces.
     if ws.force_skills:
-        try:
-            _current = os.environ.get("FORCE_SKILLS", "")
-            _combined = ",".join(filter(None, [_current] + ws.force_skills))
-            os.environ["FORCE_SKILLS"] = _combined
-        except Exception:
-            pass
+        os.environ["FORCE_SKILLS"] = ",".join(ws.force_skills)
+    else:
+        os.environ.pop("FORCE_SKILLS", None)
     if ws.disable_skills:
-        try:
-            _current = os.environ.get("DISABLE_SKILLS", "")
-            _combined = ",".join(filter(None, [_current] + ws.disable_skills))
-            os.environ["DISABLE_SKILLS"] = _combined
-        except Exception:
-            pass
+        os.environ["DISABLE_SKILLS"] = ",".join(ws.disable_skills)
+    else:
+        os.environ.pop("DISABLE_SKILLS", None)
 
     # ── 10. Register workspace-specific slash commands ─────────────────────
     try:
         from core.slash_commands import get_registry as _get_slash_registry
         _slash_reg = _get_slash_registry()
-        register_workspace_commands(ws, _slash_reg)
+        # Remove previous workspace's commands before registering new ones
+        if _workspace_command_names:
+            _slash_reg.unregister_many(_workspace_command_names)
+            _workspace_command_names.clear()
+        # Register and track new workspace commands
+        _new_names = register_workspace_commands(ws, _slash_reg)
+        _workspace_command_names.extend(_new_names)
     except Exception as e:
         print(f"[Workspace] Warning: could not register commands: {e}")
 
@@ -713,7 +737,10 @@ def load_active_skills(messages, allowed_tools=None):
 
 
 def _build_system_prompt_str(**kwargs) -> str:
-    """Wrapper: delegates to core.prompt_builder."""
+    """Wrapper: delegates to core.prompt_builder.
+    
+    IMPORTANT: Calls through the module attribute so workspace patches take effect.
+    """
     ctx = PromptContext(
         memory_system=memory_system,
         graph_lite=graph_lite,
@@ -721,7 +748,7 @@ def _build_system_prompt_str(**kwargs) -> str:
         hybrid_rag=hybrid_rag,
         todo_tracker=todo_tracker,
     )
-    return _build_system_prompt_str_impl(
+    return _prompt_builder_module._build_system_prompt_str(
         context=ctx,
         load_skills_fn=load_active_skills if config.ENABLE_SKILL_SYSTEM else None,
         llm_call_fn=call_llm_raw,
@@ -730,7 +757,11 @@ def _build_system_prompt_str(**kwargs) -> str:
 
 
 def build_system_prompt(messages=None, allowed_tools=None, agent_mode=None):
-    """Wrapper: delegates to core.prompt_builder with global state injected."""
+    """Wrapper: delegates to core.prompt_builder with global state injected.
+    
+    IMPORTANT: Calls through the module attribute (_prompt_builder_module.build_system_prompt)
+    rather than the import-time binding, so workspace patches take effect.
+    """
     ctx = PromptContext(
         memory_system=memory_system,
         graph_lite=graph_lite,
@@ -738,7 +769,7 @@ def build_system_prompt(messages=None, allowed_tools=None, agent_mode=None):
         hybrid_rag=hybrid_rag,
         todo_tracker=todo_tracker,
     )
-    return _build_system_prompt_impl(
+    return _prompt_builder_module.build_system_prompt(
         messages=messages,
         allowed_tools=allowed_tools,
         agent_mode=agent_mode,
