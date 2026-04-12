@@ -4,7 +4,7 @@ Real LLM iteration & pipeline integration tests — GLM-5.1 on Z.AI.
 Focuses on:
   - Iterative refinement loops: RTL/TB improvement per iteration
   - Workflow iteration loop: repeat until exit condition or max_iters
-  - Full 5-stage pipeline: mas_gen → rtl_gen → tb_gen → sim → lint
+  - Full 5-stage pipeline: mas-gen → rtl-gen → tb-gen → sim → lint
   - Long-context persistence: design decisions survive 5-6 sequential calls
   - Multi-workspace orchestration: stage-by-stage workspace switching
 
@@ -118,7 +118,7 @@ def _clean_check(text: str) -> bool:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # TestRTLIterativeRefinement
-# — RTL code improves across 3-4 sequential LLM calls (rtl_gen context)
+# — RTL code improves across 3-4 sequential LLM calls (rtl-gen context)
 # ─────────────────────────────────────────────────────────────────────────────
 
 @_SKIP
@@ -126,7 +126,7 @@ class TestRTLIterativeRefinement(unittest.TestCase):
     """Each test drives 2-4 sequential RTL improvement calls."""
 
     def _base_history(self):
-        return [{"role": "system", "content": _ws_sys("rtl_gen")}]
+        return [{"role": "system", "content": _ws_sys("rtl-gen")}]
 
     def test_iteration1_writes_rtl_skeleton(self):
         """First call produces a Verilog module with correct port structure."""
@@ -237,7 +237,7 @@ endmodule"""
 
 # ─────────────────────────────────────────────────────────────────────────────
 # TestTBIterativeGeneration
-# — Testbench built up iteratively across 3 calls (tb_gen context)
+# — Testbench built up iteratively across 3 calls (tb-gen context)
 # ─────────────────────────────────────────────────────────────────────────────
 
 @_SKIP
@@ -253,7 +253,7 @@ assign sum = a + b;
 endmodule"""
 
     def _base_history(self):
-        return [{"role": "system", "content": _ws_sys("tb_gen")}]
+        return [{"role": "system", "content": _ws_sys("tb-gen")}]
 
     def test_iteration1_basic_tb_structure(self):
         """First TB call produces module/initial block skeleton."""
@@ -335,7 +335,7 @@ class TestWorkflowIterationLoop(unittest.TestCase):
 
     MAX_ITERS = 5
 
-    def _base_history(self, ws="rtl_gen"):
+    def _base_history(self, ws="rtl-gen"):
         return [{"role": "system", "content": _ws_sys(ws)}]
 
     def test_loop_exits_when_correct_module_confirmed(self):
@@ -406,10 +406,10 @@ endmodule"""
         self.assertTrue(converged or last_iter <= self.MAX_ITERS,
                         "Improvement loop ran longer than MAX_ITERS")
 
-    def test_loop_with_tb_gen_context(self):
-        """Iteration loop works correctly under tb_gen workspace context."""
+    def test_loop_with_tb-gen_context(self):
+        """Iteration loop works correctly under tb-gen workspace context."""
         SIMPLE_DUT = "module and2(input a, b; output y); assign y = a & b; endmodule"
-        h = self._base_history(ws="tb_gen")
+        h = self._base_history(ws="tb-gen")
         exit_iter = None
         for i in range(1, self.MAX_ITERS + 1):
             reply = _turn(
@@ -420,7 +420,7 @@ endmodule"""
             if "yes" in reply.lower():
                 exit_iter = i
                 break
-        self.assertIsNotNone(exit_iter, "tb_gen loop never confirmed testable module")
+        self.assertIsNotNone(exit_iter, "tb-gen loop never confirmed testable module")
 
     def test_loop_iteration_count_tracked_in_messages(self):
         """User messages correctly embed iteration number 1..N."""
@@ -456,7 +456,7 @@ endmodule"""
 
 # ─────────────────────────────────────────────────────────────────────────────
 # TestFullPipelineChain
-# — Full 5-stage pipeline: mas_gen → rtl_gen → tb_gen → sim → lint
+# — Full 5-stage pipeline: mas-gen → rtl-gen → tb-gen → sim → lint
 # ─────────────────────────────────────────────────────────────────────────────
 
 @_SKIP
@@ -481,9 +481,9 @@ class TestFullPipelineChain(unittest.TestCase):
         os.environ.pop("ACTIVE_WORKSPACE", None)
 
     def test_stage1_mas_produces_spec(self):
-        """Stage 1 (mas_gen): micro-architecture spec for decoder2to4."""
+        """Stage 1 (mas-gen): micro-architecture spec for decoder2to4."""
         reply = self._call_stage(
-            "mas_gen", self.h,
+            "mas-gen", self.h,
             f"Write a micro-architecture spec for a '{self.DESIGN}' module: "
             f"2-bit input 'sel[1:0]', 4-bit one-hot output 'out[3:0]'."
         )
@@ -495,11 +495,11 @@ class TestFullPipelineChain(unittest.TestCase):
         )
 
     def test_stage2_rtl_from_mas(self):
-        """Stage 2 (rtl_gen): Verilog RTL from MAS spec."""
-        self._call_stage("mas_gen", self.h,
+        """Stage 2 (rtl-gen): Verilog RTL from MAS spec."""
+        self._call_stage("mas-gen", self.h,
                          f"MAS spec for '{self.DESIGN}': 2-bit sel, 4-bit one-hot out.")
         reply = self._call_stage(
-            "rtl_gen", self.h,
+            "rtl-gen", self.h,
             f"Using the spec above, implement the full Verilog RTL for '{self.DESIGN}'." + _INLINE
         )
         self.assertTrue(
@@ -508,13 +508,13 @@ class TestFullPipelineChain(unittest.TestCase):
         )
 
     def test_stage3_tb_from_rtl(self):
-        """Stage 3 (tb_gen): testbench from RTL."""
-        self._call_stage("mas_gen", self.h,
+        """Stage 3 (tb-gen): testbench from RTL."""
+        self._call_stage("mas-gen", self.h,
                          f"MAS spec for '{self.DESIGN}': 2-bit sel, 4-bit one-hot out.")
-        self._call_stage("rtl_gen", self.h,
+        self._call_stage("rtl-gen", self.h,
                          f"Implement Verilog RTL for '{self.DESIGN}'.")
         reply = self._call_stage(
-            "tb_gen", self.h,
+            "tb-gen", self.h,
             f"Write a testbench for '{self.DESIGN}' that exercises all 4 sel values."
         )
         self.assertTrue(
@@ -524,11 +524,11 @@ class TestFullPipelineChain(unittest.TestCase):
 
     def test_stage4_sim_reports_status(self):
         """Stage 4 (sim): simulation status report."""
-        self._call_stage("mas_gen", self.h,
+        self._call_stage("mas-gen", self.h,
                          f"MAS spec for '{self.DESIGN}'.")
-        self._call_stage("rtl_gen", self.h,
+        self._call_stage("rtl-gen", self.h,
                          f"RTL for '{self.DESIGN}': 2-bit sel → 4-bit one-hot out.")
-        self._call_stage("tb_gen", self.h,
+        self._call_stage("tb-gen", self.h,
                          f"TB for '{self.DESIGN}'.")
         reply = self._call_stage(
             "sim", self.h,
@@ -544,10 +544,10 @@ class TestFullPipelineChain(unittest.TestCase):
 
     def test_stage5_lint_check(self):
         """Stage 5 (lint): lint check on the full design."""
-        self._call_stage("mas_gen", self.h, f"MAS spec for '{self.DESIGN}'.")
-        self._call_stage("rtl_gen", self.h,
+        self._call_stage("mas-gen", self.h, f"MAS spec for '{self.DESIGN}'.")
+        self._call_stage("rtl-gen", self.h,
                          f"RTL for '{self.DESIGN}': 2-to-4 decoder.")
-        self._call_stage("tb_gen", self.h, f"TB for '{self.DESIGN}'.")
+        self._call_stage("tb-gen", self.h, f"TB for '{self.DESIGN}'.")
         self._call_stage("sim",    self.h, f"Sim report for '{self.DESIGN}'.")
         reply = self._call_stage(
             "lint", self.h,
@@ -560,20 +560,20 @@ class TestFullPipelineChain(unittest.TestCase):
     def test_pipeline_history_grows_per_stage(self):
         """History length increases by 2 per stage (user + assistant)."""
         initial = len(self.h)
-        self._call_stage("mas_gen", self.h, "Stage 1: MAS spec.")
+        self._call_stage("mas-gen", self.h, "Stage 1: MAS spec.")
         self.assertEqual(len(self.h), initial + 3)  # system + user + assistant
-        self._call_stage("rtl_gen", self.h, "Stage 2: RTL.")
+        self._call_stage("rtl-gen", self.h, "Stage 2: RTL.")
         self.assertEqual(len(self.h), initial + 5)
-        self._call_stage("tb_gen",  self.h, "Stage 3: TB.")
+        self._call_stage("tb-gen",  self.h, "Stage 3: TB.")
         self.assertEqual(len(self.h), initial + 7)
 
     def test_pipeline_output_references_design_name(self):
         """Outputs across all 3 pipeline stages mention the design name."""
         replies = []
         for ws, msg in [
-            ("mas_gen", f"MAS spec for '{self.DESIGN}': 2→4 decoder."),
-            ("rtl_gen", f"RTL for '{self.DESIGN}'."),
-            ("tb_gen",  f"TB for '{self.DESIGN}'."),
+            ("mas-gen", f"MAS spec for '{self.DESIGN}': 2→4 decoder."),
+            ("rtl-gen", f"RTL for '{self.DESIGN}'."),
+            ("tb-gen",  f"TB for '{self.DESIGN}'."),
         ]:
             replies.append(self._call_stage(ws, self.h, msg))
         for i, r in enumerate(replies, 1):
@@ -585,9 +585,9 @@ class TestFullPipelineChain(unittest.TestCase):
     def test_full_5stage_pipeline_all_non_empty(self):
         """All 5 stages complete and return non-empty responses."""
         stages = [
-            ("mas_gen", f"MAS spec for '{self.DESIGN}'."),
-            ("rtl_gen", f"RTL for '{self.DESIGN}': 2-bit sel → 4-bit one-hot."),
-            ("tb_gen",  f"TB for '{self.DESIGN}'."),
+            ("mas-gen", f"MAS spec for '{self.DESIGN}'."),
+            ("rtl-gen", f"RTL for '{self.DESIGN}': 2-bit sel → 4-bit one-hot."),
+            ("tb-gen",  f"TB for '{self.DESIGN}'."),
             ("sim",     f"Sim check for '{self.DESIGN}'."),
             ("lint",    f"Lint '{self.DESIGN}' RTL."),
         ]
@@ -606,7 +606,7 @@ class TestFullPipelineChain(unittest.TestCase):
 class TestContextPersistenceAcrossCalls(unittest.TestCase):
     """Design decisions introduced early must survive 5-6 call rounds."""
 
-    def _base_history(self, ws="rtl_gen"):
+    def _base_history(self, ws="rtl-gen"):
         return [{"role": "system", "content": _ws_sys(ws)}]
 
     def test_module_name_persists_across_5_calls(self):
@@ -639,13 +639,13 @@ class TestContextPersistenceAcrossCalls(unittest.TestCase):
 
     def test_compressed_context_preserves_design_decisions(self):
         """After compression, key design decisions survive in the next call."""
-        h = self._base_history(ws="mas_gen")
+        h = self._base_history(ws="mas-gen")
         _turn(h, "We are designing 'uart_tx' with baud=115200 and 8N1 format.")
         _turn(h, "Describe the shift register logic for uart_tx.")
         _turn(h, "Describe the start/stop bit insertion.")
         _turn(h, "What is the clock divider value for 50MHz clock at 115200 baud?")
         # Compress after 4 turns
-        h = _compress(h, workspace="mas_gen")
+        h = _compress(h, workspace="mas-gen")
         reply_post = _turn(h, "What baud rate and format were we using for uart_tx?")
         self.assertTrue(
             any(p in reply_post for p in ["115200", "8N1", "baud"]),
@@ -682,15 +682,15 @@ class TestContextPersistenceAcrossCalls(unittest.TestCase):
         )
 
     def test_workspace_context_maintained_across_4_turns(self):
-        """tb_gen workspace context shapes all 4 turns, not just the first."""
-        h = [{"role": "system", "content": _ws_sys("tb_gen")}]
+        """tb-gen workspace context shapes all 4 turns, not just the first."""
+        h = [{"role": "system", "content": _ws_sys("tb-gen")}]
         _turn(h, "We are building a verification plan for 'spi_master'.")
         _turn(h, "What test scenarios should we cover for spi_master?")
         _turn(h, "Write the clock generation code for the spi_master TB.")
         reply4 = _turn(h, "Are we writing a testbench or RTL implementation?")
         self.assertTrue(
             any(p in reply4.lower() for p in ["testbench", "tb", "verification", "test"]),
-            f"tb_gen context lost by turn 4: {reply4[:400]}"
+            f"tb-gen context lost by turn 4: {reply4[:400]}"
         )
 
     def test_rtl_signal_names_consistent_across_calls(self):
@@ -710,7 +710,7 @@ class TestContextPersistenceAcrossCalls(unittest.TestCase):
 
 # ─────────────────────────────────────────────────────────────────────────────
 # TestMultiWorkspaceOrchestration
-# — Coordinate mas_gen → rtl_gen → tb_gen with explicit workspace switching
+# — Coordinate mas-gen → rtl-gen → tb-gen with explicit workspace switching
 # ─────────────────────────────────────────────────────────────────────────────
 
 @_SKIP
@@ -729,11 +729,11 @@ class TestMultiWorkspaceOrchestration(unittest.TestCase):
         return _turn(history, user_msg)
 
     def test_mas_then_rtl_produces_implementation(self):
-        """mas_gen spec followed by rtl_gen call produces synthesizable RTL."""
+        """mas-gen spec followed by rtl-gen call produces synthesizable RTL."""
         h = []
-        self._switch(h, "mas_gen",
+        self._switch(h, "mas-gen",
                      "MAS spec for 'edge_det': detect rising edge on signal 'sig'.")
-        rtl = self._switch(h, "rtl_gen",
+        rtl = self._switch(h, "rtl-gen",
                            "Implement Verilog for 'edge_det' based on the spec above." + _INLINE)
         self.assertTrue(
             any(p in rtl.lower() for p in [
@@ -744,26 +744,26 @@ class TestMultiWorkspaceOrchestration(unittest.TestCase):
         )
 
     def test_workspace_context_changes_focus(self):
-        """mas_gen reply is abstract; rtl_gen reply contains Verilog constructs."""
-        h_mas = [{"role": "system", "content": _ws_sys("mas_gen")}]
+        """mas-gen reply is abstract; rtl-gen reply contains Verilog constructs."""
+        h_mas = [{"role": "system", "content": _ws_sys("mas-gen")}]
         mas_reply = _turn(h_mas, "Describe 'gray_enc' in one paragraph.")
 
-        h_rtl = [{"role": "system", "content": _ws_sys("rtl_gen")}]
+        h_rtl = [{"role": "system", "content": _ws_sys("rtl-gen")}]
         rtl_reply = _turn(h_rtl, "Implement Verilog for 'gray_enc': "
                                  "4-bit binary to gray code converter.")
 
         # RTL reply should contain Verilog keywords
         self.assertTrue(
             any(p in rtl_reply.lower() for p in ["module", "assign", "always", "wire"]),
-            f"rtl_gen context didn't produce Verilog: {rtl_reply[:400]}"
+            f"rtl-gen context didn't produce Verilog: {rtl_reply[:400]}"
         )
 
-    def test_rtl_gen_adds_implementation_detail(self):
-        """rtl_gen call adds port declarations not present in the MAS spec."""
+    def test_rtl-gen_adds_implementation_detail(self):
+        """rtl-gen call adds port declarations not present in the MAS spec."""
         h = []
-        self._switch(h, "mas_gen",
+        self._switch(h, "mas-gen",
                      "MAS spec for 'crc8': 8-bit data input, 8-bit CRC output.")
-        rtl = self._switch(h, "rtl_gen",
+        rtl = self._switch(h, "rtl-gen",
                            "Implement the RTL for 'crc8'. Show full module." + _INLINE)
         self.assertTrue(
             any(p in rtl.lower() for p in [
@@ -772,12 +772,12 @@ class TestMultiWorkspaceOrchestration(unittest.TestCase):
             f"RTL missing ports/logic: {rtl[:400]}"
         )
 
-    def test_tb_gen_adds_stimulus_not_in_rtl(self):
-        """tb_gen call adds stimulus/initial block absent in RTL stage."""
+    def test_tb-gen_adds_stimulus_not_in_rtl(self):
+        """tb-gen call adds stimulus/initial block absent in RTL stage."""
         h = []
-        self._switch(h, "rtl_gen",
+        self._switch(h, "rtl-gen",
                      "Implement Verilog for 'xor4': 4-bit XOR of inputs a and b." + _INLINE)
-        tb = self._switch(h, "tb_gen",
+        tb = self._switch(h, "tb-gen",
                           "Write a testbench for 'xor4' that applies 4 test vectors." + _INLINE)
         self.assertTrue(
             any(p in tb.lower() for p in [
@@ -791,11 +791,11 @@ class TestMultiWorkspaceOrchestration(unittest.TestCase):
         """All 3 stage outputs refer to the same design name 'barrel_shift'."""
         DESIGN = "barrel_shift"
         h = []
-        r1 = self._switch(h, "mas_gen",
+        r1 = self._switch(h, "mas-gen",
                           f"MAS spec for '{DESIGN}': 8-bit data, 3-bit shift amount.")
-        r2 = self._switch(h, "rtl_gen",
+        r2 = self._switch(h, "rtl-gen",
                           f"RTL for '{DESIGN}'." + _INLINE)
-        r3 = self._switch(h, "tb_gen",
+        r3 = self._switch(h, "tb-gen",
                           f"TB for '{DESIGN}'." + _INLINE)
         for i, r in enumerate([r1, r2, r3], 1):
             self.assertTrue(
@@ -804,19 +804,19 @@ class TestMultiWorkspaceOrchestration(unittest.TestCase):
             )
 
     def test_orchestration_with_compression_between_stages(self):
-        """Compress after MAS+RTL stages; tb_gen call still produces valid TB."""
+        """Compress after MAS+RTL stages; tb-gen call still produces valid TB."""
         DESIGN = "sync_rst_ff"
         h = []
-        self._switch(h, "mas_gen",
+        self._switch(h, "mas-gen",
                      f"MAS spec for '{DESIGN}': D-FF with sync active-high reset.")
-        self._switch(h, "rtl_gen",
+        self._switch(h, "rtl-gen",
                      f"RTL for '{DESIGN}'.")
         # Compress after 2 stages
-        h = _compress(h, workspace="rtl_gen")
-        # Continue with tb_gen
-        os.environ["ACTIVE_WORKSPACE"] = "tb_gen"
+        h = _compress(h, workspace="rtl-gen")
+        # Continue with tb-gen
+        os.environ["ACTIVE_WORKSPACE"] = "tb-gen"
         if h[0]["role"] == "system":
-            h[0]["content"] = _ws_sys("tb_gen")
+            h[0]["content"] = _ws_sys("tb-gen")
         tb = _turn(h, f"Write a testbench for '{DESIGN}' that tests reset and normal operation.")
         self.assertTrue(
             any(p in tb.lower() for p in ["testbench", "initial", "module", "reset", "rst"]),

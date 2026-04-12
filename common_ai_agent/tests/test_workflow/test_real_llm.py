@@ -201,10 +201,10 @@ class TestRealGLM51WorkspaceSystemPrompt(unittest.TestCase):
             system_text = (system_text.get("static", "") + "\n\n" + system_text.get("dynamic", "")).strip()
         return _call([{"role": "user", "content": user_msg}], system=system_text)
 
-    def test_mas_gen_prompt_makes_llm_verilog_aware(self):
-        """After injecting mas_gen system prompt, GLM knows it's a Verilog/MAS agent."""
+    def test_mas-gen_prompt_makes_llm_verilog_aware(self):
+        """After injecting mas-gen system prompt, GLM knows it's a Verilog/MAS agent."""
         result = self._build_and_call(
-            "mas_gen",
+            "mas-gen",
             "What is your primary task? Answer in one sentence.",
         )
         lowered = result.lower()
@@ -213,24 +213,24 @@ class TestRealGLM51WorkspaceSystemPrompt(unittest.TestCase):
                 "verilog", "rtl", "architecture", "hardware", "module",
                 "specification", "design", "microarchitecture", "mas",
             ]),
-            f"mas_gen prompt not reflected in LLM response: {result[:300]}",
+            f"mas-gen prompt not reflected in LLM response: {result[:300]}",
         )
 
-    def test_rtl_gen_prompt_produces_verilog_code(self):
-        """After injecting rtl_gen system prompt, LLM produces Verilog when asked."""
+    def test_rtl-gen_prompt_produces_verilog_code(self):
+        """After injecting rtl-gen system prompt, LLM produces Verilog when asked."""
         result = self._build_and_call(
-            "rtl_gen",
+            "rtl-gen",
             "Write a minimal Verilog module with one input and one output.",
         )
         self.assertTrue(
             "module" in result.lower() or "endmodule" in result.lower(),
-            f"rtl_gen: expected Verilog output, got: {result[:300]}",
+            f"rtl-gen: expected Verilog output, got: {result[:300]}",
         )
 
-    def test_tb_gen_prompt_produces_testbench_aware_response(self):
-        """After injecting tb_gen system prompt, LLM knows it's writing testbenches."""
+    def test_tb-gen_prompt_produces_testbench_aware_response(self):
+        """After injecting tb-gen system prompt, LLM knows it's writing testbenches."""
         result = self._build_and_call(
-            "tb_gen",
+            "tb-gen",
             "What kind of code do you write? Answer in one sentence.",
         )
         lowered = result.lower()
@@ -239,12 +239,12 @@ class TestRealGLM51WorkspaceSystemPrompt(unittest.TestCase):
                 "testbench", "test", "verification", "simulation",
                 "verilog", "tb", "dv",
             ]),
-            f"tb_gen prompt not reflected: {result[:300]}",
+            f"tb-gen prompt not reflected: {result[:300]}",
         )
 
     def test_system_prompt_text_is_non_trivially_long(self):
         """The real workspace system prompts are substantive (> 200 chars)."""
-        for ws_name in ["mas_gen", "rtl_gen", "tb_gen"]:
+        for ws_name in ["mas-gen", "rtl-gen", "tb-gen"]:
             with self.subTest(ws=ws_name):
                 from workflow.loader import load_workspace
                 ws = load_workspace(ws_name, PROJECT_ROOT)
@@ -253,7 +253,7 @@ class TestRealGLM51WorkspaceSystemPrompt(unittest.TestCase):
 
     def test_workspace_identity_in_built_system_prompt(self):
         """[Workflow: X] identity line appears in the system prompt sent to LLM."""
-        os.environ["ACTIVE_WORKSPACE"] = "rtl_gen"
+        os.environ["ACTIVE_WORKSPACE"] = "rtl-gen"
         import importlib
         import core.prompt_builder as pb
         importlib.reload(pb)
@@ -262,7 +262,7 @@ class TestRealGLM51WorkspaceSystemPrompt(unittest.TestCase):
             text = result.get("static", "") + result.get("dynamic", "")
         else:
             text = result
-        self.assertIn("[Workflow: rtl_gen]", text)
+        self.assertIn("[Workflow: rtl-gen]", text)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -314,17 +314,17 @@ class TestRealGLM51Compression(unittest.TestCase):
         )
 
     def test_compress_with_workspace_identity_in_prompt(self):
-        """When ACTIVE_WORKSPACE=mas_gen, [Workflow: mas_gen] is in compression call."""
-        result = _compress(self._make_history(4), workspace="mas_gen")
+        """When ACTIVE_WORKSPACE=mas-gen, [Workflow: mas-gen] is in compression call."""
+        result = _compress(self._make_history(4), workspace="mas-gen")
         # Result must still be a valid list with a system message
         self.assertIsInstance(result, list)
         system_msgs = [m for m in result if m.get("role") == "system"]
         self.assertGreater(len(system_msgs), 0)
 
     def test_workspace_compression_prompt_used_in_real_call(self):
-        """mas_gen compression_prompt.md is forwarded as the instruction to GLM."""
+        """mas-gen compression_prompt.md is forwarded as the instruction to GLM."""
         from workflow.loader import load_workspace
-        ws = load_workspace("mas_gen", PROJECT_ROOT)
+        ws = load_workspace("mas-gen", PROJECT_ROOT)
         self.assertIsNotNone(ws.compression_prompt_text)
 
         # Patch STRUCTURED_SUMMARY_PROMPT to workspace value
@@ -402,27 +402,27 @@ class TestRealGLM51FullWorkflowPipeline(unittest.TestCase):
 
         return _call([{"role": "user", "content": user_msg}], system=system_text), ws
 
-    def test_mas_gen_real_call_returns_content(self):
+    def test_mas-gen_real_call_returns_content(self):
         result, _ = self._full_call(
-            "mas_gen",
+            "mas-gen",
             "Describe in one sentence what a Micro Architecture Spec (MAS) document should contain.",
         )
         self.assertGreater(len(result.strip()), 20)
 
-    def test_rtl_gen_real_call_writes_verilog(self):
+    def test_rtl-gen_real_call_writes_verilog(self):
         result, _ = self._full_call(
-            "rtl_gen",
+            "rtl-gen",
             "Write a Verilog module that implements a D flip-flop with synchronous reset.",
         )
         lowered = result.lower()
         self.assertTrue(
             "module" in lowered or "endmodule" in lowered or "always" in lowered,
-            f"rtl_gen: expected Verilog, got: {result[:300]}",
+            f"rtl-gen: expected Verilog, got: {result[:300]}",
         )
 
-    def test_tb_gen_real_call_mentions_testbench(self):
+    def test_tb-gen_real_call_mentions_testbench(self):
         result, _ = self._full_call(
-            "tb_gen",
+            "tb-gen",
             "What is the first step when writing a testbench for a Verilog module?",
         )
         lowered = result.lower()
@@ -431,7 +431,7 @@ class TestRealGLM51FullWorkflowPipeline(unittest.TestCase):
                 "testbench", "test", "dut", "instantiate", "signal",
                 "clock", "stimulus", "module",
             ]),
-            f"tb_gen: unexpected response: {result[:300]}",
+            f"tb-gen: unexpected response: {result[:300]}",
         )
 
     def test_sim_real_call_knows_simulation(self):
@@ -451,7 +451,7 @@ class TestRealGLM51FullWorkflowPipeline(unittest.TestCase):
 
     def test_all_workspaces_return_nonempty_response(self):
         """All 5 production workspaces call GLM-5.1 and get a response."""
-        for ws_name in ["mas_gen", "rtl_gen", "tb_gen", "sim", "lint"]:
+        for ws_name in ["mas-gen", "rtl-gen", "tb-gen", "sim", "lint"]:
             self._orig_build = self._pb.build_system_prompt  # reset between iterations
             with self.subTest(workspace=ws_name):
                 result, _ = self._full_call(
@@ -474,7 +474,7 @@ class TestRealGLM51FullWorkflowPipeline(unittest.TestCase):
         """
         from workflow.loader import load_workspace, merge_prompt
 
-        ws = load_workspace("rtl_gen", PROJECT_ROOT)
+        ws = load_workspace("rtl-gen", PROJECT_ROOT)
         history = [
             {"role": "system",    "content": merge_prompt(
                 self._orig_build() if not isinstance(self._orig_build(), dict) else
@@ -487,7 +487,7 @@ class TestRealGLM51FullWorkflowPipeline(unittest.TestCase):
             {"role": "assistant", "content": "module adder(input [3:0] a, b, output cout, output [3:0] sum); assign {cout, sum} = a + b; endmodule"},
         ]
 
-        compressed = _compress(history, workspace="rtl_gen")
+        compressed = _compress(history, workspace="rtl-gen")
         compressed.append({
             "role": "user",
             "content": "Based on what we've done, add overflow detection.",

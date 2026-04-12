@@ -1,0 +1,4 @@
+/context -v
+who are you
+Can you write mas for cpu?
+quit

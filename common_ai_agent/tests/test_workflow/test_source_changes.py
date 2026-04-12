@@ -181,17 +181,17 @@ class TestPromptBuilderWorkflowIdentity(unittest.TestCase):
         self.assertNotIn("[Workflow:", text)
 
     def test_workspace_name_injected(self):
-        os.environ["ACTIVE_WORKSPACE"] = "mas_gen"
+        os.environ["ACTIVE_WORKSPACE"] = "mas-gen"
         os.environ.pop("ACTIVE_WORKSPACE_DESC", None)
         result = self._build()
         if isinstance(result, dict):
             text = result.get("static", "") + result.get("dynamic", "")
         else:
             text = result
-        self.assertIn("[Workflow: mas_gen]", text)
+        self.assertIn("[Workflow: mas-gen]", text)
 
     def test_workspace_description_appended(self):
-        os.environ["ACTIVE_WORKSPACE"] = "rtl_gen"
+        os.environ["ACTIVE_WORKSPACE"] = "rtl-gen"
         os.environ["ACTIVE_WORKSPACE_DESC"] = "RTL generation agent"
         result = self._build()
         if isinstance(result, dict):
@@ -199,10 +199,10 @@ class TestPromptBuilderWorkflowIdentity(unittest.TestCase):
         else:
             text = result
         self.assertIn("RTL generation agent", text)
-        self.assertIn("[Workflow: rtl_gen]", text)
+        self.assertIn("[Workflow: rtl-gen]", text)
 
     def test_workspace_identity_at_start_of_prompt(self):
-        os.environ["ACTIVE_WORKSPACE"] = "tb_gen"
+        os.environ["ACTIVE_WORKSPACE"] = "tb-gen"
         os.environ.pop("ACTIVE_WORKSPACE_DESC", None)
         result = self._build()
         if isinstance(result, dict):
@@ -210,7 +210,7 @@ class TestPromptBuilderWorkflowIdentity(unittest.TestCase):
         else:
             text = result
         # Identity line should appear near the top (within first 200 chars)
-        self.assertIn("[Workflow: tb_gen]", text[:200])
+        self.assertIn("[Workflow: tb-gen]", text[:200])
 
 
 # ─────────────────────────────────────────────────────────────
@@ -265,9 +265,9 @@ class TestCompressorWorkflowIdentity(unittest.TestCase):
         self.assertNotIn("[Workflow:", user_content)
 
     def test_workspace_prepended_to_summary_prompt(self):
-        captured = self._run_compress(workspace="mas_gen")
+        captured = self._run_compress(workspace="mas-gen")
         user_content = captured.get("user", "")
-        self.assertIn("[Workflow: mas_gen]", user_content)
+        self.assertIn("[Workflow: mas-gen]", user_content)
 
     def test_workflow_identity_at_start_of_prompt(self):
         captured = self._run_compress(workspace="sim")
@@ -312,18 +312,18 @@ class TestSlashWorkspaceCommand(unittest.TestCase):
     def test_ws_alias_registered(self):
         # aliases are stored inside the command entry, not as top-level keys;
         # check via execute routing
-        result = self._run("ws rtl_gen")
-        self.assertEqual(result, "WORKSPACE_SWITCH:rtl_gen")
+        result = self._run("ws rtl-gen")
+        self.assertEqual(result, "WORKSPACE_SWITCH:rtl-gen")
 
     def test_flow_alias_registered(self):
         result = self._run("flow lint")
         self.assertEqual(result, "WORKSPACE_SWITCH:lint")
 
     def test_no_args_shows_current_workspace(self):
-        os.environ["ACTIVE_WORKSPACE"] = "mas_gen"
+        os.environ["ACTIVE_WORKSPACE"] = "mas-gen"
         result = self._run("workspace")
         self.assertIn("Current workspace:", result)
-        self.assertIn("mas_gen", result)
+        self.assertIn("mas-gen", result)
 
     def test_no_args_shows_available_workspaces(self):
         result = self._run("workspace")
@@ -335,8 +335,8 @@ class TestSlashWorkspaceCommand(unittest.TestCase):
         self.assertIn("active", result.lower())
 
     def test_with_name_returns_switch_signal(self):
-        result = self._run("workspace rtl_gen")
-        self.assertEqual(result, "WORKSPACE_SWITCH:rtl_gen")
+        result = self._run("workspace rtl-gen")
+        self.assertEqual(result, "WORKSPACE_SWITCH:rtl-gen")
 
     def test_switch_signal_format(self):
         result = self._run("ws sim")
@@ -348,10 +348,10 @@ class TestSlashWorkspaceCommand(unittest.TestCase):
         self.assertEqual(result, "WORKSPACE_SWITCH:lint")
 
     def test_whitespace_trimmed_in_switch(self):
-        # slash command parser splits on first space so args = "  mas_gen  "
+        # slash command parser splits on first space so args = "  mas-gen  "
         # but _cmd_workspace does args.strip()
-        result = self.reg.commands["workspace"]["handler"]("  mas_gen  ")
-        self.assertEqual(result, "WORKSPACE_SWITCH:mas_gen")
+        result = self.reg.commands["workspace"]["handler"]("  mas-gen  ")
+        self.assertEqual(result, "WORKSPACE_SWITCH:mas-gen")
 
 
 # ─────────────────────────────────────────────────────────────
@@ -434,7 +434,7 @@ class TestCmuxCaptureHeader(unittest.TestCase):
                 os.environ.pop(k, None)
 
     def test_header_prepended_to_screen(self):
-        os.environ["ACTIVE_WORKSPACE"] = "mas_gen"
+        os.environ["ACTIVE_WORKSPACE"] = "mas-gen"
         import importlib
         import core.tools_cmux as tc
         importlib.reload(tc)
@@ -444,11 +444,11 @@ class TestCmuxCaptureHeader(unittest.TestCase):
                 result = tc.cmux_capture()
 
         self.assertTrue(result.startswith("[workflow="))
-        self.assertIn("mas_gen", result)
+        self.assertIn("mas-gen", result)
         self.assertIn("screen content here", result)
 
     def test_header_contains_surface_id(self):
-        os.environ["ACTIVE_WORKSPACE"] = "rtl_gen"
+        os.environ["ACTIVE_WORKSPACE"] = "rtl-gen"
         import importlib
         import core.tools_cmux as tc
         importlib.reload(tc)
@@ -570,14 +570,14 @@ class TestSessionNameDefaulting(unittest.TestCase):
 
     def test_explicit_session_takes_priority(self):
         self.assertEqual(
-            self._compute_session_name(session="my-session", workspace="mas_gen"),
+            self._compute_session_name(session="my-session", workspace="mas-gen"),
             "my-session"
         )
 
     def test_workspace_used_when_no_session(self):
         self.assertEqual(
-            self._compute_session_name(session=None, workspace="rtl_gen"),
-            "rtl_gen"
+            self._compute_session_name(session=None, workspace="rtl-gen"),
+            "rtl-gen"
         )
 
     def test_default_when_neither_given(self):
@@ -589,15 +589,15 @@ class TestSessionNameDefaulting(unittest.TestCase):
     def test_empty_string_session_falls_through(self):
         # Empty string is falsy → falls through to workspace
         self.assertEqual(
-            self._compute_session_name(session="", workspace="tb_gen"),
-            "tb_gen"
+            self._compute_session_name(session="", workspace="tb-gen"),
+            "tb-gen"
         )
 
     def test_workspace_each_has_own_session(self):
         # Each workspace should produce a distinct session name
         sessions = {
             self._compute_session_name(session=None, workspace=ws)
-            for ws in ["mas_gen", "rtl_gen", "tb_gen", "sim", "lint"]
+            for ws in ["mas-gen", "rtl-gen", "tb-gen", "sim", "lint"]
         }
         self.assertEqual(len(sessions), 5)
 
@@ -673,10 +673,10 @@ class TestWorkspaceSwitchSignal(unittest.TestCase):
         return None
 
     def test_signal_detected(self):
-        self.assertIsNotNone(self._parse_signal("WORKSPACE_SWITCH:mas_gen"))
+        self.assertIsNotNone(self._parse_signal("WORKSPACE_SWITCH:mas-gen"))
 
     def test_workspace_name_extracted(self):
-        self.assertEqual(self._parse_signal("WORKSPACE_SWITCH:rtl_gen"), "rtl_gen")
+        self.assertEqual(self._parse_signal("WORKSPACE_SWITCH:rtl-gen"), "rtl-gen")
 
     def test_whitespace_stripped(self):
         self.assertEqual(self._parse_signal("WORKSPACE_SWITCH:  sim  "), "sim")
@@ -686,7 +686,7 @@ class TestWorkspaceSwitchSignal(unittest.TestCase):
         self.assertIsNone(self._parse_signal("some other result"))
 
     def test_workspace_with_underscore(self):
-        self.assertEqual(self._parse_signal("WORKSPACE_SWITCH:tb_gen"), "tb_gen")
+        self.assertEqual(self._parse_signal("WORKSPACE_SWITCH:tb-gen"), "tb-gen")
 
     def test_workspace_default(self):
         self.assertEqual(self._parse_signal("WORKSPACE_SWITCH:default"), "default")
@@ -765,7 +765,7 @@ class TestWorkspaceSwitchSignalEdgeCases(unittest.TestCase):
 
     def test_does_not_match_lowercase(self):
         # Signal must be uppercase to match
-        self.assertIsNone(self._parse("workspace_switch:mas_gen"))
+        self.assertIsNone(self._parse("workspace_switch:mas-gen"))
 
     def test_partial_prefix_not_matched(self):
         self.assertIsNone(self._parse("WORKSPACE:sim"))

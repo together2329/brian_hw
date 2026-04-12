@@ -4,7 +4,7 @@
   "tasks": [
     {
       "content": "[SIM] Read inputs: <ip>/rtl/<ip>.sv + <ip>/tb/tb_<ip>.sv + <ip>/list/<ip>.f",
-      "detail": "Before compiling, verify all input files exist:\n- [ ] <ip>/rtl/<ip>.sv — DUT (written by rtl_gen)\n- [ ] <ip>/tb/tb_<ip>.sv — Testbench top (written by tb_gen)\n- [ ] <ip>/tb/tc_<ip>.sv — Test cases (written by tb_gen)\n- [ ] <ip>/list/<ip>.f — Filelist (written by rtl_gen)\nRead each file. Note: DUT module name, TB module name, clock/reset port names, any `include paths.\nIf any file is missing: report which file is missing and stop — do not proceed.\nGate: All 4 input files confirmed present.",
+      "detail": "Before compiling, verify all input files exist:\n- [ ] <ip>/rtl/<ip>.sv — DUT (written by rtl-gen)\n- [ ] <ip>/tb/tb_<ip>.sv — Testbench top (written by tb-gen)\n- [ ] <ip>/tb/tc_<ip>.sv — Test cases (written by tb-gen)\n- [ ] <ip>/list/<ip>.f — Filelist (written by rtl-gen)\nRead each file. Note: DUT module name, TB module name, clock/reset port names, any `include paths.\nIf any file is missing: report which file is missing and stop — do not proceed.\nGate: All 4 input files confirmed present.",
       "priority": "high"
     },
     {
@@ -15,7 +15,7 @@
     {
       "content": "[SIM] Simulation passed: 0 errors, 0 warnings",
       "activeForm": "Running simulation (attempt {loop_count}/{max_loop_iterations})...",
-      "detail": "Run: vvp <ip>/sim/<ip>.out\nFor each [FAIL] or $error:\n- [ ] Check expected vs actual value in TB\n- [ ] Grep RTL (<ip>/rtl/<ip>.sv) for the signal driver\n- [ ] Fix DUT bug → edit <ip>/rtl/<ip>.sv, re-compile, re-run\n- [ ] Fix TB bug → edit <ip>/tb/tb_<ip>.sv or tc_<ip>.sv, re-compile, re-run\n- [ ] DUT bugs that require MAS change → output [SIM ESCALATE] → mas_gen\nLoop until: all test sequences pass, 0 $error, 0 $warning.",
+      "detail": "Run: vvp <ip>/sim/<ip>.out\nFor each [FAIL] or $error:\n- [ ] Check expected vs actual value in TB\n- [ ] Grep RTL (<ip>/rtl/<ip>.sv) for the signal driver\n- [ ] Fix DUT bug → edit <ip>/rtl/<ip>.sv, re-compile, re-run\n- [ ] Fix TB bug → edit <ip>/tb/tb_<ip>.sv or tc_<ip>.sv, re-compile, re-run\n- [ ] DUT bugs that require MAS change → output [SIM ESCALATE] → mas-gen\nLoop until: all test sequences pass, 0 $error, 0 $warning.",
       "loop": true,
       "max_loop_iterations": 20,
       "exit_condition": "0 errors, 0 warnings",

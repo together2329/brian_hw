@@ -4,7 +4,7 @@
   "tasks": [
     {
       "content": "[LINT] Read inputs: <ip>/rtl/<ip>.sv + <ip>/list/<ip>.f",
-      "detail": "Before running lint, verify all input files exist:\n- [ ] <ip>/rtl/<ip>.sv — RTL source (written by rtl_gen)\n- [ ] <ip>/list/<ip>.f — Filelist (written by rtl_gen); contains all RTL file paths for this IP\nRead <ip>.f and confirm every file listed in it actually exists on disk.\nIf any file is missing: report which file and stop.\nGate: <ip>.sv and <ip>.f both confirmed present, all files in filelist exist.",
+      "detail": "Before running lint, verify all input files exist:\n- [ ] <ip>/rtl/<ip>.sv — RTL source (written by rtl-gen)\n- [ ] <ip>/list/<ip>.f — Filelist (written by rtl-gen); contains all RTL file paths for this IP\nRead <ip>.f and confirm every file listed in it actually exists on disk.\nIf any file is missing: report which file and stop.\nGate: <ip>.sv and <ip>.f both confirmed present, all files in filelist exist.",
       "priority": "high"
     },
     {

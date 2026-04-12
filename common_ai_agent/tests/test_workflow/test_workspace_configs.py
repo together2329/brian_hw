@@ -26,7 +26,7 @@ from workflow.loader import (
 PROJECT_ROOT = Path(_root)
 WORKFLOW_DIR = PROJECT_ROOT / "workflow"
 
-PRODUCTION_WORKSPACES = ["mas_gen", "rtl_gen", "tb_gen", "sim", "lint"]
+PRODUCTION_WORKSPACES = ["mas-gen", "rtl-gen", "tb-gen", "sim", "lint"]
 
 
 # ─────────────────────────────────────────────────────────────
@@ -37,13 +37,13 @@ class TestMasGenWorkspace(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.ws = load_workspace("mas_gen", PROJECT_ROOT)
+        cls.ws = load_workspace("mas-gen", PROJECT_ROOT)
 
     def test_loads_without_error(self):
         self.assertIsNotNone(self.ws)
 
     def test_name(self):
-        self.assertEqual(self.ws.name, "mas_gen")
+        self.assertEqual(self.ws.name, "mas-gen")
 
     def test_description_not_empty(self):
         self.assertTrue(self.ws.description.strip())
@@ -96,13 +96,13 @@ class TestRtlGenWorkspace(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.ws = load_workspace("rtl_gen", PROJECT_ROOT)
+        cls.ws = load_workspace("rtl-gen", PROJECT_ROOT)
 
     def test_loads_without_error(self):
         self.assertIsNotNone(self.ws)
 
     def test_name(self):
-        self.assertEqual(self.ws.name, "rtl_gen")
+        self.assertEqual(self.ws.name, "rtl-gen")
 
     def test_max_iterations_150(self):
         self.assertEqual(self.ws.env_overrides.get("MAX_ITERATIONS"), "150")
@@ -150,13 +150,13 @@ class TestTbGenWorkspace(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.ws = load_workspace("tb_gen", PROJECT_ROOT)
+        cls.ws = load_workspace("tb-gen", PROJECT_ROOT)
 
     def test_loads_without_error(self):
         self.assertIsNotNone(self.ws)
 
     def test_name(self):
-        self.assertEqual(self.ws.name, "tb_gen")
+        self.assertEqual(self.ws.name, "tb-gen")
 
     def test_max_iterations_200(self):
         self.assertEqual(self.ws.env_overrides.get("MAX_ITERATIONS"), "200")

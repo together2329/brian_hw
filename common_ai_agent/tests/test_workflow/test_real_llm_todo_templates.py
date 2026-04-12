@@ -105,12 +105,12 @@ _INLINE = (
 class TestTodoTemplateComprehension(unittest.TestCase):
     """LLM reads template task lists and describes them accurately."""
 
-    def _base_history(self, ws="mas_gen"):
+    def _base_history(self, ws="mas-gen"):
         return [{"role": "system", "content": _ws_sys(ws)}]
 
     def test_new_ip_task_count_and_order(self):
         """LLM can count and order tasks in new-ip template."""
-        tmpl = _load_template("mas_gen", "new-ip")
+        tmpl = _load_template("mas-gen", "new-ip")
         task_text = _tasks_as_prompt(tmpl["tasks"])
         h = self._base_history()
         reply = _turn(
@@ -128,7 +128,7 @@ class TestTodoTemplateComprehension(unittest.TestCase):
 
     def test_legacy_ip_user_confirmation_step(self):
         """LLM identifies the mandatory user sign-off step in legacy-ip template."""
-        tmpl = _load_template("mas_gen", "legacy-ip")
+        tmpl = _load_template("mas-gen", "legacy-ip")
         task_text = _tasks_as_prompt(tmpl["tasks"])
         h = self._base_history()
         reply = _turn(
@@ -145,9 +145,9 @@ class TestTodoTemplateComprehension(unittest.TestCase):
 
     def test_rtl_new_ip_section_mapping(self):
         """LLM maps each rtl-gen task to the MAS section it implements."""
-        tmpl = _load_template("rtl_gen", "new-ip-rtl")
+        tmpl = _load_template("rtl-gen", "new-ip-rtl")
         task_text = _tasks_as_prompt(tmpl["tasks"])
-        h = self._base_history("rtl_gen")
+        h = self._base_history("rtl-gen")
         reply = _turn(
             h,
             f"Here is the RTL generation task list:\n\n{task_text}\n\n"
@@ -164,11 +164,11 @@ class TestTodoTemplateComprehension(unittest.TestCase):
             f"Should identify register map task: {reply[:300]}"
         )
 
-    def test_tb_gen_sequence_naming_convention(self):
+    def test_tb-gen_sequence_naming_convention(self):
         """LLM knows tc_ tasks are named after MAS §9 sequence IDs."""
-        tmpl = _load_template("tb_gen", "new-ip-tb")
+        tmpl = _load_template("tb-gen", "new-ip-tb")
         task_text = _tasks_as_prompt(tmpl["tasks"])
-        h = self._base_history("tb_gen")
+        h = self._base_history("tb-gen")
         reply = _turn(
             h,
             f"Here is the TB generation task list:\n\n{task_text}\n\n"
@@ -183,8 +183,8 @@ class TestTodoTemplateComprehension(unittest.TestCase):
 
     def test_new_vs_legacy_workflow_difference(self):
         """LLM correctly explains the difference between new-ip and legacy-ip."""
-        new_tmpl = _load_template("mas_gen", "new-ip")
-        leg_tmpl = _load_template("mas_gen", "legacy-ip")
+        new_tmpl = _load_template("mas-gen", "new-ip")
+        leg_tmpl = _load_template("mas-gen", "legacy-ip")
         new_tasks = _tasks_as_prompt(new_tmpl["tasks"])
         leg_tasks = _tasks_as_prompt(leg_tmpl["tasks"])
         h = self._base_history()
@@ -212,12 +212,12 @@ class TestTodoTemplateComprehension(unittest.TestCase):
 class TestTodoTaskExecutionSimulation(unittest.TestCase):
     """LLM performs the actual work described in each task."""
 
-    def _base_history(self, ws="mas_gen"):
+    def _base_history(self, ws="mas-gen"):
         return [{"role": "system", "content": _ws_sys(ws)}]
 
     def test_task1_requirements_gathering(self):
         """Task 1 (new-ip): LLM gathers port/feature requirements for a module."""
-        task = _load_template("mas_gen", "new-ip")["tasks"][0]
+        task = _load_template("mas-gen", "new-ip")["tasks"][0]
         h = self._base_history()
         reply = _turn(
             h,
@@ -234,7 +234,7 @@ class TestTodoTaskExecutionSimulation(unittest.TestCase):
 
     def test_task_read_rtl_extracts_ports(self):
         """Legacy RTL task[0]: LLM extracts port info from given RTL snippet."""
-        h = self._base_history("rtl_gen")
+        h = self._base_history("rtl-gen")
         rtl_snippet = """\
 module counter8 (
     input  logic        clk,
@@ -260,7 +260,7 @@ endmodule"""
 
     def test_task_dv_plan_to_sequence_list(self):
         """TB task[0]: LLM maps a DV Plan section to S1-SN test sequence names."""
-        h = self._base_history("tb_gen")
+        h = self._base_history("tb-gen")
         dv_plan = """\
 §9 DV Plan — edge_detector
 Test Sequences:
@@ -282,7 +282,7 @@ SVA: rise and fall never assert simultaneously"""
 
     def test_task_write_s1_reset_sequence(self):
         """TB task[1] (new-ip-tb): LLM writes a reset verification sequence."""
-        h = self._base_history("tb_gen")
+        h = self._base_history("tb-gen")
         reply = _turn(
             h,
             "Write the SystemVerilog task tc_S1_reset() for a module 'edge_detector' "
@@ -326,7 +326,7 @@ SVA: rise and fall never assert simultaneously"""
 
     def test_task_delta_list_for_legacy_update(self):
         """Legacy-ip task[1]: LLM extracts a delta list of changes needed."""
-        h = self._base_history("rtl_gen")
+        h = self._base_history("rtl-gen")
         reply = _turn(
             h,
             "You have an existing 8-bit counter (counter8) with ports: clk, rst_n, en, count[7:0]. "
@@ -356,7 +356,7 @@ SVA: rise and fall never assert simultaneously"""
 class TestTodoLoopSimulation(unittest.TestCase):
     """LLM correctly manages loop iteration state and exit conditions."""
 
-    def _base_history(self, ws="tb_gen"):
+    def _base_history(self, ws="tb-gen"):
         return [{"role": "system", "content": _ws_sys(ws)}]
 
     def _loop_task_prompt(self, tmpl_ws: str, tmpl_stem: str) -> str:
@@ -371,9 +371,9 @@ class TestTodoLoopSimulation(unittest.TestCase):
 
     def test_loop_not_done_on_errors(self):
         """LLM says loop must continue when simulator output has errors."""
-        loop_info = self._loop_task_prompt("tb_gen", "new-ip-tb")
+        loop_info = self._loop_task_prompt("tb-gen", "new-ip-tb")
         _max = next(
-            t for t in _load_template("tb_gen", "new-ip-tb")["tasks"] if t.get("loop")
+            t for t in _load_template("tb-gen", "new-ip-tb")["tasks"] if t.get("loop")
         )["max_loop_iterations"]
         h = self._base_history()
         reply = _turn(
@@ -395,9 +395,9 @@ class TestTodoLoopSimulation(unittest.TestCase):
 
     def test_loop_done_on_zero_errors(self):
         """LLM recognizes exit condition met when output says 0 errors, 0 warnings."""
-        loop_info = self._loop_task_prompt("tb_gen", "new-ip-tb")
+        loop_info = self._loop_task_prompt("tb-gen", "new-ip-tb")
         max_iters = next(
-            t for t in _load_template("tb_gen", "new-ip-tb")["tasks"] if t.get("loop")
+            t for t in _load_template("tb-gen", "new-ip-tb")["tasks"] if t.get("loop")
         )["max_loop_iterations"]
         h = self._base_history()
         reply = _turn(
@@ -422,7 +422,7 @@ class TestTodoLoopSimulation(unittest.TestCase):
     def test_loop_iteration_counter_tracking(self):
         """LLM tracks iteration count across multiple loop turns."""
         loop_task = next(
-            t for t in _load_template("tb_gen", "new-ip-tb")["tasks"] if t.get("loop")
+            t for t in _load_template("tb-gen", "new-ip-tb")["tasks"] if t.get("loop")
         )
         max_iters = loop_task["max_loop_iterations"]
         h = self._base_history()
@@ -445,9 +445,9 @@ class TestTodoLoopSimulation(unittest.TestCase):
 
     def test_loop_exit_on_fuzzy_clean_signal(self):
         """Exit condition triggers on fuzzy 'no errors' phrasing, not just exact '0 errors'."""
-        loop_info = self._loop_task_prompt("mas_gen", "new-ip")
+        loop_info = self._loop_task_prompt("mas-gen", "new-ip")
         max_iters = next(
-            t for t in _load_template("mas_gen", "new-ip")["tasks"] if t.get("loop")
+            t for t in _load_template("mas-gen", "new-ip")["tasks"] if t.get("loop")
         )["max_loop_iterations"]
         h = self._base_history()
         reply = _turn(
@@ -516,45 +516,45 @@ class TestTodoTemplatePipelineChain(unittest.TestCase):
     """LLM follows template pipeline: each stage outputs input for the next."""
 
     def test_mas_task5_produces_rtl_handoff(self):
-        """MAS task[5] ([RTL]) produces a [MAS HANDOFF] → rtl_gen message."""
-        h = [{"role": "system", "content": _ws_sys("mas_gen")}]
-        task5 = _load_template("mas_gen", "new-ip")["tasks"][5]
+        """MAS task[5] ([RTL]) produces a [MAS HANDOFF] → rtl-gen message."""
+        h = [{"role": "system", "content": _ws_sys("mas-gen")}]
+        task5 = _load_template("mas-gen", "new-ip")["tasks"][5]
         reply = _turn(
             h,
             f"Execute this task: {task5['content']}\n\n"
             f"Module: edge_detector. MAS is complete. "
-            f"Produce the handoff message to rtl_gen with all required fields: "
+            f"Produce the handoff message to rtl-gen with all required fields: "
             f"Module, MAS, Task, Input, Output, Criteria." + _INLINE
         )
         r = reply.lower()
         self.assertTrue(
-            any(p in r for p in ["mas handoff", "rtl_gen", "handoff"]),
+            any(p in r for p in ["mas handoff", "rtl-gen", "handoff"]),
             f"Should produce MAS HANDOFF message: {reply[:400]}"
         )
         self.assertIn("edge_detector", r, "Module name should be in handoff")
 
     def test_rtl_task8_produces_mas_result(self):
-        """RTL lint task ([MAS RESULT] rtl_gen DONE) sends completion signal."""
-        h = [{"role": "system", "content": _ws_sys("rtl_gen")}]
-        lint_task = _load_template("rtl_gen", "new-ip-rtl")["tasks"][-1]
+        """RTL lint task ([MAS RESULT] rtl-gen DONE) sends completion signal."""
+        h = [{"role": "system", "content": _ws_sys("rtl-gen")}]
+        lint_task = _load_template("rtl-gen", "new-ip-rtl")["tasks"][-1]
         reply = _turn(
             h,
             f"Execute: {lint_task['content']}\n\n"
             f"Module: edge_detector. Lint output: 0 errors, 0 warnings. "
-            f"Produce the completion report back to mas_gen as described in the task detail: "
+            f"Produce the completion report back to mas-gen as described in the task detail: "
             f"{lint_task.get('detail', '')}" + _INLINE
         )
         r = reply.lower()
         self.assertTrue(
-            any(p in r for p in ["mas result", "[mas result]", "rtl_gen done", "done"]),
+            any(p in r for p in ["mas result", "[mas result]", "rtl-gen done", "done"]),
             f"Should produce [MAS RESULT] signal: {reply[:400]}"
         )
 
     def test_tb_task_receives_mas_handoff_and_responds(self):
         """TB agent receives [MAS HANDOFF] message and acknowledges correctly."""
-        h = [{"role": "system", "content": _ws_sys("tb_gen")}]
+        h = [{"role": "system", "content": _ws_sys("tb-gen")}]
         handoff = """\
-[MAS HANDOFF] → tb_gen
+[MAS HANDOFF] → tb-gen
 Module  : edge_detector
 MAS     : edge_detector_mas.md
 Task    : Generate testbench and simulate
@@ -577,14 +577,14 @@ Criteria: 0 errors, 0 warnings; all S1-SN sequences PASS"""
     def test_full_new_ip_chain_module_name_consistent(self):
         """Module name 'fifo8' stays consistent across MAS → RTL → TB tasks."""
         module = "fifo8"
-        h = [{"role": "system", "content": _ws_sys("mas_gen")}]
+        h = [{"role": "system", "content": _ws_sys("mas-gen")}]
 
         # Turn 1: MAS overview
         _turn(h, f"Write a one-sentence §1 Overview for module '{module}': "
                  f"an 8-entry FIFO with 8-bit data, push/pop interface, full/empty flags." + _INLINE)
 
         # Turn 2: RTL handoff
-        _turn(h, f"Now produce the [MAS HANDOFF] → rtl_gen message for '{module}'." + _INLINE)
+        _turn(h, f"Now produce the [MAS HANDOFF] → rtl-gen message for '{module}'." + _INLINE)
 
         # Turn 3: RTL task context — still refers to same module
         reply3 = _turn(h, f"Based on this conversation, what is the module name "
@@ -596,7 +596,7 @@ Criteria: 0 errors, 0 warnings; all S1-SN sequences PASS"""
 
     def test_mas_to_rtl_port_preservation(self):
         """Ports defined in MAS §2 are reflected in the RTL task output."""
-        h = [{"role": "system", "content": _ws_sys("mas_gen")}]
+        h = [{"role": "system", "content": _ws_sys("mas-gen")}]
 
         # Define ports in MAS
         _turn(h, "Write §2 Interface for 'pwm_gen' with ports: "
@@ -621,12 +621,12 @@ Criteria: 0 errors, 0 warnings; all S1-SN sequences PASS"""
 class TestTodoLegacyIpConstraints(unittest.TestCase):
     """LLM applies legacy-IP backward-compat constraints when executing tasks."""
 
-    def _base_history(self, ws="rtl_gen"):
+    def _base_history(self, ws="rtl-gen"):
         return [{"role": "system", "content": _ws_sys(ws)}]
 
     def test_new_port_added_at_end_of_list(self):
         """Legacy RTL task[1]: LLM adds new port at END, not in middle."""
-        task = _load_template("rtl_gen", "legacy-ip-rtl")["tasks"][1]
+        task = _load_template("rtl-gen", "legacy-ip-rtl")["tasks"][1]
         h = self._base_history()
         reply = _turn(
             h,
@@ -649,7 +649,7 @@ class TestTodoLegacyIpConstraints(unittest.TestCase):
 
     def test_existing_register_offset_preserved(self):
         """Legacy RTL task[4]: LLM adds new register at NEW offset, preserves old offsets."""
-        task = _load_template("rtl_gen", "legacy-ip-rtl")["tasks"][4]
+        task = _load_template("rtl-gen", "legacy-ip-rtl")["tasks"][4]
         h = self._base_history()
         reply = _turn(
             h,
@@ -672,7 +672,7 @@ class TestTodoLegacyIpConstraints(unittest.TestCase):
 
     def test_changed_annotation_added_to_modified_logic(self):
         """Legacy RTL task[3]: LLM adds // CHANGED: vX.Y comment to modified lines."""
-        task = _load_template("rtl_gen", "legacy-ip-rtl")["tasks"][3]
+        task = _load_template("rtl-gen", "legacy-ip-rtl")["tasks"][3]
         h = self._base_history()
         reply = _turn(
             h,
@@ -711,7 +711,7 @@ class TestTodoLegacyIpConstraints(unittest.TestCase):
 
     def test_fsm_new_state_preserves_existing_transitions(self):
         """Legacy RTL task[2]: LLM adds new FSM state without touching existing transitions."""
-        task = _load_template("rtl_gen", "legacy-ip-rtl")["tasks"][2]
+        task = _load_template("rtl-gen", "legacy-ip-rtl")["tasks"][2]
         h = self._base_history()
         reply = _turn(
             h,
@@ -742,7 +742,7 @@ class TestTodoLegacyIpConstraints(unittest.TestCase):
 class TestTodoTemplateTaskCompletion(unittest.TestCase):
     """LLM correctly recognizes task done state and transitions to next step."""
 
-    def _base_history(self, ws="mas_gen"):
+    def _base_history(self, ws="mas-gen"):
         return [{"role": "system", "content": _ws_sys(ws)}]
 
     def test_task_completes_on_success_criteria(self):
@@ -766,7 +766,7 @@ class TestTodoTemplateTaskCompletion(unittest.TestCase):
 
     def test_high_priority_tasks_before_normal(self):
         """LLM correctly respects that high-priority tasks must finish before normal."""
-        tmpl = _load_template("mas_gen", "new-ip")
+        tmpl = _load_template("mas-gen", "new-ip")
         task_text = _tasks_as_prompt(tmpl["tasks"])
         h = self._base_history()
         reply = _turn(
@@ -785,8 +785,8 @@ class TestTodoTemplateTaskCompletion(unittest.TestCase):
 
     def test_loop_task_transitions_after_exit(self):
         """After SIM loop exit condition is met, LLM transitions to coverage task."""
-        h = self._base_history("tb_gen")
-        tmpl = _load_template("tb_gen", "new-ip-tb")
+        h = self._base_history("tb-gen")
+        tmpl = _load_template("tb-gen", "new-ip-tb")
         tasks = tmpl["tasks"]
         loop_idx = next(i for i, t in enumerate(tasks) if t.get("loop"))
         next_task = tasks[loop_idx + 1]
@@ -810,8 +810,8 @@ class TestTodoTemplateTaskCompletion(unittest.TestCase):
         )
 
     def test_mas_escalation_when_dut_bug_found(self):
-        """TB agent correctly escalates to rtl_gen when a DUT bug is found."""
-        h = [{"role": "system", "content": _ws_sys("tb_gen")}]
+        """TB agent correctly escalates to rtl-gen when a DUT bug is found."""
+        h = [{"role": "system", "content": _ws_sys("tb-gen")}]
         reply = _turn(
             h,
             "We are running the SIM loop for edge_detector. "
@@ -820,7 +820,7 @@ class TestTodoTemplateTaskCompletion(unittest.TestCase):
             "According to the TB gen rules, what is the correct action?\n\n"
             "Options:\n"
             "  A) Fix tc_S2_rising_edge to change the stimulus\n"
-            "  B) Report [MAS ESCALATE] rtl_gen — DUT bug\n"
+            "  B) Report [MAS ESCALATE] rtl-gen — DUT bug\n"
             "  C) Modify edge_detector.sv to fix the RTL\n"
             "  D) Skip this test case\n\n"
             "Which option is correct and why?" + _INLINE
@@ -828,7 +828,7 @@ class TestTodoTemplateTaskCompletion(unittest.TestCase):
         r = reply.lower()
         self.assertTrue(
             any(p in r for p in ["option b", "(b)", "mas escalate", "escalate",
-                                  "rtl_gen", "dut bug"]),
+                                  "rtl-gen", "dut bug"]),
             f"Should choose option B escalation: {reply[:400]}"
         )
 

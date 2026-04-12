@@ -126,22 +126,22 @@ class TestRealGLM51PlanPrompt(unittest.TestCase):
     planning / task-decomposition responses.
     """
 
-    def test_mas_gen_plan_prompt_loaded_and_substantive(self):
-        ws = _load_ws("mas_gen")
+    def test_mas-gen_plan_prompt_loaded_and_substantive(self):
+        ws = _load_ws("mas-gen")
         self.assertIsNotNone(ws.plan_prompt_text)
         self.assertGreater(len(ws.plan_prompt_text), 100)
 
-    def test_rtl_gen_plan_prompt_loaded_and_substantive(self):
-        ws = _load_ws("rtl_gen")
+    def test_rtl-gen_plan_prompt_loaded_and_substantive(self):
+        ws = _load_ws("rtl-gen")
         self.assertIsNotNone(ws.plan_prompt_text)
         self.assertGreater(len(ws.plan_prompt_text), 50)
 
-    def test_mas_gen_plan_prompt_makes_glm_use_agent_tags(self):
+    def test_mas-gen_plan_prompt_makes_glm_use_agent_tags(self):
         """
-        Inject mas_gen plan rules into system prompt and ask GLM to plan.
+        Inject mas-gen plan rules into system prompt and ask GLM to plan.
         GLM should mention [MAS], [RTL] or [TB] task labels.
         """
-        ws          = _load_ws("mas_gen")
+        ws          = _load_ws("mas-gen")
         plan_system = ws.plan_prompt_text
         result      = _call([
             _sys(plan_system),
@@ -157,12 +157,12 @@ class TestRealGLM51PlanPrompt(unittest.TestCase):
             f"Plan prompt not reflected — GLM did not use agent tags: {result[:400]}",
         )
 
-    def test_rtl_gen_plan_prompt_enforces_lint_last(self):
+    def test_rtl-gen_plan_prompt_enforces_lint_last(self):
         """
-        rtl_gen plan rules say lint is the final task.
+        rtl-gen plan rules say lint is the final task.
         GLM should mention lint in a planning response.
         """
-        ws     = _load_ws("rtl_gen")
+        ws     = _load_ws("rtl-gen")
         result = _call([
             _sys(ws.plan_prompt_text),
             _usr(
@@ -171,11 +171,11 @@ class TestRealGLM51PlanPrompt(unittest.TestCase):
             ),
         ])
         self.assertIn("lint", result.lower(),
-                      f"rtl_gen plan prompt: 'lint' not mentioned in plan: {result[:400]}")
+                      f"rtl-gen plan prompt: 'lint' not mentioned in plan: {result[:400]}")
 
     def test_plan_prompt_prepend_mode_verified(self):
-        """Plan prompt mode for mas_gen should be prepend."""
-        ws = _load_ws("mas_gen")
+        """Plan prompt mode for mas-gen should be prepend."""
+        ws = _load_ws("mas-gen")
         self.assertEqual(ws.plan_prompt_mode, "prepend")
 
     def test_merged_plan_prompt_contains_both_base_and_workspace(self):
@@ -185,7 +185,7 @@ class TestRealGLM51PlanPrompt(unittest.TestCase):
         """
         import config
         from workflow.loader import merge_prompt
-        ws = _load_ws("mas_gen")
+        ws = _load_ws("mas-gen")
         merged = merge_prompt(
             config.PLAN_MODE_PROMPT,
             ws.plan_prompt_text,
@@ -221,7 +221,7 @@ class TestRealGLM51MultiTurnContext(unittest.TestCase):
 
     def test_verilog_context_preserved_across_three_turns(self):
         """Three-turn conversation about a register file module."""
-        ws_sys = _ws_system_prompt("rtl_gen")
+        ws_sys = _ws_system_prompt("rtl-gen")
         msgs   = [_sys(ws_sys)]
 
         msgs.append(_usr("I'm designing a 32-entry, 32-bit register file. Acknowledge."))
@@ -241,7 +241,7 @@ class TestRealGLM51MultiTurnContext(unittest.TestCase):
         GLM should still reference information from the compressed history.
         """
         MODULE = "spi_master"
-        ws_sys = _ws_system_prompt("rtl_gen")
+        ws_sys = _ws_system_prompt("rtl-gen")
         history = [
             _sys(ws_sys),
             _usr(f"I'm implementing {MODULE}. It has CLK, MOSI, MISO, CS signals."),
@@ -251,7 +251,7 @@ class TestRealGLM51MultiTurnContext(unittest.TestCase):
             _usr("The data width is 8 bits."),
             _ast("8-bit data transfers confirmed."),
         ]
-        compressed = _compress(history, workspace="rtl_gen")
+        compressed = _compress(history, workspace="rtl-gen")
         compressed.append(_usr(f"What was the module name and its SPI mode?"))
         result = _call(compressed)
         self.assertTrue(
@@ -261,7 +261,7 @@ class TestRealGLM51MultiTurnContext(unittest.TestCase):
 
     def test_workspace_context_maintained_after_compression(self):
         """After compressing, GLM still knows it's in a Verilog workspace."""
-        ws_sys  = _ws_system_prompt("mas_gen")
+        ws_sys  = _ws_system_prompt("mas-gen")
         history = [
             _sys(ws_sys),
             _usr("What is a MAS document?"),
@@ -269,7 +269,7 @@ class TestRealGLM51MultiTurnContext(unittest.TestCase):
             _usr("What sections does it have?"),
             _ast("A MAS typically has: Overview, Ports, FSM, Registers, Interrupts, Memory, Timing, RTL Notes, DV Plan."),
         ]
-        compressed = _compress(history, workspace="mas_gen")
+        compressed = _compress(history, workspace="mas-gen")
         compressed.append(_usr("Based on what we discussed, which section covers testbench scenarios?"))
         result = _call(compressed)
         lowered = result.lower()
@@ -299,7 +299,7 @@ class TestRealGLM51TodoTaskContent(unittest.TestCase):
 
     def test_mas_task0_glm_understands_mas_document(self):
         """[MAS] task content → GLM knows it's about writing a spec document."""
-        task = self._task("mas_gen", "full-project", 0)
+        task = self._task("mas-gen", "full-project", 0)
         result = _call([
             _sys("You are a Verilog hardware design assistant."),
             _usr(f"Explain this task in one sentence: {task['content']}"),
@@ -315,7 +315,7 @@ class TestRealGLM51TodoTaskContent(unittest.TestCase):
 
     def test_rtl_task0_glm_understands_read_mas(self):
         """rtl-impl task[0] is about reading the MAS → GLM understands it."""
-        task = self._task("rtl_gen", "rtl-impl", 0)
+        task = self._task("rtl-gen", "rtl-impl", 0)
         result = _call([
             _sys("You are a Verilog RTL implementation assistant."),
             _usr(f"What does this task ask you to do? Answer in one sentence: {task['content']}"),
@@ -365,7 +365,7 @@ class TestRealGLM51TodoTaskContent(unittest.TestCase):
     def test_full_project_task_count_via_real_files(self):
         """full-project.json has exactly 6 tasks and GLM can count them."""
         from workflow.loader import load_workspace, TodoTemplateRegistry
-        ws  = load_workspace("mas_gen", PROJECT_ROOT)
+        ws  = load_workspace("mas-gen", PROJECT_ROOT)
         reg = TodoTemplateRegistry()
         reg.load_from_dir(ws.todo_templates_dir)
         tasks  = reg.get_tasks("full-project")
@@ -404,16 +404,16 @@ class TestRealGLM51CompressionQuality(unittest.TestCase):
 
     def test_summary_has_structured_sections(self):
         """
-        mas_gen compression_prompt.md instructs GLM to produce structured output
+        mas-gen compression_prompt.md instructs GLM to produce structured output
         (Goals, Completed, Key Files, etc.).
         """
-        ws = _load_ws("mas_gen")
+        ws = _load_ws("mas-gen")
         import core.compressor as comp
         importlib.reload(comp)
         orig_prompt = comp.STRUCTURED_SUMMARY_PROMPT
         comp.STRUCTURED_SUMMARY_PROMPT = ws.compression_prompt_text
         try:
-            result = _compress(self._verilog_history("counter_mod"), workspace="mas_gen")
+            result = _compress(self._verilog_history("counter_mod"), workspace="mas-gen")
         finally:
             comp.STRUCTURED_SUMMARY_PROMPT = orig_prompt
 
@@ -430,7 +430,7 @@ class TestRealGLM51CompressionQuality(unittest.TestCase):
     def test_compression_reduces_message_count(self):
         """compress_history() produces fewer messages than the original long history."""
         # Build a 10-turn history so keep_recent=4 still results in compression
-        ws_sys  = _ws_system_prompt("rtl_gen")
+        ws_sys  = _ws_system_prompt("rtl-gen")
         history = [_sys(ws_sys)]
         for i in range(10):
             role = "user" if i % 2 == 0 else "assistant"
@@ -574,7 +574,7 @@ class TestRealGLM51WorkspaceDescription(unittest.TestCase):
 
     def test_all_workspaces_have_description_in_workspace_json(self):
         """Every production workspace has a non-empty description field."""
-        for ws_name in ["mas_gen", "rtl_gen", "tb_gen", "sim", "lint"]:
+        for ws_name in ["mas-gen", "rtl-gen", "tb-gen", "sim", "lint"]:
             with self.subTest(ws=ws_name):
                 ws = _load_ws(ws_name)
                 self.assertTrue(
@@ -584,7 +584,7 @@ class TestRealGLM51WorkspaceDescription(unittest.TestCase):
 
     def test_workspace_desc_injected_into_system_prompt(self):
         """When ACTIVE_WORKSPACE_DESC is set, it appears in the built system prompt."""
-        os.environ["ACTIVE_WORKSPACE"]      = "rtl_gen"
+        os.environ["ACTIVE_WORKSPACE"]      = "rtl-gen"
         os.environ["ACTIVE_WORKSPACE_DESC"] = "RTL code generation agent for SystemVerilog"
         import core.prompt_builder as pb
         importlib.reload(pb)
@@ -598,7 +598,7 @@ class TestRealGLM51WorkspaceDescription(unittest.TestCase):
     def test_glm_sees_workspace_description_in_context(self):
         """GLM-5.1 can reference the workspace description when asked."""
         desc   = "RTL generation agent — specializes in SystemVerilog implementation"
-        sys_p  = f"[Workspace: rtl_gen — {desc}]\nYou are a Verilog coding assistant."
+        sys_p  = f"[Workspace: rtl-gen — {desc}]\nYou are a Verilog coding assistant."
         result = _call([
             _sys(sys_p),
             _usr("What workspace are you operating in? One sentence."),
@@ -607,13 +607,13 @@ class TestRealGLM51WorkspaceDescription(unittest.TestCase):
         self.assertTrue(
             any(w in lowered for w in [
                 "rtl", "verilog", "systemverilog", "generation",
-                "implementation", "coding", "rtl_gen",
+                "implementation", "coding", "rtl-gen",
             ]),
             f"GLM didn't reference workspace description: {result[:300]}",
         )
 
-    def test_description_substantive_for_mas_gen(self):
-        ws = _load_ws("mas_gen")
+    def test_description_substantive_for_mas-gen(self):
+        ws = _load_ws("mas-gen")
         # Description should mention what the workspace does
         lowered = ws.description.lower()
         self.assertTrue(
@@ -621,7 +621,7 @@ class TestRealGLM51WorkspaceDescription(unittest.TestCase):
                 "mas", "architect", "spec", "rtl", "verilog",
                 "hardware", "design", "agent",
             ]),
-            f"mas_gen description not substantive: '{ws.description}'",
+            f"mas-gen description not substantive: '{ws.description}'",
         )
 
 
@@ -641,7 +641,7 @@ class TestRealGLM51ContextWindowBoundary(unittest.TestCase):
 
     def _build_long_rtl_history(self, n_pairs=8):
         """Build a realistic RTL conversation history."""
-        ws_sys = _ws_system_prompt("rtl_gen")
+        ws_sys = _ws_system_prompt("rtl-gen")
         msgs   = [_sys(ws_sys)]
         topics = [
             ("Implement a parameterized synchronous FIFO in SystemVerilog.",
@@ -672,7 +672,7 @@ class TestRealGLM51ContextWindowBoundary(unittest.TestCase):
         Verify GLM still responds coherently.
         """
         history    = self._build_long_rtl_history(8)
-        compressed = _compress(history, workspace="rtl_gen")
+        compressed = _compress(history, workspace="rtl-gen")
         compressed.append(_usr("What FIFO features have we implemented so far? List them."))
         result = _call(compressed)
         lowered = result.lower()
@@ -687,25 +687,25 @@ class TestRealGLM51ContextWindowBoundary(unittest.TestCase):
     def test_compression_preserves_system_prompt_role(self):
         """After compression, GLM still knows it's an RTL agent."""
         history    = self._build_long_rtl_history(6)
-        compressed = _compress(history, workspace="rtl_gen")
+        compressed = _compress(history, workspace="rtl-gen")
         compressed.append(_usr("Are you a Verilog RTL coding agent? One word: yes or no."))
         result = _call(compressed)
         self.assertIn("yes", result.lower(),
                       f"GLM lost its RTL role after compression: {result[:200]}")
 
-    def test_mas_gen_compression_prompt_with_fifo_history(self):
+    def test_mas-gen_compression_prompt_with_fifo_history(self):
         """
-        mas_gen compression_prompt.md used for compressing an RTL history
+        mas-gen compression_prompt.md used for compressing an RTL history
         → structured summary with MAS-style fields.
         """
-        ws = _load_ws("mas_gen")
+        ws = _load_ws("mas-gen")
         import core.compressor as comp
         importlib.reload(comp)
         orig = comp.STRUCTURED_SUMMARY_PROMPT
         comp.STRUCTURED_SUMMARY_PROMPT = ws.compression_prompt_text
         try:
             history = self._build_long_rtl_history(4)
-            result  = _compress(history, workspace="mas_gen")
+            result  = _compress(history, workspace="mas-gen")
         finally:
             comp.STRUCTURED_SUMMARY_PROMPT = orig
 

@@ -117,7 +117,7 @@ class TestTodoTemplateSchema(unittest.TestCase):
 class TestMasGenTemplates(unittest.TestCase):
 
     def setUp(self):
-        self.data = _load("mas_gen", "full-project")
+        self.data = _load("mas-gen", "full-project")
         self.tasks = self.data["tasks"]
 
     def test_has_ten_steps(self):
@@ -134,7 +134,7 @@ class TestMasGenTemplates(unittest.TestCase):
     def test_no_rtl_tb_sim_doc_tasks(self):
         for prefix in ["[RTL]", "[TB]", "[SIM]", "[DOC]"]:
             found = [t for t in self.tasks if t["content"].startswith(prefix)]
-            self.assertEqual(found, [], f"Should not have {prefix} tasks in mas_gen")
+            self.assertEqual(found, [], f"Should not have {prefix} tasks in mas-gen")
 
     def test_first_task_gathers_requirements(self):
         self.assertIn("requirement", self.tasks[0]["content"].lower())
@@ -161,7 +161,7 @@ class TestMasGenTemplates(unittest.TestCase):
 class TestRtlGenTemplates(unittest.TestCase):
 
     def setUp(self):
-        self.data = _load("rtl_gen", "rtl-impl")
+        self.data = _load("rtl-gen", "rtl-impl")
         self.tasks = self.data["tasks"]
 
     def test_has_eight_steps(self):
@@ -197,7 +197,7 @@ class TestRtlGenTemplates(unittest.TestCase):
 class TestTbGenTemplates(unittest.TestCase):
 
     def setUp(self):
-        self.data = _load("tb_gen", "tb-impl")
+        self.data = _load("tb-gen", "tb-impl")
         self.tasks = self.data["tasks"]
 
     def test_has_six_steps(self):
@@ -381,10 +381,10 @@ class TestDefaultTemplates(unittest.TestCase):
 # ─────────────────────────────────────────────────────────────
 
 class TestMasGenNewIpTemplate(unittest.TestCase):
-    """Tests for workflow/mas_gen/todo_templates/new-ip.json — MAS only"""
+    """Tests for workflow/mas-gen/todo_templates/new-ip.json — MAS only"""
 
     def setUp(self):
-        self.data = _load("mas_gen", "new-ip")
+        self.data = _load("mas-gen", "new-ip")
         self.tasks = self.data["tasks"]
 
     def test_name_is_new_ip(self):
@@ -412,7 +412,7 @@ class TestMasGenNewIpTemplate(unittest.TestCase):
     def test_no_rtl_tb_sim_doc_tasks(self):
         for prefix in ["[RTL]", "[TB]", "[SIM]", "[DOC]"]:
             found = [t for t in self.tasks if t["content"].startswith(prefix)]
-            self.assertEqual(found, [], f"Should not have {prefix} tasks in mas_gen new-ip")
+            self.assertEqual(found, [], f"Should not have {prefix} tasks in mas-gen new-ip")
 
     def test_first_task_reads_requirement_files(self):
         detail = self.tasks[0].get("detail", "").lower()
@@ -445,10 +445,10 @@ class TestMasGenNewIpTemplate(unittest.TestCase):
 # ─────────────────────────────────────────────────────────────
 
 class TestMasGenLegacyIpTemplate(unittest.TestCase):
-    """Tests for workflow/mas_gen/todo_templates/legacy-ip.json — MAS only"""
+    """Tests for workflow/mas-gen/todo_templates/legacy-ip.json — MAS only"""
 
     def setUp(self):
-        self.data = _load("mas_gen", "legacy-ip")
+        self.data = _load("mas-gen", "legacy-ip")
         self.tasks = self.data["tasks"]
 
     def test_name_is_legacy_ip(self):
@@ -478,7 +478,7 @@ class TestMasGenLegacyIpTemplate(unittest.TestCase):
     def test_no_rtl_tb_sim_doc_tasks(self):
         for prefix in ["[RTL]", "[TB]", "[SIM]", "[DOC]"]:
             found = [t for t in self.tasks if t["content"].startswith(prefix)]
-            self.assertEqual(found, [], f"Should not have {prefix} tasks in mas_gen legacy-ip")
+            self.assertEqual(found, [], f"Should not have {prefix} tasks in mas-gen legacy-ip")
 
     def test_third_task_confirms_with_user(self):
         detail = self.tasks[2].get("detail", "").lower()
@@ -505,10 +505,10 @@ class TestMasGenLegacyIpTemplate(unittest.TestCase):
 # ─────────────────────────────────────────────────────────────
 
 class TestRtlGenNewIpTemplate(unittest.TestCase):
-    """Tests for workflow/rtl_gen/todo_templates/new-ip-rtl.json"""
+    """Tests for workflow/rtl-gen/todo_templates/new-ip-rtl.json"""
 
     def setUp(self):
-        self.data = _load("rtl_gen", "new-ip-rtl")
+        self.data = _load("rtl-gen", "new-ip-rtl")
         self.tasks = self.data["tasks"]
 
     def test_name_is_new_ip_rtl(self):
@@ -575,10 +575,10 @@ class TestRtlGenNewIpTemplate(unittest.TestCase):
 # ─────────────────────────────────────────────────────────────
 
 class TestRtlGenLegacyIpTemplate(unittest.TestCase):
-    """Tests for workflow/rtl_gen/todo_templates/legacy-ip-rtl.json"""
+    """Tests for workflow/rtl-gen/todo_templates/legacy-ip-rtl.json"""
 
     def setUp(self):
-        self.data = _load("rtl_gen", "legacy-ip-rtl")
+        self.data = _load("rtl-gen", "legacy-ip-rtl")
         self.tasks = self.data["tasks"]
 
     def test_name_is_legacy_ip_rtl(self):
@@ -643,10 +643,10 @@ class TestRtlGenLegacyIpTemplate(unittest.TestCase):
 # ─────────────────────────────────────────────────────────────
 
 class TestTbGenNewIpTemplate(unittest.TestCase):
-    """Tests for workflow/tb_gen/todo_templates/new-ip-tb.json"""
+    """Tests for workflow/tb-gen/todo_templates/new-ip-tb.json"""
 
     def setUp(self):
-        self.data = _load("tb_gen", "new-ip-tb")
+        self.data = _load("tb-gen", "new-ip-tb")
         self.tasks = self.data["tasks"]
 
     def test_name_is_new_ip_tb(self):
@@ -729,10 +729,10 @@ class TestTbGenNewIpTemplate(unittest.TestCase):
 # ─────────────────────────────────────────────────────────────
 
 class TestTbGenLegacyIpTemplate(unittest.TestCase):
-    """Tests for workflow/tb_gen/todo_templates/legacy-ip-tb.json"""
+    """Tests for workflow/tb-gen/todo_templates/legacy-ip-tb.json"""
 
     def setUp(self):
-        self.data = _load("tb_gen", "legacy-ip-tb")
+        self.data = _load("tb-gen", "legacy-ip-tb")
         self.tasks = self.data["tasks"]
 
     def test_name_is_legacy_ip_tb(self):
@@ -818,51 +818,51 @@ class TestNewVsLegacyContrast(unittest.TestCase):
     """Verify that new-IP and legacy-IP templates enforce different policies."""
 
     def test_mas_new_ip_is_longer_than_legacy(self):
-        new_tasks  = _load("mas_gen", "new-ip")["tasks"]
-        legacy_tasks = _load("mas_gen", "legacy-ip")["tasks"]
+        new_tasks  = _load("mas-gen", "new-ip")["tasks"]
+        legacy_tasks = _load("mas-gen", "legacy-ip")["tasks"]
         # new-ip has more MAS authoring steps (full 9-section spec vs delta)
         new_mas_count = sum(1 for t in new_tasks if t["content"].startswith("[MAS]"))
         legacy_mas_count = sum(1 for t in legacy_tasks if t["content"].startswith("[MAS]"))
         self.assertGreater(new_mas_count, legacy_mas_count)
 
     def test_rtl_new_ip_more_tasks_than_legacy(self):
-        new_tasks    = _load("rtl_gen", "new-ip-rtl")["tasks"]
-        legacy_tasks = _load("rtl_gen", "legacy-ip-rtl")["tasks"]
+        new_tasks    = _load("rtl-gen", "new-ip-rtl")["tasks"]
+        legacy_tasks = _load("rtl-gen", "legacy-ip-rtl")["tasks"]
         self.assertGreater(len(new_tasks), len(legacy_tasks))
 
     def test_legacy_rtl_mentions_backward_compat_new_ip_does_not(self):
         legacy_details = " ".join(
-            t.get("detail", "") for t in _load("rtl_gen", "legacy-ip-rtl")["tasks"]
+            t.get("detail", "") for t in _load("rtl-gen", "legacy-ip-rtl")["tasks"]
         ).lower()
         new_details = " ".join(
-            t.get("detail", "") for t in _load("rtl_gen", "new-ip-rtl")["tasks"]
+            t.get("detail", "") for t in _load("rtl-gen", "new-ip-rtl")["tasks"]
         ).lower()
         self.assertIn("backward", legacy_details)
         self.assertNotIn("backward compat", new_details)
 
     def test_legacy_tb_preserves_existing_sequences(self):
         legacy_details = " ".join(
-            t.get("detail", "") for t in _load("tb_gen", "legacy-ip-tb")["tasks"]
+            t.get("detail", "") for t in _load("tb-gen", "legacy-ip-tb")["tasks"]
         ).lower()
         self.assertIn("not modify", legacy_details)
 
     def test_legacy_mas_has_user_confirmation_step(self):
-        legacy_tasks = _load("mas_gen", "legacy-ip")["tasks"]
+        legacy_tasks = _load("mas-gen", "legacy-ip")["tasks"]
         confirm_tasks = [t for t in legacy_tasks
                          if "confirm" in t["content"].lower() or "sign-off" in t.get("detail", "").lower()]
         self.assertGreater(len(confirm_tasks), 0,
                            "legacy-ip should have a user sign-off step before writing MAS")
 
     def test_new_ip_mas_no_explicit_user_confirmation_needed(self):
-        new_tasks = _load("mas_gen", "new-ip")["tasks"]
+        new_tasks = _load("mas-gen", "new-ip")["tasks"]
         # new-ip gathers requirements in task[0] but no dedicated "sign-off" gate
         sign_off_tasks = [t for t in new_tasks if "sign-off" in t.get("detail", "").lower()]
         # new-ip may have one requirements gather with approval — that's fine (≤1)
         self.assertLessEqual(len(sign_off_tasks), 1)
 
     def test_both_sim_loops_use_same_validator(self):
-        for ws, stem in [("mas_gen", "new-ip"), ("mas_gen", "legacy-ip"),
-                          ("tb_gen", "new-ip-tb"), ("tb_gen", "legacy-ip-tb")]:
+        for ws, stem in [("mas-gen", "new-ip"), ("mas-gen", "legacy-ip"),
+                          ("tb-gen", "new-ip-tb"), ("tb-gen", "legacy-ip-tb")]:
             with self.subTest(ws=ws, stem=stem):
                 tasks = _load(ws, stem)["tasks"]
                 loop_task = next((t for t in tasks if t.get("loop")), None)

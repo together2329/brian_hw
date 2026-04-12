@@ -295,9 +295,9 @@ class TestWorkspaceSystemPromptInLLMCall(unittest.TestCase):
         system_count = sum(1 for m in sent if m["role"] == "system")
         self.assertEqual(system_count, 1)
 
-    def test_real_mas_gen_workspace_text_in_prompt(self):
+    def test_real_mas-gen_workspace_text_in_prompt(self):
         from workflow.loader import load_workspace
-        ws = load_workspace("mas_gen", PROJECT_ROOT)
+        ws = load_workspace("mas-gen", PROJECT_ROOT)
         self.assertIsNotNone(ws.system_prompt_text)
         self._patch_workspace_prompt(ws.system_prompt_text, ws.system_prompt_mode)
         result = self._pb.build_system_prompt()
@@ -308,9 +308,9 @@ class TestWorkspaceSystemPromptInLLMCall(unittest.TestCase):
         # Workspace text must be present
         self.assertIn(ws.system_prompt_text[:50], combined)
 
-    def test_real_rtl_gen_workspace_text_in_prompt(self):
+    def test_real_rtl-gen_workspace_text_in_prompt(self):
         from workflow.loader import load_workspace
-        ws = load_workspace("rtl_gen", PROJECT_ROOT)
+        ws = load_workspace("rtl-gen", PROJECT_ROOT)
         self._patch_workspace_prompt(ws.system_prompt_text, ws.system_prompt_mode)
         result = self._pb.build_system_prompt()
         if isinstance(result, dict):
@@ -511,9 +511,9 @@ class TestWorkspaceCompressionPrompt(unittest.TestCase):
         comp._compress_single(sample, llm_call_fn=_cap_llm)
         self.assertIn(marker, captured.get("user", ""))
 
-    def test_real_mas_gen_compression_prompt_applied(self):
+    def test_real_mas-gen_compression_prompt_applied(self):
         from workflow.loader import load_workspace
-        ws = load_workspace("mas_gen", PROJECT_ROOT)
+        ws = load_workspace("mas-gen", PROJECT_ROOT)
         if ws.compression_prompt_text:
             self._apply_compression_patch(ws.compression_prompt_text)
             self.assertIn(
@@ -530,7 +530,7 @@ class TestWorkspaceCompressionPrompt(unittest.TestCase):
 
     def test_all_production_workspaces_have_compression_prompt(self):
         from workflow.loader import load_workspace
-        for name in ["mas_gen", "rtl_gen", "tb_gen", "sim", "lint"]:
+        for name in ["mas-gen", "rtl-gen", "tb-gen", "sim", "lint"]:
             with self.subTest(workspace=name):
                 ws = load_workspace(name, PROJECT_ROOT)
                 self.assertIsNotNone(
@@ -577,12 +577,12 @@ class TestWorkspaceIdentityInCompressionCall(unittest.TestCase):
         return captured.get("user", "")
 
     def test_identity_in_user_message(self):
-        user_msg = self._run_compress_single("mas_gen")
-        self.assertIn("[Workflow: mas_gen]", user_msg)
+        user_msg = self._run_compress_single("mas-gen")
+        self.assertIn("[Workflow: mas-gen]", user_msg)
 
     def test_identity_at_beginning(self):
-        user_msg = self._run_compress_single("rtl_gen")
-        idx = user_msg.find("[Workflow: rtl_gen]")
+        user_msg = self._run_compress_single("rtl-gen")
+        idx = user_msg.find("[Workflow: rtl-gen]")
         self.assertGreaterEqual(idx, 0)
         self.assertLess(idx, 50)
 
@@ -603,7 +603,7 @@ class TestWorkspaceIdentityInCompressionCall(unittest.TestCase):
         self.assertNotIn("[Workflow:", captured.get("user", ""))
 
     def test_identity_present_for_all_production_workspaces(self):
-        for ws_name in ["mas_gen", "rtl_gen", "tb_gen", "sim", "lint"]:
+        for ws_name in ["mas-gen", "rtl-gen", "tb-gen", "sim", "lint"]:
             with self.subTest(workspace=ws_name):
                 user_msg = self._run_compress_single(ws_name)
                 self.assertIn(f"[Workflow: {ws_name}]", user_msg)
@@ -636,23 +636,23 @@ class TestTodoTemplateRegistryPipeline(unittest.TestCase):
         return reg
 
     def test_registry_installed_in_builtins_after_setup(self):
-        self._setup_registry("mas_gen")
+        self._setup_registry("mas-gen")
         self.assertTrue(hasattr(builtins, "_TODO_TEMPLATE_REGISTRY"))
 
-    def test_mas_gen_full_project_tasks_accessible(self):
-        reg = self._setup_registry("mas_gen")
+    def test_mas-gen_full_project_tasks_accessible(self):
+        reg = self._setup_registry("mas-gen")
         tasks = reg.get_tasks("full-project")
         self.assertIsNotNone(tasks)
         self.assertGreater(len(tasks), 0)
 
-    def test_rtl_gen_rtl_impl_tasks_accessible(self):
-        reg = self._setup_registry("rtl_gen")
+    def test_rtl-gen_rtl_impl_tasks_accessible(self):
+        reg = self._setup_registry("rtl-gen")
         tasks = reg.get_tasks("rtl-impl")
         self.assertIsNotNone(tasks)
         self.assertGreater(len(tasks), 0)
 
-    def test_tb_gen_tb_impl_tasks_accessible(self):
-        reg = self._setup_registry("tb_gen")
+    def test_tb-gen_tb_impl_tasks_accessible(self):
+        reg = self._setup_registry("tb-gen")
         tasks = reg.get_tasks("tb-impl")
         self.assertIsNotNone(tasks)
         self.assertGreater(len(tasks), 0)
@@ -664,7 +664,7 @@ class TestTodoTemplateRegistryPipeline(unittest.TestCase):
         self.assertGreater(len(tasks), 0)
 
     def test_each_task_has_content_and_priority(self):
-        reg = self._setup_registry("mas_gen")
+        reg = self._setup_registry("mas-gen")
         tasks = reg.get_tasks("full-project")
         for i, t in enumerate(tasks):
             with self.subTest(task=i):
@@ -674,7 +674,7 @@ class TestTodoTemplateRegistryPipeline(unittest.TestCase):
                 self.assertIn(t["priority"], {"high", "normal", "low", "medium"})
 
     def test_builtins_registry_get_tasks_same_as_direct(self):
-        reg = self._setup_registry("mas_gen")
+        reg = self._setup_registry("mas-gen")
         via_builtins = builtins._TODO_TEMPLATE_REGISTRY.get_tasks("full-project")
         via_direct   = reg.get_tasks("full-project")
         self.assertEqual(via_builtins, via_direct)
@@ -746,38 +746,38 @@ class TestFullWorkspaceLLMPipeline(unittest.TestCase):
             ))
         return store["body"]["messages"], ws
 
-    def test_mas_gen_workspace_text_in_llm_system_message(self):
-        sent_msgs, ws = self._simulate_setup_and_call("mas_gen")
+    def test_mas-gen_workspace_text_in_llm_system_message(self):
+        sent_msgs, ws = self._simulate_setup_and_call("mas-gen")
         system_content = sent_msgs[0]["content"]
         self.assertIn(ws.system_prompt_text[:40], system_content)
 
-    def test_rtl_gen_workspace_text_in_llm_system_message(self):
-        sent_msgs, ws = self._simulate_setup_and_call("rtl_gen")
+    def test_rtl-gen_workspace_text_in_llm_system_message(self):
+        sent_msgs, ws = self._simulate_setup_and_call("rtl-gen")
         system_content = sent_msgs[0]["content"]
         self.assertIn(ws.system_prompt_text[:40], system_content)
 
-    def test_tb_gen_workspace_text_in_llm_system_message(self):
-        sent_msgs, ws = self._simulate_setup_and_call("tb_gen")
+    def test_tb-gen_workspace_text_in_llm_system_message(self):
+        sent_msgs, ws = self._simulate_setup_and_call("tb-gen")
         system_content = sent_msgs[0]["content"]
         self.assertIn(ws.system_prompt_text[:40], system_content)
 
     def test_system_message_is_role_system(self):
-        sent_msgs, _ = self._simulate_setup_and_call("mas_gen")
+        sent_msgs, _ = self._simulate_setup_and_call("mas-gen")
         self.assertEqual(sent_msgs[0]["role"], "system")
 
     def test_only_one_system_message_in_call(self):
-        sent_msgs, _ = self._simulate_setup_and_call("mas_gen")
+        sent_msgs, _ = self._simulate_setup_and_call("mas-gen")
         count = sum(1 for m in sent_msgs if m["role"] == "system")
         self.assertEqual(count, 1)
 
     def test_user_message_preserved_after_workspace_patch(self):
-        sent_msgs, _ = self._simulate_setup_and_call("rtl_gen")
+        sent_msgs, _ = self._simulate_setup_and_call("rtl-gen")
         user_msgs = [m for m in sent_msgs if m["role"] == "user"]
         self.assertEqual(len(user_msgs), 1)
         self.assertIn("4-bit adder", user_msgs[0]["content"])
 
     def test_all_production_workspaces_llm_call_works(self):
-        for ws_name in ["mas_gen", "rtl_gen", "tb_gen", "sim", "lint"]:
+        for ws_name in ["mas-gen", "rtl-gen", "tb-gen", "sim", "lint"]:
             # Restore between iterations
             self._pb.build_system_prompt = self._orig_build
             with self.subTest(workspace=ws_name):

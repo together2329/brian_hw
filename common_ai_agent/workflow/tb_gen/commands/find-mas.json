@@ -1,7 +1,0 @@
-{
-  "name": "find-mas",
-  "description": "List all *_mas.md files in the working directory and show their module names",
-  "aliases": ["fm"],
-  "handler": "bash:../rtl_gen/scripts/find-mas.sh",
-  "usage": "/find-mas [directory]"
-}

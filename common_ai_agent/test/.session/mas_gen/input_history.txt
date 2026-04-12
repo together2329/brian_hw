@@ -1,0 +1,13 @@
+[<34;-6;-6M/context -v
+c/context -v
+/context -v
+list up dir
+/context debug
+Write readme.md
+Edit it adding
+Edit
+edit readme file
+Add brian ! at first line
+Add all number for each line
+Can you remove line 6~7
+quit

@@ -107,7 +107,7 @@ def _compress(messages, workspace=None) -> list:
 
 # ─────────────────────────────────────────────────────────────
 # TestMASRTLTBPipeline
-# — Three sequential workspace calls: mas_gen → rtl_gen → tb_gen
+# — Three sequential workspace calls: mas-gen → rtl-gen → tb-gen
 # ─────────────────────────────────────────────────────────────
 
 @_SKIP
@@ -115,9 +115,9 @@ class TestMASRTLTBPipeline(unittest.TestCase):
     """
     Simulate the full MAS → RTL → TB agent hand-off.
 
-    Call 1 (mas_gen): produce a compact MAS spec for a D flip-flop.
-    Call 2 (rtl_gen): given the MAS text, implement the RTL module.
-    Call 3 (tb_gen):  given the RTL code, generate a testbench.
+    Call 1 (mas-gen): produce a compact MAS spec for a D flip-flop.
+    Call 2 (rtl-gen): given the MAS text, implement the RTL module.
+    Call 3 (tb-gen):  given the RTL code, generate a testbench.
     """
 
     MODULE = "dff"
@@ -131,9 +131,9 @@ class TestMASRTLTBPipeline(unittest.TestCase):
     # ── helpers ──────────────────────────────────────────────
 
     def _mas_call(self):
-        """Call 1: ask mas_gen to write a compact MAS for dff."""
-        os.environ["ACTIVE_WORKSPACE"] = "mas_gen"
-        history = [{"role": "system", "content": _ws_sys("mas_gen")}]
+        """Call 1: ask mas-gen to write a compact MAS for dff."""
+        os.environ["ACTIVE_WORKSPACE"] = "mas-gen"
+        history = [{"role": "system", "content": _ws_sys("mas-gen")}]
         return _turn(
             history,
             f"Write a compact Micro Architecture Spec (MAS) for a D flip-flop "
@@ -143,10 +143,10 @@ class TestMASRTLTBPipeline(unittest.TestCase):
         ), history
 
     def _rtl_call(self, mas_text):
-        """Call 2: ask rtl_gen to implement RTL based on the MAS text."""
-        os.environ["ACTIVE_WORKSPACE"] = "rtl_gen"
+        """Call 2: ask rtl-gen to implement RTL based on the MAS text."""
+        os.environ["ACTIVE_WORKSPACE"] = "rtl-gen"
         history = [
-            {"role": "system", "content": _ws_sys("rtl_gen")},
+            {"role": "system", "content": _ws_sys("rtl-gen")},
             {"role": "user",   "content": f"Here is the MAS document:\n\n{mas_text}"},
             {"role": "assistant", "content": "Understood. I will implement the RTL module."},
         ]
@@ -156,10 +156,10 @@ class TestMASRTLTBPipeline(unittest.TestCase):
         ), history
 
     def _tb_call(self, rtl_code):
-        """Call 3: ask tb_gen to write a testbench for the RTL module."""
-        os.environ["ACTIVE_WORKSPACE"] = "tb_gen"
+        """Call 3: ask tb-gen to write a testbench for the RTL module."""
+        os.environ["ACTIVE_WORKSPACE"] = "tb-gen"
         history = [
-            {"role": "system", "content": _ws_sys("tb_gen")},
+            {"role": "system", "content": _ws_sys("tb-gen")},
             {"role": "user",   "content": f"Here is the RTL implementation:\n\n{rtl_code}"},
             {"role": "assistant", "content": "Understood. I will write a testbench."},
         ]
@@ -171,8 +171,8 @@ class TestMASRTLTBPipeline(unittest.TestCase):
 
     # ── tests ────────────────────────────────────────────────
 
-    def test_call1_mas_gen_produces_spec(self):
-        """mas_gen call returns a spec mentioning the module and interface."""
+    def test_call1_mas-gen_produces_spec(self):
+        """mas-gen call returns a spec mentioning the module and interface."""
         mas_text, _ = self._mas_call()
         lowered = mas_text.lower()
         self.assertTrue(
@@ -180,8 +180,8 @@ class TestMASRTLTBPipeline(unittest.TestCase):
             f"MAS call didn't produce a spec: {mas_text[:400]}",
         )
 
-    def test_call2_rtl_gen_produces_verilog(self):
-        """rtl_gen call (given MAS) returns Verilog module code."""
+    def test_call2_rtl-gen_produces_verilog(self):
+        """rtl-gen call (given MAS) returns Verilog module code."""
         mas_text, _ = self._mas_call()
         rtl_code, _ = self._rtl_call(mas_text)
         lowered = rtl_code.lower()
@@ -190,8 +190,8 @@ class TestMASRTLTBPipeline(unittest.TestCase):
             f"RTL call didn't produce Verilog: {rtl_code[:400]}",
         )
 
-    def test_call3_tb_gen_produces_testbench(self):
-        """tb_gen call (given RTL) returns a testbench."""
+    def test_call3_tb-gen_produces_testbench(self):
+        """tb-gen call (given RTL) returns a testbench."""
         mas_text, _ = self._mas_call()
         rtl_code, _ = self._rtl_call(mas_text)
         tb_code,  _ = self._tb_call(rtl_code)
@@ -386,7 +386,7 @@ class TestTodoTaskChain(unittest.TestCase):
 
     def _tasks(self):
         from workflow.loader import load_workspace, TodoTemplateRegistry
-        ws  = _load_ws("mas_gen")
+        ws  = _load_ws("mas-gen")
         reg = TodoTemplateRegistry()
         reg.load_from_dir(ws.todo_templates_dir)
         return reg.get_tasks("full-project")
@@ -395,7 +395,7 @@ class TestTodoTaskChain(unittest.TestCase):
         """Task 0 ([MAS]): produce a MAS document for gray_counter."""
         tasks   = self._tasks()
         task    = tasks[0]
-        history = [{"role": "system", "content": _ws_sys("mas_gen")}]
+        history = [{"role": "system", "content": _ws_sys("mas-gen")}]
         reply   = _turn(
             history,
             f"Execute this task for module '{self.MODULE}':\n{task['content']}\n\n"
@@ -414,7 +414,7 @@ class TestTodoTaskChain(unittest.TestCase):
     def test_task1_rtl_uses_mas_from_task0(self):
         """Task 1 ([RTL]): implement RTL using MAS from task 0."""
         tasks   = self._tasks()
-        history = [{"role": "system", "content": _ws_sys("mas_gen")}]
+        history = [{"role": "system", "content": _ws_sys("mas-gen")}]
 
         # Task 0: generate MAS
         mas_reply = _turn(
@@ -438,7 +438,7 @@ class TestTodoTaskChain(unittest.TestCase):
     def test_tasks_0_to_2_sequential_calls(self):
         """Execute tasks 0, 1, 2 sequentially — each builds on previous."""
         tasks   = self._tasks()
-        history = [{"role": "system", "content": _ws_sys("mas_gen")}]
+        history = [{"role": "system", "content": _ws_sys("mas-gen")}]
         outputs = []
 
         prompts = [
@@ -465,7 +465,7 @@ class TestTodoTaskChain(unittest.TestCase):
     def test_history_grows_across_task_calls(self):
         """Each task adds exactly 2 messages (user + assistant)."""
         tasks   = self._tasks()[:3]
-        history = [{"role": "system", "content": _ws_sys("mas_gen")}]
+        history = [{"role": "system", "content": _ws_sys("mas-gen")}]
         initial = len(history)   # 1
 
         for i, task in enumerate(tasks):
@@ -475,14 +475,14 @@ class TestTodoTaskChain(unittest.TestCase):
     def test_compressed_task_history_supports_next_task(self):
         """Compress after tasks 0-1, then execute task 2 with compressed context."""
         tasks   = self._tasks()
-        history = [{"role": "system", "content": _ws_sys("mas_gen")}]
+        history = [{"role": "system", "content": _ws_sys("mas-gen")}]
 
         # Execute tasks 0 and 1
         _turn(history, f"Task 1: {tasks[0]['content']} for '{self.MODULE}'. Be concise.")
         _turn(history, f"Task 2: {tasks[1]['content']} for '{self.MODULE}'. Write the RTL.")
 
         # Compress
-        compressed = _compress(history, workspace="mas_gen")
+        compressed = _compress(history, workspace="mas-gen")
 
         # Execute task 2 (lint check) on compressed context
         reply = _turn(
@@ -517,7 +517,7 @@ class TestPlanImplementReview(unittest.TestCase):
         """Call 1: plan prompt → GLM produces a task-tagged plan."""
         from workflow.loader import load_workspace, merge_prompt
         import config
-        ws     = _load_ws("mas_gen")
+        ws     = _load_ws("mas-gen")
         merged = merge_prompt(
             config.PLAN_MODE_PROMPT, ws.plan_prompt_text, ws.plan_prompt_mode
         )
@@ -539,7 +539,7 @@ class TestPlanImplementReview(unittest.TestCase):
         """Call 2: implement step 1 of the plan (write MAS)."""
         from workflow.loader import load_workspace, merge_prompt
         import config
-        ws     = _load_ws("mas_gen")
+        ws     = _load_ws("mas-gen")
         merged = merge_prompt(
             config.PLAN_MODE_PROMPT, ws.plan_prompt_text, ws.plan_prompt_mode
         )
@@ -563,7 +563,7 @@ class TestPlanImplementReview(unittest.TestCase):
         """Call 3: review the implementation produced in call 2."""
         from workflow.loader import load_workspace, merge_prompt
         import config
-        ws     = _load_ws("mas_gen")
+        ws     = _load_ws("mas-gen")
         merged = merge_prompt(
             config.PLAN_MODE_PROMPT, ws.plan_prompt_text, ws.plan_prompt_mode
         )
@@ -587,8 +587,8 @@ class TestPlanImplementReview(unittest.TestCase):
 
     def test_three_call_history_has_correct_length(self):
         """Three user turns → history = 1 system + 6 user/assistant messages."""
-        ws     = _load_ws("mas_gen")
-        history = [{"role": "system", "content": _ws_sys("mas_gen")}]
+        ws     = _load_ws("mas-gen")
+        history = [{"role": "system", "content": _ws_sys("mas-gen")}]
 
         _turn(history, f"Plan for '{self.MODULE}': list 3 tasks briefly.")
         _turn(history, f"Execute task 1: write compact MAS for '{self.MODULE}'.")
@@ -599,8 +599,8 @@ class TestPlanImplementReview(unittest.TestCase):
 
     def test_plan_and_implement_outputs_are_distinct(self):
         """Plan output and implementation output should differ in content."""
-        ws      = _load_ws("mas_gen")
-        history = [{"role": "system", "content": _ws_sys("mas_gen")}]
+        ws      = _load_ws("mas-gen")
+        history = [{"role": "system", "content": _ws_sys("mas-gen")}]
         plan    = _turn(history, f"Plan for '{self.MODULE}': list 3 tasks.")
         impl    = _turn(history, f"Execute task 1: write MAS for '{self.MODULE}'.")
         # They should not be identical (plan vs implementation are different)
@@ -616,7 +616,7 @@ class TestPlanImplementReview(unittest.TestCase):
 @_SKIP
 class TestWorkspaceSwitchMidSession(unittest.TestCase):
     """
-    Start a conversation in mas_gen, switch to rtl_gen mid-session.
+    Start a conversation in mas-gen, switch to rtl-gen mid-session.
     Verify the second workspace's prompt shapes subsequent responses.
     """
 
@@ -625,10 +625,10 @@ class TestWorkspaceSwitchMidSession(unittest.TestCase):
     def tearDown(self):
         os.environ.pop("ACTIVE_WORKSPACE", None)
 
-    def test_initial_call_uses_mas_gen_context(self):
-        """First call in mas_gen workspace produces spec-focused response."""
-        os.environ["ACTIVE_WORKSPACE"] = "mas_gen"
-        history = [{"role": "system", "content": _ws_sys("mas_gen")}]
+    def test_initial_call_uses_mas-gen_context(self):
+        """First call in mas-gen workspace produces spec-focused response."""
+        os.environ["ACTIVE_WORKSPACE"] = "mas-gen"
+        history = [{"role": "system", "content": _ws_sys("mas-gen")}]
         reply   = _turn(
             history,
             f"What is your primary role? Answer in one sentence.",
@@ -636,23 +636,23 @@ class TestWorkspaceSwitchMidSession(unittest.TestCase):
         lowered = reply.lower()
         self.assertTrue(
             any(w in lowered for w in ["mas", "spec", "architecture", "coordinate", "rtl", "hardware"]),
-            f"mas_gen context not reflected: {reply[:300]}",
+            f"mas-gen context not reflected: {reply[:300]}",
         )
 
-    def test_second_call_after_switch_uses_rtl_gen_context(self):
-        """After switching to rtl_gen, GLM knows it's an RTL implementation agent."""
-        # First call: mas_gen
-        os.environ["ACTIVE_WORKSPACE"] = "mas_gen"
-        history_mas = [{"role": "system", "content": _ws_sys("mas_gen")}]
+    def test_second_call_after_switch_uses_rtl-gen_context(self):
+        """After switching to rtl-gen, GLM knows it's an RTL implementation agent."""
+        # First call: mas-gen
+        os.environ["ACTIVE_WORKSPACE"] = "mas-gen"
+        history_mas = [{"role": "system", "content": _ws_sys("mas-gen")}]
         mas_reply   = _turn(
             history_mas,
             f"Write a one-sentence MAS summary for '{self.MODULE}'.",
         )
 
-        # Switch: start new conversation with rtl_gen context
-        os.environ["ACTIVE_WORKSPACE"] = "rtl_gen"
+        # Switch: start new conversation with rtl-gen context
+        os.environ["ACTIVE_WORKSPACE"] = "rtl-gen"
         history_rtl = [
-            {"role": "system", "content": _ws_sys("rtl_gen")},
+            {"role": "system", "content": _ws_sys("rtl-gen")},
             # Pass MAS summary as context
             {"role": "user",   "content": f"MAS summary: {mas_reply}"},
             {"role": "assistant", "content": "Understood. I will implement the RTL."},
@@ -665,38 +665,38 @@ class TestWorkspaceSwitchMidSession(unittest.TestCase):
         lowered = rtl_reply.lower()
         self.assertTrue(
             "module" in lowered or "always" in lowered or "assign" in lowered,
-            f"rtl_gen call didn't produce Verilog: {rtl_reply[:400]}",
+            f"rtl-gen call didn't produce Verilog: {rtl_reply[:400]}",
         )
 
     def test_workspace_switch_changes_llm_focus(self):
         """Responses before and after workspace switch have different focus."""
-        # mas_gen call
-        os.environ["ACTIVE_WORKSPACE"] = "mas_gen"
+        # mas-gen call
+        os.environ["ACTIVE_WORKSPACE"] = "mas-gen"
         mas_reply = _call([
-            {"role": "system", "content": _ws_sys("mas_gen")},
+            {"role": "system", "content": _ws_sys("mas-gen")},
             {"role": "user",   "content": "Describe your primary task in one sentence."},
         ])
 
-        # rtl_gen call
-        os.environ["ACTIVE_WORKSPACE"] = "rtl_gen"
+        # rtl-gen call
+        os.environ["ACTIVE_WORKSPACE"] = "rtl-gen"
         rtl_reply = _call([
-            {"role": "system", "content": _ws_sys("rtl_gen")},
+            {"role": "system", "content": _ws_sys("rtl-gen")},
             {"role": "user",   "content": "Describe your primary task in one sentence."},
         ])
 
         # The two responses should not be identical
         self.assertNotEqual(
             mas_reply.strip()[:60], rtl_reply.strip()[:60],
-            "mas_gen and rtl_gen gave identical task descriptions",
+            "mas-gen and rtl-gen gave identical task descriptions",
         )
 
     def test_cross_workspace_context_handoff(self):
         """
-        mas_gen produces a module spec; rtl_gen receives it and writes RTL;
-        tb_gen receives RTL and writes a testbench — three workspace switch calls.
+        mas-gen produces a module spec; rtl-gen receives it and writes RTL;
+        tb-gen receives RTL and writes a testbench — three workspace switch calls.
         """
         MODULE = "mux_4to1"
-        workspaces = ["mas_gen", "rtl_gen", "tb_gen"]
+        workspaces = ["mas-gen", "rtl-gen", "tb-gen"]
         prompts    = [
             f"Write a 2-sentence spec for a 4-to-1 multiplexer module '{MODULE}'.",
             f"Given the spec above, write a minimal Verilog module for '{MODULE}'.",
@@ -747,7 +747,7 @@ class TestCompressionMidSession(unittest.TestCase):
         os.environ.pop("ACTIVE_WORKSPACE", None)
 
     def _build_base_history(self, n_turns=4):
-        ws_sys  = _ws_sys("rtl_gen")
+        ws_sys  = _ws_sys("rtl-gen")
         history = [{"role": "system", "content": ws_sys}]
         turns   = [
             f"I'm implementing a '{self.MODULE}' in Verilog.",
@@ -762,7 +762,7 @@ class TestCompressionMidSession(unittest.TestCase):
     def test_compress_after_4_turns_then_continue(self):
         """Build 4-turn history, compress, then make 2 more calls."""
         history    = self._build_base_history(4)
-        compressed = _compress(history, workspace="rtl_gen")
+        compressed = _compress(history, workspace="rtl-gen")
 
         # Continue with 2 more LLM calls
         r1 = _turn(compressed, f"Implement the '{self.MODULE}' Verilog module now.")
@@ -777,7 +777,7 @@ class TestCompressionMidSession(unittest.TestCase):
     def test_module_name_remembered_after_compression(self):
         """Module name must survive compression and be referenced in follow-up."""
         history    = self._build_base_history(4)
-        compressed = _compress(history, workspace="rtl_gen")
+        compressed = _compress(history, workspace="rtl-gen")
         reply      = _turn(compressed, "What was the module name I asked you to implement?")
         self.assertIn(
             self.MODULE, reply.lower(),
@@ -794,13 +794,13 @@ class TestCompressionMidSession(unittest.TestCase):
         _turn(history, "Make the reset synchronous.")
 
         # First compression
-        c1 = _compress(history, workspace="rtl_gen")
+        c1 = _compress(history, workspace="rtl-gen")
         _turn(c1, "Now write the complete Verilog module.")
         _turn(c1, "Add $dumpvars for simulation debug.")
         _turn(c1, "Remove the $dumpvars — keep it synthesis-clean.")
 
         # Second compression
-        c2 = _compress(c1, workspace="rtl_gen")
+        c2 = _compress(c1, workspace="rtl-gen")
 
         # Final call
         final = _turn(c2, f"Summarise the '{self.MODULE}' spec in 2 sentences.")
@@ -808,19 +808,19 @@ class TestCompressionMidSession(unittest.TestCase):
                            f"Final call after double compress returned empty: {final[:200]}")
 
     def test_workspace_compression_prompt_used_in_mid_session(self):
-        """Compress using mas_gen's compression_prompt.md during a session."""
-        ws   = _load_ws("mas_gen")
+        """Compress using mas-gen's compression_prompt.md during a session."""
+        ws   = _load_ws("mas-gen")
         import core.compressor as comp
         importlib.reload(comp)
         orig = comp.STRUCTURED_SUMMARY_PROMPT
         comp.STRUCTURED_SUMMARY_PROMPT = ws.compression_prompt_text
         try:
             history    = self._build_base_history(4)
-            compressed = _compress(history, workspace="mas_gen")
+            compressed = _compress(history, workspace="mas-gen")
         finally:
             comp.STRUCTURED_SUMMARY_PROMPT = orig
 
-        # Continue with rtl_gen context
+        # Continue with rtl-gen context
         reply = _turn(
             compressed,
             f"Based on the session so far, implement the '{self.MODULE}' Verilog module.",
@@ -837,12 +837,12 @@ class TestCompressionMidSession(unittest.TestCase):
         Call 4: final verdict
         All four calls must return coherent non-empty content.
         """
-        history = [{"role": "system", "content": _ws_sys("rtl_gen")}]
+        history = [{"role": "system", "content": _ws_sys("rtl-gen")}]
 
         r1 = _turn(history, f"I need a '{self.MODULE}' with 8-bit width and synchronous reset. Acknowledge.")
         r2 = _turn(history, f"Implement the Verilog module for '{self.MODULE}'.")
 
-        compressed = _compress(history, workspace="rtl_gen")
+        compressed = _compress(history, workspace="rtl-gen")
 
         r3 = _turn(compressed, "Review the RTL for potential lint errors. List any issues.")
         r4 = _turn(compressed, "Give a one-sentence verdict: is this implementation complete?")

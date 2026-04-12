@@ -31,7 +31,7 @@ X in output
 ## Escalation
 
 ```
-[SIM ESCALATE] rtl_gen
+[SIM ESCALATE] rtl-gen
 Signal  : out_data
 Expected: 8'h05 after 3 cycles
 Got     : 8'hxx (X)

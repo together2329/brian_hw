@@ -1,0 +1,7 @@
+{
+  "name": "gen-tb",
+  "description": "Hand off to tb-gen context for testbench and TC generation",
+  "aliases": ["gt"],
+  "handler": "bash:scripts/handoff_tb.sh",
+  "usage": "/gen-tb <module_name>"
+}

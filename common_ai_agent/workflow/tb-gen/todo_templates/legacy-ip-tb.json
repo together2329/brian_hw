@@ -1,0 +1,51 @@
+{
+  "name": "legacy-ip-tb",
+  "description": "Legacy IP TB update: read existing TB + MAS delta → add new sequences → regression → coverage delta",
+  "tasks": [
+    {
+      "content": "Read existing TB, updated MAS delta, and updated DUT RTL",
+      "detail": "Read <ip_name>/tb/tb_<ip_name>.sv and <ip_name>/tb/tc_<ip_name>.sv (existing TB). Read <ip_name>/mas/<ip_name>_mas.md (updated MAS) — identify all 'Changed in vX.Y' annotations in §9 DV Plan: new sequences added, modified sequences, new SVA assertions. Read <ip_name>/rtl/<ip_name>.sv (updated DUT) — confirm new port additions. Build a delta list: (A) new test sequences to add, (B) existing sequences that need update due to RTL changes, (C) new/updated SVA assertions. Do NOT modify any existing tc_ task yet.",
+      "priority": "high"
+    },
+    {
+      "content": "Update DUT instantiation for new ports (if any)",
+      "detail": "If RTL has new ports (from MAS §2 delta), update DUT instantiation in tb_<module>.sv: add new signal declarations, connect new ports in the instantiation. New input ports: drive to '0 or tie to appropriate stimulus. New output ports: add to observation signals. Do NOT reorder or remove existing port connections.",
+      "priority": "high"
+    },
+    {
+      "content": "Add new test sequences from MAS §9 delta (tc_S_NEW_*.sv tasks)",
+      "detail": "For each new sequence in MAS §9 delta: implement as a new task in tc_<module>.sv (add at end of file). Name: tc_<SequenceID>_<name>. Add pass_cnt/fail_cnt tracking. Print [PASS]/[FAIL]. Do NOT modify existing tc_ tasks unless their expected behavior changed in the MAS delta.",
+      "priority": "high"
+    },
+    {
+      "content": "Update modified test sequences (if existing behavior changed)",
+      "detail": "For each existing sequence with 'Changed in vX.Y' in MAS §9: make surgical edits — update expected values, add new stimulus steps, update register offsets if §4 changed. Add // CHANGED: vX.Y comment next to each modified line. Do NOT change the task name or test case numbering.",
+      "priority": "high"
+    },
+    {
+      "content": "Add new SVA assertions from MAS §9 delta",
+      "detail": "Add new assertions listed in MAS §9 delta. Keep all existing assertions — do not remove. New assertions: add to existing assertion bind or create new bind block. Verify all existing assertions still compile and fire correctly with the updated DUT.",
+      "priority": "high"
+    },
+    {
+      "content": "Update TB top: call new tc_ tasks in S_NEW_* order",
+      "detail": "In tb_<module>.sv initial block: add calls to new tc_ tasks after existing calls (preserve original order). Update $display summary count if task count changed. Do NOT reorder existing tc_ calls — this preserves regression baseline.",
+      "priority": "high"
+    },
+    {
+      "content": "[SIM] Full regression passed: 0 errors, 0 warnings (old + new sequences)",
+      "activeForm": "Running regression attempt {loop_count}/{max_loop_iterations}...",
+      "detail": "Compile: iverilog -g2012 -f <ip>/list/<ip>.f <ip>/tb/tb_<ip>.sv -o <ip>/sim/<ip>.out && vvp <ip>/sim/<ip>.out. All original [PASS] sequences must still pass. New sequences must also pass. Any regression in original sequences = DUT bug or TB stimulus error — diagnose carefully. DUT bug → [MAS ESCALATE] rtl-gen. Write <ip>/sim/sim_report.txt. Loop until 0 errors, 0 warnings.",
+      "loop": true,
+      "max_loop_iterations": 15,
+      "exit_condition": "0 errors, 0 warnings",
+      "validator": "bash workflow/tb-gen/scripts/check_sim_pass.sh",
+      "priority": "high"
+    },
+    {
+      "content": "Coverage delta review: new features meet §9 targets, no regression in existing coverage",
+      "detail": "Run /coverage <module>. Compare: (1) existing coverage must not regress, (2) new feature coverage must meet MAS §9 new goals. Identify any uncovered new states/conditions. Add tc_ tasks for gaps. Report delta summary: 'Previous: X%, Current: Y%'.",
+      "priority": "normal"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "name": "legacy-ip-rtl",
+  "description": "Legacy IP RTL update: read existing RTL + MAS delta → apply targeted changes → regression lint",
+  "tasks": [
+    {
+      "content": "Read existing RTL and updated MAS delta",
+      "detail": "Read <ip_name>/rtl/<ip_name>.sv (existing RTL) completely — understand current implementation before touching anything. Read <ip_name>/mas/<ip_name>_mas.md (updated MAS) — identify all 'Changed in vX.Y' annotations. Build a delta list: (A) new ports to add, (B) modified logic blocks, (C) new FSM states, (D) new/modified registers, (E) new interrupt sources. Do NOT write code yet.",
+      "priority": "high"
+    },
+    {
+      "content": "Add new ports (backward-compatible only)",
+      "detail": "Add new ports at the END of the port list — never reorder or remove existing ports. New inputs: add with safe default (unused internally until feature is implemented). New outputs: drive to '0 initially. Update module header only — do not touch any existing always block yet. Lint check header.",
+      "priority": "high"
+    },
+    {
+      "content": "Apply FSM changes: add new states, keep existing transitions intact",
+      "detail": "Add new enum states to state type. Add new transitions in the always_comb next-state block — only in the default/new state case clauses. NEVER modify existing state transition logic unless the MAS delta explicitly requires it. Verify existing state sequences still reachable with same conditions.",
+      "priority": "high"
+    },
+    {
+      "content": "Apply datapath changes: add new always_ff/comb blocks",
+      "detail": "For new features: add new always_ff blocks (do not modify existing ones). For modified features: make surgical edits inside the relevant always block only. Add // CHANGED: vX.Y comment next to each modified line. Run lint after each block change.",
+      "priority": "high"
+    },
+    {
+      "content": "Apply register map changes: add new registers, preserve existing offsets",
+      "detail": "New registers: add at NEW offsets (never reuse or reorder existing offsets — this breaks backward compat). Update address decode case with new offsets. Update read mux. Modified bitfields: surgical edit to existing register FF — add // CHANGED: vX.Y comment. Verify existing register offsets unchanged.",
+      "priority": "high"
+    },
+    {
+      "content": "Apply interrupt changes: add new sources",
+      "detail": "New interrupt sources: add new bits to INT_STATUS and INT_ENABLE registers (at unused bit positions). Add detection/capture logic for new sources. Update irq OR expression. Do NOT change existing interrupt bit positions.",
+      "priority": "high"
+    },
+    {
+      "content": "Full regression lint: 0 errors, 0 warnings",
+      "detail": "Run /lint <ip_name>/rtl/<ip_name>.sv on the complete updated file. Fix all errors. Check: (1) no width regressions in existing signals, (2) all new ports driven, (3) no new latches from added comb logic. Compare lint output to pre-change baseline — no new warnings allowed without justification. Update <ip_name>/list/<ip_name>.f if new files added. Write <ip_name>/lint/lint_report.txt. Report: [MAS RESULT] rtl-gen DONE (legacy update).",
+      "priority": "high"
+    }
+  ]
+}
