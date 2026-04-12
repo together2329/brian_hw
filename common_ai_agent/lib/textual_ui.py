@@ -978,6 +978,23 @@ class AgentTUI(App):
 
     def _init_sidebar(self) -> None:
         """Populate sidebar from on-disk state before first agent response."""
+        # ── Activity: show "Waiting for input..." immediately ─────────────────
+        self._update_activity()
+
+        # ── Workspace / Mode label ─────────────────────────────────────────────
+        try:
+            _wf = os.environ.get("ACTIVE_WORKSPACE", "").strip()
+            _desc = os.environ.get("ACTIVE_WORKSPACE_DESC", "").strip()
+            if _wf:
+                m = RichText()
+                m.append(f"[{_wf}]", style=f"bold {_ACCENT}")
+                if _desc:
+                    short_desc = _desc[:40] + ("…" if len(_desc) > 40 else "")
+                    m.append(f"\n{short_desc}", style=_TEXT_DIM)
+                self.query_one("#mode", Static).update(m)
+        except Exception:
+            pass
+
         # ── Model ────────────────────────────────────────────────────────────
         self._refresh_model_sidebar()
 
@@ -1006,7 +1023,7 @@ class AgentTUI(App):
             saved_msgs = _load_hist(silent=True)
             ctx_tokens = sum(estimate_message_tokens(m) for m in saved_msgs) if saved_msgs else 0
 
-            # Skill: read from already-imported main module (no re-execution)
+            # Skill: try main module first, then fall back to ACTIVE_WORKSPACE env
             skill = ""
             try:
                 import sys as _sys
@@ -1021,6 +1038,24 @@ class AgentTUI(App):
                              else ", ".join(names))
             except Exception:
                 pass
+
+            # Fallback: read forced skills from workspace config
+            if not skill:
+                try:
+                    _wf = os.environ.get("ACTIVE_WORKSPACE", "").strip()
+                    if _wf:
+                        from pathlib import Path as _Path
+                        import json as _json
+                        _ws_json = _Path(__file__).parent.parent / "workflow" / _wf / "workspace.json"
+                        if _ws_json.exists():
+                            _ws_data = _json.loads(_ws_json.read_text())
+                            _forced = (_ws_data.get("skills") or {}).get("force_activate") or []
+                            if _forced:
+                                skill = ", ".join(_forced[:2])
+                                if len(_forced) > 2:
+                                    skill += f", +{len(_forced)-2}"
+                except Exception:
+                    pass
 
             # Plan mode badge
             if os.environ.get("PLAN_MODE") == "true":
@@ -1725,6 +1760,25 @@ class AgentTUI(App):
             m_ml = re.match(r"^\s*Model:\s*(\S+)", _plain)
             self._active_model = m_ml.group(1)
             self._refresh_model_sidebar()
+
+        # Skill dynamically routed: "  [skill] <name> (llm-routed)" or "[skill] <name>"
+        m_skill = re.search(r"\[skill\]\s+(\S+)", _plain)
+        if m_skill:
+            _routed = m_skill.group(1).strip(".,)")
+            if _routed and _routed != self._ctx_skill:
+                self._ctx_skill = _routed
+                self._redraw_context()
+
+        # Workflow switched: "[Workflow: <name>]" from /workflow command output
+        m_wf = re.search(r"\[Workflow:\s*(\S+)\]", _plain)
+        if m_wf:
+            _wf_name = m_wf.group(1).strip("]")
+            try:
+                m = RichText()
+                m.append(f"[{_wf_name}]", style=f"bold {_ACCENT}")
+                self.query_one("#mode", Static).update(m)
+            except Exception:
+                pass
 
         # If line contains ANSI codes, skip path shortening (would corrupt escape sequences)
         if _plain != text:
