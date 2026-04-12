@@ -64,6 +64,7 @@ class WorkspaceConfig:
     """Complete workspace configuration loaded from a workspace directory."""
     name: str
     workspace_dir: Path
+    description: str = ""
 
     # Env overrides (applied before load_env_file)
     env_overrides: dict = field(default_factory=dict)
@@ -116,7 +117,11 @@ def load_workspace(name: str, project_root: Path) -> WorkspaceConfig:
     if ws_json.exists():
         data = json.loads(ws_json.read_text(encoding="utf-8"))
 
+    # Support both nested {"prompt": {...}} and flat root-level keys
     prompt_cfg = data.get("prompt", {})
+    # Flat root-level keys take precedence if nested "prompt" block is absent
+    if not prompt_cfg:
+        prompt_cfg = data
     skills_cfg = data.get("skills", {})
 
     def _read_md(filename: str) -> Optional[str]:
@@ -136,6 +141,7 @@ def load_workspace(name: str, project_root: Path) -> WorkspaceConfig:
     ws = WorkspaceConfig(
         name=name,
         workspace_dir=ws_dir,
+        description=data.get("description", ""),
         env_overrides=data.get("env", {}),
         system_prompt_text=_read_md("system_prompt.md"),
         system_prompt_mode=prompt_cfg.get("system_prompt_mode", "append"),
@@ -576,6 +582,7 @@ def register_workspace_commands(ws: "WorkspaceConfig", slash_registry) -> None:
                 handler=handler,
                 description=spec.get("description", ""),
                 aliases=spec.get("aliases", []),
+                usage=spec.get("usage", f"/{spec['name']}"),
             )
         except Exception as e:
             # Non-fatal: log and continue

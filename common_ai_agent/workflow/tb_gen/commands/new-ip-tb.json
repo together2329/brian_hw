@@ -1,0 +1,7 @@
+{
+  "name": "new-ip-tb",
+  "description": "New IP TB from scratch: MAS §9 DV Plan → tc_ sequences → TB top → SVA → SIM loop → coverage",
+  "aliases": ["nit"],
+  "handler": "todo:template:new-ip-tb",
+  "usage": "/new-ip-tb"
+}

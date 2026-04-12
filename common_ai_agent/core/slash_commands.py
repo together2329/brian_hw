@@ -115,7 +115,8 @@ class SlashCommandRegistry:
                  handler: Callable[[str], Any],
                  description: str,
                  aliases: Optional[List[str]] = None,
-                 hidden: bool = False):
+                 hidden: bool = False,
+                 usage: Optional[str] = None):
         """
         Register a slash command.
 
@@ -125,12 +126,14 @@ class SlashCommandRegistry:
             description: Help text for the command
             aliases: Alternative names for the command
             hidden: If True, only shown with /help -v
+            usage: Usage string shown in /help (defaults to /<name>)
         """
         self.commands[name] = {
             'handler': handler,
             'description': description,
             'aliases': aliases or [],
             'hidden': hidden,
+            'usage': usage or f"/{name}",
         }
 
     def _register_builtin_commands(self):
@@ -211,6 +214,36 @@ class SlashCommandRegistry:
         self.register('mode', self._cmd_mode,
                      'Switch agent mode: /mode normal to exit plan mode',
                      hidden=True)
+
+        self.register('workspace', self._cmd_workspace,
+                     '워크플로우 전환: /workspace <name> | /workspace (현재)',
+                     aliases=['ws', 'flow'])
+
+    def _cmd_workspace(self, args: str) -> str:
+        """Switch workspace/workflow. /workspace <name> or /workspace to show current."""
+        import sys, os
+        name = args.strip()
+        if not name:
+            # Show current workspace and available ones
+            current = os.environ.get("ACTIVE_WORKSPACE", "default")
+            # Discover available workspaces
+            _script_dir = os.path.dirname(os.path.abspath(__file__))
+            _project_root = os.path.dirname(_script_dir)
+            workflow_root = os.path.join(_project_root, "workflow")
+            available = []
+            if os.path.isdir(workflow_root):
+                for d in sorted(os.listdir(workflow_root)):
+                    p = os.path.join(workflow_root, d)
+                    if os.path.isdir(p) and os.path.exists(os.path.join(p, "workspace.json")):
+                        marker = " ◀ active" if d == current else ""
+                        available.append(f"  {d}{marker}")
+            lines = [f"Current workspace: {current}"]
+            if available:
+                lines.append("Available:")
+                lines.extend(available)
+            lines.append("Usage: /workspace <name>")
+            return "\n".join(lines)
+        return f"WORKSPACE_SWITCH:{name}"
 
     def _cmd_plan(self, args: str) -> str:
         """Enter plan mode. If task given, enter plan mode and run immediately."""
@@ -1211,6 +1244,17 @@ class SlashCommandRegistry:
                     if cmd['aliases']:
                         aliases = f"  (={', '.join('/' + a for a in cmd['aliases'])})"
                     output.append(f"    /{name:<12}{cmd['description']}{aliases}")
+            # --- Workspace commands (dynamic, not in the hardcoded list above) ---
+            _builtin_names = {n for grp, names in groups_brief for n in names}
+            _ws_cmds = [(n, cmd) for n, cmd in sorted(self.commands.items())
+                        if n not in _builtin_names and not cmd.get('hidden', False)]
+            if _ws_cmds:
+                output.append(f"\n  워크스페이스")
+                for name, cmd in _ws_cmds:
+                    aliases = ""
+                    if cmd['aliases']:
+                        aliases = f"  (={', '.join('/' + a for a in cmd['aliases'])})"
+                    output.append(f"    /{name:<12}{cmd['description']}{aliases}")
             output.append("\n" + SEP)
             output.append("  TAB 자동완성  |  ↑↓ 히스토리  |  /man <topic> 상세 도움말")
             output.append(SEP2)
@@ -1264,6 +1308,18 @@ class SlashCommandRegistry:
                     cmd_str = f"/{usage}"
                     output.append(f"  │  {cmd_str:<{CMD_W}} {desc}{aliases}")
 
+            # --- Workspace commands (dynamic) ---
+            _verbose_builtin = {name for _, items in groups for name, _, _ in items}
+            _ws_cmds_v = [(n, cmd) for n, cmd in sorted(self.commands.items())
+                          if n not in _verbose_builtin and not cmd.get('hidden', False)]
+            if _ws_cmds_v:
+                output.append(f"\n  ┌─ 워크스페이스 커맨드 {'─' * max(0, W - 13)}")
+                for name, cmd in _ws_cmds_v:
+                    aliases = ""
+                    if cmd['aliases']:
+                        aliases = f"  (={', '.join('/' + a for a in cmd['aliases'])})"
+                    usage = cmd.get('usage', f"/{name}") or f"/{name}"
+                    output.append(f"  │  {usage:<{CMD_W}} {cmd['description']}{aliases}")
             output.append("\n" + SEP)
             output.append("  TAB 자동완성  |  ↑↓ 히스토리  |  /man <topic> 상세 도움말")
             output.append(SEP2)

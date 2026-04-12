@@ -1,0 +1,7 @@
+{
+  "name": "legacy-ip",
+  "description": "Legacy IP update: Read existing RTL → MAS delta → RTL → regression TB → SIM → DOC",
+  "aliases": ["li"],
+  "handler": "todo:template:legacy-ip",
+  "usage": "/legacy-ip"
+}

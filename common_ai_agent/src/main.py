@@ -177,6 +177,8 @@ def _setup_workspace(name: str) -> None:
 
             def _patched_build_system_prompt(ctx=None, **kwargs):
                 base = orig_build(ctx, **kwargs) if ctx is not None else orig_build(**kwargs)
+                if isinstance(base, dict):
+                    base = (base.get("static", "") + "\n\n" + base.get("dynamic", "")).strip()
                 return merge_prompt(base, _ws_text, _ws_mode)
 
             _pb.build_system_prompt = _patched_build_system_prompt
@@ -262,6 +264,10 @@ def _setup_workspace(name: str) -> None:
         register_workspace_commands(ws, _slash_reg)
     except Exception as e:
         print(f"[Workspace] Warning: could not register commands: {e}")
+
+    # Store description so prompt_builder can include it in the identity line
+    if ws.description:
+        os.environ["ACTIVE_WORKSPACE_DESC"] = ws.description
 
     print(f"[Workspace] '{name}' loaded from {workflow_root}/{name}")
 
@@ -1168,6 +1174,13 @@ def chat_loop():
     loaded_messages = load_conversation_history()
     if loaded_messages:
         messages = loaded_messages
+        # Always refresh the system prompt so workspace/flow context is current.
+        # Saved history may carry a stale prompt from a previous workspace or session.
+        _current_system_prompt = _build_system_prompt_str(agent_mode=agent_mode)
+        if messages and messages[0].get("role") == "system":
+            messages[0]["content"] = _current_system_prompt
+        else:
+            messages.insert(0, {"role": "system", "content": _current_system_prompt})
         if not _textual_emit_content_fn:
             print(Color.system("[System] Resuming from previous conversation.\n"))
     else:
@@ -1959,6 +1972,40 @@ def chat_loop():
                             print(Color.error(f"\n❌ Failed to delete snapshot: {e}\n"))
                         continue
 
+                    elif result.startswith("WORKSPACE_SWITCH:"):
+                        ws_name = result.split(":", 1)[1].strip()
+                        try:
+                            # Switch session context (history file) to new workspace
+                            _setup_session(ws_name)
+                            # Load new workspace config (prompts, hooks, commands…)
+                            _setup_workspace(ws_name)
+                            # Mark active workspace in env
+                            os.environ["ACTIVE_WORKSPACE"] = ws_name
+                            # Rebuild system prompt with new workspace context
+                            _new_sys = _build_system_prompt_str(agent_mode=agent_mode)
+                            # Try to resume existing history for this workspace
+                            _loaded = load_conversation_history()
+                            if _loaded:
+                                messages = _loaded
+                                if messages and messages[0].get("role") == "system":
+                                    messages[0]["content"] = _new_sys
+                                else:
+                                    messages.insert(0, {"role": "system", "content": _new_sys})
+                                print(Color.success(f"\n✅ Workspace switched to '{ws_name}' (resumed existing context).\n"))
+                            else:
+                                messages = [{"role": "system", "content": _new_sys}]
+                                print(Color.success(f"\n✅ Workspace switched to '{ws_name}' (new context).\n"))
+                            # Persist and refresh context tracker
+                            save_conversation_history(messages)
+                            if messages and messages[0].get("role") == "system":
+                                context_tracker.update_system_prompt(messages[0]["content"])
+                            context_tracker.update_tools("")
+                            context_tracker.update_memory({})
+                            context_tracker.update_messages(messages, exclude_system=True)
+                        except Exception as _ws_err:
+                            print(Color.error(f"\n❌ Failed to switch workspace: {_ws_err}\n"))
+                        continue
+
                     elif result.startswith("MODEL_SWITCH:"):
                         target = result.split(":", 1)[1]
                         if target == "1":
@@ -1975,6 +2022,30 @@ def chat_loop():
                                 _textual_emit_todo_fn(_tt.format_simple())
                             else:
                                 _textual_emit_todo_fn("")
+                        continue
+
+                    if result.startswith("INJECT_TODO_TEMPLATE:"):
+                        # Load template tasks and inject them into the todo tracker
+                        tmpl_name = result[len("INJECT_TODO_TEMPLATE:"):]
+                        try:
+                            from workflow.loader import get_todo_template_registry
+                            _reg = get_todo_template_registry()
+                            _tasks = _reg.get_tasks(tmpl_name)
+                            if _tasks:
+                                _todo_path = Path(config.TODO_FILE)
+                                if todo_tracker_main is None:
+                                    todo_tracker_main = TodoTracker(_todo_path)
+                                else:
+                                    todo_tracker_main.clear()
+                                todo_tracker_main.add_todos(_tasks)
+                                todo_tracker_main.save()
+                                print(Color.success(f"✅ Todo template '{tmpl_name}' loaded — {len(_tasks)} tasks"))
+                                if _textual_emit_todo_fn:
+                                    _textual_emit_todo_fn(todo_tracker_main.format_simple())
+                            else:
+                                print(Color.warning(f"⚠ Template '{tmpl_name}' not found. Available: {_reg.list()}"))
+                        except Exception as _te:
+                            print(Color.warning(f"⚠ Could not load template '{tmpl_name}': {_te}"))
                         continue
 
                     if result.startswith("INJECT_PROMPT:"):
@@ -2097,12 +2168,16 @@ def _ensure_git_repo():
 if __name__ == "__main__":
     import argparse as _argparse
     _parser = _argparse.ArgumentParser(add_help=False)
-    _parser.add_argument('-s', '--session', default='default')
+    _parser.add_argument('-s', '--session', default=None)
     _parser.add_argument('-w', '--workspace', default=None,
                          help='Workspace name (e.g. default, verilog, spec-review)')
     _args, _ = _parser.parse_known_args()
 
-    _setup_session(_args.session)
+    # Each workflow gets its own flow context:
+    # if -s is not explicitly given, use the workspace name as the session name
+    # so each workflow maintains a separate conversation history.
+    _session_name = _args.session or _args.workspace or 'default'
+    _setup_session(_session_name)
 
     if _args.workspace:
         _setup_workspace(_args.workspace)
