@@ -45,7 +45,9 @@ last_input_tokens = 0  # Last reported input tokens from API
 last_output_tokens = 0  # Last reported output tokens from API
 
 # Minimum output tokens floor — never cap below this value even if context is tight
-_MIN_OUTPUT_TOKENS = 512
+_MIN_OUTPUT_TOKENS = 1024
+# Hard cap on generated tokens regardless of model claim (GLM-4.6/4.5 practical limit)
+_MAX_OUTPUT_TOKENS_HARD_CAP = 64000
 # Safety buffer: leave this many tokens between input usage and context limit
 _OUTPUT_SAFETY_BUFFER = 200
 
@@ -207,22 +209,30 @@ def compute_safe_max_tokens(used_tokens: int = 0) -> int:
     """
     Return a safe max_tokens value that fits within the remaining context window.
 
-    When MAX_CONTEXT_TOKENS is configured, caps the response budget to:
-        min(MAX_OUTPUT_TOKENS, context_limit - effective_input - safety_buffer)
+    Hard cap: _MAX_OUTPUT_TOKENS_HARD_CAP (64K) — never exceeds this regardless of config.
+
+    When MAX_CONTEXT_TOKENS is configured:
+      - remaining = context_limit - input_tokens - safety_buffer
+      - If remaining < effective_budget (context is tight): use remaining // 2
+        so input and output each get half of the remaining space.
+      - Otherwise: use effective_budget, capped at 64K.
 
     For reasoning models (GLM, DeepSeek etc.), reasoning tokens count against
     max_tokens.  When MAX_REASONING_TOKENS > 0, we expand the budget so the
     model has room for both reasoning AND visible content:
         effective_budget = MAX_OUTPUT_TOKENS + MAX_REASONING_TOKENS
 
-    Falls back to MAX_OUTPUT_TOKENS when MAX_CONTEXT_TOKENS is not set (0).
+    Falls back to min(MAX_OUTPUT_TOKENS, 64K) when MAX_CONTEXT_TOKENS is not set.
+    Minimum floor: _MIN_OUTPUT_TOKENS (1024).
     """
     base = config.MAX_OUTPUT_TOKENS
+    # Apply hard cap at 64K
+    base = min(base, _MAX_OUTPUT_TOKENS_HARD_CAP)
     if config.MAX_CONTEXT_TOKENS <= 0 or base <= 0:
-        return base
+        return max(base, _MIN_OUTPUT_TOKENS)
     tokens = used_tokens or last_input_tokens
     if tokens <= 0:
-        return base
+        return max(base, _MIN_OUTPUT_TOKENS)
     # Compression guarantees input never exceeds threshold * limit.
     # Clamp tokens to that ceiling so remaining calculation reflects reality.
     if config.ENABLE_COMPRESSION and 0 < config.COMPRESSION_THRESHOLD < 1:
@@ -237,7 +247,15 @@ def compute_safe_max_tokens(used_tokens: int = 0) -> int:
     else:
         effective_budget = base
 
-    safe = min(effective_budget, remaining)
+    # Context is tight: give output half of what remains so the window
+    # isn't completely consumed by a single long response.
+    if remaining < effective_budget:
+        safe = remaining // 2
+    else:
+        safe = effective_budget
+
+    # Apply hard cap and minimum floor
+    safe = min(safe, _MAX_OUTPUT_TOKENS_HARD_CAP)
     return max(safe, _MIN_OUTPUT_TOKENS)
 
 # --- LLM Call Performance Log ---

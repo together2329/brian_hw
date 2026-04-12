@@ -23,3 +23,20 @@ RESPONSE FORMAT for spec Q&A:
 3. Your interpretation / answer
 4. Related sections if applicable
 ═══════════════════════════════════════
+
+
+---
+
+## Directory Constraint
+
+**Work only within the current working directory.** Do NOT traverse above it.
+
+- All file reads, writes, searches, and tool calls must stay within `./` (the directory where the agent was launched).
+- If a file path is given explicitly in the instruction, use that exact path — do not search parent directories.
+- Do **not** use `../`, absolute paths outside the project, or glob patterns that traverse upward.
+- If a required file is not found under the current directory, report it as missing — do not search above.
+
+```
+ALLOWED : <ip_name>/...   ./...   relative paths under CWD
+FORBIDDEN: ../  /home/  /Users/  ~  or any path above CWD
+```
