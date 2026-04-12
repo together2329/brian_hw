@@ -4,7 +4,7 @@
   "tasks": [
     {
       "content": "Read MAS DV Plan and DUT RTL — extract all verification requirements",
-      "detail": "Read <module>_mas.md completely. From §2: extract full port list for DUT instantiation. From §4: register offsets, bitfields, access types for CSR sequences. From §5: interrupt sources, enable/status registers, W1C clear for interrupt sequences. From §6: memory depth/width/latency for memory sequences. From §9: list ALL test sequences S1-SN, coverage goals (line/branch/toggle targets), SVA assertions. Then read <module>.sv — confirm ports match MAS §2. Do NOT write code yet.",
+      "detail": "Read <ip_name>/mas/<ip_name>_mas.md completely. From §2: extract full port list for DUT instantiation. From §4: register offsets, bitfields, access types for CSR sequences. From §5: interrupt sources, enable/status registers, W1C clear for interrupt sequences. From §6: memory depth/width/latency for memory sequences. From §9: list ALL test sequences S1-SN, coverage goals (line/branch/toggle targets), SVA assertions. Then read <ip_name>/rtl/<ip_name>.sv — confirm ports match MAS §2. Do NOT write code yet.",
       "priority": "high"
     },
     {
@@ -28,14 +28,14 @@
       "priority": "high"
     },
     {
-      "content": "Write tb_<module>.sv: top-level testbench",
-      "detail": "Include: `default_nettype none, `include tc_<module>.sv, declare all DUT port signals (from MAS §2), DUT instantiation with named port connections, clock gen (always #5 clk=~clk), reset sequence, $dumpfile/$dumpvars, call all tc_ tasks in S1-SN order, print final 'Result: N/M passed', $finish.",
+      "content": "Write <ip_name>/tb/tb_<ip_name>.sv: top-level testbench",
+      "detail": "Write to <ip_name>/tb/tb_<ip_name>.sv. Include: `default_nettype none, `include \"tc_<ip_name>.sv\", declare all DUT port signals (from MAS §2), DUT instantiation with named port connections, clock gen (always #5 clk=~clk), reset sequence, $dumpfile(\"../sim/<ip_name>_wave.vcd\")/$dumpvars, call all tc_ tasks in S1-SN order, print final 'Result: N/M passed', $finish.",
       "priority": "high"
     },
     {
       "content": "[SIM] Simulation passed: 0 errors, 0 warnings, all [PASS]",
       "activeForm": "Running simulation attempt {loop_count}/{max_loop_iterations}...",
-      "detail": "Run /sim tb_<module>.sv. Check for [FAIL] lines and $error. Diagnose: TB bug → fix tc_*.sv; DUT bug → [MAS ESCALATE] rtl_gen (do NOT edit DUT). Loop until all [PASS] and 0 errors, 0 warnings.",
+      "detail": "Compile: iverilog -g2012 -f <ip>/list/<ip>.f <ip>/tb/tb_<ip>.sv -o <ip>/sim/<ip>.out && vvp <ip>/sim/<ip>.out. Check for [FAIL] lines and $error. Diagnose: TB bug → fix <ip>/tb/tc_<ip>.sv; DUT bug → [MAS ESCALATE] rtl_gen (do NOT edit <ip>/rtl/<ip>.sv). Write <ip>/sim/sim_report.txt. Loop until all [PASS] and 0 errors, 0 warnings.",
       "loop": true,
       "max_loop_iterations": 15,
       "exit_condition": "0 errors, 0 warnings",
@@ -44,7 +44,7 @@
     },
     {
       "content": "Coverage review: meet MAS §9 targets (line ≥90%, branch ≥85%, toggle ≥80%)",
-      "detail": "Run /coverage <module>. Compare against MAS §9 coverage goals. For each gap: identify untested state/condition, add targeted tc_ task, re-run sim. FSM: all states visited. Interrupts: all sources fired and cleared. Registers: all RW bits toggled. Report coverage summary.",
+      "detail": "Run /coverage <ip_name>. Read <ip_name>/sim/sim_report.txt. Compare against MAS §9 coverage goals from <ip_name>/mas/<ip_name>_mas.md. For each gap: identify untested state/condition, add targeted tc_ task, re-run sim. FSM: all states visited. Interrupts: all sources fired and cleared. Registers: all RW bits toggled. Report coverage summary.",
       "priority": "normal"
     }
   ]

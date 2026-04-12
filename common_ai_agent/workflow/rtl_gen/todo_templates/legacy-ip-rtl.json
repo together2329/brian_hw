@@ -4,7 +4,7 @@
   "tasks": [
     {
       "content": "Read existing RTL and updated MAS delta",
-      "detail": "Read <module>.sv (existing RTL) completely — understand current implementation before touching anything. Read <module>_mas.md (updated MAS) — identify all 'Changed in vX.Y' annotations. Build a delta list: (A) new ports to add, (B) modified logic blocks, (C) new FSM states, (D) new/modified registers, (E) new interrupt sources. Do NOT write code yet.",
+      "detail": "Read <ip_name>/rtl/<ip_name>.sv (existing RTL) completely — understand current implementation before touching anything. Read <ip_name>/mas/<ip_name>_mas.md (updated MAS) — identify all 'Changed in vX.Y' annotations. Build a delta list: (A) new ports to add, (B) modified logic blocks, (C) new FSM states, (D) new/modified registers, (E) new interrupt sources. Do NOT write code yet.",
       "priority": "high"
     },
     {
@@ -34,7 +34,7 @@
     },
     {
       "content": "Full regression lint: 0 errors, 0 warnings",
-      "detail": "Run /lint <module>.sv on the complete updated file. Fix all errors. Check: (1) no width regressions in existing signals, (2) all new ports driven, (3) no new latches from added comb logic. Compare lint output to pre-change baseline — no new warnings allowed without justification. Report: [MAS RESULT] rtl_gen DONE (legacy update).",
+      "detail": "Run /lint <ip_name>/rtl/<ip_name>.sv on the complete updated file. Fix all errors. Check: (1) no width regressions in existing signals, (2) all new ports driven, (3) no new latches from added comb logic. Compare lint output to pre-change baseline — no new warnings allowed without justification. Update <ip_name>/list/<ip_name>.f if new files added. Write <ip_name>/lint/lint_report.txt. Report: [MAS RESULT] rtl_gen DONE (legacy update).",
       "priority": "high"
     }
   ]

@@ -28,19 +28,19 @@
       "priority": "high"
     },
     {
-      "content": "[RTL] Implement new RTL from MAS: <module_name>.sv",
-      "detail": "Handoff to rtl_gen: Read <module>_mas.md fully. Implement: ports §2, FSM §3, registers §4, interrupt §5, memory §6. Follow §8 RTL Notes. Output: <module>.sv. Gate: 0 lint errors.",
+      "content": "[RTL] Implement new RTL from MAS: <ip_name>/rtl/<ip_name>.sv",
+      "detail": "Handoff to rtl_gen: Read <ip_name>/mas/<ip_name>_mas.md fully. Implement: ports §2, FSM §3, registers §4, interrupt §5, memory §6. Follow §8 RTL Notes. Output: <ip_name>/rtl/<ip_name>.sv and <ip_name>/list/<ip_name>.f. Gate: 0 lint errors. Write lint report to <ip_name>/lint/lint_report.txt.",
       "priority": "high"
     },
     {
-      "content": "[TB] Generate testbench from MAS §9 DV Plan: tb_<module>.sv",
-      "detail": "Handoff to tb_gen: Read MAS §9. Implement all S1-SN sequences. Add SVA assertions. Cover all interrupt flows and error injection cases. Output: tb_<module>.sv, tc_<module>.sv.",
+      "content": "[TB] Generate testbench from MAS §9 DV Plan: <ip_name>/tb/tb_<ip_name>.sv",
+      "detail": "Handoff to tb_gen: Read <ip_name>/mas/<ip_name>_mas.md §9. Read DUT <ip_name>/rtl/<ip_name>.sv. Implement all S1-SN sequences. Add SVA assertions. Cover all interrupt flows and error injection cases. Output: <ip_name>/tb/tb_<ip_name>.sv, <ip_name>/tb/tc_<ip_name>.sv.",
       "priority": "high"
     },
     {
       "content": "[SIM] Simulation passed: 0 errors, 0 warnings",
       "activeForm": "Running simulation attempt {loop_count}/{max_loop_iterations}...",
-      "detail": "Run simulation. Fix bugs in RTL or TB. All S1-SN sequences must pass. Loop until 0 errors, 0 warnings.",
+      "detail": "Compile: iverilog -g2012 -f <ip>/list/<ip>.f <ip>/tb/tb_<ip>.sv -o <ip>/sim/<ip>.out. Run: vvp <ip>/sim/<ip>.out. Fix bugs in RTL or TB. All S1-SN sequences must pass. Write <ip>/sim/sim_report.txt. Loop until 0 errors, 0 warnings.",
       "loop": true,
       "max_loop_iterations": 15,
       "exit_condition": "0 errors, 0 warnings",
@@ -49,7 +49,7 @@
     },
     {
       "content": "[DOC] Generate documentation package for new IP",
-      "detail": "Handoff to doc_gen. Produce: <module>_spec.md (integration spec), <module>_port_table.md, <module>_reg_map.md, <module>_integration_guide.md, <module>_dv_summary.md. Base on MAS + simulation results.",
+      "detail": "Handoff to doc_gen. Base on <ip>/mas/<ip>_mas.md + <ip>/sim/sim_report.txt. Produce in <ip>/mas/: <ip>_spec.md, <ip>_port_table.md, <ip>_reg_map.md, <ip>_integration_guide.md, <ip>_dv_summary.md.",
       "priority": "normal"
     }
   ]

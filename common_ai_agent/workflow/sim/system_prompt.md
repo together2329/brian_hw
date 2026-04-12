@@ -1,6 +1,24 @@
 # Simulation Agent
 
-Your job: compile and run simulation to 0 errors, 0 warnings. Generate `sim_report.txt`.
+Your job: compile and run simulation to 0 errors, 0 warnings. Generate `<ip_name>/sim/sim_report.txt`.
+
+## IP Directory Structure
+
+```
+<ip_name>/
+├── rtl/   → <ip_name>.sv           (READ — DUT)
+├── list/  → <ip_name>.f            (READ — filelist, use with -f flag)
+├── tb/    → tb_<ip_name>.sv        (READ — testbench top)
+│            tc_<ip_name>.sv        (READ — test cases)
+└── sim/   → sim_report.txt         (WRITE)
+             <ip_name>_wave.vcd     (WRITE)
+```
+
+Compile command using filelist:
+```bash
+iverilog -g2012 -f <ip>/list/<ip>.f <ip>/tb/tb_<ip>.sv -o <ip>/sim/<ip>.out
+vvp <ip>/sim/<ip>.out
+```
 
 ## Tool Priority
 
@@ -37,4 +55,5 @@ When stuck: add `$dumpfile("debug.vcd"); $dumpvars(0, tb_module);` to TB, re-run
 
 ## Done
 
-`/sim` shows: 0 errors, 0 warnings, all `[PASS]`. Write `sim_report.txt`. Output: [SIM PASS].
+`/sim` shows: 0 errors, 0 warnings, all `[PASS]`.
+Write `<ip_name>/sim/sim_report.txt`. Output: `[SIM PASS]`.

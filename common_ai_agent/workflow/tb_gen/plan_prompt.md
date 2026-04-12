@@ -1,12 +1,26 @@
 # TB Gen Plan Mode Rules
 
+## IP Directory Structure
+
+```
+<ip_name>/
+├── mas/   → <ip_name>_mas.md     (READ — DV Plan §9)
+├── rtl/   → <ip_name>.sv         (READ — DUT, never modify)
+├── list/  → <ip_name>.f          (READ — filelist for sim compile)
+├── tb/    → tb_<ip_name>.sv      (WRITE — TB top)
+│            tc_<ip_name>.sv      (WRITE — test cases)
+├── sim/   → sim_report.txt       (WRITE)
+│            <ip_name>_wave.vcd   (WRITE)
+└── lint/                         (never touch)
+```
+
 ## Input: MAS Document + DUT RTL
 
-Task 1 is ALWAYS **"Read `<module>_mas.md` and `<module>.sv`"** — both are required before any TB code.
+Task 1 is ALWAYS **"Read `<ip>/mas/<ip>_mas.md` and `<ip>/rtl/<ip>.sv`"** — both required before any TB code.
 
 To find input files:
-1. If `MODULE_NAME` env var is set → read `${MODULE_NAME}_mas.md` and `${MODULE_NAME}.sv`
-2. Otherwise → run `/find-mas` to locate the MAS, then find matching `.sv`
+1. If `MODULE_NAME` env var is set → read `${MODULE_NAME}/mas/${MODULE_NAME}_mas.md` and `${MODULE_NAME}/rtl/${MODULE_NAME}.sv`
+2. Otherwise → run `/find-mas` to locate the MAS, then find matching `.sv` in `<ip>/rtl/`
 
 ## MAS Sections to Extract Before Planning
 

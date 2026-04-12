@@ -26,7 +26,7 @@ You coordinate four specialized agents:
 
 ## Micro Architecture Spec (MAS)
 
-The MAS document (`<module>_mas.md`) is the single source of truth for both RTL and DV.
+The MAS document (`<ip_name>/mas/<ip_name>_mas.md`) is the single source of truth for both RTL and DV.
 It must be written **before** any code. Format:
 
 ```markdown
@@ -164,40 +164,93 @@ top
 When delegating to a sub-agent context, output:
 ```
 [MAS HANDOFF] → <agent>
-Module  : <module_name>
-MAS     : <module>_mas.md
+Module  : <ip_name>
+MAS     : <ip_name>/mas/<ip_name>_mas.md
 Task    : <what to do>
-Input   : <file(s) to read>
-Output  : <file(s) to produce>
+Input   : <full relative path(s)>
+Output  : <full relative path(s)>
 Criteria: <done-when condition>
+```
+
+Example handoff to rtl_gen:
+```
+[MAS HANDOFF] → rtl_gen
+Module  : edge_detector
+MAS     : edge_detector/mas/edge_detector_mas.md
+Task    : Implement RTL
+Input   : edge_detector/mas/edge_detector_mas.md
+Output  : edge_detector/rtl/edge_detector.sv, edge_detector/list/edge_detector.f
+Criteria: lint clean — 0 errors, 0 warnings
+```
+
+Example handoff to tb_gen:
+```
+[MAS HANDOFF] → tb_gen
+Module  : edge_detector
+MAS     : edge_detector/mas/edge_detector_mas.md
+Task    : Generate testbench and simulate
+Input   : edge_detector/mas/edge_detector_mas.md, edge_detector/rtl/edge_detector.sv
+Output  : edge_detector/tb/tb_edge_detector.sv, edge_detector/tb/tc_edge_detector.sv
+Criteria: 0 errors, 0 warnings; all S1-SN sequences PASS
 ```
 
 ## Project Phases
 
-1. **MAS** — Write `<module>_mas.md`: Overview → Hierarchy → Features → Registers → Interrupts → Memory → Timing → DV Plan
-2. **RTL** — Implement module guided by MAS §2–§8 (rtl_gen context)
-3. **TB** — Write testbench guided by MAS §9 DV Plan / Test Sequence (tb_gen context)
-4. **SIM** — Run simulation loop until 0 errors, 0 warnings; verify all S1–SN sequences pass
-5. **DOC** — Invoke doc_gen to produce the full documentation package:
-   - `<module>_spec.md` (integration-ready spec)
-   - `<module>_port_table.md`
-   - `<module>_reg_map.md`
-   - `<module>_integration_guide.md`
-   - `<module>_dv_summary.md`
+1. **MAS** — Write `<ip>/mas/<ip>_mas.md`: Overview → Hierarchy → Features → Registers → Interrupts → Memory → Timing → DV Plan
+2. **RTL** — Implement `<ip>/rtl/<ip>.sv` + `<ip>/list/<ip>.f` guided by MAS §2–§8 (rtl_gen context)
+3. **TB**  — Write `<ip>/tb/tb_<ip>.sv` + `<ip>/tb/tc_<ip>.sv` guided by MAS §9 DV Plan (tb_gen context)
+4. **SIM** — Run simulation from `<ip>/sim/`; loop until 0 errors, 0 warnings; write `<ip>/sim/sim_report.txt`
+5. **LINT** — Run lint on `<ip>/rtl/<ip>.sv`; write `<ip>/lint/lint_report.txt`
+6. **DOC** — Write documentation package into `<ip>/mas/`:
+   - `<ip>/mas/<ip>_spec.md`
+   - `<ip>/mas/<ip>_port_table.md`
+   - `<ip>/mas/<ip>_reg_map.md`
+   - `<ip>/mas/<ip>_integration_guide.md`
+   - `<ip>/mas/<ip>_dv_summary.md`
 
-## File Naming Convention
+## IP Directory Structure
+
+Every IP lives in its own directory. All agents read and write within this structure:
 
 ```
-<module>_mas.md                  Micro Architecture Spec (RTL + DV source of truth)
-<module_name>.sv                 RTL source (SystemVerilog)
-tb_<module_name>.sv              Testbench top
-tc_<module_name>.sv              Test cases (included by TB)
-<module_name>_wave.vcd           Simulation waveform
+<ip_name>/
+├── mas/
+│   └── <ip_name>_mas.md             ← YOU write this (source of truth)
+├── rtl/
+│   └── <ip_name>.sv                 ← rtl_gen writes this
+├── list/
+│   └── <ip_name>.f                  ← rtl_gen writes this (filelist for sim/lint)
+├── tb/
+│   ├── tb_<ip_name>.sv              ← tb_gen writes this
+│   └── tc_<ip_name>.sv              ← tb_gen writes this
+├── sim/
+│   ├── sim_report.txt               ← sim agent writes this
+│   └── <ip_name>_wave.vcd           ← sim agent writes this
+└── lint/
+    └── lint_report.txt              ← lint agent writes this
+```
 
-── doc_gen outputs ──────────────────────────────────────
-<module_name>_spec.md            Module specification (for integration engineers)
-<module_name>_port_table.md      Complete port table with clock domains
-<module_name>_reg_map.md         Register map / FAM with bitfield detail
-<module_name>_integration_guide.md  Instantiation & connection guide
-<module_name>_dv_summary.md      DV coverage report & simulation result summary
+### Path Convention
+
+| Role | Path |
+|---|---|
+| MAS document | `<ip_name>/mas/<ip_name>_mas.md` |
+| RTL source | `<ip_name>/rtl/<ip_name>.sv` |
+| Filelist | `<ip_name>/list/<ip_name>.f` |
+| TB top | `<ip_name>/tb/tb_<ip_name>.sv` |
+| Test cases | `<ip_name>/tb/tc_<ip_name>.sv` |
+| Sim report | `<ip_name>/sim/sim_report.txt` |
+| Waveform | `<ip_name>/sim/<ip_name>_wave.vcd` |
+| Lint report | `<ip_name>/lint/lint_report.txt` |
+
+All handoff messages **must include full relative paths** using this structure.
+
+### doc_gen outputs (inside `<ip_name>/mas/`)
+
+```
+<ip_name>/mas/<ip_name>_spec.md
+<ip_name>/mas/<ip_name>_port_table.md
+<ip_name>/mas/<ip_name>_reg_map.md
+<ip_name>/mas/<ip_name>_integration_guide.md
+<ip_name>/mas/<ip_name>_dv_summary.md
 ```
