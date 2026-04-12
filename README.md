@@ -1,88 +1,136 @@
-# Common AI Agent (Zero-Dependency)
+# Common AI Agent
 
-A lightweight AI coding agent. **No external dependencies** — runs on Python's standard library only.
+A lightweight AI coding agent with a hardware design workflow system for RTL/verification engineers.
 
 ## Quick Start
 
 ```bash
 cd common_ai_agent
+
+# Terminal mode
 python3 src/main.py
+
+# TUI mode (recommended)
+python3 src/textual_main.py
 ```
 
 Configure via environment variables or `.env` file. See `.env.example` for all options.
 
-## Features
+---
 
-- **Zero Dependencies**: Standard Python 3.8+ only
+## Hardware Design Workflow
+
+Six specialized workspaces cover the full IP development lifecycle:
+
+```
+REQ → MAS → RTL → TB → SIM / LINT
+```
+
+| Workspace | `-w` name | Role | Start Command |
+|-----------|-----------|------|---------------|
+| **req_gen** | `req_gen` | Iterative requirement gathering with user | `/new-req` |
+| **mas_gen** | `mas_gen` | Micro Architecture Spec authoring | `/new-ip` |
+| **rtl_gen** | `rtl_gen` | SystemVerilog RTL implementation | `/new-ip-rtl` |
+| **tb_gen**  | `tb_gen`  | Testbench + test case generation | `/new-ip-tb` |
+| **sim**     | `sim`     | Compilation + simulation debug loop | `/compile` |
+| **lint**    | `lint`    | Verilator lint check + fix | `/lint-all` |
+
+### Launch a workspace
+
+```bash
+python3 src/textual_main.py -w req_gen    # gather requirements
+python3 src/textual_main.py -w mas_gen    # write MAS
+python3 src/textual_main.py -w rtl_gen    # implement RTL
+python3 src/textual_main.py -w tb_gen     # generate TB
+python3 src/textual_main.py -w sim        # simulate
+python3 src/textual_main.py -w lint       # lint check
+```
+
+### IP Directory Structure
+
+Every IP is organized under a single folder:
+
+```
+<ip_name>/
+├── req/        ← req_gen writes <ip>_requirements.md
+├── mas/        ← mas_gen writes <ip>_mas.md
+├── rtl/        ← rtl_gen writes <ip>.sv
+├── list/       ← rtl_gen writes <ip>.f  (filelist for sim/lint)
+├── tb/         ← tb_gen writes tb_<ip>.sv, tc_<ip>.sv
+├── sim/        ← sim writes sim_report.txt
+└── lint/       ← lint writes lint_report.txt
+```
+
+### Workflow Commands
+
+**req_gen**
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `/new-req` | `nr` | Start new requirement gathering (Phase 1–9 iterative) |
+| `/refine-req` | `rr` | Fill gaps in existing requirements file |
+
+**mas_gen**
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `/new-ip` | `ni` | New IP MAS: §1–§9 section-by-section |
+| `/legacy-ip` | `li` | Legacy IP MAS delta update |
+
+**rtl_gen**
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `/new-ip-rtl` | `nir` | New IP RTL from MAS §2–§8 |
+| `/legacy-ip-rtl` | `lir` | Legacy IP RTL delta changes |
+| `/lint` | `l` | Run lint on current RTL |
+
+**tb_gen**
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `/new-ip-tb` | `nit` | New IP TB from MAS §9 DV Plan |
+| `/legacy-ip-tb` | `lit` | Legacy IP TB regression update |
+| `/sim` | `s` | Run simulation |
+
+**sim**
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `/compile` | `c` | Compile with filelist |
+| `/sim` | `s` | Run simulation |
+| `/report` | `r` | Write sim_report.txt |
+
+**lint**
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `/lint-all` | `la` | Lint all files in filelist |
+| `/lint-file` | `lf` | Lint a single file |
+| `/report` | `r` | Write lint_report.txt |
+
+---
+
+## Agent Features
+
 - **ReAct Agent Loop**: Thought → Action → Observation cycle
 - **Streaming Output**: Real-time token display
+- **Todo System**: Section-by-section task tracking with detail + criteria per task
+- **Workspace System**: Per-workflow system prompts, rules, scripts, and todo templates
+- **Slash Commands**: `/help`, `/todo`, `/plan`, `/compact`, `/workspace`, and workspace-specific commands
+- **Tab Autocomplete**: `/` triggers command dropdown, `@` triggers file completion
+- **TUI Mode**: Full Textual-based terminal UI with todo sidebar and context bar
 - **Sub-Agent System**: explore, plan, execute, review agents
-- **Cross-Platform**: Windows, macOS, Linux support
-- **Tools**:
-  - `read_file`, `read_lines`, `write_file`, `replace_in_file`
-  - `grep_file`, `find_files`, `list_dir`
-  - `run_command`, `git_status`, `git_diff`
-  - `background_task` (sub-agent delegation)
-  - Verilog analysis tools (optional plugin)
 
-## Usage
+---
 
-### Basic Conversation
+## Tools
 
-```
-> read dma/rtl/dma_top.v and explain the architecture
-```
+- `read_file`, `read_lines`, `write_file`, `replace_in_file`
+- `grep_file`, `find_files`, `list_dir`
+- `run_command`, `git_status`, `git_diff`
+- `background_task` (sub-agent delegation)
+- Verilog analysis tools (verilog-expert skill)
 
-The agent uses Thought → Action → Observation loops to complete tasks autonomously.
-
-### Explore Agent
-
-Delegate read-only codebase exploration to a specialized sub-agent:
-
-```
-> use explore agent to check this directory
-> use explore agent to analyze the DMA module
-> use explore agent to find all Verilog modules in caliptra-ss
-```
-
-The explore agent uses `list_dir`, `find_files`, `grep_file`, `read_file` to investigate the codebase and returns a structured summary.
-
-### Slash Commands
-
-```
-/help          — Show available commands
-/status        — Show agent status (model, tools, context)
-/compact       — Compress conversation history
-/clear         — Clear conversation
-/plan          — Enter plan mode for complex tasks
-/exit          — Exit the agent
-```
-
-### Keyboard Shortcuts
-
-- **ESC** — Abort current LLM inference mid-stream
-- **Ctrl+C** — Exit the agent
-
-### Multi-Agent Delegation
-
-The primary agent can delegate tasks to specialized sub-agents:
-
-| Agent | Role | Tools |
-|-------|------|-------|
-| **explore** | Read-only codebase analysis | read, grep, find, list |
-| **plan** | Strategy and planning | read-only + create_plan |
-| **execute** | Full tool access | all tools |
-| **review** | Code review | read, grep |
-| **task** | Background task execution | read-only + background + todo |
-
-```
-> use explore agent to find all Verilog modules
-> create a plan to refactor the DMA controller
-```
+---
 
 ## API Setup
 
-Supports any OpenAI-compatible API endpoint (OpenAI, OpenRouter, vLLM, etc.).
+Supports any OpenAI-compatible API endpoint.
 
 ```bash
 export LLM_BASE_URL="your-api-base-url"
@@ -98,6 +146,8 @@ export SUBAGENT_LOW_MODEL="low-cost-model"
 export SUBAGENT_HIGH_MODEL="high-reasoning-model"
 ```
 
+---
+
 ## Configuration
 
 ```bash
@@ -107,17 +157,27 @@ export SAFE_MODE=true            # Block destructive commands
 export DEBUG_MODE=false          # Verbose logging
 ```
 
+---
+
 ## Project Structure
 
 ```
 common_ai_agent/
-├── src/          — main.py, config.py, llm_client.py
-├── core/         — tools, agent_runner, session_manager, hooks
-├── lib/          — display, memory, todo_tracker
-├── agents/       — sub-agent prompts (explore, plan, execute, review)
-├── skills/       — pluggable skill system
-└── tests/        — 142+ cross-platform tests
+├── src/          — main.py, textual_main.py, config.py, llm_client.py
+├── core/         — tools, agent_runner, session_manager, slash_commands, hooks
+├── lib/          — textual_ui, todo_tracker, display
+├── workflow/     — workspace definitions
+│   ├── req_gen/  — requirement gathering
+│   ├── mas_gen/  — micro architecture spec
+│   ├── rtl_gen/  — RTL implementation
+│   ├── tb_gen/   — testbench generation
+│   ├── sim/      — simulation
+│   └── lint/     — lint check
+├── skills/       — pluggable skill system (verilog-expert, etc.)
+└── tests/        — pytest test suite
 ```
+
+---
 
 ## Troubleshooting
 
@@ -127,3 +187,4 @@ common_ai_agent/
 | HTTP 429 | Increase `RATE_LIMIT_DELAY` (default: 5s) |
 | Model not found | Check model name for provider |
 | Timeout | Check `LLM_BASE_URL` connectivity |
+| Workspace not found | Run from `common_ai_agent/` directory |

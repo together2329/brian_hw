@@ -1,56 +1,56 @@
 {
   "name": "new-ip",
-  "description": "New IP from scratch: Requirements → Full MAS authoring → RTL → TB → SIM → DOC",
+  "description": "New IP MAS authoring: Requirements → §1 → §2 → §3 → §4 → §5 → §6 → §7 → §8 → §9",
   "tasks": [
     {
-      "content": "[MAS] Gather requirements: confirm module name, interface, key features",
-      "detail": "Before writing the MAS, confirm with the user: (1) module name, (2) top-level ports and clock domains, (3) key features and operating modes, (4) register interface (APB / AXI-Lite / custom), (5) interrupt requirements, (6) any internal memory needs, (7) target clock frequency and pipeline requirements. Summarize in one paragraph and get approval before writing the MAS.",
+      "content": "[MAS] Read requirement files and gather missing info from user",
+      "detail": "STEP 1 — Search for requirement files in the current directory and subdirectories. Look for: requirements.md, req*.md, *_req*.md, *_spec*.md, spec*.md, *requirement*.txt, req/ folder contents. Read every file found and extract: module name, ports, clock domains, features, register interface type, interrupt needs, memory needs, timing targets.\nSTEP 2 — Identify what is missing or ambiguous from the requirement files. Ask the user only for information NOT covered in the files: any unspecified items from (1) module name, (2) top-level ports and clock domains, (3) key features and operating modes, (4) register interface (APB / AXI-Lite / custom), (5) interrupt requirements, (6) internal memory needs, (7) target clock frequency. If all info is in the files, confirm with user and proceed.\nSTEP 3 — Decide IP name. Create folder: <ip_name>/mas/, <ip_name>/rtl/, <ip_name>/list/, <ip_name>/tb/, <ip_name>/sim/, <ip_name>/lint/. Summarize gathered requirements and get user approval before writing the MAS.",
       "priority": "high"
     },
     {
-      "content": "[MAS] Write §1 Overview and §2 Module Hierarchy + Interface",
-      "detail": "Write §1: one-paragraph functional description (what it does, why it exists, key design goals). Write §2: instantiation tree, port table (name/width/direction/clock domain), parameters table. These define the external contract — get the interface right before writing internals.",
+      "content": "[MAS] §1 Overview",
+      "detail": "Write §1 Overview in <ip_name>/mas/<ip_name>_mas.md.\nTodo:\n- [ ] One-paragraph functional description: what the module does, why it exists\n- [ ] Key design goals (latency, throughput, area, power targets if specified)\n- [ ] List of key features (bullet form)\n- [ ] Intended use context (SoC subsystem, standalone IP, etc.)\nGate: §1 complete before moving to §2.",
       "priority": "high"
     },
     {
-      "content": "[MAS] Write §3 Feature Operation + Control FSM",
-      "detail": "Describe each feature/mode with trigger, datapath, control, output. Draw the FSM state table (state/next-state/condition/actions). For each FSM state: what triggers the transition, what outputs are driven. No ambiguous states — every transition must be specified.",
+      "content": "[MAS] §2 Module Hierarchy + Interface (Ports + Parameters)",
+      "detail": "Write §2 in <ip_name>/mas/<ip_name>_mas.md.\nTodo:\n- [ ] Instantiation tree (who instantiates this module, what sub-modules it contains)\n- [ ] Port table: every signal with Name / Width / Direction / Clock Domain / Description\n- [ ] Parameters table: Name / Default / Description for every parameter\n- [ ] Confirm all port names and widths against requirement file (if present)\nGate: All ports explicitly defined before §3.",
       "priority": "high"
     },
     {
-      "content": "[MAS] Write §4 Registers (FAM) + §5 Interrupt + §6 Memory",
-      "detail": "§4: Register map with offset/name/width/access/reset. Bitfield detail for each register. §5: Interrupt source table (source/bit/type/enable-reg/status-reg/description), irq output logic, W1C clear mechanism. §6: Internal memory table (instance/type/depth/width/ports/latency). Fill all three sections or mark N/A explicitly.",
+      "content": "[MAS] §3 Feature Operation + Control FSM",
+      "detail": "Write §3 in <ip_name>/mas/<ip_name>_mas.md.\nTodo:\n- [ ] For each major feature/mode: Trigger / Datapath / Control / Output\n- [ ] FSM state table: State / Next State / Condition / Output Actions — every row\n- [ ] No undefined state: every state transition condition must be explicit\n- [ ] Note any pipelined stages or back-pressure signals\nGate: FSM has no ambiguous transitions.",
       "priority": "high"
     },
     {
-      "content": "[MAS] Write §7 Timing + §8 RTL Notes + §9 DV Plan",
-      "detail": "§7: Clock freq, pipeline latency, CDC crossings. §8: Coding style (nonblocking FF, blocking comb, no latches), reset polarity, lint waivers. §9: Test sequence table S1-SN (sequence name/steps/expected result/priority), functional coverage goals, SVA assertions list. MAS is complete only when all 9 sections are filled.",
+      "content": "[MAS] §4 Registers (FAM — Functional Address Map)",
+      "detail": "Write §4 in <ip_name>/mas/<ip_name>_mas.md.\nTodo:\n- [ ] Register table: Offset / Name / Width / Access (RW/RO/WO/W1C) / Reset / Description — every register\n- [ ] Bitfield detail for every non-trivial register: Bits / Name / Access / Description\n- [ ] Reserved bits marked explicitly (RSVD, write 0, read undefined)\n- [ ] Offsets match requirement file if specified; flag any conflict\nGate: Every CSR offset is unique and fully described.",
       "priority": "high"
     },
     {
-      "content": "[RTL] Implement new RTL from MAS: <ip_name>/rtl/<ip_name>.sv",
-      "detail": "Handoff to rtl_gen: Read <ip_name>/mas/<ip_name>_mas.md fully. Implement: ports §2, FSM §3, registers §4, interrupt §5, memory §6. Follow §8 RTL Notes. Output: <ip_name>/rtl/<ip_name>.sv and <ip_name>/list/<ip_name>.f. Gate: 0 lint errors. Write lint report to <ip_name>/lint/lint_report.txt.",
+      "content": "[MAS] §5 Interrupt",
+      "detail": "Write §5 in <ip_name>/mas/<ip_name>_mas.md.\nTodo:\n- [ ] Interrupt source table: Source / Bit / Type (level/edge) / Enable Reg / Status Reg / Description\n- [ ] irq output polarity and type (level/pulse, active-high/low)\n- [ ] Clear mechanism: W1C on INT_STATUS, or auto-clear, or software-clear\n- [ ] Masking logic: which enable bits gate which sources to irq\n- [ ] If no interrupts: write '§5 N/A — no interrupt outputs'\nGate: Every interrupt source has a unique bit and clear path.",
       "priority": "high"
     },
     {
-      "content": "[TB] Generate testbench from MAS §9 DV Plan: <ip_name>/tb/tb_<ip_name>.sv",
-      "detail": "Handoff to tb_gen: Read <ip_name>/mas/<ip_name>_mas.md §9. Read DUT <ip_name>/rtl/<ip_name>.sv. Implement all S1-SN sequences. Add SVA assertions. Cover all interrupt flows and error injection cases. Output: <ip_name>/tb/tb_<ip_name>.sv, <ip_name>/tb/tc_<ip_name>.sv.",
+      "content": "[MAS] §6 Memory",
+      "detail": "Write §6 in <ip_name>/mas/<ip_name>_mas.md.\nTodo:\n- [ ] Memory instance table: Instance / Type (SRAM/FIFO/RF) / Depth / Width / Read ports / Write ports / Latency / Description\n- [ ] Read/write latency in clock cycles for each instance\n- [ ] Initialization state (unknown / zero / don't-care at reset)\n- [ ] Any ECC or parity requirements\n- [ ] If no internal memory: write '§6 N/A — no internal memory'\nGate: All memory instances have defined latency and port count.",
       "priority": "high"
     },
     {
-      "content": "[SIM] Simulation passed: 0 errors, 0 warnings",
-      "activeForm": "Running simulation attempt {loop_count}/{max_loop_iterations}...",
-      "detail": "Compile: iverilog -g2012 -f <ip>/list/<ip>.f <ip>/tb/tb_<ip>.sv -o <ip>/sim/<ip>.out. Run: vvp <ip>/sim/<ip>.out. Fix bugs in RTL or TB. All S1-SN sequences must pass. Write <ip>/sim/sim_report.txt. Loop until 0 errors, 0 warnings.",
-      "loop": true,
-      "max_loop_iterations": 15,
-      "exit_condition": "0 errors, 0 warnings",
-      "validator": "bash workflow/tb_gen/scripts/check_sim_pass.sh",
+      "content": "[MAS] §7 Timing",
+      "detail": "Write §7 in <ip_name>/mas/<ip_name>_mas.md.\nTodo:\n- [ ] Clock frequency (MHz) and period (ns)\n- [ ] Input-to-output pipeline latency (cycles)\n- [ ] Throughput (transactions per cycle at full load)\n- [ ] Critical path description (longest combinational path)\n- [ ] CDC crossings: list every clock domain boundary, synchronizer type used\n- [ ] Setup/hold requirements for external interfaces (if any)\nGate: Clock frequency and latency are numeric, not vague.",
       "priority": "high"
     },
     {
-      "content": "[DOC] Generate documentation package for new IP",
-      "detail": "Handoff to doc_gen. Base on <ip>/mas/<ip>_mas.md + <ip>/sim/sim_report.txt. Produce in <ip>/mas/: <ip>_spec.md, <ip>_port_table.md, <ip>_reg_map.md, <ip>_integration_guide.md, <ip>_dv_summary.md.",
-      "priority": "normal"
+      "content": "[MAS] §8 RTL Implementation Notes",
+      "detail": "Write §8 in <ip_name>/mas/<ip_name>_mas.md.\nTodo:\n- [ ] Coding style rules: nonblocking (<=) in always_ff, blocking (=) in always_comb\n- [ ] Reset: synchronous or asynchronous, polarity (active-low rst_n preferred)\n- [ ] Latch prevention: every always_comb branch must assign all outputs\n- [ ] Lint waivers: list any expected lint warnings and justify each\n- [ ] Pipeline constraints: any required register stage insertions\n- [ ] Tie-off rules for unused inputs\nGate: §8 complete and consistent with §2 port list.",
+      "priority": "high"
+    },
+    {
+      "content": "[MAS] §9 DV Plan — MAS complete",
+      "detail": "Write §9 in <ip_name>/mas/<ip_name>_mas.md.\nTodo:\n- [ ] Test Sequence table: ID / Sequence Name / Steps / Expected Result / Priority — minimum S1-S6\n  - S1: Power-on reset\n  - S2: Basic operation (configure → enable → poll done)\n  - S3: Interrupt flow (enable → trigger → W1C clear)\n  - S4: Memory R/W (write pattern → read back → compare)\n  - S5: Back-to-back ops\n  - S6: Error injection\n- [ ] Functional coverage goals: FSM states, interrupt sources, register bits, memory boundary conditions\n- [ ] SVA assertions list: at minimum — no illegal FSM transitions, irq deassert after W1C\n- [ ] Known corner cases / hazards\nGate: All 9 sections complete. Save final MAS as <ip_name>/mas/<ip_name>_mas.md.",
+      "priority": "high"
     }
   ]
 }

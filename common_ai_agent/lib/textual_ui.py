@@ -268,29 +268,36 @@ class _AgentSuggester(Suggester):
 
     def __init__(self) -> None:
         super().__init__(use_cache=False, case_sensitive=False)
-        self._slash_cmds: list[str] = []
-        self._load_slash_cmds()
+        self._get_registry = None
+        self._init_registry()
 
-    def _load_slash_cmds(self) -> None:
+    def _init_registry(self) -> None:
         try:
-            from slash_commands import get_registry  # type: ignore
+            from core.slash_commands import get_registry  # type: ignore
+            self._get_registry = get_registry
         except ImportError:
             try:
-                from core.slash_commands import get_registry  # type: ignore
+                from slash_commands import get_registry  # type: ignore
+                self._get_registry = get_registry
             except ImportError:
-                return
+                pass
+
+    def _live_cmds(self) -> list[str]:
+        """Always fetch completions fresh from the live registry."""
         try:
-            self._slash_cmds = get_registry().get_completions()
+            if self._get_registry is None:
+                self._init_registry()
+            if self._get_registry is not None:
+                return self._get_registry().get_completions()
         except Exception:
             pass
+        return []
 
     async def get_suggestion(self, value: str) -> str | None:
         try:
             # Slash command inline suggestion (first match preview)
             if value.startswith('/') and ' ' not in value:
-                if not self._slash_cmds:
-                    self._load_slash_cmds()
-                for cmd in self._slash_cmds:
+                for cmd in self._live_cmds():
                     if cmd.lower().startswith(value.lower()) and cmd != value:
                         return cmd
         except Exception:
@@ -406,9 +413,9 @@ class _AgentInput(Input):
         """Populate and show the / command completion dropdown."""
         try:
             try:
-                from slash_commands import get_registry  # type: ignore
-            except ImportError:
                 from core.slash_commands import get_registry  # type: ignore
+            except ImportError:
+                from slash_commands import get_registry  # type: ignore
             cmds = get_registry().get_completions()
             matches = [c for c in cmds if c.lower().startswith(value.lower())]
             non_exact = [c for c in matches if c != value]
@@ -944,9 +951,12 @@ class AgentTUI(App):
         # ── Banner ────────────────────────────────────────────────────────────
         from rich.panel import Panel
         from rich.align import Align
+        _wf = os.environ.get("ACTIVE_WORKSPACE", "").strip()
         banner_text = RichText()
         banner_text.append("◆ ", style=f"bold {_ACCENT}")
         banner_text.append("UPD Agent", style=f"bold white")
+        if _wf:
+            banner_text.append(f"  [{_wf}]", style=f"bold {_ACCENT}")
         banner_text.append("  ─  Intelligent Coding Agent", style=f"dim {_TEXT_DIM}")
         log.write(Panel(
             banner_text,
@@ -1108,6 +1118,11 @@ class AgentTUI(App):
     def _on_agent_idle(self) -> None:
         """Called from InputBridge.get_input() when agent thread is back at prompt."""
         self._esc_fired = False
+        self._generating = False
+        try:
+            self.query_one(_AgentInput).focus()
+        except Exception:
+            pass
 
     def on_app_blur(self) -> None:
         """Record when the terminal loses focus — used to debounce spurious ESC."""

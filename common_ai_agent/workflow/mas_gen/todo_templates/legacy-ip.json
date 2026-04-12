@@ -1,51 +1,41 @@
 {
   "name": "legacy-ip",
-  "description": "Legacy IP update: Read existing RTL → Build/Update MAS → Delta RTL → Regression TB → SIM → DOC",
+  "description": "Legacy IP MAS update: Read RTL → Reverse-engineer → Confirm changes → Delta §1-§2 → §3 → §4-§6 → §7-§9",
   "tasks": [
     {
       "content": "[MAS] Read existing RTL and identify current interface",
-      "detail": "Read <module>.sv (existing RTL). Extract: module name, all port declarations (name/width/direction), parameters, clock domains. Read any existing spec or doc files (*_spec.md, *_mas.md, README). Summarize current interface as a port table. This is the baseline — all changes must preserve backward compatibility unless explicitly requested.",
+      "detail": "Read <module>.sv (existing RTL) and any existing spec/doc files (*_spec.md, *_mas.md, README).\nTodo:\n- [ ] Extract module name and all port declarations: Name / Width / Direction / Clock domain\n- [ ] Extract all parameters with current defaults\n- [ ] Note top-level instantiation context (who uses this module)\n- [ ] List any existing MAS or spec document and its version\nGate: Current port table documented before reverse-engineering.",
       "priority": "high"
     },
     {
       "content": "[MAS] Reverse-engineer current design: FSM, datapath, registers",
-      "detail": "Analyze existing RTL to extract: (1) FSM states and transitions (from always_ff/case), (2) register map (from CSR decode logic), (3) datapath operations (from always_comb). Document what the module currently does — this becomes the baseline MAS that the update will delta against. Flag any undocumented behaviors or lint issues found.",
+      "detail": "Analyze existing RTL to reconstruct current behavior.\nTodo:\n- [ ] Extract FSM: states and transitions from always_ff/case blocks\n- [ ] Extract register map: CSR decode logic → Offset / Name / Width / Access / Reset\n- [ ] Extract datapath: operations from always_comb blocks\n- [ ] Flag any undocumented behaviors, dead code, or lint issues found\n- [ ] Note any discrepancies between existing spec (if any) and actual RTL\nGate: Current behavior fully documented — this is the delta baseline.",
       "priority": "high"
     },
     {
-      "content": "[MAS] Confirm change requirements with user: what to add/modify/remove",
-      "detail": "Present the current design summary to the user. Confirm: (1) which features to add, (2) which ports/registers to add/modify (note: removing ports breaks backward compat — confirm explicitly), (3) new FSM states needed, (4) new interrupt sources, (5) timing changes. Get sign-off before writing the updated MAS.",
+      "content": "[MAS] Confirm change requirements with user",
+      "detail": "Present current design summary to the user and confirm what changes are needed.\nTodo:\n- [ ] Show current port table — confirm which ports to add/modify (removal = backward compat break, must be explicit)\n- [ ] Show current FSM — confirm which states/transitions to add or change\n- [ ] Show current register map — confirm new registers, modified bitfields, new offsets\n- [ ] Confirm new interrupt sources (if any)\n- [ ] Confirm timing or memory changes (if any)\n- [ ] Get explicit user sign-off before writing any MAS delta\nGate: User has approved the change list.",
       "priority": "high"
     },
     {
-      "content": "[MAS] Write delta MAS: update changed sections only",
-      "detail": "Update <module>_mas.md (or create if no MAS exists). Only update sections that change: §2 if ports/params change, §3 if FSM/datapath changes, §4 if registers change, §5 if interrupts change, §7 if timing changes, §8 if coding style changes, §9 DV Plan with new test sequences for new features. Add 'Changed in vX.Y' annotations next to modified fields. Preserve all unchanged sections verbatim.",
+      "content": "[MAS] §1-§2 delta: Overview + Interface changes",
+      "detail": "Update §1 and §2 in <ip_name>/mas/<ip_name>_mas.md (create if missing).\nTodo:\n- [ ] §1: Update description if feature set changed; add 'Changed in vX.Y' note\n- [ ] §2 Ports: Add new ports at end of port table; mark changed ports with 'Changed in vX.Y'; do NOT reorder existing ports\n- [ ] §2 Parameters: Add new parameters; preserve existing parameter names and defaults\n- [ ] Unchanged sections: copy verbatim from existing MAS — do not rewrite\nGate: Backward compatibility preserved for all existing ports.",
       "priority": "high"
     },
     {
-      "content": "[RTL] Apply delta RTL changes: modify <module>.sv for new requirements",
-      "detail": "Handoff to rtl_gen legacy-ip-rtl template: Read updated MAS delta. Apply only the required changes — do NOT rewrite unchanged logic. Add new ports at end of port list. Add new FSM states without breaking existing transitions. Add new registers without reordering existing offsets. Lint check after each change block.",
+      "content": "[MAS] §3 delta: Feature Operation + FSM changes",
+      "detail": "Update §3 in <ip_name>/mas/<ip_name>_mas.md.\nTodo:\n- [ ] Add new feature sections for new functionality\n- [ ] Update FSM state table: add new states/transitions; mark changed rows with 'Changed in vX.Y'\n- [ ] Verify all existing FSM transitions are preserved (no regression)\n- [ ] Unchanged features: copy verbatim\nGate: No existing FSM state removed without explicit user approval.",
       "priority": "high"
     },
     {
-      "content": "[TB] Update testbench: add new test sequences, keep existing passing",
-      "detail": "Handoff to tb_gen: Add new test sequences (S_NEW_1..N) for new features from MAS §9. Do NOT remove existing sequences. Run regression — all original sequences must still pass. Fix any TB compilation issues from interface changes.",
+      "content": "[MAS] §4-§6 delta: Registers + Interrupt + Memory changes",
+      "detail": "Update §4, §5, §6 in <ip_name>/mas/<ip_name>_mas.md.\nTodo:\n- [ ] §4: Add new registers at new offsets (do NOT reuse existing offsets); update bitfield detail for changed registers; mark with 'Changed in vX.Y'\n- [ ] §5: Add new interrupt sources with new bit positions; preserve existing bit assignments\n- [ ] §6: Add new memory instances if needed; update latency/depth if changed\n- [ ] If a section is unchanged: copy verbatim\nGate: No existing register offset or interrupt bit reassigned.",
       "priority": "high"
     },
     {
-      "content": "[SIM] Regression passed: 0 errors, 0 warnings (old + new sequences)",
-      "activeForm": "Running regression attempt {loop_count}/{max_loop_iterations}...",
-      "detail": "Run full simulation suite including all original sequences plus new sequences. All must pass. Any regression in original sequences = RTL bug — fix RTL, not TB. Loop until 0 errors, 0 warnings.",
-      "loop": true,
-      "max_loop_iterations": 15,
-      "exit_condition": "0 errors, 0 warnings",
-      "validator": "bash workflow/tb_gen/scripts/check_sim_pass.sh",
+      "content": "[MAS] §7-§9 delta: Timing + RTL Notes + DV Plan — MAS complete",
+      "detail": "Update §7, §8, §9 in <ip_name>/mas/<ip_name>_mas.md.\nTodo:\n- [ ] §7: Update clock/latency/throughput only if timing changed; add CDC notes for new crossings\n- [ ] §8: Add lint waivers or coding notes for new logic; preserve existing rules\n- [ ] §9 DV Plan: Add new test sequences (S_NEW_1..N) for new features — do NOT remove existing sequences; update coverage goals for new FSM states and registers; add SVA for new assertions\n- [ ] All 9 sections complete and internally consistent\nGate: All 9 sections filled. Save final delta MAS as <ip_name>/mas/<ip_name>_mas.md.",
       "priority": "high"
-    },
-    {
-      "content": "[DOC] Update documentation for changed legacy IP",
-      "detail": "Update <module>_spec.md with changed sections. Add changelog entry: version, date, what changed, what is backward-compatible. Update port table and register map if changed. Mark deprecated ports/registers. Output updated doc set.",
-      "priority": "normal"
     }
   ]
 }
