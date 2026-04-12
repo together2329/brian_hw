@@ -766,13 +766,18 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                     yield content
                                     _yielded_something = True
 
-                                # Accumulate native tool_calls across chunks.
-                                # name arrives only in the first chunk; arguments are fragmented.
+                                # Accumulate native tool_calls across streaming chunks.
+                                # OpenAI/Z.AI streaming protocol:
+                                #   - first chunk carries id, type, function.name
+                                #   - subsequent chunks carry only function.arguments fragments
                                 tool_calls = delta.get("tool_calls", [])
                                 for tc in tool_calls:
                                     idx = tc.get("index", 0)
                                     if idx not in _pending_tool_calls:
-                                        _pending_tool_calls[idx] = {"name": "", "arguments": ""}
+                                        _pending_tool_calls[idx] = {"id": "", "name": "", "arguments": ""}
+                                    # id and name arrive only in the first chunk — preserve them
+                                    if tc.get("id"):
+                                        _pending_tool_calls[idx]["id"] = tc["id"]
                                     func = tc.get("function", {})
                                     if func.get("name"):
                                         _pending_tool_calls[idx]["name"] = func["name"]
@@ -791,10 +796,18 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                         for idx in sorted(_pending_tool_calls):
                             tc_info = _pending_tool_calls[idx]
                             if tc_info["name"]:
+                                # Prefer the API-provided id; fall back to generated id
+                                _call_id = tc_info.get("id") or f"call_{_uuid.uuid4().hex[:16]}"
+                                # Validate arguments JSON; default to {} on parse failure
+                                _args_str = tc_info["arguments"] or "{}"
+                                try:
+                                    json.loads(_args_str)
+                                except json.JSONDecodeError:
+                                    _args_str = "{}"
                                 _native_calls.append({
-                                    "id": f"call_{_uuid.uuid4().hex[:16]}",
+                                    "id": _call_id,
                                     "name": tc_info["name"],
-                                    "arguments": tc_info["arguments"] or "{}",
+                                    "arguments": _args_str,
                                 })
                         if _native_calls:
                             yield ("native_tool_calls", _native_calls)
@@ -1595,13 +1608,18 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                     yield content
                                     _yielded_something = True
 
-                                # Accumulate native tool_calls across chunks.
-                                # name arrives only in the first chunk; arguments are fragmented.
+                                # Accumulate native tool_calls across streaming chunks.
+                                # OpenAI/Z.AI streaming protocol:
+                                #   - first chunk carries id, type, function.name
+                                #   - subsequent chunks carry only function.arguments fragments
                                 tool_calls = delta.get("tool_calls", [])
                                 for tc in tool_calls:
                                     idx = tc.get("index", 0)
                                     if idx not in _pending_tool_calls:
-                                        _pending_tool_calls[idx] = {"name": "", "arguments": ""}
+                                        _pending_tool_calls[idx] = {"id": "", "name": "", "arguments": ""}
+                                    # id and name arrive only in the first chunk — preserve them
+                                    if tc.get("id"):
+                                        _pending_tool_calls[idx]["id"] = tc["id"]
                                     func = tc.get("function", {})
                                     if func.get("name"):
                                         _pending_tool_calls[idx]["name"] = func["name"]
@@ -1874,7 +1892,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             yield f"{Color.info('If this persists, please check your network connection.')}\n"
             return
 
-def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=None, stream_prefix=None, spinner_label=None, max_tokens=None, extra_body=None, caller_tag=None):
+def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=None, stream_prefix=None, spinner_label=None, max_tokens=None, extra_body=None, caller_tag=None, tools=None):
     """
     Call LLM without streaming (for extraction tasks, sub-agents, etc.).
 
@@ -1886,9 +1904,12 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         stop: Optional list of stop sequences
         stream_prefix: If set, stream output to stdout with this prefix (e.g. "  │ ")
         spinner_label: If set (and stream_prefix is None), show a spinner while waiting
+        tools: Optional list of function tool definitions (OpenAI function calling format)
 
     Returns:
-        Complete response text
+        Complete response text. When the model returns a tool_calls response instead of
+        content (finish_reason == "tool_calls"), returns JSON string:
+        '{"tool_calls": [{"id": ..., "name": ..., "arguments": ...}, ...]}'
     """
     global last_input_tokens, last_output_tokens
     resolved_model = model or config.MODEL_NAME
@@ -1931,6 +1952,10 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         data["stop"] = _stop
     if max_tokens is not None:
         data["max_tokens"] = max_tokens
+    # Native function calling: inject tools schema + tool_choice
+    if tools:
+        data["tools"] = tools
+        data["tool_choice"] = "auto"
     if extra_body:
         data.update(extra_body)
 
@@ -2040,7 +2065,11 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
                 sys.stderr.write(f"  \033[36m✽\033[0m \033[2m{spinner_label}...\033[0m\n")
                 sys.stderr.flush()
 
-        content = result["choices"][0]["message"]["content"]
+        choice = result["choices"][0]
+        message = choice.get("message", {})
+        finish_reason = choice.get("finish_reason", "")
+        content = message.get("content") or ""
+
         usage = result.get("usage", {})
         if usage:
             last_input_tokens = usage.get("prompt_tokens", usage.get("input_tokens", 0))
@@ -2049,6 +2078,28 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         _raw_read = _raw_t_end - _raw_connected
         _record_call(_raw_caller, resolved_model, last_input_tokens, last_output_tokens,
                      _raw_connect, _raw_connect + _raw_read, 0.0, _raw_t_end - _raw_t_start)
+
+        # Function calling response: model returned tool_calls instead of content
+        raw_tool_calls = message.get("tool_calls")
+        if finish_reason == "tool_calls" or raw_tool_calls:
+            parsed = []
+            for tc in (raw_tool_calls or []):
+                func = tc.get("function", {})
+                args_str = func.get("arguments", "{}")
+                # Validate arguments JSON
+                try:
+                    json.loads(args_str)
+                except json.JSONDecodeError:
+                    args_str = "{}"
+                parsed.append({
+                    "id": tc.get("id", ""),
+                    "name": func.get("name", ""),
+                    "arguments": args_str,
+                })
+            if config.DEBUG_MODE:
+                print(Color.info(f"[call_llm_raw] tool_calls: {parsed}"))
+            return json.dumps({"tool_calls": parsed}, ensure_ascii=False)
+
         return _strip_metadata_tokens(content).strip()
 
     except Exception as e:
