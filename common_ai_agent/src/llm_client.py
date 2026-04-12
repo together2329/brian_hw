@@ -727,8 +727,9 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             try:
                 usage_info = None
                 _yielded_something = False
+                _finish_reason = None   # captured from last non-null finish_reason chunk
                 # Accumulate native tool calls across streaming chunks.
-                # OpenAI streaming sends name in first chunk, arguments fragmented across many.
+                # OpenAI/Z.AI: name+id in first chunk, arguments fragmented across subsequent chunks.
                 _pending_tool_calls: Dict[int, Dict] = {}
                 for line in response:
                     _last_data[0] = time.time()
@@ -740,11 +741,17 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                         try:
                             chunk_json = json.loads(data_str)
 
+                            # Usage stats appear only in the last chunk (Z.AI / OpenAI spec)
                             if "usage" in chunk_json:
                                 usage_info = chunk_json["usage"]
 
                             if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
-                                delta = chunk_json["choices"][0].get("delta", {})
+                                choice = chunk_json["choices"][0]
+                                # Capture finish_reason; only the last chunk has a non-null value
+                                _fr = choice.get("finish_reason")
+                                if _fr:
+                                    _finish_reason = _fr
+                                delta = choice.get("delta", {})
 
                                 # Reasoning tokens (DeepSeek, GLM etc.)
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
@@ -834,6 +841,13 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                     if output_tokens > 0:
                         last_output_tokens = output_tokens
 
+                    # Extract cached token count from Z.AI / OpenAI prompt_tokens_details
+                    _pt_details = usage_info.get("prompt_tokens_details") or {}
+                    _cached = _pt_details.get("cached_tokens", 0)
+                    if _cached > 0:
+                        last_cache_read_tokens = _cached
+                        total_cache_read += _cached
+
                     # Update rate limiter with actual token usage
                     _total = input_tokens + output_tokens
                     if _total > 0:
@@ -844,7 +858,23 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                         print(f"\n{Color.info('[Token Usage]')}")
                         print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
                         print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
-                        print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}\n")
+                        print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}")
+                        if _cached > 0:
+                            print(f"{Color.info(f'  Cached: {_cached:,} tokens (prompt cache hit)')}")
+                        print()
+
+                # finish_reason signals: emit for callers that need to react
+                if _finish_reason == "length":
+                    # Output was cut off by max_tokens — warn and signal
+                    print(Color.warning(
+                        f"\n[Warning] Output truncated: max_tokens limit reached "
+                        f"(max_tokens={data.get('max_tokens', 'unset')}). "
+                        f"Increase MAX_OUTPUT_TOKENS or reduce input size."
+                    ))
+                    yield ("finish_reason", "length")
+                elif _finish_reason == "content_filter":
+                    yield ("finish_reason", "content_filter")
+                # "stop" and "tool_calls" are normal — no special signal needed
 
                 # Empty response (HTTP 200 but no content/reasoning/tool_calls) — retry
                 if not _yielded_something and retry_count < max_retries - 1:
@@ -1544,6 +1574,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 _t_first_token = None
                 _total_tokens_streamed = 0
                 _yielded_something = False
+                _finish_reason = None   # captured from last non-null finish_reason chunk
                 # Accumulate native tool calls across streaming chunks.
                 _pending_tool_calls: Dict[int, Dict] = {}
                 for line in response:
@@ -1559,14 +1590,19 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                         try:
                             chunk_json = json.loads(data_str)
 
-                            # Extract usage information (both OpenAI and Anthropic formats)
+                            # Usage stats appear only in the last chunk (Z.AI / OpenAI spec)
                             if "usage" in chunk_json:
                                 usage_info = chunk_json["usage"]
 
                             # Extract content delta
                             # Structure: choices[0].delta.content
                             if "choices" in chunk_json and len(chunk_json["choices"]) > 0:
-                                delta = chunk_json["choices"][0].get("delta", {})
+                                choice = chunk_json["choices"][0]
+                                # Capture finish_reason; only non-null in the last chunk
+                                _fr = choice.get("finish_reason")
+                                if _fr:
+                                    _finish_reason = _fr
+                                delta = choice.get("delta", {})
 
                                 # Reasoning tokens (DeepSeek, GLM etc.)
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
@@ -1641,13 +1677,19 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                         for idx in sorted(_pending_tool_calls):
                             tc_info = _pending_tool_calls[idx]
                             tc_name = tc_info["name"]
-                            tc_args_str = tc_info["arguments"]
+                            tc_args_str = tc_info["arguments"] or "{}"
                             if tc_name:
-                                call_id = f"call_{_uuid.uuid4().hex}"  # full 32-char hex — no collision risk
+                                # Prefer API-provided id; fall back to generated uuid
+                                call_id = tc_info.get("id") or f"call_{_uuid.uuid4().hex}"
+                                # Validate arguments JSON
+                                try:
+                                    json.loads(tc_args_str)
+                                except json.JSONDecodeError:
+                                    tc_args_str = "{}"
                                 _native_calls.append({
                                     "id": call_id,
                                     "name": tc_name,
-                                    "arguments": tc_args_str or "{}",
+                                    "arguments": tc_args_str,
                                 })
                         if _native_calls:
                             yield ("native_tool_calls", _native_calls)
@@ -1727,6 +1769,17 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     total_cache_created += cache_creation_tokens
                     total_cache_read += cache_read_tokens
                 
+                # finish_reason signals
+                if _finish_reason == "length":
+                    print(Color.warning(
+                        f"\n[Warning] Output truncated: max_tokens limit reached "
+                        f"(max_tokens={data.get('max_tokens', 'unset')}). "
+                        f"Increase MAX_OUTPUT_TOKENS or reduce input size."
+                    ))
+                    yield ("finish_reason", "length")
+                elif _finish_reason == "content_filter":
+                    yield ("finish_reason", "content_filter")
+
                 # Empty response (HTTP 200 but no content/reasoning/tool_calls) — retry
                 if not _yielded_something and retry_count < max_retries - 1:
                     delay = initial_delay * (2 ** retry_count)

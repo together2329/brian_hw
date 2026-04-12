@@ -570,6 +570,15 @@ def run_react_agent_impl(
                     _native_calls = chunk[1]
                     continue
 
+                # finish_reason sentinel: ("finish_reason", reason)
+                if isinstance(chunk, tuple) and len(chunk) == 2 and chunk[0] == "finish_reason":
+                    _reason = chunk[1]
+                    if _reason == "length":
+                        # Already printed warning in llm_client; mark response as truncated
+                        _parser.feed("\n[Output truncated — increase MAX_OUTPUT_TOKENS]")
+                    # content_filter: no text to add, warning was printed upstream
+                    continue
+
                 _parser.feed(chunk)
 
         except Exception as e:
