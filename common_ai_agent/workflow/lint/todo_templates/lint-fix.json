@@ -1,30 +1,35 @@
 {
   "name": "lint-fix",
-  "description": "Lint all RTL files, fix errors and warnings, generate lint_report.txt",
+  "description": "Lint check: read RTL+filelist → run verilator → fix errors → fix warnings → report",
   "tasks": [
     {
-      "content": "Run /lint-all — get full error and warning list",
-      "detail": "Run /lint-all. Record: total errors, total warnings, per-file breakdown. Do not fix anything yet.",
+      "content": "[LINT] Read inputs: <ip>/rtl/<ip>.sv + <ip>/list/<ip>.f",
+      "detail": "Before running lint, verify all input files exist:\n- [ ] <ip>/rtl/<ip>.sv — RTL source (written by rtl_gen)\n- [ ] <ip>/list/<ip>.f — Filelist (written by rtl_gen); contains all RTL file paths for this IP\nRead <ip>.f and confirm every file listed in it actually exists on disk.\nIf any file is missing: report which file and stop.\nGate: <ip>.sv and <ip>.f both confirmed present, all files in filelist exist.",
       "priority": "high"
     },
     {
-      "content": "Fix all lint errors (0 errors target)",
-      "detail": "Fix each error type: undeclared signals → add declarations; multiple drivers → remove duplicates; implicit nets → add `default_nettype none. Re-run /lint-all after each group.",
+      "content": "[LINT] Run lint — get full error and warning list",
+      "detail": "Run:\n  verilator --lint-only -Wall -f <ip>/list/<ip>.f\nCreate <ip>/lint/ folder if it does not exist.\nRecord:\n- [ ] Total errors\n- [ ] Total warnings\n- [ ] Per-file breakdown\nDo not fix anything yet — get the complete picture first.\nGate: Lint output captured.",
       "priority": "high"
     },
     {
-      "content": "Fix lint warnings (latch, width mismatch, implicit)",
-      "detail": "Priority: latch inferred → add default in always_comb; width mismatch → add explicit slice; implicit net → declare logic. Document unfixable warnings.",
+      "content": "[LINT] Fix all lint errors (0 errors target)",
+      "detail": "Fix each error in <ip>/rtl/<ip>.sv:\n- [ ] Undeclared signal → add logic/wire declaration\n- [ ] Multiple drivers → remove duplicate drivers\n- [ ] Implicit net → add `default_nettype none at top; declare all signals\n- [ ] Port width mismatch → fix port connection width\n- [ ] Syntax error → fix in the relevant file\nRe-run verilator after each fix group. Repeat until 0 errors.\nGate: verilator reports 0 errors before fixing warnings.",
       "priority": "high"
     },
     {
-      "content": "Lint clean: 0 errors, 0 warnings",
-      "detail": "Run /lint-all. Confirm 0 errors, 0 warnings. If warnings remain, document reason in lint_report.txt.",
+      "content": "[LINT] Fix lint warnings (latch, width mismatch, unused)",
+      "detail": "Fix each warning in <ip>/rtl/<ip>.sv by priority:\n- [ ] Latch inferred → add default assignment in all always_comb branches\n- [ ] Width mismatch → add explicit bit-select or cast\n- [ ] Unused signal → remove or suppress with /* verilator lint_off UNUSED */\n- [ ] Undriven signal → add driver or tie off\n- [ ] Document any warning that cannot be fixed with a justification comment\nGate: 0 warnings, or each remaining warning has an explicit waiver comment.",
       "priority": "high"
     },
     {
-      "content": "Generate lint_report.txt",
-      "detail": "Run /report to write lint_report.txt. Verify file contains: date, files, tool, result, fixed list, remaining list.",
+      "content": "[LINT] Confirm lint clean: 0 errors, 0 warnings",
+      "detail": "Run final verilator check:\n  verilator --lint-only -Wall -f <ip>/list/<ip>.f\n- [ ] Confirm 0 errors\n- [ ] Confirm 0 warnings (or all remaining have waiver comments)\nGate: Clean lint run before writing report.",
+      "priority": "high"
+    },
+    {
+      "content": "[LINT] Write lint_report.txt",
+      "detail": "Write <ip>/lint/lint_report.txt with:\n- [ ] Date and verilator version\n- [ ] Input files: <ip>/rtl/<ip>.sv, <ip>/list/<ip>.f\n- [ ] Result: CLEAN / WARNINGS REMAIN\n- [ ] Total errors fixed: N\n- [ ] Total warnings fixed: N\n- [ ] Remaining waivers: list each with justification\nGate: File written to <ip>/lint/lint_report.txt.",
       "priority": "normal"
     }
   ]

@@ -1,16 +1,21 @@
 {
   "name": "sim-debug",
-  "description": "Simulation debug cycle: compile → run → fix loop → report",
+  "description": "Simulation debug cycle: read RTL+TB+filelist → compile → run loop → report",
   "tasks": [
     {
-      "content": "Compile testbench: 0 compile errors",
-      "detail": "Run /compile tb_<module>.sv. Fix all compile errors (undeclared signals, port mismatches, missing includes) before running simulation.",
+      "content": "[SIM] Read inputs: <ip>/rtl/<ip>.sv + <ip>/tb/tb_<ip>.sv + <ip>/list/<ip>.f",
+      "detail": "Before compiling, verify all input files exist:\n- [ ] <ip>/rtl/<ip>.sv — DUT (written by rtl_gen)\n- [ ] <ip>/tb/tb_<ip>.sv — Testbench top (written by tb_gen)\n- [ ] <ip>/tb/tc_<ip>.sv — Test cases (written by tb_gen)\n- [ ] <ip>/list/<ip>.f — Filelist (written by rtl_gen)\nRead each file. Note: DUT module name, TB module name, clock/reset port names, any `include paths.\nIf any file is missing: report which file is missing and stop — do not proceed.\nGate: All 4 input files confirmed present.",
       "priority": "high"
     },
     {
-      "content": "Simulation passed: 0 errors, 0 warnings",
+      "content": "[SIM] Compile: iverilog using filelist — 0 compile errors",
+      "detail": "Compile command:\n  iverilog -g2012 -f <ip>/list/<ip>.f <ip>/tb/tb_<ip>.sv -o <ip>/sim/<ip>.out\nCreate <ip>/sim/ folder if it does not exist.\nFor each compile error:\n- [ ] Undeclared signal → find driver in DUT or TB, add declaration\n- [ ] Port mismatch → compare DUT port list vs TB instantiation\n- [ ] Missing include → check filelist paths, add missing file to <ip>.f\n- [ ] Syntax error → fix in the file where the error occurs\nRe-run until 0 errors.\nGate: iverilog exits with 0 errors before simulation.",
+      "priority": "high"
+    },
+    {
+      "content": "[SIM] Simulation passed: 0 errors, 0 warnings",
       "activeForm": "Running simulation (attempt {loop_count}/{max_loop_iterations})...",
-      "detail": "Run /sim tb_<module>.sv. For each [FAIL]: check expected vs actual, grep RTL for signal driver, fix DUT or TB. DUT bugs → [SIM ESCALATE] rtl_gen.",
+      "detail": "Run: vvp <ip>/sim/<ip>.out\nFor each [FAIL] or $error:\n- [ ] Check expected vs actual value in TB\n- [ ] Grep RTL (<ip>/rtl/<ip>.sv) for the signal driver\n- [ ] Fix DUT bug → edit <ip>/rtl/<ip>.sv, re-compile, re-run\n- [ ] Fix TB bug → edit <ip>/tb/tb_<ip>.sv or tc_<ip>.sv, re-compile, re-run\n- [ ] DUT bugs that require MAS change → output [SIM ESCALATE] → mas_gen\nLoop until: all test sequences pass, 0 $error, 0 $warning.",
       "loop": true,
       "max_loop_iterations": 20,
       "exit_condition": "0 errors, 0 warnings",
@@ -18,8 +23,8 @@
       "priority": "high"
     },
     {
-      "content": "Generate sim_report.txt",
-      "detail": "Run /report. Verify: status=PASS, errors=0, warnings=0, all tests listed.",
+      "content": "[SIM] Write sim_report.txt",
+      "detail": "Write <ip>/sim/sim_report.txt with:\n- [ ] Date and tool version\n- [ ] Input files: <ip>/rtl/<ip>.sv, <ip>/tb/tb_<ip>.sv, <ip>/list/<ip>.f\n- [ ] Result: PASS / FAIL\n- [ ] Total errors: 0, Total warnings: 0\n- [ ] Test sequence results: S1..SN — PASS/FAIL each\n- [ ] Coverage summary (if available)\nGate: File written to <ip>/sim/sim_report.txt.",
       "priority": "normal"
     }
   ]

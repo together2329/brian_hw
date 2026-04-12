@@ -1362,9 +1362,9 @@ def chat_loop():
                     """Yield slash command completions when input starts with '/'."""
                     try:
                         try:
-                            from slash_commands import get_registry
-                        except ImportError:
                             from core.slash_commands import get_registry
+                        except ImportError:
+                            from slash_commands import get_registry
                         reg = get_registry()
                         all_cmds = reg.get_completions()  # e.g. ['/help', '/plan', ...]
                     except Exception:

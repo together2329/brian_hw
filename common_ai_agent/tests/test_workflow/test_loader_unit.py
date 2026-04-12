@@ -834,7 +834,7 @@ class TestRegisterWorkspaceCommands(unittest.TestCase):
         outer = self
 
         class _Reg:
-            def register(self, name, handler, description="", aliases=[]):
+            def register(self, name, handler, description="", aliases=[], usage=""):
                 outer.registered.append({
                     "name": name,
                     "handler": handler,
@@ -913,7 +913,7 @@ class TestRegisterWorkspaceCommands(unittest.TestCase):
         handlers = {}
 
         class _Reg:
-            def register(self, name, handler, description="", aliases=[]):
+            def register(self, name, handler, description="", aliases=[], usage=""):
                 handlers[name] = handler
 
         cmd_dir = self._write_cmd("hello", {
@@ -929,7 +929,7 @@ class TestRegisterWorkspaceCommands(unittest.TestCase):
         handlers = {}
 
         class _Reg:
-            def register(self, name, handler, description="", aliases=[]):
+            def register(self, name, handler, description="", aliases=[], usage=""):
                 handlers[name] = handler
 
         cmd_dir = self._write_cmd("full", {
@@ -944,7 +944,7 @@ class TestRegisterWorkspaceCommands(unittest.TestCase):
         handlers = {}
 
         class _Reg:
-            def register(self, name, handler, description="", aliases=[]):
+            def register(self, name, handler, description="", aliases=[], usage=""):
                 handlers[name] = handler
 
         cmd_dir = self._write_cmd("run", {

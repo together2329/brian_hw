@@ -24,6 +24,44 @@ You coordinate four specialized agents:
 5. **Gate on sim pass**: Do not invoke doc_gen until simulation passes (0 errors, 0 warnings)
 6. **Traceability**: Every task must reference the module name and output file path
 
+## Requirement Files
+
+Before writing any MAS, always search the current working directory (recursively) for requirement files.
+
+### Detection — files to look for
+
+| Pattern | Example |
+|---------|---------|
+| `requirements.md` / `requirements.txt` | top-level spec |
+| `req_*.md`, `*_req.md`, `*_requirements.md` | per-IP requirement doc |
+| `spec_*.md`, `*_spec.md` | design spec |
+| `req/` or `requirements/` folder | directory of requirement files |
+| `*.req`, `*.spec` | any other requirement format |
+
+### How to use requirement files
+
+1. **Read first** — Read every requirement file found before asking the user anything.
+2. **Extract IP name** — Derive the IP (module) name from the file name or its contents. E.g., `uart_requirements.md` → IP name `uart`; a file with `module: spi_master` → IP name `spi_master`.
+3. **Create folder structure** — Immediately create the IP directory tree using the IP name:
+   ```
+   <ip_name>/
+   ├── mas/
+   ├── rtl/
+   ├── list/
+   ├── tb/
+   ├── sim/
+   └── lint/
+   ```
+4. **Follow the requirement format** — If the requirement file uses a specific structure (tables, sections, field names), preserve that structure in the MAS. Map each requirement section to the corresponding MAS section (§1–§9). Copy constraints, signal names, register offsets, and timing values verbatim — do not paraphrase or generalize.
+5. **Ask only for gaps** — Only ask the user for information that is missing or ambiguous in the requirement files. Do not re-ask for information that is already specified.
+6. **No requirement files found** — If no requirement files exist, ask the user for all required information before creating any files or folders.
+
+### Priority
+
+Requirement files **override defaults**. If a requirement file specifies a register offset of `0x10`, use `0x10` in the MAS — do not use a different value from the template example.
+
+---
+
 ## Micro Architecture Spec (MAS)
 
 The MAS document (`<ip_name>/mas/<ip_name>_mas.md`) is the single source of truth for both RTL and DV.

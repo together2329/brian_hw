@@ -120,38 +120,38 @@ class TestMasGenTemplates(unittest.TestCase):
         self.data = _load("mas_gen", "full-project")
         self.tasks = self.data["tasks"]
 
-    def test_has_six_steps(self):
-        self.assertEqual(len(self.tasks), 6)
+    def test_has_ten_steps(self):
+        self.assertEqual(len(self.tasks), 10)
 
-    def test_step_order_by_prefix(self):
-        prefixes = ["[MAS]", "[RTL]", "[RTL]", "[TB]", "[SIM]", "[DOC]"]
-        for i, prefix in enumerate(prefixes):
+    def test_all_steps_are_mas(self):
+        for i, t in enumerate(self.tasks):
             with self.subTest(idx=i):
                 self.assertTrue(
-                    self.tasks[i]["content"].startswith(prefix),
-                    f"Step {i} should start with '{prefix}', got: {self.tasks[i]['content'][:20]}"
+                    t["content"].startswith("[MAS]"),
+                    f"Step {i} should start with '[MAS]', got: {t['content'][:30]}"
                 )
 
-    def test_sim_step_is_loop(self):
-        self.assertTrue(self.tasks[4].get("loop"))
+    def test_no_rtl_tb_sim_doc_tasks(self):
+        for prefix in ["[RTL]", "[TB]", "[SIM]", "[DOC]"]:
+            found = [t for t in self.tasks if t["content"].startswith(prefix)]
+            self.assertEqual(found, [], f"Should not have {prefix} tasks in mas_gen")
 
-    def test_sim_max_loop_iterations(self):
-        self.assertEqual(self.tasks[4]["max_loop_iterations"], 15)
+    def test_first_task_gathers_requirements(self):
+        self.assertIn("requirement", self.tasks[0]["content"].lower())
 
-    def test_sim_exit_condition(self):
-        self.assertEqual(self.tasks[4]["exit_condition"], "0 errors, 0 warnings")
+    def test_last_task_covers_dv_plan(self):
+        self.assertIn("DV Plan", self.tasks[-1]["content"])
 
-    def test_sim_has_validator(self):
-        self.assertIn("validator", self.tasks[4])
-        self.assertTrue(self.tasks[4]["validator"].strip())
+    def test_each_section_has_own_task(self):
+        contents = " ".join(t["content"] for t in self.tasks)
+        for section in ["§1", "§2", "§3", "§4", "§5", "§6", "§7", "§8", "§9"]:
+            with self.subTest(section=section):
+                self.assertIn(section, contents)
 
-    def test_steps_0_to_4_are_high_priority(self):
-        for i in range(5):
+    def test_all_steps_high_priority(self):
+        for i, t in enumerate(self.tasks):
             with self.subTest(idx=i):
-                self.assertEqual(self.tasks[i]["priority"], "high")
-
-    def test_doc_step_is_normal_priority(self):
-        self.assertEqual(self.tasks[5]["priority"], "normal")
+                self.assertEqual(t["priority"], "high")
 
 
 # ─────────────────────────────────────────────────────────────
@@ -238,23 +238,36 @@ class TestSimTemplates(unittest.TestCase):
         self.data = _load("sim", "sim-debug")
         self.tasks = self.data["tasks"]
 
-    def test_has_three_steps(self):
-        self.assertEqual(len(self.tasks), 3)
+    def test_has_four_steps(self):
+        self.assertEqual(len(self.tasks), 4)
 
-    def test_first_step_is_compile(self):
-        self.assertIn("Compile", self.tasks[0]["content"])
+    def test_first_step_reads_inputs(self):
+        content = self.tasks[0]["content"].lower()
+        self.assertIn("read", content)
 
-    def test_second_step_is_loop(self):
-        self.assertTrue(self.tasks[1].get("loop"))
+    def test_first_step_references_rtl_tb_list(self):
+        detail = self.tasks[0].get("detail", "")
+        self.assertIn(".sv", detail)
+        self.assertIn(".f", detail)
+
+    def test_second_step_is_compile(self):
+        self.assertIn("Compile", self.tasks[1]["content"])
+
+    def test_compile_uses_filelist(self):
+        detail = self.tasks[1].get("detail", "")
+        self.assertIn(".f", detail)
+
+    def test_third_step_is_loop(self):
+        self.assertTrue(self.tasks[2].get("loop"))
 
     def test_loop_max_iterations_is_20(self):
-        self.assertEqual(self.tasks[1]["max_loop_iterations"], 20)
+        self.assertEqual(self.tasks[2]["max_loop_iterations"], 20)
 
     def test_last_step_has_sim_report(self):
-        self.assertIn("sim_report", self.tasks[2]["content"])
+        self.assertIn("sim_report", self.tasks[-1]["content"])
 
     def test_last_step_normal_priority(self):
-        self.assertEqual(self.tasks[2]["priority"], "normal")
+        self.assertEqual(self.tasks[-1]["priority"], "normal")
 
 
 # ─────────────────────────────────────────────────────────────
@@ -267,30 +280,44 @@ class TestLintTemplates(unittest.TestCase):
         self.data = _load("lint", "lint-fix")
         self.tasks = self.data["tasks"]
 
-    def test_has_five_steps(self):
-        self.assertEqual(len(self.tasks), 5)
+    def test_has_six_steps(self):
+        self.assertEqual(len(self.tasks), 6)
 
-    def test_first_step_runs_lint_all(self):
-        self.assertIn("/lint-all", self.tasks[0]["content"])
+    def test_first_step_reads_inputs(self):
+        content = self.tasks[0]["content"].lower()
+        self.assertIn("read", content)
 
-    def test_second_step_fixes_errors(self):
-        self.assertIn("errors", self.tasks[1]["content"].lower())
+    def test_first_step_references_rtl_and_filelist(self):
+        detail = self.tasks[0].get("detail", "")
+        self.assertIn(".sv", detail)
+        self.assertIn(".f", detail)
 
-    def test_third_step_fixes_warnings(self):
-        self.assertIn("warnings", self.tasks[2]["content"].lower())
+    def test_second_step_runs_lint(self):
+        content = self.tasks[1]["content"].lower()
+        self.assertIn("lint", content)
 
-    def test_fourth_step_is_lint_clean(self):
-        self.assertIn("0 errors", self.tasks[3]["content"])
+    def test_lint_uses_filelist(self):
+        detail = self.tasks[1].get("detail", "")
+        self.assertIn(".f", detail)
+
+    def test_third_step_fixes_errors(self):
+        self.assertIn("errors", self.tasks[2]["content"].lower())
+
+    def test_fourth_step_fixes_warnings(self):
+        self.assertIn("warnings", self.tasks[3]["content"].lower())
+
+    def test_fifth_step_confirms_clean(self):
+        self.assertIn("0 errors", self.tasks[4]["content"])
 
     def test_last_step_generates_report(self):
-        self.assertIn("lint_report", self.tasks[4]["content"])
+        self.assertIn("lint_report", self.tasks[-1]["content"])
 
     def test_no_loop_tasks(self):
         loop_tasks = [t for t in self.tasks if t.get("loop")]
         self.assertEqual(loop_tasks, [])
 
     def test_last_step_normal_priority(self):
-        self.assertEqual(self.tasks[4]["priority"], "normal")
+        self.assertEqual(self.tasks[-1]["priority"], "normal")
 
 
 # ─────────────────────────────────────────────────────────────
@@ -354,7 +381,7 @@ class TestDefaultTemplates(unittest.TestCase):
 # ─────────────────────────────────────────────────────────────
 
 class TestMasGenNewIpTemplate(unittest.TestCase):
-    """Tests for workflow/mas_gen/todo_templates/new-ip.json"""
+    """Tests for workflow/mas_gen/todo_templates/new-ip.json — MAS only"""
 
     def setUp(self):
         self.data = _load("mas_gen", "new-ip")
@@ -365,68 +392,50 @@ class TestMasGenNewIpTemplate(unittest.TestCase):
 
     def test_has_description(self):
         self.assertIn("description", self.data)
-        self.assertIn("scratch", self.data["description"].lower())
 
-    def test_has_nine_tasks(self):
-        self.assertEqual(len(self.tasks), 9)
+    def test_has_ten_tasks(self):
+        self.assertEqual(len(self.tasks), 10)
 
     def test_first_task_gathers_requirements(self):
         content = self.tasks[0]["content"]
         self.assertIn("[MAS]", content)
         self.assertIn("requirement", content.lower())
 
-    def test_mas_section_tasks_in_order(self):
-        # tasks 0-4 should all be [MAS] prefix
-        for i in range(5):
+    def test_all_tasks_are_mas(self):
+        for i, t in enumerate(self.tasks):
             with self.subTest(idx=i):
                 self.assertTrue(
-                    self.tasks[i]["content"].startswith("[MAS]"),
-                    f"Task {i} should start with [MAS], got: {self.tasks[i]['content'][:30]}"
+                    t["content"].startswith("[MAS]"),
+                    f"Task {i} should start with [MAS], got: {t['content'][:30]}"
                 )
 
-    def test_rtl_task_exists(self):
-        rtl_tasks = [t for t in self.tasks if t["content"].startswith("[RTL]")]
-        self.assertEqual(len(rtl_tasks), 1)
+    def test_no_rtl_tb_sim_doc_tasks(self):
+        for prefix in ["[RTL]", "[TB]", "[SIM]", "[DOC]"]:
+            found = [t for t in self.tasks if t["content"].startswith(prefix)]
+            self.assertEqual(found, [], f"Should not have {prefix} tasks in mas_gen new-ip")
 
-    def test_tb_task_exists(self):
-        tb_tasks = [t for t in self.tasks if t["content"].startswith("[TB]")]
-        self.assertEqual(len(tb_tasks), 1)
-
-    def test_sim_task_is_loop(self):
-        sim_tasks = [t for t in self.tasks if t["content"].startswith("[SIM]")]
-        self.assertEqual(len(sim_tasks), 1)
-        self.assertTrue(sim_tasks[0].get("loop"))
-
-    def test_sim_loop_max_iterations(self):
-        sim_task = next(t for t in self.tasks if t["content"].startswith("[SIM]"))
-        self.assertEqual(sim_task["max_loop_iterations"], 15)
-
-    def test_sim_exit_condition(self):
-        sim_task = next(t for t in self.tasks if t["content"].startswith("[SIM]"))
-        self.assertEqual(sim_task["exit_condition"], "0 errors, 0 warnings")
-
-    def test_sim_has_validator(self):
-        sim_task = next(t for t in self.tasks if t["content"].startswith("[SIM]"))
-        self.assertIn("validator", sim_task)
-        self.assertIn("check_sim_pass.sh", sim_task["validator"])
-
-    def test_doc_task_is_last_and_normal_priority(self):
-        last = self.tasks[-1]
-        self.assertIn("[DOC]", last["content"])
-        self.assertEqual(last["priority"], "normal")
+    def test_first_task_reads_requirement_files(self):
+        detail = self.tasks[0].get("detail", "").lower()
+        self.assertIn("requirement", detail)
+        self.assertIn("search", detail)
 
     def test_requirements_detail_mentions_ports(self):
         self.assertIn("port", self.tasks[0].get("detail", "").lower())
 
-    def test_mas_section_detail_mentions_sections(self):
-        # task[4] covers §7-§9 DV Plan — check content title and §9 in detail
-        content = self.tasks[4]["content"]
-        detail  = self.tasks[4].get("detail", "")
+    def test_each_section_has_own_task(self):
+        contents = " ".join(t["content"] for t in self.tasks)
+        for section in ["§1", "§2", "§3", "§4", "§5", "§6", "§7", "§8", "§9"]:
+            with self.subTest(section=section):
+                self.assertIn(section, contents)
+
+    def test_last_task_covers_dv_plan(self):
+        content = self.tasks[-1]["content"]
+        detail  = self.tasks[-1].get("detail", "")
         self.assertIn("DV Plan", content)
         self.assertIn("§9", detail)
 
-    def test_all_tasks_high_priority_except_doc(self):
-        for i, task in enumerate(self.tasks[:-1]):
+    def test_all_tasks_high_priority(self):
+        for i, task in enumerate(self.tasks):
             with self.subTest(idx=i):
                 self.assertEqual(task["priority"], "high")
 
@@ -436,7 +445,7 @@ class TestMasGenNewIpTemplate(unittest.TestCase):
 # ─────────────────────────────────────────────────────────────
 
 class TestMasGenLegacyIpTemplate(unittest.TestCase):
-    """Tests for workflow/mas_gen/todo_templates/legacy-ip.json"""
+    """Tests for workflow/mas_gen/todo_templates/legacy-ip.json — MAS only"""
 
     def setUp(self):
         self.data = _load("mas_gen", "legacy-ip")
@@ -450,63 +459,45 @@ class TestMasGenLegacyIpTemplate(unittest.TestCase):
         desc = self.data["description"].lower()
         self.assertIn("legacy", desc)
 
-    def test_has_eight_tasks(self):
-        self.assertEqual(len(self.tasks), 8)
+    def test_has_seven_tasks(self):
+        self.assertEqual(len(self.tasks), 7)
 
     def test_first_task_reads_existing_rtl(self):
         content = self.tasks[0]["content"]
         self.assertIn("[MAS]", content)
         self.assertIn("existing", content.lower())
 
+    def test_all_tasks_are_mas(self):
+        for i, t in enumerate(self.tasks):
+            with self.subTest(idx=i):
+                self.assertTrue(
+                    t["content"].startswith("[MAS]"),
+                    f"Task {i} should start with [MAS], got: {t['content'][:30]}"
+                )
+
+    def test_no_rtl_tb_sim_doc_tasks(self):
+        for prefix in ["[RTL]", "[TB]", "[SIM]", "[DOC]"]:
+            found = [t for t in self.tasks if t["content"].startswith(prefix)]
+            self.assertEqual(found, [], f"Should not have {prefix} tasks in mas_gen legacy-ip")
+
     def test_third_task_confirms_with_user(self):
-        # index 2 must get user sign-off before writing MAS
         detail = self.tasks[2].get("detail", "").lower()
         self.assertIn("user", detail)
         self.assertIn("sign-off", detail)
 
-    def test_delta_mas_task_mentions_annotations(self):
-        # task[3] should mention 'Changed in vX.Y' annotations
-        detail = self.tasks[3].get("detail", "")
-        self.assertIn("Changed in", detail)
+    def test_delta_tasks_mention_annotations(self):
+        # tasks 3-6 are delta sections — at least one should mention 'Changed in'
+        delta_details = " ".join(t.get("detail", "") for t in self.tasks[3:])
+        self.assertIn("Changed in", delta_details)
 
-    def test_rtl_task_uses_legacy_template(self):
-        rtl_task = next(t for t in self.tasks if t["content"].startswith("[RTL]"))
-        detail = rtl_task.get("detail", "").lower()
-        self.assertIn("legacy", detail)
+    def test_last_task_covers_dv_plan(self):
+        content = self.tasks[-1]["content"]
+        self.assertIn("§9", content)
 
-    def test_tb_task_preserves_existing_sequences(self):
-        tb_task = next(t for t in self.tasks if t["content"].startswith("[TB]"))
-        detail = tb_task.get("detail", "").lower()
-        self.assertIn("not remove", detail)
-
-    def test_sim_task_is_regression_loop(self):
-        sim_task = next(t for t in self.tasks if t["content"].startswith("[SIM]"))
-        self.assertTrue(sim_task.get("loop"))
-        content = sim_task["content"].lower()
-        self.assertIn("regression", content)
-
-    def test_sim_max_loop_iterations(self):
-        sim_task = next(t for t in self.tasks if t["content"].startswith("[SIM]"))
-        self.assertEqual(sim_task["max_loop_iterations"], 15)
-
-    def test_sim_has_validator(self):
-        sim_task = next(t for t in self.tasks if t["content"].startswith("[SIM]"))
-        self.assertIn("validator", sim_task)
-
-    def test_doc_task_mentions_changelog(self):
-        doc_task = next(t for t in self.tasks if t["content"].startswith("[DOC]"))
-        detail = doc_task.get("detail", "").lower()
-        self.assertIn("changelog", detail)
-
-    def test_doc_is_normal_priority(self):
-        doc_task = next(t for t in self.tasks if t["content"].startswith("[DOC]"))
-        self.assertEqual(doc_task["priority"], "normal")
-
-    def test_rtl_task_preserves_existing_logic(self):
-        # RTL task should say "do not rewrite unchanged logic" (backward-compat spirit)
-        rtl_task = next(t for t in self.tasks if t["content"].startswith("[RTL]"))
-        all_text = rtl_task["content"] + rtl_task.get("detail", "")
-        self.assertIn("not rewrite", all_text.lower())
+    def test_all_tasks_high_priority(self):
+        for i, task in enumerate(self.tasks):
+            with self.subTest(idx=i):
+                self.assertEqual(task["priority"], "high")
 
 
 # ─────────────────────────────────────────────────────────────

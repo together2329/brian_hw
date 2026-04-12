@@ -1,0 +1,26 @@
+{
+  "name": "refine-req",
+  "description": "Refine existing requirements: Read current req → Identify gaps → Iterate with user → Update file",
+  "tasks": [
+    {
+      "content": "[REQ] Read existing requirements file and identify gaps",
+      "detail": "Search for <ip_name>/req/<ip_name>_requirements.md. Read it fully.\n- [ ] List all sections present\n- [ ] Mark each section as: Complete / Incomplete / Missing / TBD\n- [ ] List all 'TBD' or placeholder values that need resolution\n- [ ] Show the gap summary to the user before asking any questions\nGate: Gap analysis shown to user.",
+      "priority": "high"
+    },
+    {
+      "content": "[REQ] Iterate with user to fill each gap",
+      "detail": "Work through each gap one at a time. For each:\n- [ ] Present the current value (or 'missing')\n- [ ] Ask the specific question needed to fill it\n- [ ] Confirm the user's answer before moving to the next gap\n- [ ] If user says 'keep TBD', mark it as intentional open item\nRepeat until all resolvable gaps are filled.\nGate: No unintentional TBD values remain.",
+      "priority": "high"
+    },
+    {
+      "content": "[REQ] Resolve open items and confirm changes",
+      "detail": "- [ ] Show a diff-style summary: what changed vs the current file\n- [ ] List any remaining intentional open items\n- [ ] Ask user: 'Confirm these changes?'\n- [ ] Incorporate any final corrections\nGate: User has approved all changes.",
+      "priority": "high"
+    },
+    {
+      "content": "[REQ] Update requirements file — refinement complete",
+      "detail": "- [ ] Update only the changed sections in <ip_name>/req/<ip_name>_requirements.md\n- [ ] Preserve all confirmed sections verbatim\n- [ ] Update Open Items section\n- [ ] Output [REQ HANDOFF] → mas_gen if requirements are now complete\nGate: File updated. No regression in confirmed sections.",
+      "priority": "high"
+    }
+  ]
+}
