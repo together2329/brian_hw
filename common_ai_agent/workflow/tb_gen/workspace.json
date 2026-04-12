@@ -3,7 +3,7 @@
   "description": "Testbench generation agent — spawned by mas_gen for TB, TC, and simulation",
   "env": {
     "MAX_ITERATIONS": "200",
-    "ENABLE_MARKDOWN_RENDER": "false"
+    "ENABLE_MARKDOWN_RENDER": "true"
   },
   "skills": {
     "force_activate": ["verilog-expert"],

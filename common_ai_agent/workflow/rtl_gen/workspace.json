@@ -3,7 +3,7 @@
   "description": "RTL generation agent — spawned by mas_gen for module implementation",
   "env": {
     "MAX_ITERATIONS": "150",
-    "ENABLE_MARKDOWN_RENDER": "false"
+    "ENABLE_MARKDOWN_RENDER": "true"
   },
   "skills": {
     "force_activate": ["verilog-expert"],

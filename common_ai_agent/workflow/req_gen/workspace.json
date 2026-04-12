@@ -3,7 +3,7 @@
   "description": "Requirement Agent — iterative requirement gathering with user to produce structured requirements.md",
   "env": {
     "MAX_ITERATIONS": "200",
-    "ENABLE_MARKDOWN_RENDER": "false"
+    "ENABLE_MARKDOWN_RENDER": "true"
   },
   "skills": {
     "force_activate": ["verilog-expert"],

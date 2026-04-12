@@ -3,7 +3,7 @@
   "description": "Master Agent System — orchestrates RTL, TB, Sim, and Doc generation",
   "env": {
     "MAX_ITERATIONS": "300",
-    "ENABLE_MARKDOWN_RENDER": "false"
+    "ENABLE_MARKDOWN_RENDER": "true"
   },
   "skills": {
     "force_activate": ["verilog-expert"],

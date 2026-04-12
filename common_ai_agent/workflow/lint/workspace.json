@@ -3,7 +3,7 @@
   "description": "RTL lint verification workspace — runs lint, fixes errors/warnings, generates report",
   "env": {
     "MAX_ITERATIONS": "100",
-    "ENABLE_MARKDOWN_RENDER": "false"
+    "ENABLE_MARKDOWN_RENDER": "true"
   },
   "skills": {
     "force_activate": ["verilog-expert"],

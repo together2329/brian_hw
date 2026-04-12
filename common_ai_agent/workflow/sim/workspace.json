@@ -3,7 +3,7 @@
   "description": "Simulation workspace — compile, run, debug, coverage, generate sim_report.txt",
   "env": {
     "MAX_ITERATIONS": "150",
-    "ENABLE_MARKDOWN_RENDER": "false"
+    "ENABLE_MARKDOWN_RENDER": "true"
   },
   "skills": {
     "force_activate": ["verilog-expert"],
