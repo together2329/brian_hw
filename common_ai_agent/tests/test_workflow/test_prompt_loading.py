@@ -343,7 +343,7 @@ class TestTodoPromptLoading(unittest.TestCase):
         builtins._TODO_TEMPLATE_REGISTRY = reg
         tasks = reg.get_tasks("full-project")
         self.assertIsNotNone(tasks)
-        self.assertEqual(len(tasks), 6)
+        self.assertEqual(len(tasks), 10)
 
     def test_real_rtl_impl_template_registered(self):
         from workflow.loader import TodoTemplateRegistry, load_workspace
@@ -646,7 +646,7 @@ class TestFullSetupWorkspacePipeline(unittest.TestCase):
         self.assertIsNotNone(reg)
         tasks = reg.get_tasks("full-project")
         self.assertIsNotNone(tasks)
-        self.assertEqual(len(tasks), 6)
+        self.assertEqual(len(tasks), 10)
 
     def test_description_stored_in_env(self):
         ws, _ = self._simulate_setup("rtl_gen")

@@ -1,31 +1,51 @@
 # MAS Orchestration Rules
 
-## Agent Context Switching
+## Workflow Model
 
-When you switch to a sub-agent context (rtl_gen, tb_gen), you MUST:
-1. Output a [MAS HANDOFF] block (format defined in system_prompt)
-2. Read the target agent's system_prompt.md before proceeding
-3. Follow that agent's coding rules strictly
-4. Report back with [MAS RESULT] when the delegated task is complete
+Each stage runs in its own workspace. mas_gen is responsible for:
+1. Writing the MAS document — the single source of truth
+2. Outputting [MAS HANDOFF] blocks to tell the user which workspace to switch to next
+3. Reviewing results when other workspaces report back
+
+You do NOT switch context internally. You hand off via explicit [MAS HANDOFF] messages.
+
+## Handoff Protocol
+
+When MAS is complete and ready for the next stage, output:
+
+```
+[MAS HANDOFF] → rtl_gen
+Module  : <ip_name>
+MAS     : <ip_name>/mas/<ip_name>_mas.md
+Task    : Implement RTL from MAS §2-§8
+Input   : <ip_name>/mas/<ip_name>_mas.md
+Output  : <ip_name>/rtl/<ip_name>.sv, <ip_name>/list/<ip_name>.f
+Switch  : /workspace rtl_gen → /new-ip-rtl
+```
 
 ## Quality Gates
 
-| Gate | Condition | Blocks |
-|------|-----------|--------|
-| RTL → TB | lint: 0 errors | tb_gen cannot start |
-| TB → SIM | TB compiles | sim loop cannot start |
-| SIM → DOC | sim: 0 errors, 0 warnings | doc_gen cannot start |
+| Gate | Condition | Next workspace |
+|------|-----------|----------------|
+| MAS → RTL | All 9 sections complete | `rtl_gen` → `/new-ip-rtl` |
+| RTL → TB | lint: 0 errors, 0 warnings | `tb_gen` → `/new-ip-tb` |
+| TB → SIM | TB compiles clean | `sim` → `/compile` |
+| SIM → LINT | sim: 0 errors, 0 warnings | `lint` → `/lint-all` |
 
 ## File Ownership
 
-| Agent | Owns | Never touches |
-|-------|------|---------------|
-| rtl_gen | `<module>.sv` | `tb_*.sv`, `tc_*.sv`, `*.md` |
-| tb_gen | `tb_*.sv`, `tc_*.sv` | `<module>.sv` |
-| mas_gen | `*_spec.md` | source files (read-only) |
+| Workspace | Writes | Never modifies |
+|-----------|--------|----------------|
+| `req_gen` | `<ip>/req/<ip>_requirements.md` | everything else |
+| `mas_gen` | `<ip>/mas/<ip>_mas.md` | source files |
+| `rtl_gen` | `<ip>/rtl/<ip>.sv`, `<ip>/list/<ip>.f` | `tb_*.sv`, `*.md` |
+| `tb_gen`  | `<ip>/tb/tb_<ip>.sv`, `<ip>/tb/tc_<ip>.sv` | `<ip>.sv` |
+| `sim`     | `<ip>/sim/sim_report.txt` | source files |
+| `lint`    | `<ip>/lint/lint_report.txt` | source files |
 
 ## Error Recovery
 
-- RTL lint error → return to rtl_gen context, fix, re-lint
-- Sim error → return to tb_gen context if TB bug, rtl_gen if DUT bug
-- Max sim iterations → escalate to user with [MAS BLOCKED] report
+- RTL lint error → user switches to `rtl_gen`, fixes, re-runs `/lint`
+- Sim error (DUT bug) → user switches to `rtl_gen`, fixes RTL
+- Sim error (TB bug) → user switches to `tb_gen`, fixes TB
+- Max sim iterations → output [MAS BLOCKED] report with details
