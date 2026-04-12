@@ -93,7 +93,6 @@ except Exception:
 
 from core.compressor import (
     compress_history as _compress_history_impl,
-    STRUCTURED_SUMMARY_PROMPT,
 )
 from core.react_loop import (
     run_react_agent_impl as _run_react_agent_impl,
@@ -539,7 +538,6 @@ current_recovery_point = None  # Latest recovery point
 # LLM Client functions moved to llm_client.py
 
 # --- Compression Prompts ---
-# STRUCTURED_SUMMARY_PROMPT imported from core.compressor above
 
 # --- 3. History Management ---
 
