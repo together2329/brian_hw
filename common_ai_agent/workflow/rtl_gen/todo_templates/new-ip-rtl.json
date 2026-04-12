@@ -4,7 +4,7 @@
   "tasks": [
     {
       "content": "Read MAS and extract all RTL requirements",
-      "detail": "Read <module>_mas.md completely. Extract and note: §2 port list (name/width/direction/clock-domain), §2 parameters, §3 FSM states+transitions+outputs, §3 datapath operations per feature, §4 register map (offset/name/width/access/reset), §5 interrupt sources+enable+status+clear, §6 memory instances, §7 timing/CDC, §8 coding style. Confirm MAS is complete (all 9 sections). Do NOT write code yet.",
+      "detail": "Read <ip_name>/mas/<ip_name>_mas.md completely. Extract and note: §2 port list (name/width/direction/clock-domain), §2 parameters, §3 FSM states+transitions+outputs, §3 datapath operations per feature, §4 register map (offset/name/width/access/reset), §5 interrupt sources+enable+status+clear, §6 memory instances, §7 timing/CDC, §8 coding style. Confirm MAS is complete (all 9 sections). Do NOT write code yet.",
       "priority": "high"
     },
     {
@@ -38,8 +38,8 @@
       "priority": "high"
     },
     {
-      "content": "Lint check: 0 errors, 0 warnings",
-      "detail": "Run /lint <module>.sv. Fix all errors. Width mismatch warnings: fix or add //lint_waive with comment. Undriven output warnings: add explicit '0 assignment. Report to mas_gen: [MAS RESULT] rtl_gen DONE.",
+      "content": "Write filelist and lint check: 0 errors, 0 warnings",
+      "detail": "Write <ip_name>/list/<ip_name>.f — one line per RTL file path (e.g. <ip_name>/rtl/<ip_name>.sv). Run /lint <ip_name>/rtl/<ip_name>.sv. Fix all errors. Width mismatch warnings: fix or add //lint_waive with comment. Undriven output warnings: add explicit '0 assignment. Write <ip_name>/lint/lint_report.txt. Report to mas_gen: [MAS RESULT] rtl_gen DONE.",
       "priority": "high"
     }
   ]

@@ -4,7 +4,7 @@
   "tasks": [
     {
       "content": "Read existing TB, updated MAS delta, and updated DUT RTL",
-      "detail": "Read tb_<module>.sv and tc_<module>.sv (existing TB). Read <module>_mas.md (updated MAS) — identify all 'Changed in vX.Y' annotations in §9 DV Plan: new sequences added, modified sequences, new SVA assertions. Read <module>.sv (updated DUT) — confirm new port additions. Build a delta list: (A) new test sequences to add, (B) existing sequences that need update due to RTL changes, (C) new/updated SVA assertions. Do NOT modify any existing tc_ task yet.",
+      "detail": "Read <ip_name>/tb/tb_<ip_name>.sv and <ip_name>/tb/tc_<ip_name>.sv (existing TB). Read <ip_name>/mas/<ip_name>_mas.md (updated MAS) — identify all 'Changed in vX.Y' annotations in §9 DV Plan: new sequences added, modified sequences, new SVA assertions. Read <ip_name>/rtl/<ip_name>.sv (updated DUT) — confirm new port additions. Build a delta list: (A) new test sequences to add, (B) existing sequences that need update due to RTL changes, (C) new/updated SVA assertions. Do NOT modify any existing tc_ task yet.",
       "priority": "high"
     },
     {
@@ -35,7 +35,7 @@
     {
       "content": "[SIM] Full regression passed: 0 errors, 0 warnings (old + new sequences)",
       "activeForm": "Running regression attempt {loop_count}/{max_loop_iterations}...",
-      "detail": "Run /sim tb_<module>.sv. All original [PASS] sequences must still pass. New sequences must also pass. Any regression in original sequences = DUT bug or TB stimulus error — diagnose carefully. DUT bug → [MAS ESCALATE] rtl_gen. Loop until 0 errors, 0 warnings.",
+      "detail": "Compile: iverilog -g2012 -f <ip>/list/<ip>.f <ip>/tb/tb_<ip>.sv -o <ip>/sim/<ip>.out && vvp <ip>/sim/<ip>.out. All original [PASS] sequences must still pass. New sequences must also pass. Any regression in original sequences = DUT bug or TB stimulus error — diagnose carefully. DUT bug → [MAS ESCALATE] rtl_gen. Write <ip>/sim/sim_report.txt. Loop until 0 errors, 0 warnings.",
       "loop": true,
       "max_loop_iterations": 15,
       "exit_condition": "0 errors, 0 warnings",

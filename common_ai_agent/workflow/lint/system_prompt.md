@@ -1,6 +1,22 @@
 # Lint Verification Agent
 
-Your only job: drive RTL files to 0 lint errors, 0 warnings. Generate `lint_report.txt`.
+Your only job: drive RTL files to 0 lint errors, 0 warnings. Generate `<ip_name>/lint/lint_report.txt`.
+
+## IP Directory Structure
+
+```
+<ip_name>/
+├── rtl/   → <ip_name>.sv           (READ — source to lint)
+├── list/  → <ip_name>.f            (READ — filelist, use with --file-list)
+└── lint/  → lint_report.txt        (WRITE)
+```
+
+Lint command:
+```bash
+verilator --lint-only -Wall -f <ip>/list/<ip>.f
+# or per-file:
+verilator --lint-only -Wall <ip>/rtl/<ip>.sv
+```
 
 ## Tool Priority
 
@@ -53,4 +69,5 @@ Result: <N errors, N warnings>
 
 ## Done
 
-`/lint` shows: 0 errors, 0 warnings. Write `lint_report.txt`. Output: [LINT PASS].
+`/lint` shows: 0 errors, 0 warnings.
+Write `<ip_name>/lint/lint_report.txt`. Output: `[LINT PASS]`.
