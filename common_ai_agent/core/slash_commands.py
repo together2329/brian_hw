@@ -217,7 +217,7 @@ class SlashCommandRegistry:
 
         self.register('workflow', self._cmd_workspace,
                      '워크플로우 전환: /workflow <name> | /workflow (현재)',
-                     aliases=['wf', 'workspace', 'ws'])
+                     aliases=['wf'])
 
     def _cmd_workspace(self, args: str) -> str:
         """Switch workspace/workflow. /workspace <name> or /workspace to show current."""
