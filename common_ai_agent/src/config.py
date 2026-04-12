@@ -1143,10 +1143,15 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     parts = []
 
     # Identity
-    _identity = _load_prompt_fragment("identity.md")
-    parts.append(
-        (_identity + "\n") if _identity else "You are Common AI Agent, an intelligent coding agent.\n"
-    )
+    # Skip base identity when a workspace is active — the workspace system_prompt.md
+    # defines the agent role. Injecting a second "coding agent" label here causes
+    # the LLM to answer "who are you" with the base identity instead of the workspace role.
+    _active_ws = os.environ.get("ACTIVE_WORKSPACE", "").strip()
+    if not _active_ws:
+        _identity = _load_prompt_fragment("identity.md")
+        parts.append(
+            (_identity + "\n") if _identity else "You are Common AI Agent, an intelligent coding agent.\n"
+        )
 
     # Format
     _native_mode = os.getenv("ENABLE_NATIVE_TOOL_CALLS", "false").lower() in ("true", "1", "yes")
