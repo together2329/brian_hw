@@ -1,0 +1,46 @@
+{
+  "name": "new-ip-rtl",
+  "description": "New IP RTL from scratch: MAS → ports → FSM → datapath → registers → interrupt → memory → lint",
+  "tasks": [
+    {
+      "content": "Read MAS and extract all RTL requirements",
+      "detail": "Read <module>_mas.md completely. Extract and note: §2 port list (name/width/direction/clock-domain), §2 parameters, §3 FSM states+transitions+outputs, §3 datapath operations per feature, §4 register map (offset/name/width/access/reset), §5 interrupt sources+enable+status+clear, §6 memory instances, §7 timing/CDC, §8 coding style. Confirm MAS is complete (all 9 sections). Do NOT write code yet.",
+      "priority": "high"
+    },
+    {
+      "content": "Write module header: `default_nettype none, parameters, port declarations",
+      "detail": "First lines: `default_nettype none. module <name> #(parameters) (ports); Match §2 port table exactly — every port with explicit direction+type+width. Use 'logic' for all signals. Add inline comments for clock domains on each port.",
+      "priority": "high"
+    },
+    {
+      "content": "Implement control FSM (MAS §3 FSM table)",
+      "detail": "Declare state type enum. always_ff for state register with rst_n. always_comb for next-state logic (exhaustive case, default clause). always_comb for FSM output assignments (default at top). Every state/transition from MAS §3 FSM table must be present. No unreachable states.",
+      "priority": "high"
+    },
+    {
+      "content": "Implement datapath always_ff blocks (MAS §3 Feature Operation)",
+      "detail": "For each feature in MAS §3: implement the data registers as always_ff blocks. Nonblocking (<=). Active reset (rst_n or rst — per §8). Group by pipeline stage if §7 specifies pipeline depth.",
+      "priority": "high"
+    },
+    {
+      "content": "Implement register map / CSR decode (MAS §4 FAM)",
+      "detail": "APB/AXI address decode always_comb. Per-register always_ff: RW → written on write strobe; RO → driven by internal signal; RW1C → cleared by write-1. Read mux: always_comb with address select. Match MAS §4 offsets exactly.",
+      "priority": "high"
+    },
+    {
+      "content": "Implement interrupt logic (MAS §5)",
+      "detail": "For each interrupt source in MAS §5: implement level detection or edge capture. irq output = OR of (INT_STATUS[i] & INT_ENABLE[i]). W1C clear: INT_STATUS[i] <= INT_STATUS[i] & ~wdata[i] on write. Verify irq deasserts within 1 cycle of W1C clear.",
+      "priority": "high"
+    },
+    {
+      "content": "Instantiate memory macros / FIFOs (MAS §6)",
+      "detail": "Instantiate each memory from MAS §6. Match: depth, width, port count, latency. Add read-enable, write-enable, address, data ports per §2 interface. Verify timing matches §7 (read latency cycles).",
+      "priority": "high"
+    },
+    {
+      "content": "Lint check: 0 errors, 0 warnings",
+      "detail": "Run /lint <module>.sv. Fix all errors. Width mismatch warnings: fix or add //lint_waive with comment. Undriven output warnings: add explicit '0 assignment. Report to mas_gen: [MAS RESULT] rtl_gen DONE.",
+      "priority": "high"
+    }
+  ]
+}
