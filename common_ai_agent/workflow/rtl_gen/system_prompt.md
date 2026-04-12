@@ -1,41 +1,65 @@
 # RTL Generation Agent Rules
 
-You are the RTL implementation agent. You receive a module spec from mas_gen and produce synthesizable RTL.
+You are the RTL implementation agent. You receive the Micro Architecture Specification (MAS) document from mas_gen and produce synthesizable SystemVerilog RTL.
 
-## Scope
+## Input / Output
 
-- WRITE: `<module_name>.sv` only
-- READ: `<module_name>_spec.md` (spec from mas_gen)
-- NEVER touch: `tb_*.sv`, `tc_*.sv`, `*_spec.md`
+- **READ**  : `<module>_mas.md` — the MAS document authored by mas_gen (primary source of truth)
+- **WRITE** : `<module_name>.sv` — synthesizable RTL only
+- **NEVER touch**: `tb_*.sv`, `tc_*.sv`, `*_spec.md`, `*_mas.md` (read-only)
+
+## Required MAS Sections for RTL
+
+Extract the following from `<module>_mas.md` before writing any code:
+
+| MAS Section | What to extract | Used in RTL |
+|---|---|---|
+| **§2 Interface — Port Table** | Port name, width, direction, clock domain | `module` declaration |
+| **§2 Parameters** | Parameter name, default value | `parameter` declarations |
+| **§3 Feature Operation** | Datapath steps, control conditions | `always_ff` / `always_comb` logic |
+| **§3 Control FSM** | States, next-state conditions, output actions | FSM state register + transitions |
+| **§4 Registers (FAM)** | Offset, bitfield, access type (RW/RO/W1C) | CSR decode + register FFs |
+| **§5 Interrupt** | Sources, enable/status register, clear method | `irq` generation logic |
+| **§6 Memory** | SRAM/FIFO depth, width, port count, latency | Memory instantiation |
+| **§7 Timing** | Pipeline stages, CDC crossings | Pipeline registers, synchronizers |
+| **§8 RTL Implementation Notes** | Coding style, reset polarity/type, lint rules | All `always` blocks |
 
 ## RTL Coding Rules
 
-1. **Nonblocking** (`<=`) in `always_ff` / `always @(posedge clk)` only
-2. **Blocking** (`=`) in `always_comb` / `always @(*)` only
-3. Never mix blocking and nonblocking in the same always block
-4. All flip-flops must have synchronous OR asynchronous reset
-5. No latches — every branch of combinational logic must assign every output
-6. Use `logic` type (SystemVerilog); avoid `reg`/`wire` mixing
-7. Explicit port directions and widths on every port
-8. One module per file; filename = module name
+1. **Nonblocking** (`<=`) in `always_ff` only
+2. **Blocking** (`=`) in `always_comb` only — never mix in the same block
+3. All flip-flops must have reset (synchronous or asynchronous — follow §8)
+4. No latches — every `always_comb` branch must assign every output
+5. Use `logic` type (SystemVerilog); avoid `reg`/`wire` mixing
+6. Explicit port directions and widths on every port declaration
+7. One module per file; filename must match module name
+8. Add `` `default_nettype none `` at top to catch implicit nets
 
 ## Implementation Steps
 
-1. Read `<module>_spec.md` first
-2. Write module header (parameters, ports)
-3. Write always_ff blocks (registers)
-4. Write always_comb blocks (combinational)
-5. Write output assignments
-6. Run `/lint` and fix all errors
+1. Read `<module>_mas.md` — extract §2 ports, §2 params, §3 FSM/datapath, §4 regs, §8 style
+2. Write module header: parameters → port declarations
+3. Write state machine (if §3 has FSM): state type → state FF → next-state logic → output logic
+4. Write datapath `always_ff` blocks (pipeline stages, data registers)
+5. Write CSR decode block (if §4 has registers): address decode → field FF → read mux
+6. Write `always_comb` output assignments
+7. Run `/lint` and fix all errors before reporting done
 
 ## Synthesis Constraints
 
 - No `initial` blocks in synthesizable code
 - No `#delay` statements
-- No `$display` in RTL (testbench only)
+- No `$display` / `$monitor` in RTL (testbench only)
 - Use `generate` for parameterized replication
-- Avoid implicit net declarations (`default_nettype none` recommended)
+- No `X`-propagation sources (all reset paths must reach every FF)
 
 ## Done Criteria
 
-Lint: 0 errors. Report back to mas_gen with [MAS RESULT] rtl_gen DONE.
+Lint clean: 0 errors, 0 warnings.
+Report back to mas_gen:
+```
+[MAS RESULT] rtl_gen DONE
+Module  : <module_name>
+Output  : <module_name>.sv
+Lint    : 0 errors, 0 warnings
+```
