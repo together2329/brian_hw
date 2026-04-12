@@ -1,0 +1,51 @@
+{
+  "name": "legacy-ip",
+  "description": "Legacy IP update: Read existing RTL → Build/Update MAS → Delta RTL → Regression TB → SIM → DOC",
+  "tasks": [
+    {
+      "content": "[MAS] Read existing RTL and identify current interface",
+      "detail": "Read <module>.sv (existing RTL). Extract: module name, all port declarations (name/width/direction), parameters, clock domains. Read any existing spec or doc files (*_spec.md, *_mas.md, README). Summarize current interface as a port table. This is the baseline — all changes must preserve backward compatibility unless explicitly requested.",
+      "priority": "high"
+    },
+    {
+      "content": "[MAS] Reverse-engineer current design: FSM, datapath, registers",
+      "detail": "Analyze existing RTL to extract: (1) FSM states and transitions (from always_ff/case), (2) register map (from CSR decode logic), (3) datapath operations (from always_comb). Document what the module currently does — this becomes the baseline MAS that the update will delta against. Flag any undocumented behaviors or lint issues found.",
+      "priority": "high"
+    },
+    {
+      "content": "[MAS] Confirm change requirements with user: what to add/modify/remove",
+      "detail": "Present the current design summary to the user. Confirm: (1) which features to add, (2) which ports/registers to add/modify (note: removing ports breaks backward compat — confirm explicitly), (3) new FSM states needed, (4) new interrupt sources, (5) timing changes. Get sign-off before writing the updated MAS.",
+      "priority": "high"
+    },
+    {
+      "content": "[MAS] Write delta MAS: update changed sections only",
+      "detail": "Update <module>_mas.md (or create if no MAS exists). Only update sections that change: §2 if ports/params change, §3 if FSM/datapath changes, §4 if registers change, §5 if interrupts change, §7 if timing changes, §8 if coding style changes, §9 DV Plan with new test sequences for new features. Add 'Changed in vX.Y' annotations next to modified fields. Preserve all unchanged sections verbatim.",
+      "priority": "high"
+    },
+    {
+      "content": "[RTL] Apply delta RTL changes: modify <module>.sv for new requirements",
+      "detail": "Handoff to rtl_gen legacy-ip-rtl template: Read updated MAS delta. Apply only the required changes — do NOT rewrite unchanged logic. Add new ports at end of port list. Add new FSM states without breaking existing transitions. Add new registers without reordering existing offsets. Lint check after each change block.",
+      "priority": "high"
+    },
+    {
+      "content": "[TB] Update testbench: add new test sequences, keep existing passing",
+      "detail": "Handoff to tb_gen: Add new test sequences (S_NEW_1..N) for new features from MAS §9. Do NOT remove existing sequences. Run regression — all original sequences must still pass. Fix any TB compilation issues from interface changes.",
+      "priority": "high"
+    },
+    {
+      "content": "[SIM] Regression passed: 0 errors, 0 warnings (old + new sequences)",
+      "activeForm": "Running regression attempt {loop_count}/{max_loop_iterations}...",
+      "detail": "Run full simulation suite including all original sequences plus new sequences. All must pass. Any regression in original sequences = RTL bug — fix RTL, not TB. Loop until 0 errors, 0 warnings.",
+      "loop": true,
+      "max_loop_iterations": 15,
+      "exit_condition": "0 errors, 0 warnings",
+      "validator": "bash workflow/tb_gen/scripts/check_sim_pass.sh",
+      "priority": "high"
+    },
+    {
+      "content": "[DOC] Update documentation for changed legacy IP",
+      "detail": "Update <module>_spec.md with changed sections. Add changelog entry: version, date, what changed, what is backward-compatible. Update port table and register map if changed. Mark deprecated ports/registers. Output updated doc set.",
+      "priority": "normal"
+    }
+  ]
+}

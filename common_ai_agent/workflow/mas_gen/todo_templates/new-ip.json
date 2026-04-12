@@ -1,0 +1,56 @@
+{
+  "name": "new-ip",
+  "description": "New IP from scratch: Requirements → Full MAS authoring → RTL → TB → SIM → DOC",
+  "tasks": [
+    {
+      "content": "[MAS] Gather requirements: confirm module name, interface, key features",
+      "detail": "Before writing the MAS, confirm with the user: (1) module name, (2) top-level ports and clock domains, (3) key features and operating modes, (4) register interface (APB / AXI-Lite / custom), (5) interrupt requirements, (6) any internal memory needs, (7) target clock frequency and pipeline requirements. Summarize in one paragraph and get approval before writing the MAS.",
+      "priority": "high"
+    },
+    {
+      "content": "[MAS] Write §1 Overview and §2 Module Hierarchy + Interface",
+      "detail": "Write §1: one-paragraph functional description (what it does, why it exists, key design goals). Write §2: instantiation tree, port table (name/width/direction/clock domain), parameters table. These define the external contract — get the interface right before writing internals.",
+      "priority": "high"
+    },
+    {
+      "content": "[MAS] Write §3 Feature Operation + Control FSM",
+      "detail": "Describe each feature/mode with trigger, datapath, control, output. Draw the FSM state table (state/next-state/condition/actions). For each FSM state: what triggers the transition, what outputs are driven. No ambiguous states — every transition must be specified.",
+      "priority": "high"
+    },
+    {
+      "content": "[MAS] Write §4 Registers (FAM) + §5 Interrupt + §6 Memory",
+      "detail": "§4: Register map with offset/name/width/access/reset. Bitfield detail for each register. §5: Interrupt source table (source/bit/type/enable-reg/status-reg/description), irq output logic, W1C clear mechanism. §6: Internal memory table (instance/type/depth/width/ports/latency). Fill all three sections or mark N/A explicitly.",
+      "priority": "high"
+    },
+    {
+      "content": "[MAS] Write §7 Timing + §8 RTL Notes + §9 DV Plan",
+      "detail": "§7: Clock freq, pipeline latency, CDC crossings. §8: Coding style (nonblocking FF, blocking comb, no latches), reset polarity, lint waivers. §9: Test sequence table S1-SN (sequence name/steps/expected result/priority), functional coverage goals, SVA assertions list. MAS is complete only when all 9 sections are filled.",
+      "priority": "high"
+    },
+    {
+      "content": "[RTL] Implement new RTL from MAS: <module_name>.sv",
+      "detail": "Handoff to rtl_gen: Read <module>_mas.md fully. Implement: ports §2, FSM §3, registers §4, interrupt §5, memory §6. Follow §8 RTL Notes. Output: <module>.sv. Gate: 0 lint errors.",
+      "priority": "high"
+    },
+    {
+      "content": "[TB] Generate testbench from MAS §9 DV Plan: tb_<module>.sv",
+      "detail": "Handoff to tb_gen: Read MAS §9. Implement all S1-SN sequences. Add SVA assertions. Cover all interrupt flows and error injection cases. Output: tb_<module>.sv, tc_<module>.sv.",
+      "priority": "high"
+    },
+    {
+      "content": "[SIM] Simulation passed: 0 errors, 0 warnings",
+      "activeForm": "Running simulation attempt {loop_count}/{max_loop_iterations}...",
+      "detail": "Run simulation. Fix bugs in RTL or TB. All S1-SN sequences must pass. Loop until 0 errors, 0 warnings.",
+      "loop": true,
+      "max_loop_iterations": 15,
+      "exit_condition": "0 errors, 0 warnings",
+      "validator": "bash workflow/tb_gen/scripts/check_sim_pass.sh",
+      "priority": "high"
+    },
+    {
+      "content": "[DOC] Generate documentation package for new IP",
+      "detail": "Handoff to doc_gen. Produce: <module>_spec.md (integration spec), <module>_port_table.md, <module>_reg_map.md, <module>_integration_guide.md, <module>_dv_summary.md. Base on MAS + simulation results.",
+      "priority": "normal"
+    }
+  ]
+}

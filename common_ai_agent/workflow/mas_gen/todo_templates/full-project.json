@@ -1,31 +1,31 @@
 {
   "name": "full-project",
-  "description": "Full MAS RTL project: SPEC → RTL → TB → SIM loop → DOC",
+  "description": "Full MAS RTL project: MAS → RTL → TB → SIM loop → DOC",
   "tasks": [
     {
-      "content": "[SPEC] Define module interface and requirements",
-      "detail": "Output: module name, parameter list with defaults, port list (name/width/direction), clock/reset convention, functional description. Write to <module>_spec.md.",
+      "content": "[MAS] Write Micro Architecture Spec: <module>_mas.md",
+      "detail": "Write <module>_mas.md with all 9 sections: §1 Overview, §2 Module Hierarchy + Ports + Parameters, §3 Feature Operation + FSM, §4 Registers (FAM — offset/name/width/access/reset), §5 Interrupt (sources/enable/status/clear), §6 Memory (instances/type/depth/latency), §7 Timing, §8 RTL Notes, §9 DV Plan (Test Sequence table S1-SN + coverage goals + SVA assertions). This is the single source of truth for rtl_gen and tb_gen.",
       "priority": "high"
     },
     {
-      "content": "[RTL] Implement module: <module_name>.sv",
-      "detail": "Use /gen-rtl <module_name>. Follow rtl_gen rules: nonblocking in always_ff, blocking in always_comb, all FF have reset, no latches. Output: <module>.sv. Gate: lint 0 errors.",
+      "content": "[RTL] Implement module guided by MAS §2-§8: <module_name>.sv",
+      "detail": "Read <module>_mas.md. Implement: ports from §2, FSM from §3, register map from §4, interrupt logic from §5, memory instances from §6. Follow §8 RTL Notes (nonblocking FF, no latches, sync reset). Use /gen-rtl <module_name>. Output: <module>.sv. Gate: lint 0 errors.",
       "priority": "high"
     },
     {
       "content": "[RTL] Lint check: 0 errors",
-      "detail": "Run lint on <module>.sv. Fix all errors before proceeding to TB. This is a hard gate — tb_gen cannot start until lint is clean.",
+      "detail": "Run lint on <module>.sv. Fix all errors. Hard gate — tb_gen cannot start until clean.",
       "priority": "high"
     },
     {
-      "content": "[TB] Generate testbench and test cases",
-      "detail": "Use /gen-tb <module_name>. Follow tb_gen rules. Output: tb_<module>.sv (top-level), tc_<module>.sv (test cases `included). Cover: reset, normal operation, edge cases, corner cases.",
+      "content": "[TB] Generate testbench guided by MAS §9 DV Plan: tb_<module>.sv + tc_<module>.sv",
+      "detail": "Read <module>_mas.md §9. Implement every sequence S1-SN from the Test Sequence table. Add SVA assertions listed in coverage goals. Cover interrupt flow (S3), memory R/W (S4), error injection (S6). Use /gen-tb <module_name>. Output: tb_<module>.sv, tc_<module>.sv.",
       "priority": "high"
     },
     {
       "content": "[SIM] Simulation passed: 0 errors, 0 warnings",
       "activeForm": "Running simulation (attempt {loop_count}/{max_loop_iterations})...",
-      "detail": "Run simulation. Fix bugs in DUT (rtl_gen context) or TB (tb_gen context) as needed. Loop until 0 errors, 0 warnings.",
+      "detail": "Run simulation. Fix bugs in DUT (rtl_gen) or TB (tb_gen) as needed. All S1-SN sequences must pass. Loop until 0 errors, 0 warnings.",
       "loop": true,
       "max_loop_iterations": 15,
       "exit_condition": "0 errors, 0 warnings",
@@ -33,8 +33,8 @@
       "priority": "high"
     },
     {
-      "content": "[DOC] Generate and complete module documentation",
-      "detail": "Use /gen-doc <module_name> to create skeleton. Fill in: functional description, timing diagram, design notes, simulation results. Output: <module>_spec.md (final).",
+      "content": "[DOC] Generate final module documentation: <module>_spec.md",
+      "detail": "Use /gen-doc <module_name>. Base on <module>_mas.md + simulation results. Include port table, register map, interrupt table, timing, simulation coverage summary. Output: <module>_spec.md.",
       "priority": "normal"
     }
   ]
