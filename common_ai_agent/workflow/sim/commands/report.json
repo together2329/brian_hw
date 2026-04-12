@@ -1,7 +1,9 @@
 {
   "name": "report",
   "description": "Generate sim_report.txt from session log",
-  "aliases": ["r"],
-  "handler": "bash:scripts/write_report.sh",
+  "aliases": [
+    "r"
+  ],
+  "handler": "bash:write_report.sh",
   "usage": "/report"
 }

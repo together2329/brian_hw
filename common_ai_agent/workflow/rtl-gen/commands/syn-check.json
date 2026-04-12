@@ -1,7 +1,9 @@
 {
   "name": "syn-check",
   "description": "Synthesis feasibility check (Yosys if available, else iverilog -Wall)",
-  "aliases": ["sc"],
-  "handler": "bash:scripts/syn_check.sh",
+  "aliases": [
+    "sc"
+  ],
+  "handler": "bash:syn_check.sh",
   "usage": "/syn-check [file.sv]"
 }

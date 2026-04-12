@@ -1,7 +1,9 @@
 {
   "name": "lint",
   "description": "Run RTL lint on .sv/.v files",
-  "aliases": ["l"],
-  "handler": "bash:scripts/lint.sh",
+  "aliases": [
+    "l"
+  ],
+  "handler": "bash:lint.sh",
   "usage": "/lint [file.sv]"
 }

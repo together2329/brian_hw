@@ -1,7 +1,9 @@
 {
   "name": "gen-doc",
   "description": "Generate module documentation from RTL source",
-  "aliases": ["gd"],
-  "handler": "bash:scripts/gen_doc.sh",
+  "aliases": [
+    "gd"
+  ],
+  "handler": "bash:gen_doc.sh",
   "usage": "/gen-doc <module_name>"
 }

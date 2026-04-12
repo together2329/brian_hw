@@ -1,7 +1,9 @@
 {
   "name": "compile",
-  "description": "Compile only (no run) — check for syntax and elaboration errors",
-  "aliases": ["c"],
-  "handler": "bash:scripts/compile.sh",
+  "description": "Compile only (no run) \u2014 check for syntax and elaboration errors",
+  "aliases": [
+    "c"
+  ],
+  "handler": "bash:compile.sh",
   "usage": "/compile [tb_module.sv]"
 }

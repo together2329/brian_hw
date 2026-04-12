@@ -1,7 +1,9 @@
 {
   "name": "coverage",
   "description": "Show which DUT branches are covered by current test cases",
-  "aliases": ["cov"],
-  "handler": "bash:scripts/coverage.sh",
+  "aliases": [
+    "cov"
+  ],
+  "handler": "bash:coverage.sh",
   "usage": "/coverage [module.sv]"
 }
