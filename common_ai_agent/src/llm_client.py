@@ -1260,7 +1260,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     return
                 is_retryable = e.code == 429 or (500 <= e.code < 600)
                 if is_retryable and _ns_retry < _ns_max - 1:
-                    delay = 60 * (2 ** _ns_retry) if e.code == 429 else _ns_delays[_ns_retry]
+                    delay = _ns_delays[_ns_retry]
                     print(Color.warning(f"\n[Retry {_ns_retry + 1}/{_ns_max - 1}] HTTP {e.code}: {e.reason}. Waiting {delay}s...\n"))
                     time.sleep(delay)
                     continue
@@ -1534,8 +1534,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         print()
 
     # Retry logic for transient errors
-    max_retries = 5
-    initial_delay = 5   # seconds — doubles each retry: 5, 10, 20, 40, 80
+    _RETRY_DELAYS2 = [5, 10, 20, 40, 80]  # backoff for all retryable errors
+    max_retries = len(_RETRY_DELAYS2) + 1
     _fallback_used = False  # True after switching to SECONDARY_MODEL
 
     for retry_count in range(max_retries):
@@ -1817,10 +1817,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             is_retryable = e.code == 429 or (500 <= e.code < 600)
 
             if is_retryable and retry_count < max_retries - 1:
-                # 429 rate-limit needs longer back-off; other 5xx use fast retry
-                rate_limit_delay = 60 * (2 ** retry_count)  # 60, 120, 240…
-                delay = rate_limit_delay if e.code == 429 else initial_delay * (2 ** retry_count)
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] HTTP {e.code}: {e.reason}"))
+                delay = _RETRY_DELAYS2[retry_count]
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {e.reason}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
                 continue
