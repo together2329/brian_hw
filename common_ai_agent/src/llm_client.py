@@ -692,6 +692,101 @@ def _make_stream_watchdog(response, inactivity_s: int, last_data_ref: list):
     return _stop, _triggered
 
 
+def _parse_zai_error(error_body: str) -> dict:
+    """
+    Parse Z.AI error response body into a structured dict.
+
+    Z.AI format: {"error": {"code": "1261", "message": "Prompt exceeds max length"}}
+    OpenAI format: {"error": {"type": "...", "message": "...", "code": "..."}}
+
+    Returns: {
+        "code": str,           # business error code (e.g. "1261", "1302") or ""
+        "message": str,        # human-readable message
+        "type": str,           # error type (OpenAI) or ""
+        "is_balance_exhausted": bool,   # account out of credits
+        "is_account_locked": bool,      # account anomaly / locked
+        "is_content_filter": bool,      # policy content filter
+        "is_prompt_too_long": bool,     # prompt exceeds max length
+        "is_high_traffic": bool,        # model overloaded, suggests alt
+        "is_rate_limit": bool,          # generic rate limit
+        "is_retryable": bool,           # safe to retry
+        "reset_time": str,              # when limit resets (e.g. "2025-01-01 00:00")
+    }
+    """
+    result = {
+        "code": "",
+        "message": "",
+        "type": "",
+        "is_balance_exhausted": False,
+        "is_account_locked": False,
+        "is_content_filter": False,
+        "is_prompt_too_long": False,
+        "is_high_traffic": False,
+        "is_rate_limit": False,
+        "is_retryable": False,
+        "reset_time": "",
+    }
+    try:
+        error_json = json.loads(error_body)
+        error_info = error_json.get("error", {})
+        if isinstance(error_info, str):
+            result["message"] = error_info
+            return result
+        if not isinstance(error_info, dict):
+            return result
+
+        result["code"] = str(error_info.get("code", ""))
+        result["message"] = error_info.get("message", "")
+        result["type"] = error_info.get("type", "")
+
+        code = result["code"]
+
+        # Z.AI business error codes
+        # 1113 = account in arrears, 1112 = account locked, 1121 = irregular activities
+        if code in ("1112", "1121"):
+            result["is_account_locked"] = True
+        elif code == "1113":
+            result["is_balance_exhausted"] = True
+        # 1261 = Prompt exceeds max length
+        elif code == "1261":
+            result["is_prompt_too_long"] = True
+            result["is_retryable"] = True  # retryable after compression
+        # 1301 = content filter / unsafe content
+        elif code == "1301":
+            result["is_content_filter"] = True
+        # 1302 = high concurrency, 1303 = high frequency, 1305 = rate limit
+        elif code in ("1302", "1303", "1305"):
+            result["is_rate_limit"] = True
+            result["is_retryable"] = True
+        # 1308 = usage limit with reset time, 1310 = weekly/monthly limit
+        elif code in ("1308", "1310"):
+            result["is_rate_limit"] = True
+            result["is_retryable"] = True
+            # Extract reset time from message: "limit will reset at 2025-01-01 00:00"
+            msg = result["message"]
+            import re as _re
+            _m = _re.search(r"reset at\s+(.+?)[\.\s]*$", msg)
+            if _m:
+                result["reset_time"] = _m.group(1).strip()
+        # 1309 = GLM Coding Plan expired
+        elif code == "1309":
+            result["is_balance_exhausted"] = True
+        # 1312 = model high traffic, suggests alternative model
+        elif code == "1312":
+            result["is_high_traffic"] = True
+            result["is_retryable"] = True
+        # 1313 = Fair Use Policy violation — rate restricted
+        elif code == "1313":
+            result["is_rate_limit"] = True
+            result["is_account_locked"] = True
+        # 500 = internal error
+        elif code == "500":
+            result["is_retryable"] = True
+    except (json.JSONDecodeError, Exception):
+        pass
+    return result
+
+
 def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: List, native_mode: bool = False):
     """
     Execute streaming request with retry logic.
@@ -906,8 +1001,63 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
 
         except urllib.error.HTTPError as e:
             error_body = e.read().decode('utf-8')
-            is_retryable = e.code == 429 or (500 <= e.code < 600)
+            zai = _parse_zai_error(error_body)
 
+            # ── Extract zai values for f-string compatibility (no backslashes) ──
+            _zai_msg = zai["message"]
+            _zai_code = zai["code"]
+            _zai_type = zai["type"]
+            _zai_reset = zai["reset_time"]
+
+            # ── Non-retryable: account locked or balance exhausted ──
+            if zai["is_account_locked"] or zai["is_balance_exhausted"]:
+                code_str = f" (code {_zai_code})" if _zai_code else ""
+                yield f"\n{Color.error(f'[HTTP {e.code}]{code_str} {_zai_msg}')}\n"
+                if zai["is_balance_exhausted"]:
+                    yield f"{Color.warning('→ Please top up your API credits or check your subscription plan.')}\n"
+                else:
+                    yield f"{Color.warning('→ Account is locked. Contact Z.AI customer service to unlock.')}\n"
+                return
+
+            # ── Content filter: do not retry ──
+            if zai["is_content_filter"]:
+                yield f"\n{Color.error('[Content Filter] Request blocked by safety policy.')}\n"
+                yield f"{Color.warning('→ Rephrase your prompt to avoid potentially sensitive content.')}\n"
+                return
+
+            # ── Prompt too long: signal caller to compress and retry ──
+            if zai["is_prompt_too_long"]:
+                yield f"\n{Color.error('[Prompt Too Long] Input exceeds model context limit (code 1261).')}\n"
+                yield ("finish_reason", "prompt_too_long")
+                return
+
+            # ── Rate limit with reset time: show when it resets ──
+            if zai["is_rate_limit"] and _zai_reset:
+                if retry_count < max_retries - 1:
+                    delay = _RETRY_DELAYS[retry_count]
+                    print(Color.warning(
+                        f"\n[Retry {retry_count + 1}/{max_retries - 1}] Rate limited "
+                        f"(code {_zai_code}). Resets at {_zai_reset}. "
+                        f"Waiting {delay}s...\n"
+                    ))
+                    time.sleep(delay)
+                    continue
+                yield f"\n{Color.error(f'[Rate Limited] {_zai_msg}')}\n"
+                yield f"{Color.warning(f'→ Limit resets at {_zai_reset}')}\n"
+                return
+
+            # ── High traffic: show suggested alternative model ──
+            if zai["is_high_traffic"]:
+                if retry_count < max_retries - 1:
+                    delay = _RETRY_DELAYS[retry_count]
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Model high traffic (code 1312). Waiting {delay}s...\n"))
+                    time.sleep(delay)
+                    continue
+                yield f"\n{Color.error(f'[High Traffic] {_zai_msg}')}\n"
+                return
+
+            # ── Generic retryable: 429 or 5xx ──
+            is_retryable = e.code == 429 or (500 <= e.code < 600)
             if is_retryable and retry_count < max_retries - 1:
                 delay = _RETRY_DELAYS[retry_count]
                 print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {e.reason}"))
@@ -915,19 +1065,16 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                 time.sleep(delay)
                 continue
 
+            # ── Non-retryable or max retries reached: show error details ──
             yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
-            try:
-                error_json = json.loads(error_body)
-                yield f"{Color.error('Error Details:')}\n"
-                if 'error' in error_json:
-                    error_info = error_json['error']
-                    if isinstance(error_info, dict):
-                        error_type = error_info.get('type', 'unknown')
-                        error_message = error_info.get('message', 'No message')
-                        yield f"{Color.error(f'  Type: {error_type}')}\n"
-                        yield f"{Color.error(f'  Message: {error_message}')}\n"
-            except:
-                yield f"{Color.error(f'Raw Error Body:')}\n{error_body[:500]}\n"
+            if _zai_code:
+                yield f"{Color.error(f'  Code: {_zai_code}')}\n"
+            if _zai_msg:
+                yield f"{Color.error(f'  Message: {_zai_msg}')}\n"
+            elif _zai_type:
+                yield f"{Color.error(f'  Type: {_zai_type}')}\n"
+            else:
+                yield f"{Color.error(f'  {error_body[:300]}')}\n"
             return
 
         except socket.timeout as e:
@@ -1801,21 +1948,80 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
         except urllib.error.HTTPError as e:
             error_body = e.read().decode('utf-8')
+            zai = _parse_zai_error(error_body)
 
-            # 401: company token limit exhausted → fall back or show once and stop
+            # ── 401: Auth failure → try fallback model ──
             if e.code == 401:
                 if not _fallback_used and config.SECONDARY_MODEL and config.SECONDARY_MODEL != resolved_model:
                     _fallback_used = True
                     resolved_model = config.SECONDARY_MODEL
-                    print(Color.warning(f"\n[Fallback] Token quota exhausted (401). Switching to: {resolved_model}\n"))
+                    print(Color.warning(f"\n[Fallback] Auth error (401). Switching to: {resolved_model}\n"))
                     continue
-                # No fallback available — report once and stop (no retry loop for 401)
                 yield f"\n{Color.error('[401 Unauthorized] Token quota exhausted — please top up your API credits.')}\n"
                 return
 
-            # Check if error is retryable (rate limit / server error)
-            is_retryable = e.code == 429 or (500 <= e.code < 600)
+            # ── Extract zai values for f-string compatibility (no backslashes) ──
+            _zai_msg = zai["message"]
+            _zai_code = zai["code"]
+            _zai_type = zai["type"]
+            _zai_reset = zai["reset_time"]
 
+            # ── Account locked / balance exhausted → do NOT retry ──
+            if zai["is_account_locked"] or zai["is_balance_exhausted"]:
+                code_str = f" (code {_zai_code})" if _zai_code else ""
+                yield f"\n{Color.error(f'[HTTP {e.code}]{code_str} {_zai_msg}')}\n"
+                if zai["is_balance_exhausted"]:
+                    yield f"{Color.warning('→ Please top up your API credits or check your subscription plan.')}\n"
+                else:
+                    yield f"{Color.warning('→ Account is locked. Contact Z.AI customer service to unlock.')}\n"
+                return
+
+            # ── Content filter → do NOT retry ──
+            if zai["is_content_filter"]:
+                yield f"\n{Color.error('[Content Filter] Request blocked by safety policy.')}\n"
+                yield f"{Color.warning('→ Rephrase your prompt to avoid potentially sensitive content.')}\n"
+                return
+
+            # ── Prompt too long → signal caller to compress ──
+            if zai["is_prompt_too_long"]:
+                yield f"\n{Color.error('[Prompt Too Long] Input exceeds model context limit (code 1261).')}\n"
+                yield ("finish_reason", "prompt_too_long")
+                return
+
+            # ── Rate limit with reset time ──
+            if zai["is_rate_limit"] and _zai_reset:
+                if retry_count < max_retries - 1:
+                    delay = _RETRY_DELAYS2[retry_count]
+                    print(Color.warning(
+                        f"\n[Retry {retry_count + 1}/{max_retries - 1}] Rate limited "
+                        f"(code {_zai_code}). Resets at {_zai_reset}. "
+                        f"Waiting {delay}s...\n"
+                    ))
+                    time.sleep(delay)
+                    continue
+                yield f"\n{Color.error(f'[Rate Limited] {_zai_msg}')}\n"
+                yield f"{Color.warning(f'→ Limit resets at {_zai_reset}')}\n"
+                return
+
+            # ── High traffic → try fallback model ──
+            if zai["is_high_traffic"]:
+                if not _fallback_used and config.SECONDARY_MODEL and config.SECONDARY_MODEL != resolved_model:
+                    _fallback_used = True
+                    resolved_model = config.SECONDARY_MODEL
+                    print(Color.warning(
+                        f"\n[Fallback] Model overloaded (code 1312). Switching to: {resolved_model}\n"
+                    ))
+                    continue
+                if retry_count < max_retries - 1:
+                    delay = _RETRY_DELAYS2[retry_count]
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Model high traffic. Waiting {delay}s...\n"))
+                    time.sleep(delay)
+                    continue
+                yield f"\n{Color.error(f'[High Traffic] {_zai_msg}')}\n"
+                return
+
+            # ── Generic retryable: 429 or 5xx ──
+            is_retryable = e.code == 429 or (500 <= e.code < 600)
             if is_retryable and retry_count < max_retries - 1:
                 delay = _RETRY_DELAYS2[retry_count]
                 print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {e.reason}"))
@@ -1823,20 +2029,15 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 time.sleep(delay)
                 continue
 
-            # Non-retryable error or max retries reached
+            # ── Non-retryable or max retries reached ──
             yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
-
-            try:
-                error_json = json.loads(error_body)
-                if 'error' in error_json:
-                    error_info = error_json['error']
-                    if isinstance(error_info, dict):
-                        error_message = error_info.get('message', '')
-                        if error_message:
-                            yield f"{Color.error(f'  {error_message}')}\n"
-                    else:
-                        yield f"{Color.error(f'  {error_info}')}\n"
-            except:
+            if _zai_code:
+                yield f"{Color.error(f'  Code: {_zai_code}')}\n"
+            if _zai_msg:
+                yield f"{Color.error(f'  Message: {_zai_msg}')}\n"
+            elif _zai_type:
+                yield f"{Color.error(f'  Type: {_zai_type}')}\n"
+            else:
                 yield f"{Color.error(f'  {error_body[:300]}')}\n"
 
             if config.DEBUG_MODE:
