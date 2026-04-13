@@ -105,6 +105,12 @@ CURSOR_AGENT_YOLO = os.getenv("CURSOR_AGENT_YOLO", "false").lower() == "true"
 CURSOR_AGENT_MODE = os.getenv("CURSOR_AGENT_MODE", "")       # "ask" | "plan" | "" (full agent)
 CURSOR_AGENT_WORKSPACE = os.getenv("CURSOR_AGENT_WORKSPACE", "")  # path; empty = cwd
 
+# When cursor-agent is the backend, force ReAct text mode so the system prompt
+# includes Action:/Observation: instructions that cursor-agent can follow.
+# cursor-agent does not support receiving an OpenAI-style tools JSON schema.
+if CURSOR_AGENT_ENABLE:
+    os.environ["ENABLE_NATIVE_TOOL_CALLS"] = "false"
+
 # ============================================================
 # OpenRouter Configuration (주석 처리됨)
 # ============================================================
