@@ -1023,6 +1023,20 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     Tool descriptions are minimal (name + signature + when-to-use).
     Detailed examples removed — LLM infers usage from signatures.
     """
+    # cursor-agent backend: use dedicated minimal prompt so cursor-agent
+    # outputs Action: lines for todo tracking instead of using internal tools
+    if CURSOR_AGENT_ENABLE:
+        import os as _os
+        _prompt_path = _os.path.join(
+            _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+            "agents", "prompts", "cursor_agent.md"
+        )
+        try:
+            with open(_prompt_path, "r") as _f:
+                return _f.read()
+        except Exception:
+            pass  # fall through to normal prompt
+
     if not ENABLE_TOOL_DESCRIPTIONS:
         # Legacy fallback
         return LEGACY_SYSTEM_PROMPT
