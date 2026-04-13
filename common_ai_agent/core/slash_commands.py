@@ -1118,10 +1118,35 @@ class SlashCommandRegistry:
             import src.config as _config
         name = args.strip()
         if not name:
-            marker1 = " ◀ active" if _config.MODEL_NAME == _config.PRIMARY_MODEL else ""
-            marker2 = " ◀ active" if _config.MODEL_NAME == _config.SECONDARY_MODEL else ""
+            try:
+                from src.llm_client import get_active_model as _get_active_model
+                _current_display = _get_active_model()
+            except Exception:
+                _current_display = _config.MODEL_NAME
+
+            # When cursor-agent is active, show backend info and skip 1/2 markers
+            if getattr(_config, "CURSOR_AGENT_ENABLE", False):
+                lines = [
+                    f"Current model: {_current_display}",
+                    f"  Backend: cursor-agent (CURSOR_AGENT_ENABLE=true)",
+                    f"  Model:   {getattr(_config, 'CURSOR_AGENT_MODEL', 'auto')}",
+                    f"",
+                    f"  API models (inactive while cursor-agent is enabled):",
+                    f"  1: {_config.PRIMARY_MODEL}",
+                    f"  2: {_config.SECONDARY_MODEL}",
+                    f"  usage: /model 1|2|<model-name>  (sets CURSOR_AGENT_MODEL when backend active)",
+                ]
+                return "\n".join(lines)
+
+            marker1 = " ◀ active" if _config.MODEL_NAME == _config.PRIMARY_MODEL and _config.MODEL_NAME != _config.SECONDARY_MODEL else (
+                      " ◀ active" if _config.MODEL_NAME == _config.PRIMARY_MODEL and _config.PRIMARY_MODEL != _config.SECONDARY_MODEL else "")
+            marker2 = " ◀ active" if _config.MODEL_NAME == _config.SECONDARY_MODEL and _config.MODEL_NAME != _config.PRIMARY_MODEL else ""
+            # If primary == secondary == current, mark only primary as active
+            if _config.PRIMARY_MODEL == _config.SECONDARY_MODEL == _config.MODEL_NAME:
+                marker1 = " ◀ active"
+                marker2 = ""
             lines = [
-                f"Current model: {_config.MODEL_NAME}",
+                f"Current model: {_current_display}",
                 f"  1: {_config.PRIMARY_MODEL}{marker1}",
                 f"  2: {_config.SECONDARY_MODEL}{marker2}",
             ]
