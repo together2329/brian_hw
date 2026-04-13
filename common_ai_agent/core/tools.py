@@ -2564,6 +2564,121 @@ def todo_status():
 
 
 # ============================================================
+# cursor-agent Tool
+# ============================================================
+
+def cursor_agent(task="", yolo="false", mode=""):
+    """
+    Delegate a task to cursor-agent — a full agentic CLI that handles
+    file reads, writes, shell commands, and code edits internally.
+
+    Use this when you need complex multi-step file/code operations that
+    benefit from cursor-agent's built-in tool access. The primary agent
+    handles todo tracking and orchestration; cursor-agent handles execution.
+
+    Args:
+        task: Clear description of what cursor-agent should do.
+              Include all relevant context (file paths, goal, constraints).
+        yolo: "true" to allow write/shell tools without confirmation (default: "false").
+              Set "true" for tasks that modify files or run commands.
+        mode: "" (default, full agent), "ask" (Q&A only), "plan" (planning only).
+
+    Returns:
+        cursor-agent's final response text.
+
+    Examples:
+        Action: cursor_agent(task="Read src/main.py and summarize the chat_loop function")
+        Action: cursor_agent(task="Refactor the serialize_messages function in src/cursor_agent_backend.py to handle empty content blocks", yolo="true")
+        Action: cursor_agent(task="Run the test suite and report which tests fail", yolo="true")
+    """
+    import subprocess, json, sys as _sys
+
+    if not task:
+        return "Error: 'task' is required. Usage: cursor_agent(task=\"describe what to do\")"
+
+    try:
+        import config as _cfg
+    except ImportError:
+        import src.config as _cfg
+
+    model = getattr(_cfg, "CURSOR_AGENT_MODEL", "auto")
+    workspace = getattr(_cfg, "CURSOR_AGENT_WORKSPACE", "")
+    _yolo = str(yolo).lower() in ("true", "1", "yes")
+
+    cmd = ["cursor-agent", "--print", "--model", model or "auto",
+           "--output-format", "stream-json", "--stream-partial-output"]
+    if _yolo:
+        cmd.append("--yolo")
+    if mode:
+        cmd += ["--mode", mode]
+    if workspace:
+        cmd += ["--workspace", workspace]
+    cmd += ["-p", task]
+
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+        )
+    except FileNotFoundError:
+        return "Error: cursor-agent not found. Install it or check PATH."
+
+    collected = []
+    tool_calls_seen = []
+
+    try:
+        for raw_line in proc.stdout:
+            raw_line = raw_line.strip()
+            if not raw_line:
+                continue
+            try:
+                chunk = json.loads(raw_line)
+            except json.JSONDecodeError:
+                continue
+
+            chunk_type = chunk.get("type")
+
+            if chunk_type == "assistant" and "timestamp_ms" in chunk:
+                content = chunk.get("message", {}).get("content", [])
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "text":
+                        text = block.get("text", "")
+                        if text:
+                            collected.append(text)
+                            _sys.stdout.write(text)
+                            _sys.stdout.flush()
+
+            elif chunk_type == "tool_call" and chunk.get("subtype") == "started":
+                # Show cursor-agent's internal tool calls
+                tc = chunk.get("tool_call", {})
+                for key, val in tc.items():
+                    name = key.replace("ToolCall", "")
+                    args = val.get("args", {}) if isinstance(val, dict) else {}
+                    detail = args.get("path") or args.get("file_path") or args.get("command", "")[:60]
+                    label = f"[cursor:{name}" + (f" {detail}" if detail else "") + "]"
+                    tool_calls_seen.append(label)
+                    _sys.stdout.write(f"\n  {label}")
+                    _sys.stdout.flush()
+
+    finally:
+        proc.stdout.close()
+        proc.wait()
+        stderr = proc.stderr.read() if proc.stderr else ""
+
+    if proc.returncode != 0 and not collected:
+        err = stderr.strip() if stderr else f"exit code {proc.returncode}"
+        return f"Error: cursor-agent failed — {err}"
+
+    result = "".join(collected).strip()
+    if tool_calls_seen:
+        result = f"[Tools used: {', '.join(tool_calls_seen)}]\n\n" + result
+    return result or "(no output)"
+
+
+# ============================================================
 # Background Agent Tools (v2 Architecture)
 # ============================================================
 
@@ -2748,6 +2863,8 @@ AVAILABLE_TOOLS = {
     "background_output": background_output,
     "background_cancel": background_cancel,
     "background_list": background_list,
+    # cursor-agent tool (delegates to cursor-agent CLI)
+    "cursor_agent": cursor_agent,
 }
 
 # Import and register Verilog analysis tools
