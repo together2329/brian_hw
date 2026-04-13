@@ -104,6 +104,8 @@ CURSOR_AGENT_MODEL = os.getenv("CURSOR_AGENT_MODEL", "auto")
 CURSOR_AGENT_YOLO = os.getenv("CURSOR_AGENT_YOLO", "false").lower() == "true"
 CURSOR_AGENT_MODE = os.getenv("CURSOR_AGENT_MODE", "")       # "ask" | "plan" | "" (full agent)
 CURSOR_AGENT_WORKSPACE = os.getenv("CURSOR_AGENT_WORKSPACE", "")  # path; empty = cwd
+# Active mode: instructs the primary LLM to delegate most execution to cursor_agent tool
+CURSOR_AGENT_ACTIVE_MODE = os.getenv("CURSOR_AGENT_ACTIVE_MODE", "false").lower() == "true"
 
 # When cursor-agent is the backend, force ReAct text mode so the system prompt
 # includes Action:/Observation: instructions that cursor-agent can follow.

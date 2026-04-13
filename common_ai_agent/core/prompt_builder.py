@@ -110,6 +110,35 @@ def build_system_prompt(
         todo_active=todo_active,
     )
 
+    # ── cursor-agent Active Mode injection ──
+    if getattr(cfg, 'CURSOR_AGENT_ACTIVE_MODE', False):
+        _yolo_default = "true" if getattr(cfg, 'CURSOR_AGENT_YOLO', False) else "false"
+        _cursor_block = f"""
+## CURSOR AGENT ACTIVE MODE
+
+You are operating in **Cursor Agent Active Mode**. Delegate most execution tasks to the `cursor_agent` tool, which has full access to files, shell, and code editing.
+
+**Delegation rules:**
+- ANY task involving reading multiple files, code analysis, refactoring, writing/editing files, running tests/commands → use `cursor_agent`
+- Keep for yourself: todo tracking (`todo_write`, `todo_update`), orchestration, planning, summarizing results
+- Set `yolo="true"` when the task modifies files or runs shell commands
+- Set `yolo="false"` for read-only analysis
+
+**Workflow pattern:**
+1. `todo_write` to plan the tasks
+2. `cursor_agent(task="...", yolo="{_yolo_default}")` to execute each task
+3. `todo_update` to mark tasks complete based on cursor-agent's result
+4. Summarize the outcome for the user
+
+**cursor_agent usage:**
+```
+Action: cursor_agent(task="<detailed task description with file paths and goals>", yolo="{_yolo_default}")
+```
+
+Write detailed tasks — include file paths, what to change, and expected outcome. cursor-agent reads context from the workspace automatically.
+"""
+        base_prompt = base_prompt + "\n" + _cursor_block.strip()
+
     if getattr(cfg, 'DEBUG_MODE', False) and messages:
         try:
             from lib.display import Color  # type: ignore
