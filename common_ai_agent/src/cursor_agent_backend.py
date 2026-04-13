@@ -23,6 +23,65 @@ import os
 from typing import Generator, List, Dict, Optional, Tuple
 
 
+_CURSOR_STATUS_MAP = {
+    "TODO_STATUS_IN_PROGRESS": "in_progress",
+    "TODO_STATUS_PENDING":     "pending",
+    "TODO_STATUS_DONE":        "completed",
+    "TODO_STATUS_CANCELLED":   "completed",
+}
+
+_CURSOR_PRIORITY_MAP = {
+    "TODO_PRIORITY_HIGH":   "high",
+    "TODO_PRIORITY_MEDIUM": "medium",
+    "TODO_PRIORITY_LOW":    "low",
+}
+
+def _translate_update_todos(tool_call_val: dict) -> str:
+    """Translate cursor-agent's updateTodosToolCall into Action: todo_write(...) text.
+
+    cursor-agent fires updateTodosToolCall instead of outputting Action: lines.
+    We intercept it here and emit the equivalent Action: text so the ReAct loop
+    can parse and execute it against common_ai_agent's own todo tracker.
+
+    Args:
+        tool_call_val: the value of the updateTodosToolCall key, e.g.
+            {"args": {"todos": [...], "merge": false}}
+
+    Returns:
+        Action: text string to yield into the stream.
+    """
+    args = tool_call_val.get("args", {})
+    todos_raw = args.get("todos", [])
+    merge = args.get("merge", False)
+
+    todos = []
+    for t in todos_raw:
+        raw_status   = t.get("status", "TODO_STATUS_PENDING")
+        raw_priority = t.get("priority", "")
+        status   = _CURSOR_STATUS_MAP.get(raw_status, "pending")
+        priority = _CURSOR_PRIORITY_MAP.get(raw_priority, "medium")
+        todos.append({
+            "content":  t.get("content", ""),
+            "status":   status,
+            "priority": priority,
+        })
+
+    if not todos:
+        return ""
+
+    if merge:
+        # Partial update — emit individual todo_update calls
+        lines = []
+        for i, t in enumerate(todos, start=1):
+            lines.append(f'\nAction: todo_update(index={i}, status="{t["status"]}")')
+        return "".join(lines)
+    else:
+        # Full replacement — emit todo_write
+        import json as _json
+        todos_json = _json.dumps(todos, ensure_ascii=False)
+        return f"\nAction: todo_write(todos={todos_json})"
+
+
 def _parse_tool_call(tool_call_dict: dict) -> Tuple[str, str]:
     """Extract (tool_name, path_or_arg) from a cursor-agent tool_call dict.
 
@@ -230,10 +289,19 @@ def cursor_agent_stream(
                             yield text
 
             elif chunk_type == "tool_call" and chunk.get("subtype") == "started":
-                # cursor-agent is calling a tool internally — show a brief indicator
-                tool_name, detail = _parse_tool_call(chunk.get("tool_call", {}))
-                label = f"\n[{tool_name}" + (f": {detail}" if detail else "") + "]"
-                yield label
+                tc = chunk.get("tool_call", {})
+
+                # updateTodosToolCall → translate to Action: todo_write/todo_update
+                # so the ReAct loop intercepts and executes against common_ai_agent's tracker
+                if "updateTodosToolCall" in tc:
+                    action_text = _translate_update_todos(tc["updateTodosToolCall"])
+                    if action_text:
+                        yield action_text
+                else:
+                    # Other internal tools — show brief indicator
+                    tool_name, detail = _parse_tool_call(tc)
+                    label = f"\n[{tool_name}" + (f": {detail}" if detail else "") + "]"
+                    yield label
 
             elif chunk_type == "result":
                 # Final event — capture usage
