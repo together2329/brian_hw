@@ -8,6 +8,8 @@ Terminal mode (unchanged):
     python src/main.py
 """
 
+from __future__ import annotations
+
 import os
 import sys
 
@@ -42,14 +44,13 @@ if sys.version_info < (3, 8):
 # (\x1b[O, \x1b[8;...t, etc.) can arrive in chunks with >100ms gaps.
 # Textual's default 100ms ESCAPE_DELAY fires spurious ESC in those gaps.
 # Force-set (not setdefault) so existing env values don't override this.
-import os as _os
-_os.environ["ESCDELAY"] = "1000"
+os.environ["ESCDELAY"] = "1000"
 
 try:
     import textual  # noqa: F401
     _TEXTUAL_OK = True
 except Exception as e:
-    print(f"[warn] Textual unavailable ({e}) — falling back to terminal mode.")
+    print(f"[warn] Textual unavailable ({e}) - falling back to terminal mode.")
     _TEXTUAL_OK = False
 
 import config
@@ -66,8 +67,13 @@ def _emit_context(app: AgentTUI) -> None:
     try:
         tokens  = getattr(_agent.llm_client, "last_input_tokens", 0)
         max_tok = getattr(config, "MAX_CONTEXT_TOKENS", 128000)
-        # Sync active model from config (may have changed via /model switch)
-        app._active_model = getattr(config, "MODEL_NAME", "") or app._active_model
+        # Sync active model — use get_active_model() so cursor-agent shows "Cursor (Auto)"
+        try:
+            from src.llm_client import get_active_model as _get_active_model
+            _m = _get_active_model()
+        except Exception:
+            _m = getattr(config, "MODEL_NAME", "")
+        app._active_model = _m or app._active_model
         app._refresh_model_sidebar()
         fn      = getattr(_agent, "load_active_skills", None)
         forced  = getattr(fn, "forced_skills", set()) or set()
