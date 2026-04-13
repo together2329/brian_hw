@@ -44,6 +44,24 @@ actual_token_cache = {}
 last_input_tokens = 0  # Last reported input tokens from API
 last_output_tokens = 0  # Last reported output tokens from API
 
+
+def get_active_model() -> str:
+    """Return the display name for the currently active LLM backend.
+
+    When cursor-agent is enabled, returns "Cursor (<model>)" where <model>
+    is the human-readable label from cursor-agent's init event (e.g. "Auto",
+    "Sonnet 4.6 1M"). Falls back to config.MODEL_NAME for the normal path.
+    """
+    if getattr(config, "CURSOR_AGENT_ENABLE", False):
+        try:
+            from src.cursor_agent_backend import last_cursor_model
+            label = last_cursor_model or getattr(config, "CURSOR_AGENT_MODEL", "auto")
+        except Exception:
+            label = getattr(config, "CURSOR_AGENT_MODEL", "auto")
+        return f"Cursor ({label})"
+    return config.MODEL_NAME
+
+
 # Minimum output tokens floor — never cap below this value even if context is tight
 _MIN_OUTPUT_TOKENS = 1024
 # Hard cap on generated tokens regardless of model claim (GLM-4.6/4.5 practical limit)

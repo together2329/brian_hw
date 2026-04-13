@@ -460,9 +460,14 @@ def run_react_agent_impl(
             _cur = todo_tracker.get_current_todo()
             if _cur and _cur.active_form and _cur.active_form != _cur.content:
                 _todo_label = _cur.active_form
+        try:
+            from src.llm_client import get_active_model as _get_active_model
+            _iter_model = _get_active_model()
+        except Exception:
+            _iter_model = getattr(cfg, "MODEL_NAME", "")
         print(format_iteration_header(
             tracker.current + 1, tracker.max_iterations,
-            agent_name="primary", model=getattr(cfg, "MODEL_NAME", ""),
+            agent_name="primary", model=_iter_model,
             todo_label=_todo_label,
         ), flush=True)
 

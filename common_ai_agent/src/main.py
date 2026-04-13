@@ -1318,11 +1318,12 @@ def chat_loop():
     if not _textual_emit_content_fn:
         # Compact startup banner
         from lib.display import format_startup_banner
+        from src.llm_client import get_active_model
         _rl = get_rate_limiter()
         _rl_info = f"TPM={config.TPM_LIMIT} RPM={config.RPM_LIMIT}" if _rl.active else f"delay={config.RATE_LIMIT_DELAY}s"
         print(format_startup_banner(
-            base_url=config.BASE_URL,
-            model=config.MODEL_NAME,
+            base_url=config.BASE_URL if not getattr(config, "CURSOR_AGENT_ENABLE", False) else "cursor-agent",
+            model=get_active_model(),
             features={
                 'rate_limit': _rl_info,
                 'max_iter': config.MAX_ITERATIONS,

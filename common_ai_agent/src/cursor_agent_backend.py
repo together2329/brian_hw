@@ -20,7 +20,30 @@ import json
 import subprocess
 import sys
 import os
-from typing import Generator, List, Dict, Optional
+from typing import Generator, List, Dict, Optional, Tuple
+
+
+def _parse_tool_call(tool_call_dict: dict) -> Tuple[str, str]:
+    """Extract (tool_name, path_or_arg) from a cursor-agent tool_call dict.
+
+    cursor-agent uses camelCase keys like readToolCall, writeToolCall, editToolCall.
+    Returns ("read", "/path/to/file") etc.
+    """
+    for key, val in tool_call_dict.items():
+        name = key.replace("ToolCall", "")  # readToolCall → read
+        args = val.get("args", {}) if isinstance(val, dict) else {}
+        detail = (
+            args.get("path")
+            or args.get("file_path")
+            or args.get("command", "")[:60]
+        )
+        return name, str(detail) if detail else ""
+    return "tool", ""
+
+# Actual model label returned by cursor-agent in the system init event.
+# e.g. "Auto", "Sonnet 4.6 1M", "Composer 2 Fast"
+# Updated on every call; empty until the first call completes.
+last_cursor_model: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -192,7 +215,12 @@ def cursor_agent_stream(
 
             chunk_type = chunk.get("type")
 
-            if chunk_type == "assistant" and "timestamp_ms" in chunk:
+            if chunk_type == "system" and chunk.get("subtype") == "init":
+                # Capture the human-readable model name (e.g. "Auto", "Sonnet 4.6 1M")
+                global last_cursor_model
+                last_cursor_model = chunk.get("model", "")
+
+            elif chunk_type == "assistant" and "timestamp_ms" in chunk:
                 # Streaming delta — yield text
                 content = chunk.get("message", {}).get("content", [])
                 for block in content:
@@ -200,6 +228,12 @@ def cursor_agent_stream(
                         text = block.get("text", "")
                         if text:
                             yield text
+
+            elif chunk_type == "tool_call" and chunk.get("subtype") == "started":
+                # cursor-agent is calling a tool internally — show a brief indicator
+                tool_name, detail = _parse_tool_call(chunk.get("tool_call", {}))
+                label = f"\n[{tool_name}" + (f": {detail}" if detail else "") + "]"
+                yield label
 
             elif chunk_type == "result":
                 # Final event — capture usage
@@ -269,7 +303,11 @@ def cursor_agent_call(
 
             chunk_type = chunk.get("type")
 
-            if chunk_type == "assistant" and "timestamp_ms" in chunk:
+            if chunk_type == "system" and chunk.get("subtype") == "init":
+                global last_cursor_model
+                last_cursor_model = chunk.get("model", "")
+
+            elif chunk_type == "assistant" and "timestamp_ms" in chunk:
                 content = chunk.get("message", {}).get("content", [])
                 for block in content:
                     if isinstance(block, dict) and block.get("type") == "text":
@@ -279,6 +317,13 @@ def cursor_agent_call(
                             if stream_prefix is not None:
                                 sys.stdout.write(stream_prefix + text)
                                 sys.stdout.flush()
+
+            elif chunk_type == "tool_call" and chunk.get("subtype") == "started":
+                tool_name, detail = _parse_tool_call(chunk.get("tool_call", {}))
+                label = f"\n[{tool_name}" + (f": {detail}" if detail else "") + "]"
+                if stream_prefix is not None:
+                    sys.stdout.write(stream_prefix + label)
+                    sys.stdout.flush()
 
             elif chunk_type == "result":
                 usage = chunk.get("usage", {})
