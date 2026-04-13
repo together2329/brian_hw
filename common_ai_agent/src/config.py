@@ -97,6 +97,15 @@ CUSTOM_PRICE = os.getenv("CUSTOM_PRICE", "false").lower() == "true"  # GLM flat 
 PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", MODEL_NAME)
 
 # ============================================================
+# cursor-agent Backend Configuration
+# ============================================================
+CURSOR_AGENT_ENABLE = os.getenv("CURSOR_AGENT_ENABLE", "false").lower() == "true"
+CURSOR_AGENT_MODEL = os.getenv("CURSOR_AGENT_MODEL", "auto")
+CURSOR_AGENT_YOLO = os.getenv("CURSOR_AGENT_YOLO", "false").lower() == "true"
+CURSOR_AGENT_MODE = os.getenv("CURSOR_AGENT_MODE", "")       # "ask" | "plan" | "" (full agent)
+CURSOR_AGENT_WORKSPACE = os.getenv("CURSOR_AGENT_WORKSPACE", "")  # path; empty = cwd
+
+# ============================================================
 # OpenRouter Configuration (주석 처리됨)
 # ============================================================
 # BASE_URL = os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1")

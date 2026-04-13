@@ -1378,6 +1378,18 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     global last_cache_creation_tokens, last_cache_read_tokens
     global total_cache_created, total_cache_read
 
+    # cursor-agent backend dispatch
+    if getattr(config, "CURSOR_AGENT_ENABLE", False):
+        from src.cursor_agent_backend import cursor_agent_stream
+        yield from cursor_agent_stream(
+            messages=messages,
+            model=getattr(config, "CURSOR_AGENT_MODEL", "auto"),
+            yolo=getattr(config, "CURSOR_AGENT_YOLO", False),
+            mode=getattr(config, "CURSOR_AGENT_MODE", ""),
+            workspace=getattr(config, "CURSOR_AGENT_WORKSPACE", ""),
+        )
+        return
+
     _t_fn_start = time.time()  # track pre-connect setup time
 
     # Non-streaming mode: fetch full response then yield line-by-line
@@ -2164,6 +2176,20 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         '{"tool_calls": [{"id": ..., "name": ..., "arguments": ...}, ...]}'
     """
     global last_input_tokens, last_output_tokens
+
+    # cursor-agent backend dispatch
+    if getattr(config, "CURSOR_AGENT_ENABLE", False):
+        from src.cursor_agent_backend import cursor_agent_call
+        msgs = messages if messages else [{"role": "user", "content": prompt}]
+        return cursor_agent_call(
+            messages=msgs,
+            model=getattr(config, "CURSOR_AGENT_MODEL", "auto"),
+            yolo=getattr(config, "CURSOR_AGENT_YOLO", False),
+            mode=getattr(config, "CURSOR_AGENT_MODE", ""),
+            workspace=getattr(config, "CURSOR_AGENT_WORKSPACE", ""),
+            stream_prefix=stream_prefix,
+        )
+
     resolved_model = model or config.MODEL_NAME
     url = f"{config.BASE_URL}/chat/completions"
     api_key = config.API_KEY
