@@ -133,8 +133,8 @@ class SubAgentDelegate:
         return None
 
     def _load_base_prompt(self, agent_name: str) -> Optional[str]:
-        """Load base agent prompt from agents/prompts/."""
-        prompt_path = self.project_root / "agents" / "prompts" / f"{agent_name}.md"
+        """Load base agent prompt from workflow/prompts/."""
+        prompt_path = self.project_root / "workflow" / "prompts" / f"{agent_name}.md"
         if prompt_path.exists():
             return prompt_path.read_text(encoding="utf-8").strip()
         return None

@@ -30,7 +30,7 @@ _project_root = os.path.dirname(_script_dir)
 # Add paths: project root first, then src
 # This allows imports like: from lib.display import Color, from core.tools import ...
 sys.path.insert(0, _script_dir)  # src directory (highest priority for src modules)
-sys.path.insert(0, _project_root)  # common_ai_agent directory (for lib, core, agents)
+sys.path.insert(0, _project_root)  # common_ai_agent directory (for lib, core, workflow)
 
 import config
 import llm_client
@@ -337,14 +337,6 @@ def _setup_workspace(name: str) -> None:
 
 # Legacy Sub-Agent System (deprecated - replaced by background agent system in v2)
 orchestrator = None
-if getattr(config, 'ENABLE_SUB_AGENTS', False):
-    try:
-        from sub_agents import Orchestrator
-    except ImportError:
-        try:
-            from agents.sub_agents import Orchestrator
-        except ImportError:
-            Orchestrator = None
 
 from lib.iteration_control import IterationTracker, detect_completion_signal, show_iteration_warning
 
@@ -576,12 +568,7 @@ _shared_context_storage = threading.local()
 def get_shared_context():
     """Get current thread's SharedContext"""
     if not hasattr(_shared_context_storage, 'context'):
-        # Lazy import to avoid circular dependency
-        try:
-            from agents.shared_context import SharedContext
-            _shared_context_storage.context = SharedContext()
-        except ImportError:
-            _shared_context_storage.context = None
+        _shared_context_storage.context = None
     return _shared_context_storage.context
 
 

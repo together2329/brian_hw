@@ -93,7 +93,7 @@ def run_agent_session(
         model_override: 사용할 모델 (None이면 agent config에서 결정)
         allowed_tools: 허용할 tool 이름 집합 (None이면 agent config 사용)
         max_iterations: 최대 반복 횟수
-        system_prompt: 커스텀 시스템 프롬프트 (None이면 agents/prompts/ 에서 로드)
+        system_prompt: 커스텀 시스템 프롬프트 (None이면 workflow/prompts/ 에서 로드)
         parent_context: Primary agent가 전달하는 추가 context
         compress_result: 결과를 LLM으로 압축할지 여부
         max_result_chars: 최대 결과 문자 수
@@ -550,8 +550,8 @@ def _persist_job_result(
 # ============================================================
 
 def _load_agent_prompt(agent_name: str) -> str:
-    """agents/prompts/{agent_name}.md 에서 시스템 프롬프트 로드"""
-    prompts_dir = os.path.join(_project_root, "agents", "prompts")
+    """workflow/prompts/{agent_name}.md 에서 시스템 프롬프트 로드"""
+    prompts_dir = os.path.join(_project_root, "workflow", "prompts")
     prompt_path = os.path.join(prompts_dir, f"{agent_name}.md")
 
     if os.path.exists(prompt_path):
@@ -576,20 +576,13 @@ def _get_default_prompt(agent_name: str) -> str:
             "Action: tool_name(args)\n"
             "When done, provide your final answer."
         ),
-        "execute": (
-            "You are an execution agent. Implement code changes according to the given plan. "
-            "You have FULL access to read, write, and run commands.\n\n"
-            "Follow existing code patterns and conventions. "
+        "workflow": (
+            "You are a unified workflow agent with full access. "
+            "You handle exploration, execution, and review in a single session.\n\n"
+            "Phases: Understand (read-only) → Plan → Execute → Verify.\n"
             "Use the ReAct format:\n"
-            "Thought: what to implement\n"
+            "Thought: what to do\n"
             "Action: tool_name(args)"
-        ),
-        "review": (
-            "You are a code review agent. Review the code changes for bugs, style issues, "
-            "and potential improvements. You have READ-ONLY access.\n\n"
-            "Output format:\n"
-            "<issues>\n- Issue description (severity: high/medium/low)\n</issues>\n"
-            "<suggestions>\n- Improvement suggestion\n</suggestions>"
         ),
     }
     return defaults.get(agent_name, f"You are a {agent_name} agent. Use the ReAct format.")
@@ -620,8 +613,7 @@ def _get_agent_tools(agent_name: str) -> Set[str]:
 
     defaults = {
         "explore": READ_ONLY,
-        "execute": ALL_TOOLS,
-        "review": READ_ONLY,
+        "workflow": ALL_TOOLS,
         "task": TASK_TOOLS,
     }
     return defaults.get(agent_name, READ_ONLY)

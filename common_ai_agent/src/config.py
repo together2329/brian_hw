@@ -803,7 +803,7 @@ Git Tools:
 12. git_revert(path="path/to/file") - Revert uncommitted changes to a file
 
 Sub-Agent Tools:
-30. background_task(agent="explore", prompt="find FIFO implementations") - Delegate to sub-agent
+30. background_task(agent="workflow", prompt="implement the change") - Delegate to sub-agent (explore/workflow)
 31. background_output(task_id="bg_xxxx") - Get background task result
 32. todo_update(index=1, status="completed") - Update todo item status (index is REQUIRED and MUST be 1-based. 1=first task, 2=second, etc.)
 
@@ -1033,7 +1033,7 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
         import os as _os
         _prompt_path = _os.path.join(
             _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
-            "agents", "prompts", "cursor_agent.md"
+            "workflow", "prompts", "cursor_agent.md"
         )
         try:
             with open(_prompt_path, "r") as _f:
@@ -1108,7 +1108,7 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
         tool_lines["Task Management"] = task_tools
 
     tool_lines["Sub-Agents"] = [
-        _tool_line("background_task", 'agent, prompt', "Delegate to sub-agent (explore/execute/review)."),
+        _tool_line("background_task", 'agent, prompt', "Delegate to sub-agent (explore/workflow)."),
         _tool_line("background_output", 'task_id', "Get sub-agent result."),
         _tool_line("background_cancel", 'task_id', "Cancel sub-agent."),
         _tool_line("background_list", '', "List active sub-agents."),
