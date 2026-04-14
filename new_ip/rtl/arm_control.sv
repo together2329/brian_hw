@@ -10,6 +10,7 @@ module arm_control (
 
     // From decoder
     input  logic        is_data_proc,
+    input  logic        s_bit,
     input  logic        is_imm_op2,
     input  logic        is_load_store,
     input  logic        is_load,
@@ -142,6 +143,7 @@ module arm_control (
                 if (is_data_proc && cond_pass) begin
                     regfile_we = 1'b1;
                     result_sel = 2'b00; // ALU result
+                    flags_we   = s_bit;
                 end
 
                 // MSR/MRS
@@ -151,7 +153,7 @@ module arm_control (
 
                 if (is_mrs && cond_pass) begin
                     regfile_we = 1'b1;
-                    result_sel = 2'b00;
+                    result_sel = 2'b10;
                 end
             end
 

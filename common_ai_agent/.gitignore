@@ -34,3 +34,7 @@ tests/results/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Runtime session artifacts
+.session/
+**/.session/

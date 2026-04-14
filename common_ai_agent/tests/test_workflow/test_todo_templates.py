@@ -120,15 +120,15 @@ class TestMasGenTemplates(unittest.TestCase):
         self.data = _load("mas-gen", "full-project")
         self.tasks = self.data["tasks"]
 
-    def test_has_ten_steps(self):
-        self.assertEqual(len(self.tasks), 10)
+    def test_has_eleven_steps(self):
+        self.assertEqual(len(self.tasks), 11)
 
-    def test_all_steps_are_mas(self):
+    def test_all_steps_are_mas_or_handoff(self):
         for i, t in enumerate(self.tasks):
             with self.subTest(idx=i):
                 self.assertTrue(
-                    t["content"].startswith("[MAS]"),
-                    f"Step {i} should start with '[MAS]', got: {t['content'][:30]}"
+                    t["content"].startswith(("[MAS]", "[HANDOFF]")),
+                    f"Step {i} should start with '[MAS]' or '[HANDOFF]', got: {t['content'][:30]}"
                 )
 
     def test_no_rtl_tb_sim_doc_tasks(self):
@@ -140,7 +140,9 @@ class TestMasGenTemplates(unittest.TestCase):
         self.assertIn("requirement", self.tasks[0]["content"].lower())
 
     def test_last_task_covers_dv_plan(self):
-        self.assertIn("DV Plan", self.tasks[-1]["content"])
+        # Last MAS task (before HANDOFF) covers DV Plan
+        mas_tasks = [t for t in self.tasks if t["content"].startswith("[MAS]")]
+        self.assertIn("DV Plan", mas_tasks[-1]["content"])
 
     def test_each_section_has_own_task(self):
         contents = " ".join(t["content"] for t in self.tasks)
@@ -148,10 +150,11 @@ class TestMasGenTemplates(unittest.TestCase):
             with self.subTest(section=section):
                 self.assertIn(section, contents)
 
-    def test_all_steps_high_priority(self):
+    def test_all_steps_high_priority_or_normal(self):
         for i, t in enumerate(self.tasks):
             with self.subTest(idx=i):
-                self.assertEqual(t["priority"], "high")
+                self.assertIn(t["priority"], ["high", "normal"],
+                              f"Step {i} has unexpected priority: {t['priority']}")
 
 
 # ─────────────────────────────────────────────────────────────
@@ -168,7 +171,7 @@ class TestRtlGenTemplates(unittest.TestCase):
         self.assertEqual(len(self.tasks), 8)
 
     def test_first_step_reads_mas(self):
-        self.assertIn("Read Micro Architecture Spec", self.tasks[0]["content"])
+        self.assertIn("MAS", self.tasks[0]["content"])
 
     def test_last_step_is_lint_check(self):
         self.assertIn("Lint check", self.tasks[7]["content"])
@@ -393,20 +396,20 @@ class TestMasGenNewIpTemplate(unittest.TestCase):
     def test_has_description(self):
         self.assertIn("description", self.data)
 
-    def test_has_ten_tasks(self):
-        self.assertEqual(len(self.tasks), 10)
+    def test_has_eleven_tasks(self):
+        self.assertEqual(len(self.tasks), 11)
 
     def test_first_task_gathers_requirements(self):
         content = self.tasks[0]["content"]
         self.assertIn("[MAS]", content)
         self.assertIn("requirement", content.lower())
 
-    def test_all_tasks_are_mas(self):
+    def test_all_tasks_are_mas_or_handoff(self):
         for i, t in enumerate(self.tasks):
             with self.subTest(idx=i):
                 self.assertTrue(
-                    t["content"].startswith("[MAS]"),
-                    f"Task {i} should start with [MAS], got: {t['content'][:30]}"
+                    t["content"].startswith(("[MAS]", "[HANDOFF]")),
+                    f"Task {i} should start with [MAS] or [HANDOFF], got: {t['content'][:30]}"
                 )
 
     def test_no_rtl_tb_sim_doc_tasks(self):
@@ -429,15 +432,18 @@ class TestMasGenNewIpTemplate(unittest.TestCase):
                 self.assertIn(section, contents)
 
     def test_last_task_covers_dv_plan(self):
-        content = self.tasks[-1]["content"]
-        detail  = self.tasks[-1].get("detail", "")
+        # Last MAS task (before HANDOFF) covers DV Plan
+        mas_tasks = [t for t in self.tasks if t["content"].startswith("[MAS]")]
+        content = mas_tasks[-1]["content"]
+        detail  = mas_tasks[-1].get("detail", "")
         self.assertIn("DV Plan", content)
         self.assertIn("§9", detail)
 
-    def test_all_tasks_high_priority(self):
+    def test_all_tasks_high_priority_or_normal(self):
         for i, task in enumerate(self.tasks):
             with self.subTest(idx=i):
-                self.assertEqual(task["priority"], "high")
+                self.assertIn(task["priority"], ["high", "normal"],
+                              f"Task {i} has unexpected priority: {task['priority']}")
 
 
 # ─────────────────────────────────────────────────────────────

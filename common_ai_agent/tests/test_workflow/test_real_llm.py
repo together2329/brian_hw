@@ -201,7 +201,7 @@ class TestRealGLM51WorkspaceSystemPrompt(unittest.TestCase):
             system_text = (system_text.get("static", "") + "\n\n" + system_text.get("dynamic", "")).strip()
         return _call([{"role": "user", "content": user_msg}], system=system_text)
 
-    def test_mas-gen_prompt_makes_llm_verilog_aware(self):
+    def test_mas_gen_prompt_makes_llm_verilog_aware(self):
         """After injecting mas-gen system prompt, GLM knows it's a Verilog/MAS agent."""
         result = self._build_and_call(
             "mas-gen",
@@ -216,7 +216,7 @@ class TestRealGLM51WorkspaceSystemPrompt(unittest.TestCase):
             f"mas-gen prompt not reflected in LLM response: {result[:300]}",
         )
 
-    def test_rtl-gen_prompt_produces_verilog_code(self):
+    def test_rtl_gen_prompt_produces_verilog_code(self):
         """After injecting rtl-gen system prompt, LLM produces Verilog when asked."""
         result = self._build_and_call(
             "rtl-gen",
@@ -227,7 +227,7 @@ class TestRealGLM51WorkspaceSystemPrompt(unittest.TestCase):
             f"rtl-gen: expected Verilog output, got: {result[:300]}",
         )
 
-    def test_tb-gen_prompt_produces_testbench_aware_response(self):
+    def test_tb_gen_prompt_produces_testbench_aware_response(self):
         """After injecting tb-gen system prompt, LLM knows it's writing testbenches."""
         result = self._build_and_call(
             "tb-gen",
@@ -402,14 +402,14 @@ class TestRealGLM51FullWorkflowPipeline(unittest.TestCase):
 
         return _call([{"role": "user", "content": user_msg}], system=system_text), ws
 
-    def test_mas-gen_real_call_returns_content(self):
+    def test_mas_gen_real_call_returns_content(self):
         result, _ = self._full_call(
             "mas-gen",
             "Describe in one sentence what a Micro Architecture Spec (MAS) document should contain.",
         )
         self.assertGreater(len(result.strip()), 20)
 
-    def test_rtl-gen_real_call_writes_verilog(self):
+    def test_rtl_gen_real_call_writes_verilog(self):
         result, _ = self._full_call(
             "rtl-gen",
             "Write a Verilog module that implements a D flip-flop with synchronous reset.",
@@ -420,7 +420,7 @@ class TestRealGLM51FullWorkflowPipeline(unittest.TestCase):
             f"rtl-gen: expected Verilog, got: {result[:300]}",
         )
 
-    def test_tb-gen_real_call_mentions_testbench(self):
+    def test_tb_gen_real_call_mentions_testbench(self):
         result, _ = self._full_call(
             "tb-gen",
             "What is the first step when writing a testbench for a Verilog module?",

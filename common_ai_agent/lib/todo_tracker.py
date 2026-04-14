@@ -148,6 +148,13 @@ class TodoItem:
     validator: str = ""                 # Shell command run before marking completed.
                                         # returncode != 0 → auto-reject with stderr as reason.
 
+    # ── Delegation & workflow fields ───────────────────────
+    delegate: str = ""                  # Backend to delegate to: "", "cursor-agent",
+                                        # "codex", "gemini", "api", "sub-agent"
+    delegate_result: str = ""           # Last delegation result (for primary to review)
+    workflow: str = ""                  # Which workflow config this todo runs under
+                                        # (e.g. "rtl-gen", "tb-gen", any workflow/<name>/)
+
     def __post_init__(self):
         if self.created_at is None:
             self.created_at = time.time()
@@ -264,6 +271,9 @@ class TodoTracker:
                 loop_count=int(todo_dict.get("loop_count", 0)),
                 loop_exit_reason=todo_dict.get("loop_exit_reason", ""),
                 validator=todo_dict.get("validator", ""),
+                delegate=todo_dict.get("delegate", ""),
+                delegate_result=todo_dict.get("delegate_result", ""),
+                workflow=todo_dict.get("workflow", ""),
             ))
 
         # Find current in_progress item
@@ -796,6 +806,9 @@ class TodoTracker:
                     "loop_count": t.loop_count,
                     "loop_exit_reason": t.loop_exit_reason,
                     "validator": t.validator,
+                    "delegate": t.delegate,
+                    "delegate_result": t.delegate_result,
+                    "workflow": t.workflow,
                 }
                 for t in self.todos
             ],

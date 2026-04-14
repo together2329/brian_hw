@@ -11,7 +11,9 @@ Primary Agent의 context와 완전히 분리된 독립 세션에서 실행.
 import os
 import sys
 import time
+import json
 import traceback
+from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -80,6 +82,7 @@ def run_agent_session(
     compress_result: bool = True,
     max_result_chars: int = 8000,
     verbose: bool = False,
+    workflow_name: str = "",
 ) -> AgentResult:
     """
     독립 세션에서 미니 ReAct 루프를 실행.
@@ -107,6 +110,27 @@ def run_agent_session(
     tool_calls = []
     files_examined = []
     files_modified = []
+
+    # ── Redirect TODO_FILE to a job-scoped directory ────────────────────
+    # Allocate a job dir upfront so the sub-agent's TodoTracker writes
+    # to jobs/job<N>/todo.json instead of the project-level todo.json.
+    _saved_todo_file = config.TODO_FILE
+    _job_dir = None
+    try:
+        session_dir = getattr(config, 'SESSION_DIR', '')
+        if session_dir:
+            counter = _next_job_counter(session_dir)
+            _job_dir = Path(session_dir) / "jobs" / f"job{counter}"
+            _job_dir.mkdir(parents=True, exist_ok=True)
+            config.TODO_FILE = str(_job_dir / "todo.json")
+            # Also patch todo_tracker module-level path
+            try:
+                import lib.todo_tracker as _tt
+                _tt.TODO_FILE = _job_dir / "todo.json"
+            except Exception:
+                pass
+    except Exception:
+        _job_dir = None
 
     # Load system prompt
     if system_prompt is None:
@@ -365,7 +389,7 @@ def run_agent_session(
     else:
         live_print(f"  {Color.DIM}└─ {agent_name} · {elapsed_ms/1000:.1f}s · {len(tool_calls)} tools · {iteration} iters{Color.RESET}")
 
-    return AgentResult(
+    result = AgentResult(
         output=output,
         raw_output=raw_output,
         status="completed",
@@ -375,6 +399,150 @@ def run_agent_session(
         iterations=iteration,
         execution_time_ms=elapsed_ms,
     )
+
+    # Persist sub-agent result to .session/<project>/jobs/job<N>/
+    try:
+        import config as _cfg
+        session_dir = getattr(_cfg, 'SESSION_DIR', '')
+        if session_dir:
+            _persist_job_result(
+                session_dir=session_dir,
+                agent_name=agent_name,
+                messages=messages,
+                result=result,
+                job_dir=_job_dir,
+            )
+    except Exception:
+        pass
+
+    # Restore project-level TODO_FILE
+    config.TODO_FILE = _saved_todo_file
+    try:
+        import lib.todo_tracker as _tt
+        _tt.TODO_FILE = Path(_saved_todo_file) if _saved_todo_file else _saved_todo_file
+    except Exception:
+        pass
+
+    return result
+
+
+# ============================================================
+# Job Persistence (v2 — flat project layout)
+# ============================================================
+
+def _next_job_counter(session_dir: str) -> int:
+    """Atomically increment and return the job counter.
+
+    Counter file: .session/<project>/jobs/.counter
+    """
+    counter_path = Path(session_dir) / "jobs" / ".counter"
+    counter_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # If counter_path is somehow a directory, remove it
+    if counter_path.is_dir():
+        import shutil
+        shutil.rmtree(counter_path, ignore_errors=True)
+
+    count = 1
+    if counter_path.exists():
+        try:
+            count = int(counter_path.read_text().strip()) + 1
+        except (ValueError, OSError):
+            count = 1
+    try:
+        counter_path.write_text(str(count))
+    except OSError:
+        pass  # Cannot write counter — continue with in-memory count
+    return count
+
+
+def _persist_job_result(
+    session_dir: str,
+    agent_name: str,
+    messages: List[Dict],
+    result: "AgentResult",
+    job_dir: Optional[Path] = None,
+) -> None:
+    """Save job conversation, full history, todos, and result to .session/<project>/jobs/job<N>/.
+
+    Layout (4 files):
+      .session/<project>/jobs/job1/conversation.json       ← active conversation
+      .session/<project>/jobs/job1/full_conversation.json   ← append-only full history
+      .session/<project>/jobs/job1/todo.json                ← job's todo state
+      .session/<project>/jobs/job1/result.json              ← result summary
+    """
+    if not session_dir:
+        return
+
+    try:
+        # Reuse pre-allocated job_dir (from TODO_FILE redirect) or allocate new one
+        if job_dir is not None:
+            job_dir = Path(job_dir)
+        else:
+            counter = _next_job_counter(session_dir)
+            job_dir = Path(session_dir) / "jobs" / f"job{counter}"
+        job_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save conversation (active messages)
+        conv_path = job_dir / "conversation.json"
+        safe_messages = []
+        for m in messages:
+            safe_messages.append({
+                "role": m.get("role", ""),
+                "content": str(m.get("content", ""))[:50000],
+            })
+        conv_path.write_text(
+            json.dumps(safe_messages, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+        # Save full conversation (append-only — same as active for first run)
+        full_conv_path = job_dir / "full_conversation.json"
+        if not full_conv_path.exists():
+            full_conv_path.write_text(
+                json.dumps(safe_messages, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        else:
+            # Append new messages beyond what's already stored
+            try:
+                existing = json.loads(full_conv_path.read_text(encoding="utf-8"))
+                new_count = len(safe_messages) - len(existing)
+                if new_count > 0:
+                    existing.extend(safe_messages[len(existing):])
+                    full_conv_path.write_text(
+                        json.dumps(existing, ensure_ascii=False, indent=2),
+                        encoding="utf-8",
+                    )
+            except Exception:
+                pass
+
+        # Save todo state (job-scoped — already written by TodoTracker to config.TODO_FILE)
+        # The TODO_FILE was redirected to this job_dir before execution, so the file
+        # should already exist. No copy needed — just verify it's there.
+        todo_path = job_dir / "todo.json"
+        if not todo_path.exists():
+            # Fallback: create empty todo file
+            todo_path.write_text("[]", encoding="utf-8")
+
+        # Save result summary
+        result_path = job_dir / "result.json"
+        result_data = {
+            "agent_name": agent_name,
+            "status": result.status,
+            "iterations": result.iterations,
+            "execution_time_ms": result.execution_time_ms,
+            "tool_calls": len(result.tool_calls),
+            "files_examined": result.files_examined[:20],
+            "files_modified": result.files_modified[:20],
+            "output_preview": result.output[:2000] if result.output else "",
+        }
+        result_path.write_text(
+            json.dumps(result_data, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass  # Persistence failure should never crash the agent
 
 
 # ============================================================

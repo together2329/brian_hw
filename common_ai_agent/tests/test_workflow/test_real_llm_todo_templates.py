@@ -164,7 +164,7 @@ class TestTodoTemplateComprehension(unittest.TestCase):
             f"Should identify register map task: {reply[:300]}"
         )
 
-    def test_tb-gen_sequence_naming_convention(self):
+    def test_tb_gen_sequence_naming_convention(self):
         """LLM knows tc_ tasks are named after MAS §9 sequence IDs."""
         tmpl = _load_template("tb-gen", "new-ip-tb")
         task_text = _tasks_as_prompt(tmpl["tasks"])

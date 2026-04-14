@@ -406,7 +406,7 @@ endmodule"""
         self.assertTrue(converged or last_iter <= self.MAX_ITERS,
                         "Improvement loop ran longer than MAX_ITERS")
 
-    def test_loop_with_tb-gen_context(self):
+    def test_loop_with_tb_gen_context(self):
         """Iteration loop works correctly under tb-gen workspace context."""
         SIMPLE_DUT = "module and2(input a, b; output y); assign y = a & b; endmodule"
         h = self._base_history(ws="tb-gen")
@@ -758,7 +758,7 @@ class TestMultiWorkspaceOrchestration(unittest.TestCase):
             f"rtl-gen context didn't produce Verilog: {rtl_reply[:400]}"
         )
 
-    def test_rtl-gen_adds_implementation_detail(self):
+    def test_rtl_gen_adds_implementation_detail(self):
         """rtl-gen call adds port declarations not present in the MAS spec."""
         h = []
         self._switch(h, "mas-gen",
@@ -772,7 +772,7 @@ class TestMultiWorkspaceOrchestration(unittest.TestCase):
             f"RTL missing ports/logic: {rtl[:400]}"
         )
 
-    def test_tb-gen_adds_stimulus_not_in_rtl(self):
+    def test_tb_gen_adds_stimulus_not_in_rtl(self):
         """tb-gen call adds stimulus/initial block absent in RTL stage."""
         h = []
         self._switch(h, "rtl-gen",

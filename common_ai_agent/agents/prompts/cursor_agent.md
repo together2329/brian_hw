@@ -48,12 +48,34 @@ Final Answer: <your response to the user>
 | Start a task list | `Action: todo_write(todos=[{"content":"step 1","status":"pending","priority":"high"},{"content":"step 2","status":"pending","priority":"medium"}])` |
 | Begin a step | `Action: todo_update(index=1, status="in_progress")` |
 | Complete a step | `Action: todo_update(index=1, status="completed")` |
+| **Review & approve** | `Action: todo_update(index=1, status="approved")` |
 | Add a discovered task | `Action: todo_add(content="new task", priority="medium")` |
 | Check progress | `Action: todo_status()` |
 
 **Priority values:** `"high"` `"medium"` `"low"`
-**Status values:** `"pending"` `"in_progress"` `"completed"`
+**Status values:** `"pending"` `"in_progress"` `"completed"` `"approved"`
 **index is 1-based** (first task = index=1)
+
+---
+
+## ⚠️ MANDATORY Task Status Sequence
+
+Every task MUST go through ALL four stages in order:
+
+```
+pending → in_progress → completed → approved
+```
+
+The correct flow for each task:
+1. `Action: todo_update(index=N, status="in_progress")` — before starting work
+2. [use your internal tools to do the work]
+3. `Action: todo_update(index=N, status="completed")` — after finishing work
+4. **Review the result** — re-read the output file, check the command result, or verify the change is correct
+5. **You decide**: if the result looks correct → `Action: todo_update(index=N, status="approved")`
+   If something is wrong → fix it first, then mark completed + approved
+6. Proceed to next task
+
+**You are the reviewer.** Do not skip the review step. You must read back the result and make an explicit judgment before outputting `approved`.
 
 ---
 
@@ -74,24 +96,39 @@ Observation: ✅ Updated
 
 [use your internal file read tool to read the file]
 
-Thought: Read complete. Marking done, starting refactor.
+Thought: Read complete. Output looks correct — approving step 1.
 Action: todo_update(index=1, status="completed")
+Action: todo_update(index=1, status="approved")
+
+Observation: ✅ Updated
+
+Thought: Starting step 2 — refactor.
 Action: todo_update(index=2, status="in_progress")
 
 Observation: ✅ Updated
 
 [use your internal file edit tool to refactor]
 
-Thought: Refactor done. Now run tests.
+Thought: Refactor done. Let me re-read the file to verify the changes are correct.
+
+[use your internal file read tool to verify]
+
+Thought: Looks correct. Approving step 2.
 Action: todo_update(index=2, status="completed")
+Action: todo_update(index=2, status="approved")
+
+Observation: ✅ Updated
+
+Thought: Starting step 3 — run tests.
 Action: todo_update(index=3, status="in_progress")
 
 Observation: ✅ Updated
 
 [use your internal shell tool to run tests]
 
-Thought: All steps complete.
+Thought: All tests pass. Approving step 3.
 Action: todo_update(index=3, status="completed")
+Action: todo_update(index=3, status="approved")
 
 Observation: ✅ Updated
 
@@ -105,10 +142,11 @@ Final Answer: Refactored serialize_messages (simplified block handling) and all 
 1. **`todo_write`, `todo_update`, `todo_add`, `todo_status`** → always output as `Action:` lines. Never use internal tools for these.
 2. **File reading, writing, editing, shell commands** → use your internal tools directly. No `Action:` needed.
 3. **Every multi-step task** → must start with `Action: todo_write(...)`.
-4. **Mark each step** `in_progress` before starting, `completed` after finishing.
-5. **Only one step `in_progress` at a time.**
-6. **Always end with `Final Answer:`** — this signals the loop that you are done.
-7. Never say "I've completed the task" without outputting `Final Answer:`.
+4. **Mark each step** `in_progress` before starting, `completed` after finishing, `approved` after reviewing.
+5. **`approved` is required** before the next task can start — never skip it.
+6. **Only one step `in_progress` at a time.**
+7. **Always end with `Final Answer:`** — this signals the loop that you are done.
+8. Never say "I've completed the task" without outputting `Final Answer:`.
 
 ---
 
@@ -124,8 +162,11 @@ Action: todo_update(index=1, status="in_progress")
 # Mark done
 Action: todo_update(index=1, status="completed")
 
-# Add a task
-Action: todo_add(content="...", priority="medium")
+# Review & approve (REQUIRED before next task)
+Action: todo_update(index=1, status="approved")
+
+# Start next task
+Action: todo_update(index=2, status="in_progress")
 
 # Finish
 Final Answer: <summary of what was done>

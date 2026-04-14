@@ -1,0 +1,34 @@
+{
+  "name": "bugfix",
+  "description": "Standard bug-fix workflow: reproduce → diagnose → fix → verify",
+  "tasks": [
+    {
+      "content": "Reproduce the bug — confirm the issue exists",
+      "activeForm": "Reproducing the bug",
+      "status": "pending",
+      "priority": "high",
+      "criteria": "Bug behavior confirmed with clear steps to reproduce"
+    },
+    {
+      "content": "Diagnose root cause — trace the bug to its source",
+      "activeForm": "Diagnosing root cause",
+      "status": "pending",
+      "priority": "high",
+      "criteria": "Root cause identified with specific file:line reference"
+    },
+    {
+      "content": "Implement the fix",
+      "activeForm": "Implementing the fix",
+      "status": "pending",
+      "priority": "high",
+      "criteria": "Code change addresses root cause without introducing regressions"
+    },
+    {
+      "content": "Verify the fix — run tests and confirm bug is resolved",
+      "activeForm": "Verifying the fix",
+      "status": "pending",
+      "priority": "high",
+      "criteria": "Original reproduction steps pass. All existing tests pass."
+    }
+  ]
+}

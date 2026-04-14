@@ -179,6 +179,10 @@ HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")
 TODO_FILE = os.getenv("TODO_FILE", "current_todos.json")
 TODO_ERROR_FILE = os.getenv("TODO_ERROR_FILE", "current_todos_error.json")
 
+# Session directory layout (set by _setup_session at runtime)
+SESSION_DIR = os.getenv("SESSION_DIR", "")            # .session/<project_name>
+ACTIVE_PROJECT = os.getenv("ACTIVE_PROJECT", "default")  # current active project name
+
 # Step-by-step execution mode
 STEP_BY_STEP_MODE = os.getenv("STEP_BY_STEP_MODE", "false").lower() in ("true", "1", "yes")
 
