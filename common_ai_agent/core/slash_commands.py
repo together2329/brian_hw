@@ -23,6 +23,37 @@ _USE_EMOJI = sys.platform != 'linux' and os.environ.get('NO_EMOJI', '').lower() 
 def _icon(emoji: str, fallback: str) -> str:
     return emoji if _USE_EMOJI else fallback
 
+
+# ── Session tree helpers ─────────────────────────────────────────────────────
+
+def _fmt_size(n: int) -> str:
+    """Human-readable file size."""
+    if n < 1024:
+        return f"{n}B"
+    if n < 1024 * 1024:
+        return f"{n/1024:.1f}KB"
+    return f"{n/(1024*1024):.1f}MB"
+
+
+# Map well-known filenames to brief descriptions
+_FILE_DESCRIPTIONS = {
+    "conversation.json":      "← main agent 대화",
+    "full_conversation.json":  "← append-only 원본",
+    "input_history.txt":       "← ↑↓ history",
+    "todo.json":               "← main agent todo",
+    "todo_error.json":         "← todo error backup",
+    "result.json":             "← {status, output, iterations, …}",
+    "status.json":             "← job status",
+    "output.txt":              "← job output",
+    "error.txt":               "← job error",
+    "project.json":            "← job recipe (fixed flow)",
+}
+
+
+def _file_description(name: str) -> str:
+    """Return a short description for well-known session files."""
+    return _FILE_DESCRIPTIONS.get(name, "")
+
 try:
     import readline
 except ImportError:
@@ -228,6 +259,509 @@ class SlashCommandRegistry:
                      '워크플로우 전환: /workflow <name> | /workflow (현재)',
                      aliases=['wf'])
 
+        self.register('project', self._cmd_project,
+                     'Project management: /project | /project <name> | /project create <name> | /project delete <name>')
+
+        self.register('job', self._cmd_job,
+                     'Job management: /job | /job <id> | /job output <id> | /job context <id> | /job cancel <id>')
+
+        self.register('session', self._cmd_session,
+                     'Session layout: /session | /session tree | /session tree <project>',
+                     aliases=['ss'])
+
+    def _cmd_session(self, args: str) -> str:
+        """Show .session/ hierarchy tree or project layout summary.
+
+        /session          → show active project summary (path, files, size)
+        /session tree     → full .session/ directory tree across all projects
+        /session tree X   → tree for specific project X
+        """
+        from pathlib import Path
+        import config as _cfg
+
+        parts = args.strip().split()
+        session_root = Path.cwd() / '.session'
+
+        # Sub-command: tree
+        if parts and parts[0].lower() == 'tree':
+            project_name = parts[1] if len(parts) > 1 else None
+            return self._render_tree(session_root, project_name, _cfg)
+
+        # Default: show active project layout summary
+        active = getattr(_cfg, 'ACTIVE_PROJECT', 'default')
+        session_dir = session_root / active
+        if not session_dir.is_dir():
+            return f"Session directory not found: {session_dir}"
+
+        lines = [f"📂 Project: {active}", f"   Path: {session_dir}", ""]
+
+        # Root files
+        root_files = sorted([f for f in session_dir.iterdir()
+                             if f.is_file() and not f.name.startswith('.')])
+        hidden_files = sorted([f for f in session_dir.iterdir()
+                               if f.is_file() and f.name.startswith('.')])
+        total_size = 0
+
+        for f in root_files:
+            sz = f.stat().st_size
+            total_size += sz
+            sz_str = _fmt_size(sz)
+            desc = _file_description(f.name)
+            lines.append(f"   {f.name:30s} {sz_str:>8s}  {desc}")
+
+        if hidden_files:
+            lines.append(f"   {'(hidden):':30s}")
+            for f in hidden_files:
+                sz = f.stat().st_size
+                total_size += sz
+                lines.append(f"     {f.name:28s} {_fmt_size(sz):>8s}")
+
+        # Jobs
+        jobs_dir = session_dir / 'jobs'
+        if jobs_dir.is_dir():
+            job_dirs = sorted([d for d in jobs_dir.iterdir()
+                               if d.is_dir() and d.name.startswith('job')])
+            counter_file = jobs_dir / '.counter'
+            counter_str = ""
+            if counter_file.exists():
+                counter_str = f' ← "{counter_file.read_text().strip()}"'
+            lines.append(f"")
+            lines.append(f"   jobs/")
+            if counter_file.exists():
+                lines.append(f"   ├── .counter{counter_str}")
+            for i, jd in enumerate(job_dirs):
+                connector = "└──" if i == len(job_dirs) - 1 else "├──"
+                jfiles = sorted([f for f in jd.iterdir() if f.is_file()])
+                jsize = sum(f.stat().st_size for f in jfiles)
+                lines.append(f"   {connector} {jd.name}/ ({len(jfiles)} files, {_fmt_size(jsize)})")
+                # Show result.json status if present
+                result_file = jd / 'result.json'
+                if result_file.exists():
+                    try:
+                        import json
+                        rdata = json.loads(result_file.read_text(encoding='utf-8'))
+                        status = rdata.get('status', '?')
+                        agent = rdata.get('agent_name', '')
+                        icon = {"completed": "✅", "failed": "❌", "cancelled": "⛔"}.get(status, "📋")
+                        lines.append(f"   │   {icon} status={status}  agent={agent}")
+                    except Exception:
+                        pass
+
+        size_str = _fmt_size(total_size)
+        lines.append(f"\n   Total: {size_str}")
+        return "\n".join(lines)
+
+    def _render_tree(self, session_root: 'Path', project_name: Optional[str], _cfg) -> str:
+        """Render an ASCII tree of .session/ directory structure."""
+        if not session_root.is_dir():
+            return f"No .session/ directory found at {session_root}"
+
+        lines = [f".session/"]
+
+        project_dirs = sorted([d for d in session_root.iterdir() if d.is_dir()])
+        active = getattr(_cfg, 'ACTIVE_PROJECT', 'default')
+
+        if project_name:
+            # Specific project
+            target = session_root / project_name
+            if not target.is_dir():
+                return f"Project '{project_name}' not found."
+            project_dirs = [target]
+
+        for pi, pd in enumerate(project_dirs):
+            p_connector = "└──" if pi == len(project_dirs) - 1 else "├──"
+            p_prefix    = "    " if pi == len(project_dirs) - 1 else "│   "
+            marker = " ◀ active" if pd.name == active else ""
+            lines.append(f"{p_connector} {pd.name}/{marker}")
+
+            # Collect items: root files + jobs dir
+            root_files = sorted([f for f in pd.iterdir()
+                                 if f.is_file() and not f.name.startswith('.')])
+            hidden_files = sorted([f for f in pd.iterdir()
+                                   if f.is_file() and f.name.startswith('.')])
+            jobs_dir = pd / 'jobs'
+            items = []  # (name, type, extra_info)
+
+            for f in root_files:
+                sz = f.stat().st_size
+                desc = _file_description(f.name)
+                items.append((f.name, 'file', f"{_fmt_size(sz):>7s}  {desc}"))
+
+            if hidden_files:
+                for f in hidden_files:
+                    sz = f.stat().st_size
+                    items.append((f.name, 'hidden', f"{_fmt_size(sz):>7s}"))
+
+            jobs = []
+            if jobs_dir.is_dir():
+                counter_file = jobs_dir / '.counter'
+                if counter_file.exists():
+                    val = counter_file.read_text().strip()
+                    items.append(('.counter', 'file', f'← "{val}"'))
+                job_dirs = sorted([d for d in jobs_dir.iterdir()
+                                   if d.is_dir() and d.name.startswith('job')])
+                for jd in job_dirs:
+                    jfiles = sorted([f for f in jd.iterdir() if f.is_file()])
+                    jsize = sum(f.stat().st_size for f in jfiles)
+                    # Get result status
+                    result_info = ""
+                    result_file = jd / 'result.json'
+                    if result_file.exists():
+                        try:
+                            import json
+                            rdata = json.loads(result_file.read_text(encoding='utf-8'))
+                            st = rdata.get('status', '?')
+                            icon = {"completed": "✅", "failed": "❌", "cancelled": "⛔"}.get(st, "📋")
+                            result_info = f"  {icon} {st}"
+                        except Exception:
+                            pass
+                    jobs.append((jd.name, jfiles, _fmt_size(jsize), result_info))
+
+            all_items = items + [('jobs/', 'dir', '')] if jobs else items + ([] if not jobs_dir.is_dir() else [])
+            # Build: files first, then jobs dir
+            n_items = len(items)
+            has_jobs = len(jobs) > 0
+            total_visual = n_items + (1 if has_jobs else 0)  # +1 for "jobs/" header
+
+            idx = 0
+            for name, typ, info in items:
+                idx += 1
+                is_last_root = (idx == n_items) and not has_jobs
+                c = "└──" if is_last_root else "├──"
+                pad = "    " if is_last_root else "│   "
+                lines.append(f"{p_prefix}{c} {name}  {info}")
+
+            if has_jobs:
+                # jobs/ header
+                c = "└──" if True else "├──"  # always last at project level
+                lines.append(f"{p_prefix}└── jobs/")
+                j_prefix = f"{p_prefix}    "
+                for ji, (jname, jfiles, jsize, jstatus) in enumerate(jobs):
+                    is_last_job = ji == len(jobs) - 1
+                    jc = "└──" if is_last_job else "├──"
+                    jpad = "    " if is_last_job else "│   "
+                    lines.append(f"{j_prefix}{jc} {jname}/ ({len(jfiles)} files, {jsize}){jstatus}")
+                    # Show files inside job
+                    for fi, jf in enumerate(jfiles):
+                        is_last_file = fi == len(jfiles) - 1
+                        fc = "└──" if is_last_file else "├──"
+                        fsz = _fmt_size(jf.stat().st_size)
+                        fdesc = _file_description(jf.name)
+                        lines.append(f"{j_prefix}{jpad}{fc} {jf.name}  {fsz:>7s}  {fdesc}")
+
+        return "\n".join(lines)
+
+    def _cmd_project(self, args: str) -> str:
+        """Manage session projects: list, switch, create, delete."""
+        import sys, os
+        from pathlib import Path
+        import config as _cfg
+
+        parts = args.strip().split()
+
+        # No args → list projects
+        if not parts:
+            try:
+                session_root = Path.cwd() / '.session'
+                if not session_root.is_dir():
+                    return "No .session/ directory found."
+                active = getattr(_cfg, 'ACTIVE_PROJECT', 'default')
+                lines = []
+                for d in sorted(session_root.iterdir()):
+                    if not d.is_dir():
+                        continue
+                    files = [f for f in d.rglob('*') if f.is_file()]
+                    total_size = sum(f.stat().st_size for f in files)
+                    marker = " ◀ active" if d.name == active else ""
+                    size_str = f"{total_size/1024:.0f}KB" if total_size > 1024 else f"{total_size}B"
+                    lines.append(f"  {d.name}/ ({len(files)} files, {size_str}){marker}")
+                if not lines:
+                    return "No projects found."
+                return "Projects:\n" + "\n".join(lines)
+            except Exception as e:
+                return f"Error: {e}"
+
+        subcmd = parts[0].lower()
+
+        if subcmd == 'create':
+            name = parts[1] if len(parts) > 1 else ''
+            if not name:
+                return "Usage: /project create <name>"
+            if '/' in name or '\\' in name or '..' in name:
+                return "Error: invalid project name"
+            session_dir = Path.cwd() / '.session' / name
+            if session_dir.exists():
+                return f"Project '{name}' already exists."
+            session_dir.mkdir(parents=True, exist_ok=True)
+            return f"✅ Created project '{name}'"
+
+        if subcmd == 'delete':
+            name = parts[1] if len(parts) > 1 else ''
+            if not name:
+                return "Usage: /project delete <name>"
+            if name == 'default':
+                return "Error: Cannot delete the 'default' project."
+            active = getattr(_cfg, 'ACTIVE_PROJECT', 'default')
+            if name == active:
+                return f"Error: Cannot delete active project '{name}'. Switch first."
+            import shutil
+            session_dir = Path.cwd() / '.session' / name
+            if not session_dir.exists():
+                return f"Project '{name}' not found."
+            files = [f for f in session_dir.rglob('*') if f.is_file()]
+            shutil.rmtree(str(session_dir))
+            return f"✅ Deleted project '{name}' ({len(files)} files)"
+
+        # Default: switch to project
+        name = parts[0]
+        if '/' in name or '\\' in name or '..' in name:
+            return "Error: invalid project name"
+        try:
+            import main as _main
+            _setup_fn = getattr(_main, '_setup_session', None)
+        except ImportError:
+            _setup_fn = None
+
+        if _setup_fn is None:
+            for mod_name in list(sys.modules.keys()):
+                if 'main' in mod_name.lower():
+                    _setup_fn = getattr(sys.modules[mod_name], '_setup_session', None)
+                    if _setup_fn:
+                        break
+
+        if _setup_fn is None:
+            return "Error: Cannot find _setup_session. Start agent normally first."
+
+        old = getattr(_cfg, 'ACTIVE_PROJECT', 'default')
+        _setup_fn(name)
+        new = getattr(_cfg, 'ACTIVE_PROJECT', name)
+        return f"✅ Switched project: {old} → {new}"
+
+    def _cmd_job(self, args: str) -> str:
+        """Manage jobs in current project: list, status, output, context, cancel.
+
+        /job              → list all jobs
+        /job <id>         → show job status + result summary
+        /job output <id>  → show full output
+        /job context <id> → show conversation messages (the agent's context)
+        /job cancel <id>  → cancel a running job
+        """
+        from pathlib import Path
+        import json
+        import config as _cfg
+
+        parts = args.strip().split()
+        session_dir = getattr(_cfg, 'SESSION_DIR', '')
+        if not session_dir:
+            return "No active session."
+        jobs_dir = Path(session_dir) / 'jobs'
+
+        def _read_result(job_dir: Path) -> dict:
+            """Read result.json from a job directory."""
+            result_file = job_dir / 'result.json'
+            if result_file.exists():
+                try:
+                    return json.loads(result_file.read_text(encoding='utf-8'))
+                except Exception:
+                    pass
+            return {}
+
+        # ── No args → list jobs ───────────────────────────────────────────
+        if not parts:
+            if not jobs_dir.is_dir():
+                return "No jobs directory for current project."
+            jobs = sorted([d for d in jobs_dir.iterdir()
+                           if d.is_dir() and d.name.startswith('job')])
+            if not jobs:
+                return "No jobs in current project."
+            lines = []
+            for job_dir in jobs:
+                rdata = _read_result(job_dir)
+                status = rdata.get('status', 'unknown')
+                agent = rdata.get('agent_name', '')
+                iterations = rdata.get('iterations', '')
+                exec_ms = rdata.get('execution_time_ms', '')
+                output_preview = rdata.get('output_preview', rdata.get('output', ''))[:80]
+
+                # Legacy fallback
+                if not rdata:
+                    status_file = job_dir / 'status.json'
+                    if status_file.exists():
+                        try:
+                            data = json.loads(status_file.read_text(encoding='utf-8'))
+                            status = data.get('status', 'unknown')
+                            agent = data.get('agent', '')
+                        except Exception:
+                            pass
+                    elif (job_dir / 'output.txt').exists():
+                        status = "completed"
+                    elif (job_dir / 'error.txt').exists():
+                        status = "failed"
+
+                file_count = sum(1 for f in job_dir.iterdir() if f.is_file())
+                icon = {"running": "🔄", "completed": "✅", "failed": "❌",
+                        "cancelled": "⛔", "pending": "⏳"}.get(status, "📋")
+
+                time_str = ""
+                if exec_ms:
+                    time_str = f", {exec_ms/1000:.1f}s" if exec_ms > 1000 else f", {exec_ms}ms"
+
+                lines.append(f"  {icon} {job_dir.name}  {agent or '?'}  {status}  ({iterations} iter{time_str})")
+                if output_preview:
+                    lines.append(f"     {output_preview}")
+            return "Jobs:\n" + "\n".join(lines)
+
+        subcmd = parts[0].lower()
+
+        # ── /job output <id> ──────────────────────────────────────────────
+        if subcmd == 'output':
+            job_id = parts[1] if len(parts) > 1 else ''
+            if not job_id:
+                return "Usage: /job output <id>"
+            if job_id.isdigit():
+                job_id = f"job{job_id}"
+            job_dir = jobs_dir / job_id
+            if not job_dir.is_dir():
+                return f"Job '{job_id}' not found."
+
+            # Try result.json output_preview first
+            rdata = _read_result(job_dir)
+            if rdata:
+                lines = [f"=== {job_id} output ==="]
+                for key in ('agent_name', 'status', 'iterations', 'execution_time_ms'):
+                    if key in rdata:
+                        lines.append(f"{key}: {rdata[key]}")
+                if rdata.get('files_examined'):
+                    lines.append(f"files_examined: {rdata['files_examined']}")
+                if rdata.get('files_modified'):
+                    lines.append(f"files_modified: {rdata['files_modified']}")
+                if rdata.get('tool_calls'):
+                    lines.append(f"tool_calls: {rdata['tool_calls']}")
+                output = rdata.get('output_preview', rdata.get('output', ''))
+                if output:
+                    lines.append(f"\n{output}")
+                return "\n".join(lines)
+
+            # Legacy: output.txt
+            output_file = job_dir / 'output.txt'
+            if output_file.exists():
+                content = output_file.read_text(encoding='utf-8', errors='replace')
+                if len(content) > 4000:
+                    return f"[Output truncated]\n\n{content[:4000]}\n..."
+                return content
+            return f"No output in job '{job_id}'."
+
+        # ── /job context <id> ─────────────────────────────────────────────
+        if subcmd == 'context':
+            job_id = parts[1] if len(parts) > 1 else ''
+            if not job_id:
+                return "Usage: /job context <id>"
+            if job_id.isdigit():
+                job_id = f"job{job_id}"
+            job_dir = jobs_dir / job_id
+            if not job_dir.is_dir():
+                return f"Job '{job_id}' not found."
+
+            conv_file = job_dir / 'conversation.json'
+            if not conv_file.exists():
+                return f"No conversation.json in job '{job_id}'."
+
+            try:
+                messages = json.loads(conv_file.read_text(encoding='utf-8'))
+            except Exception as e:
+                return f"Error reading conversation: {e}"
+
+            if not messages:
+                return f"Empty conversation in job '{job_id}'."
+
+            lines = [f"=== {job_id} conversation ({len(messages)} messages) ===", ""]
+            for i, msg in enumerate(messages):
+                role = msg.get('role', '?')
+                content = msg.get('content', '')
+                if isinstance(content, list):
+                    # Handle structured content (text blocks)
+                    parts_text = []
+                    for part in content:
+                        if isinstance(part, dict) and part.get('type') == 'text':
+                            parts_text.append(part.get('text', ''))
+                        elif isinstance(part, str):
+                            parts_text.append(part)
+                    content = '\n'.join(parts_text)
+
+                # Truncate long messages
+                if len(content) > 500:
+                    content = content[:500] + f"\n... [{len(content)} chars total]"
+
+                role_icon = {"user": "👤", "assistant": "🤖", "system": "⚙️"}.get(role, "📋")
+                lines.append(f"{role_icon} [{role}]")
+                lines.append(f"   {content}")
+                lines.append("")
+
+            return "\n".join(lines)
+
+        # ── /job cancel <id> ──────────────────────────────────────────────
+        if subcmd == 'cancel':
+            job_id = parts[1] if len(parts) > 1 else ''
+            if not job_id:
+                return "Usage: /job cancel <id>"
+            if job_id.isdigit():
+                job_id = f"job{job_id}"
+            job_dir = jobs_dir / job_id
+            if not job_dir.is_dir():
+                return f"Job '{job_id}' not found."
+            import time
+            (job_dir / 'cancel').write_text(str(int(time.time())), encoding='utf-8')
+            rdata = _read_result(job_dir)
+            if rdata:
+                if rdata.get('status') in ('completed', 'failed'):
+                    return f"Job '{job_id}' is already {rdata['status']}. Cannot cancel."
+            return f"✅ Cancel signal sent to '{job_id}'."
+
+        # ── Default: /job <id> → status summary ──────────────────────────
+        job_id = parts[0]
+        if job_id.isdigit():
+            job_id = f"job{job_id}"
+        job_dir = jobs_dir / job_id
+        if not job_dir.is_dir():
+            return f"Job '{job_id}' not found."
+
+        lines = [f"Job: {job_id}", f"Path: {job_dir}"]
+
+        # Read result.json (new format)
+        rdata = _read_result(job_dir)
+        if rdata:
+            for key in ('agent_name', 'status', 'iterations', 'execution_time_ms',
+                        'tool_calls', 'files_examined', 'files_modified', 'error'):
+                val = rdata.get(key)
+                if val is not None and val != '' and val != []:
+                    lines.append(f"{key}: {val}")
+            output = rdata.get('output_preview', rdata.get('output', ''))
+            if output:
+                if len(output) > 300:
+                    lines.append(f"\nOutput (preview):\n{output[:300]}...")
+                else:
+                    lines.append(f"\nOutput:\n{output}")
+        else:
+            # Legacy: status.json
+            status_file = job_dir / 'status.json'
+            if status_file.exists():
+                try:
+                    data = json.loads(status_file.read_text(encoding='utf-8'))
+                    for key in ('status', 'description', 'prompt', 'agent', 'started_at', 'completed_at', 'error'):
+                        if key in data:
+                            lines.append(f"{key}: {str(data[key])[:200]}")
+                except Exception:
+                    pass
+
+        files = sorted(job_dir.iterdir())
+        lines.append(f"\nFiles ({len(files)}):")
+        for f in files:
+            if f.is_file():
+                size = f.stat().st_size
+                lines.append(f"  {f.name}  {_fmt_size(size):>8s}  {_file_description(f.name)}")
+
+        return "\n".join(lines)
+
     def _cmd_workspace(self, args: str) -> str:
         """Switch workspace/workflow. /workspace <name> or /workspace to show current."""
         import sys, os
@@ -345,6 +879,14 @@ class SlashCommandRegistry:
             if subcmd == 'template':
                 tname = parts[1] if len(parts) > 1 else ''
                 return self._todo_load_template(tname, todo_file)
+            if subcmd == 'delegate':
+                return self._todo_delegate(parts[1:], todo_file)
+            if subcmd == 'workflow':
+                return self._todo_workflow(parts[1:], todo_file)
+            if subcmd == 'pipeline':
+                return self._todo_pipeline(parts[1:], todo_file)
+            if subcmd == 'workflow-delegate':
+                return self._todo_workflow_delegate(parts[1:])
 
             if not todo_file.exists():
                 # Check if there's a recent write failure to surface
@@ -560,6 +1102,98 @@ class SlashCommandRegistry:
             return f"➕ Added task {n}: {text.strip()}\n\n" + tracker.format_progress()
         except Exception as e:
             return f"❌ Error: {e}\n"
+
+    def _todo_delegate(self, parts: list, todo_file) -> str:
+        """Set delegate backend for a task. /todo delegate <N> <backend>"""
+        if len(parts) < 2:
+            return (
+                "Usage: /todo delegate <index> <backend>\n"
+                "Backends: sub-agent, cursor-agent, codex, gemini, api\n"
+                "Example: /todo delegate 1 sub-agent"
+            )
+        try:
+            idx = int(parts[0]) - 1
+            backend = parts[1].lower()
+            valid = ["sub-agent", "cursor-agent", "codex", "gemini", "api"]
+            if backend not in valid:
+                return f"❌ Unknown backend '{backend}'. Valid: {', '.join(valid)}"
+            from lib.todo_tracker import TodoTracker
+            tracker = TodoTracker.load(todo_file)
+            if not tracker or idx < 0 or idx >= len(tracker.todos):
+                return f"❌ Task {parts[0]} not found."
+            tracker.todos[idx].delegate = backend
+            tracker.save()
+            return f"✅ Task {parts[0]} delegate set to '{backend}'"
+        except Exception as e:
+            return f"❌ Error: {e}"
+
+    def _todo_workflow(self, parts: list, todo_file) -> str:
+        """Set workflow for a task. /todo workflow <N> <workflow-name>"""
+        if len(parts) < 2:
+            try:
+                from core.workflow_orchestrator import WorkflowOrchestrator
+                from pathlib import Path
+                orch = WorkflowOrchestrator(project_root=Path.cwd())
+                wf_list = orch.list_workflows()
+            except Exception:
+                wf_list = "(error loading workflows)"
+            return (
+                "Usage: /todo workflow <index> <workflow-name>\n\n"
+                f"{wf_list}"
+            )
+        try:
+            idx = int(parts[0]) - 1
+            wf_name = parts[1]
+            from core.workflow_orchestrator import WorkflowOrchestrator
+            from pathlib import Path
+            orch = WorkflowOrchestrator(project_root=Path.cwd())
+            if not orch.workflow_exists(wf_name):
+                available = list(orch.discover_workflows().keys())
+                return f"❌ Workflow '{wf_name}' not found. Available: {available}"
+            from lib.todo_tracker import TodoTracker
+            tracker = TodoTracker.load(todo_file)
+            if not tracker or idx < 0 or idx >= len(tracker.todos):
+                return f"❌ Task {parts[0]} not found."
+            tracker.todos[idx].workflow = wf_name
+            tracker.save()
+            return f"✅ Task {parts[0]} workflow set to '{wf_name}'"
+        except Exception as e:
+            return f"❌ Error: {e}"
+
+    def _todo_pipeline(self, parts: list, todo_file) -> str:
+        """Execute pipeline. /todo pipeline sequential|parallel|auto"""
+        mode = parts[0] if parts else "auto"
+        if mode not in ("sequential", "parallel", "auto"):
+            return "Usage: /todo pipeline [sequential|parallel|auto]"
+        try:
+            from core.tools import pipeline_execute
+            return pipeline_execute(mode=mode)
+        except Exception as e:
+            return f"❌ Pipeline error: {e}"
+
+    def _todo_workflow_delegate(self, parts: list) -> str:
+        """Set default delegate for current workspace. /todo workflow-delegate <backend>"""
+        if not parts:
+            return "Usage: /todo workflow-delegate <backend>\nBackends: sub-agent, cursor-agent, codex, gemini, api"
+        backend = parts[0].lower()
+        valid = ["sub-agent", "cursor-agent", "codex", "gemini", "api"]
+        if backend not in valid:
+            return f"❌ Unknown backend '{backend}'. Valid: {', '.join(valid)}"
+        # Store in workspace.json default_delegate
+        try:
+            import os
+            ws_name = os.environ.get("ACTIVE_WORKSPACE", "default")
+            ws_json = Path("workflow") / ws_name / "workspace.json"
+            if ws_json.exists():
+                data = json.loads(ws_json.read_text(encoding="utf-8"))
+            else:
+                data = {}
+            data["default_delegate"] = backend
+            ws_json.parent.mkdir(parents=True, exist_ok=True)
+            ws_json.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+            return f"✅ Workspace '{ws_name}' default delegate set to '{backend}'"
+        except Exception as e:
+            return f"❌ Error: {e}"
 
     def _todo_move(self, parts: list, todo_file) -> str:
         """Move todo from position N to position M. /todo move <N> <M>"""
