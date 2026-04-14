@@ -38,3 +38,13 @@ htmlcov/
 # Runtime session artifacts
 .session/
 **/.session/
+.session_debug/
+**/.session_debug/
+
+# AI agent command outputs
+cmd_output_*.txt
+**/cmd_output_*.txt
+
+# Runtime state
+current_todos.json
+**/current_todos.json
