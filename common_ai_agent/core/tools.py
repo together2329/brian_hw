@@ -2230,6 +2230,18 @@ def todo_write(todos=None, tasks=None):
                 "status": "pending",
             }
 
+    # Plan mode anti-loop: cap todo_write calls to prevent repeated planning
+    is_plan = os.environ.get("PLAN_MODE", "false").lower() == "true"
+    if is_plan:
+        _plan_write_count = int(os.environ.get("_PLAN_TODO_WRITE_COUNT", "0")) + 1
+        os.environ["_PLAN_TODO_WRITE_COUNT"] = str(_plan_write_count)
+        if _plan_write_count > 2:
+            return (
+                "⚠️ Plan mode todo_write limit reached (max 2 calls).\n"
+                "Your task list is ready. STOP calling todo_write and WAIT for user confirmation.\n"
+                "The user will confirm with 'y' to execute or provide feedback."
+            )
+
     # Validate each todo structure
     for i, todo in enumerate(todos):
         if not isinstance(todo, dict):
@@ -2423,7 +2435,17 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                 )
             return f"✅ Task {index} approved. [{reason}] All tasks complete! 🏁"
         elif status == "completed":
+            # Gate check: reject fake completions — require at least one non-todo tool call
+            _tools_since_start = getattr(item, 'tools_since_in_progress', 0)
+            if _tools_since_start == 0:
+                return (
+                    f"❌ Cannot mark Task {index} as completed — no tools were called since starting this task.\n"
+                    f"You MUST produce a deliverable (write a file, run a command, etc.) before marking completed.\n"
+                    f"→ Call a tool NOW (write_file, run_command, read_file, etc.)\n"
+                    f"→ Then call todo_update(index={index}, status='completed') again."
+                )
             item.rejection_reason = ""
+            item.tools_since_in_progress = 0  # reset for potential re-work
             todo_tracker.mark_completed(idx)  # internally calls save()
             review_steps = (
                 f"Task {index} marked completed. Now perform a CRITICAL, ADVERSARIAL review.\n"

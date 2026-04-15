@@ -155,6 +155,10 @@ class TodoItem:
     workflow: str = ""                  # Which workflow config this todo runs under
                                         # (e.g. "rtl-gen", "tb-gen", any workflow/<name>/)
 
+    # ── Gate check (fake-completion prevention) ─────────────
+    tools_since_in_progress: int = 0    # Count of non-todo tool calls since in_progress.
+                                        # Reset on mark_completed. Survives serialization.
+
     def __post_init__(self):
         if self.created_at is None:
             self.created_at = time.time()
@@ -274,6 +278,7 @@ class TodoTracker:
                 delegate=todo_dict.get("delegate", ""),
                 delegate_result=todo_dict.get("delegate_result", ""),
                 workflow=todo_dict.get("workflow", ""),
+                tools_since_in_progress=int(todo_dict.get("tools_since_in_progress", 0)),
             ))
 
         # Find current in_progress item
@@ -300,6 +305,7 @@ class TodoTracker:
                 todo.status = "pending"
 
         self.todos[index].status = "in_progress"
+        self.todos[index].tools_since_in_progress = 0  # Reset gate check counter
         self.current_index = index
         self.save()
 
@@ -809,6 +815,7 @@ class TodoTracker:
                     "delegate": t.delegate,
                     "delegate_result": t.delegate_result,
                     "workflow": t.workflow,
+                    "tools_since_in_progress": t.tools_since_in_progress,
                 }
                 for t in self.todos
             ],

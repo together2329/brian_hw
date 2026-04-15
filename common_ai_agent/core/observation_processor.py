@@ -143,12 +143,23 @@ def process_observation(
 
     # Append action reminder so the model sees it as the last tokens before generating.
     # More effective than system prompt alone — system prompt gets buried in long context.
+    # Note: codex/Responses API models respond better to direct instructions without
+    # the "Action: tool_name(param=value)" template (they tend to echo it literally).
     if getattr(cfg, "ACTION_REMINDER", True):
         reminder = getattr(
             cfg,
             "ACTION_REMINDER_TEXT",
             "If further action is needed, output it now: Action: tool_name(param=value)",
         )
+        # For codex/Responses API models, use a simpler reminder that won't be echoed
+        try:
+            from src.llm_client import is_responses_api_model
+            if is_responses_api_model():
+                reminder = "Continue with the next tool call if needed."
+                if getattr(cfg, "DEBUG_MODE", False):
+                    print("[DEBUG] Codex mode: simplified action reminder")
+        except ImportError:
+            pass
         observation_msg["content"] += f"\n\n[System] {reminder}"
 
     messages.append(observation_msg)

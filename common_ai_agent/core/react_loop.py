@@ -217,11 +217,22 @@ def run_react_agent_impl(
     referenced_node_ids: List[str] = []
 
     # --- Todo tracker setup ---
+    # IMPORTANT: Use the same tracker instance as tools.py (_get_todo_tracker)
+    # to avoid divergence. Never create a separate TodoTracker.load() here,
+    # because that creates new TodoItem objects that lose runtime-only attributes
+    # like _tools_since_in_progress (gate check counter).
     if getattr(cfg, "ENABLE_TODO_TRACKING", False):
         try:
-            from lib.todo_tracker import TodoTracker
-            from pathlib import Path
-            todo_tracker = TodoTracker.load(Path(cfg.TODO_FILE))
+            import sys
+            _main_mod = sys.modules.get('main')
+            if _main_mod and hasattr(_main_mod, 'todo_tracker') and _main_mod.todo_tracker is not None:
+                todo_tracker = _main_mod.todo_tracker
+            else:
+                from lib.todo_tracker import TodoTracker
+                from pathlib import Path
+                todo_tracker = TodoTracker.load(Path(cfg.TODO_FILE))
+                if _main_mod:
+                    _main_mod.todo_tracker = todo_tracker
         except Exception:
             todo_tracker = None
     else:
@@ -1181,12 +1192,14 @@ def run_react_agent_impl(
                 recovery_attempts = 0
                 last_error_observation = observation if "error" in observation.lower() else None
 
-            # Reload todo_tracker after tool execution
+            # Sync todo_tracker: use shared instance from main module to avoid
+            # losing runtime-only attributes (_tools_since_in_progress) on reload.
             if getattr(cfg, "ENABLE_TODO_TRACKING", False):
                 try:
-                    from lib.todo_tracker import TodoTracker
-                    from pathlib import Path
-                    todo_tracker = TodoTracker.load(Path(cfg.TODO_FILE))
+                    import sys as _sys
+                    _main_mod = _sys.modules.get('main')
+                    if _main_mod and hasattr(_main_mod, 'todo_tracker') and _main_mod.todo_tracker is not None:
+                        todo_tracker = _main_mod.todo_tracker
                 except Exception:
                     pass
 
@@ -1242,6 +1255,17 @@ def run_react_agent_impl(
                     if not any(reminder in c for c in _recent_user_contents):
                         messages.append({"role": "user", "content": reminder})
 
+            # Track non-todo tool calls for gate check (reject fake completions)
+            if todo_tracker and todo_tracker.todos and not _last_tool_was_todo:
+                _current = todo_tracker.get_current_todo()
+                if _current and _current.status == "in_progress":
+                    _current.tools_since_in_progress = getattr(_current, 'tools_since_in_progress', 0) + 1
+                    # Persist counter to disk so reload doesn't lose it
+                    try:
+                        todo_tracker.save()
+                    except Exception:
+                        pass
+
             if _perf:
                 _iter_total = time.time() - _perf_iter_start
                 print(f"  {Color.DIM}[PERF] === iteration total: {_iter_total:.3f}s ==={Color.RESET}")
@@ -1275,9 +1299,10 @@ def run_react_agent_impl(
 
             if getattr(cfg, "ENABLE_TODO_TRACKING", False):
                 try:
-                    from lib.todo_tracker import TodoTracker
-                    from pathlib import Path
-                    todo_tracker = TodoTracker.load(Path(cfg.TODO_FILE))
+                    import sys as _sys
+                    _main_mod = _sys.modules.get('main')
+                    if _main_mod and hasattr(_main_mod, 'todo_tracker') and _main_mod.todo_tracker is not None:
+                        todo_tracker = _main_mod.todo_tracker
                 except Exception:
                     pass
 
@@ -1286,18 +1311,26 @@ def run_react_agent_impl(
                 auto_advance_threshold = getattr(cfg, "TODO_AUTO_ADVANCE_THRESHOLD", max(3, limit // 10))
                 count = getattr(todo_tracker, "stagnation_count", 0)
                 current = todo_tracker.get_current_todo()
-                # Stagnation: mark current task completed and let review prompt drive next step
+                # Debug: log stagnation state
+                if getattr(cfg, "DEBUG_MODE", False):
+                    print(f"  {Color.DIM}[Stagnation] count={count} threshold={auto_advance_threshold} "
+                          f"current={'None' if not current else current.status} "
+                          f"idx={todo_tracker.current_index}{Color.RESET}")
+                # Stagnation: agent is stuck — break and wait for user input
                 if count >= auto_advance_threshold and current and current.status == "in_progress":
                     idx = todo_tracker.current_index + 1
-                    if not deps.emit_content_fn:
-                        print(
-                            f"\n[System] Stagnation detected on task {idx} after {count} turns — marking completed for review."
-                        )
-                    todo_tracker.mark_completed(todo_tracker.current_index)
                     todo_tracker.stagnation_count = 0
                     todo_tracker.save()
+                    hint = todo_tracker.get_stagnation_hint()
+                    if not deps.emit_content_fn:
+                        print(
+                            f"\n[System] Stagnation on task {idx} after {count} turns without tool calls."
+                            f"\n  {hint}"
+                            f"\n  Breaking loop — waiting for user feedback."
+                        )
                     if deps.emit_todo_fn:
                         deps.emit_todo_fn(todo_tracker.format_simple())
+                    break
                 elif todo_tracker.check_stagnation(max_stagnation=limit):
                     hint = todo_tracker.get_stagnation_hint()
                     print(

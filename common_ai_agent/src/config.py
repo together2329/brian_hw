@@ -1216,7 +1216,15 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
 
     # Format
     _native_mode = os.getenv("ENABLE_NATIVE_TOOL_CALLS", "false").lower() in ("true", "1", "yes")
-    if _native_mode:
+    # Codex/Responses API models tend to echo ReAct templates literally — use simpler format
+    _codex_mode = False
+    try:
+        from src.llm_client import is_responses_api_model
+        _codex_mode = is_responses_api_model()
+    except ImportError:
+        pass
+
+    if _native_mode or _codex_mode:
         parts.append(
             "Use the provided function tools to complete tasks. "
             "Call tools when you need information or to take actions. "

@@ -223,6 +223,17 @@ def _is_reasoning_model() -> bool:
     return any(k in name for k in ('glm', 'deepseek', 'qwq', 'r1', 'reasoning'))
 
 
+def _is_openai_gpt_model(model_name: str = None) -> bool:
+    """Check if the model is an OpenAI GPT model.
+
+    Pattern: *gpt* — matches gpt-4, gpt-4o, gpt-5.1, gpt-5.1-codex, etc.
+    """
+    name = (model_name or getattr(config, 'MODEL_NAME', '')).lower()
+    if '/' in name:
+        name = name.split('/')[-1]
+    return 'gpt' in name or name.startswith('o1') or name.startswith('o3') or name.startswith('o4')
+
+
 def compute_safe_max_tokens(used_tokens: int = 0) -> int:
     """
     Return a safe max_tokens value that fits within the remaining context window.
@@ -535,16 +546,204 @@ def is_azure_provider() -> bool:
     return getattr(config, "LLM_PROVIDER", "openai").lower() == "azure"
 
 
+def _needs_max_completion_tokens() -> bool:
+    """Check if the current model requires 'max_completion_tokens' instead of 'max_tokens'.
+
+    - Azure OpenAI always uses max_completion_tokens
+    - OpenAI GPT models (gpt-*, o-series) require max_completion_tokens
+    - GLM models (glm-5.x) also require max_completion_tokens
+    """
+    if is_azure_provider():
+        return True
+    name = getattr(config, 'MODEL_NAME', '').lower()
+    # OpenAI GPT models
+    if _is_openai_gpt_model():
+        return True
+    # GLM models
+    if name.startswith('glm'):
+        return True
+    return False
+
+
 def _set_max_output_tokens(data: dict, value: int) -> None:
     """Set the max output tokens field using the correct key for the provider.
 
-    Azure OpenAI uses `max_completion_tokens` instead of `max_tokens`.
+    Azure OpenAI and newer OpenAI models use `max_completion_tokens` instead of `max_tokens`.
     See: https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/chatgpt
     """
-    if is_azure_provider():
+    if _needs_max_completion_tokens():
         data["max_completion_tokens"] = value
     else:
         data["max_tokens"] = value
+
+
+# ─────────────────────────────────────────────────────
+# Responses API support (/v1/responses for codex models)
+# ─────────────────────────────────────────────────────
+
+def is_responses_api_model(model_name: str = None) -> bool:
+    """Check if a model requires the OpenAI Responses API (/v1/responses).
+
+    Pattern: *gpt*codex* — e.g. gpt-5.1-codex → /v1/responses
+    """
+    name = (model_name or getattr(config, 'MODEL_NAME', '')).lower()
+    if '/' in name:
+        name = name.split('/')[-1]
+    return 'gpt' in name and 'codex' in name
+
+
+def _strip_strict_from_tools(tools: list) -> list:
+    """Remove 'strict' and 'additionalProperties' from tool schemas for
+    providers that don't support OpenAI strict mode (GLM, DeepSeek, etc.).
+    Returns a new list — does not mutate the input.
+    """
+    import copy
+    result = []
+    for tool in tools:
+        t = copy.deepcopy(tool)
+        t.pop("strict", None)
+        func = t.get("function", {})
+        params = func.get("parameters", {})
+        params.pop("additionalProperties", None)
+        result.append(t)
+    return result
+
+
+def build_responses_url(base_url: str) -> str:
+    """Build the /v1/responses URL."""
+    return f"{base_url.rstrip('/')}/responses"
+
+
+def _to_fc_id(call_id: str) -> str:
+    """Convert chat completions call ID (e.g. 'call_abc123') to Responses API format ('fc_abc123')."""
+    if not call_id:
+        return "fc_" + _generate_id()
+    if call_id.startswith("call_"):
+        return "fc_" + call_id[5:]
+    if call_id.startswith("fc_"):
+        return call_id
+    return "fc_" + call_id
+
+
+def _generate_id() -> str:
+    """Generate a short random ID for function calls."""
+    import random, string
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=24))
+
+
+def _messages_to_responses_input(messages: list) -> list:
+    """Convert chat completions messages to Responses API input format.
+
+    Chat Completions:
+        [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}]
+
+    Responses API:
+        [{"role": "system", "content": [{"type": "input_text", "text": "..."}]},
+         {"role": "user",   "content": [{"type": "input_text", "text": "..."}]}]
+    """
+    result = []
+    for msg in messages:
+        role = msg.get("role", "user")
+        content = msg.get("content", "")
+
+        # Skip tool messages — Responses API handles function_call_output differently
+        if role == "tool":
+            # Convert tool result to function_call_output
+            fc_id = _to_fc_id(msg.get("tool_call_id", ""))
+            result.append({
+                "type": "function_call_output",
+                "call_id": fc_id,
+                "output": str(content),
+            })
+            continue
+
+        # Handle assistant messages with tool_calls
+        if role == "assistant" and msg.get("tool_calls"):
+            # Add the assistant text content first
+            if content:
+                result.append({
+                    "role": "assistant",
+                    "content": [{"type": "output_text", "text": str(content)}],
+                })
+            # Add function calls with fc_ prefixed IDs
+            for tc in msg["tool_calls"]:
+                func = tc.get("function", {})
+                fc_id = _to_fc_id(tc.get("id", ""))
+                result.append({
+                    "type": "function_call",
+                    "id": fc_id,
+                    "call_id": fc_id,
+                    "name": func.get("name", ""),
+                    "arguments": func.get("arguments", "{}"),
+                })
+            continue
+
+        # Handle reasoning items (required for reasoning models like GPT-5)
+        # These may appear as assistant messages with reasoning content
+        if role == "assistant" and isinstance(content, str) and content.startswith("__reasoning__:"):
+            # Pass through as reasoning item
+            result.append({
+                "type": "reasoning",
+                "summary": [],
+                "content": [{"type": "reasoning_text", "text": content[len("__reasoning__:"):]},
+            ]})
+            continue
+
+        # Regular messages (system, user, assistant)
+        content_type = "input_text" if role in ("system", "user") else "output_text"
+        entry = {
+            "role": role,
+            "content": [{"type": content_type, "text": str(content)}],
+        }
+        result.append(entry)
+
+    return result
+
+
+def _build_responses_request(data: dict, resolved_model: str) -> dict:
+    """Build a Responses API request body from a chat completions data dict.
+
+    Converts:
+        messages → input
+        max_completion_tokens → max_output_tokens
+        tools (function calling) → tools (Responses API format)
+    """
+    messages = data.get("messages", [])
+    resp_data = {
+        "model": resolved_model,
+        "input": _messages_to_responses_input(messages),
+    }
+
+    # Transfer max tokens
+    max_val = data.get("max_completion_tokens") or data.get("max_tokens")
+    if max_val:
+        resp_data["max_output_tokens"] = max_val
+
+    # Transfer temperature
+    if "temperature" in data:
+        resp_data["temperature"] = data["temperature"]
+
+    # Transfer stream
+    if data.get("stream"):
+        resp_data["stream"] = True
+
+    # Convert tools from chat completions format to Responses API format
+    if "tools" in data:
+        resp_tools = []
+        for tool in data["tools"]:
+            if tool.get("type") == "function":
+                func = tool.get("function", {})
+                resp_tool = {
+                    "type": "function",
+                    "name": func.get("name", ""),
+                    "description": func.get("description", ""),
+                    "parameters": func.get("parameters", {}),
+                }
+                resp_tools.append(resp_tool)
+        if resp_tools:
+            resp_data["tools"] = resp_tools
+
+    return resp_data
 
 
 def build_chat_url(base_url: str, model: str = None) -> str:
@@ -871,6 +1070,254 @@ def _parse_zai_error(error_body: str) -> dict:
     except (json.JSONDecodeError, Exception):
         pass
     return result
+
+
+def _parse_responses_result(result: dict):
+    """Parse a non-streaming Responses API result and yield content/reasoning.
+
+    Responses API returns:
+    {
+      "output": [
+        {"type": "reasoning", "content": [{"type": "reasoning_text", "text": "..."}]},
+        {"type": "message", "content": [{"type": "output_text", "text": "..."}]},
+        {"type": "function_call", "name": "...", "arguments": "..."}
+      ],
+      "usage": {"input_tokens": N, "output_tokens": N}
+    }
+    """
+    global last_input_tokens, last_output_tokens
+
+    # Extract usage
+    usage = result.get("usage", {})
+    if usage:
+        input_tokens = usage.get("input_tokens", 0)
+        output_tokens = usage.get("output_tokens", 0)
+        if input_tokens > 0:
+            last_input_tokens = input_tokens
+        if output_tokens > 0:
+            last_output_tokens = output_tokens
+        _total = input_tokens + output_tokens
+        if _total > 0:
+            get_rate_limiter().update_actual_usage(_total)
+
+    # Extract content from output items
+    output_items = result.get("output", [])
+    for item in output_items:
+        item_type = item.get("type", "")
+
+        if item_type == "reasoning":
+            for c in item.get("content", []):
+                text = c.get("text", "")
+                if text:
+                    yield ("reasoning", text)
+
+        elif item_type == "message":
+            for c in item.get("content", []):
+                text = c.get("text", "")
+                if text:
+                    yield _strip_metadata_tokens(text).strip()
+
+        elif item_type == "function_call":
+            tc_name = item.get("name", "")
+            tc_args_str = item.get("arguments", "{}")
+            if tc_name:
+                try:
+                    tc_args = json.loads(tc_args_str)
+                    args_formatted = ", ".join(
+                        f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                    )
+                    yield f"\nAction: {tc_name}({args_formatted})\n"
+                except (json.JSONDecodeError, AttributeError):
+                    pass
+
+
+def _execute_responses_stream(url: str, headers: Dict, data: Dict, messages: List, native_mode: bool = False):
+    """
+    Execute streaming request for the OpenAI Responses API (/v1/responses).
+
+    The Responses API uses a different SSE event format:
+      - event: response.output_text.delta  → content text
+      - event: response.reasoning.delta    → reasoning text
+      - event: response.function_call_arguments.delta → tool call args
+      - event: response.completed          → final response with usage
+      - event: response.done               → stream end
+
+    Yields the same tuple format as _execute_streaming_request so the
+    rest of the pipeline doesn't need to change.
+    """
+    global last_input_tokens, last_output_tokens
+    global last_cache_creation_tokens, last_cache_read_tokens
+    global total_cache_created, total_cache_read
+
+    _RETRY_DELAYS = [5, 10, 20, 40, 80]
+    max_retries = len(_RETRY_DELAYS) + 1
+
+    for retry_count in range(max_retries):
+        global _stream_cancelled
+        if _stream_cancelled:
+            _stream_cancelled = False
+            return
+
+        _yielded_something = False
+        _pending_tool_calls: Dict[int, Dict] = {}
+        _wd_stop, _wd_triggered = None, [False]
+
+        try:
+            _body = json.dumps(data).encode('utf-8')
+            if getattr(config, 'DEBUG_MODE', False):
+                _body_preview = _body.decode('utf-8')[:1500]
+                print(Color.info(f"\n[Responses API Stream] URL: {url}"))
+                print(Color.info(f"[Responses API Stream] Body (first 1500 chars):\n{_body_preview}\n"))
+            response = _persistent_post(url, headers, _body, timeout=config.STREAM_API_TIMEOUT)
+            global _active_stream_response
+            _active_stream_response = response
+            _inactivity_s = getattr(config, 'STREAM_INACTIVITY_TIMEOUT', 120)
+            _last_data = [time.time()]
+            _wd_stop, _wd_triggered = _make_stream_watchdog(response, _inactivity_s, _last_data)
+
+            try:
+                _current_event = ""
+                for line in response:
+                    _last_data[0] = time.time()
+                    line = line.decode('utf-8').strip()
+
+                    # Track SSE event type
+                    if line.startswith("event: "):
+                        _current_event = line[7:].strip()
+                        continue
+                    if not line.startswith("data: "):
+                        continue
+
+                    data_str = line[6:]
+                    if data_str == "[DONE]":
+                        break
+
+                    try:
+                        chunk = json.loads(data_str)
+                    except json.JSONDecodeError:
+                        continue
+
+                    # ── Content text delta ──
+                    if _current_event in ("response.output_text.delta",):
+                        text = chunk.get("delta", "")
+                        if text:
+                            yield text
+                            _yielded_something = True
+
+                    # ── Reasoning delta ──
+                    elif _current_event in ("response.reasoning.delta",):
+                        text = chunk.get("delta", "")
+                        if text:
+                            yield ("reasoning", text)
+                            _yielded_something = True
+
+                    # ── Function call name ──
+                    elif _current_event == "response.function_call_arguments.delta":
+                        # Arguments come as fragments — accumulate
+                        pass
+
+                    # ── Completed: extract usage and function calls ──
+                    elif _current_event in ("response.completed", "response.done"):
+                        resp_obj = chunk.get("response", chunk)
+
+                        # Extract usage
+                        usage = resp_obj.get("usage", {})
+                        if usage:
+                            input_tokens = usage.get("input_tokens", 0)
+                            output_tokens = usage.get("output_tokens", 0)
+                            if input_tokens > 0:
+                                last_input_tokens = input_tokens
+                            if output_tokens > 0:
+                                last_output_tokens = output_tokens
+                            _total = input_tokens + output_tokens
+                            if _total > 0:
+                                get_rate_limiter().update_actual_usage(_total)
+
+                        # Extract cache token usage for Responses API
+                        if usage and config.ENABLE_PROMPT_CACHING:
+                            cache_creation_tokens = usage.get("cache_creation_input_tokens", 0)
+                            cache_read_tokens = usage.get("cache_read_input_tokens", 0)
+                            _ptd = usage.get("input_tokens_details") or usage.get("prompt_tokens_details") or {}
+                            cache_read_tokens = cache_read_tokens or _ptd.get("cached_tokens", 0)
+                            if cache_creation_tokens > 0 or cache_read_tokens > 0:
+                                last_cache_creation_tokens = cache_creation_tokens
+                                last_cache_read_tokens = cache_read_tokens
+                                total_cache_created += cache_creation_tokens
+                                total_cache_read += cache_read_tokens
+
+                        # Extract function calls from output
+                        output_items = resp_obj.get("output", [])
+                        _func_calls = []
+                        for item in output_items:
+                            if item.get("type") == "function_call":
+                                _func_calls.append({
+                                    "id": item.get("call_id", item.get("id", "")),
+                                    "name": item.get("name", ""),
+                                    "arguments": item.get("arguments", "{}"),
+                                })
+
+                        if _func_calls:
+                            if native_mode:
+                                yield ("native_tool_calls", _func_calls)
+                            else:
+                                for fc in _func_calls:
+                                    tc_name = fc["name"]
+                                    tc_args_str = fc["arguments"]
+                                    if tc_name and tc_args_str:
+                                        try:
+                                            tc_args = json.loads(tc_args_str)
+                                            args_formatted = ", ".join(
+                                                f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                                            )
+                                            yield f"\nAction: {tc_name}({args_formatted})\n"
+                                        except (json.JSONDecodeError, AttributeError):
+                                            pass
+                            _yielded_something = True
+
+                # Empty response retry
+                if not _yielded_something and retry_count < max_retries - 1:
+                    delay = _RETRY_DELAYS[retry_count]
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Empty response from Responses API. Waiting {delay}s...\n"))
+                    time.sleep(delay)
+                    try:
+                        _parsed_url = urllib.parse.urlparse(url)
+                        _stale_conn = _http_conn_pool.pop(_parsed_url.netloc, None)
+                        if _stale_conn is not None:
+                            _stale_conn.close()
+                    except Exception:
+                        pass
+                else:
+                    return
+            finally:
+                if _wd_stop is not None:
+                    _wd_stop.set()
+                _active_stream_response = None
+
+        except urllib.error.HTTPError as e:
+            error_body = ""
+            try:
+                error_body = e.read().decode('utf-8')
+            except Exception:
+                pass
+            if retry_count < max_retries - 1:
+                delay = _RETRY_DELAYS[retry_count]
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Responses API error: HTTP {e.code}: {e.reason}. Waiting {delay}s...\n"))
+                if error_body:
+                    print(Color.warning(f"  Error body: {error_body[:500]}\n"))
+                time.sleep(delay)
+                continue
+            yield f"\n{Color.error(f'[Responses API Error] HTTP {e.code}: {e.reason}')}\n"
+            if error_body:
+                yield f"{Color.error(f'  {error_body[:500]}')}\n"
+            return
+        except Exception as e:
+            if retry_count < max_retries - 1:
+                delay = _RETRY_DELAYS[retry_count]
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Responses API error: {e}. Waiting {delay}s...\n"))
+                time.sleep(delay)
+                continue
+            yield f"\n{Color.error(f'[Responses API Error]: {e}')}\n"
+            return
 
 
 def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: List, native_mode: bool = False):
@@ -1329,6 +1776,12 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     if config.MAX_OUTPUT_TOKENS > 0:
         _set_max_output_tokens(data, compute_safe_max_tokens())
 
+    # ── Responses API routing (gpt-5.1-codex etc.) ──
+    _is_resp_api = is_responses_api_model(resolved_model)
+    if _is_resp_api:
+        url = build_responses_url(config.BASE_URL)
+        data = _build_responses_request(data, resolved_model)
+
     # Show spinner while waiting (suppressed during compression)
     _spinner = None
     if not suppress_spinner:
@@ -1367,6 +1820,10 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
 
     choices = result.get("choices") or []
     if not choices:
+        # ── Responses API format ──
+        if _is_resp_api:
+            yield from _parse_responses_result(result)
+            return
         return  # empty body (HTTP 200 but no content) — caller retry loop handles it
     msg = choices[0]["message"]
     usage = result.get("usage", {})
@@ -1681,8 +2138,27 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
     # Native tool call support: inject tools schema when provided
     if tools:
+        # Strip strict mode for non-OpenAI providers (GLM, DeepSeek, etc.)
+        # that may not support it in Chat Completions format.
+        # Responses API (_build_responses_request) handles strict separately.
+        if not is_responses_api_model(resolved_model):
+            _is_openai = "openai.com" in url
+            if not _is_openai:
+                tools = _strip_strict_from_tools(tools)
         data["tools"] = tools
         data["tool_choice"] = "auto"
+
+    # ── Responses API routing (gpt-5.1-codex etc.) ──
+    if is_responses_api_model(resolved_model):
+        url = build_responses_url(config.BASE_URL)
+        data = _build_responses_request(data, resolved_model)
+        if config.DEBUG_MODE:
+            tag = f" ({caller_tag})" if caller_tag else ""
+            print(Color.info(f"\n[Request Debug - Responses API]{tag}"))
+            print(Color.info(f"  URL: {url}"))
+            print(Color.info(f"  Model: {resolved_model}"))
+        yield from _execute_responses_stream(url, headers, data, messages, native_mode=bool(tools))
+        return
 
     # Debug: Log request details
     if config.DEBUG_MODE:
@@ -2000,6 +2476,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     cache_read_tokens = usage_info.get("cache_read_input_tokens", 0)
                     _ptd = usage_info.get("prompt_tokens_details") or {}
                     cache_read_tokens = cache_read_tokens or _ptd.get("cached_tokens", 0)
+
+                    # Debug: log raw usage info for cache diagnosis
+                    if config.DEBUG_MODE:
+                        print(f"{Color.DIM}[Cache Debug] usage_info keys: {list(usage_info.keys())} | ptd: {_ptd} | cached: {cache_read_tokens}{Color.RESET}")
 
                     # Update cache token tracking
                     last_cache_creation_tokens = cache_creation_tokens
@@ -2765,7 +3245,6 @@ def apply_cache_breakpoints(messages):
                     print(Color.info(f"[System] Cache breakpoint {breakpoint_count}/{max_breakpoints}: Message {i} ({tokens} tokens)"))
 
     return messages
-    return structured_content
 
 # =========================================================================
 # Embedding Utilities (Centralized)
