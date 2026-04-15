@@ -71,6 +71,77 @@ class AgentResult:
     error: Optional[str] = None
 
 
+def _build_converge_context(converge_state: Any, iteration: int = 0) -> str:
+    """
+    Build a converge context string from a Project instance.
+    Returns empty string if converge_state is None or has no useful info.
+
+    This is injected as a system message so the sub-agent knows about
+    the current loop state: stage, score, criteria, iteration progress.
+    """
+    if converge_state is None:
+        return ""
+
+    parts = ["[CONVERGE CONTEXT]"]
+
+    # Current stage and iteration
+    stage = getattr(converge_state, 'current_stage', '')
+    if stage:
+        parts.append(f"Stage: {stage}")
+
+    total_iter = getattr(converge_state, 'iteration', 0)
+    if total_iter > 0:
+        parts.append(f"Total iteration: {total_iter}")
+
+    # Score info
+    score = getattr(converge_state, 'score', -999.0)
+    best = getattr(converge_state, 'best_score', -999.0)
+    if score > -999.0:
+        parts.append(f"Score: {score:.1f} (best: {best:.1f})")
+
+    # Target score from config
+    config = getattr(converge_state, 'converge_config', None)
+    if config:
+        threshold = getattr(config, 'criteria_score_threshold', 10.0)
+        max_iters = getattr(config, 'criteria_max_total_iterations', 15)
+        parts.append(f"Target score: {threshold} | Max iterations: {max_iters}")
+
+    # Current metrics (compact)
+    metrics = getattr(converge_state, 'metrics', {})
+    if metrics:
+        flat = []
+        _flatten_metrics(metrics, flat)
+        if flat:
+            parts.append("Metrics: " + ", ".join(flat[:8]))
+
+    # Criteria status
+    check_fn = getattr(converge_state, 'check_hard_stop_criteria', None)
+    if check_fn:
+        try:
+            criteria = check_fn()
+            if criteria:
+                met = sum(1 for v in criteria.values() if v)
+                total = len(criteria)
+                parts.append(f"Criteria: {met}/{total} met")
+        except Exception:
+            pass
+
+    if len(parts) <= 1:
+        return ""
+
+    return " | ".join(parts)
+
+
+def _flatten_metrics(metrics: Dict, out: list, prefix: str = "") -> None:
+    """Flatten nested metrics dict into 'key=value' strings."""
+    for k, v in metrics.items():
+        full_key = f"{prefix}.{k}" if prefix else k
+        if isinstance(v, dict):
+            _flatten_metrics(v, out, full_key)
+        else:
+            out.append(f"{full_key}={v}")
+
+
 def run_agent_session(
     agent_name: str,
     prompt: str,
@@ -83,6 +154,7 @@ def run_agent_session(
     max_result_chars: int = 8000,
     verbose: bool = False,
     workflow_name: str = "",
+    converge_state: Any = None,        # Project instance for converge context injection
 ) -> AgentResult:
     """
     독립 세션에서 미니 ReAct 루프를 실행.
@@ -98,6 +170,8 @@ def run_agent_session(
         compress_result: 결과를 LLM으로 압축할지 여부
         max_result_chars: 최대 결과 문자 수
         verbose: 실시간 디버그 출력 (foreground 실행 시 유용)
+        workflow_name: 워크스페이스 이름
+        converge_state: Project instance for converge context injection (optional)
 
     Returns:
         AgentResult with compressed output
@@ -175,6 +249,17 @@ def run_agent_session(
         "content": prompt
     })
 
+    # ── Converge context injection ────────────────────────────
+    # If converge_state is provided, inject a system message with current
+    # loop context so the sub-agent knows about score, stage, and criteria.
+    if converge_state is not None:
+        _converge_ctx = _build_converge_context(converge_state, iteration=0)
+        if _converge_ctx:
+            messages.append({
+                "role": "system",
+                "content": _converge_ctx,
+            })
+
     # Parsing utilities already imported at module level from action_parser
 
     # Import LLM client
@@ -195,6 +280,34 @@ def run_agent_session(
             if EscapeWatcher.check():
                 _log("ESC abort detected")
                 break
+
+            # ── Converge inbox check ────────────────────────────
+            # Check if the orchestrator sent override/abort messages
+            if converge_state is not None and hasattr(converge_state, 'has_inbox_messages'):
+                if converge_state.has_inbox_messages():
+                    inbox_msgs = converge_state.drain_inbox()
+                    for imsg in inbox_msgs:
+                        msg_type = imsg.get("type", "")
+                        msg_text = imsg.get("message", "")
+                        if msg_type == "abort":
+                            _log(f"Converge abort: {msg_text}")
+                            # Break out of ReAct loop
+                            iteration = max_iterations + 1  # force exit
+                            break
+                        elif msg_type == "override":
+                            _log(f"Converge override: {msg_text}")
+                            messages.append({
+                                "role": "system",
+                                "content": f"[CONVERGE OVERRIDE] {msg_text}",
+                            })
+                        else:
+                            messages.append({
+                                "role": "system",
+                                "content": f"[CONVERGE MESSAGE] {msg_text}",
+                            })
+                    # Re-check in case abort was issued
+                    if iteration > max_iterations:
+                        break
 
             iteration += 1
             _log(f"--- Iteration {iteration}/{max_iterations} ---")

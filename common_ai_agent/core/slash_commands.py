@@ -269,6 +269,10 @@ class SlashCommandRegistry:
                      'Session layout: /session | /session tree | /session tree <project>',
                      aliases=['ss'])
 
+        self.register('converge', self._cmd_converge,
+                     'Converge loop: /converge start <module> | /converge status | /converge history | /converge report',
+                     aliases=['cv'])
+
     def _cmd_session(self, args: str) -> str:
         """Show .session/ hierarchy tree or project layout summary.
 
@@ -759,6 +763,552 @@ class SlashCommandRegistry:
             if f.is_file():
                 size = f.stat().st_size
                 lines.append(f"  {f.name}  {_fmt_size(size):>8s}  {_file_description(f.name)}")
+
+        return "\n".join(lines)
+
+    # ============================================================
+    # /converge — Self-converging EDA loop commands
+    # ============================================================
+
+    def _cmd_converge(self, args: str) -> str:
+        """Manage converge loop: start, status, next, auto, override, inject, level, history, report.
+
+        /converge                        → show usage
+        /converge start <module> [-p Y]  → create project, load config, start loop
+        /converge status                 → show loop_state.json (stage, score, iteration, criteria)
+        /converge next                   → manual single-step (advance one stage)
+        /converge auto                   → resume auto-loop from current state
+        /converge override <S> <C>       → force classifier decision next iteration
+        /converge inject <message>       → send message to running sub-agent inbox
+        /converge level [1-3]            → set verbosity (1=summary, 2=per-stage, 3=full)
+        /converge history                → score trajectory table
+        /converge report                 → final convergence report
+        """
+        import json
+        from pathlib import Path
+
+        parts = args.strip().split()
+        if not parts:
+            return (
+                "Converge Loop Commands:\n"
+                "  /converge start <module> [-p converge.yaml]  — start new loop\n"
+                "  /converge status                              — show current state\n"
+                "  /converge next                                — single step\n"
+                "  /converge auto                                — resume auto-loop\n"
+                "  /converge override <stage> <classifier>       — force classifier\n"
+                "  /converge inject <message>                    — send to sub-agent inbox\n"
+                "  /converge level [1-3]                         — set verbosity\n"
+                "  /converge history                             — score trajectory\n"
+                "  /converge report                              — final report\n"
+            )
+
+        subcmd = parts[0].lower()
+
+        # ── /converge start <module> [-p converge.yaml] ─────────────────────
+        if subcmd == 'start':
+            return self._converge_start(parts[1:])
+
+        # ── /converge status ────────────────────────────────────────────────
+        if subcmd == 'status':
+            return self._converge_status()
+
+        # ── /converge next ──────────────────────────────────────────────────
+        if subcmd == 'next':
+            return self._converge_next()
+
+        # ── /converge auto ──────────────────────────────────────────────────
+        if subcmd == 'auto':
+            return self._converge_auto()
+
+        # ── /converge override <stage> <classifier> ─────────────────────────
+        if subcmd == 'override':
+            return self._converge_override(parts[1:])
+
+        # ── /converge inject <message> ──────────────────────────────────────
+        if subcmd == 'inject':
+            return self._converge_inject(' '.join(parts[1:]))
+
+        # ── /converge level [1-3] ───────────────────────────────────────────
+        if subcmd == 'level':
+            return self._converge_level(parts[1:])
+
+        # ── /converge history ───────────────────────────────────────────────
+        if subcmd == 'history':
+            return self._converge_history()
+
+        # ── /converge report ────────────────────────────────────────────────
+        if subcmd == 'report':
+            return self._converge_report()
+
+        return (
+            f"Unknown converge subcommand: {subcmd}\n"
+            f"Usage: /converge start|status|next|auto|override|inject|level|history|report"
+        )
+
+    # ── Converge session tracker (module-level) ─────────────────────────────
+    # Stored on the registry instance so it persists across calls.
+
+    def _cv_get_session(self):
+        """Get the active converge session dict (or None)."""
+        return getattr(self, '_cv_session', None)
+
+    def _cv_set_session(self, project, controller, verbose_level=1):
+        """Store active converge session."""
+        self._cv_session = {
+            'project': project,
+            'controller': controller,
+            'verbose_level': verbose_level,  # 1=summary, 2=per-stage, 3=full
+        }
+
+    def _cv_clear_session(self):
+        """Clear the active converge session."""
+        if hasattr(self, '_cv_session'):
+            del self._cv_session
+
+    def _cv_get_verbose(self) -> int:
+        """Get current verbosity level."""
+        sess = self._cv_get_session()
+        return sess['verbose_level'] if sess else 1
+
+    def _converge_start(self, parts: list) -> str:
+        """Handle /converge start <module> [-p converge.yaml]"""
+        import config as _cfg
+        from core.project import create_project
+        from core.converge import LoopController
+
+        if not parts:
+            return "Usage: /converge start <module> [-p converge.yaml]"
+
+        module = parts[0]
+        converge_yaml = None
+
+        # Parse -p flag
+        i = 1
+        while i < len(parts):
+            if parts[i] in ('-p', '--path') and i + 1 < len(parts):
+                converge_yaml = Path(parts[i + 1])
+                i += 2
+            else:
+                i += 1
+
+        try:
+            # Determine project root
+            project_root = Path(_cfg.SESSION_DIR).parent if hasattr(_cfg, 'SESSION_DIR') and _cfg.SESSION_DIR else Path.cwd()
+
+            # Create project with converge config
+            project = create_project(
+                module=module,
+                project_root=project_root,
+                converge_yaml=converge_yaml,
+            )
+
+            # Set up the session directory
+            if not project.session_dir:
+                project.session_dir = project_root / ".session" / module
+            project.save_state()
+
+            # Create controller
+            verbose = True  # always capture logs
+            controller = LoopController(project, verbose=verbose)
+
+            # Store session
+            self._cv_set_session(project, controller, verbose_level=2)
+
+            config = project.converge_config
+            stage_ids = [s.id for s in config.stages] if config else []
+
+            return (
+                f"✅ Converge loop initialized\n"
+                f"  Module: {module}\n"
+                f"  Config: {project.converge_yaml_path}\n"
+                f"  Stages: {' → '.join(stage_ids)}\n"
+                f"  Criteria: {len(config.criteria_hard_stop)} hard-stop(s)\n"
+                f"  Score threshold: {config.criteria_score_threshold}\n"
+                f"  Max iterations: {config.criteria_max_total_iterations}\n"
+                f"\n"
+                f"Use /converge auto to run, /converge next to single-step."
+            )
+
+        except FileNotFoundError as e:
+            return f"❌ Config not found: {e}"
+        except Exception as e:
+            return f"❌ Failed to start converge loop: {e}"
+
+    def _converge_status(self) -> str:
+        """Handle /converge status — display current loop state."""
+        from core.project import restore_project
+        import config as _cfg
+
+        # Try active session first
+        sess = self._cv_get_session()
+        if sess:
+            project = sess['project']
+            return project.format_status()
+
+        # Try restoring from session dir
+        session_dir = getattr(_cfg, 'SESSION_DIR', '')
+        if session_dir:
+            sdir = Path(session_dir)
+            project = restore_project(sdir)
+            if project:
+                return project.format_status()
+
+        return (
+            "No active converge loop.\n"
+            "Use /converge start <module> to begin."
+        )
+
+    def _converge_next(self) -> str:
+        """Handle /converge next — manual single step."""
+        sess = self._cv_get_session()
+        if not sess:
+            return "No active converge loop. Use /converge start <module> first."
+
+        project = sess['project']
+        controller = sess['controller']
+
+        if project.status in ('converged', 'failed', 'stalled', 'timeout'):
+            return (
+                f"Loop already finished: {project.status}\n"
+                f"Reason: {project.convergence_reason}\n"
+                f"Use /converge start to begin a new loop."
+            )
+
+        if project.phase == 'done':
+            return (
+                f"Loop phase is 'done'. Status: {project.status}\n"
+                f"Reason: {project.convergence_reason}"
+            )
+
+        try:
+            # Execute one iteration via the controller's run method
+            # For single-step, we run a truncated loop (max 1 stage advance)
+            config = project.converge_config
+            if not config or not config.stages:
+                return "No stages configured."
+
+            # Find current stage index
+            stage_ids = [s.id for s in config.stages]
+            current_idx = 0
+            if project.current_stage in stage_ids:
+                current_idx = stage_ids.index(project.current_stage)
+
+            # Execute just the current stage
+            if current_idx < len(stage_ids):
+                stage_cfg = controller._stage_map[stage_ids[current_idx]]
+                action_label, raw_output = controller._execute_stage(stage_cfg)
+
+                if raw_output:
+                    # Parse output → metrics
+                    stage_parser = config.parsers.get(stage_cfg.id)
+                    parsed = controller.parser.parse(raw_output, stage_parser)
+
+                    # Flatten into project metrics
+                    for k, v in parsed.items():
+                        project.metrics[f"{stage_cfg.id}.{k}"] = v
+
+                    # Compute score
+                    score = controller.score_calc.compute(project.metrics)
+
+                    # Record iteration
+                    project.current_stage = stage_cfg.id
+                    project.record_iteration(action_label, dict(project.metrics), score)
+                    project.save_state()
+
+                    # Format result based on verbosity
+                    vl = sess['verbose_level']
+                    lines = [
+                        f"Step complete: {stage_cfg.id}",
+                        f"  Score: {score:.1f} (best: {project.best_score:.1f})",
+                    ]
+
+                    if vl >= 2:
+                        for k, v in sorted(parsed.items()):
+                            lines.append(f"  {stage_cfg.id}.{k}: {v}")
+
+                    # Check convergence
+                    if project.is_converged():
+                        project.status = "converged"
+                        project.convergence_reason = "All hard_stop criteria met"
+                        project.phase = "done"
+                        project.save_state()
+                        lines.append("\n✅ CONVERGED — all criteria met!")
+                    elif project.is_exhausted():
+                        project.status = "failed"
+                        project.convergence_reason = f"Max iterations reached"
+                        project.phase = "done"
+                        project.save_state()
+                        lines.append(f"\n❌ EXHAUSTED — max iterations reached")
+
+                    return "\n".join(lines)
+                else:
+                    project.save_state()
+                    return f"Stage {stage_cfg.id} produced no output."
+
+            return f"All stages completed. Status: {project.status}"
+
+        except Exception as e:
+            return f"❌ Step failed: {e}"
+
+    def _converge_auto(self) -> str:
+        """Handle /converge auto — resume auto-loop."""
+        sess = self._cv_get_session()
+        if not sess:
+            return "No active converge loop. Use /converge start <module> first."
+
+        project = sess['project']
+        controller = sess['controller']
+
+        if project.status in ('converged', 'failed', 'stalled', 'timeout') and project.phase == 'done':
+            return (
+                f"Loop already finished: {project.status}\n"
+                f"Reason: {project.convergence_reason}\n"
+                f"Use /converge start to begin a new loop."
+            )
+
+        try:
+            project.phase = "running"
+            project.status = "running"
+            result_project = controller.run()
+
+            # Update session
+            self._cv_set_session(result_project, controller, sess['verbose_level'])
+
+            # Format result
+            criteria = result_project.check_hard_stop_criteria()
+            criteria_lines = []
+            for desc, passed in criteria.items():
+                icon = "✅" if passed else "❌"
+                criteria_lines.append(f"  {icon} {desc}")
+
+            return (
+                f"{'='*50}\n"
+                f"Converge Loop Complete\n"
+                f"{'='*50}\n"
+                f"Status: {result_project.status}\n"
+                f"Score: {result_project.score:.1f} (best: {result_project.best_score:.1f})\n"
+                f"Iterations: {result_project.iteration}\n"
+                f"Reason: {result_project.convergence_reason}\n"
+                f"\nCriteria:\n" + "\n".join(criteria_lines) +
+                f"\n\nUse /converge history for trajectory, /converge report for details."
+            )
+
+        except Exception as e:
+            return f"❌ Auto-loop failed: {e}"
+
+    def _converge_override(self, parts: list) -> str:
+        """Handle /converge override <stage> <classifier> — force classifier decision."""
+        sess = self._cv_get_session()
+        if not sess:
+            return "No active converge loop. Use /converge start <module> first."
+
+        if len(parts) < 2:
+            return "Usage: /converge override <stage_id> <classifier_label>"
+
+        stage_id = parts[0]
+        classifier_label = parts[1]
+
+        project = sess['project']
+
+        # Store override in project inbox for the controller to pick up
+        project.send_to_inbox(
+            "override",
+            f"Forcing classifier={classifier_label} for stage={stage_id}",
+            stage=stage_id,
+            classifier=classifier_label,
+        )
+        project.save_state()
+
+        return (
+            f"✅ Override queued\n"
+            f"  Stage: {stage_id}\n"
+            f"  Classifier: {classifier_label}\n"
+            f"  Will apply on next iteration of stage '{stage_id}'."
+        )
+
+    def _converge_inject(self, message: str) -> str:
+        """Handle /converge inject <message> — send message to sub-agent inbox."""
+        sess = self._cv_get_session()
+        if not sess:
+            return "No active converge loop. Use /converge start <module> first."
+
+        if not message.strip():
+            return "Usage: /converge inject <message>"
+
+        project = sess['project']
+        project.send_to_inbox("user_inject", message.strip())
+        project.save_state()
+
+        return (
+            f"✅ Message injected into converge loop inbox\n"
+            f"  Current stage: {project.current_stage}\n"
+            f"  Iteration: {project.iteration}\n"
+            f"  Pending inbox: {len(project.inbox)} message(s)"
+        )
+
+    def _converge_level(self, parts: list) -> str:
+        """Handle /converge level [1-3] — set verbosity."""
+        sess = self._cv_get_session()
+
+        if not parts:
+            current = sess['verbose_level'] if sess else 1
+            return (
+                f"Verbosity level: {current}\n"
+                f"  1 = summary (status only)\n"
+                f"  2 = per-stage (metrics per stage)\n"
+                f"  3 = full (raw output included)"
+            )
+
+        try:
+            level = int(parts[0])
+            if level not in (1, 2, 3):
+                return "Level must be 1, 2, or 3."
+        except ValueError:
+            return "Level must be 1, 2, or 3."
+
+        if sess:
+            sess['verbose_level'] = level
+
+        return (
+            f"✅ Verbosity set to {level}\n"
+            f"  {'summary' if level == 1 else 'per-stage' if level == 2 else 'full output'}"
+        )
+
+    def _converge_history(self) -> str:
+        """Handle /converge history — score trajectory table."""
+        sess = self._cv_get_session()
+        if sess:
+            project = sess['project']
+            if project.history:
+                return project.format_history()
+
+        # Try loading from disk
+        from core.project import restore_project
+        import config as _cfg
+
+        session_dir = getattr(_cfg, 'SESSION_DIR', '')
+        if session_dir:
+            project = restore_project(Path(session_dir))
+            if project and project.history:
+                return project.format_history()
+
+        return (
+            "No converge history available.\n"
+            "Use /converge start <module> and run some iterations first."
+        )
+
+    def _converge_report(self) -> str:
+        """Handle /converge report — final convergence report."""
+        sess = self._cv_get_session()
+        project = None
+
+        if sess:
+            project = sess['project']
+        else:
+            # Try loading from disk
+            from core.project import restore_project
+            import config as _cfg
+            session_dir = getattr(_cfg, 'SESSION_DIR', '')
+            if session_dir:
+                project = restore_project(Path(session_dir))
+
+        if not project:
+            return (
+                "No converge data available.\n"
+                "Use /converge start <module> and run the loop first."
+            )
+
+        # Build report
+        criteria = project.check_hard_stop_criteria()
+        criteria_lines = []
+        for desc, passed in criteria.items():
+            icon = "✅" if passed else "❌"
+            criteria_lines.append(f"  {icon} {desc}")
+
+        # Score trajectory summary
+        scores = [h['score'] for h in project.history] if project.history else []
+        score_summary = ""
+        if scores:
+            score_summary = (
+                f"  Min: {min(scores):.1f} | Max: {max(scores):.1f} | "
+                f"Final: {scores[-1]:.1f} | Best: {project.best_score:.1f}"
+            )
+
+        # Stage breakdown
+        stage_stats = {}
+        for h in project.history:
+            stage = h.get('stage', '?')
+            if stage not in stage_stats:
+                stage_stats[stage] = {'count': 0, 'scores': []}
+            stage_stats[stage]['count'] += 1
+            stage_stats[stage]['scores'].append(h['score'])
+
+        stage_lines = []
+        for stage, stats in stage_stats.items():
+            avg = sum(stats['scores']) / len(stats['scores']) if stats['scores'] else 0
+            stage_lines.append(
+                f"  {stage:<15} iterations: {stats['count']:>3}  avg_score: {avg:>6.1f}"
+            )
+
+        # Variables
+        var_lines = []
+        for k, v in sorted(project.variables.items()):
+            var_lines.append(f"  {k}: {v}")
+
+        # Metrics
+        metric_lines = []
+        for k, v in sorted(project.metrics.items()):
+            metric_lines.append(f"  {k}: {v}")
+
+        # Jobs
+        job_lines = []
+        for jid in project.jobs:
+            job_lines.append(f"  {jid}")
+
+        lines = [
+            f"{'='*60}",
+            f"  CONVERGE REPORT: {project.module}",
+            f"{'='*60}",
+            f"",
+            f"Status: {project.status}",
+            f"Phase: {project.phase}",
+            f"Reason: {project.convergence_reason or 'N/A'}",
+            f"",
+            f"Score: {project.score:.1f} | Best: {project.best_score:.1f}",
+            f"Total iterations: {project.iteration}",
+            f"No-improve count: {project.no_improve_count}",
+            f"",
+        ]
+
+        if score_summary:
+            lines.append("Score Trajectory:")
+            lines.append(score_summary)
+            lines.append("")
+
+        if criteria_lines:
+            lines.append("Criteria:")
+            lines.extend(criteria_lines)
+            lines.append("")
+
+        if stage_lines:
+            lines.append("Stage Breakdown:")
+            lines.extend(stage_lines)
+            lines.append("")
+
+        if metric_lines:
+            lines.append("Final Metrics:")
+            lines.extend(metric_lines)
+            lines.append("")
+
+        if var_lines:
+            lines.append("Variables:")
+            lines.extend(var_lines)
+            lines.append("")
+
+        if job_lines:
+            lines.append(f"Jobs ({len(job_lines)}):")
+            lines.extend(job_lines)
+            lines.append("")
 
         return "\n".join(lines)
 

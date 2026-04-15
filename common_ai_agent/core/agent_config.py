@@ -407,6 +407,23 @@ class AgentRegistry:
             permission=default_permission
         )
 
+        # Orchestrator 에이전트 (converge loop orchestration)
+        self._agents["orchestrator"] = AgentConfig(
+            name="orchestrator",
+            description="Converge loop orchestrator. Manages multi-stage pipeline execution, scoring, classification, and feedback routing. Reads converge.yaml config generically.",
+            mode="subagent",
+            native=True,
+            model=prim_model,
+            max_steps=50,
+            allowed_tools={
+                "read_file", "read_lines", "grep_file", "list_dir",
+                "find_files", "write_file", "replace_in_file",
+                "run_command", "background_task", "background_output",
+                "todo_write", "todo_update", "todo_status",
+            },
+            permission=default_permission
+        )
+
     def _load_configs(self):
         """설정 파일에서 에이전트 로드"""
         config_locations = [

@@ -1,0 +1,46 @@
+[
+  {
+    "content": "Generate MAS document from specification",
+    "status": "pending",
+    "priority": "high",
+    "activeForm": "Generating MAS from spec..."
+  },
+  {
+    "content": "Implement RTL from MAS",
+    "status": "pending",
+    "priority": "high",
+    "activeForm": "Implementing RTL..."
+  },
+  {
+    "content": "Lint check: 0 errors, 0 warnings",
+    "status": "pending",
+    "priority": "high",
+    "activeForm": "Running lint check...",
+    "loop": true,
+    "max_loop_iterations": 10,
+    "exit_condition": "0 errors, 0 warnings",
+    "validator": "bash workflow/eda/scripts/check_lint_pass.sh"
+  },
+  {
+    "content": "Generate testbench from MAS DV Plan",
+    "status": "pending",
+    "priority": "high",
+    "activeForm": "Generating testbench..."
+  },
+  {
+    "content": "Simulation: all tests PASS",
+    "status": "pending",
+    "priority": "high",
+    "activeForm": "Running simulation (attempt {loop_count}/{max_loop_iterations})...",
+    "loop": true,
+    "max_loop_iterations": 20,
+    "exit_condition": "0 errors, 0 warnings, all [PASS]",
+    "validator": "bash workflow/eda/scripts/check_sim_pass.sh"
+  },
+  {
+    "content": "Converge loop verification and report",
+    "status": "pending",
+    "priority": "normal",
+    "activeForm": "Generating converge report..."
+  }
+]
