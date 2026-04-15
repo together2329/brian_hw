@@ -569,7 +569,7 @@ def build_chat_url(base_url: str, model: str = None) -> str:
     """
     if is_azure_provider():
         deployment = model or config.MODEL_NAME
-        api_version = getattr(config, "AZURE_OPENAI_API_VERSION", "2024-06-01")
+        api_version = getattr(config, "AZURE_OPENAI_API_VERSION", "2025-04-01-preview")
         endpoint = base_url.rstrip("/")
         return f"{endpoint}/openai/deployments/{deployment}/chat/completions?api-version={api_version}"
     return f"{base_url.rstrip('/')}/chat/completions"
@@ -3386,7 +3386,7 @@ def get_embedding(text: str, model: str = None) -> List[float]:
     emb_api_key = config.EMBEDDING_API_KEY or config.API_KEY
     if is_azure_provider():
         # Azure OpenAI embedding endpoint
-        api_version = getattr(config, "AZURE_OPENAI_API_VERSION", "2024-06-01")
+        api_version = getattr(config, "AZURE_OPENAI_API_VERSION", "2025-04-01-preview")
         url = f"{config.EMBEDDING_BASE_URL.rstrip('/')}/openai/deployments/{model}/embeddings?api-version={api_version}"
         headers = {
             "Content-Type": "application/json",
