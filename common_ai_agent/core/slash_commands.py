@@ -23,6 +23,37 @@ _USE_EMOJI = sys.platform != 'linux' and os.environ.get('NO_EMOJI', '').lower() 
 def _icon(emoji: str, fallback: str) -> str:
     return emoji if _USE_EMOJI else fallback
 
+
+# ── Session tree helpers ─────────────────────────────────────────────────────
+
+def _fmt_size(n: int) -> str:
+    """Human-readable file size."""
+    if n < 1024:
+        return f"{n}B"
+    if n < 1024 * 1024:
+        return f"{n/1024:.1f}KB"
+    return f"{n/(1024*1024):.1f}MB"
+
+
+# Map well-known filenames to brief descriptions
+_FILE_DESCRIPTIONS = {
+    "conversation.json":      "← main agent 대화",
+    "full_conversation.json":  "← append-only 원본",
+    "input_history.txt":       "← ↑↓ history",
+    "todo.json":               "← main agent todo",
+    "todo_error.json":         "← todo error backup",
+    "result.json":             "← {status, output, iterations, …}",
+    "status.json":             "← job status",
+    "output.txt":              "← job output",
+    "error.txt":               "← job error",
+    "project.json":            "← job recipe (fixed flow)",
+}
+
+
+def _file_description(name: str) -> str:
+    """Return a short description for well-known session files."""
+    return _FILE_DESCRIPTIONS.get(name, "")
+
 try:
     import readline
 except ImportError:
@@ -228,6 +259,1092 @@ class SlashCommandRegistry:
                      '워크플로우 전환: /workflow <name> | /workflow (현재)',
                      aliases=['wf'])
 
+        self.register('project', self._cmd_project,
+                     'Project management: /project | /project <name> | /project create <name> | /project delete <name>')
+
+        self.register('job', self._cmd_job,
+                     'Job management: /job | /job <id> | /job output <id> | /job context <id> | /job cancel <id>')
+
+        self.register('session', self._cmd_session,
+                     'Session layout: /session | /session tree | /session tree <project>',
+                     aliases=['ss'])
+
+        self.register('converge', self._cmd_converge,
+                     'Converge loop: /converge start <module> | /converge status | /converge history | /converge report',
+                     aliases=['cv'])
+
+    def _cmd_session(self, args: str) -> str:
+        """Show .session/ hierarchy tree or project layout summary.
+
+        /session          → show active project summary (path, files, size)
+        /session tree     → full .session/ directory tree across all projects
+        /session tree X   → tree for specific project X
+        """
+        from pathlib import Path
+        import config as _cfg
+
+        parts = args.strip().split()
+        session_root = Path.cwd() / '.session'
+
+        # Sub-command: tree
+        if parts and parts[0].lower() == 'tree':
+            project_name = parts[1] if len(parts) > 1 else None
+            return self._render_tree(session_root, project_name, _cfg)
+
+        # Default: show active project layout summary
+        active = getattr(_cfg, 'ACTIVE_PROJECT', 'default')
+        session_dir = session_root / active
+        if not session_dir.is_dir():
+            return f"Session directory not found: {session_dir}"
+
+        lines = [f"📂 Project: {active}", f"   Path: {session_dir}", ""]
+
+        # Root files
+        root_files = sorted([f for f in session_dir.iterdir()
+                             if f.is_file() and not f.name.startswith('.')])
+        hidden_files = sorted([f for f in session_dir.iterdir()
+                               if f.is_file() and f.name.startswith('.')])
+        total_size = 0
+
+        for f in root_files:
+            sz = f.stat().st_size
+            total_size += sz
+            sz_str = _fmt_size(sz)
+            desc = _file_description(f.name)
+            lines.append(f"   {f.name:30s} {sz_str:>8s}  {desc}")
+
+        if hidden_files:
+            lines.append(f"   {'(hidden):':30s}")
+            for f in hidden_files:
+                sz = f.stat().st_size
+                total_size += sz
+                lines.append(f"     {f.name:28s} {_fmt_size(sz):>8s}")
+
+        # Jobs
+        jobs_dir = session_dir / 'jobs'
+        if jobs_dir.is_dir():
+            job_dirs = sorted([d for d in jobs_dir.iterdir()
+                               if d.is_dir() and d.name.startswith('job')])
+            counter_file = jobs_dir / '.counter'
+            counter_str = ""
+            if counter_file.exists():
+                counter_str = f' ← "{counter_file.read_text().strip()}"'
+            lines.append(f"")
+            lines.append(f"   jobs/")
+            if counter_file.exists():
+                lines.append(f"   ├── .counter{counter_str}")
+            for i, jd in enumerate(job_dirs):
+                connector = "└──" if i == len(job_dirs) - 1 else "├──"
+                jfiles = sorted([f for f in jd.iterdir() if f.is_file()])
+                jsize = sum(f.stat().st_size for f in jfiles)
+                lines.append(f"   {connector} {jd.name}/ ({len(jfiles)} files, {_fmt_size(jsize)})")
+                # Show result.json status if present
+                result_file = jd / 'result.json'
+                if result_file.exists():
+                    try:
+                        import json
+                        rdata = json.loads(result_file.read_text(encoding='utf-8'))
+                        status = rdata.get('status', '?')
+                        agent = rdata.get('agent_name', '')
+                        icon = {"completed": "✅", "failed": "❌", "cancelled": "⛔"}.get(status, "📋")
+                        lines.append(f"   │   {icon} status={status}  agent={agent}")
+                    except Exception:
+                        pass
+
+        size_str = _fmt_size(total_size)
+        lines.append(f"\n   Total: {size_str}")
+        return "\n".join(lines)
+
+    def _render_tree(self, session_root: 'Path', project_name: Optional[str], _cfg) -> str:
+        """Render an ASCII tree of .session/ directory structure."""
+        if not session_root.is_dir():
+            return f"No .session/ directory found at {session_root}"
+
+        lines = [f".session/"]
+
+        project_dirs = sorted([d for d in session_root.iterdir() if d.is_dir()])
+        active = getattr(_cfg, 'ACTIVE_PROJECT', 'default')
+
+        if project_name:
+            # Specific project
+            target = session_root / project_name
+            if not target.is_dir():
+                return f"Project '{project_name}' not found."
+            project_dirs = [target]
+
+        for pi, pd in enumerate(project_dirs):
+            p_connector = "└──" if pi == len(project_dirs) - 1 else "├──"
+            p_prefix    = "    " if pi == len(project_dirs) - 1 else "│   "
+            marker = " ◀ active" if pd.name == active else ""
+            lines.append(f"{p_connector} {pd.name}/{marker}")
+
+            # Collect items: root files + jobs dir
+            root_files = sorted([f for f in pd.iterdir()
+                                 if f.is_file() and not f.name.startswith('.')])
+            hidden_files = sorted([f for f in pd.iterdir()
+                                   if f.is_file() and f.name.startswith('.')])
+            jobs_dir = pd / 'jobs'
+            items = []  # (name, type, extra_info)
+
+            for f in root_files:
+                sz = f.stat().st_size
+                desc = _file_description(f.name)
+                items.append((f.name, 'file', f"{_fmt_size(sz):>7s}  {desc}"))
+
+            if hidden_files:
+                for f in hidden_files:
+                    sz = f.stat().st_size
+                    items.append((f.name, 'hidden', f"{_fmt_size(sz):>7s}"))
+
+            jobs = []
+            if jobs_dir.is_dir():
+                counter_file = jobs_dir / '.counter'
+                if counter_file.exists():
+                    val = counter_file.read_text().strip()
+                    items.append(('.counter', 'file', f'← "{val}"'))
+                job_dirs = sorted([d for d in jobs_dir.iterdir()
+                                   if d.is_dir() and d.name.startswith('job')])
+                for jd in job_dirs:
+                    jfiles = sorted([f for f in jd.iterdir() if f.is_file()])
+                    jsize = sum(f.stat().st_size for f in jfiles)
+                    # Get result status
+                    result_info = ""
+                    result_file = jd / 'result.json'
+                    if result_file.exists():
+                        try:
+                            import json
+                            rdata = json.loads(result_file.read_text(encoding='utf-8'))
+                            st = rdata.get('status', '?')
+                            icon = {"completed": "✅", "failed": "❌", "cancelled": "⛔"}.get(st, "📋")
+                            result_info = f"  {icon} {st}"
+                        except Exception:
+                            pass
+                    jobs.append((jd.name, jfiles, _fmt_size(jsize), result_info))
+
+            all_items = items + [('jobs/', 'dir', '')] if jobs else items + ([] if not jobs_dir.is_dir() else [])
+            # Build: files first, then jobs dir
+            n_items = len(items)
+            has_jobs = len(jobs) > 0
+            total_visual = n_items + (1 if has_jobs else 0)  # +1 for "jobs/" header
+
+            idx = 0
+            for name, typ, info in items:
+                idx += 1
+                is_last_root = (idx == n_items) and not has_jobs
+                c = "└──" if is_last_root else "├──"
+                pad = "    " if is_last_root else "│   "
+                lines.append(f"{p_prefix}{c} {name}  {info}")
+
+            if has_jobs:
+                # jobs/ header
+                c = "└──" if True else "├──"  # always last at project level
+                lines.append(f"{p_prefix}└── jobs/")
+                j_prefix = f"{p_prefix}    "
+                for ji, (jname, jfiles, jsize, jstatus) in enumerate(jobs):
+                    is_last_job = ji == len(jobs) - 1
+                    jc = "└──" if is_last_job else "├──"
+                    jpad = "    " if is_last_job else "│   "
+                    lines.append(f"{j_prefix}{jc} {jname}/ ({len(jfiles)} files, {jsize}){jstatus}")
+                    # Show files inside job
+                    for fi, jf in enumerate(jfiles):
+                        is_last_file = fi == len(jfiles) - 1
+                        fc = "└──" if is_last_file else "├──"
+                        fsz = _fmt_size(jf.stat().st_size)
+                        fdesc = _file_description(jf.name)
+                        lines.append(f"{j_prefix}{jpad}{fc} {jf.name}  {fsz:>7s}  {fdesc}")
+
+        return "\n".join(lines)
+
+    def _cmd_project(self, args: str) -> str:
+        """Manage session projects: list, switch, create, delete."""
+        import sys, os
+        from pathlib import Path
+        import config as _cfg
+
+        parts = args.strip().split()
+
+        # No args → list projects
+        if not parts:
+            try:
+                session_root = Path.cwd() / '.session'
+                if not session_root.is_dir():
+                    return "No .session/ directory found."
+                active = getattr(_cfg, 'ACTIVE_PROJECT', 'default')
+                lines = []
+                for d in sorted(session_root.iterdir()):
+                    if not d.is_dir():
+                        continue
+                    files = [f for f in d.rglob('*') if f.is_file()]
+                    total_size = sum(f.stat().st_size for f in files)
+                    marker = " ◀ active" if d.name == active else ""
+                    size_str = f"{total_size/1024:.0f}KB" if total_size > 1024 else f"{total_size}B"
+                    lines.append(f"  {d.name}/ ({len(files)} files, {size_str}){marker}")
+                if not lines:
+                    return "No projects found."
+                return "Projects:\n" + "\n".join(lines)
+            except Exception as e:
+                return f"Error: {e}"
+
+        subcmd = parts[0].lower()
+
+        if subcmd == 'create':
+            name = parts[1] if len(parts) > 1 else ''
+            if not name:
+                return "Usage: /project create <name>"
+            if '/' in name or '\\' in name or '..' in name:
+                return "Error: invalid project name"
+            session_dir = Path.cwd() / '.session' / name
+            if session_dir.exists():
+                return f"Project '{name}' already exists."
+            session_dir.mkdir(parents=True, exist_ok=True)
+            return f"✅ Created project '{name}'"
+
+        if subcmd == 'delete':
+            name = parts[1] if len(parts) > 1 else ''
+            if not name:
+                return "Usage: /project delete <name>"
+            if name == 'default':
+                return "Error: Cannot delete the 'default' project."
+            active = getattr(_cfg, 'ACTIVE_PROJECT', 'default')
+            if name == active:
+                return f"Error: Cannot delete active project '{name}'. Switch first."
+            import shutil
+            session_dir = Path.cwd() / '.session' / name
+            if not session_dir.exists():
+                return f"Project '{name}' not found."
+            files = [f for f in session_dir.rglob('*') if f.is_file()]
+            shutil.rmtree(str(session_dir))
+            return f"✅ Deleted project '{name}' ({len(files)} files)"
+
+        # Default: switch to project
+        name = parts[0]
+        if '/' in name or '\\' in name or '..' in name:
+            return "Error: invalid project name"
+        try:
+            import main as _main
+            _setup_fn = getattr(_main, '_setup_session', None)
+        except ImportError:
+            _setup_fn = None
+
+        if _setup_fn is None:
+            for mod_name in list(sys.modules.keys()):
+                if 'main' in mod_name.lower():
+                    _setup_fn = getattr(sys.modules[mod_name], '_setup_session', None)
+                    if _setup_fn:
+                        break
+
+        if _setup_fn is None:
+            return "Error: Cannot find _setup_session. Start agent normally first."
+
+        old = getattr(_cfg, 'ACTIVE_PROJECT', 'default')
+        _setup_fn(name)
+        new = getattr(_cfg, 'ACTIVE_PROJECT', name)
+        return f"✅ Switched project: {old} → {new}"
+
+    def _cmd_job(self, args: str) -> str:
+        """Manage jobs in current project: list, status, output, context, cancel.
+
+        /job              → list all jobs
+        /job <id>         → show job status + result summary
+        /job output <id>  → show full output
+        /job context <id> → show conversation messages (the agent's context)
+        /job cancel <id>  → cancel a running job
+        """
+        from pathlib import Path
+        import json
+        import config as _cfg
+
+        parts = args.strip().split()
+        session_dir = getattr(_cfg, 'SESSION_DIR', '')
+        if not session_dir:
+            return "No active session."
+        jobs_dir = Path(session_dir) / 'jobs'
+
+        def _read_result(job_dir: Path) -> dict:
+            """Read result.json from a job directory."""
+            result_file = job_dir / 'result.json'
+            if result_file.exists():
+                try:
+                    return json.loads(result_file.read_text(encoding='utf-8'))
+                except Exception:
+                    pass
+            return {}
+
+        # ── No args → list jobs ───────────────────────────────────────────
+        if not parts:
+            if not jobs_dir.is_dir():
+                return "No jobs directory for current project."
+            jobs = sorted([d for d in jobs_dir.iterdir()
+                           if d.is_dir() and d.name.startswith('job')])
+            if not jobs:
+                return "No jobs in current project."
+            lines = []
+            for job_dir in jobs:
+                rdata = _read_result(job_dir)
+                status = rdata.get('status', 'unknown')
+                agent = rdata.get('agent_name', '')
+                iterations = rdata.get('iterations', '')
+                exec_ms = rdata.get('execution_time_ms', '')
+                output_preview = rdata.get('output_preview', rdata.get('output', ''))[:80]
+
+                # Legacy fallback
+                if not rdata:
+                    status_file = job_dir / 'status.json'
+                    if status_file.exists():
+                        try:
+                            data = json.loads(status_file.read_text(encoding='utf-8'))
+                            status = data.get('status', 'unknown')
+                            agent = data.get('agent', '')
+                        except Exception:
+                            pass
+                    elif (job_dir / 'output.txt').exists():
+                        status = "completed"
+                    elif (job_dir / 'error.txt').exists():
+                        status = "failed"
+
+                file_count = sum(1 for f in job_dir.iterdir() if f.is_file())
+                icon = {"running": "🔄", "completed": "✅", "failed": "❌",
+                        "cancelled": "⛔", "pending": "⏳"}.get(status, "📋")
+
+                time_str = ""
+                if exec_ms:
+                    time_str = f", {exec_ms/1000:.1f}s" if exec_ms > 1000 else f", {exec_ms}ms"
+
+                lines.append(f"  {icon} {job_dir.name}  {agent or '?'}  {status}  ({iterations} iter{time_str})")
+                if output_preview:
+                    lines.append(f"     {output_preview}")
+            return "Jobs:\n" + "\n".join(lines)
+
+        subcmd = parts[0].lower()
+
+        # ── /job output <id> ──────────────────────────────────────────────
+        if subcmd == 'output':
+            job_id = parts[1] if len(parts) > 1 else ''
+            if not job_id:
+                return "Usage: /job output <id>"
+            if job_id.isdigit():
+                job_id = f"job{job_id}"
+            job_dir = jobs_dir / job_id
+            if not job_dir.is_dir():
+                return f"Job '{job_id}' not found."
+
+            # Try result.json output_preview first
+            rdata = _read_result(job_dir)
+            if rdata:
+                lines = [f"=== {job_id} output ==="]
+                for key in ('agent_name', 'status', 'iterations', 'execution_time_ms'):
+                    if key in rdata:
+                        lines.append(f"{key}: {rdata[key]}")
+                if rdata.get('files_examined'):
+                    lines.append(f"files_examined: {rdata['files_examined']}")
+                if rdata.get('files_modified'):
+                    lines.append(f"files_modified: {rdata['files_modified']}")
+                if rdata.get('tool_calls'):
+                    lines.append(f"tool_calls: {rdata['tool_calls']}")
+                output = rdata.get('output_preview', rdata.get('output', ''))
+                if output:
+                    lines.append(f"\n{output}")
+                return "\n".join(lines)
+
+            # Legacy: output.txt
+            output_file = job_dir / 'output.txt'
+            if output_file.exists():
+                content = output_file.read_text(encoding='utf-8', errors='replace')
+                if len(content) > 4000:
+                    return f"[Output truncated]\n\n{content[:4000]}\n..."
+                return content
+            return f"No output in job '{job_id}'."
+
+        # ── /job context <id> ─────────────────────────────────────────────
+        if subcmd == 'context':
+            job_id = parts[1] if len(parts) > 1 else ''
+            if not job_id:
+                return "Usage: /job context <id>"
+            if job_id.isdigit():
+                job_id = f"job{job_id}"
+            job_dir = jobs_dir / job_id
+            if not job_dir.is_dir():
+                return f"Job '{job_id}' not found."
+
+            conv_file = job_dir / 'conversation.json'
+            if not conv_file.exists():
+                return f"No conversation.json in job '{job_id}'."
+
+            try:
+                messages = json.loads(conv_file.read_text(encoding='utf-8'))
+            except Exception as e:
+                return f"Error reading conversation: {e}"
+
+            if not messages:
+                return f"Empty conversation in job '{job_id}'."
+
+            lines = [f"=== {job_id} conversation ({len(messages)} messages) ===", ""]
+            for i, msg in enumerate(messages):
+                role = msg.get('role', '?')
+                content = msg.get('content', '')
+                if isinstance(content, list):
+                    # Handle structured content (text blocks)
+                    parts_text = []
+                    for part in content:
+                        if isinstance(part, dict) and part.get('type') == 'text':
+                            parts_text.append(part.get('text', ''))
+                        elif isinstance(part, str):
+                            parts_text.append(part)
+                    content = '\n'.join(parts_text)
+
+                # Truncate long messages
+                if len(content) > 500:
+                    content = content[:500] + f"\n... [{len(content)} chars total]"
+
+                role_icon = {"user": "👤", "assistant": "🤖", "system": "⚙️"}.get(role, "📋")
+                lines.append(f"{role_icon} [{role}]")
+                lines.append(f"   {content}")
+                lines.append("")
+
+            return "\n".join(lines)
+
+        # ── /job cancel <id> ──────────────────────────────────────────────
+        if subcmd == 'cancel':
+            job_id = parts[1] if len(parts) > 1 else ''
+            if not job_id:
+                return "Usage: /job cancel <id>"
+            if job_id.isdigit():
+                job_id = f"job{job_id}"
+            job_dir = jobs_dir / job_id
+            if not job_dir.is_dir():
+                return f"Job '{job_id}' not found."
+            import time
+            (job_dir / 'cancel').write_text(str(int(time.time())), encoding='utf-8')
+            rdata = _read_result(job_dir)
+            if rdata:
+                if rdata.get('status') in ('completed', 'failed'):
+                    return f"Job '{job_id}' is already {rdata['status']}. Cannot cancel."
+            return f"✅ Cancel signal sent to '{job_id}'."
+
+        # ── Default: /job <id> → status summary ──────────────────────────
+        job_id = parts[0]
+        if job_id.isdigit():
+            job_id = f"job{job_id}"
+        job_dir = jobs_dir / job_id
+        if not job_dir.is_dir():
+            return f"Job '{job_id}' not found."
+
+        lines = [f"Job: {job_id}", f"Path: {job_dir}"]
+
+        # Read result.json (new format)
+        rdata = _read_result(job_dir)
+        if rdata:
+            for key in ('agent_name', 'status', 'iterations', 'execution_time_ms',
+                        'tool_calls', 'files_examined', 'files_modified', 'error'):
+                val = rdata.get(key)
+                if val is not None and val != '' and val != []:
+                    lines.append(f"{key}: {val}")
+            output = rdata.get('output_preview', rdata.get('output', ''))
+            if output:
+                if len(output) > 300:
+                    lines.append(f"\nOutput (preview):\n{output[:300]}...")
+                else:
+                    lines.append(f"\nOutput:\n{output}")
+        else:
+            # Legacy: status.json
+            status_file = job_dir / 'status.json'
+            if status_file.exists():
+                try:
+                    data = json.loads(status_file.read_text(encoding='utf-8'))
+                    for key in ('status', 'description', 'prompt', 'agent', 'started_at', 'completed_at', 'error'):
+                        if key in data:
+                            lines.append(f"{key}: {str(data[key])[:200]}")
+                except Exception:
+                    pass
+
+        files = sorted(job_dir.iterdir())
+        lines.append(f"\nFiles ({len(files)}):")
+        for f in files:
+            if f.is_file():
+                size = f.stat().st_size
+                lines.append(f"  {f.name}  {_fmt_size(size):>8s}  {_file_description(f.name)}")
+
+        return "\n".join(lines)
+
+    # ============================================================
+    # /converge — Self-converging EDA loop commands
+    # ============================================================
+
+    def _cmd_converge(self, args: str) -> str:
+        """Manage converge loop: start, status, next, auto, override, inject, level, history, report.
+
+        /converge                        → show usage
+        /converge start <module> [-p Y]  → create project, load config, start loop
+        /converge status                 → show loop_state.json (stage, score, iteration, criteria)
+        /converge next                   → manual single-step (advance one stage)
+        /converge auto                   → resume auto-loop from current state
+        /converge override <S> <C>       → force classifier decision next iteration
+        /converge inject <message>       → send message to running sub-agent inbox
+        /converge level [1-3]            → set verbosity (1=summary, 2=per-stage, 3=full)
+        /converge history                → score trajectory table
+        /converge report                 → final convergence report
+        """
+        import json
+        from pathlib import Path
+
+        parts = args.strip().split()
+        if not parts:
+            return (
+                "Converge Loop Commands:\n"
+                "  /converge start <module> [-p converge.yaml]  — start new loop\n"
+                "  /converge status                              — show current state\n"
+                "  /converge next                                — single step\n"
+                "  /converge auto                                — resume auto-loop\n"
+                "  /converge override <stage> <classifier>       — force classifier\n"
+                "  /converge inject <message>                    — send to sub-agent inbox\n"
+                "  /converge level [1-3]                         — set verbosity\n"
+                "  /converge history                             — score trajectory\n"
+                "  /converge report                              — final report\n"
+            )
+
+        subcmd = parts[0].lower()
+
+        # ── /converge start <module> [-p converge.yaml] ─────────────────────
+        if subcmd == 'start':
+            return self._converge_start(parts[1:])
+
+        # ── /converge status ────────────────────────────────────────────────
+        if subcmd == 'status':
+            return self._converge_status()
+
+        # ── /converge next ──────────────────────────────────────────────────
+        if subcmd == 'next':
+            return self._converge_next()
+
+        # ── /converge auto ──────────────────────────────────────────────────
+        if subcmd == 'auto':
+            return self._converge_auto()
+
+        # ── /converge override <stage> <classifier> ─────────────────────────
+        if subcmd == 'override':
+            return self._converge_override(parts[1:])
+
+        # ── /converge inject <message> ──────────────────────────────────────
+        if subcmd == 'inject':
+            return self._converge_inject(' '.join(parts[1:]))
+
+        # ── /converge level [1-3] ───────────────────────────────────────────
+        if subcmd == 'level':
+            return self._converge_level(parts[1:])
+
+        # ── /converge history ───────────────────────────────────────────────
+        if subcmd == 'history':
+            return self._converge_history()
+
+        # ── /converge report ────────────────────────────────────────────────
+        if subcmd == 'report':
+            return self._converge_report()
+
+        return (
+            f"Unknown converge subcommand: {subcmd}\n"
+            f"Usage: /converge start|status|next|auto|override|inject|level|history|report"
+        )
+
+    # ── Converge session tracker (module-level) ─────────────────────────────
+    # Stored on the registry instance so it persists across calls.
+
+    def _cv_get_session(self):
+        """Get the active converge session dict (or None)."""
+        return getattr(self, '_cv_session', None)
+
+    def _cv_set_session(self, project, controller, verbose_level=1):
+        """Store active converge session."""
+        self._cv_session = {
+            'project': project,
+            'controller': controller,
+            'verbose_level': verbose_level,  # 1=summary, 2=per-stage, 3=full
+        }
+
+    def _cv_clear_session(self):
+        """Clear the active converge session."""
+        if hasattr(self, '_cv_session'):
+            del self._cv_session
+
+    def _cv_get_verbose(self) -> int:
+        """Get current verbosity level."""
+        sess = self._cv_get_session()
+        return sess['verbose_level'] if sess else 1
+
+    def _converge_start(self, parts: list) -> str:
+        """Handle /converge start <module> [-p converge.yaml]"""
+        import config as _cfg
+        from core.project import create_project
+        from core.converge import LoopController
+
+        if not parts:
+            return "Usage: /converge start <module> [-p converge.yaml]"
+
+        module = parts[0]
+        converge_yaml = None
+
+        # Parse -p flag
+        i = 1
+        while i < len(parts):
+            if parts[i] in ('-p', '--path') and i + 1 < len(parts):
+                converge_yaml = Path(parts[i + 1])
+                i += 2
+            else:
+                i += 1
+
+        try:
+            # Determine project root — find the directory containing workflow/eda/
+            # SESSION_DIR can be: "<root>/.session/<name>", "test_1/.session/default", etc.
+            # We walk upward until we find workflow/eda/converge.yaml or fall back to cwd.
+            project_root = Path.cwd()
+            if hasattr(_cfg, 'SESSION_DIR') and _cfg.SESSION_DIR:
+                session_path = Path(_cfg.SESSION_DIR).resolve()
+                # Walk up from session dir to find workflow/eda/converge.yaml
+                candidate = session_path.parent  # skip the <name> part
+                for _ in range(5):  # max 5 levels up
+                    if (candidate / "workflow" / "eda" / "converge.yaml").exists():
+                        project_root = candidate
+                        break
+                    if candidate.parent == candidate:
+                        break  # reached filesystem root
+                    candidate = candidate.parent
+
+            # Create project with converge config
+            project = create_project(
+                module=module,
+                project_root=project_root,
+                converge_yaml=converge_yaml,
+            )
+
+            # Set up the session directory
+            if not project.session_dir:
+                project.session_dir = project_root / ".session" / module
+            project.save_state()
+
+            # Create controller
+            verbose = True  # always capture logs
+            controller = LoopController(project, verbose=verbose)
+
+            # Store session
+            self._cv_set_session(project, controller, verbose_level=2)
+
+            config = project.converge_config
+            stage_ids = [s.id for s in config.stages] if config else []
+
+            return (
+                f"✅ Converge loop initialized\n"
+                f"  Module: {module}\n"
+                f"  Config: {project.converge_yaml_path}\n"
+                f"  Stages: {' → '.join(stage_ids)}\n"
+                f"  Criteria: {len(config.criteria_hard_stop)} hard-stop(s)\n"
+                f"  Score threshold: {config.criteria_score_threshold}\n"
+                f"  Max iterations: {config.criteria_max_total_iterations}\n"
+                f"\n"
+                f"Use /converge auto to run, /converge next to single-step."
+            )
+
+        except FileNotFoundError as e:
+            return f"❌ Config not found: {e}"
+        except Exception as e:
+            return f"❌ Failed to start converge loop: {e}"
+
+    def _converge_status(self) -> str:
+        """Handle /converge status — display current loop state."""
+        from core.project import restore_project
+        import config as _cfg
+
+        # Try active session first
+        sess = self._cv_get_session()
+        if sess:
+            project = sess['project']
+            return project.format_status()
+
+        # Try restoring from session dir
+        session_dir = getattr(_cfg, 'SESSION_DIR', '')
+        if session_dir:
+            sdir = Path(session_dir)
+            project = restore_project(sdir)
+            if project:
+                return project.format_status()
+
+        return (
+            "No active converge loop.\n"
+            "Use /converge start <module> to begin."
+        )
+
+    def _converge_next(self) -> str:
+        """Handle /converge next — manual single step."""
+        sess = self._cv_get_session()
+        if not sess:
+            return "No active converge loop. Use /converge start <module> first."
+
+        project = sess['project']
+        controller = sess['controller']
+
+        if project.status in ('converged', 'failed', 'stalled', 'timeout'):
+            return (
+                f"Loop already finished: {project.status}\n"
+                f"Reason: {project.convergence_reason}\n"
+                f"Use /converge start to begin a new loop."
+            )
+
+        if project.phase == 'done':
+            return (
+                f"Loop phase is 'done'. Status: {project.status}\n"
+                f"Reason: {project.convergence_reason}"
+            )
+
+        try:
+            # Execute one iteration via the controller's run method
+            # For single-step, we run a truncated loop (max 1 stage advance)
+            config = project.converge_config
+            if not config or not config.stages:
+                return "No stages configured."
+
+            # Find current stage index
+            stage_ids = [s.id for s in config.stages]
+            current_idx = 0
+            if project.current_stage in stage_ids:
+                current_idx = stage_ids.index(project.current_stage)
+
+            # Execute just the current stage
+            if current_idx < len(stage_ids):
+                stage_cfg = controller._stage_map[stage_ids[current_idx]]
+                action_label, raw_output, tool_calls_count, tool_observations = controller._execute_stage(stage_cfg)
+
+                if raw_output:
+                    # If no-op stage, skip metric parsing
+                    if tool_calls_count == 0:
+                        project.mark_stage_noop(stage_cfg.id)
+                        project.save_state()
+                        return f"Stage {stage_cfg.id} was a no-op (0 tool calls). Sub-agent did not execute any tools."
+
+                    # Parse output → metrics (try combined text for METRICS: lines,
+                    # then fall back to tool observations for actual tool output)
+                    combined_text = f"{raw_output}\n{tool_observations}"
+                    stage_parser = config.parsers.get(stage_cfg.id)
+                    parsed = controller.parser.parse(combined_text, stage_parser)
+
+                    # Fallback to tool observations if primary found nothing
+                    if not parsed or all(v == 0 or v == "" for v in parsed.values()):
+                        parsed = controller._fallback_parse(stage_cfg.id, tool_observations)
+
+                    # Cast string values to int
+                    for k, v in parsed.items():
+                        if isinstance(v, str):
+                            try:
+                                parsed[k] = int(v)
+                            except (ValueError, TypeError):
+                                pass
+
+                    # Flatten into project metrics
+                    for k, v in parsed.items():
+                        project.metrics[f"{stage_cfg.id}.{k}"] = v
+
+                    # Compute score
+                    score = controller.score_calc.compute(project.metrics)
+
+                    # Record iteration
+                    project.current_stage = stage_cfg.id
+                    project.record_iteration(action_label, dict(project.metrics), score)
+                    project.save_state()
+
+                    # Format result based on verbosity
+                    vl = sess['verbose_level']
+                    lines = [
+                        f"Step complete: {stage_cfg.id}",
+                        f"  Score: {score:.1f} (best: {project.best_score:.1f})",
+                    ]
+
+                    if vl >= 2:
+                        for k, v in sorted(parsed.items()):
+                            lines.append(f"  {stage_cfg.id}.{k}: {v}")
+
+                    # Check convergence
+                    if project.is_converged():
+                        project.status = "converged"
+                        project.convergence_reason = "All hard_stop criteria met"
+                        project.phase = "done"
+                        project.save_state()
+                        lines.append("\n✅ CONVERGED — all criteria met!")
+                    elif project.is_exhausted():
+                        project.status = "failed"
+                        project.convergence_reason = f"Max iterations reached"
+                        project.phase = "done"
+                        project.save_state()
+                        lines.append(f"\n❌ EXHAUSTED — max iterations reached")
+
+                    return "\n".join(lines)
+                else:
+                    project.save_state()
+                    return f"Stage {stage_cfg.id} produced no output."
+
+            return f"All stages completed. Status: {project.status}"
+
+        except Exception as e:
+            return f"❌ Step failed: {e}"
+
+    def _converge_auto(self) -> str:
+        """Handle /converge auto — resume auto-loop."""
+        sess = self._cv_get_session()
+        if not sess:
+            return "No active converge loop. Use /converge start <module> first."
+
+        project = sess['project']
+        controller = sess['controller']
+
+        if project.status in ('converged', 'failed', 'stalled', 'timeout') and project.phase == 'done':
+            return (
+                f"Loop already finished: {project.status}\n"
+                f"Reason: {project.convergence_reason}\n"
+                f"Use /converge start to begin a new loop."
+            )
+
+        try:
+            project.phase = "running"
+            project.status = "running"
+            result_project = controller.run()
+
+            # Update session
+            self._cv_set_session(result_project, controller, sess['verbose_level'])
+
+            # Format result
+            criteria = result_project.check_hard_stop_criteria()
+            criteria_lines = []
+            for desc, passed in criteria.items():
+                icon = "✅" if passed else "❌"
+                criteria_lines.append(f"  {icon} {desc}")
+
+            return (
+                f"{'='*50}\n"
+                f"Converge Loop Complete\n"
+                f"{'='*50}\n"
+                f"Status: {result_project.status}\n"
+                f"Score: {result_project.score:.1f} (best: {result_project.best_score:.1f})\n"
+                f"Iterations: {result_project.iteration}\n"
+                f"Reason: {result_project.convergence_reason}\n"
+                f"\nCriteria:\n" + "\n".join(criteria_lines) +
+                f"\n\nUse /converge history for trajectory, /converge report for details."
+            )
+
+        except Exception as e:
+            return f"❌ Auto-loop failed: {e}"
+
+    def _converge_override(self, parts: list) -> str:
+        """Handle /converge override <stage> <classifier> — force classifier decision."""
+        sess = self._cv_get_session()
+        if not sess:
+            return "No active converge loop. Use /converge start <module> first."
+
+        if len(parts) < 2:
+            return "Usage: /converge override <stage_id> <classifier_label>"
+
+        stage_id = parts[0]
+        classifier_label = parts[1]
+
+        project = sess['project']
+
+        # Store override in project inbox for the controller to pick up
+        project.send_to_inbox(
+            "override",
+            f"Forcing classifier={classifier_label} for stage={stage_id}",
+            stage=stage_id,
+            classifier=classifier_label,
+        )
+        project.save_state()
+
+        return (
+            f"✅ Override queued\n"
+            f"  Stage: {stage_id}\n"
+            f"  Classifier: {classifier_label}\n"
+            f"  Will apply on next iteration of stage '{stage_id}'."
+        )
+
+    def _converge_inject(self, message: str) -> str:
+        """Handle /converge inject <message> — send message to sub-agent inbox."""
+        sess = self._cv_get_session()
+        if not sess:
+            return "No active converge loop. Use /converge start <module> first."
+
+        if not message.strip():
+            return "Usage: /converge inject <message>"
+
+        project = sess['project']
+        project.send_to_inbox("user_inject", message.strip())
+        project.save_state()
+
+        return (
+            f"✅ Message injected into converge loop inbox\n"
+            f"  Current stage: {project.current_stage}\n"
+            f"  Iteration: {project.iteration}\n"
+            f"  Pending inbox: {len(project.inbox)} message(s)"
+        )
+
+    def _converge_level(self, parts: list) -> str:
+        """Handle /converge level [1-3] — set verbosity."""
+        sess = self._cv_get_session()
+
+        if not parts:
+            current = sess['verbose_level'] if sess else 1
+            return (
+                f"Verbosity level: {current}\n"
+                f"  1 = summary (status only)\n"
+                f"  2 = per-stage (metrics per stage)\n"
+                f"  3 = full (raw output included)"
+            )
+
+        try:
+            level = int(parts[0])
+            if level not in (1, 2, 3):
+                return "Level must be 1, 2, or 3."
+        except ValueError:
+            return "Level must be 1, 2, or 3."
+
+        if sess:
+            sess['verbose_level'] = level
+
+        return (
+            f"✅ Verbosity set to {level}\n"
+            f"  {'summary' if level == 1 else 'per-stage' if level == 2 else 'full output'}"
+        )
+
+    def _converge_history(self) -> str:
+        """Handle /converge history — score trajectory table."""
+        sess = self._cv_get_session()
+        if sess:
+            project = sess['project']
+            if project.history:
+                return project.format_history()
+
+        # Try loading from disk
+        from core.project import restore_project
+        import config as _cfg
+
+        session_dir = getattr(_cfg, 'SESSION_DIR', '')
+        if session_dir:
+            project = restore_project(Path(session_dir))
+            if project and project.history:
+                return project.format_history()
+
+        return (
+            "No converge history available.\n"
+            "Use /converge start <module> and run some iterations first."
+        )
+
+    def _converge_report(self) -> str:
+        """Handle /converge report — final convergence report."""
+        sess = self._cv_get_session()
+        project = None
+
+        if sess:
+            project = sess['project']
+        else:
+            # Try loading from disk
+            from core.project import restore_project
+            import config as _cfg
+            session_dir = getattr(_cfg, 'SESSION_DIR', '')
+            if session_dir:
+                project = restore_project(Path(session_dir))
+
+        if not project:
+            return (
+                "No converge data available.\n"
+                "Use /converge start <module> and run the loop first."
+            )
+
+        # Build report
+        criteria = project.check_hard_stop_criteria()
+        criteria_lines = []
+        for desc, passed in criteria.items():
+            icon = "✅" if passed else "❌"
+            criteria_lines.append(f"  {icon} {desc}")
+
+        # Score trajectory summary
+        scores = [h['score'] for h in project.history] if project.history else []
+        score_summary = ""
+        if scores:
+            score_summary = (
+                f"  Min: {min(scores):.1f} | Max: {max(scores):.1f} | "
+                f"Final: {scores[-1]:.1f} | Best: {project.best_score:.1f}"
+            )
+
+        # Stage breakdown
+        stage_stats = {}
+        for h in project.history:
+            stage = h.get('stage', '?')
+            if stage not in stage_stats:
+                stage_stats[stage] = {'count': 0, 'scores': []}
+            stage_stats[stage]['count'] += 1
+            stage_stats[stage]['scores'].append(h['score'])
+
+        stage_lines = []
+        for stage, stats in stage_stats.items():
+            avg = sum(stats['scores']) / len(stats['scores']) if stats['scores'] else 0
+            stage_lines.append(
+                f"  {stage:<15} iterations: {stats['count']:>3}  avg_score: {avg:>6.1f}"
+            )
+
+        # Variables
+        var_lines = []
+        for k, v in sorted(project.variables.items()):
+            var_lines.append(f"  {k}: {v}")
+
+        # Metrics
+        metric_lines = []
+        for k, v in sorted(project.metrics.items()):
+            metric_lines.append(f"  {k}: {v}")
+
+        # Jobs
+        job_lines = []
+        for jid in project.jobs:
+            job_lines.append(f"  {jid}")
+
+        lines = [
+            f"{'='*60}",
+            f"  CONVERGE REPORT: {project.module}",
+            f"{'='*60}",
+            f"",
+            f"Status: {project.status}",
+            f"Phase: {project.phase}",
+            f"Reason: {project.convergence_reason or 'N/A'}",
+            f"",
+            f"Score: {project.score:.1f} | Best: {project.best_score:.1f}",
+            f"Total iterations: {project.iteration}",
+            f"No-improve count: {project.no_improve_count}",
+            f"",
+        ]
+
+        if score_summary:
+            lines.append("Score Trajectory:")
+            lines.append(score_summary)
+            lines.append("")
+
+        if criteria_lines:
+            lines.append("Criteria:")
+            lines.extend(criteria_lines)
+            lines.append("")
+
+        if stage_lines:
+            lines.append("Stage Breakdown:")
+            lines.extend(stage_lines)
+            lines.append("")
+
+        if metric_lines:
+            lines.append("Final Metrics:")
+            lines.extend(metric_lines)
+            lines.append("")
+
+        if var_lines:
+            lines.append("Variables:")
+            lines.extend(var_lines)
+            lines.append("")
+
+        if job_lines:
+            lines.append(f"Jobs ({len(job_lines)}):")
+            lines.extend(job_lines)
+            lines.append("")
+
+        return "\n".join(lines)
+
     def _cmd_workspace(self, args: str) -> str:
         """Switch workspace/workflow. /workspace <name> or /workspace to show current."""
         import sys, os
@@ -345,6 +1462,14 @@ class SlashCommandRegistry:
             if subcmd == 'template':
                 tname = parts[1] if len(parts) > 1 else ''
                 return self._todo_load_template(tname, todo_file)
+            if subcmd == 'delegate':
+                return self._todo_delegate(parts[1:], todo_file)
+            if subcmd == 'workflow':
+                return self._todo_workflow(parts[1:], todo_file)
+            if subcmd == 'pipeline':
+                return self._todo_pipeline(parts[1:], todo_file)
+            if subcmd == 'workflow-delegate':
+                return self._todo_workflow_delegate(parts[1:])
 
             if not todo_file.exists():
                 # Check if there's a recent write failure to surface
@@ -560,6 +1685,98 @@ class SlashCommandRegistry:
             return f"➕ Added task {n}: {text.strip()}\n\n" + tracker.format_progress()
         except Exception as e:
             return f"❌ Error: {e}\n"
+
+    def _todo_delegate(self, parts: list, todo_file) -> str:
+        """Set delegate backend for a task. /todo delegate <N> <backend>"""
+        if len(parts) < 2:
+            return (
+                "Usage: /todo delegate <index> <backend>\n"
+                "Backends: sub-agent, cursor-agent, codex, gemini, api\n"
+                "Example: /todo delegate 1 sub-agent"
+            )
+        try:
+            idx = int(parts[0]) - 1
+            backend = parts[1].lower()
+            valid = ["sub-agent", "cursor-agent", "codex", "gemini", "api"]
+            if backend not in valid:
+                return f"❌ Unknown backend '{backend}'. Valid: {', '.join(valid)}"
+            from lib.todo_tracker import TodoTracker
+            tracker = TodoTracker.load(todo_file)
+            if not tracker or idx < 0 or idx >= len(tracker.todos):
+                return f"❌ Task {parts[0]} not found."
+            tracker.todos[idx].delegate = backend
+            tracker.save()
+            return f"✅ Task {parts[0]} delegate set to '{backend}'"
+        except Exception as e:
+            return f"❌ Error: {e}"
+
+    def _todo_workflow(self, parts: list, todo_file) -> str:
+        """Set workflow for a task. /todo workflow <N> <workflow-name>"""
+        if len(parts) < 2:
+            try:
+                from core.workflow_orchestrator import WorkflowOrchestrator
+                from pathlib import Path
+                orch = WorkflowOrchestrator(project_root=Path.cwd())
+                wf_list = orch.list_workflows()
+            except Exception:
+                wf_list = "(error loading workflows)"
+            return (
+                "Usage: /todo workflow <index> <workflow-name>\n\n"
+                f"{wf_list}"
+            )
+        try:
+            idx = int(parts[0]) - 1
+            wf_name = parts[1]
+            from core.workflow_orchestrator import WorkflowOrchestrator
+            from pathlib import Path
+            orch = WorkflowOrchestrator(project_root=Path.cwd())
+            if not orch.workflow_exists(wf_name):
+                available = list(orch.discover_workflows().keys())
+                return f"❌ Workflow '{wf_name}' not found. Available: {available}"
+            from lib.todo_tracker import TodoTracker
+            tracker = TodoTracker.load(todo_file)
+            if not tracker or idx < 0 or idx >= len(tracker.todos):
+                return f"❌ Task {parts[0]} not found."
+            tracker.todos[idx].workflow = wf_name
+            tracker.save()
+            return f"✅ Task {parts[0]} workflow set to '{wf_name}'"
+        except Exception as e:
+            return f"❌ Error: {e}"
+
+    def _todo_pipeline(self, parts: list, todo_file) -> str:
+        """Execute pipeline. /todo pipeline sequential|parallel|auto"""
+        mode = parts[0] if parts else "auto"
+        if mode not in ("sequential", "parallel", "auto"):
+            return "Usage: /todo pipeline [sequential|parallel|auto]"
+        try:
+            from core.tools import pipeline_execute
+            return pipeline_execute(mode=mode)
+        except Exception as e:
+            return f"❌ Pipeline error: {e}"
+
+    def _todo_workflow_delegate(self, parts: list) -> str:
+        """Set default delegate for current workspace. /todo workflow-delegate <backend>"""
+        if not parts:
+            return "Usage: /todo workflow-delegate <backend>\nBackends: sub-agent, cursor-agent, codex, gemini, api"
+        backend = parts[0].lower()
+        valid = ["sub-agent", "cursor-agent", "codex", "gemini", "api"]
+        if backend not in valid:
+            return f"❌ Unknown backend '{backend}'. Valid: {', '.join(valid)}"
+        # Store in workspace.json default_delegate
+        try:
+            import os
+            ws_name = os.environ.get("ACTIVE_WORKSPACE", "default")
+            ws_json = Path("workflow") / ws_name / "workspace.json"
+            if ws_json.exists():
+                data = json.loads(ws_json.read_text(encoding="utf-8"))
+            else:
+                data = {}
+            data["default_delegate"] = backend
+            ws_json.parent.mkdir(parents=True, exist_ok=True)
+            ws_json.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+            return f"✅ Workspace '{ws_name}' default delegate set to '{backend}'"
+        except Exception as e:
+            return f"❌ Error: {e}"
 
     def _todo_move(self, parts: list, todo_file) -> str:
         """Move todo from position N to position M. /todo move <N> <M>"""
@@ -1118,10 +2335,35 @@ class SlashCommandRegistry:
             import src.config as _config
         name = args.strip()
         if not name:
-            marker1 = " ◀ active" if _config.MODEL_NAME == _config.PRIMARY_MODEL else ""
-            marker2 = " ◀ active" if _config.MODEL_NAME == _config.SECONDARY_MODEL else ""
+            try:
+                from src.llm_client import get_active_model as _get_active_model
+                _current_display = _get_active_model()
+            except Exception:
+                _current_display = _config.MODEL_NAME
+
+            # When cursor-agent is active, show backend info and skip 1/2 markers
+            if getattr(_config, "CURSOR_AGENT_ENABLE", False):
+                lines = [
+                    f"Current model: {_current_display}",
+                    f"  Backend: cursor-agent (CURSOR_AGENT_ENABLE=true)",
+                    f"  Model:   {getattr(_config, 'CURSOR_AGENT_MODEL', 'auto')}",
+                    f"",
+                    f"  API models (inactive while cursor-agent is enabled):",
+                    f"  1: {_config.PRIMARY_MODEL}",
+                    f"  2: {_config.SECONDARY_MODEL}",
+                    f"  usage: /model 1|2|<model-name>  (sets CURSOR_AGENT_MODEL when backend active)",
+                ]
+                return "\n".join(lines)
+
+            marker1 = " ◀ active" if _config.MODEL_NAME == _config.PRIMARY_MODEL and _config.MODEL_NAME != _config.SECONDARY_MODEL else (
+                      " ◀ active" if _config.MODEL_NAME == _config.PRIMARY_MODEL and _config.PRIMARY_MODEL != _config.SECONDARY_MODEL else "")
+            marker2 = " ◀ active" if _config.MODEL_NAME == _config.SECONDARY_MODEL and _config.MODEL_NAME != _config.PRIMARY_MODEL else ""
+            # If primary == secondary == current, mark only primary as active
+            if _config.PRIMARY_MODEL == _config.SECONDARY_MODEL == _config.MODEL_NAME:
+                marker1 = " ◀ active"
+                marker2 = ""
             lines = [
-                f"Current model: {_config.MODEL_NAME}",
+                f"Current model: {_current_display}",
                 f"  1: {_config.PRIMARY_MODEL}{marker1}",
                 f"  2: {_config.SECONDARY_MODEL}{marker2}",
             ]

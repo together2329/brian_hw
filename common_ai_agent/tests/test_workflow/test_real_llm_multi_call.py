@@ -171,7 +171,7 @@ class TestMASRTLTBPipeline(unittest.TestCase):
 
     # ── tests ────────────────────────────────────────────────
 
-    def test_call1_mas-gen_produces_spec(self):
+    def test_call1_mas_gen_produces_spec(self):
         """mas-gen call returns a spec mentioning the module and interface."""
         mas_text, _ = self._mas_call()
         lowered = mas_text.lower()
@@ -180,7 +180,7 @@ class TestMASRTLTBPipeline(unittest.TestCase):
             f"MAS call didn't produce a spec: {mas_text[:400]}",
         )
 
-    def test_call2_rtl-gen_produces_verilog(self):
+    def test_call2_rtl_gen_produces_verilog(self):
         """rtl-gen call (given MAS) returns Verilog module code."""
         mas_text, _ = self._mas_call()
         rtl_code, _ = self._rtl_call(mas_text)
@@ -190,7 +190,7 @@ class TestMASRTLTBPipeline(unittest.TestCase):
             f"RTL call didn't produce Verilog: {rtl_code[:400]}",
         )
 
-    def test_call3_tb-gen_produces_testbench(self):
+    def test_call3_tb_gen_produces_testbench(self):
         """tb-gen call (given RTL) returns a testbench."""
         mas_text, _ = self._mas_call()
         rtl_code, _ = self._rtl_call(mas_text)
@@ -625,7 +625,7 @@ class TestWorkspaceSwitchMidSession(unittest.TestCase):
     def tearDown(self):
         os.environ.pop("ACTIVE_WORKSPACE", None)
 
-    def test_initial_call_uses_mas-gen_context(self):
+    def test_initial_call_uses_mas_gen_context(self):
         """First call in mas-gen workspace produces spec-focused response."""
         os.environ["ACTIVE_WORKSPACE"] = "mas-gen"
         history = [{"role": "system", "content": _ws_sys("mas-gen")}]
@@ -639,7 +639,7 @@ class TestWorkspaceSwitchMidSession(unittest.TestCase):
             f"mas-gen context not reflected: {reply[:300]}",
         )
 
-    def test_second_call_after_switch_uses_rtl-gen_context(self):
+    def test_second_call_after_switch_uses_rtl_gen_context(self):
         """After switching to rtl-gen, GLM knows it's an RTL implementation agent."""
         # First call: mas-gen
         os.environ["ACTIVE_WORKSPACE"] = "mas-gen"

@@ -7,16 +7,35 @@ Your job: compile and run simulation to 0 errors, 0 warnings. Generate `<ip_name
 ```
 <ip_name>/
 ├── rtl/   → <ip_name>.sv           (READ — DUT)
-├── list/  → <ip_name>.f            (READ — filelist, use with -f flag)
+├── list/  → <ip_name>.f            (READ/WRITE — filelist for sim)
 ├── tb/    → tb_<ip_name>.sv        (READ — testbench top)
 │            tc_<ip_name>.sv        (READ — test cases)
 └── sim/   → sim_report.txt         (WRITE)
              <ip_name>_wave.vcd     (WRITE)
 ```
 
+## FILELIST HANDLING (CRITICAL)
+
+Before compiling, ALWAYS ensure the filelist exists:
+
+1. Check if `<ip>/list/<ip>.f` exists
+2. If NOT, create it by finding all needed .sv files:
+   ```bash
+   mkdir -p <ip>/list
+   find <ip>/rtl <ip>/tb -name '*.sv' | sort > <ip>/list/<ip>.f
+   ```
+3. Verify the filelist contains the correct paths (relative to project root)
+
 Compile command using filelist:
 ```bash
-iverilog -g2012 -f <ip>/list/<ip>.f <ip>/tb/tb_<ip>.sv -o <ip>/sim/<ip>.out
+mkdir -p <ip>/sim
+iverilog -g2012 -f <ip>/list/<ip>.f -o <ip>/sim/<ip>.out
+vvp <ip>/sim/<ip>.out
+```
+
+If filelist approach fails, compile directly:
+```bash
+iverilog -g2012 <ip>/rtl/*.sv <ip>/tb/*.sv -o <ip>/sim/<ip>.out
 vvp <ip>/sim/<ip>.out
 ```
 
@@ -28,13 +47,17 @@ vvp <ip>/sim/<ip>.out
 ## Simulation Flow
 
 ```
-Compile → Run → Check output → Fix → Repeat
+1. Ensure filelist exists → create if missing
+2. Compile → Fix compile errors → Repeat until clean
+3. Run simulation → Check output → Fix failures → Repeat
+4. All tests [PASS] → Done
 ```
 
 ## Debug Protocol
 
 | Symptom | Action |
 |---------|--------|
+| File not found | Create filelist or fix paths in existing filelist |
 | Compile error | Fix declared signal, port mismatch, missing include |
 | `[FAIL] tc_name: got=X expected=Y` | Grep RTL for signal driver, check condition |
 | X propagation in output | Check reset logic, add default in always_comb |
@@ -52,6 +75,15 @@ Compile → Run → Check output → Fix → Repeat
 When stuck: add `$dumpfile("debug.vcd"); $dumpvars(0, tb_module);` to TB, re-run, analyze VCD:
 - Look for X on DUT outputs after reset
 - Look for wrong values at clock edges
+
+## METRICS OUTPUT (REQUIRED)
+
+After completing your work, you MUST output a summary line in EXACTLY this format:
+```
+METRICS: sim.pass=N, sim.fail=M, sim.total=T
+```
+Where N = number of [PASS], M = number of [FAIL], T = N+M from simulation output.
+Use [PASS] and [FAIL] markers consistently in your test output for accurate parsing.
 
 ## Done
 

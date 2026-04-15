@@ -25,7 +25,7 @@ module arm_barrel_shifter (
     always_comb begin
         if (is_imm) begin
             // Rotated immediate: rotate_right by 2*rotate_imm
-            actual_shift = shift_amount[3:0]; // Use 4 bits to avoid truncation warning
+            actual_shift = {shift_amount[3:0], 1'b0};
         end else begin
             actual_shift = shift_amount[4:0];
         end

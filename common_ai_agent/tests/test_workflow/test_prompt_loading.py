@@ -126,7 +126,7 @@ class TestSystemPromptPatch(unittest.TestCase):
         self.assertIn("DYNAMIC_PART", final)
         self.assertIn("WS_TEXT", final)
 
-    def test_real_mas-gen_system_prompt_appended(self):
+    def test_real_mas_gen_system_prompt_appended(self):
         """Load real mas-gen workspace and verify system_prompt_text is non-trivial."""
         from workflow.loader import load_workspace
         ws = load_workspace("mas-gen", Path(_root))
@@ -136,14 +136,14 @@ class TestSystemPromptPatch(unittest.TestCase):
         # mas-gen uses prepend — workspace text should come first
         self.assertLess(result.index(ws.system_prompt_text[:20]), result.index("BASE_PROMPT"))
 
-    def test_real_rtl-gen_system_prompt_loaded(self):
+    def test_real_rtl_gen_system_prompt_loaded(self):
         from workflow.loader import load_workspace
         ws = load_workspace("rtl-gen", Path(_root))
         self.assertIsNotNone(ws.system_prompt_text)
         # RTL coding rules should be in the text
         self.assertIn("always_ff", ws.system_prompt_text)
 
-    def test_real_tb-gen_system_prompt_loaded(self):
+    def test_real_tb_gen_system_prompt_loaded(self):
         from workflow.loader import load_workspace
         ws = load_workspace("tb-gen", Path(_root))
         self.assertIsNotNone(ws.system_prompt_text)
@@ -230,7 +230,7 @@ class TestPlanPromptPatch(unittest.TestCase):
         result = self._apply_patch("ORIGINAL", "", "append")
         self.assertEqual(result, "ORIGINAL")
 
-    def test_real_mas-gen_plan_prompt_text_loaded(self):
+    def test_real_mas_gen_plan_prompt_text_loaded(self):
         from workflow.loader import load_workspace
         ws = load_workspace("mas-gen", Path(_root))
         self.assertIsNotNone(ws.plan_prompt_text)
@@ -239,7 +239,7 @@ class TestPlanPromptPatch(unittest.TestCase):
         # mas-gen uses prepend — workspace rules first
         self.assertIn(ws.plan_prompt_text[:20], result)
 
-    def test_real_rtl-gen_plan_prompt_text_loaded(self):
+    def test_real_rtl_gen_plan_prompt_text_loaded(self):
         from workflow.loader import load_workspace
         ws = load_workspace("rtl-gen", Path(_root))
         self.assertIsNotNone(ws.plan_prompt_text)
@@ -334,7 +334,7 @@ class TestTodoPromptLoading(unittest.TestCase):
         reg = builtins._TODO_TEMPLATE_REGISTRY
         self.assertEqual(reg.get_tasks("my-tmpl"), tasks)
 
-    def test_real_mas-gen_full_project_registered(self):
+    def test_real_mas_gen_full_project_registered(self):
         """After simulating workspace load, full-project template is accessible."""
         from workflow.loader import TodoTemplateRegistry, load_workspace
         ws = load_workspace("mas-gen", Path(_root))
@@ -476,7 +476,7 @@ class TestCompressionPromptPatch(unittest.TestCase):
         result = self._apply_patch(None, original="ORIGINAL")
         self.assertEqual(result, "ORIGINAL")
 
-    def test_real_mas-gen_compression_prompt_applied(self):
+    def test_real_mas_gen_compression_prompt_applied(self):
         from workflow.loader import load_workspace
         ws = load_workspace("mas-gen", Path(_root))
         self.assertIsNotNone(ws.compression_prompt_text)
@@ -618,7 +618,7 @@ class TestFullSetupWorkspacePipeline(unittest.TestCase):
 
         return ws, fake_cfg
 
-    def test_mas-gen_system_prompt_is_patched(self):
+    def test_mas_gen_system_prompt_is_patched(self):
         ws, _ = self._simulate_setup("mas-gen")
         import core.prompt_builder as pb
         result = pb.build_system_prompt(build_base_fn=lambda **kw: "BASE")
@@ -628,19 +628,19 @@ class TestFullSetupWorkspacePipeline(unittest.TestCase):
         self.assertIn("BASE", text)
         self.assertLess(text.index(ws.system_prompt_text[:20]), text.index("BASE"))
 
-    def test_mas-gen_plan_prompt_patched(self):
+    def test_mas_gen_plan_prompt_patched(self):
         ws, fake_cfg = self._simulate_setup("mas-gen")
         # The plan prompt should contain both original and workspace text
         self.assertIn("ORIGINAL_PLAN", fake_cfg.PLAN_MODE_PROMPT)
         self.assertIn(ws.plan_prompt_text[:20], fake_cfg.PLAN_MODE_PROMPT)
 
-    def test_mas-gen_compression_prompt_replaced(self):
+    def test_mas_gen_compression_prompt_replaced(self):
         ws, _ = self._simulate_setup("mas-gen")
         import core.compressor as comp
         # mas-gen uses replace mode for compression
         self.assertEqual(comp.STRUCTURED_SUMMARY_PROMPT, ws.compression_prompt_text)
 
-    def test_mas-gen_todo_templates_accessible(self):
+    def test_mas_gen_todo_templates_accessible(self):
         _, _ = self._simulate_setup("mas-gen")
         reg = getattr(builtins, "_TODO_TEMPLATE_REGISTRY", None)
         self.assertIsNotNone(reg)
@@ -652,7 +652,7 @@ class TestFullSetupWorkspacePipeline(unittest.TestCase):
         ws, _ = self._simulate_setup("rtl-gen")
         self.assertEqual(os.environ.get("ACTIVE_WORKSPACE_DESC"), ws.description)
 
-    def test_rtl-gen_full_pipeline_state(self):
+    def test_rtl_gen_full_pipeline_state(self):
         _, _ = self._simulate_setup("rtl-gen")
         import core.prompt_builder as pb
         result = pb.build_system_prompt(build_base_fn=lambda **kw: "BASE")
@@ -660,7 +660,7 @@ class TestFullSetupWorkspacePipeline(unittest.TestCase):
         # rtl-gen's system_prompt includes RTL coding rules
         self.assertIn("always_ff", text)
 
-    def test_tb-gen_full_pipeline_state(self):
+    def test_tb_gen_full_pipeline_state(self):
         _, _ = self._simulate_setup("tb-gen")
         reg = getattr(builtins, "_TODO_TEMPLATE_REGISTRY", None)
         self.assertIsNotNone(reg)

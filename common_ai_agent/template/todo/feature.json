@@ -1,0 +1,34 @@
+{
+  "name": "feature",
+  "description": "Standard feature workflow: design → implement → test → document",
+  "tasks": [
+    {
+      "content": "Design the feature — define interface and data flow",
+      "activeForm": "Designing the feature",
+      "status": "pending",
+      "priority": "high",
+      "criteria": "Interface defined. Edge cases considered. Design documented."
+    },
+    {
+      "content": "Implement core logic",
+      "activeForm": "Implementing core logic",
+      "status": "pending",
+      "priority": "high",
+      "criteria": "Core functionality works for happy path and edge cases"
+    },
+    {
+      "content": "Add tests — unit and integration",
+      "activeForm": "Adding tests",
+      "status": "pending",
+      "priority": "high",
+      "criteria": "Unit tests cover core logic. Integration test covers end-to-end flow."
+    },
+    {
+      "content": "Document the feature — update README/API docs",
+      "activeForm": "Documenting the feature",
+      "status": "pending",
+      "priority": "medium",
+      "criteria": "Usage documented. API changes reflected in docs."
+    }
+  ]
+}

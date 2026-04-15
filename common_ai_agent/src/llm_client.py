@@ -44,6 +44,24 @@ actual_token_cache = {}
 last_input_tokens = 0  # Last reported input tokens from API
 last_output_tokens = 0  # Last reported output tokens from API
 
+
+def get_active_model() -> str:
+    """Return the display name for the currently active LLM backend.
+
+    When cursor-agent is enabled, returns "Cursor (<model>)" where <model>
+    is the human-readable label from cursor-agent's init event (e.g. "Auto",
+    "Sonnet 4.6 1M"). Falls back to config.MODEL_NAME for the normal path.
+    """
+    if getattr(config, "CURSOR_AGENT_ENABLE", False):
+        try:
+            from src.cursor_agent_backend import last_cursor_model
+            label = last_cursor_model or getattr(config, "CURSOR_AGENT_MODEL", "auto")
+        except Exception:
+            label = getattr(config, "CURSOR_AGENT_MODEL", "auto")
+        return f"Cursor ({label})"
+    return config.MODEL_NAME
+
+
 # Minimum output tokens floor — never cap below this value even if context is tight
 _MIN_OUTPUT_TOKENS = 1024
 # Hard cap on generated tokens regardless of model claim (GLM-4.6/4.5 practical limit)
@@ -512,6 +530,62 @@ class ProviderConfig:
 _provider_cache: Dict[str, ProviderConfig] = {}
 
 
+def is_azure_provider() -> bool:
+    """Check if the current provider is Azure OpenAI."""
+    return getattr(config, "LLM_PROVIDER", "openai").lower() == "azure"
+
+
+def build_chat_url(base_url: str, model: str = None) -> str:
+    """
+    Build the chat completions URL for the current provider.
+
+    - Standard (OpenAI, Anthropic, etc.): base_url + /chat/completions
+    - Azure OpenAI: endpoint + /openai/deployments/{deployment}/chat/completions?api-version=...
+    """
+    if is_azure_provider():
+        deployment = model or config.MODEL_NAME
+        api_version = getattr(config, "AZURE_OPENAI_API_VERSION", "2024-06-01")
+        endpoint = base_url.rstrip("/")
+        return f"{endpoint}/openai/deployments/{deployment}/chat/completions?api-version={api_version}"
+    return f"{base_url.rstrip('/')}/chat/completions"
+
+
+def build_auth_header(api_key: str) -> str:
+    """
+    Build the Authorization header value.
+
+    - Standard: Bearer {api_key}
+    - Azure OpenAI: uses api-key header instead (no Bearer prefix)
+    """
+    return f"Bearer {api_key}"
+
+
+def build_api_headers(api_key: str, extra_headers: dict = None) -> dict:
+    """
+    Build HTTP headers for the API request.
+
+    - Standard: Authorization: Bearer {api_key}
+    - Azure OpenAI: api-key: {api_key} (no Bearer)
+    """
+    if is_azure_provider():
+        headers = {
+            "Content-Type": "application/json",
+            "api-key": api_key,
+            "User-Agent": "BrianCoder/1.0"
+        }
+    else:
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+            "User-Agent": "BrianCoder/1.0"
+        }
+
+    if extra_headers:
+        headers.update(extra_headers)
+
+    return headers
+
+
 def get_provider_config(provider_id: str = None, model_id: str = None) -> ProviderConfig:
     """
     Get provider configuration for a specific provider/model.
@@ -546,6 +620,7 @@ def get_provider_config(provider_id: str = None, model_id: str = None) -> Provid
         "together": "https://api.together.xyz/v1",
         "deepinfra": "https://api.deepinfra.com/v1/openai",
         "mistral": "https://api.mistral.ai/v1",
+        "azure": getattr(config, "AZURE_OPENAI_ENDPOINT", ""),  # Azure: endpoint only
     }
 
     # Get base URL
@@ -553,7 +628,10 @@ def get_provider_config(provider_id: str = None, model_id: str = None) -> Provid
 
     # Get API key from env (PROVIDER_API_KEY or fallback)
     env_key = f"{provider_id.upper()}_API_KEY"
-    api_key = os.getenv(env_key, config.API_KEY)
+    if provider_lower == "azure":
+        api_key = os.getenv("AZURE_OPENAI_API_KEY", config.API_KEY)
+    else:
+        api_key = os.getenv(env_key, config.API_KEY)
 
     provider_config = ProviderConfig(
         provider_id=provider_id or "default",
@@ -591,13 +669,9 @@ def chat_completion_with_config(
     if provider_config is None:
         provider_config = ProviderConfig.from_env()
 
-    # Use provided config
-    url = f"{provider_config.base_url}/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {provider_config.api_key}",
-        "User-Agent": "BrianCoder/1.0"
-    }
+    # Use provided config — build URL and headers based on provider type
+    url = build_chat_url(provider_config.base_url, provider_config.model_id)
+    headers = build_api_headers(provider_config.api_key)
 
     data = {
         "model": provider_config.model_id,
@@ -1159,11 +1233,8 @@ def call_llm_for_agent(
         except ImportError:
             pass  # agent_config not available
 
-    url = f"{provider_config.base_url}/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {provider_config.api_key}"
-    }
+    url = build_chat_url(provider_config.base_url, provider_config.model_id)
+    headers = build_api_headers(provider_config.api_key)
 
     data = {
         "model": provider_config.model_id,
@@ -1217,9 +1288,8 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
                 )
 
     resolved_model = model or config.MODEL_NAME
-    url = f"{config.BASE_URL}/chat/completions"
-    api_key = config.API_KEY
 
+    # Build URL and API key based on provider routing
     if resolved_model and resolved_model.startswith("openrouter/"):
         resolved_model = resolved_model[len("openrouter/"):]
         url = "https://openrouter.ai/api/v1/chat/completions"
@@ -1228,12 +1298,11 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         resolved_model = resolved_model[len("zai/"):]
         url = "https://api.z.ai/api/coding/paas/v4/chat/completions"
         api_key = os.environ.get("ZAI_API_KEY", config.API_KEY)
+    else:
+        url = build_chat_url(config.BASE_URL, resolved_model)
+        api_key = config.API_KEY
 
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}",
-        "User-Agent": "BrianCoder/1.0"
-    }
+    headers = build_api_headers(api_key)
 
     data = {
         "model": resolved_model,
@@ -1377,6 +1446,18 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     global last_input_tokens, last_output_tokens
     global last_cache_creation_tokens, last_cache_read_tokens
     global total_cache_created, total_cache_read
+
+    # cursor-agent backend dispatch
+    if getattr(config, "CURSOR_AGENT_ENABLE", False):
+        from src.cursor_agent_backend import cursor_agent_stream
+        yield from cursor_agent_stream(
+            messages=messages,
+            model=getattr(config, "CURSOR_AGENT_MODEL", "auto"),
+            yolo=getattr(config, "CURSOR_AGENT_YOLO", False),
+            mode=getattr(config, "CURSOR_AGENT_MODE", ""),
+            workspace=getattr(config, "CURSOR_AGENT_WORKSPACE", ""),
+        )
+        return
 
     _t_fn_start = time.time()  # track pre-connect setup time
 
@@ -1536,8 +1617,6 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     if _perf_pre:
         print(f"  \033[2m[PERF/setup] prompt_cache_prep: {time.time()-_t_pre:.3f}s\033[0m")
 
-    url = f"{config.BASE_URL}/chat/completions"
-
     # Determine API key for the request
     api_key = config.API_KEY
 
@@ -1547,17 +1626,16 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         provider = parts[0]
         if provider == "openrouter":
             url = "https://openrouter.ai/api/v1/chat/completions"
-            openrouter_key = os.environ.get("OPENROUTER_API_KEY", config.API_KEY)
-            api_key = openrouter_key
+            api_key = os.environ.get("OPENROUTER_API_KEY", config.API_KEY)
         elif provider == "zai":
             url = "https://api.z.ai/api/coding/paas/v4/chat/completions"
             api_key = os.environ.get("ZAI_API_KEY", config.API_KEY)
+        else:
+            url = build_chat_url(config.BASE_URL, model)
+    else:
+        url = build_chat_url(config.BASE_URL)
 
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}",
-        "User-Agent": "BrianCoder/1.0"
-    }
+    headers = build_api_headers(api_key)
 
     # Add Anthropic-specific headers if caching enabled
     if config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
@@ -2164,9 +2242,21 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         '{"tool_calls": [{"id": ..., "name": ..., "arguments": ...}, ...]}'
     """
     global last_input_tokens, last_output_tokens
+
+    # cursor-agent backend dispatch
+    if getattr(config, "CURSOR_AGENT_ENABLE", False):
+        from src.cursor_agent_backend import cursor_agent_call
+        msgs = messages if messages else [{"role": "user", "content": prompt}]
+        return cursor_agent_call(
+            messages=msgs,
+            model=getattr(config, "CURSOR_AGENT_MODEL", "auto"),
+            yolo=getattr(config, "CURSOR_AGENT_YOLO", False),
+            mode=getattr(config, "CURSOR_AGENT_MODE", ""),
+            workspace=getattr(config, "CURSOR_AGENT_WORKSPACE", ""),
+            stream_prefix=stream_prefix,
+        )
+
     resolved_model = model or config.MODEL_NAME
-    url = f"{config.BASE_URL}/chat/completions"
-    api_key = config.API_KEY
 
     # Route to OpenRouter or Z.AI if model specifies it
     if resolved_model and resolved_model.startswith("openrouter/"):
@@ -2177,11 +2267,11 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         resolved_model = resolved_model[len("zai/"):]
         url = "https://api.z.ai/api/coding/paas/v4/chat/completions"
         api_key = os.environ.get("ZAI_API_KEY", config.API_KEY)
+    else:
+        url = build_chat_url(config.BASE_URL, resolved_model)
+        api_key = config.API_KEY
 
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}"
-    }
+    headers = build_api_headers(api_key)
 
     # Support both string prompt and messages list
     if messages is not None:
@@ -2491,11 +2581,8 @@ def get_token_count_from_api(messages):
         int: actual input token count, or 0 if failed
     """
     try:
-        url = f"{config.BASE_URL}/chat/completions"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {config.API_KEY}",
-        }
+        url = build_chat_url(config.BASE_URL)
+        headers = build_api_headers(config.API_KEY)
 
         # Non-streaming request with minimal output
         data = {
@@ -2701,12 +2788,23 @@ def get_embedding(text: str, model: str = None) -> List[float]:
         return val
         
     # Prepare API request
-    url = f"{config.EMBEDDING_BASE_URL}/embeddings"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {config.EMBEDDING_API_KEY or config.API_KEY}",
-        "User-Agent": "BrianCoder-Embedding"
-    }
+    emb_api_key = config.EMBEDDING_API_KEY or config.API_KEY
+    if is_azure_provider():
+        # Azure OpenAI embedding endpoint
+        api_version = getattr(config, "AZURE_OPENAI_API_VERSION", "2024-06-01")
+        url = f"{config.EMBEDDING_BASE_URL.rstrip('/')}/openai/deployments/{model}/embeddings?api-version={api_version}"
+        headers = {
+            "Content-Type": "application/json",
+            "api-key": emb_api_key,
+            "User-Agent": "BrianCoder-Embedding"
+        }
+    else:
+        url = f"{config.EMBEDDING_BASE_URL}/embeddings"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {emb_api_key}",
+            "User-Agent": "BrianCoder-Embedding"
+        }
     data = {
         "input": text,
         "model": model,

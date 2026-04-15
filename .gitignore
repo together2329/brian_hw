@@ -87,7 +87,22 @@ common_ai_agent/skills/*/data/full.md
 
 # Temp outputs
 common_ai_agent/cmd_output_*.txt
+**/cmd_output_*.txt
 common_ai_agent/.ragconfig
+
+# Generated hex artifacts
+arm_program.hex
+**/arm_program.hex
+
+# AI agent runtime state
+current_todos.json
+**/current_todos.json
+
+# Session data
+.session/
+**/.session/
+.session_debug/
+**/.session_debug/
 
 # Raw PDF source folders
 NVMe/

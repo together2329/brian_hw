@@ -126,17 +126,17 @@ class TestRealGLM51PlanPrompt(unittest.TestCase):
     planning / task-decomposition responses.
     """
 
-    def test_mas-gen_plan_prompt_loaded_and_substantive(self):
+    def test_mas_gen_plan_prompt_loaded_and_substantive(self):
         ws = _load_ws("mas-gen")
         self.assertIsNotNone(ws.plan_prompt_text)
         self.assertGreater(len(ws.plan_prompt_text), 100)
 
-    def test_rtl-gen_plan_prompt_loaded_and_substantive(self):
+    def test_rtl_gen_plan_prompt_loaded_and_substantive(self):
         ws = _load_ws("rtl-gen")
         self.assertIsNotNone(ws.plan_prompt_text)
         self.assertGreater(len(ws.plan_prompt_text), 50)
 
-    def test_mas-gen_plan_prompt_makes_glm_use_agent_tags(self):
+    def test_mas_gen_plan_prompt_makes_glm_use_agent_tags(self):
         """
         Inject mas-gen plan rules into system prompt and ask GLM to plan.
         GLM should mention [MAS], [RTL] or [TB] task labels.
@@ -157,7 +157,7 @@ class TestRealGLM51PlanPrompt(unittest.TestCase):
             f"Plan prompt not reflected — GLM did not use agent tags: {result[:400]}",
         )
 
-    def test_rtl-gen_plan_prompt_enforces_lint_last(self):
+    def test_rtl_gen_plan_prompt_enforces_lint_last(self):
         """
         rtl-gen plan rules say lint is the final task.
         GLM should mention lint in a planning response.
@@ -612,7 +612,7 @@ class TestRealGLM51WorkspaceDescription(unittest.TestCase):
             f"GLM didn't reference workspace description: {result[:300]}",
         )
 
-    def test_description_substantive_for_mas-gen(self):
+    def test_description_substantive_for_mas_gen(self):
         ws = _load_ws("mas-gen")
         # Description should mention what the workspace does
         lowered = ws.description.lower()
@@ -693,7 +693,7 @@ class TestRealGLM51ContextWindowBoundary(unittest.TestCase):
         self.assertIn("yes", result.lower(),
                       f"GLM lost its RTL role after compression: {result[:200]}")
 
-    def test_mas-gen_compression_prompt_with_fifo_history(self):
+    def test_mas_gen_compression_prompt_with_fifo_history(self):
         """
         mas-gen compression_prompt.md used for compressing an RTL history
         → structured summary with MAS-style fields.

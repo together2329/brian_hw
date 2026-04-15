@@ -23,17 +23,31 @@ verilator --lint-only -Wall <ip>/rtl/<ip>.sv
 1. `verilator --lint-only -Wall` (preferred — catches more issues)
 2. `iverilog -Wall -g2012` (fallback)
 
+## CRITICAL RULES
+
+1. **NEVER suppress warnings** — always fix the root cause
+2. **ONE module per file** — if a file contains multiple modules, split them:
+   - Extract each submodule into its own file (e.g., `dma_fifo.sv` for `module dma_fifo`)
+   - The filename MUST match the module name
+   - Update the filelist to include the new files
+3. **Fix width mismatches** — use constants with the correct bit width
+4. **Fix all %Warning-DECLFILENAME** — split modules into separate files
+5. **Do NOT use -Wno- flags** except for truly cosmetic warnings (EOFNEWLINE, TIMESCALEMOD)
+6. After fixing, ALWAYS re-run lint to confirm 0 errors, 0 warnings
+
 ## Fix Priority
 
 | Issue | Action |
 |-------|--------|
+| Multiple modules in one file | Split into separate files, update filelist |
 | Undeclared signal | Add declaration or fix typo |
 | Multiple drivers | Remove duplicate driver |
 | Latch inferred | Add default assignment at top of always_comb |
-| Width mismatch | Add explicit slice or cast |
+| Width mismatch | Use correct-width constants (e.g., 5'd16 not 4'd16) |
+| DECLFILENAME | Split module into its own file |
 | Implicit net | Add `default_nettype none, declare explicitly |
 | Unused port/signal | Remove or add `/* unused */` comment |
-| Other warning | Document in lint_report.txt |
+| Other warning | Fix the root cause, do NOT suppress |
 
 ## Fix Pattern
 
@@ -46,6 +60,9 @@ Warning: Latch inferred for 'out'
 
 Warning: Width mismatch 8 vs 4
 → find assignment → use explicit slice: out[3:0] = in[3:0];
+
+Warning: DECLFILENAME — filename 'foo' does not match module 'bar'
+→ extract module 'bar' into its own file bar.sv → update filelist
 ```
 
 ## Report Format (`lint_report.txt`)
@@ -66,6 +83,14 @@ Result: <N errors, N warnings>
 [Warnings Remaining]
 <signal: reason not fixed>
 ```
+
+## METRICS OUTPUT (REQUIRED)
+
+After completing your work, you MUST output a summary line in EXACTLY this format:
+```
+METRICS: lint.errors=N, lint.warnings=N
+```
+Where N is the actual count from the FINAL lint run.
 
 ## Done
 

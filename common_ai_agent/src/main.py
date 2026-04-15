@@ -30,7 +30,7 @@ _project_root = os.path.dirname(_script_dir)
 # Add paths: project root first, then src
 # This allows imports like: from lib.display import Color, from core.tools import ...
 sys.path.insert(0, _script_dir)  # src directory (highest priority for src modules)
-sys.path.insert(0, _project_root)  # common_ai_agent directory (for lib, core, agents)
+sys.path.insert(0, _project_root)  # common_ai_agent directory (for lib, core, workflow)
 
 import config
 import llm_client
@@ -278,6 +278,8 @@ def _setup_workspace(name: str) -> None:
     try:
         registry = get_todo_template_registry()
         registry._templates.clear()           # wipe previous workspace's templates
+        # Load global templates first (can be overridden by workspace-specific)
+        registry.load_global_templates(Path.cwd())
         if ws.todo_templates_dir:
             registry.load_from_dir(ws.todo_templates_dir)
         _b._TODO_TEMPLATE_REGISTRY = registry
@@ -335,14 +337,6 @@ def _setup_workspace(name: str) -> None:
 
 # Legacy Sub-Agent System (deprecated - replaced by background agent system in v2)
 orchestrator = None
-if getattr(config, 'ENABLE_SUB_AGENTS', False):
-    try:
-        from sub_agents import Orchestrator
-    except ImportError:
-        try:
-            from agents.sub_agents import Orchestrator
-        except ImportError:
-            Orchestrator = None
 
 from lib.iteration_control import IterationTracker, detect_completion_signal, show_iteration_warning
 
@@ -574,12 +568,7 @@ _shared_context_storage = threading.local()
 def get_shared_context():
     """Get current thread's SharedContext"""
     if not hasattr(_shared_context_storage, 'context'):
-        # Lazy import to avoid circular dependency
-        try:
-            from agents.shared_context import SharedContext
-            _shared_context_storage.context = SharedContext()
-        except ImportError:
-            _shared_context_storage.context = None
+        _shared_context_storage.context = None
     return _shared_context_storage.context
 
 
@@ -1193,17 +1182,131 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
 
 # --- 7. Session Setup ---
 
-def _setup_session(session_name: str = 'default') -> Path:
-    """Create .session/<name>/ and redirect HISTORY_FILE / TODO_FILE into it."""
-    session_dir = Path.cwd() / '.session' / session_name
+def _migrate_old_session(session_dir: Path):
+    """Migrate old .session/ layouts to v2 flat project structure.
+
+    v0 (original flat):
+      .session/<name>/conversation_history.json
+      .session/<name>/current_todos.json
+      .session/<name>/full_conversation_history.json
+
+    v1 (primary/sub):
+      .session/<name>/primary/conversation.json
+      .session/<name>/primary/full_conversation.json
+      .session/<name>/primary/<workflow>/todo.json
+      .session/<name>/sub/agent<N>_<wf>/...
+
+    v2 (target — flat project):
+      .session/<name>/conversation.json
+      .session/<name>/full_conversation.json
+      .session/<name>/todo.json
+      .session/<name>/jobs/job<N>/...
+    """
+    import shutil
+
+    # ── v1 → v2: move files out of primary/ first (newer, more authoritative) ──
+    primary_dir = session_dir / 'primary'
+    if primary_dir.is_dir():
+        # Move conversation files from primary/ to session root (newer wins)
+        for fname in ('conversation.json', 'full_conversation.json'):
+            src = primary_dir / fname
+            dst = session_dir / fname
+            if src.exists():
+                if not dst.exists() or src.stat().st_mtime > dst.stat().st_mtime:
+                    shutil.move(str(src), str(dst))
+
+        # Move data files from any primary/<workflow>/ to session root (newer wins)
+        if primary_dir.is_dir():
+            for wf_dir in primary_dir.iterdir():
+                if not wf_dir.is_dir():
+                    continue
+                for data_name in ('todo.json', 'todo_error.json', 'input_history.txt'):
+                    src = wf_dir / data_name
+                    dst = session_dir / data_name
+                    if src.exists():
+                        if not dst.exists() or src.stat().st_mtime > dst.stat().st_mtime:
+                            shutil.move(str(src), str(dst))
+
+        # Remove primary/ tree (all data already moved or intentionally older)
+        try:
+            shutil.rmtree(primary_dir, ignore_errors=True)
+        except Exception:
+            pass
+
+    # ── v1 → v2: rename sub/agent<N>_<wf>/ → jobs/job<N>/ ─────────────
+    sub_dir = session_dir / 'sub'
+    jobs_dir = session_dir / 'jobs'
+    if sub_dir.is_dir():
+        jobs_dir.mkdir(parents=True, exist_ok=True)
+
+        # Determine next job counter
+        existing_jobs = [d for d in jobs_dir.iterdir() if d.is_dir() and d.name.startswith('job')]
+        counter = len(existing_jobs) + 1
+
+        # Move each agent dir → job dir
+        for agent_dir in sorted(sub_dir.iterdir()):
+            if not agent_dir.is_dir():
+                continue
+            if agent_dir.name == '.counter':
+                continue
+            job_dir = jobs_dir / f'job{counter}'
+            counter += 1
+            if not job_dir.exists():
+                shutil.move(str(agent_dir), str(job_dir))
+
+        # Clean up old sub/ directory
+        try:
+            shutil.rmtree(sub_dir, ignore_errors=True)
+        except Exception:
+            pass
+
+    # ── v0 → v2: rename old flat files (fallback if no v1 data) ────────
+    v0_moves = [
+        ('conversation_history.json',       'conversation.json'),
+        ('full_conversation_history.json',  'full_conversation.json'),
+        ('current_todos.json',              'todo.json'),
+        ('current_todos_error.json',        'todo_error.json'),
+    ]
+    for old_name, new_name in v0_moves:
+        old = session_dir / old_name
+        if old.exists() and not (session_dir / new_name).exists():
+            shutil.move(str(old), str(session_dir / new_name))
+        elif old.exists():
+            # v1 already filled the target — just remove the old v0 file
+            old.unlink()
+
+
+def _setup_session(project: str = 'default', workflow: str = '') -> Path:
+    """Create .session/<project>/ flat layout and redirect config paths.
+
+    Layout (v2 — flat project):
+      .session/<project>/conversation.json       ← HISTORY_FILE
+      .session/<project>/full_conversation.json  ← append-only history
+      .session/<project>/todo.json               ← TODO_FILE
+      .session/<project>/todo_error.json         ← TODO_ERROR_FILE
+      .session/<project>/input_history.txt       ← readline history
+      .session/<project>/jobs/job<N>/            ← sub-agent persistence
+
+    Args:
+        project:  Project name (maps to .session/<project>/).
+        workflow: Ignored (kept for backward compat with v1 callers).
+    """
+    session_dir = Path.cwd() / '.session' / project
     session_dir.mkdir(parents=True, exist_ok=True)
 
-    config.HISTORY_FILE = str(session_dir / 'conversation_history.json')
-    config.TODO_FILE    = str(session_dir / 'current_todos.json')
+    # Migrate old layouts (v0 flat or v1 primary/sub) → v2 flat
+    _migrate_old_session(session_dir)
 
-    # todo_tracker captures TODO_FILE at import time — patch the module variable too
+    # Set config paths to flat project layout
+    config.HISTORY_FILE    = str(session_dir / 'conversation.json')
+    config.TODO_FILE       = str(session_dir / 'todo.json')
+    config.TODO_ERROR_FILE = str(session_dir / 'todo_error.json')
+    config.SESSION_DIR     = str(session_dir)
+    config.ACTIVE_PROJECT  = project
+
+    # Patch todo_tracker module-level TODO_FILE
     import lib.todo_tracker as _tt
-    _tt.TODO_FILE = session_dir / 'current_todos.json'
+    _tt.TODO_FILE = session_dir / 'todo.json'
 
     return session_dir
 
@@ -1318,11 +1421,12 @@ def chat_loop():
     if not _textual_emit_content_fn:
         # Compact startup banner
         from lib.display import format_startup_banner
+        from src.llm_client import get_active_model
         _rl = get_rate_limiter()
         _rl_info = f"TPM={config.TPM_LIMIT} RPM={config.RPM_LIMIT}" if _rl.active else f"delay={config.RATE_LIMIT_DELAY}s"
         print(format_startup_banner(
-            base_url=config.BASE_URL,
-            model=config.MODEL_NAME,
+            base_url=config.BASE_URL if not getattr(config, "CURSOR_AGENT_ENABLE", False) else "cursor-agent",
+            model=get_active_model(),
             features={
                 'rate_limit': _rl_info,
                 'max_iter': config.MAX_ITERATIONS,
@@ -1486,9 +1590,9 @@ def chat_loop():
                     elif '@' in text:
                         yield from self._file_completions(text)
 
-            # Input history: persist to file so ↑/↓ works across sessions
+            # Input history: persist to project root so ↑/↓ works across sessions
             try:
-                _history_file = Path(config.TODO_FILE).parent / "input_history.txt"
+                _history_file = Path(config.SESSION_DIR) / "input_history.txt"
                 _history = FileHistory(str(_history_file))
             except Exception:
                 _history = InMemoryHistory()
@@ -2042,7 +2146,7 @@ def chat_loop():
                     elif result.startswith("WORKSPACE_SWITCH:"):
                         ws_name = result.split(":", 1)[1].strip()
                         try:
-                            # Switch session context (history file) to new workspace
+                            # Switch session context — flat project layout (single param)
                             _setup_session(ws_name)
                             # Load new workspace config (prompts, hooks, commands…)
                             _setup_workspace(ws_name)
@@ -2240,11 +2344,11 @@ if __name__ == "__main__":
                          help='Workspace name (e.g. default, verilog, spec-review)')
     _args, _ = _parser.parse_known_args()
 
-    # Each workflow gets its own flow context:
-    # if -s is not explicitly given, use the workspace name as the session name
-    # so each workflow maintains a separate conversation history.
-    _session_name = _args.session or _args.workspace or 'default'
-    _setup_session(_session_name)
+    # Each project gets its own session context:
+    # if -s is not explicitly given, use the workspace name as the project name
+    # so each workspace maintains a separate conversation history.
+    _project_name = _args.session or _args.workspace or 'default'
+    _setup_session(_project_name)
 
     if _args.workspace:
         _setup_workspace(_args.workspace)

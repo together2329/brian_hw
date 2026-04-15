@@ -356,35 +356,16 @@ class AgentRegistry:
             permission=read_only_permission
         )
 
-        # Execute 에이전트 (빠른 non-reasoning 모델, 전체 접근)
-        self._agents["execute"] = AgentConfig(
-            name="execute",
-            description="Execution agent for implementing plans. Full write access.",
+        # Workflow 에이전트 (unified: replaces execute + review, full access)
+        self._agents["workflow"] = AgentConfig(
+            name="workflow",
+            description="Unified workflow agent. Handles exploration, execution, and review in a single session. Full write access.",
             mode="subagent",
             native=True,
             model=low_model,
             max_steps=30,
-            allowed_tools={
-                "read_file", "read_lines", "write_file", "replace_in_file",
-                "replace_lines", "run_command", "grep_file", "list_dir",
-                "find_files", "rag_search"
-            },
+            tools={"*": True},  # 모든 도구 허용
             permission=default_permission
-        )
-
-        # Review 에이전트 (저렴한 모델, read-only)
-        self._agents["review"] = AgentConfig(
-            name="review",
-            description="Code review agent for quality checks and suggestions.",
-            mode="subagent",
-            native=True,
-            model=low_model,
-            max_steps=10,
-            allowed_tools={
-                "read_file", "read_lines", "grep_file", "list_dir",
-                "find_files", "rag_search", "git_diff"
-            },
-            permission=read_only_permission
         )
 
         # Task 에이전트 (빠른 non-reasoning 모델, context 분배 + 오케스트레이션)
@@ -423,6 +404,23 @@ class AgentRegistry:
             native=True,
             default=False,
             tools={"*": True},
+            permission=default_permission
+        )
+
+        # Orchestrator 에이전트 (converge loop orchestration)
+        self._agents["orchestrator"] = AgentConfig(
+            name="orchestrator",
+            description="Converge loop orchestrator. Manages multi-stage pipeline execution, scoring, classification, and feedback routing. Reads converge.yaml config generically.",
+            mode="subagent",
+            native=True,
+            model=prim_model,
+            max_steps=50,
+            allowed_tools={
+                "read_file", "read_lines", "grep_file", "list_dir",
+                "find_files", "write_file", "replace_in_file",
+                "run_command", "background_task", "background_output",
+                "todo_write", "todo_update", "todo_status",
+            },
             permission=default_permission
         )
 

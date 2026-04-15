@@ -96,6 +96,11 @@ class WorkspaceConfig:
     # Custom slash commands directory (workflow/<name>/commands/)
     commands_dir: Optional[Path] = None
 
+    # Pipeline & delegation settings
+    default_delegate: str = ""                 # Default backend for todos in this workspace
+                                                 # "", "sub-agent", "cursor-agent", "codex", "gemini", "api"
+    execution_mode: str = "sequential"          # "sequential" | "parallel" | "auto"
+
 
 # ─────────────────────────────────────────────────────────────
 # Loader
@@ -157,6 +162,8 @@ def load_workspace(name: str, project_root: Path) -> WorkspaceConfig:
         force_skills=skills_cfg.get("force_activate", []),
         disable_skills=skills_cfg.get("disable", []),
         commands_dir=_opt_dir("commands"),
+        default_delegate=data.get("default_delegate", ""),
+        execution_mode=data.get("execution_mode", "sequential"),
     )
 
     # Load script hooks
@@ -463,7 +470,12 @@ def patch_todo_rules(ws: WorkspaceConfig, _base_rule_fn=None) -> None:
 # ─────────────────────────────────────────────────────────────
 
 class TodoTemplateRegistry:
-    """Load and serve todo task templates from todo_templates/ directories."""
+    """Load and serve todo task templates from todo_templates/ directories.
+
+    Search order (later dirs override earlier):
+      1. Global template/todo/ directory (project root)
+      2. Workflow-specific todo_templates/ directories
+    """
 
     def __init__(self):
         self._templates: dict = {}      # stem -> parsed JSON dict
@@ -476,6 +488,12 @@ class TodoTemplateRegistry:
                 self._templates[f.stem] = data
             except Exception:
                 pass
+
+    def load_global_templates(self, project_root: Path) -> None:
+        """Load templates from global template/todo/ directory (loaded first, can be overridden)."""
+        global_dir = project_root / "template" / "todo"
+        if global_dir.is_dir():
+            self.load_from_dir(global_dir)
 
     def list(self) -> list:
         return list(self._templates.keys())

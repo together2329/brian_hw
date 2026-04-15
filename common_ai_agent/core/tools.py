@@ -2361,8 +2361,12 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
         if status not in valid:
             return f"Error: status must be one of {valid} (got '{status}')"
 
-        # Enforce sequential execution: all prior tasks must be approved
-        if status in ("in_progress", "completed", "approved"):
+        # Enforce sequential execution: all prior tasks must be approved.
+        # Skipped in cursor-agent mode — cursor-agent makes its own approval judgment
+        # via text output; the approval event arrives after the next task's tool calls.
+        import src.config as _cfg
+        _cursor_mode = getattr(_cfg, "CURSOR_AGENT_ENABLE", False)
+        if not _cursor_mode and status in ("in_progress", "completed", "approved"):
             blocking = [
                 i + 1 for i in range(idx)
                 if todo_tracker.todos[i].status not in ("approved",)
@@ -2564,6 +2568,121 @@ def todo_status():
 
 
 # ============================================================
+# cursor-agent Tool
+# ============================================================
+
+def cursor_agent(task="", yolo="false", mode=""):
+    """
+    Delegate a task to cursor-agent — a full agentic CLI that handles
+    file reads, writes, shell commands, and code edits internally.
+
+    Use this when you need complex multi-step file/code operations that
+    benefit from cursor-agent's built-in tool access. The primary agent
+    handles todo tracking and orchestration; cursor-agent handles execution.
+
+    Args:
+        task: Clear description of what cursor-agent should do.
+              Include all relevant context (file paths, goal, constraints).
+        yolo: "true" to allow write/shell tools without confirmation (default: "false").
+              Set "true" for tasks that modify files or run commands.
+        mode: "" (default, full agent), "ask" (Q&A only), "plan" (planning only).
+
+    Returns:
+        cursor-agent's final response text.
+
+    Examples:
+        Action: cursor_agent(task="Read src/main.py and summarize the chat_loop function")
+        Action: cursor_agent(task="Refactor the serialize_messages function in src/cursor_agent_backend.py to handle empty content blocks", yolo="true")
+        Action: cursor_agent(task="Run the test suite and report which tests fail", yolo="true")
+    """
+    import subprocess, json, sys as _sys
+
+    if not task:
+        return "Error: 'task' is required. Usage: cursor_agent(task=\"describe what to do\")"
+
+    try:
+        import config as _cfg
+    except ImportError:
+        import src.config as _cfg
+
+    model = getattr(_cfg, "CURSOR_AGENT_MODEL", "auto")
+    workspace = getattr(_cfg, "CURSOR_AGENT_WORKSPACE", "")
+    _yolo = str(yolo).lower() in ("true", "1", "yes")
+
+    cmd = ["cursor-agent", "--print", "--model", model or "auto",
+           "--output-format", "stream-json", "--stream-partial-output"]
+    if _yolo:
+        cmd.append("--yolo")
+    if mode:
+        cmd += ["--mode", mode]
+    if workspace:
+        cmd += ["--workspace", workspace]
+    cmd += ["-p", task]
+
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+        )
+    except FileNotFoundError:
+        return "Error: cursor-agent not found. Install it or check PATH."
+
+    collected = []
+    tool_calls_seen = []
+
+    try:
+        for raw_line in proc.stdout:
+            raw_line = raw_line.strip()
+            if not raw_line:
+                continue
+            try:
+                chunk = json.loads(raw_line)
+            except json.JSONDecodeError:
+                continue
+
+            chunk_type = chunk.get("type")
+
+            if chunk_type == "assistant" and "timestamp_ms" in chunk:
+                content = chunk.get("message", {}).get("content", [])
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "text":
+                        text = block.get("text", "")
+                        if text:
+                            collected.append(text)
+                            _sys.stdout.write(text)
+                            _sys.stdout.flush()
+
+            elif chunk_type == "tool_call" and chunk.get("subtype") == "started":
+                # Show cursor-agent's internal tool calls
+                tc = chunk.get("tool_call", {})
+                for key, val in tc.items():
+                    name = key.replace("ToolCall", "")
+                    args = val.get("args", {}) if isinstance(val, dict) else {}
+                    detail = args.get("path") or args.get("file_path") or args.get("command", "")[:60]
+                    label = f"[cursor:{name}" + (f" {detail}" if detail else "") + "]"
+                    tool_calls_seen.append(label)
+                    _sys.stdout.write(f"\n  {label}")
+                    _sys.stdout.flush()
+
+    finally:
+        proc.stdout.close()
+        proc.wait()
+        stderr = proc.stderr.read() if proc.stderr else ""
+
+    if proc.returncode != 0 and not collected:
+        err = stderr.strip() if stderr else f"exit code {proc.returncode}"
+        return f"Error: cursor-agent failed — {err}"
+
+    result = "".join(collected).strip()
+    if tool_calls_seen:
+        result = f"[Tools used: {', '.join(tool_calls_seen)}]\n\n" + result
+    return result or "(no output)"
+
+
+# ============================================================
 # Background Agent Tools (v2 Architecture)
 # ============================================================
 
@@ -2717,6 +2836,587 @@ def background_list():
         return f"Error listing background tasks: {e}"
 
 
+# ============================================================
+# Workflow Orchestration Tools
+# ============================================================
+
+def pipeline_execute(mode="auto", max_workers=3):
+    """
+    Execute pending todo items as a pipeline — sequential, parallel, or auto-grouped.
+
+    Primary agent acts as orchestrator. Each todo is dispatched to its assigned
+    workflow + delegate backend. Results are returned for primary to review.
+
+    Args:
+        mode: Execution mode — "sequential" (one-by-one, result feeds next),
+              "parallel" (all simultaneously), "auto" (group by workflow, parallel within groups)
+        max_workers: Maximum concurrent workers for parallel execution (default: 3)
+
+    Example:
+        Action: pipeline_execute(mode="auto")
+        Action: pipeline_execute(mode="parallel", max_workers=5)
+        Action: pipeline_execute(mode="sequential")
+    """
+    todo_tracker = _get_todo_tracker()
+    if todo_tracker is None or not todo_tracker.todos:
+        return "No todo list. Use todo_write() first."
+
+    # Collect actionable todos (pending + rejected)
+    actionable = [(i, t) for i, t in enumerate(todo_tracker.todos)
+                  if t.status in ("pending", "rejected")]
+    if not actionable:
+        return "No pending/rejected tasks to execute."
+
+    try:
+        from core.workflow_orchestrator import WorkflowOrchestrator
+        from pathlib import Path
+        orch = WorkflowOrchestrator(project_root=Path.cwd())
+
+        indices, todos = zip(*actionable)
+
+        if mode == "sequential":
+            results = orch.run_sequential(list(todos))
+        elif mode == "parallel":
+            results = orch.run_parallel(list(todos), max_workers=int(max_workers))
+        else:  # auto
+            results = orch.run_pipeline(list(todos), max_workers=int(max_workers))
+
+        # Store delegate results back into todo items
+        for r in results:
+            if r.index < len(actionable):
+                orig_idx = actionable[r.index][0]
+                if orig_idx < len(todo_tracker.todos):
+                    item = todo_tracker.todos[orig_idx]
+                    item.delegate_result = r.output or r.error or ""
+                    if r.status == "completed":
+                        item.status = "completed"
+                    elif r.status == "error":
+                        item.status = "rejected"
+                        item.rejection_reason = r.error or "Pipeline execution failed"
+
+        todo_tracker.save()
+        return orch.format_pipeline_results(results)
+
+    except Exception as e:
+        import traceback
+        return f"Error in pipeline execution: {e}\n{traceback.format_exc()}"
+
+
+def workflow_dispatch(index=None, workflow="", delegate=""):
+    """
+    Assign a workflow and/or delegate backend to a specific todo item.
+
+    Args:
+        index: 1-based index of the todo item
+        workflow: Workflow name (must match a workflow/<name>/workspace.json)
+        delegate: Backend to delegate to ("sub-agent", "cursor-agent", "codex", "gemini", "api")
+
+    Example:
+        Action: workflow_dispatch(index=1, workflow="rtl-gen", delegate="sub-agent")
+        Action: workflow_dispatch(index=3, workflow="tb-gen")
+        Action: workflow_dispatch(index=5, delegate="cursor-agent")
+    """
+    todo_tracker = _get_todo_tracker()
+    if todo_tracker is None or not todo_tracker.todos:
+        return "No todo list. Use todo_write() first."
+
+    if index is None:
+        return "Error: 'index' (1-based) is required."
+
+    try:
+        idx = int(index) - 1
+    except ValueError:
+        return f"Error: index must be an integer, got '{index}'"
+
+    if not (0 <= idx < len(todo_tracker.todos)):
+        return f"Error: index {index} out of range (1-{len(todo_tracker.todos)})"
+
+    item = todo_tracker.todos[idx]
+
+    # Validate workflow if specified
+    if workflow:
+        from core.workflow_orchestrator import WorkflowOrchestrator
+        from pathlib import Path
+        orch = WorkflowOrchestrator(project_root=Path.cwd())
+        if not orch.workflow_exists(workflow):
+            available = list(orch.discover_workflows().keys())
+            return f"Error: Workflow '{workflow}' not found. Available: {available}"
+        item.workflow = workflow
+
+    # Validate delegate if specified
+    if delegate:
+        from core.delegate_runner import DelegateRunner
+        valid_backends = DelegateRunner.list_backends()
+        if delegate not in valid_backends:
+            return f"Error: Unknown delegate '{delegate}'. Available: {valid_backends}"
+        item.delegate = delegate
+
+    todo_tracker.save()
+
+    parts = [f"Task {index}: {item.content}"]
+    if workflow:
+        parts.append(f"  workflow → {workflow}")
+    if delegate:
+        parts.append(f"  delegate → {delegate}")
+    return "✅ Assigned:\n" + "\n".join(parts)
+
+
+def workflow_list():
+    """
+    List all available workflows discovered dynamically from workflow/*/workspace.json.
+
+    Returns:
+        Formatted list of workflow names and descriptions.
+
+    Example:
+        Action: workflow_list()
+    """
+    try:
+        from core.workflow_orchestrator import WorkflowOrchestrator
+        from pathlib import Path
+        orch = WorkflowOrchestrator(project_root=Path.cwd())
+        return orch.list_workflows()
+    except Exception as e:
+        return f"Error listing workflows: {e}"
+
+
+# ─── Project Management Tools ──────────────────────────────────────────────
+
+def project_list():
+    """
+    List all session projects (directories under .session/).
+
+    Returns:
+        Formatted list of project names with active marker, file counts, and sizes.
+
+    Example:
+        Action: project_list()
+    """
+    try:
+        from pathlib import Path
+        import os
+        import config as _cfg
+
+        session_root = Path.cwd() / '.session'
+        if not session_root.is_dir():
+            return "No .session/ directory found. No projects exist yet."
+
+        active = getattr(_cfg, 'ACTIVE_PROJECT', 'default')
+        lines = []
+        for d in sorted(session_root.iterdir()):
+            if not d.is_dir():
+                continue
+            # Count files and total size
+            files = [f for f in d.rglob('*') if f.is_file()]
+            total_size = sum(f.stat().st_size for f in files)
+            marker = " ◀ active" if d.name == active else ""
+            size_str = f"{total_size/1024:.0f}KB" if total_size > 1024 else f"{total_size}B"
+            lines.append(f"  {d.name}/ ({len(files)} files, {size_str}){marker}")
+
+        if not lines:
+            return "No projects found in .session/."
+
+        return "Projects:\n" + "\n".join(lines)
+    except Exception as e:
+        return f"Error listing projects: {e}"
+
+
+def project_switch(name=""):
+    """
+    Switch to a different project. Creates it if it doesn't exist.
+    Changes the active session context — conversation history, todos, jobs all switch.
+
+    Args:
+        name (str): Project name to switch to.
+
+    Returns:
+        Confirmation message with new project info.
+
+    Example:
+        Action: project_switch(name="my-feature")
+    """
+    try:
+        from pathlib import Path
+        import config as _cfg
+
+        name = str(name).strip()
+        if not name:
+            return project_list()
+
+        if '/' in name or '\\' in name or '..' in name:
+            return "Error: project name cannot contain '/', '\\', or '..'"
+
+        # Lazy import to avoid circular dependency
+        try:
+            import main as _main
+            _setup_fn = getattr(_main, '_setup_session', None)
+        except ImportError:
+            _setup_fn = None
+
+        if _setup_fn is None:
+            try:
+                import sys, os
+                for mod_name in list(sys.modules.keys()):
+                    if 'main' in mod_name.lower():
+                        _setup_fn = getattr(sys.modules[mod_name], '_setup_session', None)
+                        if _setup_fn:
+                            break
+            except Exception:
+                pass
+
+        if _setup_fn is None:
+            return f"Error: Cannot find _setup_session function. Start the agent normally first."
+
+        old_project = getattr(_cfg, 'ACTIVE_PROJECT', 'default')
+        session_dir = _setup_fn(name)
+        new_project = getattr(_cfg, 'ACTIVE_PROJECT', name)
+
+        # Count what's in the new project
+        files = list(session_dir.rglob('*')) if session_dir else []
+        file_count = sum(1 for f in files if f.is_file())
+
+        return (
+            f"✅ Switched project: {old_project} → {new_project}\n"
+            f"   Session dir: {session_dir}\n"
+            f"   Files: {file_count}"
+        )
+    except Exception as e:
+        return f"Error switching project: {e}"
+
+
+def project_create(name=""):
+    """
+    Create a new empty project under .session/<name>/ without switching to it.
+
+    Args:
+        name (str): Project name to create.
+
+    Returns:
+        Confirmation message.
+
+    Example:
+        Action: project_create(name="experiment-1")
+    """
+    try:
+        from pathlib import Path
+
+        name = str(name).strip()
+        if not name:
+            return "Error: 'name' is required."
+
+        if '/' in name or '\\' in name or '..' in name:
+            return "Error: project name cannot contain '/', '\\', or '..'"
+
+        session_dir = Path.cwd() / '.session' / name
+        if session_dir.exists():
+            return f"Project '{name}' already exists at {session_dir}"
+
+        session_dir.mkdir(parents=True, exist_ok=True)
+        return f"✅ Created project '{name}' at {session_dir}"
+    except Exception as e:
+        return f"Error creating project: {e}"
+
+
+def project_delete(name=""):
+    """
+    Delete a project and all its data. Cannot delete the active project.
+
+    Args:
+        name (str): Project name to delete.
+
+    Returns:
+        Confirmation message.
+
+    Example:
+        Action: project_delete(name="old-experiment")
+    """
+    try:
+        import shutil
+        from pathlib import Path
+        import config as _cfg
+
+        name = str(name).strip()
+        if not name:
+            return "Error: 'name' is required."
+
+        if name == 'default':
+            return "Error: Cannot delete the 'default' project."
+
+        active = getattr(_cfg, 'ACTIVE_PROJECT', 'default')
+        if name == active:
+            return f"Error: Cannot delete the active project '{name}'. Switch to another project first."
+
+        session_dir = Path.cwd() / '.session' / name
+        if not session_dir.exists():
+            return f"Project '{name}' does not exist."
+
+        # Count files before deletion for confirmation
+        files = [f for f in session_dir.rglob('*') if f.is_file()]
+        shutil.rmtree(str(session_dir))
+
+        return f"✅ Deleted project '{name}' ({len(files)} files removed)"
+    except Exception as e:
+        return f"Error deleting project: {e}"
+
+
+# ─── Job Management Tools ──────────────────────────────────────────────────
+
+def _get_jobs_dir():
+    """Return the jobs directory for the current project."""
+    from pathlib import Path
+    import config as _cfg
+    session_dir = getattr(_cfg, 'SESSION_DIR', '')
+    if not session_dir:
+        return None
+    return Path(session_dir) / 'jobs'
+
+
+def job_list():
+    """
+    List all jobs in the current project's jobs/ directory.
+
+    Returns:
+        Formatted list of jobs with status and details.
+
+    Example:
+        Action: job_list()
+    """
+    try:
+        from pathlib import Path
+        import json
+
+        jobs_dir = _get_jobs_dir()
+        if jobs_dir is None or not jobs_dir.is_dir():
+            return "No jobs directory found for current project."
+
+        jobs = sorted([d for d in jobs_dir.iterdir()
+                       if d.is_dir() and d.name.startswith('job')])
+        if not jobs:
+            return "No jobs found in current project."
+
+        lines = []
+        for job_dir in jobs:
+            # Try to read status file
+            status = "unknown"
+            info = ""
+            status_file = job_dir / 'status.json'
+            if status_file.exists():
+                try:
+                    data = json.loads(status_file.read_text(encoding='utf-8'))
+                    status = data.get('status', 'unknown')
+                    info = data.get('description', data.get('prompt', ''))[:60]
+                except Exception:
+                    pass
+            elif (job_dir / 'output.txt').exists():
+                status = "completed"
+            elif (job_dir / 'error.txt').exists():
+                status = "failed"
+
+            # Count files
+            file_count = sum(1 for f in job_dir.iterdir() if f.is_file())
+            icon = {"running": "🔄", "completed": "✅", "failed": "❌", "pending": "⏳"}.get(status, "📋")
+            lines.append(f"  {icon} {job_dir.name}/ ({status}, {file_count} files)")
+            if info:
+                lines.append(f"     {info}")
+
+        return f"Jobs in current project:\n" + "\n".join(lines)
+    except Exception as e:
+        return f"Error listing jobs: {e}"
+
+
+def job_status(job_id=""):
+    """
+    Get detailed status of a specific job.
+
+    Args:
+        job_id (str): Job identifier (e.g., "job1", "1", or full path).
+
+    Returns:
+        Detailed job information including output if completed.
+
+    Example:
+        Action: job_status(job_id="job1")
+        Action: job_status(job_id="1")
+    """
+    try:
+        from pathlib import Path
+        import json
+
+        job_id = str(job_id).strip()
+        if not job_id:
+            return job_list()
+
+        # Normalize: "1" → "job1"
+        if job_id.isdigit():
+            job_id = f"job{job_id}"
+
+        jobs_dir = _get_jobs_dir()
+        if jobs_dir is None:
+            return "No session context. Start a session first."
+
+        job_dir = jobs_dir / job_id
+        if not job_dir.is_dir():
+            return f"Job '{job_id}' not found in {jobs_dir}"
+
+        lines = [f"Job: {job_id}", f"Path: {job_dir}"]
+
+        # Status file
+        status_file = job_dir / 'status.json'
+        if status_file.exists():
+            try:
+                data = json.loads(status_file.read_text(encoding='utf-8'))
+                lines.append(f"Status: {data.get('status', 'unknown')}")
+                for key in ('description', 'prompt', 'agent', 'started_at', 'completed_at', 'error'):
+                    if key in data:
+                        val = str(data[key])[:200]
+                        lines.append(f"{key}: {val}")
+            except Exception as e:
+                lines.append(f"Status file parse error: {e}")
+
+        # List all files in job dir
+        files = sorted(job_dir.iterdir())
+        lines.append(f"Files ({len(files)}):")
+        for f in files:
+            size = f.stat().st_size if f.is_file() else 0
+            lines.append(f"  {f.name} ({size} bytes)")
+
+        # Show output if exists and small
+        output_file = job_dir / 'output.txt'
+        if output_file.exists():
+            content = output_file.read_text(encoding='utf-8', errors='replace')
+            if len(content) > 2000:
+                lines.append(f"\nOutput (truncated, {len(content)} bytes total):")
+                lines.append(content[:2000] + "\n...")
+            else:
+                lines.append(f"\nOutput:")
+                lines.append(content)
+
+        return "\n".join(lines)
+    except Exception as e:
+        return f"Error getting job status: {e}"
+
+
+def job_output(job_id=""):
+    """
+    Read the full output of a completed job.
+
+    Args:
+        job_id (str): Job identifier (e.g., "job1" or "1").
+
+    Returns:
+        Full job output text.
+
+    Example:
+        Action: job_output(job_id="job1")
+    """
+    try:
+        from pathlib import Path
+
+        job_id = str(job_id).strip()
+        if not job_id:
+            return "Error: 'job_id' is required. Use job_list() to see available jobs."
+
+        if job_id.isdigit():
+            job_id = f"job{job_id}"
+
+        jobs_dir = _get_jobs_dir()
+        if jobs_dir is None:
+            return "No session context."
+
+        job_dir = jobs_dir / job_id
+        if not job_dir.is_dir():
+            return f"Job '{job_id}' not found."
+
+        # Try output.txt first, then result.json
+        output_file = job_dir / 'output.txt'
+        if output_file.exists():
+            content = output_file.read_text(encoding='utf-8', errors='replace')
+            if len(content) > 8000:
+                return f"[Output truncated: {len(content)} bytes total]\n\n{content[:8000]}\n\n... ({len(content) - 8000} more bytes)"
+            return content
+
+        result_file = job_dir / 'result.json'
+        if result_file.exists():
+            return result_file.read_text(encoding='utf-8', errors='replace')
+
+        # Fallback: list all text files
+        text_files = [f for f in sorted(job_dir.iterdir())
+                      if f.is_file() and f.suffix in ('.txt', '.json', '.md', '.log')]
+        if text_files:
+            parts = []
+            for f in text_files:
+                content = f.read_text(encoding='utf-8', errors='replace')
+                if len(content) > 3000:
+                    content = content[:3000] + "\n..."
+                parts.append(f"=== {f.name} ===\n{content}")
+            return "\n\n".join(parts)
+
+        return f"No output files found in job '{job_id}'."
+    except Exception as e:
+        return f"Error reading job output: {e}"
+
+
+def job_cancel(job_id=""):
+    """
+    Cancel a running job by writing a cancel marker file.
+
+    Args:
+        job_id (str): Job identifier (e.g., "job1" or "1").
+
+    Returns:
+        Confirmation message.
+
+    Example:
+        Action: job_cancel(job_id="job1")
+    """
+    try:
+        from pathlib import Path
+        import json
+        import time
+
+        job_id = str(job_id).strip()
+        if not job_id:
+            return "Error: 'job_id' is required."
+
+        if job_id.isdigit():
+            job_id = f"job{job_id}"
+
+        jobs_dir = _get_jobs_dir()
+        if jobs_dir is None:
+            return "No session context."
+
+        job_dir = jobs_dir / job_id
+        if not job_dir.is_dir():
+            return f"Job '{job_id}' not found."
+
+        # Check if already completed
+        status_file = job_dir / 'status.json'
+        if status_file.exists():
+            try:
+                data = json.loads(status_file.read_text(encoding='utf-8'))
+                if data.get('status') in ('completed', 'failed'):
+                    return f"Job '{job_id}' is already {data['status']}. Cannot cancel."
+            except Exception:
+                pass
+
+        # Write cancel marker
+        cancel_file = job_dir / 'cancel'
+        cancel_file.write_text(str(int(time.time())), encoding='utf-8')
+
+        # Update status
+        if status_file.exists():
+            try:
+                data = json.loads(status_file.read_text(encoding='utf-8'))
+                data['status'] = 'cancelled'
+                status_file.write_text(json.dumps(data, indent=2), encoding='utf-8')
+            except Exception:
+                pass
+
+        return f"✅ Cancel signal sent to job '{job_id}'."
+    except Exception as e:
+        return f"Error cancelling job: {e}"
+
+
 # Registry of available tools
 AVAILABLE_TOOLS = {
     "read_file": read_file,
@@ -2748,6 +3448,22 @@ AVAILABLE_TOOLS = {
     "background_output": background_output,
     "background_cancel": background_cancel,
     "background_list": background_list,
+    # cursor-agent tool (delegates to cursor-agent CLI)
+    "cursor_agent": cursor_agent,
+    # Workflow Orchestration Tools
+    "pipeline_execute": pipeline_execute,
+    "workflow_dispatch": workflow_dispatch,
+    "workflow_list": workflow_list,
+    # Project Management Tools
+    "project_list": project_list,
+    "project_switch": project_switch,
+    "project_create": project_create,
+    "project_delete": project_delete,
+    # Job Management Tools
+    "job_list": job_list,
+    "job_status": job_status,
+    "job_output": job_output,
+    "job_cancel": job_cancel,
 }
 
 # Import and register Verilog analysis tools

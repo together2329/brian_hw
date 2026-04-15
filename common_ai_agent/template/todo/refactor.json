@@ -1,0 +1,34 @@
+{
+  "name": "refactor",
+  "description": "Standard refactor workflow: analyze → refactor → verify no regressions",
+  "tasks": [
+    {
+      "content": "Analyze current code — identify what needs refactoring and why",
+      "activeForm": "Analyzing current code",
+      "status": "pending",
+      "priority": "high",
+      "criteria": "Specific code smells/issues identified. Refactoring scope defined."
+    },
+    {
+      "content": "Write characterization tests — capture current behavior before changing",
+      "activeForm": "Writing characterization tests",
+      "status": "pending",
+      "priority": "high",
+      "criteria": "Existing behavior captured in tests. Tests pass before refactor."
+    },
+    {
+      "content": "Refactor the code",
+      "activeForm": "Refactoring the code",
+      "status": "pending",
+      "priority": "high",
+      "criteria": "Code improved. No functional changes to external behavior."
+    },
+    {
+      "content": "Verify — run all tests, confirm no regressions",
+      "activeForm": "Verifying no regressions",
+      "status": "pending",
+      "priority": "high",
+      "criteria": "All characterization tests pass. All existing tests pass. No behavioral regressions."
+    }
+  ]
+}

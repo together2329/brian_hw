@@ -51,8 +51,8 @@ class TestMasGenWorkspace(unittest.TestCase):
     def test_max_iterations_300(self):
         self.assertEqual(self.ws.env_overrides.get("MAX_ITERATIONS"), "300")
 
-    def test_markdown_render_disabled(self):
-        self.assertEqual(self.ws.env_overrides.get("ENABLE_MARKDOWN_RENDER"), "false")
+    def test_markdown_render_enabled(self):
+         self.assertEqual(self.ws.env_overrides.get("ENABLE_MARKDOWN_RENDER"), "true")
 
     def test_system_prompt_mode_prepend(self):
         self.assertEqual(self.ws.system_prompt_mode, "prepend")

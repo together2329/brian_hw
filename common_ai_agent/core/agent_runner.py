@@ -11,7 +11,9 @@ Primary Agent의 context와 완전히 분리된 독립 세션에서 실행.
 import os
 import sys
 import time
+import json
 import traceback
+from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -61,12 +63,84 @@ class AgentResult:
     raw_output: str = ""               # 압축 전 전체 출력
     status: str = "completed"          # "completed" | "error" | "timeout"
     tool_calls: List[Dict] = field(default_factory=list)
+    tool_observations: str = ""        # concatenated tool outputs (for converge metric parsing)
     files_examined: List[str] = field(default_factory=list)
     files_modified: List[str] = field(default_factory=list)
     iterations: int = 0
     execution_time_ms: int = 0
     token_usage: Dict[str, int] = field(default_factory=dict)
     error: Optional[str] = None
+
+
+def _build_converge_context(converge_state: Any, iteration: int = 0) -> str:
+    """
+    Build a converge context string from a Project instance.
+    Returns empty string if converge_state is None or has no useful info.
+
+    This is injected as a system message so the sub-agent knows about
+    the current loop state: stage, score, criteria, iteration progress.
+    """
+    if converge_state is None:
+        return ""
+
+    parts = ["[CONVERGE CONTEXT]"]
+
+    # Current stage and iteration
+    stage = getattr(converge_state, 'current_stage', '')
+    if stage:
+        parts.append(f"Stage: {stage}")
+
+    total_iter = getattr(converge_state, 'iteration', 0)
+    if total_iter > 0:
+        parts.append(f"Total iteration: {total_iter}")
+
+    # Score info
+    score = getattr(converge_state, 'score', -999.0)
+    best = getattr(converge_state, 'best_score', -999.0)
+    if score > -999.0:
+        parts.append(f"Score: {score:.1f} (best: {best:.1f})")
+
+    # Target score from config
+    config = getattr(converge_state, 'converge_config', None)
+    if config:
+        threshold = getattr(config, 'criteria_score_threshold', 10.0)
+        max_iters = getattr(config, 'criteria_max_total_iterations', 15)
+        parts.append(f"Target score: {threshold} | Max iterations: {max_iters}")
+
+    # Current metrics (compact)
+    metrics = getattr(converge_state, 'metrics', {})
+    if metrics:
+        flat = []
+        _flatten_metrics(metrics, flat)
+        if flat:
+            parts.append("Metrics: " + ", ".join(flat[:8]))
+
+    # Criteria status
+    check_fn = getattr(converge_state, 'check_hard_stop_criteria', None)
+    if check_fn:
+        try:
+            criteria = check_fn()
+            if criteria:
+                met = sum(1 for v in criteria.values() if v)
+                total = len(criteria)
+                parts.append(f"Criteria: {met}/{total} met")
+        except Exception:
+            pass
+
+    if len(parts) <= 1:
+        return ""
+
+    return " | ".join(parts)
+
+
+def _flatten_metrics(metrics: Dict, out: list, prefix: str = "") -> None:
+    """Flatten nested metrics dict into 'key=value' strings."""
+    for k, v in metrics.items():
+        full_key = f"{prefix}.{k}" if prefix else k
+        if isinstance(v, dict):
+            _flatten_metrics(v, out, full_key)
+        else:
+            out.append(f"{full_key}={v}")
 
 
 def run_agent_session(
@@ -80,6 +154,8 @@ def run_agent_session(
     compress_result: bool = True,
     max_result_chars: int = 8000,
     verbose: bool = False,
+    workflow_name: str = "",
+    converge_state: Any = None,        # Project instance for converge context injection
 ) -> AgentResult:
     """
     독립 세션에서 미니 ReAct 루프를 실행.
@@ -90,11 +166,13 @@ def run_agent_session(
         model_override: 사용할 모델 (None이면 agent config에서 결정)
         allowed_tools: 허용할 tool 이름 집합 (None이면 agent config 사용)
         max_iterations: 최대 반복 횟수
-        system_prompt: 커스텀 시스템 프롬프트 (None이면 agents/prompts/ 에서 로드)
+        system_prompt: 커스텀 시스템 프롬프트 (None이면 workflow/prompts/ 에서 로드)
         parent_context: Primary agent가 전달하는 추가 context
         compress_result: 결과를 LLM으로 압축할지 여부
         max_result_chars: 최대 결과 문자 수
         verbose: 실시간 디버그 출력 (foreground 실행 시 유용)
+        workflow_name: 워크스페이스 이름
+        converge_state: Project instance for converge context injection (optional)
 
     Returns:
         AgentResult with compressed output
@@ -107,6 +185,27 @@ def run_agent_session(
     tool_calls = []
     files_examined = []
     files_modified = []
+
+    # ── Redirect TODO_FILE to a job-scoped directory ────────────────────
+    # Allocate a job dir upfront so the sub-agent's TodoTracker writes
+    # to jobs/job<N>/todo.json instead of the project-level todo.json.
+    _saved_todo_file = config.TODO_FILE
+    _job_dir = None
+    try:
+        session_dir = getattr(config, 'SESSION_DIR', '')
+        if session_dir:
+            counter = _next_job_counter(session_dir)
+            _job_dir = Path(session_dir) / "jobs" / f"job{counter}"
+            _job_dir.mkdir(parents=True, exist_ok=True)
+            config.TODO_FILE = str(_job_dir / "todo.json")
+            # Also patch todo_tracker module-level path
+            try:
+                import lib.todo_tracker as _tt
+                _tt.TODO_FILE = _job_dir / "todo.json"
+            except Exception:
+                pass
+    except Exception:
+        _job_dir = None
 
     # Load system prompt
     if system_prompt is None:
@@ -151,6 +250,17 @@ def run_agent_session(
         "content": prompt
     })
 
+    # ── Converge context injection ────────────────────────────
+    # If converge_state is provided, inject a system message with current
+    # loop context so the sub-agent knows about score, stage, and criteria.
+    if converge_state is not None:
+        _converge_ctx = _build_converge_context(converge_state, iteration=0)
+        if _converge_ctx:
+            messages.append({
+                "role": "system",
+                "content": _converge_ctx,
+            })
+
     # Parsing utilities already imported at module level from action_parser
 
     # Import LLM client
@@ -171,6 +281,34 @@ def run_agent_session(
             if EscapeWatcher.check():
                 _log("ESC abort detected")
                 break
+
+            # ── Converge inbox check ────────────────────────────
+            # Check if the orchestrator sent override/abort messages
+            if converge_state is not None and hasattr(converge_state, 'has_inbox_messages'):
+                if converge_state.has_inbox_messages():
+                    inbox_msgs = converge_state.drain_inbox()
+                    for imsg in inbox_msgs:
+                        msg_type = imsg.get("type", "")
+                        msg_text = imsg.get("message", "")
+                        if msg_type == "abort":
+                            _log(f"Converge abort: {msg_text}")
+                            # Break out of ReAct loop
+                            iteration = max_iterations + 1  # force exit
+                            break
+                        elif msg_type == "override":
+                            _log(f"Converge override: {msg_text}")
+                            messages.append({
+                                "role": "system",
+                                "content": f"[CONVERGE OVERRIDE] {msg_text}",
+                            })
+                        else:
+                            messages.append({
+                                "role": "system",
+                                "content": f"[CONVERGE MESSAGE] {msg_text}",
+                            })
+                    # Re-check in case abort was issued
+                    if iteration > max_iterations:
+                        break
 
             iteration += 1
             _log(f"--- Iteration {iteration}/{max_iterations} ---")
@@ -247,8 +385,29 @@ def run_agent_session(
                     break
 
             if not actions:
-                _log("No actions found. Natural completion.")
-                break
+                # Check if the response looks like it *should* have been a tool call
+                # (contains code blocks or file-like content but no Action: was issued)
+                _has_code_block = '```' in collected_content or 'endmodule' in collected_content
+                _has_file_intent = any(kw in collected_content.lower() for kw in
+                    ['write', 'create', 'implement', 'save', 'generate file', 'output:'])
+
+                if _has_code_block and _has_file_intent and iteration < max_iterations - 1:
+                    # Inject corrective message and retry
+                    _correction = (
+                        "[SYSTEM ERROR] You described code but did NOT call any tools. "
+                        "You MUST use `Action: write_file(path=\"...\", content=\"...\")` to save code to files. "
+                        "Do NOT just describe what you would do. Actually call the tool now.\n"
+                        "Example: Action: write_file(path=\"counter/rtl/counter.sv\", content=\"\"\"module counter; ... endmodule\"\"\")"
+                    )
+                    messages.append({
+                        "role": "user",
+                        "content": _correction
+                    })
+                    _log("No actions found but code detected. Injecting correction and retrying.")
+                    continue  # Retry this iteration
+                else:
+                    _log("No actions found. Natural completion.")
+                    break
 
             _log(f"Parsed {len(actions)} action(s)")
 
@@ -365,16 +524,164 @@ def run_agent_session(
     else:
         live_print(f"  {Color.DIM}└─ {agent_name} · {elapsed_ms/1000:.1f}s · {len(tool_calls)} tools · {iteration} iters{Color.RESET}")
 
-    return AgentResult(
+    result = AgentResult(
         output=output,
         raw_output=raw_output,
         status="completed",
         tool_calls=tool_calls,
+        tool_observations="\n".join(all_observations),
         files_examined=list(set(files_examined)),
         files_modified=list(set(files_modified)),
         iterations=iteration,
         execution_time_ms=elapsed_ms,
     )
+
+    # Persist sub-agent result to .session/<project>/jobs/job<N>/
+    try:
+        import config as _cfg
+        session_dir = getattr(_cfg, 'SESSION_DIR', '')
+        if session_dir:
+            _persist_job_result(
+                session_dir=session_dir,
+                agent_name=agent_name,
+                messages=messages,
+                result=result,
+                job_dir=_job_dir,
+            )
+    except Exception:
+        pass
+
+    # Restore project-level TODO_FILE
+    config.TODO_FILE = _saved_todo_file
+    try:
+        import lib.todo_tracker as _tt
+        _tt.TODO_FILE = Path(_saved_todo_file) if _saved_todo_file else _saved_todo_file
+    except Exception:
+        pass
+
+    return result
+
+
+# ============================================================
+# Job Persistence (v2 — flat project layout)
+# ============================================================
+
+def _next_job_counter(session_dir: str) -> int:
+    """Atomically increment and return the job counter.
+
+    Counter file: .session/<project>/jobs/.counter
+    """
+    counter_path = Path(session_dir) / "jobs" / ".counter"
+    counter_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # If counter_path is somehow a directory, remove it
+    if counter_path.is_dir():
+        import shutil
+        shutil.rmtree(counter_path, ignore_errors=True)
+
+    count = 1
+    if counter_path.exists():
+        try:
+            count = int(counter_path.read_text().strip()) + 1
+        except (ValueError, OSError):
+            count = 1
+    try:
+        counter_path.write_text(str(count))
+    except OSError:
+        pass  # Cannot write counter — continue with in-memory count
+    return count
+
+
+def _persist_job_result(
+    session_dir: str,
+    agent_name: str,
+    messages: List[Dict],
+    result: "AgentResult",
+    job_dir: Optional[Path] = None,
+) -> None:
+    """Save job conversation, full history, todos, and result to .session/<project>/jobs/job<N>/.
+
+    Layout (4 files):
+      .session/<project>/jobs/job1/conversation.json       ← active conversation
+      .session/<project>/jobs/job1/full_conversation.json   ← append-only full history
+      .session/<project>/jobs/job1/todo.json                ← job's todo state
+      .session/<project>/jobs/job1/result.json              ← result summary
+    """
+    if not session_dir:
+        return
+
+    try:
+        # Reuse pre-allocated job_dir (from TODO_FILE redirect) or allocate new one
+        if job_dir is not None:
+            job_dir = Path(job_dir)
+        else:
+            counter = _next_job_counter(session_dir)
+            job_dir = Path(session_dir) / "jobs" / f"job{counter}"
+        job_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save conversation (active messages)
+        conv_path = job_dir / "conversation.json"
+        safe_messages = []
+        for m in messages:
+            safe_messages.append({
+                "role": m.get("role", ""),
+                "content": str(m.get("content", ""))[:50000],
+            })
+        conv_path.write_text(
+            json.dumps(safe_messages, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+        # Save full conversation (append-only — same as active for first run)
+        full_conv_path = job_dir / "full_conversation.json"
+        if not full_conv_path.exists():
+            full_conv_path.write_text(
+                json.dumps(safe_messages, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        else:
+            # Append new messages beyond what's already stored
+            try:
+                existing = json.loads(full_conv_path.read_text(encoding="utf-8"))
+                new_count = len(safe_messages) - len(existing)
+                if new_count > 0:
+                    existing.extend(safe_messages[len(existing):])
+                    full_conv_path.write_text(
+                        json.dumps(existing, ensure_ascii=False, indent=2),
+                        encoding="utf-8",
+                    )
+            except Exception:
+                pass
+
+        # Save todo state (job-scoped — already written by TodoTracker to config.TODO_FILE)
+        # The TODO_FILE was redirected to this job_dir before execution, so the file
+        # should already exist. No copy needed — just verify it's there.
+        todo_path = job_dir / "todo.json"
+        if not todo_path.exists():
+            # Fallback: create empty todo file
+            todo_path.write_text("[]", encoding="utf-8")
+
+        # Save result summary
+        result_path = job_dir / "result.json"
+        result_data = {
+            "agent_name": agent_name,
+            "status": result.status,
+            "iterations": result.iterations,
+            "execution_time_ms": result.execution_time_ms,
+            "tool_calls": len(result.tool_calls),
+            "files_examined": result.files_examined[:20],
+            "files_modified": result.files_modified[:20],
+            "output_preview": result.output[:2000] if result.output else "",
+        }
+        # Save tool_observations for converge metric parsing
+        if result.tool_observations:
+            result_data["tool_observations_preview"] = result.tool_observations[:5000]
+        result_path.write_text(
+            json.dumps(result_data, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass  # Persistence failure should never crash the agent
 
 
 # ============================================================
@@ -382,8 +689,8 @@ def run_agent_session(
 # ============================================================
 
 def _load_agent_prompt(agent_name: str) -> str:
-    """agents/prompts/{agent_name}.md 에서 시스템 프롬프트 로드"""
-    prompts_dir = os.path.join(_project_root, "agents", "prompts")
+    """workflow/prompts/{agent_name}.md 에서 시스템 프롬프트 로드"""
+    prompts_dir = os.path.join(_project_root, "workflow", "prompts")
     prompt_path = os.path.join(prompts_dir, f"{agent_name}.md")
 
     if os.path.exists(prompt_path):
@@ -408,20 +715,13 @@ def _get_default_prompt(agent_name: str) -> str:
             "Action: tool_name(args)\n"
             "When done, provide your final answer."
         ),
-        "execute": (
-            "You are an execution agent. Implement code changes according to the given plan. "
-            "You have FULL access to read, write, and run commands.\n\n"
-            "Follow existing code patterns and conventions. "
+        "workflow": (
+            "You are a unified workflow agent with full access. "
+            "You handle exploration, execution, and review in a single session.\n\n"
+            "Phases: Understand (read-only) → Plan → Execute → Verify.\n"
             "Use the ReAct format:\n"
-            "Thought: what to implement\n"
+            "Thought: what to do\n"
             "Action: tool_name(args)"
-        ),
-        "review": (
-            "You are a code review agent. Review the code changes for bugs, style issues, "
-            "and potential improvements. You have READ-ONLY access.\n\n"
-            "Output format:\n"
-            "<issues>\n- Issue description (severity: high/medium/low)\n</issues>\n"
-            "<suggestions>\n- Improvement suggestion\n</suggestions>"
         ),
     }
     return defaults.get(agent_name, f"You are a {agent_name} agent. Use the ReAct format.")
@@ -452,8 +752,8 @@ def _get_agent_tools(agent_name: str) -> Set[str]:
 
     defaults = {
         "explore": READ_ONLY,
-        "execute": ALL_TOOLS,
-        "review": READ_ONLY,
+        "execute": ALL_TOOLS,  # execute agent needs full tool access
+        "workflow": ALL_TOOLS,
         "task": TASK_TOOLS,
     }
     return defaults.get(agent_name, READ_ONLY)

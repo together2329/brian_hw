@@ -97,6 +97,50 @@ CUSTOM_PRICE = os.getenv("CUSTOM_PRICE", "false").lower() == "true"  # GLM flat 
 PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", MODEL_NAME)
 
 # ============================================================
+# Azure OpenAI Configuration
+# ============================================================
+# Set LLM_PROVIDER=azure to enable Azure OpenAI mode.
+# Required env vars when using Azure:
+#   AZURE_OPENAI_ENDPOINT  — e.g. https://my-resource.openai.azure.com
+#   AZURE_OPENAI_API_KEY   — your Azure API key
+#   AZURE_OPENAI_DEPLOYMENT — deployment name (e.g. gpt-4o-mini-deploy)
+#   AZURE_OPENAI_API_VERSION — API version (default: 2024-06-01)
+# ============================================================
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai").lower()  # openai | azure | anthropic | openrouter | zai
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY", "")
+AZURE_OPENAI_DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT", "")
+AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION", "2024-06-01")
+
+# Azure auto-detection: if LLM_PROVIDER=azure, override BASE_URL/API_KEY/MODEL_NAME
+if LLM_PROVIDER == "azure" and AZURE_OPENAI_ENDPOINT:
+    if not AZURE_OPENAI_API_KEY:
+        AZURE_OPENAI_API_KEY = API_KEY  # fallback to LLM_API_KEY
+    if not AZURE_OPENAI_DEPLOYMENT:
+        AZURE_OPENAI_DEPLOYMENT = MODEL_NAME  # fallback to LLM_MODEL_NAME
+    # Azure uses a different URL pattern — llm_client.py builds the full path
+    BASE_URL = AZURE_OPENAI_ENDPOINT.rstrip("/")
+    API_KEY = AZURE_OPENAI_API_KEY
+    MODEL_NAME = AZURE_OPENAI_DEPLOYMENT
+
+# ============================================================
+# cursor-agent Backend Configuration
+# ============================================================
+CURSOR_AGENT_ENABLE = os.getenv("CURSOR_AGENT_ENABLE", "false").lower() == "true"
+CURSOR_AGENT_MODEL = os.getenv("CURSOR_AGENT_MODEL", "auto")
+CURSOR_AGENT_YOLO = os.getenv("CURSOR_AGENT_YOLO", "false").lower() == "true"
+CURSOR_AGENT_MODE = os.getenv("CURSOR_AGENT_MODE", "")       # "ask" | "plan" | "" (full agent)
+CURSOR_AGENT_WORKSPACE = os.getenv("CURSOR_AGENT_WORKSPACE", "")  # path; empty = cwd
+# Active mode: instructs the primary LLM to delegate most execution to cursor_agent tool
+CURSOR_AGENT_ACTIVE_MODE = os.getenv("CURSOR_AGENT_ACTIVE_MODE", "false").lower() == "true"
+
+# When cursor-agent is the backend, force ReAct text mode so the system prompt
+# includes Action:/Observation: instructions that cursor-agent can follow.
+# cursor-agent does not support receiving an OpenAI-style tools JSON schema.
+if CURSOR_AGENT_ENABLE:
+    os.environ["ENABLE_NATIVE_TOOL_CALLS"] = "false"
+
+# ============================================================
 # OpenRouter Configuration (주석 처리됨)
 # ============================================================
 # BASE_URL = os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1")
@@ -161,6 +205,10 @@ SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")
 HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")
 TODO_FILE = os.getenv("TODO_FILE", "current_todos.json")
 TODO_ERROR_FILE = os.getenv("TODO_ERROR_FILE", "current_todos_error.json")
+
+# Session directory layout (set by _setup_session at runtime)
+SESSION_DIR = os.getenv("SESSION_DIR", "")            # .session/<project_name>
+ACTIVE_PROJECT = os.getenv("ACTIVE_PROJECT", "default")  # current active project name
 
 # Step-by-step execution mode
 STEP_BY_STEP_MODE = os.getenv("STEP_BY_STEP_MODE", "false").lower() in ("true", "1", "yes")
@@ -782,7 +830,7 @@ Git Tools:
 12. git_revert(path="path/to/file") - Revert uncommitted changes to a file
 
 Sub-Agent Tools:
-30. background_task(agent="explore", prompt="find FIFO implementations") - Delegate to sub-agent
+30. background_task(agent="workflow", prompt="implement the change") - Delegate to sub-agent (explore/workflow)
 31. background_output(task_id="bg_xxxx") - Get background task result
 32. todo_update(index=1, status="completed") - Update todo item status (index is REQUIRED and MUST be 1-based. 1=first task, 2=second, etc.)
 
@@ -1006,6 +1054,20 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     Tool descriptions are minimal (name + signature + when-to-use).
     Detailed examples removed — LLM infers usage from signatures.
     """
+    # cursor-agent backend: use dedicated minimal prompt so cursor-agent
+    # outputs Action: lines for todo tracking instead of using internal tools
+    if CURSOR_AGENT_ENABLE:
+        import os as _os
+        _prompt_path = _os.path.join(
+            _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+            "workflow", "prompts", "cursor_agent.md"
+        )
+        try:
+            with open(_prompt_path, "r") as _f:
+                return _f.read()
+        except Exception:
+            pass  # fall through to normal prompt
+
     if not ENABLE_TOOL_DESCRIPTIONS:
         # Legacy fallback
         return LEGACY_SYSTEM_PROMPT
@@ -1073,7 +1135,7 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
         tool_lines["Task Management"] = task_tools
 
     tool_lines["Sub-Agents"] = [
-        _tool_line("background_task", 'agent, prompt', "Delegate to sub-agent (explore/execute/review)."),
+        _tool_line("background_task", 'agent, prompt', "Delegate to sub-agent (explore/workflow)."),
         _tool_line("background_output", 'task_id', "Get sub-agent result."),
         _tool_line("background_cancel", 'task_id', "Cancel sub-agent."),
         _tool_line("background_list", '', "List active sub-agents."),

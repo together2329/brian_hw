@@ -116,8 +116,10 @@ class DescriptionLoader:
         return self._cache[tool_name]
 
     def load_agent_guide(self, guide_name: str) -> str:
-        """Load agent guide text from agents directory"""
-        guide_path = self.base_dir / "agents" / f"{guide_name}.txt"
+        """Load agent guide text from workflow/prompts directory"""
+        # base_dir is core/tool_descriptions/ — go up 2 levels to project root
+        project_root = self.base_dir.parent.parent
+        guide_path = project_root / "workflow" / "prompts" / f"{guide_name}.txt"
         
         if not guide_path.exists():
             return ""

@@ -84,6 +84,23 @@ Sim report: `<ip_name>/sim/sim_report.txt`
 6. Print per-test PASS/FAIL with `$display("[PASS] tc_name")` / `$display("[FAIL] tc_name")`
 7. Print summary at end: `$display("Result: N/M tests passed")`
 8. Use `$finish` at end, `$fatal` on unrecoverable error
+9. **Create/update the filelist** `<ip>/list/<ip>.f` with all RTL and TB files needed for simulation
+
+## Filelist Creation (REQUIRED)
+
+After writing the testbench, create or update the filelist:
+```
+<ip>/list/<ip>.f
+```
+Contents: one file path per line, relative to project root. Include:
+- All RTL files: `<ip>/rtl/*.sv`
+- All TB files: `<ip>/tb/*.sv`
+
+Then compile to verify:
+```bash
+mkdir -p <ip>/sim
+iverilog -g2012 -f <ip>/list/<ip>.f -o <ip>/sim/<ip>.out
+```
 
 ## Test Case Coverage (minimum)
 
@@ -106,6 +123,14 @@ TB      : <ip_name>/tb/tb_<ip_name>.sv
 Report  : <ip_name>/sim/sim_report.txt
 Result  : 0 errors, 0 warnings; N/N sequences PASS
 ```
+
+## METRICS OUTPUT (REQUIRED)
+
+After completing your work, you MUST output a summary line in EXACTLY this format:
+```
+METRICS: tb.complete=1, tb.tests=N, tb.compile_errors=0
+```
+Where N = number of test cases created, compile_errors = iverilog compile errors (must be 0).
 
 
 ---

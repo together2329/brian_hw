@@ -2,6 +2,10 @@
 Conversation history persistence.
 
 Extracted from src/main.py. Handles saving/loading the message list to JSON.
+
+v2 layout (flat project):
+  .session/<project>/conversation.json       ← active conversation (HISTORY_FILE)
+  .session/<project>/full_conversation.json  ← append-only, survives compression
 """
 import json
 import os
@@ -9,8 +13,8 @@ from typing import List, Dict, Any, Optional
 
 
 def _full_history_path(cfg) -> str:
-    """Derive full_conversation_history.json path from HISTORY_FILE location."""
-    return os.path.join(os.path.dirname(cfg.HISTORY_FILE), 'full_conversation_history.json')
+    """Derive full_conversation.json path from HISTORY_FILE location."""
+    return os.path.join(os.path.dirname(cfg.HISTORY_FILE), 'full_conversation.json')
 
 
 def _append_to_full_history(messages: List[Dict[str, Any]], cfg) -> None:

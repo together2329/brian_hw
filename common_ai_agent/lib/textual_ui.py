@@ -894,8 +894,12 @@ class AgentTUI(App):
         self._last_blur_time = 0.0  # track focus-loss for spurious ESC debounce
         try:
             import config as _cfg
-            self._model = getattr(_cfg, "MODEL_NAME", "")
-            self._primary_model  = getattr(_cfg, "PRIMARY_MODEL",  self._model)
+            try:
+                from src.llm_client import get_active_model as _get_active_model
+                self._model = _get_active_model()
+            except Exception:
+                self._model = getattr(_cfg, "MODEL_NAME", "")
+            self._primary_model  = self._model
             self._secondary_model = getattr(_cfg, "SECONDARY_MODEL", self._model)
             # Load proactive mode config
             self._proactive_enabled = getattr(_cfg, "PROACTIVE_ENABLED", False)
@@ -1680,9 +1684,11 @@ class AgentTUI(App):
         # Iteration header — hide from log, extract active model for sidebar
         if _ITER.search(text):
             self._in_parallel = False
-            m_model = re.search(r"[·•]\s*(\S+)", text)
+            # Capture everything after · up to the trailing ─── or ANSI reset
+            # Handles both "glm-4.7" and "Cursor (Auto)" (names with spaces)
+            m_model = re.search(r"[·•]\s*(.+?)\s*(?:─{2,}|\x1b|$)", text)
             if m_model:
-                self._active_model = m_model.group(1)
+                self._active_model = m_model.group(1).strip()
                 self._refresh_model_sidebar()
             return
 
