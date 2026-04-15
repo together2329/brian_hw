@@ -39,21 +39,10 @@ module dma #(
     logic [LEN_WIDTH-1:0]   remaining_q, remaining_n;
     logic [DATA_WIDTH-1:0]  data_buf_q, data_buf_n;
 
-    // Output registers
-    logic mem_req_q, mem_req_n;
-    logic mem_write_q, mem_write_n;
-    logic [ADDR_WIDTH-1:0] mem_addr_q, mem_addr_n;
-    logic [DATA_WIDTH-1:0] mem_wdata_q, mem_wdata_n;
-
-    assign mem_req   = mem_req_q;
-    assign mem_write = mem_write_q;
-    assign mem_addr  = mem_addr_q;
-    assign mem_wdata = mem_wdata_q;
-
     // Busy/done
     assign busy = (state != IDLE);
 
-    // Sequential logic
+    // Sequential logic — state and data registers only
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             state       <= IDLE;
@@ -61,10 +50,6 @@ module dma #(
             dst_addr_q  <= '0;
             remaining_q <= '0;
             data_buf_q  <= '0;
-            mem_req_q   <= 1'b0;
-            mem_write_q <= 1'b0;
-            mem_addr_q  <= '0;
-            mem_wdata_q <= '0;
             done        <= 1'b0;
         end else begin
             state       <= state_n;
@@ -72,31 +57,28 @@ module dma #(
             dst_addr_q  <= dst_addr_n;
             remaining_q <= remaining_n;
             data_buf_q  <= data_buf_n;
-            mem_req_q   <= mem_req_n;
-            mem_write_q <= mem_write_n;
-            mem_addr_q  <= mem_addr_n;
-            mem_wdata_q <= mem_wdata_n;
-            done        <= (state == WRITE_WAIT && mem_ready && (remaining_q == 1));
+            done        <= ((state == WRITE_REQ || state == WRITE_WAIT) &&
+                            mem_ready && (remaining_q == 1));
         end
     end
 
-    // Combinational next-state logic
+    // Combinational next-state and output logic
+    // mem_req / mem_write / mem_addr / mem_wdata are driven combinationally
     always_comb begin
-        // defaults
+        // defaults — hold addresses, clear request
         state_n       = state;
         src_addr_n    = src_addr_q;
         dst_addr_n    = dst_addr_q;
         remaining_n   = remaining_q;
         data_buf_n    = data_buf_q;
 
-        mem_req_n     = 1'b0;
-        mem_write_n   = mem_write_q;
-        mem_addr_n    = mem_addr_q;
-        mem_wdata_n   = mem_wdata_q;
+        mem_req    = 1'b0;
+        mem_write  = 1'b0;
+        mem_addr   = src_addr_q;
+        mem_wdata  = '0;
 
         case (state)
             IDLE: begin
-                mem_write_n = 1'b0;
                 if (start && (length != 0)) begin
                     src_addr_n  = src_addr;
                     dst_addr_n  = dst_addr;
@@ -107,9 +89,9 @@ module dma #(
 
             READ_REQ: begin
                 // Issue read request
-                mem_req_n   = 1'b1;
-                mem_write_n = 1'b0;
-                mem_addr_n  = src_addr_q;
+                mem_req   = 1'b1;
+                mem_write = 1'b0;
+                mem_addr  = src_addr_q;
                 if (mem_ready) begin
                     data_buf_n = mem_rdata;
                     state_n    = WRITE_REQ;
@@ -119,9 +101,9 @@ module dma #(
             end
 
             READ_WAIT: begin
-                mem_req_n   = 1'b1;
-                mem_write_n = 1'b0;
-                mem_addr_n  = src_addr_q;
+                mem_req   = 1'b1;
+                mem_write = 1'b0;
+                mem_addr  = src_addr_q;
                 if (mem_ready) begin
                     data_buf_n = mem_rdata;
                     state_n    = WRITE_REQ;
@@ -130,20 +112,19 @@ module dma #(
 
             WRITE_REQ: begin
                 // Issue write request with buffered data
-                mem_req_n   = 1'b1;
-                mem_write_n = 1'b1;
-                mem_addr_n  = dst_addr_q;
-                mem_wdata_n = data_buf_q;
+                mem_req   = 1'b1;
+                mem_write = 1'b1;
+                mem_addr  = dst_addr_q;
+                mem_wdata = data_buf_q;
                 if (mem_ready) begin
                     // Word completed
                     src_addr_n  = src_addr_q + (DATA_WIDTH/8);
                     dst_addr_n  = dst_addr_q + (DATA_WIDTH/8);
                     remaining_n = remaining_q - 1'b1;
                     if (remaining_q == 1) begin
-                        // Last word; go back to IDLE, done will pulse via registered logic
-                        state_n    = IDLE;
+                        state_n = IDLE;
                     end else begin
-                        state_n    = READ_REQ;
+                        state_n = READ_REQ;
                     end
                 end else begin
                     state_n = WRITE_WAIT;
@@ -151,10 +132,10 @@ module dma #(
             end
 
             WRITE_WAIT: begin
-                mem_req_n   = 1'b1;
-                mem_write_n = 1'b1;
-                mem_addr_n  = dst_addr_q;
-                mem_wdata_n = data_buf_q;
+                mem_req   = 1'b1;
+                mem_write = 1'b1;
+                mem_addr  = dst_addr_q;
+                mem_wdata = data_buf_q;
                 if (mem_ready) begin
                     src_addr_n  = src_addr_q + (DATA_WIDTH/8);
                     dst_addr_n  = dst_addr_q + (DATA_WIDTH/8);

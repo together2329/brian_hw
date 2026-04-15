@@ -224,6 +224,13 @@ def _is_reasoning_model() -> bool:
            (name.startswith('gpt-5') and 'codex' not in name)
 
 
+def _is_reasoning_model_for_name(name: str) -> bool:
+    """Check if a specific model name produces reasoning tokens (for Responses API)."""
+    name = (name or '').lower()
+    return any(k in name for k in ('glm', 'deepseek', 'qwq', 'r1', 'reasoning', 'o1', 'o3', 'o4')) or \
+           (name.startswith('gpt-5') and 'codex' not in name)
+
+
 def _is_openai_gpt_model(model_name: str = None) -> bool:
     """Check if the model is an OpenAI GPT model.
 
@@ -715,6 +722,7 @@ def _build_responses_request(data: dict, resolved_model: str) -> dict:
         messages → input
         max_completion_tokens → max_output_tokens
         tools (function calling) → tools (Responses API format)
+        reasoning effort (for GPT-5.x, o-series)
     """
     messages = data.get("messages", [])
     resp_data = {
@@ -734,6 +742,15 @@ def _build_responses_request(data: dict, resolved_model: str) -> dict:
     # Transfer stream
     if data.get("stream"):
         resp_data["stream"] = True
+
+    # Enable reasoning for reasoning-capable models (GPT-5.x, o-series)
+    if _is_reasoning_model_for_name(resolved_model):
+        effort = getattr(config, 'REASONING_EFFORT', 'medium')
+        if effort in ('low', 'medium', 'high'):
+            resp_data["reasoning"] = {
+                "effort": effort,
+                "summary": "auto",
+            }
 
     # Convert tools from chat completions format to Responses API format
     if "tools" in data:
@@ -908,6 +925,15 @@ def _build_responses_request_body(
 
     if max_output_tokens is not None:
         data["max_output_tokens"] = max_output_tokens
+
+    # Enable reasoning for reasoning-capable models (GPT-5.x, o-series)
+    if _is_reasoning_model_for_name(model):
+        effort = getattr(config, 'REASONING_EFFORT', 'medium')
+        if effort in ('low', 'medium', 'high'):
+            data["reasoning"] = {
+                "effort": effort,
+                "summary": "auto",
+            }
 
     if tools:
         # Convert Chat Completions tool format to Responses API format

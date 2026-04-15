@@ -1324,5 +1324,128 @@ class TestTodoToolsSchemasComplete(unittest.TestCase):
         self.assertEqual(len(resp_data["tools"]), 5)
 
 
+class TestReasoningParameter(unittest.TestCase):
+    """Test that reasoning parameter is correctly added to Responses API requests."""
+
+    def test_gpt51_has_reasoning_param(self):
+        """GPT-5.1 request should include reasoning parameter."""
+        from src.llm_client import _build_responses_request
+
+        data = {
+            "model": "gpt-5.1",
+            "messages": [{"role": "user", "content": "test"}],
+            "stream": True,
+        }
+        resp_data = _build_responses_request(data, "gpt-5.1")
+        self.assertIn("reasoning", resp_data)
+        self.assertIn("effort", resp_data["reasoning"])
+        self.assertIn("summary", resp_data["reasoning"])
+        self.assertEqual(resp_data["reasoning"]["summary"], "auto")
+
+    def test_gpt51_codex_no_reasoning(self):
+        """GPT-5.1-codex should NOT have reasoning (tool-use focused)."""
+        from src.llm_client import _build_responses_request
+
+        data = {
+            "model": "gpt-5.1-codex",
+            "messages": [{"role": "user", "content": "test"}],
+            "stream": True,
+        }
+        resp_data = _build_responses_request(data, "gpt-5.1-codex")
+        self.assertNotIn("reasoning", resp_data)
+
+    def test_gpt53_codex_no_reasoning(self):
+        """GPT-5.3-codex should NOT have reasoning."""
+        from src.llm_client import _build_responses_request
+
+        data = {
+            "model": "gpt-5.3-codex",
+            "messages": [{"role": "user", "content": "test"}],
+            "stream": True,
+        }
+        resp_data = _build_responses_request(data, "gpt-5.3-codex")
+        self.assertNotIn("reasoning", resp_data)
+
+    def test_o3_has_reasoning(self):
+        """o3 model should have reasoning parameter."""
+        from src.llm_client import _build_responses_request
+
+        data = {
+            "model": "o3",
+            "messages": [{"role": "user", "content": "test"}],
+            "stream": True,
+        }
+        resp_data = _build_responses_request(data, "o3")
+        self.assertIn("reasoning", resp_data)
+
+    def test_o1_has_reasoning(self):
+        """o1 model should have reasoning parameter."""
+        from src.llm_client import _build_responses_request
+
+        data = {
+            "model": "o1",
+            "messages": [{"role": "user", "content": "test"}],
+            "stream": True,
+        }
+        resp_data = _build_responses_request(data, "o1")
+        self.assertIn("reasoning", resp_data)
+
+    def test_gpt4o_no_reasoning(self):
+        """GPT-4o should NOT have reasoning parameter."""
+        from src.llm_client import _build_responses_request
+
+        data = {
+            "model": "gpt-4o",
+            "messages": [{"role": "user", "content": "test"}],
+            "stream": True,
+        }
+        resp_data = _build_responses_request(data, "gpt-4o")
+        self.assertNotIn("reasoning", resp_data)
+
+    def test_reasoning_effort_config(self):
+        """REASONING_EFFORT config controls effort level."""
+        from src.llm_client import _build_responses_request
+
+        for effort in ("low", "medium", "high"):
+            with patch('src.llm_client.config') as mock_config:
+                mock_config.REASONING_EFFORT = effort
+                data = {
+                    "model": "gpt-5.1",
+                    "messages": [{"role": "user", "content": "test"}],
+                    "stream": True,
+                }
+                resp_data = _build_responses_request(data, "gpt-5.1")
+                self.assertEqual(resp_data["reasoning"]["effort"], effort)
+
+    def test_reasoning_param_serializable(self):
+        """Reasoning parameter must be JSON serializable."""
+        from src.llm_client import _build_responses_request
+
+        data = {
+            "model": "gpt-5.1",
+            "messages": [{"role": "user", "content": "test"}],
+            "stream": True,
+        }
+        resp_data = _build_responses_request(data, "gpt-5.1")
+        json_str = json.dumps(resp_data)
+        self.assertIn('"reasoning"', json_str)
+        self.assertIn('"effort"', json_str)
+
+    def test_is_reasoning_model_for_name(self):
+        """_is_reasoning_model_for_name correctly identifies reasoning models."""
+        from src.llm_client import _is_reasoning_model_for_name
+
+        # Should be reasoning models
+        for name in ["gpt-5.1", "GPT-5.1", "o1", "o3-mini", "o4-mini",
+                      "glm-5.1", "deepseek-v3", "qwq-32b", "deepseek-r1"]:
+            self.assertTrue(_is_reasoning_model_for_name(name),
+                          f"{name} should be a reasoning model")
+
+        # Should NOT be reasoning models
+        for name in ["gpt-5.1-codex", "gpt-5.3-codex", "gpt-4o", "gpt-4o-mini", ""]:
+            self.assertFalse(_is_reasoning_model_for_name(name),
+                           f"{name} should NOT be a reasoning model")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
