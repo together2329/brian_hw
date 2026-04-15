@@ -2327,9 +2327,8 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         _set_max_output_tokens(data, compute_safe_max_tokens())
 
     # ── Responses API routing (gpt-5.1-codex etc.) ──
-    _is_resp_api = is_responses_api_model(resolved_model)
-    if _is_resp_api:
-        url = build_responses_url(config.BASE_URL)
+    if is_responses_api_model(resolved_model):
+        url = build_responses_url(config.BASE_URL, resolved_model)
         data = _build_responses_request(data, resolved_model)
 
     # Show spinner while waiting (suppressed during compression)
@@ -2371,7 +2370,7 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     choices = result.get("choices") or []
     if not choices:
         # ── Responses API format ──
-        if _is_resp_api:
+        if is_responses_api_model(resolved_model):
             yield from _parse_responses_result(result)
             return
         return  # empty body (HTTP 200 but no content) — caller retry loop handles it
@@ -2725,7 +2724,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
     # ── Responses API routing (gpt-5.1-codex etc.) ──
     if is_responses_api_model(resolved_model):
-        url = build_responses_url(config.BASE_URL)
+        url = build_responses_url(config.BASE_URL, resolved_model)
         data = _build_responses_request(data, resolved_model)
         if config.DEBUG_MODE:
             tag = f" ({caller_tag})" if caller_tag else ""
