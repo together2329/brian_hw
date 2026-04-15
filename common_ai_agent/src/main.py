@@ -1323,7 +1323,7 @@ def chat_loop():
     _warmup_thread.start()
 
     # Initialize session manager (for recovery system)
-    global session_manager, current_session_id, current_recovery_point
+    global session_manager, current_session_id, current_recovery_point, todo_tracker
 
     if config.ENABLE_SESSION_RECOVERY and session_manager is None:
         try:
@@ -1448,6 +1448,9 @@ def chat_loop():
     conversation_count = 0
     # Todo tracker for UI confirmation checks
     todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE)) if config.ENABLE_TODO_TRACKING else None
+    # Sync global so _get_todo_tracker() in tools.py returns the same instance
+    if todo_tracker_main is not None:
+        todo_tracker = todo_tracker_main
 
     # Auto RAG Indexing on startup
     if config.ENABLE_RAG_AUTO_INDEX:
@@ -1641,6 +1644,8 @@ def chat_loop():
         try:
             if config.ENABLE_TODO_TRACKING:
                 todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE))
+                # Sync global so _get_todo_tracker() in tools.py returns the same instance
+                todo_tracker = todo_tracker_main
 
             try:
                 if _multiline_prompt:
@@ -1909,6 +1914,7 @@ def chat_loop():
                         else:
                             agent_mode = "normal"
                             os.environ["PLAN_MODE"] = "false"
+                            os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)  # reset plan loop counter
                             print(Color.success("\n✅ Normal mode.\n"))
                             # Restore normal system prompt
                             if messages and messages[0].get("role") == "system":
