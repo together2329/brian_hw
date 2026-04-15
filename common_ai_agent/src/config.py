@@ -97,6 +97,33 @@ CUSTOM_PRICE = os.getenv("CUSTOM_PRICE", "false").lower() == "true"  # GLM flat 
 PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", MODEL_NAME)
 
 # ============================================================
+# Azure OpenAI Configuration
+# ============================================================
+# Set LLM_PROVIDER=azure to enable Azure OpenAI mode.
+# Required env vars when using Azure:
+#   AZURE_OPENAI_ENDPOINT  — e.g. https://my-resource.openai.azure.com
+#   AZURE_OPENAI_API_KEY   — your Azure API key
+#   AZURE_OPENAI_DEPLOYMENT — deployment name (e.g. gpt-4o-mini-deploy)
+#   AZURE_OPENAI_API_VERSION — API version (default: 2024-06-01)
+# ============================================================
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai").lower()  # openai | azure | anthropic | openrouter | zai
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY", "")
+AZURE_OPENAI_DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT", "")
+AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION", "2024-06-01")
+
+# Azure auto-detection: if LLM_PROVIDER=azure, override BASE_URL/API_KEY/MODEL_NAME
+if LLM_PROVIDER == "azure" and AZURE_OPENAI_ENDPOINT:
+    if not AZURE_OPENAI_API_KEY:
+        AZURE_OPENAI_API_KEY = API_KEY  # fallback to LLM_API_KEY
+    if not AZURE_OPENAI_DEPLOYMENT:
+        AZURE_OPENAI_DEPLOYMENT = MODEL_NAME  # fallback to LLM_MODEL_NAME
+    # Azure uses a different URL pattern — llm_client.py builds the full path
+    BASE_URL = AZURE_OPENAI_ENDPOINT.rstrip("/")
+    API_KEY = AZURE_OPENAI_API_KEY
+    MODEL_NAME = AZURE_OPENAI_DEPLOYMENT
+
+# ============================================================
 # cursor-agent Backend Configuration
 # ============================================================
 CURSOR_AGENT_ENABLE = os.getenv("CURSOR_AGENT_ENABLE", "false").lower() == "true"
