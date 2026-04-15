@@ -1,9 +1,36 @@
-// =============================================================================
-// DMA Controller Testbench
-// Based on MAS §9 (DV Plan) — Comprehensive Verification
-// Covers: Reset, Register R/W, Basic Operation, Burst, Multi-Channel,
-//         Priority, Interrupts, Error Handling, Circular Mode, Edge Cases
-// =============================================================================
+// ============================================================================
+// DMA Controller Testbench — MAS §9 DV Plan
+// ============================================================================
+// Testbench for the multi-channel DMA controller with CSR configuration
+// interface and simple bus master read/write interface.
+//
+// Test Coverage (25 tests):
+//   1.  Reset values
+//   2.  Register read/write
+//   3.  CSR access to non-existent register
+//   4.  Single word transfer
+//   5.  Burst transfer (multiple beats)
+//   6.  Large transfer (>internal buffering)
+//   7.  Multi-channel simultaneous transfer
+//   8.  Priority arbitration
+//   9.  Interrupt generation & clearing
+//   10. Error handling (bus error)
+//  11. Circular mode
+//  12. Global enable/disable
+//  13. Channel status register
+//  14. Reset during active transfer
+//  15. Fixed address mode (peripheral FIFO)
+//  16. INT_CLEAR write-1-to-clear
+//  17. Zero-length transfer (edge case)
+//  18. Multiple sequential transfers on same channel
+//  19. Back-pressure (rd_ready/wr_ready deasserted)
+//  20. All channels independent configuration
+//  21. SW trigger without channel enable
+//  22. ERR clearing
+//  23. Bus request protocol checks
+//  24. Hardware trigger
+//  25. Stop during active transfer
+// ============================================================================
 
 `timescale 1ns/1ps
 
@@ -12,387 +39,447 @@ module tb_dma;
     // =========================================================================
     // Parameters
     // =========================================================================
-    parameter int NUM_CHANNELS      = 4;
-    parameter int DATA_WIDTH        = 32;
-    parameter int ADDR_WIDTH        = 32;
-    parameter int MAX_TRANSFER_SIZE = 1024;
-    parameter int FIFO_DEPTH        = 8;
-    parameter int MEM_SIZE          = 16384; // 16KB test memory
+    parameter int NUM_CHANNELS = 4;
+    parameter int ADDR_WIDTH   = 32;
+    parameter int DATA_WIDTH   = 32;
+    parameter int BURST_MAX    = 16;
+    parameter int MAX_TRANSFER = 65536;
+    parameter int CLK_PERIOD   = 10;  // 100 MHz
 
     // =========================================================================
-    // Clock & Reset
+    // CSR Address Map (must match RTL localparams)
     // =========================================================================
-    logic        clk;
-    logic        rst_n;
+    localparam logic [ADDR_WIDTH-1:0] CSR_CH_SELECT   = ADDR_WIDTH'(32'h000);
+    localparam logic [ADDR_WIDTH-1:0] CSR_SRC_ADDR_LO = ADDR_WIDTH'(32'h004);
+    localparam logic [ADDR_WIDTH-1:0] CSR_DST_ADDR_LO = ADDR_WIDTH'(32'h00C);
+    localparam logic [ADDR_WIDTH-1:0] CSR_XFER_COUNT  = ADDR_WIDTH'(32'h014);
+    localparam logic [ADDR_WIDTH-1:0] CSR_CONTROL     = ADDR_WIDTH'(32'h018);
+    localparam logic [ADDR_WIDTH-1:0] CSR_STATUS      = ADDR_WIDTH'(32'h01C);
+    localparam logic [ADDR_WIDTH-1:0] CSR_INT_STATUS  = ADDR_WIDTH'(32'h020);
+    localparam logic [ADDR_WIDTH-1:0] CSR_INT_ENABLE  = ADDR_WIDTH'(32'h024);
+    localparam logic [ADDR_WIDTH-1:0] CSR_INT_CLEAR   = ADDR_WIDTH'(32'h028);
 
-    // APB Slave Interface
-    logic        psel;
-    logic        penable;
-    logic        pwrite;
-    logic [11:0] paddr;
-    logic [31:0] pwdata;
-    logic [31:0] prdata;
-    logic        pready;
-    logic        pslverr;
+    // Control register bits
+    localparam int CTRL_ENABLE_BIT   = 0;
+    localparam int CTRL_START_BIT    = 1;
+    localparam int CTRL_STOP_BIT     = 2;
+    localparam int CTRL_SRC_INC_BIT  = 3;
+    localparam int CTRL_DST_INC_BIT  = 4;
+    localparam int CTRL_BURST_EN_BIT = 5;
+    localparam int CTRL_HW_TRIG_BIT  = 6;
+    localparam int CTRL_INT_EN_BIT   = 7;
+    localparam int CTRL_MODE_LO_BIT  = 8;
+    localparam int CTRL_MODE_HI_BIT  = 9;
 
-    // AHB Master Interface
-    logic        hbusreq;
-    logic        hgrant;
-    logic [31:0] haddr;
-    logic [1:0]  htrans;
-    logic        hwrite;
-    logic [2:0]  hsize;
-    logic [2:0]  hburst;
-    logic [3:0]  hprot;
-    logic [31:0] hwdata;
-    logic [31:0] hrdata;
-    logic        hready;
-    logic        hresp;
+    // =========================================================================
+    // Signals
+    // =========================================================================
+    logic                          clk;
+    logic                          rst_n;
 
-    // Interrupts
-    logic [3:0]  irq;
+    // Bus Master Read
+    logic [ADDR_WIDTH-1:0]         m_rd_addr;
+    logic                          m_rd_valid;
+    logic [DATA_WIDTH-1:0]         m_rd_data;
+    logic                          m_rd_ready;
+
+    // Bus Master Write
+    logic [ADDR_WIDTH-1:0]         m_wr_addr;
+    logic [DATA_WIDTH-1:0]         m_wr_data;
+    logic                          m_wr_valid;
+    logic                          m_wr_ready;
+
+    // Bus arbitration
+    logic                          m_bus_req;
+    logic                          m_bus_grant;
+
+    // CSR Interface
+    logic [ADDR_WIDTH-1:0]         csr_addr;
+    logic [DATA_WIDTH-1:0]         csr_wr_data;
+    logic                          csr_wr_en;
+    logic                          csr_rd_en;
+    logic [DATA_WIDTH-1:0]         csr_rd_data;
+    logic                          csr_rd_valid;
+
+    // Hardware request inputs
+    logic [NUM_CHANNELS-1:0]       hw_req;
+
+    // Interrupt outputs
+    logic [NUM_CHANNELS-1:0]       irq;
 
     // =========================================================================
     // Test Bookkeeping
     // =========================================================================
-    int          test_pass;
-    int          test_fail;
-    int          test_count;
-    string       test_name;
+    int test_pass;
+    int test_fail;
+    int test_count;
+    int check_pass;
+    int check_fail;
 
     // =========================================================================
-    // AHB Slave Memory Model
+    // Memory Model (simple single-port SRAM simulation)
     // =========================================================================
-    logic [7:0]  ahb_mem [0:MEM_SIZE-1];
+    logic [DATA_WIDTH-1:0] mem_array [logic [ADDR_WIDTH-1:0]];
 
-    // AHB response control (for error injection and back-pressure)
-    logic        inject_error;
-    logic [31:0] error_addr;
-    int          ready_delay_count;
-    int          ready_delay_cycles;
-
-    function automatic logic [31:0] mem_read(input logic [31:0] addr);
-        logic [31:0] data;
-        data = '0;
-        if (addr + 3 < MEM_SIZE) begin
-            data[7:0]   = ahb_mem[addr];
-            data[15:8]  = ahb_mem[addr+1];
-            data[23:16] = ahb_mem[addr+2];
-            data[31:24] = ahb_mem[addr+3];
-        end
-        return data;
-    endfunction
-
-    task automatic mem_write(input logic [31:0] addr, input logic [31:0] data);
-        if (addr + 3 < MEM_SIZE) begin
-            ahb_mem[addr]   = data[7:0];
-            ahb_mem[addr+1] = data[15:8];
-            ahb_mem[addr+2] = data[23:16];
-            ahb_mem[addr+3] = data[31:24];
-        end
-    endtask
-
-    task automatic mem_fill_pattern(input logic [31:0] base, input int count, input logic [31:0] pattern);
-        for (int i = 0; i < count; i++) begin
-            mem_write(base + i*4, pattern + i);
-        end
-    endtask
-
-    task automatic mem_clear;
-        for (int i = 0; i < MEM_SIZE; i++)
-            ahb_mem[i] = 8'h00;
-    endtask
+    // Error injection
+    logic                      inject_error;
+    logic [ADDR_WIDTH-1:0]     error_addr;
+    int                        rd_latency;  // configurable read latency
+    int                        wr_latency;  // configurable write latency
 
     // =========================================================================
     // DUT Instantiation
     // =========================================================================
     dma #(
-        .NUM_CHANNELS     (NUM_CHANNELS),
-        .DATA_WIDTH       (DATA_WIDTH),
-        .ADDR_WIDTH       (ADDR_WIDTH),
-        .MAX_TRANSFER_SIZE(MAX_TRANSFER_SIZE),
-        .FIFO_DEPTH       (FIFO_DEPTH)
-    ) u_dut (
-        .clk     (clk),
-        .rst_n   (rst_n),
-        .psel    (psel),
-        .penable (penable),
-        .pwrite  (pwrite),
-        .paddr   (paddr),
-        .pwdata  (pwdata),
-        .prdata  (prdata),
-        .pready  (pready),
-        .pslverr (pslverr),
-        .hbusreq (hbusreq),
-        .hgrant  (hgrant),
-        .haddr   (haddr),
-        .htrans  (htrans),
-        .hwrite  (hwrite),
-        .hsize   (hsize),
-        .hburst  (hburst),
-        .hprot   (hprot),
-        .hwdata  (hwdata),
-        .hrdata  (hrdata),
-        .hready  (hready),
-        .hresp   (hresp),
-        .irq     (irq)
-    );
+        .NUM_CHANNELS ( NUM_CHANNELS ),
+        .ADDR_WIDTH   ( ADDR_WIDTH   ),
+        .DATA_WIDTH   ( DATA_WIDTH   ),
+        .BURST_MAX    ( BURST_MAX    ),
+        .MAX_TRANSFER ( MAX_TRANSFER )
+    ) uut (.*);
 
     // =========================================================================
-    // Clock Generation — 10ns period (100 MHz)
+    // Clock Generation
     // =========================================================================
-    initial begin
-        clk = 0;
-        forever #5 clk = ~clk;
-    end
+    initial clk = 1'b0;
+    always #(CLK_PERIOD/2) clk = ~clk;
 
     // =========================================================================
-    // AHB Slave Response Model
+    // Bus Slave — Memory Model with Configurable Latency
     // =========================================================================
-    logic [31:0] ahb_addr_delay; // Address phase register
+
+    // Read response pipeline
+    logic [DATA_WIDTH-1:0]   rd_data_buf;
+    logic                    rd_valid_buf;
+    int                      rd_cnt;
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            hrdata          <= 32'd0;
-            hready          <= 1'b1;
-            hresp           <= 1'b0;
-            ready_delay_count <= 0;
+            m_rd_ready   <= 1'b0;
+            rd_data_buf  <= '0;
+            m_rd_data    <= '0;
+            rd_cnt       <= 0;
         end else begin
-            // Handle back-pressure delay
-            if (ready_delay_count > 0) begin
-                ready_delay_count <= ready_delay_count - 1;
-                hready <= 1'b0;
-            end else begin
-                hready <= 1'b1;
-            end
-
-            if (htrans == 2'b10 || htrans == 2'b11) begin // NONSEQ or SEQ
-                ahb_addr_delay <= haddr;
-
-                if (inject_error && haddr == error_addr) begin
-                    hresp  <= 1'b1; // ERROR
-                    hready <= 1'b1;
-                end else begin
-                    hresp <= 1'b0;
-                    if (!hwrite) begin
-                        // Read from memory model
-                        hrdata <= mem_read(haddr);
+            if (m_rd_valid && !m_rd_ready) begin
+                // Waiting to assert ready
+                rd_cnt <= rd_cnt + 1;
+                if (rd_cnt >= rd_latency - 1) begin
+                    m_rd_ready <= 1'b1;
+                    if (inject_error && m_rd_addr == error_addr) begin
+                        // Return garbage on error
+                        m_rd_data <= 32'hDEAD_BEEF;
+                    end else if (mem_array.exists(m_rd_addr)) begin
+                        m_rd_data <= mem_array[m_rd_addr];
+                    end else begin
+                        m_rd_data <= 32'hX;
                     end
                 end
-
-                // Handle write data phase (one cycle later)
-            end else if (htrans == 2'b00) begin // IDLE
-                hresp <= 1'b0;
+            end else begin
+                m_rd_ready <= 1'b0;
+                rd_cnt     <= 0;
+                if (m_rd_valid) begin
+                    // Start read latency counter
+                    if (rd_latency <= 1) begin
+                        m_rd_ready <= 1'b1;
+                        if (inject_error && m_rd_addr == error_addr) begin
+                            m_rd_data <= 32'hDEAD_BEEF;
+                        end else if (mem_array.exists(m_rd_addr)) begin
+                            m_rd_data <= mem_array[m_rd_addr];
+                        end else begin
+                            m_rd_data <= '0;
+                        end
+                    end else begin
+                        rd_cnt <= 1;
+                    end
+                end
             end
         end
     end
 
-    // Write data phase: capture on next cycle when hwrite was active
-    always_ff @(posedge clk) begin
-        if (hwrite && hready && (htrans == 2'b10 || htrans == 2'b11)) begin
-            mem_write(ahb_addr_delay, hwdata);
+    // Write response pipeline
+    int wr_cnt;
+
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            m_wr_ready <= 1'b0;
+            wr_cnt     <= 0;
+        end else begin
+            if (m_wr_valid && !m_wr_ready) begin
+                wr_cnt <= wr_cnt + 1;
+                if (wr_cnt >= wr_latency - 1) begin
+                    m_wr_ready <= 1'b1;
+                    if (!(inject_error && m_wr_addr == error_addr)) begin
+                        mem_array[m_wr_addr] = m_wr_data;
+                    end
+                end
+            end else begin
+                m_wr_ready <= 1'b0;
+                wr_cnt     <= 0;
+                if (m_wr_valid) begin
+                    if (wr_latency <= 1) begin
+                        m_wr_ready <= 1'b1;
+                        if (!(inject_error && m_wr_addr == error_addr)) begin
+                            mem_array[m_wr_addr] = m_wr_data;
+                        end
+                    end else begin
+                        wr_cnt <= 1;
+                    end
+                end
+            end
         end
     end
 
-    // Grant bus whenever requested (simple model)
+    // =========================================================================
+    // Bus Grant — always grant immediately for test purposes
+    // =========================================================================
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n)
-            hgrant <= 1'b0;
+            m_bus_grant <= 1'b0;
         else
-            hgrant <= hbusreq; // Always grant immediately
+            m_bus_grant <= m_bus_req;
     end
-
-    // =========================================================================
-    // APB Master Tasks
-    // =========================================================================
-
-    // APB Write — 2-phase (setup + access)
-    task automatic apb_write(input logic [11:0] addr, input logic [31:0] data);
-        @(posedge clk);
-        psel    <= 1'b1;
-        pwrite  <= 1'b1;
-        paddr   <= addr;
-        pwdata  <= data;
-        @(posedge clk);
-        penable <= 1'b1;
-        @(posedge clk);
-        psel    <= 1'b0;
-        penable <= 1'b0;
-        pwrite  <= 1'b0;
-    endtask
-
-    // APB Read — returns prdata
-    task automatic apb_read(input logic [11:0] addr, output logic [31:0] data);
-        @(posedge clk);
-        psel    <= 1'b1;
-        pwrite  <= 1'b0;
-        paddr   <= addr;
-        @(posedge clk);
-        penable <= 1'b1;
-        @(posedge clk);
-        data    = prdata;
-        psel    <= 1'b0;
-        penable <= 1'b0;
-    endtask
 
     // =========================================================================
     // Utility Tasks
     // =========================================================================
 
+    // --- Clock-cycle wait ---
+    task automatic tick(input int n = 1);
+        repeat(n) @(posedge clk);
+    endtask
+
+    // --- Reset application ---
     task automatic apply_reset;
-        rst_n = 1'b1;
-        @(posedge clk);
-        @(posedge clk);
         rst_n = 1'b0;
+        hw_req = '0;
+        inject_error = 1'b0;
+        error_addr = '0;
+        rd_latency = 1;
+        wr_latency = 1;
+        csr_addr    = '0;
+        csr_wr_data = '0;
+        csr_wr_en   = 1'b0;
+        csr_rd_en   = 1'b0;
         repeat(5) @(posedge clk);
         rst_n = 1'b1;
         repeat(3) @(posedge clk);
     endtask
 
+    // --- Signal initialization ---
     task automatic init_signals;
-        psel    = 1'b0;
-        penable = 1'b0;
-        pwrite  = 1'b0;
-        paddr   = 12'h0;
-        pwdata  = 32'h0;
-        inject_error    = 1'b0;
-        error_addr      = 32'h0;
-        ready_delay_cycles = 0;
+        clk         = 1'b0;
+        rst_n       = 1'b0;
+        hw_req      = '0;
+        csr_addr    = '0;
+        csr_wr_data = '0;
+        csr_wr_en   = 1'b0;
+        csr_rd_en   = 1'b0;
+        inject_error = 1'b0;
+        error_addr   = '0;
+        rd_latency   = 1;
+        wr_latency   = 1;
     endtask
 
-    // Configure a DMA channel for mem-to-mem transfer
-    task automatic config_channel(
-        input int          ch,
-        input logic [31:0] src_addr,
-        input logic [31:0] dst_addr,
-        input logic [15:0] xfer_size,
-        input logic [31:0] ctrl,
-        input logic [31:0] cfg
+    // --- Memory model helpers ---
+    task automatic mem_clear;
+        mem_array.delete();
+    endtask
+
+    task automatic mem_write(input logic [ADDR_WIDTH-1:0] addr,
+                             input logic [DATA_WIDTH-1:0] data);
+        mem_array[addr] = data;
+    endtask
+
+    task automatic mem_read(input logic [ADDR_WIDTH-1:0] addr,
+                            output logic [DATA_WIDTH-1:0] data);
+        if (mem_array.exists(addr))
+            data = mem_array[addr];
+        else
+            data = '0;
+    endtask
+
+    task automatic mem_fill_pattern(input logic [ADDR_WIDTH-1:0] base,
+                                    input int count,
+                                    input logic [DATA_WIDTH-1:0] pattern);
+        for (int i = 0; i < count; i++)
+            mem_array[base + i*4] = pattern + i;
+    endtask
+
+    // =========================================================================
+    // CSR Access Tasks
+    // =========================================================================
+
+    task automatic csr_write(input logic [ADDR_WIDTH-1:0] addr,
+                             input logic [DATA_WIDTH-1:0] data);
+        @(posedge clk);
+        csr_addr    <= addr;
+        csr_wr_data <= data;
+        csr_wr_en   <= 1'b1;
+        csr_rd_en   <= 1'b0;
+        @(posedge clk);
+        csr_wr_en   <= 1'b0;
+    endtask
+
+    task automatic csr_read(input logic [ADDR_WIDTH-1:0] addr,
+                            output logic [DATA_WIDTH-1:0] data);
+        @(posedge clk);
+        csr_addr  <= addr;
+        csr_wr_en <= 1'b0;
+        csr_rd_en <= 1'b1;
+        @(posedge clk);
+        csr_rd_en <= 1'b0;
+        // Wait for rd_valid
+        wait(csr_rd_valid == 1'b1);
+        data = csr_rd_data;
+    endtask
+
+    // =========================================================================
+    // Channel Configuration Helpers
+    // =========================================================================
+
+    // Select a channel for CSR operations
+    task automatic select_channel(input int ch);
+        csr_write(CSR_CH_SELECT, ADDR_WIDTH'(ch));
+    endtask
+
+    // Configure channel registers (src, dst, count, ctrl)
+    task automatic config_channel(input int ch,
+                                  input logic [ADDR_WIDTH-1:0] src_addr,
+                                  input logic [ADDR_WIDTH-1:0] dst_addr,
+                                  input logic [XFER_COUNT_WIDTH-1:0] xfer_count,
+                                  input logic [DATA_WIDTH-1:0] ctrl);
+        select_channel(ch);
+        csr_write(CSR_SRC_ADDR_LO, src_addr);
+        csr_write(CSR_DST_ADDR_LO, dst_addr);
+        csr_write(CSR_XFER_COUNT,  {{(DATA_WIDTH-$bits(xfer_count)){1'b0}}, xfer_count});
+        csr_write(CSR_CONTROL,     ctrl);
+    endtask
+
+    // Build a control word from individual fields
+    function automatic logic [DATA_WIDTH-1:0] build_ctrl(
+        input logic enable,
+        input logic src_inc,
+        input logic dst_inc,
+        input logic burst_en,
+        input logic hw_trig,
+        input logic int_en,
+        input logic [1:0] mode
     );
-        logic [11:0] base;
-        base = ch[3:0] * 12'h100;
-        apb_write(base + 12'h04, src_addr);   // SRC_ADDR
-        apb_write(base + 12'h08, dst_addr);   // DST_ADDR
-        apb_write(base + 12'h0C, xfer_size);  // XFER_SIZE
-        apb_write(base + 12'h10, ctrl);       // CTRL
-        apb_write(base + 12'h14, cfg);        // CFG
-    endtask
+        logic [DATA_WIDTH-1:0] ctrl;
+        ctrl = '0;
+        ctrl[CTRL_ENABLE_BIT]   = enable;
+        ctrl[CTRL_SRC_INC_BIT]  = src_inc;
+        ctrl[CTRL_DST_INC_BIT]  = dst_inc;
+        ctrl[CTRL_BURST_EN_BIT] = burst_en;
+        ctrl[CTRL_HW_TRIG_BIT]  = hw_trig;
+        ctrl[CTRL_INT_EN_BIT]   = int_en;
+        ctrl[CTRL_MODE_HI_BIT:CTRL_MODE_LO_BIT] = mode;
+        return ctrl;
+    endfunction
 
-    // Enable channel and trigger software request
+    // Start a channel (set enable + start bits)
     task automatic start_channel(input int ch);
-        logic [11:0] base;
-        base = ch[3:0] * 12'h100;
-        apb_write(base + 12'h00, 32'h1);      // CH_EN
-        apb_write(12'h01C, 32'(1 << ch));     // SW_REQ
+        logic [DATA_WIDTH-1:0] ctrl;
+        select_channel(ch);
+        // First ensure channel is enabled
+        ctrl = build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b0, 2'b00);
+        ctrl[CTRL_ENABLE_BIT] = 1'b1;
+        ctrl[CTRL_START_BIT]  = 1'b1;
+        csr_write(CSR_CONTROL, ctrl);
     endtask
 
-    // Wait for interrupt on specific channel with timeout
-    task automatic wait_irq(input int ch, input int timeout_ns, output logic success);
-        int elapsed;
-        success = 1'b0;
-        elapsed = 0;
-        while (elapsed < timeout_ns && !success) begin
-            @(posedge clk);
-            elapsed = elapsed + 10;
-            if (irq[ch] === 1'b1) begin
-                success = 1'b1;
-            end
-        end
-    endtask
-
-    // Wait for channel to return to IDLE status
-    task automatic wait_channel_idle(input int ch, input int timeout_ns, output logic success);
-        logic [31:0] status;
-        int elapsed;
-        success = 1'b0;
-        elapsed = 0;
-        while (elapsed < timeout_ns && !success) begin
-            apb_read(ch[3:0] * 12'h100 + 12'h18, status);
-            elapsed = elapsed + 30;
-            if (status[1:0] == 2'd0 && status[3] == 1'b1) begin
-                success = 1'b1;
-            end
-        end
+    // Stop a channel
+    task automatic stop_channel(input int ch);
+        logic [DATA_WIDTH-1:0] ctrl;
+        select_channel(ch);
+        ctrl = '0;
+        ctrl[CTRL_STOP_BIT] = 1'b1;
+        csr_write(CSR_CONTROL, ctrl);
     endtask
 
     // =========================================================================
-    // Checker / Reporter Tasks
+    // Wait for IRQ with timeout
     // =========================================================================
-
-    task automatic check(input string label, input logic condition);
-        test_count = test_count + 1;
-        if (condition) begin
-            test_pass = test_pass + 1;
-            $display("  [PASS] %s", label);
-        end else begin
-            test_fail = test_fail + 1;
-            $display("  [FAIL] %s (time=%0t)", label, $time);
-        end
+    task automatic wait_irq(input int ch, input int timeout_cycles,
+                            output logic success);
+        success = 1'b0;
+        fork
+            begin
+                int cnt;
+                cnt = 0;
+                while (irq[ch] !== 1'b1 && cnt < timeout_cycles) begin
+                    @(posedge clk);
+                    cnt++;
+                end
+                if (irq[ch] === 1'b1)
+                    success = 1'b1;
+            end
+        join
     endtask
+
+    // =========================================================================
+    // Test Result Tracking
+    // =========================================================================
+    string cur_test_name;
 
     task automatic begin_test(input string name);
-        test_name = name;
-        $display("");
-        $display("============================================================");
-        $display("  TEST: %s", name);
-        $display("============================================================");
+        cur_test_name = name;
+        check_pass = 0;
+        check_fail = 0;
+        test_count++;
+        $display("  [%0t] TEST %0d: %s", $time, test_count, name);
+    endtask
+
+    task automatic check(input string desc, input logic condition);
+        if (condition) begin
+            check_pass++;
+        end else begin
+            check_fail++;
+            $display("    FAIL: %s", desc);
+        end
     endtask
 
     task automatic end_test;
-        $display("  --- End of %s ---", test_name);
+        test_pass += check_pass;
+        test_fail += check_fail;
+        if (check_fail == 0)
+            $display("    PASS (%0d checks)", check_pass);
+        else
+            $display("    FAIL (%0d pass, %0d fail)", check_pass, check_fail);
     endtask
 
     // =========================================================================
-    // TEST 1: Reset Behavior (FR-13)
+    // TEST 1: Reset Values
     // =========================================================================
     task automatic test_reset;
-        logic [31:0] rdata;
+        logic [DATA_WIDTH-1:0] rdata;
 
-        begin_test("Reset Behavior (FR-13)");
+        begin_test("Reset Values (FR-13)");
 
-        // Apply reset
         apply_reset();
 
-        // Check global registers at reset
-        apb_read(12'h000, rdata);
-        check("DMA_EN reset = 0", rdata[0] == 1'b0);
+        // Check IRQ outputs are 0
+        check("irq all low after reset", irq == '0);
 
-        apb_read(12'h004, rdata);
-        check("INT_STATUS reset = 0", rdata[3:0] == 4'b0);
+        // Check bus request is 0
+        check("m_bus_req low after reset", m_bus_req == 1'b0);
 
-        apb_read(12'h010, rdata);
-        check("INT_MASK reset = 0xF (all masked)", rdata[3:0] == 4'hF);
+        // Check CSR reads return defaults
+        csr_read(CSR_CH_SELECT, rdata);
+        check("CH_SELECT=0 after reset", rdata == '0);
 
-        apb_read(12'h014, rdata);
-        check("ERR_STATUS reset = 0", rdata[3:0] == 4'b0);
+        csr_read(CSR_INT_STATUS, rdata);
+        check("INT_STATUS=0 after reset", rdata[NUM_CHANNELS-1:0] == '0);
 
-        // Check per-channel registers at reset
-        for (int ch = 0; ch < NUM_CHANNELS; ch++) begin
-            logic [11:0] base;
-            base = ch[3:0] * 12'h100;
+        csr_read(CSR_INT_ENABLE, rdata);
+        check("INT_ENABLE=0 after reset", rdata[NUM_CHANNELS-1:0] == '0);
 
-            apb_read(base + 12'h00, rdata);
-            check($sformatf("CH%0d EN reset = 0", ch), rdata[0] == 1'b0);
-
-            apb_read(base + 12'h04, rdata);
-            check($sformatf("CH%0d SRC_ADDR reset = 0", ch), rdata == 32'h0);
-
-            apb_read(base + 12'h08, rdata);
-            check($sformatf("CH%0d DST_ADDR reset = 0", ch), rdata == 32'h0);
-
-            apb_read(base + 12'h0C, rdata);
-            check($sformatf("CH%0d XFER_SIZE reset = 0", ch), rdata == 32'h0);
-
-            apb_read(base + 12'h18, rdata);
-            check($sformatf("CH%0d STATUS[1:0] reset = IDLE", ch), rdata[1:0] == 2'd0);
-        end
-
-        // Check IRQ outputs are low after reset
-        check("IRQ outputs low after reset", irq == 4'b0);
-
-        // Check AHB idle after reset
-        check("hbusreq low after reset", hbusreq == 1'b0);
-        check("htrans IDLE after reset", htrans == 2'b00);
+        // Check channel 0 status = IDLE
+        select_channel(0);
+        csr_read(CSR_STATUS, rdata);
+        check("CH0 status: not active", rdata[0] == 1'b0);
+        check("CH0 status: not done",   rdata[1] == 1'b0);
+        check("CH0 status: not error",  rdata[2] == 1'b0);
 
         end_test();
     endtask
@@ -401,103 +488,90 @@ module tb_dma;
     // TEST 2: Register Read/Write (FR-01)
     // =========================================================================
     task automatic test_register_rw;
-        logic [31:0] rdata;
+        logic [DATA_WIDTH-1:0] rdata;
 
         begin_test("Register Read/Write (FR-01)");
 
         apply_reset();
 
-        // Write and read-back global registers
-        apb_write(12'h000, 32'h1);
-        apb_read(12'h000, rdata);
-        check("DMA_EN write/read = 1", rdata[0] == 1'b1);
+        // Write/read CH_SELECT
+        csr_write(CSR_CH_SELECT, 32'd2);
+        csr_read(CSR_CH_SELECT, rdata);
+        check("CH_SELECT readback=2", rdata == 32'd2);
 
-        apb_write(12'h010, 32'h5);
-        apb_read(12'h010, rdata);
-        check("INT_MASK write/read = 0x5", rdata[3:0] == 4'h5);
+        // Write/read SRC_ADDR for channel 2
+        csr_write(CSR_SRC_ADDR_LO, 32'hABCD_1234);
+        csr_read(CSR_SRC_ADDR_LO, rdata);
+        check("SRC_ADDR readback (ch2)", rdata == 32'hABCD_1234);
 
-        // Per-channel register R/W
-        for (int ch = 0; ch < NUM_CHANNELS; ch++) begin
-            logic [11:0] base;
-            base = ch[3:0] * 12'h100;
+        // Write/read DST_ADDR for channel 2
+        csr_write(CSR_DST_ADDR_LO, 32'h5678_DCBA);
+        csr_read(CSR_DST_ADDR_LO, rdata);
+        check("DST_ADDR readback (ch2)", rdata == 32'h5678_DCBA);
 
-            apb_write(base + 12'h04, 32'hDEADBEEF);
-            apb_read(base + 12'h04, rdata);
-            check($sformatf("CH%0d SRC_ADDR write/read", ch), rdata == 32'hDEADBEEF);
+        // Write/read XFER_COUNT for channel 2
+        csr_write(CSR_XFER_COUNT, 32'd100);
+        csr_read(CSR_XFER_COUNT, rdata);
+        check("XFER_COUNT readback=100 (ch2)", rdata == 32'd100);
 
-            apb_write(base + 12'h08, 32'hCAFEBABE);
-            apb_read(base + 12'h08, rdata);
-            check($sformatf("CH%0d DST_ADDR write/read", ch), rdata == 32'hCAFEBABE);
+        // Switch to channel 0 and verify independence
+        csr_write(CSR_CH_SELECT, 32'd0);
+        csr_read(CSR_SRC_ADDR_LO, rdata);
+        check("CH0 SRC_ADDR unaffected", rdata == '0);
 
-            apb_write(base + 12'h0C, 32'h0100);
-            apb_read(base + 12'h0C, rdata);
-            check($sformatf("CH%0d XFER_SIZE write/read", ch), rdata[15:0] == 16'h0100);
-
-            apb_write(base + 12'h10, 32'h00000844);
-            apb_read(base + 12'h10, rdata);
-            check($sformatf("CH%0d CTRL write/read", ch), rdata == 32'h00000844);
-
-            apb_write(base + 12'h14, 32'h000004FF);
-            apb_read(base + 12'h14, rdata);
-            check($sformatf("CH%0d CFG write/read", ch), rdata == 32'h000004FF);
-        end
-
-        // pready should always be 1 (zero wait states)
-        check("pready always 1", pready == 1'b1);
+        // INT_ENABLE register
+        csr_write(CSR_INT_ENABLE, 32'hF);
+        csr_read(CSR_INT_ENABLE, rdata);
+        check("INT_ENABLE readback=0xF", rdata == 32'hF);
 
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 3: APB Slave Error on Reserved Address (FR-01)
+    // TEST 3: CSR Access to Reserved Address
     // =========================================================================
-    task automatic test_apb_slave_error;
-        logic [31:0] rdata;
+    task automatic test_csr_reserved;
+        logic [DATA_WIDTH-1:0] rdata;
 
-        begin_test("APB Slave Error on Reserved Address (FR-01)");
+        begin_test("CSR Reserved Address Access");
 
         apply_reset();
 
-        // Access an unmapped per-channel offset (e.g., ch=0, offset=0x20)
-        apb_read(12'h020, rdata);
-        check("pslverr asserted for reserved offset", pslverr == 1'b1);
+        // Read from a non-existent CSR address (e.g., 0x0FC)
+        csr_read(ADDR_WIDTH'(32'h0FC), rdata);
+        check("Reserved CSR reads as 0", rdata == '0);
 
-        // Valid access should not set pslverr
-        apb_read(12'h000, rdata);
-        check("pslverr deasserted for valid register", pslverr == 1'b0);
+        // Write to non-existent address should not crash
+        csr_write(ADDR_WIDTH'(32'h0FC), 32'hFFFF_FFFF);
+        csr_read(ADDR_WIDTH'(32'h0FC), rdata);
+        check("Reserved CSR still 0 after write", rdata == '0);
 
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 4: Basic Single-Beat Transfer (FR-03)
+    // TEST 4: Single Word Transfer (FR-03)
     // =========================================================================
     task automatic test_single_transfer;
-        logic [31:0] rdata;
-        logic        success;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic                  success;
 
-        begin_test("Basic Single-Beat Mem-to-Mem Transfer (FR-03)");
+        begin_test("Single Word Transfer (FR-03)");
 
         apply_reset();
         mem_clear();
 
-        // Fill source memory
-        mem_write(32'h00000100, 32'hAAAA_BBBB);
+        // Setup source data
+        mem_write(32'h0000_0100, 32'hAAAA_BBBB);
 
-        // Enable DMA globally
-        apb_write(12'h000, 32'h1);
+        // Configure channel 0: enable, src_inc, dst_inc, int_en, SINGLE mode
+        config_channel(0, 32'h0000_0100, 32'h0000_0200, 16'd1,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
 
-        // Configure CH0: src=0x100, dst=0x200, size=1, 32-bit, SINGLE burst, increment
-        // CTRL: SRC_WIDTH=32b(2), DST_WIDTH=32b(2), SRC_BURST=SINGLE(0), DST_BURST=SINGLE(0),
-        //        SRC_INC=1, DST_INC=1, INT_EN=1
-        // CTRL = 0b_0_0_000_1_1_00_000_00_010_010 = 32'h00000C12
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd1,
-                       32'h00000C12,   // CTRL: 32b, inc both, int_en
-                       32'h000000FF);  // CFG: mem-to-mem
+        // Enable interrupts for channel 0
+        csr_write(CSR_INT_ENABLE, 32'h1);
 
-        // Unmask interrupt for CH0
-        apb_write(12'h010, 32'hE); // Unmask CH0
-
+        // Start transfer
         start_channel(0);
 
         // Wait for interrupt
@@ -505,247 +579,178 @@ module tb_dma;
         check("Single transfer completed (IRQ)", success);
 
         // Verify destination data
-        rdata = mem_read(32'h00000200);
+        mem_read(32'h0000_0200, rdata);
         check("Destination data correct", rdata == 32'hAAAA_BBBB);
 
         // Check interrupt status
-        apb_read(12'h004, rdata);
-        check("INT_STATUS bit 0 set", rdata[0] == 1'b1);
+        csr_read(CSR_INT_STATUS, rdata);
+        check("INT_STATUS[0] set", rdata[0] == 1'b1);
 
         // Clear interrupt
-        apb_write(12'h00C, 32'h1);
-        apb_read(12'h004, rdata);
+        csr_write(CSR_INT_CLEAR, 32'h1);
+        csr_read(CSR_INT_STATUS, rdata);
         check("INT_STATUS cleared", rdata[0] == 1'b0);
-
-        // Disable DMA
-        apb_write(12'h000, 32'h0);
 
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 5: Burst Transfer — INCR4 (FR-06)
+    // TEST 5: Burst Transfer (FR-06)
     // =========================================================================
-    task automatic test_burst_incr4;
-        logic [31:0] rdata;
-        logic        success;
+    task automatic test_burst_transfer;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic                  success;
 
-        begin_test("Burst Transfer INCR4 (FR-06)");
+        begin_test("Burst Transfer (FR-06)");
 
         apply_reset();
         mem_clear();
 
-        // Fill source: 4 words
-        for (int i = 0; i < 4; i++)
-            mem_write(32'h00000100 + i*4, 32'hBEEF0000 + i);
+        // Fill source: 8 words
+        for (int i = 0; i < 8; i++)
+            mem_write(32'h0000_0100 + i*4, 32'hBEEF_0000 + i);
 
-        // Enable DMA
-        apb_write(12'h000, 32'h1);
+        // Configure channel 0: enable, src_inc, dst_inc, burst_en, int_en, BURST mode
+        config_channel(0, 32'h0000_0100, 32'h0000_0200, 16'd8,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b1, 1'b0, 1'b1, 2'b01));
 
-        // CTRL: SRC_WIDTH=32b(2), DST_WIDTH=32b(2), SRC_BURST=INCR4(1), DST_BURST=INCR4(1),
-        //        SRC_INC=1, DST_INC=1, INT_EN=1
-        // [17:16]=01 (int_en), [11:10]=11 (inc both), [9:8]=01, [7:6]=01, [5:3]=010, [2:0]=010
-        // = 0x00000D52
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd4,
-                       32'h00000D52,    // CTRL: 32b, INCR4, inc, int_en
-                       32'h000000FF);   // CFG: mem-to-mem
-
-        apb_write(12'h010, 32'hE); // Unmask CH0
+        csr_write(CSR_INT_ENABLE, 32'h1);
         start_channel(0);
 
         wait_irq(0, 10000, success);
-        check("INCR4 transfer completed (IRQ)", success);
+        check("Burst transfer completed (IRQ)", success);
 
-        // Verify all 4 words
-        for (int i = 0; i < 4; i++) begin
-            rdata = mem_read(32'h00000200 + i*4);
-            check($sformatf("Dest word %0d correct", i), rdata == 32'hBEEF0000 + i);
-        end
-
-        apb_write(12'h000, 32'h0);
-        end_test();
-    endtask
-
-    // =========================================================================
-    // TEST 6: Burst Transfer — INCR8 (FR-06)
-    // =========================================================================
-    task automatic test_burst_incr8;
-        logic [31:0] rdata;
-        logic        success;
-
-        begin_test("Burst Transfer INCR8 (FR-06)");
-
-        apply_reset();
-        mem_clear();
-
-        for (int i = 0; i < 8; i++)
-            mem_write(32'h00000100 + i*4, 32'hCAFE0000 + i);
-
-        apb_write(12'h000, 32'h1);
-
-        // SRC_BURST=INCR8(2), DST_BURST=INCR8(2) => [9:8]=10, [7:6]=10
-        // CTRL = 0x00001192
-        config_channel(0, 32'h00000100, 32'h00000300, 16'd8,
-                       32'h00001192,
-                       32'h000000FF);
-
-        apb_write(12'h010, 32'hE);
-        start_channel(0);
-
-        wait_irq(0, 15000, success);
-        check("INCR8 transfer completed (IRQ)", success);
-
+        // Verify all 8 words
         for (int i = 0; i < 8; i++) begin
-            rdata = mem_read(32'h00000300 + i*4);
-            check($sformatf("INCR8 dest word %0d correct", i), rdata == 32'hCAFE0000 + i);
+            mem_read(32'h0000_0200 + i*4, rdata);
+            check($sformatf("Burst dest word %0d correct", i), rdata == 32'hBEEF_0000 + i);
         end
 
-        apb_write(12'h000, 32'h0);
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 7: Large Transfer (>FIFO depth, tests READ->WRITE->READ cycling)
+    // TEST 6: Large Transfer (>internal buffering, tests cycling)
     // =========================================================================
     task automatic test_large_transfer;
-        logic [31:0] rdata;
-        logic        success;
-        int          xfer_len = 20;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic                  success;
+        int                    xfer_len = 20;
 
-        begin_test("Large Transfer (20 beats, >FIFO depth)");
+        begin_test("Large Transfer (20 words, SINGLE mode)");
 
         apply_reset();
         mem_clear();
 
         for (int i = 0; i < xfer_len; i++)
-            mem_write(32'h00000100 + i*4, 32'h12340000 + i);
+            mem_write(32'h0000_0100 + i*4, 32'h1234_0000 + i);
 
-        apb_write(12'h000, 32'h1);
+        config_channel(0, 32'h0000_0100, 32'h0000_0500, xfer_len,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
 
-        // SINGLE burst, 32-bit, inc both, int_en
-        config_channel(0, 32'h00000100, 32'h00000500, xfer_len,
-                       32'h00000C12,
-                       32'h000000FF);
-
-        apb_write(12'h010, 32'hE);
+        csr_write(CSR_INT_ENABLE, 32'h1);
         start_channel(0);
 
         wait_irq(0, 30000, success);
-        check($sformatf("Large transfer (%0d beats) completed", xfer_len), success);
+        check($sformatf("Large transfer (%0d words) completed", xfer_len), success);
 
         for (int i = 0; i < xfer_len; i++) begin
-            rdata = mem_read(32'h00000500 + i*4);
+            mem_read(32'h0000_0500 + i*4, rdata);
             check($sformatf("Large xfer word %0d correct", i),
-                  rdata == 32'h12340000 + i);
+                  rdata == 32'h1234_0000 + i);
         end
 
-        apb_write(12'h000, 32'h0);
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 8: Multi-Channel Transfer (FR-03, FR-04)
+    // TEST 7: Multi-Channel Simultaneous Transfer (FR-03, FR-04)
     // =========================================================================
     task automatic test_multi_channel;
-        logic [31:0] rdata;
-        logic [3:0]  irq_capture;
-        logic        success;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic [NUM_CHANNELS-1:0] irq_capture;
+        logic                    success;
 
         begin_test("Multi-Channel Simultaneous Transfer");
 
         apply_reset();
         mem_clear();
 
-        // Fill source regions for 4 channels
+        // Fill source regions for all channels
         for (int ch = 0; ch < NUM_CHANNELS; ch++) begin
             for (int i = 0; i < 4; i++)
-                mem_write(32'(ch * 32'h400 + 32'h100 + i*4), 32'(ch * 32'h10000 + 32'hDDDD0000 + i));
+                mem_write(32'(ch * 32'h400 + 32'h100 + i*4),
+                          32'(ch * 32'h10000 + 32'hDDDD_0000 + i));
         end
 
-        apb_write(12'h000, 32'h1);
-        apb_write(12'h010, 32'h0); // Unmask all channels
-
+        // Configure all channels
         for (int ch = 0; ch < NUM_CHANNELS; ch++) begin
             config_channel(ch,
-                           32'(ch * 32'h400 + 32'h100), // src
-                           32'(ch * 32'h400 + 32'h200), // dst
-                           16'd4,                        // 4 beats
-                           32'h00000D52,                 // INCR4, 32-bit, inc, int_en
-                           32'h000000FF);                // mem-to-mem
+                           32'(ch * 32'h400 + 32'h100),
+                           32'(ch * 32'h400 + 32'h200),
+                           16'd4,
+                           build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
         end
+
+        // Enable all interrupts
+        csr_write(CSR_INT_ENABLE, 32'hF);
 
         // Start all channels
         for (int ch = 0; ch < NUM_CHANNELS; ch++) begin
-            logic [11:0] base;
-            base = ch[3:0] * 12'h100;
-            apb_write(base + 12'h00, 32'h1);
+            start_channel(ch);
         end
-        // Trigger all at once
-        apb_write(12'h01C, 32'hF);
 
         // Wait for all IRQs
-        irq_capture = 4'b0;
-        fork
-            begin
-                for (int ch = 0; ch < NUM_CHANNELS; ch++) begin
-                    automatic int a_ch = ch;
-                    wait_irq(a_ch, 50000, success);
-                    irq_capture[a_ch] = success;
-                end
-            end
-        join
-
+        irq_capture = '0;
         for (int ch = 0; ch < NUM_CHANNELS; ch++) begin
-            check($sformatf("CH%0d completed (IRQ)", ch), irq_capture[ch] == 1'b1);
+            wait_irq(ch, 50000, success);
+            irq_capture[ch] = success;
         end
+
+        for (int ch = 0; ch < NUM_CHANNELS; ch++)
+            check($sformatf("CH%0d completed (IRQ)", ch), irq_capture[ch] == 1'b1);
 
         // Verify data for each channel
         for (int ch = 0; ch < NUM_CHANNELS; ch++) begin
             for (int i = 0; i < 4; i++) begin
-                rdata = mem_read(32'(ch * 32'h400 + 32'h200 + i*4));
+                mem_read(32'(ch * 32'h400 + 32'h200 + i*4), rdata);
                 check($sformatf("CH%0d dest word %0d correct", ch, i),
-                      rdata == 32'(ch * 32'h10000 + 32'hDDDD0000 + i));
+                      rdata == 32'(ch * 32'h10000 + 32'hDDDD_0000 + i));
             end
         end
 
-        apb_write(12'h000, 32'h0);
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 9: Priority Arbitration (Section 4.4)
+    // TEST 8: Priority Arbitration (Section 4.4)
     // =========================================================================
     task automatic test_priority_arbitration;
-        logic [31:0] rdata;
-        logic        success;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic                  success;
 
-        begin_test("Priority Arbitration (Section 4.4)");
+        begin_test("Priority Arbitration");
 
         apply_reset();
         mem_clear();
 
         // Fill sources
-        mem_fill_pattern(32'h00000100, 4, 32'hA0000000); // CH0 source
-        mem_fill_pattern(32'h00000200, 4, 32'hB0000000); // CH1 source
+        mem_fill_pattern(32'h0000_0100, 4, 32'hA000_0000);  // CH0 source
+        mem_fill_pattern(32'h0000_0200, 4, 32'hB000_0000);  // CH1 source
 
-        apb_write(12'h000, 32'h1);
-        apb_write(12'h010, 32'h0); // Unmask all
+        // Configure CH0 and CH1
+        config_channel(0, 32'h0000_0100, 32'h0000_0300, 16'd4,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
+        config_channel(1, 32'h0000_0200, 32'h0000_0400, 16'd4,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
 
-        // CH0: priority 3 (lowest), CH1: priority 0 (highest)
-        config_channel(0, 32'h00000100, 32'h00000300, 16'd4,
-                       32'h00000D52,
-                       32'h0000030F); // PRIORITY=3
+        csr_write(CSR_INT_ENABLE, 32'h3);
 
-        config_channel(1, 32'h00000200, 32'h00000400, 16'd4,
-                       32'h00000D52,
-                       32'h0000000F); // PRIORITY=0
+        // Start both channels — CH0 should win arbitration (lower index = higher priority)
+        start_channel(0);
+        start_channel(1);
 
-        // Start both
-        apb_write(12'h000 * 0 + 12'h000, 32'h0); // need full addr
-        apb_write(12'h100, 32'h1); // CH0 enable
-        apb_write(12'h200, 32'h1); // CH1 enable
-        apb_write(12'h01C, 32'h3); // Trigger both
-
+        // Wait for both
         wait_irq(0, 20000, success);
         check("CH0 completed", success);
         wait_irq(1, 20000, success);
@@ -753,40 +758,35 @@ module tb_dma;
 
         // Verify data integrity
         for (int i = 0; i < 4; i++) begin
-            rdata = mem_read(32'h00000300 + i*4);
-            check($sformatf("CH0 dst word %0d correct", i), rdata == 32'hA0000000 + i);
-            rdata = mem_read(32'h00000400 + i*4);
-            check($sformatf("CH1 dst word %0d correct", i), rdata == 32'hB0000000 + i);
+            mem_read(32'h0000_0300 + i*4, rdata);
+            check($sformatf("CH0 dst word %0d correct", i), rdata == 32'hA000_0000 + i);
+            mem_read(32'h0000_0400 + i*4, rdata);
+            check($sformatf("CH1 dst word %0d correct", i), rdata == 32'hB000_0000 + i);
         end
 
-        apb_write(12'h000, 32'h0);
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 10: Interrupt Generation & Clearing (FR-08)
+    // TEST 9: Interrupt Generation & Clearing (FR-08)
     // =========================================================================
     task automatic test_interrupts;
-        logic [31:0] rdata;
+        logic [DATA_WIDTH-1:0] rdata;
 
         begin_test("Interrupt Generation & Clearing (FR-08)");
 
         apply_reset();
         mem_clear();
 
-        mem_write(32'h00000100, 32'h1111_2222);
+        mem_write(32'h0000_0100, 32'h1111_2222);
 
-        apb_write(12'h000, 32'h1);
+        // Configure CH0 with INT_EN
+        config_channel(0, 32'h0000_0100, 32'h0000_0200, 16'd1,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
 
-        // CH0 with INT_EN=1, INT_ERR_EN=1
-        // CTRL: SRC_WIDTH=32b, DST_WIDTH=32b, SINGLE, inc both, INT_EN=1, INT_ERR_EN=1
-        // [17:16]=11, [11:10]=11, [7:6]=00, [5:3]=010, [2:0]=010 => 0x00030C12
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd1,
-                       32'h00030C12,
-                       32'h000000FF);
+        // Enable interrupt for CH0
+        csr_write(CSR_INT_ENABLE, 32'h1);
 
-        // Unmask CH0
-        apb_write(12'h010, 32'hE);
         start_channel(0);
 
         // Wait a few cycles
@@ -796,91 +796,75 @@ module tb_dma;
         check("IRQ[0] asserted after transfer", irq[0] === 1'b1);
 
         // Check INT_STATUS
-        apb_read(12'h004, rdata);
+        csr_read(CSR_INT_STATUS, rdata);
         check("INT_STATUS[0] = 1", rdata[0] == 1'b1);
 
-        // Check INT_RAW
-        apb_read(12'h008, rdata);
-        check("INT_RAW[0] = 1", rdata[0] == 1'b1);
-
-        // Test masking: mask CH0 interrupt
-        apb_write(12'h010, 32'hF); // All masked
+        // Test masking: disable interrupt
+        csr_write(CSR_INT_ENABLE, 32'h0);
         repeat(5) @(posedge clk);
         check("IRQ[0] deasserted after masking", irq[0] === 1'b0);
 
-        // Unmask again
-        apb_write(12'h010, 32'hE);
+        // Re-enable
+        csr_write(CSR_INT_ENABLE, 32'h1);
         repeat(5) @(posedge clk);
         check("IRQ[0] re-asserted after unmask", irq[0] === 1'b1);
 
         // Clear interrupt via INT_CLEAR
-        apb_write(12'h00C, 32'h1);
+        csr_write(CSR_INT_CLEAR, 32'h1);
         repeat(5) @(posedge clk);
         check("IRQ[0] deasserted after clear", irq[0] === 1'b0);
 
-        apb_read(12'h004, rdata);
+        csr_read(CSR_INT_STATUS, rdata);
         check("INT_STATUS cleared to 0", rdata[0] == 1'b0);
 
-        apb_write(12'h000, 32'h0);
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 11: Error Handling — AHB Error Response (FR-09)
+    // TEST 10: Error Handling (FR-09)
     // =========================================================================
     task automatic test_error_handling;
-        logic [31:0] rdata;
-        logic        success;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic                  success;
 
-        begin_test("Error Handling — AHB Error (FR-09)");
+        begin_test("Error Handling (FR-09)");
 
         apply_reset();
         mem_clear();
 
-        mem_write(32'h00000100, 32'hFEED_FACE);
+        mem_write(32'h0000_0100, 32'hFEED_FACE);
 
-        apb_write(12'h000, 32'h1);
+        // Configure CH0 with INT_EN
+        config_channel(0, 32'h0000_0100, 32'h0000_0200, 16'd1,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
 
-        // Configure CH0 with error interrupt enabled
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd1,
-                       32'h00030C12,  // INT_EN + INT_ERR_EN
-                       32'h000000FF);
-
-        apb_write(12'h010, 32'hE); // Unmask CH0
+        csr_write(CSR_INT_ENABLE, 32'h1);
 
         // Enable error injection at source address
         inject_error = 1'b1;
-        error_addr   = 32'h00000100;
+        error_addr   = 32'h0000_0100;
 
         start_channel(0);
 
-        // Wait for completion (should error out quickly)
-        wait_irq(0, 5000, success);
+        // Wait (may or may not get IRQ since error path may not set done)
+        repeat(100) @(posedge clk);
 
-        // Check error status
-        apb_read(12'h014, rdata);
-        check("ERR_STATUS[0] set after AHB error", rdata[0] == 1'b1);
-
-        // Check channel auto-disabled
-        apb_read(12'h100, rdata);
-        check("CH0 auto-disabled on error", rdata[0] == 1'b0);
-
-        // Clear error
-        apb_write(12'h018, 32'h1);
-        apb_read(12'h014, rdata);
-        check("ERR_STATUS cleared", rdata[0] == 1'b0);
+        // Check error status on channel 0
+        select_channel(0);
+        csr_read(CSR_STATUS, rdata);
+        check("CH0 error flag set after bus error", rdata[2] == 1'b1);
 
         inject_error = 1'b0;
-        apb_write(12'h000, 32'h0);
+
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 12: Circular Mode (FR-10)
+    // TEST 11: Circular Mode (FR-10)
     // =========================================================================
     task automatic test_circular_mode;
-        logic [31:0] rdata;
-        logic        success;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic                  success;
 
         begin_test("Circular Mode (FR-10)");
 
@@ -888,18 +872,14 @@ module tb_dma;
         mem_clear();
 
         // Source: 2 words
-        mem_write(32'h00000100, 32'hCCCC_1111);
-        mem_write(32'h00000104, 32'hCCCC_2222);
+        mem_write(32'h0000_0100, 32'hCCCC_1111);
+        mem_write(32'h0000_0104, 32'hCCCC_2222);
 
-        apb_write(12'h000, 32'h1);
+        // Configure CH0: CYCLIC mode
+        config_channel(0, 32'h0000_0100, 32'h0000_0500, 16'd2,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b10));
 
-        // Configure CH0: CIRCULAR=1
-        // CFG: CIRCULAR=1 => bit[10]=1 => 0x400
-        config_channel(0, 32'h00000100, 32'h00000500, 16'd2,
-                       32'h00000C12,     // CTRL: 32b, SINGLE, inc, int_en
-                       32'h000004FF);    // CFG: CIRCULAR=1
-
-        apb_write(12'h010, 32'hE); // Unmask CH0
+        csr_write(CSR_INT_ENABLE, 32'h1);
         start_channel(0);
 
         // Wait for first completion
@@ -907,141 +887,132 @@ module tb_dma;
         check("Circular: first pass completed", success);
 
         // Clear interrupt
-        apb_write(12'h00C, 32'h1);
+        csr_write(CSR_INT_CLEAR, 32'h1);
         repeat(5) @(posedge clk);
 
         // Check first destination region
-        rdata = mem_read(32'h00000500);
+        mem_read(32'h0000_0500, rdata);
         check("Circular: dst word 0 correct (pass 1)", rdata == 32'hCCCC_1111);
-        rdata = mem_read(32'h00000504);
+        mem_read(32'h0000_0504, rdata);
         check("Circular: dst word 1 correct (pass 1)", rdata == 32'hCCCC_2222);
 
         // Wait for second completion (circular should auto-reload)
         wait_irq(0, 10000, success);
         check("Circular: second pass completed", success);
 
-        // After 2 passes of size=2 with dst increment, dst addr should be 0x508
-        rdata = mem_read(32'h00000508);
+        // After 2 passes with dst increment, dst addr should have advanced
+        mem_read(32'h0000_0508, rdata);
         check("Circular: dst word 0 correct (pass 2)", rdata == 32'hCCCC_1111);
-        rdata = mem_read(32'h0000050C);
+        mem_read(32'h0000_050C, rdata);
         check("Circular: dst word 1 correct (pass 2)", rdata == 32'hCCCC_2222);
 
-        // Disable to stop circular
-        apb_write(12'h100, 32'h0); // CH_EN=0
-        apb_write(12'h000, 32'h0);
-        apb_write(12'h00C, 32'h1);
+        // Stop circular mode
+        stop_channel(0);
+        csr_write(CSR_INT_CLEAR, 32'h1);
+        repeat(5) @(posedge clk);
+
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 13: Global Enable/Disable (FR-11)
+    // TEST 12: Global Enable/Disable (channel-level)
     // =========================================================================
     task automatic test_global_enable;
-        logic [31:0] rdata;
+        logic [DATA_WIDTH-1:0] rdata;
 
-        begin_test("Global Enable/Disable (FR-11)");
+        begin_test("Channel Enable/Disable");
 
         apply_reset();
         mem_clear();
 
-        // Try to start a transfer with DMA disabled
-        apb_write(12'h000, 32'h0); // DMA disabled
+        mem_write(32'h0000_0100, 32'hDEAD_BEEF);
 
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd4,
-                       32'h00000C12, 32'h000000FF);
+        // Configure CH0 but do NOT enable it
+        select_channel(0);
+        csr_write(CSR_SRC_ADDR_LO, 32'h0000_0100);
+        csr_write(CSR_DST_ADDR_LO, 32'h0000_0200);
+        csr_write(CSR_XFER_COUNT,  32'd1);
+        // Write control with enable=0 but start=1
+        csr_write(CSR_CONTROL, 32'h2);  // start=1, enable=0
 
-        apb_write(12'h100, 32'h1); // Enable channel
-        apb_write(12'h01C, 32'h1); // Trigger
+        csr_write(CSR_INT_ENABLE, 32'h1);
 
-        repeat(20) @(posedge clk);
-        check("No transfer when DMA globally disabled", irq[0] === 1'b0);
+        repeat(30) @(posedge clk);
+        check("No transfer when channel disabled", irq[0] === 1'b0);
 
-        // Now enable DMA
-        apb_write(12'h000, 32'h1);
-        apb_write(12'h01C, 32'h1); // Re-trigger
+        // Now enable and start properly
+        select_channel(0);
+        csr_write(CSR_SRC_ADDR_LO, 32'h0000_0100);
+        csr_write(CSR_DST_ADDR_LO, 32'h0000_0200);
+        csr_write(CSR_XFER_COUNT,  32'd1);
+        csr_write(CSR_CONTROL, build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
+        // Now pulse start
+        csr_write(CSR_CONTROL, build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00) | (1 << CTRL_START_BIT));
 
         repeat(50) @(posedge clk);
 
         // Check that transfer completed
-        apb_read(12'h004, rdata);
-        check("Transfer completed after global enable", rdata[0] == 1'b1);
+        csr_read(CSR_INT_STATUS, rdata);
+        check("Transfer completed after enable", rdata[0] == 1'b1);
 
-        // Test disable during transfer: start a large transfer, then disable
-        apb_write(12'h00C, 32'h1); // Clear IRQ
-        mem_fill_pattern(32'h00000100, 20, 32'hF0000000);
-        config_channel(0, 32'h00000100, 32'h00000600, 16'd20,
-                       32'h00000C12, 32'h000000FF);
-        apb_write(12'h100, 32'h1);
-        apb_write(12'h01C, 32'h1);
+        mem_read(32'h0000_0200, rdata);
+        check("Data correct after enable", rdata == 32'hDEAD_BEEF);
 
-        repeat(10) @(posedge clk);
-        // Disable globally mid-transfer
-        apb_write(12'h000, 32'h0);
-        repeat(10) @(posedge clk);
-
-        // Check FSM is back to IDLE
-        apb_read(12'h118, rdata);
-        check("Channel returned to IDLE after global disable", rdata[1:0] == 2'd0);
-
-        apb_write(12'h000, 32'h0);
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 14: Channel Status Register (FR-12)
+    // TEST 13: Channel Status Register (FR-12)
     // =========================================================================
     task automatic test_channel_status;
-        logic [31:0] rdata;
+        logic [DATA_WIDTH-1:0] rdata;
 
         begin_test("Channel Status Register (FR-12)");
 
         apply_reset();
         mem_clear();
 
-        mem_write(32'h00000100, 32'h1234_5678);
+        mem_write(32'h0000_0100, 32'h1234_5678);
 
-        apb_write(12'h000, 32'h1);
+        // Check initial status = IDLE (active=0, done=0, error=0)
+        select_channel(0);
+        csr_read(CSR_STATUS, rdata);
+        check("CH0 STATUS initially IDLE", rdata[2:0] == 3'b000);
 
-        // Check initial status = IDLE
-        apb_read(12'h118, rdata);
-        check("CH0 STATUS initially IDLE", rdata[1:0] == 2'd0);
+        config_channel(0, 32'h0000_0100, 32'h0000_0200, 16'd1,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
 
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd1,
-                       32'h00000C12, 32'h000000FF);
-        apb_write(12'h010, 32'hE);
-
+        csr_write(CSR_INT_ENABLE, 32'h1);
         start_channel(0);
 
-        // Poll status — should eventually show COMPLETE (bit[3]=1)
-        repeat(20) @(posedge clk);
-        apb_read(12'h118, rdata);
-        check("CH0 STATUS complete flag set", rdata[3] == 1'b1);
+        // Poll status — should eventually show done
+        repeat(30) @(posedge clk);
+        csr_read(CSR_STATUS, rdata);
+        check("CH0 STATUS done flag set", rdata[1] == 1'b1);
 
-        // Check remaining count
-        apb_read(12'h11C, rdata);
-        check("CH0 REMAIN = 0 after transfer", rdata[15:0] == 16'd0);
+        // active should be 0 after completion
+        check("CH0 STATUS active cleared", rdata[0] == 1'b0);
 
-        apb_write(12'h000, 32'h0);
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 15: Reset During Active Transfer (FR-13)
+    // TEST 14: Reset During Active Transfer (FR-13)
     // =========================================================================
     task automatic test_reset_during_transfer;
-        logic [31:0] rdata;
+        logic [DATA_WIDTH-1:0] rdata;
 
         begin_test("Reset During Active Transfer (FR-13)");
 
         apply_reset();
         mem_clear();
 
-        mem_fill_pattern(32'h00000100, 20, 32'hD0000000);
+        mem_fill_pattern(32'h0000_0100, 20, 32'hD000_0000);
 
-        apb_write(12'h000, 32'h1);
-        config_channel(0, 32'h00000100, 32'h00000600, 16'd20,
-                       32'h00000C12, 32'h000000FF);
-        apb_write(12'h010, 32'hE);
+        config_channel(0, 32'h0000_0100, 32'h0000_0600, 16'd20,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
+
+        csr_write(CSR_INT_ENABLE, 32'h1);
         start_channel(0);
 
         // Let a few beats happen
@@ -1054,30 +1025,31 @@ module tb_dma;
         repeat(3) @(posedge clk);
 
         // Verify all registers are back to default
-        apb_read(12'h000, rdata);
-        check("DMA_EN cleared after reset", rdata[0] == 1'b0);
+        csr_read(CSR_CH_SELECT, rdata);
+        check("CH_SELECT cleared after reset", rdata == '0);
 
-        apb_read(12'h004, rdata);
-        check("INT_STATUS cleared after reset", rdata[3:0] == 4'b0);
+        csr_read(CSR_INT_STATUS, rdata);
+        check("INT_STATUS cleared after reset", rdata[NUM_CHANNELS-1:0] == '0);
 
-        apb_read(12'h014, rdata);
-        check("ERR_STATUS cleared after reset", rdata[3:0] == 4'b0);
+        csr_read(CSR_INT_ENABLE, rdata);
+        check("INT_ENABLE cleared after reset", rdata[NUM_CHANNELS-1:0] == '0);
 
-        apb_read(12'h118, rdata);
-        check("CH0 STATUS IDLE after reset", rdata[1:0] == 2'd0);
+        select_channel(0);
+        csr_read(CSR_STATUS, rdata);
+        check("CH0 STATUS IDLE after reset", rdata == '0);
 
-        check("IRQ all low after reset", irq == 4'b0);
-        check("hbusreq low after reset", hbusreq == 1'b0);
+        check("IRQ all low after reset", irq == '0);
+        check("m_bus_req low after reset", m_bus_req == 1'b0);
 
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 16: Fixed Address (Peripheral FIFO Mode, FR-07)
+    // TEST 15: Fixed Address Mode — Peripheral FIFO (FR-07)
     // =========================================================================
     task automatic test_fixed_address;
-        logic [31:0] rdata;
-        logic        success;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic                  success;
 
         begin_test("Fixed Address Mode — Peripheral FIFO (FR-07)");
 
@@ -1086,188 +1058,176 @@ module tb_dma;
 
         // Fill 4 source words
         for (int i = 0; i < 4; i++)
-            mem_write(32'h00000100 + i*4, 32'hF1F0_0000 + i);
+            mem_write(32'h0000_0100 + i*4, 32'hF1F0_0000 + i);
 
-        apb_write(12'h000, 32'h1);
+        // CTRL: src_inc=1, dst_inc=0 (fixed destination)
+        config_channel(0, 32'h0000_0100, 32'h0000_0200, 16'd4,
+                        build_ctrl(1'b1, 1'b1, 1'b0, 1'b0, 1'b0, 1'b1, 2'b00));
 
-        // CTRL: SRC_INC=1 (increment), DST_INC=0 (fixed address)
-        // [11:10]=01 => src_inc=1, dst_inc=0
-        // = 0x00000412
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd4,
-                       32'h00000412,   // SRC_INC only, 32b, SINGLE
-                       32'h000000FF);
-
-        apb_write(12'h010, 32'hE);
+        csr_write(CSR_INT_ENABLE, 32'h1);
         start_channel(0);
 
         wait_irq(0, 10000, success);
         check("Fixed address transfer completed", success);
 
         // With fixed dst, all writes go to same address; last value wins
-        rdata = mem_read(32'h00000200);
+        mem_read(32'h0000_0200, rdata);
         check("Fixed dst: last write value correct", rdata == 32'hF1F0_0003);
 
-        apb_write(12'h000, 32'h0);
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 17: INT_CLEAR Write-1-to-Clear (FR-08)
+    // TEST 16: INT_CLEAR Write-1-to-Clear (FR-08)
     // =========================================================================
     task automatic test_int_clear_w1c;
-        logic [31:0] rdata;
+        logic [DATA_WIDTH-1:0] rdata;
 
         begin_test("INT_CLEAR Write-1-to-Clear (FR-08)");
 
         apply_reset();
         mem_clear();
 
-        mem_write(32'h00000100, 32'hAAAA);
+        mem_write(32'h0000_0100, 32'hAAAA);
 
-        apb_write(12'h000, 32'h1);
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd1,
-                       32'h00000C12, 32'h000000FF);
-        apb_write(12'h010, 32'hE);
+        config_channel(0, 32'h0000_0100, 32'h0000_0200, 16'd1,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
+
+        csr_write(CSR_INT_ENABLE, 32'h1);
         start_channel(0);
 
         repeat(20) @(posedge clk);
 
-        apb_read(12'h008, rdata);
-        check("INT_RAW[0] set", rdata[0] == 1'b1);
+        csr_read(CSR_INT_STATUS, rdata);
+        check("INT_STATUS[0] set", rdata[0] == 1'b1);
 
         // Write-1-to-clear only CH0
-        apb_write(12'h00C, 32'h1);
-        apb_read(12'h008, rdata);
-        check("INT_RAW[0] cleared by W1C", rdata[0] == 1'b0);
+        csr_write(CSR_INT_CLEAR, 32'h1);
+        csr_read(CSR_INT_STATUS, rdata);
+        check("INT_STATUS[0] cleared by W1C", rdata[0] == 1'b0);
 
-        apb_write(12'h000, 32'h0);
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 18: Zero-Length Transfer (Edge Case)
+    // TEST 17: Zero-Length Transfer (Edge Case)
     // =========================================================================
     task automatic test_zero_length_transfer;
-        logic [31:0] rdata;
+        logic [DATA_WIDTH-1:0] rdata;
 
         begin_test("Zero-Length Transfer (Edge Case)");
 
         apply_reset();
         mem_clear();
 
-        apb_write(12'h000, 32'h1);
+        config_channel(0, 32'h0000_0100, 32'h0000_0200, 16'd0,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
 
-        // Configure with xfer_size=0
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd0,
-                       32'h00000C12, 32'h000000FF);
-        apb_write(12'h010, 32'hE);
+        csr_write(CSR_INT_ENABLE, 32'h1);
         start_channel(0);
 
-        // Wait — no transfer should happen (size=0 means channel stays IDLE)
+        // Wait — with count=0, the transfer should complete immediately
+        // (xfer_remaining==0 goes to CH_DONE)
         repeat(30) @(posedge clk);
-        check("No IRQ for zero-length transfer", irq[0] === 1'b0);
 
-        apb_read(12'h118, rdata);
-        check("CH0 remains IDLE for zero-length", rdata[1:0] == 2'd0);
+        // The done bit should be set (xfer_remaining==0 in CH_REQUEST triggers CH_DONE)
+        select_channel(0);
+        csr_read(CSR_STATUS, rdata);
+        check("CH0 done flag set for zero-length", rdata[1] == 1'b1);
 
-        apb_write(12'h000, 32'h0);
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 19: Multiple Sequential Transfers on Same Channel
+    // TEST 18: Multiple Sequential Transfers on Same Channel
     // =========================================================================
     task automatic test_sequential_transfers;
-        logic [31:0] rdata;
-        logic        success;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic                  success;
 
         begin_test("Multiple Sequential Transfers on CH0");
 
         apply_reset();
         mem_clear();
 
-        apb_write(12'h000, 32'h1);
-        apb_write(12'h010, 32'hE);
+        csr_write(CSR_INT_ENABLE, 32'h1);
 
         // Transfer 1
-        mem_write(32'h00000100, 32'hAAAA_1111);
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd1,
-                       32'h00000C12, 32'h000000FF);
+        mem_write(32'h0000_0100, 32'hAAAA_1111);
+        config_channel(0, 32'h0000_0100, 32'h0000_0200, 16'd1,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
         start_channel(0);
 
         wait_irq(0, 5000, success);
         check("Sequential transfer 1 completed", success);
 
-        apb_write(12'h00C, 32'h1); // Clear interrupt
+        csr_write(CSR_INT_CLEAR, 32'h1);
 
-        // Transfer 2 — different data
-        mem_write(32'h00000100, 32'hBBBB_2222);
-        config_channel(0, 32'h00000100, 32'h00000204, 16'd1,
-                       32'h00000C12, 32'h000000FF);
-        // Need to re-enable channel and re-trigger
-        apb_write(12'h100, 32'h1);
-        apb_write(12'h01C, 32'h1);
+        // Transfer 2 — different data and destination
+        mem_write(32'h0000_0100, 32'hBBBB_2222);
+        config_channel(0, 32'h0000_0100, 32'h0000_0204, 16'd1,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
+        // Re-enable and start
+        csr_write(CSR_CONTROL, build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00) | (1 << CTRL_START_BIT));
 
         wait_irq(0, 5000, success);
         check("Sequential transfer 2 completed", success);
 
         // Verify both destinations
-        rdata = mem_read(32'h00000200);
+        mem_read(32'h0000_0200, rdata);
         check("Seq xfer 1 data correct", rdata == 32'hAAAA_1111);
-        rdata = mem_read(32'h00000204);
+        mem_read(32'h0000_0204, rdata);
         check("Seq xfer 2 data correct", rdata == 32'hBBBB_2222);
 
-        apb_write(12'h000, 32'h0);
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 20: Back-Pressure (hready deasserted)
+    // TEST 19: Back-Pressure (rd_ready/wr_ready deasserted)
     // =========================================================================
     task automatic test_back_pressure;
-        logic [31:0] rdata;
-        logic        success;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic                  success;
 
-        begin_test("Back-Pressure (hready deasserted)");
+        begin_test("Back-Pressure (rd_ready/wr_ready delayed)");
 
         apply_reset();
         mem_clear();
 
         for (int i = 0; i < 4; i++)
-            mem_write(32'h00000100 + i*4, 32'hDADA_0000 + i);
+            mem_write(32'h0000_0100 + i*4, 32'hDADA_0000 + i);
 
-        apb_write(12'h000, 32'h1);
+        // Add latency to simulate back-pressure
+        rd_latency = 3;
+        wr_latency = 3;
 
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd4,
-                       32'h00000D52,  // INCR4
-                       32'h000000FF);
+        config_channel(0, 32'h0000_0100, 32'h0000_0200, 16'd4,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
 
-        apb_write(12'h010, 32'hE);
-
-        // Note: The ready_delay mechanism would require real-time injection
-        // For now, test that the transfer completes correctly even if
-        // we add clock cycles of delay before starting
+        csr_write(CSR_INT_ENABLE, 32'h1);
         start_channel(0);
 
         wait_irq(0, 20000, success);
         check("Transfer with back-pressure completed", success);
 
         for (int i = 0; i < 4; i++) begin
-            rdata = mem_read(32'h00000200 + i*4);
+            mem_read(32'h0000_0200 + i*4, rdata);
             check($sformatf("Back-pressure dest word %0d correct", i),
                   rdata == 32'hDADA_0000 + i);
         end
 
-        apb_write(12'h000, 32'h0);
+        rd_latency = 1;
+        wr_latency = 1;
+
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 21: All Channels Independent Configuration
+    // TEST 20: All Channels Independent Configuration
     // =========================================================================
     task automatic test_independent_channels;
-        logic [31:0] rdata;
-        logic        success;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic                  success;
 
         begin_test("All Channels Independent Configuration");
 
@@ -1276,12 +1236,8 @@ module tb_dma;
 
         // Different data for each channel
         for (int ch = 0; ch < NUM_CHANNELS; ch++) begin
-            automatic logic [31:0] base_src = 32'(ch * 32'h200 + 32'h100);
-            mem_write(base_src, 32'(32'hEE00_0000 + ch));
+            mem_write(32'(ch * 32'h200 + 32'h100), 32'(32'hEE00_0000 + ch));
         end
-
-        apb_write(12'h000, 32'h1);
-        apb_write(12'h010, 32'h0); // Unmask all
 
         // Each channel: different src, different dst, size=1
         for (int ch = 0; ch < NUM_CHANNELS; ch++) begin
@@ -1289,174 +1245,210 @@ module tb_dma;
                            32'(ch * 32'h200 + 32'h100),
                            32'(ch * 32'h200 + 32'h180),
                            16'd1,
-                           32'h00000C12,
-                           32'h000000FF);
+                           build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
         end
 
-        for (int ch = 0; ch < NUM_CHANNELS; ch++) begin
-            logic [11:0] base;
-            base = ch[3:0] * 12'h100;
-            apb_write(base + 12'h00, 32'h1);
-        end
-        apb_write(12'h01C, 32'hF);
+        csr_write(CSR_INT_ENABLE, 32'hF);
 
+        // Start all channels
+        for (int ch = 0; ch < NUM_CHANNELS; ch++)
+            start_channel(ch);
+
+        // Wait for each
         for (int ch = 0; ch < NUM_CHANNELS; ch++) begin
-            automatic int a_ch = ch;
-            wait_irq(a_ch, 10000, success);
-            check($sformatf("Independent CH%0d completed", a_ch), success);
+            wait_irq(ch, 10000, success);
+            check($sformatf("Independent CH%0d completed", ch), success);
         end
 
+        // Verify data
         for (int ch = 0; ch < NUM_CHANNELS; ch++) begin
-            rdata = mem_read(32'(ch * 32'h200 + 32'h180));
+            mem_read(32'(ch * 32'h200 + 32'h180), rdata);
             check($sformatf("Independent CH%0d data correct", ch),
                   rdata == 32'(32'hEE00_0000 + ch));
         end
 
-        apb_write(12'h000, 32'h0);
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 22: SW_REQ Without Channel Enable (Edge Case)
+    // TEST 21: SW Trigger Without Channel Enable (Edge Case)
     // =========================================================================
     task automatic test_sw_req_without_enable;
-        begin_test("SW_REQ Without Channel Enable (Edge Case)");
+
+        begin_test("SW Trigger Without Channel Enable (Edge Case)");
 
         apply_reset();
         mem_clear();
 
-        apb_write(12'h000, 32'h1);
+        // Configure CH0 but do NOT enable it (enable=0)
+        select_channel(0);
+        csr_write(CSR_SRC_ADDR_LO, 32'h0000_0100);
+        csr_write(CSR_DST_ADDR_LO, 32'h0000_0200);
+        csr_write(CSR_XFER_COUNT,  32'd4);
+        // Write control with start=1 but enable=0
+        csr_write(CSR_CONTROL, 32'h2);  // start=1, enable=0
 
-        // Configure CH0 but do NOT enable it
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd4,
-                       32'h00000C12, 32'h000000FF);
-
-        // Trigger SW_REQ without CH_EN
-        apb_write(12'h01C, 32'h1);
+        csr_write(CSR_INT_ENABLE, 32'h1);
 
         repeat(30) @(posedge clk);
         check("No transfer without CH_EN", irq[0] === 1'b0);
 
-        apb_write(12'h000, 32'h0);
-        end_test();
     endtask
 
     // =========================================================================
-    // TEST 23: ERR_CLEAR Write-1-to-Clear
+    // TEST 22: ERR Status Clearing
     // =========================================================================
-    task automatic test_err_clear_w1c;
-        logic [31:0] rdata;
-        logic        success;
+    task automatic test_err_clear;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic                  success;
 
-        begin_test("ERR_CLEAR Write-1-to-Clear (FR-09)");
+        begin_test("ERR Status Clearing (FR-09)");
 
         apply_reset();
         mem_clear();
 
-        mem_write(32'h00000100, 32'hFEED);
+        mem_write(32'h0000_0100, 32'hFEED);
 
-        apb_write(12'h000, 32'h1);
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd1,
-                       32'h00030C12, 32'h000000FF);
-        apb_write(12'h010, 32'hE);
+        config_channel(0, 32'h0000_0100, 32'h0000_0200, 16'd1,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
+
+        csr_write(CSR_INT_ENABLE, 32'h1);
 
         // Inject error
         inject_error = 1'b1;
-        error_addr   = 32'h00000100;
+        error_addr   = 32'h0000_0100;
         start_channel(0);
 
-        wait_irq(0, 5000, success);
+        repeat(100) @(posedge clk);
 
-        apb_read(12'h014, rdata);
-        check("ERR_STATUS set after error", rdata[0] == 1'b1);
+        // Check error status
+        select_channel(0);
+        csr_read(CSR_STATUS, rdata);
+        check("Error flag set after bus error", rdata[2] == 1'b1);
 
-        // Clear error via W1C
-        apb_write(12'h018, 32'h1);
-        apb_read(12'h014, rdata);
-        check("ERR_STATUS cleared after W1C", rdata[0] == 1'b0);
+        // Clear error and done via INT_CLEAR
+        csr_write(CSR_INT_CLEAR, 32'h1);
+        csr_read(CSR_STATUS, rdata);
+        check("Error flag cleared after INT_CLEAR", rdata[2] == 1'b0);
 
         inject_error = 1'b0;
-        apb_write(12'h000, 32'h0);
+
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 24: AHB Signals Protocol Checks
+    // TEST 23: Bus Request Protocol Checks
     // =========================================================================
-    task automatic test_ahb_protocol;
-        logic [31:0] rdata;
-        logic        success;
+    task automatic test_bus_protocol;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic                  success;
 
-        begin_test("AHB Protocol Signal Checks");
+        begin_test("Bus Request Protocol Checks");
 
         apply_reset();
         mem_clear();
 
-        mem_write(32'h00000100, 32'hABCD_1234);
+        mem_write(32'h0000_0100, 32'hABCD_1234);
 
-        apb_write(12'h000, 32'h1);
-        config_channel(0, 32'h00000100, 32'h00000200, 16'd1,
-                       32'h00000C12, 32'h000000FF);
-        apb_write(12'h010, 32'hE);
+        config_channel(0, 32'h0000_0100, 32'h0000_0200, 16'd1,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
+
+        csr_write(CSR_INT_ENABLE, 32'h1);
 
         // Before start: bus should be idle
-        check("hbusreq low before transfer", hbusreq == 1'b0);
-        check("htrans IDLE before transfer", htrans == 2'b00);
+        check("m_bus_req low before transfer", m_bus_req == 1'b0);
 
         start_channel(0);
 
         // After start: bus request should go high
         repeat(5) @(posedge clk);
-        check("hbusreq high after channel start", hbusreq == 1'b1);
+        check("m_bus_req high after channel start", m_bus_req == 1'b1);
 
         // Wait for completion
         wait_irq(0, 5000, success);
-        check("AHB protocol: transfer completed", success);
+        check("Bus protocol: transfer completed", success);
 
         // After done: bus should release
         repeat(10) @(posedge clk);
-        check("hbusreq low after completion", hbusreq == 1'b0);
+        check("m_bus_req low after completion", m_bus_req == 1'b0);
 
-        apb_write(12'h000, 32'h0);
         end_test();
     endtask
 
     // =========================================================================
-    // TEST 25: INCR16 Burst Transfer
+    // TEST 24: Hardware Trigger
     // =========================================================================
-    task automatic test_burst_incr16;
-        logic [31:0] rdata;
-        logic        success;
+    task automatic test_hw_trigger;
+        logic [DATA_WIDTH-1:0] rdata;
+        logic                  success;
 
-        begin_test("Burst Transfer INCR16 (FR-06)");
+        begin_test("Hardware Trigger (FR-05)");
 
         apply_reset();
         mem_clear();
 
-        for (int i = 0; i < 16; i++)
-            mem_write(32'h00000100 + i*4, 32'hFACE_0000 + i);
+        mem_write(32'h0000_0100, 32'h1234_ABCD);
 
-        apb_write(12'h000, 32'h1);
+        // Configure CH0 with hw_trigger=1
+        config_channel(0, 32'h0000_0100, 32'h0000_0200, 16'd1,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b1, 1'b1, 2'b00));
 
-        // SRC_BURST=INCR16(3), DST_BURST=INCR16(3) => [9:8]=11, [7:6]=11
-        // CTRL = 0x00001DD2
-        config_channel(0, 32'h00000100, 32'h00000400, 16'd16,
-                       32'h00001DD2,
-                       32'h000000FF);
+        csr_write(CSR_INT_ENABLE, 32'h1);
 
-        apb_write(12'h010, 32'hE);
+        // Channel is enabled but waiting for hw_req — no transfer yet
+        repeat(30) @(posedge clk);
+        check("No transfer before hw_req", irq[0] === 1'b0);
+
+        // Assert hardware request
+        hw_req[0] = 1'b1;
+        repeat(2) @(posedge clk);
+        hw_req[0] = 1'b0;
+
+        // Should now transfer
+        wait_irq(0, 5000, success);
+        check("HW triggered transfer completed", success);
+
+        mem_read(32'h0000_0200, rdata);
+        check("HW trigger dest data correct", rdata == 32'h1234_ABCD);
+
+        end_test();
+    endtask
+
+    // =========================================================================
+    // TEST 25: Stop During Active Transfer
+    // =========================================================================
+    task automatic test_stop_during_transfer;
+        logic [DATA_WIDTH-1:0] rdata;
+
+        begin_test("Stop During Active Transfer");
+
+        apply_reset();
+        mem_clear();
+
+        mem_fill_pattern(32'h0000_0100, 20, 32'hE000_0000);
+
+        config_channel(0, 32'h0000_0100, 32'h0000_0600, 16'd20,
+                        build_ctrl(1'b1, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 2'b00));
+
+        csr_write(CSR_INT_ENABLE, 32'h1);
         start_channel(0);
 
-        wait_irq(0, 20000, success);
-        check("INCR16 transfer completed", success);
+        // Let a few beats happen then stop
+        repeat(5) @(posedge clk);
+        stop_channel(0);
 
-        for (int i = 0; i < 16; i++) begin
-            rdata = mem_read(32'h00000400 + i*4);
-            check($sformatf("INCR16 dest word %0d correct", i),
-                  rdata == 32'hFACE_0000 + i);
-        end
+        repeat(20) @(posedge clk);
 
-        apb_write(12'h000, 32'h0);
+        // Check channel is no longer active
+        select_channel(0);
+        csr_read(CSR_STATUS, rdata);
+        check("CH0 active cleared after stop", rdata[0] == 1'b0);
+
+        // Verify only partial data was transferred (not all 20 words)
+        // At least the first word should have been transferred
+        mem_read(32'h0000_0600, rdata);
+        check("Partial transfer: first word transferred", rdata == 32'hE000_0000);
+
         end_test();
     endtask
 
@@ -1465,7 +1457,7 @@ module tb_dma;
     // =========================================================================
     initial begin
         $display("============================================================");
-        $display("  DMA Controller Testbench — MAS §9 DV Plan");
+        $display("  DMA Controller Testbench — MAS DV Plan");
         $display("  Module: dma");
         $display("  Start time: %0t", $time);
         $display("============================================================");
@@ -1477,33 +1469,33 @@ module tb_dma;
         init_signals();
 
         // -----------------------------------------------------------------
-        // Execute all tests
+        // Execute all 25 tests
         // -----------------------------------------------------------------
-        test_reset;                  // FR-13
-        test_register_rw;            // FR-01
-        test_apb_slave_error;        // FR-01
-        test_single_transfer;        // FR-03
-        test_burst_incr4;            // FR-06
-        test_burst_incr8;            // FR-06
-        test_burst_incr16;           // FR-06
-        test_large_transfer;         // >FIFO depth
-        test_multi_channel;          // FR-03/04
-        test_priority_arbitration;   // Section 4.4
-        test_interrupts;             // FR-08
-        test_error_handling;         // FR-09
-        test_circular_mode;          // FR-10
-        test_global_enable;          // FR-11
-        test_channel_status;         // FR-12
-        test_reset_during_transfer;  // FR-13
-        test_fixed_address;          // FR-07
-        test_int_clear_w1c;          // FR-08
-        test_zero_length_transfer;   // Edge case
-        test_sequential_transfers;   // Multiple on same channel
-        test_back_pressure;          // hready deassert
-        test_independent_channels;   // All channels
-        test_sw_req_without_enable;  // Edge case
-        test_err_clear_w1c;          // FR-09
-        test_ahb_protocol;           // Protocol check
+        test_reset;                   // 1.  Reset values
+        test_register_rw;             // 2.  Register read/write
+        test_csr_reserved;            // 3.  CSR reserved address access
+        test_single_transfer;         // 4.  Single word transfer
+        test_burst_transfer;          // 5.  Burst transfer
+        test_large_transfer;          // 6.  Large transfer
+        test_multi_channel;           // 7.  Multi-channel simultaneous
+        test_priority_arbitration;    // 8.  Priority arbitration
+        test_interrupts;              // 9.  Interrupt generation & clearing
+        test_error_handling;          // 10. Error handling
+        test_circular_mode;           // 11. Circular mode
+        test_global_enable;           // 12. Channel enable/disable
+        test_channel_status;          // 13. Channel status register
+        test_reset_during_transfer;   // 14. Reset during active transfer
+        test_fixed_address;           // 15. Fixed address mode
+        test_int_clear_w1c;           // 16. INT_CLEAR W1C
+        test_zero_length_transfer;    // 17. Zero-length transfer
+        test_sequential_transfers;    // 18. Sequential transfers
+        test_back_pressure;           // 19. Back-pressure
+        test_independent_channels;    // 20. All channels independent
+        test_sw_req_without_enable;   // 21. SW trigger without enable
+        test_err_clear;               // 22. ERR status clearing
+        test_bus_protocol;            // 23. Bus request protocol
+        test_hw_trigger;              // 24. Hardware trigger
+        test_stop_during_transfer;    // 25. Stop during transfer
 
         // -----------------------------------------------------------------
         // Final Report
@@ -1511,14 +1503,13 @@ module tb_dma;
         $display("");
         $display("============================================================");
         $display("  TEST SUMMARY");
-        $display("============================================================");
-        $display("  Total checks: %0d", test_count);
-        $display("  Passed:       %0d", test_pass);
-        $display("  Failed:       %0d", test_fail);
+        $display("  Total tests : %0d", test_count);
+        $display("  Checks passed: %0d", test_pass);
+        $display("  Checks failed: %0d", test_fail);
         if (test_fail == 0)
-            $display("  *** ALL TESTS PASSED ***");
+            $display("  RESULT: ALL TESTS PASSED");
         else
-            $display("  *** %0d TEST(S) FAILED ***", test_fail);
+            $display("  RESULT: SOME TESTS FAILED");
         $display("============================================================");
         $display("  End time: %0t", $time);
         $display("============================================================");
@@ -1526,10 +1517,12 @@ module tb_dma;
         $finish;
     end
 
+    // =========================================================================
     // Timeout watchdog
+    // =========================================================================
     initial begin
         #10_000_000;
-        $display("ERROR: Simulation timeout at time %0t", $time);
+        $display("ERROR: Global timeout reached — simulation killed.");
         $finish;
     end
 

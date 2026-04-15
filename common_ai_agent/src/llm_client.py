@@ -535,6 +535,18 @@ def is_azure_provider() -> bool:
     return getattr(config, "LLM_PROVIDER", "openai").lower() == "azure"
 
 
+def _set_max_output_tokens(data: dict, value: int) -> None:
+    """Set the max output tokens field using the correct key for the provider.
+
+    Azure OpenAI uses `max_completion_tokens` instead of `max_tokens`.
+    See: https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/chatgpt
+    """
+    if is_azure_provider():
+        data["max_completion_tokens"] = value
+    else:
+        data["max_tokens"] = value
+
+
 def build_chat_url(base_url: str, model: str = None) -> str:
     """
     Build the chat completions URL for the current provider.
@@ -1035,9 +1047,10 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                 # finish_reason signals: emit for callers that need to react
                 if _finish_reason == "length":
                     # Output was cut off by max_tokens — warn and signal
+                    _mt = data.get('max_completion_tokens', data.get('max_tokens', 'unset'))
                     print(Color.warning(
                         f"\n[Warning] Output truncated: max_tokens limit reached "
-                        f"(max_tokens={data.get('max_tokens', 'unset')}). "
+                        f"(max_tokens={_mt}). "
                         f"Increase MAX_OUTPUT_TOKENS or reduce input size."
                     ))
                     yield ("finish_reason", "length")
@@ -1314,7 +1327,7 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         _stop = stop[:4] if "z.ai" in url else stop
         data["stop"] = _stop
     if config.MAX_OUTPUT_TOKENS > 0:
-        data["max_tokens"] = compute_safe_max_tokens()
+        _set_max_output_tokens(data, compute_safe_max_tokens())
 
     # Show spinner while waiting (suppressed during compression)
     _spinner = None
@@ -1664,7 +1677,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         data["stop"] = _stop
 
     if config.MAX_OUTPUT_TOKENS > 0:
-        data["max_tokens"] = compute_safe_max_tokens()
+        _set_max_output_tokens(data, compute_safe_max_tokens())
 
     # Native tool call support: inject tools schema when provided
     if tools:
@@ -1996,9 +2009,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 
                 # finish_reason signals
                 if _finish_reason == "length":
+                    _mt = data.get('max_completion_tokens', data.get('max_tokens', 'unset'))
                     print(Color.warning(
                         f"\n[Warning] Output truncated: max_tokens limit reached "
-                        f"(max_tokens={data.get('max_tokens', 'unset')}). "
+                        f"(max_tokens={_mt}). "
                         f"Increase MAX_OUTPUT_TOKENS or reduce input size."
                     ))
                     yield ("finish_reason", "length")
@@ -2293,7 +2307,7 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         _stop = stop[:4] if "z.ai" in url else stop
         data["stop"] = _stop
     if max_tokens is not None:
-        data["max_tokens"] = max_tokens
+        _set_max_output_tokens(data, max_tokens)
     # Native function calling: inject tools schema + tool_choice
     if tools:
         data["tools"] = tools
@@ -2588,9 +2602,9 @@ def get_token_count_from_api(messages):
         data = {
             "model": config.MODEL_NAME,
             "messages": messages,
-            "max_tokens": 1,  # Minimal output to save cost
             "stream": False   # Non-streaming to get usage immediately
         }
+        _set_max_output_tokens(data, 1)  # Minimal output to save cost
 
         response = _persistent_post(url, headers, json.dumps(data).encode('utf-8'), timeout=10)
         result = json.loads(response.read().decode('utf-8'))

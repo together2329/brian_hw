@@ -160,6 +160,19 @@ module dma #(
     logic [CH_IDX_WIDTH-1:0] grant_idx;
 
     // =========================================================================
+    // Selected Channel Read Mux (Icarus workaround)
+    // =========================================================================
+    channel_regs_t selected_channel_r;
+
+    always_comb begin
+        selected_channel_r = '0;
+        for (int i = 0; i < NUM_CHANNELS; i++) begin
+            if (i == selected_ch)
+                selected_channel_r = channels[i];
+        end
+    end
+
+    // =========================================================================
     // CSR Read/Write Interface
     // =========================================================================
 
@@ -179,48 +192,64 @@ module dma #(
                     end
 
                     CSR_SRC_ADDR_LO: begin
-                        channels[selected_ch].src_addr      <= csr_wr_data[ADDR_WIDTH-1:0];
-                        channels[selected_ch].curr_src_addr <= csr_wr_data[ADDR_WIDTH-1:0];
+                        for (int _ch = 0; _ch < NUM_CHANNELS; _ch++) begin
+                            if (_ch == selected_ch) begin
+                                channels[_ch].src_addr      <= csr_wr_data[ADDR_WIDTH-1:0];
+                                channels[_ch].curr_src_addr <= csr_wr_data[ADDR_WIDTH-1:0];
+                            end
+                        end
                     end
 
                     CSR_DST_ADDR_LO: begin
-                        channels[selected_ch].dst_addr      <= csr_wr_data[ADDR_WIDTH-1:0];
-                        channels[selected_ch].curr_dst_addr <= csr_wr_data[ADDR_WIDTH-1:0];
+                        for (int _ch = 0; _ch < NUM_CHANNELS; _ch++) begin
+                            if (_ch == selected_ch) begin
+                                channels[_ch].dst_addr      <= csr_wr_data[ADDR_WIDTH-1:0];
+                                channels[_ch].curr_dst_addr <= csr_wr_data[ADDR_WIDTH-1:0];
+                            end
+                        end
                     end
 
                     CSR_XFER_COUNT: begin
-                        channels[selected_ch].xfer_count     <= csr_wr_data[XFER_COUNT_WIDTH-1:0];
-                        channels[selected_ch].xfer_remaining <= csr_wr_data[XFER_COUNT_WIDTH-1:0];
+                        for (int _ch = 0; _ch < NUM_CHANNELS; _ch++) begin
+                            if (_ch == selected_ch) begin
+                                channels[_ch].xfer_count     <= csr_wr_data[XFER_COUNT_WIDTH-1:0];
+                                channels[_ch].xfer_remaining <= csr_wr_data[XFER_COUNT_WIDTH-1:0];
+                            end
+                        end
                     end
 
                     CSR_CONTROL: begin
-                        channels[selected_ch].enable     <= csr_wr_data[CTRL_ENABLE_BIT];
-                        channels[selected_ch].src_inc    <= csr_wr_data[CTRL_SRC_INC_BIT];
-                        channels[selected_ch].dst_inc    <= csr_wr_data[CTRL_DST_INC_BIT];
-                        channels[selected_ch].burst_en   <= csr_wr_data[CTRL_BURST_EN_BIT];
-                        channels[selected_ch].hw_trigger <= csr_wr_data[CTRL_HW_TRIG_BIT];
-                        channels[selected_ch].int_en     <= csr_wr_data[CTRL_INT_EN_BIT];
-                        channels[selected_ch].mode       <= xfer_mode_e'(csr_wr_data[CTRL_MODE_HI_BIT:CTRL_MODE_LO_BIT]);
+                        for (int _ch = 0; _ch < NUM_CHANNELS; _ch++) begin
+                            if (_ch == selected_ch) begin
+                                channels[_ch].enable     <= csr_wr_data[CTRL_ENABLE_BIT];
+                                channels[_ch].src_inc    <= csr_wr_data[CTRL_SRC_INC_BIT];
+                                channels[_ch].dst_inc    <= csr_wr_data[CTRL_DST_INC_BIT];
+                                channels[_ch].burst_en   <= csr_wr_data[CTRL_BURST_EN_BIT];
+                                channels[_ch].hw_trigger <= csr_wr_data[CTRL_HW_TRIG_BIT];
+                                channels[_ch].int_en     <= csr_wr_data[CTRL_INT_EN_BIT];
+                                channels[_ch].mode       <= xfer_mode_e'(csr_wr_data[CTRL_MODE_HI_BIT:CTRL_MODE_LO_BIT]);
 
-                        // Start bit: edge-triggered
-                        if (csr_wr_data[CTRL_START_BIT] && channels[selected_ch].enable &&
-                            channels[selected_ch].state == CH_IDLE) begin
-                            channels[selected_ch].start          <= 1'b1;
-                            channels[selected_ch].xfer_remaining <= channels[selected_ch].xfer_count;
-                            channels[selected_ch].curr_src_addr  <= channels[selected_ch].src_addr;
-                            channels[selected_ch].curr_dst_addr  <= channels[selected_ch].dst_addr;
-                            channels[selected_ch].done           <= 1'b0;
-                            channels[selected_ch].error          <= 1'b0;
-                        end else begin
-                            channels[selected_ch].start <= 1'b0;
-                        end
+                                // Start bit: edge-triggered
+                                if (csr_wr_data[CTRL_START_BIT] && channels[_ch].enable &&
+                                    channels[_ch].state == CH_IDLE) begin
+                                    channels[_ch].start          <= 1'b1;
+                                    channels[_ch].xfer_remaining <= channels[_ch].xfer_count;
+                                    channels[_ch].curr_src_addr  <= channels[_ch].src_addr;
+                                    channels[_ch].curr_dst_addr  <= channels[_ch].dst_addr;
+                                    channels[_ch].done           <= 1'b0;
+                                    channels[_ch].error          <= 1'b0;
+                                end else begin
+                                    channels[_ch].start <= 1'b0;
+                                end
 
-                        // Stop bit
-                        if (csr_wr_data[CTRL_STOP_BIT]) begin
-                            channels[selected_ch].stop   <= 1'b1;
-                            channels[selected_ch].active <= 1'b0;
-                        end else begin
-                            channels[selected_ch].stop <= 1'b0;
+                                // Stop bit
+                                if (csr_wr_data[CTRL_STOP_BIT]) begin
+                                    channels[_ch].stop   <= 1'b1;
+                                    channels[_ch].active <= 1'b0;
+                                end else begin
+                                    channels[_ch].stop <= 1'b0;
+                                end
+                            end
                         end
                     end
 
@@ -248,38 +277,38 @@ module dma #(
                     end
 
                     CSR_SRC_ADDR_LO: begin
-                        csr_rd_data <= channels[selected_ch].src_addr;
+                        csr_rd_data <= selected_channel_r.src_addr;
                     end
 
                     CSR_DST_ADDR_LO: begin
-                        csr_rd_data <= channels[selected_ch].dst_addr;
+                        csr_rd_data <= selected_channel_r.dst_addr;
                     end
 
                     CSR_XFER_COUNT: begin
-                        csr_rd_data <= {{(DATA_WIDTH-XFER_COUNT_WIDTH){1'b0}}, channels[selected_ch].xfer_count};
+                        csr_rd_data <= {{(DATA_WIDTH-XFER_COUNT_WIDTH){1'b0}}, selected_channel_r.xfer_count};
                     end
 
                     CSR_CONTROL: begin
                         csr_rd_data <= {
                             {(DATA_WIDTH-10){1'b0}},
-                            channels[selected_ch].mode,
-                            channels[selected_ch].int_en,
-                            channels[selected_ch].hw_trigger,
-                            channels[selected_ch].burst_en,
-                            channels[selected_ch].dst_inc,
-                            channels[selected_ch].src_inc,
+                            selected_channel_r.mode,
+                            selected_channel_r.int_en,
+                            selected_channel_r.hw_trigger,
+                            selected_channel_r.burst_en,
+                            selected_channel_r.dst_inc,
+                            selected_channel_r.src_inc,
                             1'b0, // stop is pulse, read as 0
                             1'b0, // start is pulse, read as 0
-                            channels[selected_ch].enable
+                            selected_channel_r.enable
                         };
                     end
 
                     CSR_STATUS: begin
                         csr_rd_data <= {
                             {(DATA_WIDTH-3){1'b0}},
-                            channels[selected_ch].error,
-                            channels[selected_ch].done,
-                            channels[selected_ch].active
+                            selected_channel_r.error,
+                            selected_channel_r.done,
+                            selected_channel_r.active
                         };
                     end
 
@@ -328,7 +357,13 @@ module dma #(
         end
     end
 
-    assign any_active = |channels[NUM_CHANNELS-1:0].active;
+    logic [NUM_CHANNELS-1:0] active_vec;
+    always_comb begin
+        for (int i = 0; i < NUM_CHANNELS; i++) begin
+            active_vec[i] = channels[i].active;
+        end
+    end
+    assign any_active = |active_vec;
 
     // =========================================================================
     // Bus Request Logic
@@ -524,6 +559,12 @@ module dma #(
     // Interrupt Generation
     // =========================================================================
 
+    logic [NUM_CHANNELS-1:0] ch_int_en_vec;
+    always_comb begin
+        for (int i = 0; i < NUM_CHANNELS; i++)
+            ch_int_en_vec[i] = channels[i].int_en;
+    end
+
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             int_status <= '0;
@@ -536,7 +577,7 @@ module dma #(
                 end
 
                 // Generate IRQ output
-                irq[i] <= int_status[i] & int_enable[i] & channels[i].int_en;
+                irq[i] <= int_status[i] & int_enable[i] & ch_int_en_vec[i];
             end
         end
     end
