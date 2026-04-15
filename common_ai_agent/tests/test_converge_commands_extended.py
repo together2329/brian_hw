@@ -229,7 +229,7 @@ class TestConvergeNextMocked:
     def test_next_executes_current_stage(self, registry, tmp_path):
         """next should execute the current stage via _execute_stage."""
         project, controller = self._setup_session(registry, tmp_path)
-        controller._execute_stage.return_value = ("spec", "Spec output generated")
+        controller._execute_stage.return_value = ("spec", "Spec output generated", 1, "")
         controller.parser = MagicMock()
         controller.parser.parse.return_value = {"completeness": 0.9}
         controller.score_calc = MagicMock()
@@ -243,7 +243,7 @@ class TestConvergeNextMocked:
     def test_next_parses_output(self, registry, tmp_path):
         """next should parse raw output into metrics."""
         project, controller = self._setup_session(registry, tmp_path)
-        controller._execute_stage.return_value = ("lint", "Error: foo\nWarning: bar")
+        controller._execute_stage.return_value = ("lint", "Error: foo\nWarning: bar", 1, "")
         controller.parser = MagicMock()
         controller.parser.parse.return_value = {"errors": 1, "warnings": 1}
         controller.score_calc = MagicMock()
@@ -256,7 +256,7 @@ class TestConvergeNextMocked:
     def test_next_records_iteration(self, registry, tmp_path):
         """next should record iteration in project history."""
         project, controller = self._setup_session(registry, tmp_path)
-        controller._execute_stage.return_value = ("spec", "output")
+        controller._execute_stage.return_value = ("spec", "output", 1, "")
         controller.parser = MagicMock()
         controller.parser.parse.return_value = {}
         controller.score_calc = MagicMock()
@@ -270,7 +270,7 @@ class TestConvergeNextMocked:
         project, controller = self._setup_session(registry, tmp_path)
         # Use nested metrics for correct _resolve_metric_path
         project.metrics = {"lint": {"errors": 0}, "sim": {"fail": 0}}
-        controller._execute_stage.return_value = ("lint", "clean output")
+        controller._execute_stage.return_value = ("lint", "clean output", 1, "")
         controller.parser = MagicMock()
         controller.parser.parse.return_value = {}
         controller.score_calc = MagicMock()
@@ -285,7 +285,7 @@ class TestConvergeNextMocked:
         project.iteration = 4  # one less than max (5)
         # Set metrics with errors so criteria are NOT met (prevents convergence check)
         project.metrics = {"lint": {"errors": 5}, "sim": {"fail": 2}}
-        controller._execute_stage.return_value = ("spec", "output")
+        controller._execute_stage.return_value = ("spec", "output", 1, "")
         controller.parser = MagicMock()
         controller.parser.parse.return_value = {}
         controller.score_calc = MagicMock()
@@ -297,7 +297,7 @@ class TestConvergeNextMocked:
     def test_next_no_output(self, registry, tmp_path):
         """next handles case where stage produces no output."""
         project, controller = self._setup_session(registry, tmp_path)
-        controller._execute_stage.return_value = ("spec", None)
+        controller._execute_stage.return_value = ("spec", None, 0, "")
 
         result = registry._converge_next()
         assert 'no output' in result.lower() or 'no_output' in result.lower() or 'None' in result
@@ -305,7 +305,7 @@ class TestConvergeNextMocked:
     def test_next_saves_state_after_step(self, registry, tmp_path):
         """next should persist state after each step."""
         project, controller = self._setup_session(registry, tmp_path)
-        controller._execute_stage.return_value = ("spec", "output")
+        controller._execute_stage.return_value = ("spec", "output", 1, "")
         controller.parser = MagicMock()
         controller.parser.parse.return_value = {}
         controller.score_calc = MagicMock()
@@ -320,7 +320,7 @@ class TestConvergeNextMocked:
     def test_next_verbose_level_2_shows_metrics(self, registry, tmp_path):
         """With verbose_level=2, next should show parsed metrics."""
         project, controller = self._setup_session(registry, tmp_path)
-        controller._execute_stage.return_value = ("lint", "output")
+        controller._execute_stage.return_value = ("lint", "output", 1, "")
         controller.parser = MagicMock()
         controller.parser.parse.return_value = {"errors": 0, "warnings": 2}
         controller.score_calc = MagicMock()
@@ -773,7 +773,7 @@ class TestSessionPersistence:
 
         # Simulate 3 iterations
         for i, stage_name in enumerate(["spec", "rtl", "lint"]):
-            controller._execute_stage.return_value = (stage_name, f"output_{i}")
+            controller._execute_stage.return_value = (stage_name, f"output_{i}", 1, "")
             controller.parser = MagicMock()
             controller.parser.parse.return_value = {"quality": i}
             controller.score_calc = MagicMock()

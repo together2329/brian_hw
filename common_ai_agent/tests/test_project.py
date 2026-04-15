@@ -552,9 +552,17 @@ class TestProjectHelpers:
         assert p._resolve_metric_path("synth.timing.wns") == -0.5
 
     def test_resolve_metric_path_missing(self, project_with_config):
-        p = project_with_config
-        p.metrics = {}
-        assert p._resolve_metric_path("lint.errors") == 0
+         p = project_with_config
+         p.metrics = {}
+         # Missing metrics return _METRIC_MISSING sentinel (not 0)
+         assert p._resolve_metric_path("lint.errors") is Project._METRIC_MISSING
+
+    def test_resolve_metric_path_flat_key(self, project_with_config):
+         """Flat keys like metrics['lint.errors'] should be resolved directly."""
+         p = project_with_config
+         p.metrics = {"lint.errors": 0, "sim.pass": 5}
+         assert p._resolve_metric_path("lint.errors") == 0
+         assert p._resolve_metric_path("sim.pass") == 5
 
     def test_compare_operators(self):
         assert Project._compare(0, "==", 0) is True

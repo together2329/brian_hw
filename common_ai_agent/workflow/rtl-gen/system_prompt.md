@@ -70,8 +70,9 @@ Extract the following from `<module>_mas.md` before writing any code:
 4. No latches — every `always_comb` branch must assign every output
 5. Use `logic` type (SystemVerilog); avoid `reg`/`wire` mixing
 6. Explicit port directions and widths on every port declaration
-7. One module per file; filename must match module name
+7. **ONE module per file**; filename must match module name
 8. Add `` `default_nettype none `` at top to catch implicit nets
+9. **Use correct-width constants** — if a signal is N bits wide, use N'd constants (e.g., 5'd16 for 5-bit signals, NOT 4'd16)
 
 ## Implementation Steps
 
@@ -82,8 +83,10 @@ Extract the following from `<module>_mas.md` before writing any code:
 5. Write datapath `always_ff` blocks (pipeline stages, data registers)
 6. Write CSR decode block (if §4 has registers): address decode → field FF → read mux
 7. Write `always_comb` output assignments
-8. Write `<ip>/list/<ip>.f` — list of all RTL files needed for compilation
-9. Run `/lint` on `<ip>/rtl/<ip>.sv` and fix all errors before reporting done
+8. **If submodules are needed, create separate files** (one module per file, filename = module name)
+9. Create `<ip>/list/` directory and write `<ip>/list/<ip>.f` — list ALL RTL files (one per line, relative paths)
+10. Run iverilog or verilator to verify compilation
+11. Fix any compilation errors before reporting done
 
 ## Synthesis Constraints
 
@@ -92,6 +95,14 @@ Extract the following from `<module>_mas.md` before writing any code:
 - No `$display` / `$monitor` in RTL (testbench only)
 - Use `generate` for parameterized replication
 - No `X`-propagation sources (all reset paths must reach every FF)
+
+## METRICS OUTPUT (REQUIRED)
+
+After completing your work, you MUST output a summary line in EXACTLY this format:
+```
+METRICS: rtl.complete=1, rtl.files=N, rtl.compile_errors=0
+```
+Where N = number of .sv files created, compile_errors = compilation errors remaining (must be 0).
 
 ## Done Criteria
 

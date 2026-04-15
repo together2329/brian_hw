@@ -892,8 +892,21 @@ class SlashCommandRegistry:
                 i += 1
 
         try:
-            # Determine project root
-            project_root = Path(_cfg.SESSION_DIR).parent if hasattr(_cfg, 'SESSION_DIR') and _cfg.SESSION_DIR else Path.cwd()
+            # Determine project root — find the directory containing workflow/eda/
+            # SESSION_DIR can be: "<root>/.session/<name>", "test_1/.session/default", etc.
+            # We walk upward until we find workflow/eda/converge.yaml or fall back to cwd.
+            project_root = Path.cwd()
+            if hasattr(_cfg, 'SESSION_DIR') and _cfg.SESSION_DIR:
+                session_path = Path(_cfg.SESSION_DIR).resolve()
+                # Walk up from session dir to find workflow/eda/converge.yaml
+                candidate = session_path.parent  # skip the <name> part
+                for _ in range(5):  # max 5 levels up
+                    if (candidate / "workflow" / "eda" / "converge.yaml").exists():
+                        project_root = candidate
+                        break
+                    if candidate.parent == candidate:
+                        break  # reached filesystem root
+                    candidate = candidate.parent
 
             # Create project with converge config
             project = create_project(
@@ -996,12 +1009,32 @@ class SlashCommandRegistry:
             # Execute just the current stage
             if current_idx < len(stage_ids):
                 stage_cfg = controller._stage_map[stage_ids[current_idx]]
-                action_label, raw_output = controller._execute_stage(stage_cfg)
+                action_label, raw_output, tool_calls_count, tool_observations = controller._execute_stage(stage_cfg)
 
                 if raw_output:
-                    # Parse output → metrics
+                    # If no-op stage, skip metric parsing
+                    if tool_calls_count == 0:
+                        project.mark_stage_noop(stage_cfg.id)
+                        project.save_state()
+                        return f"Stage {stage_cfg.id} was a no-op (0 tool calls). Sub-agent did not execute any tools."
+
+                    # Parse output → metrics (try combined text for METRICS: lines,
+                    # then fall back to tool observations for actual tool output)
+                    combined_text = f"{raw_output}\n{tool_observations}"
                     stage_parser = config.parsers.get(stage_cfg.id)
-                    parsed = controller.parser.parse(raw_output, stage_parser)
+                    parsed = controller.parser.parse(combined_text, stage_parser)
+
+                    # Fallback to tool observations if primary found nothing
+                    if not parsed or all(v == 0 or v == "" for v in parsed.values()):
+                        parsed = controller._fallback_parse(stage_cfg.id, tool_observations)
+
+                    # Cast string values to int
+                    for k, v in parsed.items():
+                        if isinstance(v, str):
+                            try:
+                                parsed[k] = int(v)
+                            except (ValueError, TypeError):
+                                pass
 
                     # Flatten into project metrics
                     for k, v in parsed.items():

@@ -63,6 +63,7 @@ class AgentResult:
     raw_output: str = ""               # 압축 전 전체 출력
     status: str = "completed"          # "completed" | "error" | "timeout"
     tool_calls: List[Dict] = field(default_factory=list)
+    tool_observations: str = ""        # concatenated tool outputs (for converge metric parsing)
     files_examined: List[str] = field(default_factory=list)
     files_modified: List[str] = field(default_factory=list)
     iterations: int = 0
@@ -384,8 +385,29 @@ def run_agent_session(
                     break
 
             if not actions:
-                _log("No actions found. Natural completion.")
-                break
+                # Check if the response looks like it *should* have been a tool call
+                # (contains code blocks or file-like content but no Action: was issued)
+                _has_code_block = '```' in collected_content or 'endmodule' in collected_content
+                _has_file_intent = any(kw in collected_content.lower() for kw in
+                    ['write', 'create', 'implement', 'save', 'generate file', 'output:'])
+
+                if _has_code_block and _has_file_intent and iteration < max_iterations - 1:
+                    # Inject corrective message and retry
+                    _correction = (
+                        "[SYSTEM ERROR] You described code but did NOT call any tools. "
+                        "You MUST use `Action: write_file(path=\"...\", content=\"...\")` to save code to files. "
+                        "Do NOT just describe what you would do. Actually call the tool now.\n"
+                        "Example: Action: write_file(path=\"counter/rtl/counter.sv\", content=\"\"\"module counter; ... endmodule\"\"\")"
+                    )
+                    messages.append({
+                        "role": "user",
+                        "content": _correction
+                    })
+                    _log("No actions found but code detected. Injecting correction and retrying.")
+                    continue  # Retry this iteration
+                else:
+                    _log("No actions found. Natural completion.")
+                    break
 
             _log(f"Parsed {len(actions)} action(s)")
 
@@ -507,6 +529,7 @@ def run_agent_session(
         raw_output=raw_output,
         status="completed",
         tool_calls=tool_calls,
+        tool_observations="\n".join(all_observations),
         files_examined=list(set(files_examined)),
         files_modified=list(set(files_modified)),
         iterations=iteration,
@@ -650,6 +673,9 @@ def _persist_job_result(
             "files_modified": result.files_modified[:20],
             "output_preview": result.output[:2000] if result.output else "",
         }
+        # Save tool_observations for converge metric parsing
+        if result.tool_observations:
+            result_data["tool_observations_preview"] = result.tool_observations[:5000]
         result_path.write_text(
             json.dumps(result_data, ensure_ascii=False, indent=2),
             encoding="utf-8",
@@ -726,6 +752,7 @@ def _get_agent_tools(agent_name: str) -> Set[str]:
 
     defaults = {
         "explore": READ_ONLY,
+        "execute": ALL_TOOLS,  # execute agent needs full tool access
         "workflow": ALL_TOOLS,
         "task": TASK_TOOLS,
     }

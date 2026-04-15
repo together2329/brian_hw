@@ -299,6 +299,11 @@ class Project:
     convergence_reason: str = ""
     report: Dict[str, Any] = field(default_factory=dict)
 
+    # ── No-op Stage Tracking ──────────────────
+    # Stages where the sub-agent made 0 tool calls.
+    # Metrics from these stages are excluded from convergence checks.
+    noop_stages: set = field(default_factory=set)
+
     # ── Session directory ─────────────────────
     session_dir: Optional[Path] = None
 
@@ -427,6 +432,14 @@ class Project:
         """Get current retry count for a stage."""
         return self.stage_iterations.get(stage_id, 0)
 
+    def mark_stage_noop(self, stage_id: str) -> None:
+        """Mark a stage as a no-op (sub-agent made 0 tool calls).
+
+        Metrics from no-op stages are excluded from convergence checks
+        because the sub-agent just wrote text instead of running tools.
+        """
+        self.noop_stages.add(stage_id)
+
     def add_job(self, job_id: str) -> None:
         """Track a job created during this converge run."""
         self.jobs.append(job_id)
@@ -483,6 +496,7 @@ class Project:
             "inbox": list(self.inbox),
             "convergence_reason": self.convergence_reason,
             "converge_yaml_path": str(self.converge_yaml_path) if self.converge_yaml_path else None,
+            "noop_stages": list(self.noop_stages),
         }
 
         state_path.write_text(
@@ -520,6 +534,7 @@ class Project:
             self.jobs = data.get("jobs", [])
             self.inbox = data.get("inbox", [])
             self.convergence_reason = data.get("convergence_reason", "")
+            self.noop_stages = set(data.get("noop_stages", []))
             yaml_path_str = data.get("converge_yaml_path")
             if yaml_path_str:
                 self.converge_yaml_path = Path(yaml_path_str)
@@ -537,6 +552,9 @@ class Project:
 
         Returns dict mapping criterion description → pass/fail.
         Example: {"lint.errors == 0": True, "sim.fail == 0": False}
+
+        Metrics from no-op stages (where sub-agent made 0 tool calls)
+        are treated as _METRIC_MISSING, preventing false convergence.
         """
         if not self.converge_config:
             return {}
@@ -547,10 +565,18 @@ class Project:
             operator = criterion.get("operator", "==")
             target = criterion.get("value", 0)
 
-            actual = self._resolve_metric_path(metric_path)
+            # Check if this metric's stage was a no-op
+            # metric_path is like "lint.errors" → stage prefix is "lint"
+            stage_prefix = metric_path.split(".")[0] if "." in metric_path else ""
+            if stage_prefix in self.noop_stages:
+                # This metric came from a no-op stage — treat as not measured
+                actual = self._METRIC_MISSING
+            else:
+                actual = self._resolve_metric_path(metric_path)
             passed = self._compare(actual, operator, target)
 
-            desc = f"{metric_path} {operator} {target} (actual: {actual})"
+            actual_display = actual if actual is not self._METRIC_MISSING else "(not measured)"
+            desc = f"{metric_path} {operator} {target} (actual: {actual_display})"
             results[desc] = passed
 
         return results
@@ -626,24 +652,45 @@ class Project:
     # Internal Helpers
     # ============================================================
 
+    # Sentinel for "metric never measured"
+    _METRIC_MISSING = object()
+
     def _resolve_metric_path(self, path: str) -> Any:
         """
         Resolve a dotted metric path like 'lint.errors' from self.metrics.
 
-        Also supports nested dicts: 'synth.timing.wns' → metrics['synth']['timing']['wns']
+        Supports both:
+          - Flat keys: metrics["lint.errors"] = 0
+          - Nested dicts: metrics["lint"]["errors"] = 0
+
+        Returns _METRIC_MISSING if path not found in metrics dict.
+        This distinguishes "metric = 0" from "metric never measured".
         """
+        # Try flat key first (common case in converge loop)
+        if path in self.metrics:
+            return self.metrics[path]
+
+        # Try nested dict walk
         parts = path.split(".")
         current = self.metrics
         for part in parts:
             if isinstance(current, dict):
-                current = current.get(part, 0)
+                if part not in current:
+                    return self._METRIC_MISSING
+                current = current[part]
             else:
-                return 0
+                return self._METRIC_MISSING
         return current
 
     @staticmethod
     def _compare(actual: Any, operator: str, target: Any) -> bool:
-        """Compare actual value to target using the given operator."""
+        """Compare actual value to target using the given operator.
+
+        If actual is _METRIC_MISSING (never measured), always returns False.
+        """
+        # If the metric was never measured, criterion is NOT met
+        if actual is Project._METRIC_MISSING:
+            return False
         try:
             if operator == "==":
                 return actual == target

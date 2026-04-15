@@ -149,6 +149,16 @@ Available in prompt templates:
 | `{lint_result}` | From feedback graph trigger | Raw lint output |
 | `{sim_result}` | From feedback graph trigger | Raw sim output |
 
+## METRICS Protocol
+
+Every stage sub-agent is instructed to output a `METRICS:` summary line.
+This is the PRIMARY way the converge engine extracts structured data.
+
+Format: `METRICS: <stage>.<field>=<value>, <stage>.<field>=<value>`
+
+If the sub-agent forgets, the engine falls back to regex patterns
+from tool output (verilator, iverilog, vvp).
+
 ## File Structure
 
 ```

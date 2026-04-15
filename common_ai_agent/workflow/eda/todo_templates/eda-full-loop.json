@@ -6,13 +6,13 @@
     "activeForm": "Generating MAS from spec..."
   },
   {
-    "content": "Implement RTL from MAS",
+    "content": "Implement RTL from MAS (one module per file + filelist)",
     "status": "pending",
     "priority": "high",
     "activeForm": "Implementing RTL..."
   },
   {
-    "content": "Lint check: 0 errors, 0 warnings",
+    "content": "Lint check: 0 errors, 0 warnings (fix root cause, no suppression)",
     "status": "pending",
     "priority": "high",
     "activeForm": "Running lint check...",
@@ -22,7 +22,7 @@
     "validator": "bash workflow/eda/scripts/check_lint_pass.sh"
   },
   {
-    "content": "Generate testbench from MAS DV Plan",
+    "content": "Generate testbench + filelist from MAS DV Plan",
     "status": "pending",
     "priority": "high",
     "activeForm": "Generating testbench..."

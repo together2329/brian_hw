@@ -467,17 +467,59 @@ class LoopController:
                 self._log(f"Stage: {stage_id} (idx={stage_idx})")
 
                 # Execute the stage
-                action_label, raw_output = self._execute_stage(stage_cfg)
+                action_label, raw_output, tool_calls_count, tool_observations = self._execute_stage(stage_cfg)
 
                 if raw_output is None:
                     self._log(f"Stage {stage_id} produced no output, skipping")
                     stage_idx += 1
                     continue
 
-                # Parse output → metrics
+                # If the sub-agent made zero tool calls, its output is just
+                # LLM text — not the result of actual lint/sim/etc.
+                # Do NOT parse metrics from it; treat as a no-op stage.
+                if tool_calls_count == 0:
+                    self._log(f"  Stage {stage_id} was a no-op (0 tool calls). Marking stage as ineffective.")
+                    project.mark_stage_noop(stage_id)
+                    # Still record the iteration for visibility
+                    project.current_stage = stage_id
+                    project.record_iteration(action_label, dict(project.metrics), 0.0)
+                    project.save_state()
+                    stage_idx += 1
+                    continue
+
+                # ── Metric Extraction ──────────────────────────────
+                # Priority 1: METRICS: lines from LLM's final text
+                # Priority 2: METRICS: lines from tool observations
+                # Priority 3: Fallback regex on tool observations (verilator/vvp output)
+                # Priority 4: Fallback regex on LLM text
+
+                combined_text = f"{raw_output}\n{tool_observations}"
+
+                # Try primary parser on combined text first
                 stage_parser = config.parsers.get(stage_id)
-                parsed = self.parser.parse(raw_output, stage_parser)
-                self._log(f"  Parsed metrics: {parsed}")
+                parsed = self.parser.parse(combined_text, stage_parser)
+                self._log(f"  Parsed metrics (primary): {parsed}")
+
+                # Fallback: if primary parser found nothing useful,
+                # parse common patterns from tool observations (where
+                # verilator/iverilog/vvp output actually lives)
+                if not parsed or all(v == 0 or v == "" for v in parsed.values()):
+                    parsed = self._fallback_parse(stage_id, tool_observations)
+                    if parsed:
+                        self._log(f"  Fallback metrics (from tool output): {parsed}")
+                    else:
+                        # Last resort: try fallback on raw LLM output
+                        parsed = self._fallback_parse(stage_id, raw_output)
+                        if parsed:
+                            self._log(f"  Fallback metrics (from LLM text): {parsed}")
+
+                # Cast extracted string values to int for proper scoring
+                for k, v in parsed.items():
+                    if isinstance(v, str):
+                        try:
+                            parsed[k] = int(v)
+                        except (ValueError, TypeError):
+                            pass  # keep as string
 
                 # Flatten parser results into project metrics
                 for k, v in parsed.items():
@@ -497,9 +539,10 @@ class LoopController:
                 self._log(f"  Stage failed: {stage_failed}")
 
                 if stage_failed:
-                    # Classify the failure
+                    # Classify the failure using both LLM text and tool output
                     context = self._build_classifier_context(stage_id)
-                    label = self.classifier.classify(raw_output, context)
+                    classify_text = f"{raw_output}\n{tool_observations}"
+                    label = self.classifier.classify(classify_text, context)
                     self._log(f"  Classification: {label or '(none)'}")
 
                     # Route to fix step
@@ -515,7 +558,7 @@ class LoopController:
                             continue
 
                         # Execute fix step
-                        fix_action, fix_output = self._execute_fix(edge, raw_output)
+                        fix_action, fix_output, fix_tool_obs = self._execute_fix(edge, raw_output)
 
                         # Re-route to retry_from stage
                         if edge.retry_from and edge.retry_from in self._stage_ids:
@@ -539,8 +582,18 @@ class LoopController:
                     project.status = "stalled"
                     project.convergence_reason = f"No improvement for {project.no_improve_count} iterations"
                 else:
-                    project.status = "converged" if project.score >= config.criteria_score_threshold else "failed"
-                    project.convergence_reason = f"Pipeline complete. Score: {project.score:.1f}"
+                    # Check if any stages actually produced work.
+                    # If all stages were no-ops, this is a failed run, not convergence.
+                    effective_stages = set(self._stage_ids) - project.noop_stages
+                    if not effective_stages:
+                        project.status = "failed"
+                        project.convergence_reason = (
+                            "All stages were no-ops (sub-agent made 0 tool calls). "
+                            "No real work was performed."
+                        )
+                    else:
+                        project.status = "converged" if project.score >= config.criteria_score_threshold else "failed"
+                        project.convergence_reason = f"Pipeline complete. Score: {project.score:.1f}"
 
         except KeyboardInterrupt:
             project.status = "failed"
@@ -561,12 +614,12 @@ class LoopController:
     # Stage Execution
     # ============================================================
 
-    def _execute_stage(self, stage_cfg: Any) -> Tuple[str, Optional[str]]:
+    def _execute_stage(self, stage_cfg: Any) -> Tuple[str, Optional[str], int, str]:
         """
         Execute a pipeline stage via run_agent_session().
 
         Returns:
-            (action_label, raw_output) tuple
+            (action_label, raw_output, tool_calls_count, tool_observations) tuple
         """
         from core.agent_runner import run_agent_session
 
@@ -587,6 +640,11 @@ class LoopController:
                 converge_state=self.project,
             )
 
+            tool_calls_count = len(result.tool_calls) if result.tool_calls else 0
+
+            if tool_calls_count == 0:
+                self._log(f"  WARNING: Stage '{stage_id}' made 0 tool calls — sub-agent did not execute any tools")
+
             # Track job
             if result.tool_calls:
                 for tc in result.tool_calls:
@@ -595,15 +653,20 @@ class LoopController:
             # Extract produced variables from output
             self._extract_produced_variables(stage_cfg.produces, result.output)
 
-            return stage_id, result.raw_output or result.output
+            raw_output = result.raw_output or result.output
+            tool_obs = getattr(result, 'tool_observations', '') or ''
+            return stage_id, raw_output, tool_calls_count, tool_obs
 
         except Exception as e:
             self._log(f"  Stage execution error: {e}")
-            return stage_id, f"Error: {e}"
+            return stage_id, f"Error: {e}", 0, ""
 
-    def _execute_fix(self, edge: Any, failure_output: str) -> Tuple[str, Optional[str]]:
+    def _execute_fix(self, edge: Any, failure_output: str) -> Tuple[str, Optional[str], str]:
         """
         Execute a fix step from the feedback graph.
+
+        Returns:
+            (action_label, raw_output, tool_observations) tuple
         """
         from core.agent_runner import run_agent_session
 
@@ -626,11 +689,12 @@ class LoopController:
                 converge_state=self.project,
             )
 
-            return action_label, result.raw_output or result.output
+            tool_obs = getattr(result, 'tool_observations', '') or ''
+            return action_label, result.raw_output or result.output, tool_obs
 
         except Exception as e:
             self._log(f"  Fix execution error: {e}")
-            return action_label, f"Error: {e}"
+            return action_label, f"Error: {e}", ""
 
     # ============================================================
     # Helpers
@@ -693,6 +757,60 @@ class LoopController:
     def _log(self, msg: str) -> None:
         if self.verbose:
             print(f"  [converge] {msg}")
+
+    def _fallback_parse(self, stage_id: str, raw_output: str) -> Dict[str, Any]:
+        """
+        Fallback metric parser when primary METRICS: line parsing fails.
+
+        Tries common patterns from tool output (verilator, iverilog, vvp).
+        """
+        results: Dict[str, Any] = {}
+
+        if stage_id == "lint":
+            # Count verilator %Error and %Warning lines
+            errors = len(re.findall(r"%Error", raw_output))
+            warnings = len(re.findall(r"%Warning", raw_output))
+            # If only "Exiting due to N warning(s)" appears, parse the count
+            if errors == 0:
+                m = re.search(r"Exiting due to (\d+) error", raw_output)
+                if m:
+                    errors = int(m.group(1))
+            if warnings == 0:
+                m = re.search(r"Exiting due to (\d+) warning", raw_output)
+                if m:
+                    warnings = int(m.group(1))
+            # Also check for iverilog-style errors
+            if errors == 0:
+                iverilog_errors = len(re.findall(r"(?i)\berror:", raw_output))
+                if iverilog_errors > 0:
+                    errors = iverilog_errors
+            results["errors"] = errors
+            results["warnings"] = warnings
+
+        elif stage_id == "sim":
+            # Count [PASS] and [FAIL] markers from simulation output
+            # These appear in vvp output or redirected log files
+            passes = len(re.findall(r"\[PASS\]", raw_output))
+            fails = len(re.findall(r"\[FAIL\]", raw_output))
+            results["pass"] = passes
+            results["fail"] = fails
+            results["total"] = passes + fails
+
+        elif stage_id == "rtl":
+            # Check for compile errors from iverilog
+            errors = len(re.findall(r"(?i)\berror:", raw_output))
+            results["compile_errors"] = errors
+            results["complete"] = 1 if errors == 0 else 0
+
+        elif stage_id == "tb":
+            errors = len(re.findall(r"(?i)\berror:", raw_output))
+            results["compile_errors"] = errors
+            results["complete"] = 1 if errors == 0 else 0
+
+        elif stage_id == "spec":
+            results["complete"] = 1  # If we got here, spec stage ran
+
+        return results
 
 
 # ============================================================

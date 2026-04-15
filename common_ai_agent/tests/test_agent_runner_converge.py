@@ -811,3 +811,116 @@ class TestEdgeCases:
             assert len(msgs) == 2
             assert msgs[0]["type"] == "override"
             assert msgs[1]["type"] == "abort"
+
+
+# ============================================================
+# No-op Retry with Code Detection
+# ============================================================
+
+class TestNoopRetryWithCodeDetection:
+    """Test that the agent retries when code is detected but no tool was called."""
+
+    def test_detects_code_block_with_write_intent(self):
+        """Text with code block + write intent should trigger retry."""
+        text = "I'll create the counter module.\n```systemverilog\nmodule counter;\nendmodule\n```"
+        has_code = '```' in text or 'endmodule' in text
+        has_intent = any(kw in text.lower() for kw in
+            ['write', 'create', 'implement', 'save', 'generate file', 'output:'])
+        assert has_code and has_intent
+
+    def test_no_retry_without_code(self):
+        """Text without code blocks should not trigger retry."""
+        text = "I'll read the file first."
+        has_code = '```' in text or 'endmodule' in text
+        assert not has_code
+
+
+class TestWriteFileContentRecovery:
+    """Test that write_file recovers content when normal parsing fails."""
+
+    def test_triple_quoted_content_recovery(self):
+        """Content in triple quotes should be recovered by dispatch fallback."""
+        from core.tool_dispatcher import dispatch_tool
+
+        # Simulate the case where normal parser returns kwargs without 'content'
+        # The greedy regex fallback in dispatch_tool should recover it
+        captured = {}
+
+        def mock_write_file(path="", content=""):
+            captured["path"] = path
+            captured["content"] = content
+            return f"Written {len(content)} chars to {path}"
+
+        result = dispatch_tool(
+            "write_file",
+            'path="test.sv", content="""module test #(parameter W=8)();\nendmodule"""',
+            available_tools={"write_file": mock_write_file},
+        )
+        assert "Written" in result
+        assert captured.get("content") == "module test #(parameter W=8)();\nendmodule"
+
+    def test_greedy_quote_content_recovery(self):
+        """Content with embedded quotes should be recovered by greedy regex."""
+        from core.tool_dispatcher import dispatch_tool
+
+        captured = {}
+
+        def mock_write_file(path="", content=""):
+            captured["path"] = path
+            captured["content"] = content
+            return f"OK: {len(content)} chars"
+
+        # This is what happens when normal parser splits on the first quote
+        # and loses the content. The greedy fallback should catch it.
+        result = dispatch_tool(
+            "write_file",
+            'path="test.sv", content="module test; // a \\"comment\\" endmodule"',
+            available_tools={"write_file": mock_write_file},
+        )
+        assert "OK:" in result
+
+    def test_placeholder_args_returns_helpful_error(self):
+        """write_file(...) with literal '...' args_str should return helpful error."""
+        from core.tool_dispatcher import dispatch_tool
+
+        captured = {}
+
+        def mock_write_file(path="", content=""):
+            captured["path"] = path
+            return f"Written {len(content)} chars"
+
+        # Exact reproduction of user's error: args_str is "..."
+        result = dispatch_tool(
+            "write_file", "...",
+            available_tools={"write_file": mock_write_file},
+        )
+        assert "Error" in result
+        assert "write_file() requires" in result
+        # The mock should NOT have been called
+        assert captured == {}
+
+    def test_path_only_returns_helpful_error(self):
+        """write_file(path='x') with no content should return helpful error."""
+        from core.tool_dispatcher import dispatch_tool
+
+        captured = {}
+
+        def mock_write_file(path="", content=""):
+            captured["path"] = path
+            return f"Written {len(content)} chars"
+
+        result = dispatch_tool(
+            "write_file", 'path="test.sv"',
+            available_tools={"write_file": mock_write_file},
+        )
+        assert "Error" in result
+        assert "missing 'content'" in result
+        assert captured == {}
+
+
+# ============================================================
+# Run
+# ============================================================
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

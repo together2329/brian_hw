@@ -96,13 +96,19 @@ def _make_project(tmp_path, config=None):
     return project
 
 
-def _agent_result(output: str) -> AgentResult:
-    """Create an AgentResult from canned output."""
+def _agent_result(output: str, tool_calls: list = None) -> AgentResult:
+    """Create an AgentResult from canned output.
+
+    By default includes one tool_call so the converge loop treats
+    the stage as having actually executed (not a no-op).
+    """
+    if tool_calls is None:
+        tool_calls = [{"tool": "run_command", "args": "echo ok"}]
     return AgentResult(
         output=output,
         raw_output=output,
         status="completed",
-        tool_calls=[],
+        tool_calls=tool_calls,
         files_examined=[],
         files_modified=[],
         iterations=1,
@@ -688,6 +694,65 @@ class TestFullPipelineIntegration:
         assert result.iteration == 4
         assert result.status == "converged"
         assert result.phase == "done"
+
+
+# ============================================================
+# No-op stage detection — sub-agent makes 0 tool calls
+# ============================================================
+
+class TestNoopStageDetection:
+    """Test that stages where the sub-agent makes 0 tool calls
+    are detected and excluded from convergence checks."""
+
+    @patch('core.agent_runner.run_agent_session')
+    def test_noop_stage_prevents_false_convergence(self, mock_run_agent, tmp_path):
+        """If ALL metric-producing stages make 0 tool calls, should NOT converge."""
+        project = _make_project(tmp_path)
+        controller = LoopController(project, verbose=False)
+
+        # ALL stages return 0 tool calls (simulating LLM that just talks)
+        mock_run_agent.return_value = _agent_result("No issues found.", tool_calls=[])
+
+        result = controller.run()
+
+        # Both lint and sim should be no-ops
+        assert "lint" in result.noop_stages
+        assert "sim" in result.noop_stages
+        # Should NOT converge because metrics from no-op stages are excluded
+        assert result.status != "converged"
+
+    @patch('core.agent_runner.run_agent_session')
+    def test_noop_stage_metrics_not_parsed(self, mock_run_agent, tmp_path):
+        """No-op stages should not have their output parsed into metrics."""
+        project = _make_project(tmp_path)
+        controller = LoopController(project, verbose=False)
+
+        call_count = [0]
+        def mock_side_effect(**kwargs):
+            idx = call_count[0]
+            call_count[0] += 1
+            if idx == 2:  # lint — no-op
+                return _agent_result("0 errors, 0 warnings", tool_calls=[])
+            return _agent_result("OK")
+
+        mock_run_agent.side_effect = mock_side_effect
+        result = controller.run()
+
+        # lint metrics should NOT be in project.metrics
+        assert "lint.errors" not in result.metrics
+        assert "lint.warnings" not in result.metrics
+
+    def test_noop_stage_persists_in_save_load(self, tmp_path):
+        """noop_stages should survive save_state/load_state round-trip."""
+        project = _make_project(tmp_path)
+        project.noop_stages = {"lint", "sim"}
+        project.save_state()
+
+        # Load into fresh Project
+        project2 = _make_project(tmp_path)
+        loaded = project2.load_state()
+        assert loaded
+        assert project2.noop_stages == {"lint", "sim"}
 
 
 # ============================================================

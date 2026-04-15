@@ -287,6 +287,49 @@ def dispatch_tool(
         if debug:
             print(f"[DEBUG] Parsed args: {parsed_args}, kwargs: {parsed_kwargs}")
 
+        # ── write_file content recovery ──────────────────────────────────
+        # If write_file is missing 'content', try to extract it from raw
+        # args_str using a greedy regex. This handles cases where the LLM
+        # outputs large code blocks with embedded quotes that break the
+        # normal parser.
+        if tool_name == "write_file" and "content" not in parsed_kwargs and "path" in parsed_kwargs:
+            import re as _re
+            # Try triple-quoted content first
+            _m = _re.search(r'content\s*=\s*"""(.*?)"""', args_str, _re.DOTALL)
+            if _m:
+                parsed_kwargs["content"] = _m.group(1)
+                if debug:
+                    print(f"[DEBUG] Recovered write_file content from triple-quotes: {len(parsed_kwargs['content'])} chars")
+            else:
+                # Try regular-quoted content (greedy to capture embedded quotes)
+                _m = _re.search(r'content\s*=\s*"(.*)"', args_str, _re.DOTALL)
+                if _m:
+                    parsed_kwargs["content"] = _m.group(1)
+                    if debug:
+                        print(f"[DEBUG] Recovered write_file content from greedy quotes: {len(parsed_kwargs['content'])} chars")
+
+        # ── write_file: placeholder args_str detection ────────────────
+        # If args_str is just "..." or empty, the LLM used a shorthand
+        # like `Action: write_file(...)`. Return a helpful error.
+        if tool_name == "write_file" and "content" not in parsed_kwargs:
+            _stripped = args_str.strip().strip('.').strip()
+            if not _stripped or _stripped == '…':
+                return (
+                    "Error: write_file() requires both 'path' and 'content' arguments.\n"
+                    "The tool call had no arguments. Use the format:\n"
+                    "  Action: write_file(path=\"filename.sv\", content=\"\"\"<code>\"\"\")\n"
+                    "Please retry with actual path and content values."
+                )
+            # path provided but no content — the LLM forgot to include the file content
+            if "path" in parsed_kwargs:
+                return (
+                    "Error: write_file() called with 'path' but missing 'content'.\n"
+                    f"  path={parsed_kwargs['path']!r}\n"
+                    "You MUST include the file content. Use the format:\n"
+                    "  Action: write_file(path=\"filename.sv\", content=\"\"\"<code>\"\"\")\n"
+                    "Please retry with the actual file content."
+                )
+
         # Final safety net: detect positional args that would collide with kwargs.
         # This is a belt-and-suspenders check after all auto-fixes above.
         if parsed_args:
@@ -304,6 +347,37 @@ def dispatch_tool(
                 parsed_args = _fixed
             except (ValueError, TypeError):
                 pass
+
+        # ── write_file: final content check ────────────────────────────
+        # Absolute last resort: if write_file still has no content after
+        # all recovery attempts, return a clear error instead of crashing.
+        if tool_name == "write_file":
+            # Check if content is in positional args (rare but possible)
+            if parsed_args and "content" not in parsed_kwargs:
+                try:
+                    _sig = inspect.signature(func)
+                    _pnames = list(_sig.parameters.keys())
+                    if len(parsed_args) >= 2:
+                        # path=arg0, content=arg1
+                        parsed_kwargs["path"] = parsed_args[0]
+                        parsed_kwargs["content"] = parsed_args[1]
+                        parsed_args = []
+                    elif len(parsed_args) == 1:
+                        parsed_kwargs.setdefault("path", parsed_args[0])
+                        parsed_args = []
+                except (ValueError, TypeError):
+                    pass
+
+            _content_val = parsed_kwargs.get("content")
+            if _content_val is None or not isinstance(_content_val, str):
+                _path_val = parsed_kwargs.get("path", "?")
+                return (
+                    f"Error: write_file() requires 'content' parameter as a non-empty string.\n"
+                    f"  path={_path_val!r}\n"
+                    f"  content={'MISSING' if _content_val is None else repr(_content_val)}\n"
+                    f"The LLM did not provide file content. Use format:\n"
+                    f"  Action: write_file(path=\"file.sv\", content=\"\"\"<code>\"\"\")"
+                )
 
         # Execute tool with optional global timeout
         result = _call_with_timeout(

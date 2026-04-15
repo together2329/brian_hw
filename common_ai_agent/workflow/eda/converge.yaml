@@ -27,6 +27,10 @@ stages:
       Look for spec files in {module}/spec/ or {module}/
       Generate a MAS (Module Architecture Spec) document.
       Output: Write MAS to {module}/mas/{module}_mas.md
+
+      IMPORTANT: After completing, you MUST output a summary line in this exact format:
+      METRICS: spec.complete=1, spec.sections=0
+      Where sections = number of MAS sections written.
     produces:
       - mas_path
 
@@ -39,7 +43,19 @@ stages:
       MAS: {mas_path}
       Read the MAS document and implement all sections (§2-§8).
       Follow the interface, timing, and reset requirements exactly.
+      
+      RULES:
+      - ONE module per .sv file. If submodules are needed, create separate files.
+      - Create a filelist: {module}/list/{module}.f listing all RTL files (one per line, relative paths).
+      - After writing RTL, run verilator or iverilog to verify compilation.
+      - Fix ALL width mismatches — use the correct bit width for every constant.
+      
       Output: {module}/rtl/{module}.sv
+      Filelist: {module}/list/{module}.f
+
+      IMPORTANT: After completing, you MUST output a summary line in this exact format:
+      METRICS: rtl.complete=1, rtl.files=0, rtl.compile_errors=0
+      Where files = number of .sv files created, compile_errors = compilation errors remaining.
     depends_on:
       - spec
     produces:
@@ -50,9 +66,22 @@ stages:
     agent: execute
     prompt: |
       Run verilator --lint-only -Wall on {rtl_path}.
-      Fix ALL errors and warnings.
+      Fix ALL errors and warnings. Do NOT suppress warnings — fix the root cause.
+      
+      RULES:
+      - If a module has submodules in the same file, split them into separate files
+        (one module per file, filename matches module name).
+      - Update the filelist if new files are created.
+      - Fix width mismatches by using correct-width constants.
+      - Fix DECLFILENAME by splitting modules into their own files.
+      - After fixing, re-run lint to verify 0 errors, 0 warnings.
+      
       {lint_context}
       Output must show 0 errors and 0 warnings.
+
+      IMPORTANT: After completing, you MUST output a summary line in this exact format:
+      METRICS: lint.errors=0, lint.warnings=0
+      Report the actual count from the final lint run.
     depends_on:
       - rtl
 
@@ -66,7 +95,20 @@ stages:
       RTL: {rtl_path}
       Read MAS §9 (DV Plan) and generate a comprehensive testbench.
       Include test cases for: reset, basic operation, edge cases, error handling.
+      
+      RULES:
+      - Read the RTL file(s) first to get exact port names, widths, and parameters.
+      - Create directory {module}/list/ if it doesn't exist.
+      - Create/update the filelist {module}/list/{module}.f listing ALL .sv files
+        (both RTL and TB) needed for simulation, one per line, relative to project root.
+      - After writing the TB, compile with iverilog to verify no syntax errors.
+      
       Output: {module}/tb/tb_{module}.sv
+      Filelist: {module}/list/{module}.f
+
+      IMPORTANT: After completing, you MUST output a summary line in this exact format:
+      METRICS: tb.complete=1, tb.tests=0, tb.compile_errors=0
+      Where tests = number of test cases, compile_errors = iverilog compile errors.
     depends_on:
       - rtl
       - lint
@@ -78,11 +120,26 @@ stages:
     agent: execute
     prompt: |
       Compile and simulate {module}.
-      Filelist: {module}/list/{module}.f
+      
+      FIRST: Check if the filelist exists at {module}/list/{module}.f.
+      If it does NOT exist, create it by finding all .sv files:
+        1. All files in {module}/rtl/*.sv
+        2. All files in {module}/tb/*.sv
+        Write one file path per line (relative to project root).
+      
+      Then compile and run:
+        iverilog -g2012 -f {module}/list/{module}.f -o {module}/sim/{module}.out
+        vvp {module}/sim/{module}.out
+      
       TB: {tb_path}
       RTL: {rtl_path}
       Run simulation until ALL tests show [PASS] with 0 errors, 0 warnings.
       Report each test case result clearly.
+
+      IMPORTANT: After completing, you MUST output a summary line in this exact format:
+      METRICS: sim.pass=0, sim.fail=0, sim.total=0
+      Where pass/fail/total are the actual test counts from simulation output.
+      Use [PASS] and [FAIL] markers in your test output for accurate parsing.
     depends_on:
       - tb
       - lint
@@ -101,8 +158,8 @@ criteria:
       value: 0
 
   score_threshold: 10.0
-  max_total_iterations: 15
-  no_improve_limit: 3
+  max_total_iterations: 30
+  no_improve_limit: 5
 
 # ── Score Function ───────────────────────────────────────
 # Weights for computing a float score from parsed metrics.
@@ -112,9 +169,12 @@ score_function:
   weights:
     lint.errors: -10.0
     lint.warnings: -5.0
+    rtl.compile_errors: -15.0
+    tb.compile_errors: -10.0
     sim.pass_ratio: 10.0
     sim.has_failures: -20.0
-    coverage_pct: 0.2
+    sim.fail: -5.0
+    sim.pass: 2.0
 
 # ── Feedback Graph ───────────────────────────────────────
 # When a stage fails, the graph routes to a fix step.
@@ -250,23 +310,74 @@ rollback:
 
 # ── Output Parsers ───────────────────────────────────────
 # How to extract metrics from sub-agent output per stage.
+#
+# Each stage has TWO parser layers:
+#   1. "metrics_line" — extracts from explicit METRICS: lines (primary, reliable)
+#   2. fallback regex patterns — extracts from tool output (secondary)
 
 parsers:
+  spec:
+    type: structured
+    fields:
+      complete:
+        regex: "(?i)METRICS:.*spec\\.complete=(\\d+)"
+        method: "extract"
+      sections:
+        regex: "(?i)METRICS:.*spec\\.sections=(\\d+)"
+        method: "extract"
+
+  rtl:
+    type: structured
+    fields:
+      complete:
+        regex: "(?i)METRICS:.*rtl\\.complete=(\\d+)"
+        method: "extract"
+      files:
+        regex: "(?i)METRICS:.*rtl\\.files=(\\d+)"
+        method: "extract"
+      compile_errors:
+        regex: "(?i)METRICS:.*rtl\\.compile_errors=(\\d+)"
+        method: "extract"
+
   lint:
-    type: count_patterns
-    patterns:
-      errors: "(?i)(%error|error:)"
-      warnings: "(?i)(%warning|warning:)"
+    type: structured
+    fields:
+      errors:
+        regex: "(?i)METRICS:.*lint\\.errors=(\\d+)"
+        method: "extract"
+      warnings:
+        regex: "(?i)METRICS:.*lint\\.warnings=(\\d+)"
+        method: "extract"
+
+  tb:
+    type: structured
+    fields:
+      complete:
+        regex: "(?i)METRICS:.*tb\\.complete=(\\d+)"
+        method: "extract"
+      tests:
+        regex: "(?i)METRICS:.*tb\\.tests=(\\d+)"
+        method: "extract"
+      compile_errors:
+        regex: "(?i)METRICS:.*tb\\.compile_errors=(\\d+)"
+        method: "extract"
 
   sim:
     type: structured
     fields:
       pass:
+        regex: "(?i)METRICS:.*sim\\.pass=(\\d+)"
+        method: "extract"
+      fail:
+        regex: "(?i)METRICS:.*sim\\.fail=(\\d+)"
+        method: "extract"
+      total:
+        regex: "(?i)METRICS:.*sim\\.total=(\\d+)"
+        method: "extract"
+      # Fallback: also count [PASS]/[FAIL] from simulation output
+      pass_fb:
         regex: "(?i)\\[pass\\]"
         method: "count"
-      fail:
+      fail_fb:
         regex: "(?i)\\[fail\\]"
         method: "count"
-      fail_tests:
-        regex: "\\[FAIL\\]\\s*(.+)"
-        method: "extract_all"
