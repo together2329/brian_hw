@@ -112,6 +112,11 @@ AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY", "")
 AZURE_OPENAI_DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT", "")
 AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION", "2024-06-01")
 
+# Responses API mode: uses /responses endpoint instead of /chat/completions.
+# Required for Azure gpt-5-codex models and OpenAI codex models.
+# When enabled, transforms messages→input, system→instructions, max_tokens→max_output_tokens.
+USE_RESPONSES_API = os.getenv("USE_RESPONSES_API", "false").lower() in ("true", "1", "yes")
+
 # Azure auto-detection: if LLM_PROVIDER=azure, override BASE_URL/API_KEY/MODEL_NAME
 if LLM_PROVIDER == "azure" and AZURE_OPENAI_ENDPOINT:
     if not AZURE_OPENAI_API_KEY:

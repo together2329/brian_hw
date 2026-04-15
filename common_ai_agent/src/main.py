@@ -38,8 +38,12 @@ from core import tools
 from core.slash_commands import get_registry as get_slash_command_registry
 from core.context_tracker import get_tracker as get_context_tracker
 from core.session_manager import SessionManager, RecoveryPoint
-from lib.display import Color
+from lib.display import Color, enable_windows_virtual_terminal
 from llm_client import chat_completion_stream, call_llm_raw, estimate_message_tokens, get_actual_tokens, get_rate_limiter
+
+# Enable Windows Virtual Terminal Processing so ANSI color codes render
+# correctly instead of showing as raw '?[92m' garbage in cmd/PowerShell.
+enable_windows_virtual_terminal()
 from lib.memory import MemorySystem
 from lib.todo_tracker import TodoTracker
 from core.graph_lite import GraphLite, Node, Edge

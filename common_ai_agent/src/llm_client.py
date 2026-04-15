@@ -535,13 +535,26 @@ def is_azure_provider() -> bool:
     return getattr(config, "LLM_PROVIDER", "openai").lower() == "azure"
 
 
+def use_responses_api() -> bool:
+    """Check if the Responses API should be used instead of Chat Completions.
+
+    Enabled via USE_RESPONSES_API=true in .config.
+    Used for Azure gpt-5-codex models and OpenAI codex models that require the
+    /responses endpoint instead of /chat/completions.
+    """
+    return getattr(config, "USE_RESPONSES_API", False)
+
+
 def _set_max_output_tokens(data: dict, value: int) -> None:
     """Set the max output tokens field using the correct key for the provider.
 
-    Azure OpenAI uses `max_completion_tokens` instead of `max_tokens`.
-    See: https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/chatgpt
+    - Responses API: `max_output_tokens`
+    - Azure Chat Completions: `max_completion_tokens`
+    - Standard Chat Completions: `max_tokens`
     """
-    if is_azure_provider():
+    if use_responses_api():
+        data["max_output_tokens"] = value
+    elif is_azure_provider():
         data["max_completion_tokens"] = value
     else:
         data["max_tokens"] = value
@@ -560,6 +573,166 @@ def build_chat_url(base_url: str, model: str = None) -> str:
         endpoint = base_url.rstrip("/")
         return f"{endpoint}/openai/deployments/{deployment}/chat/completions?api-version={api_version}"
     return f"{base_url.rstrip('/')}/chat/completions"
+
+
+def build_responses_url(base_url: str, model: str = None) -> str:
+    """
+    Build the Responses API URL for the current provider.
+
+    - Azure OpenAI: endpoint + /openai/deployments/{deployment}/responses?api-version=...
+    - Standard (OpenAI): base_url + /responses
+    """
+    if is_azure_provider():
+        deployment = model or config.MODEL_NAME
+        api_version = getattr(config, "AZURE_OPENAI_API_VERSION", "2025-04-01-preview")
+        endpoint = base_url.rstrip("/")
+        return f"{endpoint}/openai/deployments/{deployment}/responses?api-version={api_version}"
+    return f"{base_url.rstrip('/')}/responses"
+
+
+def _convert_messages_to_responses_input(messages: List[Dict[str, Any]]) -> tuple:
+    """
+    Convert Chat Completions messages[] to Responses API input[] + instructions.
+
+    Returns:
+        (input_items, instructions) where:
+        - input_items: list of {role, content} dicts for the Responses API
+        - instructions: system prompt string (or None)
+
+    Chat Completions format:
+        [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}, ...]
+    Responses API format:
+        instructions = "system prompt text"
+        input = [{"role": "user", "content": [...]}, {"role": "assistant", "content": [...]}, ...]
+        where content items use {"type": "input_text", "text": "..."} for user/system
+        and {"type": "output_text", "text": "..."} for assistant
+    """
+    instructions = None
+    input_items = []
+
+    for msg in messages:
+        role = msg.get("role", "")
+        content = msg.get("content", "")
+
+        # Handle tool messages — pass through as-is
+        if role == "tool":
+            input_items.append({
+                "type": "function_call_output",
+                "call_id": msg.get("tool_call_id", ""),
+                "output": str(content),
+            })
+            continue
+
+        # Handle assistant messages with tool_calls
+        if role == "assistant" and msg.get("tool_calls"):
+            # Emit function_call items for each tool call
+            for tc in msg["tool_calls"]:
+                func = tc.get("function", {})
+                input_items.append({
+                    "type": "function_call",
+                    "call_id": tc.get("id", ""),
+                    "name": func.get("name", ""),
+                    "arguments": func.get("arguments", "{}"),
+                })
+            # If there's also content, add it as a message
+            if content:
+                input_items.append({
+                    "role": "assistant",
+                    "content": [{"type": "output_text", "text": str(content)}],
+                })
+            continue
+
+        # System message → instructions (extract first, or merge)
+        if role == "system":
+            text = str(content)
+            if instructions is None:
+                instructions = text
+            else:
+                instructions += "\n\n" + text
+            continue
+
+        # User / assistant messages → input items
+        if role in ("user", "assistant"):
+            content_type = "input_text" if role == "user" else "output_text"
+
+            # Handle content as list of blocks (structured content from caching)
+            if isinstance(content, list):
+                converted_blocks = []
+                for block in content:
+                    if isinstance(block, dict):
+                        if block.get("type") in ("text", "input_text", "output_text"):
+                            converted_blocks.append({
+                                "type": content_type,
+                                "text": block.get("text", ""),
+                            })
+                        else:
+                            converted_blocks.append(block)
+                    else:
+                        converted_blocks.append({"type": content_type, "text": str(block)})
+                input_items.append({"role": role, "content": converted_blocks})
+            else:
+                input_items.append({
+                    "role": role,
+                    "content": [{"type": content_type, "text": str(content)}],
+                })
+            continue
+
+    return input_items, instructions
+
+
+def _build_responses_request_body(
+    messages: List[Dict[str, Any]],
+    model: str,
+    stream: bool = True,
+    stop: List[str] = None,
+    temperature: float = None,
+    tools: List[Dict] = None,
+    max_output_tokens: int = None,
+) -> dict:
+    """
+    Build a complete Responses API request body from Chat Completions-style messages.
+
+    Handles the conversion from messages[] to input[] + instructions automatically.
+    """
+    input_items, instructions = _convert_messages_to_responses_input(messages)
+
+    data = {
+        "model": model,
+        "input": input_items,
+        "store": False,
+        "stream": stream,
+    }
+
+    if instructions:
+        data["instructions"] = instructions
+
+    if temperature is not None:
+        data["temperature"] = temperature
+
+    if stop:
+        data["stop"] = stop
+
+    if max_output_tokens is not None:
+        data["max_output_tokens"] = max_output_tokens
+
+    if tools:
+        # Convert Chat Completions tool format to Responses API format
+        responses_tools = []
+        for tool in tools:
+            if tool.get("type") == "function":
+                func = tool["function"]
+                responses_tools.append({
+                    "type": "function",
+                    "name": func.get("name", ""),
+                    "description": func.get("description", ""),
+                    "parameters": func.get("parameters", {}),
+                })
+            else:
+                responses_tools.append(tool)
+        data["tools"] = responses_tools
+        data["tool_choice"] = "auto"
+
+    return data
 
 
 def build_auth_header(api_key: str) -> str:
@@ -681,6 +854,32 @@ def chat_completion_with_config(
     if provider_config is None:
         provider_config = ProviderConfig.from_env()
 
+    if use_responses_api():
+        # ── Responses API path ──
+        url = build_responses_url(provider_config.base_url, provider_config.model_id)
+        headers = build_api_headers(provider_config.api_key)
+        data = _build_responses_request_body(
+            messages=messages,
+            model=provider_config.model_id,
+            stream=True,
+            stop=stop,
+            temperature=temperature if temperature is not None else provider_config.temperature,
+            tools=tools,
+        )
+        if top_p is not None:
+            data["top_p"] = top_p
+        elif provider_config.top_p is not None:
+            data["top_p"] = provider_config.top_p
+
+        if config.DEBUG_MODE:
+            print(Color.info(f"\n[Agent-Aware API Call (Responses API)]"))
+            print(Color.info(f"  Provider: {provider_config.provider_id}"))
+            print(Color.info(f"  Model: {provider_config.model_id}"))
+            print(Color.info(f"  URL: {url}"))
+
+        yield from _execute_streaming_request_responses(url, headers, data, messages, native_mode=bool(tools))
+        return
+
     # Use provided config — build URL and headers based on provider type
     url = build_chat_url(provider_config.base_url, provider_config.model_id)
     headers = build_api_headers(provider_config.api_key)
@@ -720,6 +919,289 @@ def chat_completion_with_config(
 
     # Reuse existing streaming logic
     yield from _execute_streaming_request(url, headers, data, messages, native_mode=bool(tools))
+
+
+def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, messages: List, native_mode: bool = False):
+    """
+    Execute streaming request using the Responses API SSE format.
+
+    The Responses API uses typed SSE events instead of the Chat Completions delta format:
+    - response.output_text.delta → text content chunks
+    - response.reasoning.delta → reasoning/thinking content
+    - response.function_call_arguments.delta → tool call arguments
+    - response.completed → final response with usage stats
+    - response.done → stream end marker (replaces [DONE])
+
+    Yields the same format as _execute_streaming_request:
+    - Plain strings for content
+    - ("reasoning", text) tuples for reasoning
+    - ("native_tool_calls", [...]) for tool calls
+    - ("finish_reason", reason) for finish signals
+    """
+    global last_input_tokens, last_output_tokens
+    global last_cache_creation_tokens, last_cache_read_tokens
+    global total_cache_created, total_cache_read
+
+    _RETRY_DELAYS = [5, 10, 20, 40, 80]
+    max_retries = len(_RETRY_DELAYS) + 1
+
+    for retry_count in range(max_retries):
+        global _stream_cancelled
+        if _stream_cancelled:
+            _stream_cancelled = False
+            return
+        _reasoning_started = False
+        _content_label_printed = False
+        _wd_stop, _wd_triggered = None, [False]
+        _pending_tool_calls: Dict[int, Dict] = {}
+        _current_function_call_name = ""
+        _current_function_call_id = ""
+        _current_function_call_idx = 0
+
+        try:
+            _body = json.dumps(data).encode('utf-8')
+            response = _persistent_post(url, headers, _body, timeout=config.STREAM_API_TIMEOUT)
+            global _active_stream_response
+            _active_stream_response = response
+            _inactivity_s = getattr(config, 'STREAM_INACTIVITY_TIMEOUT', 120)
+            _last_data = [time.time()]
+            _wd_stop, _wd_triggered = _make_stream_watchdog(response, _inactivity_s, _last_data)
+            try:
+                usage_info = None
+                _yielded_something = False
+                _finish_reason = None
+                _status = None
+
+                for line in response:
+                    _last_data[0] = time.time()
+                    line = line.decode('utf-8').strip()
+                    if not line.startswith("data: "):
+                        continue
+                    data_str = line[6:]
+                    if data_str == "[DONE]":
+                        break
+                    try:
+                        event_json = json.loads(data_str)
+                    except json.JSONDecodeError:
+                        continue
+
+                    event_type = event_json.get("type", "")
+
+                    # ── Usage stats (from response.completed or inline) ──
+                    if "usage" in event_json:
+                        usage_info = event_json["usage"]
+                    # response.completed carries usage inside response object
+                    if event_type == "response.completed":
+                        resp_obj = event_json.get("response", {})
+                        if "usage" in resp_obj:
+                            usage_info = resp_obj["usage"]
+                        _status = resp_obj.get("status", "completed")
+                        if _status == "incomplete":
+                            _finish_reason = "length"
+                        elif _status == "completed":
+                            _finish_reason = "stop"
+
+                    # ── Text content delta ──
+                    if event_type == "response.output_text.delta":
+                        delta_text = event_json.get("delta", "")
+                        if delta_text:
+                            yield delta_text
+                            _yielded_something = True
+
+                    # ── Reasoning delta (encrypted or visible) ──
+                    if event_type == "response.reasoning.delta":
+                        reasoning_text = event_json.get("delta", "")
+                        if reasoning_text:
+                            yield ("reasoning", reasoning_text)
+                            _yielded_something = True
+
+                    # ── Function call start (name + id) ──
+                    if event_type == "response.function_call_arguments.delta":
+                        args_delta = event_json.get("delta", "")
+                        idx = _current_function_call_idx
+                        if idx not in _pending_tool_calls:
+                            _pending_tool_calls[idx] = {
+                                "id": _current_function_call_id,
+                                "name": _current_function_call_name,
+                                "arguments": "",
+                            }
+                        _pending_tool_calls[idx]["arguments"] += args_delta
+
+                    # ── Function call item added (carries name + id) ──
+                    if event_type == "response.output_item.added":
+                        item = event_json.get("item", {})
+                        if item.get("type") == "function_call":
+                            _current_function_call_name = item.get("name", "")
+                            _current_function_call_id = item.get("call_id", item.get("id", ""))
+                            idx = len(_pending_tool_calls)
+                            _current_function_call_idx = idx
+                            _pending_tool_calls[idx] = {
+                                "id": _current_function_call_id,
+                                "name": _current_function_call_name,
+                                "arguments": "",
+                            }
+
+                # ── Emit accumulated tool calls ──
+                if _pending_tool_calls:
+                    _yielded_something = True
+                    if native_mode:
+                        import uuid as _uuid
+                        _native_calls = []
+                        for idx in sorted(_pending_tool_calls):
+                            tc_info = _pending_tool_calls[idx]
+                            if tc_info["name"]:
+                                _call_id = tc_info.get("id") or f"call_{_uuid.uuid4().hex[:16]}"
+                                _args_str = tc_info["arguments"] or "{}"
+                                try:
+                                    json.loads(_args_str)
+                                except json.JSONDecodeError:
+                                    _args_str = "{}"
+                                _native_calls.append({
+                                    "id": _call_id,
+                                    "name": tc_info["name"],
+                                    "arguments": _args_str,
+                                })
+                        if _native_calls:
+                            yield ("native_tool_calls", _native_calls)
+                    else:
+                        for idx in sorted(_pending_tool_calls):
+                            tc_info = _pending_tool_calls[idx]
+                            tc_name = tc_info["name"]
+                            tc_args_str = tc_info["arguments"]
+                            if tc_name and tc_args_str:
+                                try:
+                                    tc_args = json.loads(tc_args_str)
+                                    args_formatted = ", ".join(
+                                        f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                                    )
+                                    yield f"\nAction: {tc_name}({args_formatted})\n"
+                                except (json.JSONDecodeError, AttributeError):
+                                    pass
+
+                # ── Usage stats processing ──
+                if usage_info:
+                    input_tokens = usage_info.get("input_tokens", 0)
+                    output_tokens = usage_info.get("output_tokens", 0)
+                    if input_tokens > 0:
+                        last_input_tokens = input_tokens
+                    if output_tokens > 0:
+                        last_output_tokens = output_tokens
+
+                    # Cache stats
+                    _cached = usage_info.get("cached_input_tokens",
+                               usage_info.get("prompt_tokens_details", {}).get("cached_tokens", 0))
+                    if _cached > 0:
+                        last_cache_read_tokens = _cached
+                        total_cache_read += _cached
+
+                    _total = input_tokens + output_tokens
+                    if _total > 0:
+                        get_rate_limiter().update_actual_usage(_total)
+
+                    if config.DEBUG_MODE:
+                        total_tokens = input_tokens + output_tokens
+                        print(f"\n{Color.info('[Token Usage (Responses API)]')}")
+                        print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
+                        print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
+                        print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}")
+                        if _cached > 0:
+                            print(f"{Color.info(f'  Cached: {_cached:,} tokens')}")
+                        print()
+
+                # ── Finish reason signals ──
+                if _finish_reason == "length":
+                    _mt = data.get('max_output_tokens', 'unset')
+                    print(Color.warning(
+                        f"\n[Warning] Output truncated: max_output_tokens limit reached "
+                        f"(max_output_tokens={_mt}). "
+                        f"Increase MAX_OUTPUT_TOKENS or reduce input size."
+                    ))
+                    yield ("finish_reason", "length")
+                elif _finish_reason == "content_filter":
+                    yield ("finish_reason", "content_filter")
+
+                # Empty response — retry
+                if not _yielded_something and retry_count < max_retries - 1:
+                    delay = _RETRY_DELAYS[retry_count]
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Empty response from Responses API. Waiting {delay}s...\n"))
+                    time.sleep(delay)
+                    try:
+                        _parsed_url = urllib.parse.urlparse(url)
+                        _stale_conn = _http_conn_pool.pop(_parsed_url.netloc, None)
+                        if _stale_conn is not None:
+                            _stale_conn.close()
+                    except Exception:
+                        pass
+                else:
+                    return
+            finally:
+                if _wd_stop is not None:
+                    _wd_stop.set()
+                _active_stream_response = None
+                try:
+                    response.read()
+                except Exception:
+                    pass
+            if _wd_triggered[0]:
+                raise socket.timeout(f"No data for {_inactivity_s}s (inactivity)")
+
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8')
+            zai = _parse_zai_error(error_body)
+            _zai_msg = zai["message"]
+            _zai_code = zai["code"]
+            _zai_type = zai["type"]
+            _zai_reset = zai["reset_time"]
+
+            if zai["is_account_locked"] or zai["is_balance_exhausted"]:
+                print(Color.error(f"\n  LLM API Error [HTTP {e.code}]: {_zai_msg}"))
+                yield f"\n{Color.error(f'[HTTP {e.code}] {_zai_msg}')}\n"
+                return
+
+            is_retryable = (zai["is_retryable"] or e.code == 429 or
+                          (500 <= e.code < 600))
+            if is_retryable and retry_count < max_retries - 1:
+                delay = _RETRY_DELAYS[retry_count]
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}. Waiting {delay}s...\n"))
+                time.sleep(delay)
+                continue
+
+            yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
+            try:
+                error_json = json.loads(error_body)
+                if 'error' in error_json:
+                    err_info = error_json['error']
+                    if isinstance(err_info, dict):
+                        err_msg = err_info.get('message', '')
+                    else:
+                        err_msg = str(err_info)
+                    if err_msg:
+                        yield f"{Color.error(f'  {err_msg}')}\n"
+            except Exception:
+                if error_body:
+                    yield f"{Color.error(f'  {error_body[:300]}')}\n"
+            return
+
+        except (socket.timeout, urllib.error.URLError, ssl.SSLError) as e:
+            if retry_count < max_retries - 1:
+                delay = _RETRY_DELAYS[retry_count]
+                err_msg = str(e)
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] {err_msg}. Waiting {delay}s...\n"))
+                time.sleep(delay)
+                continue
+            yield f"\n{Color.error(f'[Connection Error]: {e}')}\n"
+            return
+
+        except Exception as e:
+            if retry_count < max_retries - 1:
+                delay = _RETRY_DELAYS[retry_count]
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] {type(e).__name__}: {e}. Waiting {delay}s...\n"))
+                time.sleep(delay)
+                continue
+            yield f"\n{Color.error(f'[{type(e).__name__}]: {e}')}\n"
+            return
+
+    return  # all retries exhausted
 
 
 def _make_stream_watchdog(response, inactivity_s: int, last_data_ref: list):
@@ -1302,6 +1784,80 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
 
     resolved_model = model or config.MODEL_NAME
 
+    # ── Responses API path ──
+    if use_responses_api():
+        url = build_responses_url(config.BASE_URL, resolved_model)
+        api_key = config.API_KEY
+        headers = build_api_headers(api_key)
+        data = _build_responses_request_body(
+            messages=processed_messages,
+            model=resolved_model,
+            stream=False,
+            stop=stop,
+            max_output_tokens=compute_safe_max_tokens() if config.MAX_OUTPUT_TOKENS > 0 else None,
+        )
+
+        _spinner = None
+        if not suppress_spinner:
+            try:
+                from lib.display import Spinner as _Spinner
+                _spinner = _Spinner("Thinking")
+                _spinner.start()
+            except Exception:
+                _spinner = None
+
+        try:
+            _body = json.dumps(data).encode('utf-8')
+            response = _persistent_post(url, headers, _body, timeout=config.NONSTREAM_API_TIMEOUT)
+            result = json.loads(response.read().decode('utf-8'))
+        except (urllib.error.HTTPError, socket.timeout, urllib.error.URLError, ssl.SSLError):
+            if _spinner:
+                _spinner.stop()
+            raise
+        except Exception as e:
+            if _spinner:
+                _spinner.stop()
+            print(Color.error(f"\n  LLM error (Responses API): {e}"))
+            return
+        finally:
+            if _spinner:
+                _spinner.stop()
+
+        # Parse Responses API result: output[].content[].text
+        usage = result.get("usage", {})
+        if usage:
+            last_input_tokens = usage.get("input_tokens", 0)
+            last_output_tokens = usage.get("output_tokens", 0)
+            _total = last_input_tokens + last_output_tokens
+            if _total > 0:
+                get_rate_limiter().update_actual_usage(_total)
+
+        # Extract content from output array
+        _content_parts = []
+        _reasoning_parts = []
+        for item in result.get("output", []):
+            if item.get("type") == "message":
+                for content_block in item.get("content", []):
+                    if content_block.get("type") == "output_text":
+                        _content_parts.append(content_block.get("text", ""))
+            elif item.get("type") == "reasoning":
+                _reasoning_parts.append(item.get("summary", ""))
+
+        content = "".join(_content_parts)
+        reasoning = "".join(_reasoning_parts)
+        content = _strip_metadata_tokens(content)
+
+        if reasoning:
+            for line in reasoning.splitlines(keepends=True):
+                yield ("reasoning", line)
+        if content:
+            for line in content.splitlines(keepends=True):
+                yield line
+            if not content.endswith('\n'):
+                yield '\n'
+        return
+
+    # ── Chat Completions path (default) ──
     # Build URL and API key based on provider routing
     if resolved_model and resolved_model.startswith("openrouter/"):
         resolved_model = resolved_model[len("openrouter/"):]
@@ -1664,6 +2220,31 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     if resolved_model and resolved_model.startswith("openrouter/"):
         resolved_model = resolved_model[len("openrouter/"):]
 
+    # ── Responses API path ──
+    if use_responses_api():
+        url = build_responses_url(config.BASE_URL, resolved_model)
+        headers = build_api_headers(api_key)
+        data = _build_responses_request_body(
+            messages=processed_messages,
+            model=resolved_model,
+            stream=True,
+            stop=stop,
+            tools=tools,
+            max_output_tokens=compute_safe_max_tokens() if config.MAX_OUTPUT_TOKENS > 0 else None,
+        )
+
+        if config.DEBUG_MODE:
+            tag = f" ({caller_tag})" if caller_tag else ""
+            print(Color.info(f"\n[Request Debug (Responses API)]{tag}"))
+            print(Color.info(f"  URL: {url}"))
+            print(Color.info(f"  Model: {resolved_model}"))
+            print(Color.info(f"  Messages count: {len(processed_messages)}"))
+            print(Color.info(f"  API: Responses (/responses)"))
+
+        yield from _execute_streaming_request_responses(url, headers, data, processed_messages, native_mode=bool(tools))
+        return
+
+    # ── Chat Completions path (default) ──
     data = {
         "model": resolved_model,
         "messages": processed_messages,

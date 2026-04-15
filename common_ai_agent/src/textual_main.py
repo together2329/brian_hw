@@ -56,6 +56,12 @@ except Exception as e:
 import config
 import main as _agent
 
+# Enable Windows Virtual Terminal Processing early for Textual entry point.
+# (display.py also auto-enables on import, but this guarantees coverage
+# even if import order changes.)
+from lib.display import enable_windows_virtual_terminal
+enable_windows_virtual_terminal()
+
 if _TEXTUAL_OK:
     from lib.textual_ui import AgentTUI, ContextUpdate
 

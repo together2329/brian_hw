@@ -14,6 +14,65 @@ import time
 IS_WINDOWS = platform.system() == "Windows"
 
 
+def enable_windows_virtual_terminal() -> bool:
+    """
+    Enable Virtual Terminal Processing on Windows so ANSI escape sequences
+    (color codes, cursor movement, etc.) are interpreted by the console
+    instead of being printed as raw text like '?[92m'.
+
+    Calls SetConsoleMode on stdout and stderr handles to set the
+    ENABLE_VIRTUAL_TERMINAL_PROCESSING (0x0004) flag.
+
+    Returns True if the flag was set (or was already set), False otherwise.
+    On non-Windows platforms this is a no-op and returns True.
+
+    Must be called early — before any Color/ANSI output to stdout/stderr.
+    """
+    if not IS_WINDOWS:
+        return True
+
+    try:
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+
+        # Console mode flag
+        ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+
+        success = True
+        for stream_handle_func, name in [
+            (kernel32.GetStdHandle, -11),  # STD_OUTPUT_HANDLE
+            (kernel32.GetStdHandle, -12),  # STD_ERROR_HANDLE
+        ]:
+            handle = stream_handle_func(name)
+            if not handle or handle == -1:
+                continue
+
+            # Read current mode
+            mode = ctypes.c_ulong()
+            if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+                continue
+
+            # Already enabled — skip
+            if mode.value & ENABLE_VIRTUAL_TERMINAL_PROCESSING:
+                continue
+
+            # Set the flag
+            new_mode = mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING
+            if not kernel32.SetConsoleMode(handle, new_mode):
+                success = False
+
+        return success
+
+    except Exception:
+        return False
+
+
+# Auto-enable on import when running on Windows.
+# This ensures that merely importing display.py activates ANSI support,
+# covering scripts that don't call the entry points (e.g. tests, utilities).
+enable_windows_virtual_terminal()
+
+
 class Color:
     """ANSI color codes for terminal output"""
     # Basic colors
