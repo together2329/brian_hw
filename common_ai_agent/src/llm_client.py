@@ -1322,6 +1322,10 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                     # Cache stats
                     _cached = usage_info.get("cached_input_tokens",
                                usage_info.get("prompt_tokens_details", {}).get("cached_tokens", 0))
+                    # OpenAI Responses API: cached_tokens in input_tokens_details
+                    _itd = usage_info.get("input_tokens_details") or {}
+                    if _cached == 0 and _itd.get("cached_tokens", 0) > 0:
+                        _cached = _itd["cached_tokens"]
                     if _cached > 0:
                         last_cache_read_tokens = _cached
                         total_cache_read += _cached
@@ -1338,6 +1342,9 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                         print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}")
                         if _cached > 0:
                             print(f"{Color.info(f'  Cached: {_cached:,} tokens')}")
+                        # Cache debug: show raw usage keys
+                        _itd_debug = usage_info.get("input_tokens_details", {})
+                        print(f"{Color.DIM}[Cache Debug] usage keys: {list(usage_info.keys())} | itd: {_itd_debug}{Color.RESET}")
                         print()
 
                 # ── Finish reason signals ──
@@ -1753,7 +1760,10 @@ def _execute_responses_stream(url: str, headers: Dict, data: Dict, messages: Lis
                             cache_creation_tokens = usage.get("cache_creation_input_tokens", 0)
                             cache_read_tokens = usage.get("cache_read_input_tokens", 0)
                             _ptd = usage.get("input_tokens_details") or usage.get("prompt_tokens_details") or {}
-                            cache_read_tokens = cache_read_tokens or _ptd.get("cached_tokens", 0)
+                            # OpenAI Responses API returns cached_tokens in input_tokens_details
+                            _cached_tokens = _ptd.get("cached_tokens", 0)
+                            if _cached_tokens > 0:
+                                cache_read_tokens = _cached_tokens
                             if cache_creation_tokens > 0 or cache_read_tokens > 0:
                                 last_cache_creation_tokens = cache_creation_tokens
                                 last_cache_read_tokens = cache_read_tokens
