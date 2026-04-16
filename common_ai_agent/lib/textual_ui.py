@@ -1611,7 +1611,11 @@ class AgentTUI(App):
             pricing_on = self._cost_in_pm > 0 or self._cost_out_pm > 0
 
             def _fk(n: int) -> str:
-                return f"{n/1000:.1f}k" if n >= 1000 else str(n)
+                if n >= 1_000_000:
+                    return f"{n/1_000_000:.1f}M"
+                if n >= 1000:
+                    return f"{n/1000:.1f}k"
+                return str(n)
 
             _non_cch = max(0, self._sess_in_tok - self._sess_cache_tok)
             in_str  = _fk(_non_cch)
