@@ -1526,37 +1526,11 @@ def chat_loop():
                 import os as _os
                 _os._exit(0)
 
-            # ── ESC handler ─────────────────────────────────────────────────────
-            # Double-ESC to exit (with debounce to avoid triggering on terminal
-            # focus events like ^[[O / ^[[I sent when switching terminal tabs).
-            # Focus events arrive as ESC + bracket sequence in < 50ms.
-            # We require: first ESC → wait >200ms → second ESC = deliberate.
-            _last_esc_time = [0.0]
-            _esc_pending_msg = [False]
-
-            @_kb.add('escape')
-            def _esc_handler(event):
-                import time
-                now = time.time()
-                gap = now - _last_esc_time[0]
-                _last_esc_time[0] = now
-                # Gap too short (<200ms) = terminal artifact (focus event, etc.)
-                if gap < 0.20:
-                    _esc_pending_msg[0] = False
-                    return
-                if gap < 1.5 and _esc_pending_msg[0]:
-                    _do_exit("ESC×2")
-                else:
-                    _esc_pending_msg[0] = True
-                    event.app.output.write_raw("\n  ⎋ Press ESC again to exit, or wait...\n")
-                    event.app.output.flush()
-                    def _clear():
-                        _esc_pending_msg[0] = False
-                    try:
-                        import asyncio
-                        asyncio.get_event_loop().call_later(1.5, _clear)
-                    except Exception:
-                        pass
+            # ── Exit: Ctrl+Q only ───────────────────────────────────────────────
+            # NOTE: Double-ESC removed — macOS Terminal sends ESC sequences
+            # (^[[O focus-out, ^[[I focus-in) when switching tabs, and these
+            # can be seconds apart, making reliable debounce impossible.
+            # Use Ctrl+Q to exit instead.
 
             @_kb.add('c-q')
             def _ctrlq_exit(event):
