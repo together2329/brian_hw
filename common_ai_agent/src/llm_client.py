@@ -557,11 +557,22 @@ def is_azure_provider() -> bool:
 def use_responses_api() -> bool:
     """Check if the Responses API should be used instead of Chat Completions.
 
-    Enabled via USE_RESPONSES_API=true in .config.
-    Used for Azure gpt-5-codex models and OpenAI codex models that require the
-    /responses endpoint instead of /chat/completions.
+    Returns True when ANY of:
+    1. USE_RESPONSES_API=true env flag is set (manual override)
+    2. Azure provider + codex model (auto-detected)
+    3. Model name matches *gpt*codex* pattern (auto-detected)
     """
-    return getattr(config, "USE_RESPONSES_API", False)
+    # Manual override
+    if getattr(config, "USE_RESPONSES_API", False):
+        return True
+    # Auto-detect: Azure + codex model
+    model = getattr(config, 'MODEL_NAME', '').lower()
+    if is_azure_provider() and 'codex' in model:
+        return True
+    # Auto-detect: any gpt+codex model
+    if is_responses_api_model(model):
+        return True
+    return False
 
 
 def _needs_max_completion_tokens() -> bool:
