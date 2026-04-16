@@ -1624,6 +1624,13 @@ class AgentTUI(App):
             tot     = self._sess_sum_tok
 
             if pricing_on:
+                # Show pricing rates per 1M tokens
+                t.append(f"Rate /1M tokens\n", style=_TEXT_DIM)
+                t.append(f"  In   ${self._cost_in_pm:.3f}", style=_TEXT_DIM)
+                if self._cost_cch_pm > 0:
+                    t.append(f"  Cch ${self._cost_cch_pm:.3f}", style=_TEXT_DIM)
+                t.append(f"  Out ${self._cost_out_pm:.3f}\n", style=_TEXT_DIM)
+
                 # non-cached input billed at full rate; cached portion at cache rate
                 cost_in  = _non_cch             / 1_000_000 * self._cost_in_pm
                 cost_cch = self._sess_cache_tok  / 1_000_000 * self._cost_cch_pm
@@ -1667,6 +1674,7 @@ class AgentTUI(App):
                     self._cost_in_pm  = p.input
                     self._cost_cch_pm = p.cache
                     self._cost_out_pm = p.output
+                    self._redraw_cost()  # Show rates immediately on model change
             except Exception:
                 pass
         except Exception:
