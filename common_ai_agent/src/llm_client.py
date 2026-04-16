@@ -2898,7 +2898,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
                 # Empty response (HTTP 200 but no content/reasoning/tool_calls) — retry
                 if not _yielded_something and retry_count < max_retries - 1:
-                    delay = initial_delay * (2 ** retry_count)
+                    delay = _RETRY_DELAYS2[min(retry_count, len(_RETRY_DELAYS2)-1)]
                     print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries}] Empty response from LLM. Waiting {delay}s...\n"))
                     time.sleep(delay)
                     # fall through to finally, then loop continues
@@ -3019,7 +3019,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         except urllib.error.URLError as e:
             # Connection error - retry
             if retry_count < max_retries - 1:
-                delay = initial_delay * (2 ** retry_count)
+                delay = _RETRY_DELAYS2[min(retry_count, len(_RETRY_DELAYS2)-1)]
                 error_msg = str(e.reason) if hasattr(e, 'reason') else str(e)
 
                 # Special handling for SSL errors
@@ -3044,7 +3044,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             inactivity_triggered = 'inactivity' in str(e).lower()
             label = f"Inactivity ({_inactivity_s}s, no data)" if inactivity_triggered else f"Read timeout ({config.STREAM_API_TIMEOUT}s)"
             if retry_count < max_retries - 1:
-                delay = initial_delay * (2 ** retry_count)
+                delay = _RETRY_DELAYS2[min(retry_count, len(_RETRY_DELAYS2)-1)]
                 # Reset stale connection so next attempt gets a fresh socket
                 try:
                     _http_conn_pool.pop(urllib.parse.urlparse(url).netloc, None)
@@ -3060,7 +3060,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         except ssl.SSLError as e:
             # Explicit SSL error handling (backup catch)
             if retry_count < max_retries - 1:
-                delay = initial_delay * (2 ** retry_count)
+                delay = _RETRY_DELAYS2[min(retry_count, len(_RETRY_DELAYS2)-1)]
                 try:
                     _http_conn_pool.pop(urllib.parse.urlparse(url).netloc, None)
                 except Exception:
@@ -3085,7 +3085,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             # or watchdog-closed connection raising OSError/IncompleteRead)
             if _wd_triggered[0]:
                 if retry_count < max_retries - 1:
-                    delay = initial_delay * (2 ** retry_count)
+                    delay = _RETRY_DELAYS2[min(retry_count, len(_RETRY_DELAYS2)-1)]
                     try:
                         _http_conn_pool.pop(urllib.parse.urlparse(url).netloc, None)
                     except Exception:
@@ -3098,7 +3098,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 return
             error_type = type(e).__name__
             if retry_count < max_retries - 1:
-                delay = initial_delay * (2 ** retry_count)
+                delay = _RETRY_DELAYS2[min(retry_count, len(_RETRY_DELAYS2)-1)]
                 try:
                     _http_conn_pool.pop(urllib.parse.urlparse(url).netloc, None)
                 except Exception:
