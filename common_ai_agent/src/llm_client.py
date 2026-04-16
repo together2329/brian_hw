@@ -559,19 +559,25 @@ def is_azure_provider() -> bool:
     return getattr(config, "LLM_PROVIDER", "openai").lower() == "azure"
 
 
-def use_responses_api() -> bool:
+def use_responses_api(resolved_model: str = None) -> bool:
     """Check if the Responses API should be used instead of Chat Completions.
 
     Returns True when ANY of:
     1. USE_RESPONSES_API=true env flag is set (manual override)
     2. Azure provider + codex model (auto-detected)
     3. Model name matches *gpt*codex* pattern (auto-detected)
+
+    Args:
+        resolved_model: The effective model for this specific call (overrides
+            config.MODEL_NAME). Lets per-call model overrides take the
+            Responses API path without toggling the env flag.
     """
     # Manual override
     if getattr(config, "USE_RESPONSES_API", False):
         return True
+    # Prefer per-call resolved_model so per-call overrides are respected
+    model = (resolved_model or getattr(config, 'MODEL_NAME', '')).lower()
     # Auto-detect: Azure + codex model
-    model = getattr(config, 'MODEL_NAME', '').lower()
     if is_azure_provider() and 'codex' in model:
         return True
     # Auto-detect: any gpt+codex model
@@ -646,150 +652,26 @@ def _strip_strict_from_tools(tools: list) -> list:
 
 
 
-def _messages_to_responses_input(messages: list) -> list:
-    """Convert chat completions messages to Responses API input format.
+def _blocks_for_responses(content, content_type: str) -> list:
+    """Normalize Chat Completions content (str OR list-of-blocks) to Responses
+    API content blocks of the given type (input_text / output_text).
 
-    Chat Completions:
-        [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}]
-
-    Responses API:
-        [{"role": "system", "content": [{"type": "input_text", "text": "..."}]},
-         {"role": "user",   "content": [{"type": "input_text", "text": "..."}]}]
-
-    IMPORTANT: Every function_call_output must have a matching preceding function_call.
-    Orphaned tool messages (tool role without a matching assistant tool_calls entry)
-    are converted to user messages to avoid API 400 errors.
+    Handles structured content that may arrive from prompt-caching breakpoints
+    (list of {"type": "text"|"input_text"|"output_text", "text": "..."} dicts).
+    Any non-text block is passed through unchanged.
     """
-    result = []
-    # Track known call_ids from assistant tool_calls so we can validate tool messages.
-    _known_call_ids: set = set()
-
-    for msg in messages:
-        role = msg.get("role", "user")
-        content = msg.get("content", "")
-
-        # Handle assistant messages with tool_calls FIRST (to register call_ids)
-        if role == "assistant" and msg.get("tool_calls"):
-            # Add the assistant text content first
-            if content:
-                result.append({
-                    "role": "assistant",
-                    "content": [{"type": "output_text", "text": str(content)}],
-                })
-            # Add function calls — pass IDs as-is.
-            # The Responses API uses the same call_id format as Chat Completions.
-            for tc in msg["tool_calls"]:
-                func = tc.get("function", {})
-                tc_id = tc.get("id", "")
-                _known_call_ids.add(tc_id)
-                result.append({
-                    "type": "function_call",
-                    "id": tc_id,
-                    "call_id": tc_id,
-                    "name": func.get("name", ""),
-                    "arguments": func.get("arguments", "{}"),
-                })
-            continue
-
-        # Skip tool messages — Responses API handles function_call_output differently
-        if role == "tool":
-            tc_id = msg.get("tool_call_id", "")
-            # Validate: only emit function_call_output if the call_id has a
-            # matching function_call. Orphaned tool messages (e.g. from session
-            # recovery or corrupted history) cause API 400 errors.
-            if tc_id and tc_id in _known_call_ids:
-                result.append({
-                    "type": "function_call_output",
-                    "call_id": tc_id,
-                    "output": str(content),
-                })
+    if isinstance(content, list):
+        blocks = []
+        for block in content:
+            if isinstance(block, dict):
+                if block.get("type") in ("text", "input_text", "output_text"):
+                    blocks.append({"type": content_type, "text": block.get("text", "")})
+                else:
+                    blocks.append(block)
             else:
-                # Orphaned tool message — convert to user message so the
-                # context isn't lost but the API doesn't reject the request.
-                if str(content).strip():
-                    result.append({
-                        "role": "user",
-                        "content": [{"type": "input_text", "text": f"[Orphaned tool result for {tc_id}]: {content}"}],
-                    })
-            continue
-
-        # Handle reasoning items (required for reasoning models like GPT-5)
-        # These may appear as assistant messages with reasoning content
-        if role == "assistant" and isinstance(content, str) and content.startswith("__reasoning__:"):
-            # Pass through as reasoning item
-            result.append({
-                "type": "reasoning",
-                "summary": [],
-                "content": [{"type": "reasoning_text", "text": content[len("__reasoning__:"):]},
-            ]})
-            continue
-
-        # Regular messages (system, user, assistant)
-        content_type = "input_text" if role in ("system", "user") else "output_text"
-        entry = {
-            "role": role,
-            "content": [{"type": content_type, "text": str(content)}],
-        }
-        result.append(entry)
-
-    return result
-
-
-def _build_responses_request(data: dict, resolved_model: str) -> dict:
-    """Build a Responses API request body from a chat completions data dict.
-
-    Converts:
-        messages → input
-        max_completion_tokens → max_output_tokens
-        tools (function calling) → tools (Responses API format)
-        reasoning effort (for GPT-5.x, o-series)
-    """
-    messages = data.get("messages", [])
-    resp_data = {
-        "model": resolved_model,
-        "input": _messages_to_responses_input(messages),
-        "store": True,  # Required for prompt caching on Responses API
-    }
-
-    # Transfer max tokens
-    max_val = data.get("max_completion_tokens") or data.get("max_tokens")
-    if max_val:
-        resp_data["max_output_tokens"] = max_val
-
-    # Transfer temperature
-    if "temperature" in data:
-        resp_data["temperature"] = data["temperature"]
-
-    # Transfer stream
-    if data.get("stream"):
-        resp_data["stream"] = True
-
-    # Enable reasoning for reasoning-capable models (GPT-5.x, o-series)
-    if _is_reasoning_model_for_name(resolved_model):
-        effort = getattr(config, 'REASONING_EFFORT', 'medium')
-        if effort in ('low', 'medium', 'high'):
-            resp_data["reasoning"] = {
-                "effort": effort,
-                "summary": "auto",
-            }
-
-    # Convert tools from chat completions format to Responses API format
-    if "tools" in data:
-        resp_tools = []
-        for tool in data["tools"]:
-            if tool.get("type") == "function":
-                func = tool.get("function", {})
-                resp_tool = {
-                    "type": "function",
-                    "name": func.get("name", ""),
-                    "description": func.get("description", ""),
-                    "parameters": func.get("parameters", {}),
-                }
-                resp_tools.append(resp_tool)
-        if resp_tools:
-            resp_data["tools"] = resp_tools
-
-    return resp_data
+                blocks.append({"type": content_type, "text": str(block)})
+        return blocks
+    return [{"type": content_type, "text": str(content)}]
 
 
 def build_chat_url(base_url: str, model: str = None) -> str:
@@ -872,7 +754,7 @@ def _convert_messages_to_responses_input(messages: List[Dict[str, Any]]) -> tupl
             if content:
                 input_items.append({
                     "role": "assistant",
-                    "content": [{"type": "output_text", "text": str(content)}],
+                    "content": _blocks_for_responses(content, "output_text"),
                 })
             continue
 
@@ -907,27 +789,10 @@ def _convert_messages_to_responses_input(messages: List[Dict[str, Any]]) -> tupl
         # User / assistant messages → input items
         if role in ("user", "assistant"):
             content_type = "input_text" if role == "user" else "output_text"
-
-            # Handle content as list of blocks (structured content from caching)
-            if isinstance(content, list):
-                converted_blocks = []
-                for block in content:
-                    if isinstance(block, dict):
-                        if block.get("type") in ("text", "input_text", "output_text"):
-                            converted_blocks.append({
-                                "type": content_type,
-                                "text": block.get("text", ""),
-                            })
-                        else:
-                            converted_blocks.append(block)
-                    else:
-                        converted_blocks.append({"type": content_type, "text": str(block)})
-                input_items.append({"role": role, "content": converted_blocks})
-            else:
-                input_items.append({
-                    "role": role,
-                    "content": [{"type": content_type, "text": str(content)}],
-                })
+            input_items.append({
+                "role": role,
+                "content": _blocks_for_responses(content, content_type),
+            })
             continue
 
     return input_items, instructions
@@ -980,7 +845,8 @@ def _build_responses_request_body(
             }
 
     if tools:
-        # Convert Chat Completions tool format to Responses API format
+        # Convert Chat Completions tool format to Responses API format.
+        # Only type="function" tools are supported; other tool types are skipped.
         responses_tools = []
         for tool in tools:
             if tool.get("type") == "function":
@@ -991,12 +857,30 @@ def _build_responses_request_body(
                     "description": func.get("description", ""),
                     "parameters": func.get("parameters", {}),
                 })
-            else:
-                responses_tools.append(tool)
-        data["tools"] = responses_tools
-        data["tool_choice"] = "auto"
+        if responses_tools:
+            data["tools"] = responses_tools
+            data["tool_choice"] = "auto"
 
     return data
+
+
+def _build_responses_request(data: dict, resolved_model: str) -> dict:
+    """Backward-compatible shim over _build_responses_request_body.
+
+    Accepts a Chat Completions-style `data` dict (with keys: messages, tools,
+    temperature, stream, max_completion_tokens / max_tokens) and returns a
+    Responses API request body. Retained for tests and external callers; the
+    canonical builder is _build_responses_request_body.
+    """
+    return _build_responses_request_body(
+        messages=data.get("messages", []),
+        model=resolved_model,
+        stream=bool(data.get("stream")),
+        stop=data.get("stop"),
+        temperature=data.get("temperature"),
+        tools=data.get("tools"),
+        max_output_tokens=data.get("max_completion_tokens") or data.get("max_tokens"),
+    )
 
 
 def build_auth_header(api_key: str) -> str:
@@ -1118,7 +1002,7 @@ def chat_completion_with_config(
     if provider_config is None:
         provider_config = ProviderConfig.from_env()
 
-    if use_responses_api():
+    if use_responses_api(provider_config.model_id):
         # ── Responses API path ──
         url = build_responses_url(provider_config.base_url, provider_config.model_id)
         headers = build_api_headers(provider_config.api_key)
@@ -1261,7 +1145,12 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                             usage_info = resp_obj["usage"]
                         _status = resp_obj.get("status", "completed")
                         if _status == "incomplete":
-                            _finish_reason = "length"
+                            _incomplete = resp_obj.get("incomplete_details") or {}
+                            _reason = _incomplete.get("reason", "")
+                            if _reason == "content_filter":
+                                _finish_reason = "content_filter"
+                            else:
+                                _finish_reason = "length"
                         elif _status == "completed":
                             _finish_reason = "stop"
 
@@ -1418,39 +1307,28 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
 
         except urllib.error.HTTPError as e:
             error_body = e.read().decode('utf-8')
-            zai = _parse_zai_error(error_body)
-            _zai_msg = zai["message"]
-            _zai_code = zai["code"]
-            _zai_type = zai["type"]
-            _zai_reset = zai["reset_time"]
+            # Responses API targets OpenAI / Azure — prefer the OpenAI parser.
+            parsed = _parse_openai_error(error_body, http_status=e.code)
+            _msg = parsed["message"] or e.reason
 
-            if zai["is_account_locked"] or zai["is_balance_exhausted"]:
-                print(Color.error(f"\n  LLM API Error [HTTP {e.code}]: {_zai_msg}"))
-                yield f"\n{Color.error(f'[HTTP {e.code}] {_zai_msg}')}\n"
+            if parsed["is_balance_exhausted"] or parsed["is_deployment_missing"]:
+                print(Color.error(f"\n  Responses API Error [HTTP {e.code}]: {_msg}"))
+                yield f"\n{Color.error(f'[HTTP {e.code}] {_msg}')}\n"
                 return
 
-            is_retryable = (zai["is_retryable"] or e.code == 429 or
+            is_retryable = (parsed["is_retryable"] or e.code == 429 or
                           (500 <= e.code < 600))
             if is_retryable and retry_count < max_retries - 1:
                 delay = _RETRY_DELAYS[retry_count]
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}. Waiting {delay}s...\n"))
+                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {_msg}. Waiting {delay}s...\n"))
                 time.sleep(delay)
                 continue
 
             yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
-            try:
-                error_json = json.loads(error_body)
-                if 'error' in error_json:
-                    err_info = error_json['error']
-                    if isinstance(err_info, dict):
-                        err_msg = err_info.get('message', '')
-                    else:
-                        err_msg = str(err_info)
-                    if err_msg:
-                        yield f"{Color.error(f'  {err_msg}')}\n"
-            except Exception:
-                if error_body:
-                    yield f"{Color.error(f'  {error_body[:300]}')}\n"
+            if _msg:
+                yield f"{Color.error(f'  {_msg}')}\n"
+            elif error_body:
+                yield f"{Color.error(f'  {error_body[:300]}')}\n"
             return
 
         except (socket.timeout, urllib.error.URLError, ssl.SSLError) as e:
@@ -1626,6 +1504,70 @@ def _parse_zai_error(error_body: str) -> dict:
     return result
 
 
+def _parse_openai_error(error_body: str, http_status: int = 0) -> dict:
+    """
+    Parse OpenAI / Azure OpenAI error bodies into the same structured dict
+    shape as _parse_zai_error so Responses API call sites can reuse the same
+    signal fields.
+
+    OpenAI format:
+        {"error": {"message": "...", "type": "rate_limit_exceeded",
+                   "code": "rate_limit_exceeded"|null, "param": null}}
+    Azure format (extra):
+        {"error": {"code": "DeploymentNotFound", "message": "..."}}  # HTTP 404
+        {"error": {"code": "content_filter", "message": "...",
+                   "innererror": {"content_filter_result": {...}}}}
+    """
+    result = {
+        "code": "",
+        "message": "",
+        "type": "",
+        "is_balance_exhausted": False,
+        "is_account_locked": False,
+        "is_content_filter": False,
+        "is_prompt_too_long": False,
+        "is_high_traffic": False,
+        "is_rate_limit": False,
+        "is_retryable": False,
+        "is_deployment_missing": False,
+        "reset_time": "",
+    }
+    try:
+        error_json = json.loads(error_body)
+    except (json.JSONDecodeError, TypeError):
+        error_json = {}
+
+    error_info = error_json.get("error", {}) if isinstance(error_json, dict) else {}
+    if isinstance(error_info, str):
+        result["message"] = error_info
+    elif isinstance(error_info, dict):
+        result["code"] = str(error_info.get("code") or "")
+        result["message"] = error_info.get("message", "") or ""
+        result["type"] = error_info.get("type", "") or ""
+
+    _type = result["type"]
+    _code = result["code"]
+    _msg_lc = result["message"].lower()
+
+    # Classification — OpenAI/Azure use string types/codes, not numeric
+    if _type == "rate_limit_exceeded" or _code == "rate_limit_exceeded" or http_status == 429:
+        result["is_rate_limit"] = True
+        result["is_retryable"] = True
+    if _type == "content_filter" or _code == "content_filter" or "content_filter" in _msg_lc:
+        result["is_content_filter"] = True
+    if _code == "context_length_exceeded" or "maximum context length" in _msg_lc or "context_length_exceeded" in _msg_lc:
+        result["is_prompt_too_long"] = True
+        result["is_retryable"] = True  # retryable after compression
+    if _code == "insufficient_quota" or "quota" in _msg_lc:
+        result["is_balance_exhausted"] = True
+    if _code in ("DeploymentNotFound", "ModelNotFound") or (http_status == 404 and "deployment" in _msg_lc):
+        result["is_deployment_missing"] = True
+    if _type == "server_error" or 500 <= http_status < 600:
+        result["is_retryable"] = True
+
+    return result
+
+
 def _parse_responses_result(result: dict):
     """Parse a non-streaming Responses API result and yield content/reasoning.
 
@@ -1683,234 +1625,6 @@ def _parse_responses_result(result: dict):
                     yield f"\nAction: {tc_name}({args_formatted})\n"
                 except (json.JSONDecodeError, AttributeError):
                     pass
-
-
-def _execute_responses_stream(url: str, headers: Dict, data: Dict, messages: List, native_mode: bool = False):
-    """
-    Execute streaming request for the OpenAI Responses API (/v1/responses).
-
-    The Responses API uses a different SSE event format:
-      - event: response.output_text.delta  → content text
-      - event: response.reasoning.delta    → reasoning text
-      - event: response.function_call_arguments.delta → tool call args
-      - event: response.completed          → final response with usage
-      - event: response.done               → stream end
-
-    Yields the same tuple format as _execute_streaming_request so the
-    rest of the pipeline doesn't need to change.
-    """
-    global last_input_tokens, last_output_tokens
-    global last_cache_creation_tokens, last_cache_read_tokens
-    global total_cache_created, total_cache_read
-
-    _RETRY_DELAYS = [5, 10, 20, 40, 80]
-    max_retries = len(_RETRY_DELAYS) + 1
-
-    for retry_count in range(max_retries):
-        global _stream_cancelled
-        if _stream_cancelled:
-            _stream_cancelled = False
-            return
-
-        _yielded_something = False
-        _pending_tool_calls: Dict[int, Dict] = {}
-        _wd_stop, _wd_triggered = None, [False]
-
-        try:
-            _body = json.dumps(data).encode('utf-8')
-            if getattr(config, 'DEBUG_MODE', False):
-                _body_preview = _body.decode('utf-8')[:1500]
-                print(Color.info(f"\n[Responses API Stream] URL: {url}"))
-                print(Color.info(f"[Responses API Stream] Body (first 1500 chars):\n{_body_preview}\n"))
-            response = _persistent_post(url, headers, _body, timeout=config.STREAM_API_TIMEOUT)
-            global _active_stream_response
-            _active_stream_response = response
-            _inactivity_s = getattr(config, 'STREAM_INACTIVITY_TIMEOUT', 120)
-            _last_data = [time.time()]
-            _wd_stop, _wd_triggered = _make_stream_watchdog(response, _inactivity_s, _last_data)
-
-            try:
-                usage_info = None
-                _current_event = ""
-                _pending_func_calls: Dict[str, Dict] = {}  # call_id → {name, arguments}
-                for line in response:
-                    _last_data[0] = time.time()
-                    line = line.decode('utf-8').strip()
-
-                    # Track SSE event type
-                    if line.startswith("event: "):
-                        _current_event = line[7:].strip()
-                        continue
-                    if not line.startswith("data: "):
-                        continue
-
-                    data_str = line[6:]
-                    if data_str == "[DONE]":
-                        break
-
-                    try:
-                        chunk = json.loads(data_str)
-                    except json.JSONDecodeError:
-                        continue
-
-                    # Use type from JSON body (more reliable than SSE event line)
-                    event_type = chunk.get("type", _current_event)
-
-                    # ── Text content delta ──
-                    if event_type == "response.output_text.delta":
-                        text = chunk.get("delta", "")
-                        if text:
-                            yield text
-                            _yielded_something = True
-
-                    # ── Reasoning delta ──
-                    elif event_type == "response.reasoning.delta":
-                        text = chunk.get("delta", "")
-                        if text:
-                            yield ("reasoning", text)
-                            _yielded_something = True
-
-                    # ── Function call item added (carries name + call_id) ──
-                    elif event_type == "response.output_item.added":
-                        item = chunk.get("item", {})
-                        if item.get("type") == "function_call":
-                            _fc_id = item.get("call_id", item.get("id", ""))
-                            _pending_func_calls[_fc_id] = {
-                                "id": _fc_id,
-                                "name": item.get("name", ""),
-                                "arguments": "",
-                            }
-
-                    # ── Function call arguments delta (accumulate) ──
-                    elif event_type == "response.function_call_arguments.delta":
-                        _fc_id = chunk.get("call_id", chunk.get("item_id", ""))
-                        if _fc_id and _fc_id in _pending_func_calls:
-                            _pending_func_calls[_fc_id]["arguments"] += chunk.get("delta", "")
-
-                    # ── Completed: extract usage ──
-                    elif event_type in ("response.completed", "response.done"):
-                        resp_obj = chunk.get("response", chunk)
-
-                        # Extract usage
-                        usage = resp_obj.get("usage", {})
-                        if usage:
-                            input_tokens = usage.get("input_tokens", 0)
-                            output_tokens = usage.get("output_tokens", 0)
-                            if input_tokens > 0:
-                                last_input_tokens = input_tokens
-                            if output_tokens > 0:
-                                last_output_tokens = output_tokens
-                            _total = input_tokens + output_tokens
-                            if _total > 0:
-                                get_rate_limiter().update_actual_usage(_total)
-
-                        # Extract cache token usage for Responses API
-                        if usage and config.ENABLE_PROMPT_CACHING:
-                            cache_creation_tokens = usage.get("cache_creation_input_tokens", 0)
-                            cache_read_tokens = usage.get("cache_read_input_tokens", 0)
-                            _ptd = usage.get("input_tokens_details") or usage.get("prompt_tokens_details") or {}
-                            # OpenAI Responses API returns cached_tokens in input_tokens_details
-                            _cached_tokens = _ptd.get("cached_tokens", 0)
-                            if _cached_tokens > 0:
-                                cache_read_tokens = _cached_tokens
-                            if cache_creation_tokens > 0 or cache_read_tokens > 0:
-                                last_cache_creation_tokens = cache_creation_tokens
-                                last_cache_read_tokens = cache_read_tokens
-                                total_cache_created += cache_creation_tokens
-                                total_cache_read += cache_read_tokens
-
-                        # Extract function calls from output (fallback for late arrivals)
-                        output_items = resp_obj.get("output", [])
-                        for item in output_items:
-                            if item.get("type") == "function_call":
-                                _fc_id = item.get("call_id", item.get("id", ""))
-                                if _fc_id not in _pending_func_calls:
-                                    _pending_func_calls[_fc_id] = {
-                                        "id": _fc_id,
-                                        "name": item.get("name", ""),
-                                        "arguments": item.get("arguments", "{}"),
-                                    }
-
-                # ── Emit accumulated tool calls ──
-                if _pending_func_calls:
-                    _func_calls = list(_pending_func_calls.values())
-                    if native_mode:
-                        import uuid as _uuid
-                        _native_calls = []
-                        for fc in _func_calls:
-                            if fc["name"]:
-                                _call_id = fc.get("id") or f"call_{_uuid.uuid4().hex[:16]}"
-                                _args_str = fc["arguments"] or "{}"
-                                try:
-                                    json.loads(_args_str)
-                                except json.JSONDecodeError:
-                                    _args_str = "{}"
-                                _native_calls.append({
-                                    "id": _call_id,
-                                    "name": fc["name"],
-                                    "arguments": _args_str,
-                                })
-                        if _native_calls:
-                            yield ("native_tool_calls", _native_calls)
-                    else:
-                        for fc in _func_calls:
-                            tc_name = fc["name"]
-                            tc_args_str = fc["arguments"]
-                            if tc_name and tc_args_str:
-                                try:
-                                    tc_args = json.loads(tc_args_str)
-                                    args_formatted = ", ".join(
-                                        f'{k}={json.dumps(v)}' for k, v in tc_args.items()
-                                    )
-                                    yield f"\nAction: {tc_name}({args_formatted})\n"
-                                except (json.JSONDecodeError, AttributeError):
-                                    pass
-                    _yielded_something = True
-
-                # Empty response retry
-                if not _yielded_something and retry_count < max_retries - 1:
-                    delay = _RETRY_DELAYS[retry_count]
-                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Empty response from Responses API. Waiting {delay}s...\n"))
-                    time.sleep(delay)
-                    try:
-                        _parsed_url = urllib.parse.urlparse(url)
-                        _stale_conn = _http_conn_pool.pop(_parsed_url.netloc, None)
-                        if _stale_conn is not None:
-                            _stale_conn.close()
-                    except Exception:
-                        pass
-                else:
-                    return
-            finally:
-                if _wd_stop is not None:
-                    _wd_stop.set()
-                _active_stream_response = None
-
-        except urllib.error.HTTPError as e:
-            error_body = ""
-            try:
-                error_body = e.read().decode('utf-8')
-            except Exception:
-                pass
-            if retry_count < max_retries - 1:
-                delay = _RETRY_DELAYS[retry_count]
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Responses API error: HTTP {e.code}: {e.reason}. Waiting {delay}s...\n"))
-                if error_body:
-                    print(Color.warning(f"  Error body: {error_body[:500]}\n"))
-                time.sleep(delay)
-                continue
-            yield f"\n{Color.error(f'[Responses API Error] HTTP {e.code}: {e.reason}')}\n"
-            if error_body:
-                yield f"{Color.error(f'  {error_body[:500]}')}\n"
-            return
-        except Exception as e:
-            if retry_count < max_retries - 1:
-                delay = _RETRY_DELAYS[retry_count]
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] Responses API error: {e}. Waiting {delay}s...\n"))
-                time.sleep(delay)
-                continue
-            yield f"\n{Color.error(f'[Responses API Error]: {e}')}\n"
-            return
 
 
 def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: List, native_mode: bool = False):
@@ -2343,7 +2057,7 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     resolved_model = model or config.MODEL_NAME
 
     # ── Responses API path ──
-    if use_responses_api():
+    if use_responses_api(resolved_model):
         url = build_responses_url(config.BASE_URL, resolved_model)
         api_key = config.API_KEY
         headers = build_api_headers(api_key)
@@ -2442,11 +2156,6 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         data["stop"] = _stop
     if config.MAX_OUTPUT_TOKENS > 0:
         _set_max_output_tokens(data, compute_safe_max_tokens())
-
-    # ── Responses API routing (gpt-5.1-codex etc.) ──
-    if is_responses_api_model(resolved_model):
-        url = build_responses_url(config.BASE_URL, resolved_model)
-        data = _build_responses_request(data, resolved_model)
 
     # Show spinner while waiting (suppressed during compression)
     _spinner = None
@@ -2788,7 +2497,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         resolved_model = resolved_model[len("openrouter/"):]
 
     # ── Responses API path ──
-    if use_responses_api():
+    if use_responses_api(resolved_model):
         url = build_responses_url(config.BASE_URL, resolved_model)
         headers = build_api_headers(api_key)
         data = _build_responses_request_body(
@@ -2831,25 +2540,11 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     if tools:
         # Strip strict mode for non-OpenAI providers (GLM, DeepSeek, etc.)
         # that may not support it in Chat Completions format.
-        # Responses API (_build_responses_request) handles strict separately.
-        if not is_responses_api_model(resolved_model):
-            _is_openai = "openai.com" in url
-            if not _is_openai:
-                tools = _strip_strict_from_tools(tools)
+        _is_openai = "openai.com" in url
+        if not _is_openai:
+            tools = _strip_strict_from_tools(tools)
         data["tools"] = tools
         data["tool_choice"] = "auto"
-
-    # ── Responses API routing (gpt-5.1-codex etc.) ──
-    if is_responses_api_model(resolved_model):
-        url = build_responses_url(config.BASE_URL, resolved_model)
-        data = _build_responses_request(data, resolved_model)
-        if config.DEBUG_MODE:
-            tag = f" ({caller_tag})" if caller_tag else ""
-            print(Color.info(f"\n[Request Debug - Responses API]{tag}"))
-            print(Color.info(f"  URL: {url}"))
-            print(Color.info(f"  Model: {resolved_model}"))
-        yield from _execute_responses_stream(url, headers, data, messages, native_mode=bool(tools))
-        return
 
     # Debug: Log request details
     if config.DEBUG_MODE:
