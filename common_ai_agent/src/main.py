@@ -1526,9 +1526,29 @@ def chat_loop():
                 import os as _os
                 _os._exit(0)
 
+            # Double-ESC to exit (single ESC is too easily triggered by
+            # terminal focus events, escape sequences, and macOS meta keys).
+            # First ESC is silently recorded; second ESC within 1s exits.
+            _last_esc_time = [0.0]
+            _esc_pending_msg = [False]
+
             @_kb.add('escape')
-            def _esc_exit(event):
-                _do_exit("ESC")
+            def _esc_handler(event):
+                import time
+                now = time.time()
+                gap = now - _last_esc_time[0]
+                _last_esc_time[0] = now
+                if gap < 1.0 and _esc_pending_msg[0]:
+                    _do_exit("ESC×2")
+                else:
+                    _esc_pending_msg[0] = True
+                    # Show hint that another ESC will exit
+                    event.app.output.write_raw("\n  ⎋ Press ESC again to exit, or wait...\n")
+                    event.app.output.flush()
+                    # Reset pending after 1s so a lone ESC doesn't linger
+                    def _clear():
+                        _esc_pending_msg[0] = False
+                    event.app.get_running_app().get_loop().call_later(1.0, _clear)
 
             @_kb.add('c-q')
             def _ctrlq_exit(event):
