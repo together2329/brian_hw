@@ -567,16 +567,27 @@ def use_responses_api(resolved_model: str = None) -> bool:
     2. Azure provider + codex model (auto-detected)
     3. Model name matches *gpt*codex* pattern (auto-detected)
 
+    Returns False (forced chat completions) when:
+    - FORCE_CHAT_COMPLETIONS_GPT5=true and model matches *gpt*5*
+
     Args:
         resolved_model: The effective model for this specific call (overrides
             config.MODEL_NAME). Lets per-call model overrides take the
             Responses API path without toggling the env flag.
     """
+    # Prefer per-call resolved_model so per-call overrides are respected
+    model = (resolved_model or getattr(config, 'MODEL_NAME', '')).lower()
+    if '/' in model:
+        model = model.split('/')[-1]
+
+    # Optional: force gpt-5* models to use chat completions
+    if getattr(config, "FORCE_CHAT_COMPLETIONS_GPT5", False):
+        if 'gpt' in model and '5' in model:
+            return False
+
     # Manual override
     if getattr(config, "USE_RESPONSES_API", False):
         return True
-    # Prefer per-call resolved_model so per-call overrides are respected
-    model = (resolved_model or getattr(config, 'MODEL_NAME', '')).lower()
     # Auto-detect: Azure + codex model
     if is_azure_provider() and 'codex' in model:
         return True
