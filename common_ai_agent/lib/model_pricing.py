@@ -30,8 +30,11 @@ _TABLE: Dict[str, Pricing] = {
     "claude-3-5-haiku":  Pricing(input=0.80,  cache=0.08, output=4.00),
     "claude-3-opus":     Pricing(input=15.00, cache=1.50, output=75.00),
     # OpenAI
-    "gpt-4o":   Pricing(input=2.50, cache=1.25, output=10.00),
-    "gpt-4.1":  Pricing(input=2.00, cache=0.50, output=8.00),
+    "gpt-5.4":       Pricing(input=2.50, cache=0.25, output=15.00),
+    "gpt-5.3-codex": Pricing(input=1.75, cache=0.175, output=14.00),
+    "gpt-5.1":       Pricing(input=1.25, cache=0.125, output=10.00),
+    "gpt-4o":        Pricing(input=2.50, cache=1.25, output=10.00),
+    "gpt-4.1":       Pricing(input=2.00, cache=0.50, output=8.00),
 }
 
 

@@ -923,13 +923,23 @@ class TodoTracker:
             return True
         return False
 
-    def check_rejection_livelock(self, max_rejections: int = 3) -> Optional[int]:
+    def check_rejection_livelock(self, max_rejections: int = None) -> Optional[int]:
         """Return the 0-based index of any task that has been rejected
         ≥ max_rejections times, or None if no task has livelocked.
 
         Used by the harness to break rejection loops where a task bounces
-        rejected → in_progress → completed → rejected without real progress.
+        rejected → in_progress → completed → rejected indefinitely without
+        real progress.
+
+        Reads MAX_REJECTION_LIMIT from .config if max_rejections not provided.
+        Falls back to 50 if config unavailable.
         """
+        if max_rejections is None:
+            try:
+                import config as _cfg
+            except ImportError:
+                import src.config as _cfg
+            max_rejections = getattr(_cfg, "MAX_REJECTION_LIMIT", 50)
         for i, t in enumerate(self.todos):
             if getattr(t, "rejection_count", 0) >= max_rejections and t.status != "approved":
                 return i

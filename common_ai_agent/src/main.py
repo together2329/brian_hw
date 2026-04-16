@@ -2293,6 +2293,13 @@ def chat_loop():
                 except Exception as e:
                     print(Color.warning(f"[Recovery] Failed to create recovery point: {e}"))
 
+            # Reset rejection counts on all todos — user input means fresh attempt.
+            # This prevents stale rejection_count from triggering livelock guard
+            # after the user has provided new guidance.
+            if todo_tracker_main and todo_tracker_main.todos:
+                for _t in todo_tracker_main.todos:
+                    _t.rejection_count = 0
+
             # Add user message with turn tracking
             current_turn_id += 1
             messages.append({

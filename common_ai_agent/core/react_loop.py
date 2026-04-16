@@ -328,7 +328,7 @@ def run_react_agent_impl(
         # rejected ↔ in_progress ↔ completed cycle. Break and wait for user
         # (CPU req-gen incident, 2026-04-17).
         if todo_tracker and todo_tracker.todos:
-            _max_rej = getattr(cfg, "TODO_MAX_REJECTIONS", 3)
+            _max_rej = getattr(cfg, "MAX_REJECTION_LIMIT", 50)
             _livelocked = todo_tracker.check_rejection_livelock(max_rejections=_max_rej)
             if _livelocked is not None:
                 _t = todo_tracker.todos[_livelocked]
