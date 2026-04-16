@@ -739,6 +739,7 @@ def _build_responses_request(data: dict, resolved_model: str) -> dict:
     resp_data = {
         "model": resolved_model,
         "input": _messages_to_responses_input(messages),
+        "store": True,  # Required for prompt caching on Responses API
     }
 
     # Transfer max tokens
@@ -921,7 +922,7 @@ def _build_responses_request_body(
     data = {
         "model": model,
         "input": input_items,
-        "store": False,
+        "store": True,  # Required for prompt caching on Responses API
         "stream": stream,
     }
 

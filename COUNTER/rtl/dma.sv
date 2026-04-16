@@ -42,6 +42,8 @@ module dma #(
     // Busy/done
     assign busy = (state != IDLE);
 
+    localparam int WORD_BYTES = DATA_WIDTH / 8;
+
     // Sequential logic — state and data registers only
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -118,8 +120,8 @@ module dma #(
                 mem_wdata = data_buf_q;
                 if (mem_ready) begin
                     // Word completed
-                    src_addr_n  = src_addr_q + (DATA_WIDTH/8);
-                    dst_addr_n  = dst_addr_q + (DATA_WIDTH/8);
+                    src_addr_n  = src_addr_q + (WORD_BYTES);
+                    dst_addr_n  = dst_addr_q + (WORD_BYTES);
                     remaining_n = remaining_q - 1'b1;
                     if (remaining_q == 1) begin
                         state_n = IDLE;
@@ -137,8 +139,8 @@ module dma #(
                 mem_addr  = dst_addr_q;
                 mem_wdata = data_buf_q;
                 if (mem_ready) begin
-                    src_addr_n  = src_addr_q + (DATA_WIDTH/8);
-                    dst_addr_n  = dst_addr_q + (DATA_WIDTH/8);
+                    src_addr_n  = src_addr_q + (WORD_BYTES);
+                    dst_addr_n  = dst_addr_q + (WORD_BYTES);
                     remaining_n = remaining_q - 1'b1;
                     if (remaining_q == 1) begin
                         state_n = IDLE;
