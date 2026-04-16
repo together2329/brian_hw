@@ -1538,25 +1538,27 @@ def chat_loop():
                 now = time.time()
                 gap = now - _last_esc_time[0]
                 _last_esc_time[0] = now
-                if gap < 1.0 and _esc_pending_msg[0]:
+                # Tab-switch / focus events send ESC sequences very rapidly (< 0.1s).
+                # A deliberate double-ESC by a human takes at least ~0.15s.
+                # Filter out sub-150ms double-ESCs (terminal artifacts).
+                if gap < 1.5 and gap > 0.15 and _esc_pending_msg[0]:
                     _do_exit("ESC×2")
-                else:
+                elif gap > 0.15:
                     _esc_pending_msg[0] = True
                     # Show hint that another ESC will exit
                     event.app.output.write_raw("\n  ⎋ Press ESC again to exit, or wait...\n")
                     event.app.output.flush()
-                    # Reset pending after 1s so a lone ESC doesn't linger
+                    # Reset pending after 1.5s so a lone ESC doesn't linger
                     def _clear():
                         _esc_pending_msg[0] = False
                     try:
-                        # prompt_toolkit ≥ 3.0: use asyncio loop directly
                         import asyncio
-                        asyncio.get_event_loop().call_later(1.0, _clear)
+                        asyncio.get_event_loop().call_later(1.5, _clear)
                     except Exception:
                         try:
-                            event.app.get_running_app().get_loop().call_later(1.0, _clear)
+                            event.app.get_running_app().get_loop().call_later(1.5, _clear)
                         except Exception:
-                            pass  # fallback: pending flag stays but is harmless
+                            pass
 
             @_kb.add('c-q')
             def _ctrlq_exit(event):
