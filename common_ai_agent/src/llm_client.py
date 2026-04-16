@@ -218,19 +218,36 @@ def get_rate_limiter() -> _RateLimiter:
 
 
 def _is_reasoning_model() -> bool:
-    """Heuristic: does the current model produce reasoning/thinking tokens?"""
+    """Heuristic: does the current model produce reasoning/thinking tokens?
+    
+    Codex models excluded — their reasoning is encrypted (invisible) and
+    wastes output budget. Without reasoning param, they produce more content.
+    """
     name = getattr(config, 'MODEL_NAME', '').lower()
-    # All GPT-5.x models (including codex) support reasoning
+    # Codex: no reasoning budget (encrypted, wastes tokens)
+    if 'codex' in name:
+        return False
+    # All other GPT-5.x
     if name.startswith('gpt-5'):
         return True
     return any(k in name for k in ('glm', 'deepseek', 'qwq', 'r1', 'reasoning', 'o1', 'o3', 'o4'))
 
 
 def _is_reasoning_model_for_name(name: str) -> bool:
-    """Check if a specific model name produces reasoning tokens (for Responses API)."""
+    """Check if a specific model name produces reasoning tokens (for Responses API).
+    
+    Codex models (tool-use focused) should NOT get reasoning parameter because:
+    - Their reasoning is encrypted (not visible to user)
+    - It wastes output tokens on invisible thinking
+    - Without it, they go straight to tool calls = more productive
+    
+    Non-codex GPT-5.x models get reasoning for visible thinking.
+    """
     name = (name or '').lower()
-    # All GPT-5.x models (including codex) support reasoning in Responses API
-    # GPT-4.x and below do not
+    # Codex models: skip reasoning (encrypted, wastes tokens)
+    if 'codex' in name:
+        return False
+    # All other GPT-5.x models
     if name.startswith('gpt-5'):
         return True
     return any(k in name for k in ('glm', 'deepseek', 'qwq', 'r1', 'reasoning', 'o1', 'o3', 'o4'))
@@ -807,14 +824,17 @@ def build_responses_url(base_url: str, model: str = None) -> str:
     """
     Build the Responses API URL for the current provider.
 
-    - Azure OpenAI: endpoint + /openai/deployments/{deployment}/responses?api-version=...
+    - Azure OpenAI: endpoint + /openai/v1/responses  (v1 API, model in body)
     - Standard (OpenAI): base_url + /responses
+
+    Azure docs: https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation
+    Azure Responses API uses the v1 API format (/openai/v1/responses), NOT the
+    deployment-based format (/openai/deployments/{id}/responses).
+    The deployment name goes in the "model" field of the request body.
     """
     if is_azure_provider():
-        deployment = model or config.MODEL_NAME
-        api_version = getattr(config, "AZURE_OPENAI_API_VERSION", "2025-04-01-preview")
         endpoint = base_url.rstrip("/")
-        return f"{endpoint}/openai/deployments/{deployment}/responses?api-version={api_version}"
+        return f"{endpoint}/openai/v1/responses"
     return f"{base_url.rstrip('/')}/responses"
 
 

@@ -967,14 +967,10 @@ class TestSchemaRegressionTests(unittest.TestCase):
             self.assertEqual(build_responses_url("https://api.openai.com/v1/"),
                             "https://api.openai.com/v1/responses")
 
-        # Azure OpenAI URL
-        with patch('src.llm_client.is_azure_provider', return_value=True), \
-             patch('src.llm_client.config') as mock_config:
-            mock_config.MODEL_NAME = "gpt5.1"
-            mock_config.AZURE_OPENAI_API_VERSION = "2025-04-01-preview"
+        # Azure OpenAI URL — uses v1 API format, NOT deployment-based
+        with patch('src.llm_client.is_azure_provider', return_value=True):
             url = build_responses_url("https://my-endpoint.openai.azure.com", model="gpt5.1")
-            self.assertIn("/openai/deployments/gpt5.1/responses", url)
-            self.assertIn("api-version=2025-04-01-preview", url)
+            self.assertEqual(url, "https://my-endpoint.openai.azure.com/openai/v1/responses")
 
     def test_strip_strict_idempotent(self):
         """Running _strip_strict_from_tools twice produces same result."""
@@ -1342,8 +1338,8 @@ class TestReasoningParameter(unittest.TestCase):
         self.assertIn("summary", resp_data["reasoning"])
         self.assertEqual(resp_data["reasoning"]["summary"], "auto")
 
-    def test_gpt51_codex_has_reasoning(self):
-        """GPT-5.1-codex now has reasoning (all GPT-5.x models support it)."""
+    def test_gpt51_codex_no_reasoning(self):
+        """GPT-5.1-codex should NOT have reasoning (encrypted, wastes tokens)."""
         from src.llm_client import _build_responses_request
 
         data = {
@@ -1352,10 +1348,10 @@ class TestReasoningParameter(unittest.TestCase):
             "stream": True,
         }
         resp_data = _build_responses_request(data, "gpt-5.1-codex")
-        self.assertIn("reasoning", resp_data)
+        self.assertNotIn("reasoning", resp_data)
 
-    def test_gpt53_codex_has_reasoning(self):
-        """GPT-5.3-codex now has reasoning."""
+    def test_gpt53_codex_no_reasoning(self):
+        """GPT-5.3-codex should NOT have reasoning (encrypted, wastes tokens)."""
         from src.llm_client import _build_responses_request
 
         data = {
@@ -1364,7 +1360,7 @@ class TestReasoningParameter(unittest.TestCase):
             "stream": True,
         }
         resp_data = _build_responses_request(data, "gpt-5.3-codex")
-        self.assertIn("reasoning", resp_data)
+        self.assertNotIn("reasoning", resp_data)
 
     def test_o3_has_reasoning(self):
         """o3 model should have reasoning parameter."""
@@ -1432,20 +1428,25 @@ class TestReasoningParameter(unittest.TestCase):
         self.assertIn('"effort"', json_str)
 
     def test_is_reasoning_model_for_name(self):
-        """_is_reasoning_model_for_name correctly identifies reasoning models."""
-        from src.llm_client import _is_reasoning_model_for_name
+         """_is_reasoning_model_for_name correctly identifies reasoning models."""
+         from src.llm_client import _is_reasoning_model_for_name
 
-        # Should be reasoning models (all GPT-5.x including codex)
-        for name in ["gpt-5.1", "GPT-5.1", "gpt-5.1-codex", "gpt-5.3-codex",
-                      "o1", "o3-mini", "o4-mini",
-                      "glm-5.1", "deepseek-v3", "qwq-32b", "deepseek-r1"]:
-            self.assertTrue(_is_reasoning_model_for_name(name),
-                          f"{name} should be a reasoning model")
+         # Should be reasoning models (GPT-5.x non-codex, o-series, etc.)
+         for name in ["gpt-5.1", "GPT-5.1", "gpt-5.3",
+                       "o1", "o3-mini", "o4-mini",
+                       "glm-5.1", "deepseek-v3", "qwq-32b", "deepseek-r1"]:
+             self.assertTrue(_is_reasoning_model_for_name(name),
+                           f"{name} should be a reasoning model")
 
-        # Should NOT be reasoning models
-        for name in ["gpt-4o", "gpt-4o-mini", ""]:
-            self.assertFalse(_is_reasoning_model_for_name(name),
-                           f"{name} should NOT be a reasoning model")
+         # Codex models: NO reasoning (encrypted, wastes tokens)
+         for name in ["gpt-5.1-codex", "gpt-5.3-codex"]:
+             self.assertFalse(_is_reasoning_model_for_name(name),
+                            f"{name} should NOT be reasoning (codex)")
+
+         # Should NOT be reasoning models
+         for name in ["gpt-4o", "gpt-4o-mini", ""]:
+             self.assertFalse(_is_reasoning_model_for_name(name),
+                            f"{name} should NOT be a reasoning model")
 
 
 if __name__ == "__main__":
