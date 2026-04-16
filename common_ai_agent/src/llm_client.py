@@ -924,6 +924,7 @@ def _build_responses_request_body(
     Build a complete Responses API request body from Chat Completions-style messages.
 
     Handles the conversion from messages[] to input[] + instructions automatically.
+    Note: 'stop' parameter is NOT supported by the Responses API — silently ignored.
     """
     input_items, instructions = _convert_messages_to_responses_input(messages)
 
@@ -940,8 +941,9 @@ def _build_responses_request_body(
     if temperature is not None:
         data["temperature"] = temperature
 
-    if stop:
-        data["stop"] = stop
+    # stop: NOT supported by Responses API — intentionally omitted
+    # if stop:
+    #     data["stop"] = stop
 
     if max_output_tokens is not None:
         data["max_output_tokens"] = max_output_tokens
