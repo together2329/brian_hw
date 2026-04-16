@@ -1613,19 +1613,20 @@ class AgentTUI(App):
             def _fk(n: int) -> str:
                 return f"{n/1000:.1f}k" if n >= 1000 else str(n)
 
-            t = RichText()
             _non_cch = max(0, self._sess_in_tok - self._sess_cache_tok)
             in_str  = _fk(_non_cch)
             cch_str = _fk(self._sess_cache_tok)
             out_str = _fk(self._sess_out_tok)
             tot     = self._sess_sum_tok
 
+            lines = []
             if pricing_on:
                 # Show pricing rates per 1M tokens
-                t.append(f"$/1M  In {self._cost_in_pm:.2f}", style=_TEXT_DIM)
+                rate_line = f"$/1M  In {self._cost_in_pm:.2f}"
                 if self._cost_cch_pm > 0:
-                    t.append(f"  Cch {self._cost_cch_pm:.3f}", style=_TEXT_DIM)
-                t.append(f"  Out {self._cost_out_pm:.2f}\n", style=_TEXT_DIM)
+                    rate_line += f"  Cch {self._cost_cch_pm:.3f}"
+                rate_line += f"  Out {self._cost_out_pm:.2f}"
+                lines.append(rate_line)
 
                 # non-cached input billed at full rate; cached portion at cache rate
                 cost_in  = _non_cch             / 1_000_000 * self._cost_in_pm
@@ -1633,23 +1634,22 @@ class AgentTUI(App):
                 cost_out = self._sess_out_tok    / 1_000_000 * self._cost_out_pm
                 cost_tot = cost_in + cost_cch + cost_out
 
-                t.append(f"Input    {in_str:>7}  ${cost_in:.4f}\n",  style=_TEXT_DIM)
+                lines.append(f"Input    {in_str:>7}  ${cost_in:.4f}")
                 if self._sess_cache_tok > 0:
-                    t.append(f"Cached   {cch_str:>7}  ${cost_cch:.4f}\n", style=_TEXT_DIM)
-                t.append(f"Output   {out_str:>7}  ${cost_out:.4f}\n", style=_TEXT_DIM)
-                t.append(f"Total    {_fk(tot):>7}  ", style=_TEXT_DIM)
-                t.append(f"${cost_tot:.4f}", style=f"bold {_ACCENT}")
+                    lines.append(f"Cached   {cch_str:>7}  ${cost_cch:.4f}")
+                lines.append(f"Output   {out_str:>7}  ${cost_out:.4f}")
+                lines.append(f"Total    {_fk(tot):>7}  ${cost_tot:.4f}")
             else:
-                # No pricing info — show token counts only
-                t.append(f"Input    {in_str}\n",  style=_TEXT_DIM)
+                lines.append(f"Input    {in_str}")
                 if self._sess_cache_tok > 0:
-                    t.append(f"Cached   {cch_str}\n", style=_TEXT_DIM)
-                t.append(f"Output   {out_str}\n", style=_TEXT_DIM)
-                t.append(f"Total    {_fk(tot)}",  style=_TEXT_DIM)
+                    lines.append(f"Cached   {cch_str}")
+                lines.append(f"Output   {out_str}")
+                lines.append(f"Total    {_fk(tot)}")
 
-            self.query_one("#cost", Static).update(t)
-        except Exception:
-            pass
+            self.query_one("#cost", Static).update("\n".join(lines))
+        except Exception as _e:
+            import sys
+            print(f"[Sidebar Cost] Error: {_e}", file=sys.stderr)
 
     def _refresh_model_sidebar(self) -> None:
         """Update #model widget with current active model name, and reload pricing."""
