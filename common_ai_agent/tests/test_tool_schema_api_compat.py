@@ -1342,8 +1342,8 @@ class TestReasoningParameter(unittest.TestCase):
         self.assertIn("summary", resp_data["reasoning"])
         self.assertEqual(resp_data["reasoning"]["summary"], "auto")
 
-    def test_gpt51_codex_no_reasoning(self):
-        """GPT-5.1-codex should NOT have reasoning (tool-use focused)."""
+    def test_gpt51_codex_has_reasoning(self):
+        """GPT-5.1-codex now has reasoning (all GPT-5.x models support it)."""
         from src.llm_client import _build_responses_request
 
         data = {
@@ -1352,10 +1352,10 @@ class TestReasoningParameter(unittest.TestCase):
             "stream": True,
         }
         resp_data = _build_responses_request(data, "gpt-5.1-codex")
-        self.assertNotIn("reasoning", resp_data)
+        self.assertIn("reasoning", resp_data)
 
-    def test_gpt53_codex_no_reasoning(self):
-        """GPT-5.3-codex should NOT have reasoning."""
+    def test_gpt53_codex_has_reasoning(self):
+        """GPT-5.3-codex now has reasoning."""
         from src.llm_client import _build_responses_request
 
         data = {
@@ -1364,7 +1364,7 @@ class TestReasoningParameter(unittest.TestCase):
             "stream": True,
         }
         resp_data = _build_responses_request(data, "gpt-5.3-codex")
-        self.assertNotIn("reasoning", resp_data)
+        self.assertIn("reasoning", resp_data)
 
     def test_o3_has_reasoning(self):
         """o3 model should have reasoning parameter."""
@@ -1435,14 +1435,15 @@ class TestReasoningParameter(unittest.TestCase):
         """_is_reasoning_model_for_name correctly identifies reasoning models."""
         from src.llm_client import _is_reasoning_model_for_name
 
-        # Should be reasoning models
-        for name in ["gpt-5.1", "GPT-5.1", "o1", "o3-mini", "o4-mini",
+        # Should be reasoning models (all GPT-5.x including codex)
+        for name in ["gpt-5.1", "GPT-5.1", "gpt-5.1-codex", "gpt-5.3-codex",
+                      "o1", "o3-mini", "o4-mini",
                       "glm-5.1", "deepseek-v3", "qwq-32b", "deepseek-r1"]:
             self.assertTrue(_is_reasoning_model_for_name(name),
                           f"{name} should be a reasoning model")
 
         # Should NOT be reasoning models
-        for name in ["gpt-5.1-codex", "gpt-5.3-codex", "gpt-4o", "gpt-4o-mini", ""]:
+        for name in ["gpt-4o", "gpt-4o-mini", ""]:
             self.assertFalse(_is_reasoning_model_for_name(name),
                            f"{name} should NOT be a reasoning model")
 
