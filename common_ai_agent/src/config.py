@@ -763,6 +763,8 @@ ACTION_REMINDER_TEXT = os.getenv(
 )
 TODO_STAGNATION_LIMIT = int(os.getenv("TODO_STAGNATION_LIMIT", "50"))
 TODO_AUTO_ADVANCE_THRESHOLD = int(os.getenv("TODO_AUTO_ADVANCE_THRESHOLD", "5"))
+TODO_TEXT_ONLY_LIMIT = int(os.getenv("TODO_TEXT_ONLY_LIMIT", "50"))
+PLAN_TODO_WRITE_MAX = int(os.getenv("PLAN_TODO_WRITE_MAX", "10"))
 
 # Inject .UPD_RULE.md before default RULES in system prompt so it takes precedence.
 # true  = PROJECT RULES appear before default RULES (recommended)

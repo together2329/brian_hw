@@ -2235,9 +2235,10 @@ def todo_write(todos=None, tasks=None):
     if is_plan:
         _plan_write_count = int(os.environ.get("_PLAN_TODO_WRITE_COUNT", "0")) + 1
         os.environ["_PLAN_TODO_WRITE_COUNT"] = str(_plan_write_count)
-        if _plan_write_count > 2:
+        _plan_write_max = int(os.environ.get("PLAN_TODO_WRITE_MAX", "10"))
+        if _plan_write_count > _plan_write_max:
             return (
-                "⚠️ Plan mode todo_write limit reached (max 2 calls).\n"
+                f"⚠️ Plan mode todo_write limit reached (max {_plan_write_max} calls).\n"
                 "Your task list is ready. STOP calling todo_write and WAIT for user confirmation.\n"
                 "The user will confirm with 'y' to execute or provide feedback."
             )
