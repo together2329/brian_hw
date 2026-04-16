@@ -142,6 +142,68 @@ def _default_estimate(message: Dict[str, Any]) -> int:
     return len(text) // 4
 
 
+def _message_text(m: Dict[str, Any]) -> str:
+    """Flatten a message's content to a plain string for scanning."""
+    c = m.get("content", "")
+    if isinstance(c, list):
+        return " ".join(
+            p.get("text", "") if isinstance(p, dict) else str(p) for p in c
+        )
+    return str(c)
+
+
+# Signals that an assistant turn is asking the user for information.
+_AWAIT_PATTERNS = (
+    "please provide",
+    "please specify",
+    "please confirm",
+    "please share",
+    "please let me know",
+    "could you provide",
+    "could you specify",
+    "could you confirm",
+    "can you provide",
+    "can you specify",
+    "can you confirm",
+    "i need you to",
+    "waiting for your",
+    "awaiting your",
+    "awaiting required",
+    "required user-provided",
+)
+
+
+def _detect_awaiting_user(messages: List[Dict[str, Any]]) -> bool:
+    """Detect whether the conversation ended with the assistant asking
+    the user a question that was never answered.
+
+    Heuristic: walk backward from the tail, skipping system/tool frames.
+    - If we see a user message with real content first → not awaiting.
+    - If we see an assistant message first AND its text contains a
+      question mark or an await-prompt phrase → awaiting user input.
+    Otherwise → not awaiting.
+    """
+    for m in reversed(messages):
+        role = m.get("role", "")
+        if role in ("system", "tool"):
+            continue
+        text = _message_text(m).strip()
+        if role == "user":
+            # Continuation reminders are not real user answers — skip them
+            # so a stale reminder doesn't mask an unanswered question.
+            if text.startswith("[Task ") or "⚠️ MANDATORY" in text:
+                continue
+            return False
+        if role == "assistant":
+            if not text:
+                return False
+            low = text.lower()
+            if "?" in text:
+                return True
+            return any(p in low for p in _AWAIT_PATTERNS)
+    return False
+
+
 # ---------------------------------------------------------------------------
 # Core compression functions
 # ---------------------------------------------------------------------------
@@ -568,10 +630,35 @@ def compress_history(
     except Exception as exc:
         print(f"  [Compress] LLM compression failed entirely: {exc}")
 
+    # Preserve "awaiting user input" state across compression. If the pre-
+    # compression tail shows the assistant asked the user a question that
+    # was never answered, the post-compression summary alone won't convey
+    # that — the model will happily re-ask the same question every turn,
+    # producing the 60→81 livelock observed in the CPU req-gen incident.
+    _awaiting_user = _detect_awaiting_user(messages)
+    awaiting_note: List[Dict[str, Any]] = []
+    if _awaiting_user:
+        awaiting_note = [{
+            "role": "system",
+            "content": (
+                "[AWAITING USER INPUT] Your previous turn asked the user for "
+                "information and no answer has arrived yet. Do NOT repeat the "
+                "question, do NOT retry the task, do NOT mark any task rejected "
+                "because of missing input. Produce a minimal acknowledgement "
+                "(or nothing) and wait — the user will respond when ready."
+            ),
+        }]
+
     if compressed is not None:
-        raw_history = system_msgs + important_msgs + compressed + todo_preservation + recent_msgs
+        raw_history = (
+            system_msgs + important_msgs + compressed
+            + awaiting_note + todo_preservation + recent_msgs
+        )
     else:
-        raw_history = system_msgs + important_msgs + todo_preservation + recent_msgs
+        raw_history = (
+            system_msgs + important_msgs
+            + awaiting_note + todo_preservation + recent_msgs
+        )
 
     # Consolidate all system messages into a single leading system message.
     # Strict APIs (GLM-5.1/Z.AI, etc.) reject system messages mid-conversation,

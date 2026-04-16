@@ -2430,14 +2430,27 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             )
 
         if status == "approved":
-            if not reason:
+            _reason_stripped = (reason or "").strip()
+            if len(_reason_stripped) < 15:
                 return (
-                    f"Error: You MUST provide a 'reason' when approving a task.\n"
-                    f"Describe what you actually verified (e.g. 'read output file — correct, ran tests — all passed').\n"
-                    f"→ todo_update(index={index}, status='approved', reason='<what you checked>')"
+                    f"Error: You MUST provide a concrete 'reason' (≥15 chars) when approving Task {index}.\n"
+                    f"Describe what you actually verified — e.g. 'read output.md: contains all 9 sections, matches spec' "
+                    f"or 'ran pytest tests/foo.py — 14 passed, 0 failed'.\n"
+                    f"Rejected reasons: empty, 'ok', 'done', 'looks good', 'approved' — these are not evidence.\n"
+                    f"→ todo_update(index={index}, status='approved', reason='<specific evidence>')"
+                )
+            _low = _reason_stripped.lower()
+            _banned = {"ok", "okay", "done", "good", "fine", "lgtm", "approved",
+                       "looks good", "all good", "seems ok", "seems good",
+                       "no issues", "no problems", "complete", "completed"}
+            if _low in _banned:
+                return (
+                    f"Error: '{reason}' is not concrete evidence for Task {index}.\n"
+                    f"Provide what you actually verified (files read, commands run, outputs checked).\n"
+                    f"→ todo_update(index={index}, status='approved', reason='<what you checked, with specifics>')"
                 )
             item.rejection_reason = ""
-            todo_tracker.mark_approved(idx)  # internally calls save()
+            todo_tracker.mark_approved(idx, _reason_stripped)  # internally calls save() + persists approved_reason
             _git_tag_todo(index, "approved", item.content)
             next_todo = todo_tracker.get_current_todo()
             if next_todo:
@@ -2475,9 +2488,15 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             )
             return review_steps
         elif status == "rejected":
-            if not reason:
-                return "Error: You MUST provide a 'reason' when marking a task as 'rejected'. What needs to be fixed?"
-            todo_tracker.mark_rejected(idx, reason)  # internally calls save()
+            _reason_stripped = (reason or "").strip()
+            if len(_reason_stripped) < 15:
+                return (
+                    f"Error: You MUST provide a concrete 'reason' (≥15 chars) when rejecting Task {index}.\n"
+                    f"Describe the exact problem and what needs to change — e.g. "
+                    f"'output.md missing Phase 5 interrupt section; regenerate with NVIC details'.\n"
+                    f"→ todo_update(index={index}, status='rejected', reason='<exact problem>')"
+                )
+            todo_tracker.mark_rejected(idx, _reason_stripped)  # internally calls save()
             return (
                 f"❌ Task {index} rejected: {reason}\n"
                 f"→ Fix, then: todo_update(index={index}, status='in_progress')"

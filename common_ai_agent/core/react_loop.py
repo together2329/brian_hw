@@ -302,6 +302,11 @@ def run_react_agent_impl(
     _esc_start()
     _llm_retry = 0
     _reasoning_recovery_done = False  # True after one compress-and-retry for reasoning overflow
+    # Consecutive text-only (no tool call) turns while todos are incomplete.
+    # If the model keeps asking the user questions without ever calling a tool,
+    # it's blocked on user input — break early instead of waiting for the
+    # generic stagnation threshold to fire (~50 turns).
+    _text_only_no_progress = 0
 
     # ======================================================================
     # Main loop
@@ -317,6 +322,37 @@ def run_react_agent_impl(
             break
         elif warning_action == "extend":
             tracker.extend(20)
+
+        # Rejection-livelock guard: if any task has been rejected ≥ N times
+        # without ever reaching approved, the agent is stuck in a
+        # rejected ↔ in_progress ↔ completed cycle. Break and wait for user
+        # (CPU req-gen incident, 2026-04-17).
+        if todo_tracker and todo_tracker.todos:
+            _max_rej = getattr(cfg, "TODO_MAX_REJECTIONS", 3)
+            _livelocked = todo_tracker.check_rejection_livelock(max_rejections=_max_rej)
+            if _livelocked is not None:
+                _t = todo_tracker.todos[_livelocked]
+                _idx1 = _livelocked + 1
+                _rc = getattr(_t, "rejection_count", 0)
+                _msg = (
+                    f"\n[System] Rejection-livelock on task {_idx1}: "
+                    f"\"{_t.content}\" rejected {_rc}× without reaching approved.\n"
+                    f"  Last reason: {_t.rejection_reason or '(none)'}\n"
+                    f"  Breaking loop — waiting for user feedback."
+                )
+                if deps.emit_content_fn:
+                    try:
+                        deps.emit_content_fn(_msg)
+                    except Exception:
+                        pass
+                else:
+                    print(_msg)
+                if deps.emit_todo_fn:
+                    try:
+                        deps.emit_todo_fn(todo_tracker.format_simple())
+                    except Exception:
+                        pass
+                break
 
         _perf = getattr(cfg, "PERF_TRACKING", False)
         _perf_iter_start = time.time()
@@ -396,8 +432,11 @@ def run_react_agent_impl(
             # what to work on next — critical after todo_write when no post-execution
             # reminder was injected (because _last_tool_was_todo skips it).
             _exec_reminder = todo_tracker.get_continuation_prompt()
+            # Dedup window: widened from 6→20 messages to suppress the livelock
+            # where an identical MANDATORY reminder was injected 14× in a row
+            # (CPU req-gen incident, 2026-04-17).
             _recent_user = [
-                m.get("content", "") for m in messages[-6:]
+                m.get("content", "") for m in messages[-20:]
                 if m.get("role") == "user"
             ]
             if _exec_reminder and not any(_exec_reminder in c for c in _recent_user):
@@ -858,6 +897,8 @@ def run_react_agent_impl(
             continue
 
         if actions:
+            # Real tool activity → clear the text-only watchdog
+            _text_only_no_progress = 0
             # Track todo ops for plan mode flow control
             # Plan mode: allow research + todo ops together (don't restrict to single todo op)
             # Agent can read files AND update the plan in the same turn
@@ -1247,9 +1288,12 @@ def run_react_agent_impl(
                     and not _last_tool_was_todo):
                 reminder = todo_tracker.get_continuation_prompt()
                 if reminder:
-                    # Check all recent user messages to avoid duplicate injection
+                    # Dedup window: widened from 4→20 messages. A 4-message
+                    # window lets the same MANDATORY prompt re-inject after
+                    # 2 assistant+tool round-trips, producing rapid livelock
+                    # (CPU req-gen incident, 2026-04-17).
                     _recent_user_contents = [
-                        m.get("content", "") for m in messages[-4:]
+                        m.get("content", "") for m in messages[-20:]
                         if m.get("role") == "user"
                     ]
                     if not any(reminder in c for c in _recent_user_contents):
@@ -1307,6 +1351,36 @@ def run_react_agent_impl(
                     pass
 
             if todo_tracker and not todo_tracker.is_all_processed() and todo_tracker.todos:
+                # Text-only watchdog: if the LLM has produced N consecutive
+                # text-only turns without a tool call while todos remain, it
+                # is asking the user a question and no answer is coming
+                # (auto-loop or post-compression replay). Break early instead
+                # of waiting for generic stagnation (~50 turns).
+                _text_only_no_progress += 1
+                _text_only_limit = getattr(cfg, "TODO_TEXT_ONLY_LIMIT", 3)
+                if _text_only_no_progress >= _text_only_limit:
+                    _cur = todo_tracker.get_current_todo()
+                    _idx1 = (todo_tracker.current_index + 1) if _cur else 0
+                    _content = _cur.content if _cur else "(no active task)"
+                    _msg = (
+                        f"\n[System] {_text_only_no_progress} consecutive text-only turns "
+                        f"on task {_idx1}: \"{_content}\".\n"
+                        f"  The agent appears blocked on user input — breaking loop, "
+                        f"waiting for user feedback."
+                    )
+                    if deps.emit_content_fn:
+                        try:
+                            deps.emit_content_fn(_msg)
+                        except Exception:
+                            pass
+                    else:
+                        print(_msg)
+                    if deps.emit_todo_fn:
+                        try:
+                            deps.emit_todo_fn(todo_tracker.format_simple())
+                        except Exception:
+                            pass
+                    break
                 limit = getattr(cfg, "TODO_STAGNATION_LIMIT", 50)
                 auto_advance_threshold = getattr(cfg, "TODO_AUTO_ADVANCE_THRESHOLD", max(3, limit // 10))
                 count = getattr(todo_tracker, "stagnation_count", 0)

@@ -610,7 +610,7 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         todo_update(index=3, status="completed")
 
         result = todo_update(index=3, status="approved")
-        self.assertIn("MUST provide a 'reason'", result)
+        self.assertIn("concrete 'reason'", result)
 
     def test_approved_with_reason(self):
         """Approving with reason succeeds."""
@@ -663,7 +663,7 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         self.tracker.save()
         todo_update(index=3, status="completed")
 
-        result = todo_update(index=3, status="rejected", reason="Tests failed")
+        result = todo_update(index=3, status="rejected", reason="Tests failed: 3/10 assertions")
         self.assertIn("❌", result)
         self.assertIn("Tests failed", result)
         self.assertEqual(self.tracker.todos[2].status, "rejected")
@@ -678,7 +678,7 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         todo_update(index=3, status="completed")
 
         result = todo_update(index=3, status="rejected")
-        self.assertIn("MUST provide a 'reason'", result)
+        self.assertIn("concrete 'reason'", result)
 
     def test_zero_index_error(self):
         """Index 0 returns error (1-based indexing)."""

@@ -57,7 +57,9 @@ STATUS_ALIASES = {
     "verified": "approved",
     "passed": "approved",
     "failed": "rejected",
-    "blocked": "rejected",
+    # Note: "blocked" intentionally NOT aliased to "rejected" — a blocked task
+    # typically means "awaiting user input," not "needs rework." Mapping it to
+    # rejected fuels rejection-loop livelocks (see CPU req-gen incident).
 }
 
 
@@ -158,6 +160,12 @@ class TodoItem:
     # ── Gate check (fake-completion prevention) ─────────────
     tools_since_in_progress: int = 0    # Count of non-todo tool calls since in_progress.
                                         # Reset on mark_completed. Survives serialization.
+
+    # ── Rejection-loop detection ────────────────────────────
+    rejection_count: int = 0            # Times this task has been rejected. Used to
+                                        # break livelocks where a task bounces
+                                        # rejected → in_progress → completed → rejected
+                                        # indefinitely without real progress.
 
     def __post_init__(self):
         if self.created_at is None:
@@ -279,6 +287,7 @@ class TodoTracker:
                 delegate_result=todo_dict.get("delegate_result", ""),
                 workflow=todo_dict.get("workflow", ""),
                 tools_since_in_progress=int(todo_dict.get("tools_since_in_progress", 0)),
+                rejection_count=int(todo_dict.get("rejection_count", 0)),
             ))
 
         # Find current in_progress item
@@ -373,15 +382,21 @@ class TodoTracker:
         self.save()
         return True
 
-    def mark_approved(self, index: int):
+    def mark_approved(self, index: int, reason: str = ""):
         """특정 todo를 approved로 변경 (완전 완료).
         LLM이 명시적으로 다음 task를 in_progress로 전환해야 함 — 자동 전환 없음.
+
+        Args:
+            index: 0-based todo index
+            reason: approval evidence (persisted to approved_reason for audit)
         """
         if not (0 <= index < len(self.todos)):
             return
 
         self.todos[index].status = "approved"
         self.todos[index].rejection_reason = ""
+        if reason:
+            self.todos[index].approved_reason = reason
         if self.current_index == index:
             # Point current_index at next actionable task, but do NOT
             # auto-call mark_in_progress — the tool return value already
@@ -392,12 +407,17 @@ class TodoTracker:
         self.save()
 
     def mark_rejected(self, index: int, reason: str):
-        """특정 todo를 rejected로 변경 (재작업 필요)."""
+        """특정 todo를 rejected로 변경 (재작업 필요).
+
+        Increments rejection_count so the harness can detect livelocks
+        (task bouncing rejected ↔ in_progress ↔ completed without net progress).
+        """
         if not (0 <= index < len(self.todos)):
             return
 
         self.todos[index].status = "rejected"
         self.todos[index].rejection_reason = reason
+        self.todos[index].rejection_count = getattr(self.todos[index], "rejection_count", 0) + 1
         # Set it as the current active task so it must be worked on
         self.current_index = index
         self.save()
@@ -824,6 +844,7 @@ class TodoTracker:
                     "delegate_result": t.delegate_result,
                     "workflow": t.workflow,
                     "tools_since_in_progress": t.tools_since_in_progress,
+                    "rejection_count": t.rejection_count,
                 }
                 for t in self.todos
             ],
@@ -879,26 +900,40 @@ class TodoTracker:
         """
         Continuation 주입 전 stagnation 체크.
 
+        Progress is measured by (completed + approved) against the historical
+        MAX of the same metric. Because `_last_completed_count` only moves
+        upward (via strict `>`), a rejection loop — which temporarily drops
+        the count when a completed task transitions to rejected — cannot
+        reset stagnation. Only genuine forward progress can.
+
         Returns:
             True = 포기해야 함 (stagnation 초과)
             False = 계속 진행 가능
         """
-        completed = sum(1 for t in self.todos if t.status in ("completed", "approved", "rejected"))
-        if completed > self._last_completed_count:
+        done = sum(1 for t in self.todos if t.status in ("completed", "approved"))
+        if done > self._last_completed_count:
             self.stagnation_count = 0
-            self._last_completed_count = completed
+            self._last_completed_count = done
         else:
             self.stagnation_count += 1
 
         self.save()
 
         if self.stagnation_count >= max_stagnation:
-            current = self.get_current_todo()
-            if current:
-                elapsed_str = f" ({_fmt_elapsed(current.elapsed)} elapsed)" if current.elapsed else ""
-                # Warn about stuck task but don't give up — return True signals caller
             return True
         return False
+
+    def check_rejection_livelock(self, max_rejections: int = 3) -> Optional[int]:
+        """Return the 0-based index of any task that has been rejected
+        ≥ max_rejections times, or None if no task has livelocked.
+
+        Used by the harness to break rejection loops where a task bounces
+        rejected → in_progress → completed → rejected without real progress.
+        """
+        for i, t in enumerate(self.todos):
+            if getattr(t, "rejection_count", 0) >= max_rejections and t.status != "approved":
+                return i
+        return None
 
     def get_stagnation_hint(self) -> str:
         """현재 막힌 task에 대한 힌트 메시지 반환."""
