@@ -1708,7 +1708,9 @@ def _execute_responses_stream(url: str, headers: Dict, data: Dict, messages: Lis
             _wd_stop, _wd_triggered = _make_stream_watchdog(response, _inactivity_s, _last_data)
 
             try:
+                usage_info = None
                 _current_event = ""
+                _pending_func_calls: Dict[str, Dict] = {}  # call_id → {name, arguments}
                 for line in response:
                     _last_data[0] = time.time()
                     line = line.decode('utf-8').strip()
@@ -1729,27 +1731,42 @@ def _execute_responses_stream(url: str, headers: Dict, data: Dict, messages: Lis
                     except json.JSONDecodeError:
                         continue
 
-                    # ── Content text delta ──
-                    if _current_event in ("response.output_text.delta",):
+                    # Use type from JSON body (more reliable than SSE event line)
+                    event_type = chunk.get("type", _current_event)
+
+                    # ── Text content delta ──
+                    if event_type == "response.output_text.delta":
                         text = chunk.get("delta", "")
                         if text:
                             yield text
                             _yielded_something = True
 
                     # ── Reasoning delta ──
-                    elif _current_event in ("response.reasoning.delta",):
+                    elif event_type == "response.reasoning.delta":
                         text = chunk.get("delta", "")
                         if text:
                             yield ("reasoning", text)
                             _yielded_something = True
 
-                    # ── Function call name ──
-                    elif _current_event == "response.function_call_arguments.delta":
-                        # Arguments come as fragments — accumulate
-                        pass
+                    # ── Function call item added (carries name + call_id) ──
+                    elif event_type == "response.output_item.added":
+                        item = chunk.get("item", {})
+                        if item.get("type") == "function_call":
+                            _fc_id = item.get("call_id", item.get("id", ""))
+                            _pending_func_calls[_fc_id] = {
+                                "id": _fc_id,
+                                "name": item.get("name", ""),
+                                "arguments": "",
+                            }
 
-                    # ── Completed: extract usage and function calls ──
-                    elif _current_event in ("response.completed", "response.done"):
+                    # ── Function call arguments delta (accumulate) ──
+                    elif event_type == "response.function_call_arguments.delta":
+                        _fc_id = chunk.get("call_id", chunk.get("item_id", ""))
+                        if _fc_id and _fc_id in _pending_func_calls:
+                            _pending_func_calls[_fc_id]["arguments"] += chunk.get("delta", "")
+
+                    # ── Completed: extract usage ──
+                    elif event_type in ("response.completed", "response.done"):
                         resp_obj = chunk.get("response", chunk)
 
                         # Extract usage
@@ -1780,34 +1797,53 @@ def _execute_responses_stream(url: str, headers: Dict, data: Dict, messages: Lis
                                 total_cache_created += cache_creation_tokens
                                 total_cache_read += cache_read_tokens
 
-                        # Extract function calls from output
+                        # Extract function calls from output (fallback for late arrivals)
                         output_items = resp_obj.get("output", [])
-                        _func_calls = []
                         for item in output_items:
                             if item.get("type") == "function_call":
-                                _func_calls.append({
-                                    "id": item.get("call_id", item.get("id", "")),
-                                    "name": item.get("name", ""),
-                                    "arguments": item.get("arguments", "{}"),
-                                })
+                                _fc_id = item.get("call_id", item.get("id", ""))
+                                if _fc_id not in _pending_func_calls:
+                                    _pending_func_calls[_fc_id] = {
+                                        "id": _fc_id,
+                                        "name": item.get("name", ""),
+                                        "arguments": item.get("arguments", "{}"),
+                                    }
 
-                        if _func_calls:
-                            if native_mode:
-                                yield ("native_tool_calls", _func_calls)
-                            else:
-                                for fc in _func_calls:
-                                    tc_name = fc["name"]
-                                    tc_args_str = fc["arguments"]
-                                    if tc_name and tc_args_str:
-                                        try:
-                                            tc_args = json.loads(tc_args_str)
-                                            args_formatted = ", ".join(
-                                                f'{k}={json.dumps(v)}' for k, v in tc_args.items()
-                                            )
-                                            yield f"\nAction: {tc_name}({args_formatted})\n"
-                                        except (json.JSONDecodeError, AttributeError):
-                                            pass
-                            _yielded_something = True
+                # ── Emit accumulated tool calls ──
+                if _pending_func_calls:
+                    _func_calls = list(_pending_func_calls.values())
+                    if native_mode:
+                        import uuid as _uuid
+                        _native_calls = []
+                        for fc in _func_calls:
+                            if fc["name"]:
+                                _call_id = fc.get("id") or f"call_{_uuid.uuid4().hex[:16]}"
+                                _args_str = fc["arguments"] or "{}"
+                                try:
+                                    json.loads(_args_str)
+                                except json.JSONDecodeError:
+                                    _args_str = "{}"
+                                _native_calls.append({
+                                    "id": _call_id,
+                                    "name": fc["name"],
+                                    "arguments": _args_str,
+                                })
+                        if _native_calls:
+                            yield ("native_tool_calls", _native_calls)
+                    else:
+                        for fc in _func_calls:
+                            tc_name = fc["name"]
+                            tc_args_str = fc["arguments"]
+                            if tc_name and tc_args_str:
+                                try:
+                                    tc_args = json.loads(tc_args_str)
+                                    args_formatted = ", ".join(
+                                        f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                                    )
+                                    yield f"\nAction: {tc_name}({args_formatted})\n"
+                                except (json.JSONDecodeError, AttributeError):
+                                    pass
+                    _yielded_something = True
 
                 # Empty response retry
                 if not _yielded_something and retry_count < max_retries - 1:
