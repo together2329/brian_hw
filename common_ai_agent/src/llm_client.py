@@ -218,36 +218,19 @@ def get_rate_limiter() -> _RateLimiter:
 
 
 def _is_reasoning_model() -> bool:
-    """Heuristic: does the current model produce reasoning/thinking tokens?
-    
-    Codex models excluded — their reasoning is encrypted (invisible) and
-    wastes output budget. Without reasoning param, they produce more content.
-    """
+    """Heuristic: does the current model produce reasoning/thinking tokens?"""
     name = getattr(config, 'MODEL_NAME', '').lower()
-    # Codex: no reasoning budget (encrypted, wastes tokens)
-    if 'codex' in name:
-        return False
-    # All other GPT-5.x
+    # All GPT-5.x models (including codex) support reasoning
     if name.startswith('gpt-5'):
         return True
     return any(k in name for k in ('glm', 'deepseek', 'qwq', 'r1', 'reasoning', 'o1', 'o3', 'o4'))
 
 
 def _is_reasoning_model_for_name(name: str) -> bool:
-    """Check if a specific model name produces reasoning tokens (for Responses API).
-    
-    Codex models (tool-use focused) should NOT get reasoning parameter because:
-    - Their reasoning is encrypted (not visible to user)
-    - It wastes output tokens on invisible thinking
-    - Without it, they go straight to tool calls = more productive
-    
-    Non-codex GPT-5.x models get reasoning for visible thinking.
-    """
+    """Check if a specific model name produces reasoning tokens (for Responses API)."""
     name = (name or '').lower()
-    # Codex models: skip reasoning (encrypted, wastes tokens)
-    if 'codex' in name:
-        return False
-    # All other GPT-5.x models
+    # All GPT-5.x models (including codex) support reasoning in Responses API
+    # GPT-4.x and below do not
     if name.startswith('gpt-5'):
         return True
     return any(k in name for k in ('glm', 'deepseek', 'qwq', 'r1', 'reasoning', 'o1', 'o3', 'o4'))
