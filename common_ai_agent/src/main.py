@@ -1548,7 +1548,15 @@ def chat_loop():
                     # Reset pending after 1s so a lone ESC doesn't linger
                     def _clear():
                         _esc_pending_msg[0] = False
-                    event.app.get_running_app().get_loop().call_later(1.0, _clear)
+                    try:
+                        # prompt_toolkit ≥ 3.0: use asyncio loop directly
+                        import asyncio
+                        asyncio.get_event_loop().call_later(1.0, _clear)
+                    except Exception:
+                        try:
+                            event.app.get_running_app().get_loop().call_later(1.0, _clear)
+                        except Exception:
+                            pass  # fallback: pending flag stays but is harmless
 
             @_kb.add('c-q')
             def _ctrlq_exit(event):
