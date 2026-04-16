@@ -441,20 +441,12 @@ def todo_continuation_enforcer(context: HookContext) -> HookContext:
                         f"Current task {cur_idx}: {current.content}\n"
                         f"If the work is done, mark it complete:\n"
                         f"Action: todo_update\n"
-                        f"Action Input: {{\"index\": {cur_idx}, \"status\": \"completed\"}}\n"
+                        f"Action Input: index={cur_idx}, status=completed\n"
                         f"Then continue to the next task."
                     )
                     reminder = {
                         "role": "user",
-                        "content": _get_hook_message(
-                            "todo_continuation",
-                            _default_continuation,
-                            completed=completed,
-                            total=len(todo_tracker.todos),
-                            remaining=remaining,
-                            cur_idx=cur_idx,
-                            content=current.content,
-                        ),
+                        "content": _default_continuation,
                     }
                     context.messages.append(reminder)
                     context.metadata["continuation_injected"] = True
