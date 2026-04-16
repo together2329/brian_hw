@@ -1,0 +1,13 @@
+repos:
+  - repo: local
+    hooks:
+      - id: cocotb-lint-py
+        name: cocotb lint-py
+        entry: make -C sim/cocotb lint-py
+        language: system
+        pass_filenames: false
+      - id: cocotb-lint-rtl-fast
+        name: cocotb lint-rtl-fast
+        entry: make -C sim/cocotb lint-rtl-fast
+        language: system
+        pass_filenames: false
