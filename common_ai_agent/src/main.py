@@ -1526,9 +1526,11 @@ def chat_loop():
                 import os as _os
                 _os._exit(0)
 
-            # Double-ESC to exit (single ESC is too easily triggered by
-            # terminal focus events, escape sequences, and macOS meta keys).
-            # First ESC is silently recorded; second ESC within 1s exits.
+            # ── ESC handler ─────────────────────────────────────────────────────
+            # Double-ESC to exit (with debounce to avoid triggering on terminal
+            # focus events like ^[[O / ^[[I sent when switching terminal tabs).
+            # Focus events arrive as ESC + bracket sequence in < 50ms.
+            # We require: first ESC → wait >200ms → second ESC = deliberate.
             _last_esc_time = [0.0]
             _esc_pending_msg = [False]
 
@@ -1538,27 +1540,23 @@ def chat_loop():
                 now = time.time()
                 gap = now - _last_esc_time[0]
                 _last_esc_time[0] = now
-                # Tab-switch / focus events send ESC sequences very rapidly (< 0.1s).
-                # A deliberate double-ESC by a human takes at least ~0.15s.
-                # Filter out sub-150ms double-ESCs (terminal artifacts).
-                if gap < 1.5 and gap > 0.15 and _esc_pending_msg[0]:
+                # Gap too short (<200ms) = terminal artifact (focus event, etc.)
+                if gap < 0.20:
+                    _esc_pending_msg[0] = False
+                    return
+                if gap < 1.5 and _esc_pending_msg[0]:
                     _do_exit("ESC×2")
-                elif gap > 0.15:
+                else:
                     _esc_pending_msg[0] = True
-                    # Show hint that another ESC will exit
                     event.app.output.write_raw("\n  ⎋ Press ESC again to exit, or wait...\n")
                     event.app.output.flush()
-                    # Reset pending after 1.5s so a lone ESC doesn't linger
                     def _clear():
                         _esc_pending_msg[0] = False
                     try:
                         import asyncio
                         asyncio.get_event_loop().call_later(1.5, _clear)
                     except Exception:
-                        try:
-                            event.app.get_running_app().get_loop().call_later(1.5, _clear)
-                        except Exception:
-                            pass
+                        pass
 
             @_kb.add('c-q')
             def _ctrlq_exit(event):

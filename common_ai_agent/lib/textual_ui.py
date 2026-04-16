@@ -1675,10 +1675,16 @@ class AgentTUI(App):
                     self._cost_cch_pm = p.cache
                     self._cost_out_pm = p.output
                     self._redraw_cost()  # Show rates immediately on model change
-            except Exception:
-                pass
-        except Exception:
-            pass
+                else:
+                    # No pricing found — clear rates so cost shows token counts only
+                    self._cost_in_pm = self._cost_cch_pm = self._cost_out_pm = 0.0
+                    self._redraw_cost()
+            except Exception as _e:
+                import sys
+                print(f"[Sidebar Pricing] Error for model={active!r}: {_e}", file=sys.stderr)
+        except Exception as _e:
+            import sys
+            print(f"[Sidebar Model] Error: {_e}", file=sys.stderr)
 
     def on_main_line(self, msg: MainLine) -> None:
         self._handle_main_line(msg)
