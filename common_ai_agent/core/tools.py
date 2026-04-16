@@ -2350,7 +2350,10 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
 
     item = todo_tracker.todos[idx]
 
-    # Update content fields if provided
+    # Update content fields if provided.
+    # IMPORTANT: detail and criteria should describe the TASK (what to do / how to verify).
+    # They should NOT be overwritten during approval/completion — use 'reason' for that.
+    _is_review_status = status in ("approved", "completed", "rejected")
     if content:
         item.content = content
         if not activeForm:
@@ -2358,9 +2361,13 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             item.active_form = _generate_active_form(content)
     if activeForm:
         item.active_form = activeForm
-    if detail:
+    if detail and not _is_review_status:
+        # Only update detail for actionable statuses (pending/in_progress),
+        # not during review (approved/completed/rejected) where the LLM
+        # tends to pass approval notes as detail.
         item.detail = detail
-    if criteria:
+    if criteria and not _is_review_status:
+        # Same protection for criteria — don't lose original criteria during review.
         item.criteria = criteria
 
     # Update status if provided
@@ -2385,6 +2392,12 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             ]
             if blocking:
                 blocking_str = ", ".join(str(b) for b in blocking)
+                # Auto-correct current_index to point at the first blocking task,
+                # so get_continuation_prompt() generates the correct redirect.
+                first_blocking_idx = blocking[0] - 1  # 0-based
+                if todo_tracker.current_index != first_blocking_idx:
+                    todo_tracker.current_index = first_blocking_idx
+                    todo_tracker.save()
                 return (
                     f"Error: Cannot update Task {index} — "
                     f"Task(s) {blocking_str} must be approved first.\n"
@@ -2470,15 +2483,14 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                 f"→ Fix, then: todo_update(index={index}, status='in_progress')"
             )
         elif status == "in_progress":
-            if reason:
-                item.rejection_reason = reason
+            # NOTE: Do NOT store reason in rejection_reason — that field is
+            # exclusively for rejected status. The step header will still show
+            # the detail/criteria fields for context.
             todo_tracker.mark_in_progress(idx)
             todo_tracker.save()
             return f"▶ Task {index} in progress: {item.content}"
         else:  # pending
-            if reason:
-                item.rejection_reason = reason
-            item.status = "pending"
+            # NOTE: Do NOT store reason in rejection_reason for pending either.
             todo_tracker.save()
             return f"⏸ Task {index} set to pending: {item.content}"
 

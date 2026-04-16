@@ -645,22 +645,6 @@ def _strip_strict_from_tools(tools: list) -> list:
     return result
 
 
-def _to_fc_id(call_id: str) -> str:
-    """Convert chat completions call ID (e.g. 'call_abc123') to Responses API format ('fc_abc123')."""
-    if not call_id:
-        return "fc_" + _generate_id()
-    if call_id.startswith("call_"):
-        return "fc_" + call_id[5:]
-    if call_id.startswith("fc_"):
-        return call_id
-    return "fc_" + call_id
-
-
-def _generate_id() -> str:
-    """Generate a short random ID for function calls."""
-    import random, string
-    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=24))
-
 
 def _messages_to_responses_input(messages: list) -> list:
     """Convert chat completions messages to Responses API input format.
@@ -671,24 +655,20 @@ def _messages_to_responses_input(messages: list) -> list:
     Responses API:
         [{"role": "system", "content": [{"type": "input_text", "text": "..."}]},
          {"role": "user",   "content": [{"type": "input_text", "text": "..."}]}]
+
+    IMPORTANT: Every function_call_output must have a matching preceding function_call.
+    Orphaned tool messages (tool role without a matching assistant tool_calls entry)
+    are converted to user messages to avoid API 400 errors.
     """
     result = []
+    # Track known call_ids from assistant tool_calls so we can validate tool messages.
+    _known_call_ids: set = set()
+
     for msg in messages:
         role = msg.get("role", "user")
         content = msg.get("content", "")
 
-        # Skip tool messages — Responses API handles function_call_output differently
-        if role == "tool":
-            # Convert tool result to function_call_output
-            fc_id = _to_fc_id(msg.get("tool_call_id", ""))
-            result.append({
-                "type": "function_call_output",
-                "call_id": fc_id,
-                "output": str(content),
-            })
-            continue
-
-        # Handle assistant messages with tool_calls
+        # Handle assistant messages with tool_calls FIRST (to register call_ids)
         if role == "assistant" and msg.get("tool_calls"):
             # Add the assistant text content first
             if content:
@@ -696,17 +676,41 @@ def _messages_to_responses_input(messages: list) -> list:
                     "role": "assistant",
                     "content": [{"type": "output_text", "text": str(content)}],
                 })
-            # Add function calls with fc_ prefixed IDs
+            # Add function calls — pass IDs as-is.
+            # The Responses API uses the same call_id format as Chat Completions.
             for tc in msg["tool_calls"]:
                 func = tc.get("function", {})
-                fc_id = _to_fc_id(tc.get("id", ""))
+                tc_id = tc.get("id", "")
+                _known_call_ids.add(tc_id)
                 result.append({
                     "type": "function_call",
-                    "id": fc_id,
-                    "call_id": fc_id,
+                    "id": tc_id,
+                    "call_id": tc_id,
                     "name": func.get("name", ""),
                     "arguments": func.get("arguments", "{}"),
                 })
+            continue
+
+        # Skip tool messages — Responses API handles function_call_output differently
+        if role == "tool":
+            tc_id = msg.get("tool_call_id", "")
+            # Validate: only emit function_call_output if the call_id has a
+            # matching function_call. Orphaned tool messages (e.g. from session
+            # recovery or corrupted history) cause API 400 errors.
+            if tc_id and tc_id in _known_call_ids:
+                result.append({
+                    "type": "function_call_output",
+                    "call_id": tc_id,
+                    "output": str(content),
+                })
+            else:
+                # Orphaned tool message — convert to user message so the
+                # context isn't lost but the API doesn't reject the request.
+                if str(content).strip():
+                    result.append({
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": f"[Orphaned tool result for {tc_id}]: {content}"}],
+                    })
             continue
 
         # Handle reasoning items (required for reasoning models like GPT-5)
@@ -837,31 +841,30 @@ def _convert_messages_to_responses_input(messages: List[Dict[str, Any]]) -> tupl
         input = [{"role": "user", "content": [...]}, {"role": "assistant", "content": [...]}, ...]
         where content items use {"type": "input_text", "text": "..."} for user/system
         and {"type": "output_text", "text": "..."} for assistant
+
+    IMPORTANT: Every function_call_output must have a matching preceding function_call.
+    Orphaned tool messages (tool role without a matching assistant tool_calls entry)
+    are converted to user messages to avoid API 400 errors.
     """
     instructions = None
     input_items = []
+    # Track known call_ids from assistant tool_calls so we can validate tool messages.
+    _known_call_ids: set = set()
 
     for msg in messages:
         role = msg.get("role", "")
         content = msg.get("content", "")
 
-        # Handle tool messages — pass through as-is
-        if role == "tool":
-            input_items.append({
-                "type": "function_call_output",
-                "call_id": msg.get("tool_call_id", ""),
-                "output": str(content),
-            })
-            continue
-
-        # Handle assistant messages with tool_calls
+        # Handle assistant messages with tool_calls FIRST (to register call_ids)
         if role == "assistant" and msg.get("tool_calls"):
             # Emit function_call items for each tool call
             for tc in msg["tool_calls"]:
                 func = tc.get("function", {})
+                tc_id = tc.get("id", "")
+                _known_call_ids.add(tc_id)
                 input_items.append({
                     "type": "function_call",
-                    "call_id": tc.get("id", ""),
+                    "call_id": tc_id,
                     "name": func.get("name", ""),
                     "arguments": func.get("arguments", "{}"),
                 })
@@ -871,6 +874,25 @@ def _convert_messages_to_responses_input(messages: List[Dict[str, Any]]) -> tupl
                     "role": "assistant",
                     "content": [{"type": "output_text", "text": str(content)}],
                 })
+            continue
+
+        # Handle tool messages — validate against known call_ids
+        if role == "tool":
+            tc_id = msg.get("tool_call_id", "")
+            if tc_id and tc_id in _known_call_ids:
+                input_items.append({
+                    "type": "function_call_output",
+                    "call_id": tc_id,
+                    "output": str(content),
+                })
+            else:
+                # Orphaned tool message — convert to user message so the
+                # context isn't lost but the API doesn't reject the request.
+                if str(content).strip():
+                    input_items.append({
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": f"[Orphaned tool result for {tc_id}]: {content}"}],
+                    })
             continue
 
         # System message → instructions (extract first, or merge)

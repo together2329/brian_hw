@@ -1152,7 +1152,8 @@ class TestNextPendingLogic(unittest.TestCase):
         self.assertEqual(next_idx, 2)  # Rejected first
 
     def test_high_priority_first(self):
-        """Among same status, high priority goes first."""
+        """Among pending tasks, index order takes precedence (sequential enforcement).
+        Task priority only affects rejected/completed tasks (review/fix ordering)."""
         tracker = self._make_tracker()
         tracker.add_todos([
             {"content": "Low task", "status": "pending", "priority": "low"},
@@ -1160,7 +1161,18 @@ class TestNextPendingLogic(unittest.TestCase):
             {"content": "Med task", "status": "pending", "priority": "medium"},
         ])
         next_idx = tracker._get_next_pending()
-        self.assertEqual(next_idx, 1)  # High priority
+        self.assertEqual(next_idx, 0)  # Index order for pending (sequential enforcement)
+
+    def test_high_priority_rejected_first(self):
+        """Among rejected tasks, high priority goes first."""
+        tracker = self._make_tracker()
+        tracker.add_todos([
+            {"content": "Low rejection", "status": "rejected", "priority": "low"},
+            {"content": "High rejection", "status": "rejected", "priority": "high"},
+            {"content": "Med rejection", "status": "rejected", "priority": "medium"},
+        ])
+        next_idx = tracker._get_next_pending()
+        self.assertEqual(next_idx, 1)  # High priority among rejected
 
     def test_original_order_as_tiebreaker(self):
         """Same status and priority → original index order."""

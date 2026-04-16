@@ -432,7 +432,12 @@ class TodoTracker:
         """
         다음 actionable todo 인덱스 반환.
         우선순위: rejected > completed (review needed) > pending.
-        같은 priority 내에서는 원래 순서(index 오름차순) 유지.
+        같은 status 내에서는 원래 순서(index 오름차순) 유지.
+
+        IMPORTANT: Since todo_update enforces strict sequential execution
+        (all prior tasks must be approved before touching a later task),
+        pending tasks are selected by index order, NOT by task priority.
+        Task priority only affects the ordering among rejected/completed tasks.
         """
         # Status priority: rejected=0 (must fix first), completed=1 (review needed), pending=2
         # completed IS included — it still needs explicit approve/reject from LLM.
@@ -444,10 +449,13 @@ class TodoTracker:
         if not candidates:
             return None
 
-        # Sort by status priority first, then task priority, then original index
+        # Sort by status priority first.
+        # For rejected/completed: use task priority as tiebreaker (high-priority fixes first).
+        # For pending: ignore task priority — use strict index order, because
+        # the sequential enforcement in todo_update requires all prior tasks approved.
         candidates.sort(key=lambda x: (
             STATUS_ORDER.get(x[1].status, 9),
-            _PRIORITY_ORDER.get(x[1].priority, 1),
+            _PRIORITY_ORDER.get(x[1].priority, 1) if x[1].status in ("rejected", "completed") else 0,
             x[0]
         ))
         return candidates[0][0]
