@@ -582,7 +582,7 @@ def use_responses_api(resolved_model: str = None) -> bool:
 
     # Optional: force gpt-5* models to use chat completions
     if getattr(config, "FORCE_CHAT_COMPLETIONS_GPT5", False):
-        if 'gpt' in model and '5' in model and 'codex' not in model:
+        if 'gpt' in model and '5' in model:
             return False
 
     # Manual override
