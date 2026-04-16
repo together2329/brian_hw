@@ -195,7 +195,7 @@ STREAM_API_TIMEOUT = int(os.getenv("STREAM_API_TIMEOUT", "1800"))
 NONSTREAM_API_TIMEOUT = int(os.getenv("NONSTREAM_API_TIMEOUT", "1800"))
 
 # Maximum output tokens per LLM response (0 = no limit)
-MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "16000"))
+MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "32000"))
 
 # Maximum reasoning/thinking tokens (GLM, DeepSeek etc.).
 # For reasoning models, this EXPANDS the max_tokens budget so reasoning
