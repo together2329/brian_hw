@@ -131,6 +131,7 @@ class ReactLoopDeps:
     emit_reasoning_fn: Optional[Callable] = None  # (line: str, blank: bool) → None
     emit_todo_fn: Optional[Callable] = None       # (text: str) → None
     emit_flush_fn: Optional[Callable] = None      # () → None  (signal stream done → flush panel)
+    emit_token_fn: Optional[Callable] = None      # (in_tok, cache_tok, out_tok) → None  (sidebar cost update)
 
 
 # ---------------------------------------------------------------------------
@@ -745,14 +746,21 @@ def run_react_agent_impl(
         # Token summary line
         _show_tok = getattr(cfg, "SHOW_TOKEN_STATS", True)
         _show_tok_sidebar = getattr(cfg, "SHOW_TOKEN_STATS_SIDEBAR", True)
+        _in_tok, _out_tok = deps.get_llm_tokens_fn()
+        _fk = lambda n: f"{n/1000:.1f}k" if n >= 1000 else str(n)
+        _cr = 0
+        if _in_tok > 0 and _out_tok > 0:
+            _usage = deps.get_llm_usage_fn() if deps.get_llm_usage_fn else {}
+            _cw = _usage.get("cache_created", 0)
+            _cr = _usage.get("cache_read", 0)
+
+        # Direct sidebar update — works regardless of DEBUG_MODE or SHOW_TOKEN_STATS
+        if deps.emit_token_fn and (_in_tok > 0 or _out_tok > 0):
+            deps.emit_token_fn(_in_tok, _cr, _out_tok)
+
         if not getattr(cfg, "DEBUG_MODE", False) and (_show_tok or _show_tok_sidebar):
             elapsed_str = f"{llm_elapsed:.1f}s" if llm_elapsed < 60 else f"{int(llm_elapsed//60)}m{int(llm_elapsed%60):02d}s"
-            _in_tok, _out_tok = deps.get_llm_tokens_fn()
-            _fk = lambda n: f"{n/1000:.1f}k" if n >= 1000 else str(n)
             if _in_tok > 0 and _out_tok > 0:
-                _usage = deps.get_llm_usage_fn() if deps.get_llm_usage_fn else {}
-                _cw = _usage.get("cache_created", 0)
-                _cr = _usage.get("cache_read", 0)
                 _in_str = f"{_fk(_in_tok)}"
                 if _cw > 0 and _cr > 0:
                     _in_str += f" (cache write {_fk(_cw)} read {_fk(_cr)})"

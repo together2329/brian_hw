@@ -233,6 +233,13 @@ class FlushResponse(Message):
     """Sent by worker after LLM stream ends to ensure content panel is rendered."""
     pass
 
+class TokenUsage(Message):
+    def __init__(self, in_tok: int, cache_tok: int, out_tok: int) -> None:
+        self.in_tok    = in_tok
+        self.cache_tok = cache_tok
+        self.out_tok   = out_tok
+        super().__init__()
+
 
 
 # ── stdout capture ────────────────────────────────────────────────────────────
@@ -1465,6 +1472,15 @@ class AgentTUI(App):
         self._flush_response()
         # Clear compression state after LLM response completes
         self._compressing = False
+
+    def on_token_usage(self, msg: TokenUsage) -> None:
+        self._sess_in_tok    += msg.in_tok
+        self._sess_cache_tok += msg.cache_tok
+        self._sess_out_tok   += msg.out_tok
+        self._sess_sum_tok   += msg.in_tok + msg.out_tok
+        self._ctx_tokens      = msg.in_tok
+        self._redraw_context()
+        self._redraw_cost()
 
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:

@@ -2266,14 +2266,14 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
                 reasoning = reasoning + content
                 content = ""
 
-    # Debug output (mirrors streaming debug labels so DEBUG_MODE: continue works correctly)
+    # Debug output — use stderr so TUI stdout capture doesn't duplicate content
     if config.DEBUG_MODE:
         if reasoning:
-            sys.stdout.write(f"\n\033[36m[reasoning]\033[0m {reasoning}\n")
-            sys.stdout.flush()
+            sys.stderr.write(f"\n\033[36m[reasoning]\033[0m {reasoning}\n")
+            sys.stderr.flush()
         if content:
-            sys.stdout.write(f"\n\033[32m[content]\033[0m {content}\n")
-            sys.stdout.flush()
+            sys.stderr.write(f"\n\033[32m[content]\033[0m {content}\n")
+            sys.stderr.flush()
 
     if reasoning:
         for line in reasoning.splitlines(keepends=True):
@@ -2727,20 +2727,20 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                     reasoning = reasoning + content
                                     content = ""
 
-                                # Handle reasoning and content for debug display
+                                # Handle reasoning and content for debug display — stderr to avoid TUI duplication
                                 if config.DEBUG_MODE:
                                     if reasoning:
                                         if not _reasoning_started:
-                                            sys.stdout.write(f"\n\033[36m[reasoning]\033[0m ")
+                                            sys.stderr.write(f"\n\033[36m[reasoning]\033[0m ")
                                             _reasoning_started = True
-                                        sys.stdout.write(reasoning)
-                                        sys.stdout.flush()
+                                        sys.stderr.write(reasoning)
+                                        sys.stderr.flush()
                                     if content:
                                         if not _content_label_printed:
-                                            sys.stdout.write(f"\n\033[32m[content]\033[0m ")
+                                            sys.stderr.write(f"\n\033[32m[content]\033[0m ")
                                             _content_label_printed = True
-                                        sys.stdout.write(content)
-                                        sys.stdout.flush()
+                                        sys.stderr.write(content)
+                                        sys.stderr.flush()
 
                                 if reasoning or content:
                                     if _t_first_token is None:
