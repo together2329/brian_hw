@@ -682,7 +682,11 @@ class TodoTracker:
             if current.status == "rejected":
                 _default = (
                     f"[Task {idx}/{total} REJECTED] {current.rejection_reason}\n"
-                    f"Fix the issue, then call: todo_update(index={idx}, status='in_progress')"
+                    f"Options:\n"
+                    f"  A) Fix the issue, then: todo_update(index={idx}, status='in_progress')\n"
+                    f"  B) Task is impossible as written → rewrite it:\n"
+                    f"       todo_remove(index={idx})\n"
+                    f"       todo_add(content='<new achievable task>', index={idx})"
                 )
                 try:
                     import builtins as _b

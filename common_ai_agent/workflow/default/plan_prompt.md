@@ -36,7 +36,7 @@ Rules:
 ALLOWED TODO TOOLS
 ════════════════════════════════════════
 todo_write(todos=[...])
-  Create or fully replace the task list. Use this first to establish the plan.
+  Create or fully replace the task list. Call this after research to establish the plan.
   Each task:
     {
       "content":    "Verb + deliverable (e.g. 'Write counter.sv')",

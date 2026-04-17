@@ -312,6 +312,16 @@ def run_react_agent_impl(
     # ======================================================================
     # Main loop
     # ======================================================================
+    _last_injected_task_key: tuple = (-1, "")  # (task_index, task_status)
+
+    def _get_task_key(tt) -> tuple:
+        if not tt or not tt.todos:
+            return (-1, "")
+        t = tt.get_current_todo()
+        if t is None:
+            return (-1, "")
+        return (tt.current_index, t.status)
+
     while True:
         # ESC abort check
         if _esc_check():
@@ -407,9 +417,10 @@ def run_react_agent_impl(
                     messages[0]["content"].append({"type": "text", "text": ctx_msg})
 
         # Per-turn todo state injection — ephemeral (appended to last user message copy,
-        # never saved to history). Ensures LLM always knows the current todo state.
+        # never saved to history). Only inject when task/status changes to avoid
+        # repeating the same MANDATORY reminder every iteration.
         if agent_mode in ("plan", "plan_q"):
-            # Plan mode: show full list + strict instruction to call todo_write
+            # Plan mode: dedup against recent messages (was previously missing)
             _todo_state = ""
             if todo_tracker and todo_tracker.todos:
                 _lines = [f"[Current todo list — {len(todo_tracker.todos)} tasks]"]
@@ -419,7 +430,7 @@ def run_react_agent_impl(
                 _todo_state = "\n" + "\n".join(_lines)
             else:
                 _todo_state = "\n[No todo list yet — call todo_write() to create one]"
-            _pre_llm_reminder = (
+            _plan_reminder = (
                 "\n\n---\n"
                 "⚠️  PLAN MODE REMINDER: Research and refine the task list.\n"
                 "• Use todo_write / todo_add / todo_remove to manage tasks.\n"
@@ -427,21 +438,26 @@ def run_react_agent_impl(
                 "• Do not write files or run commands — read only."
                 + _todo_state
             )
-        elif (todo_tracker and todo_tracker.todos
-              and not todo_tracker.is_all_processed()):
-            # Execution mode: inject current task reminder so the LLM always knows
-            # what to work on next — critical after todo_write when no post-execution
-            # reminder was injected (because _last_tool_was_todo skips it).
-            _exec_reminder = todo_tracker.get_continuation_prompt()
-            # Dedup window: widened from 6→20 messages to suppress the livelock
-            # where an identical MANDATORY reminder was injected 14× in a row
-            # (CPU req-gen incident, 2026-04-17).
             _recent_user = [
                 m.get("content", "") for m in messages[-20:]
                 if m.get("role") == "user"
             ]
-            if _exec_reminder and not any(_exec_reminder in c for c in _recent_user):
-                _pre_llm_reminder = "\n\n" + _exec_reminder
+            if not any(_plan_reminder.strip() in c for c in _recent_user):
+                _pre_llm_reminder = _plan_reminder
+            else:
+                _pre_llm_reminder = ""
+        elif (todo_tracker and todo_tracker.todos
+              and not todo_tracker.is_all_processed()):
+            # Execution mode: only inject when task or status has changed.
+            # Same task/status → skip; tool result already has [Step N/M] context.
+            _task_key = _get_task_key(todo_tracker)
+            if _task_key != _last_injected_task_key:
+                _exec_reminder = todo_tracker.get_continuation_prompt()
+                if _exec_reminder:
+                    _pre_llm_reminder = "\n\n" + _exec_reminder
+                    _last_injected_task_key = _task_key
+                else:
+                    _pre_llm_reminder = ""
             else:
                 _pre_llm_reminder = ""
         else:
@@ -1288,24 +1304,19 @@ def run_react_agent_impl(
                 observation = _step_header + observation
                 messages = deps.process_obs_fn(observation, messages, todo_tracker=todo_tracker)
 
-            # Todo continuation reminder — inject as a user message so the next LLM
-            # call knows what to do. Apply in all modes (plan included).
+            # Todo continuation reminder — inject only when task/status key changes.
             _last_tool_was_todo = tool_name in ("todo_update", "todo_write", "todo_add", "todo_remove")
-            if (todo_tracker and todo_tracker.todos
-                    and not todo_tracker.is_all_processed()
-                    and not _last_tool_was_todo):
-                reminder = todo_tracker.get_continuation_prompt()
-                if reminder:
-                    # Dedup window: widened from 4→20 messages. A 4-message
-                    # window lets the same MANDATORY prompt re-inject after
-                    # 2 assistant+tool round-trips, producing rapid livelock
-                    # (CPU req-gen incident, 2026-04-17).
-                    _recent_user_contents = [
-                        m.get("content", "") for m in messages[-20:]
-                        if m.get("role") == "user"
-                    ]
-                    if not any(reminder in c for c in _recent_user_contents):
+            if _last_tool_was_todo:
+                # Reset key so next pre-LLM injection picks up the new status.
+                _last_injected_task_key = (-1, "")
+            elif (todo_tracker and todo_tracker.todos
+                    and not todo_tracker.is_all_processed()):
+                _task_key = _get_task_key(todo_tracker)
+                if _task_key != _last_injected_task_key:
+                    reminder = todo_tracker.get_continuation_prompt()
+                    if reminder:
                         messages.append({"role": "user", "content": reminder})
+                        _last_injected_task_key = _task_key
 
             # Track non-todo tool calls for gate check (reject fake completions)
             if todo_tracker and todo_tracker.todos and not _last_tool_was_todo:
