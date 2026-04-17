@@ -600,11 +600,6 @@ class TodoTracker:
         for i, todo in enumerate(self.todos):
             icon = icons.get(todo.status, "?")
             lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {todo.content}")
-            if todo.criteria:
-                for c in todo.criteria.splitlines():
-                    if c.strip():
-                        lines.append(f"       {Color.DIM}• {c.strip()}{Color.RESET}")
-                lines.append("")
         lines.append("")
         return "\n".join(lines)
 
