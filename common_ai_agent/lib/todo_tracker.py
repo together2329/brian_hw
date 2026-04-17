@@ -718,12 +718,30 @@ class TodoTracker:
                 except Exception:
                     prompt = _default
             elif current.status == "completed":
-                # Inject review reminder — LLM must explicitly approve or reject
+                # Inject full task context so LLM can review against criteria
+                _rev_detail = f"\n  Detail   : {current.detail}" if current.detail else ""
+                _rev_criteria = ""
+                if current.criteria:
+                    _clines = [f"    • {c.strip()}" for c in current.criteria.splitlines() if c.strip()]
+                    _rev_criteria = "\n  Criteria :\n" + "\n".join(_clines)
+                    _criteria_check = (
+                        "\n\nFor EACH criterion above, verify it is actually met:\n"
+                        "  ✅ met   → evidence (file read / command output)\n"
+                        "  ❌ unmet → this is the rejection reason\n"
+                        "If ALL criteria pass → approve. If ANY fail → reject with the specific unmet criterion."
+                    )
+                else:
+                    _criteria_check = (
+                        "\n\nNo criteria defined — use your judgment: "
+                        "does the deliverable fully match the task description?"
+                    )
                 _default = (
-                    f"[Task {idx}/{total} REVIEW REQUIRED] \"{current.content}\"\n"
-                    f"You marked this task completed. Now perform a CRITICAL review before approving.\n"
-                    f"→ Pass → todo_update(index={idx}, status='approved', reason='<concrete evidence>')\n"
-                    f"→ Issue → todo_update(index={idx}, status='rejected', reason='<exact problem>')"
+                    f"[Task {idx}/{total} REVIEW REQUIRED] {current.content}"
+                    f"{_rev_detail}"
+                    f"{_rev_criteria}"
+                    f"{_criteria_check}\n"
+                    f"→ All pass → todo_update(index={idx}, status='approved', reason='<evidence for each criterion>')\n"
+                    f"→ Any fail → todo_update(index={idx}, status='rejected', reason='<exact unmet criterion + what was found>')"
                 )
                 try:
                     import builtins as _b

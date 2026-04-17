@@ -120,7 +120,7 @@ USE_RESPONSES_API = os.getenv("USE_RESPONSES_API", "false").lower() in ("true", 
 # Force Chat Completions API for gpt-5* models (opt-out of Responses API).
 # When true, models matching *gpt*5* use /chat/completions even if they would
 # otherwise be routed to /responses (e.g. gpt-5-codex, gpt-5.1-codex).
-FORCE_CHAT_COMPLETIONS_GPT5 = os.getenv("FORCE_CHAT_COMPLETIONS_GPT5", "false").lower() in ("true", "1", "yes")
+FORCE_CHAT_COMPLETIONS_GPT5 = os.getenv("FORCE_CHAT_COMPLETIONS_GPT5", "true").lower() in ("true", "1", "yes")
 
 # Azure auto-detection: if LLM_PROVIDER=azure, override BASE_URL/API_KEY/MODEL_NAME
 if LLM_PROVIDER == "azure" and AZURE_OPENAI_ENDPOINT:

@@ -637,12 +637,18 @@ def _set_max_output_tokens(data: dict, value: int) -> None:
 def is_responses_api_model(model_name: str = None) -> bool:
     """Check if a model requires the OpenAI Responses API (/v1/responses).
 
-    Pattern: *gpt*codex* — e.g. gpt-5.1-codex → /v1/responses
+    - *gpt*codex*  → always Responses API
+    - gpt-5*       → Responses API (reasoning_effort + tools not supported in Chat Completions)
     """
     name = (model_name or getattr(config, 'MODEL_NAME', '')).lower()
     if '/' in name:
         name = name.split('/')[-1]
-    return 'gpt' in name and 'codex' in name
+    if 'gpt' in name and 'codex' in name:
+        return True
+    # GPT-5.x requires Responses API when using tools + reasoning
+    if getattr(config, 'FORCE_CHAT_COMPLETIONS_GPT5', False):
+        return False
+    return name.startswith('gpt-5')
 
 
 def _strip_strict_from_tools(tools: list) -> list:
@@ -2556,15 +2562,6 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             tools = _strip_strict_from_tools(tools)
         data["tools"] = tools
         data["tool_choice"] = "auto"
-
-    # Reasoning effort for OpenAI GPT-5.x via Chat Completions
-    # (Responses API path handles this separately via data["reasoning"])
-    if ("openai.com" in url
-            and _is_reasoning_model()
-            and not use_responses_api(resolved_model)):
-        effort = getattr(config, 'REASONING_EFFORT', 'medium')
-        if effort in ('low', 'medium', 'high'):
-            data["reasoning_effort"] = effort
 
     # Debug: Log request details
     if config.DEBUG_MODE:
