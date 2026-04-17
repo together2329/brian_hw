@@ -1273,10 +1273,14 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                         get_rate_limiter().update_actual_usage(_total)
 
                     if config.DEBUG_MODE:
+                        _otd = usage_info.get("output_tokens_details") or {}
+                        _reasoning_tok = _otd.get("reasoning_tokens", 0)
                         total_tokens = input_tokens + output_tokens
                         print(f"\n{Color.info('[Token Usage (Responses API)]')}")
                         print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
                         print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
+                        if _reasoning_tok > 0:
+                            print(f"{Color.info(f'  Reasoning: {_reasoning_tok:,} tokens')}")
                         print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}")
                         if _cached > 0:
                             print(f"{Color.info(f'  Cached: {_cached:,} tokens')}")

@@ -155,6 +155,21 @@ class Color:
 
     @staticmethod
     def diff_add(text):
+        """Diff added line - Green"""
+        return f"{Color.GREEN}+{text}{Color.RESET}"
+
+    @staticmethod
+    def diff_remove(text):
+        """Diff removed line - Red"""
+        return f"{Color.RED}-{text}{Color.RESET}"
+
+    @staticmethod
+    def diff_context(text):
+        """Diff context line - Dim"""
+        return f"{Color.DIM} {text}{Color.RESET}"
+
+    @staticmethod
+    def diff_add(text):
         """Added lines in diff - Green background"""
         return f"{Color.GREEN}+ {text}{Color.RESET}"
 

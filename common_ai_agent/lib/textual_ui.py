@@ -1683,7 +1683,7 @@ class AgentTUI(App):
                 # Show pricing rates per 1M tokens
                 rate_line = f"$/1M  In {self._cost_in_pm:.2f}"
                 if self._cost_cch_pm > 0:
-                    rate_line += f"  Cch {self._cost_cch_pm:.3f}"
+                    rate_line += f"  Cached In {self._cost_cch_pm:.3f}"
                 rate_line += f"  Out {self._cost_out_pm:.2f}"
                 lines.append(rate_line)
 

@@ -614,27 +614,22 @@ class TodoTracker:
             # print(Color.DIM + "  [Todo] No tasks." + Color.RESET)
             return
 
+        icons = {
+            "pending":     Color.dim("⏸"),
+            "in_progress": Color.warning("▶"),
+            "completed":   Color.warning("👀"),
+            "approved":    Color.success("✅"),
+            "rejected":    Color.error("❌"),
+        }
         print(f"\n  {Color.BOLD}{Color.CYAN}--- TODO STATUS ---{Color.RESET}")
         for i, t in enumerate(self.todos):
-            # Status icon & label
-            status_info = {
-                "pending": ("⚪ ", "[Pending]"),
-                "in_progress": ("🔵 ", "[In Progress]"),
-                "completed": ("🟡 ", "[Completed]"),
-                "approved": (Color.success("✅ "), Color.success("[Approved]")),
-                "rejected": (Color.error("❌ "), Color.error("[Rejected]"))
-            }.get(t.status, ("❓ ", "[?]"))
-            
-            icon, label = status_info
-            
-            # Text style
+            icon = icons.get(t.status, "?")
             style = Color.RESET
-            if t.status == "approved": style = Color.success("") # Green
             if t.status == "in_progress": style = Color.BOLD + Color.YELLOW
-            if t.status == "rejected": style = Color.BOLD + Color.RED
-            if t.status == "pending": style = Color.DIM
-            
-            print(f"  {icon}{i+1}. {label} {style}{t.content}{Color.RESET}")
+            if t.status == "rejected":    style = Color.BOLD + Color.RED
+            if t.status == "approved":    style = Color.DIM
+            if t.status == "pending":     style = Color.DIM
+            print(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {style}{t.content}{Color.RESET}")
         print(f"  {Color.BOLD}{Color.CYAN}-------------------{Color.RESET}\n")
 
     def get_current_todo(self) -> Optional[TodoItem]:

@@ -284,8 +284,7 @@ def dispatch_tool(
             except (ValueError, TypeError):
                 pass
 
-        if debug:
-            print(f"[DEBUG] Parsed args: {parsed_args}, kwargs: {parsed_kwargs}")
+        # debug print removed — react_loop already prints actions= with same info
 
         # ── write_file content recovery ──────────────────────────────────
         # If write_file is missing 'content', try to extract it from raw
