@@ -128,19 +128,22 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
     # ── Task Management ───────────────────────────────────────────────────────
     "todo_write": _fn(
         "todo_write",
-        "Create or replace the task list. Pass todos as a real array (not a JSON string).",
+        "Create or replace the task list. Pass todos as a real array (not a JSON string). Always fill detail and criteria for every task.",
         {
             "todos": {
                 "type": "array",
-                "description": "List of task objects",
+                "description": "List of task objects. Every task MUST have detail and criteria filled in.",
                 "items": {
                     "type": "object",
                     "properties": {
-                        "content":    {"type": "string", "description": "Imperative description (e.g. 'Run tests')"},
-                        "activeForm": {"type": "string", "description": "Present-continuous description (e.g. 'Running tests')"},
+                        "content":    {"type": "string", "description": "Imperative verb + deliverable (e.g. 'Write counter.sv — 8-bit up-counter')"},
+                        "activeForm": {"type": "string", "description": "Present-continuous description (e.g. 'Writing counter.sv')"},
                         "status":     {"type": "string", "enum": ["pending", "in_progress", "completed"], "description": "Task status"},
+                        "priority":   {"type": "string", "enum": ["high", "medium", "low"], "description": "Task priority"},
+                        "detail":     {"type": "string", "description": "REQUIRED: HOW to implement — specific implementation notes, constraints, approach. Must not be empty."},
+                        "criteria":   {"type": "string", "description": "REQUIRED: Newline-separated acceptance criteria checklist. Each line is one verifiable condition. Must not be empty."},
                     },
-                    "required": ["content", "activeForm", "status"],
+                    "required": ["content", "activeForm", "status", "detail", "criteria"],
                 },
             }
         },

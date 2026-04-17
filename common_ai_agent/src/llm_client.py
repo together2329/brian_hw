@@ -2557,6 +2557,15 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         data["tools"] = tools
         data["tool_choice"] = "auto"
 
+    # Reasoning effort for OpenAI GPT-5.x via Chat Completions
+    # (Responses API path handles this separately via data["reasoning"])
+    if ("openai.com" in url
+            and _is_reasoning_model()
+            and not use_responses_api(resolved_model)):
+        effort = getattr(config, 'REASONING_EFFORT', 'medium')
+        if effort in ('low', 'medium', 'high'):
+            data["reasoning_effort"] = effort
+
     # Debug: Log request details
     if config.DEBUG_MODE:
         tag = f" ({caller_tag})" if caller_tag else ""

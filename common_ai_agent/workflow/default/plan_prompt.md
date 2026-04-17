@@ -58,13 +58,15 @@ ALLOWED TODO TOOLS
 ════════════════════════════════════════
 todo_write(todos=[...])
   Create or fully replace the task list. Call this after research to establish the plan.
+  Every task MUST include detail and criteria — empty fields are not allowed.
   Each task:
     {
-      "content":    "Verb + deliverable (e.g. 'Write counter.sv')",
+      "content":    "Verb + deliverable (e.g. 'Write counter.sv — 8-bit up-counter')",
       "activeForm": "Present-progressive (e.g. 'Writing counter.sv')",
       "status":     "pending",
       "priority":   "high",
-      "detail":     "Acceptance criteria, constraints, implementation notes"
+      "detail":     "HOW to implement: specific approach, constraints, key parameters",
+      "criteria":   "Verifiable checklist (one condition per line):\nFile exists at expected path\nCompiles with iverilog with 0 errors\nReset clears count to 0"
     }
 
 todo_add(content, activeForm="", priority="medium", detail="", index=None)
