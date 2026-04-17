@@ -135,6 +135,54 @@ class TestMessagesToResponsesInput:
         assert all(x.get("role") != "system" for x in items)
 
 
+class TestResponsesRequestBodyNormalization:
+    def test_openai_keeps_block_content(self):
+        data = lc._build_responses_request_body(
+            messages=[{"role": "user", "content": [{"type": "text", "text": "hello"}]}],
+            model="gpt-5.3-codex",
+            stream=True,
+            base_url="https://api.openai.com/v1/responses",
+        )
+        assert data["input"][0]["content"] == [{"type": "input_text", "text": "hello"}]
+
+    def test_openrouter_stringifies_block_content(self):
+        data = lc._build_responses_request_body(
+            messages=[{"role": "user", "content": [{"type": "text", "text": "hello"}, {"type": "text", "text": "world"}]}],
+            model="gpt-5.3-codex",
+            stream=True,
+            base_url="https://openrouter.ai/api/v1/responses",
+        )
+        assert data["input"][0]["content"] == "hello\n\nworld"
+
+    def test_openrouter_stringifies_orphan_tool_downgrade(self):
+        data = lc._build_responses_request_body(
+            messages=[
+                {"role": "user", "content": "hi"},
+                {"role": "tool", "tool_call_id": "call_missing", "content": [
+                    {"type": "text", "text": "tool result"},
+                    {"kind": "meta", "value": 7},
+                ]},
+            ],
+            model="gpt-5.3-codex",
+            stream=True,
+            base_url="https://openrouter.ai/api/v1/responses",
+        )
+        orphan = data["input"][1]
+        assert orphan["role"] == "user"
+        assert isinstance(orphan["content"], str)
+        assert "Orphaned tool result for call_missing" in orphan["content"]
+        assert "tool result" in orphan["content"]
+
+    def test_azure_keeps_block_content(self):
+        data = lc._build_responses_request_body(
+            messages=[{"role": "user", "content": [{"type": "text", "text": "hello"}]}],
+            model="gpt-5.3-codex",
+            stream=True,
+            base_url="https://my-endpoint.openai.azure.com/openai/v1/responses",
+        )
+        assert data["input"][0]["content"] == [{"type": "input_text", "text": "hello"}]
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # G5: _parse_openai_error
 # ──────────────────────────────────────────────────────────────────────────────

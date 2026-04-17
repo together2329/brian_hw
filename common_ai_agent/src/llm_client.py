@@ -691,6 +691,54 @@ def _blocks_for_responses(content, content_type: str) -> list:
     return [{"type": content_type, "text": str(content)}]
 
 
+def _responses_api_supports_block_content(base_url: str = None) -> bool:
+    """Return True when the target Responses backend accepts block-array content.
+
+    OpenAI Responses and Azure OpenAI support the canonical block-list format.
+    Some compatible providers (for example OpenRouter's /responses gateway) validate
+    role-message content as a plain string instead.
+    """
+    base = (base_url or getattr(config, "BASE_URL", "") or "").lower()
+    if is_azure_provider() or ".azure.com" in base:
+        return True
+    return "api.openai.com" in base
+
+
+def _flatten_responses_content_to_text(content) -> str:
+    """Flatten block/list content to plain text for strict string-only backends."""
+    if isinstance(content, list):
+        parts = []
+        for block in content:
+            if isinstance(block, dict):
+                if block.get("type") in ("text", "input_text", "output_text", "reasoning_text"):
+                    text = block.get("text", "")
+                    if text:
+                        parts.append(str(text))
+                elif "text" in block:
+                    text = block.get("text", "")
+                    if text:
+                        parts.append(str(text))
+                else:
+                    parts.append(json.dumps(block, ensure_ascii=False, sort_keys=True))
+            else:
+                parts.append(str(block))
+        return "\n\n".join(part for part in parts if part)
+    return str(content)
+
+
+def _stringify_responses_message_content(input_items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Convert array-valued role-message content blocks to plain strings."""
+    normalized = []
+    for item in input_items:
+        if item.get("role") in ("user", "assistant", "system", "developer") and isinstance(item.get("content"), list):
+            coerced = dict(item)
+            coerced["content"] = _flatten_responses_content_to_text(item["content"])
+            normalized.append(coerced)
+        else:
+            normalized.append(item)
+    return normalized
+
+
 def build_chat_url(base_url: str, model: str = None) -> str:
     """
     Build the chat completions URL for the current provider.
@@ -825,6 +873,7 @@ def _build_responses_request_body(
     temperature: float = None,
     tools: List[Dict] = None,
     max_output_tokens: int = None,
+    base_url: str = None,
 ) -> dict:
     """
     Build a complete Responses API request body from Chat Completions-style messages.
@@ -834,7 +883,11 @@ def _build_responses_request_body(
     """
     input_items, instructions = _convert_messages_to_responses_input(messages)
 
-    _is_openrouter = 'openrouter' in getattr(config, 'BASE_URL', '').lower()
+    if not _responses_api_supports_block_content(base_url):
+        input_items = _stringify_responses_message_content(input_items)
+
+    effective_base_url = base_url or getattr(config, 'BASE_URL', '')
+    _is_openrouter = 'openrouter' in effective_base_url.lower()
     data = {
         "model": model,
         "input": input_items,
@@ -860,10 +913,11 @@ def _build_responses_request_body(
     if _is_reasoning_model_for_name(model):
         effort = getattr(config, 'REASONING_EFFORT', 'medium')
         if effort in ('low', 'medium', 'high'):
-            data["reasoning"] = {
-                "effort": effort,
-                "summary": "auto",
-            }
+            _is_openrouter_req = 'openrouter' in effective_base_url.lower()
+            if _is_openrouter_req:
+                data["reasoning"] = {"effort": effort}
+            else:
+                data["reasoning"] = {"effort": effort, "summary": "auto"}
 
     if tools:
         # Convert Chat Completions tool format to Responses API format.
@@ -901,6 +955,7 @@ def _build_responses_request(data: dict, resolved_model: str) -> dict:
         temperature=data.get("temperature"),
         tools=data.get("tools"),
         max_output_tokens=data.get("max_completion_tokens") or data.get("max_tokens"),
+        base_url=data.get("base_url") or getattr(config, 'BASE_URL', ''),
     )
 
 
@@ -1034,6 +1089,7 @@ def chat_completion_with_config(
             stop=stop,
             temperature=temperature if temperature is not None else provider_config.temperature,
             tools=tools,
+            base_url=provider_config.base_url,
         )
         if top_p is not None:
             data["top_p"] = top_p
@@ -1353,7 +1409,9 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
             yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
             if _msg:
                 yield f"{Color.error(f'  {_msg}')}\n"
-            elif error_body:
+            if error_body and config.DEBUG_MODE:
+                yield f"{Color.DIM}  [Error Body]: {error_body[:500]}{Color.RESET}\n"
+            elif error_body and not _msg:
                 yield f"{Color.error(f'  {error_body[:300]}')}\n"
             return
 
@@ -2101,6 +2159,7 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
             stream=False,
             stop=stop,
             max_output_tokens=compute_safe_max_tokens() if config.MAX_OUTPUT_TOKENS > 0 else None,
+            base_url=url,
         )
 
         _spinner = None
@@ -2541,6 +2600,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             stop=stop,
             tools=tools,
             max_output_tokens=compute_safe_max_tokens() if config.MAX_OUTPUT_TOKENS > 0 else None,
+            base_url=url,
         )
 
         if config.DEBUG_MODE:
