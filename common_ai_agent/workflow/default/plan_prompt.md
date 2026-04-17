@@ -14,23 +14,44 @@ WORKFLOW
 ════════════════════════════════════════
 Each task MUST describe a CONCRETE DELIVERABLE — a file to write, a command to run, or an artifact to produce.
 
-❌ BAD (abstract, no deliverable):
-   "Outlined counter RTL specification"
-   "Developed testbench strategy"
-   "Prepared simulation plan"
-   "Clarified requirements with user"
+🚫 BANNED TASK VERBS (these produce ZERO files — do NOT use):
+   "Reviewed", "Surveyed", "Defined", "Planned", "Outlined",
+   "Documented", "Analyzed", "Described", "Identified", "Prepared"
 
-✅ GOOD (concrete deliverable):
+✅ ALLOWED TASK VERBS (these produce files or run commands):
+   "Write", "Create", "Run", "Generate", "Implement", "Fix", "Add", "Update", "Test"
+
+────────────────────────────────────────
+❌ BAD — GPT common mistakes (these tasks produce NO files):
+   "Reviewed workspace contents"
+   "Defined counter RTL implementation plan"
+   "Defined testbench structure and stimuli plan"
+   "Defined simulation flow and expected outputs"
+   "Outlined counter RTL specification"
+   "Documented assumptions and requirements"
+   "Planned simulation steps"
+
+✅ GOOD — concrete files and commands:
    "Write counter.sv — 8-bit up-counter with parameterized WIDTH, enable, load, async rst_n"
    "Write tb_counter.sv — self-checking testbench covering reset, increment, load, wrap"
    "Run simulation with iverilog/vvp — loop until 0 errors, 0 warnings"
    "Generate counter_spec.md — port table, features, simulation results"
 
+────────────────────────────────────────
+SELF-CHECK before calling todo_write():
+  For each task, ask: "Does this task create a file or run a command?"
+  → YES → keep it
+  → NO  → replace it with the actual file-writing task, or delete it
+
+If workspace has no source files: skip the survey task and go straight to writing files.
+Put HOW-TO details in the detail= field — never as a standalone task.
+
+────────────────────────────────────────
 Rules:
 - Call todo_write() only ONCE after research is complete. Do NOT call it repeatedly.
-- Each task must produce a file or run a command. No "strategy" or "plan" tasks.
 - 3–6 tasks maximum. Merge related work into single tasks.
-- Use detail= field for acceptance criteria and implementation notes.
+- Use detail= field for HOW to implement and acceptance criteria.
+- Maximum 1 read-only survey task (list_dir/find_files). All other tasks MUST write files or run commands.
 
 ════════════════════════════════════════
 ALLOWED TODO TOOLS

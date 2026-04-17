@@ -1006,6 +1006,9 @@ class AgentTUI(App):
         except Exception:
             pass
 
+        # ── Cost: restore accumulated totals from previous session ───────────
+        self._load_cost_file()
+
         # ── Model ────────────────────────────────────────────────────────────
         self._refresh_model_sidebar()
 
@@ -1481,6 +1484,42 @@ class AgentTUI(App):
         self._ctx_tokens      = msg.in_tok
         self._redraw_context()
         self._redraw_cost()
+        self._save_cost_file()
+
+    def _load_cost_file(self) -> None:
+        """Load accumulated token counts from session cost.json on startup."""
+        try:
+            import config as _cfg, json as _json
+            from pathlib import Path
+            path = Path(getattr(_cfg, "COST_FILE", "") or "")
+            if not path.name or not path.exists():
+                return
+            data = _json.loads(path.read_text())
+            self._sess_in_tok    = int(data.get("in_tok", 0))
+            self._sess_cache_tok = int(data.get("cache_tok", 0))
+            self._sess_out_tok   = int(data.get("out_tok", 0))
+            self._sess_sum_tok   = int(data.get("sum_tok", 0))
+        except Exception:
+            pass
+
+    def _save_cost_file(self) -> None:
+        """Persist accumulated token counts to session cost.json."""
+        try:
+            import config as _cfg, json as _json, time as _time
+            from pathlib import Path
+            path = Path(getattr(_cfg, "COST_FILE", "") or "")
+            if not path.name:
+                return
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(_json.dumps({
+                "in_tok":    self._sess_in_tok,
+                "cache_tok": self._sess_cache_tok,
+                "out_tok":   self._sess_out_tok,
+                "sum_tok":   self._sess_sum_tok,
+                "updated_at": _time.time(),
+            }, indent=2))
+        except Exception:
+            pass
 
 
     def on_reasoning_chunk(self, msg: ReasoningChunk) -> None:

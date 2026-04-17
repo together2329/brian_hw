@@ -224,6 +224,7 @@ SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")
 HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")
 TODO_FILE = os.getenv("TODO_FILE", "current_todos.json")
 TODO_ERROR_FILE = os.getenv("TODO_ERROR_FILE", "current_todos_error.json")
+COST_FILE      = os.getenv("COST_FILE", "")                   # .session/<project>/cost.json
 
 # Session directory layout (set by _setup_session at runtime)
 SESSION_DIR = os.getenv("SESSION_DIR", "")            # .session/<project_name>

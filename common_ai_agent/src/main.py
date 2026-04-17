@@ -1307,6 +1307,7 @@ def _setup_session(project: str = 'default', workflow: str = '') -> Path:
     config.HISTORY_FILE    = str(session_dir / 'conversation.json')
     config.TODO_FILE       = str(session_dir / 'todo.json')
     config.TODO_ERROR_FILE = str(session_dir / 'todo_error.json')
+    config.COST_FILE       = str(session_dir / 'cost.json')
     config.SESSION_DIR     = str(session_dir)
     config.ACTIVE_PROJECT  = project
 

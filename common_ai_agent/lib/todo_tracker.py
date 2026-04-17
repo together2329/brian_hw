@@ -481,95 +481,108 @@ class TodoTracker:
         return candidates[0][0]
 
     def format_progress(self) -> str:
-        """
-        Progress를 시각화된 문자열로 포맷.
-
-        Format:
-            === TODO PROGRESS ===
-            ✅ 1. Completed task                (12s)
-            ▶️ 2. [HIGH] Current task...        (5s elapsed)
-            ⏸️ 3. Next task
-            ⏸️ 4. [LOW] Low priority task
-
-            [████████░░░░░░░░░░░░] 40%  (2/5 done)
-        """
+        """Progress를 시각화된 문자열로 포맷 — 섹션별 명확한 구분."""
         if not self.todos:
             return ""
 
-        from lib.display import get_terminal_width
-        term_width = get_terminal_width()
-        # Adjusted max length based on terminal width (with some padding for icons/timing)
-        max_text_len = max(40, term_width - 35)
+        # Indent constants
+        _IND = "       "   # 7 spaces — sub-section indent
+        _CON = "            "  # 12 spaces — criteria continuation (aligns under bullet)
 
-        _BAR_BG = Color.DIM + "░" + Color.RESET
-        _BAR_FG = Color.success("█")
+        def _label(name: str, color: str = "") -> str:
+            """Right-pad label to 8 chars, apply color."""
+            padded = name.ljust(8)
+            return f"{color}{padded}{Color.RESET}" if color else padded
+
+        def _wrap_text(text: str, first_indent: str, cont_indent: str, width: int = 72) -> list:
+            """Wrap long text into lines respecting terminal width."""
+            if not text:
+                return []
+            words = text.split()
+            result, cur = [], ""
+            for w in words:
+                if cur and len(cur) + 1 + len(w) > width:
+                    result.append(cur)
+                    cur = w
+                else:
+                    cur = (cur + " " + w).strip()
+            if cur:
+                result.append(cur)
+            out = []
+            for j, line in enumerate(result):
+                indent = first_indent if j == 0 else cont_indent
+                out.append(indent + line)
+            return out
 
         lines = ["", f"  {Color.BOLD}{Color.CYAN}── PLAN & PROGRESS ──{Color.RESET}"]
 
         for i, todo in enumerate(self.todos):
-            # Icon and explicit status label [Approved], [In Progress], etc.
-            status_info = {
-                "pending":     (f"{Color.dim('⏸')} ", "[Pending]"),
-                "in_progress": (f"{Color.warning('▶')} ", "[In Progress]"),
-                "completed":   (f"{Color.warning('👀')} ", "[Completed]"),
-                "approved":    (f"{Color.success('✅')} ", f"{Color.success('[Approved]')}"),
-                "rejected":    (f"{Color.error('❌')} ", f"{Color.error('[Rejected]')} ")
-            }.get(todo.status, ("❓ ", "[?] "))
-            
-            icon, label = status_info
+            # ── Status icon, label, text style ──────────────────────────────
+            _STATUS = {
+                "pending":     (Color.dim("⏸"),        Color.dim("[Pending]"),               Color.DIM),
+                "in_progress": (Color.warning("▶"),     f"{Color.BOLD}{Color.YELLOW}[In Progress]{Color.RESET}", Color.BOLD + Color.YELLOW),
+                "completed":   (Color.warning("👀"),    Color.warning("[Review]"),             Color.RESET),
+                "approved":    (Color.success("✅"),    Color.success("[Approved]"),           Color.DIM),
+                "rejected":    (Color.error("❌"),      Color.error("[Rejected]"),             Color.BOLD + Color.RED),
+            }
+            icon, status_label, content_style = _STATUS.get(todo.status, ("❓", "[?]", Color.RESET))
 
-            # Priority badge
             priority_badge = ""
             if todo.priority == "high":
-                priority_badge = f"{Color.RED}[HIGH]{Color.RESET} "
+                priority_badge = f"  {Color.RED}[HIGH]{Color.RESET}"
             elif todo.priority == "low":
-                priority_badge = f"{Color.dim('[LOW]')} "
-
-            # Text with status-based coloring
-            content_style = Color.RESET
-            if todo.status == "approved":
-                content_style = getattr(Color, "DIM", "") + getattr(Color, "STRIKETHROUGH", "")
-            elif todo.status == "completed":
-                content_style = Color.RESET
-            elif todo.status == "in_progress":
-                content_style = Color.BOLD + Color.YELLOW
-            elif todo.status == "rejected":
-                content_style = Color.BOLD + Color.RED
+                priority_badge = f"  {Color.DIM}[LOW]{Color.RESET}"
 
             text = todo.active_form if todo.status in ("in_progress", "rejected") else todo.content
-            
-            # Elapsed / completion time
+
             time_str = ""
-            if todo.status in ("completed", "approved") and todo.elapsed is not None:
+            if todo.elapsed is not None:
                 secs = abs(todo.elapsed)
-                time_str = f" {Color.dim(f'({_fmt_elapsed(secs)})')}{Color.RESET}"
-            elif todo.status in ("in_progress", "rejected") and todo.elapsed is not None:
-                secs = abs(todo.elapsed)
-                time_str = f" {Color.dim(f'({_fmt_elapsed(secs)} elapsed)')}{Color.RESET}"
+                suffix = " elapsed" if todo.status in ("in_progress", "rejected") else ""
+                time_str = f"  {Color.DIM}({_fmt_elapsed(secs)}{suffix}){Color.RESET}"
 
-            lines.append(f"  {icon}{Color.CYAN}{i+1}.{Color.RESET} {label} {priority_badge}{content_style}{text}{Color.RESET}{time_str}")
-            
-            # Show detail if available
-            if todo.detail and todo.status != 'completed':
-                prefix = "   " if todo.status == "in_progress" else "   "
-                lines.append(f"{prefix}{Color.DIM}└ 📝 {todo.detail}{Color.RESET}")
-                
-            # Show rejection reason if available
-            if todo.rejection_reason and todo.status in ('rejected', 'in_progress', 'pending'):
-                lines.append(f"     {Color.error('⚠ REJECTED:')} {Color.RED}{todo.rejection_reason}{Color.RESET}")
+            # ── Task header ──────────────────────────────────────────────────
+            lines.append("")
+            lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {status_label}{priority_badge}")
+            lines.append(f"     {content_style}{text}{Color.RESET}{time_str}")
 
-            # Show approved reason if available
-            if todo.approved_reason and todo.status == 'approved':
-                lines.append(f"     {Color.success('✔ APPROVED:')} {Color.DIM}{todo.approved_reason}{Color.RESET}")
-                
-            # Show criteria if available
-            if todo.criteria and todo.status != 'completed':
-                for c in todo.criteria.splitlines():
-                    if c.strip():
-                        lines.append(f"     {Color.DIM}• {c.strip()}{Color.RESET}")
+            # ── Rejected reason ──────────────────────────────────────────────
+            if todo.rejection_reason and todo.status in ("rejected", "in_progress", "pending"):
+                label_str = _label("Rejected", Color.RED)
+                wrapped = _wrap_text(todo.rejection_reason,
+                                     f"{_IND}{label_str} : {Color.RED}",
+                                     f"{_CON}  {Color.RED}")
+                for ln in wrapped:
+                    lines.append(ln + Color.RESET)
+
+            # ── Detail ───────────────────────────────────────────────────────
+            if todo.detail:
+                label_str = _label("Detail", Color.DIM)
+                wrapped = _wrap_text(todo.detail,
+                                     f"{_IND}{label_str} : {Color.DIM}",
+                                     f"{_CON}  {Color.DIM}")
+                for ln in wrapped:
+                    lines.append(ln + Color.RESET)
+
+            # ── Criteria ─────────────────────────────────────────────────────
+            if todo.criteria:
+                clines = [c.strip() for c in todo.criteria.splitlines() if c.strip()]
+                if clines:
+                    label_str = _label("Criteria", Color.DIM)
+                    lines.append(f"{_IND}{label_str} :")
+                    for c in clines:
+                        lines.append(f"{_CON}  {Color.DIM}• {c}{Color.RESET}")
+
+            # ── Approved reason ──────────────────────────────────────────────
+            if todo.approved_reason and todo.status == "approved":
+                label_str = _label("Approved", Color.success(""))
+                wrapped = _wrap_text(todo.approved_reason,
+                                     f"{_IND}{Color.success('Approved')} : {Color.DIM}",
+                                     f"{_CON}  {Color.DIM}")
+                for ln in wrapped:
+                    lines.append(ln + Color.RESET)
 
         lines.append("")
-
         return "\n".join(lines)
 
     def format_simple(self) -> str:
