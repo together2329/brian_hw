@@ -2151,7 +2151,25 @@ class SlashCommandRegistry:
             elif isinstance(raw_content, dict):
                 content = (raw_content.get("static", "") + "\n" + raw_content.get("dynamic", "")).strip()
             else:
-                content = str(raw_content).strip()
+                content = str(raw_content).strip() if raw_content is not None else ""
+
+            # For assistant messages with tool_calls and no text, show what was called
+            tool_calls = msg.get("tool_calls", [])
+            if role == "ASSISTANT" and not content and tool_calls:
+                import json as _json
+                call_strs = []
+                for tc in tool_calls:
+                    fn = tc.get("function", {})
+                    name = fn.get("name", "?")
+                    try:
+                        args = _json.loads(fn.get("arguments", "{}"))
+                        arg_summary = ", ".join(
+                            f"{k}={repr(v)[:40]}" for k, v in list(args.items())[:3]
+                        )
+                    except Exception:
+                        arg_summary = fn.get("arguments", "")[:60]
+                    call_strs.append(f"{name}({arg_summary})")
+                content = "\033[2m→ " + " | ".join(call_strs) + "\033[0m"
 
             # Formatting based on role
             if role == "SYSTEM":
@@ -2163,8 +2181,9 @@ class SlashCommandRegistry:
             else:
                 role_fmt = f"[{role}]"
 
-            # Optional turn ID and tokens
-            turn_str = f" (turn {msg['turn_id']})" if "turn_id" in msg else ""
+            # Optional turn ID, iter ID, and tokens
+            iter_str = f", iter {msg['iter_id']}" if "iter_id" in msg else ""
+            turn_str = f" (turn {msg['turn_id']}{iter_str})" if "turn_id" in msg else ""
             token_str = ""
             if "_tokens" in msg:
                 t = msg["_tokens"]

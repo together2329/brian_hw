@@ -802,6 +802,7 @@ def run_react_agent_impl(
             "role": "assistant",
             "content": collected_content,
             "turn_id": deps.get_turn_id_fn(),
+            "iter_id": tracker.current,
             "timestamp": time.time(),
         }
         usage = deps.get_llm_usage_fn()
