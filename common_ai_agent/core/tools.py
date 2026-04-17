@@ -2371,8 +2371,17 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
         # Same protection for criteria — don't lose original criteria during review.
         item.criteria = criteria
 
+    # Guard: status=None with no other field means LLM passed null — surface a clear error
+    if status is None and not any([content, detail, activeForm, criteria]):
+        return (
+            f"Error: Nothing to update for Task {index}. "
+            f"Provide at least one of: status ('in_progress'/'completed'/'approved'/'rejected'/'pending'), "
+            f"content, detail, activeForm, or criteria."
+        )
+
     # Update status if provided
-    if status:
+    if status is not None and str(status).strip():
+        status = str(status).strip()
         # Normalize common aliases
         from lib.todo_tracker import STATUS_ALIASES
         valid = ["pending", "in_progress", "completed", "approved", "rejected"]

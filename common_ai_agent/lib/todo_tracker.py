@@ -742,8 +742,15 @@ class TodoTracker:
                         if in_prog else
                         f"⚠️ MANDATORY: Start by calling todo_update(index={idx}, status='in_progress'), then do the work, then call todo_update(index={idx}, status='completed')."
                     )
+                    _detail_str = f"\n  Detail: {current.detail}" if current.detail else ""
+                    _criteria_str = ""
+                    if current.criteria:
+                        _clines = [f"    • {c.strip()}" for c in current.criteria.splitlines() if c.strip()]
+                        _criteria_str = "\n  Criteria:\n" + "\n".join(_clines)
                     _default = (
-                        f"[Task {idx}/{total}] {current.content}\n"
+                        f"[Task {idx}/{total}] {current.content}"
+                        f"{_detail_str}"
+                        f"{_criteria_str}\n"
                         f"{first_action}"
                     )
                     try:
