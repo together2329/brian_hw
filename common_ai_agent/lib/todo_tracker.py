@@ -596,8 +596,13 @@ class TodoTracker:
             "approved":    Color.success("✅"),
             "rejected":    Color.error("❌"),
         }
+        visible = [t for t in self.todos if t.status != "approved"]
+        if not visible:
+            return ""
         lines = ["", f"  {Color.BOLD}{Color.CYAN}── TODO ──{Color.RESET}"]
         for i, todo in enumerate(self.todos):
+            if todo.status == "approved":
+                continue
             icon = icons.get(todo.status, "?")
             lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {todo.content}")
         lines.append("")
