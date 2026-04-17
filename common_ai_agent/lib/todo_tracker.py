@@ -680,8 +680,16 @@ class TodoTracker:
         if current:
             idx = self.current_index + 1
             if current.status == "rejected":
+                _rej_detail = f"\n  Detail: {current.detail}" if current.detail else ""
+                _rej_criteria = ""
+                if current.criteria:
+                    _clines = [f"    • {c.strip()}" for c in current.criteria.splitlines() if c.strip()]
+                    _rej_criteria = "\n  Criteria:\n" + "\n".join(_clines)
                 _default = (
-                    f"[Task {idx}/{total} REJECTED] {current.rejection_reason}\n"
+                    f"[Task {idx}/{total} REJECTED] {current.content}\n"
+                    f"  Reason: {current.rejection_reason}"
+                    f"{_rej_detail}"
+                    f"{_rej_criteria}\n"
                     f"Options:\n"
                     f"  A) Fix the issue, then: todo_update(index={idx}, status='in_progress')\n"
                     f"  B) Task is impossible as written → rewrite it:\n"
