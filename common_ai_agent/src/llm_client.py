@@ -721,6 +721,8 @@ def build_responses_url(base_url: str, model: str = None) -> str:
     if is_azure_provider():
         endpoint = base_url.rstrip("/")
         return f"{endpoint}/openai/v1/responses"
+    if 'openrouter' in base_url.lower():
+        return "https://openrouter.ai/api/v1/responses"
     return f"{base_url.rstrip('/')}/responses"
 
 
@@ -832,12 +834,14 @@ def _build_responses_request_body(
     """
     input_items, instructions = _convert_messages_to_responses_input(messages)
 
+    _is_openrouter = 'openrouter' in getattr(config, 'BASE_URL', '').lower()
     data = {
         "model": model,
         "input": input_items,
-        "store": True,  # Required for prompt caching on Responses API
         "stream": stream,
     }
+    if not _is_openrouter:
+        data["store"] = True  # Required for prompt caching on OpenAI Responses API
 
     if instructions:
         data["instructions"] = instructions
@@ -1286,7 +1290,8 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                             print(f"{Color.info(f'  Cached: {_cached:,} tokens')}")
                         # Cache debug: show raw usage keys
                         _itd_debug = usage_info.get("input_tokens_details", {})
-                        print(f"{Color.DIM}[Cache Debug] usage keys: {list(usage_info.keys())} | itd: {_itd_debug}{Color.RESET}")
+                        _otd_debug = usage_info.get("output_tokens_details", {})
+                        print(f"{Color.DIM}[Cache Debug] usage keys: {list(usage_info.keys())} | itd: {_itd_debug} | otd: {_otd_debug}{Color.RESET}")
                         print()
 
                 # ── Finish reason signals ──
@@ -1709,8 +1714,12 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                     _finish_reason = _fr
                                 delta = choice.get("delta", {})
 
-                                # Reasoning tokens (DeepSeek, GLM etc.)
+                                # Reasoning tokens (DeepSeek, GLM, OpenRouter reasoning_details)
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
+                                if not reasoning:
+                                    for rd in (delta.get("reasoning_details") or []):
+                                        if rd.get("type") == "thinking":
+                                            reasoning = (reasoning or "") + (rd.get("thinking", "") or rd.get("summary", ""))
                                 content = delta.get("content", "")
 
                                 # Bleed fix: GLM-4.7 can emit reasoning tail and content start
@@ -1810,10 +1819,14 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                         get_rate_limiter().update_actual_usage(_total)
 
                     if config.DEBUG_MODE:
+                        _reasoning_tok = usage_info.get("reasoningTokens") or \
+                            (usage_info.get("completion_tokens_details") or {}).get("reasoning_tokens", 0)
                         total_tokens = input_tokens + output_tokens
                         print(f"\n{Color.info('[Token Usage]')}")
                         print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
                         print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
+                        if _reasoning_tok:
+                            print(f"{Color.info(f'  Reasoning: {_reasoning_tok:,} tokens')}")
                         print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}")
                         if _cached > 0:
                             print(f"{Color.info(f'  Cached: {_cached:,} tokens (prompt cache hit)')}")
@@ -2567,6 +2580,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         data["tools"] = tools
         data["tool_choice"] = "auto"
 
+
     # Debug: Log request details
     if config.DEBUG_MODE:
         tag = f" ({caller_tag})" if caller_tag else ""
@@ -2725,8 +2739,12 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                     _finish_reason = _fr
                                 delta = choice.get("delta", {})
 
-                                # Reasoning tokens (DeepSeek, GLM etc.)
+                                # Reasoning tokens (DeepSeek, GLM, OpenRouter reasoning_details)
                                 reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
+                                if not reasoning:
+                                    for rd in (delta.get("reasoning_details") or []):
+                                        if rd.get("type") == "thinking":
+                                            reasoning = (reasoning or "") + (rd.get("thinking", "") or rd.get("summary", ""))
                                 content = delta.get("content", "")
 
                                 # Streaming bleed fix: when both reasoning_content and content

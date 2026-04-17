@@ -1146,7 +1146,9 @@ def run_react_agent_impl(
                             brief = format_tool_brief(tool_name, _args_display, observation)
                             print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")
                         else:
-                            print(format_tool_result(observation, max_lines=_edit_max, max_chars=_edit_max * 120))
+                            # Print diff raw to preserve +green/-red ANSI colors
+                            for _dl in observation.splitlines():
+                                print(f"  {_dl}")
                     elif tool_name in ("write_file", "write_to_file"):
                         _wr_lines = getattr(cfg, "WRITE_PREVIEW_LINES", 15)
                         if _wr_lines <= 0:
