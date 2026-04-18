@@ -3067,32 +3067,43 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     if _total > 0:
                         get_rate_limiter().update_actual_usage(_total)
 
-                    # Display actual token usage (always show for visibility)
-                    if config.DEBUG_MODE:
-                        total_tokens = input_tokens + output_tokens
-                        print(f"\n{Color.info('[Token Usage]')}")
-                        print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
-                        print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
-                        print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}\n")
-
                 # Parse cache token usage — supports both Anthropic and OpenAI/Z.AI formats
+                _cache_creation_tok = 0
+                _cache_read_tok = 0
                 if usage_info and config.ENABLE_PROMPT_CACHING:
-                    # Anthropic: cache_creation_input_tokens / cache_read_input_tokens
-                    # OpenAI / Z.AI: prompt_tokens_details.cached_tokens (read-only, implicit)
-                    cache_creation_tokens = usage_info.get("cache_creation_input_tokens", 0)
-                    cache_read_tokens = usage_info.get("cache_read_input_tokens", 0)
+                    _cache_creation_tok = usage_info.get("cache_creation_input_tokens", 0)
+                    _cache_read_tok = usage_info.get("cache_read_input_tokens", 0)
                     _ptd = usage_info.get("prompt_tokens_details") or {}
-                    cache_read_tokens = cache_read_tokens or _ptd.get("cached_tokens", 0)
+                    _cache_read_tok = _cache_read_tok or _ptd.get("cached_tokens", 0)
+                    last_cache_creation_tokens = _cache_creation_tok
+                    last_cache_read_tokens = _cache_read_tok
+                    total_cache_created += _cache_creation_tok
+                    total_cache_read += _cache_read_tok
 
-                    # Debug: log raw usage info for cache diagnosis
-                    if config.DEBUG_MODE:
-                        print(f"{Color.DIM}[Cache Debug] usage_info keys: {list(usage_info.keys())} | ptd: {_ptd} | cached: {cache_read_tokens}{Color.RESET}")
-
-                    # Update cache token tracking
-                    last_cache_creation_tokens = cache_creation_tokens
-                    last_cache_read_tokens = cache_read_tokens
-                    total_cache_created += cache_creation_tokens
-                    total_cache_read += cache_read_tokens
+                if usage_info and config.DEBUG_MODE:
+                    total_tokens = input_tokens + output_tokens
+                    _new_input = input_tokens - _cache_read_tok - _cache_creation_tok
+                    _tc_names = [tc.get("name", "?") for tc in _pending_tool_calls.values() if tc.get("name")] if "_pending_tool_calls" in dir() else []
+                    _reasoning_tok = usage_info.get("thinking_input_tokens", 0) or \
+                        (usage_info.get("usage", {}) or {}).get("thinking_input_tokens", 0)
+                    _content_tok = output_tokens - _reasoning_tok
+                    print(f"\n{Color.info('[Response]')}")
+                    if _finish_reason:
+                        print(Color.info(f"  Finish:      {_finish_reason}"))
+                    print(Color.info(f"  {'─'*32}"))
+                    _cache_detail = ""
+                    if _cache_creation_tok > 0:
+                        _cache_detail += f"  (created: {_cache_creation_tok:,})"
+                    if _cache_read_tok > 0:
+                        _cache_detail += f"  (cached: {_cache_read_tok:,} / new: {_new_input:,})"
+                    _out_detail = f"  (reasoning: {_reasoning_tok:,} / content: {_content_tok:,})" if _reasoning_tok > 0 else ""
+                    print(Color.info(f"  Input:       {input_tokens:,}{_cache_detail}"))
+                    print(Color.info(f"  Output:      {output_tokens:,}{_out_detail}"))
+                    print(Color.info(f"  Total:       {total_tokens:,}"))
+                    if _tc_names:
+                        print(Color.info(f"  {'─'*32}"))
+                        print(Color.info(f"  Tool calls:  {len(_tc_names)}  [{', '.join(_tc_names)}]"))
+                    print()
                 
                 # finish_reason signals
                 if _finish_reason == "length":
