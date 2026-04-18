@@ -903,10 +903,16 @@ def _build_responses_request_body(
         "input": input_items,
         "stream": stream,
     }
-    # Enable store for OpenAI direct or OpenRouter with OpenAI models (gpt-5.x, o-series)
-    _is_openai_model = model and ('gpt-' in model.lower() or any(x in model.lower() for x in ('o1', 'o3', 'o4')))
-    if not _is_openrouter or (_is_openrouter and _is_openai_model):
-        data["store"] = True  # Required for prompt caching on OpenAI Responses API
+    # Enable store for OpenAI/GLM direct or OpenRouter with these models
+    # OpenAI (gpt-5.x, o-series): uses Responses API with store
+    # GLM: uses Chat Completions API with store for KV cache
+    _model_lower = (model or '').lower()
+    _is_cache_capable = (
+        'gpt-' in _model_lower or
+        any(x in _model_lower for x in ('glm', 'o1', 'o3', 'o4'))
+    )
+    if not _is_openrouter or (_is_openrouter and _is_cache_capable):
+        data["store"] = True  # Required for prompt caching/KV cache
 
     if instructions:
         data["instructions"] = instructions
@@ -2721,6 +2727,11 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         "stream_options": {"include_usage": True}  # Request usage data in streaming (OpenAI)
     }
 
+    # Enable store for cache-capable models (GLM, OpenAI, etc.)
+    _model_lower = (resolved_model or '').lower()
+    if 'glm' in _model_lower or 'gpt-' in _model_lower or any(x in _model_lower for x in ('o1', 'o3', 'o4')):
+        data["store"] = True  # Enable KV cache/prompt caching
+
     if stop:
         # Z.AI allows max 4 stop sequences
         _stop = stop[:4] if "z.ai" in url else stop
@@ -2767,6 +2778,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         if _tool_names:
             print(Color.info(f"  Tools:       {len(_tool_names)}  [{', '.join(_tool_names[:5])}{'...' if len(_tool_names)>5 else ''}]"))
             print(Color.info(f"  Tool choice: {data.get('tool_choice', 'auto')}"))
+        if data.get("store") is not None:
+            print(Color.info(f"  Store:       {data['store']}"))
         
         # FULL_PROMPT_DEBUG: Show complete input messages
         if getattr(config, 'FULL_PROMPT_DEBUG', False):
