@@ -1298,6 +1298,18 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                             }
                         _pending_tool_calls[idx]["arguments"] += args_delta
 
+                    # ── Reasoning item done (codex/o-series: reasoning in summary field) ──
+                    # Codex sends reasoning as output item with summary, not as streaming deltas
+                    if event_type == "response.output_item.done":
+                        item = event_json.get("item", {})
+                        if item.get("type") == "reasoning":
+                            summaries = item.get("summary", [])
+                            for s in summaries:
+                                text = s.get("text", "") if isinstance(s, dict) else str(s)
+                                if text:
+                                    yield ("reasoning", text)
+                                    _yielded_something = True
+
                     # ── Function call item added (carries name + id) ──
                     if event_type == "response.output_item.added":
                         item = event_json.get("item", {})
