@@ -1237,6 +1237,10 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
 
                     event_type = event_json.get("type", "")
 
+                    # Debug: log all event types to identify new reasoning events
+                    if getattr(config, 'DEBUG_MODE', False) and event_type and 'reasoning' in event_type:
+                        print(Color.warning(f"  [DEBUG] SSE event: {event_type} | keys: {list(event_json.keys())}"))
+
                     # ── Usage stats (from response.completed or inline) ──
                     if "usage" in event_json:
                         usage_info = event_json["usage"]
