@@ -917,13 +917,18 @@ def _build_responses_request_body(
         data["max_output_tokens"] = max_output_tokens
 
     # Enable reasoning for reasoning-capable models (GPT-5.x, o-series)
-    if _is_reasoning_model_for_name(model):
+    _is_reasoning_model = _is_reasoning_model_for_name(model)
+    if _is_reasoning_model:
         reasoning_mode = _get_responses_reasoning_mode()
         if reasoning_mode in ('low', 'medium', 'high'):
             reasoning = {"effort": reasoning_mode}
             if getattr(config, 'RESPONSES_REASONING_SUMMARY', True):
                 reasoning["summary"] = "detailed"
             data["reasoning"] = reasoning
+        elif getattr(config, 'DEBUG_MODE', False):
+            print(Color.warning(f"[DEBUG] Reasoning mode '{reasoning_mode}' not in (low/medium/high) - skipping reasoning"))
+    elif getattr(config, 'DEBUG_MODE', False) and 'gpt-5' in (model or '').lower():
+        print(Color.warning(f"[DEBUG] Model '{model}' not detected as reasoning model"))
 
     if tools:
         # Convert Chat Completions tool format to Responses API format.
