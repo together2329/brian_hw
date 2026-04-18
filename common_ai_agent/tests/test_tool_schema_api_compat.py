@@ -1398,13 +1398,15 @@ class TestReasoningParameter(unittest.TestCase):
         resp_data = _build_responses_request(data, "gpt-4o")
         self.assertNotIn("reasoning", resp_data)
 
-    def test_reasoning_effort_config(self):
-        """REASONING_EFFORT config controls effort level."""
+    def test_reasoning_mode_config_controls_effort_level(self):
+        """REASONING_MODE config controls effort level."""
         from src.llm_client import _build_responses_request
 
         for effort in ("low", "medium", "high"):
             with patch('src.llm_client.config') as mock_config:
+                mock_config.REASONING_MODE = effort
                 mock_config.REASONING_EFFORT = effort
+                mock_config.RESPONSES_REASONING_SUMMARY = True
                 data = {
                     "model": "gpt-5.1",
                     "messages": [{"role": "user", "content": "test"}],
@@ -1412,6 +1414,58 @@ class TestReasoningParameter(unittest.TestCase):
                 }
                 resp_data = _build_responses_request(data, "gpt-5.1")
                 self.assertEqual(resp_data["reasoning"]["effort"], effort)
+                self.assertEqual(resp_data["reasoning"]["summary"], "auto")
+
+    def test_reasoning_mode_off_omits_reasoning_param(self):
+        """REASONING_MODE=off should omit the reasoning field entirely."""
+        from src.llm_client import _build_responses_request
+
+        with patch('src.llm_client.config') as mock_config:
+            mock_config.REASONING_MODE = "off"
+            mock_config.REASONING_EFFORT = "off"
+            mock_config.RESPONSES_REASONING_SUMMARY = True
+            data = {
+                "model": "gpt-5.1",
+                "messages": [{"role": "user", "content": "test"}],
+                "stream": True,
+            }
+            resp_data = _build_responses_request(data, "gpt-5.1")
+            self.assertNotIn("reasoning", resp_data)
+
+    def test_reasoning_summary_can_be_disabled(self):
+        """RESPONSES_REASONING_SUMMARY=false should omit summary:auto."""
+        from src.llm_client import _build_responses_request
+
+        with patch('src.llm_client.config') as mock_config:
+            mock_config.REASONING_MODE = "medium"
+            mock_config.REASONING_EFFORT = "medium"
+            mock_config.RESPONSES_REASONING_SUMMARY = False
+            data = {
+                "model": "gpt-5.1",
+                "messages": [{"role": "user", "content": "test"}],
+                "stream": True,
+                "base_url": "https://openrouter.ai/api/v1/responses",
+            }
+            resp_data = _build_responses_request(data, "gpt-5.1")
+            self.assertEqual(resp_data["reasoning"]["effort"], "medium")
+            self.assertNotIn("summary", resp_data["reasoning"])
+
+    def test_openrouter_also_gets_summary_when_enabled(self):
+        """Summary:auto should be sent to compatible providers when enabled."""
+        from src.llm_client import _build_responses_request
+
+        with patch('src.llm_client.config') as mock_config:
+            mock_config.REASONING_MODE = "medium"
+            mock_config.REASONING_EFFORT = "medium"
+            mock_config.RESPONSES_REASONING_SUMMARY = True
+            data = {
+                "model": "gpt-5.1",
+                "messages": [{"role": "user", "content": "test"}],
+                "stream": True,
+                "base_url": "https://openrouter.ai/api/v1/responses",
+            }
+            resp_data = _build_responses_request(data, "gpt-5.1")
+            self.assertEqual(resp_data["reasoning"]["summary"], "auto")
 
     def test_reasoning_param_serializable(self):
         """Reasoning parameter must be JSON serializable."""

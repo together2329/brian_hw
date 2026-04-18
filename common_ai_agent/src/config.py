@@ -210,14 +210,21 @@ MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "32000"))
 # Recommended: 8000-16000 to give the model room to think AND produce content.
 MAX_REASONING_TOKENS = int(os.getenv("MAX_REASONING_TOKENS", "0"))
 
-# Reasoning effort for Responses API models (GPT-5.1, o1, o3, o4).
+# Reasoning mode for Responses API models (GPT-5.1, o1, o3, o4).
 # Controls how much compute the model spends "thinking" before responding.
-# Options: low | medium | high
+# Options: off | low | medium | high
 # Default: medium (good balance of quality and speed/cost)
+# - off:    omit the Responses API reasoning parameter entirely
 # - low:    fastest, cheapest, good for simple tasks
 # - medium: balanced (recommended for coding agents)
 # - high:   deepest reasoning, slowest, most expensive (for complex problems)
-REASONING_EFFORT = os.getenv("REASONING_EFFORT", "medium").lower()
+REASONING_MODE = os.getenv("REASONING_MODE", os.getenv("REASONING_EFFORT", "medium")).lower()
+# Backward-compatible alias for older code/tests that still read REASONING_EFFORT.
+REASONING_EFFORT = REASONING_MODE
+
+# Ask Responses API providers for a visible reasoning summary when reasoning is enabled.
+# Default: true. Some compatible backends may ignore this field even when supplied.
+RESPONSES_REASONING_SUMMARY = os.getenv("RESPONSES_REASONING_SUMMARY", "true").lower() in ("true", "1", "yes")
 
 # Save conversation history to file
 SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")

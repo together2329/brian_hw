@@ -247,6 +247,13 @@ def _is_openai_gpt_model(model_name: str = None) -> bool:
     return 'gpt' in name or name.startswith('o1') or name.startswith('o3') or name.startswith('o4')
 
 
+def _get_responses_reasoning_mode() -> str:
+    """Return normalized Responses reasoning mode: off | low | medium | high."""
+    mode = getattr(config, 'REASONING_MODE', getattr(config, 'REASONING_EFFORT', 'medium'))
+    mode = str(mode or 'medium').lower()
+    return mode if mode in ('off', 'low', 'medium', 'high') else 'medium'
+
+
 def compute_safe_max_tokens(used_tokens: int = 0) -> int:
     """
     Return a safe max_tokens value that fits within the remaining context window.
@@ -911,13 +918,12 @@ def _build_responses_request_body(
 
     # Enable reasoning for reasoning-capable models (GPT-5.x, o-series)
     if _is_reasoning_model_for_name(model):
-        effort = getattr(config, 'REASONING_EFFORT', 'medium')
-        if effort in ('low', 'medium', 'high'):
-            _is_openrouter_req = 'openrouter' in effective_base_url.lower()
-            if _is_openrouter_req:
-                data["reasoning"] = {"effort": effort}
-            else:
-                data["reasoning"] = {"effort": effort, "summary": "auto"}
+        reasoning_mode = _get_responses_reasoning_mode()
+        if reasoning_mode in ('low', 'medium', 'high'):
+            reasoning = {"effort": reasoning_mode}
+            if getattr(config, 'RESPONSES_REASONING_SUMMARY', True):
+                reasoning["summary"] = "auto"
+            data["reasoning"] = reasoning
 
     if tools:
         # Convert Chat Completions tool format to Responses API format.
@@ -1652,6 +1658,34 @@ def _parse_openai_error(error_body: str, http_status: int = 0) -> dict:
     return result
 
 
+def _extract_responses_reasoning_text(item: dict) -> str:
+    """Extract visible reasoning text from a Responses API reasoning item."""
+    parts = []
+
+    summary = item.get("summary", "")
+    if isinstance(summary, str):
+        if summary:
+            parts.append(summary)
+    elif isinstance(summary, list):
+        for block in summary:
+            if isinstance(block, dict):
+                text = block.get("text", "") or block.get("summary", "")
+                if text:
+                    parts.append(str(text))
+            elif block:
+                parts.append(str(block))
+
+    for c in item.get("content", []):
+        if isinstance(c, dict):
+            text = c.get("text", "")
+            if text:
+                parts.append(str(text))
+        elif c:
+            parts.append(str(c))
+
+    return "".join(parts)
+
+
 def _parse_responses_result(result: dict):
     """Parse a non-streaming Responses API result and yield content/reasoning.
 
@@ -1686,10 +1720,9 @@ def _parse_responses_result(result: dict):
         item_type = item.get("type", "")
 
         if item_type == "reasoning":
-            for c in item.get("content", []):
-                text = c.get("text", "")
-                if text:
-                    yield ("reasoning", text)
+            text = _extract_responses_reasoning_text(item)
+            if text:
+                yield ("reasoning", text)
 
         elif item_type == "message":
             for c in item.get("content", []):
@@ -2206,7 +2239,9 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
                     if content_block.get("type") == "output_text":
                         _content_parts.append(content_block.get("text", ""))
             elif item.get("type") == "reasoning":
-                _reasoning_parts.append(item.get("summary", ""))
+                text = _extract_responses_reasoning_text(item)
+                if text:
+                    _reasoning_parts.append(text)
 
         content = "".join(_content_parts)
         reasoning = "".join(_reasoning_parts)
@@ -3425,6 +3460,129 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
 
     except Exception as e:
         return f"Error calling LLM: {e}"
+
+
+def call_llm_api(messages, temperature=0.7, max_tokens=None, model=None, show_reasoning=True):
+    """
+    Call LLM API and return (reasoning, content) tuple.
+    Reasoning tokens are also printed to stdout when show_reasoning=True.
+    Automatically uses the Responses API for models that require it (gpt-5.x, codex).
+
+    Args:
+        messages: List of message dicts (role/content)
+        temperature: Sampling temperature (default: 0.7)
+        max_tokens: Optional max output tokens
+        model: Optional model override
+        show_reasoning: Print separated reasoning/content blocks to stdout (default: True)
+
+    Returns:
+        Tuple (reasoning: str, content: str).
+        reasoning is empty string when the model does not emit reasoning tokens.
+    """
+    global last_input_tokens, last_output_tokens
+    resolved_model = model or getattr(config, 'MODEL_NAME', '')
+    api_key = config.API_KEY
+    headers = build_api_headers(api_key)
+
+    # Responses API path (gpt-5.x, codex models)
+    if use_responses_api(resolved_model):
+        url = build_responses_url(config.BASE_URL, resolved_model)
+        # Reasoning models need at least ~500 tokens: reasoning consumes most of the budget
+        _responses_min = 500 if _is_reasoning_model_for_name(resolved_model) else 16
+        _max_out = max(max_tokens, _responses_min) if max_tokens is not None else None
+        data = _build_responses_request_body(
+            messages=messages,
+            model=resolved_model,
+            stream=False,
+            stop=None,
+            max_output_tokens=_max_out,
+            base_url=url,
+        )
+        try:
+            raw_body = json.dumps(data).encode('utf-8')
+            response = _persistent_post(url, headers, raw_body, timeout=config.NONSTREAM_API_TIMEOUT)
+            result = json.loads(response.read().decode('utf-8'))
+        except Exception as e:
+            err = f"Error calling LLM: {e}"
+            return ("", err)
+
+        usage = result.get("usage", {})
+        if usage:
+            last_input_tokens = usage.get("input_tokens", 0)
+            last_output_tokens = usage.get("output_tokens", 0)
+
+        _content_parts = []
+        _reasoning_parts = []
+        for item in result.get("output", []):
+            if item.get("type") == "message":
+                for cb in item.get("content", []):
+                    if cb.get("type") == "output_text":
+                        _content_parts.append(cb.get("text", ""))
+            elif item.get("type") == "reasoning":
+                text = _extract_responses_reasoning_text(item)
+                if text:
+                    _reasoning_parts.append(text)
+
+        reasoning_text = "".join(_reasoning_parts)
+        content_text = _strip_metadata_tokens("".join(_content_parts)).strip()
+
+        if show_reasoning:
+            print("\033[36m" + "="*50 + "\033[0m")
+            print("\033[36m[REASONING]\033[0m")
+            print(reasoning_text if reasoning_text else "(none)")
+            print("\033[32m" + "="*50 + "\033[0m")
+            print("\033[32m[CONTENT]\033[0m")
+            print(content_text)
+            print("\033[32m" + "="*50 + "\033[0m")
+
+        return (reasoning_text, content_text)
+
+    # Chat Completions path (DeepSeek, GLM, OpenRouter, etc.)
+    url = build_chat_url(config.BASE_URL, resolved_model)
+    data = {
+        "model": resolved_model,
+        "messages": messages,
+        "temperature": temperature,
+        "stream": False,
+    }
+    if max_tokens is not None:
+        _set_max_output_tokens(data, max_tokens)
+    elif getattr(config, 'MAX_OUTPUT_TOKENS', 0) > 0:
+        _set_max_output_tokens(data, config.MAX_OUTPUT_TOKENS)
+
+    try:
+        raw_body = json.dumps(data).encode('utf-8')
+        response = _persistent_post(url, headers, raw_body, timeout=config.NONSTREAM_API_TIMEOUT)
+        result = json.loads(response.read().decode('utf-8'))
+    except Exception as e:
+        return ("", f"Error calling LLM: {e}")
+
+    choice = result.get("choices", [{}])[0]
+    message = choice.get("message", {})
+
+    reasoning_text = message.get("reasoning_content") or message.get("reasoning") or ""
+    if not reasoning_text:
+        for rd in (message.get("reasoning_details") or []):
+            if rd.get("type") == "thinking":
+                reasoning_text = (reasoning_text or "") + (rd.get("thinking", "") or rd.get("summary", ""))
+
+    content_text = _strip_metadata_tokens(message.get("content") or "").strip()
+    usage = result.get("usage", {})
+    if usage:
+        last_input_tokens = usage.get("prompt_tokens", usage.get("input_tokens", 0))
+        last_output_tokens = usage.get("completion_tokens", usage.get("output_tokens", 0))
+
+    if show_reasoning:
+        print("\033[36m" + "="*50 + "\033[0m")
+        print("\033[36m[REASONING]\033[0m")
+        print(reasoning_text if reasoning_text else "(none)")
+        print("\033[32m" + "="*50 + "\033[0m")
+        print("\033[32m[CONTENT]\033[0m")
+        print(content_text)
+        print("\033[32m" + "="*50 + "\033[0m")
+
+    return (reasoning_text, content_text)
+
 
 def estimate_tokens(messages):
     """Estimates token count based on characters (4 chars ~= 1 token)."""

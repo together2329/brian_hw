@@ -182,6 +182,30 @@ class TestResponsesRequestBodyNormalization:
         )
         assert data["input"][0]["content"] == [{"type": "input_text", "text": "hello"}]
 
+    def test_openrouter_gets_summary_auto_when_enabled(self, monkeypatch):
+        monkeypatch.setattr(lc.config, "REASONING_MODE", "medium", raising=False)
+        monkeypatch.setattr(lc.config, "REASONING_EFFORT", "medium", raising=False)
+        monkeypatch.setattr(lc.config, "RESPONSES_REASONING_SUMMARY", True, raising=False)
+        data = lc._build_responses_request_body(
+            messages=[{"role": "user", "content": "hi"}],
+            model="gpt-5.3-codex",
+            stream=True,
+            base_url="https://openrouter.ai/api/v1/responses",
+        )
+        assert data["reasoning"] == {"effort": "medium", "summary": "auto"}
+
+    def test_reasoning_mode_off_omits_responses_reasoning(self, monkeypatch):
+        monkeypatch.setattr(lc.config, "REASONING_MODE", "off", raising=False)
+        monkeypatch.setattr(lc.config, "REASONING_EFFORT", "off", raising=False)
+        monkeypatch.setattr(lc.config, "RESPONSES_REASONING_SUMMARY", True, raising=False)
+        data = lc._build_responses_request_body(
+            messages=[{"role": "user", "content": "hi"}],
+            model="gpt-5.3-codex",
+            stream=True,
+            base_url="https://api.openai.com/v1/responses",
+        )
+        assert "reasoning" not in data
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # G5: _parse_openai_error
