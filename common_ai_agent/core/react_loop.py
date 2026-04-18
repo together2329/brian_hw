@@ -482,8 +482,8 @@ def run_react_agent_impl(
                     _pre_llm_reminder = "\n\n" + _exec_reminder
                     _last_injected_task_key = _task_key
                     if cfg.DEBUG_MODE:
-                        _cur = todo_tracker.get_current_task()
-                        _task_info = f"task {_cur.index+1}/{len(todo_tracker.todos)} [{_cur.status}]" if _cur else ""
+                        _cur = todo_tracker.get_current_todo()
+                        _task_info = f"task {todo_tracker.current_index+1}/{len(todo_tracker.todos)} [{_cur.status}]" if _cur else ""
                         print(Color.info(
                             f"[Inject] TODO (exec):   {_task_info}"
                             f"  |  {len(_exec_reminder):,} chars → last user msg"
