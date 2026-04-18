@@ -370,7 +370,19 @@ def run_react_agent_impl(
 
         # Compress history if needed
         _t = time.time()
+        if cfg.DEBUG_MODE:
+            _pre_count = len(messages)
+            _pre_tok = sum(len(str(m.get("content","")))//4 for m in messages)
         messages = deps.compress_fn(messages, todo_tracker=todo_tracker)
+        if cfg.DEBUG_MODE:
+            _post_count = len(messages)
+            _post_tok = sum(len(str(m.get("content","")))//4 for m in messages)
+            if _pre_tok != _post_tok:
+                _pct = int(100 * (_pre_tok - _post_tok) / max(_pre_tok, 1))
+                print(Color.info(
+                    f"[Inject] Compression:   {_pre_count} msgs → {_post_count} msgs"
+                    f"  |  tokens: {_pre_tok:,} → {_post_tok:,}  (-{_pct}%)"
+                ))
         if _perf:
             print(f"  {Color.DIM}[PERF] compress: {time.time()-_t:.3f}s{Color.RESET}")
 
@@ -397,6 +409,9 @@ def run_react_agent_impl(
                         messages[0]["content"] = blocks if blocks else system_prompt_data.get("static", "")
                     else:
                         messages[0]["content"] = system_prompt_data
+                    if cfg.DEBUG_MODE:
+                        _sp_len = len(str(system_prompt_data)) if isinstance(system_prompt_data, str) else sum(len(str(b.get("text",""))) for b in (system_prompt_data if isinstance(system_prompt_data, dict) else []))
+                        print(Color.info(f"[Inject] System prompt: rebuilt  |  {_sp_len:,} chars → messages[0]"))
         if _perf:
             print(f"  {Color.DIM}[PERF] build_prompt: {time.time()-_t:.3f}s{Color.RESET}")
 
@@ -444,6 +459,11 @@ def run_react_agent_impl(
             ]
             if not any(_plan_reminder.strip() in c for c in _recent_user):
                 _pre_llm_reminder = _plan_reminder
+                if cfg.DEBUG_MODE:
+                    print(Color.info(
+                        f"[Inject] Plan mode:     active"
+                        f"  |  {len(_plan_reminder):,} chars → last user msg"
+                    ))
             else:
                 _pre_llm_reminder = ""
         elif (todo_tracker and todo_tracker.todos
@@ -456,6 +476,13 @@ def run_react_agent_impl(
                 if _exec_reminder:
                     _pre_llm_reminder = "\n\n" + _exec_reminder
                     _last_injected_task_key = _task_key
+                    if cfg.DEBUG_MODE:
+                        _cur = todo_tracker.get_current_task()
+                        _task_info = f"task {_cur.index+1}/{len(todo_tracker.todos)} [{_cur.status}]" if _cur else ""
+                        print(Color.info(
+                            f"[Inject] TODO (exec):   {_task_info}"
+                            f"  |  {len(_exec_reminder):,} chars → last user msg"
+                        ))
                 else:
                     _pre_llm_reminder = ""
             else:
@@ -470,6 +497,10 @@ def run_react_agent_impl(
         if not _native and not _plan_mode:
             _action_hint = "\n[If a tool is needed, output: Action: tool_name(param=value)]"
             _pre_llm_reminder = _pre_llm_reminder + _action_hint
+            if cfg.DEBUG_MODE:
+                print(Color.info(
+                    f"[Inject] Action hint:   {len(_action_hint):,} chars → last user msg"
+                ))
 
         if _pre_llm_reminder:
             # Append to the last user message (ephemeral copy — avoids mutating history).
@@ -487,6 +518,8 @@ def run_react_agent_impl(
         if deps.hook_registry:
             try:
                 from core.hooks import HookContext, HookPoint
+                if cfg.DEBUG_MODE:
+                    _pre_hook_len = len(str(messages))
                 hook_ctx = HookContext(
                     messages=messages,
                     max_context_tokens=getattr(cfg, "MAX_CONTEXT_TOKENS", 128000),
@@ -496,6 +529,8 @@ def run_react_agent_impl(
                 )
                 hook_ctx = deps.hook_registry.run(HookPoint.BEFORE_LLM_CALL, hook_ctx)
                 messages = hook_ctx.messages
+                if cfg.DEBUG_MODE and len(str(messages)) != _pre_hook_len:
+                    print(Color.info(f"[Inject] Hook:          BEFORE_LLM_CALL modified messages"))
                 if hook_ctx.metadata.get("compression_needed"):
                     messages = deps.compress_fn(messages, todo_tracker=todo_tracker, force=True)
             except Exception as exc:
