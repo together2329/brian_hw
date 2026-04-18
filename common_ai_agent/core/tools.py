@@ -4,6 +4,10 @@ import json
 import shlex
 import sys
 import re
+from pathlib import Path as _Path
+
+# tools.py lives in common_ai_agent/core/ — project root is one level up
+_TOOLS_PROJECT_ROOT = _Path(__file__).parent.parent
 
 # Robust library path discovery
 try:
@@ -2935,8 +2939,7 @@ def pipeline_execute(mode="auto", max_workers=3, tier="sub"):
 
     try:
         from core.workflow_orchestrator import WorkflowOrchestrator
-        from pathlib import Path
-        orch = WorkflowOrchestrator(project_root=Path.cwd())
+        orch = WorkflowOrchestrator(project_root=_TOOLS_PROJECT_ROOT)
 
         indices, todos = zip(*actionable)
 
@@ -3002,8 +3005,7 @@ def workflow_dispatch(index=None, workflow="", delegate=""):
     # Validate workflow if specified
     if workflow:
         from core.workflow_orchestrator import WorkflowOrchestrator
-        from pathlib import Path
-        orch = WorkflowOrchestrator(project_root=Path.cwd())
+        orch = WorkflowOrchestrator(project_root=_TOOLS_PROJECT_ROOT)
         if not orch.workflow_exists(workflow):
             available = list(orch.discover_workflows().keys())
             return f"Error: Workflow '{workflow}' not found. Available: {available}"
@@ -3039,8 +3041,7 @@ def workflow_list():
     """
     try:
         from core.workflow_orchestrator import WorkflowOrchestrator
-        from pathlib import Path
-        orch = WorkflowOrchestrator(project_root=Path.cwd())
+        orch = WorkflowOrchestrator(project_root=_TOOLS_PROJECT_ROOT)
         return orch.list_workflows()
     except Exception as e:
         return f"Error listing workflows: {e}"
