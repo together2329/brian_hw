@@ -1866,6 +1866,22 @@ class AgentTUI(App):
         if re.match(r"^\d+;\[(\d+/\d+)\]", _plain):
             return
 
+        # Debug blocks: [Request Debug ...], [Response ...], [Inject], [Reasoning], [Retry ...]
+        m_debug = re.match(r"^\s*(\[(?:Request Debug|Response|Inject|Reasoning|Retry|Perf|Cache|RateLimiter|Agent)[^\]]*\])(.*)", _plain)
+        if m_debug:
+            tag, rest = m_debug.groups()
+            t = RichText()
+            t.append(f"  {tag}", style=f"dim {_ACCENT}")
+            if rest.strip():
+                t.append(rest, style=f"dim {_TEXT_FAINT}")
+            log.write(t)
+            return
+
+        # Debug block body lines (indented with spaces, part of [Request Debug]/[Response] block)
+        if re.match(r"^\s{2,}(?:URL|Model|Stream|Messages|Est\.tokens|Caching|Temperature|Max tokens|Stop|Tools|Tool choice|Store|Reasoning|Finish|Latency|Input|Output|Total|Tool calls|Effort|Summary|Rsn tokens|─{3,})[\s:─]", _plain):
+            log.write(RichText(f"  {_plain.strip()}", style=f"dim {_TEXT_FAINT}"))
+            return
+
         # System messages: [Plan Mode], [System], [Error]
         m_sys = re.match(r"^(\[(?:Plan Mode|System|Error|Warning)[^\]]*\])(.*)", _plain)
         if m_sys:
