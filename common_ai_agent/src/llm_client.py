@@ -1241,7 +1241,14 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                     if getattr(config, 'DEBUG_MODE', False) and event_type:
                         _skip = {"response.output_text.delta", "response.function_call_arguments.delta"}
                         if event_type not in _skip:
-                            print(Color.warning(f"  [SSE] {event_type} | keys: {list(event_json.keys())}"))
+                            if event_type == "response.completed":
+                                _usage = event_json.get("response", {}).get("usage", {})
+                                print(Color.warning(f"  [SSE] {event_type} | usage: {_usage}"))
+                                _output = event_json.get("response", {}).get("output", [])
+                                for _item in _output:
+                                    print(Color.warning(f"  [SSE] output item type={_item.get('type')} keys={list(_item.keys())}"))
+                            else:
+                                print(Color.warning(f"  [SSE] {event_type} | keys: {list(event_json.keys())}"))
 
                     # ── Usage stats (from response.completed or inline) ──
                     if "usage" in event_json:
