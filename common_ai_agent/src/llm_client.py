@@ -1192,7 +1192,7 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
     global last_cache_creation_tokens, last_cache_read_tokens
     global total_cache_created, total_cache_read
 
-    _RETRY_DELAYS = [5, 10, 20, 40, 80]
+    _RETRY_DELAYS = [30, 60, 120, 180, 300]
     max_retries = len(_RETRY_DELAYS) + 1
 
     for retry_count in range(max_retries):
@@ -1809,7 +1809,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
     global last_cache_creation_tokens, last_cache_read_tokens
     global total_cache_created, total_cache_read
 
-    _RETRY_DELAYS = [5, 10, 20, 40, 80]  # inactivity/timeout backoff (seconds)
+    _RETRY_DELAYS = [30, 60, 120, 180, 300]  # inactivity/timeout backoff (seconds)
     max_retries = len(_RETRY_DELAYS) + 1
 
     for retry_count in range(max_retries):
@@ -1965,32 +1965,6 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                     if _total > 0:
                         get_rate_limiter().update_actual_usage(_total)
 
-                    if config.DEBUG_MODE:
-                        _reasoning_tok = usage_info.get("reasoningTokens") or \
-                            (usage_info.get("completion_tokens_details") or {}).get("reasoning_tokens", 0)
-                        _content_tok = output_tokens - _reasoning_tok
-                        _new_input = input_tokens - _cached
-                        total_tokens = input_tokens + output_tokens
-                        _tc_names = [tc.get("name", "?") for tc in _pending_tool_calls.values() if tc.get("name")]
-                        print(f"\n{Color.info('[Response]')}")
-                        if _finish_reason:
-                            print(Color.info(f"  Finish:      {_finish_reason}"))
-                        if _perf_ttft:
-                            _lat = time.time() - _t_connect if "_t_connect" in dir() else None
-                            _ttft_str = f"  TTFT: {_perf_ttft:.2f}s"
-                            _lat_str = f"  Latency: {_lat:.2f}s" if _lat else ""
-                            print(Color.info(f"  Timing:     {_ttft_str}{_lat_str}"))
-                        print(Color.info(f"  {'─'*32}"))
-                        _in_detail = f"  (cached: {_cached:,} / new: {_new_input:,})" if _cached > 0 else ""
-                        _out_detail = f"  (reasoning: {_reasoning_tok:,} / content: {_content_tok:,})" if _reasoning_tok > 0 else ""
-                        print(Color.info(f"  Input:       {input_tokens:,}{_in_detail}"))
-                        print(Color.info(f"  Output:      {output_tokens:,}{_out_detail}"))
-                        print(Color.info(f"  Total:       {total_tokens:,}"))
-                        if _tc_names:
-                            print(Color.info(f"  {'─'*32}"))
-                            print(Color.info(f"  Tool calls:  {len(_tc_names)}  [{', '.join(_tc_names)}]"))
-                        print()
-
                 # finish_reason signals: emit for callers that need to react
                 if _finish_reason == "length":
                     # Output was cut off by max_tokens — warn and signal
@@ -2021,6 +1995,33 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                         pass
                     # fall through to finally, then loop continues
                 else:
+                    # Print [Response] debug block AFTER all content has been yielded
+                    if usage_info and config.DEBUG_MODE:
+                        _reasoning_tok = usage_info.get("reasoningTokens") or \
+                            (usage_info.get("completion_tokens_details") or {}).get("reasoning_tokens", 0)
+                        _cached = (usage_info.get("prompt_tokens_details") or {}).get("cached_tokens", 0)
+                        _content_tok = output_tokens - _reasoning_tok
+                        _new_input = input_tokens - _cached
+                        total_tokens = input_tokens + output_tokens
+                        _tc_names = [tc.get("name", "?") for tc in _pending_tool_calls.values() if tc.get("name")]
+                        _latency = time.time() - _t_connect_start if "_t_connect_start" in dir() else None
+                        print(f"\n{Color.info('[Response]')}")
+                        if _finish_reason:
+                            print(Color.info(f"  Finish:      {_finish_reason}"))
+                        if _latency or _perf_ttft:
+                            _ttft_str = f"  TTFT: {_perf_ttft:.2f}s" if _perf_ttft else ""
+                            _lat_val = f"{_latency:.2f}s" if _latency else ""
+                            print(Color.info(f"  Latency:     {_lat_val}{_ttft_str}"))
+                        print(Color.info(f"  {'─'*32}"))
+                        _in_detail = f"  (cached: {_cached:,} / new: {_new_input:,})" if _cached > 0 else ""
+                        _out_detail = f"  (reasoning: {_reasoning_tok:,} / content: {_content_tok:,})" if _reasoning_tok > 0 else ""
+                        print(Color.info(f"  Input:       {input_tokens:,}{_in_detail}"))
+                        print(Color.info(f"  Output:      {output_tokens:,}{_out_detail}"))
+                        print(Color.info(f"  Total:       {total_tokens:,}"))
+                        if _tc_names:
+                            print(Color.info(f"  {'─'*32}"))
+                            print(Color.info(f"  Tool calls:  {len(_tc_names)}  [{', '.join(_tc_names)}]"))
+                        print()
                     return
             finally:
                 if _wd_stop is not None:
