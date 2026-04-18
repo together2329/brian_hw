@@ -393,10 +393,16 @@ class TodoTracker:
         if not (0 <= index < len(self.todos)):
             return
 
+        if not reason or not reason.strip():
+            # Reject approval without a reason — force the LLM to provide evidence
+            self.todos[index].status = "rejected"
+            self.todos[index].rejection_reason = "[Approval blocked] Must provide a reason when approving. Call todo_update(status='approved', reason='<evidence>') again."
+            self.save()
+            return
+
         self.todos[index].status = "approved"
         self.todos[index].rejection_reason = ""
-        if reason:
-            self.todos[index].approved_reason = reason
+        self.todos[index].approved_reason = reason
         if self.current_index == index:
             # Point current_index at next actionable task, but do NOT
             # auto-call mark_in_progress — the tool return value already
