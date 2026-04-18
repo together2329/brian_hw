@@ -1304,6 +1304,8 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                         item = event_json.get("item", {})
                         if item.get("type") == "reasoning":
                             summaries = item.get("summary", [])
+                            if getattr(config, 'DEBUG_MODE', False):
+                                print(Color.warning(f"  [SSE] reasoning summary count={len(summaries)} content={summaries[:1]}"))
                             for s in summaries:
                                 text = s.get("text", "") if isinstance(s, dict) else str(s)
                                 if text:
