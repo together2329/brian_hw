@@ -2727,10 +2727,12 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         "stream_options": {"include_usage": True}  # Request usage data in streaming (OpenAI)
     }
 
-    # Enable store for cache-capable models (GLM, OpenAI, etc.)
+    # Enable store for cache-capable models in Chat Completions API
+    # - GLM: KV cache support (reduces memory footprint on subsequent calls)
+    # - OpenAI (gpt-5.x, o-series): prompt caching for faster responses
     _model_lower = (resolved_model or '').lower()
     if 'glm' in _model_lower or 'gpt-' in _model_lower or any(x in _model_lower for x in ('o1', 'o3', 'o4')):
-        data["store"] = True  # Enable KV cache/prompt caching
+        data["store"] = True
 
     if stop:
         # Z.AI allows max 4 stop sequences
