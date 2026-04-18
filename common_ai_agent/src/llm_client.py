@@ -3100,26 +3100,6 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     total_cache_created += _cache_creation_tok
                     total_cache_read += _cache_read_tok
 
-                if usage_info and config.DEBUG_MODE:
-                    total_tokens = input_tokens + output_tokens
-                    _new_input = input_tokens - _cache_read_tok - _cache_creation_tok
-                    _tc_names = [tc.get("name", "?") for tc in _pending_tool_calls.values() if tc.get("name")] if "_pending_tool_calls" in dir() else []
-                    print(f"\n{Color.info('[Response (Anthropic)]')}")
-                    if _finish_reason:
-                        print(Color.info(f"  Finish:      {_finish_reason}"))
-                    print(Color.info(f"  {'─'*32}"))
-                    _cache_detail = ""
-                    if _cache_creation_tok > 0:
-                        _cache_detail += f"  (created: {_cache_creation_tok:,})"
-                    if _cache_read_tok > 0:
-                        _cache_detail += f"  (cached: {_cache_read_tok:,} / new: {_new_input:,})"
-                    print(Color.info(f"  Input:       {input_tokens:,}{_cache_detail}"))
-                    print(Color.info(f"  Output:      {output_tokens:,}"))
-                    print(Color.info(f"  Total:       {total_tokens:,}"))
-                    if _tc_names:
-                        print(Color.info(f"  {'─'*32}"))
-                        print(Color.info(f"  Tool calls:  {len(_tc_names)}  [{', '.join(_tc_names)}]"))
-                    print()
                 
                 # finish_reason signals
                 if _finish_reason == "length":
