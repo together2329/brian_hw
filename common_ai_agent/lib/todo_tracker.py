@@ -555,6 +555,15 @@ class TodoTracker:
                 for ln in wrapped:
                     lines.append(ln + Color.RESET)
 
+            # ── Approved reason ──────────────────────────────────────────────
+            if todo.approved_reason and todo.status == "approved":
+                label_str = _label("Approved", Color.CYAN)
+                wrapped = _wrap_text(todo.approved_reason,
+                                     f"{_IND}{label_str} : {Color.CYAN}",
+                                     f"{_CON}  {Color.CYAN}")
+                for ln in wrapped:
+                    lines.append(ln + Color.RESET)
+
             # ── Detail ───────────────────────────────────────────────────────
             if todo.detail:
                 label_str = _label("Detail", Color.DIM)
