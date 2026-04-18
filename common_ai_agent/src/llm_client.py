@@ -2872,6 +2872,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     _fallback_used = False  # True after switching to SECONDARY_MODEL
 
     for retry_count in range(max_retries):
+        global _stream_cancelled
+        if _stream_cancelled:
+            _stream_cancelled = False
+            return
         # Local state for label tracking (resets each retry)
         _reasoning_started = False
         _content_label_printed = False

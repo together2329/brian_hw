@@ -625,11 +625,19 @@ class _AgentInput(Input):
                 ol.remove_class("visible")
             self._hist_pos = -1   # reset history browsing on submit
 
-        # ── Escape: close dropdown — let event bubble to App BINDINGS → action_stop
+        # ── Escape: close dropdown + fire action_stop on App directly
         elif event.key == "escape":
             if ol is not None and "visible" in ol.classes:
                 ol.remove_class("visible")
-            # Do NOT call event.stop() — let Key bubble to App so BINDINGS fire action_stop
+            # Prevent parent Input from consuming ESC (it would blur/clear input).
+            # Instead, directly invoke the App's stop action so ESC always works.
+            event.stop()
+            event.prevent_default()
+            try:
+                self.app.action_stop()
+            except Exception:
+                pass
+            return
 
         # ── Ctrl+Q: let event bubble to App BINDINGS → action_quit ───────────
         elif event.key == "ctrl+q":
