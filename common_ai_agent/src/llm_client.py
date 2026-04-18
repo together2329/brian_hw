@@ -2952,21 +2952,6 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                     reasoning = reasoning + content
                                     content = ""
 
-                                # Handle reasoning and content for debug display — stderr to avoid TUI duplication
-                                if config.DEBUG_MODE:
-                                    if reasoning:
-                                        if not _reasoning_started:
-                                            sys.stderr.write(f"\n\033[36m[reasoning]\033[0m ")
-                                            _reasoning_started = True
-                                        sys.stderr.write(reasoning)
-                                        sys.stderr.flush()
-                                    if content:
-                                        if not _content_label_printed:
-                                            sys.stderr.write(f"\n\033[32m[content]\033[0m ")
-                                            _content_label_printed = True
-                                        sys.stderr.write(content)
-                                        sys.stderr.flush()
-
                                 if reasoning or content:
                                     if _t_first_token is None:
                                         _t_first_token = time.time()
