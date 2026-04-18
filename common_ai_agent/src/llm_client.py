@@ -903,7 +903,9 @@ def _build_responses_request_body(
         "input": input_items,
         "stream": stream,
     }
-    if not _is_openrouter:
+    # Enable store for OpenAI direct or OpenRouter with OpenAI models (gpt-5.x, o-series)
+    _is_openai_model = model and ('gpt-' in model.lower() or any(x in model.lower() for x in ('o1', 'o3', 'o4')))
+    if not _is_openrouter or (_is_openrouter and _is_openai_model):
         data["store"] = True  # Required for prompt caching on OpenAI Responses API
 
     if instructions:
