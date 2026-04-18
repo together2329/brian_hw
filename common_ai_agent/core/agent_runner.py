@@ -331,16 +331,17 @@ def run_agent_session(
                 _context_status(messages, sub_agent_max_tokens, agent_name, verbose)
 
             # LLM call (non-blocking, ESC can abort mid-call)
+            # Use chat_completion_stream so Responses API routing is applied
+            # (same as main agent — avoids 404 on providers that use /responses)
             collected_content = ""
             _log(f"LLM call (model={model})...")
             try:
                 import concurrent.futures
+                def _stream_to_str():
+                    chunks = list(chat_completion_stream(messages, stop=["Observation:"], model=model))
+                    return "".join(chunks)
                 _llm_future = concurrent.futures.ThreadPoolExecutor(max_workers=1).submit(
-                    call_llm_raw,
-                    prompt="",
-                    messages=messages,
-                    stop=["Observation:"],
-                    model=model,
+                    _stream_to_str,
                 )
                 while not _llm_future.done():
                     if EscapeWatcher.check():
