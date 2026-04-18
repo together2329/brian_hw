@@ -1344,19 +1344,36 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                     if config.DEBUG_MODE:
                         _otd = usage_info.get("output_tokens_details") or {}
                         _reasoning_tok = _otd.get("reasoning_tokens", 0)
+                        _content_tok = output_tokens - _reasoning_tok
+                        _new_input = input_tokens - _cached
                         total_tokens = input_tokens + output_tokens
-                        print(f"\n{Color.info('[Token Usage (Responses API)]')}")
-                        print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
-                        print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
-                        if _reasoning_tok > 0:
-                            print(f"{Color.info(f'  Reasoning: {_reasoning_tok:,} tokens')}")
-                        print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}")
-                        if _cached > 0:
-                            print(f"{Color.info(f'  Cached: {_cached:,} tokens')}")
-                        # Cache debug: show raw usage keys
-                        _itd_debug = usage_info.get("input_tokens_details", {})
-                        _otd_debug = usage_info.get("output_tokens_details", {})
-                        print(f"{Color.DIM}[Cache Debug] usage keys: {list(usage_info.keys())} | itd: {_itd_debug} | otd: {_otd_debug}{Color.RESET}")
+                        _r_cfg = data.get("reasoning") or {}
+                        _tc_names = [tc.get("name", "?") for tc in _pending_tool_calls.values() if tc.get("name")]
+                        _latency = time.time() - _t_connect_start if "_t_connect_start" in dir() else None
+                        _resp_model = None
+                        print(f"\n{Color.info('[Response (Responses API)]')}")
+                        if _resp_model:
+                            print(Color.info(f"  Model:       {_resp_model}"))
+                        if _finish_reason:
+                            print(Color.info(f"  Finish:      {_finish_reason}"))
+                        if _latency:
+                            _ttft_str = f"  TTFT: {_perf_ttft:.2f}s" if _perf_ttft else ""
+                            print(Color.info(f"  Latency:     {_latency:.2f}s{_ttft_str}"))
+                        print(Color.info(f"  {'─'*32}"))
+                        _in_detail = f"  (cached: {_cached:,} / new: {_new_input:,})" if _cached > 0 else ""
+                        _out_detail = f"  (reasoning: {_reasoning_tok:,} / content: {_content_tok:,})" if _reasoning_tok > 0 else ""
+                        print(Color.info(f"  Input:       {input_tokens:,}{_in_detail}"))
+                        print(Color.info(f"  Output:      {output_tokens:,}{_out_detail}"))
+                        print(Color.info(f"  Total:       {total_tokens:,}"))
+                        if _tc_names:
+                            print(Color.info(f"  {'─'*32}"))
+                            print(Color.info(f"  Tool calls:  {len(_tc_names)}  [{', '.join(_tc_names)}]"))
+                        if _r_cfg:
+                            print(Color.info(f"  {'─'*32}"))
+                            for _k, _v in _r_cfg.items():
+                                print(Color.info(f"  {_k.capitalize():<12} {_v}"))
+                            if _reasoning_tok > 0:
+                                print(Color.info(f"  Rsn tokens:  {_reasoning_tok:,}"))
                         print()
 
                 # ── Finish reason signals ──
@@ -1915,15 +1932,27 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                     if config.DEBUG_MODE:
                         _reasoning_tok = usage_info.get("reasoningTokens") or \
                             (usage_info.get("completion_tokens_details") or {}).get("reasoning_tokens", 0)
+                        _content_tok = output_tokens - _reasoning_tok
+                        _new_input = input_tokens - _cached
                         total_tokens = input_tokens + output_tokens
-                        print(f"\n{Color.info('[Token Usage]')}")
-                        print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
-                        print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
-                        if _reasoning_tok:
-                            print(f"{Color.info(f'  Reasoning: {_reasoning_tok:,} tokens')}")
-                        print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}")
-                        if _cached > 0:
-                            print(f"{Color.info(f'  Cached: {_cached:,} tokens (prompt cache hit)')}")
+                        _tc_names = [tc.get("name", "?") for tc in _pending_tool_calls.values() if tc.get("name")]
+                        print(f"\n{Color.info('[Response]')}")
+                        if _finish_reason:
+                            print(Color.info(f"  Finish:      {_finish_reason}"))
+                        if _perf_ttft:
+                            _lat = time.time() - _t_connect if "_t_connect" in dir() else None
+                            _ttft_str = f"  TTFT: {_perf_ttft:.2f}s"
+                            _lat_str = f"  Latency: {_lat:.2f}s" if _lat else ""
+                            print(Color.info(f"  Timing:     {_ttft_str}{_lat_str}"))
+                        print(Color.info(f"  {'─'*32}"))
+                        _in_detail = f"  (cached: {_cached:,} / new: {_new_input:,})" if _cached > 0 else ""
+                        _out_detail = f"  (reasoning: {_reasoning_tok:,} / content: {_content_tok:,})" if _reasoning_tok > 0 else ""
+                        print(Color.info(f"  Input:       {input_tokens:,}{_in_detail}"))
+                        print(Color.info(f"  Output:      {output_tokens:,}{_out_detail}"))
+                        print(Color.info(f"  Total:       {total_tokens:,}"))
+                        if _tc_names:
+                            print(Color.info(f"  {'─'*32}"))
+                            print(Color.info(f"  Tool calls:  {len(_tc_names)}  [{', '.join(_tc_names)}]"))
                         print()
 
                 # finish_reason signals: emit for callers that need to react
@@ -2642,12 +2671,34 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         )
 
         if config.DEBUG_MODE:
+            from collections import Counter as _Counter
             tag = f" ({caller_tag})" if caller_tag else ""
+            _role_counts = _Counter(m.get("role", "?") for m in processed_messages)
+            _role_str = "  /  ".join(f"{r}: {c}" for r, c in sorted(_role_counts.items()))
+            _total_chars = sum(len(str(m.get("content", ""))) for m in processed_messages)
+            _est_tok = _total_chars // 4
+            _r_cfg = data.get("reasoning") or {}
+            _tool_names = [t.get("name", t.get("function", {}).get("name", "?")) for t in (data.get("tools") or [])]
             print(Color.info(f"\n[Request Debug (Responses API)]{tag}"))
-            print(Color.info(f"  URL: {url}"))
-            print(Color.info(f"  Model: {resolved_model}"))
-            print(Color.info(f"  Messages count: {len(processed_messages)}"))
-            print(Color.info(f"  API: Responses (/responses)"))
+            print(Color.info(f"  URL:         {url}"))
+            print(Color.info(f"  Model:       {resolved_model}"))
+            print(Color.info(f"  Stream:      {data.get('stream', True)}"))
+            print(Color.info(f"  Messages:    {len(processed_messages)}  ({_role_str})"))
+            print(Color.info(f"  Est.tokens:  {_est_tok:,}"))
+            if data.get("temperature") is not None:
+                print(Color.info(f"  Temperature: {data['temperature']}"))
+            if data.get("max_output_tokens"):
+                print(Color.info(f"  Max tokens:  {data['max_output_tokens']:,}"))
+            if data.get("stop"):
+                print(Color.info(f"  Stop seqs:   {len(data['stop'])}"))
+            if _tool_names:
+                print(Color.info(f"  Tools:       {len(_tool_names)}  [{', '.join(_tool_names[:5])}{'...' if len(_tool_names)>5 else ''}]"))
+                print(Color.info(f"  Tool choice: {data.get('tool_choice', 'auto')}"))
+            if _r_cfg:
+                _r_parts = "  ".join(f"{k}={v}" for k, v in _r_cfg.items())
+                print(Color.info(f"  Reasoning:   {_r_parts}"))
+            if data.get("store") is not None:
+                print(Color.info(f"  Store:       {data['store']}"))
 
         yield from _execute_streaming_request_responses(url, headers, data, processed_messages, native_mode=bool(tools))
         return
@@ -2681,28 +2732,31 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
     # Debug: Log request details
     if config.DEBUG_MODE:
+        from collections import Counter as _Counter
         tag = f" ({caller_tag})" if caller_tag else ""
-        print(Color.info(f"\n[Request Debug]{tag}"))
-        print(Color.info(f"  URL: {url}"))
-        print(Color.info(f"  Model: {resolved_model}"))
-        print(Color.info(f"  Messages count: {len(processed_messages)}"))
-
-        # Estimate total tokens
+        _role_counts = _Counter(m.get("role", "?") for m in processed_messages)
+        _role_str = "  /  ".join(f"{r}: {c}" for r, c in sorted(_role_counts.items()))
         total_chars = sum(len(str(m.get('content', ''))) for m in processed_messages)
         estimated_tokens = total_chars // 4
-        print(Color.info(f"  Estimated input tokens: {estimated_tokens:,}"))
-
-        # Check if structured content (caching applied)
         has_structured = any(isinstance(m.get('content'), list) for m in processed_messages)
-        print(Color.info(f"  Structured content (caching): {has_structured}"))
-
-        # Show first message structure
-        if processed_messages:
-            first_content = processed_messages[0].get('content', '')
-            if isinstance(first_content, list):
-                print(Color.info(f"  First message: [list with {len(first_content)} blocks]"))
-            else:
-                print(Color.info(f"  First message: [string, {len(str(first_content))} chars]"))
+        _tool_names = [t.get("function", {}).get("name", "?") for t in (data.get("tools") or [])]
+        _max_tok = data.get("max_completion_tokens") or data.get("max_tokens")
+        print(Color.info(f"\n[Request Debug]{tag}"))
+        print(Color.info(f"  URL:         {url}"))
+        print(Color.info(f"  Model:       {resolved_model}"))
+        print(Color.info(f"  Stream:      {data.get('stream', True)}"))
+        print(Color.info(f"  Messages:    {len(processed_messages)}  ({_role_str})"))
+        print(Color.info(f"  Est.tokens:  {estimated_tokens:,}"))
+        print(Color.info(f"  Caching:     {has_structured}"))
+        if data.get("temperature") is not None:
+            print(Color.info(f"  Temperature: {data['temperature']}"))
+        if _max_tok:
+            print(Color.info(f"  Max tokens:  {_max_tok:,}"))
+        if data.get("stop"):
+            print(Color.info(f"  Stop seqs:   {len(data['stop'])}"))
+        if _tool_names:
+            print(Color.info(f"  Tools:       {len(_tool_names)}  [{', '.join(_tool_names[:5])}{'...' if len(_tool_names)>5 else ''}]"))
+            print(Color.info(f"  Tool choice: {data.get('tool_choice', 'auto')}"))
         
         # FULL_PROMPT_DEBUG: Show complete input messages
         if getattr(config, 'FULL_PROMPT_DEBUG', False):
