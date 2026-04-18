@@ -229,6 +229,9 @@ def _is_reasoning_model() -> bool:
 def _is_reasoning_model_for_name(name: str) -> bool:
     """Check if a specific model name produces reasoning tokens (for Responses API)."""
     name = (name or '').lower()
+    # Strip provider prefix (e.g., "openai/gpt-5.4" → "gpt-5.4")
+    if '/' in name:
+        name = name.split('/')[-1]
     # All GPT-5.x models (including codex) support reasoning in Responses API
     # GPT-4.x and below do not
     if name.startswith('gpt-5'):
