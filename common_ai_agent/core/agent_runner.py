@@ -156,6 +156,7 @@ def run_agent_session(
     verbose: bool = False,
     workflow_name: str = "",
     converge_state: Any = None,        # Project instance for converge context injection
+    tier: str = "sub",                 # "sub" (32K, limited tools) | "main" (200K, all tools)
 ) -> AgentResult:
     """
     독립 세션에서 미니 ReAct 루프를 실행.
@@ -173,6 +174,7 @@ def run_agent_session(
         verbose: 실시간 디버그 출력 (foreground 실행 시 유용)
         workflow_name: 워크스페이스 이름
         converge_state: Project instance for converge context injection (optional)
+        tier: "sub" (32K context, limited tools) | "main" (200K context, all tools)
 
     Returns:
         AgentResult with compressed output
@@ -213,7 +215,10 @@ def run_agent_session(
 
     # Resolve allowed tools from agent config
     if allowed_tools is None:
-        allowed_tools = _get_agent_tools(agent_name)
+        if tier == "main":
+            allowed_tools = {"*"}  # main tier: all tools allowed
+        else:
+            allowed_tools = _get_agent_tools(agent_name)
 
     # Resolve model
     model = model_override or _get_agent_model(agent_name)
@@ -266,8 +271,13 @@ def run_agent_session(
     # Import LLM client
     from llm_client import chat_completion_stream, call_llm_raw
 
-    # Sub-agent context limit (기본 32K tokens, primary보다 훨씬 작음)
-    sub_agent_max_tokens = int(os.getenv("SUBAGENT_MAX_CONTEXT_TOKENS", "32000"))
+    # Context limit: main tier는 200K, sub tier는 32K (env override 가능)
+    if tier == "main":
+        sub_agent_max_tokens = int(os.getenv("MAINAGENT_MAX_CONTEXT_TOKENS", "200000"))
+        max_result_chars = max(max_result_chars, 32000)
+        max_iterations = max(max_iterations, 30)
+    else:
+        sub_agent_max_tokens = int(os.getenv("SUBAGENT_MAX_CONTEXT_TOKENS", "32000"))
     compression_threshold = 0.75  # 75%에서 압축
 
     # Mini ReAct loop

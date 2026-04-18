@@ -2903,7 +2903,7 @@ def background_list():
 # Workflow Orchestration Tools
 # ============================================================
 
-def pipeline_execute(mode="auto", max_workers=3):
+def pipeline_execute(mode="auto", max_workers=3, tier="sub"):
     """
     Execute pending todo items as a pipeline — sequential, parallel, or auto-grouped.
 
@@ -2914,11 +2914,14 @@ def pipeline_execute(mode="auto", max_workers=3):
         mode: Execution mode — "sequential" (one-by-one, result feeds next),
               "parallel" (all simultaneously), "auto" (group by workflow, parallel within groups)
         max_workers: Maximum concurrent workers for parallel execution (default: 3)
+        tier: Agent capability level — "sub" (32K context, limited tools) |
+              "main" (200K context, all tools). Use "main" for complex tasks.
 
     Example:
         Action: pipeline_execute(mode="auto")
         Action: pipeline_execute(mode="parallel", max_workers=5)
         Action: pipeline_execute(mode="sequential")
+        Action: pipeline_execute(mode="sequential", tier="main")
     """
     todo_tracker = _get_todo_tracker()
     if todo_tracker is None or not todo_tracker.todos:
@@ -2938,11 +2941,11 @@ def pipeline_execute(mode="auto", max_workers=3):
         indices, todos = zip(*actionable)
 
         if mode == "sequential":
-            results = orch.run_sequential(list(todos))
+            results = orch.run_sequential(list(todos), tier=str(tier))
         elif mode == "parallel":
-            results = orch.run_parallel(list(todos), max_workers=int(max_workers))
+            results = orch.run_parallel(list(todos), max_workers=int(max_workers), tier=str(tier))
         else:  # auto
-            results = orch.run_pipeline(list(todos), max_workers=int(max_workers))
+            results = orch.run_pipeline(list(todos), max_workers=int(max_workers), tier=str(tier))
 
         # Store delegate results back into todo items
         for r in results:

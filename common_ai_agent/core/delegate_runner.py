@@ -42,7 +42,7 @@ class DelegateRunner:
         }
 
     def run(self, backend: str, task: str, context: str = "",
-            workflow_name: str = "") -> str:
+            workflow_name: str = "", tier: str = "sub") -> str:
         """
         Execute task via the specified backend.
 
@@ -51,6 +51,7 @@ class DelegateRunner:
             task: Task description
             context: Parent agent context
             workflow_name: Workflow to load config from (any name, dynamic)
+            tier: "sub" (32K, limited tools) | "main" (200K, all tools)
 
         Returns:
             Result string from the backend
@@ -64,7 +65,7 @@ class DelegateRunner:
             )
 
         delegate = cls(project_root=self.project_root)
-        return delegate.run(task, context, workflow_name=workflow_name)
+        return delegate.run(task, context, workflow_name=workflow_name, tier=tier)
 
     @staticmethod
     def list_backends() -> list:
@@ -87,7 +88,8 @@ class SubAgentDelegate:
     def __init__(self, project_root: Optional[Path] = None):
         self.project_root = project_root or Path.cwd()
 
-    def run(self, task: str, context: str = "", workflow_name: str = "") -> str:
+    def run(self, task: str, context: str = "", workflow_name: str = "",
+            tier: str = "sub") -> str:
         """Execute task via sub-agent with workspace config."""
         from core.agent_runner import run_agent_session
 
@@ -110,6 +112,7 @@ class SubAgentDelegate:
             max_result_chars=8000,
             verbose=False,
             workflow_name=workflow_name,
+            tier=tier,
         )
 
         if result.status == "error":

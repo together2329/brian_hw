@@ -273,6 +273,10 @@ class SlashCommandRegistry:
                      'Converge loop: /converge start <module> | /converge status | /converge history | /converge report',
                      aliases=['cv'])
 
+        self.register('eda', self._cmd_eda,
+                     'EDA pipeline: /eda <module> [--tier sub|main] — run spec→rtl→lint→sim',
+                     aliases=['hw'])
+
     def _cmd_session(self, args: str) -> str:
         """Show .session/ hierarchy tree or project layout summary.
 
@@ -765,6 +769,93 @@ class SlashCommandRegistry:
                 lines.append(f"  {f.name}  {_fmt_size(size):>8s}  {_file_description(f.name)}")
 
         return "\n".join(lines)
+
+    # ============================================================
+    # /eda — EDA pipeline: spec → rtl → lint → sim
+    # ============================================================
+
+    def _cmd_eda(self, args: str) -> str:
+        """Run spec→rtl→lint→sim pipeline for a module.
+
+        /eda <module>                → run full pipeline (sub tier)
+        /eda <module> --tier main    → run with main-level agents (200K ctx, all tools)
+        /eda <module> --tier sub     → run with sub-agents (32K ctx, default)
+        /eda                         → show usage
+        """
+        parts = args.strip().split()
+        if not parts:
+            return (
+                "Usage: /eda <module> [--tier sub|main]\n\n"
+                "  Runs spec-review → rtl-gen → lint → sim sequentially.\n"
+                "  Each stage runs as an independent agent with the result\n"
+                "  fed into the next stage as context.\n\n"
+                "  --tier main   use 200K context + all tools (slower, more capable)\n"
+                "  --tier sub    use 32K context + limited tools (faster, default)\n\n"
+                "  Example:\n"
+                "    /eda counter\n"
+                "    /eda counter --tier main\n"
+            )
+
+        # Parse module and --tier flag
+        tier = "sub"
+        module_parts = []
+        i = 0
+        while i < len(parts):
+            if parts[i] == "--tier" and i + 1 < len(parts):
+                tier = parts[i + 1]
+                i += 2
+            else:
+                module_parts.append(parts[i])
+                i += 1
+
+        module = " ".join(module_parts)
+        if not module:
+            return "Error: module name required. Usage: /eda <module>"
+
+        if tier not in ("sub", "main"):
+            return f"Error: --tier must be 'sub' or 'main', got '{tier}'"
+
+        # Build the 4-stage todo list
+        stages = [
+            ("spec-review", f"Review or generate hardware spec for module: {module}"),
+            ("rtl-gen",     f"Implement RTL for module: {module} based on the spec"),
+            ("lint",        f"Run lint on {module}.sv and fix all errors and warnings"),
+            ("sim",         f"Generate testbench and simulate {module}, report PASS/FAIL per test"),
+        ]
+
+        try:
+            from core.tools import todo_write, pipeline_execute
+
+            # Create todos for all 4 stages
+            todo_items = [
+                {"content": content, "activeForm": content,
+                 "status": "pending", "priority": "high",
+                 "workflow": workflow, "delegate": "sub-agent"}
+                for workflow, content in stages
+            ]
+            write_result = todo_write(todos=todo_items)
+            if write_result and "Error" in str(write_result):
+                return f"Failed to create todos: {write_result}"
+
+            lines = [
+                f"EDA pipeline created for module: {module}  [tier={tier}]",
+                "",
+                "  1. spec-review  →  " + stages[0][1],
+                "  2. rtl-gen      →  " + stages[1][1],
+                "  3. lint         →  " + stages[2][1],
+                "  4. sim          →  " + stages[3][1],
+                "",
+                f"Running pipeline_execute(mode='sequential', tier='{tier}')...",
+                "",
+            ]
+
+            result = pipeline_execute(mode="sequential", tier=tier)
+            lines.append(result)
+            return "\n".join(lines)
+
+        except Exception as e:
+            import traceback
+            return f"Error running EDA pipeline: {e}\n{traceback.format_exc()}"
 
     # ============================================================
     # /converge — Self-converging EDA loop commands

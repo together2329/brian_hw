@@ -122,7 +122,8 @@ class WorkflowOrchestrator:
     # Single Todo Execution
     # ─────────────────────────────────────────────────────────
 
-    def run_todo(self, todo_item: Any, parent_context: str = "") -> PipelineResult:
+    def run_todo(self, todo_item: Any, parent_context: str = "",
+                tier: str = "sub") -> PipelineResult:
         """
         Execute a single todo item via its assigned workflow + delegate backend.
 
@@ -173,6 +174,7 @@ class WorkflowOrchestrator:
                 task=content,
                 context=parent_context,
                 workflow_name=workflow_name,
+                tier=tier,
             )
 
             elapsed_ms = int((time.time() - start_time) * 1000)
@@ -201,7 +203,8 @@ class WorkflowOrchestrator:
     # Sequential Pipeline
     # ─────────────────────────────────────────────────────────
 
-    def run_sequential(self, todos: List[Any], parent_context: str = "") -> List[PipelineResult]:
+    def run_sequential(self, todos: List[Any], parent_context: str = "",
+                       tier: str = "sub") -> List[PipelineResult]:
         """
         Run todos one-by-one. Each result feeds into the next todo's context.
 
@@ -216,7 +219,7 @@ class WorkflowOrchestrator:
         accumulated_context = parent_context
 
         for i, todo in enumerate(todos):
-            result = self.run_todo(todo, parent_context=accumulated_context)
+            result = self.run_todo(todo, parent_context=accumulated_context, tier=tier)
             result.index = i
             results.append(result)
 
@@ -233,7 +236,7 @@ class WorkflowOrchestrator:
     # ─────────────────────────────────────────────────────────
 
     def run_parallel(self, todos: List[Any], max_workers: int = 3,
-                     parent_context: str = "") -> List[PipelineResult]:
+                     parent_context: str = "", tier: str = "sub") -> List[PipelineResult]:
         """
         Run independent todos simultaneously via ThreadPoolExecutor.
 
@@ -254,7 +257,7 @@ class WorkflowOrchestrator:
         with ThreadPoolExecutor(max_workers=workers) as executor:
             future_map = {}
             for i, todo in enumerate(todos):
-                future = executor.submit(self.run_todo, todo, parent_context)
+                future = executor.submit(self.run_todo, todo, parent_context, tier)
                 future_map[future] = i
 
             for future in as_completed(future_map):
@@ -280,7 +283,7 @@ class WorkflowOrchestrator:
     # ─────────────────────────────────────────────────────────
 
     def run_pipeline(self, todos: List[Any], max_workers: int = 3,
-                     parent_context: str = "") -> List[PipelineResult]:
+                     parent_context: str = "", tier: str = "sub") -> List[PipelineResult]:
         """
         Auto-analyze todos and run with optimal parallelism.
 
@@ -327,7 +330,7 @@ class WorkflowOrchestrator:
 
             group_results = self.run_parallel(
                 group_todos, max_workers=max_workers,
-                parent_context=accumulated_context,
+                parent_context=accumulated_context, tier=tier,
             )
 
             # Map results back to original indices
