@@ -232,10 +232,13 @@ def _is_reasoning_model_for_name(name: str) -> bool:
     # Strip provider prefix (e.g., "openai/gpt-5.4" → "gpt-5.4")
     if '/' in name:
         name = name.split('/')[-1]
-    # All GPT-5.x models (including codex) support reasoning in Responses API
-    # GPT-4.x and below do not
+    # All GPT-5.x models support reasoning in Responses API
     if name.startswith('gpt-5'):
         return True
+    # Codex models also support reasoning (gpt-4-turbo-codex, gpt-4.5-codex, etc.)
+    if 'gpt' in name and 'codex' in name:
+        return True
+    # Other reasoning models
     return any(k in name for k in ('glm', 'deepseek', 'qwq', 'r1', 'reasoning', 'o1', 'o3', 'o4'))
 
 
