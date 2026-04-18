@@ -410,7 +410,12 @@ def run_react_agent_impl(
                     else:
                         messages[0]["content"] = system_prompt_data
                     if cfg.DEBUG_MODE:
-                        _sp_len = len(str(system_prompt_data)) if isinstance(system_prompt_data, str) else sum(len(str(b.get("text",""))) for b in (system_prompt_data if isinstance(system_prompt_data, dict) else []))
+                        if isinstance(system_prompt_data, str):
+                            _sp_len = len(system_prompt_data)
+                        elif isinstance(system_prompt_data, dict):
+                            _sp_len = len(system_prompt_data.get("static", "")) + len(system_prompt_data.get("dynamic", ""))
+                        else:
+                            _sp_len = len(str(system_prompt_data))
                         print(Color.info(f"[Inject] System prompt: rebuilt  |  {_sp_len:,} chars → messages[0]"))
         if _perf:
             print(f"  {Color.DIM}[PERF] build_prompt: {time.time()-_t:.3f}s{Color.RESET}")
