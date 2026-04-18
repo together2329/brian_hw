@@ -1237,18 +1237,6 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
 
                     event_type = event_json.get("type", "")
 
-                    # Debug: log all SSE event types to identify reasoning events
-                    if getattr(config, 'DEBUG_MODE', False) and event_type:
-                        _skip = {"response.output_text.delta", "response.function_call_arguments.delta"}
-                        if event_type not in _skip:
-                            if event_type == "response.completed":
-                                _usage = event_json.get("response", {}).get("usage", {})
-                                print(Color.warning(f"  [SSE] {event_type} | usage: {_usage}"))
-                                _output = event_json.get("response", {}).get("output", [])
-                                for _item in _output:
-                                    print(Color.warning(f"  [SSE] output item type={_item.get('type')} keys={list(_item.keys())}"))
-                            else:
-                                print(Color.warning(f"  [SSE] {event_type} | keys: {list(event_json.keys())}"))
 
                     # ── Usage stats (from response.completed or inline) ──
                     if "usage" in event_json:
@@ -1299,18 +1287,21 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                         _pending_tool_calls[idx]["arguments"] += args_delta
 
                     # ── Reasoning item done (codex/o-series: reasoning in summary field) ──
-                    # Codex sends reasoning as output item with summary, not as streaming deltas
+                    # Codex sends reasoning as output item with summary, not as streaming deltas.
+                    # NOTE: OpenAI encrypts codex reasoning - summary[] is always empty even with
+                    # summary=detailed. Reasoning tokens are used internally but not exposed to client.
                     if event_type == "response.output_item.done":
                         item = event_json.get("item", {})
                         if item.get("type") == "reasoning":
                             summaries = item.get("summary", [])
-                            if getattr(config, 'DEBUG_MODE', False):
-                                print(Color.warning(f"  [SSE] reasoning summary count={len(summaries)} content={summaries[:1]}"))
-                            for s in summaries:
-                                text = s.get("text", "") if isinstance(s, dict) else str(s)
-                                if text:
-                                    yield ("reasoning", text)
-                                    _yielded_something = True
+                            if summaries:
+                                for s in summaries:
+                                    text = s.get("text", "") if isinstance(s, dict) else str(s)
+                                    if text:
+                                        yield ("reasoning", text)
+                                        _yielded_something = True
+                            elif getattr(config, 'DEBUG_MODE', False):
+                                print(Color.warning("  [Reasoning] codex reasoning is encrypted by OpenAI — tokens used internally, text not accessible"))
 
                     # ── Function call item added (carries name + id) ──
                     if event_type == "response.output_item.added":
@@ -1976,20 +1967,20 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                         get_rate_limiter().update_actual_usage(_total)
 
                     if config.DEBUG_MODE:
-                        _reasoning_tok = usage_info.get("reasoningTokens") or \
-                            (usage_info.get("completion_tokens_details") or {}).get("reasoning_tokens", 0)
+                        _ctd = usage_info.get("completion_tokens_details") or {}
+                        _reasoning_tok = usage_info.get("reasoningTokens") or _ctd.get("reasoning_tokens", 0)
                         _content_tok = output_tokens - _reasoning_tok
                         _new_input = input_tokens - _cached
                         total_tokens = input_tokens + output_tokens
                         _tc_names = [tc.get("name", "?") for tc in _pending_tool_calls.values() if tc.get("name")]
-                        print(f"\n{Color.info('[Response]')}")
+                        _latency = time.time() - _t_connect_start if "_t_connect_start" in dir() else None
+                        print(f"\n{Color.info('[Response (Chat Completions)]')}")
                         if _finish_reason:
                             print(Color.info(f"  Finish:      {_finish_reason}"))
-                        if _perf_ttft:
-                            _lat = time.time() - _t_connect if "_t_connect" in dir() else None
-                            _ttft_str = f"  TTFT: {_perf_ttft:.2f}s"
-                            _lat_str = f"  Latency: {_lat:.2f}s" if _lat else ""
-                            print(Color.info(f"  Timing:     {_ttft_str}{_lat_str}"))
+                        if _latency or _perf_ttft:
+                            _ttft_str = f"  TTFT: {_perf_ttft:.2f}s" if _perf_ttft else ""
+                            _lat_val = f"{_latency:.2f}s" if _latency else ""
+                            print(Color.info(f"  Latency:     {_lat_val}{_ttft_str}"))
                         print(Color.info(f"  {'─'*32}"))
                         _in_detail = f"  (cached: {_cached:,} / new: {_new_input:,})" if _cached > 0 else ""
                         _out_detail = f"  (reasoning: {_reasoning_tok:,} / content: {_content_tok:,})" if _reasoning_tok > 0 else ""
@@ -2794,7 +2785,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         has_structured = any(isinstance(m.get('content'), list) for m in processed_messages)
         _tool_names = [t.get("function", {}).get("name", "?") for t in (data.get("tools") or [])]
         _max_tok = data.get("max_completion_tokens") or data.get("max_tokens")
-        print(Color.info(f"\n[Request Debug]{tag}"))
+        print(Color.info(f"\n[Request Debug (Chat Completions)]{tag}"))
         print(Color.info(f"  URL:         {url}"))
         print(Color.info(f"  Model:       {resolved_model}"))
         print(Color.info(f"  Stream:      {data.get('stream', True)}"))
@@ -2812,6 +2803,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             print(Color.info(f"  Tool choice: {data.get('tool_choice', 'auto')}"))
         if data.get("store") is not None:
             print(Color.info(f"  Store:       {data['store']}"))
+        _r_cfg = data.get("reasoning") or {}
+        if _r_cfg:
+            _r_parts = "  ".join(f"{k}={v}" for k, v in _r_cfg.items())
+            print(Color.info(f"  Reasoning:   {_r_parts}"))
         
         # FULL_PROMPT_DEBUG: Show complete input messages
         if getattr(config, 'FULL_PROMPT_DEBUG', False):
@@ -3092,32 +3087,39 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     if _total > 0:
                         get_rate_limiter().update_actual_usage(_total)
 
-                    # Display actual token usage (always show for visibility)
-                    if config.DEBUG_MODE:
-                        total_tokens = input_tokens + output_tokens
-                        print(f"\n{Color.info('[Token Usage]')}")
-                        print(f"{Color.info(f'  Input: {input_tokens:,} tokens')}")
-                        print(f"{Color.info(f'  Output: {output_tokens:,} tokens')}")
-                        print(f"{Color.info(f'  Total: {total_tokens:,} tokens')}\n")
-
                 # Parse cache token usage — supports both Anthropic and OpenAI/Z.AI formats
+                _cache_creation_tok = 0
+                _cache_read_tok = 0
                 if usage_info and config.ENABLE_PROMPT_CACHING:
-                    # Anthropic: cache_creation_input_tokens / cache_read_input_tokens
-                    # OpenAI / Z.AI: prompt_tokens_details.cached_tokens (read-only, implicit)
-                    cache_creation_tokens = usage_info.get("cache_creation_input_tokens", 0)
-                    cache_read_tokens = usage_info.get("cache_read_input_tokens", 0)
+                    _cache_creation_tok = usage_info.get("cache_creation_input_tokens", 0)
+                    _cache_read_tok = usage_info.get("cache_read_input_tokens", 0)
                     _ptd = usage_info.get("prompt_tokens_details") or {}
-                    cache_read_tokens = cache_read_tokens or _ptd.get("cached_tokens", 0)
+                    _cache_read_tok = _cache_read_tok or _ptd.get("cached_tokens", 0)
+                    last_cache_creation_tokens = _cache_creation_tok
+                    last_cache_read_tokens = _cache_read_tok
+                    total_cache_created += _cache_creation_tok
+                    total_cache_read += _cache_read_tok
 
-                    # Debug: log raw usage info for cache diagnosis
-                    if config.DEBUG_MODE:
-                        print(f"{Color.DIM}[Cache Debug] usage_info keys: {list(usage_info.keys())} | ptd: {_ptd} | cached: {cache_read_tokens}{Color.RESET}")
-
-                    # Update cache token tracking
-                    last_cache_creation_tokens = cache_creation_tokens
-                    last_cache_read_tokens = cache_read_tokens
-                    total_cache_created += cache_creation_tokens
-                    total_cache_read += cache_read_tokens
+                if usage_info and config.DEBUG_MODE:
+                    total_tokens = input_tokens + output_tokens
+                    _new_input = input_tokens - _cache_read_tok - _cache_creation_tok
+                    _tc_names = [tc.get("name", "?") for tc in _pending_tool_calls.values() if tc.get("name")] if "_pending_tool_calls" in dir() else []
+                    print(f"\n{Color.info('[Response (Anthropic)]')}")
+                    if _finish_reason:
+                        print(Color.info(f"  Finish:      {_finish_reason}"))
+                    print(Color.info(f"  {'─'*32}"))
+                    _cache_detail = ""
+                    if _cache_creation_tok > 0:
+                        _cache_detail += f"  (created: {_cache_creation_tok:,})"
+                    if _cache_read_tok > 0:
+                        _cache_detail += f"  (cached: {_cache_read_tok:,} / new: {_new_input:,})"
+                    print(Color.info(f"  Input:       {input_tokens:,}{_cache_detail}"))
+                    print(Color.info(f"  Output:      {output_tokens:,}"))
+                    print(Color.info(f"  Total:       {total_tokens:,}"))
+                    if _tc_names:
+                        print(Color.info(f"  {'─'*32}"))
+                        print(Color.info(f"  Tool calls:  {len(_tc_names)}  [{', '.join(_tc_names)}]"))
+                    print()
                 
                 # finish_reason signals
                 if _finish_reason == "length":
