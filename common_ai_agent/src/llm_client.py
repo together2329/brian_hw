@@ -3104,6 +3104,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     total_tokens = input_tokens + output_tokens
                     _new_input = input_tokens - _cache_read_tok - _cache_creation_tok
                     _tc_names = [tc.get("name", "?") for tc in _pending_tool_calls.values() if tc.get("name")] if "_pending_tool_calls" in dir() else []
+                    _reasoning_tok = usage_info.get("thinking_input_tokens", 0) or \
+                        (usage_info.get("usage", {}) or {}).get("thinking_input_tokens", 0)
+                    _content_tok = output_tokens - _reasoning_tok
                     print(f"\n{Color.info('[Response]')}")
                     if _finish_reason:
                         print(Color.info(f"  Finish:      {_finish_reason}"))
@@ -3113,8 +3116,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                         _cache_detail += f"  (created: {_cache_creation_tok:,})"
                     if _cache_read_tok > 0:
                         _cache_detail += f"  (cached: {_cache_read_tok:,} / new: {_new_input:,})"
+                    _out_detail = f"  (reasoning: {_reasoning_tok:,} / content: {_content_tok:,})" if _reasoning_tok > 0 else ""
                     print(Color.info(f"  Input:       {input_tokens:,}{_cache_detail}"))
-                    print(Color.info(f"  Output:      {output_tokens:,}"))
+                    print(Color.info(f"  Output:      {output_tokens:,}{_out_detail}"))
                     print(Color.info(f"  Total:       {total_tokens:,}"))
                     if _tc_names:
                         print(Color.info(f"  {'─'*32}"))
