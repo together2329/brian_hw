@@ -922,7 +922,7 @@ def _build_responses_request_body(
         if reasoning_mode in ('low', 'medium', 'high'):
             reasoning = {"effort": reasoning_mode}
             if getattr(config, 'RESPONSES_REASONING_SUMMARY', True):
-                reasoning["summary"] = "auto"
+                reasoning["summary"] = "detailed"
             data["reasoning"] = reasoning
 
     if tools:
@@ -1245,7 +1245,10 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                             _yielded_something = True
 
                     # ── Reasoning delta (encrypted or visible) ──
-                    if event_type == "response.reasoning.delta":
+                    # OpenAI Responses API sends reasoning summary via
+                    # response.reasoning_summary_text.delta (not response.reasoning.delta)
+                    if event_type in ("response.reasoning.delta",
+                                      "response.reasoning_summary_text.delta"):
                         reasoning_text = event_json.get("delta", "")
                         if reasoning_text:
                             yield ("reasoning", reasoning_text)
