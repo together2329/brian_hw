@@ -73,11 +73,6 @@ def _firecrawl_request(endpoint: str, payload: dict) -> dict:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             body = resp.read().decode("utf-8")
             return json.loads(body)
-    except urllib.error.ConnectionError:
-        raise RuntimeError(
-            f"Firecrawl service is not reachable at {api_url}. "
-            f"Start it first: cd /path/to/firecrawl/apps/api && pnpm run start:production"
-        )
     except urllib.error.HTTPError as e:
         error_body = ""
         try:
