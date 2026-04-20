@@ -606,10 +606,14 @@ class TodoTracker:
             return ""
         lines = ["", f"  {Color.BOLD}{Color.CYAN}── TODO ──{Color.RESET}"]
 
-        # Collapse approved tasks into a single summary line
-        approved_count = sum(1 for t in self.todos if t.status == "approved")
-        if approved_count:
-            lines.append(f"  {Color.success('✅')} {Color.DIM}{approved_count} approved{Color.RESET}")
+        # Collapse approved tasks into a single summary line with index range
+        approved_indices = [i+1 for i, t in enumerate(self.todos) if t.status == "approved"]
+        if approved_indices:
+            if len(approved_indices) == 1:
+                _range = str(approved_indices[0])
+            else:
+                _range = f"{approved_indices[0]}-{approved_indices[-1]}"
+            lines.append(f"  {Color.success('✅')} {Color.DIM}{_range} approved{Color.RESET}")
 
         for i, todo in enumerate(self.todos):
             if todo.status == "approved":
