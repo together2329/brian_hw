@@ -18,7 +18,7 @@ from rich.table import Table as RichTable
 from textual.app import App, ComposeResult
 from textual.containers import Vertical
 from textual.message import Message
-from textual.widgets import Input, OptionList, RichLog, Static
+from textual.widgets import Input, OptionList, RichLog, Static, TextArea
 from textual.widgets._option_list import Option as _Option
 from textual.suggester import Suggester
 from textual.events import Key
@@ -351,26 +351,37 @@ def _clipboard_copy(text: str) -> None:
 
 # ── Custom Input: history + copy/paste + Tab completion ───────────────────────
 
-class _AgentInput(Input):
+class _AgentInput(TextArea):
     """
-    Input with:
-    - ↑/↓  input history
-    - Ctrl+V  paste from system clipboard
-    - Ctrl+C  copy selected text (or full value) to clipboard
-    - Tab     cycle completion dropdown / accept inline suggestion
+    Multiline input (TextArea) with:
+    - Enter        insert newline (expands box)
+    - Ctrl+Enter   submit
+    - ↑/↓          history navigation (when at first/last line)
+    - Ctrl+V       paste from system clipboard
+    - Ctrl+C       copy selection to clipboard
+    - Tab          cycle completion dropdown
+    - Shift+Tab    toggle plan/normal mode
     """
 
+    class Submitted(Message):
+        def __init__(self, widget: "TextArea", value: str) -> None:
+            super().__init__()
+            self.input = widget
+            self.value = value
+
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._hist: list[str] = []   # newest first
-        self._hist_pos: int = -1     # -1 = not browsing
-        self._hist_draft: str = ""   # saved draft before browsing
-        self._skip_dropdown: bool = False  # suppress on_input_changed dropdown after accept
+        kwargs.pop("placeholder", None)
+        kwargs.pop("suggester", None)
+        super().__init__("", **kwargs)
+        self._hist: list[str] = []
+        self._hist_pos: int = -1
+        self._hist_draft: str = ""
+        self._skip_dropdown: bool = False
         self._load_history()
 
     def check_consume_key(self, key: str, character: str | None) -> bool:
-        """Tell Textual we own Tab/Shift+Tab — prevents Screen focus bindings from firing."""
-        if key in ("tab", "shift+tab"):
+        """Own Tab/Shift+Tab/Enter/Up/Down to prevent Textual defaults."""
+        if key in ("tab", "shift+tab", "enter", "up", "down"):
             return True
         return super().check_consume_key(key, character)
 
@@ -489,28 +500,41 @@ class _AgentInput(Input):
     # ── System clipboard actions (override Textual's internal-only versions) ──
 
     def action_copy(self) -> None:
-        """Ctrl+C — copy selection (or full value) to SYSTEM clipboard."""
+        """Ctrl+C — copy selection (or full text) to SYSTEM clipboard."""
         sel = self.selection
         if not sel.is_empty:
-            text = self.value[min(sel.start, sel.end):max(sel.start, sel.end)]
+            text = self.selected_text
         else:
-            text = self.value
-        self.app.copy_to_clipboard(text)   # OSC 52 (iTerm2/Wezterm)
-        _clipboard_copy(text)              # pbcopy / xclip
+            text = self.text
+        self.app.copy_to_clipboard(text)
+        _clipboard_copy(text)
 
     def action_paste(self) -> None:
         """Ctrl+V — paste from SYSTEM clipboard."""
-        text = _clipboard_paste()          # pbpaste / xclip
+        text = _clipboard_paste()
         if text:
-            start, end = self.selection
-            self.replace(text, start, end)
+            self.insert(text)
         else:
-            super().action_paste()         # fallback: Textual internal clipboard
+            super().action_paste()
+
+    def _submit(self) -> None:
+        """Submit current text content."""
+        text = self.text.strip()
+        self._hist_pos = -1
+        self.load_text("")
+        if text:
+            self.post_message(_AgentInput.Submitted(self, text))
+
+    def _set_text(self, value: str) -> None:
+        """Replace entire text content."""
+        self.load_text(value)
+        self.move_cursor(self.document.end)
 
     # ── Key handler ──────────────────────────────────────────────────────────
 
     async def _on_key(self, event: Key) -> None:
         ol = self._get_completion_list()
+        value = self.text  # current text for completion checks
 
         # ── Tab: highlight-only cycling / directory navigation ───────────────
         if event.key == "tab":
@@ -520,36 +544,23 @@ class _AgentInput(Input):
                     current = ol.highlighted
                     next_idx = 0 if current is None else (current + 1) % count
                     opt = ol.get_option_at_index(next_idx)
-                    # Use id (full replacement) when set, else prompt
                     opt_value = opt.id or str(opt.prompt)
                     opt_display = str(opt.prompt)
-
                     if current is not None and opt_display.endswith('/'):
-                        # Already highlighted a directory → navigate into it
                         ol.remove_class("visible")
-                        self._skip_dropdown = True   # suppress on_input_changed
-                        self.value = opt_value
-                        self.action_end()
-                        # Directly refresh directory contents synchronously
+                        self._skip_dropdown = True
+                        self._set_text(opt_value)
                         self._skip_dropdown = False
                         ol_ref = self._get_completion_list()
                         if ol_ref is not None:
                             self._show_at_dropdown(opt_value, ol_ref, force=False)
                     else:
-                        # First Tab on this item: just highlight (no value change)
                         ol.highlighted = next_idx
                 event.prevent_default()
                 event.stop()
                 return
-            if self._suggestion:
-                self.value = self._suggestion
-                self.action_end()
-                event.prevent_default()
-                event.stop()
-                return
-            # No dropdown, no inline suggestion — re-open with all matches
+            # No dropdown — re-open with all matches
             if ol is not None:
-                value = self.value
                 if value.startswith('/') and ' ' not in value:
                     self._show_slash_dropdown(value, ol, force=True)
                     if "visible" in ol.classes:
@@ -563,52 +574,51 @@ class _AgentInput(Input):
                         event.stop()
                         return
 
-        # ── ↑: history back / dropdown navigate up ───────────────────────────
+        # ── ↑: history back (only on first line) / dropdown up ───────────────
         elif event.key == "up":
             if ol is not None and "visible" in ol.classes:
                 count = ol.option_count
                 if count > 0:
                     current = ol.highlighted
-                    prev_idx = (count - 1) if current is None else max(0, current - 1)
-                    ol.highlighted = prev_idx
+                    ol.highlighted = (count - 1) if current is None else max(0, current - 1)
                 event.prevent_default()
                 event.stop()
                 return
-            elif self._hist:
+            row, _ = self.cursor_location
+            if row == 0 and self._hist:
                 if self._hist_pos == -1:
-                    self._hist_draft = self.value
+                    self._hist_draft = self.text
                 if self._hist_pos < len(self._hist) - 1:
                     self._hist_pos += 1
-                    self.value = self._hist[self._hist_pos]
-                    self.action_end()
+                    self._set_text(self._hist[self._hist_pos])
                 event.prevent_default()
                 event.stop()
                 return
 
-        # ── ↓: history forward / dropdown navigate down ──────────────────────
+        # ── ↓: history forward (only on last line) / dropdown down ───────────
         elif event.key == "down":
             if ol is not None and "visible" in ol.classes:
                 count = ol.option_count
                 if count > 0:
                     current = ol.highlighted
-                    next_idx = 0 if current is None else min(count - 1, current + 1)
-                    ol.highlighted = next_idx
+                    ol.highlighted = 0 if current is None else min(count - 1, current + 1)
                 event.prevent_default()
                 event.stop()
                 return
-            elif self._hist_pos >= 0:
+            row, _ = self.cursor_location
+            last_row = self.document.line_count - 1
+            if row == last_row and self._hist_pos >= 0:
                 if self._hist_pos > 0:
                     self._hist_pos -= 1
-                    self.value = self._hist[self._hist_pos]
+                    self._set_text(self._hist[self._hist_pos])
                 else:
                     self._hist_pos = -1
-                    self.value = self._hist_draft
-                self.action_end()
+                    self._set_text(self._hist_draft)
                 event.prevent_default()
                 event.stop()
                 return
 
-        # ── Enter: accept highlighted dropdown item or submit ─────────────────
+        # ── Enter: accept dropdown OR insert newline ──────────────────────────
         elif event.key == "enter":
             if ol is not None and "visible" in ol.classes:
                 highlighted = ol.highlighted
@@ -616,21 +626,29 @@ class _AgentInput(Input):
                     opt = ol.get_option_at_index(highlighted)
                     opt_value = opt.id or str(opt.prompt)
                     ol.remove_class("visible")
-                    self._skip_dropdown = True   # suppress on_input_changed re-show
-                    self.value = opt_value
-                    self.action_end()
+                    self._skip_dropdown = True
+                    self._set_text(opt_value)
                     event.prevent_default()
                     event.stop()
                     return
                 ol.remove_class("visible")
-            self._hist_pos = -1   # reset history browsing on submit
+            # Enter = newline (TextArea default — let it through)
+            return
 
-        # ── Escape: close dropdown + fire action_stop on App directly
+        # ── Ctrl+Enter: submit ────────────────────────────────────────────────
+        elif event.key in ("ctrl+j", "ctrl+enter"):
+            self._submit()
+            event.prevent_default()
+            event.stop()
+            return
+
+        # ── Escape: close dropdown / stop agent ──────────────────────────────
         elif event.key == "escape":
             if ol is not None and "visible" in ol.classes:
                 ol.remove_class("visible")
-            # Prevent parent Input from consuming ESC (it would blur/clear input).
-            # Instead, directly invoke the App's stop action so ESC always works.
+                event.prevent_default()
+                event.stop()
+                return
             event.stop()
             event.prevent_default()
             try:
@@ -639,32 +657,23 @@ class _AgentInput(Input):
                 pass
             return
 
-        # ── Shift+Tab: toggle plan ↔ normal mode ────────────────────────────
+        # ── Shift+Tab: toggle plan ↔ normal mode ─────────────────────────────
         elif event.key == "shift+tab":
             try:
                 current_mode = getattr(self.app, "_ctx_mode", "normal")
                 cmd = "/mode normal" if current_mode == "plan" else "/plan"
                 self._hist_pos = -1
-                self.post_message(Input.Submitted(self, cmd))
+                self.load_text("")
+                self.post_message(_AgentInput.Submitted(self, cmd))
             except Exception:
                 pass
             event.prevent_default()
             event.stop()
             return
 
-        # ── Alt+Enter: insert newline (multiline needs TextArea — placeholder) ──
-        elif event.key in ("alt+enter", "ctrl+enter"):
-            # Single-line Input can't visually expand — skip for now
-            event.prevent_default()
-            event.stop()
-            return
-            event.prevent_default()
-            event.stop()
-            return
-
-        # ── Ctrl+Q: let event bubble to App BINDINGS → action_quit ───────────
+        # ── Ctrl+Q: bubble to App quit binding ───────────────────────────────
         elif event.key == "ctrl+q":
-            pass  # Do NOT stop — let Key bubble to App BINDINGS → action_quit
+            return  # do NOT stop — let Key bubble to App BINDINGS
 
         await super()._on_key(event)
 
@@ -868,22 +877,28 @@ class AgentTUI(App):
         color: white;
     }}
 
-    /* ── Input ── */
-    Input {{
-        height: 3;
+    /* ── Input (TextArea) ── */
+    _AgentInput {{
+        height: auto;
+        min-height: 3;
+        max-height: 12;
         dock: bottom;
         background: {_BG_INPUT};
         border: none;
         padding: 1 2;
         color: {_TEXT};
+        scrollbar-size: 0 0;
     }}
-    Input:focus {{
+    _AgentInput:focus {{
         border: none;
         background: {_BG_INPUT};
     }}
-    Input > .input--cursor {{
+    _AgentInput > .text-area--cursor {{
         background: {_BORDER};
         color: {_TEXT};
+    }}
+    _AgentInput > .text-area--gutter {{
+        display: none;
     }}
     """
 
@@ -976,7 +991,7 @@ class AgentTUI(App):
             yield Static(cwd, id="cwd-label")
         yield Static("", id="statusbar")
         yield OptionList(id="completion-list")
-        yield _AgentInput(placeholder="", suggester=_AgentSuggester())
+        yield _AgentInput()
 
     def on_mount(self) -> None:
         # Save original tty settings (class-level) so the staticmethod
@@ -1293,11 +1308,17 @@ class AgentTUI(App):
         try:
             sb = self.query_one("#statusbar", Static)
             t = RichText()
-            t.append(" ◆ ", style=f"bold {_ACCENT}")
-            t.append("primary", style=_TEXT_DIM)
-            t.append("  ", style="")
-            t.append(self._model, style=_TEXT_FAINT)
-            t.append("   ctrl+q quit", style=_TEXT_FAINT)
+            in_plan = self._ctx_mode == "plan"
+            if in_plan:
+                t.append("  ⏸ ", style=f"bold {_ACCENT}")
+                t.append("plan mode on", style=_TEXT_DIM)
+                t.append("  (shift+tab to exit)", style=_TEXT_FAINT)
+            else:
+                t.append("  ◆ ", style=f"bold {_ACCENT}")
+                t.append(self._model or "normal", style=_TEXT_FAINT)
+                t.append("  shift+tab plan", style=_TEXT_FAINT)
+            t.append("  ·  esc to interrupt", style=_TEXT_FAINT)
+            t.append("  ·  ctrl+enter send", style=_TEXT_FAINT)
             if extra:
                 t.append(f"   {extra}", style=f"italic {_YELLOW}")
             sb.update(t)
@@ -1352,9 +1373,9 @@ class AgentTUI(App):
 
     # ── Input ─────────────────────────────────────────────────────────────────
 
-    def on_input_changed(self, event: Input.Changed) -> None:
+    def on_text_area_changed(self, event: TextArea.Changed) -> None:
         """Show/hide completion dropdown while typing."""
-        value = event.value
+        value = event.text_area.text
         ol = self.query_one("#completion-list", OptionList)
 
         inp = self.query_one(_AgentInput)
@@ -1383,14 +1404,13 @@ class AgentTUI(App):
         """Accept a completion from the dropdown (mouse click)."""
         inp = self.query_one(_AgentInput)
         self.query_one("#completion-list", OptionList).remove_class("visible")
-        inp._skip_dropdown = True   # suppress on_input_changed re-show
-        inp.value = event.option.id or str(event.option.prompt)
-        inp.action_end()
+        inp._skip_dropdown = True
+        inp._set_text(event.option.id or str(event.option.prompt))
         inp.focus()
 
-    def on_input_submitted(self, event: Input.Submitted) -> None:
+    def on__agent_input_submitted(self, event: _AgentInput.Submitted) -> None:
         text = event.value.strip()
-        event.input.value = ""
+        # TextArea is already cleared in _submit()
         if not text:
             return
         # Reset proactive idle timer and cycle counter on user input
@@ -1580,12 +1600,12 @@ class AgentTUI(App):
     def _redraw_mode(self) -> None:
         try:
             mode = (self._ctx_mode or "normal").capitalize()
-            style = _TEXT
             m = RichText()
-            m.append(mode, style=style)
+            m.append(mode, style=_TEXT)
             self.query_one("#mode", Static).update(m)
         except Exception:
             pass
+        self._update_statusbar()
 
     def _update_activity(self) -> None:
         try:
