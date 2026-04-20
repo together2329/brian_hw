@@ -94,8 +94,8 @@ class Color:
     RESET = '\033[0m'
 
     # Diff background colors (Claude Code style)
-    BG_RED   = '\033[48;2;60;0;0m'      # subtle dark red tint
-    BG_GREEN = '\033[48;2;0;40;0m'      # subtle dark green tint
+    BG_RED   = '\033[48;2;80;0;0m'      # subtle dark red tint
+    BG_GREEN = '\033[48;2;0;65;0m'      # subtle dark green tint
     FG_RED   = '\033[38;2;255;80;80m'   # red for - symbol
     FG_GREEN = '\033[38;2;80;200;80m'   # green for + symbol
 
