@@ -1581,10 +1581,10 @@ class AgentTUI(App):
             self._reasoning_open = True
             self._update_activity()
             hdr = RichText()
-            hdr.append("  Reasoning", style=f"italic {_TEXT_DIM}")
+            hdr.append("Reasoning", style=f"italic {_TEXT_DIM}")
             log.write(hdr)
         t = RichText()
-        t.append("  ┆ ", style=f"dim {_BORDER_DIM}")
+        t.append("┆ ", style=f"dim {_BORDER_DIM}")
         t.append(msg.text, style=f"italic {_TEXT_DIM}")
         log.write(t)
 
@@ -1810,7 +1810,7 @@ class AgentTUI(App):
             except Exception:
                 _show_tok = True
             if _show_tok:
-                log.write(RichText(f"  {text.strip()}", style=f"dim {_TEXT_FAINT}"))
+                log.write(RichText(f"{text.strip()}", style=f"dim {_TEXT_FAINT}"))
 
             def _parse_tok(pattern: str) -> int:
                 m = re.search(pattern, text)
@@ -1915,7 +1915,7 @@ class AgentTUI(App):
         if m_debug:
             tag, rest = m_debug.groups()
             t = RichText()
-            t.append(f"  {tag}", style=f"dim {_ACCENT}")
+            t.append(f"{tag}", style=f"dim {_ACCENT}")
             if rest.strip():
                 t.append(rest, style=f"dim {_TEXT_FAINT}")
             log.write(t)
@@ -1923,7 +1923,7 @@ class AgentTUI(App):
 
         # Debug block body lines (indented with spaces, part of [Request Debug]/[Response] block)
         if re.match(r"^\s{2,}(?:URL|Model|Stream|Messages|Est\.tokens|Caching|Temperature|Max tokens|Stop|Tools|Tool choice|Store|Reasoning|Finish|Latency|Input|Output|Total|Tool calls|Effort|Summary|Rsn tokens|─{3,})[\s:─]", _plain):
-            log.write(RichText(f"  {_plain.strip()}", style=f"dim {_TEXT_FAINT}"))
+            log.write(RichText(f"{_plain.strip()}", style=f"dim {_TEXT_FAINT}"))
             return
 
         # System messages: [Plan Mode], [System], [Error]
@@ -1937,13 +1937,13 @@ class AgentTUI(App):
                 self._redraw_mode()
             t = RichText()
             if "Error" in tag:
-                t.append(f"  {tag}", style=f"bold {_RED}")
+                t.append(f"{tag}", style=f"bold {_RED}")
             elif "Warning" in tag:
-                t.append(f"  {tag}", style=f"bold {_YELLOW}")
+                t.append(f"{tag}", style=f"bold {_YELLOW}")
             elif "Plan Mode" in tag:
-                t.append(f"  {tag}", style=f"bold {_ACCENT}")
+                t.append(f"{tag}", style=f"bold {_ACCENT}")
             else:
-                t.append(f"  {tag}", style=f"dim {_TEXT_FAINT}")
+                t.append(f"{tag}", style=f"dim {_TEXT_FAINT}")
             t.append(rest, style=f"dim {_TEXT_DIM}")
             log.write(t)
             return
@@ -1954,7 +1954,7 @@ class AgentTUI(App):
             self._in_parallel = True
             log.write(RichText(""))
             t = RichText()
-            t.append(f"  ⚡ {m_parallel.group(1)}", style=f"bold {_YELLOW}")
+            t.append(f"⚡ {m_parallel.group(1)}", style=f"bold {_YELLOW}")
             log.write(t)
             return
 
@@ -1989,7 +1989,7 @@ class AgentTUI(App):
             if not self._in_parallel:
                 log.write(RichText(""))
             t = RichText()
-            t.append(f"  {tool_name}", style=f"bold {_ORANGE}")
+            t.append(f"{tool_name}", style=f"bold {_ORANGE}")
             t.append(f"({args_part}", style=f"dim {_ORANGE}")
             log.write(t)
             return
@@ -1999,13 +1999,13 @@ class AgentTUI(App):
         # Use _plain (ANSI-stripped) for matching since ANSI codes obscure markers
         if self._in_diff:
             if re.match(r"^\+[^+]", _plain):
-                log.write(RichText(f"  {text}", style=f"bold {_GREEN}"))
+                log.write(RichText(f"{text}", style=f"bold {_GREEN}"))
                 return
             if re.match(r"^-[^-]", _plain):
-                log.write(RichText(f"  {text}", style=f"bold {_RED}"))
+                log.write(RichText(f"{text}", style=f"bold {_RED}"))
                 return
             if re.match(r"^@@", _plain):
-                log.write(RichText(f"  {text}", style=f"bold {_ACCENT}"))
+                log.write(RichText(f"{text}", style=f"bold {_ACCENT}"))
                 return
             # Non-diff line ends the diff block (check _plain for tree chars)
             if not re.match(r"^\s*[└|│⎿]", _plain):
@@ -2019,13 +2019,13 @@ class AgentTUI(App):
             inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", _plain)
             inner = re.sub(r"^\s*\d+\s*[→ ]?\s*", "", inner)
             if self._in_diff and re.match(r"^\+[^+]", inner):
-                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_GREEN}"))
+                log.write(RichText(f"{_plain.strip()}", style=f"bold {_GREEN}"))
             elif self._in_diff and re.match(r"^-[^-]", inner):
-                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_RED}"))
+                log.write(RichText(f"{_plain.strip()}", style=f"bold {_RED}"))
             elif self._in_diff and re.match(r"^@@", inner):
-                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_ACCENT}"))
+                log.write(RichText(f"{_plain.strip()}", style=f"bold {_ACCENT}"))
             else:
-                log.write(RichText(f"  {_plain.strip()}", style=f"dim {_TEXT_FAINT}"))
+                log.write(RichText(f"{_plain.strip()}", style=f"dim {_TEXT_FAINT}"))
             # Clear tool indicator after writing so sidebar update doesn't race with log write
             if self._current_tool:
                 self._current_tool = ""
@@ -2043,13 +2043,9 @@ class AgentTUI(App):
             self._redraw_mode()
 
         try:
-            ansi_text = RichText.from_ansi(text)
-            # Prepend 2-space indent to match all other line types
-            indented = RichText("  ")
-            indented.append_text(ansi_text)
-            log.write(indented)
+            log.write(RichText.from_ansi(text))
         except Exception:
-            log.write(RichText(f"  {text}", style=_TEXT_DIM))
+            log.write(RichText(text, style=_TEXT_DIM))
 
     def on_todo_update(self, msg: TodoUpdate) -> None:
         # Empty signal → clear sidebar
