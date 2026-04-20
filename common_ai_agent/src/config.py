@@ -226,6 +226,13 @@ REASONING_EFFORT = REASONING_MODE
 # Default: true. Some compatible backends may ignore this field even when supplied.
 RESPONSES_REASONING_SUMMARY = os.getenv("RESPONSES_REASONING_SUMMARY", "true").lower() in ("true", "1", "yes")
 
+# GLM-5/5.1 thinking control (Chat Completions path)
+# GLM_THINKING_TYPE: "enabled" (default, GLM-5 default) | "disabled"
+# GLM_CLEAR_THINKING: true = clear reasoning each turn (default)
+#                     false = preserved thinking (reasoning carried into next turn)
+GLM_THINKING_TYPE  = os.getenv("GLM_THINKING_TYPE", "enabled")
+GLM_CLEAR_THINKING = os.getenv("GLM_CLEAR_THINKING", "true").lower() not in ("false", "0", "no")
+
 # Save conversation history to file
 SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")
 HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")

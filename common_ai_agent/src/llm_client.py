@@ -2653,6 +2653,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             clean["tool_calls"] = m["tool_calls"]
         if "tool_call_id" in m:
             clean["tool_call_id"] = m["tool_call_id"]
+        # Preserved thinking: pass reasoning_content back for GLM-5/5.1 (clear_thinking=false)
+        if "reasoning_content" in m and 'glm-5' in _model_lower and not getattr(config, "GLM_CLEAR_THINKING", True):
+            clean["reasoning_content"] = m["reasoning_content"]
         _processed_clean.append(clean)
     processed_messages = _processed_clean
 
@@ -2773,6 +2776,14 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         data["tools"] = tools
         data["tool_choice"] = "auto"
 
+    # GLM-5/5.1 thinking control — explicit thinking param for interleaved reasoning + tool calls
+    if 'glm-5' in _model_lower:
+        _thinking_type = getattr(config, "GLM_THINKING_TYPE", "enabled")
+        _clear_thinking = getattr(config, "GLM_CLEAR_THINKING", True)
+        data["thinking"] = {
+            "type": _thinking_type,
+            "clear_thinking": _clear_thinking,
+        }
 
     # Debug: Log request details
     if config.DEBUG_MODE:
@@ -2803,7 +2814,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             print(Color.info(f"  Tool choice: {data.get('tool_choice', 'auto')}"))
         if data.get("store") is not None:
             print(Color.info(f"  Store:       {data['store']}"))
-        
+        if data.get("thinking"):
+            _th = data["thinking"]
+            print(Color.info(f"  Thinking:    type={_th.get('type')} clear={_th.get('clear_thinking')}"))
+
         # FULL_PROMPT_DEBUG: Show complete input messages
         if getattr(config, 'FULL_PROMPT_DEBUG', False):
             print(Color.info("\n" + "="*60))

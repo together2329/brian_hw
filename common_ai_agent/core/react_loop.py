@@ -603,6 +603,7 @@ def run_react_agent_impl(
         _out_buf: list = []
         _last_flush_t = [time.time()]
         _FLUSH_INTERVAL = 0.03  # 30ms
+        _iter_reasoning_buf: list = []  # accumulates reasoning_content for this iteration
 
         def _flush_out():
             if _out_buf:
@@ -677,6 +678,10 @@ def run_react_agent_impl(
 
                 if getattr(cfg, "STREAM_TOKEN_DELAY_MS", 0) > 0:
                     time.sleep(cfg.STREAM_TOKEN_DELAY_MS / 1000.0)
+
+                # Accumulate reasoning content for assistant message (preserved thinking)
+                if isinstance(chunk, tuple) and len(chunk) == 2 and chunk[0] == "reasoning":
+                    _iter_reasoning_buf.append(chunk[1])
 
                 # Native tool call sentinel: ("native_tool_calls", [...])
                 if isinstance(chunk, tuple) and len(chunk) == 2 and chunk[0] == "native_tool_calls":
@@ -862,6 +867,15 @@ def run_react_agent_impl(
             # GLM/Z.AI requires content=null (not "") when tool_calls are present
             if not assistant_msg["content"]:
                 assistant_msg["content"] = None
+
+        # Preserved thinking: attach reasoning_content to assistant message for GLM-5/5.1
+        # so the model retains its reasoning context in subsequent turns.
+        _model_for_thinking = getattr(cfg, "MODEL_NAME", "").lower()
+        if 'glm-5' in _model_for_thinking and _iter_reasoning_buf:
+            _clear = getattr(cfg, "GLM_CLEAR_THINKING", True)
+            if not _clear:
+                assistant_msg["reasoning_content"] = "".join(_iter_reasoning_buf)
+
         messages.append(assistant_msg)
 
         # Hook: AFTER_LLM_CALL
