@@ -94,10 +94,10 @@ class Color:
     RESET = '\033[0m'
 
     # Diff background colors (Claude Code style)
-    BG_RED   = '\033[48;2;80;20;20m'    # dark red background
-    BG_GREEN = '\033[48;2;20;60;20m'    # dark green background
-    FG_RED   = '\033[38;2;255;100;100m' # bright red text
-    FG_GREEN = '\033[38;2;100;220;100m' # bright green text
+    BG_RED   = '\033[48;2;60;0;0m'      # subtle dark red tint
+    BG_GREEN = '\033[48;2;0;40;0m'      # subtle dark green tint
+    FG_RED   = '\033[38;2;255;80;80m'   # red for - symbol
+    FG_GREEN = '\033[38;2;80;200;80m'   # green for + symbol
 
     @staticmethod
     def system(text):
@@ -645,6 +645,13 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
         if observation:
             first = observation.lstrip()
             if first.startswith("✅") and "approved" in first.split("\n")[0].lower():
+                # Extract approved_reason if present
+                reason_m = re.search(r'approved_reason[:\s]+(.+)', observation, re.IGNORECASE)
+                reason_line = re.search(r'Reason[:\s]+(.+)', observation, re.IGNORECASE)
+                reason = (reason_m or reason_line)
+                if reason:
+                    snippet = reason.group(1).strip()[:80]
+                    return f"{Color.GREEN}approved{Color.RESET} {Color.DIM}— {snippet}{Color.RESET}"
                 return f"{Color.GREEN}approved{Color.RESET}"
             if "marked completed" in first.lower() or first.startswith("Task") and "completed" in first.split("\n")[0]:
                 return f"{Color.CYAN}completed{Color.RESET}"
@@ -882,6 +889,13 @@ def _extract_tool_args_summary(tool_name: str, args_str) -> str:
 
     # Extract path (+ optional line range / content preview) for file tools
     if tool_name in ('read_file', 'read_lines', 'write_file', 'replace_in_file', 'replace_lines'):
+        # write_file: require explicit 'path=' to avoid matching content field
+        if tool_name == 'write_file':
+            path = _get_val(r'path\s*=\s*', args_str) or _get_val(r'(?:path\s*=\s*)?', args_str)
+            # sanity: if extracted value looks like file content (newlines), fall back
+            if path and '\n' in path:
+                path = _get_val(r'path\s*=\s*', args_str)
+            return path or '(unknown)'
         path = _get_val(r'(?:path\s*=\s*)?', args_str)
         if path:
             if tool_name == 'read_lines':
@@ -1029,8 +1043,37 @@ def format_diff_snippet(file_path, old_text, new_text, context_lines=3):
     """
     import difflib
 
+    # Build per-line syntax-highlighted versions (context lines only)
+    def _make_highlighted(lines, path):
+        try:
+            import sys as _sys, os as _os
+            _vdir = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), 'vendor')
+            if _vdir not in _sys.path:
+                _sys.path.insert(0, _vdir)
+            from pygments import highlight as _hl
+            from pygments.lexers import get_lexer_for_filename as _glf
+            from pygments.formatters import Terminal256Formatter as _TF
+            import re as _re
+            _ANSI = _re.compile(r'\x1b\[[0-9;]*m')
+            lexer = _glf(path, stripnl=False)
+            fmt = _TF(style='monokai')
+            joined = '\n'.join(lines)
+            raw = _hl(joined, lexer, fmt)
+            # Strip trailing reset/newline artifacts per line
+            hl_lines = raw.split('\n')
+            if len(hl_lines) > len(lines):
+                hl_lines = hl_lines[:len(lines)]
+            # Pad if shorter
+            while len(hl_lines) < len(lines):
+                hl_lines.append(lines[len(hl_lines)])
+            return hl_lines
+        except Exception:
+            return lines
+
     old_lines = old_text.splitlines(keepends=False)
     new_lines = new_text.splitlines(keepends=False)
+    old_hl = _make_highlighted(old_lines, file_path)
+    new_hl = _make_highlighted(new_lines, file_path)
 
     # Find changed region using difflib
     matcher = difflib.SequenceMatcher(None, old_lines, new_lines)
@@ -1077,15 +1120,15 @@ def format_diff_snippet(file_path, old_text, new_text, context_lines=3):
 
     def _fmt_removed(line_num, content):
         num = f"{line_num:{ln_width}d}"
-        return f"{Color.BG_RED}{Color.FG_RED}{num} {Color.RESET}{Color.BG_RED}{Color.FG_RED}-{content}{Color.RESET}"
+        return f"{Color.BG_RED}{Color.DIM}{num}{Color.RESET}{Color.BG_RED} {Color.FG_RED}-{Color.RESET}{Color.BG_RED}{content}{Color.RESET}"
 
     def _fmt_added(line_num, content):
         num = f"{line_num:{ln_width}d}"
-        return f"{Color.BG_GREEN}{Color.FG_GREEN}{num} {Color.RESET}{Color.BG_GREEN}{Color.FG_GREEN}+{content}{Color.RESET}"
+        return f"{Color.BG_GREEN}{Color.DIM}{num}{Color.RESET}{Color.BG_GREEN} {Color.FG_GREEN}+{Color.RESET}{Color.BG_GREEN}{content}{Color.RESET}"
 
-    def _fmt_context(line_num, content):
+    def _fmt_context(line_num, content_hl):
         num = f"{line_num:{ln_width}d}"
-        return f"{Color.DIM}{num}  {content}{Color.RESET}"
+        return f"{Color.DIM}{num}  {Color.RESET}{content_hl}{Color.RESET}"
 
     for tag, i1, i2, j1, j2 in opcodes:
         if i2 <= old_start or i1 >= old_end:
@@ -1093,7 +1136,7 @@ def format_diff_snippet(file_path, old_text, new_text, context_lines=3):
 
         if tag == 'equal':
             for j in range(max(j1, new_start), min(j2, new_end)):
-                result.append(_fmt_context(j + 1, new_lines[j]))
+                result.append(_fmt_context(j + 1, new_hl[j]))
 
         elif tag == 'replace':
             for i in range(max(i1, old_start), min(i2, old_end)):
@@ -1123,14 +1166,32 @@ def format_write_preview(file_path: str, preview_lines: int = 10) -> str:
 
     total = len(lines)
     ln_width = max(len(str(total)), 4)
-    shown = lines[:preview_lines]
+    shown = [l.rstrip() for l in lines[:preview_lines]]
+
+    # Syntax highlight shown lines
+    try:
+        import sys as _sys, os as _os
+        _vdir = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), 'vendor')
+        if _vdir not in _sys.path:
+            _sys.path.insert(0, _vdir)
+        from pygments import highlight as _hl
+        from pygments.lexers import get_lexer_for_filename as _glf
+        from pygments.formatters import Terminal256Formatter as _TF
+        _lexer = _glf(file_path, stripnl=False)
+        _fmt = _TF(style='monokai')
+        _raw = _hl('\n'.join(shown), _lexer, _fmt)
+        shown_hl = _raw.split('\n')[:len(shown)]
+        while len(shown_hl) < len(shown):
+            shown_hl.append(shown[len(shown_hl)])
+    except Exception:
+        shown_hl = shown
 
     result = [f"{Color.BOLD}Write{Color.RESET}({Color.CYAN}{file_path}{Color.RESET})"]
     result.append(f"  {Color.DIM}⎿{Color.RESET}  {Color.FG_GREEN}{total} line{'s' if total != 1 else ''}{Color.RESET}")
     result.append("")
-    for i, line in enumerate(shown):
+    for i, hl_line in enumerate(shown_hl):
         num = f"{i + 1:{ln_width}d}"
-        result.append(f"{Color.DIM}{num}  {line.rstrip()}{Color.RESET}")
+        result.append(f"{Color.DIM}{num}  {Color.RESET}{hl_line}")
     if total > preview_lines:
         result.append(f"{Color.DIM}{'·' * (ln_width + 2)}  ... ({total - preview_lines} more lines){Color.RESET}")
     result.append("")

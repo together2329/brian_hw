@@ -1025,7 +1025,9 @@ def run_react_agent_impl(
                 action_results = deps.execute_parallel_fn(_parallel_actions, tracker, agent_mode=agent_mode)
                 for idx, tool_name, args_str, observation in action_results:
                     summary = _extract_tool_args_summary(tool_name, args_str)
-                    print(format_tool_header(tool_name, summary))
+                    # Skip header for diff tools: their output already starts with Update(file)
+                    if tool_name not in _DIFF_TOOLS:
+                        print(format_tool_header(tool_name, summary))
 
                     if tool_name in _WRITE_TOOLS:
                         print(_write_preview(observation))
@@ -1113,7 +1115,9 @@ def run_react_agent_impl(
                     )
 
                     # Show what we're about to do — before execution so long ops aren't silent
-                    if not _debug and not _is_plan_blocked and not _is_normal_blocked:
+                    # Skip header for diff/write tools: their output already provides the header
+                    _HEADER_SKIP_SEQ = {"replace_in_file", "replace_lines", "replace_file_content", "write_file", "write_to_file"}
+                    if not _debug and not _is_plan_blocked and not _is_normal_blocked and tool_name not in _HEADER_SKIP_SEQ:
                         print(format_tool_header(tool_name, summary))
 
                     if _is_plan_blocked:
