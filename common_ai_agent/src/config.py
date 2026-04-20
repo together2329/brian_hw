@@ -231,7 +231,7 @@ RESPONSES_REASONING_SUMMARY = os.getenv("RESPONSES_REASONING_SUMMARY", "true").l
 # GLM_CLEAR_THINKING: true = clear reasoning each turn (default)
 #                     false = preserved thinking (reasoning carried into next turn)
 GLM_THINKING_TYPE  = os.getenv("GLM_THINKING_TYPE", "enabled")
-GLM_CLEAR_THINKING = os.getenv("GLM_CLEAR_THINKING", "true").lower() not in ("false", "0", "no")
+GLM_CLEAR_THINKING = os.getenv("GLM_CLEAR_THINKING", "false").lower() not in ("false", "0", "no")
 
 # Save conversation history to file
 SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")
