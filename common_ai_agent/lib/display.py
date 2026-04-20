@@ -890,12 +890,7 @@ def _extract_tool_args_summary(tool_name: str, args_str) -> str:
                 if start_m and end_m:
                     return f"{path} · lines {start_m.group(1)}-{end_m.group(1)}"
             if tool_name == 'write_file':
-                content_m = re.search(r'content\s*=\s*"""(.*?)"""', args_str, re.DOTALL)
-                if not content_m:
-                    content_m = re.search(r'content\s*=\s*["\'](.{0,200})', args_str, re.DOTALL)
-                if content_m:
-                    preview = content_m.group(1)[:80].replace('\n', '↵')
-                    return f'{path} · "{preview}…"'
+                return path  # show only path — preview handled by format_write_preview
             if tool_name in ('replace_in_file', 'replace_lines'):
                 old_m = re.search(r'old_string\s*=\s*"""(.*?)"""', args_str, re.DOTALL)
                 if not old_m:
