@@ -620,7 +620,7 @@ class _AgentInput(TextArea):
                 event.stop()
                 return
 
-        # ── Enter: accept dropdown OR fall through to TextArea (newline) ────────
+        # ── Enter: accept dropdown OR submit ─────────────────────────────────
         elif event.key == "enter":
             if ol is not None and "visible" in ol.classes:
                 highlighted = ol.highlighted
@@ -634,11 +634,15 @@ class _AgentInput(TextArea):
                     event.stop()
                     return
                 ol.remove_class("visible")
-            # Fall through → super()._on_key inserts newline
-
-        # ── Ctrl+Enter / Alt+Enter / Option+Enter: submit ─────────────────────
-        elif event.key in ("ctrl+j", "ctrl+enter", "alt+enter"):
+            # Enter = submit
             self._submit()
+            event.prevent_default()
+            event.stop()
+            return
+
+        # ── Shift+Enter / Alt+Enter: insert newline (multiline) ─────────────
+        elif event.key in ("shift+enter", "alt+enter"):
+            self.insert("\n")
             event.prevent_default()
             event.stop()
             return
