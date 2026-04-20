@@ -380,9 +380,11 @@ class _AgentInput(TextArea):
         self._load_history()
 
     def check_consume_key(self, key: str, character: str | None) -> bool:
-        """Own Tab/Shift+Tab to prevent Textual focus bindings from firing."""
+        """Own Tab/Shift+Tab. Let ESC bubble so our _on_key fires first."""
         if key in ("tab", "shift+tab"):
             return True
+        if key == "escape":
+            return True  # claim it so we handle it ourselves in _on_key
         return super().check_consume_key(key, character)
 
     # ── History persistence ───────────────────────────────────────────────────
