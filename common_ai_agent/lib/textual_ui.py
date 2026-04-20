@@ -349,6 +349,13 @@ def _clipboard_copy(text: str) -> None:
         pass
 
 
+class AgentInputSubmitted(Message):
+    """Fired by _AgentInput when the user submits text."""
+    def __init__(self, value: str) -> None:
+        super().__init__()
+        self.value = value
+
+
 # ── Custom Input: history + copy/paste + Tab completion ───────────────────────
 
 class _AgentInput(TextArea):
@@ -362,12 +369,6 @@ class _AgentInput(TextArea):
     - Tab          cycle completion dropdown
     - Shift+Tab    toggle plan/normal mode
     """
-
-    class Submitted(Message):
-        def __init__(self, widget: "TextArea", value: str) -> None:
-            super().__init__()
-            self.input = widget
-            self.value = value
 
     def __init__(self, **kwargs):
         kwargs.pop("placeholder", None)
@@ -525,7 +526,7 @@ class _AgentInput(TextArea):
         self._hist_pos = -1
         self.load_text("")
         if text:
-            self.post_message(_AgentInput.Submitted(self, text))
+            self.post_message(AgentInputSubmitted(text))
 
     def _set_text(self, value: str) -> None:
         """Replace entire text content."""
@@ -640,8 +641,8 @@ class _AgentInput(TextArea):
             event.stop()
             return
 
-        # ── Shift+Enter / Alt+Enter: insert newline (multiline) ─────────────
-        elif event.key in ("shift+enter", "alt+enter"):
+        # ── Shift+Enter / Alt+Enter / Option+Enter: insert newline ──────────
+        elif event.key in ("shift+enter", "alt+enter", "option+enter"):
             self.insert("\n")
             event.prevent_default()
             event.stop()
@@ -669,7 +670,7 @@ class _AgentInput(TextArea):
                 cmd = "/mode normal" if current_mode == "plan" else "/plan"
                 self._hist_pos = -1
                 self.load_text("")
-                self.post_message(_AgentInput.Submitted(self, cmd))
+                self.post_message(AgentInputSubmitted(cmd))
             except Exception:
                 pass
             event.prevent_default()
@@ -1413,7 +1414,7 @@ class AgentTUI(App):
         inp._set_text(event.option.id or str(event.option.prompt))
         inp.focus()
 
-    def on__agent_input_submitted(self, event: _AgentInput.Submitted) -> None:
+    def on_agent_input_submitted(self, event: AgentInputSubmitted) -> None:
         text = event.value.strip()
         # TextArea is already cleared in _submit()
         if not text:
