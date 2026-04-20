@@ -864,8 +864,9 @@ def run_react_agent_impl(
                 }
                 for tc in _native_calls
             ]
-            # API spec: content must be null when tool_calls are present
-            assistant_msg["content"] = None
+            # GLM/Z.AI requires content=null (not "") when tool_calls are present
+            if not assistant_msg["content"]:
+                assistant_msg["content"] = None
 
         # Preserved thinking: attach reasoning_content to assistant message for GLM-5/5.1
         # so the model retains its reasoning context in subsequent turns.
