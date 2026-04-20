@@ -67,8 +67,10 @@ def save_conversation_history(
         return
 
     try:
-        with open(cfg.HISTORY_FILE, 'w', encoding='utf-8') as f:
+        tmp_path = cfg.HISTORY_FILE + ".tmp"
+        with open(tmp_path, 'w', encoding='utf-8') as f:
             json.dump(messages, f, indent=2, ensure_ascii=False)
+        os.replace(tmp_path, cfg.HISTORY_FILE)
         # Also append new messages to the append-only full history
         _append_to_full_history(messages, cfg)
         if not silent:
