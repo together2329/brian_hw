@@ -867,7 +867,10 @@ def sv_compile(files: List[str]) -> str:
         comp = _pyslang.Compilation()
         sm = None
         for f in files:
-            tree = _pyslang.SyntaxTree.fromFile(f)
+            # Read file content directly to bypass pyslang's internal file cache
+            with open(f, 'r', encoding='utf-8', errors='replace') as _fh:
+                _src = _fh.read()
+            tree = _pyslang.SyntaxTree.fromText(_src, f)
             if sm is None:
                 sm = tree.sourceManager
             comp.addSyntaxTree(tree)
