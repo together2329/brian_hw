@@ -1035,7 +1035,10 @@ def run_react_agent_impl(
                         # Show full diff output same as sequential mode
                         _edit_max = getattr(cfg, "EDIT_PREVIEW_MAX_LINES", 1000)
                         if tool_name in ("replace_in_file", "replace_lines", "replace_file_content") and _edit_max > 0:
-                            for _dl in observation.splitlines():
+                            _diff_lines = observation.splitlines()
+                            if _diff_lines and _diff_lines[0].startswith("Replaced "):
+                                _diff_lines = _diff_lines[1:]
+                            for _dl in _diff_lines:
                                 print(f"  {_dl}")
                         else:
                             print(format_tool_result(observation, max_lines=1000, max_chars=100000))
@@ -1209,7 +1212,11 @@ def run_react_agent_impl(
                             print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")
                         else:
                             # Print diff raw to preserve +green/-red ANSI colors
-                            for _dl in observation.splitlines():
+                            # Skip leading "Replaced N occurrence(s)" line — diff header already shows this
+                            _diff_lines = observation.splitlines()
+                            if _diff_lines and _diff_lines[0].startswith("Replaced "):
+                                _diff_lines = _diff_lines[1:]
+                            for _dl in _diff_lines:
                                 print(f"  {_dl}")
                     elif tool_name in ("write_file", "write_to_file"):
                         import re as _re2
