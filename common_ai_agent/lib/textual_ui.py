@@ -16,6 +16,7 @@ from rich.markdown import Heading as _RichHeading
 from rich.text import Text as RichText
 from rich.table import Table as RichTable
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.containers import Vertical
 from textual.message import Message
 from textual.widgets import Input, OptionList, RichLog, Static, TextArea
@@ -361,14 +362,22 @@ class AgentInputSubmitted(Message):
 class _AgentInput(TextArea):
     """
     Multiline input (TextArea) with:
-    - Enter        insert newline (expands box)
-    - Ctrl+Enter   submit
-    - ↑/↓          history navigation (when at first/last line)
-    - Ctrl+V       paste from system clipboard
-    - Ctrl+C       copy selection to clipboard
-    - Tab          cycle completion dropdown
-    - Shift+Tab    toggle plan/normal mode
+    - Enter          submit
+    - Shift+Enter    insert newline (expands box)
+    - Alt+Enter      insert newline
+    - ↑/↓            history navigation
+    - Ctrl+V         paste from system clipboard
+    - Ctrl+C         copy selection to clipboard
+    - Tab            cycle completion dropdown
+    - Shift+Tab      toggle plan/normal mode
     """
+
+    BINDINGS = [
+        Binding("enter",       "submit_input", "Submit",   show=False, priority=True),
+        Binding("shift+enter", "newline",      "New line", show=False, priority=True),
+        Binding("escape",      "stop_agent",   "Stop",     show=False, priority=True),
+        Binding("shift+tab",   "toggle_plan",  "Plan",     show=False, priority=True),
+    ]
 
     def __init__(self, **kwargs):
         kwargs.pop("placeholder", None)
@@ -380,12 +389,46 @@ class _AgentInput(TextArea):
         self._skip_dropdown: bool = False
         self._load_history()
 
+    def action_submit_input(self) -> None:
+        ol = self._get_completion_list()
+        if ol is not None and "visible" in ol.classes:
+            highlighted = ol.highlighted
+            if highlighted is not None:
+                opt = ol.get_option_at_index(highlighted)
+                opt_value = opt.id or str(opt.prompt)
+                ol.remove_class("visible")
+                self._skip_dropdown = True
+                self._set_text(opt_value)
+                return
+            ol.remove_class("visible")
+        self._submit()
+
+    def action_newline(self) -> None:
+        self.insert("\n")
+
+    def action_stop_agent(self) -> None:
+        ol = self._get_completion_list()
+        if ol is not None and "visible" in ol.classes:
+            ol.remove_class("visible")
+            return
+        try:
+            self.app.action_stop()
+        except Exception:
+            pass
+
+    def action_toggle_plan(self) -> None:
+        try:
+            current_mode = getattr(self.app, "_ctx_mode", "normal")
+            cmd = "/mode normal" if current_mode == "plan" else "/plan"
+            self._hist_pos = -1
+            self.load_text("")
+            self.post_message(AgentInputSubmitted(cmd))
+        except Exception:
+            pass
+
     def check_consume_key(self, key: str, character: str | None) -> bool:
-        """Own Tab/Shift+Tab. Let ESC bubble so our _on_key fires first."""
-        if key in ("tab", "shift+tab"):
+        if key in ("tab", "shift+tab", "enter", "shift+enter", "escape"):
             return True
-        if key == "escape":
-            return True  # claim it so we handle it ourselves in _on_key
         return super().check_consume_key(key, character)
 
     # ── History persistence ───────────────────────────────────────────────────
@@ -539,12 +582,6 @@ class _AgentInput(TextArea):
         ol = self._get_completion_list()
         value = self.text  # current text for completion checks
 
-        # DEBUG: log key name to statusbar (remove after testing)
-        try:
-            self.app.query_one("#statusbar").update(f"  key={event.key!r}  char={event.character!r}")
-        except Exception:
-            pass
-
         # ── Tab: highlight-only cycling / directory navigation ───────────────
         if event.key == "tab":
             if ol is not None and "visible" in ol.classes:
@@ -627,58 +664,9 @@ class _AgentInput(TextArea):
                 event.stop()
                 return
 
-        # ── Enter: accept dropdown OR submit ─────────────────────────────────
-        elif event.key == "enter":
-            if ol is not None and "visible" in ol.classes:
-                highlighted = ol.highlighted
-                if highlighted is not None:
-                    opt = ol.get_option_at_index(highlighted)
-                    opt_value = opt.id or str(opt.prompt)
-                    ol.remove_class("visible")
-                    self._skip_dropdown = True
-                    self._set_text(opt_value)
-                    event.prevent_default()
-                    event.stop()
-                    return
-                ol.remove_class("visible")
-            # Enter = submit
-            self._submit()
-            event.prevent_default()
-            event.stop()
-            return
-
-        # ── Shift+Enter / Alt+Enter / Option+Enter: insert newline ──────────
-        elif event.key in ("shift+enter", "alt+enter", "option+enter"):
+        # ── Alt+Enter: insert newline (macOS Option+Enter fallback) ──────────
+        elif event.key in ("alt+enter", "option+enter"):
             self.insert("\n")
-            event.prevent_default()
-            event.stop()
-            return
-
-        # ── Escape: close dropdown / stop agent ──────────────────────────────
-        elif event.key == "escape":
-            if ol is not None and "visible" in ol.classes:
-                ol.remove_class("visible")
-                event.prevent_default()
-                event.stop()
-                return
-            event.stop()
-            event.prevent_default()
-            try:
-                self.app.action_stop()
-            except Exception:
-                pass
-            return
-
-        # ── Shift+Tab: toggle plan ↔ normal mode ─────────────────────────────
-        elif event.key == "shift+tab":
-            try:
-                current_mode = getattr(self.app, "_ctx_mode", "normal")
-                cmd = "/mode normal" if current_mode == "plan" else "/plan"
-                self._hist_pos = -1
-                self.load_text("")
-                self.post_message(AgentInputSubmitted(cmd))
-            except Exception:
-                pass
             event.prevent_default()
             event.stop()
             return
