@@ -619,7 +619,9 @@ class TodoTracker:
             if todo.status == "approved":
                 continue
             icon = icons.get(todo.status, "?")
-            lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {todo.content}")
+            import re as _re
+            _display_content = _re.sub(r'^\d+\.\s*', '', todo.content)
+            lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {_display_content}")
             if todo.rejection_reason and todo.status in ("rejected", "in_progress", "pending"):
                 lines.append(f"       {Color.error('✗')} {Color.DIM}{todo.rejection_reason}{Color.RESET}")
         lines.append("")

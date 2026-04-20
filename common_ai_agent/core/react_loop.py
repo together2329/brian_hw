@@ -1372,8 +1372,17 @@ def run_react_agent_impl(
             # Todo continuation reminder — inject only when task/status key changes.
             _last_tool_was_todo = tool_name in ("todo_update", "todo_write", "todo_add", "todo_remove")
             if _last_tool_was_todo:
-                # Reset key so next pre-LLM injection picks up the new status.
-                _last_injected_task_key = (-1, "")
+                # After a todo tool, reset key only when the new status needs a
+                # reminder (transition points). in_progress→in_progress (e.g. loop
+                # iteration) doesn't need a fresh injection every time.
+                _new_key = _get_task_key(todo_tracker) if todo_tracker else (-1, "")
+                _inject_statuses = ("completed", "rejected", "pending")
+                _new_todo = todo_tracker.get_current_todo() if todo_tracker else None
+                if _new_todo and _new_todo.status in _inject_statuses:
+                    _last_injected_task_key = (-1, "")  # force next pre-LLM to inject
+                elif _new_key != _last_injected_task_key:
+                    _last_injected_task_key = (-1, "")  # task index changed → inject
+                # else: same task, in_progress → no reset, skip injection
             elif (todo_tracker and todo_tracker.todos
                     and not todo_tracker.is_all_processed()):
                 _task_key = _get_task_key(todo_tracker)
@@ -1497,11 +1506,17 @@ def run_react_agent_impl(
                         f"  Waiting for user feedback."
                     )
                     break
-                reminder = todo_tracker.get_continuation_prompt()
-                if reminder:
-                    last_content = messages[-1].get("content", "") if messages else ""
-                    if reminder not in last_content:
-                        messages.append({"role": "user", "content": reminder})
+                # Only re-inject on text-only turns when status needs a decision
+                # (completed→review, rejected→fix). Skip for in_progress — the LLM
+                # is actively working and re-injecting every text turn is just noise.
+                _cur_for_nudge = todo_tracker.get_current_todo()
+                _nudge_statuses = ("completed", "rejected", "pending")
+                if _cur_for_nudge and _cur_for_nudge.status in _nudge_statuses:
+                    reminder = todo_tracker.get_continuation_prompt()
+                    if reminder:
+                        last_content = messages[-1].get("content", "") if messages else ""
+                        if reminder not in last_content:
+                            messages.append({"role": "user", "content": reminder})
                 # Don't break — continue
             else:
                 visible = deps.strip_thinking_fn(collected_content).strip()

@@ -645,11 +645,45 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
         if observation:
             first = observation.lstrip()
             if first.startswith("✅") and "approved" in first.split("\n")[0].lower():
+                # Extract task index from args_str (native JSON or text form)
+                idx_m = re.search(r'"?index"?\s*[:=]\s*(\d+)', args_str or "")
+                todo_item = None
+                if idx_m:
+                    try:
+                        from lib.todo_tracker import TodoTracker
+                        _tracker = TodoTracker.load()
+                        _idx = int(idx_m.group(1)) - 1  # convert 1-based to 0-based
+                        if 0 <= _idx < len(_tracker.todos):
+                            todo_item = _tracker.todos[_idx]
+                    except Exception:
+                        pass
                 # Extract reason from "✅ Task N approved. [reason]" format
-                bracket_m = re.search(r'approved\.\s*\[(.+?)\]', observation, re.IGNORECASE)
-                if bracket_m:
-                    snippet = bracket_m.group(1).strip()
-                    return f"{Color.GREEN}approved{Color.RESET} {Color.DIM}— {snippet}{Color.RESET}"
+                bracket_m = re.search(r'approved\.\s*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
+                approved_reason = bracket_m.group(1).strip() if bracket_m else ""
+                if todo_item:
+                    W = 10  # label column width
+                    _G  = Color.GREEN
+                    _D  = Color.DIM
+                    _R  = Color.RESET
+                    _pad = lambda s: s.ljust(W)
+                    rows = []
+                    if todo_item.content:
+                        rows.append((_pad("content"),  todo_item.content,  ""))
+                    if todo_item.detail:
+                        rows.append((_pad("detail"),   todo_item.detail,   ""))
+                    if todo_item.criteria:
+                        clines = [c.strip() for c in todo_item.criteria.strip().splitlines() if c.strip()]
+                        for ci, cl in enumerate(clines):
+                            label = _pad("criteria") if ci == 0 else " " * W
+                            rows.append((label, cl, "• "))
+                    if approved_reason:
+                        rows.append((_pad("reason"),   approved_reason,    ""))
+                    out = [f"{_G}✅ approved{_R}"]
+                    for label, value, prefix in rows:
+                        out.append(f"     {_D}{label}{_R} {_D}│{_R} {prefix}{value}")
+                    return ("\n" + "  ").join(out)
+                if approved_reason:
+                    return f"{Color.GREEN}approved{Color.RESET} {Color.DIM}— {approved_reason}{Color.RESET}"
                 return f"{Color.GREEN}approved{Color.RESET}"
             if "marked completed" in first.lower() or first.startswith("Task") and "completed" in first.split("\n")[0]:
                 return f"{Color.CYAN}completed{Color.RESET}"

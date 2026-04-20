@@ -369,8 +369,8 @@ class _AgentInput(Input):
         self._load_history()
 
     def check_consume_key(self, key: str, character: str | None) -> bool:
-        """Tell Textual we own Tab — prevents Screen's tab→focus_next binding from firing."""
-        if key == "tab":
+        """Tell Textual we own Tab/Shift+Tab — prevents Screen focus bindings from firing."""
+        if key in ("tab", "shift+tab"):
             return True
         return super().check_consume_key(key, character)
 
@@ -637,6 +637,29 @@ class _AgentInput(Input):
                 self.app.action_stop()
             except Exception:
                 pass
+            return
+
+        # ── Shift+Tab: toggle plan ↔ normal mode ────────────────────────────
+        elif event.key == "shift+tab":
+            try:
+                current_mode = getattr(self.app, "_ctx_mode", "normal")
+                cmd = "/mode normal" if current_mode == "plan" else "/plan"
+                self._hist_pos = -1
+                self.post_message(Input.Submitted(self, cmd))
+            except Exception:
+                pass
+            event.prevent_default()
+            event.stop()
+            return
+
+        # ── Alt+Enter: insert newline (multiline needs TextArea — placeholder) ──
+        elif event.key in ("alt+enter", "ctrl+enter"):
+            # Single-line Input can't visually expand — skip for now
+            event.prevent_default()
+            event.stop()
+            return
+            event.prevent_default()
+            event.stop()
             return
 
         # ── Ctrl+Q: let event bubble to App BINDINGS → action_quit ───────────
@@ -1306,18 +1329,11 @@ class AgentTUI(App):
             self._response_buf = ""
             self._generating = False
             return
-        from rich.panel import Panel
         log = self.query_one("#main", RichLog)
-        # If we're coming straight from a result block, insert a blank line separator
         if self._in_result:
             log.write(RichText(""))
             self._in_result = False
-        log.write(Panel(
-            _LeftMarkdown(_fix_md(self._response_buf)),
-            border_style=f"dim {_BORDER_DIM}",
-            padding=(0, 1),
-            expand=True,
-        ))
+        log.write(_LeftMarkdown(_fix_md(self._response_buf)))
         self._last_response_text = self._response_buf  # ← save for copy
         self._response_buf = ""
         self._generating = False
