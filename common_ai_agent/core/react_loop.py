@@ -171,6 +171,7 @@ def run_react_agent_impl(
             EscapeWatcher, Spinner,
             format_iteration_header, format_tool_header, format_tool_result,
             format_tool_brief, _extract_tool_args_summary, _friendly_tool_name,
+            format_write_preview,
         )
     except ImportError:
         # Minimal stubs for environments without lib.display
@@ -991,18 +992,12 @@ def run_react_agent_impl(
                 _write_preview_lines = getattr(cfg, "PARALLEL_WRITE_PREVIEW_LINES", 15)
 
                 def _write_preview(obs: str) -> str:
-                    """Show first N lines of written content (N from config)."""
-                    if _write_preview_lines <= 0:
-                        brief = format_tool_brief(tool_name, args_str, obs)
-                        return f"  {Color.DIM}⎿  {brief}{Color.RESET}"
-                    lines = obs.strip().splitlines()
-                    shown = lines[:_write_preview_lines]
-                    out = [f"  {Color.DIM}| {l}{Color.RESET}" for l in shown]
-                    if len(lines) > _write_preview_lines:
-                        out.append(f"  {Color.DIM}⎿ ... ({len(lines)} lines total){Color.RESET}")
-                    elif out:
-                        out[-1] = out[-1].replace("| ", "⎿ ", 1)
-                    return "\n".join(out)
+                    """Show first N lines of written file (Claude Code style)."""
+                    import re as _re
+                    m = _re.search(r"'([^']+)'", obs)
+                    if m:
+                        return format_write_preview(m.group(1), preview_lines=_write_preview_lines)
+                    return f"  {Color.DIM}⎿  {obs}{Color.RESET}"
 
                 # Normalize native dict kwargs to string for parallel executor
                 # (parallel executor passes args_str to execute_tool_fn)
@@ -1199,20 +1194,13 @@ def run_react_agent_impl(
                             for _dl in observation.splitlines():
                                 print(f"  {_dl}")
                     elif tool_name in ("write_file", "write_to_file"):
-                        _wr_lines = getattr(cfg, "WRITE_PREVIEW_LINES", 15)
-                        if _wr_lines <= 0:
-                            brief = format_tool_brief(tool_name, _args_display, observation)
-                            print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")
+                        import re as _re2
+                        _wr_lines = getattr(cfg, "WRITE_PREVIEW_LINES", 10)
+                        _m = _re2.search(r"'([^']+)'", observation)
+                        if _m:
+                            print(format_write_preview(_m.group(1), preview_lines=_wr_lines))
                         else:
-                            lines = observation.strip().splitlines()
-                            shown = lines[:_wr_lines]
-                            for ln in shown[:-1]:
-                                print(f"  {Color.DIM}| {ln}{Color.RESET}")
-                            if shown:
-                                print(f"  {Color.DIM}⎿ {shown[-1]}{Color.RESET}" if len(lines) <= _wr_lines
-                                      else f"  {Color.DIM}| {shown[-1]}{Color.RESET}")
-                            if len(lines) > _wr_lines:
-                                print(f"  {Color.DIM}⎿ ... ({len(lines)} lines total){Color.RESET}")
+                            print(f"  {Color.DIM}⎿  {observation}{Color.RESET}")
                     elif tool_name in ("todo_update", "todo_write") and agent_mode in ("plan", "plan_q"):
                         print(format_tool_result(observation, max_lines=1000, max_chars=100000))
                     elif tool_name in _INLINE_TOOLS:

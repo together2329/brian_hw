@@ -1115,3 +1115,28 @@ def format_diff_snippet(file_path, old_text, new_text, context_lines=3):
                 result.append(_fmt_added(j + 1, new_lines[j]))
 
     return '\n'.join(result)
+
+
+def format_write_preview(file_path: str, preview_lines: int = 10) -> str:
+    """Claude Code style write preview — header + first N lines with line numbers."""
+    import os as _os
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+            lines = f.readlines()
+    except Exception:
+        return f"{Color.BOLD}Write{Color.RESET}({Color.CYAN}{file_path}{Color.RESET})\n  {Color.DIM}⎿  (could not read file){Color.RESET}"
+
+    total = len(lines)
+    ln_width = max(len(str(total)), 4)
+    shown = lines[:preview_lines]
+
+    result = [f"{Color.BOLD}Write{Color.RESET}({Color.CYAN}{file_path}{Color.RESET})"]
+    result.append(f"  {Color.DIM}⎿{Color.RESET}  {Color.FG_GREEN}{total} line{'s' if total != 1 else ''}{Color.RESET}")
+    result.append("")
+    for i, line in enumerate(shown):
+        num = f"{i + 1:{ln_width}d}"
+        result.append(f"{Color.DIM}{num}  {line.rstrip()}{Color.RESET}")
+    if total > preview_lines:
+        result.append(f"{Color.DIM}{'·' * (ln_width + 2)}  ... ({total - preview_lines} more lines){Color.RESET}")
+    result.append("")
+    return '\n'.join(result)
