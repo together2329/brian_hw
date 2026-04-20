@@ -648,7 +648,7 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                 # Extract reason from "✅ Task N approved. [reason]" format
                 bracket_m = re.search(r'approved\.\s*\[(.+?)\]', observation, re.IGNORECASE)
                 if bracket_m:
-                    snippet = bracket_m.group(1).strip()[:80]
+                    snippet = bracket_m.group(1).strip()
                     return f"{Color.GREEN}approved{Color.RESET} {Color.DIM}— {snippet}{Color.RESET}"
                 return f"{Color.GREEN}approved{Color.RESET}"
             if "marked completed" in first.lower() or first.startswith("Task") and "completed" in first.split("\n")[0]:
