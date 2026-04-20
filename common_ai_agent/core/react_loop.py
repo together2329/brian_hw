@@ -1178,7 +1178,11 @@ def run_react_agent_impl(
                     elapsed_suffix = f" · {tool_elapsed:.1f}s" if tool_elapsed >= 1.0 else ""
                     if _is_plan_blocked or _is_normal_blocked:
                         print(format_tool_header(tool_name, summary))
-                        print(format_tool_result(observation))
+                        if tool_name in ("replace_in_file", "replace_lines", "replace_file_content"):
+                            for _dl in observation.splitlines():
+                                print(f"  {_dl}")
+                        else:
+                            print(format_tool_result(observation))
                     elif _debug:
                         if tool_name in ("replace_in_file", "replace_lines"):
                             print(format_tool_result(observation, max_lines=1000, max_chars=100000))
