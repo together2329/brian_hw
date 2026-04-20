@@ -1115,14 +1115,24 @@ def format_diff_snippet(file_path, old_text, new_text, context_lines=3):
     # Determine line number width for alignment
     max_line_num = max(len(old_lines), len(new_lines))
     ln_width = max(len(str(max_line_num)), 4)
+    _term_w = shutil.get_terminal_size((120, 40)).columns
+
+    def _pad(content, prefix_len):
+        # Strip ANSI for length calculation, pad to terminal width
+        import re as _re
+        visible = len(_re.sub(r'\x1b\[[0-9;]*m', '', content))
+        pad = max(0, _term_w - prefix_len - visible)
+        return content + ' ' * pad
 
     def _fmt_removed(line_num, content):
         num = f"{line_num:{ln_width}d}"
-        return f"{Color.BG_RED}{Color.DIM}{num}{Color.RESET}{Color.BG_RED} {Color.FG_RED}-{Color.RESET}{Color.BG_RED}{content}{Color.RESET}"
+        padded = _pad(content, ln_width + 2)
+        return f"{Color.BG_RED}{Color.DIM}{num}{Color.RESET}{Color.BG_RED} {Color.FG_RED}-{Color.RESET}{Color.BG_RED}{padded}{Color.RESET}"
 
     def _fmt_added(line_num, content):
         num = f"{line_num:{ln_width}d}"
-        return f"{Color.BG_GREEN}{Color.DIM}{num}{Color.RESET}{Color.BG_GREEN} {Color.FG_GREEN}+{Color.RESET}{Color.BG_GREEN}{content}{Color.RESET}"
+        padded = _pad(content, ln_width + 2)
+        return f"{Color.BG_GREEN}{Color.DIM}{num}{Color.RESET}{Color.BG_GREEN} {Color.FG_GREEN}+{Color.RESET}{Color.BG_GREEN}{padded}{Color.RESET}"
 
     def _fmt_context(line_num, content_hl):
         num = f"{line_num:{ln_width}d}"
