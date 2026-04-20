@@ -1022,7 +1022,12 @@ def run_react_agent_impl(
                         print(_write_preview(observation))
                     elif tool_name in _DIFF_TOOLS:
                         # Show full diff output same as sequential mode
-                        print(format_tool_result(observation))
+                        _edit_max = getattr(cfg, "EDIT_PREVIEW_MAX_LINES", 1000)
+                        if tool_name in ("replace_in_file", "replace_lines", "replace_file_content") and _edit_max > 0:
+                            for _dl in observation.splitlines():
+                                print(f"  {_dl}")
+                        else:
+                            print(format_tool_result(observation, max_lines=1000, max_chars=100000))
                     elif tool_name in _INLINE_TOOLS:
                         brief = format_tool_brief(tool_name, args_str, observation)
                         print(f"  {Color.DIM}⎿  {brief}{Color.RESET}")
