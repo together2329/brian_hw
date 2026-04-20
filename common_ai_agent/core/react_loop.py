@@ -871,7 +871,7 @@ def run_react_agent_impl(
         # Preserved thinking: attach reasoning_content to assistant message for GLM-5/5.1
         # so the model retains its reasoning context in subsequent turns.
         _model_for_thinking = getattr(cfg, "MODEL_NAME", "").lower()
-        if 'glm-5' in _model_for_thinking and _iter_reasoning_buf:
+        if 'glm-' in _model_for_thinking and _iter_reasoning_buf:
             _clear = getattr(cfg, "GLM_CLEAR_THINKING", True)
             if not _clear:
                 assistant_msg["reasoning_content"] = "".join(_iter_reasoning_buf)
