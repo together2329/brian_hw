@@ -539,6 +539,12 @@ class _AgentInput(TextArea):
         ol = self._get_completion_list()
         value = self.text  # current text for completion checks
 
+        # DEBUG: log key name to statusbar (remove after testing)
+        try:
+            self.app.query_one("#statusbar").update(f"  key={event.key!r}  char={event.character!r}")
+        except Exception:
+            pass
+
         # ── Tab: highlight-only cycling / directory navigation ───────────────
         if event.key == "tab":
             if ol is not None and "visible" in ol.classes:
