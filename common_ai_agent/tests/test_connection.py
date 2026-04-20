@@ -25,6 +25,7 @@ import ssl
 import http.client
 import urllib.parse
 from pathlib import Path
+from typing import Optional
 
 # ── path setup ──────────────────────────────────────────────────────────────
 _src = Path(__file__).parent.parent / "src"
@@ -214,6 +215,51 @@ def test_idle_survive(conn: http.client.HTTPSConnection, base_path: str,
         return False
 
 
+def test_tls_diagnostics(host: str) -> Optional[ssl.SSLContext]:
+    """Try multiple TLS configurations and report which one succeeds."""
+    print("\n── TLS Diagnostics ─────────────────────────────────────────")
+
+    candidates = [
+        ("default (system)",        ssl.create_default_context()),
+        ("CERT_NONE",               _make_ctx(verify=False)),
+        ("TLSv1.2 only + CERT_NONE", _make_ctx(verify=False, min_ver=ssl.TLSVersion.TLSv1_2,
+                                                max_ver=ssl.TLSVersion.TLSv1_2)),
+    ]
+
+    working_ctx = None
+    for label, ctx in candidates:
+        try:
+            conn = http.client.HTTPSConnection(host, context=ctx, timeout=WARMUP_TIMEOUT)
+            conn.connect()
+            proto = conn.sock.version() if conn.sock else "?"
+            conn.close()
+            print(f"  ✓ {label:<30} → TLS {proto}")
+            if working_ctx is None:
+                working_ctx = ctx
+        except Exception as e:
+            print(f"  ✗ {label:<30} → {type(e).__name__}: {e}")
+
+    if working_ctx is None:
+        print("  [!] All TLS configs failed — check network/firewall.")
+    else:
+        print(f"\n  → Use first working config for warmup fix.")
+    return working_ctx
+
+
+def _make_ctx(*, verify: bool = True,
+              min_ver: Optional[ssl.TLSVersion] = None,
+              max_ver: Optional[ssl.TLSVersion] = None) -> ssl.SSLContext:
+    ctx = ssl.create_default_context()
+    if not verify:
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+    if min_ver:
+        ctx.minimum_version = min_ver
+    if max_ver:
+        ctx.maximum_version = max_ver
+    return ctx
+
+
 def main():
     print("\n" + "=" * 60)
     print("  Connection Pool & Warmup Test")
@@ -222,7 +268,10 @@ def main():
     print("=" * 60)
 
     host, base_path = _parse(config.BASE_URL)
-    ssl_ctx = _ssl_ctx()
+
+    # 0. TLS diagnostics — find working config before warmup
+    working_ctx = test_tls_diagnostics(host)
+    ssl_ctx = working_ctx or _ssl_ctx()
 
     # 1. warmup
     conn = test_warmup(host, base_path, ssl_ctx)
