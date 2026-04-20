@@ -2653,8 +2653,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             clean["tool_calls"] = m["tool_calls"]
         if "tool_call_id" in m:
             clean["tool_call_id"] = m["tool_call_id"]
-        # Preserved thinking: pass reasoning_content back for GLM-5/5.1 (clear_thinking=false)
-        if "reasoning_content" in m and 'glm-' in _model_lower and not getattr(config, "GLM_CLEAR_THINKING", True):
+        # Preserved thinking: pass reasoning_content back for GLM models (clear_thinking=false)
+        _m_lower = (resolved_model or model or '').lower()
+        if "reasoning_content" in m and 'glm-' in _m_lower and not getattr(config, "GLM_CLEAR_THINKING", True):
             clean["reasoning_content"] = m["reasoning_content"]
         _processed_clean.append(clean)
     processed_messages = _processed_clean
