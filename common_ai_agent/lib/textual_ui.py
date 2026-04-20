@@ -380,8 +380,8 @@ class _AgentInput(TextArea):
         self._load_history()
 
     def check_consume_key(self, key: str, character: str | None) -> bool:
-        """Own Tab/Shift+Tab/Enter/Up/Down to prevent Textual defaults."""
-        if key in ("tab", "shift+tab", "enter", "up", "down"):
+        """Own Tab/Shift+Tab to prevent Textual focus bindings from firing."""
+        if key in ("tab", "shift+tab"):
             return True
         return super().check_consume_key(key, character)
 
@@ -618,7 +618,7 @@ class _AgentInput(TextArea):
                 event.stop()
                 return
 
-        # ── Enter: accept dropdown OR insert newline ──────────────────────────
+        # ── Enter: accept dropdown OR fall through to TextArea (newline) ────────
         elif event.key == "enter":
             if ol is not None and "visible" in ol.classes:
                 highlighted = ol.highlighted
@@ -632,11 +632,10 @@ class _AgentInput(TextArea):
                     event.stop()
                     return
                 ol.remove_class("visible")
-            # Enter = newline (TextArea default — let it through)
-            return
+            # Fall through → super()._on_key inserts newline
 
-        # ── Ctrl+Enter: submit ────────────────────────────────────────────────
-        elif event.key in ("ctrl+j", "ctrl+enter"):
+        # ── Ctrl+Enter / Alt+Enter / Option+Enter: submit ─────────────────────
+        elif event.key in ("ctrl+j", "ctrl+enter", "alt+enter"):
             self._submit()
             event.prevent_default()
             event.stop()
