@@ -100,7 +100,8 @@ todo_remove(index)
 ════════════════════════════════════════
 BLOCKED IN PLAN MODE
 ════════════════════════════════════════
-🚫 todo_update  — use todo_add/todo_remove/todo_write instead
+🚫 todo_update(status=...)  — changing status is blocked; use todo_add/todo_remove/todo_write to restructure tasks
+✅ todo_update(detail=..., criteria=..., content=..., priority=...)  — updating content fields is ALLOWED
 🚫 write_file, replace_in_file, replace_lines — file writing is blocked
 🚫 run_command, background_task — execution is blocked
 

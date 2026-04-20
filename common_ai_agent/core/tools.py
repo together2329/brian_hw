@@ -2340,6 +2340,10 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
     if str(index).strip() == "0":
         return "Error: Todo indices are 1-based (1, 2, 3...). Please use index 1 for the first task."
 
+    # Plan mode: block status changes, allow content/detail/criteria updates
+    if status and os.environ.get("PLAN_MODE") == "true":
+        return "Error: Changing status is blocked in plan mode. You can update content, detail, criteria, or priority."
+
     # Convert to 0-based
     try:
         idx = int(index) - 1
