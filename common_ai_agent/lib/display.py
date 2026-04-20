@@ -1117,22 +1117,25 @@ def format_diff_snippet(file_path, old_text, new_text, context_lines=3):
     ln_width = max(len(str(max_line_num)), 4)
     _term_w = shutil.get_terminal_size((120, 40)).columns
 
+    import re as _re2
+    _ANSI_RESET = _re2.compile(r'\x1b\[0?m|\x1b\[0;')
+
     def _pad(content, prefix_len):
-        # Strip ANSI for length calculation, pad to terminal width
-        import re as _re
-        visible = len(_re.sub(r'\x1b\[[0-9;]*m', '', content))
+        visible = len(_re2.sub(r'\x1b\[[0-9;]*m', '', content))
         pad = max(0, _term_w - prefix_len - visible)
         return content + ' ' * pad
 
-    def _fmt_removed(line_num, content):
-        num = f"{line_num:{ln_width}d}"
-        padded = _pad(content, ln_width + 2)
-        return f"{Color.BG_RED}{Color.DIM}{num}{Color.RESET}{Color.BG_RED} {Color.FG_RED}-{Color.RESET}{Color.BG_RED}{padded}{Color.RESET}"
+    def _with_bg(hl_content, bg):
+        # Re-inject bg after every ANSI reset so syntax colors don't clear the background
+        return _ANSI_RESET.sub(lambda m: m.group() + bg, hl_content)
 
-    def _fmt_added(line_num, content):
+    def _fmt_removed(line_num, content_hl):
         num = f"{line_num:{ln_width}d}"
-        padded = _pad(content, ln_width + 2)
-        return f"{Color.BG_GREEN}{Color.DIM}{num}{Color.RESET}{Color.BG_GREEN} {Color.FG_GREEN}+{Color.RESET}{Color.BG_GREEN}{padded}{Color.RESET}"
+        return f"{Color.BG_RED}{Color.DIM}{num}{Color.RESET}{Color.BG_RED} {Color.FG_RED}-{Color.RESET}{Color.BG_RED}{_with_bg(_pad(content_hl, ln_width + 2), Color.BG_RED)}{Color.RESET}"
+
+    def _fmt_added(line_num, content_hl):
+        num = f"{line_num:{ln_width}d}"
+        return f"{Color.BG_GREEN}{Color.DIM}{num}{Color.RESET}{Color.BG_GREEN} {Color.FG_GREEN}+{Color.RESET}{Color.BG_GREEN}{_with_bg(_pad(content_hl, ln_width + 2), Color.BG_GREEN)}{Color.RESET}"
 
     def _fmt_context(line_num, content_hl):
         num = f"{line_num:{ln_width}d}"
@@ -1148,17 +1151,17 @@ def format_diff_snippet(file_path, old_text, new_text, context_lines=3):
 
         elif tag == 'replace':
             for i in range(max(i1, old_start), min(i2, old_end)):
-                result.append(_fmt_removed(i + 1, old_lines[i]))
+                result.append(_fmt_removed(i + 1, old_hl[i]))
             for j in range(max(j1, new_start), min(j2, new_end)):
-                result.append(_fmt_added(j + 1, new_lines[j]))
+                result.append(_fmt_added(j + 1, new_hl[j]))
 
         elif tag == 'delete':
             for i in range(max(i1, old_start), min(i2, old_end)):
-                result.append(_fmt_removed(i + 1, old_lines[i]))
+                result.append(_fmt_removed(i + 1, old_hl[i]))
 
         elif tag == 'insert':
             for j in range(max(j1, new_start), min(j2, new_end)):
-                result.append(_fmt_added(j + 1, new_lines[j]))
+                result.append(_fmt_added(j + 1, new_hl[j]))
 
     return '\n'.join(result)
 
