@@ -93,6 +93,12 @@ class Color:
     STRIKETHROUGH = '\033[9m'
     RESET = '\033[0m'
 
+    # Diff background colors (Claude Code style)
+    BG_RED   = '\033[48;2;80;20;20m'    # dark red background
+    BG_GREEN = '\033[48;2;20;60;20m'    # dark green background
+    FG_RED   = '\033[38;2;255;100;100m' # bright red text
+    FG_GREEN = '\033[38;2;100;220;100m' # bright green text
+
     @staticmethod
     def system(text):
         """System messages - Cyan"""
@@ -1056,47 +1062,56 @@ def format_diff_snippet(file_path, old_text, new_text, context_lines=3):
 
     # Build diff with line numbers
     result = []
-    result.append(f"The file {Color.CYAN}{file_path}{Color.RESET} has been updated. Here's the result of running `cat -n` on a snippet:")
+    import os as _os
+    _fname = _os.path.basename(file_path)
+    result.append(f"{Color.BOLD}Update{Color.RESET}({Color.CYAN}{file_path}{Color.RESET})")
+
+    # Count total added/removed for summary
+    total_added = sum(j2 - j1 for tag, i1, i2, j1, j2 in opcodes if tag in ('insert', 'replace'))
+    total_removed = sum(i2 - i1 for tag, i1, i2, j1, j2 in opcodes if tag in ('delete', 'replace'))
+    parts = []
+    if total_added:   parts.append(f"{Color.FG_GREEN}Added {total_added} line{'s' if total_added != 1 else ''}{Color.RESET}")
+    if total_removed: parts.append(f"{Color.FG_RED}removed {total_removed} line{'s' if total_removed != 1 else ''}{Color.RESET}")
+    if parts:
+        result.append(f"  {Color.DIM}⎿{Color.RESET}  {', '.join(parts)}")
     result.append("")
 
-    # Process opcodes to show changes with line numbers
-    # Context uses NEW file line numbers, changes show both old and new
+    # Determine line number width for alignment
+    max_line_num = max(len(old_lines), len(new_lines))
+    ln_width = max(len(str(max_line_num)), 4)
+
+    def _fmt_removed(line_num, content):
+        num = f"{line_num:{ln_width}d}"
+        return f"{Color.BG_RED}{Color.FG_RED}{num} {Color.RESET}{Color.BG_RED}{Color.FG_RED}-{content}{Color.RESET}"
+
+    def _fmt_added(line_num, content):
+        num = f"{line_num:{ln_width}d}"
+        return f"{Color.BG_GREEN}{Color.FG_GREEN}{num} {Color.RESET}{Color.BG_GREEN}{Color.FG_GREEN}+{content}{Color.RESET}"
+
+    def _fmt_context(line_num, content):
+        num = f"{line_num:{ln_width}d}"
+        return f"{Color.DIM}{num}  {content}{Color.RESET}"
+
     for tag, i1, i2, j1, j2 in opcodes:
-        # Skip if completely outside our view range
         if i2 <= old_start or i1 >= old_end:
             continue
 
         if tag == 'equal':
-            # Show context lines with NEW file line numbers
             for j in range(max(j1, new_start), min(j2, new_end)):
-                line_num = j + 1
-                line_content = new_lines[j]
-                result.append(f"{Color.DIM}{line_num:6d}→{Color.RESET}{line_content}")
+                result.append(_fmt_context(j + 1, new_lines[j]))
 
         elif tag == 'replace':
-            # Show deleted lines in RED with OLD file line numbers
             for i in range(max(i1, old_start), min(i2, old_end)):
-                line_num = i + 1  # OLD file line number
-                line_content = old_lines[i]
-                result.append(f"{Color.DIM}{line_num:6d} {Color.RESET}{Color.RED}-{line_content}{Color.RESET}")
-            # Show added lines in GREEN with NEW file line numbers
+                result.append(_fmt_removed(i + 1, old_lines[i]))
             for j in range(max(j1, new_start), min(j2, new_end)):
-                line_num = j + 1  # NEW file line number
-                line_content = new_lines[j]
-                result.append(f"{Color.DIM}{line_num:6d} {Color.RESET}{Color.GREEN}+{line_content}{Color.RESET}")
+                result.append(_fmt_added(j + 1, new_lines[j]))
 
         elif tag == 'delete':
-            # Show deleted lines in RED with OLD file line numbers
             for i in range(max(i1, old_start), min(i2, old_end)):
-                line_num = i + 1  # OLD file line number
-                line_content = old_lines[i]
-                result.append(f"{Color.DIM}{line_num:6d} {Color.RESET}{Color.RED}-{line_content}{Color.RESET}")
+                result.append(_fmt_removed(i + 1, old_lines[i]))
 
         elif tag == 'insert':
-            # Show added lines in GREEN with NEW file line numbers
             for j in range(max(j1, new_start), min(j2, new_end)):
-                line_num = j + 1  # NEW file line number
-                line_content = new_lines[j]
-                result.append(f"{Color.DIM}{line_num:6d} {Color.RESET}{Color.GREEN}+{line_content}{Color.RESET}")
+                result.append(_fmt_added(j + 1, new_lines[j]))
 
     return '\n'.join(result)
