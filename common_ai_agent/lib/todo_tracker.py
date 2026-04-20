@@ -605,16 +605,19 @@ class TodoTracker:
         if not self.todos:
             return ""
         lines = ["", f"  {Color.BOLD}{Color.CYAN}── TODO ──{Color.RESET}"]
+
+        # Collapse approved tasks into a single summary line
+        approved_count = sum(1 for t in self.todos if t.status == "approved")
+        if approved_count:
+            lines.append(f"  {Color.success('✅')} {Color.DIM}{approved_count} approved{Color.RESET}")
+
         for i, todo in enumerate(self.todos):
-            icon = icons.get(todo.status, "?")
             if todo.status == "approved":
-                lines.append(f"  {icon} {Color.DIM}{i+1}. {todo.content}{Color.RESET}")
-                if todo.approved_reason:
-                    lines.append(f"       {Color.success('✓')} {Color.DIM}{todo.approved_reason[:80]}{Color.RESET}")
-            else:
-                lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {todo.content}")
-                if todo.rejection_reason and todo.status in ("rejected", "in_progress", "pending"):
-                    lines.append(f"       {Color.error('✗')} {Color.DIM}{todo.rejection_reason}{Color.RESET}")
+                continue
+            icon = icons.get(todo.status, "?")
+            lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {todo.content}")
+            if todo.rejection_reason and todo.status in ("rejected", "in_progress", "pending"):
+                lines.append(f"       {Color.error('✗')} {Color.DIM}{todo.rejection_reason}{Color.RESET}")
         lines.append("")
         return "\n".join(lines)
 
