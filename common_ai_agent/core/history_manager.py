@@ -102,7 +102,7 @@ def load_conversation_history(cfg=None, silent=False) -> Optional[List[Dict[str,
         return None
 
     try:
-        if os.path.exists(cfg.HISTORY_FILE):
+        if os.path.exists(cfg.HISTORY_FILE) and os.path.getsize(cfg.HISTORY_FILE) > 0:
             with open(cfg.HISTORY_FILE, 'r', encoding='utf-8') as f:
                 messages = json.load(f)
             if not silent:
