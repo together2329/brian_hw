@@ -611,19 +611,19 @@ class TodoTracker:
             "approved":    Color.success("✅"),
             "rejected":    Color.error("❌"),
         }
-        visible = [t for t in self.todos if t.status != "approved"]
-        if not visible:
+        if not self.todos:
             return ""
         lines = ["", f"  {Color.BOLD}{Color.CYAN}── TODO ──{Color.RESET}"]
         for i, todo in enumerate(self.todos):
-            if todo.status == "approved":
-                continue
             icon = icons.get(todo.status, "?")
-            lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {todo.content}")
-            if todo.rejection_reason and todo.status in ("rejected", "in_progress", "pending"):
-                lines.append(f"       {Color.error('✗')} {Color.DIM}{todo.rejection_reason}{Color.RESET}")
-            if todo.approved_reason and todo.status == "approved":
-                lines.append(f"       {Color.success('✓')} {Color.DIM}{todo.approved_reason}{Color.RESET}")
+            if todo.status == "approved":
+                lines.append(f"  {icon} {Color.DIM}{i+1}. {todo.content}{Color.RESET}")
+                if todo.approved_reason:
+                    lines.append(f"       {Color.success('✓')} {Color.DIM}{todo.approved_reason}{Color.RESET}")
+            else:
+                lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {todo.content}")
+                if todo.rejection_reason and todo.status in ("rejected", "in_progress", "pending"):
+                    lines.append(f"       {Color.error('✗')} {Color.DIM}{todo.rejection_reason}{Color.RESET}")
         lines.append("")
         return "\n".join(lines)
 
