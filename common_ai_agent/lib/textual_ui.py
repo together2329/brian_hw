@@ -868,7 +868,7 @@ class AgentTUI(App):
     #input-row {{
         height: auto;
         background: {_BG_INPUT};
-        padding: 0 2;
+        padding: 0 0;
     }}
     #input-prompt {{
         width: 2;
@@ -1405,8 +1405,13 @@ class AgentTUI(App):
         if self._in_result:
             log.write(RichText(""))
             self._in_result = False
-        log.write(_LeftMarkdown(_fix_md(self._response_buf)))
-        log.write(RichText(""))
+        from rich.panel import Panel
+        log.write(Panel(
+            _LeftMarkdown(_fix_md(self._response_buf)),
+            border_style=f"dim {_BORDER_DIM}",
+            padding=(0, 1),
+            expand=True,
+        ))
         self._last_response_text = self._response_buf  # ← save for copy
         self._response_buf = ""
         self._generating = False
@@ -1486,7 +1491,6 @@ class AgentTUI(App):
         t = RichText()
         t.append(f"  {text}", style=f"bold {_ACCENT}")
         log.write(t)
-        log.write(RichText(""))
         self._in_diff = False
         self._in_edit = False
         # Slash commands (/plan, /compact, etc.) don't always trigger an LLM call.
@@ -1637,10 +1641,17 @@ class AgentTUI(App):
             hdr = RichText()
             hdr.append("Reasoning", style=f"italic {_TEXT_DIM}")
             log.write(hdr)
-        t = RichText()
-        t.append("┆ ", style=f"dim {_BORDER_DIM}")
-        t.append(msg.text, style=f"italic {_TEXT_DIM}")
-        log.write(t)
+        import textwrap as _tw
+        try:
+            avail = max(20, self.query_one("#main", RichLog).size.width - 4)
+        except Exception:
+            avail = 76
+        parts = _tw.wrap(msg.text, width=avail) or [msg.text]
+        for idx, part in enumerate(parts):
+            t = RichText()
+            t.append("┆ " if idx == 0 else "  ", style=f"dim {_BORDER_DIM}")
+            t.append(part, style=f"italic {_TEXT_DIM}")
+            log.write(t)
 
     def on_context_update(self, msg: ContextUpdate) -> None:
         self._ctx_tokens = msg.tokens
@@ -2027,7 +2038,7 @@ class AgentTUI(App):
                 log.write(RichText(""))
                 self._ctx_mode = "plan"
                 self._redraw_mode()
-            t = RichText()
+            t = RichText("  ")
             if "Error" in tag:
                 t.append(f"{tag}", style=f"bold {_RED}")
             elif "Warning" in tag:
