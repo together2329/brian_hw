@@ -1492,7 +1492,8 @@ class AgentTUI(App):
         from rich.rule import Rule
         log.write(Rule(style=f"dim {_BORDER_DIM}"))
         t = RichText()
-        t.append(f"  {text}", style=f"bold {_ACCENT}")
+        _indented = "\n  ".join(text.splitlines())
+        t.append(f"  {_indented}", style=f"bold {_ACCENT}")
         log.write(t)
         self._in_diff = False
         self._in_edit = False
