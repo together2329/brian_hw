@@ -17,7 +17,7 @@ from rich.text import Text as RichText
 from rich.table import Table as RichTable
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical
+from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.widgets import Input, OptionList, RichLog, Static, TextArea
 from textual.widgets._option_list import Option as _Option
@@ -831,10 +831,38 @@ class AgentTUI(App):
         dock: bottom;
     }}
 
+    /* ── Input wrap ── */
+    #input-wrap {{
+        height: auto;
+        dock: bottom;
+        background: {_BG_INPUT};
+    }}
+    #input-topline {{
+        height: 1;
+        color: {_BORDER_DIM};
+        background: {_BG_INPUT};
+        padding: 0 0;
+    }}
+    #input-bottomline {{
+        height: 1;
+        color: {_BORDER_DIM};
+        background: {_BG_INPUT};
+    }}
+    #input-row {{
+        height: auto;
+        background: {_BG_INPUT};
+    }}
+    #input-prompt {{
+        width: 2;
+        height: auto;
+        color: #7ee787;
+        background: {_BG_INPUT};
+        padding: 0 0;
+    }}
+
     /* ── Status bar ── */
     #statusbar {{
         height: 1;
-        dock: bottom;
         background: {_BG_INPUT};
         color: {_TEXT_DIM};
         padding: 0 2;
@@ -856,7 +884,7 @@ class AgentTUI(App):
     /* ── Completion dropdown ── */
     #completion-list {{
         dock: bottom;
-        margin-bottom: 3;
+        margin-bottom: 5;
         display: none;
         max-height: 12;
         background: {_BG_INPUT};
@@ -879,12 +907,11 @@ class AgentTUI(App):
     /* ── Input (TextArea) ── */
     _AgentInput {{
         height: auto;
-        min-height: 3;
+        min-height: 1;
         max-height: 12;
-        dock: bottom;
         background: {_BG_INPUT};
         border: none;
-        padding: 1 2;
+        padding: 0 1 0 0;
         color: {_TEXT};
         scrollbar-size: 0 0;
     }}
@@ -988,9 +1015,14 @@ class AgentTUI(App):
             yield Static("Todo", id="todo-header")
             yield Static("", id="todo")
             yield Static(cwd, id="cwd-label")
-        yield Static("", id="statusbar")
         yield OptionList(id="completion-list")
-        yield _AgentInput()
+        with Vertical(id="input-wrap"):
+            yield Static("", id="input-topline")
+            with Horizontal(id="input-row"):
+                yield Static("❯", id="input-prompt")
+                yield _AgentInput()
+            yield Static("", id="input-bottomline")
+            yield Static("", id="statusbar")
 
     def on_mount(self) -> None:
         # Save original tty settings (class-level) so the staticmethod
@@ -1002,6 +1034,8 @@ class AgentTUI(App):
                 AgentTUI._saved_tty_attrs = termios.tcgetattr(fd)
         except Exception:
             pass
+        self._git_branch = self._get_git_branch()
+        self._update_input_lines()
         self._update_statusbar()
         log = self.query_one("#main", RichLog)
         # ── Banner ────────────────────────────────────────────────────────────
@@ -1604,7 +1638,45 @@ class AgentTUI(App):
             self.query_one("#mode", Static).update(m)
         except Exception:
             pass
+        self._update_input_lines()
         self._update_statusbar()
+
+    def _get_git_branch(self) -> str:
+        try:
+            import subprocess
+            r = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                capture_output=True, text=True, timeout=2
+            )
+            b = r.stdout.strip()
+            return b if r.returncode == 0 and b and b != "HEAD" else ""
+        except Exception:
+            return ""
+
+    def _update_input_lines(self) -> None:
+        in_plan = self._ctx_mode == "plan"
+        line_color  = "#d29922" if in_plan else _BORDER_DIM
+        prompt_color = "#d29922" if in_plan else "#7ee787"  # orange / light green
+        try:
+            branch = getattr(self, "_git_branch", "") or ""
+            w = self.size.width or 80
+            if branch:
+                label = f" {branch} "
+                fill = max(4, w - len(label) - 2)
+                top = "─" * fill + label + "──"
+            else:
+                top = "─" * max(4, w - 2)
+            self.query_one("#input-topline", Static).update(
+                RichText(top, style=line_color)
+            )
+            self.query_one("#input-bottomline", Static).update(
+                RichText("─" * max(4, w - 2), style=line_color)
+            )
+            self.query_one("#input-prompt", Static).update(
+                RichText("❯", style=f"bold {prompt_color}")
+            )
+        except Exception:
+            pass
 
     def _update_activity(self) -> None:
         try:
