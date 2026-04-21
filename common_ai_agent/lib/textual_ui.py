@@ -1644,6 +1644,7 @@ class AgentTUI(App):
             self._reasoning_header_written = True
             self._update_activity()
             hdr = RichText()
+            hdr.append("  ┆ ", style=f"dim {_BORDER_DIM}")
             hdr.append("Reasoning", style=f"italic {_TEXT_DIM}")
             log.write(hdr)
         import textwrap as _tw
@@ -1654,7 +1655,7 @@ class AgentTUI(App):
         parts = _tw.wrap(msg.text, width=avail) or [msg.text]
         for idx, part in enumerate(parts):
             t = RichText()
-            t.append("┆ " if idx == 0 else "  ", style=f"dim {_BORDER_DIM}")
+            t.append("  ┆ " if idx == 0 else "    ", style=f"dim {_BORDER_DIM}")
             t.append(part, style=f"italic {_TEXT_DIM}")
             log.write(t)
 
