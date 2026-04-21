@@ -120,10 +120,11 @@ def _fix_md(text: str) -> str:
     # ── Pass 2: table block fixing + blank-line insertion ─────────────────────
     out: list[str] = []
     i = 0
+    _in_fence = False
     while i < len(pre):
         line = pre[i]
 
-        if _is_table_row(line):
+        if _is_table_row(line) and not _in_fence:
             # Collect the whole table block
             block: list[str] = []
             j = i
@@ -144,10 +145,24 @@ def _fix_md(text: str) -> str:
             i = j
             continue
 
-        # Code fence blank-line guard
+        # Code fence handling — track open/close to avoid blanks inside blocks
         if line.startswith("```"):
-            if out and out[-1].strip():
-                out.append("")
+            if _in_fence:
+                # closing fence: append, then blank after
+                _in_fence = False
+                out.append(line)
+                if i + 1 < len(pre) and pre[i + 1].strip():
+                    out.append("")
+                i += 1
+                continue
+            else:
+                # opening fence: blank before, then append (no blank after)
+                _in_fence = True
+                if out and out[-1].strip():
+                    out.append("")
+                out.append(line)
+                i += 1
+                continue
 
         # Collapse consecutive blank lines
         if not line.strip() and out and not out[-1].strip():
@@ -155,10 +170,6 @@ def _fix_md(text: str) -> str:
             continue
 
         out.append(line)
-
-        if line.startswith("```") and i + 1 < len(pre) and pre[i + 1].strip():
-            out.append("")
-
         i += 1
 
     # ── Pass 3: strip blank lines right before headings (Rich adds its own) ──
@@ -167,6 +178,12 @@ def _fix_md(text: str) -> str:
         if re.match(r"^#{1,6}\s", line) and final and not final[-1].strip():
             final.pop()  # remove blank line before heading
         final.append(line)
+
+    # ── Pass 4: strip leading/trailing blank lines ────────────────────────────
+    while final and not final[0].strip():
+        final.pop(0)
+    while final and not final[-1].strip():
+        final.pop()
 
     return "\n".join(final)
 
@@ -851,7 +868,7 @@ class AgentTUI(App):
     #input-row {{
         height: auto;
         background: {_BG_INPUT};
-        padding: 0 1;
+        padding: 0 2;
     }}
     #input-prompt {{
         width: 2;
@@ -1350,8 +1367,9 @@ class AgentTUI(App):
                 t.append("  ◆ ", style=f"bold {_ACCENT}")
                 t.append(self._model or "normal", style=_TEXT_FAINT)
                 t.append("  shift+tab plan", style=_TEXT_FAINT)
-            t.append("  ·  esc to interrupt", style=_TEXT_FAINT)
+            t.append("  ·  esc interrupt", style=_TEXT_FAINT)
             t.append("  ·  ctrl+j newline", style=_TEXT_FAINT)
+            t.append("  ·  ctrl+q quit", style=_TEXT_FAINT)
             if extra:
                 t.append(f"   {extra}", style=f"italic {_YELLOW}")
             sb.update(t)
@@ -1388,6 +1406,7 @@ class AgentTUI(App):
             log.write(RichText(""))
             self._in_result = False
         log.write(_LeftMarkdown(_fix_md(self._response_buf)))
+        log.write(RichText(""))
         self._last_response_text = self._response_buf  # ← save for copy
         self._response_buf = ""
         self._generating = False
@@ -1513,6 +1532,8 @@ class AgentTUI(App):
         if self._reasoning_open:
             self._reasoning_open = False
             self._update_activity()
+            log = self.query_one("#main", RichLog)
+            log.write(RichText(""))
         import config as _cfg
         if not getattr(_cfg, "ENABLE_MARKDOWN_RENDER", True):
             log = self.query_one("#main", RichLog)
