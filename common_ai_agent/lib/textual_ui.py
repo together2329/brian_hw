@@ -1500,6 +1500,7 @@ class AgentTUI(App):
         # Don't eagerly set Reasoning... for them — the \x00 sentinel handles it
         # when an LLM call actually starts.  For normal input, set it immediately
         # so reasoning models show feedback right away.
+        self._reasoning_header_written = False
         _is_slash_cmd = text.startswith("/")
         if not _is_slash_cmd:
             self._reasoning_open = True
