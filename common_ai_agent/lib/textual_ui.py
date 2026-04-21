@@ -965,6 +965,7 @@ class AgentTUI(App):
         self._in_result = False # True while showing └/| result lines
         self._in_parallel = False  # True during parallel action block
         self._reasoning_open = False  # True while a reasoning block is open
+        self._reasoning_header_written = False  # True after "Reasoning" header written
         self._active_model = ""
         self._ctx_tokens = 0
         self._ctx_max_tokens = 65536
@@ -1303,6 +1304,7 @@ class AgentTUI(App):
             pass
         # Reset all activity flags so sidebar shows "Waiting for input..." immediately
         self._reasoning_open = False
+        self._reasoning_header_written = False
         self._generating = False
         self._compressing = False
         self._in_edit = False
@@ -1416,6 +1418,7 @@ class AgentTUI(App):
         self._response_buf = ""
         self._generating = False
         self._reasoning_open = False
+        self._reasoning_header_written = False
         self._current_tool = ""
         self._update_activity()
         self._update_statusbar()
@@ -1535,6 +1538,7 @@ class AgentTUI(App):
         # First content chunk: reasoning done → Generating...
         if self._reasoning_open:
             self._reasoning_open = False
+            self._reasoning_header_written = False
             self._update_activity()
             log = self.query_one("#main", RichLog)
             log.write(RichText(""))
@@ -1632,11 +1636,12 @@ class AgentTUI(App):
             log.write(RichText(""))
             return
         # First chunk of a reasoning block: print "Reasoning" header
-        if not self._reasoning_open:
+        if not self._reasoning_header_written:
             if self._in_parallel:
                 self._in_parallel = False
                 log.write(RichText(""))
             self._reasoning_open = True
+            self._reasoning_header_written = True
             self._update_activity()
             hdr = RichText()
             hdr.append("Reasoning", style=f"italic {_TEXT_DIM}")
@@ -2122,13 +2127,13 @@ class AgentTUI(App):
             inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", _plain)
             inner = re.sub(r"^\s*\d+\s*[→ ]?\s*", "", inner)
             if self._in_diff and re.match(r"^\+[^+]", inner):
-                log.write(RichText(f"{_plain.strip()}", style=f"bold {_GREEN}"))
+                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_GREEN}"))
             elif self._in_diff and re.match(r"^-[^-]", inner):
-                log.write(RichText(f"{_plain.strip()}", style=f"bold {_RED}"))
+                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_RED}"))
             elif self._in_diff and re.match(r"^@@", inner):
-                log.write(RichText(f"{_plain.strip()}", style=f"bold {_ACCENT}"))
+                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_ACCENT}"))
             else:
-                log.write(RichText(f"{_plain.strip()}", style=f"dim {_TEXT_FAINT}"))
+                log.write(RichText(f"  {_plain.strip()}", style=f"dim {_TEXT_FAINT}"))
             # Clear tool indicator after writing so sidebar update doesn't race with log write
             if self._current_tool:
                 self._current_tool = ""
