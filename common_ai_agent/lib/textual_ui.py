@@ -851,6 +851,7 @@ class AgentTUI(App):
     #input-row {{
         height: auto;
         background: {_BG_INPUT};
+        padding: 0 1;
     }}
     #input-prompt {{
         width: 2;
@@ -859,7 +860,6 @@ class AgentTUI(App):
         background: {_BG_INPUT};
         padding: 0 0;
     }}
-
     /* ── Status bar ── */
     #statusbar {{
         height: 1;
