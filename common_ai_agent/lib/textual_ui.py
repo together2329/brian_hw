@@ -374,7 +374,7 @@ class _AgentInput(TextArea):
 
     BINDINGS = [
         Binding("enter",       "submit_input", "Submit",   show=False, priority=True),
-        Binding("shift+enter", "newline",      "New line", show=False, priority=True),
+        Binding("ctrl+j",      "newline",      "New line", show=False, priority=True),
         Binding("escape",      "stop_agent",   "Stop",     show=False, priority=True),
         Binding("shift+tab",   "toggle_plan",  "Plan",     show=False, priority=True),
     ]
@@ -664,9 +664,8 @@ class _AgentInput(TextArea):
                 event.stop()
                 return
 
-        # ── Alt+Enter: insert newline (macOS Option+Enter fallback) ──────────
-        elif event.key in ("alt+enter", "option+enter"):
-            self.insert("\n")
+        # ── Enter: handled by BINDING, stop here to prevent TextArea default ──
+        elif event.key == "enter":
             event.prevent_default()
             event.stop()
             return
@@ -1318,7 +1317,7 @@ class AgentTUI(App):
                 t.append(self._model or "normal", style=_TEXT_FAINT)
                 t.append("  shift+tab plan", style=_TEXT_FAINT)
             t.append("  ·  esc to interrupt", style=_TEXT_FAINT)
-            t.append("  ·  ctrl+enter send", style=_TEXT_FAINT)
+            t.append("  ·  ctrl+j newline", style=_TEXT_FAINT)
             if extra:
                 t.append(f"   {extra}", style=f"italic {_YELLOW}")
             sb.update(t)
