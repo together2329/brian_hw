@@ -393,7 +393,8 @@ class _AgentInput(TextArea):
         Binding("enter",       "submit_input", "Submit",   show=False, priority=True),
         Binding("ctrl+j",      "newline",      "New line", show=False, priority=True),
         Binding("escape",      "stop_agent",   "Stop",     show=False, priority=True),
-        Binding("shift+tab",   "toggle_plan",  "Plan",     show=False, priority=True),
+        Binding("shift+tab",    "toggle_plan",  "Plan",     show=False, priority=True),
+        Binding("shift+insert", "paste",        "Paste",    show=False, priority=True),
     ]
 
     def __init__(self, **kwargs):
@@ -1371,6 +1372,7 @@ class AgentTUI(App):
                 t.append("  shift+tab plan", style=_TEXT_FAINT)
             t.append("  ·  esc interrupt", style=_TEXT_FAINT)
             t.append("  ·  ctrl+j newline", style=_TEXT_FAINT)
+            t.append("  ·  shift+ins paste", style=_TEXT_FAINT)
             t.append("  ·  ctrl+q quit", style=_TEXT_FAINT)
             if extra:
                 t.append(f"   {extra}", style=f"italic {_YELLOW}")
