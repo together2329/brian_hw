@@ -1829,6 +1829,8 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
         _debug_line_buf = ""
         _debug_in_think = False
         _wd_stop, _wd_triggered = None, [False]  # init before try so except can always reference
+        _in_think_tag = False
+        _think_buf = ""
 
         try:
             _body = json.dumps(data).encode('utf-8')
@@ -1873,7 +1875,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                     for rd in (delta.get("reasoning_details") or []):
                                         if rd.get("type") == "thinking":
                                             reasoning = (reasoning or "") + (rd.get("thinking", "") or rd.get("summary", ""))
-                                content = delta.get("content", "")
+                                content = delta.get("content", "") or ""
 
                                 # Bleed fix: GLM-4.7 can emit reasoning tail and content start
                                 # in the same delta chunk. Merge into reasoning when both are
@@ -1883,6 +1885,43 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                     if first_char and (first_char.islower() or first_char.isdigit() or first_char in ',;:'):
                                         reasoning = reasoning + content
                                         content = ""
+
+                                # <think> tag state machine: internal hosting embeds reasoning
+                                # inside content as <think>...</think> across multiple chunks.
+                                # Track open/close tags across chunk boundaries.
+                                if not reasoning and content and "<" in (content + _think_buf):
+                                    _think_buf += content
+                                    content = ""
+                                    reasoning = ""
+                                    # Process _think_buf until no more complete tags
+                                    while True:
+                                        if _in_think_tag:
+                                            close_pos = _think_buf.find("</think>")
+                                            if close_pos == -1:
+                                                # Still inside <think> — emit as reasoning
+                                                # but keep last 8 chars as partial-tag buffer
+                                                _safe = len(_think_buf) - 8
+                                                if _safe > 0:
+                                                    reasoning += _think_buf[:_safe]
+                                                    _think_buf = _think_buf[_safe:]
+                                                break
+                                            else:
+                                                reasoning += _think_buf[:close_pos]
+                                                _think_buf = _think_buf[close_pos + 8:]
+                                                _in_think_tag = False
+                                        else:
+                                            open_pos = _think_buf.find("<think>")
+                                            if open_pos == -1:
+                                                # No <think> tag — check for partial tag at end
+                                                # Keep up to 7 chars as potential partial "<think>"
+                                                _safe = max(0, len(_think_buf) - 7)
+                                                content += _think_buf[:_safe]
+                                                _think_buf = _think_buf[_safe:]
+                                                break
+                                            else:
+                                                content += _think_buf[:open_pos]
+                                                _think_buf = _think_buf[open_pos + 7:]
+                                                _in_think_tag = True
 
                                 if reasoning:
                                     yield ("reasoning", reasoning)
@@ -2940,6 +2979,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         _debug_line_buf = ""
         _debug_in_think = False
         _wd_stop, _wd_triggered = None, [False]  # init before try so except can always reference
+        _in_think_tag = False
+        _think_buf = ""
 
         _perf = getattr(config, "PERF_TRACKING", False)
         try:
@@ -3005,15 +3046,44 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                     for rd in (delta.get("reasoning_details") or []):
                                         if rd.get("type") == "thinking":
                                             reasoning = (reasoning or "") + (rd.get("thinking", "") or rd.get("summary", ""))
-                                content = delta.get("content", "")
+                                content = delta.get("content", "") or ""
 
                                 # Streaming bleed fix: when both reasoning_content and content
                                 # arrive in the same delta, the content is always a bleed-over
                                 # from the reasoning tail (observed consistently on GLM-4.7).
-                                # Real content starts in its own delta (reasoning field absent).
                                 if reasoning and content:
                                     reasoning = reasoning + content
                                     content = ""
+
+                                # <think> tag state machine for internal hosting
+                                if not reasoning and content and "<" in (content + _think_buf):
+                                    _think_buf += content
+                                    content = ""
+                                    reasoning = ""
+                                    while True:
+                                        if _in_think_tag:
+                                            close_pos = _think_buf.find("</think>")
+                                            if close_pos == -1:
+                                                _safe = len(_think_buf) - 8
+                                                if _safe > 0:
+                                                    reasoning += _think_buf[:_safe]
+                                                    _think_buf = _think_buf[_safe:]
+                                                break
+                                            else:
+                                                reasoning += _think_buf[:close_pos]
+                                                _think_buf = _think_buf[close_pos + 8:]
+                                                _in_think_tag = False
+                                        else:
+                                            open_pos = _think_buf.find("<think>")
+                                            if open_pos == -1:
+                                                _safe = max(0, len(_think_buf) - 7)
+                                                content += _think_buf[:_safe]
+                                                _think_buf = _think_buf[_safe:]
+                                                break
+                                            else:
+                                                content += _think_buf[:open_pos]
+                                                _think_buf = _think_buf[open_pos + 7:]
+                                                _in_think_tag = True
 
                                 if reasoning or content:
                                     if _t_first_token is None:
