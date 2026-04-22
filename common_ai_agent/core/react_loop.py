@@ -1011,9 +1011,10 @@ def run_react_agent_impl(
                 print(f"  ⚡ {len(actions)} actions (parallel)")
 
                 # Pre-declare _INLINE_TOOLS to share with parallel rendering
-                _INLINE_TOOLS = {"read_file", "read_lines", "grep_file", "find_files", "list_dir",
-                                 "git_diff", "git_status", "todo_write", "todo_update",
+                # read/find/grep/list are NOT inline — they use _fmt_result for configurable preview
+                _INLINE_TOOLS = {"git_diff", "git_status", "todo_write", "todo_update",
                                  "todo_add", "todo_remove"}
+                _PREVIEW_TOOLS = {"read_file", "read_lines", "grep_file", "find_files", "list_dir"}
                 _DIFF_TOOLS   = {"replace_in_file", "replace_lines", "replace_file_content",
                                "git_commit", "git_push", "git_checkout", "git_branch"}
                 _WRITE_TOOLS  = {"write_file", "write_to_file"}
@@ -1070,6 +1071,10 @@ def run_react_agent_impl(
                                 print(f"  {_dl}")
                         else:
                             print(_fmt_result(observation, tool_name))
+                    elif tool_name in _PREVIEW_TOOLS:
+                        brief = format_tool_brief(tool_name, args_str, observation)
+                        print(f"  {Color.DIM}⎿  {brief}{Color.RESET}")
+                        print(_fmt_result(observation, tool_name))
                     elif tool_name in _INLINE_TOOLS:
                         brief = format_tool_brief(tool_name, args_str, observation)
                         print(f"  {Color.DIM}⎿  {brief}{Color.RESET}")
@@ -1220,9 +1225,9 @@ def run_react_agent_impl(
                             pass
 
                     # Display result (header already printed before execution above)
-                    _INLINE_TOOLS = {"read_file", "read_lines", "grep_file", "find_files", "list_dir",
-                                     "git_diff", "git_status", "write_file", "todo_write", "todo_update",
+                    _INLINE_TOOLS = {"git_diff", "git_status", "write_file", "todo_write", "todo_update",
                                      "todo_add", "todo_remove"}
+                    _PREVIEW_TOOLS = {"read_file", "read_lines", "grep_file", "find_files", "list_dir"}
                     elapsed_suffix = f" · {tool_elapsed:.1f}s" if tool_elapsed >= 1.0 else ""
                     if _is_plan_blocked or _is_normal_blocked:
                         print(format_tool_header(tool_name, summary))
@@ -1259,6 +1264,10 @@ def run_react_agent_impl(
                         else:
                             print(f"  {Color.DIM}⎿  {observation}{Color.RESET}")
                     elif tool_name in ("todo_update", "todo_write") and agent_mode in ("plan", "plan_q"):
+                        print(_fmt_result(observation, tool_name))
+                    elif tool_name in _PREVIEW_TOOLS:
+                        brief = format_tool_brief(tool_name, _args_display, observation)
+                        print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")
                         print(_fmt_result(observation, tool_name))
                     elif tool_name in _INLINE_TOOLS:
                         brief = format_tool_brief(tool_name, _args_display, observation)
