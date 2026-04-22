@@ -1,0 +1,68 @@
+#!/bin/bash
+# Wrapper cocotb-config for environments where the real cocotb-config isn't on PATH
+exec python3 -c "
+import cocotb, os, sys
+cmd = sys.argv[1] if len(sys.argv) > 1 else ''
+base = os.path.dirname(cocotb.__file__)
+share = os.path.join(base, 'share')
+mkfiles = os.path.join(share, 'makefiles')
+libs = os.path.join(base, 'libs')
+
+if cmd == '--makefiles' or cmd == '--makefile':
+    print(mkfiles)
+elif cmd == '--share':
+    print(share)
+elif cmd == '--prefix':
+    print(os.path.dirname(base))
+elif cmd == '--version':
+    print(cocotb.__version__)
+elif cmd == '--python-bin':
+    print(sys.executable)
+elif cmd == '--lib-dir':
+    print(libs)
+elif cmd == '--lib-name':
+    iface = sys.argv[2] if len(sys.argv) > 2 else ''
+    sim = sys.argv[3] if len(sys.argv) > 3 else ''
+    print(f'libcocotb{iface}_{sim}')
+elif cmd == '--libpython':
+    # Find the path to libpython shared library
+    try:
+        import find_libpython
+        print(find_libpython.find_libpython())
+    except Exception:
+        # Fallback: try to guess common locations
+        import sysconfig
+        libdir = sysconfig.get_config_var('LIBDIR')
+        ldlibrary = sysconfig.get_config_var('LDLIBRARY')
+        if libdir and ldlibrary:
+            path = os.path.join(libdir, ldlibrary)
+            if os.path.exists(path):
+                print(path)
+            else:
+                # On macOS with framework build
+                python_prefix = sys.prefix
+                possible = [
+                    os.path.join(python_prefix, 'lib', ldlibrary),
+                    os.path.join(python_prefix, libdir.split('/')[-1] if libdir else '', ldlibrary),
+                ]
+                found = False
+                for p in possible:
+                    if os.path.exists(p):
+                        print(p)
+                        found = True
+                        break
+                if not found:
+                    # Last resort: empty string (will cause cocotb to warn but not fail)
+                    pass
+        else:
+            pass
+elif cmd == '--python-info':
+    import struct
+    print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')
+    print(struct.calcsize('P') * 8)
+    print(sys.executable)
+elif cmd == '--help':
+    print('cocotb-config wrapper')
+else:
+    print(mkfiles)
+" "$@"

@@ -1,0 +1,17 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1776794538" />
+    <testcase name="test_01_reset" classname="test_regfile" file="/Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/decorators.py" lineno="124" time="0.004731178283691406" sim_time_ns="200.001" ratio_time="42272.97895101794" />
+    <testcase name="test_02_dsr_dpc" classname="test_regfile" file="/Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/decorators.py" lineno="150" time="0.003329038619995117" sim_time_ns="180.001" ratio_time="54069.964499319634" />
+    <testcase name="test_03_interrupts" classname="test_regfile" file="/Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/decorators.py" lineno="167" time="0.006615161895751953" sim_time_ns="300.00100000000003" ratio_time="45350.51518431486" />
+    <testcase name="test_04_channel_regs" classname="test_regfile" file="/Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/decorators.py" lineno="213" time="0.005320072174072266" sim_time_ns="310.001" ratio_time="58270.074137492156" />
+    <testcase name="test_05_multiple_events" classname="test_regfile" file="/Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/decorators.py" lineno="250" time="0.003509044647216797" sim_time_ns="230.0010000000001" ratio_time="65545.19053567063" />
+    <testcase name="test_06_fault" classname="test_regfile" file="/Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/decorators.py" lineno="281" time="0.0029218196868896484" sim_time_ns="160.00099999999998" ratio_time="54760.73719330884" />
+    <testcase name="test_07_id_rom" classname="test_regfile" file="/Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/decorators.py" lineno="302" time="0.006467103958129883" sim_time_ns="320.001" ratio_time="49481.34467480184" />
+    <testcase name="test_08_config_regs" classname="test_regfile" file="/Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/decorators.py" lineno="328" time="0.0029370784759521484" sim_time_ns="200.00099999999998" ratio_time="68095.21830538192" />
+    <testcase name="test_09_debug" classname="test_regfile" file="/Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/decorators.py" lineno="355" time="0.0029959678649902344" sim_time_ns="210.00099999999998" ratio_time="70094.543554353" />
+    <testcase name="test_10_ch_status_pc" classname="test_regfile" file="/Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/decorators.py" lineno="378" time="0.002046823501586914" sim_time_ns="140.0010000000002" ratio_time="68399.15600512532" />
+    <testcase name="test_11_lc_regs" classname="test_regfile" file="/Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/decorators.py" lineno="399" time="0.0027608871459960938" sim_time_ns="180.00099999999975" ratio_time="65196.79743557849" />
+    <testcase name="test_12_unmapped_addr" classname="test_regfile" file="/Users/brian/Library/Python/3.9/lib/python/site-packages/cocotb/decorators.py" lineno="418" time="0.002048015594482422" sim_time_ns="140.0010000000002" ratio_time="68359.34275948787" />
+  </testsuite>
+</testsuites>

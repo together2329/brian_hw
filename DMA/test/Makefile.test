@@ -1,0 +1,48 @@
+# =============================================================================
+# DMA-330 Cocotb Per-Test Makefile (direct invocation)
+# =============================================================================
+# This file is invoked by the main Makefile for each individual test.
+# It should not be invoked directly — use `make test_<name>` or `make waves_<name>`.
+#
+# Waveform support:
+#   WAVES=1          — Enable waveform generation (required)
+#   WAVES_FMT=vcd    — Output format: VCD (default, universal)
+#   WAVES_FMT=fst    — Output format: FST (smaller, needs libz+fst support)
+#
+#   The waveform file is saved as <workdir>/dump.vcd or <workdir>/dump.fst
+#   View with: gtkwave <workdir>/dump.vcd   OR   gtkwave <workdir>/dump.fst
+# =============================================================================
+
+TEST_DIR ?= $(CURDIR)/../test
+
+# Resolve cocotb makefiles dir via python3
+COCOTB_MK_DIR := $(shell python3 -c "import cocotb,os; print(os.path.join(os.path.dirname(cocotb.__file__),'share','makefiles'))")
+
+ifeq ($(COCOTB_MK_DIR),)
+$(error "Cannot find cocotb makefiles. Is cocotb installed?")
+endif
+
+# Copy test files into work directory
+testbase.py:
+	@cp $(TEST_DIR)/testbase.py . 2>/dev/null || true
+
+$(TESTFILE):
+	@cp $(TEST_DIR)/$(TESTFILE) . 2>/dev/null || true
+
+# Add test dir to Python path
+export PYTHONPATH := $(TEST_DIR):$(abspath .):$${PYTHONPATH}
+
+# SystemVerilog support for Icarus
+ifeq ($(SIM),icarus)
+  COMPILE_ARGS += -g2012
+  # Waveform dump support (VCD or FST)
+  ifeq ($(WAVES),1)
+    COMPILE_ARGS += -DWAVES
+    ifeq ($(WAVES_FMT),fst)
+      COMPILE_ARGS += -DWAVES_FST
+    endif
+    VERILOG_SOURCES += $(TEST_DIR)/waves_dump.sv
+  endif
+endif
+
+include $(COCOTB_MK_DIR)/Makefile.sim
