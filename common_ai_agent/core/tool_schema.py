@@ -29,106 +29,207 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
     # ── File I/O ────────────────────────────────────────────────────────────
     "read_file": _fn(
         "read_file",
-        "Read entire file content. For large files (>500 lines) prefer grep_file first.",
-        {"path": {"type": "string", "description": "File path to read"}},
+        (
+            "Read the entire content of a file and return it with line numbers.\n"
+            "Best for files under ~500 lines. For larger files, use grep_file first to locate the relevant "
+            "section, then use read_lines to read only that section.\n"
+            "Decision guide:\n"
+            "  • Unknown content / small file → read_file\n"
+            "  • Large file, need specific section → grep_file → read_lines\n"
+            "  • Looking for a function/class name → grep_file\n"
+            "Example: read_file(path='src/main.py')"
+        ),
+        {"path": {"type": "string", "description": "Absolute or relative file path to read. Examples: 'src/main.py', './config.json', '/home/user/project/lib.py'"}},
         required=["path"],
     ),
     "read_lines": _fn(
         "read_lines",
-        "Read a specific line range from a file. ALWAYS provide start_line and end_line. Use grep_file first to find the line numbers, then read_lines to get the section. To read the whole file use read_file instead.",
+        (
+            "Read a specific contiguous line range from a file.\n"
+            "ALWAYS supply both start_line and end_line — omitting them is an error.\n"
+            "Typical workflow: grep_file to find the line number → read_lines to read the surrounding context.\n"
+            "Do NOT use to read the whole file — use read_file instead.\n"
+            "Example: read_lines(path='src/main.py', start_line=42, end_line=80)"
+        ),
         {
-            "path": {"type": "string", "description": "File path"},
-            "start_line": {"type": "integer", "description": "First line to read (1-based)"},
-            "end_line": {"type": "integer", "description": "Last line to read (inclusive, 1-based)"},
+            "path": {"type": "string", "description": "File path to read"},
+            "start_line": {"type": "integer", "description": "First line to read (1-based, inclusive). REQUIRED."},
+            "end_line": {"type": "integer", "description": "Last line to read (1-based, inclusive). REQUIRED. Must be >= start_line."},
         },
         required=["path", "start_line", "end_line"],
     ),
     "write_file": _fn(
         "write_file",
-        "Create NEW files only. NEVER use on existing files — use replace_in_file instead.",
+        (
+            "Create a NEW file with the given content. Overwrites if the file already exists — "
+            "so ONLY use this to create brand-new files.\n"
+            "For editing existing files use replace_in_file (text-based) or replace_lines (line-range).\n"
+            "Always provide the complete file content including all imports/headers.\n"
+            "Example: write_file(path='tests/test_foo.py', content='import pytest\\n...')"
+        ),
         {
-            "path": {"type": "string", "description": "File path to create"},
-            "content": {"type": "string", "description": "Full file content"},
+            "path": {"type": "string", "description": "Destination file path (will be created or overwritten)"},
+            "content": {"type": "string", "description": "Complete file content to write"},
         },
         required=["path", "content"],
     ),
     "replace_in_file": _fn(
         "replace_in_file",
-        "Edit existing files by replacing exact text. ALWAYS read the file first to get exact text including indentation.",
+        (
+            "Edit an EXISTING file by replacing an exact block of text with new text.\n"
+            "Workflow: read_file → copy exact text including indentation → call replace_in_file.\n"
+            "old_text MUST match the file exactly (whitespace, quotes, line endings). Include 5+ surrounding "
+            "lines of context to ensure uniqueness — if the pattern appears multiple times, the replacement "
+            "will fail.\n"
+            "Use replace_lines instead when you know the exact line numbers and the text block is large.\n"
+            "Example:\n"
+            "  replace_in_file(path='app.py',\n"
+            "    old_text='def foo():\\n    return 1',\n"
+            "    new_text='def foo():\\n    return 42')"
+        ),
         {
-            "path": {"type": "string", "description": "File path to edit"},
-            "old_text": {"type": "string", "description": "Exact text to find (include 5+ lines of context for uniqueness)"},
-            "new_text": {"type": "string", "description": "Replacement text"},
+            "path": {"type": "string", "description": "Path to the file to edit (must exist)"},
+            "old_text": {"type": "string", "description": "Exact text to search for and replace. Must be unique in the file. Include surrounding context lines for uniqueness."},
+            "new_text": {"type": "string", "description": "Replacement text (can be empty string to delete)"},
         },
         required=["path", "old_text", "new_text"],
     ),
     "replace_lines": _fn(
         "replace_lines",
-        "Replace a range of lines in an existing file.",
+        (
+            "Replace a contiguous range of lines in an existing file using line numbers.\n"
+            "Use this when you have exact line numbers (e.g. from grep_file or read_file output) and "
+            "the replaced block is large or contains repeated patterns that make replace_in_file ambiguous.\n"
+            "new_content replaces lines start_line through end_line inclusive. Line count of new_content "
+            "can differ from the replaced range.\n"
+            "Example: replace_lines(path='main.py', start_line=10, end_line=15, new_content='x = 1\\ny = 2')"
+        ),
         {
-            "path": {"type": "string", "description": "File path to edit"},
-            "start_line": {"type": "integer", "description": "First line to replace (1-based)"},
-            "end_line": {"type": "integer", "description": "Last line to replace (inclusive)"},
-            "new_content": {"type": "string", "description": "New content for the replaced lines"},
+            "path": {"type": "string", "description": "Path to the file to edit (must exist)"},
+            "start_line": {"type": "integer", "description": "First line to replace (1-based, inclusive)"},
+            "end_line": {"type": "integer", "description": "Last line to replace (1-based, inclusive). Must be >= start_line."},
+            "new_content": {"type": "string", "description": "New content that replaces lines start_line..end_line. May have more or fewer lines than the replaced range."},
         },
         required=["path", "start_line", "end_line", "new_content"],
     ),
     "run_command": _fn(
         "run_command",
-        "Execute a shell command and return its output.",
-        {"command": {"type": "string", "description": "Shell command to execute"}},
+        (
+            "Execute a shell command and return stdout + stderr.\n"
+            "Use for: running tests, compiling code, git commands, installing packages, checking tool output.\n"
+            "Avoid running long-running interactive commands (they will time out).\n"
+            "For file reading/searching, prefer read_file/grep_file/find_files over shell commands — "
+            "those tools parse output and handle errors better.\n"
+            "Examples:\n"
+            "  run_command(command='pytest tests/ -v')\n"
+            "  run_command(command='git log --oneline -10')\n"
+            "  run_command(command='pip install requests')"
+        ),
+        {"command": {"type": "string", "description": "Shell command string to execute. Runs in project root. Supports pipes, &&, etc."}},
         required=["command"],
     ),
     "list_dir": _fn(
         "list_dir",
-        "List directory contents.",
-        {"path": {"type": "string", "description": "Directory path to list"}},
+        (
+            "List the immediate contents of a directory (files and subdirectories).\n"
+            "Use '.' for the current working directory.\n"
+            "For recursive file search by pattern, use find_files instead — it's faster and supports glob.\n"
+            "Examples:\n"
+            "  list_dir(path='.')  — current directory\n"
+            "  list_dir(path='src/components')"
+        ),
+        {"path": {"type": "string", "description": "Directory path to list. Use '.' for current directory."}},
         required=["path"],
     ),
 
     # ── Search ───────────────────────────────────────────────────────────────
     "grep_file": _fn(
         "grep_file",
-        "Regex search in file(s). Use before read_file on large files.",
+        (
+            "Search for a regex pattern in a file or directory and return matching lines with line numbers.\n"
+            "Use BEFORE read_file on large files to find the relevant section.\n"
+            "Set recursive=true to search all files in a directory tree.\n"
+            "Use context_lines to include surrounding lines for each match.\n"
+            "Examples:\n"
+            "  grep_file(pattern='def train', path='src/')  — find function definitions\n"
+            "  grep_file(pattern='TODO|FIXME', path='.', recursive=true)  — find all todos\n"
+            "  grep_file(pattern='import torch', path='model.py', context_lines=3)"
+        ),
         {
-            "pattern": {"type": "string", "description": "Regex pattern to search for"},
-            "path": {"type": "string", "description": "File or directory path to search"},
+            "pattern": {"type": "string", "description": "Python regex pattern to search for. Case-sensitive by default. Use (?i) prefix for case-insensitive."},
+            "path": {"type": "string", "description": "File path or directory path to search in"},
+            "recursive": {"type": "boolean", "description": "If true, search all files recursively under the directory (default: false for single file, true for directory)"},
+            "context_lines": {"type": "integer", "description": "Number of lines of context to include before and after each match (default: 0)"},
         },
         required=["pattern", "path"],
     ),
     "find_files": _fn(
         "find_files",
-        "Glob search for files. Prefer over repeated list_dir calls.",
+        (
+            "Find files matching a glob pattern under a directory.\n"
+            "Much faster than repeated list_dir calls. Prefer this for locating files by name/extension.\n"
+            "The 'directory' parameter is the root to search from (use '.' for current directory).\n"
+            "Examples:\n"
+            "  find_files(pattern='**/*.py', directory='.')  — all Python files\n"
+            "  find_files(pattern='test_*.py', directory='tests/')  — test files\n"
+            "  find_files(pattern='*.config', directory='/etc')"
+        ),
         {
-            "pattern": {"type": "string", "description": "Glob pattern (e.g. '**/*.py')"},
-            "path": {"type": "string", "description": "Root directory to search from"},
+            "pattern": {"type": "string", "description": "Glob pattern to match filenames. Supports '**' for recursive match. Examples: '**/*.py', 'src/**/*.ts', '*.json'"},
+            "directory": {"type": "string", "description": "Root directory to search from. Use '.' for current working directory."},
         },
-        required=["pattern", "path"],
+        required=["pattern", "directory"],
     ),
 
     # ── Git ──────────────────────────────────────────────────────────────────
     "git_status": _fn(
         "git_status",
-        "Show working tree git status.",
+        (
+            "Show the current git working tree status: staged files, unstaged changes, and untracked files.\n"
+            "Run this first before any git operation to understand the current state.\n"
+            "No parameters needed."
+        ),
         {},
     ),
     "git_diff": _fn(
         "git_diff",
-        "Show unstaged git changes for a file or all files.",
-        {"path": {"type": "string", "description": "File path (empty string for all files)"}},
+        (
+            "Show unstaged changes (diff) for a specific file or all modified files.\n"
+            "Use path='' (empty string) to see all uncommitted changes at once.\n"
+            "Examples:\n"
+            "  git_diff(path='src/main.py')  — diff for one file\n"
+            "  git_diff(path='')  — diff for all files"
+        ),
+        {"path": {"type": "string", "description": "File path to diff. Pass empty string '' to diff all modified files."}},
         required=["path"],
     ),
     "git_revert": _fn(
         "git_revert",
-        "Revert uncommitted changes to a file.",
-        {"path": {"type": "string", "description": "File path to revert"}},
+        (
+            "Revert all uncommitted changes to a file, restoring it to the last committed state.\n"
+            "WARNING: This permanently discards all unsaved edits to the file.\n"
+            "Example: git_revert(path='src/broken_file.py')"
+        ),
+        {"path": {"type": "string", "description": "File path to revert to HEAD. All uncommitted changes will be lost."}},
         required=["path"],
     ),
 
     # ── Task Management ───────────────────────────────────────────────────────
     "todo_write": _fn(
         "todo_write",
-        "Create or replace the task list. Pass todos as a real array (not a JSON string). Always fill detail and criteria for every task.",
+        (
+            "Create or REPLACE the entire task list. Use at the start of a multi-step task.\n"
+            "CRITICAL: Pass 'todos' as a real JSON array — NOT a JSON string.\n"
+            "Every task MUST have 'detail' (how to implement) and 'criteria' (acceptance checklist) filled in — empty strings are rejected.\n"
+            "After writing, immediately set the first task to in_progress using todo_update.\n"
+            "Example:\n"
+            "  todo_write(todos=[\n"
+            "    {\"content\": \"Write parser\", \"activeForm\": \"Writing parser\",\n"
+            "     \"status\": \"pending\", \"priority\": \"high\",\n"
+            "     \"detail\": \"Parse JSON input using stdlib json module\",\n"
+            "     \"criteria\": \"Handles empty input\\nRaises ValueError on invalid JSON\"}\n"
+            "  ])"
+        ),
         {
             "todos": {
                 "type": "array",
@@ -151,7 +252,17 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
     ),
     "todo_update": _fn(
         "todo_update",
-        "Update task status. index is 1-based. IMPORTANT: status='approved' or 'rejected' REQUIRES a 'reason' argument describing what was verified.",
+        (
+            "Update the status (and optionally content/detail) of a single task by its index.\n"
+            "index is 1-BASED — the first task is index=1, NOT 0.\n"
+            "Typical flow: set in_progress when starting → completed when done → approved/rejected after verification.\n"
+            "REQUIRED when status='approved' or 'rejected': supply 'reason' describing what was checked.\n"
+            "Examples:\n"
+            "  todo_update(index=1, status='in_progress')\n"
+            "  todo_update(index=1, status='completed')\n"
+            "  todo_update(index=1, status='approved', reason='ran pytest — all 12 tests passed')\n"
+            "  todo_update(index=2, status='rejected', reason='output file missing expected header line')"
+        ),
         {
             "index": {"type": "integer", "description": "Task index (1-based)"},
             "status": {
@@ -167,55 +278,81 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
     ),
     "todo_add": _fn(
         "todo_add",
-        "Add a new task. index is the target position (1-based).",
+        (
+            "Add a single new task to the list at a specified position.\n"
+            "Use instead of todo_write when the list already exists and you just need to insert one task.\n"
+            "index is 1-based. Omit index to append at the end.\n"
+            "Examples:\n"
+            "  todo_add(content='Write unit tests', priority='high')\n"
+            "  todo_add(content='Update README', priority='low', index=3)"
+        ),
         {
-            "content": {"type": "string", "description": "Task description"},
-            "priority": {"type": "string", "description": "Priority: high/normal/low"},
-            "index": {"type": "integer", "description": "Position to insert (1-based, optional)"},
+            "content": {"type": "string", "description": "Task description — use imperative verb + deliverable (e.g. 'Fix login bug in auth.py')"},
+            "priority": {"type": "string", "enum": ["high", "medium", "low"], "description": "Task priority (default: medium)"},
+            "index": {"type": "integer", "description": "Insert position (1-based). Omit to append at the end."},
         },
         required=["content"],
     ),
     "todo_remove": _fn(
         "todo_remove",
-        "Remove a task by index (1-based).",
-        {"index": {"type": "integer", "description": "Task index to remove (1-based)"}},
+        (
+            "Remove a task from the list by its 1-based index.\n"
+            "Example: todo_remove(index=3)  — removes the 3rd task"
+        ),
+        {"index": {"type": "integer", "description": "1-based index of the task to remove"}},
         required=["index"],
     ),
     "todo_status": _fn(
         "todo_status",
-        "Show current task progress summary.",
+        (
+            "Show a summary of the current task list: how many are pending, in_progress, completed, approved, rejected.\n"
+            "No parameters needed. Use to check overall progress at any time."
+        ),
         {},
     ),
 
     # ── Sub-Agents ────────────────────────────────────────────────────────────
     "background_task": _fn(
         "background_task",
-        "Delegate a task to a sub-agent (explore/execute/review).",
+        (
+            "Spawn a background sub-agent to handle a long-running task in parallel.\n"
+            "Agent types:\n"
+            "  • 'explore' — read-only investigation: search code, read docs, analyze structure\n"
+            "  • 'execute' — make changes: write/edit files, run commands, implement features\n"
+            "  • 'review'  — check quality: verify correctness, run tests, review output\n"
+            "Returns a task_id immediately. Use background_output(task_id) to get results.\n"
+            "Use background_list() to see all running tasks.\n"
+            "Example: background_task(agent='explore', prompt='Find all files that import module X and list line numbers')"
+        ),
         {
             "agent": {
                 "type": "string",
                 "enum": ["explore", "execute", "review"],
-                "description": "Agent type",
+                "description": "Sub-agent type: 'explore' (read-only), 'execute' (make changes), 'review' (verify)",
             },
-            "prompt": {"type": "string", "description": "Task description for the sub-agent"},
+            "prompt": {"type": "string", "description": "Detailed task description for the sub-agent. Be specific about what to find/do/verify."},
         },
         required=["agent", "prompt"],
     ),
     "background_output": _fn(
         "background_output",
-        "Get the result of a sub-agent task by task_id.",
-        {"task_id": {"type": "string", "description": "Task ID returned by background_task"}},
+        (
+            "Retrieve the result of a previously spawned sub-agent task.\n"
+            "Blocks until the task is complete or returns partial output if still running.\n"
+            "Example: background_output(task_id='abc123')"
+        ),
+        {"task_id": {"type": "string", "description": "Task ID string returned by background_task"}},
         required=["task_id"],
     ),
     "background_cancel": _fn(
         "background_cancel",
-        "Cancel a running sub-agent task.",
-        {"task_id": {"type": "string", "description": "Task ID to cancel"}},
+        "Cancel a running sub-agent task before it completes.",
+        {"task_id": {"type": "string", "description": "Task ID to cancel (from background_task return value)"}},
         required=["task_id"],
     ),
     "background_list": _fn(
         "background_list",
-        "List all active sub-agent tasks.",
+        "List all currently active or recently completed sub-agent tasks with their status and task IDs.",
         {},
     ),
 
