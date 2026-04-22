@@ -1032,13 +1032,25 @@ def _extract_tool_args_summary(tool_name: str, args_str) -> str:
     """Extract a human-readable summary from tool args"""
     import re
 
-    # Handle dict kwargs (native mode) by normalizing to string
+    # Handle dict or JSON-string kwargs (native mode) by normalizing to key=value string
+    import json as _json
     if isinstance(args_str, dict):
-        import json as _json
         args_str = ", ".join(
             f'{k}={_json.dumps(v, ensure_ascii=False)}'
             for k, v in args_str.items()
         )
+    elif isinstance(args_str, str):
+        _s = args_str.strip()
+        if _s.startswith("{") and _s.endswith("}"):
+            try:
+                _d = _json.loads(_s)
+                if isinstance(_d, dict):
+                    args_str = ", ".join(
+                        f'{k}={_json.dumps(v, ensure_ascii=False)}'
+                        for k, v in _d.items()
+                    )
+            except Exception:
+                pass
 
     def _get_val(key_pat, text):
         # Robustly extract quoted string (handles triple and escaped quotes)
