@@ -389,7 +389,13 @@ def run_react_agent_impl(
         if cfg.DEBUG_MODE:
             _pre_count = len(messages)
             _pre_tok = sum(len(str(m.get("content","")))//4 for m in messages)
+        _pre_msg_count = len(messages)
         messages = deps.compress_fn(messages, todo_tracker=todo_tracker)
+        _did_compress = len(messages) != _pre_msg_count
+        if _did_compress:
+            # Force todo reminder on the very next LLM call — compression clears the
+            # model's context so it no longer knows which task to continue.
+            _last_injected_task_key = (-1, "")
         if cfg.DEBUG_MODE:
             _post_count = len(messages)
             _post_tok = sum(len(str(m.get("content","")))//4 for m in messages)
