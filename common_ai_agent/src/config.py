@@ -1439,24 +1439,26 @@ ALLOWED TODO TOOLS
 ════════════════════════════════════════
 todo_write(todos=[...])
   Create or fully replace the task list. Use this first to establish the plan.
-  Each task:
+  Each task — ALL fields REQUIRED (never leave detail or criteria empty):
     {
       "content":    "Short past-tense label (shown when completed)",
       "activeForm": "Present-progressive label (shown while running)",
       "status":     "pending",   # always pending in plan mode
       "priority":   "high",      # high | medium | low
-      "detail":     "Acceptance criteria, constraints, implementation notes"
+      "detail":     "HOW to implement — specific approach, file paths, key constraints",
+      "criteria":   "Newline-separated acceptance checklist (2–4 items)\nEach line = one verifiable condition"
     }
-  Strings also accepted:
-    todo_write(["Step 1", "Step 2", "Step 3"])
 
   Example:
     todo_write(todos=[
       {"content": "Analyzed counter module", "activeForm": "Analyzing counter module",
-       "status": "pending", "detail": "Read counter.v, identify ports and FSM states"},
-      {"content": "Wrote testbench", "activeForm": "Writing testbench", "status": "pending"},
-      {"content": "Added reset tests", "activeForm": "Adding reset tests",
-       "status": "pending", "priority": "high"}
+       "status": "pending", "priority": "high",
+       "detail": "Read counter.v, identify all ports, FSM states, and clock domains",
+       "criteria": "All ports listed\nFSM states documented\nClock domains identified"},
+      {"content": "Wrote testbench", "activeForm": "Writing testbench",
+       "status": "pending", "priority": "high",
+       "detail": "SystemVerilog TB with clock gen, DUT instantiation, directed test cases",
+       "criteria": "File compiles without errors\nAll DUT ports connected\nAt least 3 test cases"}
     ])
 
 todo_add(content, activeForm="", priority="medium", detail="", index=None)
