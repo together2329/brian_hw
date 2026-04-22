@@ -1061,7 +1061,7 @@ def run_react_agent_impl(
                     if deps.procedural_memory is not None:
                         try:
                             from lib.procedural_memory import Action
-                            obs_lower = observation.lower()
+                            obs_lower = (observation if isinstance(observation, str) else str(observation)).lower()
                             is_error = any(x in obs_lower for x in ["error:", "exception:", "traceback"])
                             action_result = "error" if is_error else "success"
                             actions_taken.append(Action(
@@ -1172,10 +1172,14 @@ def run_react_agent_impl(
                     if _perf:
                         print(f"  {Color.DIM}[PERF] <<< tool/{tool_name}: {tool_elapsed:.3f}s{Color.RESET}")
 
+                    # Ensure observation is always a string
+                    if not isinstance(observation, str):
+                        observation = str(observation) if observation is not None else ""
+
                     # Lint error warning for todo_update(completed)
                     if tool_name == "todo_update" and "completed" in _args_display:
                         _has_lint = any(
-                            "❌" in r and ("error" in r.lower() or "linting" in r.lower())
+                            "❌" in str(r) and ("error" in str(r).lower() or "linting" in str(r).lower())
                             for r in combined_results
                         )
                         if _has_lint:
