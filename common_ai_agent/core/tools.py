@@ -2363,8 +2363,19 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
     if index is None:
         return "Error: 'index' (1-based) is required. (Note: use 1-based indexing, not 0-based)."
 
-    if str(index).strip() == "0":
-        return "Error: Todo indices are 1-based (1, 2, 3...). Please use index 1 for the first task."
+    # 0-based recovery: if index=0 or results in -1, try to find current in_progress task
+    try:
+        _raw_idx = int(str(index).strip())
+    except (ValueError, TypeError):
+        _raw_idx = None
+
+    if _raw_idx is not None and _raw_idx <= 0:
+        # Find current in_progress task as the likely intended target
+        _in_progress = [i for i, t in enumerate(todo_tracker.todos) if getattr(t, 'status', '') == 'in_progress']
+        if _in_progress:
+            index = _in_progress[0] + 1  # convert back to 1-based
+        elif _raw_idx == 0:
+            index = 1  # fallback: assume first task
 
     # Plan mode: block status changes, allow content/detail/criteria updates
     if status and os.environ.get("PLAN_MODE") == "true":
