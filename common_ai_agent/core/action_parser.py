@@ -113,6 +113,61 @@ def _convert_all_glm_tool_calls(text: str, xml_params_to_action_fn: Callable) ->
 # _strip_native_tool_tokens
 # ---------------------------------------------------------------------------
 
+# Aliases from LLM-invented tool names to actual registered tool names
+_TOOL_NAME_ALIASES: Dict[str, str] = {
+    "execute_command":  "run_command",
+    "shell_command":    "run_command",
+    "bash":             "run_command",
+    "bash_command":     "run_command",
+    "run_shell":        "run_command",
+    "execute_bash":     "run_command",
+    "read":             "read_file",
+    "open_file":        "read_file",
+    "list_directory":   "list_dir",
+    "ls":               "list_dir",
+    "search":           "grep_file",
+    "grep":             "grep_file",
+    "find":             "find_files",
+    "write":            "write_file",
+    "create_file":      "write_file",
+    "edit_file":        "replace_in_file",
+    "patch_file":       "replace_in_file",
+}
+
+
+def _resolve_tool_name(name: str) -> str:
+    """Map LLM-invented or aliased tool names to registered ones."""
+    return _TOOL_NAME_ALIASES.get(name, name)
+
+
+def _convert_tool_use_xml(text: str, xml_params_to_action_fn: Callable) -> str:
+    """Convert Anthropic-style <tool_use> XML to Action: format.
+
+    Handles:
+      <tool_use>
+        <server_name>...</server_name>
+        <tool_name>list_dir</tool_name>
+        <arguments>
+          <path>.</path>
+        </arguments>
+      </tool_use>
+    """
+    def _replace(m: re.Match) -> str:
+        block = m.group(1)
+        # Extract tool_name
+        name_m = re.search(r'<tool_name>\s*(\w+)\s*</tool_name>', block)
+        if not name_m:
+            return m.group(0)
+        tool_name = _resolve_tool_name(name_m.group(1))
+        # Extract <arguments>...</arguments> block
+        args_m = re.search(r'<arguments>(.*?)</arguments>', block, re.DOTALL)
+        if args_m:
+            return xml_params_to_action_fn(tool_name, args_m.group(1))
+        return f"\nAction: {tool_name}()\n"
+
+    return re.sub(r'<tool_use>(.*?)</tool_use>', _replace, text, flags=re.DOTALL)
+
+
 def _strip_native_tool_tokens(text: str) -> str:
     """Strip native tool call tokens and convert to ReAct Action: format.
 
@@ -120,6 +175,7 @@ def _strip_native_tool_tokens(text: str) -> str:
       <think>...</think>           — reasoning tokens
       <tool_call>{json}</tool_call> — JSON tool calls
       <tool>name</tool><parameter>  — XML tool calls
+      <tool_use>...</tool_use>      — Anthropic-style XML (GLM imitation)
       bare function calls           — prepends Action: for known tools
     """
     # Strip reasoning tokens leaked into content
@@ -151,6 +207,9 @@ def _strip_native_tool_tokens(text: str) -> str:
         if re.match(r'^\w+\s*\(', content):
             return f"\nAction: {content}\n"
         return content
+
+    # Pattern 0a: <tool_use>...</tool_use> — Anthropic-style / GLM imitation XML
+    text = _convert_tool_use_xml(text, _xml_params_to_action)
 
     # Pattern 0: <tool_call>func(args)</tool_call> — direct function call
     text = re.sub(
@@ -251,6 +310,8 @@ def parse_all_actions(
         List of (tool_name, args_str, hint) tuples where hint is
         "parallel", "sequential", or None.
     """
+    # Convert XML-style tool calls (<tool_use>, <tool_call>, etc.) before parsing
+    text = _strip_native_tool_tokens(text)
     text = sanitize_action_text(text)
     hint_ranges = _extract_annotation_ranges(text)
 
@@ -272,7 +333,7 @@ def parse_all_actions(
         if not match:
             break
 
-        tool_name = match.group(1)
+        tool_name = _resolve_tool_name(match.group(1))
         match_start = start_pos + match.end()
 
         paren_count = 1
