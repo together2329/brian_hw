@@ -859,7 +859,9 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                                 lines.append(_wrapped)
                     lines.append("")
                     return "\n".join(lines)
-                return header
+                if rejected_reason:
+                    return f"{Color.RED}rejected{Color.RESET} {Color.DIM}— {rejected_reason}{Color.RESET}"
+                return f"{Color.RED}rejected{Color.RESET}"
             if first.startswith("▶"):
                 return "in_progress"
             if first.startswith("⏸"):
