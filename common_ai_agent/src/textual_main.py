@@ -44,7 +44,7 @@ if sys.version_info < (3, 8):
 # (\x1b[O, \x1b[8;...t, etc.) can arrive in chunks with >100ms gaps.
 # Textual's default 100ms ESCAPE_DELAY fires spurious ESC in those gaps.
 # Force-set (not setdefault) so existing env values don't override this.
-os.environ["ESCDELAY"] = "1000"
+os.environ["ESCDELAY"] = "300"
 
 try:
     import textual  # noqa: F401
