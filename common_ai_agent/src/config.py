@@ -199,6 +199,11 @@ STREAM_API_TIMEOUT = int(os.getenv("STREAM_API_TIMEOUT", "1800"))
 # Timeout for non-streaming requests (full response must arrive within this time)
 NONSTREAM_API_TIMEOUT = int(os.getenv("NONSTREAM_API_TIMEOUT", "1800"))
 
+# Inactivity watchdog: kill stream if NO data arrives for this many seconds.
+# Reasoning models (DeepSeek, GLM) can think silently for several minutes —
+# set this high enough to avoid false-positive "Read timeout" mid-reasoning.
+STREAM_INACTIVITY_TIMEOUT = int(os.getenv("STREAM_INACTIVITY_TIMEOUT", "600"))
+
 # Maximum output tokens per LLM response (0 = no limit)
 MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "32000"))
 
