@@ -773,20 +773,6 @@ class AgentTUI(App):
         padding: 0 2 2 2;
         overflow-y: hidden;
     }}
-    #copy-toast {{
-        layer: overlay;
-        dock: top;
-        background: #1a4a2a;
-        color: #4dff88;
-        padding: 0 2;
-        height: 1;
-        width: auto;
-        display: none;
-        offset-x: 4;
-    }}
-    #copy-toast.visible {{
-        display: block;
-    }}
 
     /* ── Sidebar ── */
     #sidebar {{
@@ -1047,7 +1033,6 @@ class AgentTUI(App):
         home = os.path.expanduser("~")
         cwd = cwd_full.replace(home, "~") if cwd_full.startswith(home) else cwd_full
 
-        yield Static("✓ Copied", id="copy-toast")
         with Vertical(id="main-col"):
             yield RichLog(id="main", highlight=True, wrap=True, markup=False, auto_scroll=True)
             yield Static("", id="live")
@@ -1328,10 +1313,8 @@ class AgentTUI(App):
                 plain = text
             self.copy_to_clipboard(plain)
             _clipboard_copy(plain)
-        toast = self.query_one("#copy-toast", Static)
-        toast.styles.offset = (4, event.y - 1)
-        toast.add_class("visible")
-        self.set_timer(0.7, lambda: toast.remove_class("visible"))
+            self._update_statusbar("  ✓ Copied to clipboard")
+            self.set_timer(2.0, self._update_statusbar)
         # Return focus to input
         self.query_one(_AgentInput).focus()
 
