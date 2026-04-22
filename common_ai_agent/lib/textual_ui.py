@@ -1300,8 +1300,6 @@ class AgentTUI(App):
             text = raw
         self.copy_to_clipboard(text)
         _clipboard_copy(text)
-        self._update_statusbar("  ✓ Copied to clipboard")
-        self.set_timer(2.0, self._update_statusbar)
 
     @on(Click, "#main")
     def on_output_click(self, event: Click) -> None:
@@ -1330,8 +1328,6 @@ class AgentTUI(App):
                 plain = text
             self.copy_to_clipboard(plain)
             _clipboard_copy(plain)
-            self._update_statusbar("  ✓ Copied to clipboard")
-            self.set_timer(2.0, self._update_statusbar)
         toast = self.query_one("#copy-toast", Static)
         toast.styles.offset = (4, event.y - 1)
         toast.add_class("visible")
