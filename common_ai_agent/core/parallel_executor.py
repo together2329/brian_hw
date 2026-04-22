@@ -167,8 +167,31 @@ def execute_actions_parallel(
 
     if use_enhanced:
         # === Enhanced Mode: ActionDependencyAnalyzer ===
+        # analyzer expects (tool_name, args_str, hint) — build a parallel lookup
+        # so we can recover the original idx after analysis.
+        _analyzer_actions = []  # (tool_name, args_str, hint=None) for analyzer
+        _pos_to_orig_idx = {}   # analyzer position → original idx
+        for pos, (orig_idx, tool_name, args_str) in enumerate(_indexed_actions):
+            _analyzer_actions.append((tool_name, args_str, None))
+            _pos_to_orig_idx[pos] = orig_idx
+
         analyzer = ActionDependencyAnalyzer()
-        batches = analyzer.analyze(_indexed_actions)
+        batches = analyzer.analyze(_analyzer_actions)
+
+        # Restore original idx into batch.actions
+        # batch.actions contains (tool_name, args_str, hint) with internal pos-based idx
+        # We rebuild each batch with (orig_idx, tool_name, args_str)
+        _rebuilt_batches = []
+        _pos = 0
+        for batch in batches:
+            new_actions = []
+            for tool_name, args_str, _hint in batch.actions:
+                orig_idx = _pos_to_orig_idx.get(_pos, _pos)
+                new_actions.append((orig_idx, tool_name, args_str))
+                _pos += 1
+            batch.actions = new_actions
+            _rebuilt_batches.append(batch)
+        batches = _rebuilt_batches
 
         detector = FileConflictDetector()
         all_indexed_actions = []
@@ -199,7 +222,6 @@ def execute_actions_parallel(
                         observation = f"[Plan Mode] '{tool_name}' is blocked. Only read/search tools are available."
                         results.append((idx, tool_name, args_str, observation))
                     else:
-                        # Re-attach kwargs_dict as 4th element for execute_batch_parallel
                         kw = _kwargs_map.get(idx)
                         allowed_actions.append((idx, tool_name, args_str, kw) if kw is not None else (idx, tool_name, args_str))
 

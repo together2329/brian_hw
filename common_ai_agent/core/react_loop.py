@@ -1033,13 +1033,7 @@ def run_react_agent_impl(
                     else:
                         _parallel_actions.append((_orig_i, _t, _a if _a else ""))
                 action_results = deps.execute_parallel_fn(_parallel_actions, tracker, agent_mode=agent_mode)
-                import traceback as _tb
                 for idx, tool_name, args_str, observation in action_results:
-                    try:
-                        _dbg_types = f"idx={type(idx).__name__} tool={type(tool_name).__name__} args={type(args_str).__name__} obs={type(observation).__name__}({repr(observation)[:40]})"
-                    except Exception:
-                        _dbg_types = "?"
-                    print(f"  [DEBUG parallel] {_dbg_types}", flush=True)
                     # Ensure observation is always a string before any .lower() or string ops
                     if not isinstance(observation, str):
                         observation = str(observation) if observation is not None else ""
