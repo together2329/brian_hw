@@ -167,31 +167,20 @@ def execute_actions_parallel(
 
     if use_enhanced:
         # === Enhanced Mode: ActionDependencyAnalyzer ===
-        # analyzer expects (tool_name, args_str, hint) — build a parallel lookup
-        # so we can recover the original idx after analysis.
-        _analyzer_actions = []  # (tool_name, args_str, hint=None) for analyzer
-        _pos_to_orig_idx = {}   # analyzer position → original idx
-        for pos, (orig_idx, tool_name, args_str) in enumerate(_indexed_actions):
-            _analyzer_actions.append((tool_name, args_str, None))
-            _pos_to_orig_idx[pos] = orig_idx
+        # analyzer expects (tool_name, args_str, hint) and stores (enum_idx, tool_name, args_str)
+        # in batch.actions. Build a map from enum_idx → orig_idx to restore after analysis.
+        _analyzer_actions = [(tool_name, args_str, None) for orig_idx, tool_name, args_str in _indexed_actions]
+        _enum_to_orig = {pos: orig_idx for pos, (orig_idx, _, _) in enumerate(_indexed_actions)}
 
         analyzer = ActionDependencyAnalyzer()
         batches = analyzer.analyze(_analyzer_actions)
 
-        # Restore original idx into batch.actions
-        # batch.actions contains (tool_name, args_str, hint) with internal pos-based idx
-        # We rebuild each batch with (orig_idx, tool_name, args_str)
-        _rebuilt_batches = []
-        _pos = 0
+        # batch.actions is (enum_idx, tool_name, args_str) — remap enum_idx → orig_idx
         for batch in batches:
-            new_actions = []
-            for tool_name, args_str, _hint in batch.actions:
-                orig_idx = _pos_to_orig_idx.get(_pos, _pos)
-                new_actions.append((orig_idx, tool_name, args_str))
-                _pos += 1
-            batch.actions = new_actions
-            _rebuilt_batches.append(batch)
-        batches = _rebuilt_batches
+            batch.actions = [
+                (_enum_to_orig.get(enum_idx, enum_idx), tool_name, args_str)
+                for enum_idx, tool_name, args_str in batch.actions
+            ]
 
         detector = FileConflictDetector()
         all_indexed_actions = []
