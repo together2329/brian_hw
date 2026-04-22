@@ -1124,7 +1124,8 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
     if getattr(config, "ENABLE_NATIVE_TOOL_CALLS", False):
         try:
             from core.tool_schema import get_tool_schemas
-            _native_tools = get_tool_schemas(list(tools.AVAILABLE_TOOLS.keys()))
+            _compact = getattr(config, "TOOL_SCHEMA_COMPACT", False)
+            _native_tools = get_tool_schemas(list(tools.AVAILABLE_TOOLS.keys()), compact=_compact)
         except Exception:
             pass
     if _native_tools:

@@ -323,6 +323,7 @@ ENABLE_TOOL_DESCRIPTIONS = os.getenv("ENABLE_TOOL_DESCRIPTIONS", "true").lower()
 # ============================================================
 # When true: uses structured JSON tool_calls API instead of ReAct text parsing.
 ENABLE_NATIVE_TOOL_CALLS = os.getenv("ENABLE_NATIVE_TOOL_CALLS", "false").lower() in ("true", "1", "yes")
+TOOL_SCHEMA_COMPACT     = os.getenv("TOOL_SCHEMA_COMPACT", "false").lower() in ("true", "1", "yes")
 
 # ============================================================
 # Type Validation & Linting (Zero-Dependency Features)

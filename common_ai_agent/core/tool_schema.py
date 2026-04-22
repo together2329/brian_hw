@@ -610,7 +610,7 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
 }
 
 
-def get_tool_schemas(allowed_tools: List[str]) -> List[Dict]:
+def get_tool_schemas(allowed_tools: List[str], compact: bool = False) -> List[Dict]:
     """Return OpenAI-compatible tool schema list filtered to allowed_tools.
 
     Tools not in TOOL_SCHEMAS are silently skipped (e.g. verilog, cmux, tmux tools
@@ -618,9 +618,37 @@ def get_tool_schemas(allowed_tools: List[str]) -> List[Dict]:
     schemas are added above).
 
     MCP tools registered via register_dynamic_schema() are included automatically.
+
+    Args:
+        compact: If True, truncate descriptions to first sentence to reduce payload size.
+                 Useful for servers that reject large tool schema payloads (HTTP 500).
+                 Enable via TOOL_SCHEMA_COMPACT=true in .config.
     """
+    import os as _os
+    if not compact:
+        compact = _os.getenv("TOOL_SCHEMA_COMPACT", "false").lower() in ("true", "1", "yes")
+
     merged = {**TOOL_SCHEMAS, **_dynamic_schemas}
-    return [merged[t] for t in allowed_tools if t in merged]
+    schemas = [merged[t] for t in allowed_tools if t in merged]
+
+    if compact:
+        import copy as _copy
+        schemas = _copy.deepcopy(schemas)
+        for s in schemas:
+            fn = s.get("function", {})
+            desc = fn.get("description", "")
+            # Keep only first sentence (up to first newline or period+space)
+            short = desc.split("\n")[0].split(". ")[0]
+            if short and not short.endswith("."):
+                short += "."
+            fn["description"] = short
+            # Also strip parameter descriptions to just type info
+            for _p in fn.get("parameters", {}).get("properties", {}).values():
+                if "description" in _p:
+                    _pdesc = _p["description"]
+                    _p["description"] = _pdesc.split("\n")[0].split(". ")[0]
+
+    return schemas
 
 
 # ── Dynamic schema registry (for MCP and other runtime-discovered tools) ──────
