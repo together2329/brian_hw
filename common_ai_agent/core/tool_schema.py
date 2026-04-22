@@ -632,21 +632,44 @@ def get_tool_schemas(allowed_tools: List[str], compact: bool = False) -> List[Di
     schemas = [merged[t] for t in allowed_tools if t in merged]
 
     if compact:
-        import copy as _copy
-        schemas = _copy.deepcopy(schemas)
+        import copy as _copy, re as _re
+        # Tools to exclude in compact mode (bulky, rarely needed for basic tasks)
+        _compact_exclude = {"background_task", "background_output", "background_cancel",
+                            "background_list", "web_search", "web_fetch", "web_extract"}
+        schemas = [s for s in _copy.deepcopy(schemas)
+                   if s.get("function", {}).get("name") not in _compact_exclude]
+        # Minimal description map — hand-tuned for brevity
+        _short_desc: Dict[str, str] = {
+            "read_file":      "Read file contents",
+            "write_file":     "Create new file",
+            "run_command":    "Run shell command",
+            "list_dir":       "List directory",
+            "grep_file":      "Search pattern in file(s)",
+            "read_lines":     "Read line range from file",
+            "find_files":     "Find files by glob pattern",
+            "git_diff":       "Show git diff",
+            "git_status":     "Show git status",
+            "git_revert":     "Revert file changes",
+            "replace_in_file":"Edit file: replace text block",
+            "replace_lines":  "Edit file: replace line range",
+            "todo_write":     "Create task list",
+            "todo_update":    "Update task status",
+            "todo_add":       "Add task",
+            "todo_remove":    "Remove task",
+            "todo_status":    "Show task list summary",
+        }
         for s in schemas:
             fn = s.get("function", {})
-            desc = fn.get("description", "")
-            # Keep only first sentence (up to first newline or period+space)
-            short = desc.split("\n")[0].split(". ")[0]
-            if short and not short.endswith("."):
-                short += "."
-            fn["description"] = short
-            # Also strip parameter descriptions to just type info
+            name = fn.get("name", "")
+            if name in _short_desc:
+                fn["description"] = _short_desc[name]
+            else:
+                desc = fn.get("description", "")
+                fn["description"] = _re.split(r'[,\n]|\.\s', desc)[0].strip().rstrip(".")
+            # Strip all parameter descriptions — type + required is enough
             for _p in fn.get("parameters", {}).get("properties", {}).values():
-                if "description" in _p:
-                    _pdesc = _p["description"]
-                    _p["description"] = _pdesc.split("\n")[0].split(". ")[0]
+                _p.pop("description", None)
+                _p.pop("examples", None)
 
     return schemas
 
