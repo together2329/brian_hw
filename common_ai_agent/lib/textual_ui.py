@@ -1251,13 +1251,21 @@ class AgentTUI(App):
             self.exit()
 
     def action_copy_last(self) -> None:
-        """Copy the last assistant response to system clipboard (Ctrl+Y)."""
-        text = self._last_response_text.strip()
-        if not text:
+        """Copy the last assistant response as plain text to clipboard (Ctrl+Y)."""
+        raw = self._last_response_text.strip()
+        if not raw:
             return
-        # OSC 52 via Textual driver (iTerm2, Wezterm, Alacritty …)
+        try:
+            from io import StringIO
+            from rich.console import Console as _Console
+            _sio = StringIO()
+            _con = _Console(file=_sio, force_terminal=False, no_color=True,
+                            width=self.size.width or 80)
+            _con.print(_LeftMarkdown(_fix_md(raw)))
+            text = _sio.getvalue().strip()
+        except Exception:
+            text = raw
         self.copy_to_clipboard(text)
-        # Also pbcopy/xclip for macOS Terminal.app fallback
         _clipboard_copy(text)
         self._update_statusbar("  ✓ Copied to clipboard  (Ctrl+Y)")
         self.set_timer(2.0, self._update_statusbar)
