@@ -1034,6 +1034,9 @@ def run_react_agent_impl(
                         _parallel_actions.append((_orig_i, _t, _a if _a else ""))
                 action_results = deps.execute_parallel_fn(_parallel_actions, tracker, agent_mode=agent_mode)
                 for idx, tool_name, args_str, observation in action_results:
+                    # Ensure observation is always a string before any .lower() or string ops
+                    if not isinstance(observation, str):
+                        observation = str(observation) if observation is not None else ""
                     summary = _extract_tool_args_summary(tool_name, args_str)
                     # Skip header for diff tools: their output already starts with Update(file)
                     if tool_name not in _DIFF_TOOLS:
@@ -1071,7 +1074,6 @@ def run_react_agent_impl(
                         except Exception:
                             pass
 
-                    observation = str(observation) if not isinstance(observation, str) else observation
                     combined_results.append(f"--- [Action {idx+1}] {tool_name} ---\n{observation}")
                     # Native mode: map result to call_id using ORIGINAL index (not completion order)
                     if _use_native and idx in _action_idx_to_call_id:
