@@ -2301,6 +2301,38 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
                     if isinstance(block, dict) and block.get("type") == "text"
                 )
 
+    # Non-native mode: strip native tool call artifacts so the API doesn't reject them.
+    # After context compression, history may contain assistant messages with tool_calls
+    # and role:tool messages from before native mode was toggled off. Convert them to
+    # plain text so strict APIs (GLM, Z.AI) don't return HTTP 400/500.
+    if not getattr(config, "ENABLE_NATIVE_TOOL_CALLS", False):
+        _has_artifacts = any(
+            m.get("role") == "tool" or (m.get("role") == "assistant" and m.get("tool_calls"))
+            for m in processed_messages
+        )
+        if _has_artifacts:
+            if processed_messages is messages:
+                processed_messages = copy.deepcopy(messages)
+            cleaned: list = []
+            for _m in processed_messages:
+                _role = _m.get("role")
+                if _role == "tool":
+                    # Convert tool result to user observation message
+                    cleaned.append({"role": "user", "content": f"Observation: {_m.get('content', '')}"})
+                elif _role == "assistant" and _m.get("tool_calls"):
+                    # Convert native tool call to text Action: lines
+                    _calls = _m.get("tool_calls", [])
+                    _lines = []
+                    for _tc in _calls:
+                        _fn = _tc.get("function", {})
+                        _lines.append(f"Action: {_fn.get('name', '?')}({_fn.get('arguments', '{}')})")
+                    _text = _m.get("content") or ""
+                    _combined = (_text + "\n" if _text else "") + "\n".join(_lines)
+                    cleaned.append({"role": "assistant", "content": _combined.strip()})
+                else:
+                    cleaned.append(_m)
+            processed_messages = cleaned
+
     resolved_model = model or config.MODEL_NAME
 
     # ── Responses API path ──
@@ -2691,6 +2723,31 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     block.get("text", "") for block in m["content"]
                     if isinstance(block, dict) and block.get("type") == "text"
                 )
+    # Non-native mode: strip native tool call artifacts (same as nonstream path above)
+    if not getattr(config, "ENABLE_NATIVE_TOOL_CALLS", False):
+        _has_artifacts = any(
+            m.get("role") == "tool" or (m.get("role") == "assistant" and m.get("tool_calls"))
+            for m in processed_messages
+        )
+        if _has_artifacts:
+            if processed_messages is messages:
+                processed_messages = copy.deepcopy(messages)
+            _cleaned: list = []
+            for _m in processed_messages:
+                _role = _m.get("role")
+                if _role == "tool":
+                    _cleaned.append({"role": "user", "content": f"Observation: {_m.get('content', '')}"})
+                elif _role == "assistant" and _m.get("tool_calls"):
+                    _calls = _m.get("tool_calls", [])
+                    _lines = [f"Action: {_tc.get('function', {}).get('name', '?')}({_tc.get('function', {}).get('arguments', '{}')})"
+                              for _tc in _calls]
+                    _text = _m.get("content") or ""
+                    _combined = (_text + "\n" if _text else "") + "\n".join(_lines)
+                    _cleaned.append({"role": "assistant", "content": _combined.strip()})
+                else:
+                    _cleaned.append(_m)
+            processed_messages = _cleaned
+
     # Sanitize messages for strict APIs (GLM-5.1/Z.AI, etc.):
     # 1. Merge stray system messages into position 0
     # 2. Merge consecutive same-role messages (user+user, assistant+assistant)

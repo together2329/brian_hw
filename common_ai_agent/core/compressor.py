@@ -231,7 +231,16 @@ def _compress_single(
     conversation_text = ""
     for m in messages:
         role = m.get("role", "unknown")
-        content = str(m.get("content", ""))[:1000]  # Truncate per-message
+        if role == "tool":
+            # Native tool result — include as observation so the summary captures what happened
+            content = str(m.get("content", ""))[:500]
+            conversation_text += f"observation: {content}\n"
+            continue
+        content = str(m.get("content") or "")[:1000]
+        # Native tool call assistant message — extract tool name from tool_calls if content is empty
+        if role == "assistant" and not content and m.get("tool_calls"):
+            calls = [tc.get("function", {}).get("name", "?") for tc in m["tool_calls"]]
+            content = f"[called tools: {', '.join(calls)}]"
         conversation_text += f"{role}: {content}\n"
 
     # Truncate total if still too long (head + tail strategy)
