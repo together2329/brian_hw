@@ -981,6 +981,7 @@ class AgentTUI(App):
         self._input_bridge = InputBridge(on_idle=self._on_agent_idle)
         self._response_buf = ""
         self._last_response_text = ""  # plain text of last flushed response
+        self._response_history: list[tuple[int, int, str]] = []  # (start_line, end_line, text)
         self._generating = False
         self._in_diff = False   # True after a write/replace tool call
         self._in_edit = False   # True for edit/replace tools (subset of _in_diff)
@@ -1294,9 +1295,33 @@ class AgentTUI(App):
 
     @on(Click, "#main")
     def on_output_click(self, event: Click) -> None:
-        """Click on output area → copy last response + brief green flash."""
-        self.action_copy_last()
+        """Click on output area → copy clicked response + brief green flash."""
         output = self.query_one("#main", RichLog)
+        # Determine which response was clicked using Y coordinate + scroll offset
+        click_line = int(event.y + output.scroll_y)
+        text = None
+        for start, end, resp_text in self._response_history:
+            if start <= click_line < end:
+                text = resp_text
+                break
+        if text is None and self._response_history:
+            # Fallback: last response
+            text = self._response_history[-1][2]
+        if text:
+            try:
+                from io import StringIO
+                from rich.console import Console as _Console
+                _sio = StringIO()
+                _con = _Console(file=_sio, force_terminal=False, no_color=True,
+                                width=self.size.width or 80)
+                _con.print(_LeftMarkdown(_fix_md(text)))
+                plain = _sio.getvalue().strip()
+            except Exception:
+                plain = text
+            self.copy_to_clipboard(plain)
+            _clipboard_copy(plain)
+            self._update_statusbar("  ✓ Copied to clipboard")
+            self.set_timer(2.0, self._update_statusbar)
         output.add_class("copied-flash")
         self.set_timer(0.6, lambda: output.remove_class("copied-flash"))
 
@@ -1449,12 +1474,14 @@ class AgentTUI(App):
             log.write(RichText(""))
             self._in_result = False
         from rich.panel import Panel
+        start_line = log.line_count
         log.write(Panel(
             _LeftMarkdown(_fix_md(self._response_buf)),
             border_style=f"dim {_BORDER_DIM}",
             padding=(0, 1),
             expand=True,
         ))
+        self._response_history.append((start_line, log.line_count, self._response_buf))
         self._last_response_text = self._response_buf  # ← save for copy
         self._response_buf = ""
         self._generating = False
