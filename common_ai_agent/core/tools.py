@@ -736,7 +736,7 @@ def read_lines(path=None, start_line=None, end_line=None):
     except Exception as e:
         return f"Error reading lines: {e}"
 
-def find_files(pattern, directory=".", max_depth=None, path=None, recursive=True):
+def find_files(pattern=None, directory=".", max_depth=None, path=None, recursive=True):
     """
     Finds files matching a pattern in a directory.
     Args:
@@ -748,6 +748,8 @@ def find_files(pattern, directory=".", max_depth=None, path=None, recursive=True
     Returns:
         List of matching file paths
     """
+    if pattern is None:
+        return "Error: find_files() requires 'pattern'. Usage: find_files(pattern=\"*.sv\", directory=\".\")"
     import fnmatch
     try:
         # Support 'path' as alias for 'directory'

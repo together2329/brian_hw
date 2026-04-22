@@ -175,6 +175,14 @@ def dispatch_tool(
         else:
             parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
 
+        # Auto-fix: find_files — map positional args to kwargs
+        if tool_name == "find_files" and parsed_args:
+            param_map = ["pattern", "directory", "max_depth"]
+            for i, val in enumerate(parsed_args):
+                if i < len(param_map) and param_map[i] not in parsed_kwargs:
+                    parsed_kwargs[param_map[i]] = val
+            parsed_args = []
+
         # Auto-fix: read_file / read_lines — map positional args to kwargs
         if tool_name == "read_file" and parsed_args and "path" not in parsed_kwargs:
             parsed_kwargs["path"] = parsed_args[0]
@@ -354,6 +362,24 @@ def dispatch_tool(
                     "  Action: write_file(path=\"filename.sv\", content=\"\"\"<code>\"\"\")\n"
                     "Please retry with the actual file content."
                 )
+
+        # ── find_files: regex fallback + missing-arg guard ────────────────
+        if tool_name == "find_files" and "pattern" not in parsed_kwargs:
+            import re as _re
+            _pm = _re.search(r'pattern\s*=\s*(["\']?)([^\s,)]+)\1', args_str)
+            if _pm:
+                parsed_kwargs["pattern"] = _pm.group(2)
+            else:
+                # bare first string arg (e.g. find_files("*.sv"))
+                _bm = _re.search(r'^\s*(["\'])([^"\']+)\1', args_str)
+                if _bm:
+                    parsed_kwargs["pattern"] = _bm.group(2)
+        if tool_name == "find_files" and "pattern" not in parsed_kwargs:
+            return (
+                "Error: find_files() requires a 'pattern' argument.\n"
+                "  Usage: find_files(pattern=\"*.sv\", directory=\".\")\n"
+                "Please retry with the actual pattern."
+            )
 
         # ── read_file / read_lines: regex fallback if parser missed args ─
         if tool_name in ("read_file", "read_lines") and "path" not in parsed_kwargs:
