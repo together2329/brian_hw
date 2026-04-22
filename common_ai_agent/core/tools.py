@@ -335,9 +335,10 @@ def run_command(command, timeout=60):
     import time
 
     try:
-        # Strictly block mv and rm as per user request
-        if _is_dangerous_command(command):
-            return f"Error: Command '{command.split()[0]}' is blocked (mv and rm are not allowed in run_command)."
+        # Block destructive commands unless explicitly permitted via config
+        _blocked = _is_dangerous_command(command)
+        if _blocked:
+            return f"Error: Command '{command.split()[0]}' is blocked. Enable it with /permission {command.split()[0]} on (or set ALLOW_{command.split()[0].upper()}=true in .config)."
 
         # Translate Unix commands to Windows equivalents
         command = _translate_command_for_windows(command)
@@ -433,24 +434,35 @@ def _kill_process_group(proc):
 def _is_dangerous_command(command: str) -> bool:
     """
     Heuristic check for destructive commands.
-    Used only when SAFE_MODE=true.
+    rm/mv are blocked unless ALLOW_RM/ALLOW_MV are enabled via config or /permission.
     """
+    import sys as _sys
     cmd = (command or "").strip().lower()
     if not cmd:
         return False
 
-    # Block common destructive patterns.
-    dangerous_patterns = [
-        r"\brm\b",                        # block all rm commands
-        r"\bmv\b",                        # block all mv commands
-        r"\bsudo\b",                      # privilege escalation
+    # Load config flags (runtime-patchable via /permission command)
+    _cfg = _sys.modules.get('config') or _sys.modules.get('src.config')
+    allow_rm = getattr(_cfg, 'ALLOW_RM', False) if _cfg else False
+    allow_mv = getattr(_cfg, 'ALLOW_MV', False) if _cfg else False
+
+    # Always-blocked patterns (regardless of permission flags)
+    always_blocked = [
+        r"\bsudo\b",
         r"\bshutdown\b|\breboot\b|\bhalt\b|\bpoweroff\b",
         r"\bmkfs\b|\bdd\b\s+if=",
         r"\bgit\b\s+reset\s+--hard\b",
         r"\bgit\b\s+clean\b.*-f",
     ]
+    if any(re.search(pat, cmd) for pat in always_blocked):
+        return True
 
-    return any(re.search(pat, cmd) for pat in dangerous_patterns)
+    if not allow_rm and re.search(r"\brm\b", cmd):
+        return True
+    if not allow_mv and re.search(r"\bmv\b", cmd):
+        return True
+
+    return False
 
 def list_dir(path=".", show_hidden=True, **kwargs):
     """

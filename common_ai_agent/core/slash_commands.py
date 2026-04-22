@@ -203,6 +203,10 @@ class SlashCommandRegistry:
         self.register('git', self._cmd_git,
                      'Git 작업: /git diff, /git clear')
 
+        self.register('permission', self._cmd_permission,
+                     '권한 설정: /permission rm|mv on|off  (run_command 내 rm/mv 허용 여부)',
+                     aliases=['perm'])
+
         self.register('model', self._cmd_model,
                      '모델 전환: /model 1|2|<name>, /model (현재)')
 
@@ -1408,6 +1412,84 @@ class SlashCommandRegistry:
             return "GIT_DIFF"
         return "Usage: /git clear (to delete .git) or /git diff (to see changes)\n"
 
+    def _cmd_permission(self, args: str) -> str:
+        """Toggle rm/mv permissions at runtime. /permission rm on|off|status"""
+        import sys as _sys
+        import re as _re
+
+        parts = args.strip().lower().split()
+        _cfg = _sys.modules.get('config') or _sys.modules.get('src.config')
+
+        # /permission (no args) → show current status
+        if not parts:
+            if not _cfg:
+                return "Error: config module not loaded.\n"
+            allow_rm = getattr(_cfg, 'ALLOW_RM', False)
+            allow_mv = getattr(_cfg, 'ALLOW_MV', False)
+            rm_icon = "✅ enabled" if allow_rm else "❌ disabled"
+            mv_icon = "✅ enabled" if allow_mv else "❌ disabled"
+            return (
+                f"Current permissions:\n"
+                f"  rm  {rm_icon}\n"
+                f"  mv  {mv_icon}\n"
+                f"\nUsage: /permission rm on|off   /permission mv on|off\n"
+            )
+
+        if len(parts) < 2 or parts[0] not in ('rm', 'mv') or parts[1] not in ('on', 'off', 'enable', 'disable', 'true', 'false'):
+            return (
+                "Usage:\n"
+                "  /permission            — show current status\n"
+                "  /permission rm on|off  — allow/block rm in run_command\n"
+                "  /permission mv on|off  — allow/block mv in run_command\n"
+            )
+
+        target = parts[0]           # 'rm' or 'mv'
+        enabled = parts[1] in ('on', 'enable', 'true')
+        attr = f"ALLOW_{target.upper()}"
+
+        if not _cfg:
+            return "Error: config module not loaded.\n"
+
+        # Patch runtime config
+        setattr(_cfg, attr, enabled)
+
+        # Persist to .config file
+        _config_path = None
+        for _p in ('.config', '.env'):
+            import os as _os
+            if _os.path.exists(_p):
+                _config_path = _p
+                break
+        if _config_path is None:
+            _config_path = '.config'
+
+        try:
+            try:
+                with open(_config_path, 'r') as f:
+                    lines = f.readlines()
+            except FileNotFoundError:
+                lines = []
+
+            key = attr
+            new_line = f"{key}={'true' if enabled else 'false'}\n"
+            updated = False
+            for i, line in enumerate(lines):
+                if _re.match(rf'^{key}\s*=', line):
+                    lines[i] = new_line
+                    updated = True
+                    break
+            if not updated:
+                lines.append(new_line)
+
+            with open(_config_path, 'w') as f:
+                f.writelines(lines)
+
+            status = "✅ enabled" if enabled else "❌ disabled"
+            return f"{target}  {status} (saved to {_config_path})\n"
+        except Exception as e:
+            status = "✅ enabled" if enabled else "❌ disabled"
+            return f"{target}  {status} (runtime only — could not write {_config_path}: {e})\n"
+
     def _cmd_todo(self, args: str) -> str:
         """Show/manage current todo list status."""
         try:
@@ -2556,8 +2638,9 @@ class SlashCommandRegistry:
                     ("status", "status",                    "에이전트 상태: 모델, API, 기능 활성화 여부"),
                 ]),
                 ("태스크 관리", [
-                    ("todo", "todo [subcmd]",   "Todo 관리. /man todo 서브커맨드 전체 확인"),
-                    ("git",  "git diff|clear",  "Git 변경사항 확인 / .git 디렉토리 삭제"),
+                    ("todo",       "todo [subcmd]",           "Todo 관리. /man todo 서브커맨드 전체 확인"),
+                    ("git",        "git diff|clear",          "Git 변경사항 확인 / .git 디렉토리 삭제"),
+                    ("permission", "permission rm|mv on|off", "rm/mv 명령 허용 여부 설정"),
                 ]),
                 ("도움말", [
                     ("help", "help [-v]",    "기본: 핵심 커맨드. -v: 이 전체 목록"),

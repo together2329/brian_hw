@@ -347,6 +347,12 @@ VERILOG_SIMULATOR = os.getenv("VERILOG_SIMULATOR", "vcs")
 
 # Enable automatic git version control (git init + add + commit on write/replace)
 GIT_VERSION_CONTROL_ENABLE = os.getenv("GIT_VERSION_CONTROL_ENABLE", "true").lower() in ("true", "1", "yes")
+
+# Permission flags — control whether destructive shell commands are allowed in run_command.
+# Default: disabled (blocked). Enable only when you explicitly need the agent to delete/move files.
+# Toggle at runtime with: /permission rm on|off  or  /permission mv on|off
+ALLOW_RM = os.getenv("ALLOW_RM", "false").lower() in ("true", "1", "yes")
+ALLOW_MV = os.getenv("ALLOW_MV", "false").lower() in ("true", "1", "yes")
 # Commit message verbosity: "simple" | "summary"
 GIT_COMMIT_MSG_MODE = os.getenv("GIT_COMMIT_MSG_MODE", "simple")
 GIT_COMMIT_SUMMARY_TEMPERATURE = float(os.getenv("GIT_COMMIT_SUMMARY_TEMPERATURE", "0.3"))
