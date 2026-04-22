@@ -672,7 +672,7 @@ def grep_file(pattern, path, context_lines=2, recursive=False, **kwargs):
         # Final fallback
         return _grep_python(pattern, path, context_lines, recursive)
 
-def read_lines(path, start_line, end_line=None):
+def read_lines(path=None, start_line=None, end_line=None):
     """
     Reads a specific range of lines from a file.
     Args:
@@ -682,6 +682,10 @@ def read_lines(path, start_line, end_line=None):
     Returns:
         Content of the specified line range with line numbers
     """
+    if not path:
+        return "Error: read_lines() requires 'path'. Usage: read_lines(path=\"file.sv\", start_line=10, end_line=50)"
+    if start_line is None:
+        return "Error: read_lines() requires 'start_line'. Usage: read_lines(path=\"file.sv\", start_line=10, end_line=50)"
     try:
         # Coerce to int — LLM sometimes passes quoted numbers e.g. "260"
         # or a range string e.g. start_line="345-380"

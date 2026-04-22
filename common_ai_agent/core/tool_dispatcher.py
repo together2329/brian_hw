@@ -329,6 +329,21 @@ def dispatch_tool(
                     "Please retry with the actual file content."
                 )
 
+        # ── read_file / read_lines: missing path guard ───────────────────
+        if tool_name in ("read_file", "read_lines") and "path" not in parsed_kwargs and not parsed_args:
+            return (
+                f"Error: {tool_name}() requires a 'path' argument.\n"
+                f"The tool call had no arguments. Use the format:\n"
+                f"  Action: {tool_name}(path=\"path/to/file.sv\")\n"
+                "Please retry with the actual file path."
+            )
+        if tool_name == "read_lines" and "path" not in parsed_kwargs and not parsed_args:
+            return (
+                "Error: read_lines() requires 'path' and 'start_line' arguments.\n"
+                "  Action: read_lines(path=\"file.sv\", start_line=10, end_line=50)\n"
+                "Please retry with the actual arguments."
+            )
+
         # Final safety net: detect positional args that would collide with kwargs.
         # This is a belt-and-suspenders check after all auto-fixes above.
         if parsed_args:
