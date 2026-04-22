@@ -671,20 +671,20 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                     _D = Color.DIM
                     _R = Color.RESET
                     _L = "\033[2;32m"
-                    header = f"{_G}✅ approved{_R}"
+                    _B = "\033[1;32m"   # bold green for reason
+                    lines = [f"{_G}✅ approved{_R}"]
                     if approved_reason:
-                        header += f"  {_D}— {approved_reason}{_R}"
-                    lines = [header]
+                        lines.append(f"   {_B}↳{_R} {approved_reason}")
                     if todo_item.content:
-                        lines.append(f"   {_L}todo:{_R} {todo_item.content}")
+                        lines.append(f"   {_L}{'todo:':<10}{_R}{todo_item.content}")
                     if todo_item.detail:
-                        lines.append(f"   {_L}detail:{_R} {_D}{todo_item.detail}{_R}")
+                        lines.append(f"   {_L}{'detail:':<10}{_R}{_D}{todo_item.detail}{_R}")
                     if todo_item.criteria:
                         clines = [c.strip() for c in todo_item.criteria.strip().splitlines() if c.strip()]
                         if clines:
-                            lines.append(f"   {_L}criteria:{_R}")
+                            lines.append(f"   {_L}{'criteria:':<10}{_R}")
                             for cl in clines:
-                                lines.append(f"   {_D}  • {cl}{_R}")
+                                lines.append(f"     {_D}• {cl}{_R}")
                     lines.append("")
                     return "\n".join(lines)
                 if approved_reason:
@@ -719,21 +719,21 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                 _D = Color.DIM
                 _R = Color.RESET
                 _L = "\033[2;31m"
-                header = f"{_RD}❌ rejected{_R}"
-                if rejected_reason:
-                    header += f"  {_D}— {rejected_reason}{_R}"
+                _B = "\033[1;31m"   # bold red for reason
                 if todo_item:
-                    lines = [header]
+                    lines = [f"{_RD}❌ rejected{_R}"]
+                    if rejected_reason:
+                        lines.append(f"   {_B}↳{_R} {rejected_reason}")
                     if todo_item.content:
-                        lines.append(f"   {_L}todo:{_R} {todo_item.content}")
+                        lines.append(f"   {_L}{'todo:':<10}{_R}{todo_item.content}")
                     if todo_item.detail:
-                        lines.append(f"   {_L}detail:{_R} {_D}{todo_item.detail}{_R}")
+                        lines.append(f"   {_L}{'detail:':<10}{_R}{_D}{todo_item.detail}{_R}")
                     if todo_item.criteria:
                         clines = [c.strip() for c in todo_item.criteria.strip().splitlines() if c.strip()]
                         if clines:
-                            lines.append(f"   {_L}criteria:{_R}")
+                            lines.append(f"   {_L}{'criteria:':<10}{_R}")
                             for cl in clines:
-                                lines.append(f"   {_D}  • {cl}{_R}")
+                                lines.append(f"     {_D}• {cl}{_R}")
                     lines.append("")
                     return "\n".join(lines)
                 return header
