@@ -198,6 +198,21 @@ def run_react_agent_impl(
         def _extract_tool_args_summary(*a, **kw): return ""
         def _friendly_tool_name(n): return n
 
+    # Config-aware display wrapper — reads DISPLAY_* limits at call time
+    def _fmt_result(observation: str, tool_name: str = "") -> str:
+        import sys as _sys
+        _c = _sys.modules.get('config') or _sys.modules.get('src.config')
+        _max_lines = int(getattr(_c, 'DISPLAY_READ_MAX_LINES', 10))
+        _max_chars = int(getattr(_c, 'DISPLAY_RESULT_MAX_CHARS', 2000))
+        # Per-tool overrides
+        if tool_name in ('find_files',):
+            _max_lines = int(getattr(_c, 'DISPLAY_FIND_MAX_RESULTS', 20))
+        elif tool_name in ('grep_file',):
+            _max_lines = int(getattr(_c, 'DISPLAY_GREP_MAX_LINES', 15))
+        elif tool_name in ('list_dir',):
+            _max_lines = int(getattr(_c, 'DISPLAY_LIST_MAX_ENTRIES', 30))
+        return format_tool_result(observation, max_lines=_max_lines, max_chars=_max_chars)
+
     # Use injected ESC functions if provided (for testing), else use EscapeWatcher
     _esc_check = deps.esc_check_fn if deps.esc_check_fn is not None else EscapeWatcher.check
     _esc_start = deps.esc_start_fn if deps.esc_start_fn is not None else EscapeWatcher.start
@@ -949,7 +964,7 @@ def run_react_agent_impl(
             if _todo_write_func:
                 observation = _todo_write_func(markdown_tasks)
                 print(format_tool_header("todo_write", "Auto-parsed from markdown plan"))
-                print(format_tool_result(observation, max_lines=1000, max_chars=100000))
+                print(_fmt_result(observation, "todo_write"))
 
         # Completion signal check — skip if there are still incomplete todos
         _todo_still_active = (
@@ -1054,12 +1069,12 @@ def run_react_agent_impl(
                             for _dl in _diff_lines:
                                 print(f"  {_dl}")
                         else:
-                            print(format_tool_result(observation, max_lines=1000, max_chars=100000))
+                            print(_fmt_result(observation, tool_name))
                     elif tool_name in _INLINE_TOOLS:
                         brief = format_tool_brief(tool_name, args_str, observation)
                         print(f"  {Color.DIM}⎿  {brief}{Color.RESET}")
                     else:
-                        print(format_tool_result(observation))
+                        print(_fmt_result(observation, tool_name))
 
                     if deps.procedural_memory is not None:
                         try:
@@ -1215,10 +1230,10 @@ def run_react_agent_impl(
                             for _dl in observation.splitlines():
                                 print(f"  {_dl}")
                         else:
-                            print(format_tool_result(observation))
+                            print(_fmt_result(observation, tool_name))
                     elif _debug:
                         if tool_name in ("replace_in_file", "replace_lines"):
-                            print(format_tool_result(observation, max_lines=1000, max_chars=100000))
+                            print(_fmt_result(observation, tool_name))
                     elif tool_name == "background_task":
                         first_line = observation.splitlines()[0] if observation.strip() else "started"
                         print(f"  {Color.DIM}{first_line}{elapsed_suffix}{Color.RESET}")
@@ -1244,12 +1259,12 @@ def run_react_agent_impl(
                         else:
                             print(f"  {Color.DIM}⎿  {observation}{Color.RESET}")
                     elif tool_name in ("todo_update", "todo_write") and agent_mode in ("plan", "plan_q"):
-                        print(format_tool_result(observation, max_lines=1000, max_chars=100000))
+                        print(_fmt_result(observation, tool_name))
                     elif tool_name in _INLINE_TOOLS:
                         brief = format_tool_brief(tool_name, _args_display, observation)
                         print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")
                     else:
-                        print(format_tool_result(observation))
+                        print(_fmt_result(observation, tool_name))
 
                     # Truncate write tool results for LLM context
                     agent_observation = observation

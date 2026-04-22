@@ -354,13 +354,21 @@ GIT_VERSION_CONTROL_ENABLE = os.getenv("GIT_VERSION_CONTROL_ENABLE", "true").low
 ALLOW_RM = os.getenv("ALLOW_RM", "false").lower() in ("true", "1", "yes")
 ALLOW_MV = os.getenv("ALLOW_MV", "false").lower() in ("true", "1", "yes")
 
-# Tool output limits — max items/lines returned by each tool.
-# Lower = faster context, Higher = more detail per call.
-TOOL_READ_MAX_LINES   = int(os.getenv("TOOL_READ_MAX_LINES",   "500"))   # read_file truncation
-TOOL_FIND_MAX_RESULTS = int(os.getenv("TOOL_FIND_MAX_RESULTS", "100"))   # find_files max entries
-TOOL_GREP_MAX_FILES   = int(os.getenv("TOOL_GREP_MAX_FILES",   "20"))    # grep_file max files scanned
-TOOL_GREP_MAX_MATCHES = int(os.getenv("TOOL_GREP_MAX_MATCHES", "50"))    # grep_file max match blocks
-TOOL_LIST_MAX_ENTRIES = int(os.getenv("TOOL_LIST_MAX_ENTRIES", "200"))   # list_dir max entries
+# Tool data limits — max items/lines actually returned to the LLM context.
+# These control what the agent sees. Higher = more context, more tokens.
+TOOL_READ_MAX_LINES   = int(os.getenv("TOOL_READ_MAX_LINES",   "3000"))  # read_file lines sent to LLM
+TOOL_FIND_MAX_RESULTS = int(os.getenv("TOOL_FIND_MAX_RESULTS", "1000"))  # find_files entries sent to LLM
+TOOL_GREP_MAX_FILES   = int(os.getenv("TOOL_GREP_MAX_FILES",   "50"))    # grep_file max files scanned
+TOOL_GREP_MAX_MATCHES = int(os.getenv("TOOL_GREP_MAX_MATCHES", "200"))   # grep_file max match blocks
+TOOL_LIST_MAX_ENTRIES = int(os.getenv("TOOL_LIST_MAX_ENTRIES", "1000"))  # list_dir entries sent to LLM
+
+# Display limits — max items/lines shown in the terminal UI (does NOT affect LLM context).
+# Lower = cleaner terminal output. The agent still gets the full data above.
+DISPLAY_READ_MAX_LINES   = int(os.getenv("DISPLAY_READ_MAX_LINES",   "10"))   # lines shown in result preview
+DISPLAY_FIND_MAX_RESULTS = int(os.getenv("DISPLAY_FIND_MAX_RESULTS", "20"))   # find results shown
+DISPLAY_GREP_MAX_LINES   = int(os.getenv("DISPLAY_GREP_MAX_LINES",   "15"))   # grep output lines shown
+DISPLAY_LIST_MAX_ENTRIES = int(os.getenv("DISPLAY_LIST_MAX_ENTRIES", "30"))   # list_dir entries shown
+DISPLAY_RESULT_MAX_CHARS = int(os.getenv("DISPLAY_RESULT_MAX_CHARS", "2000")) # total chars in any result preview
 
 # Commit message verbosity: "simple" | "summary"
 GIT_COMMIT_MSG_MODE = os.getenv("GIT_COMMIT_MSG_MODE", "simple")
