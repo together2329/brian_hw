@@ -1288,6 +1288,8 @@ class AgentTUI(App):
 
     @on(Click, "#main")
     def on_output_click(self, event: Click) -> None:
+        """Click on output area → copy clicked response (temporarily disabled)."""
+        return  # disabled
         """Click on output area → copy clicked response + brief green flash."""
         output = self.query_one("#main", RichLog)
         # Determine which response was clicked using Y coordinate + scroll offset
