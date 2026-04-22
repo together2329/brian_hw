@@ -195,20 +195,48 @@ def dispatch_tool(
                     parsed_kwargs[param_map[i]] = val
             parsed_args = []
 
-        # Auto-fix: grep_file(path, ...) — LLM swapped pattern and path
+        # Auto-fix: write_file / replace_in_file / replace_lines — positional → kwargs
+        if tool_name == "write_file" and parsed_args:
+            param_map = ["path", "content"]
+            for i, val in enumerate(parsed_args):
+                if i < len(param_map) and param_map[i] not in parsed_kwargs:
+                    parsed_kwargs[param_map[i]] = val
+            parsed_args = []
+
+        if tool_name == "replace_in_file" and parsed_args:
+            param_map = ["path", "old_text", "new_text", "count"]
+            for i, val in enumerate(parsed_args):
+                if i < len(param_map) and param_map[i] not in parsed_kwargs:
+                    parsed_kwargs[param_map[i]] = val
+            parsed_args = []
+
+        if tool_name == "replace_lines" and parsed_args:
+            param_map = ["path", "start_line", "end_line", "new_content"]
+            for i, val in enumerate(parsed_args):
+                if i < len(param_map) and param_map[i] not in parsed_kwargs:
+                    parsed_kwargs[param_map[i]] = val
+            parsed_args = []
+
+        # Auto-fix: grep_file — positional args → kwargs
         if tool_name == "grep_file" and parsed_args:
             first = parsed_args[0]
-            # If first arg looks like a file path (has / or known extension) and not a regex
+            # If first arg looks like a file path (has / or known extension) — swap pattern/path
             if (("/" in str(first) or os.path.splitext(str(first))[1])
                     and "pattern" not in parsed_kwargs):
-                # Swap: first arg is path, second is pattern (or pull pattern from kwargs)
                 if len(parsed_args) >= 2:
                     parsed_args = [parsed_args[1], parsed_args[0]] + list(parsed_args[2:])
                 elif "path" in parsed_kwargs:
-                    pass  # path already in kwargs, first arg must be pattern — keep as-is
+                    pass
                 else:
                     parsed_kwargs["path"] = parsed_args[0]
                     parsed_args = []
+            # Map remaining positional args: pattern, path, context_lines
+            if parsed_args:
+                param_map = ["pattern", "path", "context_lines"]
+                for i, val in enumerate(parsed_args):
+                    if i < len(param_map) and param_map[i] not in parsed_kwargs:
+                        parsed_kwargs[param_map[i]] = val
+                parsed_args = []
 
         # Auto-fix: positional arg duplicates a keyword arg ("got multiple values")
         if parsed_args:
@@ -403,6 +431,30 @@ def dispatch_tool(
                 (", start_line=10, end_line=50" if tool_name == "read_lines" else "") +
                 ")\nPlease retry with the actual file path."
             )
+
+        # ── grep_file: regex fallback + missing-arg guard ─────────────────
+        if tool_name == "grep_file":
+            import re as _re
+            if "pattern" not in parsed_kwargs:
+                _pm = _re.search(r'pattern\s*=\s*(["\']?)([^\s,)]+)\1', args_str)
+                if _pm:
+                    parsed_kwargs["pattern"] = _pm.group(2)
+            if "path" not in parsed_kwargs:
+                _pm2 = _re.search(r'path\s*=\s*(["\']?)([^\s,)]+)\1', args_str)
+                if _pm2:
+                    parsed_kwargs["path"] = _pm2.group(2)
+            if "pattern" not in parsed_kwargs:
+                return (
+                    "Error: grep_file() requires a 'pattern' argument.\n"
+                    "  Usage: grep_file(pattern=\"def foo\", path=\"src/\")\n"
+                    "Please retry with the actual pattern."
+                )
+            if "path" not in parsed_kwargs:
+                return (
+                    "Error: grep_file() requires a 'path' argument.\n"
+                    "  Usage: grep_file(pattern=\"def foo\", path=\"src/\")\n"
+                    "Please retry with the actual path."
+                )
 
         # Final safety net: detect positional args that would collide with kwargs.
         # This is a belt-and-suspenders check after all auto-fixes above.

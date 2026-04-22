@@ -232,7 +232,7 @@ def _git_tag_todo(index, status, content=""):
         pass
 
 
-def write_file(path: str, content: str) -> str:
+def write_file(path: str = None, content: str = None) -> str:
     """
     Writes content to a file. Overwrites if exists.
 
@@ -243,6 +243,10 @@ def write_file(path: str, content: str) -> str:
     Returns:
         Success message with optional lint warnings
     """
+    if path is None:
+        return "Error: write_file() requires 'path'. Usage: write_file(path=\"out.sv\", content=\"...\")"
+    if content is None:
+        return "Error: write_file() requires 'content'. Usage: write_file(path=\"out.sv\", content=\"...\")"
     # Import config
     try:
         import config
@@ -467,7 +471,7 @@ def list_dir(path=".", show_hidden=True, **kwargs):
     except Exception as e:
         return f"Error listing directory: {e}"
 
-def grep_file(pattern, path, context_lines=2, recursive=False, **kwargs):
+def grep_file(pattern=None, path=None, context_lines=2, recursive=False, **kwargs):
     """
     Searches for a pattern using system tools (git grep/grep) for performance.
 
@@ -481,6 +485,10 @@ def grep_file(pattern, path, context_lines=2, recursive=False, **kwargs):
     Returns:
         Formatted matches string
     """
+    if pattern is None:
+        return "Error: grep_file() requires 'pattern'. Usage: grep_file(pattern=\"def foo\", path=\"src/\")"
+    if path is None:
+        return "Error: grep_file() requires 'path'. Usage: grep_file(pattern=\"def foo\", path=\"src/\")"
     context_lines = int(context_lines)  # LLM may pass "2" as string
     import subprocess
     import sys
@@ -931,7 +939,7 @@ def git_revert(path: str) -> str:
     except Exception as e:
         return f"Error reverting file: {e}"
 
-def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_line=None, fuzzy_whitespace=True):
+def replace_in_file(path=None, old_text=None, new_text=None, count=-1, start_line=None, end_line=None, fuzzy_whitespace=True):
     """
     Replaces occurrences of text in a file.
     Args:
@@ -946,6 +954,12 @@ def replace_in_file(path, old_text, new_text, count=-1, start_line=None, end_lin
     Returns:
         Success message with number of replacements made
     """
+    if path is None:
+        return "Error: replace_in_file() requires 'path'. Usage: replace_in_file(path=\"file.sv\", old_text=\"...\", new_text=\"...\")"
+    if old_text is None:
+        return "Error: replace_in_file() requires 'old_text'. Usage: replace_in_file(path=\"file.sv\", old_text=\"...\", new_text=\"...\")"
+    if new_text is None:
+        return "Error: replace_in_file() requires 'new_text'. Usage: replace_in_file(path=\"file.sv\", old_text=\"...\", new_text=\"...\")"
     try:
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
@@ -1543,7 +1557,7 @@ def _fuzzy_find_text(content, pattern):
     
     return None
 
-def replace_lines(path, start_line, end_line, new_content):
+def replace_lines(path=None, start_line=None, end_line=None, new_content=None):
     """
     Replaces a range of lines in a file with new content.
     Args:
@@ -1554,6 +1568,12 @@ def replace_lines(path, start_line, end_line, new_content):
     Returns:
         Success message
     """
+    if path is None:
+        return "Error: replace_lines() requires 'path'. Usage: replace_lines(path=\"file.sv\", start_line=10, end_line=20, new_content=\"...\")"
+    if start_line is None or end_line is None:
+        return "Error: replace_lines() requires 'start_line' and 'end_line'. Usage: replace_lines(path=\"file.sv\", start_line=10, end_line=20, new_content=\"...\")"
+    if new_content is None:
+        return "Error: replace_lines() requires 'new_content'. Usage: replace_lines(path=\"file.sv\", start_line=10, end_line=20, new_content=\"...\")"
     try:
         # Coerce to int — LLM sometimes passes quoted numbers e.g. "260"
         try:
