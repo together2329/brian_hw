@@ -35,13 +35,13 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
     ),
     "read_lines": _fn(
         "read_lines",
-        "Read a specific line range from a file. Use after grep_file to target sections.",
+        "Read a specific line range from a file. Use after grep_file to target sections. start_line and end_line are optional — omit to read the whole file.",
         {
             "path": {"type": "string", "description": "File path"},
-            "start_line": {"type": "integer", "description": "First line to read (1-based)"},
-            "end_line": {"type": "integer", "description": "Last line to read (inclusive, 1-based)"},
+            "start_line": {"type": "integer", "description": "First line to read (1-based, optional)"},
+            "end_line": {"type": "integer", "description": "Last line to read (inclusive, 1-based, optional)"},
         },
-        required=["path", "start_line", "end_line"],
+        required=["path"],
     ),
     "write_file": _fn(
         "write_file",
