@@ -997,6 +997,7 @@ class AgentTUI(App):
         self._sess_out_tok = 0
         self._sess_sum_tok = 0
         self._cost_in_pm = self._cost_cch_pm = self._cost_out_pm = 0.0
+        self._has_direct_emit = False   # True when emit_token_fn is wired (avoids text-parse double-count)
         self._interrupt = False
         self._compressing = False  # True during context compression — suppresses proactive
         # ── Proactive mode state ─────────────────────────────────────
@@ -1645,6 +1646,7 @@ class AgentTUI(App):
         self._compressing = False
 
     def on_token_usage(self, msg: TokenUsage) -> None:
+        self._has_direct_emit = True    # text-parse path will skip to avoid double-count
         self._sess_in_tok    += msg.in_tok
         self._sess_cache_tok += msg.cache_tok
         self._sess_out_tok   += msg.out_tok
@@ -2007,21 +2009,29 @@ class AgentTUI(App):
                 self._ctx_tokens = int(val)
                 self._redraw_context()
 
-            # Accumulate session tokens for cost tracking
-            # Format: ✽ in 1.5k (cache 1.4k) · out 136 · sum 1.6k ...
-            # _sess_in_tok = total input (matches token line display)
-            # cost is split in _redraw_cost: non-cached at full rate, cached at cache rate
-            _in  = _parse_tok(r"\bin\s+([\d.]+)(k?)")
-            _cch = _parse_tok(r"\bcache\s+([\d.]+)(k?)")
-            _out = _parse_tok(r"\bout\s+([\d.]+)(k?)")
-            _sum = _parse_tok(r"\bsum\s+([\d.]+)(k?)")
-            if _in > 0 or _out > 0:
-                self._sess_in_tok    += _in   # total input (includes cached portion)
-                self._sess_cache_tok += _cch
-                self._sess_out_tok   += _out
-                # Use parsed sum for total to avoid k-rounding compounding error
-                self._sess_sum_tok   += _sum if _sum > 0 else (_in + _out)
-                self._redraw_cost()
+            # Accumulate session tokens for cost tracking — only when direct emit is not wired.
+            # If emit_token_fn is active, on_token_usage already updated the counters; skip here
+            # to avoid double-counting the same call.
+            if not self._has_direct_emit:
+                _in  = _parse_tok(r"\bin\s+([\d.]+)(k?)")
+                # Token line formats:
+                #   "cache 0.8k"              → cache_read only
+                #   "cache write 0.3k read 0.8k" → both; we want cache_read
+                #   "cache write 0.3k"         → no cache_read
+                _cch = _parse_tok(r"\bcache read\s+([\d.]+)(k?)")
+                if _cch == 0:
+                    # Fallback: "cache N" (no "write" keyword) means cache_read
+                    _plain_text = re.sub(r"\x1b\[[0-9;]*m", "", text)
+                    if "cache write" not in _plain_text:
+                        _cch = _parse_tok(r"\bcache\s+([\d.]+)(k?)")
+                _out = _parse_tok(r"\bout\s+([\d.]+)(k?)")
+                _sum = _parse_tok(r"\bsum\s+([\d.]+)(k?)")
+                if _in > 0 or _out > 0:
+                    self._sess_in_tok    += _in   # total input (includes cached portion)
+                    self._sess_cache_tok += _cch
+                    self._sess_out_tok   += _out
+                    self._sess_sum_tok   += _sum if _sum > 0 else (_in + _out)
+                    self._redraw_cost()
             return
 
         # /clear → cost counters intentionally NOT reset (accumulate for entire session)
