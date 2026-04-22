@@ -353,6 +353,15 @@ GIT_VERSION_CONTROL_ENABLE = os.getenv("GIT_VERSION_CONTROL_ENABLE", "true").low
 # Toggle at runtime with: /permission rm on|off  or  /permission mv on|off
 ALLOW_RM = os.getenv("ALLOW_RM", "false").lower() in ("true", "1", "yes")
 ALLOW_MV = os.getenv("ALLOW_MV", "false").lower() in ("true", "1", "yes")
+
+# Tool output limits — max items/lines returned by each tool.
+# Lower = faster context, Higher = more detail per call.
+TOOL_READ_MAX_LINES   = int(os.getenv("TOOL_READ_MAX_LINES",   "500"))   # read_file truncation
+TOOL_FIND_MAX_RESULTS = int(os.getenv("TOOL_FIND_MAX_RESULTS", "100"))   # find_files max entries
+TOOL_GREP_MAX_FILES   = int(os.getenv("TOOL_GREP_MAX_FILES",   "20"))    # grep_file max files scanned
+TOOL_GREP_MAX_MATCHES = int(os.getenv("TOOL_GREP_MAX_MATCHES", "50"))    # grep_file max match blocks
+TOOL_LIST_MAX_ENTRIES = int(os.getenv("TOOL_LIST_MAX_ENTRIES", "200"))   # list_dir max entries
+
 # Commit message verbosity: "simple" | "summary"
 GIT_COMMIT_MSG_MODE = os.getenv("GIT_COMMIT_MSG_MODE", "simple")
 GIT_COMMIT_SUMMARY_TEMPERATURE = float(os.getenv("GIT_COMMIT_SUMMARY_TEMPERATURE", "0.3"))

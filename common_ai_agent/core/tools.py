@@ -48,6 +48,13 @@ except ModuleNotFoundError:
             def format_diff_snippet(*args, **kwargs):
                 return ""
 
+
+def _tool_cfg(attr: str, default: int) -> int:
+    """Read a tool limit from the live config module."""
+    cfg = sys.modules.get('config') or sys.modules.get('src.config')
+    return int(getattr(cfg, attr, default))
+
+
 def read_file(path):
     """
     Reads the content of a file with smart truncation for large files.
@@ -81,7 +88,7 @@ def read_file(path):
         total_lines = len(lines)
 
         # Smart truncation for large files (Grep-first pattern)
-        MAX_LINES = 500
+        MAX_LINES = _tool_cfg('TOOL_READ_MAX_LINES', 500)
         if total_lines > MAX_LINES:
             # Read first MAX_LINES only
             content = ''.join(lines[:MAX_LINES])
@@ -479,7 +486,11 @@ def list_dir(path=".", show_hidden=True, **kwargs):
         files = os.listdir(path)
         if not show_hidden:
             files = [f for f in files if not f.startswith('.')]
-        return "\n".join(sorted(files))
+        sorted_files = sorted(files)
+        max_entries = _tool_cfg('TOOL_LIST_MAX_ENTRIES', 200)
+        if len(sorted_files) > max_entries:
+            return "\n".join(sorted_files[:max_entries]) + f"\n... ({len(sorted_files) - max_entries} more entries — increase TOOL_LIST_MAX_ENTRIES to see all)"
+        return "\n".join(sorted_files)
     except Exception as e:
         return f"Error listing directory: {e}"
 
@@ -531,8 +542,9 @@ def grep_file(pattern=None, path=None, context_lines=2, recursive=False, **kwarg
                     if not res.startswith("No matches") and not res.startswith("Error"):
                         results.append(f"=== Matches in {f} ===\n{res}\n")
                         count += 1
-                        if count >= 20: 
-                            results.append("... (Stopped after 20 files) ...")
+                        _max_files = _tool_cfg('TOOL_GREP_MAX_FILES', 20)
+                        if count >= _max_files:
+                            results.append(f"... (Stopped after {_max_files} files — increase TOOL_GREP_MAX_FILES to see more)")
                             break
                 return "\n".join(results) if results else f"No matches found for '{pat}'"
 
@@ -559,7 +571,13 @@ def grep_file(pattern=None, path=None, context_lines=2, recursive=False, **kwarg
                         block.append(f"{prefix}{j:4d}: {lines[j-1].rstrip()}")
                     matches.append("\n".join(block))
             
-            return f"Found {len(matches)} matches in {pth}:\n\n" + "\n...\n".join(matches) if matches else f"No matches found for '{pat}' in {pth}"
+            _max_m = _tool_cfg('TOOL_GREP_MAX_MATCHES', 50)
+            truncated = len(matches) > _max_m
+            shown = matches[:_max_m]
+            result = f"Found {len(matches)} matches in {pth}:\n\n" + "\n...\n".join(shown) if shown else f"No matches found for '{pat}' in {pth}"
+            if truncated:
+                result += f"\n... ({len(matches) - _max_m} more matches hidden — increase TOOL_GREP_MAX_MATCHES to see all)"
+            return result
             
         except Exception as e:
             return f"Error (Python grep): {e}"
@@ -834,12 +852,12 @@ def find_files(pattern=None, directory=".", max_depth=None, path=None, recursive
                 
             return msg
         
-        MAX_RESULTS = 100
+        MAX_RESULTS = _tool_cfg('TOOL_FIND_MAX_RESULTS', 100)
         sorted_matches = sorted(matches)
         result = f"Found {len(matches)} file(s) matching '{pattern}':\n"
         result += "\n".join(f"  - {m}" for m in sorted_matches[:MAX_RESULTS])
         if len(matches) > MAX_RESULTS:
-            result += f"\n  ... and {len(matches) - MAX_RESULTS} more files (narrow your search with a more specific path or pattern)"
+            result += f"\n  ... and {len(matches) - MAX_RESULTS} more files (increase TOOL_FIND_MAX_RESULTS or narrow the pattern)"
         return result
     except Exception as e:
         return f"Error finding files: {e}"
