@@ -1071,6 +1071,7 @@ def run_react_agent_impl(
                         except Exception:
                             pass
 
+                    observation = str(observation) if not isinstance(observation, str) else observation
                     combined_results.append(f"--- [Action {idx+1}] {tool_name} ---\n{observation}")
                     # Native mode: map result to call_id using ORIGINAL index (not completion order)
                     if _use_native and idx in _action_idx_to_call_id:
@@ -1330,7 +1331,8 @@ def run_react_agent_impl(
             else:
                 consecutive_errors = 0
                 recovery_attempts = 0
-                last_error_observation = observation if "error" in observation.lower() else None
+                _obs_str = str(observation) if not isinstance(observation, str) else observation
+                last_error_observation = _obs_str if "error" in _obs_str.lower() else None
 
             # Sync todo_tracker: use shared instance from main module to avoid
             # losing runtime-only attributes (_tools_since_in_progress) on reload.

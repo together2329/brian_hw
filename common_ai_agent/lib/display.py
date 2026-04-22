@@ -528,6 +528,8 @@ def format_tool_result(output: str, max_lines: int = 5, max_chars: int = 300) ->
     Format tool result with tree structure.
     Shows preview with dim tree end marker.
     """
+    if not isinstance(output, str):
+        output = str(output) if output is not None else ""
     if not output:
         return f"  {Color.DIM}{TREE['end']} (empty){Color.RESET}"
 
@@ -563,6 +565,7 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
       ✱ List path="."                         15 entries
     """
     import re
+    observation = str(observation) if not isinstance(observation, str) else observation
     line_count = observation.count('\n') + 1 if observation else 0
     is_error = observation.lower().startswith('error') if observation else False
     # Treat system/plan-mode messages as errors so they surface visibly
