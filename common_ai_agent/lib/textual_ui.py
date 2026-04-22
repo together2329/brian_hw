@@ -405,6 +405,7 @@ class _AgentInput(TextArea):
         self._hist_pos: int = -1
         self._hist_draft: str = ""
         self._skip_dropdown: bool = False
+        self._user_deleting: bool = False
         self._load_history()
 
     def action_submit_input(self) -> None:
@@ -602,6 +603,12 @@ class _AgentInput(TextArea):
     async def _on_key(self, event: Key) -> None:
         ol = self._get_completion_list()
         value = self.text  # current text for completion checks
+
+        # Track user-initiated deletion to suppress auto-fill
+        if event.key in ("backspace", "delete"):
+            self._user_deleting = True
+        else:
+            self._user_deleting = False
 
         # ── Tab: highlight-only cycling / directory navigation ───────────────
         if event.key == "tab":
@@ -1478,7 +1485,7 @@ class AgentTUI(App):
         elif '@' in value:
             first_val = inp._show_at_dropdown(value, ol, force=False)
             if "visible" in ol.classes:
-                if first_val and first_val != value:
+                if first_val and first_val != value and not inp._user_deleting:
                     # Auto-fill first match into input (user can keep typing to refine)
                     inp._skip_dropdown = True
                     inp._set_text(first_val)
