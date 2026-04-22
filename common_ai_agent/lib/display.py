@@ -650,8 +650,14 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                 todo_item = None
                 if idx_m:
                     try:
-                        from lib.todo_tracker import TodoTracker
-                        _tracker = TodoTracker.load()
+                        import sys as _sys
+                        _main = _sys.modules.get('main')
+                        _tracker = getattr(_main, 'todo_tracker', None)
+                        if _tracker is None:
+                            from lib.todo_tracker import TodoTracker
+                            import config as _cfg
+                            from pathlib import Path as _Path
+                            _tracker = TodoTracker.load(_Path(_cfg.TODO_FILE))
                         _idx = int(idx_m.group(1)) - 1  # convert 1-based to 0-based
                         if 0 <= _idx < len(_tracker.todos):
                             todo_item = _tracker.todos[_idx]
@@ -692,8 +698,14 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                 todo_item = None
                 if idx_m:
                     try:
-                        from lib.todo_tracker import TodoTracker
-                        _tracker = TodoTracker.load()
+                        import sys as _sys
+                        _main = _sys.modules.get('main')
+                        _tracker = getattr(_main, 'todo_tracker', None)
+                        if _tracker is None:
+                            from lib.todo_tracker import TodoTracker
+                            import config as _cfg
+                            from pathlib import Path as _Path
+                            _tracker = TodoTracker.load(_Path(_cfg.TODO_FILE))
                         _idx = int(idx_m.group(1)) - 1
                         if 0 <= _idx < len(_tracker.todos):
                             todo_item = _tracker.todos[_idx]
