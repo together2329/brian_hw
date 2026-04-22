@@ -775,6 +775,7 @@ class AgentTUI(App):
     }}
     #main.copied-flash {{
         border: tall $success;
+        background: #0d2a1a;
     }}
 
     /* ── Sidebar ── */
@@ -1297,7 +1298,7 @@ class AgentTUI(App):
         self.action_copy_last()
         output = self.query_one("#main", RichLog)
         output.add_class("copied-flash")
-        self.set_timer(0.4, lambda: output.remove_class("copied-flash"))
+        self.set_timer(0.6, lambda: output.remove_class("copied-flash"))
 
     def _on_agent_idle(self) -> None:
         """Called from InputBridge.get_input() when agent thread is back at prompt."""
