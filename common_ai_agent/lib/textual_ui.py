@@ -1429,7 +1429,7 @@ class AgentTUI(App):
             t.append("  ·  esc interrupt", style=_TEXT_FAINT)
             t.append("  ·  ctrl+j newline", style=_TEXT_FAINT)
             t.append("  ·  shift+insert paste", style=_TEXT_FAINT)
-            t.append("  ·  click/shift+drag copy", style=_TEXT_FAINT)
+            t.append("  ·  click or shift+drag copy", style=_TEXT_FAINT)
             t.append("  ·  ctrl+q quit", style=_TEXT_FAINT)
             if extra:
                 t.append(f"   {extra}", style=f"italic {_YELLOW}")
