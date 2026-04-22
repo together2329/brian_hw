@@ -60,7 +60,6 @@ def execute_batch_parallel(
         return []
 
     results = []
-    max_workers = min(len(batch_actions), max(1, getattr(cfg, "REACT_MAX_WORKERS", 4)))
     timeout = getattr(cfg, "REACT_ACTION_TIMEOUT", 30)
 
     def _call(tool_name, args_str, kwargs_dict):
@@ -71,14 +70,32 @@ def execute_batch_parallel(
                 pass  # execute_tool_fn doesn't support pre_parsed_kwargs — fall through
         return execute_tool_fn(tool_name, args_str)
 
+    # --- Deduplication: identical (tool_name, args_str) executed only once ---
+    # key_map: (tool_name, args_str) → first idx that will actually run it
+    # dup_map:  idx → canonical idx whose result to reuse
+    key_map: dict = {}
+    dup_map: dict = {}
+    deduped: list = []
+    for entry in batch_actions:
+        if len(entry) == 4:
+            idx, tool_name, args_str, kwargs_dict = entry
+        else:
+            idx, tool_name, args_str = entry
+            kwargs_dict = None
+        key = (tool_name, args_str)
+        if key in key_map:
+            dup_map[idx] = key_map[key]  # point to canonical idx
+        else:
+            key_map[key] = idx
+            deduped.append((idx, tool_name, args_str, kwargs_dict))
+
+    max_workers = min(len(deduped), max(1, getattr(cfg, "REACT_MAX_WORKERS", 4)))
+
+    canonical_results: dict = {}  # idx → observation
+
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_map = {}
-        for entry in batch_actions:
-            if len(entry) == 4:
-                idx, tool_name, args_str, kwargs_dict = entry
-            else:
-                idx, tool_name, args_str = entry
-                kwargs_dict = None
+        for idx, tool_name, args_str, kwargs_dict in deduped:
             future = executor.submit(_call, tool_name, args_str, kwargs_dict)
             future_map[future] = (idx, tool_name, args_str)
 
@@ -90,6 +107,7 @@ def execute_batch_parallel(
                 observation = future.result()
             except Exception as e:
                 observation = f"Error: Exception in parallel execution: {e}\n{traceback.format_exc()}"
+            canonical_results[idx] = observation
             results.append((idx, tool_name, args_str, observation))
 
         for future in not_done:
@@ -98,7 +116,20 @@ def execute_batch_parallel(
                 future.cancel()
             except Exception:
                 pass
-            results.append((idx, tool_name, args_str, f"Error: Timeout after {timeout}s"))
+            observation = f"Error: Timeout after {timeout}s"
+            canonical_results[idx] = observation
+            results.append((idx, tool_name, args_str, observation))
+
+    # Re-attach duplicate results (reuse canonical observation)
+    for entry in batch_actions:
+        idx = entry[0]
+        if idx not in dup_map:
+            continue
+        tool_name = entry[1]
+        args_str = entry[2]
+        canonical_idx = dup_map[idx]
+        observation = canonical_results.get(canonical_idx, "Error: canonical result missing")
+        results.append((idx, tool_name, args_str, observation))
 
     results.sort(key=lambda x: x[0])
     return results
