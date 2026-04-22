@@ -556,7 +556,7 @@ class _AgentInput(TextArea):
                 ol.clear_options()
                 for display, full_val in file_matches:
                     ol.add_option(_Option(display, id=full_val))
-                ol.highlighted = None
+                ol.highlighted = 0
                 ol.add_class("visible")
         except Exception:
             pass
@@ -606,11 +606,12 @@ class _AgentInput(TextArea):
                 count = ol.option_count
                 if count > 0:
                     current = ol.highlighted
-                    next_idx = 0 if current is None else (current + 1) % count
-                    opt = ol.get_option_at_index(next_idx)
+                    select_idx = 0 if current is None else current
+                    opt = ol.get_option_at_index(select_idx)
                     opt_value = opt.id or str(opt.prompt)
                     opt_display = str(opt.prompt)
-                    if current is not None and opt_display.endswith('/'):
+                    if opt_display.endswith('/'):
+                        # directory: navigate into it
                         ol.remove_class("visible")
                         self._skip_dropdown = True
                         self._set_text(opt_value)
@@ -619,7 +620,14 @@ class _AgentInput(TextArea):
                         if ol_ref is not None:
                             self._show_at_dropdown(opt_value, ol_ref, force=False)
                     else:
-                        ol.highlighted = next_idx
+                        # select and reopen popup (Claude Code style)
+                        ol.remove_class("visible")
+                        self._skip_dropdown = True
+                        self._set_text(opt_value)
+                        self._skip_dropdown = False
+                        ol_ref = self._get_completion_list()
+                        if ol_ref is not None:
+                            self._show_at_dropdown(opt_value, ol_ref, force=True)
                 event.prevent_default()
                 event.stop()
                 return
