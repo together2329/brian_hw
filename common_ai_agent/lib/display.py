@@ -678,7 +678,8 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                         if clines:
                             lines.append(f"   {_L}criteria:{_R}")
                             for cl in clines:
-                                lines.append(f"     {_D}• {cl}{_R}")
+                                lines.append(f"   {_D}  • {cl}{_R}")
+                    lines.append("")
                     return "\n".join(lines)
                 if approved_reason:
                     return f"{Color.GREEN}approved{Color.RESET} {Color.DIM}— {approved_reason}{Color.RESET}"
@@ -720,7 +721,8 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                         if clines:
                             lines.append(f"   {_L}criteria:{_R}")
                             for cl in clines:
-                                lines.append(f"     {_D}• {cl}{_R}")
+                                lines.append(f"   {_D}  • {cl}{_R}")
+                    lines.append("")
                     return "\n".join(lines)
                 return header
             if first.startswith("▶"):
