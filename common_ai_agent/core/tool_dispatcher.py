@@ -437,6 +437,22 @@ def dispatch_tool(
                     parsed_kwargs["start_line"] = int(_sm.group(1))
                 if _em:
                     parsed_kwargs["end_line"] = int(_em.group(1))
+        # read_lines: if path exists but start_line missing, try regex fallback
+        if tool_name == "read_lines" and "path" in parsed_kwargs and "start_line" not in parsed_kwargs:
+            import re as _re
+            _sm = _re.search(r'start_line\s*=\s*(\d+)', args_str or "")
+            _em = _re.search(r'end_line\s*=\s*(\d+)', args_str or "")
+            if _sm:
+                parsed_kwargs["start_line"] = int(_sm.group(1))
+            if _em:
+                parsed_kwargs["end_line"] = int(_em.group(1))
+            if "start_line" not in parsed_kwargs:
+                return (
+                    f"Error: read_lines() requires 'start_line' and 'end_line'.\n"
+                    f"  To read the whole file use: read_file(path=\"{parsed_kwargs['path']}\")\n"
+                    f"  To read a range use: read_lines(path=\"{parsed_kwargs['path']}\", start_line=1, end_line=50)"
+                )
+
         # Final missing-arg error with usage hint
         if tool_name in ("read_file", "read_lines") and "path" not in parsed_kwargs:
             return (
