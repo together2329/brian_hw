@@ -686,7 +686,43 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
             if "marked completed" in first.lower() or first.startswith("Task") and "completed" in first.split("\n")[0]:
                 return f"{Color.CYAN}completed{Color.RESET}"
             if first.startswith("❌"):
-                return f"{Color.RED}rejected{Color.RESET}"
+                # Extract task index and rejection reason, same as approved
+                idx_m = re.search(r'"?index"?\s*[:=]\s*(\d+)', args_str or "")
+                todo_item = None
+                if idx_m:
+                    try:
+                        from lib.todo_tracker import TodoTracker
+                        _tracker = TodoTracker.load()
+                        _idx = int(idx_m.group(1)) - 1
+                        if 0 <= _idx < len(_tracker.todos):
+                            todo_item = _tracker.todos[_idx]
+                    except Exception:
+                        pass
+                bracket_m = re.search(r'rejected\.\s*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
+                if not bracket_m:
+                    bracket_m = re.search(r'❌[^[]*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
+                rejected_reason = bracket_m.group(1).strip() if bracket_m else ""
+                _RD = Color.RED
+                _D = Color.DIM
+                _R = Color.RESET
+                _L = "\033[2;31m"
+                header = f"{_RD}❌ rejected{_R}"
+                if rejected_reason:
+                    header += f"  {_D}— {rejected_reason}{_R}"
+                if todo_item:
+                    lines = [header]
+                    if todo_item.content:
+                        lines.append(f"   {_L}todo:{_R} {todo_item.content}")
+                    if todo_item.detail:
+                        lines.append(f"   {_L}detail:{_R} {_D}{todo_item.detail}{_R}")
+                    if todo_item.criteria:
+                        clines = [c.strip() for c in todo_item.criteria.strip().splitlines() if c.strip()]
+                        if clines:
+                            lines.append(f"   {_L}criteria:{_R}")
+                            for cl in clines:
+                                lines.append(f"     {_D}• {cl}{_R}")
+                    return "\n".join(lines)
+                return header
             if first.startswith("▶"):
                 return "in_progress"
             if first.startswith("⏸"):
