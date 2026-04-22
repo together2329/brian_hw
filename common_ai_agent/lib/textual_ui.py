@@ -514,17 +514,18 @@ class _AgentInput(TextArea):
         except Exception:
             pass
 
-    def _show_at_dropdown(self, value: str, ol: OptionList, force: bool = False) -> None:
+    def _show_at_dropdown(self, value: str, ol: OptionList, force: bool = False) -> str | None:
         """Populate and show the @ file completion dropdown.
 
         force=True: show even if current value exactly matches one entry
                     (used when user explicitly presses Tab a second time).
+        Returns the first match's full value (for auto-fill), or None.
         """
         try:
             at_pos = value.rfind('@')
             after_at = value[at_pos + 1:]
             if ' ' in after_at:
-                return
+                return None
             partial = after_at
             if '/' in partial:
                 dir_part, stem = partial.rsplit('/', 1)
@@ -535,7 +536,7 @@ class _AgentInput(TextArea):
             # Expand ~ and resolve relative paths so os.listdir always works
             base_abs = os.path.abspath(os.path.expanduser(base))
             if not os.path.isdir(base_abs):
-                return
+                return None
             file_matches: list[str] = []
             for name in sorted(os.listdir(base_abs)):
                 if name.startswith('.'):
@@ -558,8 +559,10 @@ class _AgentInput(TextArea):
                     ol.add_option(_Option(display, id=full_val))
                 ol.highlighted = 0
                 ol.add_class("visible")
+                return file_matches[0][1]  # first match full value
         except Exception:
             pass
+        return None
 
     # ── System clipboard actions (override Textual's internal-only versions) ──
 
@@ -1473,8 +1476,13 @@ class AgentTUI(App):
 
         # ── @ file/folder dropdown ────────────────────────────────────────────
         elif '@' in value:
-            inp._show_at_dropdown(value, ol, force=False)
+            first_val = inp._show_at_dropdown(value, ol, force=False)
             if "visible" in ol.classes:
+                if first_val and first_val != value:
+                    # Auto-fill first match into input (user can keep typing to refine)
+                    inp._skip_dropdown = True
+                    inp._set_text(first_val)
+                    inp._skip_dropdown = False
                 return
 
         ol.remove_class("visible")
