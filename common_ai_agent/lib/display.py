@@ -676,29 +676,30 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                     _W = 72  # wrap width
                     _IND = "   "  # base indent (3 spaces)
                     _LABEL_W = 10
+                    _C = _G  # content color = green for approved
                     lines = [f"{_G}✅ approved{_R}"]
                     if approved_reason:
                         _wrapped = _tw.fill(
                             approved_reason,
                             width=_W,
-                            initial_indent=f"{_IND}{_B}↳{_R} ",
-                            subsequent_indent=f"{_IND}  ",
+                            initial_indent=f"{_IND}{_B}↳{_R} {_C}",
+                            subsequent_indent=f"{_IND}  {_C}",
                         )
-                        lines.append(_wrapped)
+                        lines.append(_wrapped + _R)
                     if todo_item.content:
                         _wrapped = _tw.fill(
                             todo_item.content,
                             width=_W,
-                            initial_indent=f"{_IND}{_L}{'todo:':<{_LABEL_W}}{_R}",
-                            subsequent_indent=f"{_IND}{' ' * _LABEL_W}",
+                            initial_indent=f"{_IND}{_L}{'todo:':<{_LABEL_W}}{_R}{_C}",
+                            subsequent_indent=f"{_IND}{' ' * _LABEL_W}{_C}",
                         )
-                        lines.append(_wrapped)
+                        lines.append(_wrapped + _R)
                     if todo_item.detail:
                         _wrapped = _tw.fill(
                             todo_item.detail,
                             width=_W,
-                            initial_indent=f"{_IND}{_L}{'detail:':<{_LABEL_W}}{_R}{_D}",
-                            subsequent_indent=f"{_IND}{' ' * _LABEL_W}",
+                            initial_indent=f"{_IND}{_L}{'detail:':<{_LABEL_W}}{_R}{_D}{_C}",
+                            subsequent_indent=f"{_IND}{' ' * _LABEL_W}{_C}",
                         )
                         lines.append(_wrapped + _R)
                     if todo_item.criteria:
@@ -709,8 +710,8 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                                 _wrapped = _tw.fill(
                                     cl,
                                     width=_W,
-                                    initial_indent=f"{_IND}  {_D}• ",
-                                    subsequent_indent=f"{_IND}    ",
+                                    initial_indent=f"{_IND}  {_C}• ",
+                                    subsequent_indent=f"{_IND}    {_C}",
                                 )
                                 lines.append(_wrapped + _R)
                     lines.append("")
@@ -753,29 +754,30 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                     _W = 72
                     _IND = "   "
                     _LABEL_W = 10
+                    _C = _RD  # content color = red for rejected
                     lines = [f"{_RD}❌ rejected{_R}"]
                     if rejected_reason:
                         _wrapped = _tw.fill(
                             rejected_reason,
                             width=_W,
-                            initial_indent=f"{_IND}{_B}↳{_R} ",
-                            subsequent_indent=f"{_IND}  ",
+                            initial_indent=f"{_IND}{_B}↳{_R} {_C}",
+                            subsequent_indent=f"{_IND}  {_C}",
                         )
-                        lines.append(_wrapped)
+                        lines.append(_wrapped + _R)
                     if todo_item.content:
                         _wrapped = _tw.fill(
                             todo_item.content,
                             width=_W,
-                            initial_indent=f"{_IND}{_L}{'todo:':<{_LABEL_W}}{_R}",
-                            subsequent_indent=f"{_IND}{' ' * _LABEL_W}",
+                            initial_indent=f"{_IND}{_L}{'todo:':<{_LABEL_W}}{_R}{_C}",
+                            subsequent_indent=f"{_IND}{' ' * _LABEL_W}{_C}",
                         )
-                        lines.append(_wrapped)
+                        lines.append(_wrapped + _R)
                     if todo_item.detail:
                         _wrapped = _tw.fill(
                             todo_item.detail,
                             width=_W,
-                            initial_indent=f"{_IND}{_L}{'detail:':<{_LABEL_W}}{_R}{_D}",
-                            subsequent_indent=f"{_IND}{' ' * _LABEL_W}",
+                            initial_indent=f"{_IND}{_L}{'detail:':<{_LABEL_W}}{_R}{_D}{_C}",
+                            subsequent_indent=f"{_IND}{' ' * _LABEL_W}{_C}",
                         )
                         lines.append(_wrapped + _R)
                     if todo_item.criteria:
@@ -786,8 +788,8 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                                 _wrapped = _tw.fill(
                                     cl,
                                     width=_W,
-                                    initial_indent=f"{_IND}  {_D}• ",
-                                    subsequent_indent=f"{_IND}    ",
+                                    initial_indent=f"{_IND}  {_C}• ",
+                                    subsequent_indent=f"{_IND}    {_C}",
                                 )
                                 lines.append(_wrapped + _R)
                     lines.append("")
