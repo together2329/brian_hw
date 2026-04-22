@@ -1326,10 +1326,16 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                             tc_info = _pending_tool_calls[idx]
                             if tc_info["name"]:
                                 _call_id = tc_info.get("id") or f"call_{_uuid.uuid4().hex[:16]}"
-                                _args_str = tc_info["arguments"] or "{}"
+                                _args_raw = tc_info["arguments"]
+                                _args_str = _args_raw or "{}"
                                 try:
                                     json.loads(_args_str)
                                 except json.JSONDecodeError:
+                                    print(Color.warning(
+                                        f"\n  [Tool Call Warning] '{tc_info['name']}' — "
+                                        f"arguments JSON invalid (got: {repr(_args_raw)[:80]}). "
+                                        f"Defaulting to {{}}. Check hosting tool-call serialization."
+                                    ))
                                     _args_str = "{}"
                                 _native_calls.append({
                                     "id": _call_id,
@@ -1918,10 +1924,18 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                 # Prefer the API-provided id; fall back to generated id
                                 _call_id = tc_info.get("id") or f"call_{_uuid.uuid4().hex[:16]}"
                                 # Validate arguments JSON; default to {} on parse failure
-                                _args_str = tc_info["arguments"] or "{}"
+                                _args_raw = tc_info["arguments"]
+                                _args_str = _args_raw or "{}"
                                 try:
                                     json.loads(_args_str)
                                 except json.JSONDecodeError:
+                                    # Internal hosting often sends malformed/truncated arguments.
+                                    # Warn visibly so it doesn't silently become an empty-arg error.
+                                    print(Color.warning(
+                                        f"\n  [Tool Call Warning] '{tc_info['name']}' — "
+                                        f"arguments JSON invalid (got: {repr(_args_raw)[:80]}). "
+                                        f"Defaulting to {{}}. Check hosting tool-call serialization."
+                                    ))
                                     _args_str = "{}"
                                 _native_calls.append({
                                     "id": _call_id,
@@ -2428,6 +2442,35 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         decode_s=0.0,
         total_s=_ns_connect + _ns_read,
     )
+
+    # Non-streaming tool_calls in message (some internal hosts skip streaming protocol)
+    _msg_tool_calls = msg.get("tool_calls") or []
+    if _msg_tool_calls and getattr(config, "ENABLE_NATIVE_TOOL_CALLS", False):
+        import uuid as _uuid
+        _native_calls = []
+        for tc in _msg_tool_calls:
+            _func = tc.get("function", {})
+            _name = _func.get("name", "")
+            _args_raw = _func.get("arguments", "")
+            _args_str = _args_raw or "{}"
+            try:
+                json.loads(_args_str)
+            except json.JSONDecodeError:
+                print(Color.warning(
+                    f"\n  [Tool Call Warning] '{_name}' — "
+                    f"arguments JSON invalid (got: {repr(_args_raw)[:80]}). "
+                    f"Defaulting to {{}}. Check hosting tool-call serialization."
+                ))
+                _args_str = "{}"
+            if _name:
+                _native_calls.append({
+                    "id": tc.get("id") or f"call_{_uuid.uuid4().hex[:16]}",
+                    "name": _name,
+                    "arguments": _args_str,
+                })
+        if _native_calls:
+            yield ("native_tool_calls", _native_calls)
+            return  # tool call response — no content to yield
 
     # Yield reasoning first (if present)
     reasoning = msg.get("reasoning_content") or msg.get("reasoning") or ""
