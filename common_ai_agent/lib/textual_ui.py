@@ -1483,13 +1483,8 @@ class AgentTUI(App):
 
         # ── @ file/folder dropdown ────────────────────────────────────────────
         elif '@' in value:
-            first_val = inp._show_at_dropdown(value, ol, force=False)
+            inp._show_at_dropdown(value, ol, force=False)
             if "visible" in ol.classes:
-                if first_val and first_val != value and not inp._user_deleting:
-                    # Auto-fill first match into input (user can keep typing to refine)
-                    inp._skip_dropdown = True
-                    inp._set_text(first_val)
-                    inp._skip_dropdown = False
                 return
 
         ol.remove_class("visible")
