@@ -1334,7 +1334,7 @@ class AgentTUI(App):
             self._update_statusbar("  ✓ Copied to clipboard")
             self.set_timer(2.0, self._update_statusbar)
         toast = self.query_one("#copy-toast", Static)
-        toast.styles.offset = (4, event.y)
+        toast.styles.offset = (4, event.y - 1)
         toast.add_class("visible")
         self.set_timer(0.7, lambda: toast.remove_class("visible"))
 
