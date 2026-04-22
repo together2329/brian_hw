@@ -1,261 +1,176 @@
-// ============================================================================
-// Testbench: tb_counter
-// Description: Self-checking testbench for parameterized up/down counter.
-//              DUT instantiated with WIDTH=4 (max=15) for easy overflow testing.
-//              Covers: reset, up-count, down-count, load, overflow, underflow,
-//              priority, simultaneous up/down, and hold.
-// ============================================================================
+// tb_counter.sv — Self-checking testbench for counter module
 
 `timescale 1ns / 1ps
 
 module tb_counter;
 
-    // -------------------------------------------------------------------------
-    // Parameters
-    // -------------------------------------------------------------------------
-    parameter int WIDTH = 4;
+    // ── Parameters ──────────────────────────────────────────────
+    parameter int WIDTH = 8;
 
-    // -------------------------------------------------------------------------
-    // Signals
-    // -------------------------------------------------------------------------
+    // ── Signals ─────────────────────────────────────────────────
     logic             clk;
     logic             rst_n;
-    logic             up_en;
-    logic             down_en;
-    logic             load_en;
+    logic             en;
+    logic             up_down;
+    logic             load;
     logic [WIDTH-1:0] load_data;
     logic [WIDTH-1:0] count;
-    logic             overflow;
-    logic             underflow;
 
-    // -------------------------------------------------------------------------
-    // Scoreboard
-    // -------------------------------------------------------------------------
+    // ── Scoreboard ──────────────────────────────────────────────
     int pass_count = 0;
     int fail_count = 0;
 
-    // -------------------------------------------------------------------------
-    // Clock generation — 10 ns period (5 ns half-period)
-    // -------------------------------------------------------------------------
-    initial begin
-        clk = 1'b0;
-        forever #5 clk = ~clk;
-    end
+    // ── Clock generation: 10 ns period (5 ns half-period) ──────
+    initial clk = 0;
+    always #5 clk = ~clk;
 
-    // -------------------------------------------------------------------------
-    // DUT instantiation
-    // -------------------------------------------------------------------------
-    counter #(
-        .WIDTH(WIDTH)
-    ) dut (
+    // ── DUT instantiation ──────────────────────────────────────
+    counter #(.WIDTH(WIDTH)) dut (
         .clk       (clk),
         .rst_n     (rst_n),
-        .up_en     (up_en),
-        .down_en   (down_en),
-        .load_en   (load_en),
+        .en        (en),
+        .up_down   (up_down),
+        .load      (load),
         .load_data (load_data),
-        .count     (count),
-        .overflow  (overflow),
-        .underflow (underflow)
+        .count     (count)
     );
 
-    // -------------------------------------------------------------------------
-    // Helper task: wait one clock edge (positive)
-    // -------------------------------------------------------------------------
-    task tick;
-        begin
-            @(posedge clk);
-            #1; // Small delay to sample after outputs settle
+    // ── Helper: check and report ────────────────────────────────
+    task automatic check(input string label, input [WIDTH-1:0] expected);
+        if (count === expected) begin
+            $display("[PASS] %0s: count=%0d (expected %0d)", label, count, expected);
+            pass_count++;
+        end else begin
+            $display("[FAIL] %0s: count=%0d (expected %0d)", label, count, expected);
+            fail_count++;
         end
     endtask
 
-    // -------------------------------------------------------------------------
-    // Helper task: check a signal against expected value
-    // -------------------------------------------------------------------------
-    task check(input string label, input logic [WIDTH-1:0] expected_count,
-               input logic expected_overflow, input logic expected_underflow);
-        begin
-            if (count === expected_count &&
-                overflow === expected_overflow &&
-                underflow === expected_underflow) begin
-                pass_count++;
-            end else begin
-                fail_count++;
-                $display("  [FAIL] %-35s | count=%0d (exp=%0d) ovf=%0b (exp=%0b) unf=%0b (exp=%0b)",
-                         label, count, expected_count,
-                         overflow, expected_overflow,
-                         underflow, expected_underflow);
-            end
-        end
+    // ── Helper: wait N clock cycles ─────────────────────────────
+    task automatic wait_cycles(input int n);
+        repeat (n) @(posedge clk);
     endtask
 
-    // -------------------------------------------------------------------------
-    // Helper: clear all control inputs
-    // -------------------------------------------------------------------------
-    task clear_inputs;
-        begin
-            up_en    = 1'b0;
-            down_en  = 1'b0;
-            load_en  = 1'b0;
-            load_data = '0;
-        end
-    endtask
-
-    // -------------------------------------------------------------------------
-    // Main stimulus
-    // -------------------------------------------------------------------------
+    // ── Main stimulus ───────────────────────────────────────────
     initial begin
-        $display("========================================");
-        $display("  Counter Testbench — WIDTH=%0d", WIDTH);
-        $display("========================================");
+        // Initialize all inputs
+        clk       = 0;
+        rst_n     = 1;
+        en        = 0;
+        up_down   = 1;
+        load      = 0;
+        load_data = '0;
 
-        // --- Initialize ---
-        clear_inputs();
-        rst_n = 1'b0;
-
-        // =====================================================================
-        // Test 1: Reset verification
-        // =====================================================================
-        $display("\n--- Test 1: Reset ---");
-        tick();
-        check("After reset (rst_n=0)", '0, 1'b0, 1'b0);
+        // ============================================================
+        // Test 1: Reset
+        // ============================================================
+        $display("\n--- Test 1: Synchronous Reset ---");
+        @(posedge clk);
+        rst_n <= 0;
+        @(posedge clk);
+        check("after reset", 8'd0);
 
         // Release reset
-        rst_n = 1'b1;
-        tick();
-        check("After reset released", '0, 1'b0, 1'b0);
+        rst_n <= 1;
+        @(posedge clk);
 
-        // =====================================================================
-        // Test 2: Up-count sequence (0 → 1 → 2 → 3)
-        // =====================================================================
-        $display("\n--- Test 2: Up-count ---");
-        clear_inputs();
-        up_en = 1'b1;
-        tick(); check("Up: 0 → 1", 4'd1, 1'b0, 1'b0);
-        tick(); check("Up: 1 → 2", 4'd2, 1'b0, 1'b0);
-        tick(); check("Up: 2 → 3", 4'd3, 1'b0, 1'b0);
-        tick(); check("Up: 3 → 4", 4'd4, 1'b0, 1'b0);
+        // ============================================================
+        // Test 2: Count Up
+        // ============================================================
+        $display("\n--- Test 2: Count Up ---");
+        en      <= 1;
+        up_down <= 1;
+        wait_cycles(1);
+        check("up 1", 8'd1);
 
-        // =====================================================================
-        // Test 3: Down-count sequence (4 → 3 → 2 → 1)
-        // =====================================================================
-        $display("\n--- Test 3: Down-count ---");
-        clear_inputs();
-        down_en = 1'b1;
-        tick(); check("Down: 4 → 3", 4'd3, 1'b0, 1'b0);
-        tick(); check("Down: 3 → 2", 4'd2, 1'b0, 1'b0);
-        tick(); check("Down: 2 → 1", 4'd1, 1'b0, 1'b0);
-        tick(); check("Down: 1 → 0", 4'd0, 1'b0, 1'b0);
+        wait_cycles(1);
+        check("up 2", 8'd2);
 
-        // =====================================================================
-        // Test 4: Load functionality
-        // =====================================================================
+        wait_cycles(4);
+        check("up 6", 8'd6);
+
+        // ============================================================
+        // Test 3: Count Down
+        // ============================================================
+        $display("\n--- Test 3: Count Down ---");
+        up_down <= 0;
+        wait_cycles(1);
+        check("down 5", 8'd5);
+
+        wait_cycles(1);
+        check("down 4", 8'd4);
+
+        wait_cycles(4);
+        check("down 0", 8'd0);
+
+        // ============================================================
+        // Test 4: Load
+        // ============================================================
         $display("\n--- Test 4: Load ---");
-        clear_inputs();
-        load_en  = 1'b1;
-        load_data = 4'd10;
-        tick(); check("Load 10", 4'd10, 1'b0, 1'b0);
+        en        <= 0;
+        load      <= 1;
+        load_data <= 8'hA5;
+        wait_cycles(1);
+        check("load 0xA5", 8'hA5);
 
-        // Load another value
-        load_data = 4'd7;
-        tick(); check("Load 7", 4'd7, 1'b0, 1'b0);
-        clear_inputs();
+        load      <= 0;
+        load_data <= '0;
+        wait_cycles(1);
+        check("hold after load (en=0)", 8'hA5);
 
-        // =====================================================================
-        // Test 5: Overflow wrap-around (count up to max, then wrap to 0)
-        // =====================================================================
-        $display("\n--- Test 5: Overflow wrap ---");
-        clear_inputs();
-        // Load max value - 2 = 13
-        load_en   = 1'b1;
-        load_data = 4'd13;
-        tick(); check("Load 13", 4'd13, 1'b0, 1'b0);
+        // ============================================================
+        // Test 5: Up Rollover (255 → 0)
+        // ============================================================
+        $display("\n--- Test 5: Up Rollover ---");
+        load      <= 1;
+        load_data <= 8'hFE;          // 254
+        wait_cycles(1);
+        load <= 0;
+        en   <= 1;
+        up_down <= 1;
 
-        // Count up: 13 → 14 → 15 → 0 (overflow)
-        clear_inputs();
-        up_en = 1'b1;
-        tick(); check("Up: 13 → 14", 4'd14, 1'b0, 1'b0);
-        tick(); check("Up: 14 → 15", 4'd15, 1'b0, 1'b0);
-        tick(); check("Up: 15 → 0  (overflow)", 4'd0, 1'b1, 1'b0);
+        wait_cycles(1);
+        check("FE+1=FF", 8'hFF);
 
-        // Overflow flag should clear on next cycle
-        tick(); check("After overflow, flag clears", 4'd1, 1'b0, 1'b0);
+        wait_cycles(1);
+        check("FF+1=00 (rollover)", 8'h00);
 
-        // =====================================================================
-        // Test 6: Underflow wrap-around (count down from 0, wrap to max)
-        // =====================================================================
-        $display("\n--- Test 6: Underflow wrap ---");
-        clear_inputs();
-        // Load 0
-        load_en   = 1'b1;
-        load_data = 4'd0;
-        tick(); check("Load 0", 4'd0, 1'b0, 1'b0);
+        // ============================================================
+        // Test 6: Down Rollover (0 → 255)
+        // ============================================================
+        $display("\n--- Test 6: Down Rollover ---");
+        up_down <= 0;
 
-        // Count down: 0 → 15 (underflow)
-        clear_inputs();
-        down_en = 1'b1;
-        tick(); check("Down: 0 → 15 (underflow)", 4'd15, 1'b0, 1'b1);
+        wait_cycles(1);
+        check("00-1=FF (rollover)", 8'hFF);
 
-        // Underflow flag should clear on next cycle
-        tick(); check("After underflow, flag clears", 4'd14, 1'b0, 1'b0);
+        // ============================================================
+        // Test 7: Disable (enable = 0 holds count)
+        // ============================================================
+        $display("\n--- Test 7: Disable ---");
+        en <= 0;
+        wait_cycles(3);
+        check("hold while disabled", 8'hFF);
 
-        // =====================================================================
-        // Test 7: Priority test — load > up > down
-        // =====================================================================
-        $display("\n--- Test 7: Priority (load > up > down) ---");
-        // Load to known state
-        clear_inputs();
-        load_en   = 1'b1;
-        load_data = 4'd5;
-        tick(); check("Setup: Load 5", 4'd5, 1'b0, 1'b0);
-
-        // All enables active: load should win
-        load_en   = 1'b1;
-        load_data = 4'd12;
-        up_en     = 1'b1;
-        down_en   = 1'b1;
-        tick(); check("load+up+down: load wins", 4'd12, 1'b0, 1'b0);
-
-        // =====================================================================
-        // Test 8: Up/down simultaneous (up wins, no down)
-        // =====================================================================
-        $display("\n--- Test 8: Up+down → up wins ---");
-        clear_inputs();
-        // Load known value
-        load_en   = 1'b1;
-        load_data = 4'd8;
-        tick(); check("Setup: Load 8", 4'd8, 1'b0, 1'b0);
-
-        // Up and down both asserted: up should win
-        clear_inputs();
-        up_en   = 1'b1;
-        down_en = 1'b1;
-        tick(); check("Up+down: up wins (8→9)", 4'd9, 1'b0, 1'b0);
-
-        // =====================================================================
-        // Test 9: Hold — no enable, count should not change
-        // =====================================================================
-        $display("\n--- Test 9: Hold ---");
-        clear_inputs();
-        tick(); check("Hold: 9 → 9", 4'd9, 1'b0, 1'b0);
-        tick(); check("Hold: 9 → 9 (2nd cycle)", 4'd9, 1'b0, 1'b0);
-
-        // =====================================================================
+        // ============================================================
         // Summary
-        // =====================================================================
+        // ============================================================
         $display("\n========================================");
-        $display("  Simulation Complete");
-        $display("  PASS : %0d", pass_count);
-        $display("  FAIL : %0d", fail_count);
-        $display("  Total: %0d", pass_count + fail_count);
-        $display("========================================");
+        $display("  TEST SUMMARY: %0d PASSED, %0d FAILED", pass_count, fail_count);
+        $display("========================================\n");
 
         if (fail_count == 0)
-            $display("  *** ALL TESTS PASSED ***");
+            $display(">>> ALL TESTS PASSED <<<\n");
         else
-            $display("  *** SOME TESTS FAILED ***");
+            $display(">>> SOME TESTS FAILED <<<\n");
 
-        $display("========================================");
+        $finish;
+    end
+
+    // ── Timeout watchdog ────────────────────────────────────────
+    initial begin
+        #10000;
+        $display("[ERROR] Simulation timed out!");
         $finish;
     end
 
