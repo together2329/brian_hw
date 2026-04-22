@@ -1474,14 +1474,14 @@ class AgentTUI(App):
             log.write(RichText(""))
             self._in_result = False
         from rich.panel import Panel
-        start_line = log.line_count
+        start_line = len(log.lines)
         log.write(Panel(
             _LeftMarkdown(_fix_md(self._response_buf)),
             border_style=f"dim {_BORDER_DIM}",
             padding=(0, 1),
             expand=True,
         ))
-        self._response_history.append((start_line, log.line_count, self._response_buf))
+        self._response_history.append((start_line, len(log.lines), self._response_buf))
         self._last_response_text = self._response_buf  # ← save for copy
         self._response_buf = ""
         self._generating = False
