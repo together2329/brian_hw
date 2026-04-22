@@ -980,7 +980,6 @@ class AgentTUI(App):
 
     BINDINGS = [
         ("ctrl+q", "quit", "Quit"),
-        ("ctrl+y", "copy_last", "Copy last response"),
         ("escape", "stop", "Stop"),
     ]
 
@@ -1301,7 +1300,7 @@ class AgentTUI(App):
             text = raw
         self.copy_to_clipboard(text)
         _clipboard_copy(text)
-        self._update_statusbar("  ✓ Copied to clipboard  (Ctrl+Y)")
+        self._update_statusbar("  ✓ Copied to clipboard")
         self.set_timer(2.0, self._update_statusbar)
 
     @on(Click, "#main")
@@ -1451,7 +1450,7 @@ class AgentTUI(App):
             t.append("  ·  esc interrupt", style=_TEXT_FAINT)
             t.append("  ·  ctrl+j newline", style=_TEXT_FAINT)
             t.append("  ·  shift+insert paste", style=_TEXT_FAINT)
-            t.append("  ·  ctrl+y copy", style=_TEXT_FAINT)
+            t.append("  ·  click output copy", style=_TEXT_FAINT)
             t.append("  ·  ctrl+q quit", style=_TEXT_FAINT)
             if extra:
                 t.append(f"   {extra}", style=f"italic {_YELLOW}")
