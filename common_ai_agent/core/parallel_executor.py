@@ -41,13 +41,17 @@ PARALLEL_ELIGIBLE_TOOLS = frozenset({
 # ---------------------------------------------------------------------------
 
 def execute_batch_parallel(
-    batch_actions: List[Tuple[int, str, str]],
+    batch_actions: List[Tuple],
     *,
-    execute_tool_fn: Callable[[str, str], str],
+    execute_tool_fn: Callable,
     cfg: Any,
 ) -> List[Tuple[int, str, str, str]]:
     """
-    Execute a list of (idx, tool_name, args_str) in parallel using ThreadPoolExecutor.
+    Execute a list of (idx, tool_name, args_str[, kwargs_dict]) in parallel.
+
+    If a 4-tuple (idx, tool_name, args_str, kwargs_dict) is provided,
+    kwargs_dict is passed as pre_parsed_kwargs to execute_tool_fn to avoid
+    lossy JSON round-trips for native tool calls with complex content.
 
     Returns:
         List of (idx, tool_name, args_str, observation) sorted by idx.
@@ -59,11 +63,24 @@ def execute_batch_parallel(
     max_workers = min(len(batch_actions), max(1, getattr(cfg, "REACT_MAX_WORKERS", 4)))
     timeout = getattr(cfg, "REACT_ACTION_TIMEOUT", 30)
 
+    def _call(tool_name, args_str, kwargs_dict):
+        if kwargs_dict is not None:
+            try:
+                return execute_tool_fn(tool_name, args_str, pre_parsed_kwargs=kwargs_dict)
+            except TypeError:
+                pass  # execute_tool_fn doesn't support pre_parsed_kwargs — fall through
+        return execute_tool_fn(tool_name, args_str)
+
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_map = {
-            executor.submit(execute_tool_fn, tool_name, args_str): (idx, tool_name, args_str)
-            for idx, tool_name, args_str in batch_actions
-        }
+        future_map = {}
+        for entry in batch_actions:
+            if len(entry) == 4:
+                idx, tool_name, args_str, kwargs_dict = entry
+            else:
+                idx, tool_name, args_str = entry
+                kwargs_dict = None
+            future = executor.submit(_call, tool_name, args_str, kwargs_dict)
+            future_map[future] = (idx, tool_name, args_str)
 
         done, not_done = wait(future_map.keys(), timeout=timeout)
 
@@ -124,16 +141,34 @@ def execute_actions_parallel(
 
     results: List[Tuple[int, str, str, str]] = []
 
-    for action in actions:
-        tool_name = action[0]
+    # Separate kwargs_dict (4th element) from the 3-tuple used by dependency analyzer.
+    # kwargs_map: idx → kwargs_dict for native pre-parsed kwargs pass-through.
+    _kwargs_map: dict = {}
+    _indexed_actions = []  # (idx, tool_name, args_str) — always 3-tuple
+    for entry in actions:
+        if len(entry) == 4:
+            idx, tool_name, args_str, kw = entry
+            _kwargs_map[idx] = kw
+        else:
+            idx, tool_name, args_str = entry[:3]
+        _indexed_actions.append((idx, tool_name, args_str))
         tracker.record_tool(tool_name)
+
+    def _exec(tool_name, args_str, idx):
+        kw = _kwargs_map.get(idx)
+        if kw is not None:
+            try:
+                return execute_tool_fn(tool_name, args_str, pre_parsed_kwargs=kw)
+            except TypeError:
+                pass
+        return execute_tool_fn(tool_name, args_str)
 
     use_enhanced = getattr(cfg, "ENABLE_ENHANCED_PARALLEL", True)
 
     if use_enhanced:
         # === Enhanced Mode: ActionDependencyAnalyzer ===
         analyzer = ActionDependencyAnalyzer()
-        batches = analyzer.analyze(actions)
+        batches = analyzer.analyze(_indexed_actions)
 
         detector = FileConflictDetector()
         all_indexed_actions = []
@@ -149,7 +184,7 @@ def execute_actions_parallel(
                 # todo_update/todo_write must never run in parallel — execute only the first action
                 if any(tool_name in SERIAL_ONLY_TOOLS for _, tool_name, _ in batch.actions):
                     first_idx, first_tool, first_args = batch.actions[0]
-                    observation = execute_tool_fn(first_tool, first_args)
+                    observation = _exec(first_tool, first_args, first_idx)
                     results.append((first_idx, first_tool, first_args, observation))
                     for idx, tool_name, args_str in batch.actions[1:]:
                         results.append((idx, tool_name, args_str,
@@ -164,7 +199,9 @@ def execute_actions_parallel(
                         observation = f"[Plan Mode] '{tool_name}' is blocked. Only read/search tools are available."
                         results.append((idx, tool_name, args_str, observation))
                     else:
-                        allowed_actions.append((idx, tool_name, args_str))
+                        # Re-attach kwargs_dict as 4th element for execute_batch_parallel
+                        kw = _kwargs_map.get(idx)
+                        allowed_actions.append((idx, tool_name, args_str, kw) if kw is not None else (idx, tool_name, args_str))
 
                 if allowed_actions:
                     if getattr(cfg, "DEBUG_MODE", False):
@@ -181,7 +218,7 @@ def execute_actions_parallel(
                     if is_any_plan and tool_name in getattr(cfg, "PLAN_MODE_BLOCKED_TOOLS", set()):
                         observation = f"[Plan Mode] '{tool_name}' is blocked. Only read/search tools are available."
                     else:
-                        observation = execute_tool_fn(tool_name, args_str)
+                        observation = _exec(tool_name, args_str, idx)
                     results.append((idx, tool_name, args_str, observation))
 
     else:
@@ -218,11 +255,8 @@ def execute_actions_parallel(
             results.extend(batch_results)
             parallel_batch = []
 
-        for idx, action_tuple in enumerate(actions):
-            if len(action_tuple) == 3:
-                tool_name, args_str, hint = action_tuple
-            else:
-                tool_name, args_str = action_tuple
+        for entry in _indexed_actions:
+            idx, tool_name, args_str = entry
 
             # Mode-based tool blocking (legacy path)
             is_any_plan = agent_mode in ("plan", "plan_q")
@@ -240,7 +274,7 @@ def execute_actions_parallel(
                 continue
 
             flush_parallel()
-            observation = execute_tool_fn(tool_name, args_str)
+            observation = _exec(tool_name, args_str, idx)
             results.append((idx, tool_name, args_str, observation))
 
         flush_parallel()

@@ -1025,11 +1025,13 @@ def run_react_agent_impl(
                     if _use_native and _orig_i < len(_native_calls):
                         _action_idx_to_call_id[_orig_i] = _native_calls[_orig_i]["id"]
                     if isinstance(_a, dict):
-                        # Pass kwargs as JSON string to avoid lossy round-trip for simple tools,
-                        # but keep the dict form for write_file/replace_in_file to prevent
-                        # content corruption on backslashes/quotes.
-                        _a = _json.dumps(_a, ensure_ascii=False)
-                    _parallel_actions.append((_t, _a, _h) if _h else (_t, _a))
+                        # Pass native kwargs dict as 4th element so executor can use
+                        # pre_parsed_kwargs — avoids lossy JSON string round-trip for
+                        # write_file/replace_in_file content with backslashes/quotes.
+                        _a_str = _json.dumps(_a, ensure_ascii=False)
+                        _parallel_actions.append((_orig_i, _t, _a_str, _a))
+                    else:
+                        _parallel_actions.append((_orig_i, _t, _a if _a else ""))
                 action_results = deps.execute_parallel_fn(_parallel_actions, tracker, agent_mode=agent_mode)
                 for idx, tool_name, args_str, observation in action_results:
                     summary = _extract_tool_args_summary(tool_name, args_str)
