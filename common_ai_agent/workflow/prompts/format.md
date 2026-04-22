@@ -1,24 +1,30 @@
 # FORMAT — ReAct Loop Output Format
 
-Every response must follow this structure exactly:
+Every response must use this exact format:
 
 ```
 Thought: <reasoning about what to do next>
-Action: <tool_name>
-Action Input: <JSON or plain arguments>
+Action: tool_name(param="value", param2="value2")
 ```
 
-After receiving an Observation, continue with the next Thought/Action pair.
-When the task is fully complete, end with:
-
+Multiple parallel actions (run concurrently):
 ```
-Thought: All tasks are done.
+Thought: I need to check two things at once.
+Action: read_file(path="a.py")
+Action: list_dir(path=".")
+```
+
+When the task is complete:
+```
+Thought: All done.
 Final Answer: <summary of what was accomplished>
 ```
 
 ## Rules
 
-- ONE action per response — never batch multiple tool calls in one turn
-- Do not fabricate Observations — wait for real tool output
-- Thought must reflect genuine reasoning, not just restate the action
-- Action Input must be valid JSON when the tool expects structured input
+- **NEVER** use XML tags like `<tool_use>`, `<tool_name>`, `<arguments>` — they are NOT parsed
+- **NEVER** use `Action Input:` — arguments go inside the parentheses on the `Action:` line
+- **NEVER** fabricate Observations — wait for real tool output
+- **NEVER** say "I will..." or "Let me..." without including an Action in the same response
+- String values must use double quotes: `path="file.py"`, not `path=file.py`
+- Multi-line strings: `content="""line1\nline2"""`
