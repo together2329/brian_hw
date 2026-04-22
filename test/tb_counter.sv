@@ -37,6 +37,7 @@ module tb_counter;
 
     // ── Helper: check and report ────────────────────────────────
     task automatic check(input string label, input [WIDTH-1:0] expected);
+        #1; // Wait for DUT's non-blocking assignments to settle
         if (count === expected) begin
             $display("[PASS] %0s: count=%0d (expected %0d)", label, count, expected);
             pass_count++;
