@@ -1337,6 +1337,8 @@ class AgentTUI(App):
         toast.styles.offset = (4, event.y - 1)
         toast.add_class("visible")
         self.set_timer(0.7, lambda: toast.remove_class("visible"))
+        # Return focus to input
+        self.query_one(_AgentInput).focus()
 
     def _on_agent_idle(self) -> None:
         """Called from InputBridge.get_input() when agent thread is back at prompt."""
