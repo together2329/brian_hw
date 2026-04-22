@@ -175,6 +175,18 @@ def dispatch_tool(
         else:
             parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
 
+        # Auto-fix: read_file / read_lines — map positional args to kwargs
+        if tool_name == "read_file" and parsed_args and "path" not in parsed_kwargs:
+            parsed_kwargs["path"] = parsed_args[0]
+            parsed_args = list(parsed_args[1:])
+
+        if tool_name == "read_lines" and parsed_args:
+            param_map = ["path", "start_line", "end_line"]
+            for i, val in enumerate(parsed_args):
+                if i < len(param_map) and param_map[i] not in parsed_kwargs:
+                    parsed_kwargs[param_map[i]] = val
+            parsed_args = []
+
         # Auto-fix: grep_file(path, ...) — LLM swapped pattern and path
         if tool_name == "grep_file" and parsed_args:
             first = parsed_args[0]
@@ -329,19 +341,27 @@ def dispatch_tool(
                     "Please retry with the actual file content."
                 )
 
-        # ── read_file / read_lines: missing path guard ───────────────────
-        if tool_name in ("read_file", "read_lines") and "path" not in parsed_kwargs and not parsed_args:
+        # ── read_file / read_lines: regex fallback if parser missed args ─
+        if tool_name in ("read_file", "read_lines") and "path" not in parsed_kwargs:
+            import re as _re
+            # Try unquoted path: path=some/file.sv
+            _pm = _re.search(r'path\s*=\s*(["\']?)([^\s,)]+)\1', args_str)
+            if _pm:
+                parsed_kwargs["path"] = _pm.group(2)
+            if tool_name == "read_lines" and "start_line" not in parsed_kwargs:
+                _sm = _re.search(r'start_line\s*=\s*(\d+)', args_str)
+                _em = _re.search(r'end_line\s*=\s*(\d+)', args_str)
+                if _sm:
+                    parsed_kwargs["start_line"] = int(_sm.group(1))
+                if _em:
+                    parsed_kwargs["end_line"] = int(_em.group(1))
+        # Final missing-arg error with usage hint
+        if tool_name in ("read_file", "read_lines") and "path" not in parsed_kwargs:
             return (
                 f"Error: {tool_name}() requires a 'path' argument.\n"
-                f"The tool call had no arguments. Use the format:\n"
-                f"  Action: {tool_name}(path=\"path/to/file.sv\")\n"
-                "Please retry with the actual file path."
-            )
-        if tool_name == "read_lines" and "path" not in parsed_kwargs and not parsed_args:
-            return (
-                "Error: read_lines() requires 'path' and 'start_line' arguments.\n"
-                "  Action: read_lines(path=\"file.sv\", start_line=10, end_line=50)\n"
-                "Please retry with the actual arguments."
+                f"  Usage: {tool_name}(path=\"path/to/file.sv\"" +
+                (", start_line=10, end_line=50" if tool_name == "read_lines" else "") +
+                ")\nPlease retry with the actual file path."
             )
 
         # Final safety net: detect positional args that would collide with kwargs.
