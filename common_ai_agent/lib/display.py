@@ -672,19 +672,47 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                     _R = Color.RESET
                     _L = "\033[2;32m"
                     _B = "\033[1;32m"   # bold green for reason
+                    import textwrap as _tw
+                    _W = 72  # wrap width
+                    _IND = "   "  # base indent (3 spaces)
+                    _LABEL_W = 10
                     lines = [f"{_G}✅ approved{_R}"]
                     if approved_reason:
-                        lines.append(f"   {_B}↳{_R} {approved_reason}")
+                        _wrapped = _tw.fill(
+                            approved_reason,
+                            width=_W,
+                            initial_indent=f"{_IND}{_B}↳{_R} ",
+                            subsequent_indent=f"{_IND}  ",
+                        )
+                        lines.append(_wrapped)
                     if todo_item.content:
-                        lines.append(f"   {_L}{'todo:':<10}{_R}{todo_item.content}")
+                        _wrapped = _tw.fill(
+                            todo_item.content,
+                            width=_W,
+                            initial_indent=f"{_IND}{_L}{'todo:':<{_LABEL_W}}{_R}",
+                            subsequent_indent=f"{_IND}{' ' * _LABEL_W}",
+                        )
+                        lines.append(_wrapped)
                     if todo_item.detail:
-                        lines.append(f"   {_L}{'detail:':<10}{_R}{_D}{todo_item.detail}{_R}")
+                        _wrapped = _tw.fill(
+                            todo_item.detail,
+                            width=_W,
+                            initial_indent=f"{_IND}{_L}{'detail:':<{_LABEL_W}}{_R}{_D}",
+                            subsequent_indent=f"{_IND}{' ' * _LABEL_W}",
+                        )
+                        lines.append(_wrapped + _R)
                     if todo_item.criteria:
                         clines = [c.strip() for c in todo_item.criteria.strip().splitlines() if c.strip()]
                         if clines:
-                            lines.append(f"   {_L}{'criteria:':<10}{_R}")
+                            lines.append(f"{_IND}{_L}{'criteria:':<{_LABEL_W}}{_R}")
                             for cl in clines:
-                                lines.append(f"     {_D}• {cl}{_R}")
+                                _wrapped = _tw.fill(
+                                    cl,
+                                    width=_W,
+                                    initial_indent=f"{_IND}  {_D}• ",
+                                    subsequent_indent=f"{_IND}    ",
+                                )
+                                lines.append(_wrapped + _R)
                     lines.append("")
                     return "\n".join(lines)
                 if approved_reason:
@@ -721,19 +749,47 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                 _L = "\033[2;31m"
                 _B = "\033[1;31m"   # bold red for reason
                 if todo_item:
+                    import textwrap as _tw
+                    _W = 72
+                    _IND = "   "
+                    _LABEL_W = 10
                     lines = [f"{_RD}❌ rejected{_R}"]
                     if rejected_reason:
-                        lines.append(f"   {_B}↳{_R} {rejected_reason}")
+                        _wrapped = _tw.fill(
+                            rejected_reason,
+                            width=_W,
+                            initial_indent=f"{_IND}{_B}↳{_R} ",
+                            subsequent_indent=f"{_IND}  ",
+                        )
+                        lines.append(_wrapped)
                     if todo_item.content:
-                        lines.append(f"   {_L}{'todo:':<10}{_R}{todo_item.content}")
+                        _wrapped = _tw.fill(
+                            todo_item.content,
+                            width=_W,
+                            initial_indent=f"{_IND}{_L}{'todo:':<{_LABEL_W}}{_R}",
+                            subsequent_indent=f"{_IND}{' ' * _LABEL_W}",
+                        )
+                        lines.append(_wrapped)
                     if todo_item.detail:
-                        lines.append(f"   {_L}{'detail:':<10}{_R}{_D}{todo_item.detail}{_R}")
+                        _wrapped = _tw.fill(
+                            todo_item.detail,
+                            width=_W,
+                            initial_indent=f"{_IND}{_L}{'detail:':<{_LABEL_W}}{_R}{_D}",
+                            subsequent_indent=f"{_IND}{' ' * _LABEL_W}",
+                        )
+                        lines.append(_wrapped + _R)
                     if todo_item.criteria:
                         clines = [c.strip() for c in todo_item.criteria.strip().splitlines() if c.strip()]
                         if clines:
-                            lines.append(f"   {_L}{'criteria:':<10}{_R}")
+                            lines.append(f"{_IND}{_L}{'criteria:':<{_LABEL_W}}{_R}")
                             for cl in clines:
-                                lines.append(f"     {_D}• {cl}{_R}")
+                                _wrapped = _tw.fill(
+                                    cl,
+                                    width=_W,
+                                    initial_indent=f"{_IND}  {_D}• ",
+                                    subsequent_indent=f"{_IND}    ",
+                                )
+                                lines.append(_wrapped + _R)
                     lines.append("")
                     return "\n".join(lines)
                 return header
