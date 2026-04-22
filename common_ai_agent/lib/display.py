@@ -647,22 +647,31 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
             if first.startswith("✅") and "approved" in first.split("\n")[0].lower():
                 # Extract task index from args_str (native JSON or text form)
                 idx_m = re.search(r'"?index"?\s*[:=]\s*(\d+)', args_str or "")
+                # fallback: parse from observation text "Task N approved"
+                if not idx_m:
+                    idx_m = re.search(r'[Tt]ask\s+(\d+)', observation)
                 todo_item = None
-                if idx_m:
-                    try:
-                        import sys as _sys
-                        _main = _sys.modules.get('main')
-                        _tracker = getattr(_main, 'todo_tracker', None)
-                        if _tracker is None:
-                            from lib.todo_tracker import TodoTracker
-                            import config as _cfg
-                            from pathlib import Path as _Path
-                            _tracker = TodoTracker.load(_Path(_cfg.TODO_FILE))
+                try:
+                    import sys as _sys
+                    _main = _sys.modules.get('main')
+                    _tracker = getattr(_main, 'todo_tracker', None)
+                    if _tracker is None:
+                        from lib.todo_tracker import TodoTracker
+                        import config as _cfg
+                        from pathlib import Path as _Path
+                        _tracker = TodoTracker.load(_Path(_cfg.TODO_FILE))
+                    if idx_m:
                         _idx = int(idx_m.group(1)) - 1  # convert 1-based to 0-based
                         if 0 <= _idx < len(_tracker.todos):
                             todo_item = _tracker.todos[_idx]
-                    except Exception:
-                        pass
+                    # last resort: find the most recently approved/in_progress task
+                    if todo_item is None and _tracker:
+                        for _t in _tracker.todos:
+                            if getattr(_t, 'status', '') in ('approved', 'in_progress'):
+                                todo_item = _t
+                                break
+                except Exception:
+                    pass
                 # Extract reason from "✅ Task N approved. [reason]" format
                 bracket_m = re.search(r'approved\.\s*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
                 approved_reason = bracket_m.group(1).strip() if bracket_m else ""
@@ -725,22 +734,29 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
             if first.startswith("❌"):
                 # Extract task index and rejection reason, same as approved
                 idx_m = re.search(r'"?index"?\s*[:=]\s*(\d+)', args_str or "")
+                if not idx_m:
+                    idx_m = re.search(r'[Tt]ask\s+(\d+)', observation)
                 todo_item = None
-                if idx_m:
-                    try:
-                        import sys as _sys
-                        _main = _sys.modules.get('main')
-                        _tracker = getattr(_main, 'todo_tracker', None)
-                        if _tracker is None:
-                            from lib.todo_tracker import TodoTracker
-                            import config as _cfg
-                            from pathlib import Path as _Path
-                            _tracker = TodoTracker.load(_Path(_cfg.TODO_FILE))
+                try:
+                    import sys as _sys
+                    _main = _sys.modules.get('main')
+                    _tracker = getattr(_main, 'todo_tracker', None)
+                    if _tracker is None:
+                        from lib.todo_tracker import TodoTracker
+                        import config as _cfg
+                        from pathlib import Path as _Path
+                        _tracker = TodoTracker.load(_Path(_cfg.TODO_FILE))
+                    if idx_m:
                         _idx = int(idx_m.group(1)) - 1
                         if 0 <= _idx < len(_tracker.todos):
                             todo_item = _tracker.todos[_idx]
-                    except Exception:
-                        pass
+                    if todo_item is None and _tracker:
+                        for _t in _tracker.todos:
+                            if getattr(_t, 'status', '') in ('rejected', 'in_progress'):
+                                todo_item = _t
+                                break
+                except Exception:
+                    pass
                 bracket_m = re.search(r'rejected\.\s*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
                 if not bracket_m:
                     bracket_m = re.search(r'❌[^[]*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
