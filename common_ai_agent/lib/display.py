@@ -656,23 +656,45 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                 todo_item = None
                 try:
                     import sys as _sys
-                    _main = _sys.modules.get('main')
+                    _main = _sys.modules.get('__main__') or _sys.modules.get('main')
                     _tracker = getattr(_main, 'todo_tracker', None)
                     if _tracker is None:
                         from lib.todo_tracker import TodoTracker
-                        import config as _cfg
                         from pathlib import Path as _Path
-                        _tracker = TodoTracker.load(_Path(_cfg.TODO_FILE))
-                    if idx_m:
+                        # try multiple config import paths
+                        _todo_file = None
+                        for _mod_name in ('config', 'src.config'):
+                            _cfg_mod = _sys.modules.get(_mod_name)
+                            if _cfg_mod and hasattr(_cfg_mod, 'TODO_FILE'):
+                                _todo_file = getattr(_cfg_mod, 'TODO_FILE')
+                                break
+                        if _todo_file is None:
+                            import importlib as _il
+                            for _mod_name in ('config', 'src.config'):
+                                try:
+                                    _cfg_mod = _il.import_module(_mod_name)
+                                    _todo_file = getattr(_cfg_mod, 'TODO_FILE', None)
+                                    if _todo_file:
+                                        break
+                                except Exception:
+                                    pass
+                        if _todo_file:
+                            _tracker = TodoTracker.load(_Path(_todo_file))
+                    if _tracker and idx_m:
                         _idx = int(idx_m.group(1)) - 1  # convert 1-based to 0-based
                         if 0 <= _idx < len(_tracker.todos):
                             todo_item = _tracker.todos[_idx]
-                    # last resort: find the most recently approved/in_progress task
+                    # last resort: find the most recently approved task (last in list)
                     if todo_item is None and _tracker:
-                        for _t in _tracker.todos:
-                            if getattr(_t, 'status', '') in ('approved', 'in_progress'):
+                        for _t in reversed(_tracker.todos):
+                            if getattr(_t, 'status', '') == 'approved':
                                 todo_item = _t
                                 break
+                        if todo_item is None:
+                            for _t in _tracker.todos:
+                                if getattr(_t, 'status', '') == 'in_progress':
+                                    todo_item = _t
+                                    break
                 except Exception:
                     pass
                 # Extract reason from "✅ Task N approved. [reason]" format
@@ -742,22 +764,44 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                 todo_item = None
                 try:
                     import sys as _sys
-                    _main = _sys.modules.get('main')
+                    _main = _sys.modules.get('__main__') or _sys.modules.get('main')
                     _tracker = getattr(_main, 'todo_tracker', None)
                     if _tracker is None:
                         from lib.todo_tracker import TodoTracker
-                        import config as _cfg
                         from pathlib import Path as _Path
-                        _tracker = TodoTracker.load(_Path(_cfg.TODO_FILE))
-                    if idx_m:
+                        _todo_file = None
+                        for _mod_name in ('config', 'src.config'):
+                            _cfg_mod = _sys.modules.get(_mod_name)
+                            if _cfg_mod and hasattr(_cfg_mod, 'TODO_FILE'):
+                                _todo_file = getattr(_cfg_mod, 'TODO_FILE')
+                                break
+                        if _todo_file is None:
+                            import importlib as _il
+                            for _mod_name in ('config', 'src.config'):
+                                try:
+                                    _cfg_mod = _il.import_module(_mod_name)
+                                    _todo_file = getattr(_cfg_mod, 'TODO_FILE', None)
+                                    if _todo_file:
+                                        break
+                                except Exception:
+                                    pass
+                        if _todo_file:
+                            _tracker = TodoTracker.load(_Path(_todo_file))
+                    if _tracker and idx_m:
                         _idx = int(idx_m.group(1)) - 1
                         if 0 <= _idx < len(_tracker.todos):
                             todo_item = _tracker.todos[_idx]
+                    # last resort: most recently rejected task (last in list)
                     if todo_item is None and _tracker:
-                        for _t in _tracker.todos:
-                            if getattr(_t, 'status', '') in ('rejected', 'in_progress'):
+                        for _t in reversed(_tracker.todos):
+                            if getattr(_t, 'status', '') == 'rejected':
                                 todo_item = _t
                                 break
+                        if todo_item is None:
+                            for _t in _tracker.todos:
+                                if getattr(_t, 'status', '') == 'in_progress':
+                                    todo_item = _t
+                                    break
                 except Exception:
                     pass
                 bracket_m = re.search(r'rejected\.\s*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
