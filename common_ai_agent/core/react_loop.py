@@ -1015,12 +1015,20 @@ def run_react_agent_impl(
 
                 # Normalize native dict kwargs to string for parallel executor
                 # (parallel executor passes args_str to execute_tool_fn)
+                # Also build an index_to_call_id map for native mode so results are
+                # matched by their original position, not completion order.
                 import json as _json
                 _parallel_actions = []
-                for a in actions:
+                _action_idx_to_call_id: dict = {}  # original_index → native call_id
+                for _orig_i, a in enumerate(actions):
                     _t, _a, _h = a if len(a) == 3 else (*a, None)
+                    if _use_native and _orig_i < len(_native_calls):
+                        _action_idx_to_call_id[_orig_i] = _native_calls[_orig_i]["id"]
                     if isinstance(_a, dict):
-                        _a = ", ".join(f'{k}={_json.dumps(v, ensure_ascii=False)}' for k, v in _a.items())
+                        # Pass kwargs as JSON string to avoid lossy round-trip for simple tools,
+                        # but keep the dict form for write_file/replace_in_file to prevent
+                        # content corruption on backslashes/quotes.
+                        _a = _json.dumps(_a, ensure_ascii=False)
                     _parallel_actions.append((_t, _a, _h) if _h else (_t, _a))
                 action_results = deps.execute_parallel_fn(_parallel_actions, tracker, agent_mode=agent_mode)
                 for idx, tool_name, args_str, observation in action_results:
@@ -1062,9 +1070,9 @@ def run_react_agent_impl(
                             pass
 
                     combined_results.append(f"--- [Action {idx+1}] {tool_name} ---\n{observation}")
-                    # Native mode: map result back to its tool_call_id using original action index
-                    if _use_native and idx < len(_native_calls):
-                        _native_obs_pairs.append((_native_calls[idx]["id"], observation))
+                    # Native mode: map result to call_id using ORIGINAL index (not completion order)
+                    if _use_native and idx in _action_idx_to_call_id:
+                        _native_obs_pairs.append((_action_idx_to_call_id[idx], observation))
             else:
                 for i, action_tuple in enumerate(actions):
                     if _esc_check():

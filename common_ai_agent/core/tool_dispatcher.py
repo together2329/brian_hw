@@ -173,7 +173,21 @@ def dispatch_tool(
                     for k, v in parsed_kwargs.items()
                 )
         else:
-            parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
+            # Fast path: if args_str is a JSON object (native tool call passed as string),
+            # parse it directly to avoid lossy round-trip through parse_tool_arguments.
+            _stripped = args_str.strip() if args_str else ""
+            if _stripped.startswith("{") and _stripped.endswith("}"):
+                try:
+                    import json as _json
+                    _j = _json.loads(_stripped)
+                    if isinstance(_j, dict):
+                        parsed_args, parsed_kwargs = [], _j
+                    else:
+                        parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
+                except Exception:
+                    parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
+            else:
+                parsed_args, parsed_kwargs = parse_tool_arguments(args_str)
 
         # Auto-fix: find_files — map positional args to kwargs
         if tool_name == "find_files" and parsed_args:

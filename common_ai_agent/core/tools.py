@@ -2244,7 +2244,21 @@ def todo_write(todos=None, tasks=None):
         return "Error: 'todos' parameter is required and must be a non-empty list"
 
     if not isinstance(todos, list):
-        return f"Error: 'todos' must be a list, got {type(todos).__name__}"
+        # Try to recover: JSON string passed instead of list
+        if isinstance(todos, str):
+            try:
+                import json as _json
+                _parsed = _json.loads(todos)
+                if isinstance(_parsed, list):
+                    todos = _parsed
+                elif isinstance(_parsed, dict) and "todos" in _parsed:
+                    todos = _parsed["todos"]
+                else:
+                    return f"Error: 'todos' must be a list, got str. Usage: todo_write(todos=[{{\"content\": \"...\"}}, ...])"
+            except Exception:
+                return f"Error: 'todos' must be a list, got str. Usage: todo_write(todos=[{{\"content\": \"...\"}}, ...])"
+        else:
+            return f"Error: 'todos' must be a list, got {type(todos).__name__}"
 
     # Auto-convert string items to dict format
     from lib.todo_tracker import _generate_active_form
