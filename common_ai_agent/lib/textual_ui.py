@@ -2129,7 +2129,7 @@ class AgentTUI(App):
             self._in_parallel = True
             log.write(RichText(""))
             t = RichText()
-            t.append(f"⚡ {m_parallel.group(1)}", style=f"bold {_ORANGE}")
+            t.append(f"⚡ {m_parallel.group(1)}", style=f"bold {_YELLOW}")
             log.write(t)
             return
 
@@ -2164,8 +2164,8 @@ class AgentTUI(App):
             if not self._in_parallel:
                 log.write(RichText(""))
             t = RichText()
-            t.append(f"  {tool_name}", style=f"bold {_ORANGE}")
-            t.append(f"({args_part}", style=f"dim {_ORANGE}")
+            t.append(f"  {tool_name}", style=f"bold {_YELLOW}")
+            t.append(f"({args_part}", style=f"dim {_YELLOW}")
             log.write(t)
             return
 
