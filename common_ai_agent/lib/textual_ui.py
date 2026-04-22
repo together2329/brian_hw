@@ -2161,7 +2161,7 @@ class AgentTUI(App):
             if not self._in_parallel:
                 log.write(RichText(""))
             t = RichText()
-            t.append(f"{tool_name}", style=f"bold {_ORANGE}")
+            t.append(f"  {tool_name}", style=f"bold {_ORANGE}")
             t.append(f"({args_part}", style=f"dim {_ORANGE}")
             log.write(t)
             return
