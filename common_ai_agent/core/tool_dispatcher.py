@@ -206,16 +206,30 @@ def dispatch_tool(
         if parsed_args:
             try:
                 sig = inspect.signature(func)
-                param_names = list(sig.parameters.keys())
-                # Remove positional args that are already in kwargs
-                fixed_positional = []
-                for i, val in enumerate(parsed_args):
-                    name = param_names[i] if i < len(param_names) else None
-                    if name and name in parsed_kwargs:
-                        pass  # skip — kwargs already has this
-                    else:
-                        fixed_positional.append(val)
-                parsed_args = fixed_positional
+                param_names = [
+                    n for n, p in sig.parameters.items()
+                    if p.kind in (
+                        inspect.Parameter.POSITIONAL_ONLY,
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    )
+                ]
+                # Universal recovery: if ALL args are positional and NO kwargs,
+                # map positional args → param names so every tool benefits.
+                if parsed_args and not parsed_kwargs:
+                    for i, val in enumerate(parsed_args):
+                        if i < len(param_names) and param_names[i] not in parsed_kwargs:
+                            parsed_kwargs[param_names[i]] = val
+                    parsed_args = []
+                else:
+                    # Remove positional args that are already in kwargs
+                    fixed_positional = []
+                    for i, val in enumerate(parsed_args):
+                        name = param_names[i] if i < len(param_names) else None
+                        if name and name in parsed_kwargs:
+                            pass  # skip — kwargs already has this
+                        else:
+                            fixed_positional.append(val)
+                    parsed_args = fixed_positional
 
                 # Truncate excess positional args that exceed function parameters
                 # (prevents "takes N positional arguments but M were given" errors)
