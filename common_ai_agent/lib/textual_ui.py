@@ -22,7 +22,7 @@ from textual.message import Message
 from textual.widgets import Input, OptionList, RichLog, Static, TextArea
 from textual.widgets._option_list import Option as _Option
 from textual.suggester import Suggester
-from textual.events import Key
+from textual.events import Key, Click
 from textual import work
 
 _ANSI   = re.compile(r"\x1b\[[0-9;]*[mK]")
@@ -1291,7 +1291,7 @@ class AgentTUI(App):
         self._update_statusbar("  ✓ Copied to clipboard  (Ctrl+Y)")
         self.set_timer(2.0, self._update_statusbar)
 
-    def on_rich_log_click(self, event: RichLog.Click) -> None:
+    def on_main_click(self, event: Click) -> None:
         """Click on output area → copy last response + brief green flash."""
         self.action_copy_last()
         output = self.query_one("#main", RichLog)
