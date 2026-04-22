@@ -773,6 +773,9 @@ class AgentTUI(App):
         padding: 0 2 2 2;
         overflow-y: hidden;
     }}
+    #main.copied-flash {{
+        border: tall $success;
+    }}
 
     /* ── Sidebar ── */
     #sidebar {{
@@ -1287,6 +1290,13 @@ class AgentTUI(App):
         _clipboard_copy(text)
         self._update_statusbar("  ✓ Copied to clipboard  (Ctrl+Y)")
         self.set_timer(2.0, self._update_statusbar)
+
+    def on_rich_log_click(self, event: RichLog.Click) -> None:
+        """Click on output area → copy last response + brief green flash."""
+        self.action_copy_last()
+        output = self.query_one("#main", RichLog)
+        output.add_class("copied-flash")
+        self.set_timer(0.4, lambda: output.remove_class("copied-flash"))
 
     def _on_agent_idle(self) -> None:
         """Called from InputBridge.get_input() when agent thread is back at prompt."""
