@@ -256,7 +256,7 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "Update the status (and optionally content/detail) of a single task by its index.\n"
             "index is 1-BASED — the first task is index=1, NOT 0.\n"
             "Typical flow: set in_progress when starting → completed when done → approved/rejected after verification.\n"
-            "REQUIRED when status='approved' or 'rejected': supply 'reason' describing what was checked.\n"
+            "REQUIRED when status='approved' or 'rejected': 'reason' is mandatory and must be ≥15 chars — the call returns an error otherwise.\n"
             "Examples:\n"
             "  todo_update(index=1, status='in_progress')\n"
             "  todo_update(index=1, status='completed')\n"
@@ -270,7 +270,7 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
                 "enum": ["pending", "in_progress", "completed", "approved", "rejected"],
                 "description": "New status for the task",
             },
-            "reason": {"type": "string", "description": "REQUIRED when status is 'approved' or 'rejected'. Describe what you verified (e.g. 'read output — correct, tests passed')."},
+            "reason": {"type": "string", "description": "REQUIRED when status is 'approved' or 'rejected' — call will be rejected with an error if omitted or too short (<15 chars). For 'approved': what you verified (e.g. 'ran pytest — 12/12 passed, output matches spec'). For 'rejected': exact problem and what must change (e.g. 'output.md missing Phase 5 section; regenerate with NVIC details'). Vague values like 'wrong', 'bad', 'failed' are also rejected."},
             "content": {"type": "string", "description": "Optional: update task content"},
             "detail": {"type": "string", "description": "Optional: update task detail"},
         },

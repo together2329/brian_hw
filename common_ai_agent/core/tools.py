@@ -2554,12 +2554,28 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             return review_steps
         elif status == "rejected":
             _reason_stripped = (reason or "").strip()
+            if not _reason_stripped:
+                return (
+                    f"Error: 'reason' is REQUIRED when rejecting Task {index}.\n"
+                    f"You cannot reject without explaining what failed.\n"
+                    f"Describe the exact problem and what must be fixed, e.g.:\n"
+                    f"  'output.md missing Phase 5 interrupt section; regenerate with NVIC details'\n"
+                    f"→ todo_update(index={index}, status='rejected', reason='<exact problem and fix needed>')"
+                )
             if len(_reason_stripped) < 15:
                 return (
-                    f"Error: You MUST provide a concrete 'reason' (≥15 chars) when rejecting Task {index}.\n"
-                    f"Describe the exact problem and what needs to change — e.g. "
-                    f"'output.md missing Phase 5 interrupt section; regenerate with NVIC details'.\n"
+                    f"Error: Rejection reason too vague for Task {index} (got: '{_reason_stripped}').\n"
+                    f"Describe the exact problem and what must change — at least 15 characters.\n"
                     f"→ todo_update(index={index}, status='rejected', reason='<exact problem>')"
+                )
+            _low = _reason_stripped.lower()
+            _rej_banned = {"bad", "wrong", "fail", "failed", "error", "broken",
+                           "no", "nope", "not ok", "not good", "not done", "incomplete"}
+            if _low in _rej_banned:
+                return (
+                    f"Error: '{reason}' is not a useful rejection reason for Task {index}.\n"
+                    f"Specify WHAT is wrong and WHAT needs to change.\n"
+                    f"→ todo_update(index={index}, status='rejected', reason='<specific problem and required fix>')"
                 )
             todo_tracker.mark_rejected(idx, _reason_stripped)  # internally calls save()
             return (
