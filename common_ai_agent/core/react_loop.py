@@ -1082,7 +1082,12 @@ def run_react_agent_impl(
                             if tool_name in ('read_file', 'read_lines'):
                                 import re as _re4
                                 _fp2 = _re4.search(r'path\s*=\s*"([^"]+)"', args_str or "") or _re4.search(r"path\s*=\s*'([^']+)'", args_str or "") or _re4.search(r'path\s*=\s*([^\s,)]+)', args_str or "")
-                                print(format_read_preview(_fp2.group(1) if _fp2 else "", observation, max_lines=int(getattr(_c2, 'DISPLAY_READ_MAX_LINES', 10))))
+                                _fp2_path = _fp2.group(1) if _fp2 else ""
+                                if not _fp2_path:
+                                    _obs_hdr = _re4.search(r'Lines\s+\d+-\d+\s+of\s+(\S+)', observation or "")
+                                    if _obs_hdr:
+                                        _fp2_path = _obs_hdr.group(1)
+                                print(format_read_preview(_fp2_path, observation, max_lines=int(getattr(_c2, 'DISPLAY_READ_MAX_LINES', 10))))
                             elif tool_name == 'grep_file':
                                 print(format_grep_preview(observation, max_lines=int(getattr(_c2, 'DISPLAY_GREP_MAX_LINES', 15))))
                             else:
@@ -1287,7 +1292,12 @@ def run_react_agent_impl(
                             if tool_name in ('read_file', 'read_lines'):
                                 import re as _re3
                                 _fp = _re3.search(r'path\s*=\s*"([^"]+)"', _args_display or "") or _re3.search(r"path\s*=\s*'([^']+)'", _args_display or "") or _re3.search(r'path\s*=\s*([^\s,)]+)', _args_display or "")
-                                print(format_read_preview(_fp.group(1) if _fp else "", observation, max_lines=int(getattr(_c, 'DISPLAY_READ_MAX_LINES', 10))))
+                                _fp_path = _fp.group(1) if _fp else ""
+                                if not _fp_path:
+                                    _obs_hdr2 = _re3.search(r'Lines\s+\d+-\d+\s+of\s+(\S+)', observation or "")
+                                    if _obs_hdr2:
+                                        _fp_path = _obs_hdr2.group(1)
+                                print(format_read_preview(_fp_path, observation, max_lines=int(getattr(_c, 'DISPLAY_READ_MAX_LINES', 10))))
                             elif tool_name == 'grep_file':
                                 print(format_grep_preview(observation, max_lines=int(getattr(_c, 'DISPLAY_GREP_MAX_LINES', 15))))
                             else:

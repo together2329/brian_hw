@@ -2185,13 +2185,22 @@ class AgentTUI(App):
         # Use _plain (ANSI-stripped) for matching since ANSI codes obscure markers
         if self._in_diff:
             if re.match(r"^\+[^+]", _plain):
-                log.write(RichText(f"{text}", style=f"bold {_GREEN}"))
+                try:
+                    log.write(RichText.from_ansi(text))
+                except Exception:
+                    log.write(RichText(f"  {_plain.strip()}", style=f"bold {_GREEN}"))
                 return
             if re.match(r"^-[^-]", _plain):
-                log.write(RichText(f"{text}", style=f"bold {_RED}"))
+                try:
+                    log.write(RichText.from_ansi(text))
+                except Exception:
+                    log.write(RichText(f"  {_plain.strip()}", style=f"bold {_RED}"))
                 return
             if re.match(r"^@@", _plain):
-                log.write(RichText(f"{text}", style=f"bold {_ACCENT}"))
+                try:
+                    log.write(RichText.from_ansi(text))
+                except Exception:
+                    log.write(RichText(f"  {_plain.strip()}", style=f"bold {_ACCENT}"))
                 return
             # Non-diff line ends the diff block (check _plain for tree chars)
             if not re.match(r"^\s*[└|│⎿]", _plain):
@@ -2216,11 +2225,20 @@ class AgentTUI(App):
             inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", _plain)
             inner = re.sub(r"^\s*\d+\s*[→ ]?\s*", "", inner)
             if self._in_diff and re.match(r"^\+[^+]", inner):
-                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_GREEN}"))
+                try:
+                    log.write(RichText.from_ansi(text))
+                except Exception:
+                    log.write(RichText(f"  {_plain.strip()}", style=f"bold {_GREEN}"))
             elif self._in_diff and re.match(r"^-[^-]", inner):
-                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_RED}"))
+                try:
+                    log.write(RichText.from_ansi(text))
+                except Exception:
+                    log.write(RichText(f"  {_plain.strip()}", style=f"bold {_RED}"))
             elif self._in_diff and re.match(r"^@@", inner):
-                log.write(RichText(f"  {_plain.strip()}", style=f"bold {_ACCENT}"))
+                try:
+                    log.write(RichText.from_ansi(text))
+                except Exception:
+                    log.write(RichText(f"  {_plain.strip()}", style=f"bold {_ACCENT}"))
             else:
                 log.write(RichText(f"  {_plain.strip()}", style=f"dim {_TEXT_FAINT}"))
             # Clear tool indicator after writing so sidebar update doesn't race with log write
