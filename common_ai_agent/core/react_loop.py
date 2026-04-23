@@ -133,6 +133,9 @@ class ReactLoopDeps:
     emit_flush_fn: Optional[Callable] = None      # () → None  (signal stream done → flush panel)
     emit_token_fn: Optional[Callable] = None      # (in_tok, cache_tok, out_tok) → None  (sidebar cost update)
 
+    # Human-in-the-loop: poll for mid-run user messages (None = disabled)
+    poll_human_input_fn: Optional[Callable] = None  # () → str | None
+
 
 # ---------------------------------------------------------------------------
 # Main ReAct loop implementation
@@ -1484,6 +1487,15 @@ def run_react_agent_impl(
                 _iter_total = time.time() - _perf_iter_start
                 print(f"  {Color.DIM}[PERF] === iteration total: {_iter_total:.3f}s ==={Color.RESET}")
             tracker.increment()
+
+            # Human-in-the-loop: inject queued user message before next LLM call
+            if deps.poll_human_input_fn and getattr(cfg, "ENABLE_HUMAN_IN_THE_LOOP", False):
+                _human_msg = deps.poll_human_input_fn()
+                if _human_msg:
+                    print(f"\n{Color.DIM}{'─' * 40}{Color.RESET}")
+                    print(f"  {Color.BOLD}👤 You:{Color.RESET} {_human_msg}")
+                    print(f"{Color.DIM}{'─' * 40}{Color.RESET}\n")
+                    messages.append({"role": "user", "content": _human_msg})
 
             # Step-by-step mode
             if getattr(cfg, "STEP_BY_STEP_MODE", False) and (combined_results or _is_todo_write):

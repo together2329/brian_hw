@@ -724,7 +724,9 @@ class _AgentInput(TextArea):
 class InputBridge:
     def __init__(self, on_idle=None) -> None:
         self._q: queue.Queue[str] = queue.Queue()
+        self._interrupt_q: queue.Queue[str] = queue.Queue()  # mid-run human messages
         self._on_idle = on_idle
+        self.agent_running: bool = False  # True while react loop is executing
 
     def get_input(self, prompt: str = "") -> str:
         # Agent thread is back at the input prompt → idle signal
@@ -732,8 +734,19 @@ class InputBridge:
             self._on_idle()
         return self._q.get()
 
+    def poll_interrupt(self) -> Optional[str]:
+        """Non-blocking: return queued human message if any, else None."""
+        try:
+            return self._interrupt_q.get_nowait()
+        except queue.Empty:
+            return None
+
     def submit(self, text: str) -> None:
         self._q.put(text)
+
+    def submit_interrupt(self, text: str) -> None:
+        """Queue a human message to be injected mid-run."""
+        self._interrupt_q.put(text)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1591,7 +1604,13 @@ class AgentTUI(App):
             self._mode_locked = True
             self.set_timer(2.0, lambda: setattr(self, "_mode_locked", False))
             self._redraw_mode()
-        self._input_bridge.submit(text)
+        # If agent is running and HITL is enabled, route to interrupt queue
+        import os as _os
+        _hitl = _os.getenv("ENABLE_HUMAN_IN_THE_LOOP", "false").lower() in ("true", "1", "yes")
+        if _hitl and self._input_bridge.agent_running:
+            self._input_bridge.submit_interrupt(text)
+        else:
+            self._input_bridge.submit(text)
         self._scroll_down()
 
     # ── Message handlers ───────────────────────────────────────────────────────

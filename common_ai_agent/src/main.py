@@ -134,6 +134,8 @@ _textual_emit_context_fn = None  # (tokens, max_tokens) → update context sideb
 _textual_emit_token_fn = None   # (in_tok, cache_tok, out_tok) → update cost sidebar directly
 _textual_input_fn = None  # replaces input() when set
 _textual_esc_check_fn = None # () → bool: TUI interrupt check
+_textual_poll_human_input_fn = None  # () → str | None: poll mid-run human message
+_textual_set_agent_running_fn = None  # (bool) → None: set agent_running flag on InputBridge
 
 # ChatLoopDeps instance (set inside chat_loop(); exposed for textual_main.py)
 _loop_deps = None
@@ -1168,6 +1170,7 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
         emit_todo_fn=_textual_emit_todo_fn,
         emit_flush_fn=_textual_emit_flush_fn,
         emit_token_fn=_textual_emit_token_fn,
+        poll_human_input_fn=_textual_poll_human_input_fn,
         # Disable EscapeWatcher in Textual mode — Textual owns stdin; raw tty read
         # conflicts with Textual's input handling, causing false ESC triggers.
         # Instead, use the TUI's mapped escape key via the callback.
@@ -1175,16 +1178,22 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
         esc_start_fn=(lambda: None) if _textual_input_fn is not None else None,
         esc_stop_fn=(lambda: None) if _textual_input_fn is not None else None,
     )
-    return _run_react_agent_impl(
-        messages=messages,
-        tracker=tracker,
-        task_description=task_description,
-        deps=deps,
-        mode=mode,
-        preface_enabled=preface_enabled,
-        agent_mode=agent_mode,
-        todo_tracker=todo_tracker,
-    )
+    if _textual_set_agent_running_fn:
+        _textual_set_agent_running_fn(True)
+    try:
+        return _run_react_agent_impl(
+            messages=messages,
+            tracker=tracker,
+            task_description=task_description,
+            deps=deps,
+            mode=mode,
+            preface_enabled=preface_enabled,
+            agent_mode=agent_mode,
+            todo_tracker=todo_tracker,
+        )
+    finally:
+        if _textual_set_agent_running_fn:
+            _textual_set_agent_running_fn(False)
 
 
 # --- 7. Session Setup ---
