@@ -1454,37 +1454,62 @@ def _syntax_highlight_lines(lines: list, file_path: str) -> list:
 
 
 def format_read_preview(file_path: str, observation: str, max_lines: int = 10) -> str:
-    """Syntax-highlighted read preview with line numbers, matching write style."""
-    raw_lines = observation.split('\n') if observation else []
-
-    # Strip leading header line like "File: path (N lines)" if present
-    start_idx = 0
-    if raw_lines and (raw_lines[0].startswith('File:') or raw_lines[0].startswith('Lines ')):
-        start_idx = 1
-
-    content_lines = [l.rstrip() for l in raw_lines[start_idx:]]
-
-    # Detect start line number from observation header ("Lines M-N of path")
-    line_offset = 0
+    """Syntax-highlighted read preview with line numbers."""
     import re as _re
-    _hdr = raw_lines[0] if raw_lines else ""
-    _range_m = _re.search(r'Lines\s+(\d+)-(\d+)', _hdr)
-    if _range_m:
-        line_offset = int(_range_m.group(1)) - 1
 
-    total = len(content_lines)
-    shown = content_lines[:max_lines]
-    ln_width = max(len(str(line_offset + total)), 4)
+    obs_lines = (observation or "").split('\n')
 
-    shown_hl = _syntax_highlight_lines(shown, file_path)
+    # Parse header: "Lines M-N of path (total: T lines):" from read_lines
+    line_offset = 0
+    start_idx = 0
+    if obs_lines:
+        _hdr = obs_lines[0]
+        _range_m = _re.search(r'Lines\s+(\d+)-(\d+)', _hdr)
+        if _range_m:
+            line_offset = int(_range_m.group(1)) - 1
+            start_idx = 2  # skip header + blank line
+
+    # Extract numbered content lines: "  50: content" → strip prefix, keep content + real line num
+    content: list = []  # list of (line_num, text)
+    numbered_re = _re.compile(r'^\s*(\d+):\s?(.*)')
+    for raw in obs_lines[start_idx:]:
+        m = numbered_re.match(raw)
+        if m:
+            content.append((int(m.group(1)), m.group(2).rstrip()))
+        elif not start_idx:
+            # read_file (no header): plain lines
+            content.append((len(content) + 1, raw.rstrip()))
+
+    # If no numbered lines detected (plain read_file output), read from disk
+    if not content or not numbered_re.match(obs_lines[start_idx] if len(obs_lines) > start_idx else ""):
+        try:
+            with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                all_lines = f.readlines()
+            total = len(all_lines)
+            start = line_offset
+            shown_text = [l.rstrip() for l in all_lines[start:start + max_lines]]
+            shown_hl = _syntax_highlight_lines(shown_text, file_path)
+            ln_width = max(len(str(total)), 4)
+            result = []
+            for i, hl_line in enumerate(shown_hl):
+                result.append(f"│{Color.DIM}{start + i + 1:{ln_width}d}  {Color.RESET}{hl_line}")
+            if total > start + max_lines:
+                result.append(f"│{Color.DIM}{'·' * ln_width}  ... ({total - start - max_lines} more lines){Color.RESET}")
+            return '\n'.join(result)
+        except Exception:
+            pass
+
+    total = len(content)
+    shown = content[:max_lines]
+    ln_width = max((len(str(shown[-1][0])) if shown else 4), 4)
+
+    shown_hl = _syntax_highlight_lines([t for _, t in shown], file_path)
 
     result = []
-    for i, hl_line in enumerate(shown_hl):
-        num = f"{line_offset + i + 1:{ln_width}d}"
-        result.append(f"{Color.DIM}{num}  {Color.RESET}{hl_line}")
+    for (num, _), hl_line in zip(shown, shown_hl):
+        result.append(f"│{Color.DIM}{num:{ln_width}d}  {Color.RESET}{hl_line}")
     if total > max_lines:
-        result.append(f"{Color.DIM}{'·' * (ln_width + 2)}  ... ({total - max_lines} more lines){Color.RESET}")
-    result.append("")
+        result.append(f"│{Color.DIM}{'·' * ln_width}  ... ({total - max_lines} more lines){Color.RESET}")
     return '\n'.join(result)
 
 
@@ -1492,37 +1517,52 @@ def format_grep_preview(observation: str, max_lines: int = 15) -> str:
     """Color-coded grep results: file:line header in cyan, match lines with match highlighted."""
     if not observation:
         return ""
+    import re as _re
     raw_lines = observation.split('\n')
 
-    # Skip header line "Found N matches in X files:"
+    # Skip header + blank line: "Found N matches..."
     start_idx = 0
     if raw_lines and raw_lines[0].startswith('Found '):
         start_idx = 1
 
-    content_lines = [l for l in raw_lines[start_idx:] if l.strip()]
+    content_lines = [l for l in raw_lines[start_idx:] if l.strip() and l.strip() != '--']
     shown = content_lines[:max_lines]
+
+    # Patterns
+    # system grep match:   "file.py:42:content"
+    # system grep context: "file.py-42-content"
+    # python match:        ">>> 42: content"
+    # python context:      "    42: content"
+    _sys_match   = _re.compile(r'^([^:\n]+):(\d+):(.*)$')
+    _sys_ctx     = _re.compile(r'^([^-\n]+)-(\d+)-(.*)$')
+    _py_match    = _re.compile(r'^>>>\s*(\d+):\s?(.*)$')
+    _py_ctx      = _re.compile(r'^(\s{2,})(\d+):\s?(.*)$')
 
     result = []
     for line in shown:
-        # File header lines like "  file.py:" or "path/to/file.py (N matches):"
-        if line.strip().endswith(':') and not line.startswith(' '):
-            result.append(f"{Color.CYAN}{line}{Color.RESET}")
-        elif ':' in line:
-            # "  linenum: content" or "file:linenum: content"
-            parts = line.split(':', 2)
-            if len(parts) >= 2 and parts[0].strip().isdigit():
-                num = parts[0]
-                rest = ':'.join(parts[1:])
-                result.append(f"{Color.DIM}{num}:{Color.RESET}{rest}")
-            elif len(parts) >= 3 and parts[1].strip().isdigit():
-                fpath, num, rest = parts[0], parts[1], parts[2]
-                result.append(f"{Color.CYAN}{fpath}{Color.RESET}:{Color.DIM}{num}{Color.RESET}:{rest}")
-            else:
-                result.append(line)
-        else:
-            result.append(f"{Color.DIM}{line}{Color.RESET}")
+        m = _py_match.match(line)
+        if m:
+            num, content = m.group(1), m.group(2)
+            result.append(f"{Color.FG_GREEN}▶{Color.RESET} {Color.DIM}{num:{'>4'}}  {Color.RESET}{content}")
+            continue
+        m = _py_ctx.match(line)
+        if m:
+            num, content = m.group(2), m.group(3)
+            result.append(f"  {Color.DIM}{num:{'>4'}}  {content}{Color.RESET}")
+            continue
+        m = _sys_match.match(line)
+        if m:
+            fpath, num, content = m.group(1), m.group(2), m.group(3)
+            result.append(f"{Color.CYAN}{fpath}{Color.RESET}:{Color.DIM}{num}{Color.RESET}:{content}")
+            continue
+        m = _sys_ctx.match(line)
+        if m:
+            fpath, num, content = m.group(1), m.group(2), m.group(3)
+            result.append(f"{Color.DIM}{fpath}-{num}-{content}{Color.RESET}")
+            continue
+        # plain / fallback
+        result.append(f"{Color.DIM}{line}{Color.RESET}")
 
     if len(content_lines) > max_lines:
         result.append(f"{Color.DIM}  ... ({len(content_lines) - max_lines} more lines){Color.RESET}")
-    result.append("")
     return '\n'.join(result)

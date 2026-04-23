@@ -2041,6 +2041,7 @@ class AgentTUI(App):
         # Strip ANSI for pattern matching; keep raw for rendering
         _plain = _ANSI.sub("", text)
 
+
         # Detect compression start/end to suppress proactive mode during compression
         if re.search(r'\[Compress\]', _plain) or 'Preemptive compression' in _plain:
             self._compressing = True
@@ -2199,6 +2200,17 @@ class AgentTUI(App):
         # Tool result lines: "└", "|", "│", or "⎿" (check _plain for tree chars)
         if re.match(r"^\s*[└|│⎿]", _plain):
             self._in_result = True
+            # Syntax-highlighted code lines from read_file preview start with "│"
+            # and contain ANSI color codes — render with from_ansi to preserve colors
+            if text.startswith("│") and _plain != text:
+                try:
+                    log.write(RichText.from_ansi(text))
+                except Exception:
+                    log.write(RichText(_plain.lstrip("│").strip(), style=f"dim {_TEXT_FAINT}"))
+                if self._current_tool:
+                    self._current_tool = ""
+                    self._update_activity()
+                return
             # Strip tree prefix, then line-number prefix (e.g. "    42 " or "    42→"),
             # using _plain to reveal +/- markers from format_diff_snippet output
             inner = re.sub(r"^\s*[└|│⎿─]+\s*", "", _plain)
@@ -2215,6 +2227,15 @@ class AgentTUI(App):
             if self._current_tool:
                 self._current_tool = ""
                 self._update_activity()
+            return
+
+        # Syntax-highlighted lines following a tool result (e.g. read_file preview)
+        # These have ANSI color codes — render with from_ansi to preserve syntax colors
+        if self._in_result and _plain != text:
+            try:
+                log.write(RichText.from_ansi(text))
+            except Exception:
+                log.write(RichText(_plain, style=f"dim {_TEXT_FAINT}"))
             return
 
         # Non-result line after result block → trailing blank
