@@ -1077,14 +1077,16 @@ def run_react_agent_impl(
                     elif tool_name in _PREVIEW_TOOLS:
                         brief = format_tool_brief(tool_name, args_str, observation)
                         print(f"  {Color.DIM}⎿  {brief}{Color.RESET}")
-                        if tool_name in ('read_file', 'read_lines'):
-                            import re as _re4
-                            _fp2 = _re4.search(r'path\s*=\s*"([^"]+)"', args_str or "") or _re4.search(r"path\s*=\s*'([^']+)'", args_str or "") or _re4.search(r'path\s*=\s*([^\s,)]+)', args_str or "")
-                            _c2 = __import__('sys').modules.get('config') or __import__('sys').modules.get('src.config')
-                            print(format_read_preview(_fp2.group(1) if _fp2 else "", observation, max_lines=int(getattr(_c2, 'DISPLAY_READ_MAX_LINES', 10))))
-                        elif tool_name == 'grep_file':
-                            _c2 = __import__('sys').modules.get('config') or __import__('sys').modules.get('src.config')
-                            print(format_grep_preview(observation, max_lines=int(getattr(_c2, 'DISPLAY_GREP_MAX_LINES', 15))))
+                        _c2 = __import__('sys').modules.get('config') or __import__('sys').modules.get('src.config')
+                        if getattr(_c2, 'DISPLAY_TOOL_DETAIL', True):
+                            if tool_name in ('read_file', 'read_lines'):
+                                import re as _re4
+                                _fp2 = _re4.search(r'path\s*=\s*"([^"]+)"', args_str or "") or _re4.search(r"path\s*=\s*'([^']+)'", args_str or "") or _re4.search(r'path\s*=\s*([^\s,)]+)', args_str or "")
+                                print(format_read_preview(_fp2.group(1) if _fp2 else "", observation, max_lines=int(getattr(_c2, 'DISPLAY_READ_MAX_LINES', 10))))
+                            elif tool_name == 'grep_file':
+                                print(format_grep_preview(observation, max_lines=int(getattr(_c2, 'DISPLAY_GREP_MAX_LINES', 15))))
+                            else:
+                                print(_fmt_result(observation, tool_name))
                         else:
                             print(_fmt_result(observation, tool_name))
                     elif tool_name in _INLINE_TOOLS:
@@ -1280,15 +1282,16 @@ def run_react_agent_impl(
                     elif tool_name in _PREVIEW_TOOLS:
                         brief = format_tool_brief(tool_name, _args_display, observation)
                         print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")
-                        if tool_name in ('read_file', 'read_lines'):
-                            import re as _re3
-                            _fp = _re3.search(r'path\s*=\s*"([^"]+)"', _args_display or "") or _re3.search(r"path\s*=\s*'([^']+)'", _args_display or "") or _re3.search(r'path\s*=\s*([^\s,)]+)', _args_display or "")
-                            _file_path = _fp.group(1) if _fp else ""
-                            _c = __import__('sys').modules.get('config') or __import__('sys').modules.get('src.config')
-                            print(format_read_preview(_file_path, observation, max_lines=int(getattr(_c, 'DISPLAY_READ_MAX_LINES', 10))))
-                        elif tool_name == 'grep_file':
-                            _c = __import__('sys').modules.get('config') or __import__('sys').modules.get('src.config')
-                            print(format_grep_preview(observation, max_lines=int(getattr(_c, 'DISPLAY_GREP_MAX_LINES', 15))))
+                        _c = __import__('sys').modules.get('config') or __import__('sys').modules.get('src.config')
+                        if getattr(_c, 'DISPLAY_TOOL_DETAIL', True):
+                            if tool_name in ('read_file', 'read_lines'):
+                                import re as _re3
+                                _fp = _re3.search(r'path\s*=\s*"([^"]+)"', _args_display or "") or _re3.search(r"path\s*=\s*'([^']+)'", _args_display or "") or _re3.search(r'path\s*=\s*([^\s,)]+)', _args_display or "")
+                                print(format_read_preview(_fp.group(1) if _fp else "", observation, max_lines=int(getattr(_c, 'DISPLAY_READ_MAX_LINES', 10))))
+                            elif tool_name == 'grep_file':
+                                print(format_grep_preview(observation, max_lines=int(getattr(_c, 'DISPLAY_GREP_MAX_LINES', 15))))
+                            else:
+                                print(_fmt_result(observation, tool_name))
                         else:
                             print(_fmt_result(observation, tool_name))
                     elif tool_name in _INLINE_TOOLS:

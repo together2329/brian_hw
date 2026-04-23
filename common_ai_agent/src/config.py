@@ -370,6 +370,7 @@ DISPLAY_FIND_MAX_RESULTS = int(os.getenv("DISPLAY_FIND_MAX_RESULTS", "20"))   # 
 DISPLAY_GREP_MAX_LINES   = int(os.getenv("DISPLAY_GREP_MAX_LINES",   "15"))   # grep output lines shown
 DISPLAY_LIST_MAX_ENTRIES = int(os.getenv("DISPLAY_LIST_MAX_ENTRIES", "30"))   # list_dir entries shown
 DISPLAY_RESULT_MAX_CHARS = int(os.getenv("DISPLAY_RESULT_MAX_CHARS", "2000")) # total chars in any result preview
+DISPLAY_TOOL_DETAIL      = os.getenv("DISPLAY_TOOL_DETAIL", "true").lower() in ("true", "1", "yes")  # syntax-highlighted read/grep/list preview
 
 # Commit message verbosity: "simple" | "summary"
 GIT_COMMIT_MSG_MODE = os.getenv("GIT_COMMIT_MSG_MODE", "simple")
