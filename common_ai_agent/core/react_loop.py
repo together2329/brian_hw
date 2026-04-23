@@ -171,7 +171,7 @@ def run_react_agent_impl(
             EscapeWatcher, Spinner,
             format_iteration_header, format_tool_header, format_tool_result,
             format_tool_brief, _extract_tool_args_summary, _friendly_tool_name,
-            format_write_preview,
+            format_write_preview, format_read_preview, format_grep_preview,
         )
     except ImportError:
         # Minimal stubs for environments without lib.display
@@ -197,6 +197,9 @@ def run_react_agent_impl(
         def format_tool_brief(*a, **kw): return ""
         def _extract_tool_args_summary(*a, **kw): return ""
         def _friendly_tool_name(n): return n
+        def format_write_preview(*a, **kw): return ""
+        def format_read_preview(*a, **kw): return ""
+        def format_grep_preview(*a, **kw): return ""
 
     # Config-aware display wrapper — reads DISPLAY_* limits at call time
     def _fmt_result(observation: str, tool_name: str = "") -> str:
@@ -1080,7 +1083,18 @@ def run_react_agent_impl(
                     elif tool_name in _PREVIEW_TOOLS:
                         brief = format_tool_brief(tool_name, args_str, observation)
                         print(f"  {Color.DIM}⎿  {brief}{Color.RESET}")
-                        print(_fmt_result(observation, tool_name))
+                        _c2 = __import__('sys').modules.get('config') or __import__('sys').modules.get('src.config')
+                        if tool_name in ('read_file', 'read_lines'):
+                            _ml2 = int(getattr(_c2, 'DISPLAY_READ_MAX_LINES', 10))
+                            import re as _re4
+                            _fp2 = _re4.search(r'path\s*=\s*["\']?([^\s"\',$)]+)', args_str or "")
+                            _file_path2 = _fp2.group(1) if _fp2 else ""
+                            print(format_read_preview(_file_path2, observation, max_lines=_ml2))
+                        elif tool_name == 'grep_file':
+                            _ml2 = int(getattr(_c2, 'DISPLAY_GREP_MAX_LINES', 15))
+                            print(format_grep_preview(observation, max_lines=_ml2))
+                        else:
+                            print(_fmt_result(observation, tool_name))
                     elif tool_name in _INLINE_TOOLS:
                         brief = format_tool_brief(tool_name, args_str, observation)
                         print(f"  {Color.DIM}⎿  {brief}{Color.RESET}")
@@ -1274,7 +1288,19 @@ def run_react_agent_impl(
                     elif tool_name in _PREVIEW_TOOLS:
                         brief = format_tool_brief(tool_name, _args_display, observation)
                         print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")
-                        print(_fmt_result(observation, tool_name))
+                        _c = __import__('sys').modules.get('config') or __import__('sys').modules.get('src.config')
+                        if tool_name in ('read_file', 'read_lines'):
+                            _ml = int(getattr(_c, 'DISPLAY_READ_MAX_LINES', 10))
+                            _fpath = _extract_tool_args_summary(tool_name, _args_display) or ""
+                            import re as _re3
+                            _fp = _re3.search(r'path\s*=\s*["\']?([^\s"\',$)]+)', _args_display or "")
+                            _file_path = _fp.group(1) if _fp else _fpath
+                            print(format_read_preview(_file_path, observation, max_lines=_ml))
+                        elif tool_name == 'grep_file':
+                            _ml = int(getattr(_c, 'DISPLAY_GREP_MAX_LINES', 15))
+                            print(format_grep_preview(observation, max_lines=_ml))
+                        else:
+                            print(_fmt_result(observation, tool_name))
                     elif tool_name in _INLINE_TOOLS:
                         brief = format_tool_brief(tool_name, _args_display, observation)
                         print(f"  {Color.DIM}⎿  {brief}{elapsed_suffix}{Color.RESET}")

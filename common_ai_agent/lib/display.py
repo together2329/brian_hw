@@ -588,7 +588,11 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
         return f"{line_count} lines"
 
     if tool_name == 'grep_file':
-        match_count = len([l for l in observation.split('\n') if l.strip()]) if observation else 0
+        if not observation or "No matches found" in observation or "no matches" in observation.lower():
+            return "0 matches"
+        # Count non-empty, non-header lines (skip "Found N matches in X:" header lines)
+        match_count = len([l for l in observation.split('\n')
+                           if l.strip() and not l.startswith("Found ") and not l.startswith("No match")])
         return f"{match_count} matches"
 
     if tool_name == 'find_files':
@@ -1133,7 +1137,7 @@ def _extract_tool_args_summary(tool_name: str, args_str) -> str:
 
     # Extract pattern + path for grep/find
     if tool_name in ('grep_file', 'find_files'):
-        pattern = _get_val(r'(?:pattern\s*=\s*)?', args_str)
+        pattern = _get_val(r'pattern\s*=\s*', args_str)
         path = _get_val(r'path\s*=\s*', args_str)
         parts = []
         if pattern:
@@ -1424,5 +1428,101 @@ def format_write_preview(file_path: str, preview_lines: int = 10) -> str:
         result.append(f"{Color.DIM}{num}  {Color.RESET}{hl_line}")
     if total > preview_lines:
         result.append(f"{Color.DIM}{'·' * (ln_width + 2)}  ... ({total - preview_lines} more lines){Color.RESET}")
+    result.append("")
+    return '\n'.join(result)
+
+
+def _syntax_highlight_lines(lines: list, file_path: str) -> list:
+    """Apply pygments syntax highlighting to a list of plain strings. Returns highlighted lines."""
+    try:
+        import sys as _sys, os as _os
+        _vdir = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), 'vendor')
+        if _vdir not in _sys.path:
+            _sys.path.insert(0, _vdir)
+        from pygments import highlight as _hl
+        from pygments.lexers import get_lexer_for_filename as _glf
+        from pygments.formatters import Terminal256Formatter as _TF
+        _lexer = _glf(file_path, stripnl=False)
+        _fmt = _TF(style='monokai')
+        _raw = _hl('\n'.join(lines), _lexer, _fmt)
+        hl = _raw.split('\n')[:len(lines)]
+        while len(hl) < len(lines):
+            hl.append(lines[len(hl)])
+        return hl
+    except Exception:
+        return lines
+
+
+def format_read_preview(file_path: str, observation: str, max_lines: int = 10) -> str:
+    """Syntax-highlighted read preview with line numbers, matching write style."""
+    raw_lines = observation.split('\n') if observation else []
+
+    # Strip leading header line like "File: path (N lines)" if present
+    start_idx = 0
+    if raw_lines and (raw_lines[0].startswith('File:') or raw_lines[0].startswith('Lines ')):
+        start_idx = 1
+
+    content_lines = [l.rstrip() for l in raw_lines[start_idx:]]
+
+    # Detect start line number from observation header ("Lines M-N of path")
+    line_offset = 0
+    import re as _re
+    _hdr = raw_lines[0] if raw_lines else ""
+    _range_m = _re.search(r'Lines\s+(\d+)-(\d+)', _hdr)
+    if _range_m:
+        line_offset = int(_range_m.group(1)) - 1
+
+    total = len(content_lines)
+    shown = content_lines[:max_lines]
+    ln_width = max(len(str(line_offset + total)), 4)
+
+    shown_hl = _syntax_highlight_lines(shown, file_path)
+
+    result = []
+    for i, hl_line in enumerate(shown_hl):
+        num = f"{line_offset + i + 1:{ln_width}d}"
+        result.append(f"{Color.DIM}{num}  {Color.RESET}{hl_line}")
+    if total > max_lines:
+        result.append(f"{Color.DIM}{'·' * (ln_width + 2)}  ... ({total - max_lines} more lines){Color.RESET}")
+    result.append("")
+    return '\n'.join(result)
+
+
+def format_grep_preview(observation: str, max_lines: int = 15) -> str:
+    """Color-coded grep results: file:line header in cyan, match lines with match highlighted."""
+    if not observation:
+        return ""
+    raw_lines = observation.split('\n')
+
+    # Skip header line "Found N matches in X files:"
+    start_idx = 0
+    if raw_lines and raw_lines[0].startswith('Found '):
+        start_idx = 1
+
+    content_lines = [l for l in raw_lines[start_idx:] if l.strip()]
+    shown = content_lines[:max_lines]
+
+    result = []
+    for line in shown:
+        # File header lines like "  file.py:" or "path/to/file.py (N matches):"
+        if line.strip().endswith(':') and not line.startswith(' '):
+            result.append(f"{Color.CYAN}{line}{Color.RESET}")
+        elif ':' in line:
+            # "  linenum: content" or "file:linenum: content"
+            parts = line.split(':', 2)
+            if len(parts) >= 2 and parts[0].strip().isdigit():
+                num = parts[0]
+                rest = ':'.join(parts[1:])
+                result.append(f"{Color.DIM}{num}:{Color.RESET}{rest}")
+            elif len(parts) >= 3 and parts[1].strip().isdigit():
+                fpath, num, rest = parts[0], parts[1], parts[2]
+                result.append(f"{Color.CYAN}{fpath}{Color.RESET}:{Color.DIM}{num}{Color.RESET}:{rest}")
+            else:
+                result.append(line)
+        else:
+            result.append(f"{Color.DIM}{line}{Color.RESET}")
+
+    if len(content_lines) > max_lines:
+        result.append(f"{Color.DIM}  ... ({len(content_lines) - max_lines} more lines){Color.RESET}")
     result.append("")
     return '\n'.join(result)
