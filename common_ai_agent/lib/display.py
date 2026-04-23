@@ -808,16 +808,16 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                                     break
                 except Exception:
                     pass
-                bracket_m = re.search(r'rejected\.\s*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
-                if not bracket_m:
-                    bracket_m = re.search(r'❌[^[]*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
-                if not bracket_m:
-                    # "❌ Task N rejected: reason\n→ Fix" format (no brackets)
-                    bracket_m = re.search(r'rejected:\s*(.+?)(?:\n|$)', observation, re.IGNORECASE)
-                rejected_reason = bracket_m.group(1).strip() if bracket_m else ""
-                # Fallback: use rejection_reason stored in tracker if observation didn't have it
-                if not rejected_reason and todo_item and getattr(todo_item, 'rejection_reason', ''):
-                    rejected_reason = todo_item.rejection_reason
+                # Prefer tracker's stored rejection_reason (always set by tools.py)
+                rejected_reason = (todo_item and getattr(todo_item, 'rejection_reason', '')) or ""
+                # Fallback: extract from observation text if tracker has nothing
+                if not rejected_reason:
+                    bracket_m = re.search(r'rejected\.\s*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
+                    if not bracket_m:
+                        bracket_m = re.search(r'❌[^[]*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
+                    if not bracket_m:
+                        bracket_m = re.search(r'rejected:\s*(.+?)(?:\n|$)', observation, re.IGNORECASE)
+                    rejected_reason = bracket_m.group(1).strip() if bracket_m else ""
                 _RD = Color.RED
                 _D = Color.DIM
                 _R = Color.RESET
