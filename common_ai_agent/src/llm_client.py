@@ -2629,7 +2629,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
     # Non-streaming mode: fetch full response then yield line-by-line
     if not config.ENABLE_STREAMING:
-        _ns_delays = [5, 10, 20, 40, 80]
+        _ns_delays = [3, 5, 10, 20, 40]
         _ns_max = len(_ns_delays) + 1
         _ns_model = model  # track for fallback
         _ns_fallback_used = False
@@ -3031,7 +3031,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         print()
 
     # Retry logic for transient errors
-    _RETRY_DELAYS2 = [5, 10, 20, 40, 80]  # backoff for all retryable errors
+    _RETRY_DELAYS2 = [3, 5, 10, 20, 40]  # backoff for all retryable errors
     max_retries = len(_RETRY_DELAYS2) + 1
     _fallback_used = False  # True after switching to SECONDARY_MODEL
 
