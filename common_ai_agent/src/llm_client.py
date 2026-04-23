@@ -1142,8 +1142,8 @@ def chat_completion_with_config(
     }
 
     if stop:
-        # Z.AI allows max 4 stop sequences
-        _stop = stop[:4] if "z.ai" in url else stop
+        # Z.AI and CanopyWave allow max 4 stop sequences
+        _stop = stop[:4] if ("z.ai" in url or "canopywave" in url) else stop
         data["stop"] = _stop
 
     # Apply temperature/top_p
@@ -2438,8 +2438,8 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
         "stream": False,
     }
     if stop:
-        # Z.AI allows max 4 stop sequences
-        _stop = stop[:4] if "z.ai" in url else stop
+        # Z.AI and CanopyWave allow max 4 stop sequences
+        _stop = stop[:4] if ("z.ai" in url or "canopywave" in url) else stop
         data["stop"] = _stop
     if config.MAX_OUTPUT_TOKENS > 0:
         _set_max_output_tokens(data, compute_safe_max_tokens())
@@ -2553,6 +2553,11 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
 
     # Yield content line-by-line
     content = msg.get("content") or ""
+    # moonshotai non-streaming: content=None, answer is in reasoning_content only.
+    # Promote reasoning to content so the agent gets a response.
+    if not content and reasoning and "moonshotai" in (resolved_model or "").lower():
+        content = reasoning
+        reasoning = ""
     # Sanitize provider metadata tokens
     content = _strip_metadata_tokens(content)
 
@@ -2904,8 +2909,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         data["store"] = True
 
     if stop:
-        # Z.AI allows max 4 stop sequences
-        _stop = stop[:4] if "z.ai" in url else stop
+        # Z.AI and CanopyWave allow max 4 stop sequences
+        _stop = stop[:4] if ("z.ai" in url or "canopywave" in url) else stop
         data["stop"] = _stop
 
     if config.MAX_OUTPUT_TOKENS > 0:
@@ -3596,8 +3601,8 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         "stream": use_stream
     }
     if stop:
-        # Z.AI allows max 4 stop sequences
-        _stop = stop[:4] if "z.ai" in url else stop
+        # Z.AI and CanopyWave allow max 4 stop sequences
+        _stop = stop[:4] if ("z.ai" in url or "canopywave" in url) else stop
         data["stop"] = _stop
     if max_tokens is not None:
         _set_max_output_tokens(data, max_tokens)
