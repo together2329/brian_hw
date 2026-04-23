@@ -94,10 +94,10 @@ class Color:
     RESET = '\033[0m'
 
     # Diff background colors (Claude Code style)
-    BG_RED   = '\033[48;2;80;0;0m'      # subtle dark red tint
-    BG_GREEN = '\033[48;2;0;65;0m'      # subtle dark green tint
-    FG_RED   = '\033[38;2;255;80;80m'   # red for - symbol
-    FG_GREEN = '\033[38;2;80;200;80m'   # green for + symbol
+    BG_RED   = '\033[48;5;52m'           # subtle dark red tint (256-color)
+    BG_GREEN = '\033[48;5;22m'           # subtle dark green tint (256-color)
+    FG_RED   = '\033[38;5;203m'          # red for - symbol (256-color)
+    FG_GREEN = '\033[38;5;71m'           # green for + symbol (256-color)
 
     @staticmethod
     def system(text):
@@ -1341,7 +1341,7 @@ def format_diff_snippet(file_path, old_text, new_text, context_lines=3):
     _term_w = shutil.get_terminal_size((120, 40)).columns
 
     import re as _re2
-    _ANSI_RESET = _re2.compile(r'\x1b\[0?m|\x1b\[0;')
+    _ANSI_RESET = _re2.compile(r'\x1b\[0?m|\x1b\[0;|\x1b\[39m|\x1b\[49m')
 
     def _pad(content, prefix_len):
         visible = len(_re2.sub(r'\x1b\[[0-9;]*m', '', content))
