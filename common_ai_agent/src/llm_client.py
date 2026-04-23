@@ -1467,9 +1467,9 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                 return
 
             is_retryable = (parsed["is_retryable"] or e.code == 429 or
-                          (500 <= e.code < 600))
+                          e.code == 400 or (500 <= e.code < 600))
             if is_retryable and retry_count < max_retries - 1:
-                delay = _RETRY_DELAYS[retry_count]
+                delay = 5 if e.code == 400 else _RETRY_DELAYS[retry_count]
                 print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {_msg}. Waiting {delay}s...\n"))
                 time.sleep(delay)
                 continue
@@ -2144,10 +2144,10 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                 yield f"\n{Color.error(f'[High Traffic] {_zai_msg}')}\n"
                 return
 
-            # ── Generic retryable: 429 or 5xx ──
-            is_retryable = e.code == 429 or (500 <= e.code < 600)
+            # ── Generic retryable: 400 (vLLM transient), 429 or 5xx ──
+            is_retryable = e.code == 400 or e.code == 429 or (500 <= e.code < 600)
             if is_retryable and retry_count < max_retries - 1:
-                delay = _RETRY_DELAYS[retry_count]
+                delay = 5 if e.code == 400 else _RETRY_DELAYS[retry_count]
                 print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {e.reason}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
@@ -2642,9 +2642,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                         continue
                     yield f"\n{Color.error('[401 Unauthorized] Token quota exhausted — please top up your API credits.')}\n"
                     return
-                is_retryable = e.code == 429 or (500 <= e.code < 600)
+                is_retryable = e.code == 400 or e.code == 429 or (500 <= e.code < 600)
                 if is_retryable and _ns_retry < _ns_max - 1:
-                    delay = _ns_delays[_ns_retry]
+                    delay = 5 if e.code == 400 else _ns_delays[_ns_retry]
                     print(Color.warning(f"\n[Retry {_ns_retry + 1}/{_ns_max - 1}] HTTP {e.code}: {e.reason}. Waiting {delay}s...\n"))
                     time.sleep(delay)
                     continue
@@ -3400,10 +3400,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 yield f"\n{Color.error(f'[High Traffic] {_zai_msg}')}\n"
                 return
 
-            # ── Generic retryable: 429 or 5xx ──
-            is_retryable = e.code == 429 or (500 <= e.code < 600)
+            # ── Generic retryable: 400 (vLLM transient), 429 or 5xx ──
+            is_retryable = e.code == 400 or e.code == 429 or (500 <= e.code < 600)
             if is_retryable and retry_count < max_retries - 1:
-                delay = _RETRY_DELAYS2[retry_count]
+                delay = 5 if e.code == 400 else _RETRY_DELAYS2[retry_count]
                 print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {e.reason}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
