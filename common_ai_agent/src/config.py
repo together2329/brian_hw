@@ -775,7 +775,7 @@ ENABLE_REACT_PARALLEL = os.getenv("ENABLE_REACT_PARALLEL", "true").lower() in ("
 # Human-in-the-loop: allow user to inject messages between react loop iterations.
 # When enabled, input typed during agent execution is queued and injected as a
 # user message after the current iteration's tools finish, before the next LLM call.
-ENABLE_HUMAN_IN_THE_LOOP = os.getenv("ENABLE_HUMAN_IN_THE_LOOP", "false").lower() in ("true", "1", "yes")
+ENABLE_HUMAN_IN_THE_LOOP = os.getenv("ENABLE_HUMAN_IN_THE_LOOP", "true").lower() in ("true", "1", "yes")
 
 # Enhanced parallel execution using ActionDependencyAnalyzer (Claude Code style)
 # - Automatic dependency analysis
