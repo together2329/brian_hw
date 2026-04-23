@@ -610,6 +610,12 @@ class _AgentInput(TextArea):
         else:
             self._user_deleting = False
 
+        # ── Space: close dropdown immediately ───────────────────────────────
+        if event.key == "space":
+            if ol is not None and "visible" in ol.classes:
+                ol.remove_class("visible")
+            # don't prevent default — let space insert normally
+
         # ── Tab: highlight-only cycling / directory navigation ───────────────
         if event.key == "tab":
             if ol is not None and "visible" in ol.classes:
