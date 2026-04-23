@@ -45,7 +45,7 @@ def get_pricing(model_name: str) -> Optional[Pricing]:
     # Custom flat pricing: all GLM models → $1/$0/$1 per 1M when CUSTOM_PRICE=true
     if os.getenv("CUSTOM_PRICE", "false").lower() == "true":
         if name.startswith("glm"):
-            return Pricing(input=1.0, cache=0.0, output=1.0)
+            return Pricing(input=1.0, cache=0.0, output=10.0)
     best_key = ""
     best = None
     for key, pricing in _TABLE.items():
