@@ -1937,7 +1937,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                 # OpenAI/Z.AI streaming protocol:
                                 #   - first chunk carries id, type, function.name
                                 #   - subsequent chunks carry only function.arguments fragments
-                                tool_calls = delta.get("tool_calls", [])
+                                tool_calls = delta.get("tool_calls") or []
                                 for tc in tool_calls:
                                     idx = tc.get("index", 0)
                                     if idx not in _pending_tool_calls:
@@ -3169,7 +3169,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                 # OpenAI/Z.AI streaming protocol:
                                 #   - first chunk carries id, type, function.name
                                 #   - subsequent chunks carry only function.arguments fragments
-                                tool_calls = delta.get("tool_calls", [])
+                                tool_calls = delta.get("tool_calls") or []
                                 for tc in tool_calls:
                                     idx = tc.get("index", 0)
                                     if idx not in _pending_tool_calls:
