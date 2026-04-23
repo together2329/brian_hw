@@ -815,6 +815,9 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                     # "❌ Task N rejected: reason\n→ Fix" format (no brackets)
                     bracket_m = re.search(r'rejected:\s*(.+?)(?:\n|$)', observation, re.IGNORECASE)
                 rejected_reason = bracket_m.group(1).strip() if bracket_m else ""
+                # Fallback: use rejection_reason stored in tracker if observation didn't have it
+                if not rejected_reason and todo_item and getattr(todo_item, 'rejection_reason', ''):
+                    rejected_reason = todo_item.rejection_reason
                 _RD = Color.RED
                 _D = Color.DIM
                 _R = Color.RESET
