@@ -192,7 +192,7 @@ class SlashCommandRegistry:
                      'Todo 목록 보기/관리: /todo, /todo clear')
 
         self.register('context', self._cmd_context,
-                     'Context 사용량 시각화: /context [-v|debug]')
+                     'Context 사용량 시각화: /context [-v] [-v -full] [debug]')
 
         self.register('clear', self._cmd_clear,
                      '대화 기록 초기화: /clear, /clear <N>개 유지')
@@ -2284,6 +2284,58 @@ class SlashCommandRegistry:
         lines.append("\n\033[2m" + "=" * 60 + "\033[0m")
         return "\n".join(lines) + "\n"
 
+    def _format_full_history(self) -> str:
+        """Format the full conversation history from full_conversation.json."""
+        import json as _json
+        import sys as _sys
+        try:
+            _config = _sys.modules.get('config')
+            _session_dir = getattr(_config, 'SESSION_DIR', '') if _config else ''
+            if not _session_dir:
+                return "\n\033[33m[System] No session directory — run with a project name.\033[0m\n"
+            _full_path = Path(_session_dir) / 'full_conversation.json'
+            if not _full_path.exists():
+                # fallback: show current context with a note
+                return "\n\033[33m[System] full_conversation.json not found — showing current context only.\033[0m\n"
+            with open(_full_path, 'r', encoding='utf-8') as f:
+                messages = _json.load(f)
+        except Exception as e:
+            return f"\n\033[31m[Error] Could not load full history: {e}\033[0m\n"
+
+        if not messages:
+            return "\n\033[33m[System] Full history is empty.\033[0m\n"
+
+        lines = []
+        lines.append("\n\033[2m" + "=" * 60 + "\033[0m")
+        lines.append(f"\033[1m 📜 Full Conversation History ({len(messages)} messages)\033[0m")
+        lines.append("\033[2m" + "=" * 60 + "\033[0m")
+
+        for i, msg in enumerate(messages):
+            role = msg.get("role", "unknown").upper()
+            raw_content = msg.get("content", "")
+            if isinstance(raw_content, list):
+                content = " ".join(
+                    b.get("text", "") for b in raw_content
+                    if isinstance(b, dict) and b.get("type") == "text"
+                )
+            else:
+                content = str(raw_content or "")
+            content = content.strip()
+            if not content:
+                continue
+            _role_colors = {"SYSTEM": "\033[2;33m", "USER": "\033[1;36m",
+                            "ASSISTANT": "\033[1;32m", "TOOL": "\033[2;35m"}
+            _rc = _role_colors.get(role, "\033[0m")
+            lines.append(f"\n{_rc}[{i+1}] {role}\033[0m")
+            for line in content.splitlines()[:40]:
+                lines.append(f"  {line}")
+            if len(content.splitlines()) > 40:
+                lines.append(f"  \033[2m... ({len(content.splitlines())} lines total)\033[0m")
+            lines.append("\033[2m" + "-" * 40 + "\033[0m")
+
+        lines.append("\n\033[2m" + "=" * 60 + "\033[0m")
+        return "\n".join(lines) + "\n"
+
     def _cmd_context(self, args: str) -> str:
         """Visualize context usage"""
         try:
@@ -2332,9 +2384,14 @@ class SlashCommandRegistry:
             # Generate Claude Code style visualization
             output = tracker.visualize(model_name, actual_total=actual_total)
 
-            # --- VERBOSE MODE: Show full context ---
+            # --- VERBOSE MODE ---
+            # /context -v        → current active context window
+            # /context -v -full  → full conversation history (full_conversation.json)
             if 'verbose' in args or '-v' in args:
-                output += self._format_full_context(tracker)
+                if '-full' in args or '--full' in args:
+                    output += self._format_full_history()
+                else:
+                    output += self._format_full_context(tracker)
 
             # Add debug info if requested
             if debug_lines:
@@ -2350,7 +2407,7 @@ class SlashCommandRegistry:
             tip = _icon("💡", "[i]")
             output += f"\n{tip} Tip: Use /clear to free up context"
             output += f"\n{tip} Tip: Use /compact to summarize old messages"
-            output += f"\n{tip} Tip: Use /context debug for detailed info\n"
+            output += f"\n{tip} Tip: /context -v (current window)  /context -v -full (full history)\n"
 
             return output
         except Exception as e:
@@ -2618,7 +2675,7 @@ class SlashCommandRegistry:
 
             groups = [
                 ("컨텍스트 & 히스토리", [
-                    ("context",     "context [-v|debug]",  "컨텍스트 토큰 사용량 시각화. -v: 전체 대화 표시"),
+                    ("context",     "context [-v] [-v -full] [debug]",  "컨텍스트 시각화. -v: 현재 윈도우, -v -full: 전체 히스토리"),
                     ("clear",       "clear [N]",           "대화 기록 초기화. N 지정 시 최근 N쌍 유지"),
                     ("compact",     "compact [--keep N]",  "AI 요약 압축. 맥락 유지하며 컨텍스트 절약"),
                     ("compression", "compression [N]",     "N 메시지 초과 시 자동 압축. 0=비활성화"),
