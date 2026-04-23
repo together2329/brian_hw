@@ -593,10 +593,13 @@ class _AgentInput(TextArea):
         if text:
             self.post_message(AgentInputSubmitted(text))
 
-    def _set_text(self, value: str) -> None:
+    def _set_text(self, value: str, at_end: bool = True) -> None:
         """Replace entire text content."""
         self.load_text(value)
-        self.move_cursor(self.document.end)
+        if at_end:
+            self.move_cursor(self.document.end)
+        else:
+            self.move_cursor((0, 0))
 
     # ── Key handler ──────────────────────────────────────────────────────────
 
@@ -672,13 +675,13 @@ class _AgentInput(TextArea):
                 event.prevent_default()
                 event.stop()
                 return
-            row, _ = self.cursor_location
-            if row == 0 and self._hist:
+            row, col = self.cursor_location
+            if row == 0 and col == 0 and self._hist:
                 if self._hist_pos == -1:
                     self._hist_draft = self.text
                 if self._hist_pos < len(self._hist) - 1:
                     self._hist_pos += 1
-                    self._set_text(self._hist[self._hist_pos])
+                    self._set_text(self._hist[self._hist_pos], at_end=False)
                 event.prevent_default()
                 event.stop()
                 return
@@ -693,13 +696,14 @@ class _AgentInput(TextArea):
                 event.prevent_default()
                 event.stop()
                 return
-            row, _ = self.cursor_location
+            row, col = self.cursor_location
             last_row = self.document.line_count - 1
-            if row == last_row and self._hist_pos >= 0:
+            last_col = len(self.document.get_line(last_row))
+            if row == last_row and col == last_col:
                 if self._hist_pos > 0:
                     self._hist_pos -= 1
                     self._set_text(self._hist[self._hist_pos])
-                else:
+                elif self._hist_pos == 0:
                     self._hist_pos = -1
                     self._set_text(self._hist_draft)
                 event.prevent_default()
