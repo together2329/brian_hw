@@ -1471,7 +1471,7 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
             if is_retryable and retry_count < max_retries - 1:
                 delay = 5 if e.code == 400 else _RETRY_DELAYS[retry_count]
                 print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {_msg}."))
-                if error_body:
+                if error_body and config.DEBUG_MODE:
                     print(Color.warning(f"  Body: {error_body[:300]}"))
                 print(Color.warning(f"Waiting {delay}s...\n"))
                 time.sleep(delay)
@@ -2152,7 +2152,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             if is_retryable and retry_count < max_retries - 1:
                 delay = 5 if e.code == 400 else _RETRY_DELAYS[retry_count]
                 print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {e.reason}"))
-                if error_body:
+                if error_body and config.DEBUG_MODE:
                     print(Color.warning(f"  Body: {error_body[:300]}"))
                 print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
