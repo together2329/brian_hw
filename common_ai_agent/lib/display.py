@@ -1440,9 +1440,14 @@ def _syntax_highlight_lines(lines: list, file_path: str) -> list:
         if _vdir not in _sys.path:
             _sys.path.insert(0, _vdir)
         from pygments import highlight as _hl
-        from pygments.lexers import get_lexer_for_filename as _glf
+        from pygments.lexers import get_lexer_for_filename as _glf, guess_lexer as _guess
         from pygments.formatters import Terminal256Formatter as _TF
-        _lexer = _glf(file_path, stripnl=False)
+        from pygments.util import ClassNotFound as _CNF
+        try:
+            _lexer = _glf(file_path, stripnl=False)
+        except _CNF:
+            # Unknown extension — guess from content
+            _lexer = _guess('\n'.join(lines[:20]), stripnl=False)
         _fmt = _TF(style='monokai')
         _raw = _hl('\n'.join(lines), _lexer, _fmt)
         hl = _raw.split('\n')[:len(lines)]
