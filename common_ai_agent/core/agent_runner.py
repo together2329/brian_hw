@@ -745,16 +745,11 @@ def _get_agent_tools(agent_name: str) -> Set[str]:
     }
     ALL_TOOLS = {"*"}
 
-    TASK_TOOLS = READ_ONLY | {
-        "background_task", "background_output",
-        "todo_write", "todo_read",
-    }
-
     defaults = {
         "explore": READ_ONLY,
-        "execute": ALL_TOOLS,  # execute agent needs full tool access
+        "review":  READ_ONLY,
+        "execute": ALL_TOOLS,
         "workflow": ALL_TOOLS,
-        "task": TASK_TOOLS,
     }
     return defaults.get(agent_name, READ_ONLY)
 

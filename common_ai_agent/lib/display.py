@@ -908,7 +908,7 @@ def format_agent_banner(agent_name: str, model: str = "", action: str = "Startin
     parts.append(f"{Color.DIM}{action}{Color.RESET}")
 
     line = " · ".join(parts)
-    return f"\n  {Color.CYAN}┌─{Color.RESET} {line}\n  {Color.CYAN}│{Color.RESET}"
+    return f"  {Color.CYAN}┌─{Color.RESET} {line}\n  {Color.CYAN}│{Color.RESET}"
 
 
 def format_agent_done(agent_name: str, model: str = "", elapsed_sec: float = 0,

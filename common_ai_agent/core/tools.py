@@ -2938,7 +2938,7 @@ def background_task(agent="explore", prompt="", context="", foreground="true"):
     Runs in foreground (synchronous) by default. Set foreground="false" for background execution.
 
     Args:
-        agent: Agent type - "explore" (read-only, fast), "execute" (full access), "review" (read-only)
+        agent: Agent type - "explore" (read-only research), "execute" (full access), "review" (read-only verification)
         prompt: Clear description of what the agent should do
         context: Optional context from current conversation to pass to the agent
         foreground: "true" (default) for synchronous execution, "false" for background
@@ -2949,7 +2949,8 @@ def background_task(agent="explore", prompt="", context="", foreground="true"):
 
     Example:
         Action: background_task(agent="explore", prompt="Find all Verilog modules in rtl/")
-        Action: background_task(agent="execute", prompt="Fix the bug in src/main.py", foreground="false")
+        Action: background_task(agent="execute", prompt="Fix the bug in src/main.py")
+        Action: background_task(agent="review", prompt="Verify the fix in src/main.py is correct")
     """
     try:
         import sys as _sys
@@ -2957,7 +2958,7 @@ def background_task(agent="explore", prompt="", context="", foreground="true"):
         if not getattr(_cfg, 'ENABLE_SUB_AGENTS', False):
             return "Error: Sub-agents are disabled. Set ENABLE_SUB_AGENTS=true in .config to enable background_task."
 
-        valid_agents = {"explore", "execute", "review", "task"}
+        valid_agents = {"explore", "execute", "review"}
 
         # Auto-fix: if agent looks like a prompt (not a valid agent name), shift args
         if agent not in valid_agents and not prompt:
@@ -2965,7 +2966,6 @@ def background_task(agent="explore", prompt="", context="", foreground="true"):
             prompt = agent
             agent = "explore"  # default agent
         elif agent not in valid_agents and prompt:
-            # Maybe agent contains extra text, try context shift
             context = f"{agent}\n{context}" if context else agent
             agent = "explore"
 
@@ -2973,7 +2973,7 @@ def background_task(agent="explore", prompt="", context="", foreground="true"):
             return "Error: 'prompt' is required. Usage: background_task(agent=\"explore\", prompt=\"your task description here\")"
 
         if agent not in valid_agents:
-            return f"Error: Invalid agent type '{agent}'. Must be one of: {', '.join(valid_agents)}"
+            return f"Error: Invalid agent type '{agent}'. Must be one of: {', '.join(sorted(valid_agents))}"
 
         is_foreground = str(foreground).lower() in ("true", "1", "yes")
 
