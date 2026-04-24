@@ -447,6 +447,12 @@ LLM_RETRY_COUNT = int(os.getenv("LLM_RETRY_COUNT", "1"))
 # and only summarizes less important messages
 ENABLE_SMART_COMPRESSION = os.getenv("ENABLE_SMART_COMPRESSION", "false").lower() in ("true", "1", "yes")
 
+# Pre-compression analysis: ask LLM what's important before compressing.
+# LLM analyzes current context → generates a focused summary instruction →
+# that instruction guides compression so critical context is preserved.
+# Adds one extra LLM call before compression. Default: false
+COMPRESSION_PRE_ANALYSIS = os.getenv("COMPRESSION_PRE_ANALYSIS", "false").lower() in ("true", "1", "yes")
+
 # ============================================================
 # Dynamic Context Pruning Configuration
 # ============================================================

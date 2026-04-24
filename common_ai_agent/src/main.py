@@ -960,9 +960,58 @@ def show_context_usage(messages, use_actual=True):
 from core.compressor import _find_hook, _hook_command
 
 
+def _compression_pre_analysis(messages) -> str:
+    """Ask LLM what's critical in current context before compression."""
+    # Use last 20 messages for analysis (recent context is most relevant)
+    recent = messages[-20:] if len(messages) > 20 else messages
+    conv_text = ""
+    for m in recent:
+        role = m.get("role", "?")
+        content = str(m.get("content") or "")[:600]
+        conv_text += f"{role}: {content}\n"
+
+    analysis_msgs = [
+        {"role": "system", "content": "You are helping preserve critical context before conversation compression."},
+        {"role": "user", "content": (
+            "Analyze the recent conversation below and identify what MUST be preserved "
+            "during compression. Focus on:\n"
+            "1. Active goal and current task status\n"
+            "2. Critical decisions, findings, or constraints discovered\n"
+            "3. Files/symbols/errors that are currently relevant\n"
+            "4. Last action taken and its outcome\n"
+            "5. Anything the agent must NOT forget\n\n"
+            "Be concise — 5-10 bullet points max.\n\n"
+            f"{conv_text}"
+        )},
+    ]
+    analysis = ""
+    try:
+        print("  [Compress] Pre-analysis: identifying critical context...", end="", flush=True)
+        for chunk in chat_completion_stream(analysis_msgs, suppress_spinner=True):
+            if isinstance(chunk, tuple) and chunk[0] == "reasoning":
+                continue
+            analysis += chunk
+        print(f" done ({len(analysis):,} chars)")
+    except Exception as e:
+        print(f" failed ({e})")
+        return ""
+    return analysis.strip()
+
+
 def compress_history(messages, todo_tracker=None, force=False, instruction=None,
                      keep_recent=None, dry_run=False, quiet=False):
     """Wrapper: delegates to core.compressor with main.py dependencies injected."""
+    # Pre-compression analysis: let LLM identify what's critical before summarizing
+    if getattr(config, "COMPRESSION_PRE_ANALYSIS", False) and not dry_run and instruction is None:
+        analysis = _compression_pre_analysis(messages)
+        if analysis:
+            from core.compressor import STRUCTURED_SUMMARY_PROMPT
+            instruction = (
+                f"CRITICAL CONTEXT TO PRESERVE (identified before compression):\n"
+                f"{analysis}\n\n"
+                f"---\n"
+                f"{STRUCTURED_SUMMARY_PROMPT}"
+            )
     return _compress_history_impl(
         messages,
         todo_tracker=todo_tracker,
