@@ -706,6 +706,7 @@ class _AgentInput(TextArea):
                 elif self._hist_pos == 0:
                     self._hist_pos = -1
                     self._set_text(self._hist_draft)
+                # _hist_pos == -1: already at draft, consume event only (no scroll)
                 event.prevent_default()
                 event.stop()
                 return
