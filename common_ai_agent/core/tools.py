@@ -2576,14 +2576,24 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             item.rejection_reason = ""
             todo_tracker.mark_approved(idx, _reason_stripped)  # internally calls save() + persists approved_reason
             _git_tag_todo(index, "approved", item.content)
+            _notes_section = ""
+            try:
+                import config as _cfg
+                _notes_enabled = getattr(_cfg, "ENABLE_TODO_NOTES", True)
+            except Exception:
+                _notes_enabled = True
+            if _notes_enabled and item.notes:
+                _nlines = [f"  [{ni}] {n}" for ni, n in enumerate(item.notes, 1)]
+                _notes_section = "\nWork log:\n" + "\n".join(_nlines)
             next_todo = todo_tracker.get_current_todo()
             if next_todo:
                 next_idx = todo_tracker.current_index + 1
                 return (
-                    f"✅ Task {index} approved. [{reason}]\n"
+                    f"✅ Task {index} approved. [{reason}]"
+                    f"{_notes_section}\n"
                     f"→ Next: todo_update(index={next_idx}, status='in_progress') — {next_todo.content}"
                 )
-            return f"✅ Task {index} approved. [{reason}] All tasks complete! 🏁"
+            return f"✅ Task {index} approved. [{reason}]{_notes_section}\nAll tasks complete! 🏁"
         elif status == "completed":
             # Gate check: reject fake completions — require at least one non-todo tool call
             _tools_since_start = getattr(item, 'tools_since_in_progress', 0)
