@@ -370,7 +370,7 @@ class TestCascadeReset:
         assert len(tracker.todos[0].notes) >= 1
         assert "cascade reset" in tracker.todos[0].notes[-1]
 
-    def test_cascade_skips_pending_tasks(self, tmp_path):
+    def test_cascade_includes_pending_tasks(self, tmp_path):
         tracker = make_tracker([
             {"content": "implement", "activeForm": "implementing"},
             {"content": "lint",      "activeForm": "linting",
@@ -379,8 +379,9 @@ class TestCascadeReset:
         # Task 1 stays pending (never approved)
         tracker.mark_in_progress(1)
         tracker.auto_execute_command(1)
-        # notes should NOT be appended to a pending task
-        assert tracker.todos[0].notes == []
+        # failure context should also be appended to pending tasks
+        assert len(tracker.todos[0].notes) >= 1
+        assert "cascade reset" in tracker.todos[0].notes[-1]
 
     def test_cascade_only_resets_range(self, tmp_path):
         tracker = make_tracker([

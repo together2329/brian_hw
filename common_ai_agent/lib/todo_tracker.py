@@ -621,12 +621,11 @@ class TodoTracker:
                     if t.status in ("approved", "completed"):
                         t.status = "pending"
                         t.approved_reason = ""
-                        # rejection_reason: LLM이 task 시작 시 즉시 볼 수 있음
-                        t.rejection_reason = fail_summary
-                        # notes: append-only, 압축 후에도 남는 히스토리
-                        if t.notes is None:
-                            t.notes = []
-                        t.notes.append(fail_summary)
+                    # rejection_reason + notes: all tasks in range get failure context
+                    t.rejection_reason = fail_summary
+                    if t.notes is None:
+                        t.notes = []
+                    t.notes.append(fail_summary)
                 self.current_index = jump_idx
             else:
                 self.current_index = index
