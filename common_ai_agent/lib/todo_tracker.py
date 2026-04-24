@@ -707,31 +707,20 @@ class TodoTracker:
         if current:
             idx = self.current_index + 1
             if current.status == "rejected":
-                _rej_detail = f"\n  Detail: {current.detail}" if current.detail else ""
+                _rej_detail = f"\n  Approach : {current.detail}" if current.detail else ""
                 _rej_criteria = ""
                 if current.criteria:
-                    _clines = [f"    • {c.strip()}" for c in current.criteria.splitlines() if c.strip()]
-                    _rej_criteria = "\n  Criteria:\n" + "\n".join(_clines)
-                # Build criteria checklist for rejected state
-                _rej_criteria_check = ""
-                if current.criteria:
                     _clines = [c.strip() for c in current.criteria.splitlines() if c.strip()]
-                    _rej_criteria_check = "\nCheck which criteria failed:\n" + "\n".join(
-                        f"  • {c}" for c in _clines
+                    _rej_criteria = "\n  Unmet criteria (check which failed):\n" + "\n".join(
+                        f"    • {c}" for c in _clines
                     )
                 _default = (
                     f"[Task {idx}/{total} REJECTED] {current.content}\n"
-                    f"  Reason: {current.rejection_reason}"
+                    f"  Failed   : {current.rejection_reason}"
                     f"{_rej_detail}"
-                    f"{_rej_criteria}"
-                    f"{_rej_criteria_check}\n"
-                    f"Choose the best path forward:\n"
-                    f"  • Fix and resume   → todo_update(index={idx}, status='in_progress')\n"
-                    f"  • Update criteria  → todo_update(index={idx}, criteria='<revised>')\n"
-                    f"  • Split into steps → todo_add(content='<subtask>', index={idx})\n"
-                    f"  • Rewrite task     → todo_remove(index={idx}) + todo_add(content='<new task>', index={idx})\n"
-                    f"  • Defer for now    → todo_update(index={idx}, status='pending')\n"
-                    f"Use your judgment — pick whatever makes the most sense given the situation."
+                    f"{_rej_criteria}\n\n"
+                    f"Diagnose the root cause and fix it however makes sense.\n"
+                    f"→ When ready: todo_update(index={idx}, status='in_progress')"
                 )
                 try:
                     import builtins as _b
@@ -742,30 +731,29 @@ class TodoTracker:
                 except Exception:
                     prompt = _default
             elif current.status == "completed":
-                # Inject full task context so LLM can review against criteria
-                _rev_detail = f"\n  Detail   : {current.detail}" if current.detail else ""
+                _rev_detail = f"\n  Approach : {current.detail}" if current.detail else ""
                 _rev_criteria = ""
                 if current.criteria:
                     _clines = [f"    • {c.strip()}" for c in current.criteria.splitlines() if c.strip()]
-                    _rev_criteria = "\n  Criteria :\n" + "\n".join(_clines)
+                    _rev_criteria = "\n  Done when:\n" + "\n".join(_clines)
                     _criteria_check = (
-                        "\n\nFor EACH criterion above, verify it is actually met:\n"
-                        "  ✅ met   → evidence (file read / command output)\n"
+                        "\n\nRead the actual output first, then verify each criterion:\n"
+                        "  ✅ met   → note the evidence\n"
                         "  ❌ unmet → this is the rejection reason\n"
-                        "If ALL criteria pass → approve. If ANY fail → reject with the specific unmet criterion."
+                        "All pass → approve. Any fail → reject with the specific unmet criterion."
                     )
                 else:
                     _criteria_check = (
-                        "\n\nNo criteria defined — use your judgment: "
-                        "does the deliverable fully match the task description?"
+                        "\n\nRead the actual output first, then judge: "
+                        "does it fully achieve the goal?"
                     )
                 _default = (
-                    f"[Task {idx}/{total} REVIEW REQUIRED] {current.content}"
+                    f"[Task {idx}/{total} REVIEW] {current.content}"
                     f"{_rev_detail}"
                     f"{_rev_criteria}"
                     f"{_criteria_check}\n"
-                    f"→ All pass → todo_update(index={idx}, status='approved', reason='<evidence for each criterion>')\n"
-                    f"→ Any fail → todo_update(index={idx}, status='rejected', reason='<exact unmet criterion + what was found>')"
+                    f"→ todo_update(index={idx}, status='approved', reason='<evidence>')\n"
+                    f"→ todo_update(index={idx}, status='rejected', reason='<unmet criterion + what was found>')"
                 )
                 try:
                     import builtins as _b
@@ -800,21 +788,20 @@ class TodoTracker:
                     except Exception:
                         prompt = _default
                 else:
-                    first_action = (
-                        f"→ When done: todo_update(index={idx}, status='completed')"
-                        if in_prog else
-                        f"→ todo_update(index={idx}, status='in_progress') → do the work → todo_update(index={idx}, status='completed')"
-                    )
-                    _detail_str = f"\n  Detail: {current.detail}" if current.detail else ""
+                    _detail_str = f"\n  Approach : {current.detail}" if current.detail else ""
                     _criteria_str = ""
                     if current.criteria:
                         _clines = [f"    • {c.strip()}" for c in current.criteria.splitlines() if c.strip()]
-                        _criteria_str = "\n  Criteria:\n" + "\n".join(_clines)
+                        _criteria_str = "\n  Done when:\n" + "\n".join(_clines)
+                    if in_prog:
+                        _action = f"→ todo_update(index={idx}, status='completed') when all criteria met"
+                    else:
+                        _action = f"→ todo_update(index={idx}, status='in_progress') to start"
                     _default = (
-                        f"[Task {idx}/{total}] {current.content}"
+                        f"[Task {idx}/{total}{'  IN PROGRESS' if in_prog else ''}] {current.content}"
                         f"{_detail_str}"
                         f"{_criteria_str}\n"
-                        f"{first_action}"
+                        f"{_action}"
                     )
                     try:
                         import builtins as _b
@@ -823,7 +810,7 @@ class TodoTracker:
                         prompt = _tmpl.format(
                             idx=idx, total=total,
                             content=current.content,
-                            first_action=first_action,
+                            action=_action,
                         ) if _tmpl else _default
                     except Exception:
                         prompt = _default
