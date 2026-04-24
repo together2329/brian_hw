@@ -1207,7 +1207,7 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     # Others only if todo_active is True
     task_tools = []
     if plan_mode:
-        task_tools.append(_tool_line("todo_write", 'tasks', "Create task list (Plan Mode only). Format: [{content, activeForm, status}]."))
+        task_tools.append(_tool_line("todo_write", 'tasks', "Create task list (Plan Mode only). Format: [{content, activeForm, status, command, on_reject}]. command: shell str or {tool,args} dict — runs LLM-free, auto approved/rejected. on_reject: 1-based task index to jump to on failure."))
         task_tools.append(_tool_line("todo_remove", 'index', "Remove a task (index REQUIRED, 1-based)."))
     
     if todo_active:
@@ -1501,6 +1501,24 @@ todo_write(todos=[...])
        "status": "pending", "priority": "high",
        "detail": "SystemVerilog TB with clock gen, DUT instantiation, directed test cases",
        "criteria": "File compiles without errors\nAll DUT ports connected\nAt least 3 test cases"}
+    ])
+
+  Static command fields (optional — run WITHOUT LLM):
+    "command":   "make lint"          → shell string executed directly
+                 {"tool": "run_command", "args": {"command": "make sim"}}  → tool call
+                 Success → auto-approved. Failure → auto-rejected. Output saved to session log.
+    "on_reject": 2                    → jump to Task 2 on failure (enables retry loops)
+
+  Static command pipeline example:
+    todo_write(todos=[
+      {"content": "Implemented RTL",   "activeForm": "Implementing RTL",   "priority": "high",
+       "detail": "Write counter.sv with AXI4 interface"},
+      {"content": "Passed lint",       "activeForm": "Running lint",
+       "command": "verilator --lint-only rtl/*.sv 2>&1", "on_reject": 1},
+      {"content": "Passed simulation", "activeForm": "Running simulation",
+       "command": "make sim", "on_reject": 1},
+      {"content": "Reviewed results",  "activeForm": "Reviewing results",
+       "criteria": "Lint clean\nSimulation passes\nCoverage > 80%"},
     ])
 
 todo_add(content, activeForm="", priority="medium", detail="", index=None)

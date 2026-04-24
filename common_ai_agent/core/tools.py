@@ -2283,7 +2283,38 @@ def todo_write(todos=None, tasks=None):
         todos (list): List of task dicts or strings.
         tasks (list): Alias for todos (some agents use this name).
 
-    Example:
+    Task fields:
+        content (str):      Task description (required).
+        activeForm (str):   Display text while in progress.
+        status (str):       "pending" | "in_progress" | "approved" | "rejected"
+        priority (str):     "high" | "medium" | "low"
+        detail (str):       Implementation guidance for the LLM.
+        criteria (str):     Newline-separated acceptance criteria.
+        command (str|dict): Run WITHOUT LLM — shell string or tool-call dict.
+                            Success → auto-approved. Failure → auto-rejected.
+                            str:  "make lint", "verilator --lint-only rtl/*.sv"
+                            dict: {"tool": "run_command", "args": {"command": "make sim"}}
+        on_reject (int):    1-based task index to jump to when command fails.
+                            Enables retry loops: failed task jumps back to impl task.
+
+    Static command pipeline example (LLM implements → static checks → LLM reviews):
+        todo_write([
+            {"content": "Implemented RTL module",
+             "activeForm": "Implementing RTL module",
+             "agent": "execute"},
+            {"content": "Ran lint check",
+             "activeForm": "Running lint check",
+             "command": "verilator --lint-only rtl/*.sv 2>&1",
+             "on_reject": 1},
+            {"content": "Ran simulation",
+             "activeForm": "Running simulation",
+             "command": "make sim",
+             "on_reject": 1},
+            {"content": "Reviewed results",
+             "activeForm": "Reviewing results"},
+        ])
+
+    Basic example:
         todo_write([
             {"content": "Analyze code", "activeForm": "Analyzing code", "status": "in_progress"},
             {"content": "Write tests", "activeForm": "Writing tests", "status": "pending"}
