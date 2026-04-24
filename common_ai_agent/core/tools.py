@@ -2952,6 +2952,11 @@ def background_task(agent="explore", prompt="", context="", foreground="true"):
         Action: background_task(agent="execute", prompt="Fix the bug in src/main.py", foreground="false")
     """
     try:
+        import sys as _sys
+        _cfg = _sys.modules.get('config') or _sys.modules.get('src.config')
+        if not getattr(_cfg, 'ENABLE_SUB_AGENTS', False):
+            return "Error: Sub-agents are disabled. Set ENABLE_SUB_AGENTS=true in .config to enable background_task."
+
         valid_agents = {"explore", "execute", "review", "task"}
 
         # Auto-fix: if agent looks like a prompt (not a valid agent name), shift args
