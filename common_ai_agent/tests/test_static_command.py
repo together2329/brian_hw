@@ -331,3 +331,157 @@ class TestToolsIntegration:
             result = todo_update(index=1, status="in_progress")
         assert "Log:" in result
         assert ".log" in result
+
+
+# ── Step 6: Cascade reset ─────────────────────────────────────────────────────
+
+class TestCascadeReset:
+    def test_cascade_resets_approved_tasks(self, tmp_path):
+        tracker = make_tracker([
+            {"content": "implement", "activeForm": "implementing"},
+            {"content": "lint",      "activeForm": "linting",
+             "command": "exit 1", "on_reject": 1},
+        ], tmp_path)
+        tracker.mark_approved(0, reason="implementation done and verified")
+        tracker.mark_in_progress(1)
+        tracker.auto_execute_command(1)
+        assert tracker.todos[0].status == "pending"
+
+    def test_cascade_sets_rejection_reason(self, tmp_path):
+        tracker = make_tracker([
+            {"content": "implement", "activeForm": "implementing"},
+            {"content": "lint",      "activeForm": "linting",
+             "command": "exit 1", "on_reject": 1},
+        ], tmp_path)
+        tracker.mark_approved(0, reason="implementation done and verified")
+        tracker.mark_in_progress(1)
+        tracker.auto_execute_command(1)
+        assert "cascade reset" in tracker.todos[0].rejection_reason
+
+    def test_cascade_appends_notes(self, tmp_path):
+        tracker = make_tracker([
+            {"content": "implement", "activeForm": "implementing"},
+            {"content": "lint",      "activeForm": "linting",
+             "command": "exit 1", "on_reject": 1},
+        ], tmp_path)
+        tracker.mark_approved(0, reason="implementation done and verified")
+        tracker.mark_in_progress(1)
+        tracker.auto_execute_command(1)
+        assert len(tracker.todos[0].notes) >= 1
+        assert "cascade reset" in tracker.todos[0].notes[-1]
+
+    def test_cascade_skips_pending_tasks(self, tmp_path):
+        tracker = make_tracker([
+            {"content": "implement", "activeForm": "implementing"},
+            {"content": "lint",      "activeForm": "linting",
+             "command": "exit 1", "on_reject": 1},
+        ], tmp_path)
+        # Task 1 stays pending (never approved)
+        tracker.mark_in_progress(1)
+        tracker.auto_execute_command(1)
+        # notes should NOT be appended to a pending task
+        assert tracker.todos[0].notes == []
+
+    def test_cascade_only_resets_range(self, tmp_path):
+        tracker = make_tracker([
+            {"content": "explore",   "activeForm": "exploring"},
+            {"content": "implement", "activeForm": "implementing"},
+            {"content": "lint",      "activeForm": "linting",
+             "command": "exit 1", "on_reject": 2},
+        ], tmp_path)
+        tracker.mark_approved(0, reason="exploration done thoroughly")
+        tracker.mark_approved(1, reason="implementation complete and tested")
+        tracker.mark_in_progress(2)
+        tracker.auto_execute_command(2)
+        # Task 1 (explore) should NOT be reset (out of jump range)
+        assert tracker.todos[0].status == "approved"
+        # Task 2 (implement) should be reset
+        assert tracker.todos[1].status == "pending"
+
+    def test_approved_reason_contains_tail(self, tmp_path):
+        tracker = make_tracker([
+            {"content": "echo task", "activeForm": "echoing",
+             "command": "echo hello_world"}
+        ], tmp_path)
+        tracker.mark_in_progress(0)
+        tracker.auto_execute_command(0)
+        assert "hello_world" in tracker.todos[0].approved_reason
+
+    def test_empty_output_shows_no_output_message(self, tmp_path):
+        tracker = make_tracker([
+            {"content": "silent task", "activeForm": "running",
+             "command": "true"}
+        ], tmp_path)
+        tracker.mark_in_progress(0)
+        tracker.auto_execute_command(0)
+        assert "no output" in tracker.todos[0].approved_reason
+
+    def test_stagnation_disables_on_reject_after_max_retries(self, tmp_path):
+        tracker = make_tracker([
+            {"content": "implement", "activeForm": "implementing"},
+            {"content": "lint",      "activeForm": "linting",
+             "command": "exit 1", "on_reject": 1},
+        ], tmp_path)
+        tracker.mark_approved(0, reason="implementation done and verified")
+        # Simulate 2 prior rejections
+        tracker.todos[1].rejection_count = 2
+        tracker.mark_in_progress(1)
+        tracker.auto_execute_command(1)
+        # After 3rd failure, on_reject should be disabled (stagnation)
+        assert "stagnation" in tracker.todos[1].rejection_reason
+        # current_index should stay on task 2 (index 1), not jump to task 1
+        assert tracker.current_index == 1
+
+
+# ── Step 7: todo_add / todo_update command fields ─────────────────────────────
+
+class TestTodoAddCommand:
+    def _setup(self, tmp_path, todos_data=None):
+        from lib.todo_tracker import TodoTracker
+        tracker = TodoTracker(persist_path=tmp_path / "todo.json")
+        if todos_data:
+            tracker.add_todos(todos_data)
+        import types, sys
+        fake_main = types.ModuleType("main")
+        fake_main.todo_tracker = tracker
+        sys.modules["main"] = fake_main
+        return tracker
+
+    def teardown_method(self):
+        import sys
+        sys.modules.pop("main", None)
+
+    def test_todo_add_with_command(self, tmp_path):
+        from core.tools import todo_add
+        self._setup(tmp_path)
+        todo_add(content="Run lint", activeForm="linting", command="make lint", on_reject=0)
+        import sys
+        tracker = sys.modules["main"].todo_tracker
+        assert tracker.todos[0].command == "make lint"
+
+    def test_todo_add_with_on_reject(self, tmp_path):
+        from core.tools import todo_add
+        self._setup(tmp_path)
+        todo_add(content="Run lint", activeForm="linting", command="exit 1", on_reject=1)
+        import sys
+        tracker = sys.modules["main"].todo_tracker
+        assert tracker.todos[0].on_reject == 1
+
+    def test_todo_update_sets_command(self, tmp_path):
+        from core.tools import todo_update
+        self._setup(tmp_path, [{"content": "t", "activeForm": "t"}])
+        todo_update(index=1, command="echo updated")
+        import sys
+        tracker = sys.modules["main"].todo_tracker
+        assert tracker.todos[0].command == "echo updated"
+
+    def test_todo_update_sets_on_reject(self, tmp_path):
+        from core.tools import todo_update
+        self._setup(tmp_path, [
+            {"content": "a", "activeForm": "a"},
+            {"content": "b", "activeForm": "b"},
+        ])
+        todo_update(index=2, on_reject=1)
+        import sys
+        tracker = sys.modules["main"].todo_tracker
+        assert tracker.todos[1].on_reject == 1

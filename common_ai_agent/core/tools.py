@@ -2438,7 +2438,8 @@ def todo_write(todos=None, tasks=None):
         return f"Error formatting progress: {e}"
 
 
-def todo_update(index=None, id=None, status=None, reason="", content="", detail="", activeForm="", criteria=""):
+def todo_update(index=None, id=None, status=None, reason="", content="", detail="", activeForm="", criteria="",
+                command=None, on_reject=None):
     """
     Update a specific todo item's status and/or content.
 
@@ -2450,11 +2451,14 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
         detail (str): New implementation detail (optional, updates if provided).
         activeForm (str): New display text while in progress (optional).
         criteria (str): New completion criteria (optional).
+        command (str|dict): Shell command or tool call to set/update on this task.
+        on_reject (int): 1-based task index to jump to on command failure (0=disabled).
 
     Example:
         todo_update(index=1, status="completed")
         todo_update(index=2, content="Updated task description")
         todo_update(index=3, status="pending", reason="Tests still failing")
+        todo_update(index=4, command="make lint", on_reject=2)
     """
     todo_tracker = _get_todo_tracker()
 
@@ -2515,9 +2519,13 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
     if criteria and not _is_review_status:
         # Same protection for criteria — don't lose original criteria during review.
         item.criteria = criteria
+    if command is not None:
+        item.command = command
+    if on_reject is not None:
+        item.on_reject = int(on_reject)
 
     # Guard: status=None with no other field means LLM passed null — surface a clear error
-    if status is None and not any([content, detail, activeForm, criteria]):
+    if status is None and not any([content, detail, activeForm, criteria, command is not None, on_reject is not None]):
         return (
             f"Error: Nothing to update for Task {index}. "
             f"Provide at least one of: status ('in_progress'/'completed'/'approved'/'rejected'/'pending'), "
@@ -2737,7 +2745,8 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
     return f"✅ Task {index} updated."
 
 
-def todo_add(content="", activeForm="", priority="medium", detail="", criteria="", index=None):
+def todo_add(content="", activeForm="", priority="medium", detail="", criteria="", index=None,
+             command="", on_reject=0):
     """
     Add a single task to the existing todo list.
     More efficient than todo_write for adding tasks mid-execution.
@@ -2749,10 +2758,12 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
         detail (str): Implementation details (optional).
         criteria (str): Completion criteria, newline-separated (optional).
         index (int): 1-based position to insert at. If omitted, appends to end.
+        command (str|dict): Shell command or tool call to auto-execute (no LLM needed).
+        on_reject (int): 1-based task index to jump to on command failure (0=disabled).
 
     Example:
         todo_add(content="Fix lint errors", priority="low")
-        todo_add(content="Add error handler", index=3)
+        todo_add(content="Run lint", command="make lint", on_reject=2)
     """
     todo_tracker = _get_todo_tracker()
 
@@ -2772,6 +2783,8 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
         priority=priority,
         detail=detail,
         criteria=criteria,
+        command=command,
+        on_reject=int(on_reject),
     )
 
     if str(index) == "0":

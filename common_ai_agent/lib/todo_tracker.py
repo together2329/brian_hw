@@ -583,17 +583,51 @@ class TodoTracker:
 
         if ok:
             todo.status = "approved"
-            todo.approved_reason = f"[auto-command] {cmd_label} — exit 0 ({total_lines} lines)"
+            todo.approved_reason = (
+                f"[auto-command] {cmd_label} — exit 0 ({total_lines} lines)"
+                + (f"\n{tail}" if tail else " (no output)")
+            )
             todo.completed_at = _time.time()
             next_idx = self._get_next_pending()
             self.current_index = next_idx if next_idx is not None else -1
         else:
             todo.status = "rejected"
-            todo.rejection_reason = f"[command failed] {cmd_label} — see {log_path.name}"
+            todo.rejection_reason = (
+                f"[command failed] {cmd_label}\n{tail or '(no output)'}"
+                f"\nFull log: {log_path.name}"
+            )
             todo.rejection_count = getattr(todo, "rejection_count", 0) + 1
             on_reject = getattr(todo, "on_reject", 0)
+            _MAX_RETRIES = 3
+            if on_reject and todo.rejection_count >= _MAX_RETRIES:
+                # Stagnation guard: stop infinite on_reject loop
+                todo.rejection_reason = (
+                    todo.rejection_reason
+                    + f"\n[stagnation] Max retries ({_MAX_RETRIES}) reached — on_reject disabled."
+                )
+                on_reject = 0
             if on_reject and 1 <= on_reject <= len(self.todos):
-                self.current_index = on_reject - 1
+                jump_idx = on_reject - 1
+                # Cascade reset: jump_idx ~ index-1 → pending
+                # so the LLM can re-work from the jump target
+                fail_summary = (
+                    f"[cascade reset from Task {index + 1}] "
+                    f"Command '{cmd_label}' failed.\n"
+                    f"Error output:\n{tail or '(no output)'}\n"
+                    f"Full log: {log_path}"
+                )
+                for i in range(jump_idx, index):
+                    t = self.todos[i]
+                    if t.status in ("approved", "completed"):
+                        t.status = "pending"
+                        t.approved_reason = ""
+                        # rejection_reason: LLM이 task 시작 시 즉시 볼 수 있음
+                        t.rejection_reason = fail_summary
+                        # notes: append-only, 압축 후에도 남는 히스토리
+                        if t.notes is None:
+                            t.notes = []
+                        t.notes.append(fail_summary)
+                self.current_index = jump_idx
             else:
                 self.current_index = index
 
@@ -822,7 +856,8 @@ class TodoTracker:
             icon = icons.get(todo.status, "?")
             import re as _re
             _display_content = _re.sub(r'^\d+\.\s*', '', todo.content)
-            lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {_display_content}")
+            _cmd_mark = f" {Color.YELLOW}⚡{Color.RESET}" if getattr(todo, "command", "") else ""
+            lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {_display_content}{_cmd_mark}")
             if todo.rejection_reason and todo.status in ("rejected", "in_progress", "pending"):
                 lines.append(f"       {Color.error('✗')} {Color.DIM}{todo.rejection_reason}{Color.RESET}")
         lines.append("")
