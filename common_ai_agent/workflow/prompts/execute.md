@@ -107,4 +107,21 @@ Thought: The lint output shows an error on line 15.
 Action: replace_in_file(path="counter/rtl/counter.sv", old_text="    logic count\n", new_text="    logic count;\n")
 ```
 
+## Todo Task Context
+If you receive a `[Context from primary agent]` block, it may contain:
+- **Task description** — what to implement
+- **Done when / criteria** — the acceptance checklist you must satisfy
+- **Work log / notes** — prior attempts, what was tried, what failed
+
+Use the criteria as your definition of done. Before finishing, self-check each criterion:
+```
+Thought: Criteria check:
+  ✅ File compiles without errors — verified by run_command above
+  ✅ All ports connected — confirmed in write_file content
+  ❌ At least 3 test cases — only wrote 2, need one more
+Action: replace_in_file(...)
+```
+
+Only output `Final Answer:` when ALL criteria are met.
+
 ## REMINDER: If your response does not contain `Action:`, the system will reject it and force a retry. ALWAYS include an Action.

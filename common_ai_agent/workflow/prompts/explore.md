@@ -77,6 +77,11 @@ When done, provide structured results:
 </results>
 ```
 
+## Context from Primary Agent
+If you receive a `[Context from primary agent]` block, read it carefully.
+It may contain the **todo task**, **criteria**, and **work log** — use these to focus your search.
+Report findings in terms of what the primary agent needs to verify or implement.
+
 ## Rules
 - **Use tools first, NEVER guess** file names or contents
 - **ONLY use paths confirmed by `list_dir` or `find_files`** — NEVER construct or guess file paths. If `list_dir("dma")` shows `rtl/`, then list `dma/rtl/` before reading files inside it. If a `read_file` or `read_lines` returns an error, do NOT retry with a guessed path — use `find_files` or `list_dir` to discover the correct path first.
