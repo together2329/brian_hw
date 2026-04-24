@@ -1182,17 +1182,17 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     # ── COMPACT TOOL TABLE ──
     tool_lines = {
         "File I/O": [
-            _tool_line("read_file", 'path', "Read entire file. For large files (>500 lines), use grep_file first."),
+            _tool_line("read_file", 'path', "Read entire file. Use instead of run_command(cat). For large files, use grep_file first."),
             _tool_line("read_lines", 'path, start_line, end_line', "Read line range. Use after grep to target sections."),
-            _tool_line("write_file", 'path, content', "Create NEW files ONLY. NEVER use on existing files."),
+            _tool_line("write_file", 'path, content', "Write file. Use instead of run_command(echo/tee). Create NEW or overwrite."),
             _tool_line("replace_in_file", 'path, old_text, new_text', "Edit existing files. ALWAYS read first to get exact text."),
             _tool_line("replace_lines", 'path, start_line, end_line, new_content', "Replace line range in existing files."),
-            _tool_line("run_command", 'command', "Execute shell command."),
-            _tool_line("list_dir", 'path', "List directory contents."),
+            _tool_line("list_dir", 'path', "List directory contents. Use instead of run_command(ls)."),
+            _tool_line("run_command", 'command', "Execute shell command. Use ONLY for: build, test, git, simulation, make. NOT for reading/writing/searching files or listing dirs."),
         ],
         "Search": [
-            _tool_line("grep_file", 'pattern, path', "Regex search in file(s). Use BEFORE read_file on large files."),
-            _tool_line("find_files", 'pattern, path', "Glob search for files. Prefer over repeated list_dir."),
+            _tool_line("grep_file", 'pattern, path', "Regex search in file(s). Use instead of run_command(grep). Use BEFORE read_file on large files."),
+            _tool_line("find_files", 'pattern, path', "Glob search for files. Use instead of run_command(find). Prefer over repeated list_dir."),
         ],
         "Git": [
             _tool_line("git_status", '', "Show working tree status."),

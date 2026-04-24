@@ -58,6 +58,7 @@ def _tool_cfg(attr: str, default: int) -> int:
 def read_file(path):
     """
     Reads the content of a file with smart truncation for large files.
+    Use this instead of run_command (cat/head/tail) for reading files.
 
     For files >500 lines, automatically truncates and suggests better alternatives:
     - Use grep_file to find specific sections
@@ -242,6 +243,7 @@ def _git_tag_todo(index, status, content=""):
 def write_file(path: str = None, content: str = None) -> str:
     """
     Writes content to a file. Overwrites if exists.
+    Use this instead of run_command (echo/tee/printf) for writing files.
 
     Args:
         path: File path to write to
@@ -331,8 +333,11 @@ def run_command(command, timeout=60):
     """
     Runs a shell command and returns output.
 
-    Uses Popen with process-group kill to guarantee child cleanup on timeout.
-    Returns partial output when possible instead of silently dropping it.
+    Use for: compilation, simulation, tests, git, make, custom scripts.
+    Do NOT use run_command to read files — use read_file instead.
+    Do NOT use run_command to write files — use write_file instead.
+    Do NOT use run_command to search code — use grep_file instead.
+    Do NOT use run_command to list directories — use list_dir instead.
 
     Args:
         command: The shell command to run.
@@ -474,6 +479,8 @@ def _is_dangerous_command(command: str) -> bool:
 def list_dir(path=".", show_hidden=True, **kwargs):
     """
     Lists files in a directory.
+    Use this instead of run_command (ls/dir) for listing directory contents.
+
     Args:
         path: Directory path (default: ".")
         show_hidden: Whether to show hidden files (starting with .)
@@ -497,6 +504,7 @@ def list_dir(path=".", show_hidden=True, **kwargs):
 def grep_file(pattern=None, path=None, context_lines=2, recursive=False, **kwargs):
     """
     Searches for a pattern using system tools (git grep/grep) for performance.
+    Use this instead of run_command (grep/ripgrep/ag) for searching code.
 
     Args:
         pattern: Regex pattern to search for
