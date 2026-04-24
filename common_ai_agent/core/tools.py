@@ -267,6 +267,8 @@ def write_file(path: str = None, content: str = None) -> str:
         dir_name = os.path.dirname(path)
         if dir_name:
             os.makedirs(dir_name, exist_ok=True)
+        if os.path.exists(path):
+            _auto_chmod_if_needed(path)
         with open(path, 'w', encoding='utf-8') as f:
             f.write(content)
 
@@ -441,6 +443,23 @@ def _kill_process_group(proc):
         proc.wait(timeout=3)
     except Exception:
         pass
+
+
+def _auto_chmod_if_needed(path: str) -> bool:
+    """chmod u+w on path if AUTO_CHMOD_WRITE is enabled. Returns True if chmod was applied."""
+    import sys as _sys
+    _cfg = _sys.modules.get('config') or _sys.modules.get('src.config')
+    if not getattr(_cfg, 'AUTO_CHMOD_WRITE', False):
+        return False
+    try:
+        import stat
+        st = os.stat(path)
+        if not (st.st_mode & stat.S_IWUSR):
+            os.chmod(path, st.st_mode | stat.S_IWUSR)
+            return True
+    except Exception:
+        pass
+    return False
 
 
 def _is_dangerous_command(command: str) -> bool:
@@ -1153,6 +1172,7 @@ Common issues:
         old_full_content = "".join(lines)
 
         # Write back
+        _auto_chmod_if_needed(path)
         with open(path, 'w', encoding='utf-8') as f:
             f.write(new_full_content)
 
@@ -1655,6 +1675,7 @@ def replace_lines(path=None, start_line=None, end_line=None, new_content=None):
         new_content_full = "".join(new_lines)
 
         # Write back
+        _auto_chmod_if_needed(path)
         with open(path, 'w', encoding='utf-8') as f:
             f.writelines(new_lines)
 

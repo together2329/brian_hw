@@ -354,6 +354,7 @@ GIT_VERSION_CONTROL_ENABLE = os.getenv("GIT_VERSION_CONTROL_ENABLE", "true").low
 # Toggle at runtime with: /permission rm on|off  or  /permission mv on|off
 ALLOW_RM = os.getenv("ALLOW_RM", "false").lower() in ("true", "1", "yes")
 ALLOW_MV = os.getenv("ALLOW_MV", "false").lower() in ("true", "1", "yes")
+AUTO_CHMOD_WRITE = os.getenv("AUTO_CHMOD_WRITE", "false").lower() in ("true", "1", "yes")
 
 # Tool data limits — max items/lines actually returned to the LLM context.
 # These control what the agent sees. Higher = more context, more tokens.
