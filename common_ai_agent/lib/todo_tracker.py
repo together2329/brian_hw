@@ -707,6 +707,35 @@ class TodoTracker:
                 for ln in wrapped:
                     lines.append(ln + Color.RESET)
 
+            # ── Command (static execution) ───────────────────────────────────
+            if todo.command:
+                cmd = todo.command
+                cmd_str = cmd if isinstance(cmd, str) else f"[tool] {cmd.get('tool','')}({cmd.get('args',{})})"
+                label_str = _label("Command", Color.YELLOW)
+                wrapped = _wrap_text(cmd_str,
+                                     f"{_IND}{label_str} : {Color.YELLOW}",
+                                     f"{_CON}  {Color.YELLOW}")
+                for ln in wrapped:
+                    lines.append(ln + Color.RESET)
+                if todo.on_reject:
+                    rej_label = _label("On-reject", Color.YELLOW)
+                    lines.append(f"{_IND}{rej_label} : {Color.YELLOW}→ Task {todo.on_reject}{Color.RESET}")
+
+            # ── Command logs ─────────────────────────────────────────────────
+            if todo.command_logs:
+                last = todo.command_logs[-1]
+                ok_icon = "✅" if last.get("ok") else "❌"
+                log_label = _label("Cmd-log", Color.DIM)
+                log_info = (f"{ok_icon} run {len(todo.command_logs)}"
+                            f"  {last.get('lines',0)} lines"
+                            f"  {last.get('elapsed',0)}s"
+                            f"  → {last.get('log_file','')}")
+                wrapped = _wrap_text(log_info,
+                                     f"{_IND}{log_label} : {Color.DIM}",
+                                     f"{_CON}  {Color.DIM}")
+                for ln in wrapped:
+                    lines.append(ln + Color.RESET)
+
             # ── Detail ───────────────────────────────────────────────────────
             if todo.detail:
                 label_str = _label("Detail", Color.DIM)
