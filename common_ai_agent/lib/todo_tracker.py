@@ -541,11 +541,20 @@ class TodoTracker:
             return None
 
         # Build log file path inside session command_logs dir
-        try:
-            import src.config as _cfg
-            session_dir = getattr(_cfg, "SESSION_DIR", "")
-        except Exception:
+        # Prefer persist_path's parent (always correct) over config lookup
+        if self._persist_path:
+            session_dir = str(self._persist_path.parent)
+        else:
             session_dir = ""
+            for _mod in ("src.config", "config"):
+                try:
+                    import importlib as _il
+                    _cfg = _il.import_module(_mod)
+                    session_dir = getattr(_cfg, "SESSION_DIR", "") or ""
+                    if session_dir:
+                        break
+                except Exception:
+                    continue
 
         slug = _re.sub(r"[^a-z0-9]+", "_", todo.content.lower())[:30].strip("_")
         run_num = len(todo.command_logs) + 1
