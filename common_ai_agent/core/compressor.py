@@ -608,6 +608,9 @@ def compress_history(
                         line += f"\n     • {_c.strip()}"
             if t.rejection_reason and t.status in ("rejected", "in_progress", "pending"):
                 line += f"\n     ⚠ REJECTED: {t.rejection_reason}"
+            if getattr(t, "notes", None):
+                for ni, note in enumerate(t.notes, 1):
+                    line += f"\n     [{ni}] {note}"
             todo_lines.append(line)
         todo_snapshot = "\n".join(todo_lines)
 

@@ -2676,6 +2676,51 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
     return todo_tracker.format_progress()
 
 
+def todo_note(index=None, text=""):
+    """
+    Append a progress note to a task's work log.
+    Call this anytime during execution to record findings, attempts, or criteria status.
+    Notes are append-only, survive compression, and are shown during review and rejection.
+
+    Args:
+        index (int): 1-based task index (required).
+        text (str): Note to append — e.g. "criteria 'compiles' ✅", "tried X → failed: reason"
+
+    Example:
+        todo_note(index=2, text="found: cache burst_len=15 in instr_cache.sv:17")
+        todo_note(index=2, text="criteria 'compiles clean' ✅ — iverilog passed")
+        todo_note(index=2, text="tried direct AXI → failed: missing handshake, switched to wrapper")
+    """
+    import src.config as _cfg
+    if not getattr(_cfg, "ENABLE_TODO_NOTES", True):
+        return "Todo notes are disabled (ENABLE_TODO_NOTES=false)."
+
+    todo_tracker = _get_todo_tracker()
+    if todo_tracker is None or not todo_tracker.todos:
+        return "Error: No active todo list."
+
+    if index is None:
+        return "Error: 'index' (1-based) is required."
+
+    if not text or not str(text).strip():
+        return "Error: 'text' is required."
+
+    try:
+        idx = int(index) - 1
+    except (ValueError, TypeError):
+        return f"Error: index must be an integer, got '{index}'"
+
+    if not (0 <= idx < len(todo_tracker.todos)):
+        return f"Error: index {index} out of range (1-{len(todo_tracker.todos)})"
+
+    item = todo_tracker.todos[idx]
+    if item.notes is None:
+        item.notes = []
+    item.notes.append(str(text).strip())
+    todo_tracker.save()
+    return f"📝 Note [{len(item.notes)}] added to Task {index}: {text.strip()}"
+
+
 def todo_remove(index=None, id=None):
     """
     Remove a task from the todo list by index.

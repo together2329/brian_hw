@@ -157,6 +157,10 @@ class TodoItem:
     workflow: str = ""                  # Which workflow config this todo runs under
                                         # (e.g. "rtl-gen", "tb-gen", any workflow/<name>/)
 
+    # ── Work log (append-only progress notes) ──────────────
+    notes: list = None                   # Append-only list of progress notes (str entries).
+                                         # LLM adds via todo_note(). Survives compression.
+
     # ── Gate check (fake-completion prevention) ─────────────
     tools_since_in_progress: int = 0    # Count of non-todo tool calls since in_progress.
                                         # Reset on mark_completed. Survives serialization.
@@ -172,6 +176,8 @@ class TodoItem:
             self.created_at = time.time()
         if self.priority not in _PRIORITY_ORDER:
             self.priority = "medium"
+        if self.notes is None:
+            self.notes = []
 
     @property
     def elapsed(self) -> Optional[float]:
@@ -288,6 +294,7 @@ class TodoTracker:
                 workflow=todo_dict.get("workflow", ""),
                 tools_since_in_progress=int(todo_dict.get("tools_since_in_progress", 0)),
                 rejection_count=int(todo_dict.get("rejection_count", 0)),
+                notes=list(todo_dict.get("notes", [])),
             ))
 
         # Find current in_progress item
@@ -579,6 +586,23 @@ class TodoTracker:
                     for c in clines:
                         lines.append(f"{_CON}  {Color.DIM}• {c}{Color.RESET}")
 
+            # ── Notes (work log) ─────────────────────────────────────────────
+            if todo.notes:
+                try:
+                    import config as _cfg
+                    _notes_enabled = getattr(_cfg, "ENABLE_TODO_NOTES", True)
+                except Exception:
+                    _notes_enabled = True
+                if _notes_enabled:
+                    label_str = _label("Notes", Color.CYAN)
+                    lines.append(f"{_IND}{label_str} :")
+                    for ni, note in enumerate(todo.notes, 1):
+                        wrapped = _wrap_text(note,
+                                             f"{_CON}  {Color.CYAN}[{ni}] ",
+                                             f"{_CON}      ")
+                        for ln in wrapped:
+                            lines.append(ln + Color.RESET)
+
             # ── Approved reason ──────────────────────────────────────────────
             if todo.approved_reason and todo.status == "approved":
                 label_str = _label("Approved", Color.success(""))
@@ -714,11 +738,21 @@ class TodoTracker:
                     _rej_criteria = "\n  Unmet criteria (check which failed):\n" + "\n".join(
                         f"    • {c}" for c in _clines
                     )
+                _rej_notes = ""
+                try:
+                    import config as _cfg
+                    _notes_enabled = getattr(_cfg, "ENABLE_TODO_NOTES", True)
+                except Exception:
+                    _notes_enabled = True
+                if _notes_enabled and current.notes:
+                    _nlines = [f"    [{ni}] {n}" for ni, n in enumerate(current.notes, 1)]
+                    _rej_notes = "\n  Work log:\n" + "\n".join(_nlines)
                 _default = (
                     f"[Task {idx}/{total} REJECTED] {current.content}\n"
                     f"  Failed   : {current.rejection_reason}"
                     f"{_rej_detail}"
-                    f"{_rej_criteria}\n\n"
+                    f"{_rej_criteria}"
+                    f"{_rej_notes}\n\n"
                     f"Diagnose the root cause and fix it however makes sense.\n"
                     f"→ When ready: todo_update(index={idx}, status='in_progress')"
                 )
@@ -747,10 +781,20 @@ class TodoTracker:
                         "\n\nRead the actual output first, then judge: "
                         "does it fully achieve the goal?"
                     )
+                _rev_notes = ""
+                try:
+                    import config as _cfg
+                    _notes_enabled = getattr(_cfg, "ENABLE_TODO_NOTES", True)
+                except Exception:
+                    _notes_enabled = True
+                if _notes_enabled and current.notes:
+                    _nlines = [f"    [{ni}] {n}" for ni, n in enumerate(current.notes, 1)]
+                    _rev_notes = "\n  Work log:\n" + "\n".join(_nlines)
                 _default = (
                     f"[Task {idx}/{total} REVIEW] {current.content}"
                     f"{_rev_detail}"
                     f"{_rev_criteria}"
+                    f"{_rev_notes}"
                     f"{_criteria_check}\n"
                     f"→ todo_update(index={idx}, status='approved', reason='<evidence>')\n"
                     f"→ todo_update(index={idx}, status='rejected', reason='<unmet criterion + what was found>')"
@@ -793,6 +837,18 @@ class TodoTracker:
                     if current.criteria:
                         _clines = [f"    • {c.strip()}" for c in current.criteria.splitlines() if c.strip()]
                         _criteria_str = "\n  Done when:\n" + "\n".join(_clines)
+                    _notes_str = ""
+                    _notes_hint = ""
+                    try:
+                        import config as _cfg
+                        _notes_enabled = getattr(_cfg, "ENABLE_TODO_NOTES", True)
+                    except Exception:
+                        _notes_enabled = True
+                    if _notes_enabled and in_prog and current.notes:
+                        _nlines = [f"    [{ni}] {n}" for ni, n in enumerate(current.notes, 1)]
+                        _notes_str = "\n  Progress log:\n" + "\n".join(_nlines)
+                    if _notes_enabled and in_prog:
+                        _notes_hint = f"\n→ todo_note(index={idx}, text='...') — log findings, attempts, criteria status"
                     if in_prog:
                         _action = f"→ todo_update(index={idx}, status='completed') when all criteria met"
                     else:
@@ -800,8 +856,10 @@ class TodoTracker:
                     _default = (
                         f"[Task {idx}/{total}{'  IN PROGRESS' if in_prog else ''}] {current.content}"
                         f"{_detail_str}"
-                        f"{_criteria_str}\n"
+                        f"{_criteria_str}"
+                        f"{_notes_str}\n"
                         f"{_action}"
+                        f"{_notes_hint}"
                     )
                     try:
                         import builtins as _b
@@ -906,6 +964,7 @@ class TodoTracker:
                     "workflow": t.workflow,
                     "tools_since_in_progress": t.tools_since_in_progress,
                     "rejection_count": t.rejection_count,
+                    "notes": t.notes or [],
                 }
                 for t in self.todos
             ],

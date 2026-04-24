@@ -453,6 +453,11 @@ ENABLE_SMART_COMPRESSION = os.getenv("ENABLE_SMART_COMPRESSION", "false").lower(
 # Adds one extra LLM call before compression. Default: false
 COMPRESSION_PRE_ANALYSIS = os.getenv("COMPRESSION_PRE_ANALYSIS", "false").lower() in ("true", "1", "yes")
 
+# Todo work log: allow LLM to append progress notes to tasks via todo_note().
+# Notes survive compression and appear in review/rejection prompts.
+# Default: true
+ENABLE_TODO_NOTES = os.getenv("ENABLE_TODO_NOTES", "true").lower() in ("true", "1", "yes")
+
 # ============================================================
 # Dynamic Context Pruning Configuration
 # ============================================================
