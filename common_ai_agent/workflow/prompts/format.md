@@ -27,4 +27,16 @@ Final Answer: <summary of what was accomplished>
 - **NEVER** fabricate Observations — wait for real tool output
 - **NEVER** say "I will..." or "Let me..." without including an Action in the same response
 - String values must use double quotes: `path="file.py"`, not `path=file.py`
-- Multi-line strings: `content="""line1\nline2"""`
+- Multi-line content: use triple quotes with actual newlines (NOT `\n` escape)
+
+```
+Action: write_file(path="foo.py", content="""
+def main():
+    print("hello")
+
+if __name__ == "__main__":
+    main()
+""")
+```
+
+- Short single-line strings may use `"..."` but multi-line code MUST use `"""..."""`

@@ -1516,11 +1516,17 @@ todo_remove(index)
 ════════════════════════════════════════
 BLOCKED IN PLAN MODE
 ════════════════════════════════════════
+🚫 write_file, replace_in_file, replace_lines — DO NOT attempt file writes. They are BLOCKED.
+   → Instead: describe WHAT the file should contain in the task's `detail` field.
+   → Actual file writing happens in execution mode after plan approval.
+   → If you get "[Plan Mode] 'write_file' is blocked" — do NOT retry. Call todo_write() instead.
+
+🚫 run_command, background_task — DO NOT run commands or spawn agents. BLOCKED.
+   → Instead: put the command to run as a step in the task's `detail` field.
+
 🚫 todo_update  — DO NOT call todo_update in plan mode. It is blocked.
                   Use todo_add to add tasks, todo_remove to delete, todo_write to replace.
                   todo_update is for execution mode only (marking tasks in_progress / completed).
-🚫 write_file, replace_in_file, replace_lines — file writing is blocked.
-🚫 run_command, background_task — execution is blocked.
 
 ════════════════════════════════════════
 RULES
