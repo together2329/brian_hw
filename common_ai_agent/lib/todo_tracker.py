@@ -712,16 +712,26 @@ class TodoTracker:
                 if current.criteria:
                     _clines = [f"    • {c.strip()}" for c in current.criteria.splitlines() if c.strip()]
                     _rej_criteria = "\n  Criteria:\n" + "\n".join(_clines)
+                # Build criteria checklist for rejected state
+                _rej_criteria_check = ""
+                if current.criteria:
+                    _clines = [c.strip() for c in current.criteria.splitlines() if c.strip()]
+                    _rej_criteria_check = "\nCheck which criteria failed:\n" + "\n".join(
+                        f"  • {c}" for c in _clines
+                    )
                 _default = (
                     f"[Task {idx}/{total} REJECTED] {current.content}\n"
                     f"  Reason: {current.rejection_reason}"
                     f"{_rej_detail}"
-                    f"{_rej_criteria}\n"
-                    f"Options:\n"
-                    f"  A) Fix the issue, then: todo_update(index={idx}, status='in_progress')\n"
-                    f"  B) Task is impossible as written → rewrite it:\n"
-                    f"       todo_remove(index={idx})\n"
-                    f"       todo_add(content='<new achievable task>', index={idx})"
+                    f"{_rej_criteria}"
+                    f"{_rej_criteria_check}\n"
+                    f"Choose the best path forward:\n"
+                    f"  • Fix and resume   → todo_update(index={idx}, status='in_progress')\n"
+                    f"  • Update criteria  → todo_update(index={idx}, criteria='<revised>')\n"
+                    f"  • Split into steps → todo_add(content='<subtask>', index={idx})\n"
+                    f"  • Rewrite task     → todo_remove(index={idx}) + todo_add(content='<new task>', index={idx})\n"
+                    f"  • Defer for now    → todo_update(index={idx}, status='pending')\n"
+                    f"Use your judgment — pick whatever makes the most sense given the situation."
                 )
                 try:
                     import builtins as _b
@@ -773,7 +783,7 @@ class TodoTracker:
                         f"[Task {idx}/{total} LOOP {current.loop_count}/{max_iter}] "
                         f"{current.get_active_form()}\n"
                         f"Exit condition: \"{current.exit_condition}\"\n"
-                        f"⚠️ MANDATORY: Run the task, then call todo_update(index={idx}, status='completed', "
+                        f"→ Run the task, then todo_update(index={idx}, status='completed', "
                         f"tool_output='<output>') — loop will auto-continue or exit."
                     )
                     try:
@@ -791,9 +801,9 @@ class TodoTracker:
                         prompt = _default
                 else:
                     first_action = (
-                        f"⚠️ MANDATORY: When task is done, you MUST call todo_update(index={idx}, status='completed') as your FIRST Action — before writing any file or starting the next task."
+                        f"→ When done: todo_update(index={idx}, status='completed')"
                         if in_prog else
-                        f"⚠️ MANDATORY: Start by calling todo_update(index={idx}, status='in_progress'), then do the work, then call todo_update(index={idx}, status='completed')."
+                        f"→ todo_update(index={idx}, status='in_progress') → do the work → todo_update(index={idx}, status='completed')"
                     )
                     _detail_str = f"\n  Detail: {current.detail}" if current.detail else ""
                     _criteria_str = ""
