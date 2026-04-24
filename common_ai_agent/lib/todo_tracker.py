@@ -8,7 +8,7 @@ Todo Tracking System for Common AI Agent
 import json
 import time
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import Any, List, Dict, Optional
 from dataclasses import dataclass, field
 
 # Default persistence path
@@ -161,6 +161,11 @@ class TodoItem:
     notes: list = None                   # Append-only list of progress notes (str entries).
                                          # LLM adds via todo_note(). Survives compression.
 
+    # ── Static command execution ──────────────────────────────
+    command: Any = ""          # str → shell subprocess / dict → tool call (LLM-free)
+    on_reject: int = 0         # 1-based task index to jump to on failure (0 = disabled)
+    command_logs: list = None  # append-only list of {cmd, ok, tail, log_file, lines, elapsed}
+
     # ── Gate check (fake-completion prevention) ─────────────
     tools_since_in_progress: int = 0    # Count of non-todo tool calls since in_progress.
                                         # Reset on mark_completed. Survives serialization.
@@ -178,6 +183,8 @@ class TodoItem:
             self.priority = "medium"
         if self.notes is None:
             self.notes = []
+        if self.command_logs is None:
+            self.command_logs = []
 
     @property
     def elapsed(self) -> Optional[float]:
@@ -295,6 +302,9 @@ class TodoTracker:
                 tools_since_in_progress=int(todo_dict.get("tools_since_in_progress", 0)),
                 rejection_count=int(todo_dict.get("rejection_count", 0)),
                 notes=list(todo_dict.get("notes", [])),
+                command=todo_dict.get("command", ""),
+                on_reject=int(todo_dict.get("on_reject", 0)),
+                command_logs=list(todo_dict.get("command_logs", [])),
             ))
 
         # Find current in_progress item
@@ -453,6 +463,135 @@ class TodoTracker:
             self.save()
             return True
         return False
+
+    # ── Static command execution ───────────────────────────────────────────────
+
+    def _run_command(self, todo: "TodoItem", log_path: "Path") -> tuple[bool, str, int]:
+        """Execute todo.command, write full output to log_path.
+
+        Returns:
+            (ok, tail, total_lines)
+            ok          — True if exit 0 / no Error prefix
+            tail        — last 15 lines (for LLM preview)
+            total_lines — total line count of output
+        """
+        import subprocess as _sp
+        import time as _time
+
+        cmd = todo.command
+        full_output = ""
+
+        if isinstance(cmd, str):
+            try:
+                r = _sp.run(cmd, shell=True, capture_output=True, text=True, timeout=300)
+                full_output = (r.stdout + r.stderr).strip()
+                ok = r.returncode == 0
+            except _sp.TimeoutExpired:
+                full_output = f"[timeout] Command exceeded 300s: {cmd}"
+                ok = False
+            except Exception as e:
+                full_output = f"[error] {e}"
+                ok = False
+
+        elif isinstance(cmd, dict):
+            tool_name = cmd.get("tool", "")
+            try:
+                from core import tools as _t
+                fn = _t.AVAILABLE_TOOLS.get(tool_name)
+                if not fn:
+                    full_output = f"[error] Unknown tool: {tool_name!r}"
+                    ok = False
+                else:
+                    out = fn(**cmd.get("args", {}))
+                    full_output = str(out).strip()
+                    ok = not full_output.startswith("Error")
+            except Exception as e:
+                full_output = f"[error] Tool '{tool_name}' raised: {e}"
+                ok = False
+        else:
+            full_output = f"[error] Invalid command format: {type(cmd)}"
+            ok = False
+
+        # Write full output to log file
+        try:
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            log_path.write_text(full_output, encoding="utf-8")
+        except Exception as e:
+            full_output += f"\n[log write failed: {e}]"
+
+        lines = full_output.splitlines()
+        tail = "\n".join(lines[-15:]) if len(lines) > 15 else full_output
+        return ok, tail, len(lines)
+
+    def auto_execute_command(self, index: int) -> "tuple[bool, str] | None":
+        """If task[index] has a command, execute it and transition state.
+
+        Returns:
+            None          — no command set; caller should use LLM loop
+            (ok, output)  — command ran; state already updated (approved/rejected)
+        """
+        import time as _time
+        import re as _re
+
+        if not (0 <= index < len(self.todos)):
+            return None
+
+        todo = self.todos[index]
+        if not todo.command:
+            return None
+
+        # Build log file path inside session command_logs dir
+        try:
+            import src.config as _cfg
+            session_dir = getattr(_cfg, "SESSION_DIR", "")
+        except Exception:
+            session_dir = ""
+
+        slug = _re.sub(r"[^a-z0-9]+", "_", todo.content.lower())[:30].strip("_")
+        run_num = len(todo.command_logs) + 1
+        if session_dir:
+            log_path = Path(session_dir) / "command_logs" / f"task_{index+1}_{slug}_{run_num}.log"
+        else:
+            log_path = Path(f".command_logs/task_{index+1}_{slug}_{run_num}.log")
+
+        t0 = _time.time()
+        ok, tail, total_lines = self._run_command(todo, log_path)
+        elapsed = round(_time.time() - t0, 2)
+
+        cmd_label = todo.command if isinstance(todo.command, str) else todo.command.get("tool", "tool")
+
+        # Append to command_logs (notes 패턴)
+        if todo.command_logs is None:
+            todo.command_logs = []
+        todo.command_logs.append({
+            "cmd":      cmd_label,
+            "ok":       ok,
+            "tail":     tail,
+            "log_file": str(log_path),
+            "lines":    total_lines,
+            "elapsed":  elapsed,
+        })
+
+        if ok:
+            todo.status = "approved"
+            todo.approved_reason = f"[auto-command] {cmd_label} — exit 0 ({total_lines} lines)"
+            todo.completed_at = _time.time()
+            next_idx = self._get_next_pending()
+            self.current_index = next_idx if next_idx is not None else -1
+        else:
+            todo.status = "rejected"
+            todo.rejection_reason = f"[command failed] {cmd_label} — see {log_path.name}"
+            todo.rejection_count = getattr(todo, "rejection_count", 0) + 1
+            on_reject = getattr(todo, "on_reject", 0)
+            if on_reject and 1 <= on_reject <= len(self.todos):
+                self.current_index = on_reject - 1
+            else:
+                self.current_index = index
+
+        self.save()
+        return ok, tail
+
+    # ── End static command execution ───────────────────────────────────────────
 
     def auto_advance(self):
         """현재 todo를 completed로 표시 — 다음 task 전환은 review 후 LLM이 명시적으로 수행."""
@@ -965,6 +1104,9 @@ class TodoTracker:
                     "tools_since_in_progress": t.tools_since_in_progress,
                     "rejection_count": t.rejection_count,
                     "notes": t.notes or [],
+                    "command": t.command,
+                    "on_reject": t.on_reject,
+                    "command_logs": t.command_logs or [],
                 }
                 for t in self.todos
             ],

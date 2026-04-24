@@ -2653,6 +2653,48 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             # exclusively for rejected status. The step header will still show
             # the detail/criteria fields for context.
             todo_tracker.mark_in_progress(idx)
+
+            # ── Static command execution (LLM-free) ──────────────────────────
+            result = todo_tracker.auto_execute_command(idx)
+            if result is not None:
+                ok, tail = result
+                cmd = item.command
+                label = cmd if isinstance(cmd, str) else cmd.get("tool", "tool")
+                last_log = item.command_logs[-1] if item.command_logs else {}
+                log_file = last_log.get("log_file", "")
+                total_lines = last_log.get("lines", 0)
+                elapsed = last_log.get("elapsed", 0)
+                log_info = f"Log: {log_file} ({total_lines} lines, {elapsed}s)\n" if log_file else ""
+
+                if ok:
+                    next_todo = todo_tracker.get_current_todo()
+                    next_msg = (
+                        f"\n→ Next: todo_update(index={todo_tracker.current_index + 1},"
+                        f" status='in_progress') — {next_todo.content}"
+                    ) if next_todo else "\nAll tasks complete! 🏁"
+                    return (
+                        f"✅ Task {index} [command: {label}] passed.\n"
+                        f"{log_info}"
+                        f"--- output tail ---\n{tail}"
+                        f"{next_msg}"
+                    )
+                else:
+                    on_rej = getattr(item, "on_reject", 0)
+                    jump_msg = ""
+                    if on_rej and 1 <= on_rej <= len(todo_tracker.todos):
+                        jump_todo = todo_tracker.todos[on_rej - 1]
+                        jump_msg = (
+                            f"\n→ Jumping to Task {on_rej}: {jump_todo.content}"
+                            f"\n→ todo_update(index={on_rej}, status='in_progress')"
+                        )
+                    return (
+                        f"❌ Task {index} [command: {label}] failed.\n"
+                        f"{log_info}"
+                        f"--- output tail ---\n{tail}"
+                        f"{jump_msg}"
+                    )
+            # ── End static command execution ──────────────────────────────────
+
             todo_tracker.save()
             return f"▶ Task {index} in progress: {item.content}"
         else:  # pending
