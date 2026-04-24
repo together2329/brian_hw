@@ -2609,8 +2609,12 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                 )
             todo_tracker.mark_rejected(idx, _reason_stripped)  # internally calls save()
             return (
-                f"❌ Task {index} rejected: {reason}\n"
-                f"→ Fix, then: todo_update(index={index}, status='in_progress')"
+                f"❌ Task {index} rejected: {reason}\n\n"
+                f"Goal:    {item.content}\n"
+                f"Problem: {reason}\n\n"
+                f"→ todo_update(index={index}, status='in_progress')  ← resume first\n"
+                f"→ Fix the problem above\n"
+                f"→ todo_update(index={index}, status='completed')  ← when done"
             )
         elif status == "in_progress":
             # NOTE: Do NOT store reason in rejection_reason — that field is
