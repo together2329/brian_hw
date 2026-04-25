@@ -1060,25 +1060,21 @@ def replace_in_file(path=None, old_text=None, new_text=None, count=-1, start_lin
                 ("ContextAwareReplacer", _context_aware_replacer),
             ]:
                 for candidate in replacer(target_content, old_text):
-                    # Check if this candidate is unique
+                    # Only accept unique matches to avoid wrong replacements
                     candidate_count = target_content.count(candidate)
                     if candidate_count == 1:
                         # Perfect: unique match found
                         matched_text = candidate
                         matched_strategy = strategy_name
                         break
-                    elif candidate_count > 0 and matched_text is None:
-                        # Store as potential match but keep trying for unique one
-                        matched_text = candidate
-                        matched_strategy = strategy_name
 
-                # If we found a unique match, stop searching
-                if matched_text and target_content.count(matched_text) == 1:
+                # If we found a unique match, stop searching strategies
+                if matched_text:
                     break
 
             if matched_text:
                 actual_old_text = matched_text
-                occurrences = target_content.count(actual_old_text)
+                occurrences = 1  # Unique match guaranteed by check above
         
         if occurrences == 0:
             range_msg = f" in lines {start_line}-{end_line}" if start_line is not None else ""
@@ -1139,23 +1135,67 @@ Common issues:
         
         # Auto-adjust indentation: if fuzzy matched, align new_text indent to actual match
         if actual_old_text != old_text:
-            # Detect indent difference between what LLM gave and what's actually in file
+            # Build per-line indent mapping from old_text → actual_old_text
+            # Maps leading whitespace prefixes directly to preserve tabs/spaces
             old_lines = old_text.split('\n')
             actual_lines = actual_old_text.split('\n')
+
             if old_lines and actual_lines:
-                old_indent = len(old_lines[0]) - len(old_lines[0].lstrip())
-                actual_indent = len(actual_lines[0]) - len(actual_lines[0].lstrip())
-                indent_diff = actual_indent - old_indent
-                if indent_diff != 0:
-                    # Apply indent adjustment to new_text
+                # Build mapping: old_leading_ws → actual_leading_ws
+                ws_map = {}
+                for i in range(min(len(old_lines), len(actual_lines))):
+                    ol = old_lines[i]
+                    al = actual_lines[i]
+                    if ol.strip() and al.strip():
+                        old_ws = ol[:len(ol) - len(ol.lstrip())]
+                        actual_ws = al[:len(al) - len(al.lstrip())]
+                        ws_map[old_ws] = actual_ws
+
+                if ws_map:
                     adjusted_lines = []
                     for nl in new_text.split('\n'):
-                        if indent_diff > 0:
-                            adjusted_lines.append(' ' * indent_diff + nl)
+                        if not nl.strip():
+                            # Empty or whitespace-only line: preserve as-is
+                            adjusted_lines.append(nl)
+                            continue
+
+                        nl_ws = nl[:len(nl) - len(nl.lstrip())]
+                        nl_content = nl.lstrip()
+
+                        # Look up target whitespace from mapping
+                        if nl_ws in ws_map:
+                            target_ws = ws_map[nl_ws]
                         else:
-                            # Remove indent (but don't go negative)
-                            strip_n = min(-indent_diff, len(nl) - len(nl.lstrip()))
-                            adjusted_lines.append(nl[strip_n:])
+                            # Find closest matching indent level by character length
+                            nl_depth = len(nl_ws)
+                            best_ws = nl_ws
+                            best_diff = float('inf')
+                            for old_ws, act_ws in ws_map.items():
+                                diff = abs(len(old_ws) - nl_depth)
+                                if diff < best_diff:
+                                    best_diff = diff
+                                    best_ws = act_ws
+                            # Scale the actual whitespace to match the depth difference
+                            if best_ws and len(best_ws) > 0:
+                                # Compute indent delta from the matched pair
+                                matched_old = [k for k, v in ws_map.items() if v == best_ws]
+                                if matched_old:
+                                    delta = len(nl_ws) - len(matched_old[0])
+                                    if delta > 0:
+                                        # Deeper: extend with same char type
+                                        char = best_ws[0]
+                                        target_ws = best_ws + char * delta
+                                    elif delta < 0:
+                                        # Shallower: trim from end
+                                        target_ws = best_ws[:max(0, len(best_ws) + delta)]
+                                    else:
+                                        target_ws = best_ws
+                                else:
+                                    target_ws = best_ws
+                            else:
+                                target_ws = nl_ws
+
+                        adjusted_lines.append(target_ws + nl_content)
                     new_text = '\n'.join(adjusted_lines)
 
         # Perform replacement
@@ -1205,8 +1245,8 @@ Common issues:
 # ============================================================================
 
 # Constants for BlockAnchorReplacer
-SINGLE_CANDIDATE_SIMILARITY_THRESHOLD = 0.0
-MULTIPLE_CANDIDATES_SIMILARITY_THRESHOLD = 0.3
+SINGLE_CANDIDATE_SIMILARITY_THRESHOLD = 0.5
+MULTIPLE_CANDIDATES_SIMILARITY_THRESHOLD = 0.6
 
 def _levenshtein(a, b):
     """
@@ -1331,9 +1371,6 @@ def _block_anchor_replacer(content, find):
 
                 distance = _levenshtein(original_line, search_line)
                 similarity += (1 - distance / max_len) / lines_to_check
-
-                if similarity >= SINGLE_CANDIDATE_SIMILARITY_THRESHOLD:
-                    break
         else:
             similarity = 1.0
 
@@ -1470,23 +1507,29 @@ def _indentation_flexible_replacer(content, find):
 def _escape_normalized_replacer(content, find):
     """
     Strategy 6: Escape sequence normalization.
-    Handles escaped characters like \\n, \\t, etc.
+    Handles escaped characters like \\n, \\t, \\"\\", etc.
+    Uses placeholder for \\\\ to prevent double-processing (\\\\\\\\" → \\\\").
+    Single pass only — multi-pass would over-unescape.
     """
     def unescape_string(s):
-        """Unescape common escape sequences."""
-        replacements = {
-            '\\n': '\n',
-            '\\t': '\t',
-            '\\r': '\r',
-            "\\'": "'",
-            '\\"': '"',
-            '\\`': '`',
-            '\\\\': '\\',
-            '\\$': '$'
-        }
+        """Unescape common escape sequences. Single pass with placeholder."""
+        # CRITICAL: Process \\\\ FIRST via placeholder, then single-char escapes.
+        # This ensures \\\\\\" becomes \\" (not \\") and \\" becomes ".
+        replacements = [
+            ('\\\\', '\x00BACKSLASH\x00'),  # Placeholder prevents double-processing
+            ('\\n', '\n'),
+            ('\\t', '\t'),
+            ('\\r', '\r'),
+            ("\\'", "'"),
+            ('\\"', '"'),
+            ('\\`', '`'),
+            ('\\$', '$'),
+        ]
         result = s
-        for escaped, unescaped in replacements.items():
+        for escaped, unescaped in replacements:
             result = result.replace(escaped, unescaped)
+        # Restore backslash placeholder → real backslash
+        result = result.replace('\x00BACKSLASH\x00', '\\')
         return result
 
     unescaped_find = unescape_string(find)
@@ -1500,7 +1543,7 @@ def _escape_normalized_replacer(content, find):
     find_lines = unescaped_find.split('\n')
 
     for i in range(len(lines) - len(find_lines) + 1):
-        block = '\n'.join(lines[i:i + len(find_lines)])
+        block = '\\n'.join(lines[i:i + len(find_lines)])
         if unescape_string(block) == unescaped_find:
             yield block
 
@@ -1527,9 +1570,43 @@ def _trimmed_boundary_replacer(content, find):
         if block.strip() == trimmed_find:
             yield block
 
+
+def _punctuation_aware_replacer(content, find):
+    \"\"\"
+    Strategy 8: Punctuation-aware matching.
+    Removes whitespace adjacent to punctuation chars ()[]{};,. before comparing.
+    Handles cases like: foo( "bar" ); → foo("bar");
+    NOTE: Currently disabled (not in strategy loop) due to potential false positives.
+    \"\"\"
+    import re
+
+    def strip_punct_ws(text):
+        \"\"\"Remove whitespace adjacent to punctuation characters.\"\"\"
+        # Remove spaces before: ) ] } ; , .
+        result = re.sub(r'\s+([)\]};,.])', r'\1', text)
+        # Remove spaces after: ( [ {
+        result = re.sub(r'([(\[{])\s+', r'\1', result)
+        return result
+
+    normalized_find = strip_punct_ws(find)
+
+    # Try single-line matches
+    lines = content.split('\n')
+    for i, line in enumerate(lines):
+        if strip_punct_ws(line) == normalized_find:
+            yield line
+
+    # Try multi-line block matches
+    find_lines = find.split('\n')
+    if len(find_lines) > 1:
+        for i in range(len(lines) - len(find_lines) + 1):
+            block = lines[i:i + len(find_lines)]
+            if strip_punct_ws('\n'.join(block)) == normalized_find:
+                yield '\n'.join(block)
+
 def _context_aware_replacer(content, find):
     """
-    Strategy 8: Context-aware matching.
+    Strategy 9: Context-aware matching.
     Uses first and last lines as anchors, validates middle with 50% similarity.
     """
     find_lines = find.split('\n')
@@ -1576,7 +1653,10 @@ def _context_aware_replacer(content, find):
                     if total_non_empty == 0 or matching_lines / total_non_empty >= 0.5:
                         yield '\n'.join(block_lines)
                         return  # Only first match
-                break
+                # Only break if block size matched (whether similarity passed or not)
+                # Otherwise continue looking for another matching last line
+                if len(block_lines) == len(find_lines):
+                    break
 
 # End of OpenCode-style Replacers
 # ============================================================================
@@ -1690,7 +1770,8 @@ def replace_lines(path=None, start_line=None, end_line=None, new_content=None):
         result += f"\n{diff_output}"
         
         added = len(new_content.splitlines())
-        hint = f"--- old ---\n{old_content[start_line-1:end_line][:400]}\n--- new ---\n{new_content[:400]}" if isinstance(old_content, list) else ""
+        old_snippet = "".join(lines[start_line-1:end_line])[:400]
+        hint = f"--- old ---\n{old_snippet}\n--- new ---\n{new_content[:400]}"
         import threading as _t
         _t.Thread(target=_git_auto_commit, args=(path, "replace_lines"), kwargs={"stats": f"+{added}/-{lines_removed} lines", "content_hint": hint}, daemon=False).start()
         
