@@ -240,14 +240,16 @@ def _git_tag_todo(index, status, content=""):
         pass
 
 
-def write_file(path: str = None, content: str = None) -> str:
+def write_file(path: str = None, content: str = None, append: bool = False) -> str:
     """
-    Writes content to a file. Overwrites if exists.
+    Writes content to a file. Overwrites by default; set append=True to add to end.
     Use this instead of run_command (echo/tee/printf) for writing files.
+    For large files, write in sections using append=True to avoid corruption.
 
     Args:
         path: File path to write to
         content: Content to write
+        append: If True, append to existing file instead of overwriting (default: False)
 
     Returns:
         Success message with optional lint warnings
@@ -269,10 +271,11 @@ def write_file(path: str = None, content: str = None) -> str:
             os.makedirs(dir_name, exist_ok=True)
         if os.path.exists(path):
             _auto_chmod_if_needed(path)
-        with open(path, 'w', encoding='utf-8') as f:
+        mode = 'a' if append else 'w'
+        with open(path, mode, encoding='utf-8') as f:
             f.write(content)
 
-        result = f"Successfully wrote to '{path}'."
+        result = f"Successfully {'appended to' if append else 'wrote to'} '{path}'."
 
         import threading as _t
         _t.Thread(target=_git_auto_commit, args=(path, "write"), kwargs={"content_hint": content[:800]}, daemon=False).start()

@@ -955,3 +955,205 @@ python main.py --a2a --port 9000
 10. HTTP API (`/run`, `/flow`, `/status`, `/input`)
 11. Python SDK
 12. Multi-Agent Orchestrator PoC
+
+---
+
+## Todo Editor UI (Python / Textual)
+
+### 목적
+터미널에서 todo 목록을 시각적으로 생성·편집할 수 있는 TUI.
+`command`, `on_reject` 등 새 필드를 폼으로 입력하여 JSON 없이 파이프라인 구성 가능.
+
+### 구현 방식
+기존 `textual_ui.py` (AgentTUI) 안에 **ModalScreen**으로 삽입.
+- 단축키 `ctrl+e` 또는 `/todo edit` 슬래시 커맨드로 열림
+- 닫을 때 변경 내용을 `todo_tracker`에 즉시 반영
+
+### 파일
+`common_ai_agent/lib/todo_editor.py` — 신규 파일
+
+### 화면 레이아웃
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Todo Editor                              [Esc] Close│
+├──────────────┬──────────────────────────────────────┤
+│ Task List    │ Task Detail                           │
+│              │                                       │
+│ ▶ 1. explore │  Content  : [______________________] │
+│   2. impl    │  Active   : [______________________] │
+│   3. lint ⚡ │  Priority : [high/medium/low       ] │
+│   + Add task │  Detail   : [______________________] │
+│              │  Criteria : [______________________] │
+│              │  Command  : [______________________] │
+│              │  On-reject: [__] (1-based task idx)  │
+│              │                                       │
+│              │  [Save]  [Delete]  [Move ↑↓]         │
+└──────────────┴──────────────────────────────────────┘
+```
+
+### 키보드
+| 키 | 동작 |
+|---|---|
+| `↑/↓` | 태스크 선택 |
+| `n` | 태스크 추가 |
+| `d` | 태스크 삭제 |
+| `ctrl+↑/↓` | 태스크 순서 이동 |
+| `ctrl+s` | 저장 (tracker에 반영) |
+| `Esc` | 닫기 |
+
+### 주요 Textual 위젯
+- `ListView` + `ListItem` — 왼쪽 태스크 목록
+- `Input` × 6 — 각 필드 (content, active_form, priority, command, on_reject, detail)
+- `TextArea` × 2 — criteria, detail (멀티라인)
+- `Button` — Save / Delete
+- `ModalScreen` — 오버레이
+
+### AgentTUI 연결
+```python
+# textual_ui.py AgentTUI
+Binding("ctrl+e", "open_todo_editor", "Todo Editor", show=False)
+
+def action_open_todo_editor(self):
+    from lib.todo_editor import TodoEditorScreen
+    self.push_screen(TodoEditorScreen(self._todo_tracker))
+```
+
+### 구현 순서
+1. `TodoEditorScreen(ModalScreen)` 기본 레이아웃
+2. 태스크 목록 ↔ 폼 연동 (선택 시 필드 채우기)
+3. Save → `todo_tracker.todos` 업데이트 + `save()`
+4. Add / Delete / Move 기능
+5. AgentTUI `ctrl+e` 바인딩 연결
+
+---
+
+## Mermaid 다이어그램 뷰어 (TUI 내 렌더링)
+
+### 목적
+`/todo diagram` 커맨드로 현재 todo 목록을 **Mermaid flowchart**로 시각화.
+터미널 내에서 흐름(on_reject 점프, command task, LLM task)을 한눈에 파악.
+
+### 렌더링 전략
+터미널은 Mermaid를 직접 렌더링 못함 → 두 가지 옵션:
+
+**Option A — ASCII fallback (기본, 의존성 없음)**
+`todo_tracker` 상태를 읽어 Rich 테이블/트리로 흐름 표시.
+```
+  [1] explore        → LLM
+   ↓
+  [2] implement      → LLM
+   ↓
+  [3] lint ⚡        → shell: make lint
+   ↓ fail → [2]
+  [4] review         → LLM
+```
+
+**Option B — Mermaid → PNG → 터미널 이미지 (고급)**
+`mmdc` (mermaid-cli) 설치 시 PNG 생성 후 `imgcat`/`kitty icat`으로 표시.
+CLI 없으면 Option A로 자동 fallback.
+
+**Option C — 브라우저 열기**
+`/todo diagram --browser`: mermaid 코드를 `mermaid.live` URL로 열기.
+의존성 없음, 가장 예쁜 결과.
+
+### 생성할 Mermaid 코드 형식
+```mermaid
+flowchart TD
+    T1["1. explore\n(LLM)"]
+    T2["2. implement\n(LLM)"]
+    T3["3. lint ⚡\nshell: make lint"]
+    T4["4. review\n(LLM)"]
+
+    T1 --> T2
+    T2 --> T3
+    T3 -->|fail on_reject| T2
+    T3 --> T4
+
+    style T3 fill:#2d333b,stroke:#f0883e
+```
+
+### 구현 위치
+- `lib/todo_tracker.py` → `to_mermaid() -> str` 메서드 추가
+- `core/slash_commands.py` → `/todo diagram` 커맨드 등록
+- `core/tools.py` → `todo_diagram(mode="ascii"|"mermaid"|"browser")` tool 추가
+
+### `to_mermaid()` 로직
+```python
+def to_mermaid(self) -> str:
+    lines = ["flowchart TD"]
+    for i, t in enumerate(self.todos):
+        label = t.content[:30]
+        if t.command:
+            label += f"\n⚡ {str(t.command)[:20]}"
+        lines.append(f'    T{i+1}["{label}"]')
+    for i, t in enumerate(self.todos):
+        if i + 1 < len(self.todos):
+            lines.append(f"    T{i+1} --> T{i+2}")
+        if t.on_reject:
+            lines.append(f'    T{i+1} -->|"fail → Task {t.on_reject}"| T{t.on_reject}')
+    return "\n".join(lines)
+```
+
+### 구현 순서
+1. `to_mermaid()` + ASCII 버전 (`to_ascii_flow()`) in `todo_tracker.py`
+2. `todo_diagram()` tool in `tools.py`
+3. `/todo diagram` slash command
+4. Option B (mmdc) / Option C (browser) 선택적 지원
+
+
+---
+
+## Python 라이브러리 선택 가이드
+
+### TUI (터미널 편집기)
+
+| 라이브러리 | 특징 | 비고 |
+|---|---|---|
+| **Textual** | 위젯 기반, CSS 레이아웃, ModalScreen/폼 지원 | ✅ 이미 사용 중 → 추가 설치 없음 |
+| **Rich** | 테이블·패널·트리 렌더링 | ✅ 이미 사용 중 |
+| **prompt_toolkit** | 인터랙티브 입력, vi/emacs 키바인딩 | 별도 설치 필요 |
+| **urwid** | 낮은 레벨 TUI, 가벼움 | Textual보다 구식 |
+| **curses** | 표준 라이브러리, raw 터미널 제어 | 매우 저수준 |
+
+→ **Textual ModalScreen** 사용 (이미 의존성 있음, 가장 현실적)
+
+### 다이어그램 / 시각화
+
+#### 터미널 내 렌더링 (설치 불필요)
+
+| 라이브러리 | 방식 |
+|---|---|
+| **Rich** `Tree` | ASCII 트리 구조 — 이미 있음 |
+| **Rich** `Panel` + 화살표 | 텍스트 박스 연결 — 이미 있음 |
+| **drawille** | 브레일 문자로 곡선/그래프 (`pip install drawille`) |
+| **plotext** | 터미널 플롯 (`pip install plotext`) |
+
+#### 이미지/파일 생성
+
+| 라이브러리 | 방식 | 설치 |
+|---|---|---|
+| **graphviz** | `.dot` → PNG/SVG, 노드·엣지 그래프 | `pip install graphviz` + `brew install graphviz` |
+| **networkx** + matplotlib | 그래프 알고리즘 + 시각화 | `pip install networkx matplotlib` |
+| **diagrams** | 인프라 아키텍처 다이어그램 | `pip install diagrams` |
+
+#### Mermaid 특화
+
+| 방법 | 설명 | 설치 |
+|---|---|---|
+| `mermaid-py` | Python으로 Mermaid 코드 생성 헬퍼 | `pip install mermaid-py` |
+| `mmdc` | Mermaid → PNG/SVG 변환 CLI | Node.js 필요 |
+| `mermaid.live` URL | 코드를 base64 인코딩 → 브라우저로 열기 | 설치 불필요 |
+
+### 현재 프로젝트에 가장 현실적인 조합
+
+```
+Todo 편집기 UI    →  Textual ModalScreen     (의존성 0, 이미 있음)
+터미널 flowchart  →  Rich Tree/Panel          (의존성 0, 이미 있음)
+고품질 그래프     →  graphviz                 (pip 1개 + brew 1개)
+브라우저 미리보기  →  mermaid.live base64 URL  (설치 불필요)
+```
+
+**graphviz**가 on_reject 엣지 표현에 가장 적합:
+노드(task) + 방향 엣지(on_reject 점프)가 `.dot` 문법과 1:1 매핑됨.
+

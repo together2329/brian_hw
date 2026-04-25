@@ -753,7 +753,11 @@ def run_react_agent_impl(
         if not collected_content.strip() and not _has_native:
             if _llm_retry < getattr(cfg, "LLM_RETRY_COUNT", 1):
                 _llm_retry += 1
-                print(f"\n  LLM empty response, retrying ({_llm_retry}/{cfg.LLM_RETRY_COUNT})...")
+                _esc_was_interrupted = getattr(cfg, "_esc_interrupted", False)
+                if _esc_was_interrupted:
+                    cfg._esc_interrupted = False  # clear after first retry
+                else:
+                    print(f"\n  LLM empty response, retrying ({_llm_retry}/{cfg.LLM_RETRY_COUNT})...")
                 continue
             # Recovery: reasoning likely consumed all output tokens → compress and retry
             if not _reasoning_recovery_done and deps.compress_fn:

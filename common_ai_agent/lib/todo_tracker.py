@@ -607,7 +607,7 @@ class TodoTracker:
                     + f"\n[stagnation] Max retries ({_MAX_RETRIES}) reached — on_reject disabled."
                 )
                 on_reject = 0
-            if on_reject and 1 <= on_reject <= len(self.todos):
+            if on_reject and 1 <= on_reject <= len(self.todos) and on_reject - 1 != index:
                 jump_idx = on_reject - 1
                 # Cascade reset: jump_idx ~ index-1 → pending
                 # so the LLM can re-work from the jump target
