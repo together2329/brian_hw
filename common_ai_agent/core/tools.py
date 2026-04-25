@@ -2299,6 +2299,11 @@ def todo_write(todos=None, tasks=None):
                             dict: {"tool": "run_command", "args": {"command": "make sim"}}
         on_reject (int):    1-based task index to jump to when command fails.
                             Enables retry loops: failed task jumps back to impl task.
+        on_success (int):   1-based task index to jump to when command succeeds.
+                            0 = next sequential task. Enables skip-ahead flows.
+        on_condition (list): Conditional branching — [{"if": "pattern", "goto": N}, ...].
+                            Pattern matched against command output via regex. First match wins.
+                            Overrides on_success/on_reject when matched.
 
     Static command pipeline example (LLM implements → static checks → LLM reviews):
         todo_write([
@@ -2315,6 +2320,23 @@ def todo_write(todos=None, tasks=None):
              "on_reject": 1},
             {"content": "Reviewed results",
              "activeForm": "Reviewing results"},
+        ])
+
+    Skip-ahead example (quick check passes → skip full check):
+        todo_write([
+            {"content": "Implemented feature",
+             "activeForm": "Implementing feature"},
+            {"content": "Ran quick lint",
+             "activeForm": "Running quick lint",
+             "command": "make quick-lint",
+             "on_success": 4},
+            {"content": "Ran full lint",
+             "activeForm": "Running full lint",
+             "command": "make full-lint",
+             "on_reject": 1},
+            {"content": "Ran simulation",
+             "activeForm": "Running simulation",
+             "command": "make sim"},
         ])
 
     Basic example:
@@ -2442,7 +2464,7 @@ def todo_write(todos=None, tasks=None):
 
 
 def todo_update(index=None, id=None, status=None, reason="", content="", detail="", activeForm="", criteria="",
-                command=None, on_reject=None):
+                command=None, on_reject=None, on_success=None, on_condition=None):
     """
     Update a specific todo item's status and/or content.
 
@@ -2456,12 +2478,17 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
         criteria (str): New completion criteria (optional).
         command (str|dict): Shell command or tool call to set/update on this task.
         on_reject (int): 1-based task index to jump to on command failure (0=disabled).
+        on_success (int): 1-based task index to jump to on command success (0=next sequential).
+        on_condition (list): Conditional branching — [{"if": "pattern", "goto": N}, ...].
+                             Overrides on_success/on_reject when matched.
 
     Example:
         todo_update(index=1, status="completed")
         todo_update(index=2, content="Updated task description")
         todo_update(index=3, status="pending", reason="Tests still failing")
         todo_update(index=4, command="make lint", on_reject=2)
+        todo_update(index=5, on_success=7)
+        todo_update(index=6, on_condition=[{"if": "TIMEOUT", "goto": 3}])
     """
     todo_tracker = _get_todo_tracker()
 
@@ -2526,9 +2553,13 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
         item.command = command
     if on_reject is not None:
         item.on_reject = int(on_reject)
+    if on_success is not None:
+        item.on_success = int(on_success)
+    if on_condition is not None:
+        item.on_condition = on_condition if on_condition else None
 
     # Guard: status=None with no other field means LLM passed null — surface a clear error
-    if status is None and not any([content, detail, activeForm, criteria, command is not None, on_reject is not None]):
+    if status is None and not any([content, detail, activeForm, criteria, command is not None, on_reject is not None, on_success is not None, on_condition is not None]):
         return (
             f"Error: Nothing to update for Task {index}. "
             f"Provide at least one of: status ('in_progress'/'completed'/'approved'/'rejected'/'pending'), "
@@ -2549,12 +2580,23 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
         # Enforce sequential execution: all prior tasks must be approved.
         # Skipped in cursor-agent mode — cursor-agent makes its own approval judgment
         # via text output; the approval event arrives after the next task's tool calls.
+        #
+        # Exception: rejected tasks with forward on_reject are NOT blocking.
+        # When Task N has on_reject=M (M>N) and fails, the flow jumps to Task M.
+        # Task M should be allowed to complete even though Task N is rejected,
+        # because Task N's failure is "handled" by the on_reject jump path.
         import src.config as _cfg
         _cursor_mode = getattr(_cfg, "CURSOR_AGENT_ENABLE", False)
         if not _cursor_mode and status in ("in_progress", "completed", "approved"):
             blocking = [
                 i + 1 for i in range(idx)
                 if todo_tracker.todos[i].status not in ("approved",)
+                # Skip rejected tasks that have a forward on_reject —
+                # their failure is handled by jumping to the reject target.
+                and not (
+                    todo_tracker.todos[i].status == "rejected"
+                    and getattr(todo_tracker.todos[i], 'on_reject', 0) > (i + 1)
+                )
             ]
             if blocking:
                 blocking_str = ", ".join(str(b) for b in blocking)
@@ -2753,7 +2795,7 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
 
 
 def todo_add(content="", activeForm="", priority="medium", detail="", criteria="", index=None,
-             command="", on_reject=0):
+             command="", on_reject=0, on_success=0, on_condition=None):
     """
     Add a single task to the existing todo list.
     More efficient than todo_write for adding tasks mid-execution.
@@ -2767,10 +2809,16 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
         index (int): 1-based position to insert at. If omitted, appends to end.
         command (str|dict): Shell command or tool call to auto-execute (no LLM needed).
         on_reject (int): 1-based task index to jump to on command failure (0=disabled).
+        on_success (int): 1-based task index to jump to on command success (0=next sequential).
+        on_condition (list): Conditional branching rules — [{"if": "pattern", "goto": N}, ...].
+                             Pattern matched against command output via regex. First match wins.
+                             Overrides on_success/on_reject when matched.
 
     Example:
         todo_add(content="Fix lint errors", priority="low")
         todo_add(content="Run lint", command="make lint", on_reject=2)
+        todo_add(content="Quick check", command="make quick-lint", on_success=4)
+        todo_add(content="Run sim", command="make sim", on_condition=[{"if": "TIMEOUT", "goto": 3}])
     """
     todo_tracker = _get_todo_tracker()
 
@@ -2792,6 +2840,8 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
         criteria=criteria,
         command=command,
         on_reject=int(on_reject),
+        on_success=int(on_success),
+        on_condition=on_condition if on_condition else None,
     )
 
     if str(index) == "0":

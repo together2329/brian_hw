@@ -164,8 +164,9 @@ class TodoItem:
     # ── Static command execution ──────────────────────────────
     command: Any = ""          # str → shell subprocess / dict → tool call (LLM-free)
     on_reject: int = 0         # 1-based task index to jump to on failure (0 = disabled)
+    on_success: int = 0        # 1-based task index to jump to on success (0 = next sequential)
+    on_condition: list = None  # [{"if": "pattern", "goto": N}, ...] conditional branching
     command_logs: list = None  # append-only list of {cmd, ok, tail, log_file, lines, elapsed}
-
     # ── Gate check (fake-completion prevention) ─────────────
     tools_since_in_progress: int = 0    # Count of non-todo tool calls since in_progress.
                                         # Reset on mark_completed. Survives serialization.
@@ -304,6 +305,8 @@ class TodoTracker:
                 notes=list(todo_dict.get("notes", [])),
                 command=todo_dict.get("command", ""),
                 on_reject=int(todo_dict.get("on_reject", 0)),
+                on_success=int(todo_dict.get("on_success", 0)),
+                on_condition=list(todo_dict.get("on_condition", [])) if todo_dict.get("on_condition") else None,
                 command_logs=list(todo_dict.get("command_logs", [])),
             ))
 
@@ -581,6 +584,65 @@ class TodoTracker:
             "elapsed":  elapsed,
         })
 
+        # ── on_condition matching (checked BEFORE on_success/on_reject) ──────
+        on_condition = getattr(todo, "on_condition", None) or []
+        _condition_match = None
+        if on_condition:
+            # Read full output for pattern matching (tail may be truncated)
+            try:
+                _full_output = log_path.read_text(encoding="utf-8", errors="replace")
+            except Exception:
+                _full_output = tail
+            for _cond in on_condition:
+                _pattern = _cond.get("if", "")
+                _goto = int(_cond.get("goto", 0))
+                if _pattern and _goto and 1 <= _goto <= len(self.todos) and _goto - 1 != index:
+                    try:
+                        if _re.search(_pattern, _full_output, _re.IGNORECASE):
+                            _condition_match = _cond
+                            break
+                    except _re.error:
+                        pass  # Invalid regex — skip this condition
+
+        if _condition_match:
+            # on_condition match overrides both success and failure paths
+            _goto = int(_condition_match["goto"])
+            _matched_pattern = _condition_match.get("if", "")
+            jump_idx = _goto - 1
+            if ok:
+                todo.status = "approved"
+                todo.rejection_reason = ""
+                todo.approved_reason = (
+                    f"[auto-command] {cmd_label} — exit 0 ({total_lines} lines) "
+                    f"[condition matched: '{_matched_pattern}']"
+                    + (f"\n{tail}" if tail else " (no output)")
+                )
+                todo.completed_at = _time.time()
+            else:
+                todo.status = "rejected"
+                todo.rejection_reason = (
+                    f"[command failed] {cmd_label}\n{tail or '(no output)'}"
+                    f"\nFull log: {log_path.name}"
+                    f"\n[condition matched: '{_matched_pattern}' — jumping to Task {_goto}]"
+                )
+            # Forward jump: auto-approve skipped tasks
+            if _goto > index + 1:
+                skip_summary = (
+                    f"[auto-skipped by on_condition from Task {index + 1}] "
+                    f"Condition '{_matched_pattern}' matched — jumping to Task {_goto}."
+                )
+                for i in range(index + 1, _goto - 1):
+                    t = self.todos[i]
+                    t.status = "approved"
+                    t.approved_reason = skip_summary
+                    t.rejection_reason = ""
+                    if t.notes is None:
+                        t.notes = []
+                    t.notes.append(skip_summary)
+            self.current_index = jump_idx
+            self.save()
+            return ok, tail
+
         if ok:
             todo.status = "approved"
             todo.rejection_reason = ""   # clear stale failure context
@@ -589,8 +651,29 @@ class TodoTracker:
                 + (f"\n{tail}" if tail else " (no output)")
             )
             todo.completed_at = _time.time()
-            next_idx = self._get_next_pending()
-            self.current_index = next_idx if next_idx is not None else -1
+
+            # ── on_success jump ──────────────────────────────────────────
+            on_success = getattr(todo, "on_success", 0)
+            if on_success and 1 <= on_success <= len(self.todos) and on_success - 1 != index:
+                jump_idx = on_success - 1
+                # Forward jump: auto-approve skipped tasks so gate check passes
+                if on_success > index + 1:
+                    skip_summary = (
+                        f"[auto-skipped by on_success from Task {index + 1}] "
+                        f"Command '{cmd_label}' passed — jumping to Task {on_success}."
+                    )
+                    for i in range(index + 1, on_success - 1):
+                        t = self.todos[i]
+                        t.status = "approved"
+                        t.approved_reason = skip_summary
+                        t.rejection_reason = ""
+                        if t.notes is None:
+                            t.notes = []
+                        t.notes.append(skip_summary)
+                self.current_index = jump_idx
+            else:
+                next_idx = self._get_next_pending()
+                self.current_index = next_idx if next_idx is not None else -1
         else:
             todo.status = "rejected"
             todo.rejection_reason = (
@@ -760,9 +843,19 @@ class TodoTracker:
                                      f"{_CON}  {Color.YELLOW}")
                 for ln in wrapped:
                     lines.append(ln + Color.RESET)
+
                 if todo.on_reject:
                     rej_label = _label("On-reject", Color.YELLOW)
                     lines.append(f"{_IND}{rej_label} : {Color.YELLOW}→ Task {todo.on_reject}{Color.RESET}")
+                if todo.on_success:
+                    suc_label = _label("On-success", Color.GREEN)
+                    lines.append(f"{_IND}{suc_label} : {Color.GREEN}→ Task {todo.on_success}{Color.RESET}")
+                if todo.on_condition:
+                    for _ci, _cond in enumerate(todo.on_condition):
+                        _pat = _cond.get("if", "?")
+                        _tgt = _cond.get("goto", "?")
+                        cond_label = _label(f"On-cond", Color.CYAN)
+                        lines.append(f"{_IND}{cond_label} : {Color.CYAN}if '{_pat}' → Task {_tgt}{Color.RESET}")
 
             # ── Command logs ─────────────────────────────────────────────────
             if todo.command_logs:
@@ -1179,6 +1272,8 @@ class TodoTracker:
                     "notes": t.notes or [],
                     "command": t.command,
                     "on_reject": t.on_reject,
+                    "on_success": t.on_success,
+                    "on_condition": t.on_condition or [],
                     "command_logs": t.command_logs or [],
                 }
                 for t in self.todos
