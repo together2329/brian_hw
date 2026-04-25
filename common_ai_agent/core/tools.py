@@ -1571,17 +1571,16 @@ def _trimmed_boundary_replacer(content, find):
             yield block
 
 
+
+
 def _punctuation_aware_replacer(content, find):
-    \"\"\"
-    Strategy 8: Punctuation-aware matching.
-    Removes whitespace adjacent to punctuation chars ()[]{};,. before comparing.
-    Handles cases like: foo( "bar" ); → foo("bar");
-    NOTE: Currently disabled (not in strategy loop) due to potential false positives.
-    \"\"\"
+    # Strategy 8: Punctuation-aware matching.
+    # Removes whitespace adjacent to punctuation chars ()[]{};,. before comparing.
+    # Handles cases like: foo( "bar" ); -> foo("bar");
+    # NOTE: Currently disabled (not in strategy loop) due to potential false positives.
     import re
 
     def strip_punct_ws(text):
-        \"\"\"Remove whitespace adjacent to punctuation characters.\"\"\"
         # Remove spaces before: ) ] } ; , .
         result = re.sub(r'\s+([)\]};,.])', r'\1', text)
         # Remove spaces after: ( [ {

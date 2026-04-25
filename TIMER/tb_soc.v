@@ -1,3 +1,4 @@
+
 `timescale 1ns / 1ps
 
 //----------------------------------------------------------------------------
@@ -11,6 +12,7 @@ module tb_soc;
     // Parameters
     //--------------------------------------------------------------------------
     localparam CLK_PERIOD = 10;
+    localparam BAUD_DIV   = 16;
 
     // Timer addresses (base 0x0000_0000)
     localparam [31:0] TIMER_CTRL      = 32'h00000000;
@@ -25,6 +27,13 @@ module tb_soc;
     localparam [31:0] COUNTER_COUNT_HI  = 32'h00001008;
     localparam [31:0] COUNTER_TC_STATUS = 32'h0000100C;
 
+    // UART addresses (base 0x0000_2000)
+    localparam [31:0] UART_TX_DATA   = 32'h00002000;
+    localparam [31:0] UART_RX_DATA   = 32'h00002004;
+    localparam [31:0] UART_CTRL      = 32'h00002008;
+    localparam [31:0] UART_STATUS    = 32'h0000200C;
+    localparam [31:0] UART_BAUD_DIV  = 32'h00002010;
+
     //--------------------------------------------------------------------------
     // AHB Signals
     //--------------------------------------------------------------------------
@@ -38,6 +47,9 @@ module tb_soc;
     reg  [2:0]  HSIZE;
     wire        irq_timer;
     wire        irq_counter;
+    wire        irq_uart;
+    wire        uart_tx_out;
+    wire        uart_rx_in;
 
     // Test tracking
     integer     tests_passed = 0;
@@ -56,9 +68,15 @@ module tb_soc;
         .HWRITE      (HWRITE),
         .HTRANS      (HTRANS),
         .HSIZE       (HSIZE),
+        .uart_rx_in  (uart_rx_in),
+        .uart_tx_out (uart_tx_out),
         .irq_timer   (irq_timer),
-        .irq_counter (irq_counter)
+        .irq_counter (irq_counter),
+        .irq_uart    (irq_uart)
     );
+
+    // UART loopback: TX output feeds back to RX input
+    assign uart_rx_in = uart_tx_out;
 
     //--------------------------------------------------------------------------
     // Clock generator
@@ -88,6 +106,7 @@ module tb_soc;
                 tests_passed = tests_passed + 1;
             end else begin
                 $display("[FAIL] %0s", msg);
+                $display("       Time: %0t", $time);
                 tests_failed = tests_failed + 1;
             end
         end
@@ -95,9 +114,6 @@ module tb_soc;
 
     //--------------------------------------------------------------------------
     // AHB Write task
-    //   Address phase: cycle N (HADDR, HWDATA, HWRITE, HTRANS valid)
-    //   Data phase:    cycle N+1 (wait for HREADY from bridge)
-    //   Uses #1 delays to avoid race with bridge sampling on posedge.
     //--------------------------------------------------------------------------
     task ahb_write;
         input [31:0] addr;
@@ -110,10 +126,10 @@ module tb_soc;
             HTRANS = 2'b10;  // NONSEQ
             HSIZE  = 3'b010; // WORD
             @(negedge HCLK);  // Bridge: IDLE->SETUP
-            HTRANS = 2'b00;   // IDLE (clear before bridge completes)
+            HTRANS = 2'b00;
             HWRITE = 1'b0;
             @(negedge HCLK);  // Bridge: SETUP->ACCESS
-            @(negedge HCLK);  // Bridge: ACCESS->IDLE (APB write happens)
+            @(negedge HCLK);  // Bridge: ACCESS->IDLE
         end
     endtask
 
@@ -130,10 +146,10 @@ module tb_soc;
             HTRANS = 2'b10;  // NONSEQ
             HSIZE  = 3'b010; // WORD
             @(negedge HCLK);  // Bridge: IDLE->SETUP
-            HTRANS = 2'b00;   // IDLE (clear before bridge completes)
+            HTRANS = 2'b00;
             @(negedge HCLK);  // Bridge: SETUP->ACCESS
-            @(negedge HCLK);  // Bridge: ACCESS->IDLE (APB read, HRDATA valid)
-            data = HRDATA;    // Capture read data
+            @(negedge HCLK);  // Bridge: ACCESS->IDLE
+            data = HRDATA;
         end
     endtask
 
@@ -170,6 +186,7 @@ module tb_soc;
 
         check(irq_timer == 1'b0, "Reset: timer IRQ low");
         check(irq_counter == 1'b0, "Reset: counter IRQ low");
+        check(irq_uart == 1'b0, "Reset: UART IRQ low");
 
         //======================================================================
         // Test 2: Timer through bridge
@@ -213,7 +230,6 @@ module tb_soc;
         ahb_read(COUNTER_COUNT_LO, rd_data);
         check(rd_data >= 32'd5, "Counter: counted up from 0");
         ahb_read(COUNTER_COUNT_HI, rd_data);
-        $display("[DEBUG] Counter COUNT_HI: %0d (expected 0)", rd_data);
         check(rd_data == 32'd0, "Counter: high word still zero");
 
         @(negedge HCLK);
@@ -238,6 +254,72 @@ module tb_soc;
 
         ahb_read(COUNTER_TC_STATUS, rd_data);
         check(rd_data[0] == 1'b1, "Counter: tc_sticky set");
+
+        @(negedge HCLK);
+
+        //======================================================================
+        // Test 5: UART via AHB - register access
+        //======================================================================
+        $display("\n--- Test 5: UART register access ---");
+
+        ahb_read(UART_CTRL, rd_data);
+        check(rd_data == 32'd0, "UART: CTRL zero after reset");
+
+        ahb_read(UART_STATUS, rd_data);
+        check(rd_data[0] == 1'b0, "UART: not busy after reset");
+        check(rd_data[1] == 1'b1, "UART: TX empty after reset");
+        check(rd_data[2] == 1'b0, "UART: RX not ready after reset");
+
+        // Set baud divisor and enable TX/RX
+        ahb_write(UART_BAUD_DIV, BAUD_DIV);
+        ahb_read(UART_BAUD_DIV, rd_data);
+        check(rd_data[15:0] == BAUD_DIV, "UART: baud divisor set");
+
+        ahb_write(UART_CTRL, 32'h3);  // tx_en + rx_en
+        ahb_read(UART_CTRL, rd_data);
+        check(rd_data[1:0] == 2'b11, "UART: TX and RX enabled");
+
+        //======================================================================
+        // Test 6: UART loopback TX -> RX
+        //======================================================================
+        $display("\n--- Test 6: UART loopback ---");
+
+        // Send 0x55
+        ahb_write(UART_TX_DATA, 32'h55);
+
+        // Wait for TX to complete (10 bits × BAUD_DIV + margin)
+        repeat(12 * BAUD_DIV) @(negedge HCLK);
+
+        // Check TX done
+        ahb_read(UART_STATUS, rd_data);
+        check(rd_data[0] == 1'b0, "UART loopback: TX not busy");
+        check(rd_data[1] == 1'b1, "UART loopback: TX empty");
+
+        // Wait for RX to complete (with extra margin for synchronizer + sampling)
+        repeat(5 * BAUD_DIV) @(negedge HCLK);
+
+        ahb_read(UART_STATUS, rd_data);
+        check(rd_data[2] == 1'b1, "UART loopback: RX ready");
+        check(irq_uart == 1'b1, "UART loopback: IRQ asserted");
+
+        // Read received data
+        ahb_read(UART_RX_DATA, rd_data);
+        check(rd_data[7:0] == 8'h55, "UART loopback: received 0x55");
+        repeat(3) @(negedge HCLK);  // Wait for rx_read_pulse to clear rx_ready
+        check(irq_uart == 1'b0, "UART loopback: IRQ cleared after read");
+
+        @(negedge HCLK);
+
+        //======================================================================
+        // Test 7: UART loopback second byte (0xA5)
+        //======================================================================
+        $display("\n--- Test 7: UART second byte ---");
+
+        ahb_write(UART_TX_DATA, 32'hA5);
+        repeat(15 * BAUD_DIV) @(negedge HCLK);
+
+        ahb_read(UART_RX_DATA, rd_data);
+        check(rd_data[7:0] == 8'hA5, "UART loopback: received 0xA5");
 
         @(negedge HCLK);
 
