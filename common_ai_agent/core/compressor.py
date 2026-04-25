@@ -829,17 +829,69 @@ def compress_history(
         f"  | kept    {keep_recent} recent  |  summarized {len(old_msgs)} → 1\n"
     )
 
-    # Emit summary as markdown (TUI) or print to stdout (terminal)
+    # Emit full context as markdown (TUI) or print to stdout (terminal)
+    # Display everything that goes into new_history so the user sees exactly
+    # what the model will see in context — not just the LLM summary.
+    import re as _re
+    md_parts = []
+
+    # 1. Compression Summary (the LLM-generated summary)
     if compressed:
-        raw = compressed[0].get("content", "") if isinstance(compressed[0], dict) else ""
-        # Strip "[Previous Conversation Summary (N messages)]: " prefix
-        import re as _re
-        summary_text = _re.sub(r"^\[Previous Conversation Summary \(\d+ messages\)\]:\s*", "", raw)
-        if summary_text.strip():
-            md = f"## Compression Summary\n\n{summary_text.strip()}\n"
-            if emit_fn:
-                emit_fn(md)
-            else:
-                print(md)
+        for _ci, _comp_msg in enumerate(compressed):
+            raw = _comp_msg.get("content", "") if isinstance(_comp_msg, dict) else ""
+            summary_text = _re.sub(r"^\[Previous Conversation Summary \(\d+ messages\)\]:\s*", "", raw)
+            summary_text = _re.sub(r"^\[Summary chunk \d+/\d+ \(\d+ messages\)\]:\s*", "", summary_text)
+            if summary_text.strip():
+                md_parts.append("## Compression Summary\n\n" + summary_text.strip())
+
+    # 2. Todo Status
+    if todo_preservation:
+        for _tp in todo_preservation:
+            _tpc = str(_tp.get("content", ""))
+            if _tpc.strip():
+                md_parts.append("## Todo Status\n\n" + _tpc.strip())
+
+    # 3. Awaiting Input Note
+    if awaiting_note:
+        for _an in awaiting_note:
+            _anc = str(_an.get("content", ""))
+            if _anc.strip():
+                md_parts.append("## Awaiting Input\n\n" + _anc.strip())
+
+    # 4. Important Messages (preserved with !important)
+    if important_msgs:
+        _imp_lines = []
+        for _im in important_msgs:
+            _im_role = _im.get("role", "unknown")
+            _im_content = str(_im.get("content", ""))[:500]
+            _imp_lines.append("**[" + _im_role + "]** " + _im_content)
+        md_parts.append("## Important Messages (" + str(len(important_msgs)) + ")\n\n" + "\n\n".join(_imp_lines))
+
+    # 5. Recent Messages (brief preview)
+    if recent_msgs:
+        _rm_lines = []
+        for _rm in recent_msgs:
+            _rm_role = _rm.get("role", "unknown")
+            _rm_content = str(_rm.get("content", ""))[:200]
+            _rm_lines.append("**[" + _rm_role + "]** " + _rm_content)
+        md_parts.append(
+            "## Recent Messages (" + str(len(recent_msgs)) + " kept)\n\n"
+            + "\n\n".join(_rm_lines)
+        )
+
+    # 6. Stats
+    md_parts.append(
+        "## Stats\n\n"
+        "- Messages: " + str(old_msg_count) + " -> " + str(new_msg_count) + " (" + str(msg_reduction_pct) + "% reduction)\n"
+        "- Tokens: " + f"{current_tokens:,}" + " -> " + f"{new_tokens:,}" + " (" + str(reduction_pct) + "% reduction)\n"
+        "- Kept: " + str(len(recent_msgs)) + " recent | Summarized: " + str(len(old_msgs)) + " -> " + str(len(compressed) if compressed else 0)
+    )
+
+    if md_parts:
+        md = "\n\n---\n\n".join(md_parts) + "\n"
+        if emit_fn:
+            emit_fn(md)
+        else:
+            print(md)
 
     return new_history
