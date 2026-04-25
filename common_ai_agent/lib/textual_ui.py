@@ -1408,6 +1408,11 @@ class AgentTUI(App):
         t.append("\n  [ESC] ", style=f"bold {_YELLOW}")
         t.append("Interrupted.", style=_TEXT_DIM)
         log.write(t)
+        try:
+            import config as _cfg
+            _cfg._esc_interrupted = True
+        except Exception:
+            pass
         self._update_activity()   # sidebar: → "Waiting for input..."
         self._update_statusbar()
         self._scroll_down()
@@ -1609,10 +1614,15 @@ class AgentTUI(App):
             self._mode_locked = True
             self.set_timer(2.0, lambda: setattr(self, "_mode_locked", False))
             self._redraw_mode()
-        # If agent is running and HITL is enabled, route to interrupt queue
+        # Route input: auto-interrupt if generating, then submit normally
         import os as _os
         _hitl = _os.getenv("ENABLE_HUMAN_IN_THE_LOOP", "false").lower() in ("true", "1", "yes")
-        if _hitl and self._input_bridge.agent_running:
+        if self._generating:
+            # Auto-interrupt: stop current agent run, then process new input immediately
+            self.action_stop()
+            self._input_bridge.submit(text)
+        elif _hitl and self._input_bridge.agent_running and not _is_slash_cmd:
+            # HITL mode: non-slash text goes to interrupt queue; slash commands bypass
             self._input_bridge.submit_interrupt(text)
         else:
             self._input_bridge.submit(text)

@@ -240,14 +240,16 @@ def _git_tag_todo(index, status, content=""):
         pass
 
 
-def write_file(path: str = None, content: str = None) -> str:
+def write_file(path: str = None, content: str = None, append: bool = False) -> str:
     """
-    Writes content to a file. Overwrites if exists.
+    Writes content to a file. Overwrites by default; set append=True to add to end.
     Use this instead of run_command (echo/tee/printf) for writing files.
+    For large files, write in sections using append=True to avoid corruption.
 
     Args:
         path: File path to write to
         content: Content to write
+        append: If True, append to existing file instead of overwriting (default: False)
 
     Returns:
         Success message with optional lint warnings
@@ -269,10 +271,11 @@ def write_file(path: str = None, content: str = None) -> str:
             os.makedirs(dir_name, exist_ok=True)
         if os.path.exists(path):
             _auto_chmod_if_needed(path)
-        with open(path, 'w', encoding='utf-8') as f:
+        mode = 'a' if append else 'w'
+        with open(path, mode, encoding='utf-8') as f:
             f.write(content)
 
-        result = f"Successfully wrote to '{path}'."
+        result = f"Successfully {'appended to' if append else 'wrote to'} '{path}'."
 
         import threading as _t
         _t.Thread(target=_git_auto_commit, args=(path, "write"), kwargs={"content_hint": content[:800]}, daemon=False).start()
@@ -2283,7 +2286,38 @@ def todo_write(todos=None, tasks=None):
         todos (list): List of task dicts or strings.
         tasks (list): Alias for todos (some agents use this name).
 
-    Example:
+    Task fields:
+        content (str):      Task description (required).
+        activeForm (str):   Display text while in progress.
+        status (str):       "pending" | "in_progress" | "approved" | "rejected"
+        priority (str):     "high" | "medium" | "low"
+        detail (str):       Implementation guidance for the LLM.
+        criteria (str):     Newline-separated acceptance criteria.
+        command (str|dict): Run WITHOUT LLM — shell string or tool-call dict.
+                            Success → auto-approved. Failure → auto-rejected.
+                            str:  "make lint", "verilator --lint-only rtl/*.sv"
+                            dict: {"tool": "run_command", "args": {"command": "make sim"}}
+        on_reject (int):    1-based task index to jump to when command fails.
+                            Enables retry loops: failed task jumps back to impl task.
+
+    Static command pipeline example (LLM implements → static checks → LLM reviews):
+        todo_write([
+            {"content": "Implemented RTL module",
+             "activeForm": "Implementing RTL module",
+             "agent": "execute"},
+            {"content": "Ran lint check",
+             "activeForm": "Running lint check",
+             "command": "verilator --lint-only rtl/*.sv 2>&1",
+             "on_reject": 1},
+            {"content": "Ran simulation",
+             "activeForm": "Running simulation",
+             "command": "make sim",
+             "on_reject": 1},
+            {"content": "Reviewed results",
+             "activeForm": "Reviewing results"},
+        ])
+
+    Basic example:
         todo_write([
             {"content": "Analyze code", "activeForm": "Analyzing code", "status": "in_progress"},
             {"content": "Write tests", "activeForm": "Writing tests", "status": "pending"}
@@ -2407,7 +2441,8 @@ def todo_write(todos=None, tasks=None):
         return f"Error formatting progress: {e}"
 
 
-def todo_update(index=None, id=None, status=None, reason="", content="", detail="", activeForm="", criteria=""):
+def todo_update(index=None, id=None, status=None, reason="", content="", detail="", activeForm="", criteria="",
+                command=None, on_reject=None):
     """
     Update a specific todo item's status and/or content.
 
@@ -2419,11 +2454,14 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
         detail (str): New implementation detail (optional, updates if provided).
         activeForm (str): New display text while in progress (optional).
         criteria (str): New completion criteria (optional).
+        command (str|dict): Shell command or tool call to set/update on this task.
+        on_reject (int): 1-based task index to jump to on command failure (0=disabled).
 
     Example:
         todo_update(index=1, status="completed")
         todo_update(index=2, content="Updated task description")
         todo_update(index=3, status="pending", reason="Tests still failing")
+        todo_update(index=4, command="make lint", on_reject=2)
     """
     todo_tracker = _get_todo_tracker()
 
@@ -2484,9 +2522,13 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
     if criteria and not _is_review_status:
         # Same protection for criteria — don't lose original criteria during review.
         item.criteria = criteria
+    if command is not None:
+        item.command = command
+    if on_reject is not None:
+        item.on_reject = int(on_reject)
 
     # Guard: status=None with no other field means LLM passed null — surface a clear error
-    if status is None and not any([content, detail, activeForm, criteria]):
+    if status is None and not any([content, detail, activeForm, criteria, command is not None, on_reject is not None]):
         return (
             f"Error: Nothing to update for Task {index}. "
             f"Provide at least one of: status ('in_progress'/'completed'/'approved'/'rejected'/'pending'), "
@@ -2653,6 +2695,52 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             # exclusively for rejected status. The step header will still show
             # the detail/criteria fields for context.
             todo_tracker.mark_in_progress(idx)
+
+            # ── Static command execution (LLM-free) ──────────────────────────
+            result = todo_tracker.auto_execute_command(idx)
+            if result is not None:
+                ok, tail = result
+                cmd = item.command
+                label = cmd if isinstance(cmd, str) else cmd.get("tool", "tool")
+                last_log = item.command_logs[-1] if item.command_logs else {}
+                log_file = last_log.get("log_file", "")
+                total_lines = last_log.get("lines", 0)
+                elapsed = last_log.get("elapsed", 0)
+                log_info = f"Log: {log_file} ({total_lines} lines, {elapsed}s)\n" if log_file else ""
+
+                if ok:
+                    next_todo = todo_tracker.get_current_todo()
+                    next_msg = (
+                        f"\n→ Next: todo_update(index={todo_tracker.current_index + 1},"
+                        f" status='in_progress') — {next_todo.content}"
+                    ) if next_todo else "\nAll tasks complete! 🏁"
+                    return (
+                        f"✅ Task {index} [command: {label}] passed.\n"
+                        f"{log_info}"
+                        f"--- output tail ---\n{tail}"
+                        f"{next_msg}"
+                    )
+                else:
+                    # Use actual current_index to determine if a jump happened.
+                    # on_reject field may still hold original value even if stagnation
+                    # disabled the jump inside auto_execute_command().
+                    jump_msg = ""
+                    actually_jumped = todo_tracker.current_index != idx
+                    if actually_jumped:
+                        jump_idx = todo_tracker.current_index
+                        jump_todo = todo_tracker.todos[jump_idx]
+                        jump_msg = (
+                            f"\n→ Jumping to Task {jump_idx + 1}: {jump_todo.content}"
+                            f"\n→ todo_update(index={jump_idx + 1}, status='in_progress')"
+                        )
+                    return (
+                        f"❌ Task {index} [command: {label}] failed.\n"
+                        f"{log_info}"
+                        f"--- output tail ---\n{tail}"
+                        f"{jump_msg}"
+                    )
+            # ── End static command execution ──────────────────────────────────
+
             todo_tracker.save()
             return f"▶ Task {index} in progress: {item.content}"
         else:  # pending
@@ -2664,7 +2752,8 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
     return f"✅ Task {index} updated."
 
 
-def todo_add(content="", activeForm="", priority="medium", detail="", criteria="", index=None):
+def todo_add(content="", activeForm="", priority="medium", detail="", criteria="", index=None,
+             command="", on_reject=0):
     """
     Add a single task to the existing todo list.
     More efficient than todo_write for adding tasks mid-execution.
@@ -2676,10 +2765,12 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
         detail (str): Implementation details (optional).
         criteria (str): Completion criteria, newline-separated (optional).
         index (int): 1-based position to insert at. If omitted, appends to end.
+        command (str|dict): Shell command or tool call to auto-execute (no LLM needed).
+        on_reject (int): 1-based task index to jump to on command failure (0=disabled).
 
     Example:
         todo_add(content="Fix lint errors", priority="low")
-        todo_add(content="Add error handler", index=3)
+        todo_add(content="Run lint", command="make lint", on_reject=2)
     """
     todo_tracker = _get_todo_tracker()
 
@@ -2699,6 +2790,8 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
         priority=priority,
         detail=detail,
         criteria=criteria,
+        command=command,
+        on_reject=int(on_reject),
     )
 
     if str(index) == "0":

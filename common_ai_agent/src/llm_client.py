@@ -1892,7 +1892,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                 # <think> tag state machine: internal hosting embeds reasoning
                                 # inside content as <think>...</think> across multiple chunks.
                                 # Track open/close tags across chunk boundaries.
-                                if not reasoning and content and "<" in (content + _think_buf):
+                                if not reasoning and content and (_think_buf or '<t' in content or '</t' in content):
                                     _think_buf += content
                                     content = ""
                                     reasoning = ""
@@ -3123,7 +3123,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                     content = ""
 
                                 # <think> tag state machine for internal hosting
-                                if not reasoning and content and "<" in (content + _think_buf):
+                                if not reasoning and content and (_think_buf or '<t' in content or '</t' in content):
                                     _think_buf += content
                                     content = ""
                                     reasoning = ""
