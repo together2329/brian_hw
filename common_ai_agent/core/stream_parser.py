@@ -212,7 +212,14 @@ class StreamParser:
             # Fragment-merging heuristic: very short all-lowercase fragments
             # that look like continuation of a word split across streaming
             # chunks are pushed back into the buffer.
-            if stripped and len(stripped) <= 3 and stripped.islower() and "\n" in self._buf:
+            # Skip if fragment contains markdown syntax chars to avoid breaking
+            # inline spans like *italic*, **bold**, `code`, ~~strike~~.
+            _md_chars = set("*_`~|[")
+            if (stripped
+                    and len(stripped) <= 3
+                    and stripped.islower()
+                    and not any(c in _md_chars for c in stripped)
+                    and "\n" in self._buf):
                 self._buf = stripped + self._buf
                 continue
 
@@ -264,9 +271,21 @@ class StreamParser:
         # Backtick fences (```) must always be emitted — closing fence is
         # identical to opening and would otherwise be swallowed by dedup.
         is_fence = text.startswith("```")
-        if is_fence or text not in self._seen:
+        # Markdown structural lines that commonly repeat (table rows, list
+        # items, blockquotes, etc.) must bypass dedup — otherwise identical
+        # table rows or repeated list items get silently dropped.
+        _s = text.lstrip()
+        is_markdown_struct = (
+            _s.startswith("|")          # table row
+            or _s.startswith("- ")      # unordered list / task list
+            or _s.startswith("* ")      # unordered list
+            or _s.startswith("+ ")      # unordered list
+            or _s.startswith(">")       # blockquote
+            or (_s and _s[0].isdigit() and ". " in _s[:6])  # ordered list
+        )
+        if is_fence or is_markdown_struct or text not in self._seen:
             self._emit(text)
-            if not is_fence:
+            if not is_fence and not is_markdown_struct:
                 self._seen.add(text)
             self._content_emitted = True
 

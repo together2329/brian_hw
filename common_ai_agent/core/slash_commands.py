@@ -255,6 +255,8 @@ class SlashCommandRegistry:
                      'Toggle Step-by-Step execution mode (pause after each task)',
                      hidden=True)
 
+        self.register('reload', self._cmd_reload,
+                     'Reload Python modules: /reload [module_name] (no args = reload all common)')
         self.register('mode', self._cmd_mode,
                      'Switch agent mode: /mode normal to exit plan mode',
                      hidden=True)
@@ -2620,6 +2622,95 @@ class SlashCommandRegistry:
             return "\n".join(output)
         except Exception as e:
             return f"Error getting status: {e}"
+
+    def _cmd_reload(self, args: str) -> str:
+        
+        import importlib
+        
+        # Map short names to full module paths
+        _MODULE_MAP = {
+            'action_parser': 'core.action_parser',
+            'tools': 'core.tools',
+            'textual_ui': 'lib.textual_ui',
+            'stream_parser': 'core.stream_parser',
+            'agent_runner': 'core.agent_runner',
+            'tool_dispatcher': 'core.tool_dispatcher',
+            'observation_processor': 'core.observation_processor',
+            'react_loop': 'core.react_loop',
+            'prompt_builder': 'core.prompt_builder',
+            'slash_commands': 'core.slash_commands',
+        }
+        
+        _DEFAULT_MODULES = [
+            'core.action_parser',
+            'core.tools',
+            'lib.textual_ui',
+            'core.stream_parser',
+            'core.agent_runner',
+            'core.tool_dispatcher',
+            'core.observation_processor',
+        ]
+        
+        # Parse arguments
+        raw_names = args.strip().split() if args.strip() else []
+        modules_to_reload = []
+        
+        if not raw_names:
+            modules_to_reload = _DEFAULT_MODULES
+        else:
+            for name in raw_names:
+                if name in _MODULE_MAP:
+                    modules_to_reload.append(_MODULE_MAP[name])
+                elif '.' in name:
+                    modules_to_reload.append(name)
+                else:
+                    # Try common prefixes
+                    for prefix in ['core.', 'lib.', 'src.']:
+                        full = prefix + name
+                        if full in sys.modules:
+                            modules_to_reload.append(full)
+                            break
+                    else:
+                        modules_to_reload.append(name)
+        
+        # Reload modules
+        output = []
+        output.append("")
+        output.append("🔄 Reloading modules...")
+        output.append("─" * 40)
+        
+        reloaded = []
+        failed = []
+        
+        for mod_name in modules_to_reload:
+            try:
+                if mod_name in sys.modules:
+                    mod = sys.modules[mod_name]
+                    importlib.reload(mod)
+                    reloaded.append(mod_name)
+                    output.append(f"  ✅ {mod_name}")
+                else:
+                    # Try to import first
+                    try:
+                        mod = importlib.import_module(mod_name)
+                        reloaded.append(mod_name)
+                        output.append(f"  ✅ {mod_name} (imported)")
+                    except ImportError as e:
+                        failed.append(mod_name)
+                        output.append(f"  ❌ {mod_name} — not found: {e}")
+            except Exception as e:
+                failed.append(mod_name)
+                output.append(f"  ❌ {mod_name} — {e}")
+        
+        output.append("─" * 40)
+        output.append(f"Reloaded {len(reloaded)}/{len(modules_to_reload)} modules")
+        
+        if reloaded:
+            output.append("")
+            output.append("⚠️  Note: Some changes may require full restart.")
+            output.append("   Object references from old module versions may be stale.")
+        
+        return chr(10).join(output)
 
     def _cmd_help(self, args: str) -> str:
         """Show help. /help for core commands, /help -v for all."""

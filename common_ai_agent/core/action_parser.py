@@ -346,14 +346,34 @@ def parse_all_actions(
                 if i + 2 < len(text):
                     if text[i:i+3] == '"""':
                         if not in_triple_single:
-                            in_triple_double = not in_triple_double
-                            i += 3
-                            continue
+                            if not in_triple_double:
+                                # Opening triple-quote
+                                in_triple_double = True
+                            else:
+                                # Potential closing - check context
+                                after = i + 3
+                                while after < len(text) and text[after] in ' \t\n\r':
+                                    after += 1
+                                if after >= len(text) or text[after] in ',)':
+                                    in_triple_double = False
+                                # else: embedded triple-quote, keep state
+                        i += 3
+                        continue
                     elif text[i:i+3] == "'''":
                         if not in_triple_double:
-                            in_triple_single = not in_triple_single
-                            i += 3
-                            continue
+                            if not in_triple_single:
+                                # Opening triple-quote
+                                in_triple_single = True
+                            else:
+                                # Potential closing - check context
+                                after = i + 3
+                                while after < len(text) and text[after] in ' \t\n\r':
+                                    after += 1
+                                if after >= len(text) or text[after] in ',)':
+                                    in_triple_single = False
+                                # else: embedded triple-quote, keep state
+                        i += 3
+                        continue
 
             char = text[i]
             if char == '\\':
@@ -523,14 +543,35 @@ def parse_value(text: str) -> Tuple[Any, int]:
     if not text:
         return None, 0
 
-    # Triple-quoted strings
-    if text.startswith('"""') or text.startswith("'''"):
+    # Triple-quoted strings - char-by-char scan with escape handling and
+    # context-aware closing.  A closing delimiter is only recognised when the
+    # triple-quote is followed by a comma, closing paren, or end-of-string
+    # (after skipping whitespace/newlines).  This prevents inner triple-quotes
+    # (e.g. Python docstrings) from prematurely terminating the value.
+    if len(text) >= 3 and (text[:3] == '"""' or text[:3] == "'''"):
         quote = text[:3]
-        end_pos = text.find(quote, 3)
-        if end_pos == -1:
-            # Auto-close: treat rest of text as the string value
-            return text[3:], len(text)
-        return text[3:end_pos], end_pos + 3
+        j = 3
+        while j < len(text):
+            # Handle escape sequences - skip next character
+            if text[j] == '\\' and j + 1 < len(text):
+                j += 2
+                continue
+            # Potential closing triple-quote
+            if j + 2 < len(text) and text[j:j+3] == quote:
+                # Peek past the quote to check context
+                after = j + 3
+                # Skip whitespace and newlines after potential closing quote
+                while after < len(text) and text[after] in ' \t\n\r':
+                    after += 1
+                # Closing if end-of-string, comma, or closing paren
+                if after >= len(text) or text[after] in ',)':
+                    return text[3:j], j + 3
+                # Otherwise embedded triple-quote - keep scanning
+                j += 3
+                continue
+            j += 1
+        # Auto-close: treat rest of text as the string value
+        return text[3:], len(text)
 
     # Regular quoted strings
     if text[0] in '"\'':

@@ -175,7 +175,7 @@ class TestCompressHistory(unittest.TestCase):
         msgs = [sys_msg] + _make_messages(30)
         result = self._call(msgs, force=True)
         self.assertEqual(result[0]["role"], "system")
-        self.assertEqual(result[0]["content"], "System prompt")
+        self.assertIn("System prompt", result[0]["content"])
 
     def test_important_messages_preserved(self):
         important = {"role": "user", "content": "do this !important"}

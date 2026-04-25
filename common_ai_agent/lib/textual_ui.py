@@ -85,20 +85,78 @@ def _fix_table_block(rows: list) -> list:
 
 
 def _fix_md(text: str) -> str:
-    """Fix common LLM markdown quirks before passing to Rich Markdown renderer.
+    '''Fix common LLM markdown quirks before passing to Rich Markdown renderer.
 
-    1. Lone backtick → triple fence
+    1. Lone backtick -> triple fence
     2. Table blocks: auto-insert separator, normalise sep cells, add blank lines around
-    3. Split inline tables ('| A | B | | C | D |') into separate rows
+    3. Split inline tables into separate rows
     4. Blank lines around code fences
-    5. Collapse 2+ consecutive blank lines → 1
-    """
-    # ── Pass 1: per-line pre-fixes (lone backtick, inline table split) ────────
+    5. Collapse 2+ consecutive blank lines -> 1
+    6. GFM task lists -> bullet + checkbox emoji
+    7. Setext-style headers (underline === / ---) -> # heading
+    8. Highlight syntax (==text==) -> **bold**
+    9. Footnotes ([^N]) -> stripped
+    10. Blank lines before/after list blocks
+    '''
+    raw_lines = text.splitlines()
+
+    # -- Pass 1: per-line pre-fixes (uses index for lookahead) --
+    #        NOTE: tracks code fences to avoid corrupting code content.
     pre: list[str] = []
-    for line in text.splitlines():
-        if line.strip() == "`":
-            pre.append("```")
+    _p1_in_fence = False
+    i = 0
+    while i < len(raw_lines):
+        line = raw_lines[i]
+        stripped = line.strip()
+
+        # Track code fence boundaries
+        if stripped.startswith("```"):
+            _p1_in_fence = not _p1_in_fence
+            pre.append(line)
+            i += 1
             continue
+
+        # Inside a code fence: skip ALL transformations to preserve code content
+        if _p1_in_fence:
+            pre.append(line)
+            i += 1
+            continue
+
+        # Lone backtick -> triple fence
+        if stripped == "`":
+            pre.append("```")
+            i += 1
+            continue
+
+        # Setext-style header: next line is all === or ---
+        if stripped and i + 1 < len(raw_lines):
+            next_stripped = raw_lines[i + 1].strip()
+            if next_stripped and not next_stripped.startswith("|"):
+                if re.match(r"^=+\s*$", next_stripped):
+                    pre.append("# " + stripped)
+                    i += 2
+                    continue
+                if re.match(r"^-+\s*$", next_stripped) and not stripped.startswith("|"):
+                    pre.append("## " + stripped)
+                    i += 2
+                    continue
+
+        # GFM task lists: - [ ] text -> checkbox, - [x] text -> checkbox
+        m_task = re.match(r"^(\s*)(-|\*|\+)\s+\[([ xX])\]\s+(.*)", line)
+        if m_task:
+            indent, bullet, checked, rest = m_task.groups()
+            checkbox = "\u2611" if checked.lower() == "x" else "\u2610"
+            pre.append(f"{indent}{bullet} {checkbox} {rest}")
+            i += 1
+            continue
+
+        # Highlight syntax: ==text== -> **text**
+        if "==" in line:
+            line = re.sub(r"==([^=]+)==", r"**\1**", line)
+
+        # Footnote references: [^N] -> strip them
+        line = re.sub(r"\[\^\d+\]", "", line)
+
         # Split inline table rows joined with '| |'
         if re.match(r"^\|.+\|\s*\|", line) and not _is_sep_row(line):
             parts = re.split(r"\|\s*\|", line)
@@ -114,41 +172,48 @@ def _fix_md(text: str) -> str:
                 merged.append(part)
             if len(merged) > 1:
                 pre.extend(merged)
+                i += 1
                 continue
-        pre.append(line)
 
-    # ── Pass 2: table block fixing + blank-line insertion ─────────────────────
+        pre.append(line)
+        i += 1
+
+    # -- Pass 2: structural fixes (tables, lists, code fences, blank lines) --
     out: list[str] = []
     i = 0
     _in_fence = False
+
+    def _is_list_line(ln: str) -> bool:
+        s = ln.lstrip()
+        if not s:
+            return False
+        if re.match(r"^[-*+]\s+", s) and not re.match(r"^[-]{3,}\s*$", s) and not re.match(r"^[*]{3,}\s*$", s):
+            return True
+        if re.match(r"^\d+\.\s+", s):
+            return True
+        return False
+
     while i < len(pre):
         line = pre[i]
 
+        # -- Table block --
         if _is_table_row(line) and not _in_fence:
-            # Collect the whole table block
             block: list[str] = []
             j = i
             while j < len(pre) and _is_table_row(pre[j]):
                 block.append(pre[j])
                 j += 1
-
-            # Blank line before table
             if out and out[-1].strip():
                 out.append("")
-
             out.extend(_fix_table_block(block))
-
-            # Blank line after table
             if j < len(pre) and pre[j].strip():
                 out.append("")
-
             i = j
             continue
 
-        # Code fence handling — track open/close to avoid blanks inside blocks
+        # -- Code fence --
         if line.startswith("```"):
             if _in_fence:
-                # closing fence: append, then blank after
                 _in_fence = False
                 out.append(line)
                 if i + 1 < len(pre) and pre[i + 1].strip():
@@ -156,13 +221,28 @@ def _fix_md(text: str) -> str:
                 i += 1
                 continue
             else:
-                # opening fence: blank before, then append (no blank after)
                 _in_fence = True
                 if out and out[-1].strip():
                     out.append("")
                 out.append(line)
                 i += 1
                 continue
+
+        # -- List block: ensure blank line before first list item --
+        if _is_list_line(line) and not _in_fence:
+            if out and out[-1].strip() and not _is_list_line(out[-1]):
+                out.append("")
+            out.append(line)
+            i += 1
+            continue
+
+        # -- Blank line after list block --
+        if (out
+                and _is_list_line(out[-1])
+                and not _is_list_line(line)
+                and line.strip()
+                and not _in_fence):
+            out.append("")
 
         # Collapse consecutive blank lines
         if not line.strip() and out and not out[-1].strip():
@@ -172,14 +252,14 @@ def _fix_md(text: str) -> str:
         out.append(line)
         i += 1
 
-    # ── Pass 3: strip blank lines right before headings (Rich adds its own) ──
+    # -- Pass 3: strip blank lines right before headings (Rich adds its own) --
     final: list[str] = []
     for line in out:
         if re.match(r"^#{1,6}\s", line) and final and not final[-1].strip():
-            final.pop()  # remove blank line before heading
+            final.pop()
         final.append(line)
 
-    # ── Pass 4: strip leading/trailing blank lines ────────────────────────────
+    # -- Pass 4: strip leading/trailing blank lines --
     while final and not final[0].strip():
         final.pop(0)
     while final and not final[-1].strip():
@@ -187,8 +267,6 @@ def _fix_md(text: str) -> str:
 
     return "\n".join(final)
 
-
-# ── Left-aligned Markdown headings (compact) ────────────────────────────────
 
 class _LeftHeading(_RichHeading):
     """Override Rich Heading to render left-aligned and compact (no extra blank lines)."""

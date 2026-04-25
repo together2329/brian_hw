@@ -72,14 +72,39 @@ class TestParseValue(unittest.TestCase):
     def test_single_quoted_string(self):
         val, n = parse_value("'hello' rest")
         self.assertEqual(val, "hello")
-
     def test_triple_double_quoted(self):
-        val, n = parse_value('"""hello world""" rest')
+        # Closing triple-quote must be followed by comma, paren, or end-of-string
+        val, n = parse_value('"""hello world""", other=1')
+        self.assertEqual(val, "hello world")
+
+    def test_triple_double_quoted_at_end(self):
+        val, n = parse_value('"""hello world"""')
         self.assertEqual(val, "hello world")
 
     def test_triple_single_quoted(self):
-        val, n = parse_value("'''hello world''' rest")
+        val, n = parse_value("'''hello world''', other=1")
         self.assertEqual(val, "hello world")
+
+    def test_triple_single_quoted_at_end(self):
+        val, n = parse_value("'''hello world'''")
+        self.assertEqual(val, "hello world")
+
+    def test_triple_quoted_with_embedded_docstring(self):
+        inner = 'def foo():\n    """A docstring."""\n    pass'
+        test_input = '"""\ndef foo():\n    """A docstring."""\n    pass\n""", other=1'
+        val, n = parse_value(test_input)
+        self.assertIn('def foo', val)
+        self.assertIn('docstring', val)
+        self.assertIn('pass', val)
+
+    def test_triple_quoted_with_escaped_quotes(self):
+        escaped = 'def foo():\n    \\"""doc\\"""\n    pass'
+        test_input = '"""\ndef foo():\n    \\"""doc\\"""\n    pass\n"""'
+        val, n = parse_value(test_input)
+        self.assertIn('def foo', val)
+        self.assertIn('doc', val)
+
+
 
     def test_escape_newline(self):
         val, n = parse_value(r'"line1\nline2"')
@@ -151,6 +176,15 @@ class TestParseToolArguments(unittest.TestCase):
     def test_list_value(self):
         _, kw = parse_tool_arguments('items=["a", "b"]')
         self.assertEqual(kw["items"], ["a", "b"])
+    def test_replace_in_file_with_docstring(self):
+        args = 'path="foo.py", old_text="""\ndef foo():\n    """A docstring."""\n    pass\n""", new_text="""bar"""'
+        _, kw = parse_tool_arguments(args)
+        self.assertIn('old_text', kw)
+        self.assertIn('def foo', kw['old_text'])
+        self.assertIn('docstring', kw['old_text'])
+        self.assertEqual(kw['new_text'], 'bar')
+
+
 
 
 # ---------------------------------------------------------------------------
@@ -213,6 +247,16 @@ class TestParseAllActions(unittest.TestCase):
         text = 'Action: read_file(path="a.py")'
         actions = parse_all_actions(text)
         self.assertEqual(len(actions[0]), 3)  # (tool_name, args_str, hint)
+    def test_action_with_embedded_docstring(self):
+        text = 'Action: replace_in_file(path="foo.py", old_text="""\ndef foo():\n    """A docstring."""\n    pass\n""", new_text="""bar""")'
+        actions = parse_all_actions(text)
+        self.assertEqual(len(actions), 1)
+        self.assertEqual(actions[0][0], 'replace_in_file')
+        self.assertIn('def foo', actions[0][1])
+        self.assertIn('docstring', actions[0][1])
+        self.assertIn('new_text', actions[0][1])
+
+
 
 
 # ---------------------------------------------------------------------------

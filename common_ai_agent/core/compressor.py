@@ -364,7 +364,56 @@ def _compress_chunked(
 
 
 # ---------------------------------------------------------------------------
-# Main entry point
+# Pre-compression analysis (LLM identifies critical context)
+# ---------------------------------------------------------------------------
+
+def _pre_analysis(messages: List[Dict], llm_call_fn: Callable) -> str:
+    """Ask LLM what is critical in current context before compression.
+    Only called when compression is actually triggered (past threshold checks).
+    """
+    recent = messages[-20:] if len(messages) > 20 else messages
+    conv_text = ""
+    for m in recent:
+        role = m.get("role", "?")
+        content = str(m.get("content") or "")[:600]
+        conv_text += role + ": " + content + "\n"
+
+    analysis_msgs = [
+        {
+            "role": "system",
+            "content": "You are helping preserve critical context before conversation compression.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Analyze the recent conversation below and identify what MUST be preserved "
+                "during compression. Focus on:\n"
+                "1. Active goal and current task status\n"
+                "2. Critical decisions, findings, or constraints discovered\n"
+                "3. Files/symbols/errors that are currently relevant\n"
+                "4. Last action taken and its outcome\n"
+                "5. Anything the agent must NOT forget\n\n"
+                "Be concise - 5-10 bullet points max.\n\n"
+                + conv_text
+            ),
+        },
+    ]
+    analysis = ""
+    try:
+        print("  [Compress] Pre-analysis: identifying critical context...", end="", flush=True)
+        for chunk in llm_call_fn(analysis_msgs, suppress_spinner=True):
+            if isinstance(chunk, tuple) and chunk[0] == "reasoning":
+                continue
+            analysis += chunk
+        print(f" done ({len(analysis):,} chars)")
+    except Exception as e:
+        print(f" failed ({e})")
+        return ""
+    return analysis.strip()
+
+
+# ---------------------------------------------------------------------------
+# Public entry point
 # ---------------------------------------------------------------------------
 
 def compress_history(
@@ -443,6 +492,18 @@ def compress_history(
 
     if not messages:
         return messages
+
+    # Pre-compression analysis: LLM identifies critical context before summarizing.
+    # Only runs when compression is actually triggered (past threshold checks).
+    if getattr(cfg, "COMPRESSION_PRE_ANALYSIS", False) and not dry_run and instruction is None:
+        analysis = _pre_analysis(messages, llm_call_fn)
+        if analysis:
+            instruction = (
+                f"CRITICAL CONTEXT TO PRESERVE (identified before compression):\n"
+                f"{analysis}\n\n"
+                f"---\n"
+                f"{STRUCTURED_SUMMARY_PROMPT}"
+            )
 
     # Pre-compact hook
     pre_hook_path = _find_hook_fn("pre_compact")

@@ -93,6 +93,7 @@ def _make_cfg(**overrides):
     """Minimal config namespace for compress_history()."""
     defaults = dict(
         ENABLE_COMPRESSION               = True,
+        MAX_CONTEXT_TOKENS               = 128000,
         MAX_CONTEXT_CHARS                = 512_000,
         COMPRESSION_THRESHOLD            = 0.9,
         PREEMPTIVE_COMPRESSION_THRESHOLD = 0.85,
@@ -100,12 +101,12 @@ def _make_cfg(**overrides):
         COMPRESSION_KEEP_RECENT          = 4,
         COMPRESSION_CHUNKED              = False,
         COMPRESSION_MODE                 = "single",
-        ENABLE_TURN_PROTECTION           = False,   # off to keep tests simple
+        ENABLE_TURN_PROTECTION           = False,
         TURN_PROTECTION_COUNT            = 3,
+        COMPRESSION_PRE_ANALYSIS         = False,
     )
     defaults.update(overrides)
     return types.SimpleNamespace(**defaults)
-
 
 # ─────────────────────────────────────────────────────────────
 # TestLLMCallMessageStructure
