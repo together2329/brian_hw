@@ -2718,13 +2718,17 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                         f"{next_msg}"
                     )
                 else:
-                    on_rej = getattr(item, "on_reject", 0)
+                    # Use actual current_index to determine if a jump happened.
+                    # on_reject field may still hold original value even if stagnation
+                    # disabled the jump inside auto_execute_command().
                     jump_msg = ""
-                    if on_rej and 1 <= on_rej <= len(todo_tracker.todos):
-                        jump_todo = todo_tracker.todos[on_rej - 1]
+                    actually_jumped = todo_tracker.current_index != idx
+                    if actually_jumped:
+                        jump_idx = todo_tracker.current_index
+                        jump_todo = todo_tracker.todos[jump_idx]
                         jump_msg = (
-                            f"\n→ Jumping to Task {on_rej}: {jump_todo.content}"
-                            f"\n→ todo_update(index={on_rej}, status='in_progress')"
+                            f"\n→ Jumping to Task {jump_idx + 1}: {jump_todo.content}"
+                            f"\n→ todo_update(index={jump_idx + 1}, status='in_progress')"
                         )
                     return (
                         f"❌ Task {index} [command: {label}] failed.\n"

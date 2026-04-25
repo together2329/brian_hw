@@ -504,7 +504,7 @@ class TodoTracker:
                 else:
                     out = fn(**cmd.get("args", {}))
                     full_output = str(out).strip()
-                    ok = not full_output.startswith("Error")
+                    ok = not full_output.startswith("[error]")
             except Exception as e:
                 full_output = f"[error] Tool '{tool_name}' raised: {e}"
                 ok = False
@@ -583,6 +583,7 @@ class TodoTracker:
 
         if ok:
             todo.status = "approved"
+            todo.rejection_reason = ""   # clear stale failure context
             todo.approved_reason = (
                 f"[auto-command] {cmd_label} — exit 0 ({total_lines} lines)"
                 + (f"\n{tail}" if tail else " (no output)")

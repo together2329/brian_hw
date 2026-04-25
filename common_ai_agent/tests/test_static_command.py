@@ -417,6 +417,15 @@ class TestCascadeReset:
         tracker.auto_execute_command(0)
         assert "no output" in tracker.todos[0].approved_reason
 
+    def test_rejection_reason_cleared_on_success(self, tmp_path):
+        tracker = make_tracker([
+            {"content": "t", "activeForm": "t", "command": "echo ok"}
+        ], tmp_path)
+        tracker.todos[0].rejection_reason = "previous failure"
+        tracker.mark_in_progress(0)
+        tracker.auto_execute_command(0)
+        assert tracker.todos[0].rejection_reason == ""
+
     def test_stagnation_disables_on_reject_after_max_retries(self, tmp_path):
         tracker = make_tracker([
             {"content": "implement", "activeForm": "implementing"},
@@ -451,6 +460,23 @@ class TestTodoAddCommand:
     def teardown_method(self):
         import sys
         sys.modules.pop("main", None)
+
+    def test_stagnation_no_jump_message(self, tmp_path):
+        from core.tools import todo_update
+        self._setup(tmp_path, [
+            {"content": "implement", "activeForm": "implementing"},
+            {"content": "lint",      "activeForm": "linting",
+             "command": "exit 1", "on_reject": 1},
+        ])
+        import sys
+        tracker = sys.modules["main"].todo_tracker
+        tracker.mark_approved(0, reason="implementation done and verified")
+        # Simulate 2 prior rejections so 3rd triggers stagnation
+        tracker.todos[1].rejection_count = 2
+        result = todo_update(index=2, status="in_progress")
+        assert "❌" in result
+        # stagnation: current_index stays on task 2 (index 1), no jump
+        assert "Jumping to Task 1" not in result
 
     def test_todo_add_with_command(self, tmp_path):
         from core.tools import todo_add
