@@ -1,0 +1,1 @@
+TASK 6 DONE: Parallel dispatch tested. Both workers fired simultaneously (0.004s dispatch). Polled 14 times over 6.7s. Lint PASSED. Sim had LLM flake (expected — handled by skip in regression test). parallel_result.json saved.

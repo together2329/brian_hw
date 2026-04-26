@@ -1,0 +1,2 @@
+TASK 8 DONE: tests/test_rtl_pipeline.py generated — 14 tests collected, 0 errors.
+Classes: TestRTLDesignFiles(5), TestLintWorker(3), TestSimWorker(3), TestParallelDispatch(1), TestResultVerification(2)

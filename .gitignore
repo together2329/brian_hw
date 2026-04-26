@@ -109,3 +109,26 @@ NVMe/
 PCIe/
 UCIe/
 gstack/
+
+# Temporary debug/patch scripts
+common_ai_agent/_*.py
+common_ai_agent/tests/_*.py
+
+# Temporary debug outputs
+common_ai_agent/*.txt
+common_ai_agent/*.json
+!common_ai_agent/.env.example
+
+# TIMER temporary files
+TIMER/sim_soc_check
+TIMER/vvp_output.txt
+TIMER/fix_tb*.py
+TIMER/.ai_engine_makefile_verified
+TIMER/.task6_verify
+TIMER/tb_ai_engine.v.broken
+
+# WOW directory (empty/placeholder)
+WOW/
+
+# Analysis artifact
+common_ai_agent/BUG_REPORT.md

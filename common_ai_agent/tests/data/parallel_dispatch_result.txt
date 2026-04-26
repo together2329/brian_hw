@@ -1,0 +1,5 @@
+PARALLEL DISPATCH RESULT:
+- Lint Worker A (run_45dc5c2e): PASSED, 2 iterations
+- Sim Worker B (run_ecf0264d): LLM error (flake, skipped)
+- Dispatch time: 0.004s, Total time: 6.7s, Polls: 14
+- Both workers dispatched simultaneously and polled in parallel

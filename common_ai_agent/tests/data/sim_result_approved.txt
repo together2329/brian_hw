@@ -1,0 +1,5 @@
+SIM PASSED — Verified by Worker B on port 18796.
+Run ID: run_8f441080
+Tool: iverilog + vvp on counter.v + tb_counter.v
+Result: count increments 0→1→2→...→10, $finish at t=155
+Status: completed, 3 iterations
