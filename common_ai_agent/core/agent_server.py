@@ -417,6 +417,28 @@ def _build_todos_summary(todos: list, entry) -> list:
     return summary
 
 
+def _load_todo_template(name: str) -> Optional[list]:
+    """Load tasks from todo_templates/<name>.json relative to CWD.
+
+    Returns the tasks list on success, None if not found.
+    """
+    candidates = [
+        Path.cwd() / "todo_templates" / f"{name}.json",
+        Path.cwd() / "todo_templates" / name,  # already has .json
+    ]
+    for path in candidates:
+        if path.exists():
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                tasks = data.get("tasks", data if isinstance(data, list) else None)
+                if tasks:
+                    print(f"[template] Loaded '{name}' ({len(tasks)} tasks) from {path}")
+                    return tasks
+            except Exception as e:
+                print(f"[template] WARNING: Failed to load {path}: {e}")
+    return None
+
+
 def _create_run(task: str, model: str = "") -> RunEntry:
     run_id = f"run_{uuid.uuid4().hex[:8]}"
     entry = RunEntry(
@@ -875,6 +897,7 @@ def create_app():
             task: str
             model: str = ""
             todos: Optional[list] = None
+            template: str = ""   # todo_templates/<name>.json — loaded server-side
             context: str = ""
             sync: bool = False
 
@@ -1066,10 +1089,15 @@ def create_app():
             task = request.task
             model = request.model
             todos = request.todos
+            template = request.template
             context = request.context
             sync = request.sync
             if not task:
                 raise HTTPException(status_code=400, detail="'task' is required")
+            if template and not todos:
+                todos = _load_todo_template(template)
+                if todos is None:
+                    raise HTTPException(status_code=404, detail=f"Template '{template}' not found in todo_templates/")
             entry = _create_run(task, model)
             entry.on_complete_url = getattr(request, "on_complete_url", "")
             if sync:
@@ -1111,10 +1139,15 @@ def create_app():
             task = request.get("task", "")
             model = request.get("model", "")
             todos = request.get("todos")
+            template = request.get("template", "")
             context = request.get("context", "")
             sync = request.get("sync", False)
             if not task:
                 raise HTTPException(status_code=400, detail="'task' is required")
+            if template and not todos:
+                todos = _load_todo_template(template)
+                if todos is None:
+                    raise HTTPException(status_code=404, detail=f"Template '{template}' not found in todo_templates/")
             entry = _create_run(task, model)
             entry.on_complete_url = request.get("on_complete_url", "")
             if sync:
