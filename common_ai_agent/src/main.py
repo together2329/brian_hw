@@ -471,25 +471,7 @@ if getattr(config, 'ENABLE_HOOKS', True):
         hook_registry = None
 
 
-# --- Global Sub-Agent Orchestrator ---
-# Initialize orchestrator if sub-agents are enabled (replaces Deep Think)
-orchestrator = None
-if config.ENABLE_SUB_AGENTS:
-    try:
-        # Note: execute_tool is defined later in this file (line ~374)
-        # Use lambda for lazy evaluation to avoid NameError
-        orchestrator = Orchestrator(
-            llm_call_func=call_llm_raw,
-            execute_tool_func=lambda tool_name, args: execute_tool(tool_name, args),
-            graph_lite=graph_lite,
-            procedural_memory=procedural_memory,
-            parallel_enabled=config.SUB_AGENT_PARALLEL_ENABLED,
-            max_workers=config.SUB_AGENT_MAX_WORKERS,
-            timeout=config.SUB_AGENT_TIMEOUT
-        )
-    except Exception as e:
-        print(f"\033[91m[System] ❌ Orchestrator initialization failed: {e}\033[0m")
-        orchestrator = None
+orchestrator = None  # Legacy sub-agent system deprecated; background agents are used instead.
 
 # --- Global Hybrid RAG System ---
 # Initialize HybridRAG if Smart RAG is enabled
@@ -2382,6 +2364,12 @@ if __name__ == "__main__":
                          help='Start as HTTP server (agent-to-agent mode)')
     _parser.add_argument('--port', type=int, default=8000,
                          help='HTTP server port (default: 8000, requires --serve)')
+    _parser.add_argument('--verbose', action='store_true',
+                         help='Print ReAct log to terminal in real-time (requires --serve)')
+    _parser.add_argument('--coordinator', type=str, default='',
+                         help='Coordinator URL to register with (e.g. http://localhost:8000)')
+    _parser.add_argument('--worker-name', type=str, default='',
+                         help='Name to register as (e.g. lint_worker, requires --coordinator)')
     _args, _ = _parser.parse_known_args()
 
     # Each project gets its own session context:
@@ -2404,7 +2392,16 @@ if __name__ == "__main__":
     if getattr(_args, 'serve', False):
         # Server mode: start HTTP API for agent-to-agent communication
         from core.agent_server import serve as _agent_serve
-        _agent_serve(port=_args.port)
+        from core.agent_client import set_coordinator as _set_coordinator
+        coordinator = getattr(_args, 'coordinator', '')
+        if coordinator:
+            _set_coordinator(coordinator)
+        _agent_serve(
+            port=_args.port,
+            verbose=getattr(_args, 'verbose', False),
+            coordinator=coordinator,
+            worker_name=getattr(_args, 'worker_name', ''),
+        )
         sys.exit(0)
 
     if len(sys.argv) > 1 and sys.argv[1] == "--prompt":
