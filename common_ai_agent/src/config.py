@@ -470,7 +470,7 @@ PREEMPTIVE_COMPRESSION_THRESHOLD = float(os.getenv("PREEMPTIVE_COMPRESSION_THRES
 # Enable turn-based message protection during compression
 # When enabled, protects recent N turns instead of N messages
 # Default: true (recommended for better conversation continuity)
-ENABLE_TURN_PROTECTION = os.getenv("ENABLE_TURN_PROTECTION", "true").lower() in ("true", "1", "yes")
+ENABLE_TURN_PROTECTION = os.getenv("ENABLE_TURN_PROTECTION", "false").lower() in ("true", "1", "yes")
 
 # Number of recent turns to protect from compression
 # Only used when ENABLE_TURN_PROTECTION=true
