@@ -2783,6 +2783,12 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         if (not _is_tool_msg and not _prev_has_tool_calls and not _cur_has_tool_calls
                 and _merged[-1].get("role") == m.get("role")):
             _merged[-1]["content"] = str(_merged[-1].get("content", "") or "") + "\n\n" + str(m.get("content", ""))
+            # Preserve reasoning_content when merging assistant messages
+            # DeepSeek REQUIRES reasoning_content on ALL assistant messages in history
+            if m.get("role") == "assistant" and "reasoning_content" in m:
+                prev_rc = _merged[-1].get("reasoning_content", "")
+                new_rc = m.get("reasoning_content", "")
+                _merged[-1]["reasoning_content"] = str(prev_rc) + "\n" + str(new_rc) if prev_rc else new_rc
             continue
         _merged.append(m)
     if _merged and _merged[0].get("role") != "system":

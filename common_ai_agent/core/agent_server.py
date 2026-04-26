@@ -216,13 +216,23 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
 
                 # Track file ops
                 import re
-                path_match = re.search(r'(?:path\s*=|"path"\s*:)\s*["\']([^"\']+)["\']', args_str)
+                # Extract file path from args — handles:
+                #   path="foo.txt"    (keyword style)
+                #   "path": "foo.txt" (JSON style)
+                #   "foo.txt"         (positional — first quoted string)
+                # Match: path="f" | "path": "f" | path=f (unquoted)
+                path_match = re.search(r'(?:path\s*=\s*|"path"\s*:\s*)(?:["\']([^"\']+)["\']|(\S+))', args_str)
+                if not path_match:
+                    # Fallback: first quoted string (positional arg)
+                    path_match = re.search(r'["\']([^"\']+)["\']', args_str)
                 if path_match:
-                    fp = path_match.group(1)
-                    if tool_name in ("write_file", "replace_in_file", "replace_lines"):
-                        files_modified.append(fp)
-                    elif tool_name in ("read_file", "read_lines", "grep_file"):
-                        files_examined.append(fp)
+                    fp = path_match.group(1) or path_match.group(2) or ''
+                    # Only count if it looks like a file path (has extension or /)
+                    if fp and ('.' in fp or '/' in fp):
+                        if tool_name in ("write_file", "replace_in_file", "replace_lines"):
+                            files_modified.append(fp)
+                        elif tool_name in ("read_file", "read_lines", "grep_file"):
+                            files_examined.append(fp)
 
                 # Log observation (truncated)
                 obs_preview = str(observation)[:300]

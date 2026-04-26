@@ -1060,6 +1060,24 @@ def compress_history(
     else:
         new_history = _non_sys
 
+    # DeepSeek fix: fill missing reasoning_content on assistant messages.
+    # DeepSeek's thinking mode REQUIRES that every assistant message in
+    # history carries reasoning_content. After compression, assistant
+    # messages that originally had reasoning may lose it, causing
+    # HTTP 400 "The reasoning_content in the thinking mode must be
+    # passed back to the API."
+    _model_lower = str(getattr(cfg, 'MODEL_NAME', '')).lower()
+    if not _model_lower:
+        try:
+            import builtins as _bi
+            _model_lower = str(getattr(getattr(_bi, '_AGENT_CONFIG', object()), 'MODEL_NAME', '')).lower()
+        except Exception:
+            pass
+    if 'deepseek' in _model_lower:
+        for _m in new_history:
+            if _m.get("role") == "assistant" and "reasoning_content" not in _m:
+                _m["reasoning_content"] = " "
+
     new_tokens = sum(_est(m) for m in new_history)
 
     # Emergency pruning: if still over limit after compression, tail-truncate
