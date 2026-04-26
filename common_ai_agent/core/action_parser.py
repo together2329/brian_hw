@@ -55,6 +55,11 @@ def sanitize_action_text(text: str) -> str:
     text = re.sub(r'tool_call:', 'Action:', text)
     # Normalize lowercase "action:" to "Action:" (GLM-4.7 sometimes generates lowercase)
     text = re.sub(r'(?m)^action:', 'Action:', text)
+    # Korean/Japanese fallbacks: LLM sometimes outputs localized tool-call prefixes
+    text = re.sub(r'(?m)^작업\s*:', 'Action:', text)       # Korean "작업:"
+    text = re.sub(r'(?m)^동작\s*:', 'Action:', text)       # Korean "동작:"
+    text = re.sub(r'(?m)^実行\s*[:：]', 'Action:', text)    # Japanese "実行:"
+    text = re.sub(r'(?m)^アクション\s*[:：]', 'Action:', text)  # Japanese "アクション:"
     # Pattern: number followed by quote then closing paren/comma
     text = re.sub(r'=(\d+)"([,\)])', r'=\1\2', text)
     text = re.sub(r"=(\d+)'([,\)])", r'=\1\2', text)
