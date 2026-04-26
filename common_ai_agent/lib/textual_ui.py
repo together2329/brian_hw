@@ -252,12 +252,24 @@ def _fix_md(text: str) -> str:
         out.append(line)
         i += 1
 
-    # -- Pass 3: strip blank lines right before headings (Rich adds its own) --
+    # -- Pass 3: ensure blank line before headings for reliable parsing --
+    # Rich's Markdown parser (and many others) parse headings more reliably
+    # when preceded by a blank line. Without it, headings can be treated as
+    # regular text when they follow content, causing `#` to appear raw.
     final: list[str] = []
     for line in out:
-        if re.match(r"^#{1,6}\s", line) and final and not final[-1].strip():
-            final.pop()
+        if re.match(r"^#{1,6}\s", line) and final and final[-1].strip():
+            # Heading follows non-blank content → insert blank line separator
+            final.append("")
         final.append(line)
+
+    # -- Pass 3b: auto-close unclosed code fences --
+    # During live streaming, code fences may be opened but not yet closed.
+    # This makes the Markdown parser treat everything after the opening fence
+    # as code content (raw text with `#` visible). Auto-close to prevent this.
+    _open_fences = sum(1 for l in final if l.strip().startswith("```"))
+    if _open_fences % 2 != 0:
+        final.append("```")
 
     # -- Pass 4: strip leading/trailing blank lines --
     while final and not final[0].strip():

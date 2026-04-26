@@ -274,6 +274,8 @@ class StreamParser:
         # Markdown structural lines that commonly repeat (table rows, list
         # items, blockquotes, etc.) must bypass dedup — otherwise identical
         # table rows or repeated list items get silently dropped.
+        # Headings are also included: duplicate `# Same Heading` should not
+        # be silently dropped, and headings must always reach the renderer.
         _s = text.lstrip()
         is_markdown_struct = (
             _s.startswith("|")          # table row
@@ -281,6 +283,7 @@ class StreamParser:
             or _s.startswith("* ")      # unordered list
             or _s.startswith("+ ")      # unordered list
             or _s.startswith(">")       # blockquote
+            or re.match(r"^#{1,6}\s", _s)  # markdown heading
             or (_s and _s[0].isdigit() and ". " in _s[:6])  # ordered list
         )
         if is_fence or is_markdown_struct or text not in self._seen:

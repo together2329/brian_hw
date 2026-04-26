@@ -2333,10 +2333,43 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
                         _lines.append(f"Action: {_fn.get('name', '?')}({_fn.get('arguments', '{}')})")
                     _text = _m.get("content") or ""
                     _combined = (_text + "\n" if _text else "") + "\n".join(_lines)
-                    cleaned.append({"role": "assistant", "content": _combined.strip()})
+                    _new_msg = {"role": "assistant", "content": _combined.strip()}
+                    # Preserve reasoning_content when converting native tool_calls → text.
+                    if "reasoning_content" in _m:
+                        _new_msg["reasoning_content"] = _m["reasoning_content"]
+                    cleaned.append(_new_msg)
                 else:
                     cleaned.append(_m)
             processed_messages = cleaned
+
+    # ── Clean messages for API (same as streaming path) ──
+    # Strip internal-only fields and preserve reasoning_content for
+    # reasoning models (DeepSeek, GLM, etc).  This is the non-streaming
+    # counterpart of the clean step in chat_completion_stream().
+    _ns_api_roles = {"system", "user", "assistant", "tool"}
+    _ns_cleaned = []
+    _ns_model_for_clean = model or getattr(config, 'MODEL_NAME', '')
+    _ns_model_lower = _ns_model_for_clean.lower()
+    for _m in processed_messages:
+        if _m.get("role") not in _ns_api_roles:
+            continue
+        _clean = {"role": _m["role"]}
+        if "content" in _m:
+            _clean["content"] = _m["content"]
+        if "tool_calls" in _m:
+            _clean["tool_calls"] = _m["tool_calls"]
+        if "tool_call_id" in _m:
+            _clean["tool_call_id"] = _m["tool_call_id"]
+        # Preserved thinking: model-agnostic preservation (see streaming path for rationale)
+        if "reasoning_content" in _m and _m["reasoning_content"]:
+            _clean["reasoning_content"] = _m["reasoning_content"]
+        elif 'deepseek' in _ns_model_lower and _m.get("role") == "assistant":
+            _clean["reasoning_content"] = " "
+        elif "reasoning_content" in _m and 'glm-' in _ns_model_lower:
+            if not getattr(config, "GLM_CLEAR_THINKING", True):
+                _clean["reasoning_content"] = _m["reasoning_content"]
+        _ns_cleaned.append(_clean)
+    processed_messages = _ns_cleaned
 
     resolved_model = model or config.MODEL_NAME
 
@@ -2753,7 +2786,15 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                               for _tc in _calls]
                     _text = _m.get("content") or ""
                     _combined = (_text + "\n" if _text else "") + "\n".join(_lines)
-                    _cleaned.append({"role": "assistant", "content": _combined.strip()})
+                    _new_msg = {"role": "assistant", "content": _combined.strip()}
+                    # Preserve reasoning_content when converting native tool_calls → text.
+                    # Cross-model transitions (DeepSeek → other → DeepSeek) can cause
+                    # native-mode messages with reasoning_content to be converted in
+                    # non-native mode.  Without this, the field would be dropped and
+                    # the subsequent clean step would only get an empty placeholder.
+                    if "reasoning_content" in _m:
+                        _new_msg["reasoning_content"] = _m["reasoning_content"]
+                    _cleaned.append(_new_msg)
                 else:
                     _cleaned.append(_m)
             processed_messages = _cleaned
@@ -2810,12 +2851,32 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             clean["tool_call_id"] = m["tool_call_id"]
         # Preserved thinking: pass reasoning_content back to API
         # - DeepSeek: REQUIRED — API returns HTTP 400 if missing in thinking mode.
+        #   When chat history from another model (GPT, Claude, etc.) is loaded,
+        #   those assistant messages won't have reasoning_content. DeepSeek's API
+        #   requires reasoning_content on ALL assistant messages when thinking mode
+        #   is active, so we inject a placeholder for missing ones.
         # - GLM-5/5.1: optional, controlled by GLM_CLEAR_THINKING config.
+        # - Cross-model preservation: always carry forward reasoning_content if
+        #   present on the source message, regardless of current model.  This
+        #   prevents data loss when switching DeepSeek → other → DeepSeek: the
+        #   field survives across model transitions because we never strip it.
         _m_lower = (model or getattr(config, 'MODEL_NAME', '')).lower()
-        if "reasoning_content" in m:
-            if 'deepseek' in _m_lower:
-                clean["reasoning_content"] = m["reasoning_content"]
-            elif 'glm-' in _m_lower and not getattr(config, "GLM_CLEAR_THINKING", True):
+        if "reasoning_content" in m and m["reasoning_content"]:
+            # Preserve existing reasoning_content for ALL models (model-agnostic).
+            # This is critical for cross-model session transitions:
+            #   DeepSeek → other model → back to DeepSeek
+            # Without this, the intermediate "other model" call strips the field
+            # and the final DeepSeek call only gets an empty placeholder.
+            clean["reasoning_content"] = m["reasoning_content"]
+        elif 'deepseek' in _m_lower and m.get("role") == "assistant":
+            # Cross-model history: assistant messages from other models lack
+            # reasoning_content. Inject a placeholder so DeepSeek API accepts
+            # the request. (empty string " " matches react_loop.py convention)
+            clean["reasoning_content"] = " "
+        elif "reasoning_content" in m and 'glm-' in _m_lower:
+            # GLM with empty/whitespace reasoning_content — only preserve
+            # if GLM_CLEAR_THINKING is False.
+            if not getattr(config, "GLM_CLEAR_THINKING", True):
                 clean["reasoning_content"] = m["reasoning_content"]
         _processed_clean.append(clean)
     processed_messages = _processed_clean
