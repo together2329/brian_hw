@@ -3947,28 +3947,108 @@ def read_image(path=None, prompt="Describe this image in detail."):
     if not api_key or api_key == 'your-openai-api-key-here':
         return "Error: IMAGE_READ_API_KEY not configured. Set IMAGE_READ_API_KEY in .config or .env."
 
-    # Resolve path
+    # Resolve path with fuzzy matching
+    import glob as _glob
     path = os.path.expanduser(path)
-    if not os.path.isabs(path):
-        # Try relative to CWD first, then to workspace root
+    # Normalize multiple spaces to single space
+    path = re.sub(r'\s+', ' ', path)
+    # Strip quotes that LLM sometimes adds
+    path = path.strip('"\'')
+
+    if os.path.isfile(path):
+        pass  # exact match, use as-is
+    else:
+        # Build candidate paths to search
+        candidates = []
+        basename = os.path.basename(path)
+        parent = os.path.dirname(path) or "."
+
+        # 1. Relative to CWD
         cwd = os.getcwd()
-        candidates = [
-            os.path.join(cwd, path),
-        ]
-        # Also try git root
+        candidates.append(os.path.join(cwd, path))
+
+        # 2. Git root
         try:
             git_root = _find_git_root(cwd)
             if git_root:
                 candidates.append(os.path.join(git_root, path))
         except Exception:
             pass
+
+        # 3. User Desktop (common for screenshots)
+        desktop = os.path.expanduser("~/Desktop")
+        if os.path.isdir(desktop):
+            candidates.append(os.path.join(desktop, basename))
+            # Also search for partial match on Desktop
+            candidates.append(os.path.join(desktop, path))
+
+        # 4. User home
+        candidates.append(os.path.expanduser("~/" + basename))
+
+        # 5. Downloads
+        downloads = os.path.expanduser("~/Downloads")
+        if os.path.isdir(downloads):
+            candidates.append(os.path.join(downloads, basename))
+
+        found = False
         for candidate in candidates:
             if os.path.isfile(candidate):
                 path = candidate
+                found = True
                 break
 
-    if not os.path.isfile(path):
-        return f"Error: Image file not found: {path}"
+        # 6. Fuzzy: glob in parent directory (handles spaces, partial names)
+        if not found:
+            search_dirs = [parent, cwd, desktop]
+            name_no_ext = os.path.splitext(basename)[0]
+            for sdir in search_dirs:
+                if not sdir or not os.path.isdir(sdir):
+                    continue
+                # Try: partial name match with any image extension
+                for ext in ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp']:
+                    pattern = os.path.join(sdir, "*" + name_no_ext[:15] + "*." + ext)
+                    matches = _glob.glob(pattern)
+                    if matches:
+                        path = matches[0]
+                        found = True
+                        break
+                if found:
+                    break
+
+        # 7. Fuzzy: search Desktop for screenshots by date/time
+        if not found and os.path.isdir(desktop):
+            # Extract date pattern like "2026-04-26" or "10.52" from basename
+            date_match = re.search(r'(\d{4}-\d{2}-\d{2})', basename)
+            time_match = re.search(r'(\d{1,2}\.\d{2})', basename)
+            if date_match or time_match:
+                search_pat = "*"
+                if date_match:
+                    search_pat += date_match.group(1) + "*"
+                if time_match:
+                    search_pat += "*" + time_match.group(1) + "*"
+                for ext in ['png', 'jpg', 'jpeg']:
+                    matches = _glob.glob(os.path.join(desktop, search_pat + "." + ext))
+                    if matches:
+                        path = matches[0]
+                        found = True
+                        break
+
+        if not found:
+            # Final fallback: suggest similar files
+            suggestions = []
+            for sdir in [parent, cwd, desktop]:
+                if not sdir or not os.path.isdir(sdir):
+                    continue
+                try:
+                    for ext in ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp']:
+                        found_files = _glob.glob(os.path.join(sdir, name_no_ext[:10] + "*." + ext))[:2]
+                        suggestions.extend(found_files)
+                except Exception:
+                    pass
+            if suggestions:
+                hint = ", ".join(f"'{s}'" for s in suggestions[:3])
+                return f"Error: Image file not found: {path}. Did you mean: {hint}?"
+            return f"Error: Image file not found: {path}. Use find_files('{basename}') to locate it."
 
     # Validate file extension
     valid_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg', '.ico', '.tiff', '.tif'}
@@ -4171,6 +4251,17 @@ except ImportError:
         AVAILABLE_TOOLS.update(WEB_TOOLS)
     except ImportError:
         pass  # tools_web not available
+
+# Worker tools — Commander → Worker agent dispatch over HTTP
+try:
+    from core.agent_client import worker_call, worker_status, worker_result
+    AVAILABLE_TOOLS.update({
+        "worker_call": worker_call,
+        "worker_status": worker_status,
+        "worker_result": worker_result,
+    })
+except ImportError:
+    pass  # agent_client not available
 
 # MCP tools — dynamically loaded from .mcp.json
 _MCP_MANAGER = None

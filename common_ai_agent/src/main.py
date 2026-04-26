@@ -2378,6 +2378,10 @@ if __name__ == "__main__":
     _parser.add_argument('-s', '--session', default=None)
     _parser.add_argument('-w', '--workspace', default=None,
                          help='Workspace name (e.g. default, verilog, spec-review)')
+    _parser.add_argument('--serve', action='store_true',
+                         help='Start as HTTP server (agent-to-agent mode)')
+    _parser.add_argument('--port', type=int, default=8000,
+                         help='HTTP server port (default: 8000, requires --serve)')
     _args, _ = _parser.parse_known_args()
 
     # Each project gets its own session context:
@@ -2395,6 +2399,12 @@ if __name__ == "__main__":
     if "--check" in sys.argv:
         # Smoke test: verify all imports and initialization succeed
         print(f"OK: platform={platform.system()}, model={config.MODEL_NAME}")
+        sys.exit(0)
+
+    if getattr(_args, 'serve', False):
+        # Server mode: start HTTP API for agent-to-agent communication
+        from core.agent_server import serve as _agent_serve
+        _agent_serve(port=_args.port)
         sys.exit(0)
 
     if len(sys.argv) > 1 and sys.argv[1] == "--prompt":

@@ -35,6 +35,9 @@ _TABLE: Dict[str, Pricing] = {
     "gpt-5.1":       Pricing(input=1.25, cache=0.625, output=10.00),
     "gpt-4o":        Pricing(input=2.50, cache=1.25, output=10.00),
     "gpt-4.1":       Pricing(input=2.00, cache=0.50, output=8.00),
+    # DeepSeek (75% limited-time discount pricing)
+    "deepseek-v4-pro":  Pricing(input=0.435, cache=0.03625, output=0.87),
+    "deepseek-v4-flash": Pricing(input=0.14, cache=0.028, output=0.28),
 }
 
 

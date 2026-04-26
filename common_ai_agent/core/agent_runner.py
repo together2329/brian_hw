@@ -156,6 +156,7 @@ def run_agent_session(
     verbose: bool = False,
     workflow_name: str = "",
     converge_state: Any = None,        # Project instance for converge context injection
+    log_callback: Optional[Callable] = None,  # Callback(type, content) for live transcript
 ) -> AgentResult:
     """
     독립 세션에서 미니 ReAct 루프를 실행.
@@ -357,6 +358,10 @@ def run_agent_session(
 
             # Add assistant message
             messages.append({"role": "assistant", "content": collected_content})
+
+            # Log assistant response via callback
+            if log_callback:
+                log_callback("assistant", collected_content)
 
             # Show LLM response in verbose
             if verbose:

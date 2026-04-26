@@ -152,6 +152,111 @@ def _message_text(m: Dict[str, Any]) -> str:
     return str(c)
 
 
+# ---------------------------------------------------------------------------
+# Smart truncation — preserve more context for code/errors, less for filler
+# ---------------------------------------------------------------------------
+
+# Patterns that indicate high-value content worth preserving longer
+_CODE_PATTERNS = ("```", "def ", "class ", "function ", "import ", "module ", "always @", "assign ", "wire ", "reg ")
+_ERROR_PATTERNS = ("Traceback", "Error:", "error:", "Exception", "FAILED", "AssertionError", "TimeoutError", "FATAL")
+_DIFF_PATTERNS = ("--- a/", "+++ b/", "@@ -", "@@ +", "diff --git")
+
+
+def _smart_truncate(content: str, role: str, default_max: int = 2000) -> str:
+    """Truncate message content adaptively based on content type.
+
+    Code blocks, error traces, and diffs get up to 2x more characters
+    than plain text, because losing half a function definition or stack
+    trace is far worse than losing conversational filler.
+
+    Args:
+        content: The message content string.
+        role: Message role ('user', 'assistant', 'tool', etc.).
+        default_max: Default character limit for plain text.
+
+    Returns:
+        Truncated content string.
+    """
+    # Tool results are often code/output — give them a generous default
+    if role == "tool":
+        base_max = 2000
+    else:
+        base_max = default_max
+
+    # Detect high-value content patterns
+    is_code = any(p in content for p in _CODE_PATTERNS)
+    is_error = any(p in content for p in _ERROR_PATTERNS)
+    is_diff = any(p in content for p in _DIFF_PATTERNS)
+
+    if is_code or is_error or is_diff:
+        base_max *= 2  # Double the allocation for structured/valuable content
+
+    return content[:base_max]
+
+
+def _safe_prune(messages: List[Dict], max_keep: int) -> List[Dict]:
+    """Emergency-prune messages while preserving role-pair integrity.
+
+    Guarantees:
+    - The last user message is ALWAYS included (API requirement).
+    - Assistant messages with tool_calls are never split from their
+      corresponding tool responses.
+    - Falls back to simple tail-cut if pair integrity fails.
+
+    Args:
+        messages: List of message dicts to prune.
+        max_keep: Maximum number of messages to keep.
+
+    Returns:
+        Pruned list of messages.
+    """
+    if len(messages) <= max_keep:
+        return messages
+
+    # Walk backward from the tail, collecting complete role-pairs.
+    kept: List[Dict] = []
+    i = len(messages) - 1
+    while i >= 0 and len(kept) < max_keep:
+        m = messages[i]
+        kept.insert(0, m)
+
+        # If this is a tool message, collect sibling tool messages and
+        # the parent assistant message together.
+        if m.get("role") == "tool" and i > 0:
+            # Collect all contiguous tool messages
+            tool_ids = set()
+            while i >= 0 and messages[i].get("role") == "tool":
+                tid = messages[i].get("tool_call_id")
+                if tid:
+                    tool_ids.add(tid)
+                i -= 1
+            # Now i points to the assistant message that spawned these tools
+            if i >= 0 and messages[i].get("role") == "assistant" and messages[i].get("tool_calls"):
+                # Check if this assistant was already added (from a previous iteration)
+                if messages[i] not in kept:
+                    kept.insert(0, messages[i])
+                # Re-add all the tool messages we skipped
+                for j in range(i + 1, len(messages)):
+                    if messages[j].get("role") == "tool" and messages[j] not in kept:
+                        kept.insert(len(kept) - 1, messages[j])
+                        # Don't count these against max_keep since they're part of the pair
+                break  # Done collecting this pair
+            else:
+                i += 1  # Put back
+        i -= 1
+
+    # Safety: ensure at least one user message exists in kept
+    has_user = any(m.get("role") == "user" for m in kept)
+    if not has_user:
+        # Find and prepend the last user message
+        for j in range(len(messages) - 1, -1, -1):
+            if messages[j].get("role") == "user":
+                kept.insert(0, messages[j])
+                break
+
+    return kept
+
+
 # Signals that an assistant turn is asking the user for information.
 _AWAIT_PATTERNS = (
     "please provide",
@@ -232,16 +337,29 @@ def _compress_single(
     for m in messages:
         role = m.get("role", "unknown")
         if role == "tool":
-            # Native tool result — include as observation so the summary captures what happened
-            content = str(m.get("content", ""))[:500]
-            conversation_text += f"observation: {content}\n"
+            # Tool result — include tool name if available for context
+            content = _smart_truncate(str(m.get("content", "")), role)
+            tool_name = m.get("name", "")
+            if tool_name:
+                conversation_text += f"tool({tool_name}): {content}\n"
+            else:
+                conversation_text += f"observation: {content}\n"
             continue
-        content = str(m.get("content") or "")[:1000]
-        # Native tool call assistant message — extract tool name from tool_calls if content is empty
-        if role == "assistant" and not content and m.get("tool_calls"):
-            calls = [tc.get("function", {}).get("name", "?") for tc in m["tool_calls"]]
-            content = f"[called tools: {', '.join(calls)}]"
-        conversation_text += f"{role}: {content}\n"
+        content = _smart_truncate(str(m.get("content") or ""), role)
+        # Assistant message with tool_calls — preserve function names and truncated args
+        if role == "assistant" and m.get("tool_calls"):
+            call_parts = []
+            for tc in m["tool_calls"]:
+                fn = tc.get("function", {})
+                name = fn.get("name", "?")
+                args_str = str(fn.get("arguments", ""))[:80]
+                call_parts.append(f"{name}({args_str})" if args_str else name)
+            if content:
+                conversation_text += f"assistant: {content}\n  → called: {', '.join(call_parts)}\n"
+            else:
+                conversation_text += f"assistant → called: {', '.join(call_parts)}\n"
+        else:
+            conversation_text += f"{role}: {content}\n" 
 
     # Truncate total if still too long (head + tail strategy)
     if len(conversation_text) > MAX_COMPRESS_CHARS:
@@ -327,7 +445,7 @@ def _compress_chunked(
         conversation_text = ""
         for m in chunk:
             role = m.get("role", "unknown")
-            content = str(m.get("content", ""))[:1000]
+            content = _smart_truncate(str(m.get("content", "")), role)
             conversation_text += f"{role}: {content}\n"
 
         summary_request = [
@@ -358,7 +476,19 @@ def _compress_chunked(
         except Exception as e:
             print(f" Failed: {e}")
             if chunk:
-                compressed.append(chunk[0])
+                # Preserve ALL messages in the chunk, not just chunk[0].
+                # Combine into a single system message with head+tail truncation.
+                _combined = "\n".join(
+                    f"{m.get('role', '?')}: {str(m.get('content', ''))[:500]}"
+                    for m in chunk
+                )
+                if len(_combined) > 4000:
+                    _half = 2000
+                    _combined = _combined[:_half] + "\n... [truncated] ...\n" + _combined[-_half:]
+                compressed.append({
+                    "role": "system",
+                    "content": f"[Chunk compression failed ({len(chunk)} messages)]: {_combined}",
+                })
 
     return compressed
 
@@ -367,9 +497,58 @@ def _compress_chunked(
 # Pre-compression analysis (LLM identifies critical context)
 # ---------------------------------------------------------------------------
 
+# Single-pass analysis+summarization prompt (replaces two separate LLM calls)
+_SINGLE_PASS_PROMPT = """You are summarizing conversation history for an AI coding agent.
+
+## Step 1: Identify Critical Context
+First, identify what MUST be preserved. Focus on:
+1. Active goal and current task status
+2. Critical decisions, findings, or constraints discovered
+3. Files/symbols/errors that are currently relevant
+4. Last action taken and its outcome
+5. Anything the agent must NOT forget
+
+## Step 2: Summarize
+Then summarize the conversation preserving ALL critical items.
+
+What to KEEP:
+- Every file path, function name, class name, variable name that was touched
+- All decisions made (architecture, API design, naming conventions, configs)
+- Errors encountered and how they were resolved (or if still unresolved)
+- User preferences, constraints, and explicit instructions
+- Current state: what works, what's broken, what's next
+- Any partial work in progress
+
+What to SKIP:
+- Greetings, filler phrases, repeated explanations
+- Superseded approaches that were abandoned
+- Tool call boilerplate (keep only the outcome)
+
+Format your response as:
+
+## Critical Context
+[5-10 bullet points of what must not be lost]
+
+## Summary
+[Structured summary with these sections]
+### Goals
+### Completed
+### Decisions & Conventions
+### Errors & Fixes
+### In Progress / Next
+### Key Files & Symbols
+### User Preferences
+
+Be thorough on facts. Skip nothing important."""
+
+
 def _pre_analysis(messages: List[Dict], llm_call_fn: Callable) -> str:
     """Ask LLM what is critical in current context before compression.
     Only called when compression is actually triggered (past threshold checks).
+
+    DEPRECATED: This function is kept for backward compatibility but the
+    single-pass approach (_SINGLE_PASS_PROMPT) is preferred as it avoids
+    a separate LLM call.
     """
     recent = messages[-20:] if len(messages) > 20 else messages
     conv_text = ""
@@ -493,17 +672,10 @@ def compress_history(
     if not messages:
         return messages
 
-    # Pre-compression analysis: LLM identifies critical context before summarizing.
-    # Only runs when compression is actually triggered (past threshold checks).
+    # Pre-compression analysis: use single-pass prompt to combine analysis
+    # and summarization into one LLM call (instead of two separate calls).
     if getattr(cfg, "COMPRESSION_PRE_ANALYSIS", False) and not dry_run and instruction is None:
-        analysis = _pre_analysis(messages, llm_call_fn)
-        if analysis:
-            instruction = (
-                f"CRITICAL CONTEXT TO PRESERVE (identified before compression):\n"
-                f"{analysis}\n\n"
-                f"---\n"
-                f"{STRUCTURED_SUMMARY_PROMPT}"
-            )
+        instruction = _SINGLE_PASS_PROMPT
 
     # Pre-compact hook
     pre_hook_path = _find_hook_fn("pre_compact")
@@ -644,6 +816,35 @@ def compress_history(
                 old_msgs = old_msgs + _move
                 recent_msgs = recent_msgs[len(_move):]
 
+    # Frozen summary detection: prevent re-compression of already-compressed summaries.
+    # When compression runs multiple times, previously generated summaries should be
+    # preserved verbatim instead of being re-summarized (generation loss prevention).
+    frozen_summaries: List[Dict] = []
+    _FROZEN_PREFIXES = (
+        "[Previous Conversation Summary",
+        "[Summary chunk",
+        "[Chunk compression failed",
+        "[FROZEN SUMMARY",
+    )
+    truly_new_msgs = []
+    for _m in old_msgs:
+        _mc = str(_m.get("content", ""))
+        if _m.get("role") == "system" and any(_mc.startswith(p) for p in _FROZEN_PREFIXES):
+            # Tag and preserve — do not re-compress
+            if not _mc.startswith("[FROZEN SUMMARY"):
+                _m = dict(_m, content="[FROZEN SUMMARY - preserved verbatim] " + _mc)
+            frozen_summaries.append(_m)
+        else:
+            truly_new_msgs.append(_m)
+    old_msgs = truly_new_msgs
+
+    if frozen_summaries:
+        print(f"  [Compress] Preserving {len(frozen_summaries)} frozen summaries verbatim")
+
+    if not old_msgs and frozen_summaries:
+        # All old messages are frozen summaries — nothing new to compress
+        print(f"  [Compress] No new messages to compress, only frozen summaries")
+
     # Choose compression mode
     mode = cfg.COMPRESSION_MODE.lower() if hasattr(cfg, "COMPRESSION_MODE") else "traditional"
 
@@ -698,16 +899,17 @@ def compress_history(
                 {"role": "system", "content": todo_snapshot + "\n[All tasks completed]"}
             ]
 
-    # Compress
+    # Compress (skip if all old messages were frozen summaries)
     compressed = None
-    try:
-        if mode == "chunked":
-            print(f"  [Compress] chunked (chunk_size={cfg.COMPRESSION_CHUNK_SIZE})")
-            compressed = _compress_chunked(old_msgs, cfg=cfg, llm_call_fn=llm_call_fn, instruction=instruction)
-        else:
-            compressed = [_compress_single(old_msgs, llm_call_fn=llm_call_fn, instruction=instruction)]
-    except Exception as exc:
-        print(f"  [Compress] LLM compression failed entirely: {exc}")
+    if old_msgs:
+        try:
+            if mode == "chunked":
+                print(f"  [Compress] chunked (chunk_size={cfg.COMPRESSION_CHUNK_SIZE})")
+                compressed = _compress_chunked(old_msgs, cfg=cfg, llm_call_fn=llm_call_fn, instruction=instruction)
+            else:
+                compressed = [_compress_single(old_msgs, llm_call_fn=llm_call_fn, instruction=instruction)]
+        except Exception as exc:
+            print(f"  [Compress] LLM compression failed entirely: {exc}")
 
     # Preserve "awaiting user input" state across compression. If the pre-
     # compression tail shows the assistant asked the user a question that
@@ -730,12 +932,12 @@ def compress_history(
 
     if compressed is not None:
         raw_history = (
-            system_msgs + important_msgs + compressed
+            system_msgs + important_msgs + frozen_summaries + compressed
             + awaiting_note + todo_preservation + recent_msgs
         )
     else:
         raw_history = (
-            system_msgs + important_msgs
+            system_msgs + important_msgs + frozen_summaries
             + awaiting_note + todo_preservation + recent_msgs
         )
 
@@ -760,7 +962,45 @@ def compress_history(
             _non_sys.append(m)
 
     if _sys_parts:
-        _merged = "\n\n".join(p for p in _sys_parts if p.strip())
+        # Categorize and order system parts with section headers
+        # Order: instructions → frozen summaries → new summary → todo → awaiting
+        _cat_instructions = []
+        _cat_frozen = []
+        _cat_summary = []
+        _cat_todo = []
+        _cat_awaiting = []
+        _cat_other = []
+        for _p in _sys_parts:
+            if not _p.strip():
+                continue
+            if _p.startswith("[AWAITING USER INPUT"):
+                _cat_awaiting.append(_p)
+            elif _p.startswith("[FROZEN SUMMARY"):
+                _cat_frozen.append(_p)
+            elif _p.startswith("[Previous Conversation Summary") or _p.startswith("[Summary chunk"):
+                _cat_summary.append(_p)
+            elif _p.startswith("[Todo Status"):
+                _cat_todo.append(_p)
+            elif _p.startswith("[Chunk compression failed"):
+                _cat_summary.append(_p)  # failed chunks go with summary
+            else:
+                _cat_instructions.append(_p)
+
+        _ordered_parts = []
+        if _cat_instructions:
+            _ordered_parts.append("===== SYSTEM INSTRUCTIONS =====\n" + "\n\n".join(_cat_instructions))
+        if _cat_frozen:
+            _ordered_parts.append("===== PRESERVED CONTEXT =====\n" + "\n\n".join(_cat_frozen))
+        if _cat_summary:
+            _ordered_parts.append("===== CONVERSATION SUMMARY =====\n" + "\n\n".join(_cat_summary))
+        if _cat_todo:
+            _ordered_parts.append("===== TASK STATUS =====\n" + "\n\n".join(_cat_todo))
+        if _cat_awaiting:
+            _ordered_parts.append("===== AGENT DIRECTIVE =====\n" + "\n\n".join(_cat_awaiting))
+        if _cat_other:
+            _ordered_parts.append("\n\n".join(_cat_other))
+
+        _merged = "\n\n".join(_ordered_parts)
         new_history = [{"role": "system", "content": _merged}] + _non_sys
     else:
         new_history = _non_sys
@@ -773,8 +1013,8 @@ def compress_history(
         emergency_keep = max(4, len(todo_preservation) + len(system_msgs) + 2)
         prunable = [m for m in new_history if m not in system_msgs and m not in todo_preservation]
         kept_system = [m for m in new_history if m in system_msgs or m in todo_preservation]
-        # Keep only the last few messages
-        pruned = prunable[-emergency_keep:]
+        # Use safe pruning to preserve role-pair integrity
+        pruned = _safe_prune(prunable, emergency_keep)
         new_history = kept_system + pruned
         new_tokens = sum(_est(m) for m in new_history)
         print(f"  [Compress] Emergency prune: {len(prunable)} → {len(pruned)} messages ({new_tokens:,} tokens)")
