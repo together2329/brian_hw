@@ -1236,6 +1236,16 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
         _tool_line("background_list", '', "List active sub-agents."),
     ]
 
+    # Worker tools (Commander → Worker HTTP dispatch)
+    worker_tools = [
+        _tool_line("worker_call", 'worker, task, model="", timeout=600', "Send task to Worker agent (HTTP). Blocks until done. Returns result dict."),
+        _tool_line("worker_status", 'worker, run_id', "Poll Worker run progress."),
+        _tool_line("worker_result", 'worker, run_id', "Get Worker run final result."),
+    ]
+    worker_tools = [t for t in worker_tools if t]
+    if worker_tools:
+        tool_lines["Worker (Remote)"] = worker_tools
+
     # Spec navigation tools
     if "spec_navigate" in tool_list:
         tool_lines["Spec Navigation"] = [
@@ -1567,11 +1577,16 @@ BLOCKED IN PLAN MODE
 RULES
 ════════════════════════════════════════
 - Read freely: read_file, grep_file, list_dir, read_lines are all available.
+- worker_call, worker_status, worker_result are available — you can dispatch tasks to Workers during planning.
 - Always call todo_write before asking the user to confirm.
 - Keep tasks atomic — one clear deliverable per task.
 - Use detail= for acceptance criteria or implementation notes.
 - Refine the list as research reveals more — do not rush to confirm.
 - Do not begin execution until user explicitly approves.
+
+  Worker command example (static — runs WITHOUT LLM):
+    {"tool": "worker_call", "args": {"worker": "http://localhost:8001", "task": "Write hello.txt"}}
+    The Worker executes the task; success → auto-approved, failure → auto-rejected.
 
 ════════════════════════════════════════
 /todo REFERENCE  (user slash commands)

@@ -1166,29 +1166,38 @@ def replace_in_file(path=None, old_text=None, new_text=None, count=-1, start_lin
         
         if occurrences == 0:
             range_msg = f" in lines {start_line}-{end_line}" if start_line is not None else ""
-            # Provide helpful recovery steps
+            # Show actual file content near the likely match location to help LLM retry
+            file_preview = ""
+            try:
+                # Search for partial keywords from old_text in the actual file
+                _keywords = [w for w in old_text.strip().split() if len(w) > 3][:5]
+                _full_content = "".join(lines)
+                _best_line = -1
+                _best_score = 0
+                for _li, _line in enumerate(lines):
+                    _score = sum(1 for kw in _keywords if kw in _line)
+                    if _score > _best_score:
+                        _best_score = _score
+                        _best_line = _li
+                if _best_line >= 0 and _best_score >= 1:
+                    _ctx = 8
+                    _s = max(0, _best_line - _ctx)
+                    _e = min(len(lines), _best_line + _ctx + 1)
+                    file_preview = "\n".join(
+                        f"  {i+1:4d}: {lines[i].rstrip()}" for i in range(_s, _e)
+                    )
+                    file_preview = f"\n\n📄 Closest match area (line {_s+1}-{_e}):\n{file_preview}\n"
+            except Exception:
+                pass
+
             hint = f"""
 
 ❌ Text not found in {path}{range_msg}
 
-💡 RECOVERY STEPS (ALWAYS READ FIRST):
-
-1. Read the file to see exact formatting:
-   Action: read_file(path="{path}")
-   # OR for specific range:
+💡 RECOVERY: Read the file and copy EXACT text:
    Action: read_lines(path="{path}", start_line=<N>, end_line=<M>)
-
-2. Copy EXACT text from output (after → symbol):
-   - Remove line number prefix (e.g., '42→')
-   - Preserve exact indentation/spacing
-   - Include 5-10 lines of context
-
-3. Try replacement again with exact copy
-
-Common issues:
-- Wrong indentation (tabs vs spaces)
-- Missing/extra whitespace
-- Text doesn't exist in file (verify with grep_file first)
+{file_preview}
+Common issues: wrong indentation, tabs vs spaces, text doesn't exist (verify with grep_file).
 """
             return hint
         
