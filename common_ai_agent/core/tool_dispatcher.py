@@ -231,6 +231,41 @@ def dispatch_tool(
                     parsed_kwargs[param_map[i]] = val
             parsed_args = []
 
+        # Auto-fix: replace_lines — LLM confuses param names (e.g. path→start_line)
+        # Recovers from: replace_lines(start_line="file.py", end_line="start_line", ...)
+        if tool_name == "replace_lines":
+            import re as _re
+            # Step 1: if start_line/end_line are non-integer, try to re-derive from args_str
+            _sl = parsed_kwargs.get("start_line")
+            _el = parsed_kwargs.get("end_line")
+            _sl_is_int = isinstance(_sl, int) or (isinstance(_sl, str) and _sl.strip().isdigit())
+            _el_is_int = isinstance(_el, int) or (isinstance(_el, str) and _el.strip().isdigit())
+
+            if not _sl_is_int or not _el_is_int:
+                # Look for the file path among the wrong-value params
+                _path_val = parsed_kwargs.get("path")
+                if not _path_val:
+                    # start_line has the path (most common LLM mistake)
+                    if isinstance(_sl, str) and ("/" in _sl or _sl.endswith(".py") or _sl.endswith(".sv")):
+                        parsed_kwargs["path"] = _sl
+                    elif isinstance(_el, str) and ("/" in _el or _el.endswith(".py") or _el.endswith(".sv")):
+                        parsed_kwargs["path"] = _el
+
+                # Try regex fallback to extract integers from args_str
+                _sl_match = _re.search(r'start_line\s*=\s*(\d+)', args_str or "")
+                _el_match = _re.search(r'end_line\s*=\s*(\d+)', args_str or "")
+                if _sl_match:
+                    parsed_kwargs["start_line"] = int(_sl_match.group(1))
+                if _el_match:
+                    parsed_kwargs["end_line"] = int(_el_match.group(1))
+
+                # Last resort: look for bare integers that look like line numbers
+                if not _sl_match:
+                    _nums = _re.findall(r'(?<!["\w])(\d{1,5})(?!["\w])', args_str or "")
+                    if len(_nums) >= 2:
+                        parsed_kwargs["start_line"] = int(_nums[0])
+                        parsed_kwargs["end_line"] = int(_nums[1])
+
         # Auto-fix: grep_file — positional args → kwargs
         if tool_name == "grep_file" and parsed_args:
             first = parsed_args[0]
