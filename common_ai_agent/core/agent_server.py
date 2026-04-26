@@ -417,15 +417,31 @@ def _build_todos_summary(todos: list, entry) -> list:
     return summary
 
 
-def _load_todo_template(name: str) -> Optional[list]:
-    """Load tasks from todo_templates/<name>.json relative to CWD.
+def _load_todo_template(name: str, workflow: str = "") -> Optional[list]:
+    """Load tasks from a todo template JSON file.
+
+    Search order:
+      1. workflow/<workflow>/todo_templates/<name>.json  (if workflow given)
+      2. todo_templates/<name>.json                      (CWD fallback)
 
     Returns the tasks list on success, None if not found.
     """
-    candidates = [
-        Path.cwd() / "todo_templates" / f"{name}.json",
-        Path.cwd() / "todo_templates" / name,  # already has .json
-    ]
+    candidates: list[Path] = []
+
+    if workflow:
+        # Search workflow directory relative to the project root
+        _root = Path(_project_root)
+        for wf_root in [
+            _root / "workflow" / workflow / "todo_templates",
+            _root.parent / "workflow" / workflow / "todo_templates",
+        ]:
+            candidates.append(wf_root / f"{name}.json")
+            candidates.append(wf_root / name)
+
+    # CWD fallback
+    candidates.append(Path.cwd() / "todo_templates" / f"{name}.json")
+    candidates.append(Path.cwd() / "todo_templates" / name)
+
     for path in candidates:
         if path.exists():
             try:
@@ -476,7 +492,8 @@ def _cancel_run(run_id: str) -> bool:
 
 
 def _run_react_task(entry: RunEntry, task: str, model: str = "",
-                     todos: list = None, context: str = "") -> None:
+                     todos: list = None, context: str = "",
+                     workflow: str = "") -> None:
     """
     Execute a full ReAct loop using run_react_agent_impl from core/react_loop.py.
 
@@ -491,6 +508,23 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
     entry.started_at = time.time()
     _on_status_change()
     entry.add_log("system", "ReAct loop starting (full run_react_agent_impl)...", role="system")
+
+    # ── Activate workspace if specified ──────────────────────────────────
+    if workflow:
+        try:
+            from workflow.loader import load_workspace, TodoTemplateRegistry
+            import builtins as _b
+            ws = load_workspace(workflow, project_root=Path(_project_root))
+            # Inject hook messages (system prompt, compression prompt, etc.)
+            _b._WORKSPACE_HOOK_MESSAGES = {"_workspace_dir": str(ws.workspace_dir)}
+            if ws.hook_messages:
+                _b._WORKSPACE_HOOK_MESSAGES.update(ws.hook_messages)
+            # Apply env overrides
+            for k, v in ws.env_overrides.items():
+                os.environ[k] = str(v)
+            entry.add_log("system", f"Workspace '{workflow}' activated", role="system")
+        except Exception as _we:
+            entry.add_log("system", f"WARNING: workspace '{workflow}' load failed: {_we}", role="system")
 
     try:
         import config
@@ -897,7 +931,8 @@ def create_app():
             task: str
             model: str = ""
             todos: Optional[list] = None
-            template: str = ""   # todo_templates/<name>.json — loaded server-side
+            template: str = ""    # todo template name — loaded from workflow or CWD
+            workflow: str = ""    # workflow name (e.g. "rtl-gen") — activates workspace
             context: str = ""
             sync: bool = False
 
@@ -1090,18 +1125,19 @@ def create_app():
             model = request.model
             todos = request.todos
             template = request.template
+            workflow = request.workflow
             context = request.context
             sync = request.sync
             if not task:
                 raise HTTPException(status_code=400, detail="'task' is required")
             if template and not todos:
-                todos = _load_todo_template(template)
+                todos = _load_todo_template(template, workflow)
                 if todos is None:
-                    raise HTTPException(status_code=404, detail=f"Template '{template}' not found in todo_templates/")
+                    raise HTTPException(status_code=404, detail=f"Template '{template}' not found")
             entry = _create_run(task, model)
             entry.on_complete_url = getattr(request, "on_complete_url", "")
             if sync:
-                _run_react_task(entry, task, model, todos, context)
+                _run_react_task(entry, task, model, todos, context, workflow)
                 return entry.result
             else:
                 acquired = _concurrency_semaphore.acquire(blocking=False)
@@ -1113,7 +1149,7 @@ def create_app():
                     )
                 def _wrapped_run():
                     try:
-                        _run_react_task(entry, task, model, todos, context)
+                        _run_react_task(entry, task, model, todos, context, workflow)
                     finally:
                         _concurrency_semaphore.release()
                 _executor.submit(_wrapped_run)
@@ -1140,18 +1176,19 @@ def create_app():
             model = request.get("model", "")
             todos = request.get("todos")
             template = request.get("template", "")
+            workflow = request.get("workflow", "")
             context = request.get("context", "")
             sync = request.get("sync", False)
             if not task:
                 raise HTTPException(status_code=400, detail="'task' is required")
             if template and not todos:
-                todos = _load_todo_template(template)
+                todos = _load_todo_template(template, workflow)
                 if todos is None:
-                    raise HTTPException(status_code=404, detail=f"Template '{template}' not found in todo_templates/")
+                    raise HTTPException(status_code=404, detail=f"Template '{template}' not found")
             entry = _create_run(task, model)
             entry.on_complete_url = request.get("on_complete_url", "")
             if sync:
-                _run_react_task(entry, task, model, todos, context)
+                _run_react_task(entry, task, model, todos, context, workflow)
                 return entry.result
             else:
                 acquired = _concurrency_semaphore.acquire(blocking=False)
@@ -1163,7 +1200,7 @@ def create_app():
                     )
                 def _wrapped_run():
                     try:
-                        _run_react_task(entry, task, model, todos, context)
+                        _run_react_task(entry, task, model, todos, context, workflow)
                     finally:
                         _concurrency_semaphore.release()
                 _executor.submit(_wrapped_run)

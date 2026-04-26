@@ -79,6 +79,8 @@ def worker_call(
     task: str = "",
     model: str = "",
     todos: list = None,
+    template: str = "",
+    workflow: str = "",
     timeout: int = 600,
     poll_interval: float = 2.0,
     show_log: bool = True,
@@ -106,7 +108,7 @@ def worker_call(
 
     # ── Step 1: POST /run ──────────────────────────────
     try:
-        run_id = _post_run(worker, task, model, timeout, todos)
+        run_id = _post_run(worker, task, model, timeout, todos, template, workflow)
     except Exception as e:
         return {
             "status": "error",
@@ -350,13 +352,18 @@ def _get_json(url: str, timeout: int = 10) -> Dict:
         return {"status": "error", "error": str(e)}
 
 
-def _post_run(worker: str, task: str, model: str, timeout: int, todos: list = None) -> str:
+def _post_run(worker: str, task: str, model: str, timeout: int,
+              todos: list = None, template: str = "", workflow: str = "") -> str:
     """POST /run and return run_id."""
     data = {"task": task}
     if model:
         data["model"] = model
     if todos:
         data["todos"] = todos
+    if template:
+        data["template"] = template
+    if workflow:
+        data["workflow"] = workflow
     resp = _post_json(f"{worker}/run", data, timeout=30)
     return resp.get("run_id", "")
 
