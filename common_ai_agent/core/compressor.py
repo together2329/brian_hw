@@ -1048,9 +1048,12 @@ def compress_history(
             _ordered_parts.append("\n\n".join(_cat_other))
 
         # Append file access log (last ~50 tool-touched paths)
-        _file_log = _collect_working_paths_from_log(max_entries=50)
-        if _file_log:
-            _ordered_parts.append("===== WORKING PATHS (recent tool calls) =====\n" + _file_log)
+        try:
+            _file_log = _collect_working_paths_from_log(max_entries=50)
+            if _file_log:
+                _ordered_parts.append("===== WORKING PATHS (recent tool calls) =====\n" + _file_log)
+        except Exception as _fle:
+            print(f"  [Compress] file log collection failed: {_fle}")
 
         _merged = "\n\n".join(_ordered_parts)
         new_history = [{"role": "system", "content": _merged}] + _non_sys

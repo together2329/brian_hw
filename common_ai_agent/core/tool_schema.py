@@ -382,6 +382,45 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         {},
     ),
 
+    # ── Worker (Remote) ──────────────────────────────────────────────────────
+    "worker_call": _fn(
+        "worker_call",
+        (
+            "Dispatch a task to a remote Worker agent over HTTP and wait for completion.\n"
+            "POST /run → poll /status → return /result when done.\n"
+            "Worker runs the full ReAct loop independently.\n"
+            "Returns dict with: status, result, files_modified, iterations, error.\n"
+            "Example: worker_call(worker='http://localhost:8001', task='Write hello.txt with hello world')"
+        ),
+        {
+            "worker": {"type": "string", "description": "Worker URL (e.g. http://localhost:8001)"},
+            "task": {"type": "string", "description": "Task description string for the Worker"},
+            "model": {"type": "string", "description": "Model override (empty = worker default)", "default": ""},
+            "timeout": {"type": "integer", "description": "Max seconds to wait (default 600)", "default": 600},
+            "poll_interval": {"type": "number", "description": "Seconds between status polls (default 2.0)", "default": 2.0},
+            "show_log": {"type": "boolean", "description": "Print Worker log to console (default true)", "default": True},
+        },
+        required=["worker", "task"],
+    ),
+    "worker_status": _fn(
+        "worker_status",
+        "Get current status of a Worker run. Returns dict with run_id, status, log_entries, elapsed_s.",
+        {
+            "worker": {"type": "string", "description": "Worker URL"},
+            "run_id": {"type": "string", "description": "Run ID from worker_call"},
+        },
+        required=["worker", "run_id"],
+    ),
+    "worker_result": _fn(
+        "worker_result",
+        "Get final result of a completed Worker run. Returns dict with status, result, files_modified, iterations.",
+        {
+            "worker": {"type": "string", "description": "Worker URL"},
+            "run_id": {"type": "string", "description": "Run ID from worker_call"},
+        },
+        required=["worker", "run_id"],
+    ),
+
     # ── Spec Navigation ───────────────────────────────────────────────────────
     "spec_navigate": _fn(
         "spec_navigate",

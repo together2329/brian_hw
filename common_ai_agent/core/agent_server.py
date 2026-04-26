@@ -216,7 +216,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
 
                 # Track file ops
                 import re
-                path_match = re.search(r'(?:path\s*=\s*)?["\']([^"\']+)["\']', args_str)
+                path_match = re.search(r'(?:path\s*=|"path"\s*:)\s*["\']([^"\']+)["\']', args_str)
                 if path_match:
                     fp = path_match.group(1)
                     if tool_name in ("write_file", "replace_in_file", "replace_lines"):
