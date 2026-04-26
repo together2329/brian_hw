@@ -211,6 +211,37 @@ def _strip_native_tool_tokens(text: str) -> str:
     # Pattern 0a: <tool_use>...</tool_use> — Anthropic-style / GLM imitation XML
     text = _convert_tool_use_xml(text, _xml_params_to_action)
 
+    # Pattern 0b: DeepSeek tool_call JSON blocks (non-native tool call mode)
+    # Format: <tool_call">{"name": "...", "arguments": {...}}</tool_call">
+    # May be wrapped in <tool_calls>...</tool_calls> for multiple calls.
+    # Also handles Action: format inside tags (strips wrapper tags).
+    # Strip outer <tool_calls> wrapper first (keeps inner <tool_call"> blocks)
+    text = re.sub(r'<tool_calls>\s*', '', text)
+    text = re.sub(r'\s*</tool_calls>', '', text)
+    # Pattern 0b-1: <tool_call"> JSON </tool_call"> — extract full content, parse as JSON
+    def _convert_deepseek_tool_call_full(m: re.Match) -> str:
+        content = m.group(1).strip()
+        # Try JSON parse first
+        action = _json_tool_call_to_action(content)
+        if action:
+            return action
+        # If not JSON, just return the content (strips the wrapper tags)
+        return content
+
+    text = re.sub(
+        r'<tool_call">\s*(.*?)\s*</tool_call">',
+        _convert_deepseek_tool_call_full,
+        text,
+        flags=re.DOTALL,
+    )
+    # Handle truncated: <tool_call"> without closing tag
+    text = re.sub(
+        r'<tool_call">\s*(.*?)\s*$',
+        _convert_deepseek_tool_call_full,
+        text,
+        flags=re.DOTALL,
+    )
+
     # Pattern 0: <tool_call>func(args)</tool_call> — direct function call
     text = re.sub(
         r'<tool_call>\s*(\w+\s*\([^<]*\))\s*(?:</tool_call>)?',

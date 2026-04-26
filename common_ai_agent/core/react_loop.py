@@ -893,13 +893,18 @@ def run_react_agent_impl(
             if not assistant_msg["content"]:
                 assistant_msg["content"] = None
 
-        # Preserved thinking: attach reasoning_content to assistant message for GLM-5/5.1
-        # so the model retains its reasoning context in subsequent turns.
+        # Preserved thinking: attach reasoning_content to assistant message.
+        # - DeepSeek: REQUIRED — API returns HTTP 400 if reasoning_content is missing.
+        # - GLM-5/5.1: optional, controlled by GLM_CLEAR_THINKING config.
         _model_for_thinking = getattr(cfg, "MODEL_NAME", "").lower()
-        if 'glm-' in _model_for_thinking and _iter_reasoning_buf:
-            _clear = getattr(cfg, "GLM_CLEAR_THINKING", True)
-            if not _clear:
+        if _iter_reasoning_buf:
+            if 'deepseek' in _model_for_thinking:
+                # DeepSeek requires reasoning_content to be passed back in thinking mode
                 assistant_msg["reasoning_content"] = "".join(_iter_reasoning_buf)
+            elif 'glm-' in _model_for_thinking:
+                _clear = getattr(cfg, "GLM_CLEAR_THINKING", True)
+                if not _clear:
+                    assistant_msg["reasoning_content"] = "".join(_iter_reasoning_buf)
 
         messages.append(assistant_msg)
 

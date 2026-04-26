@@ -2802,10 +2802,15 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             clean["tool_calls"] = m["tool_calls"]
         if "tool_call_id" in m:
             clean["tool_call_id"] = m["tool_call_id"]
-        # Preserved thinking: pass reasoning_content back for GLM models (clear_thinking=false)
+        # Preserved thinking: pass reasoning_content back to API
+        # - DeepSeek: REQUIRED — API returns HTTP 400 if missing in thinking mode.
+        # - GLM-5/5.1: optional, controlled by GLM_CLEAR_THINKING config.
         _m_lower = (model or getattr(config, 'MODEL_NAME', '')).lower()
-        if "reasoning_content" in m and 'glm-' in _m_lower and not getattr(config, "GLM_CLEAR_THINKING", True):
-            clean["reasoning_content"] = m["reasoning_content"]
+        if "reasoning_content" in m:
+            if 'deepseek' in _m_lower:
+                clean["reasoning_content"] = m["reasoning_content"]
+            elif 'glm-' in _m_lower and not getattr(config, "GLM_CLEAR_THINKING", True):
+                clean["reasoning_content"] = m["reasoning_content"]
         _processed_clean.append(clean)
     processed_messages = _processed_clean
 
