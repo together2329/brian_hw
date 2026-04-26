@@ -420,6 +420,14 @@ class TodoTracker:
             self.save()
             return
 
+        # Preserve rejection history before clearing
+        if self.todos[index].rejection_reason:
+            if self.todos[index].notes is None:
+                self.todos[index].notes = []
+            self.todos[index].notes.append(
+                f"[rejected] {self.todos[index].rejection_reason}"
+            )
+
         self.todos[index].status = "approved"
         self.todos[index].rejection_reason = ""
         self.todos[index].approved_reason = reason
@@ -567,6 +575,10 @@ class TodoTracker:
             log_path = Path(f".command_logs/task_{index+1}_{slug}_{run_num}.log")
 
         t0 = _time.time()
+        # Count auto-command as "tool called" so gate check passes
+        # (otherwise auto-failing commands can never exit rejected→completed→approved)
+        todo.tools_since_in_progress = getattr(todo, 'tools_since_in_progress', 0) + 1
+
         ok, tail, total_lines = self._run_command(todo, log_path)
         elapsed = round(_time.time() - t0, 2)
 
@@ -644,6 +656,14 @@ class TodoTracker:
             return ok, tail
 
         if ok:
+            # Preserve rejection history before clearing
+            if todo.rejection_reason:
+                if todo.notes is None:
+                    todo.notes = []
+                todo.notes.append(
+                    f"[rejected] {todo.rejection_reason}"
+                )
+
             todo.status = "approved"
             todo.rejection_reason = ""   # clear stale failure context
             todo.approved_reason = (
