@@ -112,6 +112,32 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         },
         required=["path", "start_line", "end_line", "new_content"],
     ),
+
+    # ── Image Analysis ────────────────────────────────────────────────────
+    "read_image": _fn(
+        "read_image",
+        (
+            "Analyze an image file using a vision-capable AI model.\n"
+            "Supports PNG, JPEG, GIF, WebP, BMP formats.\n"
+            "Use this when:\n"
+            "  • User shares a screenshot and asks what it shows\n"
+            "  • Need to extract text from an image (OCR)\n"
+            "  • Analyze a chart, diagram, or UI mockup\n"
+            "  • Read error messages or logs from a screenshot\n"
+            "The image can be a local file path (supports fuzzy matching for Korean filenames, "
+            "Desktop screenshots, partial names).\n"
+            "Examples:\n"
+            "  read_image(path='screenshot.png', prompt='What errors are shown?')\n"
+            "  read_image(path='스크린샷 2026-04-26.png', prompt='Extract all text')\n"
+            "  read_image(path='diagram.png')"
+        ),
+        {
+            "path": {"type": "string", "description": "Path to image file. Supports fuzzy matching: partial name, Korean filenames, Desktop screenshots."},
+            "prompt": {"type": "string", "description": "What to ask about the image. Default: detailed description. Examples: 'Extract text', 'What errors?', 'Describe layout'."},
+        },
+        required=["path"],
+    ),
+
     "run_command": _fn(
         "run_command",
         (
@@ -652,6 +678,7 @@ def get_tool_schemas(allowed_tools: List[str], compact: bool = False) -> List[Di
             "git_revert":     "Revert file changes",
             "replace_in_file":"Edit file: replace text block",
             "replace_lines":  "Edit file: replace line range",
+            "read_image":     "Analyze image with vision AI",
             "todo_write":     "Create task list",
             "todo_update":    "Update task status",
             "todo_add":       "Add task",
