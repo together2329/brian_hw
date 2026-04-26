@@ -649,8 +649,9 @@ def grep_file(pattern=None, path=None, context_lines=2, recursive=False, **kwarg
             if is_glob or rec:
                 files = glob.glob(pth, recursive=True)
                 if not files: return f"No files found matching '{pth}'"
-                if len(files) > 1000: return f"Error: Too many files ({len(files)})"
-                
+
+                _max_files = _tool_cfg('TOOL_GREP_MAX_FILES', 20)
+                _total_files = len(files)
                 results = []
                 count = 0
                 for f in sorted(files):
@@ -659,10 +660,11 @@ def grep_file(pattern=None, path=None, context_lines=2, recursive=False, **kwarg
                     if not res.startswith("No matches") and not res.startswith("Error"):
                         results.append(f"=== Matches in {f} ===\n{res}\n")
                         count += 1
-                        _max_files = _tool_cfg('TOOL_GREP_MAX_FILES', 20)
                         if count >= _max_files:
-                            results.append(f"... (Stopped after {_max_files} files — increase TOOL_GREP_MAX_FILES to see more)")
+                            results.append(f"... (Stopped after {_max_files} files with matches — increase TOOL_GREP_MAX_FILES to see more)")
                             break
+                if results and _total_files > 100:
+                    results.append(f"(Searched {_total_files} files, showing first {_max_files} with matches)")
                 return "\n".join(results) if results else f"No matches found for '{pat}'"
 
             # File search
@@ -4347,11 +4349,13 @@ except ImportError:
 
 # Worker tools — Commander → Worker agent dispatch over HTTP
 try:
-    from core.agent_client import worker_call, worker_status, worker_result
+    from core.agent_client import worker_call, worker_status, worker_result, worker_cancel, worker_call_all
     AVAILABLE_TOOLS.update({
         "worker_call": worker_call,
         "worker_status": worker_status,
         "worker_result": worker_result,
+        "worker_cancel": worker_cancel,
+        "worker_call_all": worker_call_all,
     })
 except ImportError:
     pass  # agent_client not available
