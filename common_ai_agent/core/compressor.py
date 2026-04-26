@@ -17,8 +17,55 @@ import os
 import platform
 import subprocess
 import sys
+import re as _re
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
+
+# ---------------------------------------------------------------------------
+# Working-path collector — snapshot current project context at compress time
+# ---------------------------------------------------------------------------
+
+def _collect_working_paths_from_log(max_entries: int = 50) -> str:
+    """Pull the last N entries from builtins._FILE_ACCESS_LOG for compression context.
+
+    Returns empty string if the log is empty or unavailable.
+    """
+    import builtins as _b
+    log = getattr(_b, '_FILE_ACCESS_LOG', None)
+    if not log:
+        return ""
+
+    cwd = os.getcwd()
+    lines: list[str] = [f"CWD: {cwd}"]
+
+    # Take last max_entries entries
+    entries = list(log.items())[-max_entries:]
+
+    # Group by parent directory
+    dirs: dict[str, list[tuple[str, str, int]]] = {}
+    for abs_path, info in entries:
+        display = info.get("display", abs_path)
+        op = info.get("op", "?")
+        count = info.get("count", 1)
+        parent = os.path.dirname(abs_path)
+        if parent.startswith(cwd + "/"):
+            parent_d = parent[len(cwd) + 1:]
+        elif parent == cwd:
+            parent_d = "."
+        else:
+            parent_d = parent
+        fname = os.path.basename(abs_path)
+        dirs.setdefault(parent_d, []).append((fname, op, count))
+
+    for dir_path in sorted(dirs.keys()):
+        files = dirs[dir_path]
+        lines.append(f"  [{dir_path}/]")
+        for fname, op, cnt in sorted(files, key=lambda x: x[0]):
+            icon = {"read": "📖", "write": "✏️ ", "edit": "🔧"}.get(op, "•")
+            lines.append(f"    {icon} {fname}  ({op}, {cnt}x)")
+
+    return "\n".join(lines)
+
 
 # ---------------------------------------------------------------------------
 # Prompt constant
@@ -999,6 +1046,11 @@ def compress_history(
             _ordered_parts.append("===== AGENT DIRECTIVE =====\n" + "\n\n".join(_cat_awaiting))
         if _cat_other:
             _ordered_parts.append("\n\n".join(_cat_other))
+
+        # Append file access log (last ~50 tool-touched paths)
+        _file_log = _collect_working_paths_from_log(max_entries=50)
+        if _file_log:
+            _ordered_parts.append("===== WORKING PATHS (recent tool calls) =====\n" + _file_log)
 
         _merged = "\n\n".join(_ordered_parts)
         new_history = [{"role": "system", "content": _merged}] + _non_sys

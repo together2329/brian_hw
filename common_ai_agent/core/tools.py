@@ -55,6 +55,84 @@ def _tool_cfg(attr: str, default: int) -> int:
     return int(getattr(cfg, attr, default))
 
 
+# ---------------------------------------------------------------------------
+# File access log — tracks which paths were touched during the session
+# ---------------------------------------------------------------------------
+import builtins as _bi
+if not hasattr(_bi, '_FILE_ACCESS_LOG'):
+    _bi._FILE_ACCESS_LOG = {}  # {abs_path: {"op": "read"|"write"|"edit", "at": turn#}}
+
+
+def _log_file_access(path: str, op: str):
+    """Record a file access in the session log.
+
+    Args:
+        path: File path (will be resolved to absolute).
+        op: One of 'read', 'write', 'edit'.
+    """
+    if not path:
+        return
+    try:
+        abs_path = os.path.abspath(os.path.expanduser(path))
+    except Exception:
+        abs_path = path
+    # For display: use relative from CWD if possible
+    cwd = os.getcwd()
+    if abs_path.startswith(cwd + "/"):
+        display = abs_path[len(cwd) + 1:]
+    elif abs_path == cwd:
+        display = "."
+    else:
+        display = abs_path
+
+    existing = _bi._FILE_ACCESS_LOG.get(abs_path)
+    if existing:
+        # Upgrade: read → edit → write (write is highest)
+        rank = {"read": 0, "edit": 1, "write": 2}
+        if rank.get(op, 0) > rank.get(existing.get("op", "read"), 0):
+            existing["op"] = op
+        existing["count"] = existing.get("count", 1) + 1
+        existing["display"] = display
+    else:
+        _bi._FILE_ACCESS_LOG[abs_path] = {"op": op, "display": display, "count": 1}
+
+
+def get_file_access_summary() -> str:
+    """Return a formatted summary of all file accesses for compression context."""
+    log = getattr(_bi, '_FILE_ACCESS_LOG', {})
+    if not log:
+        return ""
+
+    import os as _os
+    # Group by directory
+    dirs: dict[str, list[tuple[str, str, int]]] = {}  # dir -> [(display_name, op, count)]
+    for abs_path, info in log.items():
+        display = info.get("display", abs_path)
+        op = info.get("op", "?")
+        count = info.get("count", 1)
+        parent = _os.path.dirname(abs_path)
+        # Make parent relative too
+        cwd = _os.getcwd()
+        if parent.startswith(cwd + "/"):
+            parent_display = parent[len(cwd) + 1:]
+        elif parent == cwd:
+            parent_display = "."
+        else:
+            parent_display = parent
+        fname = _os.path.basename(abs_path)
+        dirs.setdefault(parent_display, []).append((fname, op, count))
+
+    lines = [f"Working Directory: {_os.getcwd()}"]
+    for dir_path in sorted(dirs.keys()):
+        files = dirs[dir_path]
+        lines.append(f"\n  [{dir_path}/]")
+        for fname, op, count in sorted(files, key=lambda x: x[0]):
+            op_icon = {"read": "📖", "write": "✏️ ", "edit": "🔧"}.get(op, "•")
+            lines.append(f"    {op_icon} {fname}  ({op}, {count}x)")
+
+    return "\n".join(lines)
+
+
 def read_file(path):
     """
     Reads the content of a file with smart truncation for large files.
@@ -131,9 +209,11 @@ Example workflow:
 
 ============================================================
 """
+            _log_file_access(path, "read")
             return content + suggestion
         else:
             # Small file - read entire content
+            _log_file_access(path, "read")
             return ''.join(lines)
 
     except Exception as e:
@@ -285,6 +365,7 @@ def write_file(path: str = None, content: str = None, append: bool = False) -> s
 
         import threading as _t
         _t.Thread(target=_git_auto_commit, args=(path, "write"), kwargs={"content_hint": content[:800]}, daemon=False).start()
+        _log_file_access(path, "write")
         return result
     except Exception as e:
         return f"Error writing file: {e}"
@@ -805,7 +886,8 @@ def read_lines(path=None, start_line=None, end_line=None):
         result = f"Lines {start_line}-{end_line} of {path} (total: {total_lines} lines):\n\n"
         for i in range(start_line - 1, end_line):
             result += f"{i+1:4d}: {lines[i].rstrip()}\n"
-        
+
+        _log_file_access(path, "read")
         return result
     except Exception as e:
         return f"Error reading lines: {e}"
@@ -1240,6 +1322,7 @@ Common issues:
         hint = f"--- old ---\n{actual_old_text[:400]}\n--- new ---\n{new_text[:400]}"
         import threading as _t
         _t.Thread(target=_git_auto_commit, args=(path, "replace"), kwargs={"stats": f"+{added}/-{removed} lines", "content_hint": hint}, daemon=False).start()
+        _log_file_access(path, "edit")
         return result
     except Exception as e:
         return f"Error replacing text: {e}"
@@ -1779,7 +1862,8 @@ def replace_lines(path=None, start_line=None, end_line=None, new_content=None):
         hint = f"--- old ---\n{old_snippet}\n--- new ---\n{new_content[:400]}"
         import threading as _t
         _t.Thread(target=_git_auto_commit, args=(path, "replace_lines"), kwargs={"stats": f"+{added}/-{lines_removed} lines", "content_hint": hint}, daemon=False).start()
-        
+
+        _log_file_access(path, "edit")
         return result
     except Exception as e:
         return f"Error replacing lines: {e}"
