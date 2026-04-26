@@ -441,6 +441,59 @@ def _validate_and_repair_sequence(
                 ),
             }
 
+    # --- Pass 5: orphaned assistant tool_calls (reverse of Pass 1) ---
+    # An assistant message with tool_calls must be IMMEDIATELY followed by tool
+    # messages covering every declared tool_call_id. Compression can strip some
+    # or all of those tool responses, leaving the assistant "dangling" — which
+    # causes HTTP 400 on DeepSeek and other strict APIs.
+    # Fix: strip tool_calls from the assistant; convert any partially-present
+    # tool messages (now orphaned) to user messages.
+    _final: List[Dict] = []
+    _pi = 0
+    while _pi < len(repaired):
+        _m = repaired[_pi]
+        if _m.get("role") == "assistant" and _m.get("tool_calls"):
+            _expected_ids = {
+                tc.get("id")
+                for tc in _m["tool_calls"]
+                if isinstance(tc, dict) and tc.get("id")
+            }
+            # Peek at immediately-following tool messages
+            _pj = _pi + 1
+            _found_ids: set = set()
+            while _pj < len(repaired) and repaired[_pj].get("role") == "tool":
+                _tid = repaired[_pj].get("tool_call_id")
+                if _tid:
+                    _found_ids.add(_tid)
+                _pj += 1
+
+            if _expected_ids and not _expected_ids.issubset(_found_ids):
+                # Insufficient tool responses — strip tool_calls to prevent 400
+                _stripped = {k: v for k, v in _m.items() if k != "tool_calls"}
+                if not str(_stripped.get("content") or "").strip():
+                    _stripped["content"] = "[Tool calls made; responses unavailable after compression]"
+                _final.append(_stripped)
+                # Convert immediately-following tool messages to user messages
+                # (they're now orphaned since we removed their parent's tool_calls)
+                _pi += 1
+                while _pi < len(repaired) and repaired[_pi].get("role") == "tool":
+                    _tc_msg = repaired[_pi]
+                    _final.append({
+                        "role": "user",
+                        "content": (
+                            f"[Tool result (reconstructed after compression)]: "
+                            f"{str(_tc_msg.get('content', ''))[:400]}"
+                        ),
+                    })
+                    _pi += 1
+                continue
+            else:
+                _final.append(_m)
+        else:
+            _final.append(_m)
+        _pi += 1
+    repaired = _final
+
     return repaired
 
 
@@ -500,6 +553,14 @@ def _detect_awaiting_user(messages: List[Dict[str, Any]]) -> bool:
 # Core compression functions
 # ---------------------------------------------------------------------------
 
+# Reasoning content preservation during compression.
+# DeepSeek/GLM chain-of-thought is stored in reasoning_content on assistant
+# messages.  Without including it in the text sent to the compressor LLM,
+# the compressed summary loses the model's internal decision-making context,
+# which degrades tool-calling accuracy on large tasks (observed in CPU req-gen).
+_REASONING_PREFIX = "[assistant reasoning] "
+_REASONING_MAX_CHARS = 800  # keep first ~400 + last ~400 chars (head+tail strategy)
+
 def _compress_single(
     messages: List[Dict],
     *,
@@ -533,20 +594,18 @@ def _compress_single(
                 conversation_text += f"observation: {content}\n"
             continue
         content = _smart_truncate(str(m.get("content") or ""), role)
-        # Assistant message with tool_calls — preserve function names and truncated args
-        if role == "assistant" and m.get("tool_calls"):
-            call_parts = []
-            for tc in m["tool_calls"]:
-                fn = tc.get("function", {})
-                name = fn.get("name", "?")
-                args_str = str(fn.get("arguments", ""))[:80]
-                call_parts.append(f"{name}({args_str})" if args_str else name)
-            if content:
-                conversation_text += f"assistant: {content}\n  → called: {', '.join(call_parts)}\n"
-            else:
-                conversation_text += f"assistant → called: {', '.join(call_parts)}\n"
-        else:
-            conversation_text += f"{role}: {content}\n" 
+
+        # Preserve reasoning_content for assistant messages (DeepSeek/GLM chain-of-thought)
+        reasoning_text = ""
+        reasoning = m.get("reasoning_content")
+        if reasoning and role == "assistant":
+            reasoning_str = str(reasoning).strip()
+            if len(reasoning_str) > _REASONING_MAX_CHARS:
+                half = _REASONING_MAX_CHARS // 2
+                reasoning_str = reasoning_str[:half] + "\n…[reasoning truncated]…\n" + reasoning_str[-half:]
+            reasoning_text = _REASONING_PREFIX + reasoning_str + "\n"
+
+        conversation_text += f"{role}: {reasoning_text}{content}\n"
 
     # Truncate total if still too long (head + tail strategy)
     if len(conversation_text) > MAX_COMPRESS_CHARS:
@@ -633,7 +692,16 @@ def _compress_chunked(
         for m in chunk:
             role = m.get("role", "unknown")
             content = _smart_truncate(str(m.get("content", "")), role)
-            conversation_text += f"{role}: {content}\n"
+            # Preserve reasoning_content for assistant messages
+            reasoning_text = ""
+            reasoning = m.get("reasoning_content")
+            if reasoning and role == "assistant":
+                reasoning_str = str(reasoning).strip()
+                if len(reasoning_str) > _REASONING_MAX_CHARS:
+                    half = _REASONING_MAX_CHARS // 2
+                    reasoning_str = reasoning_str[:half] + "\n…[reasoning truncated]…\n" + reasoning_str[-half:]
+                reasoning_text = _REASONING_PREFIX + reasoning_str + "\n"
+            conversation_text += f"{role}: {reasoning_text}{content}\n"
 
         summary_request = [
             {
@@ -938,7 +1006,7 @@ def compress_history(
         )
 
         if not old_msgs:
-            fallback_keep = min(4, len(other_msgs))
+            fallback_keep = min(keep_recent or 4, len(other_msgs))
             if len(other_msgs) <= fallback_keep:
                 print(f"[System] History too short to compress ({len(other_msgs)} messages).")
                 return messages
@@ -947,6 +1015,17 @@ def compress_history(
             print(
                 f"[System] Single-turn fallback: compressing {len(old_msgs)} messages, "
                 f"keeping {len(recent_msgs)}"
+            )
+
+        # Safety cap: if turn protection yields too few old_msgs (poor compression ratio),
+        # override with the standard keep_recent split to guarantee meaningful compression.
+        _effective_keep = keep_recent or 4
+        if len(old_msgs) < _effective_keep and len(other_msgs) > _effective_keep:
+            recent_msgs = other_msgs[-_effective_keep:]
+            old_msgs = other_msgs[:-_effective_keep]
+            print(
+                f"[System] Turn protection override: compressing {len(old_msgs)}, "
+                f"keeping {len(recent_msgs)} (keep_recent={_effective_keep})"
             )
     else:
         if len(other_msgs) <= keep_recent:
