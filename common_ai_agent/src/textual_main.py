@@ -68,11 +68,18 @@ if _TEXTUAL_OK:
 
 # ── Context info helper ───────────────────────────────────────────────────────
 
-def _emit_context(app: AgentTUI) -> None:
-    """Read current token/skill state from main.py and post ContextUpdate."""
+def _emit_context(app: AgentTUI, estimated_tokens: int = 0, max_tok_override: int = 0) -> None:
+    """Read current token/skill state from main.py and post ContextUpdate.
+
+    estimated_tokens: pre-computed estimate to use when last_input_tokens == 0
+                      (e.g. after /clear or /compact before the next LLM call).
+    """
     try:
-        tokens  = getattr(_agent.llm_client, "last_input_tokens", 0)
-        max_tok = getattr(config, "MAX_CONTEXT_TOKENS", 128000)
+        _last   = getattr(_agent.llm_client, "last_input_tokens", 0)
+        # Use actual API tokens when available; fall back to caller-supplied estimate
+        # so /clear and /compact reflect the new token count immediately.
+        tokens  = _last if _last > 0 else estimated_tokens
+        max_tok = max_tok_override or getattr(config, "MAX_CONTEXT_TOKENS", 128000)
         # Sync active model — use get_active_model() so cursor-agent shows "Cursor (Auto)"
         try:
             from src.llm_client import get_active_model as _get_active_model
@@ -135,7 +142,7 @@ def _run_agent(app: AgentTUI) -> None:
     _agent._textual_emit_reasoning_fn = lambda line, blank=False: app.post_message(ReasoningChunk(line, blank))
     _agent._textual_emit_todo_fn      = _todo_and_context
     _agent._textual_emit_flush_fn     = lambda: app.post_message(FlushResponse())
-    _agent._textual_emit_context_fn   = lambda tok, max_tok: _emit_context(app)
+    _agent._textual_emit_context_fn   = lambda tok, max_tok: _emit_context(app, tok, max_tok)
     _agent._textual_emit_token_fn     = lambda in_tok, cache_tok, out_tok: app.post_message(TokenUsage(in_tok, cache_tok, out_tok))
     _agent._textual_esc_check_fn          = app.check_and_reset_interrupt
     _agent._textual_poll_human_input_fn   = app._input_bridge.poll_interrupt
