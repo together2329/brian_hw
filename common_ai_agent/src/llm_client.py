@@ -506,6 +506,17 @@ def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
         if conn is None:
             conn = _make_https_conn(host, timeout=timeout)
             _http_conn_pool[host] = conn
+        else:
+            # Update socket timeout on reuse — pooled connections keep the timeout
+            # from when they were first created (set at connect() time).  Without
+            # this, a streaming call (timeout=3600) reusing a non-streaming socket
+            # (timeout=600) times out in 600s while the label says 3600s.
+            conn.timeout = timeout
+            if conn.sock is not None:
+                try:
+                    conn.sock.settimeout(timeout)
+                except Exception:
+                    pass
         try:
             conn.request("POST", path, body=body, headers=req_headers)
             resp = conn.getresponse()

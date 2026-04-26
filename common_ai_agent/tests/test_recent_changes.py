@@ -983,5 +983,400 @@ class TestEdaTemplateSchema(unittest.TestCase):
         self.assertTrue(self._data["description"].strip())
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# Fix 1: Compressor — tool-call annotation in summary text
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestCompressorToolCallAnnotation(unittest.TestCase):
+    """Tool-calling assistant turns (content=None) should be annotated as
+    [func_name(arg=val)] so the summarizing LLM knows what was called and
+    with what arguments, without emitting raw tool_calls JSON."""
+
+    def _capture_llm(self):
+        """Returns (holder_dict, mock_llm_fn).  holder['text'] is the user content
+        passed to the LLM (the conversation text to be summarized)."""
+        holder = {"text": ""}
+
+        def _mock_llm(messages, **kwargs):
+            for m in messages:
+                if m.get("role") == "user":
+                    holder["text"] = m.get("content", "")
+            yield "summary"
+
+        return holder, _mock_llm
+
+    def test_tool_call_shows_func_name_and_args(self):
+        """content=None + tool_calls → [func(arg=val)] annotation in summary."""
+        from core.compressor import _compress_single
+        holder, llm = self._capture_llm()
+        messages = [
+            {"role": "user", "content": "Do something"},
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{
+                    "function": {"name": "read_file", "arguments": '{"path": "src/main.py"}'},
+                    "id": "tc1", "type": "function",
+                }],
+            },
+            {"role": "tool", "tool_call_id": "tc1", "name": "read_file", "content": "result"},
+        ]
+        _compress_single(messages, llm_call_fn=llm)
+        self.assertIn("read_file", holder["text"])
+        self.assertIn("src/main.py", holder["text"])
+        self.assertIn("[", holder["text"])
+
+    def test_multiple_tool_calls_all_annotated(self):
+        """Multiple tool_calls → all func(args) pairs appear in annotation."""
+        from core.compressor import _compress_single
+        holder, llm = self._capture_llm()
+        messages = [
+            {"role": "user", "content": "Go"},
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [
+                    {"function": {"name": "read_file", "arguments": '{"path": "a.py"}'}, "id": "t1", "type": "function"},
+                    {"function": {"name": "write_file", "arguments": '{"path": "b.py", "content": "x"}'}, "id": "t2", "type": "function"},
+                ],
+            },
+            {"role": "tool", "tool_call_id": "t1", "name": "read_file", "content": "r1"},
+            {"role": "tool", "tool_call_id": "t2", "name": "write_file", "content": "r2"},
+        ]
+        _compress_single(messages, llm_call_fn=llm)
+        self.assertIn("read_file", holder["text"])
+        self.assertIn("write_file", holder["text"])
+        self.assertIn("a.py", holder["text"])
+        self.assertIn("b.py", holder["text"])
+
+    def test_tool_result_still_included(self):
+        """Tool result content appears alongside the annotation."""
+        from core.compressor import _compress_single
+        holder, llm = self._capture_llm()
+        messages = [
+            {"role": "user", "content": "Go"},
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{"function": {"name": "write_file", "arguments": "{}"}, "id": "tc1", "type": "function"}],
+            },
+            {"role": "tool", "tool_call_id": "tc1", "name": "write_file", "content": "wrote ok"},
+        ]
+        _compress_single(messages, llm_call_fn=llm)
+        self.assertIn("wrote ok", holder["text"])
+
+    def test_assistant_with_real_content_not_overridden(self):
+        """When assistant has actual text, it appears as-is (no annotation)."""
+        from core.compressor import _compress_single
+        holder, llm = self._capture_llm()
+        messages = [
+            {"role": "user", "content": "Hello"},
+            {"role": "assistant", "content": "I will help you."},
+        ]
+        _compress_single(messages, llm_call_fn=llm)
+        self.assertIn("I will help you.", holder["text"])
+
+    def test_no_raw_tool_calls_json_in_text(self):
+        """Raw tool_calls JSON structure must not leak into summary input."""
+        from core.compressor import _compress_single
+        holder, llm = self._capture_llm()
+        messages = [
+            {"role": "user", "content": "Run"},
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{"function": {"name": "bash", "arguments": '{"cmd": "ls"}'}, "id": "tc1", "type": "function"}],
+            },
+        ]
+        _compress_single(messages, llm_call_fn=llm)
+        self.assertNotIn('"type": "function"', holder["text"])
+        self.assertNotIn("tool_call_id", holder["text"])
+        self.assertIn("bash", holder["text"])
+
+    def test_empty_content_no_tool_calls_skipped(self):
+        """Assistant with content=None and NO tool_calls → skipped entirely."""
+        from core.compressor import _compress_single
+        holder, llm = self._capture_llm()
+        messages = [
+            {"role": "user", "content": "Hmm"},
+            {"role": "assistant", "content": None},
+        ]
+        _compress_single(messages, llm_call_fn=llm)
+        self.assertNotIn("assistant:", holder["text"])
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Fix 2: Worker workspace activation — full main-agent parity
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestWorkerWorkspaceActivation(unittest.TestCase):
+    """Verify that _run_react_task activates workspace with the same steps as
+    main agent's _setup_workspace (steps 1-9, excluding slash commands)."""
+
+    def test_workspace_activation_code_imports_merge_prompt(self):
+        """The new activation block must import merge_prompt from workflow.loader."""
+        import inspect
+        from core import agent_server
+        src = inspect.getsource(agent_server._run_react_task)
+        self.assertIn("merge_prompt", src)
+
+    def test_workspace_activation_patches_compression_prompt(self):
+        """Compression prompt patching must be present in _run_react_task source."""
+        import inspect
+        from core import agent_server
+        src = inspect.getsource(agent_server._run_react_task)
+        self.assertIn("STRUCTURED_SUMMARY_PROMPT", src)
+        self.assertIn("compression_prompt_text", src)
+
+    def test_workspace_activation_registers_todo_templates(self):
+        """Todo template registry must be set up in _run_react_task source."""
+        import inspect
+        from core import agent_server
+        src = inspect.getsource(agent_server._run_react_task)
+        self.assertIn("get_todo_template_registry", src)
+        self.assertIn("load_from_dir", src)
+
+    def test_workspace_activation_handles_script_hooks(self):
+        """Script hook registry must be wired into ReactLoopDeps."""
+        import inspect
+        from core import agent_server
+        src = inspect.getsource(agent_server._run_react_task)
+        self.assertIn("register_script_hooks", src)
+        self.assertIn("_ws_hook_registry", src)
+
+    def test_workspace_activation_patches_todo_rules(self):
+        """patch_todo_rules must be called."""
+        import inspect
+        from core import agent_server
+        src = inspect.getsource(agent_server._run_react_task)
+        self.assertIn("patch_todo_rules", src)
+
+    def test_workspace_activation_handles_force_disable_skills(self):
+        """FORCE_SKILLS and DISABLE_SKILLS env vars must be managed."""
+        import inspect
+        from core import agent_server
+        src = inspect.getsource(agent_server._run_react_task)
+        self.assertIn("FORCE_SKILLS", src)
+        self.assertIn("DISABLE_SKILLS", src)
+
+    def test_ws_hook_registry_passed_to_react_loop_deps(self):
+        """ReactLoopDeps must receive _ws_hook_registry, not hardcoded None."""
+        import inspect
+        from core import agent_server
+        src = inspect.getsource(agent_server._run_react_task)
+        # Should NOT have bare hook_registry=None anymore
+        self.assertNotIn("hook_registry=None", src)
+        self.assertIn("hook_registry=_ws_hook_registry", src)
+
+    def test_no_workflow_leaves_hook_registry_none(self):
+        """When workflow='', _ws_hook_registry stays None (no activation)."""
+        import inspect
+        from core import agent_server
+        src = inspect.getsource(agent_server._run_react_task)
+        # _ws_hook_registry initialized to None before the if-block
+        self.assertIn("_ws_hook_registry = None", src)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Fix 3: Markdown rendering — tree block fencing
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestFixMdTreeFencing(unittest.TestCase):
+    """_fix_md() should wrap directory-tree lines in code fences so Rich's
+    Markdown parser doesn't misinterpret box-drawing characters."""
+
+    def _fix(self, text: str) -> str:
+        # _fix_md is a module-level function in lib.textual_ui
+        # Import it safely (it may fail if Textual is not installed; skip then)
+        try:
+            from lib.textual_ui import _fix_md
+            return _fix_md(text)
+        except ImportError:
+            self.skipTest("lib.textual_ui not importable (Textual not installed)")
+
+    def test_tree_lines_get_fenced(self):
+        """Lines with ├── / └── box-drawing chars should be wrapped in ```."""
+        text = "Here is the tree:\n├── src\n│   └── main.py\n└── tests\n"
+        result = self._fix(text)
+        self.assertIn("```", result)
+        # The tree content should be inside the fence
+        lines = result.splitlines()
+        fence_idx = [i for i, l in enumerate(lines) if l.strip() == "```"]
+        self.assertGreaterEqual(len(fence_idx), 2, "Expected at least one open+close fence pair")
+
+    def test_tree_content_preserved_inside_fence(self):
+        """Tree content must not be lost — still present after fencing."""
+        text = "├── src\n└── tests\n"
+        result = self._fix(text)
+        self.assertIn("src", result)
+        self.assertIn("tests", result)
+
+    def test_existing_fence_not_double_wrapped(self):
+        """Content already inside ``` should NOT be wrapped again."""
+        text = "```\n├── src\n└── tests\n```\n"
+        result = self._fix(text)
+        # Count fence markers — should remain 2 (open + close), not 4
+        fence_count = sum(1 for l in result.splitlines() if l.strip() == "```")
+        self.assertEqual(fence_count, 2)
+
+    def test_normal_markdown_not_fenced(self):
+        """Regular markdown (headings, bullets) must not be wrapped in fences."""
+        text = "## Title\n\n- item one\n- item two\n"
+        result = self._fix(text)
+        self.assertNotIn("```", result)
+
+    def test_mixed_content_fences_only_tree_part(self):
+        """Only the tree block gets fenced; surrounding markdown text stays clean."""
+        text = "Here are the files:\n\n├── a.py\n└── b.py\n\nAnd that's it.\n"
+        result = self._fix(text)
+        self.assertIn("```", result)
+        self.assertIn("Here are the files:", result)
+        self.assertIn("And that's it.", result)
+
+    def test_no_tree_chars_no_fence_added(self):
+        """Text with no box-drawing chars should not gain any new code fences."""
+        text = "Some text.\nAnother line.\n"
+        result = self._fix(text)
+        self.assertNotIn("```", result)
+
+    def test_horizontal_line_chars_fenced(self):
+        """Lines with ─ (horizontal box-drawing) should also be fenced."""
+        text = "─────────────\n"
+        result = self._fix(text)
+        self.assertIn("```", result)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Fix: Compression accumulation — prior summaries merged, not stacked
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestCompressorNoSummaryAccumulation(unittest.TestCase):
+    """On the second+ compression, the prior summary must be incorporated as
+    context into the new compression — not preserved verbatim and stacked.
+    Result: always exactly ONE summary in the final history."""
+
+    def _make_cfg(self):
+        class Cfg:
+            ENABLE_COMPRESSION = True
+            COMPRESSION_MODE = "traditional"
+            MAX_CONTEXT_TOKENS = 200_000
+            COMPRESSION_THRESHOLD = 0.8
+            PREEMPTIVE_COMPRESSION_THRESHOLD = 0.7
+            COMPRESSION_KEEP_RECENT = 2
+            COMPRESSION_CHUNK_SIZE = 10
+            COMPRESSION_PRE_ANALYSIS = False
+            ENABLE_TURN_PROTECTION = False
+            TURN_PROTECTION_COUNT = 2
+        return Cfg()
+
+    def _make_llm(self, reply="merged summary"):
+        captured = {"texts": []}
+        def _llm(messages, **kwargs):
+            for m in messages:
+                if m.get("role") == "user":
+                    captured["texts"].append(m.get("content", ""))
+            yield reply
+        return captured, _llm
+
+    def _make_messages_with_prior_summary(self, n_new=6):
+        """Returns a message list that already contains a previous summary."""
+        msgs = [
+            {"role": "system", "content": "You are an agent."},
+            {"role": "system", "content": "[Previous Conversation Summary (100 messages)]: Earlier the user asked to write a parser."},
+            {"role": "user", "content": "Now add error handling"},
+            {"role": "assistant", "content": None,
+             "tool_calls": [{"function": {"name": "read_file", "arguments": '{"path":"a.py"}'}, "id": "t1", "type": "function"}]},
+            {"role": "tool", "tool_call_id": "t1", "name": "read_file", "content": "import json"},
+            {"role": "assistant", "content": "Final Answer: done"},
+            {"role": "user", "content": "Next task"},
+            {"role": "assistant", "content": "Final Answer: ok"},
+        ]
+        return msgs
+
+    def test_second_compression_produces_single_summary(self):
+        """After second compression, only ONE summary system message exists."""
+        from core.compressor import compress_history
+        cfg = self._make_cfg()
+        captured, llm = self._make_llm("unified summary covering everything")
+        msgs = self._make_messages_with_prior_summary()
+
+        result = compress_history(msgs, cfg=cfg, llm_call_fn=llm, force=True)
+
+        summary_msgs = [
+            m for m in result
+            if m.get("role") == "system"
+            and "[Previous Conversation Summary" in str(m.get("content", ""))
+        ]
+        self.assertEqual(len(summary_msgs), 1, f"Expected 1 summary, got {len(summary_msgs)}")
+
+    def test_prior_summary_content_fed_into_new_compression(self):
+        """Prior summary text must appear in the conversation_text sent to the LLM."""
+        from core.compressor import compress_history
+        cfg = self._make_cfg()
+        captured, llm = self._make_llm()
+        msgs = self._make_messages_with_prior_summary()
+
+        compress_history(msgs, cfg=cfg, llm_call_fn=llm, force=True)
+
+        all_text = " ".join(captured["texts"])
+        self.assertIn("Earlier the user asked to write a parser", all_text,
+                      "Prior summary content must be passed to new LLM call")
+
+    def test_no_frozen_summary_tag_in_result(self):
+        """[FROZEN SUMMARY] tags must not appear in the result."""
+        from core.compressor import compress_history
+        cfg = self._make_cfg()
+        _, llm = self._make_llm()
+        msgs = self._make_messages_with_prior_summary()
+
+        result = compress_history(msgs, cfg=cfg, llm_call_fn=llm, force=True)
+
+        for m in result:
+            self.assertNotIn("[FROZEN SUMMARY", str(m.get("content", "")))
+
+    def test_triple_compression_still_single_summary(self):
+        """After three compressions the result has exactly one summary."""
+        from core.compressor import compress_history
+        cfg = self._make_cfg()
+
+        # First compression
+        msgs1 = [
+            {"role": "system", "content": "You are an agent."},
+            {"role": "user", "content": "Task 1"},
+            {"role": "assistant", "content": "Final Answer: done 1"},
+            {"role": "user", "content": "Task 2"},
+            {"role": "assistant", "content": "Final Answer: done 2"},
+            {"role": "user", "content": "Task 3"},
+            {"role": "assistant", "content": "Final Answer: done 3"},
+        ]
+        _, llm1 = self._make_llm("summary1")
+        result1 = compress_history(msgs1, cfg=cfg, llm_call_fn=llm1, force=True)
+
+        # Add new messages and second compression
+        result1 += [
+            {"role": "user", "content": "Task 4"},
+            {"role": "assistant", "content": "Final Answer: done 4"},
+            {"role": "user", "content": "Task 5"},
+            {"role": "assistant", "content": "Final Answer: done 5"},
+        ]
+        _, llm2 = self._make_llm("summary2")
+        result2 = compress_history(result1, cfg=cfg, llm_call_fn=llm2, force=True)
+
+        # Third compression
+        result2 += [
+            {"role": "user", "content": "Task 6"},
+            {"role": "assistant", "content": "Final Answer: done 6"},
+        ]
+        _, llm3 = self._make_llm("summary3")
+        result3 = compress_history(result2, cfg=cfg, llm_call_fn=llm3, force=True)
+
+        summary_count = sum(
+            1 for m in result3
+            if m.get("role") == "system"
+            and "[Previous Conversation Summary" in str(m.get("content", ""))
+        )
+        self.assertEqual(summary_count, 1, f"Expected 1 summary after 3 compressions, got {summary_count}")
+
+
 if __name__ == "__main__":
     unittest.main()

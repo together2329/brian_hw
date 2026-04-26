@@ -13,6 +13,7 @@ All functions are pure with respect to global state: every external dependency
 """
 from __future__ import annotations
 
+import json
 import os
 import platform
 import subprocess
@@ -72,47 +73,74 @@ def _collect_working_paths_from_log(max_entries: int = 50) -> str:
 # ---------------------------------------------------------------------------
 
 _STRUCTURED_SUMMARY_PROMPT_DEFAULT = """You are summarizing conversation history for an AI coding agent.
-Goal: Preserve ALL context needed to continue the work seamlessly, while eliminating redundancy.
 
-What to KEEP:
-- Every file path, function name, class name, variable name that was touched
-- All decisions made (architecture, API design, naming conventions, configs)
-- Errors encountered and how they were resolved (or if still unresolved)
-- User preferences, constraints, and explicit instructions
-- Current state: what works, what's broken, what's next
-- Any partial work in progress
+The history contains:
+  - user/assistant dialog
+  - [tool_name(arg=val, ...)] — agent tool calls (with arguments)
+  - tool(name): result       — tool return values
+  - [Prior summary context]  — earlier compression (must be incorporated)
 
-What to SKIP:
-- Greetings, filler phrases, repeated explanations
-- Superseded approaches that were abandoned
-- Tool call boilerplate (keep only the outcome)
-- Identical information stated multiple times
+Goal: Produce a dense, actionable summary that lets the agent resume work
+seamlessly. Every fact that affects future decisions must be preserved.
 
-Format: structured bullet points, no prose padding.
-Be thorough on facts. Skip nothing important.
+━━━ WHAT TO KEEP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Working directory / project path / git branch (extract from tool args or output)
+• Every file path that was read, written, created, deleted, or searched
+• Shell commands run AND their key outcome (exit code, error message, important stdout)
+• All decisions: architecture, naming conventions, API design, config values
+• Errors encountered → resolution taken (or mark UNRESOLVED if still open)
+• User instructions, constraints, preferences stated explicitly
+• Partial work: what was completed, what still needs to be done
+• Discovered facts: test results, benchmark numbers, API responses, schema info
+• Prior summary context: all important facts from [Prior summary context] blocks
+
+━━━ WHAT TO SKIP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Greetings, filler phrases, repeated information
+• Full file contents (only note path + what changed)
+• Abandoned approaches (one-liner: "tried X → failed because Y")
+• Redundant tool call boilerplate (record outcome, not raw output)
+
+━━━ FORMAT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Structured bullet points. No prose padding. Omit sections with nothing to report.
+
+## Working Context
+- CWD / project root (from bash cwd, tool paths, or explicit mention)
+- Git branch / commit if known
+- Active workspace / environment name
 
 ## Goals
-[What the user is trying to achieve]
+- What the user is trying to achieve overall
 
-## Completed
-[Tasks finished, with outcomes — include file names and what changed]
+## Completed Work
+- Tasks finished with concrete outcomes (file created, test passed, bug fixed)
+- Include exact file paths and what specifically changed
+
+## Tool Activity
+### Files Read
+- List each path read (from read_file / read_lines args)
+### Files Written / Modified
+- path — brief description of what was changed
+### Commands Run
+- `command` → outcome (success / error snippet / key output)
+### Searches
+- pattern or query → what was found (or "not found")
 
 ## Decisions & Conventions
-[Architecture choices, naming rules, API design, config values]
+- Architecture choices, naming rules, API design, config values chosen
 
 ## Errors & Fixes
-[Errors hit and how resolved; unresolved issues clearly marked]
+- Error → how resolved. Mark **UNRESOLVED** if still open.
 
 ## In Progress / Next
-[Partially done work; what to do next]
+- What is partially done and what the next concrete step is
 
 ## Key Files & Symbols
-[Important file paths, function/class names, config keys]
+- Critical file paths, function/class/variable names, config keys, env vars
 
 ## User Preferences
-[Coding style, language preference, workflow constraints]
+- Coding style, language, workflow constraints explicitly stated
 
-Omit sections with nothing to report."""
+Omit any section with nothing to report."""
 
 
 def _load_default_compression_prompt() -> str:
@@ -595,6 +623,31 @@ def _compress_single(
             continue
         content = _smart_truncate(str(m.get("content") or ""), role)
 
+        # Tool-calling assistant turns have no text — annotate with func(args) so the
+        # summarizing LLM knows exactly what was called and with what arguments.
+        if role == "assistant" and not content.strip():
+            _tcs = m.get("tool_calls")
+            if _tcs and isinstance(_tcs, list):
+                _calls = []
+                for _tc in _tcs:
+                    if not isinstance(_tc, dict):
+                        continue
+                    _fn = _tc.get("function", {})
+                    _name = _fn.get("name", "?")
+                    _args_raw = _fn.get("arguments", "{}")
+                    try:
+                        _args = json.loads(_args_raw) if isinstance(_args_raw, str) else _args_raw
+                        _arg_str = ", ".join(
+                            f"{k}={repr(v)[:60]}" for k, v in (_args.items() if isinstance(_args, dict) else [])
+                        )
+                    except Exception:
+                        _arg_str = str(_args_raw)[:80]
+                    _calls.append(f"{_name}({_arg_str})")
+                if _calls:
+                    content = "[" + ", ".join(_calls) + "]"
+            if not content.strip():
+                continue  # nothing to add (no tool_calls at all)
+
         # Preserve reasoning_content for assistant messages (DeepSeek/GLM chain-of-thought)
         reasoning_text = ""
         reasoning = m.get("reasoning_content")
@@ -943,19 +996,59 @@ def compress_history(
         except Exception as e:
             print(f"[Hook] {pre_hook_path.name} failed: {e}")
 
-    # Separate system vs regular messages
+    # Separate system vs regular messages.
+    # Prior summaries are extracted from system messages in two cases:
+    #   (a) separate system message with a generated prefix  → extract text, drop message
+    #   (b) embedded section inside a consolidated message   → strip section, keep base
+    # Extracted text is injected as context into the new compression so the LLM produces
+    # ONE unified summary — no accumulation across multiple compressions.
     _GENERATED_PREFIXES = (
         "[Previous Conversation Summary",
         "[Ongoing Task]",
         "[Todo Status]",
         "[Todo ",
+        "[Summary chunk",
+        "[Chunk compression failed",
+        "[FROZEN SUMMARY",
     )
-    system_msgs = [
-        m
-        for m in messages
-        if m.get("role") == "system"
-        and not str(m.get("content", "")).startswith(_GENERATED_PREFIXES)
-    ]
+    _SUMMARY_SECTION = "===== CONVERSATION SUMMARY ====="
+    _PRESERVED_SECTION = "===== PRESERVED CONTEXT ====="
+    import re as _re_local
+    _SECTION_RE = _re_local.compile(r'\n===== [A-Z]')
+
+    system_msgs: List[Dict] = []
+    prior_summary_parts: List[str] = []
+
+    for _sm in messages:
+        if _sm.get("role") != "system":
+            continue
+        _sc = str(_sm.get("content", ""))
+
+        # Case (a): standalone generated summary/todo message — extract for context only
+        if any(_sc.startswith(p) for p in _GENERATED_PREFIXES):
+            _clean = _sc
+            if _clean.startswith("[FROZEN SUMMARY - preserved verbatim] "):
+                _clean = _clean[len("[FROZEN SUMMARY - preserved verbatim] "):]
+            prior_summary_parts.append(_clean)
+            continue
+
+        # Case (b): consolidated message may embed a CONVERSATION SUMMARY section — strip it
+        _cleaned_sc = _sc
+        for _sec_marker in (_SUMMARY_SECTION, _PRESERVED_SECTION):
+            if _sec_marker not in _cleaned_sc:
+                continue
+            _idx = _cleaned_sc.index(_sec_marker)
+            _after_marker = _cleaned_sc[_idx + len(_sec_marker):]
+            _nxt = _SECTION_RE.search(_after_marker)
+            if _nxt:
+                prior_summary_parts.append(_after_marker[:_nxt.start()].strip())
+                _cleaned_sc = (_cleaned_sc[:_idx].rstrip() + "\n\n" + _after_marker[_nxt.start():].lstrip()).strip()
+            else:
+                prior_summary_parts.append(_after_marker.strip())
+                _cleaned_sc = _cleaned_sc[:_idx].rstrip()
+
+        system_msgs.append(dict(_sm, content=_cleaned_sc.strip()))
+
     regular_msgs = [m for m in messages if m.get("role") != "system"]
 
     # Extract !important messages (preserve them)
@@ -1082,34 +1175,16 @@ def compress_history(
                 old_msgs = old_msgs + _move
                 recent_msgs = recent_msgs[len(_move):]
 
-    # Frozen summary detection: prevent re-compression of already-compressed summaries.
-    # When compression runs multiple times, previously generated summaries should be
-    # preserved verbatim instead of being re-summarized (generation loss prevention).
-    frozen_summaries: List[Dict] = []
-    _FROZEN_PREFIXES = (
-        "[Previous Conversation Summary",
-        "[Summary chunk",
-        "[Chunk compression failed",
-        "[FROZEN SUMMARY",
-    )
-    truly_new_msgs = []
-    for _m in old_msgs:
-        _mc = str(_m.get("content", ""))
-        if _m.get("role") == "system" and any(_mc.startswith(p) for p in _FROZEN_PREFIXES):
-            # Tag and preserve — do not re-compress
-            if not _mc.startswith("[FROZEN SUMMARY"):
-                _m = dict(_m, content="[FROZEN SUMMARY - preserved verbatim] " + _mc)
-            frozen_summaries.append(_m)
-        else:
-            truly_new_msgs.append(_m)
-    old_msgs = truly_new_msgs
+    # Inject prior summaries (extracted from system messages above) as context so
+    # the LLM produces ONE unified summary covering all prior + new context.
+    if prior_summary_parts:
+        _prior_text = "\n\n".join(p for p in prior_summary_parts if p.strip())
+        if _prior_text.strip():
+            old_msgs = [{"role": "system", "content": f"[Prior summary context — incorporate into new summary]:\n{_prior_text}"}] + old_msgs
+            print(f"  [Compress] Merging {len(prior_summary_parts)} prior summary(s) into new compression")
 
-    if frozen_summaries:
-        print(f"  [Compress] Preserving {len(frozen_summaries)} frozen summaries verbatim")
-
-    if not old_msgs and frozen_summaries:
-        # All old messages are frozen summaries — nothing new to compress
-        print(f"  [Compress] No new messages to compress, only frozen summaries")
+    if not old_msgs:
+        print(f"  [Compress] No new messages to compress")
 
     # Choose compression mode
     mode = cfg.COMPRESSION_MODE.lower() if hasattr(cfg, "COMPRESSION_MODE") else "traditional"
@@ -1198,12 +1273,12 @@ def compress_history(
 
     if compressed is not None:
         raw_history = (
-            system_msgs + important_msgs + frozen_summaries + compressed
+            system_msgs + important_msgs + compressed
             + awaiting_note + todo_preservation + recent_msgs
         )
     else:
         raw_history = (
-            system_msgs + important_msgs + frozen_summaries
+            system_msgs + important_msgs
             + awaiting_note + todo_preservation + recent_msgs
         )
 

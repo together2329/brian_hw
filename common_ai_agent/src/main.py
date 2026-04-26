@@ -949,7 +949,7 @@ def compress_history(messages, todo_tracker=None, force=False, instruction=None,
     Pre-compression analysis is handled inside core.compressor.compress_history
     (only runs after threshold checks confirm compression is needed).
     """
-    return _compress_history_impl(
+    result = _compress_history_impl(
         messages,
         todo_tracker=todo_tracker,
         force=force,
@@ -968,6 +968,12 @@ def compress_history(messages, todo_tracker=None, force=False, instruction=None,
             if _textual_emit_content_fn else None
         ),
     )
+    # Update sidebar immediately after any compression (auto or /compact)
+    if _textual_emit_context_fn and not dry_run and result is not messages:
+        _limit = config.MAX_CONTEXT_TOKENS
+        _est = sum(estimate_message_tokens(m) for m in result)
+        _textual_emit_context_fn(_est, _limit)
+    return result
 
 
 def process_observation(observation, messages, todo_tracker=None):
@@ -1979,6 +1985,10 @@ def chat_loop():
                         if not dry_run:
                             context_tracker.update_messages(messages, exclude_system=True)
                             save_conversation_history(messages)
+                            if _textual_emit_context_fn:
+                                _limit = config.MAX_CONTEXT_TOKENS
+                                _est = sum(estimate_message_tokens(m) for m in messages)
+                                _textual_emit_context_fn(_est, _limit)
 
                         continue
 

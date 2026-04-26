@@ -100,6 +100,54 @@ def _fix_md(text: str) -> str:
     '''
     raw_lines = text.splitlines()
 
+    # -- Pass 0: wrap directory-tree blocks in code fences --
+    # Box-drawing characters (├ └ │ ─ …) appear in shell `tree` / `find` output.
+    # Rich's Markdown parser misinterprets them as list markers, table separators,
+    # or horizontal rules, corrupting the rendered output mid-stream.
+    # Detect contiguous runs of such lines and wrap them in ``` fences.
+    _TREE_RE = re.compile(r'[├└│┌┐┘─┬┼┴┤]')
+    _p0_in_fence = False
+    _p0_out: list[str] = []
+    _i0 = 0
+    while _i0 < len(raw_lines):
+        _ln = raw_lines[_i0]
+        if _ln.strip().startswith("```"):
+            _p0_in_fence = not _p0_in_fence
+            _p0_out.append(_ln)
+            _i0 += 1
+            continue
+        if _p0_in_fence or not _TREE_RE.search(_ln):
+            _p0_out.append(_ln)
+            _i0 += 1
+            continue
+        # Collect the full tree block (tree lines + blank separators within block)
+        _j0 = _i0
+        while _j0 < len(raw_lines):
+            _bl = raw_lines[_j0]
+            if _bl.strip() == "":
+                # keep blanks that are followed by another tree line
+                _nj = _j0 + 1
+                while _nj < len(raw_lines) and raw_lines[_nj].strip() == "":
+                    _nj += 1
+                if _nj < len(raw_lines) and _TREE_RE.search(raw_lines[_nj]):
+                    _j0 = _nj
+                    continue
+                break
+            if _TREE_RE.search(_bl):
+                _j0 += 1
+            else:
+                break
+        # Strip trailing blank lines — they go outside the fence
+        _blk_end = _j0
+        while _blk_end > _i0 and not raw_lines[_blk_end - 1].strip():
+            _blk_end -= 1
+        _p0_out.append("```")
+        _p0_out.extend(raw_lines[_i0:_blk_end])
+        _p0_out.append("```")
+        _p0_out.extend(raw_lines[_blk_end:_j0])  # trailing blanks outside fence
+        _i0 = _j0
+    raw_lines = _p0_out
+
     # -- Pass 1: per-line pre-fixes (uses index for lookahead) --
     #        NOTE: tracks code fences to avoid corrupting code content.
     pre: list[str] = []

@@ -509,20 +509,108 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
     _on_status_change()
     entry.add_log("system", "ReAct loop starting (full run_react_agent_impl)...", role="system")
 
-    # ── Activate workspace if specified ──────────────────────────────────
+    _ws_hook_registry = None  # populated by workspace activation if script_hooks defined
+
+    # ── Activate workspace if specified (full main-agent parity) ─────────
     if workflow:
         try:
-            from workflow.loader import load_workspace, TodoTemplateRegistry
+            from workflow.loader import (
+                load_workspace, merge_prompt, patch_todo_rules,
+                register_script_hooks, get_todo_template_registry,
+            )
             import builtins as _b
+            import core.compressor as _comp
+
             ws = load_workspace(workflow, project_root=Path(_project_root))
-            # Inject hook messages (system prompt, compression prompt, etc.)
+
+            # ── 1. Hook messages ──
             _b._WORKSPACE_HOOK_MESSAGES = {"_workspace_dir": str(ws.workspace_dir)}
             if ws.hook_messages:
                 _b._WORKSPACE_HOOK_MESSAGES.update(ws.hook_messages)
-            # Apply env overrides
+
+            # ── 2. System prompt patch (build_system_prompt called inside _worker_build_prompt) ──
+            if ws.system_prompt_text:
+                try:
+                    import core.prompt_builder as _pb
+                    _orig_bsp = _pb.build_system_prompt
+                    _ws_sys_text = ws.system_prompt_text
+                    _ws_sys_mode = ws.system_prompt_mode
+
+                    def _ws_patched_bsp(ctx=None, **kw):
+                        base = _orig_bsp(ctx, **kw) if ctx is not None else _orig_bsp(**kw)
+                        if isinstance(base, dict):
+                            base = (base.get("static", "") + "\n\n" + base.get("dynamic", "")).strip()
+                        return merge_prompt(base, _ws_sys_text, _ws_sys_mode)
+
+                    _pb.build_system_prompt = _ws_patched_bsp
+                except Exception:
+                    pass
+
+            # ── 3. Compression prompt patch ──
+            if ws.compression_prompt_text:
+                try:
+                    _orig_comp_prompt = getattr(_comp, 'STRUCTURED_SUMMARY_PROMPT', "")
+                    _comp.STRUCTURED_SUMMARY_PROMPT = merge_prompt(
+                        _orig_comp_prompt, ws.compression_prompt_text, "replace"
+                    )
+                    _b._WORKSPACE_HOOK_MESSAGES["compression_system"] = _comp.STRUCTURED_SUMMARY_PROMPT
+                except Exception:
+                    pass
+
+            # ── 4. Env overrides ──
             for k, v in ws.env_overrides.items():
                 os.environ[k] = str(v)
-            entry.add_log("system", f"Workspace '{workflow}' activated", role="system")
+
+            # ── 5. Script hooks (local registry passed into ReactLoopDeps below) ──
+            if ws.script_hooks:
+                try:
+                    from core.hooks import HookRegistry
+                    _ws_hook_registry = HookRegistry()
+                    register_script_hooks(ws, _ws_hook_registry)
+                except Exception as _she:
+                    entry.add_log("system", f"WARNING: script hooks setup failed: {_she}", role="system")
+
+            # ── 6. Todo rules ──
+            try:
+                patch_todo_rules(ws)
+            except Exception:
+                pass
+
+            # ── 7. Todo template registry ──
+            try:
+                _t_reg = get_todo_template_registry()
+                _t_reg._templates.clear()
+                _t_reg.load_global_templates(Path.cwd())
+                if ws.todo_templates_dir:
+                    _t_reg.load_from_dir(ws.todo_templates_dir)
+                _b._TODO_TEMPLATE_REGISTRY = _t_reg
+            except Exception:
+                pass
+
+            # ── 8. Extra skills dir ──
+            try:
+                import core.skill_system as _ss
+                if ws.extra_skills_dir and hasattr(_ss, '_loader') and hasattr(_ss._loader, 'extra_dirs'):
+                    _ws_skill_str = str(ws.extra_skills_dir)
+                    _ss._loader.extra_dirs = [
+                        d for d in _ss._loader.extra_dirs
+                        if '/workflow/' not in d.replace('\\', '/')
+                    ]
+                    _ss._loader.extra_dirs.append(_ws_skill_str)
+            except Exception:
+                pass
+
+            # ── 9. Force / disable skills ──
+            if ws.force_skills:
+                os.environ["FORCE_SKILLS"] = ",".join(ws.force_skills)
+            else:
+                os.environ.pop("FORCE_SKILLS", None)
+            if ws.disable_skills:
+                os.environ["DISABLE_SKILLS"] = ",".join(ws.disable_skills)
+            else:
+                os.environ.pop("DISABLE_SKILLS", None)
+
+            entry.add_log("system", f"Workspace '{workflow}' activated (full parity)", role="system")
         except Exception as _we:
             entry.add_log("system", f"WARNING: workspace '{workflow}' load failed: {_we}", role="system")
 
@@ -714,7 +802,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             orchestrator=None,
             procedural_memory=None,
             graph_lite=None,
-            hook_registry=None,
+            hook_registry=_ws_hook_registry,
             inject_strategy_fn=None,
             save_snapshot_fn=None,
             load_snapshot_fn=None,
