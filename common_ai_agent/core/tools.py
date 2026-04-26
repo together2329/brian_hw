@@ -65,19 +65,25 @@ def read_file(path):
     - Use read_lines with offset/limit for targeted reading
     """
     try:
+
         if not os.path.exists(path):
-            # Try to suggest similar files nearby
-            import glob
+            # Try to suggest similar files nearby (limited scope)
+            import glob as _glob
             basename = os.path.basename(path)
             parent = os.path.dirname(path) or "."
-            # Search up to 2 levels from parent
             suggestions = []
-            for depth in ["", "*/"]:
-                search_dir = os.path.dirname(parent) or "."
-                found = glob.glob(os.path.join(search_dir, "**", basename), recursive=True)
-                suggestions.extend(found[:3])
-                if suggestions:
-                    break
+            # Only search in parent directory and one level deep
+            # Avoid recursive glob from root (e.g., /tmp -> /)
+            search_dir = parent if os.path.isdir(parent) else os.path.dirname(parent)
+            if search_dir and os.path.isdir(search_dir) and search_dir != "/":
+                try:
+                    # Shallow search: parent dir + one level of subdirs
+                    found = _glob.glob(os.path.join(search_dir, "*", basename))[:3]
+                    if not found:
+                        found = _glob.glob(os.path.join(search_dir, basename))[:3]
+                    suggestions.extend(found)
+                except Exception:
+                    pass
             if suggestions:
                 hint = ", ".join(f"'{s}'" for s in suggestions[:3])
                 return f"Error: File '{path}' does not exist. Did you mean: {hint}? Use find_files() to confirm."
@@ -3890,6 +3896,164 @@ def job_cancel(job_id=""):
         return f"Error cancelling job: {e}"
 
 
+# ─── Image Read Tool ────────────────────────────────────────────────────
+
+def read_image(path=None, prompt="Describe this image in detail."):
+    """
+    Analyzes an image file using a vision-capable AI model.
+
+    Supports PNG, JPEG, GIF, WebP, BMP, and SVG formats.
+    Sends the image (base64-encoded) to a vision model API and returns the analysis.
+    Requires ENABLE_IMAGE_READ=true in config.
+
+    Args:
+        path: Path to the image file (required).
+        prompt: What to ask about the image (default: detailed description).
+                Examples: "Extract all text from this screenshot",
+                "What errors are shown?", "Describe the UI layout",
+                "Analyze this chart/data visualization".
+
+    Returns:
+        The vision model's analysis of the image.
+    """
+    import os
+    import base64
+    import json
+    import mimetypes
+    import urllib.request
+    import urllib.error
+
+    if path is None:
+        return "Error: read_image() requires 'path'. Usage: read_image(path=\"screenshot.png\", prompt=\"What does this show?\")"
+
+    # Config check
+    try:
+        import config as cfg
+    except ImportError:
+        try:
+            from src import config as cfg
+        except ImportError:
+            return "Error: config module not found"
+
+    if not getattr(cfg, 'ENABLE_IMAGE_READ', False):
+        return "Error: Image read is disabled. Set ENABLE_IMAGE_READ=true in .config to enable."
+
+    api_key = getattr(cfg, 'IMAGE_READ_API_KEY', '')
+    base_url = getattr(cfg, 'IMAGE_READ_BASE_URL', '')
+    model = getattr(cfg, 'IMAGE_READ_MODEL', 'glm-4.6v')
+    max_size_mb = getattr(cfg, 'IMAGE_READ_MAX_SIZE', 8)
+    timeout = getattr(cfg, 'IMAGE_READ_TIMEOUT', 30)
+
+    if not api_key or api_key == 'your-openai-api-key-here':
+        return "Error: IMAGE_READ_API_KEY not configured. Set IMAGE_READ_API_KEY in .config or .env."
+
+    # Resolve path
+    path = os.path.expanduser(path)
+    if not os.path.isabs(path):
+        # Try relative to CWD first, then to workspace root
+        cwd = os.getcwd()
+        candidates = [
+            os.path.join(cwd, path),
+        ]
+        # Also try git root
+        try:
+            git_root = _find_git_root(cwd)
+            if git_root:
+                candidates.append(os.path.join(git_root, path))
+        except Exception:
+            pass
+        for candidate in candidates:
+            if os.path.isfile(candidate):
+                path = candidate
+                break
+
+    if not os.path.isfile(path):
+        return f"Error: Image file not found: {path}"
+
+    # Validate file extension
+    valid_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg', '.ico', '.tiff', '.tif'}
+    ext = os.path.splitext(path)[1].lower()
+    if ext not in valid_extensions:
+        return f"Error: Unsupported image format '{ext}'. Supported: {', '.join(sorted(valid_extensions))}"
+
+    # Check file size
+    file_size = os.path.getsize(path)
+    max_bytes = max_size_mb * 1024 * 1024
+    if file_size > max_bytes:
+        size_mb = file_size / (1024 * 1024)
+        return f"Error: Image too large ({size_mb:.1f}MB). Maximum: {max_size_mb}MB. Set IMAGE_READ_MAX_SIZE to increase."
+
+    # Detect MIME type
+    mime_type, _ = mimetypes.guess_type(path)
+    if not mime_type:
+        mime_type = 'image/png'  # fallback
+    # SVG needs special handling
+    if ext == '.svg':
+        mime_type = 'image/svg+xml'
+
+    # Read and base64 encode
+    try:
+        with open(path, 'rb') as f:
+            image_data = f.read()
+        b64 = base64.b64encode(image_data).decode('utf-8')
+    except Exception as e:
+        return f"Error reading image: {e}"
+
+    # Build data URL
+    data_url = f"data:{mime_type};base64,{b64}"
+
+    # Call vision API (OpenAI Chat Completions format)
+    payload = {
+        "model": model,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": data_url}},
+                ],
+            }
+        ],
+        "max_tokens": 2048,
+    }
+
+    url = base_url.rstrip('/') + '/chat/completions'
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {api_key}',
+    }
+
+    try:
+        req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers)
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            result = json.loads(resp.read().decode('utf-8'))
+
+        # Extract response
+        choices = result.get('choices', [])
+        if choices:
+            message = choices[0].get('message', {})
+            content = message.get('content', '')
+            if content:
+                # Prepend metadata
+                size_str = f"{file_size / 1024:.1f}KB" if file_size < 1024*1024 else f"{file_size / (1024*1024):.1f}MB"
+                header = f"[Image: {os.path.basename(path)} | {mime_type} | {size_str} | Model: {model}]\n\n"
+                return header + content
+
+        return f"Error: Empty response from vision API. Raw: {json.dumps(result)[:500]}"
+
+    except urllib.error.HTTPError as e:
+        body = ''
+        try:
+            body = e.read().decode('utf-8', errors='replace')[:500]
+        except Exception:
+            pass
+        return f"Error: Vision API HTTP {e.code}: {body}"
+    except urllib.error.URLError as e:
+        return f"Error: Cannot reach vision API at {url}: {e.reason}"
+    except Exception as e:
+        return f"Error analyzing image: {e}"
+
+
 # Registry of available tools
 AVAILABLE_TOOLS = {
     "read_file": read_file,
@@ -3904,6 +4068,8 @@ AVAILABLE_TOOLS = {
     "git_revert": git_revert,
     "replace_in_file": replace_in_file,
     "replace_lines": replace_lines,
+    # Image Analysis (conditional — requires ENABLE_IMAGE_READ=true)
+    "read_image": read_image,
     # Task Management
     "todo_write": todo_write,
     "todo_update": todo_update,

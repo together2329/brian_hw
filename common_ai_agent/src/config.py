@@ -507,6 +507,16 @@ ENABLE_WEB_TOOLS = os.getenv("ENABLE_WEB_TOOLS", "false").lower() in ("true", "1
 FIRECRAWL_API_URL = os.getenv("FIRECRAWL_API_URL", "http://localhost:3002")
 FIRECRAWL_TIMEOUT = int(os.getenv("FIRECRAWL_TIMEOUT", "30"))
 
+# Image Read — analyze images using vision-capable models
+# When enabled, adds read_image() tool that sends images to a vision model.
+# Uses OpenAI Chat Completions API format (compatible with Z.AI, OpenRouter, etc.)
+ENABLE_IMAGE_READ     = os.getenv("ENABLE_IMAGE_READ", "false").lower() in ("true", "1", "yes")
+IMAGE_READ_API_KEY    = os.getenv("IMAGE_READ_API_KEY", API_KEY)
+IMAGE_READ_BASE_URL   = os.getenv("IMAGE_READ_BASE_URL", BASE_URL)
+IMAGE_READ_MODEL      = os.getenv("IMAGE_READ_MODEL", "glm-4.6v")  # Z.AI GLM-4.6V by default
+IMAGE_READ_MAX_SIZE   = int(os.getenv("IMAGE_READ_MAX_SIZE", "8"))  # max MB per image
+IMAGE_READ_TIMEOUT    = int(os.getenv("IMAGE_READ_TIMEOUT", "30"))  # seconds
+
 # Maximum cache breakpoints (1-4, Anthropic allows up to 4)
 # Default: 3 (System message + 2 dynamic points in history)
 MAX_CACHE_BREAKPOINTS = int(os.getenv("MAX_CACHE_BREAKPOINTS", "3"))
@@ -1283,6 +1293,12 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
             _tool_line("web_search", 'query, limit=5, lang="en", tbs=""', "Search the web via Firecrawl. Returns titles, URLs, content."),
             _tool_line("web_fetch", 'url, formats="markdown"', "Scrape a URL and return markdown/html content."),
             _tool_line("web_extract", 'urls, prompt="", schema=""', "Extract structured data from URLs using AI."),
+        ]
+ 
+    # Image tools (conditional — requires ENABLE_IMAGE_READ=true)
+    if ENABLE_IMAGE_READ and "read_image" in tool_list:
+        tool_lines["Image"] = [
+            _tool_line("read_image", 'path, prompt="Describe this image in detail."', "Analyze image via vision model. Supports PNG/JPEG/GIF/WebP/BMP."),
         ]
 
     # ── BUILD PROMPT ──

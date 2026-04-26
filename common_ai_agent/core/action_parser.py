@@ -31,6 +31,7 @@ KNOWN_TOOLS: frozenset = frozenset({
     'read_lines', 'find_files', 'replace_in_file', 'replace_lines',
     'git_diff', 'git_status', 'todo_write', 'todo_update',
     'background_task', 'background_output', 'background_cancel', 'background_list',
+    'read_image',
     'analyze_verilog_module', 'find_signal_usage', 'find_module_definition',
     'extract_module_hierarchy', 'generate_module_testbench', 'find_potential_issues',
     'analyze_timing_paths', 'generate_module_docs', 'suggest_optimizations',
