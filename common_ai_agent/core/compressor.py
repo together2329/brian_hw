@@ -304,6 +304,146 @@ def _safe_prune(messages: List[Dict], max_keep: int) -> List[Dict]:
     return kept
 
 
+# ---------------------------------------------------------------------------
+# Post-compression message sequence repair
+# ---------------------------------------------------------------------------
+
+def _validate_and_repair_sequence(
+    messages: List[Dict],
+    *,
+    model_name: str = "",
+) -> List[Dict]:
+    """Validate and repair the message sequence after compression.
+
+    Fixes two critical post-compression issues that cause HTTP 400 errors:
+
+    1. **Orphaned tool messages**: A ``role: tool`` message must always be
+       preceded by an ``role: assistant`` message whose ``tool_calls``
+       list declares the matching ``tool_call_id``.  Compression can split
+       the assistant→tool pair across the old/new boundary, leaving a
+       dangling tool response.  This function converts orphaned tool
+       messages into user-role messages so the API accepts the sequence.
+
+    2. **DeepSeek reasoning_content**: DeepSeek's thinking mode REQUIRES
+       every assistant message to carry ``reasoning_content``.  After
+       compression the field may be missing, causing HTTP 400
+       "The reasoning_content in the thinking mode must be passed back
+       to the API."
+
+    Inspired by Claude Code's ``ensureToolResultPairing()`` (see
+    leaked-claude-code/utils/messages.ts).
+
+    Args:
+        messages: The message list to validate/repair.
+        model_name: Current model name (used for DeepSeek detection).
+
+    Returns:
+        Repaired message list (may be longer or shorter than input).
+    """
+    if not messages:
+        return messages
+
+    repaired: List[Dict] = []
+    # Track tool_call_ids declared by preceding assistant messages.
+    # We keep a running set that is populated as we encounter
+    # assistant messages with tool_calls.
+    declared_tool_call_ids: set = set()
+
+    # --- Pass 1: fix orphaned tool messages ---
+    for msg in messages:
+        role = msg.get("role", "")
+
+        if role == "assistant":
+            # Register any tool_calls this assistant declares
+            tool_calls = msg.get("tool_calls")
+            if tool_calls:
+                for tc in tool_calls:
+                    tc_id = tc.get("id") if isinstance(tc, dict) else None
+                    if tc_id:
+                        declared_tool_call_ids.add(tc_id)
+            repaired.append(msg)
+
+        elif role == "tool":
+            tool_call_id = msg.get("tool_call_id")
+            if tool_call_id and tool_call_id in declared_tool_call_ids:
+                # Valid: has a parent assistant → keep as-is
+                repaired.append(msg)
+            elif tool_call_id:
+                # Orphaned: no assistant declared this tool_call_id.
+                # Convert to user message to preserve content without
+                # violating the API contract.
+                _content = str(msg.get("content", ""))[:800]
+                repaired.append({
+                    "role": "user",
+                    "content": (
+                        f"[Tool result (reconstructed — original "
+                        f"tool_call_id={tool_call_id})]\n{_content}"
+                    ),
+                })
+            else:
+                # tool message without tool_call_id — also orphaned.
+                _content = str(msg.get("content", ""))[:800]
+                repaired.append({
+                    "role": "user",
+                    "content": f"[Tool result (reconstructed)]\n{_content}",
+                })
+        else:
+            # system / user / other — keep as-is
+            repaired.append(msg)
+
+    # --- Pass 2: ensure non-empty assistant content ---
+    # Some APIs (GLM-5.1, etc.) reject assistant messages with empty content.
+    for msg in repaired:
+        if msg.get("role") == "assistant":
+            _c = msg.get("content")
+            if _c is None or (isinstance(_c, str) and not _c.strip()):
+                # Keep None if tool_calls present (valid for many APIs),
+                # otherwise set to a minimal placeholder.
+                if not msg.get("tool_calls"):
+                    msg["content"] = " "
+
+    # --- Pass 3: DeepSeek reasoning_content ---
+    _model_lower = model_name.lower()
+    if not _model_lower:
+        try:
+            import builtins as _bi
+            _model_lower = str(
+                getattr(
+                    getattr(_bi, "_AGENT_CONFIG", object()),
+                    "MODEL_NAME", ""
+                )
+            ).lower()
+        except Exception:
+            pass
+
+    if "deepseek" in _model_lower:
+        for msg in repaired:
+            if msg.get("role") == "assistant" and "reasoning_content" not in msg:
+                msg["reasoning_content"] = " "
+
+    # --- Pass 4: ensure first non-system message is user or assistant ---
+    # Strict APIs reject sequences that start with system → tool.
+    _first_non_sys = None
+    for _i, _m in enumerate(repaired):
+        if _m.get("role") != "system":
+            _first_non_sys = _i
+            break
+    if _first_non_sys is not None:
+        _first_role = repaired[_first_non_sys].get("role", "")
+        if _first_role == "tool":
+            # Already converted to user by Pass 1, but double-check.
+            # If somehow still tool, wrap it.
+            repaired[_first_non_sys] = {
+                "role": "user",
+                "content": (
+                    "[Reconstructed] "
+                    + str(repaired[_first_non_sys].get("content", ""))[:500]
+                ),
+            }
+
+    return repaired
+
+
 # Signals that an assistant turn is asking the user for information.
 _AWAIT_PATTERNS = (
     "please provide",
@@ -1060,23 +1200,13 @@ def compress_history(
     else:
         new_history = _non_sys
 
-    # DeepSeek fix: fill missing reasoning_content on assistant messages.
-    # DeepSeek's thinking mode REQUIRES that every assistant message in
-    # history carries reasoning_content. After compression, assistant
-    # messages that originally had reasoning may lose it, causing
-    # HTTP 400 "The reasoning_content in the thinking mode must be
-    # passed back to the API."
-    _model_lower = str(getattr(cfg, 'MODEL_NAME', '')).lower()
-    if not _model_lower:
-        try:
-            import builtins as _bi
-            _model_lower = str(getattr(getattr(_bi, '_AGENT_CONFIG', object()), 'MODEL_NAME', '')).lower()
-        except Exception:
-            pass
-    if 'deepseek' in _model_lower:
-        for _m in new_history:
-            if _m.get("role") == "assistant" and "reasoning_content" not in _m:
-                _m["reasoning_content"] = " "
+    # --- Post-compression validation and repair ---
+    # Fix orphaned tool messages (HTTP 400 "tool must be response to tool_calls")
+    # and DeepSeek reasoning_content (HTTP 400 "reasoning_content must be passed back").
+    _model_name = str(getattr(cfg, 'MODEL_NAME', ''))
+    new_history = _validate_and_repair_sequence(
+        new_history, model_name=_model_name
+    )
 
     new_tokens = sum(_est(m) for m in new_history)
 
@@ -1089,6 +1219,10 @@ def compress_history(
         # Use safe pruning to preserve role-pair integrity
         pruned = _safe_prune(prunable, emergency_keep)
         new_history = kept_system + pruned
+        # Re-validate after emergency pruning (pruning can create new orphans)
+        new_history = _validate_and_repair_sequence(
+            new_history, model_name=_model_name
+        )
         new_tokens = sum(_est(m) for m in new_history)
         print(f"  [Compress] Emergency prune: {len(prunable)} → {len(pruned)} messages ({new_tokens:,} tokens)")
     reduction_pct = int((1 - new_tokens / current_tokens) * 100) if current_tokens > 0 else 0
