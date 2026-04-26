@@ -697,10 +697,14 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             messages.append({"role": "user", "content": f"[Context]\n{context}"})
             entry.add_log("context", context[:500], role="user")
 
-        # If todos provided, format as task plan
+        # If todos provided, load into tracker and format as task plan
         full_task = task
         if todos:
             entry._todos = todos
+            if _worker_todo_tracker is not None:
+                _worker_todo_tracker.clear()
+                _worker_todo_tracker.add_todos(todos)
+                _worker_todo_tracker.save()
             todo_text = "\n".join(
                 f"  {i+1}. {t.get('content', t) if isinstance(t, dict) else t}"
                 for i, t in enumerate(todos)
