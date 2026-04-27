@@ -783,21 +783,54 @@ def parse_value(text: str) -> Tuple[Any, int]:
     if not text:
         return None, 0
 
-    # Triple-quoted strings - char-by-char scan with escape handling and
+    # Triple-quoted strings - char-by-char scan with escape processing and
     # context-aware closing.  A closing delimiter is only recognised when the
     # triple-quote is followed by a comma, closing paren, or end-of-string
     # (after skipping whitespace/newlines).  This prevents inner triple-quotes
     # (e.g. Python docstrings) from prematurely terminating the value.
+    #
+    # FIX (BUG_REPORT.md): escape sequences are now properly unescaped instead
+    # of being skipped raw.  Previously \" stayed as \" in the output, causing
+    # write_file / replace_in_file to corrupt Python source files.
     if len(text) >= 3 and (text[:3] == '"""' or text[:3] == "'''"):
-        quote = text[:3]
+        quote3 = text[:3]
         j = 3
+        value = ""
         while j < len(text):
-            # Handle escape sequences - skip next character
+            # Handle escape sequences — unescape them into the value
             if text[j] == '\\' and j + 1 < len(text):
+                esc = text[j + 1]
+                if esc == 'n':
+                    value += '\n'
+                elif esc == 't':
+                    value += '\t'
+                elif esc == 'r':
+                    value += '\r'
+                elif esc == 'b':
+                    value += '\b'
+                elif esc == 'f':
+                    value += '\f'
+                elif esc == '\\':
+                    value += '\\'
+                elif esc == '"':
+                    value += '"'
+                elif esc == "'":
+                    value += "'"
+                elif esc == 'u' and j + 5 < len(text):
+                    # \uXXXX unicode escape
+                    _hex = text[j+2:j+6]
+                    try:
+                        value += chr(int(_hex, 16))
+                        j += 6
+                        continue
+                    except (ValueError, OverflowError):
+                        value += esc  # malformed, keep as-is
+                else:
+                    value += esc
                 j += 2
                 continue
             # Potential closing triple-quote
-            if j + 2 < len(text) and text[j:j+3] == quote:
+            if j + 2 < len(text) and text[j:j+3] == quote3:
                 # Peek past the quote to check context
                 after = j + 3
                 # Skip whitespace and newlines after potential closing quote
@@ -805,13 +838,15 @@ def parse_value(text: str) -> Tuple[Any, int]:
                     after += 1
                 # Closing if end-of-string, comma, or closing paren
                 if after >= len(text) or text[after] in ',)':
-                    return text[3:j], j + 3
-                # Otherwise embedded triple-quote - keep scanning
+                    return value, j + 3
+                # Otherwise embedded triple-quote — keep as literal chars
+                value += quote3
                 j += 3
                 continue
+            value += text[j]
             j += 1
         # Auto-close: treat rest of text as the string value
-        return text[3:], len(text)
+        return value, len(text)
 
     # Regular quoted strings
     if text[0] in '"\'':
@@ -825,10 +860,25 @@ def parse_value(text: str) -> Tuple[Any, int]:
                     value += '\n'
                 elif next_char == 't':
                     value += '\t'
+                elif next_char == 'r':
+                    value += '\r'
+                elif next_char == 'b':
+                    value += '\b'
+                elif next_char == 'f':
+                    value += '\f'
                 elif next_char == '\\':
                     value += '\\'
                 elif next_char == quote:
                     value += quote
+                elif next_char == 'u' and i + 5 < len(text):
+                    # \uXXXX unicode escape (produced by json.dumps)
+                    _hex = text[i+2:i+6]
+                    try:
+                        value += chr(int(_hex, 16))
+                        i += 6
+                        continue
+                    except (ValueError, OverflowError):
+                        value += next_char  # malformed, keep as-is
                 else:
                     value += next_char
                 i += 2

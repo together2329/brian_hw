@@ -1364,7 +1364,7 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                                 try:
                                     tc_args = json.loads(tc_args_str)
                                     args_formatted = ", ".join(
-                                        f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                                        f'{k}={json.dumps(v, ensure_ascii=False)}' for k, v in tc_args.items()
                                     )
                                     yield f"\nAction: {tc_name}({args_formatted})\n"
                                 except (json.JSONDecodeError, AttributeError):
@@ -1813,7 +1813,7 @@ def _parse_responses_result(result: dict):
                 try:
                     tc_args = json.loads(tc_args_str)
                     args_formatted = ", ".join(
-                        f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                        f'{k}={json.dumps(v, ensure_ascii=False)}' for k, v in tc_args.items()
                     )
                     yield f"\nAction: {tc_name}({args_formatted})\n"
                 except (json.JSONDecodeError, AttributeError):
@@ -2006,7 +2006,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                 try:
                                     tc_args = json.loads(tc_args_str)
                                     args_formatted = ", ".join(
-                                        f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                                        f'{k}={json.dumps(v, ensure_ascii=False)}' for k, v in tc_args.items()
                                     )
                                     yield f"\nAction: {tc_name}({args_formatted})\n"
                                 except (json.JSONDecodeError, AttributeError):
@@ -3307,7 +3307,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                 try:
                                     tc_args = json.loads(tc_args_str)
                                     args_formatted = ", ".join(
-                                        f'{k}={json.dumps(v)}' for k, v in tc_args.items()
+                                        f'{k}={json.dumps(v, ensure_ascii=False)}' for k, v in tc_args.items()
                                     )
                                     yield f"\nAction: {tc_name}({args_formatted})\n"
                                 except (json.JSONDecodeError, AttributeError):
