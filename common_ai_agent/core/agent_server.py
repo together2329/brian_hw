@@ -623,7 +623,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         from core.action_parser import _strip_native_tool_tokens, _strip_thinking_tags
         from core.tools import AVAILABLE_TOOLS
         from core.tool_dispatcher import dispatch_tool as _dispatch_tool
-        from core.tool_dispatcher import execute_actions_parallel
+        from core.parallel_executor import execute_actions_parallel
         from lib.iteration_control import (
             IterationTracker, detect_completion_signal,
         )

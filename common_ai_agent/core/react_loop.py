@@ -390,6 +390,17 @@ def run_react_agent_impl(
         _perf = getattr(cfg, "PERF_TRACKING", False)
         _perf_iter_start = time.time()
 
+        # Fix: DeepSeek requires reasoning_content on all assistant messages.
+        # Sessions loaded from other models (GPT/Claude/GLM) lack this field,
+        # causing HTTP 400 on the first API call.  This runs BEFORE compress
+        # (compressor only runs post-compression, which is too late for the
+        # first call when no compression has happened yet).
+        _model_lower = getattr(cfg, 'MODEL_NAME', '').lower()
+        if 'deepseek' in _model_lower:
+            for _m in messages:
+                if _m.get('role') == 'assistant' and 'reasoning_content' not in _m:
+                    _m['reasoning_content'] = ' '
+
         # Compress history if needed
         _t = time.time()
         if cfg.DEBUG_MODE:

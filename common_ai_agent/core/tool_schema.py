@@ -336,6 +336,23 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         ),
         {},
     ),
+    "todo_note": _fn(
+        "todo_note",
+        (
+            "Append a progress note to a task's work log. Use during execution to record findings, "
+            "attempts, and criteria status — notes survive compression and appear during review/rejection.\n"
+            "Call whenever you discover something important.\n"
+            "Examples:\n"
+            "  todo_note(index=2, text='found: burst_len=15 in instr_cache.sv:17')\n"
+            "  todo_note(index=2, text='criteria \"compiles clean\" ✅ — iverilog exit 0')\n"
+            "  todo_note(index=2, text='tried direct AXI → failed: missing handshake, switched to wrapper')"
+        ),
+        {
+            "index": {"type": "integer", "description": "1-based task index to log to"},
+            "text": {"type": "string", "description": "Note content — what you found, tried, or confirmed"},
+        },
+        required=["index", "text"],
+    ),
 
     # ── Sub-Agents ────────────────────────────────────────────────────────────
     "background_task": _fn(
@@ -723,6 +740,7 @@ def get_tool_schemas(allowed_tools: List[str], compact: bool = False) -> List[Di
             "todo_add":       "Add task",
             "todo_remove":    "Remove task",
             "todo_status":    "Show task list summary",
+            "todo_note":      "Append note to task",
         }
         for s in schemas:
             fn = s.get("function", {})

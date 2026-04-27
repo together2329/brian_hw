@@ -37,6 +37,101 @@ KNOWN_TOOLS: frozenset = frozenset({
     'analyze_timing_paths', 'generate_module_docs', 'suggest_optimizations',
 })
 
+# ---------------------------------------------------------------------------
+# Markdown code-fence stripping — prevents LLM "thought demo" tool calls
+# inside ``` fences from being executed as real tool calls.
+# ---------------------------------------------------------------------------
+
+def _strip_markdown_fences(text: str) -> str:
+    """Replace markdown code fences with placeholder text.
+
+    LLMs sometimes embed tool-call examples inside ``` fences for illustration.
+    Without this filter, the parser would extract and execute those fake calls.
+
+    Strategy: replace the entire fence block (including its content) with a
+    placeholder that cannot match any tool-call regex.  The placeholder uses
+    `` characters so the parser doesn't see any Action:/<tool_call>/etc.
+    """
+    # Match ``` (optional language) ...content... ``` 
+    # Also handles ~~~~ fences
+    pattern = re.compile(
+        r'(```|~~~)\s*(\w*)\s*\n(.*?)\n\1',
+        re.DOTALL,
+    )
+    # Replacement: preserve the fence markers but obfuscate the content
+    # so no Action: or tool_call patterns remain.
+    def _replace(m: re.Match) -> str:
+        _lang = m.group(2) or ''
+        _content_len = len(m.group(3))
+        # Use a distinctive placeholder that can't match any tool regex
+        return f'{m.group(1)}{_lang}\n\x00CODE_FENCE({_content_len} chars)\x00\n{m.group(1)}'
+
+    return pattern.sub(_replace, text)
+
+
+# ---------------------------------------------------------------------------
+# Tag extraction with nesting depth tracking
+# ---------------------------------------------------------------------------
+
+def _extract_tag(text: str, tag_name: str, with_positions: bool = False):
+    """Extract content from the first non-nested occurrence of an XML tag.
+
+    Unlike naive <tag>(.*?)</tag> regex, this counts nesting depth so
+    <tool_call>...<tool_call>inner</tool_call>...</tool_call> correctly
+    extracts the outer content without false matches on inner tags.
+
+    Inspired by leaked Claude Code's extractTag() — see
+    leaked-claude-code/utils/messages.ts.
+
+    Args:
+        text: String containing XML.
+        tag_name: Tag name to extract (e.g. 'tool_use', 'tool_call').
+        with_positions: If True, return (content, tag_start, tag_end) tuple.
+            If False, return content string only.
+
+    Returns:
+        Content between tags, tag_start, tag_end (if with_positions=True).
+        Content string or None (if with_positions=False).
+    """
+    if not text.strip() or not tag_name.strip():
+        return (None, -1, -1) if with_positions else None
+
+    esc_tag = re.escape(tag_name)
+    open_re = re.compile(r'<' + esc_tag + r'(?:\s+[^>]*)?>', re.IGNORECASE)
+    close_re = re.compile(r'</' + esc_tag + r'>', re.IGNORECASE)
+
+    # Find first opening tag
+    open_m = open_re.search(text)
+    if not open_m:
+        return (None, -1, -1) if with_positions else None
+
+    tag_start = open_m.start()
+    depth = 1
+    pos = open_m.end()
+    while pos < len(text) and depth > 0:
+        # Check for nested opening tag first
+        nested_open = open_re.match(text, pos)
+        if nested_open:
+            depth += 1
+            pos = nested_open.end()
+            continue
+
+        # Check for closing tag
+        close_m = close_re.match(text, pos)
+        if close_m:
+            depth -= 1
+            if depth == 0:
+                tag_end = close_m.end()
+                if with_positions:
+                    return (text[open_m.end():close_m.start()], tag_start, tag_end)
+                return text[open_m.end():close_m.start()]
+            pos = close_m.end()
+            continue
+
+        pos += 1
+
+    return (None, -1, -1) if with_positions else None
+
 
 # ---------------------------------------------------------------------------
 # sanitize_action_text
@@ -121,8 +216,9 @@ def _convert_all_glm_tool_calls(text: str, xml_params_to_action_fn: Callable) ->
 
 # Aliases from LLM-invented tool names to actual registered tool names
 _TOOL_NAME_ALIASES: Dict[str, str] = {
-    "execute_command":  "run_command",
-    "shell_command":    "run_command",
+    "execute_command":   "run_command",
+    "run_shell_command":  "run_command",
+    "shell_command":      "run_command",
     "bash":             "run_command",
     "bash_command":     "run_command",
     "run_shell":        "run_command",
@@ -157,21 +253,35 @@ def _convert_tool_use_xml(text: str, xml_params_to_action_fn: Callable) -> str:
           <path>.</path>
         </arguments>
       </tool_use>
+      <tool_use id="toolu_xxx">...</tool_use>  (also nested, with attributes)
+
+    Uses depth-counting _extract_tag to handle nested same-name tags correctly.
+    Tag positions from _extract_tag ensure we always replace the exact match.
     """
-    def _replace(m: re.Match) -> str:
-        block = m.group(1)
-        # Extract tool_name
+    result = text
+    while True:
+        block, tag_start, tag_end = _extract_tag(result, 'tool_use', with_positions=True)
+        if block is None:
+            break
+
+        # Extract tool_name from the block
         name_m = re.search(r'<tool_name>\s*(\w+)\s*</tool_name>', block)
         if not name_m:
-            return m.group(0)
+            # No tool name found — strip the tag wrapper but keep content
+            result = result[:tag_start] + block.strip() + result[tag_end:]
+            continue
+
         tool_name = _resolve_tool_name(name_m.group(1))
         # Extract <arguments>...</arguments> block
-        args_m = re.search(r'<arguments>(.*?)</arguments>', block, re.DOTALL)
-        if args_m:
-            return xml_params_to_action_fn(tool_name, args_m.group(1))
-        return f"\nAction: {tool_name}()\n"
+        args_block = _extract_tag(block, 'arguments')
+        if args_block:
+            replacement = xml_params_to_action_fn(tool_name, args_block)
+        else:
+            replacement = f"\nAction: {tool_name}()\n"
 
-    return re.sub(r'<tool_use>(.*?)</tool_use>', _replace, text, flags=re.DOTALL)
+        result = result[:tag_start] + replacement + result[tag_end:]
+
+    return result
 
 
 def _strip_native_tool_tokens(text: str) -> str:
@@ -179,11 +289,20 @@ def _strip_native_tool_tokens(text: str) -> str:
 
     Handles GLM 4.7, Qwen, DeepSeek, Mistral native formats:
       <think>...</think>           — reasoning tokens
-      <tool_call>{json}</tool_call> — JSON tool calls
+      <tool_call>{json}</tool_call> — JSON tool calls (depth-counting extract)
       <tool>name</tool><parameter>  — XML tool calls
       <tool_use>...</tool_use>      — Anthropic-style XML (GLM imitation)
       bare function calls           — prepends Action: for known tools
+      bare JSON {"name":...,"arguments":...} — fallback parsing
+
+    Safety hardening:
+      - Markdown code fences (```) are stripped BEFORE parsing so LLM
+        "example" tool calls don't get executed.
+      - Nested same-name XML tags use depth-counting _extract_tag().
     """
+    # ── Safety: strip markdown code fences first ──
+    text = _strip_markdown_fences(text)
+
     # Strip reasoning tokens leaked into content
     text = _strip_thinking_tags(text)
 
@@ -220,52 +339,45 @@ def _strip_native_tool_tokens(text: str) -> str:
     # Pattern 0b: DeepSeek tool_call JSON blocks (non-native tool call mode)
     # Format: <tool_call">{"name": "...", "arguments": {...}}</tool_call">
     # May be wrapped in <tool_calls>...</tool_calls> for multiple calls.
-    # Also handles Action: format inside tags (strips wrapper tags).
+    # Uses depth-counting _extract_tag when blocks are properly paired.
     # Strip outer <tool_calls> wrapper first (keeps inner <tool_call"> blocks)
     text = re.sub(r'<tool_calls>\s*', '', text)
     text = re.sub(r'\s*</tool_calls>', '', text)
-    # Pattern 0b-1: <tool_call"> JSON </tool_call"> — extract full content, parse as JSON
-    def _convert_deepseek_tool_call_full(m: re.Match) -> str:
-        content = m.group(1).strip()
-        # Try JSON parse first
-        action = _json_tool_call_to_action(content)
+
+    # Use depth-counting extraction for <tool_call> blocks with proper </tool_call> close
+    while True:
+        block, tag_start, tag_end = _extract_tag(text, 'tool_call', with_positions=True)
+        if block is None:
+            break
+        # Try JSON first
+        action = _json_tool_call_to_action(block)
         if action:
-            return action
-        # If not JSON, just return the content (strips the wrapper tags)
-        return content
+            text = text[:tag_start] + action + text[tag_end:]
+        else:
+            # Not JSON — try as direct function call
+            fc = _func_call_to_action(block)
+            text = text[:tag_start] + fc + text[tag_end:]
 
+    # Handle truncated: <tool_call"> without closing tag (end-of-stream truncation)
     text = re.sub(
-        r'<tool_call">\s*(.*?)\s*</tool_call">',
-        _convert_deepseek_tool_call_full,
-        text,
-        flags=re.DOTALL,
-    )
-    # Handle truncated: <tool_call"> without closing tag
-    text = re.sub(
-        r'<tool_call">\s*(.*?)\s*$',
-        _convert_deepseek_tool_call_full,
+        r'<tool_call">\s*([^{]*?\{.*?\}?)\s*$',
+        lambda m: _json_tool_call_to_action(m.group(1))
+        or _func_call_to_action(m.group(1)),
         text,
         flags=re.DOTALL,
     )
 
-    # Pattern 0: <tool_call>func(args)</tool_call> — direct function call
+    # Pattern 0c: <tool_call>func(args)</tool_call> — direct function call inside tag
     text = re.sub(
         r'<tool_call>\s*(\w+\s*\([^<]*\))\s*(?:</tool_call>)?',
         lambda m: _func_call_to_action(m.group(1)),
         text, flags=re.DOTALL
     )
 
-    # Pattern 1: JSON-based tool calls
-    text = re.sub(
-        r'<tool_call>\s*(\{.*\})\s*</tool_call>',
-        lambda m: _json_tool_call_to_action(m.group(1)),
-        text, flags=re.DOTALL
-    )
-    text = re.sub(
-        r'\{\s*"name"\s*:\s*"(\w+)"\s*,\s*"arguments"\s*:\s*\{[^{}]*\}\s*\}',
-        lambda m: _json_tool_call_to_action(m.group(0)),
-        text
-    )
+    # Pattern 1: JSON-based bare tool calls — {"name": "...", "arguments": {...}}
+    # The previous naive regex couldn't handle nested braces in arguments.
+    # Now use a JSON-aware extractor that counts brace depth.
+    text = _extract_bare_json_tool_calls(text, _json_tool_call_to_action)
 
     # Pattern 2: GLM-style XML tool calls
     text = _convert_all_glm_tool_calls(text, _xml_params_to_action)
@@ -283,7 +395,33 @@ def _strip_native_tool_tokens(text: str) -> str:
     text = re.sub(r'<\|(?:tool_call|tool_calls|functions)[^|]*\|>', '', text)
     text = re.sub(r'</?(?:tool_call|tool|action|execute|func\w*|p(?:ar|aram)\w*)>', '', text)
 
-    # Pattern 4: Bare function calls without Action: prefix (Qwen / GLM style)
+    # Pattern 4: Two-line "Action: tool_name\nAction Input: {...}" → single-line
+    # Common in LangChain/OpenAI format; LLM may output this instead of Action: tool(args)
+    # Also handles variants: "Action Input:", "Action input:", "arguments:"
+    def _merge_two_line_action(m: re.Match) -> str:
+        tool_name = _resolve_tool_name(m.group(1))
+        args_block = m.group(2)
+        # Try JSON first
+        try:
+            data = json.loads(args_block.strip())
+            if isinstance(data, dict):
+                args_str = ", ".join(
+                    f'{k}={json.dumps(v, ensure_ascii=False)}' for k, v in data.items()
+                )
+                return f"\nAction: {tool_name}({args_str})\n"
+        except (json.JSONDecodeError, AttributeError):
+            pass
+        # Fallback: treat as raw string arg
+        return f"\nAction: {tool_name}(command={json.dumps(args_block.strip(), ensure_ascii=False)})\n"
+
+    text = re.sub(
+        r'(?:^|\n)\s*[Aa]ction\s*:\s*(\w+)\s*\n+\s*[Aa]ction\s*[Ii]nput\s*:\s*(.*?)(?=\n\s*(?:[Aa]ction|Thought|Observation|Final|$))',
+        _merge_two_line_action,
+        text,
+        flags=re.DOTALL,
+    )
+
+    # Pattern 5: Bare function calls without Action: prefix (Qwen / GLM style)
     # First split inline tool calls: "tool1(...) tool2(...)" → separate lines
     _tools_pattern = '|'.join(re.escape(t) for t in KNOWN_TOOLS)
     text = re.sub(
@@ -300,6 +438,71 @@ def _strip_native_tool_tokens(text: str) -> str:
     )
 
     return text.strip()
+
+
+# ---------------------------------------------------------------------------
+# Bare JSON tool call extraction (brace-depth counting)
+# ---------------------------------------------------------------------------
+
+def _extract_bare_json_tool_calls(
+    text: str,
+    to_action: Callable[[str], str],
+) -> str:
+    """Extract bare JSON tool calls like {"name":"...","arguments":{...}}.
+
+    Uses brace-depth counting to correctly handle nested JSON objects in
+    the arguments field, unlike naive regex that fails on nested braces.
+    """
+    # Find patterns that look like tool-call JSON: {"name": "...", "arguments":
+    # Use regex to locate candidate starts, then count braces for the full object.
+    pattern = re.compile(
+        r'\{\s*"name"\s*:\s*"([^"]+)"\s*,\s*"arguments"\s*:\s*',
+    )
+
+    result = text
+    offset = 0
+    while offset < len(result):
+        m = pattern.search(result, offset)
+        if not m:
+            break
+
+        # Count braces from the opening { to the matching }
+        start = m.start()
+        depth = 0
+        in_str = False
+        escaped = False
+        end = start
+        for i in range(start, len(result)):
+            c = result[i]
+            if escaped:
+                escaped = False
+                continue
+            if c == '\\':
+                escaped = True
+                continue
+            if c == '"' and not escaped:
+                in_str = not in_str
+                continue
+            if not in_str:
+                if c == '{':
+                    depth += 1
+                elif c == '}':
+                    depth -= 1
+                    if depth == 0:
+                        end = i + 1
+                        break
+
+        if end > start:
+            json_str = result[start:end]
+            action = to_action(json_str)
+            if action:
+                result = result[:start] + action + result[end:]
+                offset = start + len(action)
+                continue
+
+        offset = m.end()
+
+    return result
 
 
 # ---------------------------------------------------------------------------

@@ -87,6 +87,49 @@ def save_conversation_history(
             print(f"[System] Failed to save history: {e}")
 
 
+def _ensure_deepseek_reasoning_content(messages: List[Dict[str, Any]], model_name: str) -> int:
+    """Ensure all assistant messages have reasoning_content when using DeepSeek.
+
+    DeepSeek's thinking mode REQUIRES reasoning_content on every assistant
+    message. When loading a session created with GPT/Claude/GLM, those
+    messages lack this field, causing HTTP 400 on the first API call.
+
+    This runs BEFORE the first LLM call (compressor's _validate_and_repair_sequence
+    only runs post-compression, which is too late).
+
+    Args:
+        messages:   Loaded message history.
+        model_name: Current model name (lowercase, from config.MODEL_NAME).
+
+    Returns:
+        Number of messages that were repaired.
+    """
+    if 'deepseek' not in model_name.lower():
+        return 0
+
+    repaired = 0
+    for msg in messages:
+        if msg.get('role') == 'assistant' and 'reasoning_content' not in msg:
+            # DeepSeek needs at least a space (not empty string) for the field
+            msg['reasoning_content'] = ' '
+            repaired += 1
+
+    if repaired > 0:
+        try:
+            from lib.display import Color
+            print(Color.info(
+                f"[System] DeepSeek: injected reasoning_content on {repaired} "
+                f"assistant messages loaded from history"
+            ))
+        except ImportError:
+            print(
+                f"[System] DeepSeek: injected reasoning_content on {repaired} "
+                f"assistant messages loaded from history"
+            )
+
+    return repaired
+
+
 def load_conversation_history(cfg=None, silent=False) -> Optional[List[Dict[str, Any]]]:
     """Load conversation history from JSON file if it exists.
 
@@ -113,6 +156,13 @@ def load_conversation_history(cfg=None, silent=False) -> Optional[List[Dict[str,
                     print(Color.success(f"[System] Loaded {len(messages)} messages from {cfg.HISTORY_FILE}"))
                 except ImportError:
                     print(f"[System] Loaded {len(messages)} messages from {cfg.HISTORY_FILE}")
+
+            # Fix: DeepSeek requires reasoning_content on all assistant messages.
+            # Sessions loaded from other models (GPT/Claude/GLM) lack this field,
+            # causing HTTP 400 on the first API call.
+            _model_name = getattr(cfg, 'MODEL_NAME', '')
+            _ensure_deepseek_reasoning_content(messages, _model_name)
+
             return messages
     except Exception as e:
         try:
