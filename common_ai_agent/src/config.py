@@ -373,6 +373,12 @@ DISPLAY_LIST_MAX_ENTRIES = int(os.getenv("DISPLAY_LIST_MAX_ENTRIES", "30"))   # 
 DISPLAY_RESULT_MAX_CHARS = int(os.getenv("DISPLAY_RESULT_MAX_CHARS", "2000")) # total chars in any result preview
 DISPLAY_TOOL_DETAIL      = os.getenv("DISPLAY_TOOL_DETAIL", "true").lower() in ("true", "1", "yes")  # syntax-highlighted read/grep/list preview
 
+# Safe display truncation — used by safe_truncate_output() to cap large tool results.
+# These prevent the terminal UI from breaking on very large outputs (trees, long reads, grep floods).
+DISPLAY_MAX_TOOL_LINES   = int(os.getenv("DISPLAY_MAX_TOOL_LINES",   "80"))    # max lines before truncation
+DISPLAY_MAX_TOOL_CHARS   = int(os.getenv("DISPLAY_MAX_TOOL_CHARS",   "8000"))  # max total chars before truncation
+DISPLAY_SAFE_CODE_BLOCK_LINES = int(os.getenv("DISPLAY_SAFE_CODE_BLOCK_LINES", "150"))  # max lines in a single code block
+
 # Commit message verbosity: "simple" | "summary"
 GIT_COMMIT_MSG_MODE = os.getenv("GIT_COMMIT_MSG_MODE", "simple")
 GIT_COMMIT_SUMMARY_TEMPERATURE = float(os.getenv("GIT_COMMIT_SUMMARY_TEMPERATURE", "0.3"))

@@ -64,7 +64,7 @@ def _strip_markdown_fences(text: str) -> str:
         _lang = m.group(2) or ''
         _content_len = len(m.group(3))
         # Use a distinctive placeholder that can't match any tool regex
-        return f'{m.group(1)}{_lang}\n\x00CODE_FENCE({_content_len} chars)\x00\n{m.group(1)}'
+        return f'{m.group(1)}{_lang}\n[CODE_FENCE({_content_len} chars)]\n{m.group(1)}'
 
     return pattern.sub(_replace, text)
 

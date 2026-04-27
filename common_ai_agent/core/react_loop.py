@@ -175,6 +175,7 @@ def run_react_agent_impl(
             format_iteration_header, format_tool_header, format_tool_result,
             format_tool_brief, _extract_tool_args_summary, _friendly_tool_name,
             format_write_preview, format_read_preview, format_grep_preview,
+            format_tree_display,
         )
     except ImportError:
         # Minimal stubs for environments without lib.display
@@ -203,8 +204,11 @@ def run_react_agent_impl(
         def format_write_preview(*a, **kw): return ""
         def format_read_preview(*a, **kw): return ""
         def format_grep_preview(*a, **kw): return ""
+        def format_tree_display(t, **kw): return t
 
     # Config-aware display wrapper — reads DISPLAY_* limits at call time
+    _TREE_TOOLS = frozenset({'list_dir', 'find_files', 'extract_module_hierarchy'})
+
     def _fmt_result(observation: str, tool_name: str = "") -> str:
         import sys as _sys
         _c = _sys.modules.get('config') or _sys.modules.get('src.config')
@@ -217,6 +221,9 @@ def run_react_agent_impl(
             _max_lines = int(getattr(_c, 'DISPLAY_GREP_MAX_LINES', 15))
         elif tool_name in ('list_dir',):
             _max_lines = int(getattr(_c, 'DISPLAY_LIST_MAX_ENTRIES', 30))
+        # Tree-producing tools use format_tree_display for safe rendering
+        if tool_name in _TREE_TOOLS:
+            return format_tree_display(observation, max_lines=_max_lines)
         return format_tool_result(observation, max_lines=_max_lines, max_chars=_max_chars)
 
     # Use injected ESC functions if provided (for testing), else use EscapeWatcher

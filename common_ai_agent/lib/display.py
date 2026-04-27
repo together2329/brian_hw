@@ -553,6 +553,136 @@ def format_tool_result(output: str, max_lines: int = 5, max_chars: int = 300) ->
     return '\n'.join(result_lines)
 
 
+def safe_truncate_output(output: str, max_lines: int = None, head_lines: int = None,
+                         tail_lines: int = 10, max_chars: int = None) -> str:
+    """Truncate large tool output to safe display size.
+
+    Prevents the chat renderer from breaking on very large outputs (trees,
+    long file reads, grep with many matches). Shows head_lines + tail_lines
+    with a "... N lines omitted ..." marker in the middle.
+
+    Defaults are read from config.py:
+        DISPLAY_MAX_TOOL_LINES   (default 80)
+        DISPLAY_MAX_TOOL_CHARS   (default 8000)
+    head_lines defaults to max_lines // 2.
+
+    Args:
+        output: Raw tool output string.
+        max_lines: Maximum lines to display (default: from config, 80).
+        head_lines: Lines to show from the start (default: max_lines // 2).
+        tail_lines: Lines to show from the end (default 10).
+        max_chars: Maximum total characters (default: from config, 8000).
+
+    Returns:
+        Truncated output string with omission marker if needed.
+    """
+    # Load defaults from config (lazy import to avoid circular deps)
+    if max_lines is None or max_chars is None:
+        try:
+            import src.config as _cfg
+        except ImportError:
+            try:
+                import config as _cfg
+            except ImportError:
+                _cfg = None
+        if max_lines is None:
+            max_lines = getattr(_cfg, 'DISPLAY_MAX_TOOL_LINES', 80) if _cfg else 80
+        if max_chars is None:
+            max_chars = getattr(_cfg, 'DISPLAY_MAX_TOOL_CHARS', 8000) if _cfg else 8000
+    if head_lines is None:
+        head_lines = max_lines // 2
+    if not isinstance(output, str):
+        output = str(output) if output is not None else ""
+    if not output:
+        return output
+
+    lines = output.split('\n')
+
+    # Short output — pass through
+    if len(lines) <= max_lines and len(output) <= max_chars:
+        return output
+
+    # Long output — truncate with head + tail
+    total = len(lines)
+    head = lines[:head_lines]
+    omitted = total - head_lines - tail_lines
+    tail = lines[-tail_lines:] if tail_lines > 0 else []
+
+    marker = f"  {Color.DIM}... {omitted} lines omitted ...{Color.RESET}"
+    result = '\n'.join(head) + '\n' + marker + '\n' + '\n'.join(tail)
+
+    # Final char cap
+    if len(result) > max_chars:
+        result = result[:max_chars - 50] + f"\n  {Color.DIM}... truncated at {max_chars} chars{Color.RESET}"
+
+    return result
+
+
+def format_tree_display(tree_text: str, max_lines: int = None, head_lines: int = 30,
+                        tail_lines: int = 10) -> str:
+    """Format tree/directory output with safe truncation and summary stats.
+
+    Designed for list_dir, find_files, and other tree-producing tools.
+    If the tree fits within max_lines, returns it unchanged with a summary
+    line appended. Otherwise, shows head_lines + omission marker + tail_lines
+    + summary.
+
+    Args:
+        tree_text: Raw tree output (one entry per line).
+        max_lines: Maximum lines to display (default: from config DISPLAY_MAX_TOOL_LINES, 80).
+        head_lines: Lines to show from the start (default 30).
+        tail_lines: Lines to show from the end (default 10).
+
+    Returns:
+        Formatted tree string with omission marker and summary if needed.
+    """
+    if not isinstance(tree_text, str):
+        tree_text = str(tree_text) if tree_text is not None else ""
+    if not tree_text or not tree_text.strip():
+        return tree_text
+
+    # Load max_lines from config if not specified
+    if max_lines is None:
+        try:
+            import src.config as _cfg
+        except ImportError:
+            try:
+                import config as _cfg
+            except ImportError:
+                _cfg = None
+        max_lines = getattr(_cfg, 'DISPLAY_MAX_TOOL_LINES', 80) if _cfg else 80
+
+    lines = tree_text.strip().split('\n')
+    total = len(lines)
+
+    # Count dirs and files for summary
+    dir_count = sum(1 for l in lines if l.strip().endswith('/') or '/>' in l)
+    file_count = total - dir_count
+    summary = f"  {Color.DIM}📊 Total: {dir_count} directories, {file_count} files{Color.RESET}"
+
+    # Short tree — return as-is + summary
+    if total <= max_lines:
+        return tree_text.rstrip('\n') + '\n' + summary
+
+    # Long tree — truncate with head + omission marker + tail + summary
+    # Ensure head doesn't overlap with tail; skip marker if nothing actually omitted
+    _head_lines = min(head_lines, total - tail_lines)
+    _tail_lines = min(tail_lines, total - _head_lines)
+    omitted = total - _head_lines - _tail_lines
+    head = lines[:_head_lines]
+    tail = lines[-_tail_lines:] if _tail_lines > 0 else []
+
+    parts = ['\n'.join(head)]
+    if omitted > 0:
+        marker = f"  {Color.DIM}... {omitted} directories/files omitted ...{Color.RESET}"
+        parts.append(marker)
+    parts.append('\n'.join(tail))
+    parts.append(summary)
+    result = '\n'.join(parts)
+
+    return result
+
+
 def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
     """
     Return a short inline suffix describing the tool result.

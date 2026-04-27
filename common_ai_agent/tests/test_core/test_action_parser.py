@@ -5,6 +5,7 @@ Written BEFORE the module exists (Red phase).
 import sys
 import os
 import unittest
+import json
 
 _tests_dir = os.path.dirname(os.path.abspath(__file__))
 _project_root = os.path.dirname(os.path.dirname(_tests_dir))
@@ -143,6 +144,74 @@ class TestParseValue(unittest.TestCase):
         val, n = parse_value("")
         self.assertIsNone(val)
         self.assertEqual(n, 0)
+
+    # ── Regression tests for BUG_REPORT.md (commit 8bd1176) ──
+    # parse_value triple-quote handler was skipping escape sequences instead
+    # of unescaping them, causing write_file/replace_in_file to corrupt files.
+
+    def test_triple_quoted_escaped_quotes_unescaped(self):
+        """REGRESSION (BUG_REPORT.md): \" inside triple quotes must become "."""
+        # Input: """\"\"\"docstring\"\"\""""
+        t = '"""' + '\\"' * 3 + 'docstring' + '\\"' * 3 + '"""'
+        val, n = parse_value(t)
+        self.assertEqual(val, '"""docstring"""')
+
+    def test_triple_quoted_newline_escape(self):
+        """REGRESSION: \\n inside triple quotes must become newline."""
+        val, n = parse_value('"""line1\\nline2"""')
+        self.assertEqual(val, 'line1\nline2')
+
+    def test_triple_quoted_backslash_escape(self):
+        """REGRESSION: \\\\ inside triple quotes must become single backslash."""
+        val, n = parse_value('"""path\\\\to\\\\file"""')
+        self.assertEqual(val, 'path\\to\\file')
+
+    def test_triple_quoted_tab_escape(self):
+        """REGRESSION: \\t inside triple quotes must become tab."""
+        val, n = parse_value('"""col1\\tcol2"""')
+        self.assertEqual(val, 'col1\tcol2')
+
+    def test_triple_quoted_carriage_return(self):
+        """REGRESSION: \\r inside triple quotes must become CR."""
+        val, n = parse_value('"""a\\rb"""')
+        self.assertEqual(val, 'a\rb')
+
+    def test_json_dumps_round_trip(self):
+        """json.dumps(v, ensure_ascii=False) → parse_value → original value."""
+        test_strings = [
+            '"""Tracks a single /run invocation."""',
+            'line1\nline2\nline3',
+            'def foo():\n    """docstring"""\n    pass',
+            'print("hello")',
+            'tab\there',
+            'path\\to\\file',
+            'café résumé',
+        ]
+        for original in test_strings:
+            dumped = json.dumps(original, ensure_ascii=False)
+            parsed, consumed = parse_value(dumped)
+            self.assertEqual(parsed, original,
+                             f"Round-trip failed for {repr(original)}: got {repr(parsed)}")
+
+    def test_unicode_escape_regular_string(self):
+        """\\u00e9 in regular double-quoted string must become é."""
+        val, n = parse_value('"caf\\u00e9"')
+        self.assertEqual(val, 'café')
+
+    def test_carriage_return_escape_regular_string(self):
+        """\\r in regular double-quoted string must become CR."""
+        val, n = parse_value('"line1\\rline2"')
+        self.assertEqual(val, 'line1\rline2')
+
+    def test_formfeed_escape_regular_string(self):
+        """\\f in regular double-quoted string must become form-feed."""
+        val, n = parse_value('"page1\\fpage2"')
+        self.assertEqual(val, 'page1\fpage2')
+
+    def test_backspace_escape_regular_string(self):
+        """\\b in regular double-quoted string must become backspace."""
+        val, n = parse_value('"a\\bb"')
+        self.assertEqual(val, 'a\bb')
 
 
 # ---------------------------------------------------------------------------
