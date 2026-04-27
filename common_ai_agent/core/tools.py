@@ -60,7 +60,9 @@ def _tool_cfg(attr: str, default: int) -> int:
 # ---------------------------------------------------------------------------
 import builtins as _bi
 if not hasattr(_bi, '_FILE_ACCESS_LOG'):
-    _bi._FILE_ACCESS_LOG = {}  # {abs_path: {"op": "read"|"write"|"edit", "at": turn#}}
+    _bi._FILE_ACCESS_LOG = {}  # {abs_path: {"op": "read"|"write"|"edit"|"grep", "seq": int, ...}}
+if not hasattr(_bi, '_FILE_ACCESS_SEQ'):
+    _bi._FILE_ACCESS_SEQ = 0
 
 
 def _log_file_access(path: str, op: str):
@@ -68,7 +70,7 @@ def _log_file_access(path: str, op: str):
 
     Args:
         path: File path (will be resolved to absolute).
-        op: One of 'read', 'write', 'edit'.
+        op: One of 'read', 'write', 'edit', 'grep'.
     """
     if not path:
         return
@@ -85,16 +87,20 @@ def _log_file_access(path: str, op: str):
     else:
         display = abs_path
 
+    _bi._FILE_ACCESS_SEQ += 1
+    seq = _bi._FILE_ACCESS_SEQ
+
     existing = _bi._FILE_ACCESS_LOG.get(abs_path)
     if existing:
-        # Upgrade: read → edit → write (write is highest)
-        rank = {"read": 0, "edit": 1, "write": 2}
-        if rank.get(op, 0) > rank.get(existing.get("op", "read"), 0):
-            existing["op"] = op
+        existing["seq"] = seq  # update to latest access order
         existing["count"] = existing.get("count", 1) + 1
         existing["display"] = display
+        # Upgrade op rank: grep < read < edit < write
+        rank = {"grep": 0, "read": 1, "edit": 2, "write": 3}
+        if rank.get(op, 0) > rank.get(existing.get("op", "read"), 0):
+            existing["op"] = op
     else:
-        _bi._FILE_ACCESS_LOG[abs_path] = {"op": op, "display": display, "count": 1}
+        _bi._FILE_ACCESS_LOG[abs_path] = {"op": op, "display": display, "count": 1, "seq": seq}
 
 
 def get_file_access_summary() -> str:
@@ -4251,6 +4257,7 @@ AVAILABLE_TOOLS = {
     "todo_add": todo_add,
     "todo_remove": todo_remove,
     "todo_status": todo_status,
+    "todo_note": todo_note,
     # RAG Tools (disabled — uncomment to enable)
     # "rag_search": rag_search,
     # "rag_index": rag_index,

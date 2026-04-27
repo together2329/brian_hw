@@ -438,6 +438,8 @@ COMPRESSION_CHUNK_SIZE = int(os.getenv("COMPRESSION_CHUNK_SIZE", "10"))
 # Number of recent messages to keep unchanged during compression
 # Recommended: 4-15 messages
 COMPRESSION_KEEP_RECENT = int(os.getenv("COMPRESSION_KEEP_RECENT", "4"))
+# Most-recently-accessed tool call paths to embed in compression system msg (0=disable)
+COMPRESSION_TOOL_CALL_PATHS = int(os.getenv("COMPRESSION_TOOL_CALL_PATHS", "0"))
 
 # Number of LLM retry attempts on empty/failed response (0 = no retry)
 LLM_RETRY_COUNT = int(os.getenv("LLM_RETRY_COUNT", "1"))

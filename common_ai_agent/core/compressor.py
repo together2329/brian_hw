@@ -26,9 +26,10 @@ from typing import Any, Callable, Dict, List, Optional
 # Working-path collector — snapshot current project context at compress time
 # ---------------------------------------------------------------------------
 
-def _collect_working_paths_from_log(max_entries: int = 50) -> str:
-    """Pull the last N entries from builtins._FILE_ACCESS_LOG for compression context.
+def _collect_working_paths_from_log(max_entries: int = 20) -> str:
+    """Pull the most-recently-accessed N entries from builtins._FILE_ACCESS_LOG.
 
+    Sorted by seq (descending) so the most recent accesses appear first.
     Returns empty string if the log is empty or unavailable.
     """
     import builtins as _b
@@ -39,31 +40,14 @@ def _collect_working_paths_from_log(max_entries: int = 50) -> str:
     cwd = os.getcwd()
     lines: list[str] = [f"CWD: {cwd}"]
 
-    # Take last max_entries entries
-    entries = list(log.items())[-max_entries:]
+    # Sort by seq descending → most recently accessed first
+    entries = sorted(log.items(), key=lambda kv: kv[1].get("seq", 0), reverse=True)[:max_entries]
 
-    # Group by parent directory
-    dirs: dict[str, list[tuple[str, str, int]]] = {}
     for abs_path, info in entries:
         display = info.get("display", abs_path)
         op = info.get("op", "?")
-        count = info.get("count", 1)
-        parent = os.path.dirname(abs_path)
-        if parent.startswith(cwd + "/"):
-            parent_d = parent[len(cwd) + 1:]
-        elif parent == cwd:
-            parent_d = "."
-        else:
-            parent_d = parent
-        fname = os.path.basename(abs_path)
-        dirs.setdefault(parent_d, []).append((fname, op, count))
-
-    for dir_path in sorted(dirs.keys()):
-        files = dirs[dir_path]
-        lines.append(f"  [{dir_path}/]")
-        for fname, op, cnt in sorted(files, key=lambda x: x[0]):
-            icon = {"read": "📖", "write": "✏️ ", "edit": "🔧"}.get(op, "•")
-            lines.append(f"    {icon} {fname}  ({op}, {cnt}x)")
+        cnt = info.get("count", 1)
+        lines.append(f"  {op}: {display}  (x{cnt})")
 
     return "\n".join(lines)
 
@@ -1341,11 +1325,13 @@ def compress_history(
         if _cat_other:
             _ordered_parts.append("\n\n".join(_cat_other))
 
-        # Append file access log (last ~50 tool-touched paths)
+        # Append file access log (config: COMPRESSION_TOOL_CALL_PATHS, 0=disable)
         try:
-            _file_log = _collect_working_paths_from_log(max_entries=50)
-            if _file_log:
-                _ordered_parts.append("===== WORKING PATHS (recent tool calls) =====\n" + _file_log)
+            _n = int(getattr(cfg, 'COMPRESSION_TOOL_CALL_PATHS', 0))
+            if _n > 0:
+                _file_log = _collect_working_paths_from_log(max_entries=_n)
+                if _file_log:
+                    _ordered_parts.append("===== WORKING PATHS (recent tool calls) =====\n" + _file_log)
         except Exception as _fle:
             print(f"  [Compress] file log collection failed: {_fle}")
 
