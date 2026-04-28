@@ -182,8 +182,12 @@ if __name__ == "__main__":
     # ── UI Mode routing ────────────────────────────────────────────────────
     _ui_mode = getattr(config, "UI_MODE", "textual").lower()
     _web_port = getattr(config, "WEB_UI_PORT", 8080)
+    _atlas_port = getattr(config, "ATLAS_UI_PORT", 8765)
 
-    if _ui_mode == "web":
+    if _ui_mode == "atlas":
+        from src.atlas_ui import run_atlas_ui
+        run_atlas_ui(port=_atlas_port)
+    elif _ui_mode == "web":
         from src.web_ui import run_web_ui
         run_web_ui(port=_web_port)
     elif _TEXTUAL_OK:
