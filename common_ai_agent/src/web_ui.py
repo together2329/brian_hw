@@ -8,12 +8,9 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 import queue
 import sys
 import threading
-import time
-from pathlib import Path
 
 HTML = r"""<!DOCTYPE html>
 <html lang="en">
@@ -167,25 +164,25 @@ class _WebBridge:
 
 
 class _SSEQueue:
-    """Thread-safe async queue for SSE events."""
+    """Thread-safe queue for SSE events — works across sync threads and async."""
 
     def __init__(self):
-        self._q: asyncio.Queue = asyncio.Queue()
+        self._q: queue.Queue = queue.Queue()
 
     def put_nowait(self, event: str, data: str) -> None:
-        try:
-            self._q.put_nowait(f"event: {event}\ndata: {data}\n\n")
-        except asyncio.QueueFull:
-            pass
+        self._q.put_nowait(f"event: {event}\ndata: {data}\n\n")
 
     async def get(self) -> str:
-        return await self._q.get()
+        # Bridge sync queue → async via run_in_executor
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, self._q.get)
 
 
 def create_app():
     """Build the FastAPI app with all routes."""
     try:
-        from fastapi import FastAPI, Request, Response
+        from fastapi import FastAPI
+        from fastapi.params import Body
         from fastapi.responses import HTMLResponse, StreamingResponse
     except ImportError:
         print("ERROR: fastapi not installed. Run: pip install fastapi uvicorn")
@@ -200,8 +197,8 @@ def create_app():
         return HTML
 
     @app.post("/submit")
-    async def submit(request: Request):
-        text = (await request.body()).decode("utf-8", errors="replace").strip()
+    async def submit(body: str = Body("", media_type="text/plain")):
+        text = body.strip()
         if text:
             if bridge.agent_running:
                 bridge.submit_interrupt(text)
