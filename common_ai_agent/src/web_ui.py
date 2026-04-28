@@ -280,7 +280,8 @@ def run_web_ui(port: int = 8080):
 
     # Run agent in background thread
     def _run_agent():
-        bridge.agent_running = True
+        # Let _textual_set_agent_running_fn manage the running flag —
+        # setting it too early causes all /submit to route to interrupt queue
         try:
             _main.chat_loop()
         except Exception as e:
