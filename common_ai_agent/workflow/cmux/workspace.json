@@ -1,0 +1,14 @@
+{
+  "name": "cmux",
+  "description": "cmux terminal multiplexer — manage surfaces, panes, and worker servers via cmux CLI",
+  "env": {
+    "CMUX_ENABLE": "true",
+    "MAX_ITERATIONS": "40"
+  },
+  "skills": {
+    "force_activate": [],
+    "disable": []
+  },
+  "system_prompt_mode": "prepend",
+  "plan_prompt_mode": "prepend"
+}
