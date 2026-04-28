@@ -4235,6 +4235,63 @@ def read_image(path=None, prompt="Describe this image in detail."):
         return f"Error analyzing image: {e}"
 
 
+# ── ask_user — interactive question/answer through the GUI ─────────
+# The GUI (atlas_ui.py) installs a callback via set_ask_user_callback().
+# When ask_user is invoked from the agent, the callback opens a question
+# card on the frontend, blocks the agent thread until the user submits,
+# and returns the submitted answer as the tool observation.
+_ask_user_callback = None
+
+
+def set_ask_user_callback(cb):
+    """Install the GUI bridge for ask_user. Call once at server boot."""
+    global _ask_user_callback
+    _ask_user_callback = cb
+
+
+def ask_user(question, options=None, kind="single", subtitle=""):
+    """Ask the user a question through the GUI and wait for their answer.
+
+    Args:
+        question: Required. The main question text shown to the user.
+        options:  Optional list. Either a list of strings, or a list of
+                  dicts {id, label, detail?}. Required when kind in
+                  ('single', 'multi'); ignored when kind == 'input'.
+        kind:     'single' (radio, default), 'multi' (checkbox), or
+                  'input' (free-form text only).
+        subtitle: Optional explainer line under the question.
+
+    Returns:
+        Plain-text summary of the user's answer.
+    """
+    if _ask_user_callback is None:
+        return ("[ask_user unavailable — running outside GUI mode. "
+                "Restate the question to the user in your reply instead.]")
+    if not isinstance(question, str) or not question.strip():
+        return "[ask_user: 'question' must be a non-empty string]"
+    kind = (kind or "single").lower()
+    if kind not in ("single", "multi", "input"):
+        return f"[ask_user: invalid kind={kind!r}; use single|multi|input]"
+    # Normalize options into a list of {id, label, detail?}.
+    norm_opts = []
+    if options:
+        for i, o in enumerate(options):
+            if isinstance(o, str):
+                norm_opts.append({"id": f"opt_{i}", "label": o})
+            elif isinstance(o, dict) and o.get("label"):
+                norm_opts.append({
+                    "id": str(o.get("id", f"opt_{i}")),
+                    "label": str(o["label"]),
+                    "detail": str(o.get("detail", "")) or None,
+                })
+    if kind in ("single", "multi") and not norm_opts:
+        return f"[ask_user: kind={kind!r} requires non-empty options list]"
+    try:
+        return _ask_user_callback(question, norm_opts, kind, subtitle)
+    except Exception as e:
+        return f"[ask_user error: {type(e).__name__}: {e}]"
+
+
 # Registry of available tools
 AVAILABLE_TOOLS = {
     "read_file": read_file,
@@ -4285,6 +4342,8 @@ AVAILABLE_TOOLS = {
     "job_status": job_status,
     "job_output": job_output,
     "job_cancel": job_cancel,
+    # GUI interaction
+    "ask_user": ask_user,
 }
 
 # Import and register Verilog analysis tools

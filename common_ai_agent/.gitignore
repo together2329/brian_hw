@@ -48,3 +48,7 @@ cmd_output_*.txt
 # Runtime state
 current_todos.json
 **/current_todos.json
+
+# Reference download from claude.ai design — not part of project
+/ATLAS/
+/ATLAS.zip
