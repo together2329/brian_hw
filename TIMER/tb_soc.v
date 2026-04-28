@@ -1,4 +1,3 @@
-
 `timescale 1ns / 1ps
 
 //----------------------------------------------------------------------------
@@ -49,6 +48,33 @@ module tb_soc;
     localparam [31:0] DMA_CONTROL    = 32'h0000400C;
     localparam [31:0] DMA_STATUS     = 32'h00004010;
 
+    // I3C register addresses (base 0x0000_5000, via bridge)
+    localparam [31:0] I3C_CTRL       = 32'h00005000;
+    localparam [31:0] I3C_STATUS     = 32'h00005004;
+    localparam [31:0] I3C_TX_DATA    = 32'h00005008;
+    localparam [31:0] I3C_RX_DATA    = 32'h0000500C;
+    localparam [31:0] I3C_CMD        = 32'h00005010;
+    localparam [31:0] I3C_DEV_ADDR   = 32'h00005014;
+    localparam [31:0] I3C_CLK_DIV_REG= 32'h00005018;
+
+    // SMBus register addresses (base 0x0000_6000, via bridge)
+    localparam [31:0] SMBUS_CTRL       = 32'h00006000;
+    localparam [31:0] SMBUS_STATUS     = 32'h00006004;
+    localparam [31:0] SMBUS_TX_DATA    = 32'h00006008;
+    localparam [31:0] SMBUS_RX_DATA    = 32'h0000600C;
+    localparam [31:0] SMBUS_CMD        = 32'h00006010;
+    localparam [31:0] SMBUS_DEV_ADDR   = 32'h00006014;
+    localparam [31:0] SMBUS_CLK_DIV_REG= 32'h00006018;
+
+    // AI Engine addresses (base 0x3000_0000, via AXI bridge)
+    localparam [31:0] AI_CTRL        = 32'h30000000;
+    localparam [31:0] AI_STATUS      = 32'h30000004;
+    localparam [31:0] AI_DIM         = 32'h30000008;
+    localparam [31:0] AI_INPUT_ADDR  = 32'h3000000C;
+    localparam [31:0] AI_WEIGHT_ADDR = 32'h30000010;
+    localparam [31:0] AI_RESULT_ADDR = 32'h30000014;
+    localparam [31:0] AI_DATA_BASE   = 32'h30000020;
+
     // SRAM addresses (direct AHB slave at 0x2000_0000)
     localparam [31:0] SRAM_BASE      = 32'h20000000;
 
@@ -63,6 +89,7 @@ module tb_soc;
     reg         HWRITE;
     reg  [1:0]  HTRANS;
     reg  [2:0]  HSIZE;
+    wire        HREADY;
     wire        irq_timer;
     wire        irq_counter;
     wire        irq_uart;
@@ -74,6 +101,11 @@ module tb_soc;
     wire        spi_miso;
     wire        spi_sck;
     wire        spi_cs_n;
+    wire        irq_i3c;
+    wire        irq_smbus;
+    wire        i3c_sda_in, i3c_sda_out, i3c_sda_oe, i3c_scl_out, i3c_scl_oe;
+    wire        smbus_smbdat_in, smbus_smbdat_out, smbus_smbdat_oe, smbus_smbclk_out, smbus_smbclk_oe;
+    wire        irq_ai;
 
     // Test tracking
     integer     tests_passed = 0;
@@ -92,17 +124,31 @@ module tb_soc;
         .HWRITE      (HWRITE),
         .HTRANS      (HTRANS),
         .HSIZE       (HSIZE),
+        .HREADY      (HREADY),
         .uart_rx_in  (uart_rx_in),
         .uart_tx_out (uart_tx_out),
         .spi_miso    (spi_miso),
         .spi_mosi    (spi_mosi),
         .spi_sck     (spi_sck),
         .spi_cs_n    (spi_cs_n),
+        .i3c_sda_in  (i3c_sda_in),
+        .i3c_sda_out (i3c_sda_out),
+        .i3c_sda_oe  (i3c_sda_oe),
+        .i3c_scl_out (i3c_scl_out),
+        .i3c_scl_oe  (i3c_scl_oe),
+        .smbus_smbdat_in  (smbus_smbdat_in),
+        .smbus_smbdat_out (smbus_smbdat_out),
+        .smbus_smbdat_oe  (smbus_smbdat_oe),
+        .smbus_smbclk_out (smbus_smbclk_out),
+        .smbus_smbclk_oe  (smbus_smbclk_oe),
         .irq_timer   (irq_timer),
         .irq_counter (irq_counter),
         .irq_uart    (irq_uart),
         .irq_spi     (irq_spi),
-        .dma_irq     (dma_irq)
+        .dma_irq     (dma_irq),
+        .irq_i3c     (irq_i3c),
+        .irq_smbus   (irq_smbus),
+        .irq_ai      (irq_ai)
     );
 
     // UART loopback
@@ -110,6 +156,10 @@ module tb_soc;
 
     // SPI loopback
     assign spi_miso = spi_mosi;
+
+    // I3C/SMBus open-drain pull-ups (no slaves present)
+    assign i3c_sda_in  = 1'b1;
+    assign smbus_smbdat_in = 1'b1;
 
     //--------------------------------------------------------------------------
     // Clock generator
@@ -146,54 +196,90 @@ module tb_soc;
     endtask
 
     //--------------------------------------------------------------------------
-    // AHB Write task (for bridge/peripheral access, 4-cycle timing)
+    // AHB Write task (ready-based, for bridge/peripheral access)
+    //   Waits for HREADY before starting transfer, then waits for HREADY
+    //   to return high (transfer complete) after deasserting HTRANS.
     //--------------------------------------------------------------------------
     task ahb_write;
         input [31:0] addr;
         input [31:0] data;
+        integer timeout;
         begin
+            // Wait until bus is ready
+            timeout = 0;
+            while (!HREADY && timeout < 1000) begin
+                @(negedge HCLK);
+                timeout = timeout + 1;
+            end
+            // Present address and data on the falling edge
             @(negedge HCLK);
             HADDR  = addr;
             HWDATA = data;
             HWRITE = 1'b1;
             HTRANS = 2'b10;  // NONSEQ
             HSIZE  = 3'b010; // WORD
-            @(negedge HCLK);  // Bridge: IDLE->SETUP
+            // Wait for HREADY to go low (slave stretching)
+            @(negedge HCLK);
             HTRANS = 2'b00;
             HWRITE = 1'b0;
-            @(negedge HCLK);  // Bridge: SETUP->ACCESS
-            @(negedge HCLK);  // Bridge: ACCESS->IDLE
+            // Wait for HREADY to return high
+            timeout = 0;
+            while (!HREADY && timeout < 500) begin
+                @(negedge HCLK);
+                timeout = timeout + 1;
+            end
         end
     endtask
 
     //--------------------------------------------------------------------------
-    // AHB Read task (for bridge/peripheral access, 4-cycle timing)
+    // AHB Read task (ready-based, for bridge/peripheral access)
     //--------------------------------------------------------------------------
     task ahb_read;
         input  [31:0] addr;
         output [31:0] data;
+        integer timeout;
         begin
+            // Wait until bus is ready
+            timeout = 0;
+            while (!HREADY && timeout < 1000) begin
+                @(negedge HCLK);
+                timeout = timeout + 1;
+            end
+            // Present address
             @(negedge HCLK);
             HADDR  = addr;
             HWRITE = 1'b0;
             HTRANS = 2'b10;  // NONSEQ
             HSIZE  = 3'b010; // WORD
-            @(negedge HCLK);  // Bridge: IDLE->SETUP
+            // Deassert HTRANS after one cycle
+            @(negedge HCLK);
             HTRANS = 2'b00;
-            @(negedge HCLK);  // Bridge: SETUP->ACCESS
-            @(negedge HCLK);  // Bridge: ACCESS->IDLE
+            // Wait for HREADY to return high (data valid)
+            timeout = 0;
+            while (!HREADY && timeout < 500) begin
+                @(negedge HCLK);
+                timeout = timeout + 1;
+            end
             data = HRDATA;
+            @(negedge HCLK);
         end
     endtask
 
     //--------------------------------------------------------------------------
     // SRAM Write task (direct AHB slave, 2-cycle timing)
     //   SRAM is combinational - write completes in 1 cycle.
+    //   Uses ready-based wait before starting.
     //--------------------------------------------------------------------------
     task sram_write;
         input [31:0] addr;
         input [31:0] data;
+        integer timeout;
         begin
+            timeout = 0;
+            while (!HREADY && timeout < 1000) begin
+                @(negedge HCLK);
+                timeout = timeout + 1;
+            end
             @(negedge HCLK);
             HADDR  = addr;
             HWDATA = data;
@@ -209,11 +295,18 @@ module tb_soc;
     //--------------------------------------------------------------------------
     // SRAM Read task (direct AHB slave, 2-cycle timing)
     //   SRAM has combinational HRDATA - capture BEFORE clearing HTRANS.
+    //   Uses ready-based wait before starting.
     //--------------------------------------------------------------------------
     task sram_read;
         input  [31:0] addr;
         output [31:0] data;
+        integer timeout;
         begin
+            timeout = 0;
+            while (!HREADY && timeout < 1000) begin
+                @(negedge HCLK);
+                timeout = timeout + 1;
+            end
             @(negedge HCLK);
             HADDR  = addr;
             HWRITE = 1'b0;
@@ -356,7 +449,7 @@ module tb_soc;
         // Send 0x55
         ahb_write(UART_TX_DATA, 32'h55);
 
-        // Wait for TX to complete (10 bits × UART_BAUD + margin)
+        // Wait for TX to complete (10 bits * UART_BAUD + margin)
         repeat(12 * UART_BAUD) @(negedge HCLK);
 
         // Check TX done
@@ -542,6 +635,232 @@ module tb_soc;
 
         @(negedge HCLK);
         check(dma_irq == 1'b0, "DMA IRQ: cleared after STATUS read");
+
+        //======================================================================
+        // Test 15: I3C register access via bridge
+        //======================================================================
+        $display("\n--- Test 15: I3C register access ---");
+
+        // Read reset values
+        ahb_read(I3C_CTRL, rd_data);
+        check(rd_data[3:0] == 4'b0000, "I3C: CTRL zero after reset");
+
+        ahb_read(I3C_STATUS, rd_data);
+        check(rd_data[0] == 1'b0, "I3C: not busy after reset");
+        check(rd_data[1] == 1'b0, "I3C: done sticky low");
+        check(rd_data[3] == 1'b0, "I3C: error low");
+
+        // Write and verify registers
+        ahb_write(I3C_CLK_DIV_REG, 32'd10);
+        ahb_read(I3C_CLK_DIV_REG, rd_data);
+        check(rd_data[15:0] == 16'd10, "I3C: CLK_DIV set to 10");
+
+        ahb_write(I3C_DEV_ADDR, 32'h50);
+        ahb_read(I3C_DEV_ADDR, rd_data);
+        check(rd_data[7:0] == 8'h50, "I3C: DEV_ADDR set to 0x50");
+
+        ahb_write(I3C_TX_DATA, 32'hA5);
+        ahb_read(I3C_TX_DATA, rd_data);
+        check(rd_data[7:0] == 8'hA5, "I3C: TX_DATA set to 0xA5");
+
+        ahb_write(I3C_CTRL, 32'h1);  // enable
+        ahb_read(I3C_CTRL, rd_data);
+        check(rd_data[0] == 1'b1, "I3C: enable set");
+
+        //======================================================================
+        // Test 16: SMBus register access via bridge
+        //======================================================================
+        $display("\n--- Test 16: SMBus register access ---");
+
+        ahb_read(SMBUS_CTRL, rd_data);
+        check(rd_data[3:0] == 4'b0000, "SMBus: CTRL zero after reset");
+
+        ahb_read(SMBUS_STATUS, rd_data);
+        check(rd_data[0] == 1'b0, "SMBus: not busy after reset");
+        check(rd_data[1] == 1'b0, "SMBus: done sticky low");
+        check(rd_data[2] == 1'b0, "SMBus: timeout low");
+
+        ahb_write(SMBUS_CLK_DIV_REG, 32'd15);
+        ahb_read(SMBUS_CLK_DIV_REG, rd_data);
+        check(rd_data[15:0] == 16'd15, "SMBus: CLK_DIV set to 15");
+
+        ahb_write(SMBUS_DEV_ADDR, 32'h42);
+        ahb_read(SMBUS_DEV_ADDR, rd_data);
+        check(rd_data[7:0] == 8'h42, "SMBus: DEV_ADDR set to 0x42");
+
+        ahb_write(SMBUS_CTRL, 32'h5);  // enable + pec_en
+        ahb_read(SMBUS_CTRL, rd_data);
+        check(rd_data[2:0] == 3'b101, "SMBus: enable + pec_en set");
+
+        //======================================================================
+        // Test 17: Combined IRQ check (all 7 peripherals)
+        //======================================================================
+        $display("\n--- Test 17: Combined IRQ check ---");
+
+        check(irq_timer   == 1'b0, "Combined IRQ: timer low at reset");
+        check(irq_counter == 1'b0, "Combined IRQ: counter low");
+        check(irq_uart    == 1'b0, "Combined IRQ: uart low");
+        check(irq_spi     == 1'b0, "Combined IRQ: spi low");
+        check(dma_irq     == 1'b0, "Combined IRQ: dma low");
+        check(irq_i3c     == 1'b0, "Combined IRQ: i3c low");
+        check(irq_smbus   == 1'b0, "Combined IRQ: smbus low");
+
+        //======================================================================
+        // Test 18: I3C start and completion (with pull-up only - will timeout/NACK)
+        //======================================================================
+        $display("\n--- Test 18: I3C start/completion ---");
+
+        // With no slave (pull-up only), the I3C will get NACK on address
+        // and complete with error. We verify the FSM runs.
+        ahb_write(I3C_CLK_DIV_REG, 32'd5);  // Fast clock for quick test
+        ahb_write(I3C_CTRL, 32'h1);  // enable
+        ahb_write(I3C_CTRL, 32'h3);  // enable + start (write)
+
+        // Wait for completion (poll IRQ or STATUS)
+        begin : i3c_wait_block
+            integer timeout;
+            timeout = 0;
+            while (!irq_i3c && timeout < 1000) begin
+                @(negedge HCLK);
+                timeout = timeout + 1;
+            end
+        end
+        check(irq_i3c == 1'b1, "I3C: IRQ asserted after transfer attempt");
+
+        ahb_read(I3C_STATUS, rd_data);
+        check(rd_data[0] == 1'b0, "I3C: not busy after transfer");
+        // With no slave, expect error (NACK)
+        // rd_data[3] may be 1 (error) since no slave ACKs
+
+        //======================================================================
+        // Test 19: AI Engine register access via AXI bridge
+        //======================================================================
+        $display("\n--- Test 19: AI Engine register access via AXI bridge ---");
+
+        // Read reset values
+        ahb_read(AI_CTRL, rd_data);
+        check(rd_data == 32'd0, "AI: CTRL zero after reset");
+
+        ahb_read(AI_STATUS, rd_data);
+        check(rd_data[1:0] == 2'b00, "AI: STATUS.busy=0, done=0 after reset");
+
+        ahb_read(AI_DIM, rd_data);
+        check(rd_data[7:0] == 8'd0, "AI: DIM zero after reset");
+
+        ahb_read(AI_INPUT_ADDR, rd_data);
+        check(rd_data[7:0] == 8'd0, "AI: INPUT_ADDR zero after reset");
+
+        ahb_read(AI_WEIGHT_ADDR, rd_data);
+        check(rd_data[7:0] == 8'd0, "AI: WEIGHT_ADDR zero after reset");
+
+        ahb_read(AI_RESULT_ADDR, rd_data);
+        check(rd_data[7:0] == 8'd0, "AI: RESULT_ADDR zero after reset");
+
+        // Write and read back each register
+        ahb_write(AI_DIM, 32'd4);
+        ahb_read(AI_DIM, rd_data);
+        check(rd_data[7:0] == 8'd4, "AI: DIM = 4");
+
+        ahb_write(AI_INPUT_ADDR, 32'd0);   // input at offset 0 in SRAM
+        ahb_read(AI_INPUT_ADDR, rd_data);
+        check(rd_data[7:0] == 8'd0, "AI: INPUT_ADDR = 0");
+
+        ahb_write(AI_WEIGHT_ADDR, 32'd16);  // weight at offset 16
+        ahb_read(AI_WEIGHT_ADDR, rd_data);
+        check(rd_data[7:0] == 8'd16, "AI: WEIGHT_ADDR = 16");
+
+        ahb_write(AI_RESULT_ADDR, 32'd80);  // result at offset 80
+        ahb_read(AI_RESULT_ADDR, rd_data);
+        check(rd_data[7:0] == 8'd80, "AI: RESULT_ADDR = 80");
+
+        @(negedge HCLK);
+
+        //======================================================================
+        // Test 20: AI Engine MATMUL via AXI bridge
+        //   - Load input vector [1, 2, 3, 4] into AI SRAM at offset 0
+        //   - Load 4x4 identity matrix into AI SRAM at offset 16
+        //   - Set INPUT_ADDR=0, WEIGHT_ADDR=16, RESULT_ADDR=80, DIM=4, OP=MATMUL
+        //   - Trigger start, wait for done, verify result = [1, 2, 3, 4]
+        //======================================================================
+        $display("\n--- Test 20: AI Engine MATMUL via AXI bridge ---");
+
+        // Step 1: Write input vector to AI SRAM (offset 0x20 = AI_DATA_BASE)
+        //   input = [1, 2, 3, 4]
+        //   Each 32-bit word stores 4 bytes: [b0, b1, b2, b3] in little-endian
+        ahb_write(AI_DATA_BASE + 32'h00, {8'd4, 8'd3, 8'd2, 8'd1});
+        // Verify input
+        ahb_read(AI_DATA_BASE + 32'h00, rd_data);
+        check(rd_data[7:0]   == 8'd1, "AI SRAM: input[0] = 1");
+        check(rd_data[15:8]  == 8'd2, "AI SRAM: input[1] = 2");
+        check(rd_data[23:16] == 8'd3, "AI SRAM: input[2] = 3");
+        check(rd_data[31:24] == 8'd4, "AI SRAM: input[3] = 4");
+
+        // Step 2: Write 4x4 identity matrix to AI SRAM at offset 16 (addr 0x30)
+        //   Row 0: [1, 0, 0, 0] -> word at 0x30
+        ahb_write(AI_DATA_BASE + 32'h10, {8'd0, 8'd0, 8'd0, 8'd1});
+        //   Row 1: [0, 1, 0, 0] -> word at 0x34
+        ahb_write(AI_DATA_BASE + 32'h14, {8'd0, 8'd0, 8'd1, 8'd0});
+        //   Row 2: [0, 0, 1, 0] -> word at 0x38
+        ahb_write(AI_DATA_BASE + 32'h18, {8'd0, 8'd1, 8'd0, 8'd0});
+        //   Row 3: [0, 0, 0, 1] -> word at 0x3C
+        ahb_write(AI_DATA_BASE + 32'h1C, {8'd1, 8'd0, 8'd0, 8'd0});
+
+        // Verify weight matrix
+        ahb_read(AI_DATA_BASE + 32'h10, rd_data);
+        check(rd_data[7:0] == 8'd1 && rd_data[15:8] == 8'd0, "AI SRAM: weight row0 [1,0]");
+        ahb_read(AI_DATA_BASE + 32'h18, rd_data);
+        check(rd_data[23:16] == 8'd1 && rd_data[15:8] == 8'd0, "AI SRAM: weight row2 [0,1]");
+
+        // Step 3: Configure AI engine registers
+        ahb_write(AI_INPUT_ADDR, 32'd0);     // input at SRAM byte 0
+        ahb_write(AI_WEIGHT_ADDR, 32'd16);   // weight matrix at SRAM byte 16
+        ahb_write(AI_RESULT_ADDR, 32'd80);   // result at SRAM byte 80
+        ahb_write(AI_DIM, 32'd4);            // 4-element vectors
+
+        // Step 4: Set OP=MATMUL (0), enable + irq_en + start
+        //   CTRL: bit5=irq_en, bit4:2=op(000), bit1=start, bit0=enable
+        ahb_write(AI_CTRL, {26'd0, 1'b1, 3'b000, 1'b1, 1'b1});  // 0x23 = irq_en + enable + start
+
+        // Step 5: Wait for done (poll STATUS.done or irq_ai)
+        begin : ai_wait_block
+            integer timeout;
+            timeout = 0;
+            while (!irq_ai && timeout < 500) begin
+                @(negedge HCLK);
+                timeout = timeout + 1;
+            end
+        end
+        check(irq_ai == 1'b1, "AI MATMUL: IRQ asserted on completion");
+
+        ahb_read(AI_STATUS, rd_data);
+        check(rd_data[0] == 1'b0, "AI MATMUL: busy deasserted");
+        check(rd_data[1] == 1'b1, "AI MATMUL: done flag was set (cleared on read)");
+
+        // Step 6: Verify result in AI SRAM (word at AI_DATA_BASE + 0x50 = 0x30000070)
+        //   Expected: identity * [1,2,3,4] = [1,2,3,4]
+        ahb_read(AI_DATA_BASE + 32'h50, rd_data);
+        check(rd_data[7:0]   == 8'd1, "AI MATMUL: result[0] = 1");
+        check(rd_data[15:8]  == 8'd2, "AI MATMUL: result[1] = 2");
+        check(rd_data[23:16] == 8'd3, "AI MATMUL: result[2] = 3");
+        check(rd_data[31:24] == 8'd4, "AI MATMUL: result[3] = 4");
+
+        // Step 7: Verify IRQ cleared after STATUS read
+        @(negedge HCLK);
+        check(irq_ai == 1'b0, "AI MATMUL: IRQ cleared after STATUS read");
+
+        //======================================================================
+        // Test 21: Combined IRQ check (all 8 peripherals including AI)
+        //======================================================================
+        $display("\n--- Test 21: Combined IRQ check (all 8 peripherals) ---");
+
+        check(irq_timer   == 1'b0, "Combined IRQ: timer low");
+        check(irq_counter == 1'b0, "Combined IRQ: counter low");
+        check(irq_uart    == 1'b0, "Combined IRQ: uart low");
+        check(irq_spi     == 1'b0, "Combined IRQ: spi low");
+        check(dma_irq     == 1'b0, "Combined IRQ: dma low");
+        check(irq_i3c     == 1'b0, "Combined IRQ: i3c low");
+        check(irq_smbus   == 1'b0, "Combined IRQ: smbus low");
+        check(irq_ai      == 1'b0, "Combined IRQ: ai low");
 
         //======================================================================
         // Summary
