@@ -18,6 +18,8 @@ push prompts AND receive token / stage / tool / cost / todo events.
 Author: Atlas frontend
 """
 
+from __future__ import annotations
+
 import argparse
 import asyncio
 import json
@@ -123,6 +125,7 @@ def create_app():
         from fastapi import FastAPI, WebSocket, WebSocketDisconnect
         from fastapi.responses import FileResponse, JSONResponse
         from fastapi.staticfiles import StaticFiles
+        from starlette.routing import WebSocketRoute
     except ImportError:
         print("ERROR: fastapi not installed. Run: pip install fastapi uvicorn websockets")
         sys.exit(1)
@@ -143,9 +146,14 @@ def create_app():
     async def healthz():
         return JSONResponse({"ok": True, "frontend": str(FRONTEND)})
 
-    # NOTE: WebSocket route MUST be registered BEFORE the catch-all StaticFiles
-    # mount on "/", otherwise the mount intercepts /ws/agent upgrade requests.
-    @app.websocket("/ws/agent")
+    # NOTE: WebSocket endpoint is registered via Starlette's WebSocketRoute
+    # (added to app.router.routes below) instead of the @app.websocket
+    # decorator. The decorator routes through FastAPI's dependency-injection
+    # layer, which can't resolve the `websocket: WebSocket` annotation when
+    # `from __future__ import annotations` is active (PEP 563 turns all
+    # annotations into strings) and rejects the handshake with HTTP 403.
+    # Starlette's WebSocketRoute talks to the function directly and ignores
+    # parameter annotations entirely.
     async def ws_agent(websocket: WebSocket):
         await websocket.accept()
         clients.add(websocket)
@@ -187,6 +195,10 @@ def create_app():
         finally:
             clients.discard(websocket)
             pump_task.cancel()
+
+    # Register the WebSocket endpoint via Starlette so we don't go through
+    # FastAPI's DI layer (see the long comment above the ws_agent definition).
+    app.router.routes.append(WebSocketRoute("/ws/agent", ws_agent))
 
     # Static assets — jsx, css, js, fonts (registered LAST so it doesn't shadow
     # the explicit routes above)
