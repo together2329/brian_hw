@@ -30,6 +30,13 @@ _NOISE  = re.compile(r"^[\s•·\-─—=*]+$")
 _ITER   = re.compile(r"primary\s+\d+/\d+")
 _TOKENS = re.compile(r"(✽|in\s+[\d.]+k?)\s+.*tokens")
 
+# ── Platform detection ─────────────────────────────────────────────────────
+_IS_WINDOWS = sys.platform == "win32"
+_IS_WINDOWS_TERMINAL = _IS_WINDOWS and os.environ.get("WT_SESSION", "") != ""
+# Windows Terminal (wt.exe) supports ANSI + alternate screen.
+# Legacy cmd.exe / conhost does NOT support alternate screen properly —
+# enabling it causes duplicated/overlapping rendering.
+
 # ── Markdown post-processor ──────────────────────────────────────────────────
 
 def _is_table_row(line: str) -> bool:
@@ -477,6 +484,12 @@ def _clipboard_paste() -> str:
     try:
         if sys.platform == "darwin":
             return subprocess.run(["pbpaste"], capture_output=True, text=True).stdout
+        if _IS_WINDOWS:
+            r = subprocess.run(
+                ["powershell", "-NoProfile", "-Command", "Get-Clipboard -Raw"],
+                capture_output=True, text=True,
+            )
+            return r.stdout
         for cmd in [["xclip", "-selection", "clipboard", "-o"],
                     ["xsel", "--clipboard", "--output"]]:
             try:
@@ -493,6 +506,12 @@ def _clipboard_copy(text: str) -> None:
     try:
         if sys.platform == "darwin":
             subprocess.run(["pbcopy"], input=text.encode(), check=False)
+            return
+        if _IS_WINDOWS:
+            subprocess.run(
+                ["powershell", "-NoProfile", "-Command", "Set-Clipboard -Value $input"],
+                input=text.encode(), check=False,
+            )
             return
         for cmd in [["xclip", "-selection", "clipboard"],
                     ["xsel", "--clipboard", "--input"]]:
@@ -912,6 +931,10 @@ class AgentTUI(App):
     TITLE = "UPD Agent"
     _saved_tty_attrs = None  # saved in on_mount; used by _restore_terminal staticmethod
 
+    # On legacy Windows cmd.exe (conhost), alternate screen buffer causes
+    # duplicated/overlapping rendering. Windows Terminal (wt.exe) is fine.
+    ENABLE_ALTERNATE_SCREEN = not (_IS_WINDOWS and not _IS_WINDOWS_TERMINAL)
+
     CSS = f"""
     Screen {{
         background: {_BG};
@@ -1134,6 +1157,14 @@ class AgentTUI(App):
     def __init__(self, run_agent_fn: Callable) -> None:
         super().__init__()
         self._run_agent_fn = run_agent_fn
+        # ── Responsive sidebar width ──────────────────────────────────────
+        # On narrow terminals (80-col cmd.exe), use a compact 34-col sidebar.
+        # On wider terminals, keep the standard 48-col sidebar.
+        try:
+            _tw = os.get_terminal_size().columns
+        except Exception:
+            _tw = 120
+        self._sidebar_width = 34 if _tw <= 90 else 48 if _tw <= 140 else 54
         self._esc_fired = False  # True from ESC until agent returns to get_input()
         self._input_bridge = InputBridge(on_idle=self._on_agent_idle)
         self._response_buf = ""
@@ -1225,6 +1256,11 @@ class AgentTUI(App):
             yield Static("", id="statusbar")
 
     def on_mount(self) -> None:
+        # ── Responsive sidebar width ──────────────────────────────────────
+        try:
+            self.query_one("#sidebar").styles.width = f"{self._sidebar_width}"
+        except Exception:
+            pass
         # Save original tty settings (class-level) so the staticmethod
         # _restore_terminal can do an exact restore instead of relying on stty sane.
         try:
@@ -1361,7 +1397,6 @@ class AgentTUI(App):
     @staticmethod
     def _restore_terminal() -> None:
         """Exit alternate screen and reset terminal before force-kill."""
-        import subprocess
         _ESC_RESET = (
             "\x1b[?1000l"   # disable mouse button events
             "\x1b[?1002l"   # disable mouse button+drag events
@@ -1374,10 +1409,18 @@ class AgentTUI(App):
             "\x1b[H"        # cursor home
         )
         try:
-            # Write directly to /dev/tty — bypasses Textual's stdout capture
-            with open("/dev/tty", "w") as _tty:
-                _tty.write(_ESC_RESET)
-                _tty.flush()
+            if _IS_WINDOWS:
+                # Windows: write ESC reset to CONOUT$ (console output handle)
+                import ctypes
+                _kernel32 = ctypes.windll.kernel32
+                _handle = _kernel32.GetStdHandle(-11)  # STD_OUTPUT_HANDLE
+                _buf = _ESC_RESET.encode()
+                _written = ctypes.c_ulong(0)
+                _kernel32.WriteConsoleA(_handle, _buf, len(_buf), ctypes.byref(_written), None)
+            else:
+                with open("/dev/tty", "w") as _tty:
+                    _tty.write(_ESC_RESET)
+                    _tty.flush()
         except Exception:
             try:
                 import sys as _sys
@@ -1385,6 +1428,28 @@ class AgentTUI(App):
                 _sys.stdout.flush()
             except Exception:
                 pass
+
+        # Restore terminal line discipline.
+        if _IS_WINDOWS:
+            # Windows: no termios — console mode is restored by the OS on exit
+            pass
+        else:
+            _restored = False
+            try:
+                import termios, sys as _sys
+                _attrs = getattr(AgentTUI, "_saved_tty_attrs", None)
+                if _attrs is not None:
+                    fd = _sys.stdin.fileno()
+                    termios.tcsetattr(fd, termios.TCSANOW, _attrs)
+                    _restored = True
+            except Exception:
+                pass
+            if not _restored:
+                try:
+                    import subprocess as _sp
+                    _sp.run(["stty", "sane"], check=False)
+                except Exception:
+                    pass
         # Restore terminal line discipline (echo, canonical mode, etc.)
         # Textual puts the terminal into raw mode; _os._exit() bypasses the
         # normal Textual cleanup, leaving the tty in raw mode and causing
