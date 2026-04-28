@@ -477,7 +477,7 @@ class TodoTracker:
 
     # ── Static command execution ───────────────────────────────────────────────
 
-    def _run_command(self, todo: "TodoItem", log_path: "Path") -> tuple[bool, str, int]:
+    def _run_command(self, todo: "TodoItem", log_path: "Path") -> "tuple[bool, str, int]":
         """Execute todo.command, write full output to log_path.
 
         Returns:

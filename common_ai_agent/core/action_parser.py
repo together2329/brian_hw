@@ -284,6 +284,130 @@ def _convert_tool_use_xml(text: str, xml_params_to_action_fn: Callable) -> str:
     return result
 
 
+def _normalize_dsml_brackets(text: str) -> str:
+    """Convert DSML corner brackets 〈〉 to standard angle brackets <>.
+
+    Some LLMs (DeepSeek) emit tool call XML using U+300C LEFT CORNER BRACKET
+    and U+300D RIGHT CORNER BRACKET to avoid triggering native tool-call
+    parsers.  We normalize them early so all downstream patterns work.
+    """
+    # ── Corner brackets: U+300C 〈  U+300D 〉 ──
+    text = text.replace('\u300c', '<').replace('\u300d', '>')
+    # ── Fullwidth brackets: U+FF1C ＜  U+FF1E ＞ ──
+    text = text.replace('\uff1c', '<').replace('\uff1e', '>')
+    return text
+
+
+def _convert_dsml_invoke(text: str) -> str:
+    """Convert DSML <invoke> blocks to Action: format.
+
+    DSML (DeepSeek Markup Language) format:
+      <tool_calls>
+        <invoke name="tool_name">
+          <parameter name="key" string="true">value</parameter>
+          <parameter name="num" string="false">42</parameter>
+        </invoke>
+      </tool_calls>
+
+    This is the non-native tool-call format emitted by DeepSeek models
+    when native tool calling is disabled.  Each <invoke> block contains
+    one tool call; <parameter> tags carry name/string attributes.
+    """
+    result = text
+
+    # Strip the outer <tool_calls> wrapper (with optional attributes)
+    result = re.sub(r'<\s*tool_calls[^>]*>\s*', '', result)
+    result = re.sub(r'\s*<\s*/\s*tool_calls\s*>', '', result)
+
+    # Process each <invoke name="X">...</invoke> block
+    # Use a tag-with-attributes regex that captures name="X"
+    invoke_open_re = re.compile(
+        r'<\s*invoke\s+[^>]*\bname\s*=\s*"([^"]+)"[^>]*>',
+        re.IGNORECASE,
+    )
+    invoke_close_re = re.compile(r'<\s*/\s*invoke\s*>', re.IGNORECASE)
+
+    # Also handle corner-bracket-normalized edge case: <invoke name=X>
+    invoke_open_re2 = re.compile(
+        r'<\s*invoke\s+[^>]*\bname\s*=\s*([^\s>]+)[^>]*>',
+        re.IGNORECASE,
+    )
+
+    while True:
+        m = invoke_open_re.search(result)
+        if not m:
+            break
+
+        tool_name = m.group(1)
+        block_start = m.end()
+
+        # Find matching </invoke> — depth-counted (nested <invoke> not expected but be safe)
+        depth = 1
+        pos = block_start
+        block_end = -1
+        while pos < len(result) and depth > 0:
+            nested_open = invoke_open_re.match(result, pos)
+            nested_close = invoke_close_re.match(result, pos)
+            if nested_open:
+                depth += 1
+                pos = nested_open.end()
+                continue
+            if nested_close:
+                depth -= 1
+                if depth == 0:
+                    block_end = nested_close.start()
+                    tag_end = nested_close.end()
+                    break
+                pos = nested_close.end()
+                continue
+            pos += 1
+
+        if block_end == -1:
+            # No closing tag — broken DSML, skip this <invoke>
+            result = result[:m.start()] + result[m.end():]
+            continue
+
+        block_content = result[block_start:block_end]
+
+        # Extract <parameter name="key" string="true|false">value</parameter>
+        params: list = []
+        param_re = re.compile(
+            r'<\s*parameter\s+'
+            r'(?:[^>]*?\bname\s*=\s*"([^"]+)")'
+            r'(?:[^>]*?\bstring\s*=\s*"(true|false)")?'
+            r'[^>]*>'
+            r'(.*?)'
+            r'<\s*/\s*parameter\s*>',
+            re.DOTALL | re.IGNORECASE,
+        )
+        for pm in param_re.finditer(block_content):
+            key = pm.group(1)
+            is_str = pm.group(2) != "false"  # default to string=true
+            raw_val = pm.group(3).strip()
+            if is_str:
+                params.append((key, json.dumps(raw_val, ensure_ascii=False)))
+            else:
+                # Try to parse as number, fall back to raw
+                try:
+                    val = int(raw_val)
+                except ValueError:
+                    try:
+                        val = float(raw_val)
+                    except ValueError:
+                        val = raw_val  # keep as-is, unquoted
+                params.append((key, str(val)))
+
+        if params:
+            args_str = ", ".join(f"{k}={v}" for k, v in params)
+            action = f"\nAction: {_resolve_tool_name(tool_name)}({args_str})\n"
+        else:
+            action = f"\nAction: {_resolve_tool_name(tool_name)}()\n"
+
+        result = result[:m.start()] + action + result[tag_end:]
+
+    return result
+
+
 def _strip_native_tool_tokens(text: str) -> str:
     """Strip native tool call tokens and convert to ReAct Action: format.
 
@@ -292,6 +416,7 @@ def _strip_native_tool_tokens(text: str) -> str:
       <tool_call>{json}</tool_call> — JSON tool calls (depth-counting extract)
       <tool>name</tool><parameter>  — XML tool calls
       <tool_use>...</tool_use>      — Anthropic-style XML (GLM imitation)
+      <invoke name="X">            — DSML (DeepSeek non-native) parameter blocks
       bare function calls           — prepends Action: for known tools
       bare JSON {"name":...,"arguments":...} — fallback parsing
 
@@ -299,9 +424,13 @@ def _strip_native_tool_tokens(text: str) -> str:
       - Markdown code fences (```) are stripped BEFORE parsing so LLM
         "example" tool calls don't get executed.
       - Nested same-name XML tags use depth-counting _extract_tag().
+      - DSML corner brackets 〈〉 (U+300C/U+300D) are normalized to <>.
     """
     # ── Safety: strip markdown code fences first ──
     text = _strip_markdown_fences(text)
+
+    # ── Normalize DSML corner brackets to standard angle brackets ──
+    text = _normalize_dsml_brackets(text)
 
     # Strip reasoning tokens leaked into content
     text = _strip_thinking_tags(text)
@@ -335,6 +464,10 @@ def _strip_native_tool_tokens(text: str) -> str:
 
     # Pattern 0a: <tool_use>...</tool_use> — Anthropic-style / GLM imitation XML
     text = _convert_tool_use_xml(text, _xml_params_to_action)
+
+    # Pattern 0a.5: DSML <invoke> blocks — DeepSeek non-native parameter format
+    # Must run BEFORE the <tool_calls> strip below (DSML also wraps in <tool_calls>)
+    text = _convert_dsml_invoke(text)
 
     # Pattern 0b: DeepSeek tool_call JSON blocks (non-native tool call mode)
     # Format: <tool_call">{"name": "...", "arguments": {...}}</tool_call">
@@ -393,7 +526,7 @@ def _strip_native_tool_tokens(text: str) -> str:
         text = text.replace(token, '')
 
     text = re.sub(r'<\|(?:tool_call|tool_calls|functions)[^|]*\|>', '', text)
-    text = re.sub(r'</?(?:tool_call|tool|action|execute|func\w*|p(?:ar|aram)\w*)>', '', text)
+    text = re.sub(r'</?(?:tool_call|tool_calls|tool|invoke|action|execute|func\w*|p(?:ar|aram)\w*)>', '', text)
 
     # Pattern 4: Two-line "Action: tool_name\nAction Input: {...}" → single-line
     # Common in LangChain/OpenAI format; LLM may output this instead of Action: tool(args)
