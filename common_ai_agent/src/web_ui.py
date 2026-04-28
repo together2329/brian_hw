@@ -86,6 +86,8 @@ body {
 </div>
 <div id="status"><span id="status-left">⚪ Ready</span><span id="status-right"></span></div>
 <script>
+marked.use({ breaks: true, gfm: true });
+
 const output = document.getElementById('output');
 const input = document.getElementById('input');
 const statusLeft = document.getElementById('status-left');
