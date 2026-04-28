@@ -179,11 +179,16 @@ if __name__ == "__main__":
         except Exception as _e:
             print(f"[warn] Workspace '{_args.workspace}' failed to load: {_e}")
 
-    if _TEXTUAL_OK:
+    # ── UI Mode routing ────────────────────────────────────────────────────
+    _ui_mode = getattr(config, "UI_MODE", "textual").lower()
+    _web_port = getattr(config, "WEB_UI_PORT", 8080)
+
+    if _ui_mode == "web":
+        from src.web_ui import run_web_ui
+        run_web_ui(port=_web_port)
+    elif _TEXTUAL_OK:
         from lib.textual_ui import AgentTUI, ContextUpdate
         AgentTUI(_run_agent).run()
-        # Clean exit: history is saved by Agent runner, then app.exit() is called.
     else:
-        # Fallback: plain terminal mode
         print("[fallback] Running in terminal mode (src/main.py).")
         _agent.chat_loop()
