@@ -132,6 +132,7 @@ class ReactLoopDeps:
     emit_todo_fn: Optional[Callable] = None       # (text: str) → None
     emit_flush_fn: Optional[Callable] = None      # () → None  (signal stream done → flush panel)
     emit_token_fn: Optional[Callable] = None      # (in_tok, cache_tok, out_tok) → None  (sidebar cost update)
+    emit_tool_fn: Optional[Callable] = None       # (text: str) → None  (tool call headers for web UI)
 
     # Human-in-the-loop: poll for mid-run user messages (None = disabled)
     poll_human_input_fn: Optional[Callable] = None  # () → str | None
@@ -612,11 +613,14 @@ def run_react_agent_impl(
             _iter_model = _get_active_model()
         except Exception:
             _iter_model = getattr(cfg, "MODEL_NAME", "")
-        print(format_iteration_header(
+        _iter_hdr = format_iteration_header(
             tracker.current + 1, tracker.max_iterations,
             agent_name="primary", model=_iter_model,
             todo_label=_todo_label,
-        ), flush=True)
+        )
+        print(_iter_hdr, flush=True)
+        if deps.emit_tool_fn:
+            deps.emit_tool_fn(f"── Iter {tracker.current + 1} / {tracker.max_iterations}  [{_iter_model}]")
 
         # Notify Textual UI of current todo state
         if deps.emit_todo_fn and todo_tracker and todo_tracker.todos:
@@ -998,7 +1002,9 @@ def run_react_agent_impl(
             _todo_write_func = deps.available_tools.get("todo_write") if deps.available_tools else None
             if _todo_write_func:
                 observation = _todo_write_func(markdown_tasks)
-                print(format_tool_header("todo_write", "Auto-parsed from markdown plan"))
+                _hdr = format_tool_header("todo_write", "Auto-parsed from markdown plan")
+                print(_hdr)
+                if deps.emit_tool_fn: deps.emit_tool_fn("▶ todo_write  Auto-parsed from markdown plan")
                 print(_fmt_result(observation, "todo_write"))
 
         # Completion signal check — skip if there are still incomplete todos
@@ -1092,6 +1098,7 @@ def run_react_agent_impl(
                     # Skip header for diff tools: their output already starts with Update(file)
                     if tool_name not in _DIFF_TOOLS:
                         print(format_tool_header(tool_name, summary))
+                        if deps.emit_tool_fn: deps.emit_tool_fn(f"▶ {tool_name}  {summary}")
 
                     if tool_name in _WRITE_TOOLS:
                         print(_write_preview(observation))
@@ -1206,6 +1213,7 @@ def run_react_agent_impl(
                     _HEADER_SKIP_SEQ = {"replace_in_file", "replace_lines", "replace_file_content", "write_file", "write_to_file"}
                     if not _debug and not _is_plan_blocked and not _is_normal_blocked and tool_name not in _HEADER_SKIP_SEQ:
                         print(format_tool_header(tool_name, summary))
+                        if deps.emit_tool_fn: deps.emit_tool_fn(f"▶ {tool_name}  {summary}")
 
                     if _is_plan_blocked:
                         if tool_name == "todo_update":

@@ -18,6 +18,7 @@ HTML = r"""<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UPD Agent — Web UI</title>
+<script src="https://unpkg.com/marked@9/marked.min.js"></script>
 <style>
 :root {
   --bg: #0d1117; --bg-input: #161b22; --border: #30363d;
@@ -63,8 +64,16 @@ body {
 }
 .spinner { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.markdown code { background: #1c2128; padding: 1px 4px; border-radius: 3px; }
-.markdown pre { background: #1c2128; padding: 8px 12px; border-radius: 6px; overflow-x: auto; }
+.md-block { white-space: normal; line-height: 1.6; }
+.md-block table { border-collapse: collapse; margin: 4px 0; }
+.md-block th, .md-block td { border: 1px solid var(--border); padding: 4px 10px; text-align: left; }
+.md-block th { background: var(--bg-input); }
+.md-block code { background: #1c2128; padding: 1px 5px; border-radius: 3px; font-family: inherit; font-size: 12px; }
+.md-block pre { background: #1c2128; padding: 8px 12px; border-radius: 6px; overflow-x: auto; margin: 4px 0; white-space: pre; }
+.md-block pre code { background: none; padding: 0; }
+.md-block p { margin: 2px 0; }
+.md-block ul, .md-block ol { padding-left: 20px; margin: 2px 0; }
+.md-block h1, .md-block h2, .md-block h3 { color: var(--accent); margin: 6px 0 2px; font-size: inherit; }
 </style>
 </head>
 <body>
@@ -82,8 +91,24 @@ const input = document.getElementById('input');
 const statusLeft = document.getElementById('status-left');
 const statusRight = document.getElementById('status-right');
 let evtSource = null;
+let liveBuffer = '';
+let liveDiv = null;
 
 function scrollBottom() { output.scrollTop = output.scrollHeight; }
+
+function getLiveDiv() {
+  if (!liveDiv) {
+    liveDiv = document.createElement('div');
+    liveDiv.className = 'md-block live';
+    output.appendChild(liveDiv);
+  }
+  return liveDiv;
+}
+
+function renderLive() {
+  getLiveDiv().innerHTML = marked.parse(liveBuffer);
+  scrollBottom();
+}
 
 function appendLine(text, cls) {
   const div = document.createElement('div');
@@ -100,12 +125,19 @@ function connectSSE() {
     try {
       const data = JSON.parse(e.data);
       if (data.clear) {
-        // flush: clear live area before writing final markdown
-        const live = output.querySelectorAll('.live');
-        live.forEach(el => el.remove());
+        liveBuffer = '';
+        if (liveDiv) { liveDiv.remove(); liveDiv = null; }
       }
       if (data.text !== undefined) {
-        appendLine(data.text, (data.cls || '') + ' live');
+        const cls = data.cls || '';
+        if (cls && (cls.includes('dim') || cls.includes('accent') || cls.includes('yellow') || cls.includes('red') || cls.includes('green'))) {
+          // Structural/status lines → styled plain-text divs
+          appendLine(data.text, cls + ' live');
+        } else {
+          // Content lines → accumulate and render as markdown
+          liveBuffer += data.text + '\n';
+          renderLive();
+        }
       }
       if (data.status) statusLeft.textContent = data.status;
       if (data.tokens) statusRight.textContent = data.tokens;
@@ -114,9 +146,9 @@ function connectSSE() {
   evtSource.addEventListener('done', () => {
     statusLeft.textContent = '⚪ Ready';
     input.disabled = false; input.focus();
-    // Remove 'live' class so content persists (not cleared by next flush)
-    const live = output.querySelectorAll('.live');
-    live.forEach(el => el.classList.remove('live'));
+    liveBuffer = '';
+    liveDiv = null;
+    output.querySelectorAll('.live').forEach(el => el.classList.remove('live'));
   });
   evtSource.onerror = () => { setTimeout(connectSSE, 1000); };
 }

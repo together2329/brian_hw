@@ -892,6 +892,10 @@ ENABLE_ENHANCED_TOOL_DESCRIPTIONS = os.getenv("ENABLE_ENHANCED_TOOL_DESCRIPTIONS
 # When disabled: standard single-line input() (default)
 ENABLE_MULTILINE_INPUT = os.getenv("ENABLE_MULTILINE_INPUT", "true").lower() in ("true", "1", "yes")
 
+# UI mode: "textual" (terminal TUI) | "web" (FastAPI + SSE browser UI)
+UI_MODE = os.getenv("UI_MODE", "textual").lower()
+WEB_UI_PORT = int(os.getenv("WEB_UI_PORT", "8080"))
+
 # ============================================================
 # Phase 4: Autonomous Decision-Making
 # ============================================================
