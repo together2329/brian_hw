@@ -1,0 +1,7 @@
+{
+  "name": "ssot-rtl",
+  "description": "Generate RTL from SSOT YAML files (multi-file output)",
+  "aliases": ["sr"],
+  "handler": "todo:template:ssot-rtl",
+  "usage": "/ssot-rtl <module_name>"
+}

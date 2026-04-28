@@ -1,0 +1,7 @@
+{
+  "name": "gen-rtl",
+  "description": "Generate RTL from YAML SSOT via Jinja2 templates",
+  "aliases": ["gr"],
+  "handler": "bash:gen_rtl.sh",
+  "usage": "/gen-rtl <module_name>"
+}

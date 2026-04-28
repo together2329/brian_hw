@@ -1,0 +1,61 @@
+{
+  "name": "ssot-rtl",
+  "description": "SSOT→RTL: Parse YAML SSOT → Generate multi-file RTL → Compile → Lint",
+  "tasks": [
+    {
+      "content": "[SSOT→RTL] Parse all YAML SSOT files and plan RTL file generation",
+      "detail": "STEP 1 — Find SSOT YAML. Read <ip>/yaml/<ip>_config.yaml (or scan yaml/ for any .yaml). Confirm: top_module, parameters, io_list, registers, fsm, sub_modules present.\nSTEP 2 — Map sub_modules to output files. For each sub_module: note name, file, ssot_gen (true/false).\nSTEP 3 — Plan generation order: pkg → regs → decoder → fsm → axi_rd/wr → mfifo → core → wrapper.\nSTEP 4 — Create rtl/ and list/ directories if missing.\nGate: All YAML sections read, file generation plan ready.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→RTL] Generate <ip>_pkg.sv from parameters",
+      "detail": "From SSOT parameters[] list: write <ip>_pkg.sv with package declaration and localparam for each parameter. Match parameter.name → localparam name, parameter.default → value. Add comments from parameter.description.\nGate: pkg.sv compiles standalone.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→RTL] Generate <ip>_regs.sv from registers.register_list[]",
+      "detail": "From SSOT registers section: generate APB register block. For each entry in register_list: (1) If repeat > 1 + stride, use generate for loop. (2) Write always_ff for RW/WO registers with APB decode. (3) Write always_comb read mux. (4) Map fields[].bits to bit ranges. (5) Use registers.config for channel_stride and channel_base.\nGate: All register offsets match YAML exactly.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→RTL] Generate <ip>_decoder.sv from instructions (if applicable)",
+      "detail": "If SSOT has instructions section: generate casez-based instruction decoder. Map each instruction opcode → casez branch. Set instr_type_o, is_multibyte_o, byte_length_o, is_valid_o.\nIf no instructions section: write placeholder decoder or skip.\nGate: All opcodes from YAML present in casez.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→RTL] Generate <ip>_fsm.sv from fsm section",
+      "detail": "From SSOT fsm section: (1) Declare state enum from fsm.channel_level.states (or dmac_level.states). (2) Write always_ff state register with reset. (3) Write always_comb next_state logic from fsm.transitions[] — every transition.condition becomes if/else branch. (4) Write always_comb output assignments. (5) Add default clause for safety.\nGate: Every FSM state and transition from YAML is present.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→RTL] Generate <ip>_axi_rd.sv and <ip>_axi_wr.sv from io_list.interfaces[]",
+      "detail": "From SSOT io_list.interfaces: find axi_rd_master and axi_wr_master. Extract port widths. Generate AXI read master FSM (IDLE→ADDR→DATA) and AXI write master FSM (IDLE→ADDR→DATA→RESP). Use parameters for DATA_W, ADDR_W, ID_W from SSOT parameters section.\nGate: Port widths match SSOT exactly.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→RTL] Generate <ip>_mfifo.sv from memory.instances[]",
+      "detail": "From SSOT memory.instances: extract depth, width, ports. Write parameterized MFIFO with write pointer, read pointer, count. Add flush control. Use generate if multiple instances.\nGate: Depth and width match SSOT.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→RTL] Write <ip>_core.sv — LLM direct implementation (ssot_gen: false)",
+      "detail": "This is the LLM-written complex module. From SSOT features[] and dataflow: (1) Write 7-state FSM (IDLE→WFP→SEND_RD→WAIT_RD_DONE→SEND_WR→WAIT_WR_RESP→DONE_STATE). (2) Implement APB register writes for SAR, DAR, LOOP_CFG, CONTROL. (3) Implement AXI read/write handshake timing. (4) Add loop counter with auto-increment. (5) Add fault detection (rresp/bresp != OK). (6) Add $display for simulation visibility.\nGate: Core FSM matches all features in SSOT features[].",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→RTL] Generate <ip>_wrapper.sv — instantiate all sub-modules",
+      "detail": "From SSOT sub_modules list: generate integration wrapper. Declare all ports from io_list.interfaces[].ports[]. Instantiate every sub_module (name → file). Wire all interfaces together.\nGate: All sub_modules instantiated, port list matches io_list exactly.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→RTL] Write filelist + compile + lint",
+      "detail": "Write <ip>/list/<ip>_core.f from filelist.rtl section (or generate from sub_modules list). Run iverilog to verify compilation: iverilog -o /tmp/<ip>_test -c <ip>/list/<ip>_core.f. Fix any errors. Run verilator --lint-only. Fix any warnings or add documented waivers.\nGate: 0 compile errors, 0 lint warnings.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→RTL] Output SSOT RESULT handoff",
+      "detail": "Output:\n```\n[SSOT RESULT] rtl-gen DONE\nModule   : <ip_name>\nRTL files: <count> files generated\nFilelist : <ip>/list/<ip>_core.f\nCompile  : 0 errors\nLint     : 0 warnings\nHandoff  : → tb-gen or back to ssot-gen\n```",
+      "priority": "normal"
+    }
+  ]
+}

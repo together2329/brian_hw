@@ -1,0 +1,19 @@
+{
+  "name": "ssot-gen",
+  "description": "SSOT Generator — YAML-based Single Source of Truth authoring, Jinja2+Python code generation, and validation pipeline",
+  "env": {
+    "MAX_ITERATIONS": "300",
+    "ENABLE_MARKDOWN_RENDER": "true",
+    "DEFAULT_TEMPLATE_ENGINE": "jinja2",
+    "DEFAULT_SCHEMA_ENGINE": "cerberus"
+  },
+  "skills": {
+    "force_activate": ["verilog-expert"],
+    "disable": []
+  },
+  "system_prompt_mode": "prepend",
+  "plan_prompt_mode": "prepend",
+  "compression_prompt_mode": "replace",
+  "default_delegate": "",
+  "execution_mode": "sequential"
+}

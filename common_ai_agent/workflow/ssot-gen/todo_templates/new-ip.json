@@ -1,0 +1,71 @@
+{
+  "name": "new-ip",
+  "description": "New IP SSOT authoring: Requirements → 8 YAMLs → Schema Validation → Template Generation → Simulation",
+  "tasks": [
+    {
+      "content": "[SSOT] Phase 1: Requirements gathering",
+      "detail": "Search for requirement files in current directory. Extract IP name, ports, clock domains, features, register interface type, interrupt needs, memory needs, timing targets. Ask user only for missing information. Decide IP name. Create folder: <ip>/yaml/, <ip>/rtl/, <ip>/sim/, <ip>/firmware/, <ip>/docs/, <ip>/templates/rtl/, <ip>/templates/sim/, <ip>/generators/. Confirm with user.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Phase 2a: <ip>_config.yaml",
+      "detail": "Write <ip>/yaml/<ip>_config.yaml. Top-level parameters: num_channels, axi_data_width, axi_addr_width, num_events, mfifo_depth, clock_freq, reset_polarity, read_capability, write_capability, num_irq_lines. Gate: all parameters have numeric values, no TBDs.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Phase 2b: <ip>_axi_params.yaml",
+      "detail": "Write <ip>/yaml/<ip>_axi_params.yaml. AXI read master, AXI write master, APB slave signal definitions. ID widths, QoS, Cache, Prot signals. Match config yaml data widths.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Phase 2c: <ip>_registers.yaml",
+      "detail": "Write <ip>/yaml/<ip>_registers.yaml. Full register map: every register with offset, name, width, access, reset, fields (with bit range, access, description). Per-channel offset pattern documented. Gate: every register has unique offset, every RW register has named bitfields.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Phase 2d: <ip>_instructions.yaml (if applicable)",
+      "detail": "Write <ip>/yaml/<ip>_instructions.yaml if the IP uses a programmable instruction set. Opcodes, encodings, byte lengths, fields, variants. If not applicable (simple register-based IP), write N/A section in config and skip.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Phase 2e: <ip>_transfer_types.yaml (if applicable)",
+      "detail": "Write <ip>/yaml/<ip>_transfer_types.yaml if the IP supports multiple transfer modes. Burst sizing, CC register bitfields, AXI burst type mappings. If not applicable, write N/A section and skip.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Phase 2f: <ip>_fsm.yaml",
+      "detail": "Write <ip>/yaml/<ip>_fsm.yaml. DMAC-level FSM + per-channel FSM (if multi-channel). States, transitions, conditions, output actions. Every transition must have an explicit condition. No undefined states.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Phase 2g: <ip>_interrupts.yaml",
+      "detail": "Write <ip>/yaml/<ip>_interrupts.yaml. Interrupt sources, event-to-channel routing, enable/status register bits, clear mechanism, priority levels, irq polarity. If no interrupts, write N/A section.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Phase 2h: <ip>_schema.yaml — Cerberus validation",
+      "detail": "Write <ip>/yaml/<ip>_schema.yaml. Cerberus-compatible schema that validates all other YAML files. Required fields, types, min/max limits, enum values. Run <ip>/generators/common.py to validate all YAML. Fix any errors. Gate: ALL YAML files pass validation before Phase 3.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Phase 3: Jinja2 template authoring",
+      "detail": "Write Jinja2 templates in <ip>/templates/rtl/ and <ip>/templates/sim/. Templates: pkg.sv.j2, regs.sv.j2, decoder.sv.j2 (if applicable), fsm.sv.j2, axi_rd.sv.j2, axi_wr.sv.j2, mfifo.sv.j2, core.sv.j2, wrapper.sv.j2, tb_top.sv.j2, tb_program.sv.j2, tb_axi_mem.sv.j2, model.sv.j2. Use {% for %}, {% if %}, {{ var }} to parameterize from YAML.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Phase 4: Python generator scripts",
+      "detail": "Write <ip>/generators/common.py (YAML load, schema validation), gen_rtl.py, gen_sim.py, gen_fw.py, gen_docs.py, gen_all.py (orchestrator). Use Jinja2 Environment with FileSystemLoader. Gate: gen_all.py runs without errors and produces all outputs.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Phase 5: Generation + Verification",
+      "detail": "Run <ip>/Makefile: make yaml-validate -> make rtl -> make sim -> make lint -> make all. Iterate on template bugs, YAML errors, or lint warnings. Gate: verilator zero warnings, iverilog simulation passes with scoreboard checks.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Phase 6: Documentation + Handoff",
+      "detail": "Generate docs/ from YAML. Write <ip>/README.md with architecture summary. Output [SSOT HANDOFF] block for rtl-gen or tb-gen agent. Mark all tasks complete.",
+      "priority": "high"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "new-ip",
+  "description": "New IP from scratch: Requirements → 8 YAML SSOT → Schema Validation → Template Generation → Simulation",
+  "aliases": ["ni"],
+  "handler": "todo:template:new-ip",
+  "usage": "/new-ip"
+}
