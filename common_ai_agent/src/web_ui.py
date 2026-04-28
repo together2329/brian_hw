@@ -252,34 +252,31 @@ def run_web_ui(port: int = 8080):
     app = create_app()
     bridge = app.state.bridge
 
-    # Wire web bridge into main.py's textual callback slots
-    def _web_input():
-        return bridge.get_input()
+    # Wire ALL textual callbacks that main.py expects
+    _main._textual_input_fn = bridge.get_input
+    _main._textual_esc_check_fn = lambda: False
 
-    def _web_esc_check():
-        return False
+    # Streaming output → SSE
+    _main._textual_emit_content_fn = app.state.emit_line
+    _main._textual_emit_reasoning_fn = lambda text, blank=False: app.state.emit_line(text, "dim")
+    _main._textual_emit_todo_fn = lambda text: app.state.emit_line(text, "dim")
+    _main._textual_emit_flush_fn = app.state.emit_flush
 
-    _main._textual_input_fn = _web_input
-    _main._textual_esc_check_fn = _web_esc_check
-    _main._textual_poll_human_input_fn = lambda: None  # handled by /submit interrupt
+    # Context/tokens — update SSE status bar
+    def _ctx_update(tokens, max_tok):
+        app.state.sse_queue.put_nowait("line", json.dumps({
+            "tokens": f"✽ {tokens/1000:.0f}k / {max_tok/1000:.0f}k tokens"
+        }))
+    _main._textual_emit_context_fn = _ctx_update
+    _main._textual_emit_token_fn = lambda in_tok, cache_tok, out_tok: None  # skip cost for now
 
-    # Capture agent stdout → SSE
-    class _SSECapture:
-        def __init__(self):
-            self._buf = ""
-            self._app = app
+    # Human-in-the-loop: poll interrupt queue
+    _main._textual_poll_human_input_fn = bridge.poll_interrupt
 
-        def write(self, text: str) -> int:
-            self._buf += text
-            while "\n" in self._buf:
-                line, self._buf = self._buf.split("\n", 1)
-                if line.strip():
-                    app.state.emit_line(line)
-            return len(text)
-
-        def flush(self) -> None: pass
-        def isatty(self) -> bool: return False
-        def fileno(self) -> int: raise OSError("no fd")
+    # Agent running state
+    def _set_running(val: bool):
+        bridge.agent_running = val
+    _main._textual_set_agent_running_fn = _set_running
 
     # Run agent in background thread
     def _run_agent():
