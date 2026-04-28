@@ -132,8 +132,60 @@ const Workspace = ({ dir, onScreen }) => {
     setInput('');
     setShowSlash(false);
     setFeed(f => [...f, { kind: 'user', text: txt }]);
-    streamAgentReply(txt);
+    if (window.backend && window.backend.mode === 'live') {
+      sendToBackend(txt);
+    } else {
+      streamAgentReply(txt);
+    }
   };
+
+  // ── live backend ───────────────────────────────────────────────
+  const sendToBackend = (txt) => {
+    setStreaming(true);
+    setStreamText('');
+    window.backend.send({ type: 'prompt', text: txt });
+  };
+
+  // Subscribe to backend events and translate them into feed entries.
+  const streamBufferRef = React.useRef('');
+  React.useEffect(() => {
+    if (!window.backend || window.backend.mode !== 'live') return;
+    const subs = [];
+    subs.push(window.backend.subscribe('token', (m) => {
+      const t = m.text || '';
+      if (!t || t === '\x00') return;  // skip sentinel
+      streamBufferRef.current += t;
+      setStreamText(streamBufferRef.current);
+    }));
+    subs.push(window.backend.subscribe('reasoning', (m) => {
+      const t = (m.text || '').trim();
+      if (t) setFeed(l => [...l, { kind: 'thought', text: t }]);
+    }));
+    subs.push(window.backend.subscribe('todo_line', (m) => {
+      const t = (m.text || '').trim();
+      if (t) setFeed(l => [...l, { kind: 'obs', text: t }]);
+    }));
+    const finalize = () => {
+      const buf = streamBufferRef.current;
+      if (buf.trim()) setFeed(l => [...l, { kind: 'agent', text: buf }]);
+      streamBufferRef.current = '';
+      setStreamText('');
+      setStreaming(false);
+    };
+    subs.push(window.backend.subscribe('flush', finalize));
+    subs.push(window.backend.subscribe('done', finalize));
+    subs.push(window.backend.subscribe('agent_state', (m) => {
+      if (m.running === false) finalize();
+      else if (m.running === true) setStreaming(true);
+    }));
+    subs.push(window.backend.subscribe('error', (m) => {
+      setFeed(l => [...l, { kind: 'agent', text: `[error] ${m.message || ''}` }]);
+      streamBufferRef.current = '';
+      setStreamText('');
+      setStreaming(false);
+    }));
+    return () => subs.forEach(u => u && u());
+  }, []);
 
   const streamAgentReply = (cmd) => {
     setStreaming(true);
