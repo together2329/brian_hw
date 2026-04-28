@@ -1256,6 +1256,20 @@ class AgentTUI(App):
             yield Static("", id="statusbar")
 
     def on_mount(self) -> None:
+        # ── Windows: enable ANSI virtual terminal processing ──────────────
+        # Without this, legacy cmd.exe renders ANSI escapes as garbage,
+        # causing duplicated/overlapping text rendering.
+        if _IS_WINDOWS and not _IS_WINDOWS_TERMINAL:
+            try:
+                import ctypes
+                _kernel32 = ctypes.windll.kernel32
+                _handle = _kernel32.GetStdHandle(-11)  # STD_OUTPUT_HANDLE
+                _mode = ctypes.c_ulong()
+                _kernel32.GetConsoleMode(_handle, ctypes.byref(_mode))
+                _ENABLE_VT = 0x0004  # ENABLE_VIRTUAL_TERMINAL_PROCESSING
+                _kernel32.SetConsoleMode(_handle, _mode.value | _ENABLE_VT)
+            except Exception:
+                pass
         # ── Responsive sidebar width ──────────────────────────────────────
         try:
             self.query_one("#sidebar").styles.width = f"{self._sidebar_width}"
