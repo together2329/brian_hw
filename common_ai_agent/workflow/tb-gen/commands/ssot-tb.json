@@ -1,0 +1,7 @@
+{
+  "name": "ssot-tb",
+  "description": "Generate Testbench from SSOT YAML files (tb_top + tc + sim)",
+  "aliases": ["stb"],
+  "handler": "todo:template:ssot-tb",
+  "usage": "/ssot-tb <module_name>"
+}

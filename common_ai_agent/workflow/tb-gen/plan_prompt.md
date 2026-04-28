@@ -1,45 +1,61 @@
 # TB Gen Plan Mode Rules
 
-## IP Directory Structure
+## Input Source Detection
+
+On plan start, check for input in this order:
+
+| Priority | Pattern | Source Agent | Use Section |
+|----------|---------|-------------|-------------|
+| 1 | `<ip>/yaml/<ip>_ssot.yaml` or `<ip>/yaml/<ip>_config.yaml` | **ssot-gen** | §SSOT |
+| 2 | `<ip>/mas/<ip>_mas.md` | **mas-gen** | §MAS |
+| 3 | Ask user | — | — |
+
+## §SSOT: Planning from YAML SSOT
+
+When SSOT YAML is detected, plan from `<ip>/yaml/<ip>_ssot.yaml`.
+
+Reference: `../ssot-gen/rules/ssot-template.yaml` for the 20-section schema.
+
+### SSOT-Aware Task Decomposition
+
+1. Parse `test_requirements.scenarios[]` → one tc_ task per scenario (SC1-SCN)
+2. Parse `registers.register_list[]` → helper tasks (write_reg, read_reg, poll_csr)
+3. Parse `interrupts.sources[]` → interrupt test tasks
+4. Parse `io_list` → DUT instantiation signals, clock period
+5. Parse `parameters` → TB parameter declarations, signal widths
+6. Parse `filelist` → compile filelist
+7. Sim loop with `test_requirements.simulator` (iverilog or VCS)
+8. Use `/ssot-tb <module>` to load SSOT-specific todo template
+
+### SSOT TB Directory Structure
 
 ```
-<ip_name>/
-├── mas/   → <ip_name>_mas.md     (READ — DV Plan §9)
-├── rtl/   → <ip_name>.sv         (READ — DUT, never modify)
-├── list/  → <ip_name>.f          (READ — filelist for sim compile)
-├── tb/    → tb_<ip_name>.sv      (WRITE — TB top)
-│            tc_<ip_name>.sv      (WRITE — test cases)
-├── sim/   → sim_report.txt       (WRITE)
-│            <ip_name>_wave.vcd   (WRITE)
-└── lint/                         (never touch)
+[CODE_FENCE(22 chars)]
 ```
 
-## Input: MAS Document + DUT RTL
+### Simulator Selection
+
+| SSOT Field | Compile | Run |
+|-----------|---------|-----|
+| `test_requirements.simulator: "iverilog"` | `iverilog -g2012 -f <ip>.f -o sim/<ip>.out` | `vvp sim/<ip>.out` |
+| `test_requirements.simulator: "vcs"` | `vcs -full64 -sverilog -f <ip>.f -o sim/<ip>_simv` | `./sim/<ip>_simv` |
+
+## §MAS: Planning from MAS Document (Legacy)
 
 Task 1 is ALWAYS **"Read `<ip>/mas/<ip>_mas.md` and `<ip>/rtl/<ip>.sv`"** — both required before any TB code.
 
-To find input files:
-1. If `MODULE_NAME` env var is set → read `${MODULE_NAME}/mas/${MODULE_NAME}_mas.md` and `${MODULE_NAME}/rtl/${MODULE_NAME}.sv`
-2. Otherwise → run `/find-mas` to locate the MAS, then find matching `.sv` in `<ip>/rtl/`
+### MAS Task Decomposition Rules
 
-## MAS Sections to Extract Before Planning
+1. Split: `tc_*.sv` (test cases) before `tb_*.sv` (top level)
+2. Name each tc_ task after MAS §9 sequence ID: `tc_S1_reset`, `tc_S2_normal_op`, ...
+3. List ALL test case names before writing any code
+4. Sim loop task with loop=true, max=15
+5. Coverage review at end
 
-- **§2 ports** → DUT instantiation signal list
-- **§4 registers** → register R/W task sequences
-- **§5 interrupts** → interrupt flow sequences
-- **§6 memory** → memory fill/check sequences
-- **§9 DV Plan** → test sequence table S1-SN (these become tc_ tasks), coverage goals, SVA assertions
+## Common Rules (Both Sources)
 
-## Task Decomposition Rules
-
-2. Split: `tc_*.sv` (test cases) before `tb_*.sv` (top level) — bottom-up order
-3. Name each tc_ task after the MAS §9 sequence ID: `tc_S1_reset`, `tc_S2_normal_op`, etc.
-4. List ALL test case names (from MAS §9 S1-SN) before writing any code
-5. Sim loop task is REQUIRED — `loop=true`, `max=15`, `validator=check_sim_pass.sh`
-6. Coverage review task at end — verify MAS §9 coverage goals met
-
-## Bug Triage Rule
-
-If sim fails:
-- **TB bug** (wrong stimulus, wrong expected value) → fix tc_*.sv here
-- **DUT bug** (RTL logic error, wrong output) → report `[MAS ESCALATE] rtl-gen` — do NOT edit DUT yourself
+- Verify DUT RTL exists before planning
+- Each task maps to a single output file or task function
+- Include file paths in every task detail
+- Final task MUST compile + sim with 0 errors, 0 warnings
+- Never plan to modify RTL files (escalate bugs to rtl-gen)

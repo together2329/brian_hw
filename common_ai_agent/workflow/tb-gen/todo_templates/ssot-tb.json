@@ -1,0 +1,55 @@
+{
+  "name": "ssot-tb",
+  "description": "SSOT→TB: Parse YAML SSOT → tb_top.sv → tc_<ip>.sv → filelist → sim (iverilog/VCS)",
+  "tasks": [
+    {
+      "content": "[SSOT→TB] Parse all YAML SSOT files + read DUT RTL",
+      "detail": "STEP 1 — Find SSOT YAML. Read <ip>/yaml/<ip>_config.yaml (or all yaml/*.yaml). Confirm: top_module, io_list, registers, test_requirements, parameters, features, dataflow present.\nSTEP 2 — Read ALL DUT RTL files from <ip>/rtl/*.sv. Map io_list port names to actual DUT port names.\nSTEP 3 — Plan TB structure: tb_<ip>.sv (top) + tc_<ip>.sv (tasks). Each test_requirements.scenarios[] entry becomes a tc_ task.\nSTEP 4 — Determine simulator: test_requirements.simulator or default 'iverilog'.\nGate: All YAML sections + DUT RTL read, TB plan ready.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→TB] Write tc_<ip>.sv: register helper tasks + scoreboard",
+      "detail": "From SSOT registers.register_list[]: write APB read/write helper tasks (write_reg, read_reg, poll_csr). From registers.config: channel stride offsets. From test_requirements.scoreboard_checks: declare integer scoreboard_checks = N; verify_counter. From dataflow: write expected value computation logic.\nGate: All registers from SSOT have helper tasks.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→TB] Write tc_<ip>.sv: SC1 basic operation + SC2 loop/iteration",
+      "detail": "From test_requirements.scenarios[0] (SC1): implement task tc_SC1_basic_op(). Steps from YAML: configure SAR/DAR, trigger GO, poll CSR0 until COMPLETED, verify source==destination. From scenarios[1] (SC2): implement tc_SC2_loop(). Steps: configure LOOP_CFG=N, trigger GO, verify N+1 beats, check SAR/DAR auto-increment.\nGate: Both SC1 and SC2 tasks compile and run.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→TB] Write tc_<ip>.sv: SC3 WFP + SC4 fault + SC5 large + SC6",
+      "detail": "From test_requirements.scenarios[2-5]: implement remaining tasks. tc_SC3_wfp(): configure WFP_ENABLE, assert peripheral_events, verify transfer starts after event. tc_SC4_fault(): configure FAULT_INJECT, verify CSR0.status=FAULTED. tc_SC5_large(): LOOP_CFG=7, verify 8 beats, all data matches. Additional SC6+ as defined in SSOT.\nGate: All scenario tasks from SSOT implemented.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→TB] Write tc_<ip>.sv: interrupt tasks (from SSOT interrupts)",
+      "detail": "From SSOT interrupts.sources[]: implement interrupt test tasks. tc_int_check(): enable interrupt → trigger → check dmac_irq asserts → write INTCLR → verify deasserts. One subtask per interrupt source (CH_COMPLETE, CH_FAULT, etc.).\nGate: All interrupt sources from SSOT tested.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→TB] Write tb_<ip>.sv: top-level testbench",
+      "detail": "Write <ip>/tb/tb_<ip>.sv. Structure: (1) timescale 1ns/1ps, (2) include tc_<ip>.sv, (3) DUT signal declarations from SSOT io_list, (4) DUT instantiation with .* or named port connections, (5) clock generation from clock_domains[].frequency, (6) reset sequence from resets[], (7) $dumpfile + $dumpvars, (8) initial begin: call all tc_ tasks in SSOT scenario order, (9) print 'Result: N/M passed', (10) $finish.\nGate: tb_<ip>.sv instantiates DUT correctly, clock period matches SSOT.",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→TB] Write/update filelist <ip>/list/<ip>.f",
+      "detail": "From SSOT filelist.rtl[] + filelist.sim[]: create <ip>/list/<ip>.f. One file path per line (relative to project root). Include ALL RTL files and ALL TB files. Verify with: iverilog -g2012 -c <ip>/list/<ip>.f 2>&1 (compile check only, no run). Fix any missing files.\nGate: Filelist compiles without missing file errors.",
+      "priority": "high"
+    },
+    {
+      "content": "[SIM] Compile + Run simulation: 0 errors, 0 warnings, all [PASS]",
+      "activeForm": "Running simulation — attempt {loop_count}/{max_loop_iterations}",
+      "detail": "SIMULATOR from SSOT test_requirements.simulator (default: iverilog).\nIVERILOG: iverilog -g2012 -f <ip>/list/<ip>.f -o <ip>/sim/<ip>.out && vvp <ip>/sim/<ip>.out\nVCS: vcs -full64 -sverilog -f <ip>/list/<ip>.f -o <ip>/sim/<ip>_simv && ./<ip>/sim/<ip>_simv\nCheck output: count [PASS] vs [FAIL], verify scoreboard_checks match expected count, check for $error. Diagnose failures: TB bug → fix tc_<ip>.sv; DUT bug → [SSOT ESCALATE] rtl-gen.\nLoop until ALL [PASS], 0 errors, 0 warnings. Write <ip>/sim/sim_report.txt.\nGate: sim_report.txt shows ALL TESTS PASSED.",
+      "loop": true,
+      "max_loop_iterations": 15,
+      "exit_condition": "0 errors, 0 warnings, all [PASS]",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT→TB] Output SSOT RESULT handoff",
+      "detail": "Output:\n```\n[SSOT RESULT] tb-gen DONE\nModule   : <ip_name>\nTB       : <ip>/tb/tb_<ip>.sv\nTC       : <ip>/tb/tc_<ip>.sv\nSimulator: <iverilog|VCS>\nTests    : <N> scenarios, <M> scoreboard checks\nResult   : 0 errors, 0 warnings; N/N PASS\nHandoff  : → sim (if separate) or back to ssot-gen\n```",
+      "priority": "normal"
+    }
+  ]
+}
