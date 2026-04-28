@@ -43,30 +43,42 @@ KNOWN_TOOLS: frozenset = frozenset({
 # ---------------------------------------------------------------------------
 
 def _strip_markdown_fences(text: str) -> str:
-    """Replace markdown code fences with placeholder text.
+    """Replace markdown code fences that contain tool-call examples.
 
     LLMs sometimes embed tool-call examples inside ``` fences for illustration.
     Without this filter, the parser would extract and execute those fake calls.
 
-    Strategy: replace the entire fence block (including its content) with a
-    placeholder that cannot match any tool-call regex.  The placeholder uses
-    `` characters so the parser doesn't see any Action:/<tool_call>/etc.
+    Unlike the old blanket-strip approach, this only replaces code blocks that
+    actually contain tool-call patterns (Action:, <tool_call>, <invoke>, etc.).
+    Legitimate code blocks (directory trees, code snippets, etc.) are preserved.
+
+    Strategy: replace only tool-call-containing fence blocks with a placeholder
+    that cannot match any tool-call regex.
     """
-    # Match ``` (optional language) ...content... ``` 
-    # Also handles ~~~~ fences
-    pattern = re.compile(
+    # Patterns that indicate a code fence contains tool-call examples
+    _TOOL_CALL_INDICATORS = re.compile(
+        r'(?:Action|tool_call)\s*:\s*\w+\s*\(|'           # Action: tool(
+        r'<\s*/?\s*(?:tool_call|invoke|tool_use|tool|parameter|tool_calls)[>\s]|'  # XML/DSML tags
+        r'\{\s*"name"\s*:\s*"[^"]+"\s*,\s*"arguments"',  # bare JSON tool call
+        re.IGNORECASE,
+    )
+
+    # Match ``` or ~~~ fences: opening, optional lang, content, closing
+    _FENCE_RE = re.compile(
         r'(```|~~~)\s*(\w*)\s*\n(.*?)\n\1',
         re.DOTALL,
     )
-    # Replacement: preserve the fence markers but obfuscate the content
-    # so no Action: or tool_call patterns remain.
-    def _replace(m: re.Match) -> str:
-        _lang = m.group(2) or ''
-        _content_len = len(m.group(3))
-        # Use a distinctive placeholder that can't match any tool regex
-        return f'{m.group(1)}{_lang}\n[CODE_FENCE({_content_len} chars)]\n{m.group(1)}'
 
-    return pattern.sub(_replace, text)
+    def _replace(m: re.Match) -> str:
+        content = m.group(3)
+        if _TOOL_CALL_INDICATORS.search(content):
+            _lang = m.group(2) or ''
+            _content_len = len(content)
+            return f'{m.group(1)}{_lang}\n[CODE_FENCE({_content_len} chars)]\n{m.group(1)}'
+        # No tool-call patterns — leave the code block intact
+        return m.group(0)
+
+    return _FENCE_RE.sub(_replace, text)
 
 
 # ---------------------------------------------------------------------------
