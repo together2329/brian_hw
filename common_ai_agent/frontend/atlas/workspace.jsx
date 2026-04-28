@@ -184,6 +184,35 @@ const Workspace = ({ dir, onScreen }) => {
       setStreamText('');
       setStreaming(false);
     }));
+    // ask_user → register a dynamic flow and append a qcard to the feed.
+    subs.push(window.backend.subscribe('ask_user', (m) => {
+      const flowId = m.flow_id;
+      if (!flowId) return;
+      // Build a synthetic QA_FLOWS entry so the existing AskUserPrompt renders it.
+      const opts = (m.options || []).map(o => ({
+        id: o.id,
+        label: o.label,
+        detail: o.detail || '',
+        selected: false,
+      }));
+      window.QA_FLOWS[flowId] = {
+        stage: 'Agent', stageDetail: 'ask_user',
+        title: m.question || 'Question',
+        step: 1, total: 1,
+        breadcrumbs: [], activeBreadcrumb: 0,
+        question: m.question || '',
+        subtitle: m.subtitle || '',
+        kind: m.kind === 'multi' ? 'multi' : 'single',
+        options: opts,
+        history: [], upcoming: [],
+        dynamic: true,
+      };
+      setQaState(s => ({
+        ...s,
+        [flowId]: { opts: opts.map(o => ({ ...o })), custom: '', submitted: false }
+      }));
+      setFeed(f => [...f, { kind: 'qcard', flowId, dynamic: true }]);
+    }));
     return () => subs.forEach(u => u && u());
   }, []);
 
@@ -269,12 +298,24 @@ const Workspace = ({ dir, onScreen }) => {
   const submitCard = (flowId) => {
     const flow = window.QA_FLOWS[flowId];
     const st = qaState[flowId];
-    const sel = st.opts.filter(o => o.selected).map(o => o.label);
+    const selectedIds = st.opts.filter(o => o.selected).map(o => o.id);
     setQaState(s => ({ ...s, [flowId]: { ...s[flowId], submitted: true } }));
-    // No user-message echo — the qcard becomes an `action: ask_user` line
-    // in the feed and an `obs: user replied · …` line is appended automatically
-    // (rendered inside <AskUserCall> when state.submitted flips to true).
-    // agent advances
+
+    // Dynamic ask_user: ship the answer back over the WebSocket and let
+    // the agent decide what happens next. Don't fire the mock advance.
+    if (flow && flow.dynamic && window.backend && window.backend.mode === 'live') {
+      window.backend.send({
+        type: 'answer',
+        flow_id: flowId,
+        selected: selectedIds,
+        custom: st.custom || '',
+      });
+      setStreaming(true);  // agent will resume streaming after receiving answer
+      return;
+    }
+
+    // ── mock-mode advance (preserved from imported design) ────────
+    const sel = st.opts.filter(o => o.selected).map(o => o.label);
     setTimeout(() => {
       const advance = [
         { kind: 'thought', text: `Locked step ${flow.step} of ${flow.stage}: ${sel.length} option(s)${st.custom ? ' + 1 custom' : ''}. Updating SSOT YAML and queuing next question…` },

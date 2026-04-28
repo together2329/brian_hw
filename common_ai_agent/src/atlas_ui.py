@@ -32,6 +32,23 @@ ROOT      = HERE.parent                              # common_ai_agent/
 FRONTEND  = ROOT / "frontend" / "atlas"
 
 
+# ── ask_user answer formatter ──────────────────────────────────────
+def _format_answer(ans: dict, options: list) -> str:
+    """Render a UI answer payload back into a tool observation string."""
+    selected_ids = ans.get("selected") or []
+    custom = (ans.get("custom") or "").strip()
+    label_by_id = {o.get("id"): o.get("label", o.get("id")) for o in options or []}
+    selected_labels = [label_by_id.get(sid, sid) for sid in selected_ids]
+    parts = []
+    if selected_labels:
+        parts.append("selected: " + ", ".join(selected_labels))
+    if custom:
+        parts.append("note: " + custom)
+    if not parts:
+        return "(user submitted with no selection)"
+    return " · ".join(parts)
+
+
 # ── Bridge between agent thread and async WS handlers ──────────────
 class _AtlasBridge:
     """Queues prompts from the WS into the sync agent loop and pushes
@@ -42,6 +59,8 @@ class _AtlasBridge:
         self._inbox: queue.Queue[str] = queue.Queue()
         self._interrupts: queue.Queue[str] = queue.Queue()
         self._outbox: queue.Queue[dict] = queue.Queue()
+        self._answer_qs: dict = {}            # flow_id → queue.Queue
+        self._answer_lock = threading.Lock()
         self.agent_running: bool = False
 
     # — agent-side (sync) —
@@ -57,12 +76,41 @@ class _AtlasBridge:
     def emit(self, msg_type: str, **payload) -> None:
         self._outbox.put_nowait({"type": msg_type, **payload})
 
+    # ask_user lifecycle (agent-side, sync) —
+    def open_question(self, flow_id: str) -> "queue.Queue":
+        q: queue.Queue = queue.Queue()
+        with self._answer_lock:
+            self._answer_qs[flow_id] = q
+        return q
+
+    def close_question(self, flow_id: str) -> None:
+        with self._answer_lock:
+            self._answer_qs.pop(flow_id, None)
+
+    def wait_answer(self, flow_id: str, timeout=None):
+        with self._answer_lock:
+            q = self._answer_qs.get(flow_id)
+        if q is None:
+            return None
+        try:
+            return q.get(timeout=timeout)
+        except queue.Empty:
+            return None
+
     # — ws-side (async) —
     def submit_prompt(self, text: str) -> None:
         if self.agent_running:
             self._interrupts.put(text)
         else:
             self._inbox.put(text)
+
+    def submit_answer(self, flow_id: str, payload: dict) -> bool:
+        with self._answer_lock:
+            q = self._answer_qs.get(flow_id)
+        if q is None:
+            return False
+        q.put(payload)
+        return True
 
     async def next_event(self) -> dict:
         loop = asyncio.get_event_loop()
@@ -131,6 +179,8 @@ def create_app():
                     bridge.submit_prompt(msg["text"].strip())
                 elif t == "interrupt":
                     bridge.submit_prompt(msg.get("text", ""))
+                elif t == "answer" and msg.get("flow_id"):
+                    bridge.submit_answer(msg["flow_id"], msg)
                 # Other types (e.g. run_stage, tool_call) can be wired later
         except WebSocketDisconnect:
             pass
@@ -180,6 +230,35 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         bridge.agent_running = val
         bridge.emit("agent_state", running=val)
     _main._textual_set_agent_running_fn = _set_running
+
+    # ── ask_user → emit qcard event, block on answer queue ────────
+    import uuid
+    try:
+        from core import tools as _tools
+    except ImportError:
+        _tools = None
+
+    def _ask_user_cb(question, options, kind, subtitle):
+        flow_id = "qa_" + uuid.uuid4().hex[:10]
+        bridge.open_question(flow_id)
+        bridge.emit(
+            "ask_user",
+            flow_id=flow_id,
+            question=question,
+            kind=kind,
+            subtitle=subtitle or "",
+            options=options or [],
+        )
+        try:
+            ans = bridge.wait_answer(flow_id, timeout=900)  # 15 min ceiling
+        finally:
+            bridge.close_question(flow_id)
+        if ans is None:
+            return "[ask_user: no answer received within 15 min]"
+        return _format_answer(ans, options or [])
+
+    if _tools and hasattr(_tools, "set_ask_user_callback"):
+        _tools.set_ask_user_callback(_ask_user_cb)
 
     def _run_agent():
         try:
