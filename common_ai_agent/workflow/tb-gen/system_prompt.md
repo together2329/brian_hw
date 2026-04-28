@@ -34,7 +34,7 @@ On startup, check for input files in this order:
 
 When SSOT YAML files exist, parse them and generate TB from the structured data.
 
-Reference: `../ssot-gen/rules/ssot-template.yaml` for the complete 20-section schema.
+Reference: `workflow/ssot-gen/rules/ssot-template.yaml` for the complete 20-section schema.
 
 ### SSOT → TB Section Mapping
 

@@ -14,7 +14,7 @@ On plan start, check for input in this order:
 
 When SSOT YAML is detected, plan from the structured data in `<ip>/yaml/<ip>_ssot.yaml`.
 
-Reference: `../ssot-gen/rules/ssot-template.yaml` for the 20-section schema.
+Reference: `workflow/ssot-gen/rules/ssot-template.yaml` for the 20-section schema.
 
 ### SSOT-Aware Task Decomposition
 
