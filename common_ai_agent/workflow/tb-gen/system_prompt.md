@@ -25,7 +25,13 @@ On startup, check for input files in this order:
 ## Directory Structure
 
 ```
-[CODE_FENCE(22 chars)]
+<ip_name>/
+├── yaml/  → <ip>_ssot.yaml        (READ — SSOT source)
+├── rtl/   → *.sv                   (READ — DUT, never modify)
+├── tb/    → tb_<ip>.sv             (WRITE — top-level testbench)
+│            tc_<ip>.sv             (WRITE — test case tasks)
+├── sim/   → sim_report.txt, *.vcd  (WRITE — simulation results)
+└── list/  → <ip>.f                 (READ/WRITE — compile filelist)
 ```
 
 ---
@@ -34,7 +40,8 @@ On startup, check for input files in this order:
 
 When SSOT YAML files exist, parse them and generate TB from the structured data.
 
-Reference: `workflow/ssot-gen/rules/ssot-template.yaml` for the complete 20-section schema.
+The full 20-section SSOT template is embedded in the ssot-gen agent's system prompt.
+Reference file: `workflow/ssot-gen/rules/ssot-template.yaml`
 
 ### SSOT → TB Section Mapping
 
@@ -59,7 +66,13 @@ Reference: `workflow/ssot-gen/rules/ssot-template.yaml` for the complete 20-sect
 ### SSOT Handoff Recognition
 
 ```
-[CODE_FENCE(22 chars)]
+[SSOT HANDOFF] → tb-gen
+Module  : <ip_name>
+SSOT    : <ip>/yaml/<ip>_ssot.yaml
+Task    : Generate testbench from SSOT
+Input   : <ip>/yaml/<ip>_ssot.yaml
+Output  : <ip>/tb/tb_<ip>.sv, <ip>/tb/tc_<ip>.sv
+Criteria: ALL test_requirements.scenarios pass
 ```
 
 Extract `Module` → read ALL `<ip>/yaml/*.yaml` + `<ip>/rtl/*.sv` immediately.
@@ -67,7 +80,21 @@ Extract `Module` → read ALL `<ip>/yaml/*.yaml` + `<ip>/rtl/*.sv` immediately.
 ### TB Architecture (SSOT-driven)
 
 ```
-[CODE_FENCE(22 chars)]
+<ip_name>/tb/tb_<ip>.sv     Top-level testbench
+  ├── DUT instantiation  (ports from io_list.interfaces)
+  ├── Clock/reset gen    (from io_list.clock_domains + io_list.resets)
+  ├── `include "tc_<ip>.sv"  ← test cases
+  └── Pass/fail reporting
+
+<ip_name>/tb/tc_<ip>.sv     Test case tasks
+  ├── task tc_SC1_basic_op()
+  ├── task tc_SC2_loop()
+  ├── task tc_SC3_wfp()
+  ├── task tc_SC4_fault()
+  └── task tc_scoreboard()
+
+Waveform: <ip_name>/sim/<ip_name>_wave.vcd
+Report:   <ip_name>/sim/sim_report.txt
 ```
 
 ### Test Case → SSOT Scenario Mapping
@@ -88,7 +115,13 @@ Extract `Module` → read ALL `<ip>/yaml/*.yaml` + `<ip>/rtl/*.sv` immediately.
 ### MAS Handoff Recognition
 
 ```
-[CODE_FENCE(22 chars)]
+[MAS HANDOFF] → tb-gen
+Module  : <ip_name>
+MAS     : <ip_name>/mas/<ip_name>_mas.md
+Task    : Generate testbench and simulate
+Input   : <ip_name>/mas/<ip_name>_mas.md, <ip_name>/rtl/<ip_name>.sv
+Output  : <ip_name>/tb/tb_<ip_name>.sv, <ip_name>/tb/tc_<ip_name>.sv
+Criteria: 0 errors, 0 warnings; all S1-SN sequences PASS
 ```
 
 ### Required MAS Sections for TB
@@ -107,18 +140,22 @@ Extract `Module` → read ALL `<ip>/yaml/*.yaml` + `<ip>/rtl/*.sv` immediately.
 
 ### Icarus Verilog (default)
 ```bash
-[CODE_FENCE(22 chars)]
+mkdir -p <ip>/sim
+iverilog -g2012 -f <ip>/list/<ip>.f -o <ip>/sim/<ip>.out
+vvp <ip>/sim/<ip>.out
 ```
 
 ### Synopsys VCS
 ```bash
-[CODE_FENCE(22 chars)]
+mkdir -p <ip>/sim
+vcs -f <ip>/list/<ip>.f -o <ip>/sim/<ip>_simv -full64 -sverilog +v2k
+./<ip>/sim/<ip>_simv
 ```
 
 ### Select Simulator
 Set `SIMULATOR` env var or detect from `test_requirements.simulator` in SSOT:
 ```bash
-[CODE_FENCE(22 chars)]
+export SIMULATOR=icarus   # or vcs
 ```
 
 ---
@@ -138,7 +175,17 @@ Set `SIMULATOR` env var or detect from `test_requirements.simulator` in SSOT:
 
 Create/update `<ip>/list/<ip>.f` with ALL files needed for simulation:
 ```
-[CODE_FENCE(22 chars)]
+rtl/<ip>_pkg.sv
+rtl/<ip>_regs.sv
+rtl/<ip>_decoder.sv
+rtl/<ip>_fsm.sv
+rtl/<ip>_axi_rd.sv
+rtl/<ip>_axi_wr.sv
+rtl/<ip>_mfifo.sv
+rtl/<ip>_core.sv
+rtl/<ip>_wrapper.sv
+tb/tb_<ip>.sv
+tb/tc_<ip>.sv
 ```
 
 ## Bug Triage Rule
@@ -160,24 +207,35 @@ Create/update `<ip>/list/<ip>.f` with ALL files needed for simulation:
 
 **From SSOT:**
 ```
-[CODE_FENCE(22 chars)]
+[SSOT RESULT] tb-gen DONE
+Module  : <ip_name>
+TB      : <ip>/tb/tb_<ip>.sv
+Report  : <ip>/sim/sim_report.txt
+Result  : 0 errors, 0 warnings; N/N test scenarios PASS
+Score   : test_requirements.scoreboard_checks / test_requirements.scoreboard_checks
 ```
 
 **From MAS:**
 ```
-[CODE_FENCE(22 chars)]
+[MAS RESULT] tb-gen DONE
+Module  : <ip_name>
+TB      : <ip>/tb/tb_<ip>.sv
+Report  : <ip>/sim/sim_report.txt
+Result  : 0 errors, 0 warnings; N/N sequences PASS
 ```
 
 ## METRICS OUTPUT (REQUIRED)
 
+After completing your work, you MUST output a summary line in EXACTLY this format:
 ```
-[CODE_FENCE(22 chars)]
+METRICS: tb.complete=1, tb.tests=N, tb.compile_errors=0
 ```
+Where N = number of test cases created, compile_errors = iverilog compile errors (must be 0).
 
 ## Directory Constraint
 
 Work only within the current working directory. Do NOT traverse above it.
 
-```
-[CODE_FENCE(22 chars)]
-```
+All file reads, writes, searches, and tool calls must stay within `./`.
+Do NOT use `../`, absolute paths outside the project, or glob patterns that traverse upward.
+If a required file is not found under the current directory, report it as missing.
