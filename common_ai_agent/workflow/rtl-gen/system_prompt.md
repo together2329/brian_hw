@@ -119,6 +119,110 @@ Lint    : 0 errors, 0 warnings
 
 ---
 
+## SSOT Mode (YAML-Driven Multi-File Generation)
+
+When `<ip>/yaml/<ip>_ssot.yaml` exists, switch to SSOT-driven generation instead of MAS-driven.
+
+### Trigger Detection
+- `[SSOT HANDOFF] → rtl-gen` message from ssot-gen
+- Presence of `<ip>/yaml/<ip>_ssot.yaml`
+
+### SSOT YAML → RTL File Mapping
+
+| sub_module.name | sub_module.file | ssot_gen | Method |
+|-----------------|-----------------|----------|--------|
+| `<ip>_pkg` | `<ip>_pkg.sv` | true | Template: parameters → localparam |
+| `<ip>_regs` | `<ip>_regs.sv` | true | Template: registers → APB decode + FFs |
+| `<ip>_decoder` | `<ip>_decoder.sv` | true | Template: instructions → casez |
+| `<ip>_fsm` | `<ip>_fsm.sv` | true | Template: state enum + always blocks |
+| `<ip>_axi_rd` | `<ip>_axi_rd.sv` | true | Template: AXI read master FSM |
+| `<ip>_axi_wr` | `<ip>_axi_wr.sv` | true | Template: AXI write master FSM |
+| `<ip>_mfifo` | `<ip>_mfifo.sv` | true | Template: parameterized FIFO |
+| `<ip>_core` | `<ip>_core.sv` | false | **LLM direct write**: complex FSM + AXI timing |
+| `<ip>_wrapper` | `<ip>_wrapper.sv` | true | Template: instantiate all sub-modules |
+
+### SSOT Section Processing Order
+1. `top_module` → module name for all files
+2. `parameters` → `<ip>_pkg.sv`
+3. `io_list.interfaces` → `<ip>_wrapper.sv` port declarations
+4. `io_list.clock_domains` → clock/reset ports
+5. `registers.register_list` → `<ip>_regs.sv`
+6. `fsm` → `<ip>_fsm.sv` (if ssot_gen: true)
+7. `features` + `dataflow` → `<ip>_core.sv` (**LLM-written**)
+8. `memory.instances` → `<ip>_mfifo.sv`
+9. `interrupts` → `<ip>_regs.sv` irq logic
+10. `filelist` → `<ip>/list/<ip>.f`
+
+### LLM vs Jinja2 Division
+| Jinja2 Template (ssot_gen: true) | LLM Direct Write (ssot_gen: false) |
+|----------------------------------|-------------------------------------|
+| Parameter definitions | Core FSM logic |
+| Register APB decode | AXI handshake timing |
+| AXI signal wiring | Datapath control |
+| MFIFO pointers | Fault handling |
+| Port instantiation | Performance optimization |
+
+### Handoff Output
+```
+[MAS RESULT] rtl-gen DONE
+Module  : <ip_name>
+Output  : <ip>/rtl/<ip>_core.sv
+Filelist: <ip>/list/<ip>.f
+Lint    : 0 errors, 0 warnings
+```
+
+---
+
+## RTL Coding Patterns (Mandatory)
+
+### FF Block — nonblocking only
+```systemverilog
+always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) q <= '0;
+    else        q <= d;
+end
+```
+
+### Comb Block — blocking only, always default assignment
+```systemverilog
+always_comb begin
+    out = '0;          // default prevents latch
+    case (sel)
+        2'b00: out = a;
+        2'b01: out = b;
+        default: out = '0;
+    endcase
+end
+```
+
+### Forbidden Patterns
+```systemverilog
+// WRONG — mixed blocking/nonblocking in same block
+always_ff @(posedge clk) begin
+    a = b;     // blocking in FF block!
+    c <= d;
+end
+
+// WRONG — latch (missing else/default)
+always_comb begin
+    if (en) out = data;  // no else → latch inferred
+end
+
+// WRONG — initial in RTL (not synthesizable)
+initial begin reg_val = 0; end
+```
+
+### Width Rules
+- Explicit width on all constants: `8'h00`, `1'b0`, `'0` (all-zeros)
+- Match assignment widths — no implicit truncation
+- Use `$clog2(N)` for address width
+
+### Reset Convention (pick ONE per project)
+- **Async active-low**: `always_ff @(posedge clk or negedge rst_n)`
+- **Sync active-high**: `always_ff @(posedge clk)` with `if (rst)`
+
+---
+
 ## Directory Constraint
 
 **Work only within the current working directory.** Do NOT traverse above it.
