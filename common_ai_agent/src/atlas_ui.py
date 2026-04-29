@@ -146,6 +146,116 @@ def create_app():
     async def healthz():
         return JSONResponse({"ok": True, "frontend": str(FRONTEND)})
 
+    # ── REAL project data API ────────────────────────────────────
+    # File-system backed endpoints. All paths are confined to ROOT and
+    # rejected if they try to escape via .. or absolute paths.
+    PROJECT_ROOT = ROOT
+    MAX_READ_BYTES = 256 * 1024
+    SKIP_DIRS = {".git", "__pycache__", "node_modules", ".session",
+                 "ATLAS", "vendor", ".venv", ".pytest_cache"}
+
+    def _safe(rel_path):
+        rel = (rel_path or "").lstrip("/")
+        candidate = (PROJECT_ROOT / rel).resolve()
+        try:
+            candidate.relative_to(PROJECT_ROOT)
+        except ValueError:
+            return None
+        return candidate
+
+    @app.get("/api/files")
+    async def api_files(path: str = ""):
+        target = _safe(path)
+        if target is None:
+            return JSONResponse({"error": "path outside project root"},
+                                status_code=400)
+        if not target.exists():
+            return JSONResponse({"error": "not found"}, status_code=404)
+        rel = "" if target == PROJECT_ROOT else str(
+            target.relative_to(PROJECT_ROOT))
+        if target.is_file():
+            stat = target.stat()
+            return JSONResponse({
+                "type": "file", "path": rel,
+                "size": stat.st_size, "mtime": stat.st_mtime,
+            })
+        entries = []
+        try:
+            for child in sorted(target.iterdir(),
+                                 key=lambda p: (p.is_file(), p.name.lower())):
+                if child.name in SKIP_DIRS or child.name.startswith("."):
+                    continue
+                try:
+                    stat = child.stat()
+                except OSError:
+                    continue
+                entries.append({
+                    "name": child.name,
+                    "type": "dir" if child.is_dir() else "file",
+                    "size": stat.st_size if child.is_file() else None,
+                    "mtime": stat.st_mtime,
+                })
+        except PermissionError:
+            return JSONResponse({"error": "permission denied"},
+                                status_code=403)
+        return JSONResponse({"type": "dir", "path": rel, "entries": entries})
+
+    @app.get("/api/file")
+    async def api_file(path: str):
+        target = _safe(path)
+        if target is None or not target.is_file():
+            return JSONResponse({"error": "not found"}, status_code=404)
+        stat = target.stat()
+        truncated = stat.st_size > MAX_READ_BYTES
+        try:
+            data = target.read_bytes()[:MAX_READ_BYTES]
+            content = data.decode("utf-8", errors="replace")
+        except OSError as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({
+            "path": path, "size": stat.st_size, "mtime": stat.st_mtime,
+            "truncated": truncated, "content": content,
+        })
+
+    @app.get("/api/todos")
+    async def api_todos():
+        try:
+            from lib.todo_tracker import TodoTracker
+        except Exception as e:
+            return JSONResponse({"error": f"todo_tracker import failed: {e}"},
+                                status_code=500)
+        try:
+            tt = TodoTracker.load()
+            return JSONResponse(tt.to_dict())
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/api/ssot")
+    async def api_ssot(file: str = ""):
+        if file:
+            target = _safe(file)
+            if target is None or not target.is_file():
+                return JSONResponse({"error": "not found"}, status_code=404)
+            try:
+                content = target.read_text(encoding="utf-8", errors="replace")
+            except OSError as e:
+                return JSONResponse({"error": str(e)}, status_code=500)
+            return JSONResponse({"path": file, "content": content})
+        # No specific file → list every *.ssot.yaml in the project
+        results = []
+        for p in PROJECT_ROOT.rglob("*.ssot.yaml"):
+            if any(part in SKIP_DIRS or part.startswith(".")
+                   for part in p.parts):
+                continue
+            try:
+                rel = str(p.relative_to(PROJECT_ROOT))
+                stat = p.stat()
+                results.append({"path": rel, "size": stat.st_size,
+                                 "mtime": stat.st_mtime})
+            except OSError:
+                continue
+        return JSONResponse({"files": results})
+
     # NOTE: WebSocket endpoint is registered via Starlette's WebSocketRoute
     # (added to app.router.routes below) instead of the @app.websocket
     # decorator. The decorator routes through FastAPI's dependency-injection
@@ -230,6 +340,10 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     _main._textual_emit_reasoning_fn = lambda text, blank=False: bridge.emit("reasoning", text=text)
     _main._textual_emit_todo_fn      = lambda text: bridge.emit("todo_line", text=text)
     _main._textual_emit_flush_fn     = lambda: bridge.emit("flush")
+    _main._textual_emit_tool_fn      = lambda text: bridge.emit("tool", text=text)
+    _main._textual_emit_tool_result_fn = lambda obs, tool="": bridge.emit(
+        "tool_result", text=obs[:8000], tool=tool, truncated=len(obs) > 8000
+    )
 
     def _ctx_update(tokens, max_tok):
         bridge.emit("context", used=tokens, max=max_tok)

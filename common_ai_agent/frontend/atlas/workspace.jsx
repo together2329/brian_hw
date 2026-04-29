@@ -165,17 +165,47 @@ const Workspace = ({ dir, onScreen }) => {
       const t = (m.text || '').trim();
       if (t) setFeed(l => [...l, { kind: 'obs', text: t }]);
     }));
-    const finalize = () => {
+    // Tool call header: agent is about to invoke a tool.
+    subs.push(window.backend.subscribe('tool', (m) => {
+      const t = (m.text || '').trim();
+      if (!t) return;
+      // Finalize any pending streaming text first so the tool-call entry
+      // sits AFTER the pre-tool reasoning/agent text in the feed.
       const buf = streamBufferRef.current;
       if (buf.trim()) setFeed(l => [...l, { kind: 'agent', text: buf }]);
       streamBufferRef.current = '';
       setStreamText('');
+      setFeed(l => [...l, { kind: 'action', text: t }]);
+    }));
+    // Tool observation: the result the agent just received from the tool.
+    subs.push(window.backend.subscribe('tool_result', (m) => {
+      const t = (m.text || '').trim();
+      if (!t) return;
+      setFeed(l => [...l, {
+        kind: 'obs',
+        text: t,
+        tool: m.tool || '',
+        truncated: !!m.truncated,
+      }]);
+    }));
+    // Park the in-progress streaming buffer into the feed without
+    // touching the streaming flag — flush fires AFTER EACH iteration,
+    // not just at turn end, so the spinner must keep going until
+    // agent_state(running:false) explicitly says we're done.
+    const parkBuffer = () => {
+      const buf = streamBufferRef.current;
+      if (buf.trim()) setFeed(l => [...l, { kind: 'agent', text: buf }]);
+      streamBufferRef.current = '';
+      setStreamText('');
+    };
+    const turnEnd = () => {
+      parkBuffer();
       setStreaming(false);
     };
-    subs.push(window.backend.subscribe('flush', finalize));
-    subs.push(window.backend.subscribe('done', finalize));
+    subs.push(window.backend.subscribe('flush', parkBuffer));
+    subs.push(window.backend.subscribe('done', turnEnd));
     subs.push(window.backend.subscribe('agent_state', (m) => {
-      if (m.running === false) finalize();
+      if (m.running === false) turnEnd();
       else if (m.running === true) setStreaming(true);
     }));
     subs.push(window.backend.subscribe('error', (m) => {
@@ -644,20 +674,42 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
   }
   if (entry.kind === 'action') {
     const planned = entry.planned;
+    // Live mode emits {kind:'action', text:'▶ tool args…'}; the old mock
+    // shape was {kind:'action', tool, args, planned?}. Prefer .text when
+    // present so we don't crash on missing args.
+    if (entry.text) {
+      return (
+        <div className="react-block action">
+          <span className="rb-tag">action</span>
+          <span className="mute" style={{ whiteSpace: 'pre-wrap' }}>{entry.text}</span>
+        </div>
+      );
+    }
     return (
       <div className="react-block action" style={planned ? { opacity: 0.6, borderLeftColor: 'var(--warn)' } : {}}>
         <span className="rb-tag" style={planned ? { color: 'var(--warn)' } : {}}>{planned ? 'plan·action' : 'action'}</span>
-        <span>{planned && <span className="warn" style={{ marginRight: 6, fontStyle: 'italic' }}>[would]</span>}<b className="cyan">{entry.tool}</b>(<span className="mute">{Object.entries(entry.args).filter(([k]) => k !== 'planned').map(([k, v]) => (
+        <span>{planned && <span className="warn" style={{ marginRight: 6, fontStyle: 'italic' }}>[would]</span>}<b className="cyan">{entry.tool}</b>(<span className="mute">{Object.entries(entry.args || {}).filter(([k]) => k !== 'planned').map(([k, v]) => (
           <span key={k}>{k}=<span style={{ color: 'var(--fg)' }}>{typeof v === 'object' ? JSON.stringify(v) : String(v)}</span> </span>
         ))}</span>)</span>
       </div>
     );
   }
   if (entry.kind === 'obs') {
+    const txt = entry.text || '';
+    const isMulti = txt.includes('\n');
     return (
       <div className="react-block obs">
-        <span className="rb-tag">obs</span>
-        <span>{entry.text}</span>
+        <span className="rb-tag">obs{entry.tool ? ` · ${entry.tool}` : ''}</span>
+        {isMulti ? (
+          <pre style={{
+            margin: '4px 0 0', maxHeight: 240, overflow: 'auto',
+            background: 'var(--bg-input, #1c2128)', padding: '6px 10px',
+            borderRadius: 4, fontSize: 11, lineHeight: 1.4,
+            whiteSpace: 'pre-wrap', wordBreak: 'break-word'
+          }}>{txt}{entry.truncated ? '\n…[truncated]' : ''}</pre>
+        ) : (
+          <span>{txt}{entry.truncated ? ' …[truncated]' : ''}</span>
+        )}
       </div>
     );
   }

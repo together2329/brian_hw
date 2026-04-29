@@ -133,6 +133,7 @@ _textual_emit_flush_fn = None   # () → signal stream done, flush content panel
 _textual_emit_context_fn = None  # (tokens, max_tokens) → update context sidebar directly
 _textual_emit_token_fn = None   # (in_tok, cache_tok, out_tok) → update cost sidebar directly
 _textual_emit_tool_fn = None    # (text: str) → tool call header for web UI sidebar
+_textual_emit_tool_result_fn = None  # (observation: str, tool: str) → tool result/observation for web UI
 _textual_input_fn = None  # replaces input() when set
 _textual_esc_check_fn = None # () → bool: TUI interrupt check
 _textual_poll_human_input_fn = None  # () → str | None: poll mid-run human message
@@ -1164,6 +1165,7 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
         emit_flush_fn=_textual_emit_flush_fn,
         emit_token_fn=_textual_emit_token_fn,
         emit_tool_fn=_textual_emit_tool_fn,
+        emit_tool_result_fn=_textual_emit_tool_result_fn,
         poll_human_input_fn=_textual_poll_human_input_fn,
         # Disable EscapeWatcher in Textual mode — Textual owns stdin; raw tty read
         # conflicts with Textual's input handling, causing false ESC triggers.

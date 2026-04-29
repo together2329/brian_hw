@@ -133,6 +133,7 @@ class ReactLoopDeps:
     emit_flush_fn: Optional[Callable] = None      # () → None  (signal stream done → flush panel)
     emit_token_fn: Optional[Callable] = None      # (in_tok, cache_tok, out_tok) → None  (sidebar cost update)
     emit_tool_fn: Optional[Callable] = None       # (text: str) → None  (tool call headers for web UI)
+    emit_tool_result_fn: Optional[Callable] = None  # (observation: str, tool: str) → None  (tool observation for web UI)
 
     # Human-in-the-loop: poll for mid-run user messages (None = disabled)
     poll_human_input_fn: Optional[Callable] = None  # () → str | None
@@ -224,8 +225,17 @@ def run_react_agent_impl(
             _max_lines = int(getattr(_c, 'DISPLAY_LIST_MAX_ENTRIES', 30))
         # Tree-producing tools use format_tree_display for safe rendering
         if tool_name in _TREE_TOOLS:
-            return format_tree_display(observation, max_lines=_max_lines)
-        return format_tool_result(observation, max_lines=_max_lines, max_chars=_max_chars)
+            formatted = format_tree_display(observation, max_lines=_max_lines)
+        else:
+            formatted = format_tool_result(observation, max_lines=_max_lines,
+                                            max_chars=_max_chars)
+        # Mirror tool observations to the web UI when a callback is wired.
+        if deps.emit_tool_result_fn:
+            try:
+                deps.emit_tool_result_fn(observation, tool_name)
+            except Exception:
+                pass
+        return formatted
 
     # Use injected ESC functions if provided (for testing), else use EscapeWatcher
     _esc_check = deps.esc_check_fn if deps.esc_check_fn is not None else EscapeWatcher.check
@@ -1099,6 +1109,11 @@ def run_react_agent_impl(
                     if tool_name not in _DIFF_TOOLS:
                         print(format_tool_header(tool_name, summary))
                         if deps.emit_tool_fn: deps.emit_tool_fn(f"▶ {tool_name}  {summary}")
+                    # Mirror the raw observation to web UIs regardless of which
+                    # local formatter the terminal path uses below.
+                    if deps.emit_tool_result_fn:
+                        try: deps.emit_tool_result_fn(observation, tool_name)
+                        except Exception: pass
 
                     if tool_name in _WRITE_TOOLS:
                         print(_write_preview(observation))
@@ -1282,6 +1297,12 @@ def run_react_agent_impl(
                             ))
                         except Exception:
                             pass
+
+                    # Mirror the raw observation to web UIs regardless of
+                    # how the terminal formatter renders it below.
+                    if deps.emit_tool_result_fn:
+                        try: deps.emit_tool_result_fn(observation, tool_name)
+                        except Exception: pass
 
                     # Display result (header already printed before execution above)
                     _INLINE_TOOLS = {"git_diff", "git_status", "write_file", "todo_write", "todo_update",
