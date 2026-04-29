@@ -9,6 +9,7 @@ Provides:
 """
 from __future__ import annotations
 
+import os
 import re
 import sys
 import time
@@ -363,6 +364,20 @@ def run_react_agent_impl(
         # ESC abort check
         if _esc_check():
             break
+
+        # Mid-loop agent_mode override — the Atlas UI's WS handler sets
+        # AGENT_MODE_OVERRIDE when the user types /mode normal or /plan
+        # while the agent is running. Pick it up at the top of each
+        # iteration so plan_q ↔ normal flips reflect immediately
+        # without having to ESC and re-prompt. One-shot: clear after
+        # reading.
+        _mode_override = os.environ.pop("AGENT_MODE_OVERRIDE", "")
+        if _mode_override and _mode_override != agent_mode:
+            agent_mode = _mode_override
+            _label = ("Plan mode" if agent_mode in ("plan", "plan_q") else "Normal mode")
+            if deps.emit_content_fn:
+                try: deps.emit_content_fn(f"\n[mode] now {_label} ({agent_mode})\n")
+                except Exception: pass
 
         # Iteration limit
         warning_action = deps.show_iteration_warning_fn(tracker, mode=mode)

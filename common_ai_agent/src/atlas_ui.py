@@ -556,7 +556,39 @@ def create_app():
                     continue
                 t = msg.get("type")
                 if t in ("prompt", "send") and msg.get("text"):
-                    bridge.submit_prompt(msg["text"].strip())
+                    _txt = msg["text"].strip()
+                    # ── Mode-flip slashes need to apply mid-loop ──
+                    # `/mode normal` and `/plan` typed while the agent is
+                    # running normally land in the _interrupts queue,
+                    # which feeds the agent as conversational text — the
+                    # slash dispatcher only runs against _inbox between
+                    # turns. So agent_mode never actually flips and the
+                    # agent stays trapped in plan_q forever, hitting
+                    # `[Plan Mode] blocked` on every write_file. We
+                    # intercept those four canonical forms here and set
+                    # AGENT_MODE_OVERRIDE in the environment; react_loop
+                    # reads it at the top of each iteration.
+                    import os as _os
+                    _low = _txt.lower()
+                    if _low in ("/plan", "/mode plan", "/mode normal", "/normal"):
+                        if _low in ("/plan", "/mode plan"):
+                            _os.environ["AGENT_MODE_OVERRIDE"] = "plan_q"
+                            _os.environ["PLAN_MODE"] = "true"
+                            _label = "✅ Plan mode (mid-loop override): clarify → explore → refine → user confirms → execute."
+                        else:
+                            _os.environ["AGENT_MODE_OVERRIDE"] = "normal"
+                            _os.environ["PLAN_MODE"] = "false"
+                            _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
+                            _label = "✅ Normal mode (mid-loop override): tools enabled."
+                        # Echo the user line + the confirmation directly
+                        # so the user sees immediate feedback without
+                        # waiting for the agent to acknowledge.
+                        bridge.emit("token", text="\n" + _label + "\n")
+                        bridge.emit("flush")
+                        # Don't queue anything else — the env override is
+                        # the entire effect. Next agent iteration honors it.
+                        continue
+                    bridge.submit_prompt(_txt)
                 elif t == "interrupt":
                     bridge.submit_prompt(msg.get("text", ""))
                 elif t == "answer" and msg.get("flow_id"):
