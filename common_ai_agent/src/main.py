@@ -2043,6 +2043,20 @@ def chat_loop():
 
                     elif result.startswith("WORKSPACE_SWITCH:"):
                         ws_name = result.split(":", 1)[1].strip()
+
+                        def _ws_emit(line: str) -> None:
+                            """Mirror workspace-switch status to terminal AND
+                            web UI; print() alone leaves the browser blank."""
+                            print(line)
+                            if _textual_emit_content_fn is not None:
+                                try:
+                                    import re as _re
+                                    _ansi = _re.compile(r"\x1b\[[0-9;]*m")
+                                    for _l in _ansi.sub("", line).splitlines() or [""]:
+                                        _textual_emit_content_fn(_l)
+                                except Exception:
+                                    pass
+
                         try:
                             # Switch session context — flat project layout (single param)
                             _setup_session(ws_name)
@@ -2060,10 +2074,10 @@ def chat_loop():
                                     messages[0]["content"] = _new_sys
                                 else:
                                     messages.insert(0, {"role": "system", "content": _new_sys})
-                                print(Color.success(f"\n✅ Workspace switched to '{ws_name}' (resumed existing context).\n"))
+                                _ws_emit(Color.success(f"\n✅ Workspace switched to '{ws_name}' (resumed existing context).\n"))
                             else:
                                 messages = [{"role": "system", "content": _new_sys}]
-                                print(Color.success(f"\n✅ Workspace switched to '{ws_name}' (new context).\n"))
+                                _ws_emit(Color.success(f"\n✅ Workspace switched to '{ws_name}' (new context).\n"))
                             # Persist and refresh context tracker
                             save_conversation_history(messages)
                             if messages and messages[0].get("role") == "system":
@@ -2072,7 +2086,10 @@ def chat_loop():
                             context_tracker.update_memory({})
                             context_tracker.update_messages(messages, exclude_system=True)
                         except Exception as _ws_err:
-                            print(Color.error(f"\n❌ Failed to switch workspace: {_ws_err}\n"))
+                            _ws_emit(Color.error(f"\n❌ Failed to switch workspace: {_ws_err}\n"))
+                        if _textual_emit_flush_fn is not None:
+                            try: _textual_emit_flush_fn()
+                            except Exception: pass
                         continue
 
                     elif result.startswith("MODEL_SWITCH:"):
@@ -2126,6 +2143,23 @@ def chat_loop():
                         # Regular command output (PLAN_AND_RUN already set user_input above — fall through)
                         if result:
                             print(result)
+                            # Mirror slash output to the web UI — print() only
+                            # hits stdout (and the uvicorn log file in atlas
+                            # mode), which leaves the browser blank otherwise.
+                            if _textual_emit_content_fn is not None:
+                                try:
+                                    # Strip ANSI escapes so the markdown
+                                    # renderer in the UI doesn't render raw
+                                    # control sequences as text.
+                                    import re as _re
+                                    _ansi = _re.compile(r"\x1b\[[0-9;]*m")
+                                    _clean = _ansi.sub("", result)
+                                    for _line in _clean.splitlines() or [_clean]:
+                                        _textual_emit_content_fn(_line)
+                                    if _textual_emit_flush_fn is not None:
+                                        _textual_emit_flush_fn()
+                                except Exception:
+                                    pass
                         # Refresh Textual sidebar after any slash command that may change todo state
                         if _textual_emit_todo_fn and todo_tracker_main:
                             todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE)) if Path(config.TODO_FILE).exists() else None

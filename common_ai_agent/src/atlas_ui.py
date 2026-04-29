@@ -426,7 +426,13 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     _main._textual_emit_content_fn   = lambda text, cls="": bridge.emit("token",     text=text, cls=cls)
     _main._textual_emit_reasoning_fn = lambda text, blank=False: bridge.emit("reasoning", text=text)
     _main._textual_emit_todo_fn      = lambda text: bridge.emit("todo_line", text=text)
-    _main._textual_emit_flush_fn     = lambda: bridge.emit("flush")
+    _main._textual_emit_flush_fn     = lambda: (
+        bridge.emit("flush"),
+        # Workspace switches happen behind a slash command and re-register
+        # the slash registry. Nudge the UI to re-fetch /api/commands so the
+        # autocomplete dropdown picks up new workspace commands.
+        bridge.emit("commands_changed"),
+    )
     _main._textual_emit_tool_fn      = lambda text: bridge.emit("tool", text=text)
     _main._textual_emit_tool_result_fn = lambda obs, tool="": bridge.emit(
         "tool_result", text=obs[:8000], tool=tool, truncated=len(obs) > 8000

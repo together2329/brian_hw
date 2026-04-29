@@ -139,11 +139,14 @@
       const cmds = Array.isArray(d.commands) ? d.commands : [];
       if (cmds.length) {
         // Map the API shape ({cmd, name, aliases, hint, usage}) to the
-        // shape workspace.jsx expects ({cmd, alias, hint}).
+        // shape workspace.jsx's slash dropdown expects. The renderer
+        // reads BOTH .hint (mute footer) and .desc (in-line right
+        // column), so populate both.
         window.SLASH_COMMANDS = cmds.map(c => ({
           cmd:   c.cmd,
           alias: (c.aliases && c.aliases[0]) || c.name.slice(0, 2),
           hint:  c.hint || '',
+          desc:  c.hint || '',
         }));
         window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SLASH_COMMANDS' }));
       }
@@ -223,6 +226,8 @@
           window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' }));
         }
       });
+      // /wf <name> swaps the slash registry on the server — re-fetch.
+      window.backend.subscribe('commands_changed', () => refreshSlashCommands());
     }
     attach();
   }
