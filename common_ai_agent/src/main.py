@@ -1782,10 +1782,15 @@ def chat_loop():
                             agent_mode = "plan_q"  # first turn: questions only, tools blocked
                             os.environ["PLAN_MODE"] = "true"
                             _msg = "✅ Plan mode: clarify → explore → refine → user confirms → execute."
-                            print(Color.success("\n" + _msg + "\n"))
+                            # Avoid double-rendering in Textual/Atlas mode —
+                            # print() also lands in the Textual RichLog (or
+                            # the Atlas log file/stdout), and _emit_content
+                            # already renders as a markdown card. Pick ONE.
                             if _textual_emit_content_fn is not None:
                                 try: _textual_emit_content_fn(_msg)
                                 except Exception: pass
+                            else:
+                                print(Color.success("\n" + _msg + "\n"))
                             # Refresh system prompt with Plan Mode instructions
                             if messages and messages[0].get("role") == "system":
                                 system_prompt_data = build_system_prompt(messages, agent_mode=agent_mode)
@@ -1804,10 +1809,11 @@ def chat_loop():
                             os.environ["PLAN_MODE"] = "false"
                             os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)  # reset plan loop counter
                             _msg = "✅ Normal mode — tools enabled."
-                            print(Color.success("\n" + _msg + "\n"))
                             if _textual_emit_content_fn is not None:
                                 try: _textual_emit_content_fn(_msg)
                                 except Exception: pass
+                            else:
+                                print(Color.success("\n" + _msg + "\n"))
                             # Restore normal system prompt
                             if messages and messages[0].get("role") == "system":
                                 system_prompt_data = build_system_prompt(messages, agent_mode=agent_mode)
