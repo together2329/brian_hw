@@ -8,35 +8,16 @@ const Workspace = ({ dir, onScreen }) => {
   const [workflow, setWorkflow] = React.useState(null);
 
   const NORMAL_FEED = [
-    { kind: 'agent', text: 'Normal mode · ask anything about `spi_master` — explain code, propose improvements, debug issues, or just chat. Pick a **Workflow** below to enter a guided generation flow.' },
-    { kind: 'agent', text: 'Suggested follow-ups:\n  · `Review §5 FSM for hazards`\n  · `Compare CPOL/CPHA timing across all 4 modes`\n  · `What changed since v2 of the SSOT?`\n  · `Find dead code in spi_master.sv`' },
+    { kind: 'agent', text: 'Connected. Type a message and press Enter to talk to the agent.' },
   ];
   const PLAN_FEED = [
-    { kind: 'agent', text: '**Plan mode** · read-only. I will analyze, propose, and write a plan — but **will not execute** any tools that mutate files. Use `apply` (or switch back to Normal) to run the plan.' },
-    { kind: 'agent', text: 'Try: `Plan a refactor of §5 FSM to add LOAD state`, or pick a Workflow to plan its outputs without writing them.' },
+    { kind: 'agent', text: '**Plan mode** · read-only. The agent will analyze and propose without executing mutating tools. Use `apply` (or switch back to Normal) to run the plan.' },
   ];
-  const buildWorkflowFeed = (wfId, intent) => {
-    const stage = window.FLOW_STAGES.find(s => s.id === wfId);
-    const planPrefix = intent === 'plan' ? '[plan] ' : '';
-    return [
-      { kind: 'agent', text: `Workflow · \`${stage.cmd} spi_master\` ${intent === 'plan' ? '· **PLAN mode** (no writes)' : ''}` },
-      { kind: 'thought', text: `${planPrefix}Loading prior stage outputs and slash-command catalog…` },
-      { kind: 'action', tool: 'read_file', args: { path: 'spi_master/mas/spi_master_mas.md' }, planned: intent === 'plan' },
-      { kind: 'obs', text: 'OK · prior stage context loaded.' },
-      ...(window.QA_FLOWS[wfId] ? [
-        { kind: 'agent', text: 'First decision needs your input — see card below.' },
-        { kind: 'qcard', flowId: wfId },
-      ] : [
-        { kind: 'agent', text: 'No interactive questions — outputs will stream as I work.' },
-      ]),
-    ];
-  };
 
   const [feed, setFeed] = React.useState(NORMAL_FEED);
 
-  const refreshFeed = (newIntent, newWorkflow) => {
-    if (newWorkflow) setFeed(buildWorkflowFeed(newWorkflow, newIntent));
-    else setFeed(newIntent === 'plan' ? PLAN_FEED : NORMAL_FEED);
+  const refreshFeed = (newIntent /*, newWorkflow */) => {
+    setFeed(newIntent === 'plan' ? PLAN_FEED : NORMAL_FEED);
   };
 
   const switchIntent = (i) => {
@@ -44,7 +25,9 @@ const Workspace = ({ dir, onScreen }) => {
     refreshFeed(i, workflow);
   };
   const switchWorkflow = (w) => {
-    // Clicking the active workflow toggles it off → free chat in current intent
+    // Workflow badges are inert in live mode — there is no mock advance
+    // sequence anymore. Toggling just stores the selection so the
+    // agent can read it from a future API endpoint.
     const next = workflow === w ? null : w;
     setWorkflow(next);
     refreshFeed(intent, next);
@@ -56,17 +39,18 @@ const Workspace = ({ dir, onScreen }) => {
   const [streamText, setStreamText] = React.useState('');
   const [openFile, setOpenFile] = React.useState(null);
   const [rightTab, setRightTab] = React.useState('ssot'); // ssot | todo | files
-  const [qaState, setQaState] = React.useState(() => {
-    const m = {};
-    Object.keys(window.QA_FLOWS).forEach(k => {
-      m[k] = {
-        opts: window.QA_FLOWS[k].options.map(o => ({ ...o })),
-        custom: '',
-        submitted: false,
-      };
-    });
-    return m;
-  });
+  // qaState is keyed by flow_id. Dynamic flows are added on-the-fly
+  // when the agent emits an ask_user event over the WS.
+  const [qaState, setQaState] = React.useState({});
+
+  // Force a re-render when the live data layer (data.jsx) refreshes
+  // FILE_TREE / TODOS / SSOT_FILES so dependent panels show fresh data.
+  const [, bumpRender] = React.useReducer(x => x + 1, 0);
+  React.useEffect(() => {
+    const h = () => bumpRender();
+    window.addEventListener('atlas-data-changed', h);
+    return () => window.removeEventListener('atlas-data-changed', h);
+  }, []);
 
   const inputRef = React.useRef(null);
   const feedRef = React.useRef(null);
@@ -132,24 +116,15 @@ const Workspace = ({ dir, onScreen }) => {
     setInput('');
     setShowSlash(false);
     setFeed(f => [...f, { kind: 'user', text: txt }]);
-    if (window.backend && window.backend.mode === 'live') {
-      sendToBackend(txt);
-    } else {
-      streamAgentReply(txt);
-    }
-  };
-
-  // ── live backend ───────────────────────────────────────────────
-  const sendToBackend = (txt) => {
     setStreaming(true);
     setStreamText('');
-    window.backend.send({ type: 'prompt', text: txt });
+    if (window.backend) window.backend.send({ type: 'prompt', text: txt });
   };
 
   // Subscribe to backend events and translate them into feed entries.
   const streamBufferRef = React.useRef('');
   React.useEffect(() => {
-    if (!window.backend || window.backend.mode !== 'live') return;
+    if (!window.backend) return;
     const subs = [];
     subs.push(window.backend.subscribe('token', (m) => {
       const t = m.text || '';
@@ -246,48 +221,6 @@ const Workspace = ({ dir, onScreen }) => {
     return () => subs.forEach(u => u && u());
   }, []);
 
-  const streamAgentReply = (cmd) => {
-    setStreaming(true);
-    const isCmd = cmd.startsWith('/');
-    const seq = isCmd
-      ? [
-          { kind: 'thought', text: `Routing "${cmd}". Loading workspace and tool catalog…` },
-          { kind: 'action',  tool: 'read_file', args: { path: 'spi_master/mas/spi_master_mas.md' } },
-          { kind: 'obs',     text: 'OK · 312 lines · context loaded' },
-          { kind: 'agent',   text: 'Ready. Next decision needs your input — see the question card below.' },
-          { kind: 'qcard',   flowId: 'tb_gen' },
-        ]
-      : [
-          { kind: 'thought', text: `Interpreting your reply: "${cmd}". I\'ll fold this into the current SSOT step.` },
-          { kind: 'agent',   text: 'Got it — I\'ve added a `# note` to the SSOT preview on the right. Continue with the question card or type another command.' },
-        ];
-    let i = 0;
-    const next = () => {
-      if (i >= seq.length) { setStreaming(false); setStreamText(''); return; }
-      const r = seq[i];
-      if (r.kind === 'thought' || r.kind === 'agent') {
-        let pos = 0;
-        setStreamText('');
-        const tw = setInterval(() => {
-          pos += 8;
-          setStreamText(r.text.slice(0, pos));
-          if (pos >= r.text.length) {
-            clearInterval(tw);
-            setFeed(l => [...l, r]);
-            setStreamText('');
-            i++;
-            setTimeout(next, 180);
-          }
-        }, 18);
-      } else {
-        setFeed(l => [...l, r]);
-        i++;
-        setTimeout(next, 280);
-      }
-    };
-    next();
-  };
-
   const onKey = (e) => {
     if (showSlash) {
       if (e.key === 'ArrowDown') { e.preventDefault(); setSlashSel(s => Math.min(s + 1, filtered.length - 1)); return; }
@@ -325,66 +258,24 @@ const Workspace = ({ dir, onScreen }) => {
     setQaState(s => ({ ...s, [flowId]: { ...s[flowId], custom: val } }));
   };
 
+  // submitCard ships an ask_user answer back to the agent over the WS.
+  // All flows that reach this point are dynamic (registered when an
+  // ask_user event arrives); the mock SSOT/RTL advance simulator that
+  // used to live here has been removed along with the mock data files.
   const submitCard = (flowId) => {
-    const flow = window.QA_FLOWS[flowId];
     const st = qaState[flowId];
+    if (!st) return;
     const selectedIds = st.opts.filter(o => o.selected).map(o => o.id);
     setQaState(s => ({ ...s, [flowId]: { ...s[flowId], submitted: true } }));
-
-    // Dynamic ask_user: ship the answer back over the WebSocket and let
-    // the agent decide what happens next. Don't fire the mock advance.
-    if (flow && flow.dynamic && window.backend && window.backend.mode === 'live') {
+    if (window.backend) {
       window.backend.send({
         type: 'answer',
         flow_id: flowId,
         selected: selectedIds,
         custom: st.custom || '',
       });
-      setStreaming(true);  // agent will resume streaming after receiving answer
-      return;
     }
-
-    // ── mock-mode advance (preserved from imported design) ────────
-    const sel = st.opts.filter(o => o.selected).map(o => o.label);
-    setTimeout(() => {
-      const advance = [
-        { kind: 'thought', text: `Locked step ${flow.step} of ${flow.stage}: ${sel.length} option(s)${st.custom ? ' + 1 custom' : ''}. Updating SSOT YAML and queuing next question…` },
-        { kind: 'action',  tool: 'write_file', args: { path: 'spi_master/ssot/spi_master.ssot.yaml', section: flow.stageDetail } },
-        { kind: 'obs',     text: 'OK · ssot.yaml updated · advancing to step ' + (flow.step + 1) },
-        { kind: 'agent',   text: `Step ${flow.step + 1}: **${flow.upcoming[0]?.title || 'Confirm'}** — pick an option below.` },
-        { kind: 'qcard',   flowId: flow.step >= 3 ? 'rtl_gen' : flowId, locked: true },
-      ];
-      streamSeq(advance);
-    }, 400);
-  };
-
-  const streamSeq = (seq) => {
-    setStreaming(true);
-    let i = 0;
-    const next = () => {
-      if (i >= seq.length) { setStreaming(false); setStreamText(''); return; }
-      const r = seq[i];
-      if (r.kind === 'thought' || r.kind === 'agent') {
-        let pos = 0;
-        setStreamText('');
-        const tw = setInterval(() => {
-          pos += 8;
-          setStreamText(r.text.slice(0, pos));
-          if (pos >= r.text.length) {
-            clearInterval(tw);
-            setFeed(l => [...l, r]);
-            setStreamText('');
-            i++;
-            setTimeout(next, 160);
-          }
-        }, 16);
-      } else {
-        setFeed(l => [...l, r]);
-        i++;
-        setTimeout(next, 240);
-      }
-    };
-    next();
+    setStreaming(true);  // agent resumes after receiving answer
   };
 
   // ── layout ─────────────────────────────────────────────────────
