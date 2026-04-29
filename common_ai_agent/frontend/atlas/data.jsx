@@ -94,6 +94,10 @@
       type: entry.type === 'dir' ? 'dir' : 'file',
       name: entry.name,
       size: fmtSize(entry.size),
+      // Preserve mtime so the workspace panel can sort by 'recent'
+      // (most recently modified first). Backend ships it per entry
+      // — see atlas_ui.py:367.
+      mtime: entry.mtime || 0,
       depth: depth || 0,
       expanded: false,
       dim: false,

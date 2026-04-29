@@ -88,6 +88,17 @@ const Workspace = ({ dir, onScreen }) => {
   const [leftW,  setLeftW,  toggleLeft]  = useResizable(230, 'atlasLeftW',  160, 480);
   const [rightW, setRightW, toggleRight] = useResizable(360, 'atlasRightW', 260, 600);
 
+  // File-tree sort mode — 'name' (alphabetical, dirs first; default) or
+  // 'recent' (most recently modified first, regardless of dir/file).
+  // Persisted across reloads.
+  const [fileSort, setFileSort] = React.useState(() => {
+    try { return localStorage.getItem('atlasFileSort') === 'recent' ? 'recent' : 'name'; }
+    catch (_) { return 'name'; }
+  });
+  React.useEffect(() => {
+    try { localStorage.setItem('atlasFileSort', fileSort); } catch (_) {}
+  }, [fileSort]);
+
   const NORMAL_FEED = [
     { kind: 'agent', text: 'Connected. Type a message and press Enter to talk to the agent.' },
   ];
@@ -662,7 +673,7 @@ const Workspace = ({ dir, onScreen }) => {
 
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <div className="box-h">
-            <span>▸ ip files</span>
+            <span>▸ workspace</span>
             <span style={{ flex: 1 }} />
             <span className="acc" style={{ textTransform: 'none', fontSize: 11, letterSpacing: 0 }}>
               {(window.SCOPE_PATH || '').split('/').pop() || 'project root'}
@@ -709,9 +720,31 @@ const Workspace = ({ dir, onScreen }) => {
                 onClick={() => window.atlasData.setScopePath('')}
               >✕</span>
             ) : null}
+            {/* Sort toggle: name (A-Z, dirs first) ↔ recent (mtime DESC).
+                Click cycles between the two; the active one is accent-color. */}
             <span
-              title="refresh tree"
-              style={{ cursor: 'pointer', color: 'var(--fg-mute)', fontSize: 12, padding: '0 4px' }}
+              title={'sort: ' + (fileSort === 'recent'
+                ? 'recent (most recently modified first) — click for A→Z'
+                : 'A→Z (dirs first) — click for recent')}
+              onClick={() => {
+                setFileSort(s => s === 'recent' ? 'name' : 'recent');
+                window.atlasData.refreshFileTree(window.SCOPE_PATH || '');
+              }}
+              style={{
+                cursor: 'pointer',
+                fontSize: 10,
+                padding: '1px 6px',
+                borderRadius: 2,
+                userSelect: 'none',
+                color: fileSort === 'recent' ? 'var(--accent)' : 'var(--fg-mute)',
+                border: '1px solid ' + (fileSort === 'recent' ? 'var(--accent)' : 'var(--line)'),
+                fontFamily: 'var(--mono)',
+              }}
+            >{fileSort === 'recent' ? '⏱ recent' : 'A→Z'}</span>
+            <span
+              title="refresh — pull the latest file list now"
+              style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 13,
+                       padding: '0 6px', fontWeight: 600, userSelect: 'none' }}
               onClick={() => window.atlasData.refreshFileTree(window.SCOPE_PATH || '')}
             >↻</span>
           </div>
@@ -740,7 +773,15 @@ const Workspace = ({ dir, onScreen }) => {
                 (empty — try a different scope or refresh)
               </div>
             )}
-            {window.FILE_TREE.map((n, i) => {
+            {/* Sort: 'recent' = mtime DESC (most recent first, ignoring
+                dir/file distinction so just-touched files always float
+                to the top). 'name' keeps the API's default A→Z, dirs
+                first ordering. /api/files already returns mtime per
+                entry — sort happens client-side, no backend change. */}
+            {(fileSort === 'recent'
+              ? [...window.FILE_TREE].sort((a, b) => (b.mtime || 0) - (a.mtime || 0))
+              : window.FILE_TREE
+            ).map((n, i) => {
               const fullPath = (window.SCOPE_PATH ? window.SCOPE_PATH + '/' : '') + n.name;
               const isSelected = n.type === 'file' && previewPath === fullPath;
               return (
