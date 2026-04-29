@@ -564,6 +564,7 @@ class _AgentInput(TextArea):
         Binding("enter",       "submit_input", "Submit",   show=False, priority=True),
         Binding("ctrl+j",      "newline",      "New line", show=False, priority=True),
         Binding("escape",      "stop_agent",   "Stop",     show=False, priority=True),
+        Binding("ctrl+s",      "ask_submit",   "Submit ask", show=False, priority=True),
         Binding("shift+tab",    "toggle_plan",  "Plan",     show=False, priority=True),
         Binding("shift+insert", "paste",        "Paste",    show=False, priority=True),
     ]
@@ -597,6 +598,11 @@ class _AgentInput(TextArea):
         self.insert("\n")
 
     def action_stop_agent(self) -> None:
+        # If the inline ask_user panel is open, Esc cancels the question
+        # rather than stopping the agent.
+        if getattr(self, "_ask_active", None) is not None:
+            self._cancel_ask()
+            return
         ol = self._get_completion_list()
         if ol is not None and "visible" in ol.classes:
             ol.remove_class("visible")
@@ -605,6 +611,11 @@ class _AgentInput(TextArea):
             self.app.action_stop()
         except Exception:
             pass
+
+    def action_ask_submit(self) -> None:
+        """Ctrl+S — submit the inline ask_user panel if open."""
+        if getattr(self, "_ask_active", None) is not None:
+            self._submit_ask()
 
     def action_toggle_plan(self) -> None:
         try:
@@ -1303,6 +1314,43 @@ class AgentTUI(App):
     #completion-list.visible {{
         display: block;
     }}
+    /* ── Inline ask_user panel — sits just above the input row ─── */
+    #ask-user-panel {{
+        dock: bottom;
+        margin-bottom: 4;
+        display: none;
+        height: auto;
+        max-height: 16;
+        background: {_BG_INPUT};
+        border: round {_ACCENT};
+        padding: 0 1;
+    }}
+    #ask-user-panel.visible {{
+        display: block;
+    }}
+    #ask-q {{
+        color: {_ACCENT};
+        text-style: bold;
+        padding-bottom: 0;
+    }}
+    #ask-sub {{
+        color: {_TEXT_DIM};
+        padding-bottom: 1;
+    }}
+    #ask-opts {{
+        height: auto;
+        max-height: 8;
+        background: {_BG_INPUT};
+        border: tall {_BORDER_DIM};
+    }}
+    #ask-note {{
+        margin-top: 1;
+        background: {_BG_INPUT};
+    }}
+    #ask-hint {{
+        color: {_TEXT_DIM};
+        padding-top: 0;
+    }}
     #completion-list > .option-list--option {{
         background: {_BG_INPUT};
         color: {_TEXT};
@@ -1435,6 +1483,14 @@ class AgentTUI(App):
             yield Static("", id="todo")
             yield Static(cwd, id="cwd-label")
         yield OptionList(id="completion-list")
+        # Inline ask_user panel — sits just above the input row, hidden by
+        # default. Replaces the old modal-screen popup.
+        with Vertical(id="ask-user-panel", classes="hidden"):
+            yield Static("", id="ask-q")
+            yield Static("", id="ask-sub")
+            yield OptionList(id="ask-opts")
+            yield Input(placeholder="Custom note (optional)…", id="ask-note")
+            yield Static("", id="ask-hint")
         with Vertical(id="input-wrap"):
             yield Static("", id="input-topline")
             with Horizontal(id="input-row"):
@@ -2091,13 +2147,155 @@ class AgentTUI(App):
         self._compressing = False
 
     def on_ask_user_request(self, msg: AskUserRequest) -> None:
-        """Agent thread asked a question via the ask_user tool — pop the modal.
+        """Agent thread asked a question via the ask_user tool —
+        populate the inline panel below the chat (Claude-style).
 
-        Multiple ask_user calls in one turn stack as separate push_screen
-        invocations; Textual handles them sequentially (a new modal opens
-        after the previous one is dismissed).
+        If a previous request is still open, it is queued; the panel
+        only displays one request at a time.
         """
-        self.push_screen(AskUserModal(msg))
+        if not hasattr(self, "_ask_queue"):
+            self._ask_queue = []
+            self._ask_active = None
+            self._ask_selected = set()
+        if self._ask_active is not None:
+            self._ask_queue.append(msg)
+            return
+        self._open_ask_panel(msg)
+
+    def _open_ask_panel(self, msg: "AskUserRequest") -> None:
+        self._ask_active = msg
+        self._ask_selected = set()
+        try:
+            q = self.query_one("#ask-q", Static)
+            sub = self.query_one("#ask-sub", Static)
+            opts = self.query_one("#ask-opts", OptionList)
+            note = self.query_one("#ask-note", Input)
+            hint = self.query_one("#ask-hint", Static)
+            panel = self.query_one("#ask-user-panel")
+        except Exception:
+            return
+
+        q.update(msg.question or "(no question)")
+        sub.update(msg.subtitle or "")
+        opts.clear_options()
+        note.value = ""
+
+        if msg.kind in ("single", "multi"):
+            for o in (msg.options or []):
+                label = o.get("label", o.get("id", ""))
+                if msg.kind == "multi":
+                    label = "☐ " + label
+                if o.get("detail"):
+                    label = f"{label}  ─  [dim]{o['detail']}[/dim]"
+                opts.add_option(_Option(label, id=o.get("id", label)))
+
+        if msg.kind == "single":
+            hint.update("[dim]↑/↓ navigate · ↵ select & submit · esc cancel[/dim]")
+        elif msg.kind == "multi":
+            hint.update("[dim]↑/↓ navigate · ↵ toggle · ctrl+s submit · esc cancel[/dim]")
+        else:
+            hint.update("[dim]type your answer · ctrl+s submit · esc cancel[/dim]")
+
+        panel.add_class("visible")
+        # Focus the right widget for the kind
+        if msg.kind in ("single", "multi"):
+            self.set_focus(opts)
+        else:
+            self.set_focus(note)
+
+    def _close_ask_panel(self) -> None:
+        try:
+            self.query_one("#ask-user-panel").remove_class("visible")
+        except Exception:
+            pass
+        self._ask_active = None
+        self._ask_selected = set()
+        # Pop the next queued request, if any
+        if hasattr(self, "_ask_queue") and self._ask_queue:
+            nxt = self._ask_queue.pop(0)
+            self._open_ask_panel(nxt)
+        else:
+            # Refocus the main input
+            try:
+                self.query_one(_AgentInput).focus()
+            except Exception:
+                pass
+
+    def _refresh_multi_marks(self) -> None:
+        """Re-render multi-mode option labels with ☑/☐ prefixes."""
+        msg = getattr(self, "_ask_active", None)
+        if not msg or msg.kind != "multi":
+            return
+        try:
+            opts = self.query_one("#ask-opts", OptionList)
+        except Exception:
+            return
+        for i, o in enumerate(msg.options or []):
+            oid = o.get("id", o.get("label"))
+            mark = "☑" if oid in self._ask_selected else "☐"
+            label = o.get("label", oid)
+            if o.get("detail"):
+                label = f"{mark} {label}  ─  [dim]{o['detail']}[/dim]"
+            else:
+                label = f"{mark} {label}"
+            try:
+                opts.replace_option_prompt_at_index(i, label)
+            except Exception:
+                pass
+
+    def _submit_ask(self) -> None:
+        msg = getattr(self, "_ask_active", None)
+        if not msg:
+            return
+        try:
+            note_val = self.query_one("#ask-note", Input).value or ""
+        except Exception:
+            note_val = ""
+        # In single mode the user submits via Enter on a row, which already
+        # populates _ask_selected; if Ctrl+S was pressed without a row pick,
+        # take the highlighted option.
+        if msg.kind == "single" and not self._ask_selected:
+            try:
+                opts = self.query_one("#ask-opts", OptionList)
+                if opts.highlighted is not None and opts.option_count > opts.highlighted:
+                    self._ask_selected = {opts.get_option_at_index(opts.highlighted).id}
+            except Exception:
+                pass
+        msg.answer_q.put({
+            "type": "answer",
+            "flow_id": msg.flow_id,
+            "selected": list(self._ask_selected),
+            "custom": note_val,
+        })
+        self._close_ask_panel()
+
+    def _cancel_ask(self) -> None:
+        msg = getattr(self, "_ask_active", None)
+        if not msg:
+            return
+        msg.answer_q.put({
+            "type": "answer",
+            "flow_id": msg.flow_id,
+            "selected": [],
+            "custom": "",
+        })
+        self._close_ask_panel()
+
+    @on(OptionList.OptionSelected, "#ask-opts")
+    def _on_ask_opt_selected(self, event: OptionList.OptionSelected) -> None:
+        msg = getattr(self, "_ask_active", None)
+        if not msg:
+            return
+        oid = event.option.id
+        if msg.kind == "single":
+            self._ask_selected = {oid} if oid else set()
+            self._submit_ask()
+        elif msg.kind == "multi":
+            if oid in self._ask_selected:
+                self._ask_selected.discard(oid)
+            else:
+                self._ask_selected.add(oid)
+            self._refresh_multi_marks()
 
     def on_token_usage(self, msg: TokenUsage) -> None:
         self._has_direct_emit = True    # text-parse path will skip to avoid double-count

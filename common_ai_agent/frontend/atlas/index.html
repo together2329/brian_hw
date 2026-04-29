@@ -6,9 +6,23 @@
 <title>common_ai_agent · UI</title>
 <link rel="stylesheet" href="styles.css">
 <style>
-  html, body { margin: 0; padding: 0; background: #000; height: 100%; }
-  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: auto; }
-  #scaler { width: 1920px; height: 1080px; transform-origin: top left; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #000; color: #e6edf3;
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+  }
+  /* Full-screen, no letterbox: scale uniformly so the 1920x1080 design
+     covers the whole viewport. Anything taller/wider than the design's
+     aspect ratio just stretches uniformly to fill. */
+  #scaler {
+    width: 1920px;
+    height: 1080px;
+    transform-origin: top left;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
 </style>
 </head>
 <body>
@@ -18,7 +32,7 @@
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-  <!-- Backend adapter: window.backend (mock | live ws) -->
+  <!-- Backend adapter: window.backend (live WebSocket) -->
   <script src="backend.js"></script>
 
   <!-- App modules (Babel-transpiled in-browser) -->
@@ -28,16 +42,15 @@
   <script type="text/babel" data-presets="react" src="app.jsx"></script>
 
   <script>
-    // letterbox scale to fit viewport
+    // Full-screen scaling: stretch the 1920x1080 design to fill the whole
+    // viewport on each axis (no letterbox bars). The design uses flex
+    // layouts internally so reflow stays sane up to ~3x scale.
     function scale() {
       const s = document.getElementById('scaler');
-      const sx = window.innerWidth / 1920;
+      const sx = window.innerWidth  / 1920;
       const sy = window.innerHeight / 1080;
-      const k = Math.min(sx, sy);
-      s.style.transform = `scale(${k})`;
-      s.style.position = 'absolute';
-      s.style.left = ((window.innerWidth - 1920 * k) / 2) + 'px';
-      s.style.top = ((window.innerHeight - 1080 * k) / 2) + 'px';
+      // Use scaleX/scaleY independently so both dimensions hit the edges.
+      s.style.transform = `scale(${sx}, ${sy})`;
     }
     window.addEventListener('resize', scale);
     setTimeout(scale, 30);
