@@ -57,6 +57,29 @@
     window.addEventListener('resize', scale);
     setTimeout(scale, 30);
     setTimeout(scale, 200);
+
+    // ── Auto-reload on frontend file change ──────────────────────
+    // Polls /api/version every 3 s. If the latest mtime across the
+    // frontend bundle bumps, reload the page. So whenever the source
+    // gets edited (data.jsx, workspace.jsx, styles.css, …) you see
+    // the change without a manual refresh.
+    (function () {
+      let baseline = null;
+      async function tick() {
+        try {
+          const r = await fetch('/api/version', { cache: 'no-store' });
+          if (!r.ok) return;
+          const { mtime } = await r.json();
+          if (baseline === null) { baseline = mtime; return; }
+          if (mtime && mtime > baseline + 0.5) {
+            console.info('[atlas] frontend changed → reloading');
+            location.reload();
+          }
+        } catch (_) { /* offline; try again */ }
+      }
+      setInterval(tick, 3000);
+      tick();
+    })();
   </script>
 </body>
 </html>

@@ -164,6 +164,22 @@ def create_app():
     async def index():
         return FileResponse(FRONTEND / "index.html")
 
+    @app.get("/api/version")
+    async def api_version():
+        """Returns the latest mtime across the frontend bundle. The
+        browser polls this every few seconds — if it bumps, the page
+        reloads. Cheap server-side hot-reload without watchdog or
+        websocket file-watcher complexity.
+        """
+        latest = 0.0
+        try:
+            for f in FRONTEND.iterdir():
+                if f.is_file():
+                    latest = max(latest, f.stat().st_mtime)
+        except OSError:
+            pass
+        return JSONResponse({"mtime": latest})
+
     @app.get("/healthz")
     async def healthz():
         info = {
@@ -514,9 +530,17 @@ def create_app():
     # FastAPI's DI layer (see the long comment above the ws_agent definition).
     app.router.routes.append(WebSocketRoute("/ws/agent", ws_agent))
 
-    # Static assets — jsx, css, js, fonts (registered LAST so it doesn't shadow
-    # the explicit routes above)
-    app.mount("/", StaticFiles(directory=str(FRONTEND), html=False), name="atlas-static")
+    # Static assets — jsx, css, js, fonts (registered LAST so it doesn't
+    # shadow the explicit routes above). Disable client-side caching so
+    # a normal page refresh always picks up new JSX/CSS.
+    class _NoCacheStatic(StaticFiles):
+        async def get_response(self, path, scope):
+            resp = await super().get_response(path, scope)
+            resp.headers["Cache-Control"] = "no-store, max-age=0"
+            return resp
+
+    app.mount("/", _NoCacheStatic(directory=str(FRONTEND), html=False),
+              name="atlas-static")
 
     app.state.bridge = bridge
     return app
