@@ -219,14 +219,39 @@ def create_app():
 
     @app.get("/api/todos")
     async def api_todos():
+        # Prefer the live tracker the agent is mutating in main.py — that's
+        # the only way to see in-progress changes before they hit disk. Fall
+        # back to TodoTracker.load() if main hasn't initialized one yet.
+        try:
+            import main as _main  # noqa: WPS433
+            live = getattr(_main, "todo_tracker", None)
+            if live is not None and getattr(live, "todos", None):
+                return JSONResponse(live.to_dict())
+        except Exception:
+            pass
         try:
             from lib.todo_tracker import TodoTracker
-        except Exception as e:
-            return JSONResponse({"error": f"todo_tracker import failed: {e}"},
-                                status_code=500)
-        try:
             tt = TodoTracker.load()
-            return JSONResponse(tt.to_dict())
+            # If the on-disk file is in the legacy array shape (`[{...}]`),
+            # to_dict() returns {todos: []}; try parsing the array directly.
+            d = tt.to_dict()
+            if not d.get("todos"):
+                import json as _json
+                p = Path("current_todos.json")
+                if p.exists():
+                    try:
+                        raw = _json.loads(p.read_text())
+                        if isinstance(raw, list):
+                            d = {"todos": [
+                                {"content": t.get("content", ""),
+                                 "status": t.get("status", "pending"),
+                                 "priority": t.get("priority", ""),
+                                 "detail": t.get("detail", "")}
+                                for t in raw if isinstance(t, dict)
+                            ]}
+                    except Exception:
+                        pass
+            return JSONResponse(d)
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
 

@@ -225,17 +225,14 @@ def run_react_agent_impl(
             _max_lines = int(getattr(_c, 'DISPLAY_LIST_MAX_ENTRIES', 30))
         # Tree-producing tools use format_tree_display for safe rendering
         if tool_name in _TREE_TOOLS:
-            formatted = format_tree_display(observation, max_lines=_max_lines)
-        else:
-            formatted = format_tool_result(observation, max_lines=_max_lines,
-                                            max_chars=_max_chars)
-        # Mirror tool observations to the web UI when a callback is wired.
-        if deps.emit_tool_result_fn:
-            try:
-                deps.emit_tool_result_fn(observation, tool_name)
-            except Exception:
-                pass
-        return formatted
+            return format_tree_display(observation, max_lines=_max_lines)
+        return format_tool_result(observation, max_lines=_max_lines,
+                                   max_chars=_max_chars)
+        # NOTE: emit_tool_result_fn is fired ONCE per action at the top of
+        # both the parallel- and sequential-action loops below. Don't emit
+        # here — _fmt_result() can be called multiple times for the same
+        # observation (preview, full result, etc.) and would duplicate the
+        # event on the WS.
 
     # Use injected ESC functions if provided (for testing), else use EscapeWatcher
     _esc_check = deps.esc_check_fn if deps.esc_check_fn is not None else EscapeWatcher.check
@@ -1224,11 +1221,22 @@ def run_react_agent_impl(
                     )
 
                     # Show what we're about to do — before execution so long ops aren't silent
-                    # Skip header for diff/write tools: their output already provides the header
+                    # Skip the *terminal* header for diff/write tools (their stdout already
+                    # contains 'Update(file)…'), but still emit the web UI tool event so the
+                    # Atlas chat feed gets a consistent action block per invocation.
                     _HEADER_SKIP_SEQ = {"replace_in_file", "replace_lines", "replace_file_content", "write_file", "write_to_file"}
-                    if not _debug and not _is_plan_blocked and not _is_normal_blocked and tool_name not in _HEADER_SKIP_SEQ:
-                        print(format_tool_header(tool_name, summary))
-                        if deps.emit_tool_fn: deps.emit_tool_fn(f"▶ {tool_name}  {summary}")
+                    if not _debug and not _is_plan_blocked and not _is_normal_blocked:
+                        if tool_name not in _HEADER_SKIP_SEQ:
+                            print(format_tool_header(tool_name, summary))
+                    # Always emit a tool event for the web UI — even when the
+                    # call is blocked by plan/exec mode, the UI needs to show
+                    # what the agent tried so the next tool_result (the block
+                    # message) has a matching action block.
+                    if deps.emit_tool_fn:
+                        suffix = ''
+                        if _is_plan_blocked:   suffix = ' [blocked: plan]'
+                        if _is_normal_blocked: suffix = ' [blocked: exec]'
+                        deps.emit_tool_fn(f"▶ {tool_name}  {summary}{suffix}")
 
                     if _is_plan_blocked:
                         if tool_name == "todo_update":
