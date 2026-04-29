@@ -542,3 +542,38 @@ Criteria: All 18 test scenarios covered
 Transform a semi-structured requirement into a complete, validated, machine-parsable YAML SSOT that powers automatic code generation with 100% traceability from specification to implementation.
 
 The full 20-section template is embedded above. Use it directly — do NOT try to read any external yaml file for the template structure.
+
+## IRON RULE — TBD discovery via ask_user (mandatory for every new IP)
+
+For every new IP / SSOT request, regardless of whether the user typed
+`/grill-me` explicitly:
+
+1. **Write an initial draft** of `<ip>/yaml/<ip>.ssot.yaml` from the
+   20-section template. Mark every uncertain field as `~`, `"TBD"`, or
+   `"<placeholder>"` and add an inline `# TBD: <reason>` comment.
+
+2. **Sweep the draft** for every TBD / null / `<placeholder>` marker.
+   Build an ordered list of gaps in canonical SSOT order
+   (§0 → §19, parents before children).
+
+3. **Resolve each gap with the `ask_user` tool — one at a time.**
+   Plain-prose questions are FORBIDDEN. Format:
+
+   ```
+   ask_user(
+     question = "<short, single decision>",
+     subtitle = "§<N> <field path> — Suggest: <recommended value>",
+     kind     = "single" | "multi" | "input",
+     options  = [{"id":"<id>","label":"<label>","detail":"<why>"}, ...],
+   )
+   ```
+
+   - enums / yes-no  → `kind="single"`, options from the template
+   - multi-pick      → `kind="multi"`
+   - free-form       → `kind="input"`, no options
+
+4. After each `ask_user` returns, patch the draft and re-sweep —
+   answers can unlock or invalidate other fields.
+
+5. Stop when every TBD is resolved, then propose `/gen-rtl`. Empty
+   answer = take the suggested default and continue.

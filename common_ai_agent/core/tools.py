@@ -4249,6 +4249,45 @@ def set_ask_user_callback(cb):
     _ask_user_callback = cb
 
 
+def read_doc(path):
+    """Convert a Word, PDF, PowerPoint, Excel, or HTML doc to markdown.
+
+    Wraps Microsoft's `markitdown` so the agent can ingest PDFs and
+    Office docs without dropping into a bespoke parser. Returns the
+    extracted text as a single markdown string. Falls back to a clear
+    error message when the library or file is missing.
+
+    Args:
+        path: relative or absolute filesystem path. Tilde expansion
+              and absolute paths are honoured.
+    """
+    if not isinstance(path, str) or not path.strip():
+        return "[read_doc: 'path' must be a non-empty string]"
+    try:
+        from markitdown import MarkItDown
+    except Exception as e:
+        return ("[read_doc: markitdown not available — pip install markitdown. "
+                f"Underlying error: {e}]")
+    p = os.path.expanduser(path)
+    if not os.path.exists(p):
+        return f"[read_doc: file not found: {path}]"
+    if not os.path.isfile(p):
+        return f"[read_doc: not a file: {path}]"
+    try:
+        md = MarkItDown(enable_plugins=False)
+        result = md.convert(p)
+        text = (result.text_content or "").strip()
+    except Exception as e:
+        return f"[read_doc: conversion failed: {type(e).__name__}: {e}]"
+    if not text:
+        return f"[read_doc: empty result — file may be unsupported or scanned]"
+    # Cap at ~32k chars so the response doesn't blow context.
+    cap = 32_000
+    if len(text) > cap:
+        return text[:cap] + f"\n\n[…truncated, full doc {len(text)} chars]"
+    return text
+
+
 def ask_user(question, options=None, kind="single", subtitle=""):
     """Ask the user a question through the GUI and wait for their answer.
 
@@ -4344,6 +4383,8 @@ AVAILABLE_TOOLS = {
     "job_cancel": job_cancel,
     # GUI interaction
     "ask_user": ask_user,
+    # Document ingestion (markitdown — pdf/docx/pptx/xlsx/html → md)
+    "read_doc": read_doc,
 }
 
 # Import and register Verilog analysis tools

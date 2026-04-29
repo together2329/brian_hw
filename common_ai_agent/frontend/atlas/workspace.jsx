@@ -214,7 +214,19 @@ const Workspace = ({ dir, onScreen }) => {
     }));
     subs.push(window.backend.subscribe('reasoning', (m) => {
       const t = (m.text || '').trim();
-      if (t) setFeed(l => [...l, { kind: 'thought', text: t }]);
+      if (!t) return;
+      // Coalesce consecutive reasoning lines into ONE thought block —
+      // the agent emits one chunk per sentence, which floods the chat
+      // with 10+ THOUGHT entries per turn. We append to the last
+      // entry if it's still a thought, otherwise create a new one.
+      setFeed(l => {
+        const last = l[l.length - 1];
+        if (last && last.kind === 'thought') {
+          return [...l.slice(0, -1),
+                  { kind: 'thought', text: last.text + '\n' + t }];
+        }
+        return [...l, { kind: 'thought', text: t }];
+      });
     }));
     subs.push(window.backend.subscribe('todo_line', (m) => {
       const t = (m.text || '').trim();
@@ -681,6 +693,27 @@ const RightTab = ({ id, cur, onTab, children }) => (
 );
 
 // ── Feed entry: dispatcher ─────────────────────────────────────────
+const CollapsibleThought = ({ text }) => {
+  const [open, setOpen] = React.useState(false);
+  const lines = text.split('\n').filter(l => l.trim());
+  const firstLine = lines[0] || '';
+  const more = lines.length - 1;
+  return (
+    <div className="react-block thought" style={{ cursor: 'pointer' }}
+         onClick={() => setOpen(o => !o)}>
+      <span className="rb-tag">thought {more > 0 && `(${lines.length})`}</span>
+      {open ? (
+        <span style={{ whiteSpace: 'pre-wrap' }}>{text}</span>
+      ) : (
+        <span style={{ opacity: 0.7 }}>
+          {firstLine}
+          {more > 0 && <span className="mute" style={{ marginLeft: 6 }}>· +{more} more · click to expand</span>}
+        </span>
+      )}
+    </div>
+  );
+};
+
 const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
   if (entry.kind === 'user') {
     return (
@@ -707,12 +740,7 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
     );
   }
   if (entry.kind === 'thought') {
-    return (
-      <div className="react-block thought">
-        <span className="rb-tag">thought</span>
-        <span>{entry.text}</span>
-      </div>
-    );
+    return <CollapsibleThought text={entry.text || ''} />;
   }
   if (entry.kind === 'action') {
     const planned = entry.planned;

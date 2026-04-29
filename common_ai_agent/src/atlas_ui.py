@@ -622,6 +622,31 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
 
     threading.Thread(target=_run_agent, daemon=True).start()
 
+    # Surface the source-repo path to the agent so it can locate
+    # workflow/, rules/, templates/, etc. when running from a non-source
+    # cwd (e.g. user runs `cd Custom_IP && python ../…/textual_main.py`).
+    os.environ["ATLAS_SOURCE_ROOT"] = str(SOURCE_ROOT)
+    os.environ["ATLAS_PROJECT_ROOT"] = str(PROJECT_ROOT)
+    # Inject a system-prompt note so the LLM knows about both roots.
+    _root_note = (
+        f"\n\n[Atlas Runtime] You are running with cwd = {PROJECT_ROOT}. "
+        f"All file reads/writes default to here. The source repo "
+        f"(workflow templates, ssot-template.yaml, skills) lives at "
+        f"{SOURCE_ROOT} — reference those by absolute path, not by "
+        f"relative path from cwd."
+    )
+    try:
+        # Append to whatever the existing system prompt builder produces
+        # so the hint is part of every system-prompt rebuild (workspace
+        # switches included).
+        _orig_builder = getattr(_main, "_build_system_prompt_str", None)
+        if callable(_orig_builder):
+            def _patched_builder(*a, _orig=_orig_builder, _note=_root_note, **kw):
+                return _orig(*a, **kw) + _note
+            _main._build_system_prompt_str = _patched_builder
+    except Exception:
+        pass
+
     print(f"\n  ATLAS UI → http://{host}:{port}\n")
     uvicorn.run(app, host=host, port=port, log_level="warning")
 
