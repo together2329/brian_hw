@@ -623,6 +623,25 @@ const Workspace = ({ dir, onScreen }) => {
             >↻</span>
           </div>
           <div style={{ flex: 1, overflow: 'auto', padding: '4px 0' }}>
+            {/* Parent-dir shortcut: click → pop one segment off scope.
+                Only shown when scope is non-empty so users have a
+                one-click way out without retyping into the input. */}
+            {window.SCOPE_PATH ? (
+              <div
+                className="frow"
+                style={{ paddingLeft: 8, cursor: 'pointer' }}
+                title={'go up one level\nfrom: ' + window.SCOPE_PATH}
+                onClick={() => {
+                  const segs = (window.SCOPE_PATH || '').split('/').filter(Boolean);
+                  segs.pop();
+                  window.atlasData.setScopePath(segs.join('/'));
+                }}
+              >
+                <span className="fr-icon">▲</span>
+                <span className="trunc"><span className="dim">.. (up)</span></span>
+                <span className="mute" style={{ fontSize: 10 }} />
+              </div>
+            ) : null}
             {window.FILE_TREE.length === 0 && (
               <div className="mute" style={{ padding: '8px 10px', fontSize: 11 }}>
                 (empty — try a different scope or refresh)

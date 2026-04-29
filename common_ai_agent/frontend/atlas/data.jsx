@@ -341,18 +341,10 @@
         refreshSsotList();
         refreshHealth();
         refreshWorkflows();
-        // Auto-clear a stale SCOPE_PATH on workspace switch — the
-        // previous workflow's narrowed directory rarely applies to
-        // the new one (e.g. //workflow/axi_sram/sim → switching to
-        // rtl-gen which works on axi_sram_bridge/rtl/). Without this,
-        // IP Files keeps showing the old directory while the agent
-        // is editing files elsewhere. User can re-narrow if needed.
-        if (window.SCOPE_PATH) {
-          window.SCOPE_PATH = '';
-          try { localStorage.removeItem('atlasScopePath'); } catch (_) {}
-          refreshFileTree('');
-          window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
-        }
+        // SCOPE_PATH is intentionally preserved across workspace
+        // switches — re-navigating into the same dir every time was
+        // worse UX than seeing one extra click of staleness. The ✕
+        // button next to the scope input clears it explicitly.
       });
       // Every flush (end of a slash result, end of an iteration's tokens)
       // is a cheap excuse to resync state so /todo clear, /clear, etc.
