@@ -49,6 +49,15 @@
   window.TODOS = [];
   window.SSOT_FILES = [];
 
+  // Scope path: agent is asked (via prompt prefix) to keep all reads,
+  // writes, and tool calls confined to this directory. Empty string =
+  // whole project root. Persists across reloads via localStorage.
+  try {
+    window.SCOPE_PATH = localStorage.getItem('atlasScopePath') || '';
+  } catch (_) {
+    window.SCOPE_PATH = '';
+  }
+
   // Status-bar metadata. Filled in by the /healthz response and the
   // first `cost`/`context` WS event.
   window.CONTEXT = {
@@ -172,12 +181,19 @@
       fetch('/api/file?path=' + encodeURIComponent(path)).then(r => r.json()),
     fetchSsot: (path) =>
       fetch('/api/ssot?file=' + encodeURIComponent(path)).then(r => r.json()),
+    setScopePath: (p) => {
+      window.SCOPE_PATH = p || '';
+      try { localStorage.setItem('atlasScopePath', window.SCOPE_PATH); } catch (_) {}
+      // Re-fetch the tree at the new scope so the panel updates.
+      refreshFileTree(window.SCOPE_PATH);
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
+    },
   };
 
   // ── Bootstrap ───────────────────────────────────────────────────
   function boot() {
     refreshHealth();
-    refreshFileTree('');
+    refreshFileTree(window.SCOPE_PATH || '');
     refreshTodos();
     refreshSsotList();
     refreshSlashCommands();
@@ -191,13 +207,14 @@
       }
       window.backend.subscribe('todo_line', () => refreshTodos());
       window.backend.subscribe('tool_result', (m) => {
-        // After tool calls that mutate the filesystem, refresh the tree.
-        if (!m || !m.tool) return;
-        if (['write_file', 'replace_in_file', 'replace_lines',
-             'replace_file_content', 'run_command'].includes(m.tool)) {
-          refreshFileTree('');
-          refreshSsotList();
-        }
+        // Refresh on every tool_result — file tree + ssot list are cheap
+        // to recompute (~ms each) and any tool can mutate the FS through
+        // run_command. Always bump TODOS too in case the agent updated
+        // them as a side-effect.
+        const path = window.SCOPE_PATH || '';
+        refreshFileTree(path);
+        refreshSsotList();
+        refreshTodos();
       });
       window.backend.subscribe('context', (m) => {
         if (typeof m.used === 'number') {

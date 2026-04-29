@@ -111,14 +111,27 @@ const Workspace = ({ dir, onScreen }) => {
 
   // ── chat actions ───────────────────────────────────────────────
   const submitMsg = (cmd) => {
-    const txt = (cmd ?? input).trim();
-    if (!txt) return;
+    const raw = (cmd ?? input).trim();
+    if (!raw) return;
     setInput('');
     setShowSlash(false);
-    setFeed(f => [...f, { kind: 'user', text: txt }]);
+    setFeed(f => [...f, { kind: 'user', text: raw }]);
     setStreaming(true);
     setStreamText('');
-    if (window.backend) window.backend.send({ type: 'prompt', text: txt });
+    // Prepend a scope-restriction directive so the agent is forced to
+    // operate inside the user's selected directory. Slash commands
+    // bypass the prefix because they hit the local dispatcher first.
+    const scope = (window.SCOPE_PATH || '').trim();
+    let outbound = raw;
+    if (scope && !raw.startsWith('/')) {
+      outbound = (
+        `[scope] You MUST confine every file read, write, edit, grep, ` +
+        `find, and run_command to paths inside "${scope}". Do not touch ` +
+        `files outside this directory unless I explicitly say so.\n\n` +
+        raw
+      );
+    }
+    if (window.backend) window.backend.send({ type: 'prompt', text: outbound });
   };
 
   // Subscribe to backend events and translate them into feed entries.
@@ -346,55 +359,68 @@ const Workspace = ({ dir, onScreen }) => {
             <span style={{ flex: 1 }} />
             <span className="acc" style={{ textTransform: 'none', fontSize: 11, letterSpacing: 0 }}>spi_master</span>
           </div>
-          {/* cwd path bar */}
+          {/* scope path bar — editable; constrains the agent to this dir */}
           <div style={{
             padding: '6px 10px', borderBottom: '1px solid var(--line)',
             display: 'flex', alignItems: 'center', gap: 6, fontSize: 11,
             background: 'var(--bg-2)',
           }}>
-            <span className="mute" style={{ fontSize: 10 }}>cwd</span>
+            <span className="mute" style={{ fontSize: 10 }}>scope</span>
             <span className="mute">›</span>
-            <span style={{
-              flex: 1, fontFamily: 'var(--mono)',
-              color: 'var(--fg)', fontSize: 11,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              direction: 'rtl', textAlign: 'left',
-            }} title="/Users/sk/work/ip_dev/spi_master">
-              ~/work/ip_dev/spi_master
-            </span>
+            <input
+              type="text"
+              defaultValue={window.SCOPE_PATH || ''}
+              placeholder="(project root) — type a sub-dir, ↵ to set"
+              title="Agent will be asked to confine all reads/writes to this path"
+              style={{
+                flex: 1, fontFamily: 'var(--mono)', fontSize: 11,
+                background: 'transparent', border: 'none', outline: 'none',
+                color: 'var(--fg)',
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  window.atlasData.setScopePath(e.currentTarget.value.trim());
+                }
+              }}
+              onBlur={e => window.atlasData.setScopePath(e.currentTarget.value.trim())}
+            />
             <span
               title="refresh tree"
               style={{ cursor: 'pointer', color: 'var(--fg-mute)', fontSize: 12, padding: '0 4px' }}
-              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent)'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--fg-mute)'}
+              onClick={() => window.atlasData.refreshFileTree(window.SCOPE_PATH || '')}
             >↻</span>
-            <span
-              title="reveal in finder"
-              style={{ cursor: 'pointer', color: 'var(--fg-mute)', fontSize: 12, padding: '0 4px' }}
-              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent)'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--fg-mute)'}
-            >⤢</span>
           </div>
           <div style={{ flex: 1, overflow: 'auto', padding: '4px 0' }}>
-            {window.FILE_TREE.map((n, i) => (
-              <div key={i}
-                className={n.active ? 'frow active' : 'frow'}
-                style={{ paddingLeft: 8 + n.depth * 14, opacity: n.dim ? 0.55 : 1, cursor: n.type === 'file' ? 'pointer' : 'default' }}
-                onClick={() => n.type === 'file' && setOpenFile(n.name)}
-              >
-                <span className="fr-icon">{n.type === 'dir' ? (n.expanded ? '▾' : '▸') : '◆'}</span>
-                <span className="trunc">{n.type === 'dir' ? <span className="dim">{n.name}</span> : n.name}</span>
-                <span className="mute" style={{ fontSize: 10 }}>{n.size}</span>
+            {window.FILE_TREE.length === 0 && (
+              <div className="mute" style={{ padding: '8px 10px', fontSize: 11 }}>
+                (empty — try a different scope or refresh)
               </div>
-            ))}
+            )}
+            {window.FILE_TREE.map((n, i) => {
+              const fullPath = (window.SCOPE_PATH ? window.SCOPE_PATH + '/' : '') + n.name;
+              return (
+                <div key={i}
+                  className={n.active ? 'frow active' : 'frow'}
+                  style={{ paddingLeft: 8 + (n.depth || 0) * 14, cursor: 'pointer' }}
+                  onClick={() => {
+                    if (n.type === 'file') setOpenFile(fullPath);
+                    else window.atlasData.setScopePath(fullPath);
+                  }}
+                  title={fullPath}
+                >
+                  <span className="fr-icon">{n.type === 'dir' ? '▸' : '◆'}</span>
+                  <span className="trunc">{n.type === 'dir' ? <span className="dim">{n.name}/</span> : n.name}</span>
+                  <span className="mute" style={{ fontSize: 10 }}>{n.size}</span>
+                </div>
+              );
+            })}
           </div>
-          {/* file tree footer w/ stats */}
+          {/* file tree footer */}
           <div style={{ borderTop: '1px solid var(--line)', padding: '6px 10px', fontSize: 10, color: 'var(--fg-mute)', display: 'flex', gap: 10 }}>
-            <span>7 files</span>
-            <span>·</span>
-            <span>40.4 KB</span>
+            <span>{window.FILE_TREE.length} entries</span>
             <span style={{ flex: 1 }} />
-            <span className="ok">git: clean</span>
+            <span className="mute">{window.SCOPE_PATH || 'project root'}</span>
           </div>
         </div>
       </div>
@@ -516,7 +542,7 @@ const Workspace = ({ dir, onScreen }) => {
             <RightTab id="todo" cur={rightTab} onTab={setRightTab}>Todo · 4/9</RightTab>
             <RightTab id="diff" cur={rightTab} onTab={setRightTab}>Diff</RightTab>
           </div>
-          {rightTab === 'ssot' && <SsotPanel qaState={qaState} />}
+          {rightTab === 'ssot' && <SsotPanel />}
           {rightTab === 'todo' && <TodoPanel />}
           {rightTab === 'diff' && <DiffPanel />}
         </div>
@@ -851,76 +877,80 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
 };
 
 // ── Right panels ──────────────────────────────────────────────────
-const SsotPanel = ({ qaState }) => {
-  const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
-  const ssotSel = qaState.ssot?.opts.filter(o => o.selected) || [];
-  const ssotCustom = qaState.ssot?.custom;
-  const rtlSel = qaState.rtl_gen?.opts.filter(o => o.selected)[0];
-  const tbSel = qaState.tb_gen?.opts.filter(o => o.selected) || [];
-  const tbCustom = qaState.tb_gen?.custom;
+// Live SSOT panel — lists every *.ssot.yaml under the project (or the
+// current scope path, if /api/ssot ever filters by it) and shows the
+// content of whichever one the user clicks on. Auto-refreshes when the
+// agent writes a new SSOT (data.jsx subscribes to tool_result).
+const SsotPanel = () => {
+  const files = window.SSOT_FILES || [];
+  const [selected, setSelected] = React.useState(null);
+  const [content, setContent] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+
+  // Default to the first file once the list is populated.
+  React.useEffect(() => {
+    if (!selected && files.length > 0) setSelected(files[0].path);
+  }, [files.length, selected]);
+
+  // Fetch content whenever the selected file changes (or the file list
+  // refreshes — the user may want to see updated content for an SSOT
+  // the agent just wrote).
+  React.useEffect(() => {
+    if (!selected) { setContent(''); return; }
+    let cancelled = false;
+    setLoading(true);
+    window.atlasData.fetchSsot(selected).then(d => {
+      if (cancelled) return;
+      setContent(d?.content || `# (could not read ${selected})`);
+      setLoading(false);
+    }).catch(() => { if (!cancelled) { setContent(''); setLoading(false); } });
+    return () => { cancelled = true; };
+  }, [selected, files.length]);
+
+  if (files.length === 0) {
+    return (
+      <div className="code" style={{ flex: 1, overflow: 'auto',
+        padding: '14px 16px', fontSize: 12, color: 'var(--fg-mute)' }}>
+        # No *.ssot.yaml files in the project yet.<br />
+        # Use <span className="acc">/grill-me</span> to gather the spec
+        and <span className="acc">/to-ssot &lt;ip&gt;</span> to write the YAML.
+      </div>
+    );
+  }
 
   return (
-    <div className="code" style={{ flex: 1, overflow: 'auto', padding: '12px 14px', fontSize: 12, lineHeight: 1.55 }}>
-      <div className="mute"># spi_master.ssot.yaml</div>
-      <div className="mute">{'# generated by /new-ssot, locked-as-you-go'}</div>
-      <div style={{ height: 8 }} />
-      <div><span className="mag">ip:</span> <span style={{ color: 'var(--fg)' }}>spi_master</span></div>
-      <div><span className="mag">version:</span> <span style={{ color: 'var(--fg)' }}>3</span></div>
-      <div style={{ height: 8 }} />
-      <div className="acc">overview:</div>
-      <div>  <span className="mag">role:</span> spi_master_controller</div>
-      <div>  <span className="mag">topology:</span> single_master</div>
-      <div>  <span className="mag">cs_count:</span> 4</div>
-      <div style={{ height: 8 }} />
-      <div className="acc">use_case:</div>
-      <div><span className="ok">  - </span>sensor_polling</div>
-      <div><span className="ok">  - </span>flash_config</div>
-      <div><span className="ok">  - </span>low_latency_burst</div>
-      <div style={{ height: 8 }} />
-      <div className="acc">interfaces:</div>
-      {ssotSel.length === 0 && <div className="mute">  []  # awaiting step 3</div>}
-      {ssotSel.map(o => (
-        <div key={o.id}>
-          <span className="ok">  - </span>
-          <span style={{ color: 'var(--fg)' }}>{slug(o.label)}</span>
-          <span className="mute">  # {o.detail.split('·')[0].trim()}</span>
-        </div>
-      ))}
-      {ssotCustom && (
-        <div>
-          <span className="warn">  - </span>
-          <span style={{ color: 'var(--fg)' }}>{slug(ssotCustom)}</span>
-          <span className="warn">  # custom</span>
-        </div>
-      )}
-      <div style={{ height: 8 }} />
-      <div className="acc">rtl:</div>
-      {rtlSel ? (
-        <div>  <span className="mag">style:</span> <span style={{ color: 'var(--fg)' }}>{slug(rtlSel.label)}</span></div>
-      ) : (
-        <div className="mute">  style: ~  # pending</div>
-      )}
-      <div style={{ height: 8 }} />
-      <div className="acc">testbench:</div>
-      <div>  <span className="mag">scenarios:</span></div>
-      {tbSel.length === 0 && <div className="mute">    []  # pending</div>}
-      {tbSel.map(o => (
-        <div key={o.id}>
-          <span className="ok">    - </span>
-          <span style={{ color: 'var(--fg)' }}>{slug(o.label)}</span>
-        </div>
-      ))}
-      {tbCustom && (
-        <div>
-          <span className="warn">    - </span>
-          <span style={{ color: 'var(--fg)' }}>{slug(tbCustom)}</span>
-        </div>
-      )}
-      <div style={{ height: 8 }} />
-      <div className="mute">clocking:        ~  # pending</div>
-      <div className="mute">register_map:    ~  # pending</div>
-      <div className="mute">fsm:             ~  # pending</div>
-      <div className="mute">acceptance:      ~  # pending</div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      {/* file picker */}
+      <div style={{
+        borderBottom: '1px solid var(--line)', padding: '4px 6px',
+        display: 'flex', flexWrap: 'wrap', gap: 4,
+        background: 'var(--bg-2)',
+      }}>
+        {files.map(f => (
+          <span key={f.path}
+            onClick={() => setSelected(f.path)}
+            title={f.path}
+            style={{
+              cursor: 'pointer',
+              padding: '2px 8px', fontSize: 10,
+              fontFamily: 'var(--mono)',
+              border: `1px solid ${selected === f.path ? 'var(--accent)' : 'var(--line)'}`,
+              color: selected === f.path ? 'var(--accent)' : 'var(--fg-mute)',
+              background: selected === f.path ? 'var(--bg-3, var(--bg-2))' : 'transparent',
+              borderRadius: 2,
+            }}>
+            {f.path.split('/').pop()}
+          </span>
+        ))}
+      </div>
+      {/* content viewer */}
+      <pre className="code" style={{
+        flex: 1, overflow: 'auto', margin: 0,
+        padding: '12px 14px', fontSize: 12, lineHeight: 1.55,
+        whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+      }}>
+        {loading ? '# loading…' : content}
+      </pre>
     </div>
   );
 };
