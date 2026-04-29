@@ -240,6 +240,21 @@
   };
 
   // ── Bootstrap ───────────────────────────────────────────────────
+  // Coalesce a burst of WS events into a single API hit per resource.
+  // Without this, a single agent turn that fires 5 tool_result frames
+  // in 200 ms triggers 5 file-tree + 5 ssot + 5 todo fetches and the
+  // UI feels sluggish.
+  function debounce(fn, wait) {
+    let t;
+    return function () {
+      clearTimeout(t);
+      t = setTimeout(fn, wait);
+    };
+  }
+  const _refFiles = debounce(() => refreshFileTree(window.SCOPE_PATH || ''), 250);
+  const _refSsot  = debounce(refreshSsotList, 250);
+  const _refTodos = debounce(refreshTodos, 250);
+
   function boot() {
     refreshHealth();
     refreshFileTree(window.SCOPE_PATH || '');
@@ -257,14 +272,8 @@
       }
       window.backend.subscribe('todo_line', () => refreshTodos());
       window.backend.subscribe('tool_result', (m) => {
-        // Refresh on every tool_result — file tree + ssot list are cheap
-        // to recompute (~ms each) and any tool can mutate the FS through
-        // run_command. Always bump TODOS too in case the agent updated
-        // them as a side-effect.
-        const path = window.SCOPE_PATH || '';
-        refreshFileTree(path);
-        refreshSsotList();
-        refreshTodos();
+        // Coalesce into one fetch per ~250 ms — see _refFiles etc.
+        _refFiles(); _refSsot(); _refTodos();
       });
       window.backend.subscribe('context', (m) => {
         if (typeof m.used === 'number') {
