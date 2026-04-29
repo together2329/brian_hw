@@ -2099,6 +2099,30 @@ def chat_loop():
                             context_tracker.update_tools("")
                             context_tracker.update_memory({})
                             context_tracker.update_messages(messages, exclude_system=True)
+
+                            # Reload todo_tracker_main from the NEW workspace's
+                            # todo.json. Without this, the agent keeps operating
+                            # on the OLD workspace's todos because the tracker
+                            # was bound at boot to the old TODO_FILE path.
+                            # _setup_session above already changed config.TODO_FILE
+                            # to .session/<ws_name>/todo.json — we just need to
+                            # rebind the in-memory tracker accordingly.
+                            if config.ENABLE_TODO_TRACKING:
+                                _new_todo_path = Path(config.TODO_FILE)
+                                todo_tracker_main = (
+                                    TodoTracker.load(_new_todo_path)
+                                    if _new_todo_path.exists()
+                                    else TodoTracker(_new_todo_path)
+                                )
+                                # Push the new workspace's todos to the sidebar
+                                # (clears stale entries, shows new ones if any).
+                                if _textual_emit_todo_fn is not None:
+                                    try:
+                                        if todo_tracker_main and todo_tracker_main.todos:
+                                            _textual_emit_todo_fn(todo_tracker_main.format_simple())
+                                        else:
+                                            _textual_emit_todo_fn("")
+                                    except Exception: pass
                         except Exception as _ws_err:
                             _ws_emit(Color.error(f"\n❌ Failed to switch workspace: {_ws_err}\n"))
                         if _textual_emit_flush_fn is not None:
