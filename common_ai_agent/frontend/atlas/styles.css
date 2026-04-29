@@ -444,61 +444,129 @@
 .fade-in { animation: fadein 0.2s ease-out; }
 
 /* ── Markdown rendering for agent replies ─────────────────────────── */
-.md-agent { color: var(--fg); }
-.md-agent p { margin: 6px 0; }
-.md-agent h1, .md-agent h2, .md-agent h3 {
-  color: var(--accent);
-  margin: 10px 0 4px;
-  font-weight: 600;
-  font-size: inherit;
+.md-agent {
+  color: var(--fg);
+  font-size: 14px;
+  line-height: 1.7;
 }
-.md-agent ul, .md-agent ol { padding-left: 22px; margin: 4px 0; }
-.md-agent li { margin: 2px 0; }
+
+/* Paragraphs — generous breathing room */
+.md-agent > p { margin: 10px 0; }
+.md-agent > p:first-child { margin-top: 0; }
+.md-agent > p:last-child  { margin-bottom: 0; }
+
+/* Headings — clear hierarchy */
+.md-agent h1, .md-agent h2, .md-agent h3, .md-agent h4 {
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 18px 0 8px;
+  padding-bottom: 4px;
+}
+.md-agent h1 { font-size: 17px; border-bottom: 1px solid var(--line); }
+.md-agent h2 { font-size: 15px; border-bottom: 1px solid var(--line); }
+.md-agent h3 { font-size: 14px; }
+.md-agent h4 { font-size: 13px; color: var(--fg); }
+
+/* Lists — vertical rhythm + nested indent */
+.md-agent ul, .md-agent ol {
+  padding-left: 28px;
+  margin: 8px 0;
+}
+.md-agent li {
+  margin: 4px 0;
+}
+.md-agent li > p { margin: 2px 0; }
+.md-agent ul ul, .md-agent ol ol, .md-agent ul ol, .md-agent ol ul {
+  margin: 4px 0;
+  padding-left: 24px;
+}
+
+/* Strong / em */
+.md-agent strong { color: var(--fg); font-weight: 700; }
+.md-agent em     { color: var(--fg); font-style: italic; }
+
+/* Inline code */
 .md-agent code {
   background: var(--bg-2);
-  padding: 1px 5px;
+  padding: 2px 6px;
   border-radius: 3px;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--accent);
+  border: 1px solid var(--line);
 }
+
+/* Code blocks */
 .md-agent pre {
   background: var(--bg-2);
   border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 8px 12px;
+  border-radius: 6px;
+  padding: 10px 14px;
   overflow-x: auto;
-  margin: 6px 0;
+  margin: 10px 0;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 12.5px;
   line-height: 1.55;
   white-space: pre;
 }
 .md-agent pre code {
   background: none;
   padding: 0;
+  border: none;
   color: var(--fg);
+  font-size: inherit;
 }
+
+/* Tables */
 .md-agent table {
   border-collapse: collapse;
-  margin: 6px 0;
+  margin: 10px 0;
+  font-size: 13px;
+  display: block;
+  overflow-x: auto;
 }
 .md-agent th, .md-agent td {
   border: 1px solid var(--line);
-  padding: 4px 10px;
+  padding: 6px 12px;
   text-align: left;
+  vertical-align: top;
 }
-.md-agent th { background: var(--bg-2); color: var(--accent); }
-.md-agent a { color: var(--accent); text-decoration: none; }
-.md-agent a:hover { text-decoration: underline; }
+.md-agent th {
+  background: var(--bg-2);
+  color: var(--accent);
+  font-weight: 700;
+}
+.md-agent tr:nth-child(even) { background: color-mix(in oklch, var(--bg-2) 40%, transparent); }
+
+/* Links */
+.md-agent a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px dashed color-mix(in oklch, var(--accent) 40%, transparent);
+}
+.md-agent a:hover { border-bottom-color: var(--accent); }
+
+/* Blockquotes */
 .md-agent blockquote {
-  border-left: 3px solid var(--line);
-  margin: 6px 0;
-  padding: 0 10px;
+  border-left: 3px solid var(--accent);
+  margin: 10px 0;
+  padding: 4px 14px;
   color: var(--fg-mute);
+  background: color-mix(in oklch, var(--accent) 6%, transparent);
+  border-radius: 0 4px 4px 0;
 }
+.md-agent blockquote p { margin: 4px 0; }
+
+/* Horizontal rules */
 .md-agent hr {
   border: none;
   border-top: 1px solid var(--line);
-  margin: 8px 0;
+  margin: 14px 0;
+}
+
+/* Task list (GFM checkboxes) */
+.md-agent input[type="checkbox"] {
+  margin-right: 6px;
+  accent-color: var(--accent);
 }
