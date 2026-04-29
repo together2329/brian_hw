@@ -105,6 +105,7 @@
       const d = await r.json();
       if (Array.isArray(d.entries)) {
         window.FILE_TREE = d.entries.map(e => asTreeNode(e, 0));
+        window.FILE_TREE_LAST_REFRESH = Date.now();
         window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FILE_TREE' }));
       }
     } catch (e) { /* server not reachable yet */ }
@@ -230,6 +231,14 @@
       window.backend.subscribe('commands_changed', () => refreshSlashCommands());
     }
     attach();
+    // Belt-and-suspenders polling: every 5 s, refresh the file tree
+    // and SSOT list at the current scope. Catches any case where a
+    // tool_result event was missed (UI was loading, WS dropped, etc.)
+    // and keeps the timestamp footer ticking.
+    setInterval(() => {
+      refreshFileTree(window.SCOPE_PATH || '');
+      refreshSsotList();
+    }, 5000);
   }
 
   if (document.readyState === 'loading') {

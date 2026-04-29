@@ -419,6 +419,12 @@ const Workspace = ({ dir, onScreen }) => {
           {/* file tree footer */}
           <div style={{ borderTop: '1px solid var(--line)', padding: '6px 10px', fontSize: 10, color: 'var(--fg-mute)', display: 'flex', gap: 10 }}>
             <span>{window.FILE_TREE.length} entries</span>
+            <span className="mute">·</span>
+            <span className="mute" title="Auto-refreshes on tool_result + every 5s">
+              {window.FILE_TREE_LAST_REFRESH
+                ? new Date(window.FILE_TREE_LAST_REFRESH).toLocaleTimeString()
+                : 'loading…'}
+            </span>
             <span style={{ flex: 1 }} />
             <span className="mute">{window.SCOPE_PATH || 'project root'}</span>
           </div>
