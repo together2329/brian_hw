@@ -23,6 +23,13 @@ const Workspace = ({ dir, onScreen }) => {
   const switchIntent = (i) => {
     setIntent(i);
     refreshFeed(i, workflow);
+    // Tell the BACKEND about the mode swap — local React state alone
+    // doesn't change the agent's behaviour. /plan flips agent_mode to
+    // 'plan' (no mutating tools); /mode normal flips it back.
+    if (window.backend) {
+      const cmd = i === 'plan' ? '/plan' : '/mode normal';
+      window.backend.send({ type: 'prompt', text: cmd });
+    }
   };
   const switchWorkflow = (w) => {
     // Click a workflow chip → fire `/wf <name>` to actually swap the
