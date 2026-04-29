@@ -1531,7 +1531,7 @@ const AgentStatusPanel = ({ intent, workflow }) => {
         {/* Model */}
         <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 8 }}>
           <span className="mute">Model</span>
-          <span style={{ color: 'var(--fg)' }}>claude-sonnet-4</span>
+          <span style={{ color: 'var(--fg)' }}>{(window.CONTEXT && window.CONTEXT.model) || '—'}</span>
         </div>
         {/* Context with bar */}
         <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 4 }}>
@@ -1662,7 +1662,7 @@ const HotkeyFooter = ({ intent, streaming }) => (
     alignItems: 'center', flexWrap: 'wrap',
   }}>
     <span style={{ color: 'var(--accent)', fontWeight: 600 }}>↑</span>
-    <span>claude-sonnet-4</span>
+    <span>{(window.CONTEXT && window.CONTEXT.model) || '—'}</span>
     <span style={{ width: 1, height: 12, background: 'var(--line)' }} />
     <span><Kbd>shift+tab</Kbd> {intent === 'plan' ? 'normal' : 'plan'}</span>
     <span><Kbd>⌫⌫</Kbd> {streaming ? 'interrupt' : 'clear'}</span>

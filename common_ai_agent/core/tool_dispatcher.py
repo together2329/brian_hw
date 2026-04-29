@@ -74,6 +74,14 @@ def _call_with_timeout(
 
     Returns the function result, or raises _ToolTimeoutError on timeout.
     """
+    # Per-tool timeout overrides — interactive tools that BLOCK on the
+    # user (ask_user), or long-running async ones, must NOT be killed
+    # by the global wall-clock cap. The user might take 5 minutes to
+    # answer a question card; the default 300 s would silently fail
+    # and corrupt the agent's tool_call/tool_result pairing.
+    _NO_TIMEOUT_TOOLS = {"ask_user"}
+    if tool_name in _NO_TIMEOUT_TOOLS:
+        return func(*args, **kwargs)
     if timeout <= 0:
         return func(*args, **kwargs)
 
