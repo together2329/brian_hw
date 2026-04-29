@@ -1014,32 +1014,41 @@ def run_react_agent_impl(
                 if deps.emit_tool_fn: deps.emit_tool_fn("▶ todo_write  Auto-parsed from markdown plan")
                 print(_fmt_result(observation, "todo_write"))
 
-        # Completion signal check — break the loop when:
-        #   1) no actions queued AND
-        #   2) the model emitted a "done" signal AND
-        #   3) no todo is still pending or in-progress.
-        # `is_all_processed()` only counts approved/rejected as terminal,
-        # so a todo at status='completed' would block the loop forever
-        # (the user reported this). For the loop-exit decision we also
-        # accept 'completed' as terminal — the agent has already done
-        # the work; explicit approval is the user's call, not a gate
-        # for ending the iteration.
-        _terminal = ("approved", "rejected", "completed")
-        _todo_still_active = (
-            todo_tracker is not None
-            and bool(todo_tracker.todos)
-            and any(t.status not in _terminal for t in todo_tracker.todos)
-        )
-        if not actions and deps.detect_completion_fn(collected_content) and not _todo_still_active:
-            # Auto-promote any 'completed' todos to 'approved' so the
-            # final state is consistent (is_all_processed() returns True
-            # next time it's queried).
+        # Completion signal check — when the model emitted a "done"
+        # signal AND no actions are queued, end the iteration. We DO
+        # NOT gate on todo state any more (that left the loop hanging
+        # whenever a todo got stuck at 'pending' or 'in_progress').
+        # Instead, on exit we auto-resolve every leftover todo so the
+        # next read of the tracker is consistent:
+        #   completed   → approved   (agent finished it)
+        #   in_progress → approved   (agent declared the turn done)
+        #   pending     → rejected   (agent finished before touching it;
+        #                             user can review and re-add later)
+        #   approved/rejected stay as-is.
+        if not actions and deps.detect_completion_fn(collected_content):
             if todo_tracker and todo_tracker.todos:
+                _resolved = {"completed": 0, "in_progress": 0, "pending": 0}
                 for _t in todo_tracker.todos:
-                    if _t.status == "completed":
+                    _from = _t.status
+                    if _from == "completed":
                         _t.status = "approved"
                         if not _t.approved_reason:
                             _t.approved_reason = "agent emitted completion signal"
+                        _resolved["completed"] += 1
+                    elif _from == "in_progress":
+                        _t.status = "approved"
+                        if not _t.approved_reason:
+                            _t.approved_reason = (
+                                "agent emitted completion signal while in-progress"
+                            )
+                        _resolved["in_progress"] += 1
+                    elif _from == "pending":
+                        _t.status = "rejected"
+                        if not _t.rejection_reason:
+                            _t.rejection_reason = (
+                                "skipped — agent finished before starting"
+                            )
+                        _resolved["pending"] += 1
                 try:
                     todo_tracker.save()
                 except Exception:
@@ -1047,6 +1056,28 @@ def run_react_agent_impl(
                 if deps.emit_todo_fn:
                     try:
                         deps.emit_todo_fn(todo_tracker.format_simple())
+                    except Exception:
+                        pass
+                # Surface a one-line summary so the user can see what
+                # was left undone. Skip when nothing actually moved.
+                if any(_resolved.values()) and deps.emit_content_fn:
+                    _summary_parts = []
+                    if _resolved["completed"]:
+                        _summary_parts.append(
+                            f"{_resolved['completed']} completed→approved"
+                        )
+                    if _resolved["in_progress"]:
+                        _summary_parts.append(
+                            f"{_resolved['in_progress']} in-progress→approved"
+                        )
+                    if _resolved["pending"]:
+                        _summary_parts.append(
+                            f"{_resolved['pending']} pending→rejected (skipped)"
+                        )
+                    try:
+                        deps.emit_content_fn(
+                            "[Todo wrap-up] " + " · ".join(_summary_parts)
+                        )
                     except Exception:
                         pass
             print(f"\n{Color.DIM}{Color.GRAY}Ending ReAct loop.{Color.RESET}\n")
