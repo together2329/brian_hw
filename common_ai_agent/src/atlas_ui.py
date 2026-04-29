@@ -700,19 +700,28 @@ def create_app():
                         if _low in ("/plan", "/mode plan"):
                             _os.environ["AGENT_MODE_OVERRIDE"] = "plan_q"
                             _os.environ["PLAN_MODE"] = "true"
-                            _label = "✅ Plan mode (mid-loop override): clarify → explore → refine → user confirms → execute."
                         else:
                             _os.environ["AGENT_MODE_OVERRIDE"] = "normal"
                             _os.environ["PLAN_MODE"] = "false"
                             _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
-                            _label = "✅ Normal mode (mid-loop override): tools enabled."
-                        # Echo the user line + the confirmation directly
-                        # so the user sees immediate feedback without
-                        # waiting for the agent to acknowledge.
-                        bridge.emit("token", text="\n" + _label + "\n")
-                        bridge.emit("flush")
-                        # Don't queue anything else — the env override is
-                        # the entire effect. Next agent iteration honors it.
+                        # Two-pronged dispatch:
+                        # (1) AGENT_MODE_OVERRIDE handles the MID-LOOP case
+                        #     (agent currently iterating; react_loop top
+                        #     pops it on the next pass and flips local
+                        #     agent_mode for parallel_executor).
+                        # (2) submit_prompt forwards the slash so main.py's
+                        #     dispatcher can fire AGENT_MODE:normal/plan
+                        #     when the loop is IDLE — that path is what
+                        #     keeps main.py's local agent_mode + the
+                        #     system prompt in messages[0] consistent
+                        #     across turns. Without this submit, the
+                        #     UI's "● NORMAL" pill could click without
+                        #     ever telling main.py to flip — desync.
+                        # The slash dispatcher in main.py emits its own
+                        # "✅ <Mode> mode — tools enabled." banner, so we
+                        # don't need to emit one here too (was creating
+                        # duplicate confirmations on the idle path).
+                        bridge.submit_prompt(_txt)
                         continue
 
                     # `y` / `yc` / `yes` / `confirm` mid-loop while agent

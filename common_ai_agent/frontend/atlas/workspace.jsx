@@ -394,9 +394,16 @@ const Workspace = ({ dir, onScreen }) => {
     // Prepend a scope-restriction directive so the agent is forced to
     // operate inside the user's selected directory. Slash commands
     // bypass the prefix because they hit the local dispatcher first.
+    // Confirmation tokens (y / yc / yes / n / cancel / ok …) ALSO
+    // bypass — chat_loop's plan-confirmation handler does an exact
+    // `inp.lower().strip() in ("y", "yes", ...)` match, and the
+    // "[scope] You MUST..." prefix breaks that comparison so plan
+    // mode never exits even after the user types `y`. Keep these
+    // short tokens unprefixed.
+    const isConfirmation = /^(y|yc|yes|n|no|confirm|cancel|ok|proceed|ㅇㅇ|ㄴㄴ|확인|진행|취소|네|예|아니오)$/i.test(raw);
     const scope = (window.SCOPE_PATH || '').trim();
     let outbound = raw;
-    if (scope && !raw.startsWith('/')) {
+    if (scope && !raw.startsWith('/') && !isConfirmation) {
       outbound = (
         `[scope] You MUST confine every file read, write, edit, grep, ` +
         `find, and run_command to paths inside "${scope}". Do not touch ` +
