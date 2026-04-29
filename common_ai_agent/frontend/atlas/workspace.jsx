@@ -440,7 +440,9 @@ const Workspace = ({ dir, onScreen }) => {
               {(window.SCOPE_PATH || '').split('/').pop() || 'project root'}
             </span>
           </div>
-          {/* scope path bar — editable; constrains the agent to this dir */}
+          {/* scope path bar — editable; constrains the agent to this dir.
+              When empty, the input shows the project's root dir as a
+              placeholder so the user knows what "no scope" means. */}
           <div style={{
             padding: '6px 10px', borderBottom: '1px solid var(--line)',
             display: 'flex', alignItems: 'center', gap: 6, fontSize: 11,
@@ -451,8 +453,13 @@ const Workspace = ({ dir, onScreen }) => {
             <input
               type="text"
               defaultValue={window.SCOPE_PATH || ''}
-              placeholder="(project root) — type a sub-dir, ↵ to set"
-              title="Agent will be asked to confine all reads/writes to this path"
+              placeholder={
+                window.CONTEXT && window.CONTEXT.projectRoot
+                  ? '(root: ' + window.CONTEXT.projectRoot.split('/').slice(-2).join('/') + ') — type sub-dir, ↵ to set'
+                  : '(project root) — type a sub-dir, ↵ to set'
+              }
+              title={'Agent will be asked to confine all reads/writes to this path. Empty = whole project root ('
+                     + (window.CONTEXT?.projectRoot || '?') + ')'}
               style={{
                 flex: 1, fontFamily: 'var(--mono)', fontSize: 11,
                 background: 'transparent', border: 'none', outline: 'none',
@@ -507,7 +514,14 @@ const Workspace = ({ dir, onScreen }) => {
                 : 'loading…'}
             </span>
             <span style={{ flex: 1 }} />
-            <span className="mute">{window.SCOPE_PATH || 'project root'}</span>
+            <span className="mute"
+              title={window.CONTEXT?.projectRoot || ''}>
+              {window.SCOPE_PATH
+                ? window.SCOPE_PATH
+                : (window.CONTEXT && window.CONTEXT.projectRoot
+                    ? window.CONTEXT.projectRoot.split('/').pop()
+                    : 'project root')}
+            </span>
           </div>
         </div>
       </div>

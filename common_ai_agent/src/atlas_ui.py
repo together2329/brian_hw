@@ -30,9 +30,15 @@ import threading
 from pathlib import Path
 
 # ── Paths ──────────────────────────────────────────────────────────
-HERE      = Path(__file__).resolve().parent
-ROOT      = HERE.parent                              # common_ai_agent/
-FRONTEND  = ROOT / "frontend" / "atlas"
+HERE         = Path(__file__).resolve().parent
+SOURCE_ROOT  = HERE.parent                            # common_ai_agent/ (source)
+FRONTEND     = SOURCE_ROOT / "frontend" / "atlas"
+# PROJECT_ROOT is the user's cwd at launch, NOT the source repo. This
+# lets the user run `python ../path/to/textual_main.py` from any
+# project directory and have the file API + scope operate on THAT dir.
+PROJECT_ROOT = Path(os.getcwd()).resolve()
+# Backwards compat alias — older code references ROOT.
+ROOT         = SOURCE_ROOT
 
 
 # ── ask_user answer formatter ──────────────────────────────────────
@@ -160,9 +166,13 @@ def create_app():
 
     @app.get("/healthz")
     async def healthz():
-        info = {"ok": True, "frontend": str(FRONTEND),
-                "project_root": str(ROOT),
-                "cwd": os.getcwd()}
+        info = {
+            "ok": True,
+            "frontend": str(FRONTEND),
+            "source_root":  str(SOURCE_ROOT),     # where atlas_ui.py lives
+            "project_root": str(PROJECT_ROOT),    # = user's cwd at launch
+            "cwd": os.getcwd(),
+        }
         # Expose the real model + context window so the sidebar doesn't
         # have to invent values. Pull from src.config (the per-process
         # frozen settings); if config isn't importable yet, fall through
@@ -195,10 +205,10 @@ def create_app():
     async def api_workspaces():
         """List every workspace under workflow/ with a workspace.json.
 
-        Used by the Atlas frontend to populate the workflow tab strip
-        with real, clickable entries (each click fires /wf <name>).
+        Reads from the SOURCE repo (not the user's cwd) since workspace
+        definitions ship with common_ai_agent itself.
         """
-        workflow_dir = ROOT / "workflow"
+        workflow_dir = SOURCE_ROOT / "workflow"
         items = []
         if workflow_dir.is_dir():
             for d in sorted(workflow_dir.iterdir()):
@@ -221,9 +231,17 @@ def create_app():
         return JSONResponse({"active": active, "items": items})
 
     # ── REAL project data API ────────────────────────────────────
-    # File-system backed endpoints. All paths are confined to ROOT and
-    # rejected if they try to escape via .. or absolute paths.
-    PROJECT_ROOT = ROOT
+    # File-system backed endpoints. All paths are confined to the user's
+    # PROJECT_ROOT (= cwd at launch, computed at module import) and
+    # rejected if they try to escape via .. or absolute paths. This is
+    # NOT the source repo — when the user runs:
+    #   cd Custom_IP && python ../brian_hw/common_ai_agent/src/textual_main.py
+    # the file API operates on Custom_IP, not on common_ai_agent/.
+    # We intentionally re-bind here as a local var so the module-level
+    # PROJECT_ROOT survives even if the import gets reloaded weirdly.
+    import sys as _sys_local
+    _PROJECT_ROOT = globals().get("PROJECT_ROOT") or Path(os.getcwd()).resolve()
+    PROJECT_ROOT = _PROJECT_ROOT
     MAX_READ_BYTES = 256 * 1024
     SKIP_DIRS = {".git", "__pycache__", "node_modules", ".session",
                  "ATLAS", "vendor", ".venv", ".pytest_cache"}

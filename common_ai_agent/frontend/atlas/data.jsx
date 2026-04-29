@@ -214,16 +214,26 @@
       if (!r.ok) return;
       const d = await r.json();
       const items = Array.isArray(d.items) ? d.items : [];
-      // Map workspace dirs to workflow stage badges. Color cycles
-      // through accent / cyan / magenta / ok / warn / err so each
-      // stage has a visually distinct chip.
-      const palette = ['var(--accent)','var(--cyan)','var(--mag)','var(--ok)','var(--warn)','var(--err)'];
-      window.FLOW_STAGES = items.map((w, i) => ({
-        id:    w.id,
-        label: w.label || w.name,
-        cmd:   '/wf ' + w.id,
-        color: palette[i % palette.length],
-      }));
+      // Show only the spec → RTL → TB pipeline workspaces — the others
+      // (cmux, default, eda, worker, lint, sim …) clutter the strip.
+      // Order matters so the chips read left-to-right as the flow.
+      const PIPELINE = [
+        { id: 'ssot-gen', color: 'var(--mag)'    },
+        { id: 'rtl-gen',  color: 'var(--accent)' },
+        { id: 'tb-gen',   color: 'var(--ok)'     },
+      ];
+      const byId = new Map(items.map(w => [w.id, w]));
+      window.FLOW_STAGES = PIPELINE
+        .filter(p => byId.has(p.id))
+        .map(p => {
+          const w = byId.get(p.id);
+          return {
+            id:    w.id,
+            label: w.label || w.name,
+            cmd:   '/wf ' + w.id,
+            color: p.color,
+          };
+        });
       window.CONTEXT.workspace = d.active || '';
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FLOW_STAGES' }));
     } catch (e) { /* ignore */ }
