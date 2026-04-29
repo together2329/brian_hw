@@ -34,6 +34,29 @@
   <!-- Markdown renderer for agent replies (code fences, lists, links…). -->
   <script src="https://unpkg.com/marked@9/marked.min.js"></script>
 
+  <!-- Syntax highlighting for the file preview pane (Prism core +
+       autoloader → loads language grammars on demand from CDN). -->
+  <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism-tomorrow.css">
+  <script src="https://unpkg.com/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://unpkg.com/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script>
+    // Map file extension → Prism language id. Covers what Atlas
+    // actually opens (RTL/SV, YAML, Python, MD, JSON, shell, etc.).
+    window.PRISM_LANG_MAP = {
+      sv: 'verilog', v: 'verilog', svh: 'verilog', vh: 'verilog',
+      py: 'python', js: 'javascript', jsx: 'jsx', ts: 'typescript', tsx: 'tsx',
+      yaml: 'yaml', yml: 'yaml', json: 'json', md: 'markdown', txt: 'none',
+      sh: 'bash', bash: 'bash', zsh: 'bash', f: 'tcl',
+      c: 'c', h: 'c', cpp: 'cpp', hpp: 'cpp',
+      sdc: 'tcl', tcl: 'tcl', ini: 'ini', toml: 'toml', html: 'html', css: 'css',
+    };
+    // Tell autoloader where to find grammars.
+    if (window.Prism && window.Prism.plugins && window.Prism.plugins.autoloader) {
+      window.Prism.plugins.autoloader.languages_path =
+        'https://unpkg.com/prismjs@1.29.0/components/';
+    }
+  </script>
+
   <!-- Backend adapter: window.backend (live WebSocket) -->
   <script src="backend.js"></script>
 

@@ -13,6 +13,8 @@ from typing import Callable
 
 from rich.markdown import Markdown as _RichMarkdown
 from rich.markdown import Heading as _RichHeading
+from rich.markdown import ListItem as _RichListItem
+from rich.markdown import Paragraph as _RichParagraph
 from rich.text import Text as RichText
 from rich.table import Table as RichTable
 from textual.app import App, ComposeResult
@@ -343,8 +345,27 @@ class _LeftHeading(_RichHeading):
         text.justify = "left"
         yield text
 
+class _TightListItem(_RichListItem):
+    """ListItem with no blank line before it — tight bullet lists."""
+    new_line = False
+
+
+class _TightParagraph(_RichParagraph):
+    """Paragraph with no blank line before it — keeps text close inside lists."""
+    new_line = False
+
+
 class _LeftMarkdown(_RichMarkdown):
-    elements = {**_RichMarkdown.elements, "heading_open": _LeftHeading}
+    # Override list_item_open + paragraph_open so consecutive bullets
+    # render without a blank line between each item. Rich's defaults
+    # set new_line=True on every block element, which made multi-bullet
+    # answers in the Textual TUI look double-spaced.
+    elements = {
+        **_RichMarkdown.elements,
+        "heading_open":   _LeftHeading,
+        "list_item_open": _TightListItem,
+        "paragraph_open": _TightParagraph,
+    }
 
 
 # ── Color palette (GitHub-dark inspired) ────────────────────────────────────

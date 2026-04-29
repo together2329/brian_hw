@@ -51,6 +51,11 @@ const Workspace = ({ dir, onScreen }) => {
   const [streamText, setStreamText] = React.useState('');
   const [openFile, setOpenFile] = React.useState(null);
   const [rightTab, setRightTab] = React.useState('ssot'); // ssot | todo | files
+  // Main column tab: 'chat' shows the conversation feed; 'preview' shows
+  // the contents of the file at previewPath with syntax highlighting.
+  // Double-clicking a file in the left tree sets previewPath + flips tab.
+  const [mainTab, setMainTab] = React.useState('chat');     // chat | preview
+  const [previewPath, setPreviewPath] = React.useState(null);
   // qaState is keyed by flow_id. Dynamic flows are added on-the-fly
   // when the agent emits an ask_user event over the WS.
   const [qaState, setQaState] = React.useState({});
@@ -610,15 +615,27 @@ const Workspace = ({ dir, onScreen }) => {
             )}
             {window.FILE_TREE.map((n, i) => {
               const fullPath = (window.SCOPE_PATH ? window.SCOPE_PATH + '/' : '') + n.name;
+              const isSelected = n.type === 'file' && previewPath === fullPath;
               return (
                 <div key={i}
-                  className={n.active ? 'frow active' : 'frow'}
+                  className={(isSelected ? 'frow active' : (n.active ? 'frow active' : 'frow'))}
                   style={{ paddingLeft: 8 + (n.depth || 0) * 14, cursor: 'pointer' }}
                   onClick={() => {
-                    if (n.type === 'file') setOpenFile(fullPath);
+                    // Single-click: dirs scope-navigate, files just
+                    // select (load preview without switching tab) so
+                    // the user can scrub through files while keeping
+                    // the chat feed visible.
+                    if (n.type === 'file') setPreviewPath(fullPath);
                     else window.atlasData.setScopePath(fullPath);
                   }}
-                  title={fullPath}
+                  onDoubleClick={() => {
+                    // Double-click: open in preview tab.
+                    if (n.type === 'file') {
+                      setPreviewPath(fullPath);
+                      setMainTab('preview');
+                    }
+                  }}
+                  title={fullPath + (n.type === 'file' ? ' (double-click to preview)' : '')}
                 >
                   <span className="fr-icon">{n.type === 'dir' ? '▸' : '◆'}</span>
                   <span className="trunc">{n.type === 'dir' ? <span className="dim">{n.name}/</span> : n.name}</span>
@@ -668,49 +685,96 @@ const Workspace = ({ dir, onScreen }) => {
         )}
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <div className="box-h">
-            <span>▸ chat</span>
+            {/* Tab strip: chat ↔ preview. Click to switch. Preview is
+                disabled (greyed) until a file is loaded by single- or
+                double-clicking in the file tree. */}
+            <span
+              onClick={() => setMainTab('chat')}
+              style={{
+                cursor: 'pointer', padding: '2px 8px', borderRadius: 2,
+                color: mainTab === 'chat' ? 'var(--accent)' : 'var(--fg-mute)',
+                background: mainTab === 'chat' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                border: '1px solid ' + (mainTab === 'chat' ? 'var(--accent)' : 'transparent'),
+                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+              }}
+            >chat</span>
+            <span
+              onClick={() => previewPath && setMainTab('preview')}
+              title={previewPath ? 'View ' + previewPath : 'Double-click a file in the tree to preview it here'}
+              style={{
+                cursor: previewPath ? 'pointer' : 'not-allowed',
+                padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                color: mainTab === 'preview' ? 'var(--accent)' : (previewPath ? 'var(--fg-mute)' : 'var(--line)'),
+                background: mainTab === 'preview' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                border: '1px solid ' + (mainTab === 'preview' ? 'var(--accent)' : 'transparent'),
+                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+              }}
+            >preview</span>
             <span className="mute" style={{ margin: '0 6px' }}>·</span>
-            <span style={{ color: intent === 'plan' ? 'var(--warn)' : 'var(--cyan)', fontWeight: 600, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              {intent === 'plan' ? '◐ plan' : '● normal'}
-            </span>
-            {workflow && (
+            {mainTab === 'chat' ? (
               <>
-                <span className="mute" style={{ margin: '0 6px' }}>›</span>
-                <span style={{ color: window.FLOW_STAGES.find(s => s.id === workflow)?.color, fontSize: 11, fontWeight: 600 }}>
-                  {window.FLOW_STAGES.find(s => s.id === workflow)?.label}
+                <span style={{ color: intent === 'plan' ? 'var(--warn)' : 'var(--cyan)', fontWeight: 600, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  {intent === 'plan' ? '◐ plan' : '● normal'}
                 </span>
+                {workflow && (
+                  <>
+                    <span className="mute" style={{ margin: '0 6px' }}>›</span>
+                    <span style={{ color: window.FLOW_STAGES.find(s => s.id === workflow)?.color, fontSize: 11, fontWeight: 600 }}>
+                      {window.FLOW_STAGES.find(s => s.id === workflow)?.label}
+                    </span>
+                  </>
+                )}
               </>
+            ) : (
+              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}
+                    title={previewPath || ''}>
+                {previewPath || '(no file selected)'}
+              </span>
             )}
             <span style={{ flex: 1 }} />
-            <span className="mute" style={{ fontSize: 10, textTransform: 'none', letterSpacing: 0 }}>
-              {streaming
-                ? (pendingQcard
-                    ? <span className="warn">⏸ waiting on you (ask_user)</span>
-                    : <span className="acc">streaming<span className="ascii-spin"></span></span>)
-                : (pendingQcard
-                    ? <span className="warn">⏸ waiting on you (ask_user)</span>
-                    : <span className="ok">✓ end of loop · ready</span>)}
-            </span>
+            {mainTab === 'chat' && (
+              <span className="mute" style={{ fontSize: 10, textTransform: 'none', letterSpacing: 0 }}>
+                {streaming
+                  ? (pendingQcard
+                      ? <span className="warn">⏸ waiting on you (ask_user)</span>
+                      : <span className="acc">streaming<span className="ascii-spin"></span></span>)
+                  : (pendingQcard
+                      ? <span className="warn">⏸ waiting on you (ask_user)</span>
+                      : <span className="ok">✓ end of loop · ready</span>)}
+              </span>
+            )}
+            {mainTab === 'preview' && (
+              <span style={{ fontSize: 10 }}>
+                <span className="mute" style={{ marginRight: 8 }}>back to chat</span>
+                <span onClick={() => setMainTab('chat')} className="acc"
+                      style={{ cursor: 'pointer', padding: '2px 6px',
+                               border: '1px solid var(--accent)', borderRadius: 2 }}>↵</span>
+              </span>
+            )}
           </div>
-          <div ref={feedRef} style={{ flex: 1, overflow: 'auto', padding: '14px 18px' }}>
-            {feed.map((entry, i) => (
-              <FeedEntry
-                key={i}
-                entry={entry}
-                qaState={qaState}
-                onToggle={toggleOpt}
-                onCustom={setCustom}
-                onSubmit={submitCard}
-                dir={dir}
-              />
-            ))}
-            {/* Streaming preview removed — used to render the in-progress
-                buffer as plain text, then the same text reappeared as a
-                markdown-rendered 'agent' entry on flush, with very
-                different line spacing. The header spinner ("streaming")
-                already signals work-in-progress; the final clean
-                markdown lands once when the buffer parks. */}
-          </div>
+          {mainTab === 'chat' ? (
+            <div ref={feedRef} style={{ flex: 1, overflow: 'auto', padding: '14px 18px' }}>
+              {feed.map((entry, i) => (
+                <FeedEntry
+                  key={i}
+                  entry={entry}
+                  qaState={qaState}
+                  onToggle={toggleOpt}
+                  onCustom={setCustom}
+                  onSubmit={submitCard}
+                  dir={dir}
+                />
+              ))}
+              {/* Streaming preview removed — used to render the in-progress
+                  buffer as plain text, then the same text reappeared as a
+                  markdown-rendered 'agent' entry on flush, with very
+                  different line spacing. The header spinner ("streaming")
+                  already signals work-in-progress; the final clean
+                  markdown lands once when the buffer parks. */}
+            </div>
+          ) : (
+            <PreviewPane path={previewPath} onClose={() => setMainTab('chat')} />
+          )}
         </div>
 
         {/* prompt */}
@@ -1643,6 +1707,108 @@ const DiffPanel = () => (
     </div>
   </div>
 );
+
+// ── PreviewPane: in-tab file viewer with Prism syntax highlighting ──
+// Inline replacement for the FileViewer modal when the user wants the
+// preview alongside (well, replacing) the chat feed via the main tab
+// strip. Same /api/file backend; Prism.js handles language detection
+// per the PRISM_LANG_MAP set up in index.html.
+const PreviewPane = ({ path, onClose }) => {
+  const [body, setBody] = React.useState('');
+  const [size, setSize] = React.useState(0);
+  const [truncated, setTruncated] = React.useState(false);
+  const [err, setErr] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+  const codeRef = React.useRef(null);
+
+  const ext = (path ? (path.split('.').pop() || '') : '').toLowerCase();
+  const lang = (window.PRISM_LANG_MAP && window.PRISM_LANG_MAP[ext]) || 'none';
+
+  React.useEffect(() => {
+    if (!path) { setBody(''); setErr(null); return; }
+    let cancelled = false;
+    setLoading(true); setErr(null);
+    window.atlasData.fetchFile(path).then(d => {
+      if (cancelled) return;
+      setLoading(false);
+      if (d.error) {
+        setErr(d.error); setBody(`// ${path}\n// (could not read: ${d.error})`); return;
+      }
+      setBody(d.content || '');
+      setSize(d.size || 0);
+      setTruncated(!!d.truncated);
+    }).catch(e => {
+      if (!cancelled) { setLoading(false); setErr(String(e)); setBody(`// fetch failed: ${e}`); }
+    });
+    return () => { cancelled = true; };
+  }, [path]);
+
+  // Re-highlight whenever body/lang changes. Prism replaces the
+  // <code> contents in place; we set the language class first.
+  React.useEffect(() => {
+    if (!codeRef.current || !window.Prism) return;
+    if (lang === 'none') return;       // skip for plain text
+    codeRef.current.className = 'language-' + lang;
+    try { window.Prism.highlightElement(codeRef.current); } catch (_) { /* ignore */ }
+  }, [body, lang]);
+
+  if (!path) {
+    return (
+      <div style={{
+        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexDirection: 'column', gap: 12, color: 'var(--fg-mute)', padding: 40,
+      }}>
+        <div style={{ fontSize: 32, opacity: 0.4 }}>◆</div>
+        <div style={{ fontSize: 13 }}>No file selected.</div>
+        <div style={{ fontSize: 11 }}>Double-click any file in the tree on the left to preview it here.</div>
+      </div>
+    );
+  }
+
+  const lineCount = body.split('\n').length;
+  const sizeKb = size > 0 ? (size / 1024).toFixed(1) + ' KB' : '';
+  const copyPath = () => { try { navigator.clipboard.writeText(path); } catch (_) {} };
+  const copyAll  = () => { try { navigator.clipboard.writeText(body);  } catch (_) {} };
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      {/* meta strip */}
+      <div style={{
+        padding: '4px 14px', borderBottom: '1px solid var(--line)',
+        display: 'flex', alignItems: 'center', gap: 10, fontSize: 10,
+        color: 'var(--fg-mute)', fontFamily: 'var(--mono)',
+      }}>
+        <span>lang <span style={{ color: 'var(--accent)' }}>{lang === 'none' ? 'plain' : lang}</span></span>
+        <span className="mute">·</span>
+        <span>{lineCount} lines</span>
+        {sizeKb && <><span className="mute">·</span><span>{sizeKb}</span></>}
+        {truncated && <><span className="mute">·</span><span className="warn">truncated at {Math.round((body.length || 0) / 1024)}KB</span></>}
+        <span style={{ flex: 1 }} />
+        <span onClick={copyAll}  style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy</span>
+        <span onClick={copyPath} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy path</span>
+      </div>
+      {/* code body */}
+      <div style={{ flex: 1, overflow: 'auto', background: '#1c2128' }}>
+        {loading ? (
+          <div style={{ padding: 16, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 12 }}>
+            loading {path}…
+          </div>
+        ) : (
+          <pre style={{
+            margin: 0, padding: '12px 16px',
+            fontFamily: 'var(--mono)', fontSize: 12, lineHeight: 1.55,
+            whiteSpace: 'pre', tabSize: 4,
+            background: 'transparent',
+          }}>
+            <code ref={codeRef} className={lang === 'none' ? '' : ('language-' + lang)}>
+              {body}
+            </code>
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+};
 
 // ── File viewer modal — fetches real content from /api/file ────────
 const FileViewer = ({ name, onClose }) => {
