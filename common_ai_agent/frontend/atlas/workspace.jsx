@@ -644,11 +644,16 @@ const Workspace = ({ dir, onScreen }) => {
             />
           ) : (
             <div className="prompt-row">
-              <span className="ps">›</span>
+              <span className="ps" title={streaming ? 'Agent is working' : 'Awaiting your input'}
+                    style={{ color: streaming ? 'var(--warn)' : 'var(--ok)' }}>
+                {streaming ? '⚙' : '›'}
+              </span>
               <input ref={inputRef} value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={onKey}
-                placeholder='Reply to the agent, type "/" for commands, "@" for files…'
+                placeholder={streaming
+                  ? 'Agent is working — Esc to stop, or type to interrupt with new input'
+                  : 'Awaiting your input — type a message, "/" for commands, "@" for files'}
                 autoFocus
               />
               <span className="mute" style={{ fontSize: 11 }}>
