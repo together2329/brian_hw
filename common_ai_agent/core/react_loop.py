@@ -1081,6 +1081,22 @@ def run_react_agent_impl(
                     except Exception:
                         pass
             print(f"\n{Color.DIM}{Color.GRAY}Ending ReAct loop.{Color.RESET}\n")
+            # Surface in chat too — silent stdout exit was confusing.
+            if deps.emit_content_fn:
+                try:
+                    _todo_count = len(todo_tracker.todos) if todo_tracker else 0
+                    if _todo_count:
+                        _approved = sum(1 for t in todo_tracker.todos if t.status == "approved")
+                        _rejected = sum(1 for t in todo_tracker.todos if t.status == "rejected")
+                        deps.emit_content_fn(
+                            f"✓ Loop ended — agent finished. "
+                            f"Todos: {_approved} approved, {_rejected} rejected, "
+                            f"{_todo_count - _approved - _rejected} other."
+                        )
+                    else:
+                        deps.emit_content_fn("✓ Loop ended — agent finished.")
+                except Exception:
+                    pass
             break
 
         # Hallucinated Observation check (legacy ReAct mode only — native mode never
@@ -1670,10 +1686,10 @@ def run_react_agent_impl(
                     _idx1 = (todo_tracker.current_index + 1) if _cur else 0
                     _content = _cur.content if _cur else "(no active task)"
                     _msg = (
-                        f"\n[System] {_text_only_no_progress} consecutive text-only turns "
-                        f"on task {_idx1}: \"{_content}\".\n"
-                        f"  The agent appears blocked on user input — breaking loop, "
-                        f"waiting for user feedback."
+                        f"⏸  Loop stopped — TEXT-ONLY watchdog: "
+                        f"{_text_only_no_progress} replies in a row with no tool call "
+                        f"while task #{_idx1} (\"{_content}\") still pending. "
+                        f"Reply with guidance or /resume to nudge the agent."
                     )
                     if deps.emit_content_fn:
                         try:
@@ -1703,22 +1719,28 @@ def run_react_agent_impl(
                     todo_tracker.stagnation_count = 0
                     todo_tracker.save()
                     hint = todo_tracker.get_stagnation_hint()
-                    if not deps.emit_content_fn:
-                        print(
-                            f"\n[System] Stagnation on task {idx} after {count} turns without tool calls."
-                            f"\n  {hint}"
-                            f"\n  Breaking loop — waiting for user feedback."
-                        )
+                    _stop_msg = (
+                        f"⏸  Loop stopped — STAGNATION on task #{idx} "
+                        f"after {count} turns with no tool call.\n  {hint}\n  "
+                        f"Reply with a hint, /resume, or pick a tool to keep going."
+                    )
+                    print(_stop_msg)
+                    if deps.emit_content_fn:
+                        try: deps.emit_content_fn(_stop_msg)
+                        except Exception: pass
                     if deps.emit_todo_fn:
                         deps.emit_todo_fn(todo_tracker.format_simple())
                     break
                 elif todo_tracker.check_stagnation(max_stagnation=limit):
                     hint = todo_tracker.get_stagnation_hint()
-                    print(
-                        f"\n[System] Todo stagnation: tried {count}/{limit} times without progress.\n"
-                        f"  {hint}\n"
-                        f"  Waiting for user feedback."
+                    _stop_msg = (
+                        f"⏸  Loop stopped — TODO STAGNATION ({count}/{limit} turns "
+                        f"without progress).\n  {hint}\n  Reply with guidance to resume."
                     )
+                    print(_stop_msg)
+                    if deps.emit_content_fn:
+                        try: deps.emit_content_fn(_stop_msg)
+                        except Exception: pass
                     break
                 # Only re-inject on text-only turns when status needs a decision
                 # (completed→review, rejected→fix). Skip for in_progress — the LLM
