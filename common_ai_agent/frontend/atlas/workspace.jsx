@@ -903,6 +903,31 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
         {flow.question}
       </div>
 
+      {/* multi-mode bulk select / clear */}
+      {flow.kind === 'multi' && opts.length > 1 && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: 11 }}>
+          <span
+            onClick={() => {
+              opts.forEach(o => { if (!o.selected && !o.locked) onToggle(flowId, o.id); });
+            }}
+            style={{ cursor: 'pointer', padding: '2px 8px', border: '1px solid var(--accent)', color: 'var(--accent)', borderRadius: 2 }}
+            title="Select every option">
+            ☑ Select all
+          </span>
+          <span
+            onClick={() => {
+              opts.forEach(o => { if (o.selected && !o.locked) onToggle(flowId, o.id); });
+            }}
+            style={{ cursor: 'pointer', padding: '2px 8px', border: '1px solid var(--line)', color: 'var(--fg-mute)', borderRadius: 2 }}
+            title="Deselect every option">
+            ☐ Clear
+          </span>
+          <span className="mute" style={{ alignSelf: 'center', fontSize: 10 }}>
+            · click rows to toggle individually
+          </span>
+        </div>
+      )}
+
       {/* numbered options */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {opts.map((o, i) => {
