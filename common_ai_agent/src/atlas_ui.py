@@ -64,6 +64,9 @@ class _AtlasBridge:
         self._answer_qs: dict = {}            # flow_id → queue.Queue
         self._answer_lock = threading.Lock()
         self.agent_running: bool = False
+        # Esc-style abort flag — checked once per poll by react_loop.
+        # Set when the UI sends {type:'stop'}; cleared by check_stop().
+        self._stop_flag: bool = False
 
     # — agent-side (sync) —
     def get_input(self, prompt: str = "") -> str:
@@ -113,6 +116,18 @@ class _AtlasBridge:
             return False
         q.put(payload)
         return True
+
+    # Esc / abort handling
+    def request_stop(self) -> None:
+        """Mark a stop request — react_loop will see it on its next poll."""
+        self._stop_flag = True
+
+    def check_stop(self) -> bool:
+        """Read-and-clear the stop flag (drop-in for esc_check_fn)."""
+        if self._stop_flag:
+            self._stop_flag = False
+            return True
+        return False
 
     async def next_event(self) -> dict:
         loop = asyncio.get_event_loop()
@@ -358,6 +373,17 @@ def create_app():
                     bridge.submit_prompt(msg.get("text", ""))
                 elif t == "answer" and msg.get("flow_id"):
                     bridge.submit_answer(msg["flow_id"], msg)
+                elif t == "stop":
+                    # Esc from the UI — abort the current iteration.
+                    bridge.request_stop()
+                    bridge.emit("agent_state", running=False)
+                elif t == "shutdown":
+                    # Exit button — kill the whole Python process so the
+                    # user's terminal returns to a normal prompt.
+                    bridge.emit("error", message="server is shutting down")
+                    bridge.emit("done")
+                    import os as _os, threading as _t
+                    _t.Timer(0.4, lambda: _os._exit(0)).start()
                 # Other types (e.g. run_stage, tool_call) can be wired later
         except WebSocketDisconnect:
             pass
@@ -392,7 +418,9 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
 
     # ── Wire main.py callbacks → bridge.emit ───────────────────────
     _main._textual_input_fn = bridge.get_input
-    _main._textual_esc_check_fn = lambda: False
+    # Esc from the UI sets bridge._stop_flag; react_loop polls this
+    # via esc_check_fn and aborts the current iteration cleanly.
+    _main._textual_esc_check_fn = bridge.check_stop
     _main._textual_poll_human_input_fn = bridge.poll_interrupt
 
     _main._textual_emit_content_fn   = lambda text, cls="": bridge.emit("token",     text=text, cls=cls)
