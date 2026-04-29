@@ -533,6 +533,9 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
       todo:template:<name>   — return INJECT_TODO_TEMPLATE:<name> signal
       prompt:<text>          — return INJECT_PROMPT:<text> signal
       python:<fn>            — call register_hooks-style fn from workspace hooks.py
+      skill:<name>           — force-activate a skill and inject a one-line
+                                trigger prompt so the agent immediately
+                                operates under the skill's rules
     """
     handler_str = spec.get("handler", "")
 
@@ -577,6 +580,41 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
             return f"INJECT_PROMPT:{_t}"
 
         return _prompt_handler
+
+    if handler_str.startswith("skill:"):
+        skill_name = handler_str[6:].strip()
+
+        def _skill_handler(args: str, _n=skill_name, _ws=ws) -> str:
+            # Pin the skill so the next turn uses it. We append (not replace)
+            # to FORCE_SKILLS so other workspace force_activate entries stay.
+            current = os.environ.get("FORCE_SKILLS", "")
+            existing = [s.strip() for s in current.split(",") if s.strip()]
+            if _n not in existing:
+                existing.append(_n)
+                os.environ["FORCE_SKILLS"] = ",".join(existing)
+            # Tell the routing cache to pick it up immediately.
+            try:
+                import sys as _sys
+                _main = _sys.modules.get("main") or _sys.modules.get("src.main")
+                if _main is not None:
+                    fn = getattr(_main, "load_active_skills", None)
+                    if fn is not None:
+                        # Prime the active-skill so this turn already runs
+                        # under the skill's rules without waiting for a
+                        # user message to re-trigger routing.
+                        setattr(fn, "_active_skill", _n)
+                        # Invalidate the cache key so the next call recomputes.
+                        if hasattr(fn, "_cached_key"):
+                            fn._cached_key = ""
+            except Exception:
+                pass
+            extra = (" " + args.strip()) if args else ""
+            return (
+                f"INJECT_PROMPT:Activate the `{_n}` skill and follow its "
+                f"rules verbatim for this turn.{extra}"
+            )
+
+        return _skill_handler
 
     # Unknown — return error string
     return lambda args: f"[Error] Unknown handler type: {handler_str}"
