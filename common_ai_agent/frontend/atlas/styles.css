@@ -497,7 +497,11 @@
   border: 1px solid var(--line);
 }
 
-/* Code blocks */
+/* Code blocks — tightened for ASCII-art and box-drawing alignment.
+   Disabling ligatures + contextual alternates keeps `─`/`│`/`┌`/`┐`/
+   `└`/`┘`/`→` rendered at predictable widths so diagrams line up
+   instead of drifting. Tab-size is pinned so embedded \t stays
+   consistent across browsers. */
 .md-agent pre {
   background: var(--bg-2);
   border: 1px solid var(--line);
@@ -509,6 +513,11 @@
   font-size: 12.5px;
   line-height: 1.55;
   white-space: pre;
+  font-feature-settings: "calt" 0, "liga" 0, "clig" 0, "dlig" 0;
+  font-variant-ligatures: none;
+  letter-spacing: 0;
+  tab-size: 2;
+  -moz-tab-size: 2;
 }
 .md-agent pre code {
   background: none;
@@ -516,6 +525,9 @@
   border: none;
   color: var(--fg);
   font-size: inherit;
+  font-feature-settings: "calt" 0, "liga" 0, "clig" 0, "dlig" 0;
+  font-variant-ligatures: none;
+  letter-spacing: 0;
 }
 
 /* Tables */

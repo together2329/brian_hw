@@ -642,9 +642,29 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         bridge.emit("commands_changed"),
     )
     _main._textual_emit_tool_fn      = lambda text: bridge.emit("tool", text=_clean(text))
-    _main._textual_emit_tool_result_fn = lambda obs, tool="": bridge.emit(
-        "tool_result", text=_clean(obs)[:8000], tool=tool, truncated=len(obs) > 8000
-    )
+    # Browser-side tool_result cap. Display-only — LLM still gets the
+    # full obs upstream; this just trims what we ship over the WS so a
+    # 200KB grep doesn't drown the chat. Configurable in .config via
+    # WS_TOOL_RESULT_MAX_CHARS (default 8000).
+    _ws_tool_max = 8000
+    try:
+        try: import src.config as _cfg2  # type: ignore  # noqa: WPS433
+        except Exception:
+            try: import config as _cfg2  # type: ignore  # noqa: WPS433
+            except Exception: _cfg2 = None
+        if _cfg2 is not None:
+            _ws_tool_max = int(getattr(_cfg2, "WS_TOOL_RESULT_MAX_CHARS", 8000))
+    except Exception:
+        _ws_tool_max = 8000
+    def _emit_tool_result(obs, tool=""):
+        cleaned = _clean(obs)
+        bridge.emit(
+            "tool_result",
+            text=cleaned[:_ws_tool_max],
+            tool=tool,
+            truncated=len(cleaned) > _ws_tool_max,
+        )
+    _main._textual_emit_tool_result_fn = _emit_tool_result
 
     def _ctx_update(tokens, max_tok):
         bridge.emit("context", used=tokens, max=max_tok)

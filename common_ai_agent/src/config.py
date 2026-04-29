@@ -373,6 +373,12 @@ DISPLAY_LIST_MAX_ENTRIES = int(os.getenv("DISPLAY_LIST_MAX_ENTRIES", "30"))   # 
 DISPLAY_RESULT_MAX_CHARS = int(os.getenv("DISPLAY_RESULT_MAX_CHARS", "2000")) # total chars in any result preview
 DISPLAY_TOOL_DETAIL      = os.getenv("DISPLAY_TOOL_DETAIL", "true").lower() in ("true", "1", "yes")  # syntax-highlighted read/grep/list preview
 
+# Atlas web UI: max chars per tool_result obs sent over WebSocket to
+# the browser. Display-only — LLM still sees the full tool output
+# (those caps live in TOOL_*_MAX above). Bigger = user sees more of
+# long reads/greps without "[truncated]"; costs zero LLM tokens.
+WS_TOOL_RESULT_MAX_CHARS = int(os.getenv("WS_TOOL_RESULT_MAX_CHARS", "32000"))
+
 # Safe display truncation — used by safe_truncate_output() to cap large tool results.
 # These prevent the terminal UI from breaking on very large outputs (trees, long reads, grep floods).
 DISPLAY_MAX_TOOL_LINES   = int(os.getenv("DISPLAY_MAX_TOOL_LINES",   "80"))    # max lines before truncation

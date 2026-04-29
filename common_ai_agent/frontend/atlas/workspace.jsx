@@ -202,10 +202,13 @@ const Workspace = ({ dir, onScreen }) => {
     if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
   }, [feed, streamText]);
 
-  // shift+tab swaps Normal ↔ Plan
+  // shift+tab swaps Normal ↔ Plan. Fire even when the chat input is
+  // focused — the input is auto-focused, so the old "tagName !== INPUT"
+  // guard meant the shortcut never triggered. e.preventDefault stops
+  // the browser's native focus-walk regardless.
   React.useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Tab' && e.shiftKey && document.activeElement?.tagName !== 'INPUT') {
+      if (e.key === 'Tab' && e.shiftKey) {
         e.preventDefault();
         switchIntent(intent === 'normal' ? 'plan' : 'normal');
       }
@@ -248,6 +251,19 @@ const Workspace = ({ dir, onScreen }) => {
           ? `✓ Scope set to \`${next}\`. Future prompts will tell the agent to stay inside this directory.`
           : '✓ Scope cleared. Agent operates on the whole project again.',
       }]);
+      return;
+    }
+
+    // /plan, /normal, /mode plan, /mode normal — flip UI intent locally
+    // AND forward to backend so agent_mode flips. Mirrors the /scope
+    // pattern. Without this, /plan only updated the backend and the
+    // sidebar pill stayed on "normal" until shift+tab (also broken).
+    const modeMatch = raw.match(/^\/(plan|mode\s+plan|mode\s+normal|normal)$/i);
+    if (modeMatch) {
+      const target = /^\/(plan|mode\s+plan)$/i.test(raw) ? 'plan' : 'normal';
+      setIntent(target);
+      setFeed(f => [...f, { kind: 'user', text: raw }]);
+      if (window.backend) window.backend.send({ type: 'prompt', text: raw });
       return;
     }
 
@@ -737,6 +753,30 @@ const Workspace = ({ dir, onScreen }) => {
               ))}
             </div>
           )}
+          {/* Status strip directly above the input — at-a-glance state
+              the user doesn't have to look up at the chat header for. */}
+          {(() => {
+            const s = pendingQcard
+              ? { icon: '⏸', text: 'Waiting on you · answer the ask_user above', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
+              : streaming
+                ? { icon: '⚙', text: 'Agent is working — Esc to stop, or type to interrupt', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)', spin: true }
+                : { icon: '✓', text: 'End of loop · agent ready', color: 'var(--ok)', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)' };
+            return (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '4px 12px', marginBottom: 4,
+                fontSize: 11, fontFamily: 'var(--mono)',
+                color: s.color, background: s.bg,
+                border: `1px solid ${s.color}`, borderRadius: 2,
+                letterSpacing: '0.04em',
+              }}>
+                <span style={{ fontWeight: 700 }}>
+                  {s.icon}{s.spin ? <span className="ascii-spin" style={{ marginLeft: 2 }} /> : null}
+                </span>
+                <span>{s.text}</span>
+              </div>
+            );
+          })()}
           {pendingQcard ? (
             <AskUserPrompt
               flowId={pendingQcard.flowId}
@@ -751,17 +791,11 @@ const Workspace = ({ dir, onScreen }) => {
             />
           ) : (
             <div className="prompt-row">
-              <span className="ps"
-                    title={streaming ? 'Agent is working' : 'Loop ended — agent finished'}
-                    style={{ color: streaming ? 'var(--warn)' : 'var(--ok)' }}>
-                {streaming ? '⚙' : '✓'}
-              </span>
+              <span className="ps" style={{ color: 'var(--fg-mute)' }}>❯</span>
               <input ref={inputRef} value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={onKey}
-                placeholder={streaming
-                  ? 'Agent is working — Esc to stop, or type to interrupt with new input'
-                  : 'End of loop — agent ready. Type a message, "/" for commands, "@" for files'}
+                placeholder='Type a message · "/" for commands · "@" for files'
                 autoFocus
               />
               <span className="mute" style={{ fontSize: 11 }}>
@@ -880,16 +914,52 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
   if (entry.kind === 'obs') {
     const txt = entry.text || '';
     const isMulti = txt.includes('\n');
+    // Diff colorizing — replace_in_file / write_file emit a body where
+    // each line is "<lineno> [+|-| ] <content>". Mark + lines green and
+    // - lines red. Detect by tool name OR by presence of the "Added N
+    // lines, removed M lines" header (which is the canonical signature
+    // of a diff-style result).
+    const looksLikeDiff = /(^|\n)\s*⎿?\s*Added \d+ lines?,? removed \d+ lines?/.test(txt)
+                       || (entry.tool && /^(replace_in_file|write_file|edit|patch)/i.test(entry.tool));
     return (
       <div className="react-block obs">
         <span className="rb-tag">obs{entry.tool ? ` · ${entry.tool}` : ''}</span>
         {isMulti ? (
           <pre style={{
-            margin: '4px 0 0', maxHeight: 240, overflow: 'auto',
+            margin: '4px 0 0', maxHeight: 280, overflow: 'auto',
             background: 'var(--bg-input, #1c2128)', padding: '6px 10px',
-            borderRadius: 4, fontSize: 11, lineHeight: 1.4,
-            whiteSpace: 'pre-wrap', wordBreak: 'break-word'
-          }}>{txt}{entry.truncated ? '\n…[truncated]' : ''}</pre>
+            borderRadius: 4, fontSize: 11, lineHeight: 1.45,
+            whiteSpace: 'pre', wordBreak: 'normal',
+          }}>
+            {looksLikeDiff
+              ? txt.split('\n').map((line, i) => {
+                  // Match "  82 + content" / "  82 - content".
+                  // The marker char sits between the line number and
+                  // the content, surrounded by whitespace.
+                  const m = line.match(/^(\s*\d+\s)([+\-])(\s.*)$/);
+                  if (!m) {
+                    return <div key={i} style={{ color: 'var(--fg-mute)' }}>{line || ' '}</div>;
+                  }
+                  const [, prefix, marker, rest] = m;
+                  const add = marker === '+';
+                  return (
+                    <div key={i} style={{
+                      background: add
+                        ? 'color-mix(in oklch, #3fb950 18%, transparent)'
+                        : 'color-mix(in oklch, #f85149 18%, transparent)',
+                      color: add ? '#7ee787' : '#ffa198',
+                      borderLeft: `2px solid ${add ? '#3fb950' : '#f85149'}`,
+                      paddingLeft: 6,
+                    }}>
+                      <span style={{ color: 'var(--fg-mute)' }}>{prefix}</span>
+                      <b>{marker}</b>
+                      <span>{rest}</span>
+                    </div>
+                  );
+                })
+              : txt}
+            {entry.truncated ? '\n…[truncated]' : ''}
+          </pre>
         ) : (
           <span>{txt}{entry.truncated ? ' …[truncated]' : ''}</span>
         )}
