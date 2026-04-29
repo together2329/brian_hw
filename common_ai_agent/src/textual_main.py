@@ -202,10 +202,22 @@ def _run_agent(app: AgentTUI) -> None:
 
 if __name__ == "__main__":
     import argparse as _argparse
-    _parser = _argparse.ArgumentParser(add_help=False)
+    _parser = _argparse.ArgumentParser(
+        prog="textual_main",
+        description="common_ai_agent launcher — picks textual / atlas / web UI",
+        add_help=True,
+    )
     _parser.add_argument('-s', '--session', default=None)
     _parser.add_argument('-w', '--workspace', default=None,
-                         help='Workspace name (e.g. mas_gen, rtl_gen, sim, lint)')
+                         help='Workspace name (e.g. ssot-gen, rtl-gen, sim, lint)')
+    _parser.add_argument('-u', '--ui', default=None,
+                         choices=['textual', 'atlas', 'web'],
+                         help='UI mode (overrides UI_MODE in .config). '
+                              'textual = terminal TUI, atlas = React/WebSocket browser UI, '
+                              'web = legacy SSE browser UI')
+    _parser.add_argument('--port', type=int, default=None,
+                         help='Override port for atlas/web UI '
+                              '(defaults to ATLAS_UI_PORT=8765 / WEB_UI_PORT=8080)')
     _args, _ = _parser.parse_known_args()
 
     _session_name = _args.session or _args.workspace or 'default'
@@ -219,9 +231,10 @@ if __name__ == "__main__":
             print(f"[warn] Workspace '{_args.workspace}' failed to load: {_e}")
 
     # ── UI Mode routing ────────────────────────────────────────────────────
-    _ui_mode = getattr(config, "UI_MODE", "textual").lower()
-    _web_port = getattr(config, "WEB_UI_PORT", 8080)
-    _atlas_port = getattr(config, "ATLAS_UI_PORT", 8765)
+    # Priority: --ui CLI flag > UI_MODE env/config > "textual" default.
+    _ui_mode = (_args.ui or getattr(config, "UI_MODE", "textual")).lower()
+    _web_port   = _args.port or getattr(config, "WEB_UI_PORT", 8080)
+    _atlas_port = _args.port or getattr(config, "ATLAS_UI_PORT", 8765)
 
     if _ui_mode == "atlas":
         from src.atlas_ui import run_atlas_ui
