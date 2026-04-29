@@ -128,10 +128,15 @@
       // TodoTracker.to_dict() shape:
       //   {todos: [{content, activeForm, status, priority, detail, ...}]}
       // The TodoPanel UI expects {id, state, section, title, detail, deps}.
-      const status2state = { completed: 'done', in_progress: 'active' };
+      // Pass the raw status through — workspace.jsx's stateCfg() already
+      // handles all five (pending / in_progress / completed / approved /
+      // rejected) plus the legacy 'done' / 'active' aliases. The previous
+      // status2state map only covered completed→done and in_progress→
+      // active, so 'approved' fell through `||` to 'pending' and the
+      // sidebar showed ☐ for tasks the agent had already approved.
       window.TODOS = (Array.isArray(d.todos) ? d.todos : []).map((t, i) => ({
         id:      `t${i + 1}`,
-        state:   status2state[t.status] || 'pending',
+        state:   t.status || 'pending',
         section: t.priority ? String(t.priority).toUpperCase() : '',
         title:   t.content || '',
         detail:  t.detail || '',
@@ -336,6 +341,18 @@
         refreshSsotList();
         refreshHealth();
         refreshWorkflows();
+        // Auto-clear a stale SCOPE_PATH on workspace switch — the
+        // previous workflow's narrowed directory rarely applies to
+        // the new one (e.g. //workflow/axi_sram/sim → switching to
+        // rtl-gen which works on axi_sram_bridge/rtl/). Without this,
+        // IP Files keeps showing the old directory while the agent
+        // is editing files elsewhere. User can re-narrow if needed.
+        if (window.SCOPE_PATH) {
+          window.SCOPE_PATH = '';
+          try { localStorage.removeItem('atlasScopePath'); } catch (_) {}
+          refreshFileTree('');
+          window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
+        }
       });
       // Every flush (end of a slash result, end of an iteration's tokens)
       // is a cheap excuse to resync state so /todo clear, /clear, etc.

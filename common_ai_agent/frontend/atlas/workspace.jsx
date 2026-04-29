@@ -608,6 +608,14 @@ const Workspace = ({ dir, onScreen }) => {
               }}
               onBlur={e => window.atlasData.setScopePath(e.currentTarget.value.trim())}
             />
+            {window.SCOPE_PATH ? (
+              <span
+                title={'clear scope (back to project root)\nWas: ' + window.SCOPE_PATH}
+                style={{ cursor: 'pointer', color: 'var(--warn)', fontSize: 12,
+                         padding: '0 4px', userSelect: 'none' }}
+                onClick={() => window.atlasData.setScopePath('')}
+              >✕</span>
+            ) : null}
             <span
               title="refresh tree"
               style={{ cursor: 'pointer', color: 'var(--fg-mute)', fontSize: 12, padding: '0 4px' }}
@@ -1429,7 +1437,11 @@ const TodoPanel = () => {
   const [view, setView] = React.useState('compact'); // compact | detail | graph
   const [openId, setOpenId] = React.useState(null);
   const todos = window.TODOS;
-  const done = todos.filter(t => t.state === 'done').length;
+  // "Done" counter spans every terminal state (done/approved/completed)
+  // — without this, the counter showed 0/7 for tasks the agent had
+  // explicitly approved because raw 'approved' status now flows
+  // through unchanged from data.jsx.
+  const done = todos.filter(t => ['done', 'approved', 'completed'].includes(t.state)).length;
 
   // Map every status to a glyph + color so the right panel reads at a
   // glance. data.jsx normalizes TodoTracker statuses
