@@ -24,13 +24,16 @@
 
   // Slash commands — populated from /api/commands at boot. Until the
   // first fetch lands, seed with built-ins the agent always supports
-  // so the dropdown is never empty if the API is briefly unreachable.
+  // plus the client-side ones (/scope, /cd) workspace.jsx handles
+  // locally without round-tripping to the backend.
   window.SLASH_COMMANDS = [
     { cmd: '/help',    alias: 'h',  hint: 'show available commands' },
     { cmd: '/clear',   alias: 'cl', hint: 'reset conversation' },
     { cmd: '/compact', alias: 'co', hint: 'compress history' },
     { cmd: '/exit',    alias: 'q',  hint: 'leave the session' },
     { cmd: '/todo',    alias: 't',  hint: 'show / manage todos' },
+    { cmd: '/scope',   alias: 'sc', hint: '(client) confine agent to a directory: /scope <path>' },
+    { cmd: '/cd',      alias: 'cd', hint: '(client) alias for /scope' },
   ];
 
   // Workflow stage badges. Empty by default — populated only if a future
@@ -143,12 +146,29 @@
         // shape workspace.jsx's slash dropdown expects. The renderer
         // reads BOTH .hint (mute footer) and .desc (in-line right
         // column), so populate both.
-        window.SLASH_COMMANDS = cmds.map(c => ({
+        const live = cmds.map(c => ({
           cmd:   c.cmd,
           alias: (c.aliases && c.aliases[0]) || c.name.slice(0, 2),
           hint:  c.hint || '',
           desc:  c.hint || '',
         }));
+        // Merge in the client-side commands (handled by workspace.jsx
+        // before sending to the backend, so they never appear in
+        // /api/commands but still need to show in autocomplete).
+        const clientOnly = [
+          { cmd: '/scope', alias: 'sc',
+            hint: '(client) confine agent to a directory: /scope <path> | /scope / to clear',
+            desc: '(client) confine agent to a directory: /scope <path> | /scope / to clear' },
+          { cmd: '/cd',    alias: 'cd',
+            hint: '(client) alias for /scope',
+            desc: '(client) alias for /scope' },
+        ];
+        const present = new Set(live.map(c => c.cmd));
+        for (const c of clientOnly) {
+          if (!present.has(c.cmd)) live.push(c);
+        }
+        live.sort((a, b) => a.cmd.localeCompare(b.cmd));
+        window.SLASH_COMMANDS = live;
         window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SLASH_COMMANDS' }));
       }
     } catch (e) { /* keep built-in fallbacks */ }

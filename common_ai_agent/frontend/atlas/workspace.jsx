@@ -115,6 +115,37 @@ const Workspace = ({ dir, onScreen }) => {
     if (!raw) return;
     setInput('');
     setShowSlash(false);
+
+    // ── Client-side slash commands ──────────────────────────────
+    // Some commands operate on browser state (SCOPE_PATH lives in
+    // localStorage / window) and don't need an agent round-trip.
+    // Handle them here BEFORE sending anything to the backend.
+    const m = raw.match(/^\/(scope|cd)(\s+(.*))?$/);
+    if (m) {
+      const arg = (m[3] || '').trim();
+      const cur = window.SCOPE_PATH || '';
+      if (!arg) {
+        setFeed(f => [...f, { kind: 'user', text: raw }]);
+        setFeed(f => [...f, {
+          kind: 'agent',
+          text: cur
+            ? `Current scope: \`${cur}\`\nUse \`/scope <path>\` to change, \`/scope /\` to reset.`
+            : 'No scope set — agent works on the whole project.\nUse `/scope <path>` to confine it.',
+        }]);
+        return;
+      }
+      const next = (arg === '/' || arg === '~' || arg === '-') ? '' : arg.replace(/^\/+|\/+$/g, '');
+      window.atlasData.setScopePath(next);
+      setFeed(f => [...f, { kind: 'user', text: raw }]);
+      setFeed(f => [...f, {
+        kind: 'agent',
+        text: next
+          ? `✓ Scope set to \`${next}\`. Future prompts will tell the agent to stay inside this directory.`
+          : '✓ Scope cleared. Agent operates on the whole project again.',
+      }]);
+      return;
+    }
+
     setFeed(f => [...f, { kind: 'user', text: raw }]);
     setStreaming(true);
     setStreamText('');

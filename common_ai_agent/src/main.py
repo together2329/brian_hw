@@ -2051,7 +2051,7 @@ def chat_loop():
                             if _textual_emit_content_fn is not None:
                                 try:
                                     import re as _re
-                                    _ansi = _re.compile(r"\x1b\[[0-9;]*m")
+                                    _ansi = _re.compile(r"\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)")
                                     for _l in _ansi.sub("", line).splitlines() or [""]:
                                         _textual_emit_content_fn(_l)
                                 except Exception:
@@ -2143,19 +2143,26 @@ def chat_loop():
                         # Regular command output (PLAN_AND_RUN already set user_input above — fall through)
                         if result:
                             print(result)
-                            # Mirror slash output to the web UI — print() only
-                            # hits stdout (and the uvicorn log file in atlas
-                            # mode), which leaves the browser blank otherwise.
+                            # Mirror slash output to the web UI — print()
+                            # only hits stdout (and the uvicorn log file in
+                            # atlas mode), which leaves the browser blank.
                             if _textual_emit_content_fn is not None:
                                 try:
-                                    # Strip ANSI escapes so the markdown
-                                    # renderer in the UI doesn't render raw
-                                    # control sequences as text.
                                     import re as _re
-                                    _ansi = _re.compile(r"\x1b\[[0-9;]*m")
-                                    _clean = _ansi.sub("", result)
-                                    for _line in _clean.splitlines() or [_clean]:
+                                    # Strip ANSI escapes — they show up as
+                                    # garbage like ⎵[2m in the markdown
+                                    # rendered HTML.
+                                    _ansi = _re.compile(r"\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)")
+                                    _clean = _ansi.sub("", result).rstrip("\n")
+                                    # Wrap in a fenced code block so
+                                    # whitespace, table layouts, and `*` /
+                                    # `#` characters render verbatim instead
+                                    # of being parsed as markdown emphasis
+                                    # / headings.
+                                    _textual_emit_content_fn("```")
+                                    for _line in _clean.splitlines() or [""]:
                                         _textual_emit_content_fn(_line)
+                                    _textual_emit_content_fn("```")
                                     if _textual_emit_flush_fn is not None:
                                         _textual_emit_flush_fn()
                                 except Exception:
