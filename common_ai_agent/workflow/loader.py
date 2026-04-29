@@ -585,27 +585,31 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
         skill_name = handler_str[6:].strip()
 
         def _skill_handler(args: str, _n=skill_name, _ws=ws) -> str:
-            # Pin the skill so the next turn uses it. We append (not replace)
-            # to FORCE_SKILLS so other workspace force_activate entries stay.
             current = os.environ.get("FORCE_SKILLS", "")
             existing = [s.strip() for s in current.split(",") if s.strip()]
             if _n not in existing:
                 existing.append(_n)
                 os.environ["FORCE_SKILLS"] = ",".join(existing)
-            # Tell the routing cache to pick it up immediately.
             try:
                 import sys as _sys
                 _main = _sys.modules.get("main") or _sys.modules.get("src.main")
                 if _main is not None:
                     fn = getattr(_main, "load_active_skills", None)
                     if fn is not None:
-                        # Prime the active-skill so this turn already runs
-                        # under the skill's rules without waiting for a
-                        # user message to re-trigger routing.
                         setattr(fn, "_active_skill", _n)
-                        # Invalidate the cache key so the next call recomputes.
                         if hasattr(fn, "_cached_key"):
                             fn._cached_key = ""
+                    # Surface a confirmation so the user sees something
+                    # immediately — without it, /grill-me looks silent
+                    # for the 10-30s before the LLM responds.
+                    emit = getattr(_main, "_textual_emit_content_fn", None)
+                    if emit is not None:
+                        try:
+                            emit(f"✓ Skill `{_n}` activated. Agent is working…")
+                            flush = getattr(_main, "_textual_emit_flush_fn", None)
+                            if flush: flush()
+                        except Exception:
+                            pass
             except Exception:
                 pass
             extra = (" " + args.strip()) if args else ""

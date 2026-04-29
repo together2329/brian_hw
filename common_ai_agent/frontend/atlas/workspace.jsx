@@ -606,17 +606,30 @@ const Workspace = ({ dir, onScreen }) => {
         {/* prompt */}
         <div style={{ position: 'relative' }}>
           {showAt && fileMatches.length > 0 && (
-            <div className="slash-menu fade-in">
-              <div style={{ padding: '6px 12px', fontSize: 10, color: 'var(--fg-mute)', letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid var(--line)' }}>
-                {fileMatches.length} file{fileMatches.length === 1 ? '' : 's'} · <Kbd>↑↓</Kbd> nav · <Kbd>Tab</Kbd>/<Kbd>↵</Kbd> insert path · <Kbd>Esc</Kbd> cancel
+            <div className="slash-menu fade-in" style={{ maxHeight: 280, overflowY: 'auto' }}>
+              <div style={{ padding: '6px 12px', fontSize: 10, color: 'var(--fg-mute)', letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>{fileMatches.length} file{fileMatches.length === 1 ? '' : 's'}</span>
+                <span style={{ flex: 1 }} />
+                <span><Kbd>↑↓</Kbd> nav · <Kbd>↵</Kbd> insert · <Kbd>Esc</Kbd> close</span>
               </div>
               {fileMatches.map((f, i) => (
-                <div key={f.name} className={`slash-item ${i === atSel ? 'sel' : ''}`}
+                <div key={i} className={`slash-item ${i === atSel ? 'sel' : ''}`}
                   onClick={() => acceptAtCompletion(f)}
-                  onMouseEnter={() => setAtSel(i)}>
-                  <span className="si-cmd">{f.type === 'dir' ? '▸' : '◆'}</span>
-                  <span className="si-alias">{f.name}</span>
-                  <span className="si-desc mute">{f.size || ''}</span>
+                  onMouseEnter={() => setAtSel(i)}
+                  style={{
+                    display: 'grid', gridTemplateColumns: '20px 1fr auto',
+                    gap: 8, padding: '5px 12px',
+                    background: i === atSel ? 'color-mix(in oklch, var(--accent) 18%, transparent)' : 'transparent',
+                    borderLeft: i === atSel ? '2px solid var(--accent)' : '2px solid transparent',
+                    cursor: 'pointer',
+                  }}>
+                  <span style={{ color: f.type === 'dir' ? 'var(--cyan)' : 'var(--accent)' }}>
+                    {f.type === 'dir' ? '▸' : '◆'}
+                  </span>
+                  <span style={{ fontFamily: 'var(--mono)', color: 'var(--fg)', fontSize: 12 }}>
+                    {f.name}{f.type === 'dir' ? '/' : ''}
+                  </span>
+                  <span className="mute" style={{ fontSize: 10 }}>{f.size || ''}</span>
                 </div>
               ))}
             </div>
