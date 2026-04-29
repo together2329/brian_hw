@@ -588,6 +588,33 @@ def create_app():
                         # Don't queue anything else — the env override is
                         # the entire effect. Next agent iteration honors it.
                         continue
+
+                    # `y` / `yc` / `yes` / `confirm` mid-loop while agent
+                    # is in plan mode → treat as plan confirmation. Without
+                    # this, the input lands in the _interrupts queue and
+                    # gets fed to the LLM as conversational text — the
+                    # plan-confirmation handler in chat_loop only runs
+                    # against _inbox between turns. So `y` after the
+                    # agent shows the [Plan Mode] Plan ready prompt does
+                    # nothing if the agent is still mid-iteration.
+                    if (_os.environ.get("PLAN_MODE") == "true"
+                            and bridge.agent_running
+                            and _low in ("y", "yes", "yc", "confirm", "ok",
+                                         "proceed", "ㅇㅇ", "확인", "진행")):
+                        _os.environ["AGENT_MODE_OVERRIDE"] = "normal"
+                        _os.environ["PLAN_MODE"] = "false"
+                        _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
+                        bridge.emit("token", text="\n✅ Plan confirmed (mid-loop): tools enabled. Executing.\n")
+                        bridge.emit("flush")
+                        # Inject an instruction so the agent knows to start
+                        # executing the agreed-upon plan. This goes to
+                        # _interrupts (since agent is running), fed mid-loop.
+                        bridge.submit_prompt(
+                            "Confirmed. Execute all tasks in order. "
+                            "For EACH task: todo_update(in_progress) → do work "
+                            "→ todo_update(completed) → verify → todo_update(approved)."
+                        )
+                        continue
                     bridge.submit_prompt(_txt)
                 elif t == "interrupt":
                     bridge.submit_prompt(msg.get("text", ""))
