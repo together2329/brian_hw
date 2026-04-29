@@ -232,6 +232,14 @@ const Workspace = ({ dir, onScreen }) => {
     if (m) {
       const arg = (m[3] || '').trim();
       const cur = window.SCOPE_PATH || '';
+      // Same defensive cleanup as the /plan branch — these commands
+      // are purely client-side and shouldn't inherit a stale
+      // streaming state from a prior unclean turn.
+      const _clearStreaming = () => {
+        setStreaming(false);
+        streamBufferRef.current = '';
+        setStreamText('');
+      };
       if (!arg) {
         setFeed(f => [...f, { kind: 'user', text: raw }]);
         setFeed(f => [...f, {
@@ -240,6 +248,7 @@ const Workspace = ({ dir, onScreen }) => {
             ? `Current scope: \`${cur}\`\nUse \`/scope <path>\` to change, \`/scope /\` to reset.`
             : 'No scope set — agent works on the whole project.\nUse `/scope <path>` to confine it.',
         }]);
+        _clearStreaming();
         return;
       }
       const next = (arg === '/' || arg === '~' || arg === '-') ? '' : arg.replace(/^\/+|\/+$/g, '');
@@ -251,6 +260,7 @@ const Workspace = ({ dir, onScreen }) => {
           ? `✓ Scope set to \`${next}\`. Future prompts will tell the agent to stay inside this directory.`
           : '✓ Scope cleared. Agent operates on the whole project again.',
       }]);
+      _clearStreaming();
       return;
     }
 
@@ -264,6 +274,13 @@ const Workspace = ({ dir, onScreen }) => {
       setIntent(target);
       setFeed(f => [...f, { kind: 'user', text: raw }]);
       if (window.backend) window.backend.send({ type: 'prompt', text: raw });
+      // Slash commands don't run the agent — clear any stale streaming
+      // state inherited from a prior turn that didn't close out cleanly
+      // (agent crash, dropped WS, etc.). Without this, the banner
+      // claims "Agent is working" forever after the user types /plan.
+      setStreaming(false);
+      streamBufferRef.current = '';
+      setStreamText('');
       return;
     }
 
