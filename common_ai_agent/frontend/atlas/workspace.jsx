@@ -273,12 +273,19 @@ const Workspace = ({ dir, onScreen }) => {
     // AND forward to backend so agent_mode flips. Mirrors the /scope
     // pattern. Without this, /plan only updated the backend and the
     // sidebar pill stayed on "normal" until shift+tab (also broken).
+    //
+    // Backend slash registry: '/plan' and '/mode <x>' are registered.
+    // '/normal' (without /mode prefix) is NOT registered → would land
+    // as "Unknown command" and leave agent_mode in plan_q while the
+    // UI happily flipped to normal. Normalize the WIRE form to the
+    // canonical command the backend actually handles.
     const modeMatch = raw.match(/^\/(plan|mode\s+plan|mode\s+normal|normal)$/i);
     if (modeMatch) {
       const target = /^\/(plan|mode\s+plan)$/i.test(raw) ? 'plan' : 'normal';
+      const wire = target === 'plan' ? '/plan' : '/mode normal';
       setIntent(target);
       setFeed(f => [...f, { kind: 'user', text: raw }]);
-      if (window.backend) window.backend.send({ type: 'prompt', text: raw });
+      if (window.backend) window.backend.send({ type: 'prompt', text: wire });
       // Slash commands don't run the agent — clear any stale streaming
       // state inherited from a prior turn that didn't close out cleanly
       // (agent crash, dropped WS, etc.). Without this, the banner
