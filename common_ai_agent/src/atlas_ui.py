@@ -220,9 +220,16 @@ def create_app():
             info["provider"] = getattr(_cfg, "LLM_PROVIDER", "")
             info["max_context"] = getattr(_cfg, "MAX_CONTEXT_TOKENS", 0)
             info["max_iterations"] = getattr(_cfg, "MAX_ITERATIONS", 0)
+            # Resolve the "active session" the user is looking at. When
+            # the agent boots WITHOUT -w, ACTIVE_WORKSPACE is unset but
+            # the session still maps to .session/default/. Prefer the
+            # explicit workspace; fall back to the actual project the
+            # session loader is using (config.ACTIVE_PROJECT) so the
+            # UI can show "default" instead of an ambiguous "—".
             info["workspace"] = (os.environ.get("ACTIVE_WORKSPACE")
                                   or os.environ.get("WORKSPACE")
-                                  or "")
+                                  or getattr(_cfg, "ACTIVE_PROJECT", "")
+                                  or "default")
             # Per-model pricing (USD / 1M tokens) — input / cache / output
             info["pricing"] = None
             try:
@@ -296,7 +303,12 @@ def create_app():
                     "label": spec.get("name", d.name),
                     "description": spec.get("description", ""),
                 })
-        active = os.environ.get("ACTIVE_WORKSPACE", "")
+        # Same fallback as /healthz — show the actual session name even
+        # when ACTIVE_WORKSPACE is unset (boot without -w). Frontend
+        # uses this to render the workflow strip's active highlight.
+        active = (os.environ.get("ACTIVE_WORKSPACE")
+                  or os.environ.get("ACTIVE_PROJECT")
+                  or "default")
         return JSONResponse({"active": active, "items": items})
 
     # ── REAL project data API ────────────────────────────────────
