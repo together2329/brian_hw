@@ -1781,7 +1781,11 @@ def chat_loop():
                         if agent_mode == "plan":
                             agent_mode = "plan_q"  # first turn: questions only, tools blocked
                             os.environ["PLAN_MODE"] = "true"
-                            print(Color.success("\n✅ Plan mode: clarify → explore → refine → user confirms → execute.\n"))
+                            _msg = "✅ Plan mode: clarify → explore → refine → user confirms → execute."
+                            print(Color.success("\n" + _msg + "\n"))
+                            if _textual_emit_content_fn is not None:
+                                try: _textual_emit_content_fn(_msg)
+                                except Exception: pass
                             # Refresh system prompt with Plan Mode instructions
                             if messages and messages[0].get("role") == "system":
                                 system_prompt_data = build_system_prompt(messages, agent_mode=agent_mode)
@@ -1799,7 +1803,11 @@ def chat_loop():
                             agent_mode = "normal"
                             os.environ["PLAN_MODE"] = "false"
                             os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)  # reset plan loop counter
-                            print(Color.success("\n✅ Normal mode.\n"))
+                            _msg = "✅ Normal mode — tools enabled."
+                            print(Color.success("\n" + _msg + "\n"))
+                            if _textual_emit_content_fn is not None:
+                                try: _textual_emit_content_fn(_msg)
+                                except Exception: pass
                             # Restore normal system prompt
                             if messages and messages[0].get("role") == "system":
                                 system_prompt_data = build_system_prompt(messages, agent_mode=agent_mode)
