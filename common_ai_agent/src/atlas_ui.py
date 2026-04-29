@@ -25,6 +25,7 @@ import asyncio
 import json
 import os
 import queue
+import re
 import sys
 import threading
 from pathlib import Path
@@ -529,6 +530,119 @@ def create_app():
             except OSError:
                 continue
         return JSONResponse({"files": results})
+
+    # ── Git API — status / diff / commit / push ─────────────────
+    # All git commands run inside PROJECT_ROOT (the user's cwd at
+    # launch). Read-only ops stream back; commit + push run sync
+    # and return their stdout/stderr. Push includes an explicit
+    # confirm flag because it's destructive (remote-visible).
+    import subprocess as _sp_git
+    def _git(*args, check_root: bool = True):
+        try:
+            r = _sp_git.run(
+                ["git", *args], cwd=str(PROJECT_ROOT),
+                capture_output=True, text=True, timeout=30,
+            )
+            return r.returncode, r.stdout, r.stderr
+        except _sp_git.TimeoutExpired:
+            return 124, "", "git command timed out"
+        except FileNotFoundError:
+            return 127, "", "git executable not found"
+
+    @app.get("/api/git/status")
+    async def api_git_status():
+        # Branch
+        rc, branch, _ = _git("rev-parse", "--abbrev-ref", "HEAD")
+        branch = branch.strip() if rc == 0 else ""
+        # Porcelain status with numstat-ish summary
+        rc, out, err = _git("status", "--porcelain=v1", "--branch")
+        if rc != 0:
+            return JSONResponse({"error": err.strip() or "git status failed",
+                                 "branch": branch, "files": []}, status_code=200)
+        files = []
+        ahead = behind = 0
+        for line in out.splitlines():
+            if not line: continue
+            if line.startswith("##"):
+                # ## main...origin/main [ahead 1, behind 2]
+                m = re.search(r"ahead (\d+)", line)
+                if m: ahead = int(m.group(1))
+                m = re.search(r"behind (\d+)", line)
+                if m: behind = int(m.group(1))
+                continue
+            # XY <path>  (X=staged, Y=unstaged)
+            xy = line[:2]; path = line[3:]
+            # Renames: "old -> new"
+            if " -> " in path:
+                path = path.split(" -> ", 1)[1]
+            files.append({
+                "path": path,
+                "status": xy,
+                "staged":   xy[0] not in (" ", "?"),
+                "unstaged": xy[1] != " ",
+            })
+        # Per-file numstat (added/removed lines) — best-effort
+        rc, ns_out, _ = _git("diff", "--numstat", "HEAD")
+        numstat = {}
+        if rc == 0:
+            for line in ns_out.splitlines():
+                parts = line.split("\t")
+                if len(parts) >= 3:
+                    a, d, p = parts[0], parts[1], parts[2]
+                    try:
+                        numstat[p] = {"added": int(a) if a != "-" else 0,
+                                       "removed": int(d) if d != "-" else 0}
+                    except ValueError:
+                        pass
+        for f in files:
+            ns = numstat.get(f["path"])
+            if ns: f.update(ns)
+        return JSONResponse({"branch": branch, "ahead": ahead,
+                              "behind": behind, "files": files})
+
+    @app.get("/api/git/diff")
+    async def api_git_diff(path: str = "", staged: int = 0):
+        if not path:
+            rc, out, err = _git("diff" if not staged else "diff", "--cached" if staged else "HEAD")
+        else:
+            args = ["diff"]
+            if staged: args.append("--cached")
+            args.append("--")
+            args.append(path)
+            rc, out, err = _git(*args)
+        if rc != 0 and not out:
+            return JSONResponse({"error": err.strip() or "diff failed",
+                                  "diff": ""}, status_code=200)
+        return JSONResponse({"diff": out, "path": path})
+
+    @app.post("/api/git/commit")
+    async def api_git_commit(payload: dict):
+        message = (payload or {}).get("message", "").strip()
+        add_all = bool((payload or {}).get("add_all", True))
+        if not message:
+            return JSONResponse({"error": "commit message required"},
+                                 status_code=400)
+        if add_all:
+            rc, _, err = _git("add", "-A")
+            if rc != 0:
+                return JSONResponse({"error": "git add -A failed: " + err.strip()},
+                                     status_code=200)
+        rc, out, err = _git("commit", "-m", message)
+        return JSONResponse({"ok": rc == 0, "stdout": out, "stderr": err,
+                              "returncode": rc})
+
+    @app.post("/api/git/push")
+    async def api_git_push(payload: dict = None):
+        # Push current branch to origin. User must explicitly confirm
+        # in the UI before this fires.
+        rc, branch, _ = _git("rev-parse", "--abbrev-ref", "HEAD")
+        branch = branch.strip()
+        if not branch or branch == "HEAD":
+            return JSONResponse({"error": "no current branch (detached HEAD?)"},
+                                 status_code=400)
+        rc, out, err = _git("push", "origin", branch)
+        return JSONResponse({"ok": rc == 0, "stdout": out, "stderr": err,
+                              "branch": branch, "returncode": rc})
 
     # NOTE: WebSocket endpoint is registered via Starlette's WebSocketRoute
     # (added to app.router.routes below) instead of the @app.websocket
