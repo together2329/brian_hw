@@ -2154,6 +2154,23 @@ def chat_loop():
                                     # rendered HTML.
                                     _ansi = _re.compile(r"\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)")
                                     _clean = _ansi.sub("", result).rstrip("\n")
+                                    # Browser-friendly fallback for the
+                                    # "fancy" glyphs the terminal Color
+                                    # helpers use — boxes, pause/play, eye-
+                                    # check, etc. don't render cleanly in
+                                    # browser default fonts and the user
+                                    # sees them as tofu / wrong widths.
+                                    _glyph = {
+                                        "──":  "──",  # box drawing already wide-supported
+                                        "⏸":  "[ ]",  # pending
+                                        "▶":  "[>]",  # in-progress
+                                        "👀":  "[.]",  # completed
+                                        "✅":  "[v]",  # approved
+                                        "❌":  "[x]",  # rejected
+                                        "⎿":  "└─",   # tool brief
+                                    }
+                                    for _src, _dst in _glyph.items():
+                                        _clean = _clean.replace(_src, _dst)
                                     # Wrap in a fenced code block so
                                     # whitespace, table layouts, and `*` /
                                     # `#` characters render verbatim instead
