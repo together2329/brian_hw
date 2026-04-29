@@ -12,6 +12,16 @@ const App = () => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [dir, theme]);
 
+  // Bump on every atlas-data-changed so the TitleBar (which reads
+  // window.CONTEXT.cwd / .workspace) re-renders when /healthz lands
+  // or the user runs /wf.
+  const [, bump] = React.useReducer(x => x + 1, 0);
+  React.useEffect(() => {
+    const h = () => bump();
+    window.addEventListener('atlas-data-changed', h);
+    return () => window.removeEventListener('atlas-data-changed', h);
+  }, []);
+
   // Global Esc → tell the agent to abort the current iteration. We
   // skip the binding when an open ask_user card has focus, since Esc
   // there should cancel the card (handled inside that component).

@@ -43,20 +43,38 @@ const StatusBar = ({ ctx, hints }) => (
   </div>
 );
 
-const TitleBar = ({ ip, screen, onScreen }) => (
-  <div className="titlebar">
-    <span className="tb-dot" />
-    <span><b>common_ai_agent</b></span>
-    <span className="tb-pipe">│</span>
-    <span className="tb-item">ip: <b>{ip || '—'}</b></span>
-    <span className="tb-pipe">│</span>
-    <span className="tb-item">cwd: <b>~/work/{ip || ''}</b></span>
-    <span className="tb-spacer" />
-    <NavTab id="launcher" cur={screen} onScreen={onScreen}>Launcher</NavTab>
-    <NavTab id="pipeline" cur={screen} onScreen={onScreen}>Pipeline</NavTab>
-    <NavTab id="workspace" cur={screen} onScreen={onScreen}>Chat</NavTab>
-  </div>
-);
+const TitleBar = ({ ip, screen, onScreen }) => {
+  // Show the actual python cwd (set by /healthz), abbreviated with ~
+  // when it sits under $HOME. Falls back to "—" until the first
+  // healthz response lands.
+  const home = '/Users/' + (typeof navigator !== 'undefined' && navigator.userAgent.includes('Mac')
+    ? '' : '');
+  const rawCwd = (window.CONTEXT && window.CONTEXT.cwd) || '';
+  let cwd = rawCwd;
+  // Best-effort home abbreviation — works for any HOME passed by the
+  // server even though the browser doesn't know $HOME directly.
+  if (rawCwd) {
+    const homeGuess = rawCwd.match(/^\/Users\/[^\/]+/);
+    if (homeGuess && rawCwd.startsWith(homeGuess[0])) {
+      cwd = '~' + rawCwd.slice(homeGuess[0].length);
+    }
+  }
+  const ws = (window.CONTEXT && window.CONTEXT.workspace) || '';
+  return (
+    <div className="titlebar">
+      <span className="tb-dot" />
+      <span><b>common_ai_agent</b></span>
+      <span className="tb-pipe">│</span>
+      <span className="tb-item">workspace: <b>{ws || '—'}</b></span>
+      <span className="tb-pipe">│</span>
+      <span className="tb-item" title={rawCwd}>
+        cwd: <b>{cwd || '—'}</b>
+      </span>
+      <span className="tb-spacer" />
+      <NavTab id="workspace" cur={screen} onScreen={onScreen}>Chat</NavTab>
+    </div>
+  );
+};
 
 const NavTab = ({ id, cur, onScreen, children }) => (
   <span
