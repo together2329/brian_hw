@@ -8,7 +8,7 @@
     "DEFAULT_SCHEMA_ENGINE": "cerberus"
   },
   "skills": {
-    "force_activate": ["verilog-expert"],
+    "force_activate": ["verilog-expert", "grill-me", "to-ssot"],
     "disable": []
   },
   "system_prompt_mode": "prepend",

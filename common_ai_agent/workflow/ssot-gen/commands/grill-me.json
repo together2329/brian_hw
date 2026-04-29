@@ -1,0 +1,7 @@
+{
+  "name": "grill-me",
+  "description": "Interrogate the user about the SSOT plan one decision at a time, walking the 20-section design tree",
+  "aliases": ["grill", "g"],
+  "handler": "skill:grill-me",
+  "usage": "/grill-me [<ip_name>]"
+}
