@@ -102,13 +102,19 @@
   }
 
   async function refreshFileTree(path) {
+    // When the user has narrowed to a sub-scope we go recursive so the
+    // panel shows every file inside, not just the top level. At the
+    // project root we keep it shallow (94 top-level entries already
+    // crowd the panel — sub-dirs are reachable by clicking in).
+    const recursive = (path && path.length > 0) ? '&recursive=1' : '';
     try {
-      const r = await fetch('/api/files?path=' + encodeURIComponent(path || ''));
+      const r = await fetch('/api/files?path=' + encodeURIComponent(path || '') + recursive);
       if (!r.ok) return;
       const d = await r.json();
       if (Array.isArray(d.entries)) {
-        window.FILE_TREE = d.entries.map(e => asTreeNode(e, 0));
+        window.FILE_TREE = d.entries.map(e => asTreeNode(e, e.depth || 0));
         window.FILE_TREE_LAST_REFRESH = Date.now();
+        window.FILE_TREE_TRUNCATED = !!d.truncated;
         window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FILE_TREE' }));
       }
     } catch (e) { /* server not reachable yet */ }
@@ -195,6 +201,8 @@
         maxTokens:   d.max_context    || window.CONTEXT.maxTokens || 0,
         iterMax:     d.max_iterations || window.CONTEXT.iterMax    || 0,
         workspace:   d.workspace || '',
+        projectRoot: d.project_root || '',
+        cwd:         d.cwd || '',
       });
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' }));
     } catch (e) { /* ignore */ }

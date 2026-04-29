@@ -160,7 +160,9 @@ def create_app():
 
     @app.get("/healthz")
     async def healthz():
-        info = {"ok": True, "frontend": str(FRONTEND)}
+        info = {"ok": True, "frontend": str(FRONTEND),
+                "project_root": str(ROOT),
+                "cwd": os.getcwd()}
         # Expose the real model + context window so the sidebar doesn't
         # have to invent values. Pull from src.config (the per-process
         # frozen settings); if config isn't importable yet, fall through
@@ -236,7 +238,8 @@ def create_app():
         return candidate
 
     @app.get("/api/files")
-    async def api_files(path: str = ""):
+    async def api_files(path: str = "", recursive: int = 0, max_depth: int = 4,
+                          max_entries: int = 800):
         target = _safe(path)
         if target is None:
             return JSONResponse({"error": "path outside project root"},
@@ -251,10 +254,18 @@ def create_app():
                 "type": "file", "path": rel,
                 "size": stat.st_size, "mtime": stat.st_mtime,
             })
-        entries = []
-        try:
-            for child in sorted(target.iterdir(),
-                                 key=lambda p: (p.is_file(), p.name.lower())):
+
+        entries: list = []
+
+        def _list_one(d, depth):
+            try:
+                children = sorted(d.iterdir(),
+                                   key=lambda p: (p.is_file(), p.name.lower()))
+            except PermissionError:
+                return
+            for child in children:
+                if len(entries) >= max_entries:
+                    return
                 if child.name in SKIP_DIRS or child.name.startswith("."):
                     continue
                 try:
@@ -262,15 +273,19 @@ def create_app():
                 except OSError:
                     continue
                 entries.append({
-                    "name": child.name,
-                    "type": "dir" if child.is_dir() else "file",
-                    "size": stat.st_size if child.is_file() else None,
+                    "name":  child.name if not recursive else str(child.relative_to(target)),
+                    "type":  "dir" if child.is_dir() else "file",
+                    "size":  stat.st_size if child.is_file() else None,
                     "mtime": stat.st_mtime,
+                    "depth": depth,
                 })
-        except PermissionError:
-            return JSONResponse({"error": "permission denied"},
-                                status_code=403)
-        return JSONResponse({"type": "dir", "path": rel, "entries": entries})
+                if recursive and child.is_dir() and depth < max_depth:
+                    _list_one(child, depth + 1)
+
+        _list_one(target, 0)
+        return JSONResponse({"type": "dir", "path": rel,
+                              "entries": entries,
+                              "truncated": len(entries) >= max_entries})
 
     @app.get("/api/file")
     async def api_file(path: str):

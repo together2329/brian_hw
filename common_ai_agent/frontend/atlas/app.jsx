@@ -17,13 +17,22 @@ const App = () => {
   // there should cancel the card (handled inside that component).
   React.useEffect(() => {
     const onKey = (e) => {
-      if (e.key !== 'Escape') return;
-      const tag = (document.activeElement?.tagName || '').toLowerCase();
-      // Don't hijack Esc when typing into the chat input — let the
-      // existing input behaviour win. The UI surfaces a dedicated
-      // stop button for that.
-      if (tag === 'input' || tag === 'textarea') return;
-      if (window.backend) window.backend.send({ type: 'stop' });
+      // Ctrl+Q (or Cmd+Q) → ask to shut down the server + close tab.
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'q' || e.key === 'Q')) {
+        e.preventDefault();
+        if (!confirm('Shut down the server and close this tab?')) return;
+        if (window.backend) window.backend.send({ type: 'shutdown' });
+        setTimeout(() => { try { window.close(); } catch (_) {} }, 600);
+        return;
+      }
+      // Esc → tell the agent to abort the current iteration.
+      if (e.key === 'Escape') {
+        const tag = (document.activeElement?.tagName || '').toLowerCase();
+        // Don't hijack Esc when an inline ask_user / slash dropdown
+        // owns the input — those handle their own Esc.
+        if (tag === 'input' || tag === 'textarea') return;
+        if (window.backend) window.backend.send({ type: 'stop' });
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -59,12 +68,12 @@ const App = () => {
                 onClick={() => setTheme('light')}>Light</button>
         <span style={{ width: 12 }} />
         <button className="dir-btn"
-                title="Abort the agent's current iteration (Esc)"
-                onClick={stopAgent}>■ Stop</button>
+                title="Abort the agent's current iteration  (Esc)"
+                onClick={stopAgent}>■ Stop · Esc</button>
         <button className="dir-btn"
-                title="Shut down the Python server and close this tab"
+                title="Shut down the Python server and close this tab  (Ctrl/⌘+Q)"
                 onClick={exitAll}
-                style={{ borderColor: '#f85149', color: '#f85149' }}>✕ Exit</button>
+                style={{ borderColor: '#f85149', color: '#f85149' }}>✕ Exit · ⌃Q</button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         <TitleBar ip="" screen="workspace" />

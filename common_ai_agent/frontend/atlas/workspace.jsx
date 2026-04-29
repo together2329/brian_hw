@@ -85,6 +85,23 @@ const Workspace = ({ dir, onScreen }) => {
     }
   }, [pendingQcard?.flowId]);
 
+  // ── @ file completion ────────────────────────────────────────
+  // Find a trailing "@<query>" token (anywhere in the input). The
+  // query is everything after the LAST `@` to the end of the line.
+  const atQuery = React.useMemo(() => {
+    const m = input.match(/(^|\s)@([^\s]*)$/);
+    return m ? { token: '@' + m[2], q: m[2].toLowerCase(), pos: m.index + m[1].length } : null;
+  }, [input]);
+
+  const fileMatches = React.useMemo(() => {
+    if (!atQuery) return [];
+    const tree = window.FILE_TREE || [];
+    if (!atQuery.q) return tree.slice(0, 20);
+    return tree
+      .filter(e => e.name.toLowerCase().includes(atQuery.q))
+      .slice(0, 20);
+  }, [atQuery && atQuery.q]);
+
   const filtered = React.useMemo(() => {
     if (!input.startsWith('/')) return [];
     const q = input.slice(1).toLowerCase();
@@ -93,10 +110,24 @@ const Workspace = ({ dir, onScreen }) => {
     );
   }, [input]);
 
+  const [showAt, setShowAt] = React.useState(false);
+  const [atSel, setAtSel] = React.useState(0);
+
   React.useEffect(() => {
-    if (input.startsWith('/')) { setShowSlash(true); setSlashSel(0); }
+    if (input.startsWith('/')) { setShowSlash(true); setSlashSel(0); setShowAt(false); }
     else setShowSlash(false);
-  }, [input]);
+    if (atQuery && fileMatches.length > 0) { setShowAt(true); setAtSel(0); }
+    else setShowAt(false);
+  }, [input, atQuery, fileMatches.length]);
+
+  const acceptAtCompletion = (entry) => {
+    if (!atQuery) return;
+    const before = input.slice(0, atQuery.pos);
+    const after  = input.slice(atQuery.pos + atQuery.token.length);
+    const fullPath = (window.SCOPE_PATH ? window.SCOPE_PATH + '/' : '') + entry.name;
+    setInput(before + fullPath + ' ' + after);
+    setShowAt(false);
+  };
 
   React.useEffect(() => {
     if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
@@ -283,6 +314,18 @@ const Workspace = ({ dir, onScreen }) => {
         }
       }
       if (e.key === 'Escape') { e.preventDefault(); setShowSlash(false); return; }
+    }
+    if (showAt) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setAtSel(s => Math.min(s + 1, fileMatches.length - 1)); return; }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); setAtSel(s => Math.max(s - 1, 0)); return; }
+      if (e.key === 'Tab' || e.key === 'Enter') {
+        if (fileMatches[atSel]) {
+          e.preventDefault();
+          acceptAtCompletion(fileMatches[atSel]);
+          return;
+        }
+      }
+      if (e.key === 'Escape') { e.preventDefault(); setShowAt(false); return; }
     }
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitMsg(); }
   };
@@ -529,6 +572,22 @@ const Workspace = ({ dir, onScreen }) => {
 
         {/* prompt */}
         <div style={{ position: 'relative' }}>
+          {showAt && fileMatches.length > 0 && (
+            <div className="slash-menu fade-in">
+              <div style={{ padding: '6px 12px', fontSize: 10, color: 'var(--fg-mute)', letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid var(--line)' }}>
+                {fileMatches.length} file{fileMatches.length === 1 ? '' : 's'} · <Kbd>↑↓</Kbd> nav · <Kbd>Tab</Kbd>/<Kbd>↵</Kbd> insert path · <Kbd>Esc</Kbd> cancel
+              </div>
+              {fileMatches.map((f, i) => (
+                <div key={f.name} className={`slash-item ${i === atSel ? 'sel' : ''}`}
+                  onClick={() => acceptAtCompletion(f)}
+                  onMouseEnter={() => setAtSel(i)}>
+                  <span className="si-cmd">{f.type === 'dir' ? '▸' : '◆'}</span>
+                  <span className="si-alias">{f.name}</span>
+                  <span className="si-desc mute">{f.size || ''}</span>
+                </div>
+              ))}
+            </div>
+          )}
           {showSlash && filtered.length > 0 && (
             <div className="slash-menu fade-in">
               <div style={{ padding: '6px 12px', fontSize: 10, color: 'var(--fg-mute)', letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid var(--line)' }}>
