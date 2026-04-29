@@ -199,11 +199,24 @@ def create_app():
             try: import config as _cfg  # noqa: WPS433
             except Exception: _cfg = None
         if _cfg is not None:
-            info["model"] = (
-                getattr(_cfg, "PRIMARY_MODEL", None)
-                or getattr(_cfg, "MODEL_NAME", None)
-                or getattr(_cfg, "LLM_MODEL_NAME", "")
-            )
+            # Prefer the LIVE active-model lookup (handles cursor-agent
+            # backend, runtime /model swaps, etc.) over the static
+            # PRIMARY_MODEL config value. PRIMARY_MODEL is just the
+            # default at boot — the user may have flipped models via
+            # /model 1 / /model 2 since.
+            model = ""
+            try:
+                from src.llm_client import get_active_model
+                model = get_active_model() or ""
+            except Exception:
+                pass
+            if not model:
+                model = (
+                    getattr(_cfg, "MODEL_NAME", None)
+                    or getattr(_cfg, "PRIMARY_MODEL", None)
+                    or getattr(_cfg, "LLM_MODEL_NAME", "")
+                )
+            info["model"] = model
             info["max_context"] = getattr(_cfg, "MAX_CONTEXT_TOKENS", 0)
             info["max_iterations"] = getattr(_cfg, "MAX_ITERATIONS", 0)
             info["workspace"] = (os.environ.get("ACTIVE_WORKSPACE")
