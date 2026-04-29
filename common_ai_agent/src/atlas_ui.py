@@ -199,11 +199,6 @@ def create_app():
             try: import config as _cfg  # noqa: WPS433
             except Exception: _cfg = None
         if _cfg is not None:
-            # Prefer the LIVE active-model lookup (handles cursor-agent
-            # backend, runtime /model swaps, etc.) over the static
-            # PRIMARY_MODEL config value. PRIMARY_MODEL is just the
-            # default at boot — the user may have flipped models via
-            # /model 1 / /model 2 since.
             model = ""
             try:
                 from src.llm_client import get_active_model
@@ -217,11 +212,56 @@ def create_app():
                     or getattr(_cfg, "LLM_MODEL_NAME", "")
                 )
             info["model"] = model
+            info["base_model"] = (
+                getattr(_cfg, "PRIMARY_MODEL", "")
+                or getattr(_cfg, "MODEL_NAME", "")
+            )
+            info["base_url"] = getattr(_cfg, "BASE_URL", "")
+            info["provider"] = getattr(_cfg, "LLM_PROVIDER", "")
             info["max_context"] = getattr(_cfg, "MAX_CONTEXT_TOKENS", 0)
             info["max_iterations"] = getattr(_cfg, "MAX_ITERATIONS", 0)
             info["workspace"] = (os.environ.get("ACTIVE_WORKSPACE")
                                   or os.environ.get("WORKSPACE")
                                   or "")
+            # Per-model pricing (USD / 1M tokens) — input / cache / output
+            info["pricing"] = None
+            try:
+                from lib.model_pricing import get_pricing
+                p = get_pricing(model) if model else None
+                if p is not None:
+                    info["pricing"] = {
+                        "input": p.input, "cache": p.cache, "output": p.output,
+                    }
+            except Exception:
+                pass
+            # Live cumulative token + cost totals (from session cost.json)
+            try:
+                import json as _json
+                from pathlib import Path as _P
+                _sess = os.environ.get("ATLAS_PROJECT_ROOT") or os.getcwd()
+                _candidates = [
+                    _P(_sess) / ".session" / (info["workspace"] or "default") / "cost.json",
+                    _P(_sess) / ".session" / "default" / "cost.json",
+                ]
+                for c in _candidates:
+                    if c.exists():
+                        d = _json.loads(c.read_text())
+                        info["tokens_in"]    = d.get("input", 0)
+                        info["tokens_cache"] = d.get("cached", 0)
+                        info["tokens_out"]   = d.get("output", 0)
+                        # Cost in USD
+                        if info["pricing"]:
+                            ti = info["tokens_in"]    or 0
+                            tc = info["tokens_cache"] or 0
+                            to = info["tokens_out"]   or 0
+                            info["cost_usd"] = (
+                                ti * info["pricing"]["input"]  / 1_000_000
+                                + tc * info["pricing"]["cache"]  / 1_000_000
+                                + to * info["pricing"]["output"] / 1_000_000
+                            )
+                        break
+            except Exception:
+                pass
         else:
             import os as _os
             info["model"] = _os.environ.get("LLM_MODEL_NAME", "") or _os.environ.get("MODEL_NAME", "")

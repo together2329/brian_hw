@@ -609,6 +609,8 @@ def list_dir(path=".", show_hidden=True, **kwargs):
         if not show_hidden:
             files = [f for f in files if not f.startswith('.')]
         sorted_files = sorted(files)
+        if not sorted_files:
+            return f"(empty directory: {path})"
         max_entries = _tool_cfg('TOOL_LIST_MAX_ENTRIES', 200)
         if len(sorted_files) > max_entries:
             return "\n".join(sorted_files[:max_entries]) + f"\n... ({len(sorted_files) - max_entries} more entries — increase TOOL_LIST_MAX_ENTRIES to see all)"
@@ -944,39 +946,16 @@ def find_files(pattern=None, directory=".", max_depth=None, path=None, recursive
                     matches.append(rel_path)
         
         if not matches:
-            # Smart Fallback: Check parent directory (1 level up)
-            # Only if directory is relative or not root
-            msg = f"No files matching '{pattern}' found in {directory}"
-            
+            # Empty result. Do NOT walk the parent for "smart hints" —
+            # that surfaces sibling matches and tricks the agent into
+            # probing every empty subdir in a row. The agent should
+            # consult list_dir / the SSOT instead.
             try:
-                parent_dir = os.path.join(directory, "..")
-                # Normalize to avoid scanning same dir if directory was "."
-                if os.path.abspath(directory) != os.path.abspath(parent_dir) and os.path.exists(parent_dir):
-                    parent_matches = []
-                    # Shallow search in parent (depth 2 to avoid huge scans)
-                    for root, dirs, files in os.walk(parent_dir):
-                        depth = root[len(parent_dir):].count(os.sep)
-                        if depth > 2:
-                            dirs.clear()
-                            continue
-                        
-                        for filename in files:
-                            if fnmatch.fnmatch(filename, pattern):
-                                full_path = os.path.join(root, filename)
-                                rel_path = os.path.relpath(full_path, directory) # Relative to ORIGINAL search dir (so starts with ../)
-                                parent_matches.append(rel_path)
-                                
-                    if parent_matches:
-                        msg += f"\n\n💡 Hint: Found {len(parent_matches)} matching file(s) in parent directory ('..'):\n"
-                        # Limit hint output
-                        limit = 10
-                        msg += "\n".join(f"  - {m}" for m in sorted(parent_matches)[:limit])
-                        if len(parent_matches) > limit:
-                            msg += f"\n  ...and {len(parent_matches)-limit} more"
-            except Exception:
-                pass # Fallback shouldn't break the original error
-                
-            return msg
+                is_empty = os.path.isdir(directory) and not os.listdir(directory)
+            except OSError:
+                is_empty = False
+            suffix = " (directory exists but is empty)" if is_empty else ""
+            return f"No files matching '{pattern}' found in {directory}{suffix}"
         
         MAX_RESULTS = _tool_cfg('TOOL_FIND_MAX_RESULTS', 100)
         sorted_matches = sorted(matches)

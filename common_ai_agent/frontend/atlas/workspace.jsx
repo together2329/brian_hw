@@ -92,22 +92,68 @@ const Workspace = ({ dir, onScreen }) => {
     }
   }, [pendingQcard?.flowId]);
 
-  // ── @ file completion ────────────────────────────────────────
+  // ── @ file completion (Python-style, one path segment at a time) ──
   // Find a trailing "@<query>" token (anywhere in the input). The
   // query is everything after the LAST `@` to the end of the line.
+  // We split the query into (parentDir, filter): everything up to the
+  // last '/' is the directory the user is browsing; everything after
+  // is the prefix to match against entries in that directory.
+  //
+  //   "@"               → parent='',         filter=''       → list project root
+  //   "@workflow/"      → parent='workflow', filter=''       → list workflow/
+  //   "@workflow/ssot"  → parent='workflow', filter='ssot'   → workflow/ filtered by 'ssot'
+  //   "@a/b/c"          → parent='a/b',      filter='c'      → a/b/ filtered by 'c'
   const atQuery = React.useMemo(() => {
     const m = input.match(/(^|\s)@([^\s]*)$/);
-    return m ? { token: '@' + m[2], q: m[2].toLowerCase(), pos: m.index + m[1].length } : null;
+    if (!m) return null;
+    const raw = m[2];
+    const slash = raw.lastIndexOf('/');
+    const parentRel = slash >= 0 ? raw.slice(0, slash) : '';
+    const filter    = slash >= 0 ? raw.slice(slash + 1) : raw;
+    // @-completion is always project-root-relative — independent of
+    // SCOPE_PATH, which only narrows the file-tree panel. The token
+    // that ends up in the chat must be a full project-root-relative
+    // path so the agent can resolve it without knowing about scope.
+    return {
+      token: '@' + raw,
+      pos: m.index + m[1].length,
+      raw,
+      parentRel,
+      parentAbs: parentRel,  // project-root-relative
+      filter: filter.toLowerCase(),
+    };
   }, [input]);
+
+  // Cache directory listings keyed by absolute path so chaining
+  // ("@a/" → "@a/b/" → "@a/b/c/") doesn't refetch each segment.
+  const [atDirCache, setAtDirCache] = React.useState({});
+  const [atDirEntries, setAtDirEntries] = React.useState([]);
+
+  React.useEffect(() => {
+    if (!atQuery) { setAtDirEntries([]); return; }
+    const key = atQuery.parentAbs;
+    if (atDirCache[key]) { setAtDirEntries(atDirCache[key]); return; }
+    let cancelled = false;
+    fetch('/api/files?path=' + encodeURIComponent(key))
+      .then(r => r.json())
+      .then(d => {
+        if (cancelled) return;
+        const entries = (d && d.entries) || [];
+        setAtDirCache(c => ({ ...c, [key]: entries }));
+        setAtDirEntries(entries);
+      })
+      .catch(() => { if (!cancelled) setAtDirEntries([]); });
+    return () => { cancelled = true; };
+  }, [atQuery && atQuery.parentAbs]);
 
   const fileMatches = React.useMemo(() => {
     if (!atQuery) return [];
-    const tree = window.FILE_TREE || [];
-    if (!atQuery.q) return tree.slice(0, 20);
-    return tree
-      .filter(e => e.name.toLowerCase().includes(atQuery.q))
-      .slice(0, 20);
-  }, [atQuery && atQuery.q]);
+    const f = atQuery.filter;
+    const list = !f
+      ? atDirEntries
+      : atDirEntries.filter(e => e.name.toLowerCase().startsWith(f));
+    return list.slice(0, 30);
+  }, [atQuery && atQuery.filter, atDirEntries]);
 
   const filtered = React.useMemo(() => {
     if (!input.startsWith('/')) return [];
@@ -123,17 +169,33 @@ const Workspace = ({ dir, onScreen }) => {
   React.useEffect(() => {
     if (input.startsWith('/')) { setShowSlash(true); setSlashSel(0); setShowAt(false); }
     else setShowSlash(false);
-    if (atQuery && fileMatches.length > 0) { setShowAt(true); setAtSel(0); }
+    // Keep the @ popup open as long as the user is in an @-token —
+    // even when matches are momentarily empty (chaining into a new
+    // dir takes one fetch round-trip). Closing on empty would flicker.
+    if (atQuery) { setShowAt(true); setAtSel(0); }
     else setShowAt(false);
-  }, [input, atQuery, fileMatches.length]);
+  }, [input, atQuery && atQuery.parentAbs, atQuery && atQuery.filter]);
 
   const acceptAtCompletion = (entry) => {
     if (!atQuery) return;
     const before = input.slice(0, atQuery.pos);
     const after  = input.slice(atQuery.pos + atQuery.token.length);
-    const fullPath = (window.SCOPE_PATH ? window.SCOPE_PATH + '/' : '') + entry.name;
-    setInput(before + fullPath + ' ' + after);
-    setShowAt(false);
+    // Replace only the filter portion of the @-token, keeping the
+    // parent path the user already typed. So "@workflow/s" + selecting
+    // "ssot-gen/" becomes "@workflow/ssot-gen/" (popup stays open and
+    // shows ssot-gen's contents next), while selecting a file appends
+    // a trailing space and closes the popup.
+    const parent = atQuery.parentRel ? atQuery.parentRel + '/' : '';
+    if (entry.type === 'dir') {
+      // Chain into the directory — popup re-opens with its contents
+      // because the new query ends in '/'.
+      setInput(before + '@' + parent + entry.name + '/' + after);
+      // Keep showAt true; the effect that listens to atQuery will
+      // refetch the new directory's entries automatically.
+    } else {
+      setInput(before + '@' + parent + entry.name + ' ' + after);
+      setShowAt(false);
+    }
   };
 
   React.useEffect(() => {
@@ -275,6 +337,15 @@ const Workspace = ({ dir, onScreen }) => {
     const turnEnd = () => {
       parkBuffer();
       setStreaming(false);
+      // Drop a visible divider in the feed so the user can scroll back
+      // and see exactly where each turn ended. Skip if the previous
+      // entry is already a turn_end (defensive — flush + done can both
+      // call this in close succession).
+      setFeed(l => {
+        const last = l[l.length - 1];
+        if (last && last.kind === 'turn_end') return l;
+        return [...l, { kind: 'turn_end', text: '✓ end of loop' }];
+      });
     };
     subs.push(window.backend.subscribe('flush', parkBuffer));
     subs.push(window.backend.subscribe('done', turnEnd));
@@ -579,7 +650,13 @@ const Workspace = ({ dir, onScreen }) => {
             )}
             <span style={{ flex: 1 }} />
             <span className="mute" style={{ fontSize: 10, textTransform: 'none', letterSpacing: 0 }}>
-              iter 14 · 47.2k tok · {streaming ? <span className="acc">streaming<span className="ascii-spin"></span></span> : <span className="ok">idle</span>}
+              {streaming
+                ? (pendingQcard
+                    ? <span className="warn">⏸ waiting on you (ask_user)</span>
+                    : <span className="acc">streaming<span className="ascii-spin"></span></span>)
+                : (pendingQcard
+                    ? <span className="warn">⏸ waiting on you (ask_user)</span>
+                    : <span className="ok">✓ end of loop · ready</span>)}
             </span>
           </div>
           <div ref={feedRef} style={{ flex: 1, overflow: 'auto', padding: '14px 18px' }}>
@@ -594,25 +671,33 @@ const Workspace = ({ dir, onScreen }) => {
                 dir={dir}
               />
             ))}
-            {streaming && streamText && (
-              <div className="react-block thought fade-in">
-                <span className="rb-tag">…</span>
-                <span>{streamText}<span className="cursor-thin" /></span>
-              </div>
-            )}
+            {/* Streaming preview removed — used to render the in-progress
+                buffer as plain text, then the same text reappeared as a
+                markdown-rendered 'agent' entry on flush, with very
+                different line spacing. The header spinner ("streaming")
+                already signals work-in-progress; the final clean
+                markdown lands once when the buffer parks. */}
           </div>
         </div>
 
         {/* prompt */}
         <div style={{ position: 'relative' }}>
-          {showAt && fileMatches.length > 0 && (
+          {showAt && atQuery && (
             <div className="slash-menu fade-in" style={{ maxHeight: 280, overflowY: 'auto' }}>
               <div style={{ padding: '6px 12px', fontSize: 10, color: 'var(--fg-mute)', letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span>{fileMatches.length} file{fileMatches.length === 1 ? '' : 's'}</span>
+                <span style={{ color: 'var(--cyan)' }}>
+                  {atQuery.parentAbs ? atQuery.parentAbs + '/' : '(project root)'}
+                </span>
                 <span style={{ flex: 1 }} />
-                <span><Kbd>↑↓</Kbd> nav · <Kbd>↵</Kbd> insert · <Kbd>Esc</Kbd> close</span>
+                <span>{fileMatches.length} match{fileMatches.length === 1 ? '' : 'es'}</span>
+                <span className="mute">·</span>
+                <span><Kbd>↑↓</Kbd> nav · <Kbd>↵</Kbd> select · <Kbd>Esc</Kbd> close</span>
               </div>
-              {fileMatches.map((f, i) => (
+              {fileMatches.length === 0 ? (
+                <div style={{ padding: '10px 12px', fontSize: 11, color: 'var(--fg-mute)', fontStyle: 'italic' }}>
+                  {atDirEntries.length === 0 ? 'loading…' : `no entries match "${atQuery.filter}"`}
+                </div>
+              ) : fileMatches.map((f, i) => (
                 <div key={i} className={`slash-item ${i === atSel ? 'sel' : ''}`}
                   onClick={() => acceptAtCompletion(f)}
                   onMouseEnter={() => setAtSel(i)}
@@ -629,7 +714,9 @@ const Workspace = ({ dir, onScreen }) => {
                   <span style={{ fontFamily: 'var(--mono)', color: 'var(--fg)', fontSize: 12 }}>
                     {f.name}{f.type === 'dir' ? '/' : ''}
                   </span>
-                  <span className="mute" style={{ fontSize: 10 }}>{f.size || ''}</span>
+                  <span className="mute" style={{ fontSize: 10 }}>
+                    {f.type === 'dir' ? 'dir' : (f.size != null ? (f.size < 1024 ? f.size + 'B' : (f.size/1024).toFixed(1) + 'K') : '')}
+                  </span>
                 </div>
               ))}
             </div>
@@ -664,16 +751,17 @@ const Workspace = ({ dir, onScreen }) => {
             />
           ) : (
             <div className="prompt-row">
-              <span className="ps" title={streaming ? 'Agent is working' : 'Awaiting your input'}
+              <span className="ps"
+                    title={streaming ? 'Agent is working' : 'Loop ended — agent finished'}
                     style={{ color: streaming ? 'var(--warn)' : 'var(--ok)' }}>
-                {streaming ? '⚙' : '›'}
+                {streaming ? '⚙' : '✓'}
               </span>
               <input ref={inputRef} value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={onKey}
                 placeholder={streaming
                   ? 'Agent is working — Esc to stop, or type to interrupt with new input'
-                  : 'Awaiting your input — type a message, "/" for commands, "@" for files'}
+                  : 'End of loop — agent ready. Type a message, "/" for commands, "@" for files'}
                 autoFocus
               />
               <span className="mute" style={{ fontSize: 11 }}>
@@ -810,6 +898,24 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
   }
   if (entry.kind === 'qcard') {
     return <AskUserCall flowId={entry.flowId} state={qaState[entry.flowId]} dir={dir} />;
+  }
+  if (entry.kind === 'turn_end') {
+    // Visible boundary so users can scroll back and see exactly where
+    // each turn ended. Distinct from "waiting on ask_user" — that state
+    // shows the AskUserPrompt and never reaches this branch.
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        margin: '14px 0 18px', userSelect: 'none',
+      }}>
+        <span style={{ flex: 1, height: 1, background: 'var(--line)' }} />
+        <span className="ok" style={{
+          fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+          fontFamily: 'var(--mono)', fontWeight: 600,
+        }}>{entry.text || '✓ end of loop'}</span>
+        <span style={{ flex: 1, height: 1, background: 'var(--line)' }} />
+      </div>
+    );
   }
   return null;
 };
@@ -1451,24 +1557,48 @@ const DiffPanel = () => (
   </div>
 );
 
-// ── File viewer modal ─────────────────────────────────────────────
-const FILE_BODIES = {
-  'spi_master_requirements.md': `# spi_master · Requirements\n\n## §1 Overview\nSPI master controller, single-master, up to 4 chip-selects.\nHost interface: APB. Frequency target: ≤ 50 MHz sclk.\n\n## §2 Use cases\n  - Sensor polling (LIS3DH, BMP280)\n  - Flash configuration (W25Q series)\n  - Low-latency control bursts\n\n## §3 Functional requirements\n  R-01  Support CPOL/CPHA modes 0..3\n  R-02  Programmable BAUD_DIV (1..255)\n  R-03  TX/RX FIFO depth 8\n  R-04  Interrupt on TX_EMPTY, RX_FULL, DONE\n  R-05  4 independent CS lines, software-selected\n  R-06  Async reset, single posedge clock domain (pclk)`,
-  'spi_master_mas.md': `# spi_master · Micro Architecture Spec\n\n## §1 Block diagram\n        ┌──────────┐    ┌──────────┐    ┌────────┐\n  APB → │ reg_file │ →  │ ctrl_fsm │ →  │ shifter│ → SPI\n        └──────────┘    └──────────┘    └────────┘\n\n## §2 Register map\nADDR  NAME      ACCESS  DESCRIPTION\n0x00  CTRL      RW      enable, cpol, cpha, cs_sel\n0x04  STAT      R       tx_empty, rx_full, done\n0x08  DATA_TX   W       tx fifo push\n0x0C  DATA_RX   R       rx fifo pop\n0x10  BAUD_DIV  RW      sclk = pclk / (BAUD_DIV+1)\n0x14  IRQ_EN    RW      mask\n\n## §5 FSM\n  IDLE → LOAD → SHIFT → COMPLETE → IDLE\n\n## §9 DV plan\n  12 scenarios · 4 coverage groups · target 95%`,
-  'spi_master.sv': `// spi_master.sv — generated by rtl_gen v3\nmodule spi_master #(\n    parameter int CS_W = 4,\n    parameter int FIFO_D = 8\n) (\n    input  logic        pclk,\n    input  logic        resetn,\n    // APB\n    input  logic [7:0]  paddr,\n    input  logic        psel, penable, pwrite,\n    input  logic [31:0] pwdata,\n    output logic [31:0] prdata,\n    output logic        pready,\n    // SPI\n    output logic        sclk, mosi,\n    input  logic        miso,\n    output logic [CS_W-1:0] ss_n,\n    // IRQ\n    output logic        irq\n);\n  // ── FSM: spi_master transfer cycle ──\n  typedef enum logic [1:0] {\n    IDLE, LOAD, SHIFT, COMPLETE\n  } state_t;\n\n  state_t cur, nxt;\n  logic [3:0] bit_cnt;\n\n  always_ff @(posedge pclk or negedge resetn) begin\n    if (!resetn) begin\n      cur     <= IDLE;\n      bit_cnt <= '0;\n    end\n    else cur <= nxt;\n  end\n\n  // ... 380 more lines ...\nendmodule`,
-  'tb_spi_master.sv': `// tb_spi_master.sv — generated by tb_gen\n\`timescale 1ns/1ps\nmodule tb_spi_master;\n  logic pclk = 0; always #5 pclk = ~pclk;\n  logic resetn;\n  spi_master u_dut (.*);\n  initial begin\n    resetn = 0; #20 resetn = 1;\n    run_test();\n    $finish;\n  end\nendmodule`,
-  'tc_spi_master.sv': `// tc_spi_master.sv — 12 test cases\nclass tc_cpol0_cpha0 extends tc_base;\n  task body(); /* mode 0 transfer */ endtask\nendclass\nclass tc_b2b_transfer extends tc_base;\n  task body(); /* back-to-back */ endtask\nendclass\n// + 10 more`,
-  'lint_report.txt': `verilator 5.024 · spi_master.sv\n──────────────────────────────────────────\n%Warning-WIDTHEXPAND:    spi_master.sv:87   Operator ASSIGN expects 8 bits on RHS, got 4\n%Warning-UNUSED:         spi_master.sv:124  Signal is not used: 'cpha_sync_d2'\n%Warning-CASEINCOMPLETE: spi_master.sv:198  Case values not handled: COMPLETE\n──────────────────────────────────────────\n3 warnings · 0 errors · 412 lines scanned`,
-};
-
+// ── File viewer modal — fetches real content from /api/file ────────
 const FileViewer = ({ name, onClose }) => {
-  const body = FILE_BODIES[name] || `// ${name}\n// (no preview content available)`;
-  const ext = name.split('.').pop();
+  const [body, setBody] = React.useState('# loading…');
+  const [size, setSize] = React.useState(0);
+  const [truncated, setTruncated] = React.useState(false);
+  const [err, setErr] = React.useState(null);
+  const ext = (name.split('.').pop() || '').toLowerCase();
+
   React.useEffect(() => {
     const onEsc = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onEsc);
     return () => window.removeEventListener('keydown', onEsc);
   }, [onClose]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    setBody('# loading…'); setErr(null);
+    window.atlasData.fetchFile(name).then(d => {
+      if (cancelled) return;
+      if (d.error) {
+        setErr(d.error);
+        setBody(`// ${name}\n// (could not read: ${d.error})`);
+        return;
+      }
+      setBody(d.content || '');
+      setSize(d.size || 0);
+      setTruncated(!!d.truncated);
+    }).catch(e => {
+      if (!cancelled) {
+        setErr(String(e));
+        setBody(`// ${name}\n// (fetch failed: ${e})`);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [name]);
+
+  const lineCount = body.split('\n').length;
+  const sizeKb = size > 0 ? (size / 1024).toFixed(1) + ' KB' : '';
+
+  const copyPath = () => {
+    try { navigator.clipboard.writeText(name); } catch (_) {}
+  };
 
   return (
     <div onClick={onClose} style={{
@@ -1483,19 +1613,20 @@ const FileViewer = ({ name, onClose }) => {
         <div className="box-h" style={{ padding: '8px 14px' }}>
           <span style={{ color: 'var(--fg-mute)', marginRight: 6 }}>◆</span>
           <span style={{ color: 'var(--fg)' }}>{name}</span>
-          <span className="mute" style={{ marginLeft: 10, textTransform: 'none', letterSpacing: 0, fontSize: 11 }}>· {ext} · read-only</span>
+          <span className="mute" style={{ marginLeft: 10, textTransform: 'none', letterSpacing: 0, fontSize: 11 }}>
+            · {ext || 'file'} · read-only{sizeKb ? ` · ${sizeKb}` : ''}{truncated ? ' · truncated' : ''}
+          </span>
           <span style={{ flex: 1 }} />
           <button className="btn" onClick={onClose} style={{ fontSize: 11 }}>Close <Kbd>Esc</Kbd></button>
         </div>
         <pre className="code" style={{
           flex: 1, overflow: 'auto', padding: 16, margin: 0, fontSize: 12, lineHeight: 1.55,
-          whiteSpace: 'pre', color: 'var(--fg)',
+          whiteSpace: 'pre', color: err ? 'var(--warn)' : 'var(--fg)',
         }}>{body}</pre>
         <div style={{ borderTop: '1px solid var(--line)', padding: '8px 14px', display: 'flex', gap: 8, fontSize: 11 }}>
-          <span className="mute">{body.split('\n').length} lines</span>
+          <span className="mute">{lineCount} lines{truncated ? ' (truncated)' : ''}</span>
           <span style={{ flex: 1 }} />
-          <button className="btn">Open in editor</button>
-          <button className="btn">Copy path</button>
+          <button className="btn" onClick={copyPath}>Copy path</button>
         </div>
       </div>
     </div>
@@ -1504,9 +1635,11 @@ const FileViewer = ({ name, onClose }) => {
 
 // ── UPD Agent status panel ─────────────────────────────────────────
 const AgentStatusPanel = ({ intent, workflow }) => {
-  const ctxUsed = 286.4;  // K tokens
-  const ctxMax = 1000;    // K tokens
-  const pct = Math.round((ctxUsed / ctxMax) * 100);
+  // Live context — populated by /healthz + WS 'context' events.
+  const _ctx = window.CONTEXT || {};
+  const ctxUsed = (_ctx.tokens || 0) / 1000;             // → K tokens
+  const ctxMax  = Math.max(1, (_ctx.maxTokens || 1000000) / 1000);  // → K
+  const pct = Math.min(100, Math.round((ctxUsed / ctxMax) * 100));
   return (
     <div className="box" style={{ flexShrink: 0 }}>
       <div className="box-h" style={{ padding: '6px 12px' }}>
@@ -1529,16 +1662,28 @@ const AgentStatusPanel = ({ intent, workflow }) => {
           </span>
         </div>
         {/* Model */}
-        <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 8 }}>
-          <span className="mute">Model</span>
-          <span style={{ color: 'var(--fg)' }}>{(window.CONTEXT && window.CONTEXT.model) || '—'}</span>
-        </div>
-        {/* Context with bar */}
         <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 4 }}>
+          <span className="mute">Model</span>
+          <span style={{ color: 'var(--fg)' }} title={_ctx.baseUrl}>
+            {_ctx.model || '—'}
+          </span>
+        </div>
+        {(_ctx.provider || _ctx.baseUrl) && (
+          <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 4, fontSize: 10 }}>
+            <span className="mute">via</span>
+            <span className="mute trunc" title={_ctx.baseUrl}>
+              {_ctx.provider || ''}{_ctx.baseUrl ? ' · ' + _ctx.baseUrl.replace(/^https?:\/\//, '') : ''}
+            </span>
+          </div>
+        )}
+        {/* Context with bar */}
+        <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 4, marginTop: 6 }}>
           <span className="mute">Context</span>
           <span>
-            <span style={{ color: 'var(--fg)' }}>{ctxUsed.toFixed(1)}K</span>
-            <span className="mute"> / {ctxMax}K · </span>
+            <span style={{ color: 'var(--fg)' }}>
+              {ctxUsed >= 1000 ? (ctxUsed/1000).toFixed(2) + 'M' : ctxUsed.toFixed(1) + 'K'}
+            </span>
+            <span className="mute"> / {ctxMax >= 1000 ? (ctxMax/1000) + 'M' : ctxMax + 'K'} · </span>
             <span className={pct > 70 ? 'warn' : 'ok'}>{pct}%</span>
           </span>
         </div>
@@ -1548,25 +1693,53 @@ const AgentStatusPanel = ({ intent, workflow }) => {
             background: pct > 70 ? 'var(--warn)' : 'var(--accent)',
           }} />
         </div>
-        {/* Cost ledger */}
-        <div className="mute" style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>Cost</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr 56px', gap: 4, fontSize: 11, lineHeight: 1.55 }}>
-          <span className="mute">Input</span>
-          <span style={{ color: 'var(--fg)', textAlign: 'right' }}>132.9K</span>
-          <span style={{ color: 'var(--fg)', textAlign: 'right' }}>$0.0578</span>
+        {/* Cost ledger — live from /healthz + 'cost' WS events */}
+        {(() => {
+          const fmt = (n) => {
+            if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+            if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+            return n.toFixed(0);
+          };
+          const usd = (n) => '$' + (n || 0).toFixed(4);
+          const pi = _ctx.pricing ? _ctx.pricing.input  : 0;
+          const pc = _ctx.pricing ? _ctx.pricing.cache  : 0;
+          const po = _ctx.pricing ? _ctx.pricing.output : 0;
+          const ti = _ctx.tokensIn    || 0;
+          const tc = _ctx.tokensCache || 0;
+          const to = _ctx.tokensOut   || 0;
+          const cIn   = ti * pi / 1e6;
+          const cCach = tc * pc / 1e6;
+          const cOut  = to * po / 1e6;
+          const cTot  = cIn + cCach + cOut;
+          return (
+            <>
+              <div className="mute" style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>
+                Cost {_ctx.pricing && (
+                  <span className="mute" style={{ fontSize: 9, fontWeight: 400, letterSpacing: 0, textTransform: 'none', marginLeft: 4 }}>
+                    @ ${pi}/${pc}/${po} per 1M
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr 70px', gap: 4, fontSize: 11, lineHeight: 1.55 }}>
+                <span className="mute">Input</span>
+                <span style={{ color: 'var(--fg)', textAlign: 'right' }}>{fmt(ti)}</span>
+                <span style={{ color: 'var(--fg)', textAlign: 'right' }}>{usd(cIn)}</span>
 
-          <span className="mute">Cached</span>
-          <span style={{ color: 'var(--fg)', textAlign: 'right' }}>7.4M</span>
-          <span style={{ color: 'var(--fg)', textAlign: 'right' }}>$0.2187</span>
+                <span className="mute">Cached</span>
+                <span style={{ color: 'var(--fg)', textAlign: 'right' }}>{fmt(tc)}</span>
+                <span style={{ color: 'var(--fg)', textAlign: 'right' }}>{usd(cCach)}</span>
 
-          <span className="mute">Output</span>
-          <span style={{ color: 'var(--fg)', textAlign: 'right' }}>80.3K</span>
-          <span style={{ color: 'var(--fg)', textAlign: 'right' }}>$0.0699</span>
+                <span className="mute">Output</span>
+                <span style={{ color: 'var(--fg)', textAlign: 'right' }}>{fmt(to)}</span>
+                <span style={{ color: 'var(--fg)', textAlign: 'right' }}>{usd(cOut)}</span>
 
-          <span style={{ borderTop: '1px solid var(--line)', paddingTop: 3, color: 'var(--fg)', fontWeight: 600 }}>Total</span>
-          <span style={{ borderTop: '1px solid var(--line)', paddingTop: 3, color: 'var(--fg)', textAlign: 'right' }}>7.6M</span>
-          <span style={{ borderTop: '1px solid var(--line)', paddingTop: 3, color: 'var(--ok)', textAlign: 'right', fontWeight: 600 }}>$0.3965</span>
-        </div>
+                <span style={{ borderTop: '1px solid var(--line)', paddingTop: 3, color: 'var(--fg)', fontWeight: 600 }}>Total</span>
+                <span style={{ borderTop: '1px solid var(--line)', paddingTop: 3, color: 'var(--fg)', textAlign: 'right' }}>{fmt(ti + tc + to)}</span>
+                <span style={{ borderTop: '1px solid var(--line)', paddingTop: 3, color: 'var(--ok)', textAlign: 'right', fontWeight: 600 }}>{usd(cTot)}</span>
+              </div>
+            </>
+          );
+        })()}
 
         {/* ── pipeline · ATLAS (this session) ─────────────────────── */}
         <div className="mute" style={{

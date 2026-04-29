@@ -195,14 +195,27 @@
       const r = await fetch('/healthz');
       if (!r.ok) return;
       const d = await r.json();
-      window.CONTEXT = Object.assign({}, window.CONTEXT, {
+      const _prev = window.CONTEXT || {};
+      window.CONTEXT = Object.assign({}, _prev, {
         frontend:    d.frontend  || '',
-        model:       d.model     || window.CONTEXT.model || '—',
-        maxTokens:   d.max_context    || window.CONTEXT.maxTokens || 0,
-        iterMax:     d.max_iterations || window.CONTEXT.iterMax    || 0,
+        model:       d.model     || _prev.model || '—',
+        baseModel:   d.base_model || '',
+        baseUrl:     d.base_url   || '',
+        provider:    d.provider   || '',
+        maxTokens:   d.max_context    || _prev.maxTokens || 0,
+        iterMax:     d.max_iterations || _prev.iterMax    || 0,
         workspace:   d.workspace || '',
         projectRoot: d.project_root || '',
         cwd:         d.cwd || '',
+        pricing:     d.pricing || null,    // {input, cache, output} USD/1M
+        // Token counts: only seed from /healthz when cost.json is on
+        // disk (d.tokens_* is non-null). Otherwise PRESERVE whatever
+        // the live WS 'cost' subscription has accumulated this session
+        // — the 5s healthz poll used to wipe these to 0 every cycle.
+        tokensIn:    (d.tokens_in    != null) ? d.tokens_in    : (_prev.tokensIn    || 0),
+        tokensCache: (d.tokens_cache != null) ? d.tokens_cache : (_prev.tokensCache || 0),
+        tokensOut:   (d.tokens_out   != null) ? d.tokens_out   : (_prev.tokensOut   || 0),
+        costUsd:     (d.cost_usd     != null) ? d.cost_usd     : (_prev.costUsd     || 0),
       });
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' }));
     } catch (e) { /* ignore */ }
@@ -299,6 +312,21 @@
           window.CONTEXT.maxTokens = m.max || window.CONTEXT.maxTokens;
           window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' }));
         }
+      });
+      // Live cost — agent fires per-LLM-call. We accumulate into CONTEXT
+      // so the sidebar reflects spend without waiting for the 5 s poll.
+      window.backend.subscribe('cost', (m) => {
+        const ctx = window.CONTEXT;
+        ctx.tokensIn    = (ctx.tokensIn    || 0) + (m.input  || 0);
+        ctx.tokensCache = (ctx.tokensCache || 0) + (m.cached || 0);
+        ctx.tokensOut   = (ctx.tokensOut   || 0) + (m.output || 0);
+        if (ctx.pricing) {
+          ctx.costUsd =
+            (ctx.tokensIn    * ctx.pricing.input  +
+             ctx.tokensCache * ctx.pricing.cache  +
+             ctx.tokensOut   * ctx.pricing.output) / 1_000_000;
+        }
+        window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'COST' }));
       });
       // /wf <name> swaps the slash registry on the server — re-fetch.
       window.backend.subscribe('commands_changed', () => {

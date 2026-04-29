@@ -130,6 +130,87 @@ def _ensure_deepseek_reasoning_content(messages: List[Dict[str, Any]], model_nam
     return repaired
 
 
+def _strip_orphan_tool_messages(messages: List[Dict[str, Any]]) -> int:
+    """Drop tool/tool_call entries that violate API pairing rules.
+
+    OpenAI/DeepSeek/etc. require:
+      - every {role:'tool', tool_call_id: X} must follow an assistant
+        message that declared tool_call X in its tool_calls array
+      - every assistant tool_calls entry must have a matching tool response
+
+    Two corruption modes seen in the wild:
+      1. Orphan tool: tool message with no matching declared tool_call_id
+         (e.g. ask_user interrupted, agent killed mid-turn, partial save)
+      2. Unanswered tool_calls: assistant declared tool_calls but no
+         responses arrived
+
+    Both produce HTTP 400 ("Messages with role 'tool' must be a response
+    to a preceding message with 'tool_calls'") and stop the agent dead.
+    Sanitize on load — mutates `messages` in place.
+
+    Returns the number of repairs (orphans dropped + unanswered calls
+    stripped).
+    """
+    if not messages:
+        return 0
+
+    declared_ids = set()
+    for m in messages:
+        if m.get('role') == 'assistant' and m.get('tool_calls'):
+            for tc in m['tool_calls']:
+                if tc.get('id'):
+                    declared_ids.add(tc['id'])
+
+    responded_ids = set()
+    for m in messages:
+        if m.get('role') == 'tool' and m.get('tool_call_id'):
+            responded_ids.add(m['tool_call_id'])
+
+    cleaned = []
+    dropped_orphan = 0
+    dropped_unanswered = 0
+    for m in messages:
+        role = m.get('role')
+        if role == 'tool':
+            if m.get('tool_call_id') in declared_ids:
+                cleaned.append(m)
+            else:
+                dropped_orphan += 1
+            continue
+        if role == 'assistant' and m.get('tool_calls'):
+            kept = [tc for tc in m['tool_calls'] if tc.get('id') in responded_ids]
+            dropped_unanswered += len(m['tool_calls']) - len(kept)
+            if kept:
+                m2 = dict(m)
+                m2['tool_calls'] = kept
+                cleaned.append(m2)
+            elif m.get('content'):
+                m2 = dict(m)
+                m2.pop('tool_calls', None)
+                cleaned.append(m2)
+            # else: assistant had only unanswered tool_calls + no text → drop
+            continue
+        cleaned.append(m)
+
+    repairs = dropped_orphan + dropped_unanswered
+    if repairs > 0:
+        # Mutate in place so the caller sees the cleaned list
+        messages.clear()
+        messages.extend(cleaned)
+        try:
+            from lib.display import Color  # type: ignore
+            print(Color.warning(
+                f"[History] Sanitized: dropped {dropped_orphan} orphan tool "
+                f"message(s), {dropped_unanswered} unanswered tool_call(s)"
+            ))
+        except ImportError:
+            print(
+                f"[History] Sanitized: dropped {dropped_orphan} orphan tool "
+                f"message(s), {dropped_unanswered} unanswered tool_call(s)"
+            )
+    return repairs
+
+
 def load_conversation_history(cfg=None, silent=False) -> Optional[List[Dict[str, Any]]]:
     """Load conversation history from JSON file if it exists.
 
@@ -162,6 +243,11 @@ def load_conversation_history(cfg=None, silent=False) -> Optional[List[Dict[str,
             # causing HTTP 400 on the first API call.
             _model_name = getattr(cfg, 'MODEL_NAME', '')
             _ensure_deepseek_reasoning_content(messages, _model_name)
+
+            # Repair orphan tool messages / unanswered tool_calls. These come
+            # from interrupted runs and trigger an immediate HTTP 400 from the
+            # LLM ("tool messages must follow tool_calls").
+            _strip_orphan_tool_messages(messages)
 
             return messages
     except Exception as e:

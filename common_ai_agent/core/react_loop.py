@@ -669,8 +669,12 @@ def run_react_agent_impl(
                 _last_flush_t[0] = now
 
         def _emit_content(line):
+            # StreamParser strips the trailing '\n' when it splits on lines,
+            # so we must restore it before sending to the TUI/web emit path —
+            # otherwise the browser sees `line1line2line3` (markdown bullets,
+            # table rows, paragraphs all collapse into one paragraph).
             if deps.emit_content_fn:
-                deps.emit_content_fn(line)
+                deps.emit_content_fn(line + "\n")
             else:
                 _buf_write(f"  {line}\n")
 
@@ -682,13 +686,13 @@ def run_react_agent_impl(
 
         def _emit_thought(line):
             if deps.emit_content_fn:
-                deps.emit_content_fn(f"Thought:{line}")
+                deps.emit_content_fn(f"Thought:{line}\n")
             else:
                 _buf_write(f"  Thought:{line}\n")
 
         def _emit_blank():
             if deps.emit_content_fn:
-                deps.emit_content_fn("")
+                deps.emit_content_fn("\n")
             else:
                 _buf_write("\n")
 
