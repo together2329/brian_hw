@@ -689,6 +689,103 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         },
         required=["surface", "direction"],
     ),
+
+    # ── GUI interaction (ask_user) ───────────────────────────────────────────
+    "ask_user": _fn(
+        "ask_user",
+        (
+            "Ask the user a question through the GUI and BLOCK until they "
+            "answer. The Atlas web UI renders the call as an inline question "
+            "card with selectable options + a free-form note field; the "
+            "Textual TUI renders it as an inline panel above the input row. "
+            "Always prefer this over plain-prose questions when you need a "
+            "single decision from the user."
+        ),
+        properties={
+            "question": {
+                "type": "string",
+                "description": "Short, single-decision question text shown as the card title.",
+            },
+            "kind": {
+                "type": "string",
+                "enum": ["single", "multi", "input"],
+                "description": (
+                    "single = one option (radio); multi = many options "
+                    "(checkboxes); input = free-form text only."
+                ),
+            },
+            "options": {
+                "type": "array",
+                "description": (
+                    "List of {id, label, detail?} for single/multi. Omit "
+                    "or pass [] for kind='input'. Provide 2-6 options."
+                ),
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id":     {"type": "string"},
+                        "label":  {"type": "string"},
+                        "detail": {"type": "string"},
+                    },
+                    "required": ["id", "label"],
+                },
+            },
+            "subtitle": {
+                "type": "string",
+                "description": (
+                    "Explainer line under the question. Convention: "
+                    "'§<N> <field path> — Suggest: <recommended value>'."
+                ),
+            },
+        },
+        required=["question", "kind"],
+    ),
+
+    # ── Document ingestion (Word / PDF / etc. → markdown) ────────────────────
+    "read_doc": _fn(
+        "read_doc",
+        (
+            "Convert a PDF, DOCX, PPTX, XLSX, or HTML document into markdown "
+            "via Microsoft markitdown. Returns up to 32k chars of text "
+            "content the agent can reason over. Use when the user references "
+            "a spec / datasheet / requirement doc in a non-text format."
+        ),
+        properties={
+            "path": {
+                "type": "string",
+                "description": "Filesystem path to the document (relative or absolute).",
+            },
+        },
+        required=["path"],
+    ),
+
+    # ── IP scaffolder (canonical directory layout) ───────────────────────────
+    "scaffold_ip": _fn(
+        "scaffold_ip",
+        (
+            "Create the canonical IP directory layout under <root>/<name>/ "
+            "with subdirs: yaml, rtl, list, tb, tc, sim, sdc, lint, doc, req. "
+            "Idempotent — never overwrites existing files. Call this FIRST "
+            "for any new IP request before writing the SSOT."
+        ),
+        properties={
+            "name": {
+                "type": "string",
+                "description": (
+                    "IP identifier (C-identifier rules: letters, digits, "
+                    "underscore; must start with a letter)."
+                ),
+            },
+            "root": {
+                "type": "string",
+                "description": (
+                    "Where to root the IP. Defaults to '.' (cwd). Pass an "
+                    "absolute path or relative subdir if needed."
+                ),
+            },
+        },
+        required=["name"],
+    ),
 }
 
 
