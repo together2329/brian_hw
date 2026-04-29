@@ -1021,10 +1021,13 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
           }}>
             {looksLikeDiff
               ? txt.split('\n').map((line, i) => {
-                  // Match "  82 + content" / "  82 - content".
-                  // The marker char sits between the line number and
-                  // the content, surrounded by whitespace.
-                  const m = line.match(/^(\s*\d+\s)([+\-])(\s.*)$/);
+                  // Match "  82 + content" / "  82 - content" / "  82 -//comment".
+                  // Require exactly ONE space between line number and
+                  // marker — context lines like "  79      - { ... }"
+                  // (YAML list inside a diff) have extra spaces, and we
+                  // shouldn't colorize those as deletions. Marker can
+                  // abut content with no space (e.g. "-//").
+                  const m = line.match(/^(\s*\d+ )([+\-])(.*)$/);
                   if (!m) {
                     return <div key={i} style={{ color: 'var(--fg-mute)' }}>{line || ' '}</div>;
                   }

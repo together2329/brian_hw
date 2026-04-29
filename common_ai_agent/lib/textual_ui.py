@@ -2220,20 +2220,37 @@ class AgentTUI(App):
                 if o.get("detail"):
                     label = f"{label}  ─  [dim]{o['detail']}[/dim]"
                 opts.add_option(_Option(label, id=o.get("id", label)))
+            # Show OptionList, restore the "optional note" placeholder.
+            opts.styles.display = "block"
+            note.placeholder = "Custom note (optional)…"
+        else:
+            # 'input' kind: there are no options to pick. Hiding the
+            # empty OptionList is what fixes the "no reaction" complaint
+            # — users were trying to type into the empty list. Repurpose
+            # the note field as the primary answer with a clearer label.
+            opts.styles.display = "none"
+            note.placeholder = "Type your answer here, then ↵ or Ctrl+S to submit"
 
         if msg.kind == "single":
             hint.update("[dim]↑/↓ navigate · ↵ select & submit · esc cancel[/dim]")
         elif msg.kind == "multi":
             hint.update("[dim]↑/↓ navigate · ↵ toggle · ctrl+s submit · esc cancel[/dim]")
         else:
-            hint.update("[dim]type your answer · ctrl+s submit · esc cancel[/dim]")
+            hint.update("[dim]type your answer · ↵ or ctrl+s submit · esc cancel[/dim]")
 
         panel.add_class("visible")
-        # Focus the right widget for the kind
+        # Focus the right widget for the kind. Use widget.focus() rather
+        # than App.set_focus(widget) — set_focus can race with the panel
+        # layout when the .visible class transition is still in flight,
+        # leaving focus dangling on the previous widget.
         if msg.kind in ("single", "multi"):
-            self.set_focus(opts)
+            try: opts.focus()
+            except Exception:
+                self.set_focus(opts)
         else:
-            self.set_focus(note)
+            try: note.focus()
+            except Exception:
+                self.set_focus(note)
 
     def _close_ask_panel(self) -> None:
         try:
