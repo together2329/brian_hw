@@ -131,7 +131,7 @@ def _run_agent(app: AgentTUI) -> None:
     """Called inside the AgentTUI worker thread."""
     config.ENABLE_MULTILINE_INPUT = False
 
-    from lib.textual_ui import StreamChunk, ReasoningChunk, TodoUpdate, FlushResponse, TokenUsage
+    from lib.textual_ui import StreamChunk, ReasoningChunk, TodoUpdate, FlushResponse, TokenUsage, AskUserRequest
 
     def _todo_and_context(text: str) -> None:
         app.post_message(TodoUpdate(text))
@@ -152,6 +152,45 @@ def _run_agent(app: AgentTUI) -> None:
         app._input_bridge.agent_running = val
 
     _agent._textual_set_agent_running_fn = _set_agent_running
+
+    # ── ask_user → Textual modal ────────────────────────────────────
+    # Each ask_user call pushes an AskUserModal screen; the agent thread
+    # blocks on a per-flow queue until the user submits or cancels.
+    # Multiple ask_user calls within one agent turn stack naturally —
+    # Textual processes push_screen sequentially.
+    import queue as _queue
+    import uuid as _uuid
+
+    def _format_answer(ans: dict, options: list) -> str:
+        selected_ids = ans.get("selected") or []
+        custom = (ans.get("custom") or "").strip()
+        label_by_id = {o.get("id"): o.get("label", o.get("id")) for o in options or []}
+        labels = [label_by_id.get(sid, sid) for sid in selected_ids]
+        parts = []
+        if labels: parts.append("selected: " + ", ".join(labels))
+        if custom: parts.append("note: " + custom)
+        return " · ".join(parts) if parts else "(user submitted with no selection)"
+
+    def _ask_user_textual(question, options, kind, subtitle):
+        flow_id = "qa_" + _uuid.uuid4().hex[:10]
+        answer_q: _queue.Queue = _queue.Queue()
+        app.post_message(AskUserRequest(
+            flow_id=flow_id, question=question, kind=kind,
+            subtitle=subtitle or "", options=options or [],
+            answer_q=answer_q,
+        ))
+        try:
+            ans = answer_q.get(timeout=900)  # 15 min ceiling
+        except _queue.Empty:
+            return "[ask_user: no answer received within 15 min]"
+        return _format_answer(ans, options or [])
+
+    try:
+        from core import tools as _tools
+        if hasattr(_tools, "set_ask_user_callback"):
+            _tools.set_ask_user_callback(_ask_user_textual)
+    except Exception as _e:
+        print(f"[warn] ask_user callback registration failed: {_e}")
 
     _agent.chat_loop()
     # After chat_loop finishes, the conversation history has been saved.

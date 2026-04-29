@@ -19,7 +19,8 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
-from textual.widgets import Input, OptionList, RichLog, Static, TextArea
+from textual.screen import ModalScreen
+from textual.widgets import Input, OptionList, RichLog, Static, TextArea, Button
 from textual.widgets._option_list import Option as _Option
 from textual.suggester import Suggester
 from textual.events import Key, Click
@@ -401,6 +402,19 @@ class TokenUsage(Message):
         self.in_tok    = in_tok
         self.cache_tok = cache_tok
         self.out_tok   = out_tok
+        super().__init__()
+
+
+class AskUserRequest(Message):
+    """Agent thread → TUI: open an ask_user question card."""
+    def __init__(self, flow_id: str, question: str, kind: str,
+                 subtitle: str, options: list, answer_q) -> None:
+        self.flow_id  = flow_id
+        self.question = question
+        self.kind     = kind         # 'single' | 'multi' | 'input'
+        self.subtitle = subtitle
+        self.options  = options      # list of {id, label, detail?}
+        self.answer_q = answer_q     # queue.Queue — modal puts answer dict here
         super().__init__()
 
 
@@ -879,6 +893,180 @@ class _AgentInput(TextArea):
             return  # do NOT stop — let Key bubble to App BINDINGS
 
         await super()._on_key(event)
+
+
+# ── ask_user modal ────────────────────────────────────────────────────────────
+
+class AskUserModal(ModalScreen):
+    """Pop-up question card the agent's `ask_user` tool drives.
+
+    Layout:
+      ┌── Question ─────────────────────────────────────────┐
+      │  <question>                                         │
+      │  <subtitle>                                         │
+      │                                                     │
+      │  [option list — single (radio) or multi (✓/☐)]      │
+      │                                                     │
+      │  Note: [free-form Input]                            │
+      │                                                     │
+      │  [Cancel]                                  [Submit] │
+      └─────────────────────────────────────────────────────┘
+
+    Key bindings:
+      ↑ / ↓        move highlight
+      space        toggle (multi only — single uses arrow + enter)
+      enter        submit (single mode picks current; multi mode submits)
+      esc          cancel — returns empty answer
+    """
+
+    DEFAULT_CSS = """
+    AskUserModal {
+        align: center middle;
+    }
+    AskUserModal #card {
+        width: 80;
+        max-width: 95%;
+        height: auto;
+        max-height: 80%;
+        padding: 1 2;
+        background: $surface;
+        border: round $accent;
+    }
+    AskUserModal #q-question { text-style: bold; color: $accent; padding-bottom: 0; }
+    AskUserModal #q-subtitle { color: $text-muted; padding-bottom: 1; }
+    AskUserModal #q-opts { height: auto; max-height: 12; border: tall $panel; padding: 0 1; }
+    AskUserModal #q-note-label { padding-top: 1; color: $text-muted; }
+    AskUserModal #q-note { margin-bottom: 1; }
+    AskUserModal #q-buttons { height: 3; align-horizontal: right; }
+    AskUserModal #q-buttons Button { margin-left: 1; }
+    AskUserModal .selected-tag { color: $accent; }
+    """
+
+    BINDINGS = [
+        Binding("escape", "cancel", "Cancel"),
+        Binding("ctrl+s", "submit",  "Submit"),
+    ]
+
+    def __init__(self, request: "AskUserRequest") -> None:
+        super().__init__()
+        self.request = request
+        # For multi mode we track our own selection set since OptionList is
+        # single-highlight by default.
+        self._selected_ids: set = set()
+
+    # ── compose ─────────────────────────────────────────────────────
+    def compose(self) -> ComposeResult:
+        r = self.request
+        with Vertical(id="card"):
+            yield Static(r.question or "(no question)", id="q-question")
+            if r.subtitle:
+                yield Static(r.subtitle, id="q-subtitle")
+            if r.kind in ("single", "multi"):
+                opts = []
+                for o in r.options or []:
+                    label = o.get("label", o.get("id", ""))
+                    if o.get("detail"):
+                        label = f"{label}  ─  [dim]{o['detail']}[/dim]"
+                    opts.append(_Option(label, id=o.get("id", label)))
+                ol = OptionList(*opts, id="q-opts")
+                yield ol
+            yield Static("Custom note (optional):", id="q-note-label")
+            yield Input(placeholder="Free-form answer or override…", id="q-note")
+            with Horizontal(id="q-buttons"):
+                yield Button("Cancel", id="q-cancel", variant="default")
+                yield Button("Submit (Ctrl+S)", id="q-submit", variant="primary")
+
+    # ── lifecycle ───────────────────────────────────────────────────
+    def on_mount(self) -> None:
+        if self.request.kind in ("single", "multi"):
+            try:
+                self.query_one("#q-opts", OptionList).focus()
+            except Exception:
+                pass
+        else:
+            try:
+                self.query_one("#q-note", Input).focus()
+            except Exception:
+                pass
+
+    # ── selection ───────────────────────────────────────────────────
+    def _refresh_multi_labels(self) -> None:
+        """Re-render option labels with ☑ / ☐ checkbox prefix in multi mode."""
+        if self.request.kind != "multi":
+            return
+        try:
+            ol = self.query_one("#q-opts", OptionList)
+        except Exception:
+            return
+        for i, o in enumerate(self.request.options or []):
+            oid = o.get("id", o.get("label"))
+            mark = "☑" if oid in self._selected_ids else "☐"
+            label = o.get("label", oid)
+            if o.get("detail"):
+                label = f"{label}  ─  [dim]{o['detail']}[/dim]"
+            try:
+                ol.replace_option_prompt_at_index(i, f"{mark} {label}")
+            except Exception:
+                pass
+
+    @on(OptionList.OptionSelected, "#q-opts")
+    def _on_option_selected(self, event: OptionList.OptionSelected) -> None:
+        oid = event.option.id
+        if self.request.kind == "single":
+            # Auto-submit on Enter for single-pick — same UX as the web qcard
+            self._selected_ids = {oid} if oid else set()
+            self._submit_now()
+        elif self.request.kind == "multi":
+            if oid in self._selected_ids:
+                self._selected_ids.discard(oid)
+            else:
+                self._selected_ids.add(oid)
+            self._refresh_multi_labels()
+
+    # ── actions ─────────────────────────────────────────────────────
+    @on(Button.Pressed, "#q-submit")
+    def _btn_submit(self, _: Button.Pressed) -> None:
+        self.action_submit()
+
+    @on(Button.Pressed, "#q-cancel")
+    def _btn_cancel(self, _: Button.Pressed) -> None:
+        self.action_cancel()
+
+    def action_submit(self) -> None:
+        # If single-mode and user pressed Ctrl+S without selecting, take the
+        # currently-highlighted option as their answer.
+        if self.request.kind == "single" and not self._selected_ids:
+            try:
+                ol = self.query_one("#q-opts", OptionList)
+                hi = ol.highlighted
+                if hi is not None and ol.option_count > hi:
+                    self._selected_ids = {ol.get_option_at_index(hi).id}
+            except Exception:
+                pass
+        self._submit_now()
+
+    def action_cancel(self) -> None:
+        # Empty answer → ask_user callback treats as "use default".
+        self.request.answer_q.put({
+            "type": "answer",
+            "flow_id": self.request.flow_id,
+            "selected": [],
+            "custom": "",
+        })
+        self.dismiss()
+
+    def _submit_now(self) -> None:
+        try:
+            note = self.query_one("#q-note", Input).value or ""
+        except Exception:
+            note = ""
+        self.request.answer_q.put({
+            "type": "answer",
+            "flow_id": self.request.flow_id,
+            "selected": list(self._selected_ids),
+            "custom": note,
+        })
+        self.dismiss()
 
 
 # ── Input bridge ──────────────────────────────────────────────────────────────
@@ -1901,6 +2089,15 @@ class AgentTUI(App):
         self._flush_response()
         # Clear compression state after LLM response completes
         self._compressing = False
+
+    def on_ask_user_request(self, msg: AskUserRequest) -> None:
+        """Agent thread asked a question via the ask_user tool — pop the modal.
+
+        Multiple ask_user calls in one turn stack as separate push_screen
+        invocations; Textual handles them sequentially (a new modal opens
+        after the previous one is dismissed).
+        """
+        self.push_screen(AskUserModal(msg))
 
     def on_token_usage(self, msg: TokenUsage) -> None:
         self._has_direct_emit = True    # text-parse path will skip to avoid double-count
