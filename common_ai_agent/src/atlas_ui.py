@@ -255,6 +255,40 @@ def create_app():
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
 
+    @app.get("/api/commands")
+    async def api_commands():
+        """List every slash command currently registered, including the
+        workspace-specific ones (e.g. /grill-me, /to-ssot for ssot-gen).
+        """
+        try:
+            from core.slash_commands import get_registry as _gr
+            reg = _gr()
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+        # The registry stores commands in an internal dict; read it
+        # defensively through whatever public surface is available.
+        cmds = []
+        seen = set()
+        for attr in ("commands", "_commands"):
+            entries = getattr(reg, attr, None)
+            if isinstance(entries, dict):
+                for name, spec in entries.items():
+                    canonical = spec.get("name", name) if isinstance(spec, dict) else name
+                    if canonical in seen:
+                        continue
+                    seen.add(canonical)
+                    if isinstance(spec, dict):
+                        cmds.append({
+                            "cmd":     "/" + canonical,
+                            "name":    canonical,
+                            "aliases": spec.get("aliases", []) or [],
+                            "hint":    spec.get("description", "") or "",
+                            "usage":   spec.get("usage", f"/{canonical}"),
+                        })
+                break
+        cmds.sort(key=lambda c: c["name"])
+        return JSONResponse({"commands": cmds})
+
     @app.get("/api/ssot")
     async def api_ssot(file: str = ""):
         if file:

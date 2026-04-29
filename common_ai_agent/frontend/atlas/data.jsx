@@ -22,7 +22,9 @@
   // that used to render mock content now render whatever the live
   // backend has, or nothing.
 
-  // Slash commands the agent actually accepts (from chat_loop dispatch).
+  // Slash commands — populated from /api/commands at boot. Until the
+  // first fetch lands, seed with built-ins the agent always supports
+  // so the dropdown is never empty if the API is briefly unreachable.
   window.SLASH_COMMANDS = [
     { cmd: '/help',    alias: 'h',  hint: 'show available commands' },
     { cmd: '/clear',   alias: 'cl', hint: 'reset conversation' },
@@ -120,6 +122,25 @@
     } catch (e) { /* ignore */ }
   }
 
+  async function refreshSlashCommands() {
+    try {
+      const r = await fetch('/api/commands');
+      if (!r.ok) return;
+      const d = await r.json();
+      const cmds = Array.isArray(d.commands) ? d.commands : [];
+      if (cmds.length) {
+        // Map the API shape ({cmd, name, aliases, hint, usage}) to the
+        // shape workspace.jsx expects ({cmd, alias, hint}).
+        window.SLASH_COMMANDS = cmds.map(c => ({
+          cmd:   c.cmd,
+          alias: (c.aliases && c.aliases[0]) || c.name.slice(0, 2),
+          hint:  c.hint || '',
+        }));
+        window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SLASH_COMMANDS' }));
+      }
+    } catch (e) { /* keep built-in fallbacks */ }
+  }
+
   async function refreshSsotList() {
     try {
       const r = await fetch('/api/ssot');
@@ -146,6 +167,7 @@
   // Public API for workspace.jsx so it can pull a fresh slice on demand.
   window.atlasData = {
     refreshFileTree, refreshTodos, refreshSsotList, refreshHealth,
+    refreshSlashCommands,
     fetchFile: (path) =>
       fetch('/api/file?path=' + encodeURIComponent(path)).then(r => r.json()),
     fetchSsot: (path) =>
@@ -158,6 +180,7 @@
     refreshFileTree('');
     refreshTodos();
     refreshSsotList();
+    refreshSlashCommands();
     // Hook the WS pubsub once it's available so todo_line events trigger
     // a fresh /api/todos fetch (the lines are ANSI-formatted strings; the
     // structured todo state lives behind the API).
