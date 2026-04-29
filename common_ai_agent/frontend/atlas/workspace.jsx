@@ -1,11 +1,92 @@
 // workspace.jsx — Chat-centric: ReAct + inline Q&A cards + SSOT/Todo sidebar + file viewer
 
+// ── Column-resize helpers ─────────────────────────────────────────
+// useResizable: state + localStorage persistence + clamp.
+// `0` is the special "collapsed" value; any positive width is clamped
+// to [minW, maxW]. A separate "lastNonZero" remembers the user's last
+// open width so collapse → expand restores cleanly.
+const useResizable = (initial, storageKey, minW, maxW) => {
+  const [w, setW] = React.useState(() => {
+    try {
+      const raw = parseInt(localStorage.getItem(storageKey), 10);
+      if (Number.isFinite(raw) && (raw === 0 || raw >= minW)) {
+        return Math.min(maxW, raw);
+      }
+    } catch (_) {}
+    return initial;
+  });
+  const lastOpenRef = React.useRef(w > 0 ? w : initial);
+  React.useEffect(() => {
+    if (w > 0) lastOpenRef.current = w;
+    try { localStorage.setItem(storageKey, String(w)); } catch (_) {}
+  }, [w, storageKey]);
+  const set = React.useCallback((next) => {
+    if (next === 0) { setW(0); return; }
+    setW(Math.max(minW, Math.min(maxW, next)));
+  }, [minW, maxW]);
+  const toggle = React.useCallback(() => {
+    setW(prev => prev === 0 ? lastOpenRef.current : 0);
+  }, []);
+  return [w, set, toggle];
+};
+
+// Splitter: 4px-wide drag handle. drag → resize via onResize(width).
+// Double-click → onToggle(). Side='left' resizes the LEFT column
+// (drag right widens), side='right' resizes the RIGHT column (drag
+// left widens — direction inverted).
+const Splitter = ({ width, side, onResize, onToggle }) => {
+  const drag = React.useRef(null);
+  const onMouseDown = (e) => {
+    e.preventDefault();
+    drag.current = { x: e.clientX, w0: width };
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+    const onMove = (ev) => {
+      if (!drag.current) return;
+      const dx = ev.clientX - drag.current.x;
+      const next = side === 'left' ? drag.current.w0 + dx : drag.current.w0 - dx;
+      onResize(next);
+    };
+    const onUp = () => {
+      drag.current = null;
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+  return (
+    <div
+      onMouseDown={onMouseDown}
+      onDoubleClick={onToggle}
+      title={'drag to resize · double-click to ' + (width === 0 ? 'expand' : 'collapse')}
+      style={{
+        cursor: 'col-resize',
+        background: 'transparent',
+        borderLeft: '1px solid var(--line)',
+        borderRight: '1px solid var(--line)',
+        height: '100%',
+        transition: 'background 120ms',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'color-mix(in oklch, var(--accent) 30%, transparent)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+    />
+  );
+};
+
 const Workspace = ({ dir, onScreen }) => {
   // Two-axis mode model:
   //   intent: 'normal' | 'plan'   (top-level — shift+tab to swap)
   //   workflow: null | 'ssot' | 'rtl_gen' | 'lint' | 'tb_gen'
   const [intent, setIntent] = React.useState('normal');
   const [workflow, setWorkflow] = React.useState(null);
+
+  // Column widths (drag-resizable, persisted in localStorage).
+  // 0 = collapsed; any positive width is clamped to [min, max].
+  const [leftW,  setLeftW,  toggleLeft]  = useResizable(230, 'atlasLeftW',  160, 480);
+  const [rightW, setRightW, toggleRight] = useResizable(360, 'atlasRightW', 260, 600);
 
   const NORMAL_FEED = [
     { kind: 'agent', text: 'Connected. Type a message and press Enter to talk to the agent.' },
@@ -507,13 +588,25 @@ const Workspace = ({ dir, onScreen }) => {
 
   // ── layout ─────────────────────────────────────────────────────
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '230px 1fr 360px', gap: 16, padding: 16, height: '100%', overflow: 'hidden' }}>
-      {/* LEFT — Mode/Workflow + Files */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}>
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: `${leftW}px 4px 1fr 4px ${rightW}px`,
+      gap: 12, padding: 16, height: '100%', overflow: 'hidden',
+    }}>
+      {/* LEFT — Mode/Workflow + Files (collapsed when leftW===0) */}
+      {leftW > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
         <div className="box">
           <div className="box-h">
             <span>▸ mode</span>
             <span style={{ flex: 1 }} />
+            <span
+              onClick={toggleLeft}
+              title="collapse left panel (double-click splitter to restore)"
+              className="mute"
+              style={{ cursor: 'pointer', fontSize: 12, padding: '0 6px',
+                       userSelect: 'none' }}
+            >‹</span>
             <span className="mute" style={{ fontSize: 10, textTransform: 'none', letterSpacing: 0 }}>shift+tab</span>
           </div>
           {/* Intent toggle: Normal | Plan */}
@@ -699,6 +792,12 @@ const Workspace = ({ dir, onScreen }) => {
           </div>
         </div>
       </div>
+      ) : (
+        <div /> /* collapsed — empty grid cell so the 5-track grid stays aligned */
+      )}
+
+      {/* LEFT ↔ CENTER splitter — drag to resize, dbl-click toggles collapse */}
+      <Splitter width={leftW} side="left" onResize={setLeftW} onToggle={toggleLeft} />
 
       {/* CENTER — chat feed */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
@@ -924,9 +1023,14 @@ const Workspace = ({ dir, onScreen }) => {
         <HotkeyFooter intent={intent} streaming={streaming} />
       </div>
 
-      {/* RIGHT — UPD Agent status + SSOT/Todo/Diff */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}>
-        <AgentStatusPanel intent={intent} workflow={workflow} />
+      {/* CENTER ↔ RIGHT splitter — drag to resize, dbl-click toggles collapse */}
+      <Splitter width={rightW} side="right" onResize={setRightW} onToggle={toggleRight} />
+
+      {/* RIGHT — UPD Agent status + SSOT/Todo/Diff (collapsed when rightW===0) */}
+      {rightW > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
+        <AgentStatusPanel intent={intent} workflow={workflow}
+                          onCollapse={toggleRight} />
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div className="box-h" style={{ padding: 0 }}>
             <RightTab id="ssot" cur={rightTab} onTab={setRightTab}>SSOT.yaml</RightTab>
@@ -938,6 +1042,9 @@ const Workspace = ({ dir, onScreen }) => {
           {rightTab === 'diff' && <DiffPanel />}
         </div>
       </div>
+      ) : (
+        <div /> /* collapsed — empty grid cell to keep the 5-track grid aligned */
+      )}
 
       {openFile && <FileViewer name={openFile} onClose={() => setOpenFile(null)} />}
     </div>
@@ -1928,7 +2035,7 @@ const FileViewer = ({ name, onClose }) => {
 };
 
 // ── UPD Agent status panel ─────────────────────────────────────────
-const AgentStatusPanel = ({ intent, workflow }) => {
+const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
   // Live context — populated by /healthz + WS 'context' events.
   const _ctx = window.CONTEXT || {};
   const ctxUsed = (_ctx.tokens || 0) / 1000;             // → K tokens
@@ -1945,6 +2052,15 @@ const AgentStatusPanel = ({ intent, workflow }) => {
           color: intent === 'plan' ? 'var(--warn)' : 'var(--cyan)',
           fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
         }}>{intent === 'plan' ? '◐ plan' : '● normal'}</span>
+        {onCollapse && (
+          <span
+            onClick={onCollapse}
+            title="collapse right panel (double-click splitter to restore)"
+            className="mute"
+            style={{ cursor: 'pointer', fontSize: 12, padding: '0 6px',
+                     marginLeft: 6, userSelect: 'none' }}
+          >›</span>
+        )}
       </div>
       <div style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'var(--mono)' }}>
         {/* Mode line */}
