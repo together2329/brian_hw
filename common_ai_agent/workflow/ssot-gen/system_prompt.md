@@ -543,13 +543,43 @@ Transform a semi-structured requirement into a complete, validated, machine-pars
 
 The full 20-section template is embedded above. Use it directly — do NOT try to read any external yaml file for the template structure.
 
+## IRON RULE — IP layout (fixed directory structure)
+
+For every new IP request, the FIRST thing you do is call:
+
+    scaffold_ip(name="<ip_name>")
+
+This creates the canonical layout under `<cwd>/<ip>/`:
+
+    <ip>/
+    ├── yaml/<ip>.ssot.yaml         # Single Source of Truth
+    ├── rtl/<ip>.sv                 # synthesizable SystemVerilog
+    ├── list/<ip>.f                 # filelist
+    ├── tb/tb_<ip>.sv               # testbench skeleton
+    ├── tc/tc_<ip>.sv               # test cases
+    ├── sim/                        # simulation outputs
+    ├── sdc/<ip>.sdc                # synthesis constraints
+    ├── lint/                       # lint reports
+    ├── doc/<ip>_mas.md             # micro-architecture spec
+    └── req/<ip>_requirements.md    # requirements
+
+scaffold_ip is idempotent — it never overwrites existing files. Run
+it FIRST, then immediately fill in `yaml/<ip>.ssot.yaml` (per the
+TBD-discovery rule below). Other directories get filled later by
+/gen-rtl, /gen-tb, /lint-all, etc.
+
+NEVER create your own ad-hoc directory layout. NEVER nest IPs under
+`workflow/<ip>/` — `workflow/` is the source workspace registry, not
+a project IP container. The IP lives at `<cwd>/<ip>/` directly.
+
 ## IRON RULE — TBD discovery via ask_user (mandatory for every new IP)
 
 For every new IP / SSOT request, regardless of whether the user typed
 `/grill-me` explicitly:
 
 1. **Write an initial draft** of `<ip>/yaml/<ip>.ssot.yaml` from the
-   20-section template. Mark every uncertain field as `~`, `"TBD"`, or
+   20-section template (already created by scaffold_ip — overwrite it
+   with the populated draft). Mark every uncertain field as `~`, `"TBD"`, or
    `"<placeholder>"` and add an inline `# TBD: <reason>` comment.
 
 2. **Sweep the draft** for every TBD / null / `<placeholder>` marker.

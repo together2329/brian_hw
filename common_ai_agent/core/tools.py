@@ -4249,6 +4249,106 @@ def set_ask_user_callback(cb):
     _ask_user_callback = cb
 
 
+def scaffold_ip(name=None, root="."):
+    """Create the canonical IP directory layout in the project root.
+
+    Layout (under `<root>/<name>/`):
+        yaml/<name>.ssot.yaml         # Single Source of Truth
+        rtl/<name>.sv                 # top-level SystemVerilog
+        list/<name>.f                 # synthesis/sim filelist
+        tb/tb_<name>.sv               # testbench
+        tc/tc_<name>.sv               # test cases
+        sim/                          # simulation outputs (waves, logs)
+        sdc/<name>.sdc                # synthesis constraints
+        lint/                         # lint reports
+        doc/<name>_mas.md             # micro-architecture spec
+        req/<name>_requirements.md    # requirements
+
+    Files are created with TBD/placeholder content; existing files are
+    NOT overwritten — you can call this safely on an in-progress IP.
+
+    Args:
+        name: IP identifier (e.g. "axi_sram_bridge"). Required.
+        root: Where to root the IP (default current dir, can be a subdir
+              like "workflow" if your project nests IPs).
+    """
+    if not isinstance(name, str) or not name.strip():
+        return "[scaffold_ip: 'name' is required]"
+    name = name.strip()
+    import re as __re
+    if not __re.match(r"^[A-Za-z][A-Za-z0-9_]*$", name):
+        return f"[scaffold_ip: invalid name {name!r} — letters, digits, underscore only]"
+
+    base = os.path.abspath(os.path.join(root, name))
+    layout = {
+        "yaml": [(f"{name}.ssot.yaml",
+                  f"# {name}.ssot.yaml — Single Source of Truth\n"
+                  f"top_module:\n  name: {name}\n  type: \"<TBD>\"  # TBD\n"
+                  f"  description: \"<TBD>\"  # TBD\n")],
+        "rtl":  [(f"{name}.sv",
+                  f"// {name}.sv — generated from {name}.ssot.yaml\n"
+                  f"// TODO: replace with Jinja2 / LLM output\n"
+                  f"module {name} (\n  input  logic clk,\n  input  logic rst_n\n);\n"
+                  f"  // TBD\nendmodule\n")],
+        "list": [(f"{name}.f",
+                  f"// {name}.f — filelist\nrtl/{name}.sv\n")],
+        "tb":   [(f"tb_{name}.sv",
+                  f"// tb_{name}.sv\n`timescale 1ns/1ps\n"
+                  f"module tb_{name};\n  // TBD\nendmodule\n")],
+        "tc":   [(f"tc_{name}.sv",
+                  f"// tc_{name}.sv — test cases\n// TBD\n")],
+        "sim":  [],
+        "sdc":  [(f"{name}.sdc",
+                  f"# {name}.sdc — timing constraints\n"
+                  f"# TBD: create_clock, set_input_delay, ...\n")],
+        "lint": [],
+        "doc":  [(f"{name}_mas.md",
+                  f"# {name} — Micro-Architecture Spec\n\n## TBD\n")],
+        "req":  [(f"{name}_requirements.md",
+                  f"# {name} — Requirements\n\n## TBD\n")],
+    }
+
+    created_dirs, created_files, skipped_files = [], [], []
+    try:
+        for sub, files in layout.items():
+            d = os.path.join(base, sub)
+            existed = os.path.isdir(d)
+            os.makedirs(d, exist_ok=True)
+            if not existed:
+                created_dirs.append(os.path.relpath(d))
+            for fn, body in files:
+                fp = os.path.join(d, fn)
+                if os.path.exists(fp):
+                    skipped_files.append(os.path.relpath(fp))
+                    continue
+                with open(fp, "w") as f:
+                    f.write(body)
+                created_files.append(os.path.relpath(fp))
+    except OSError as e:
+        return f"[scaffold_ip: filesystem error: {e}]"
+
+    # Display paths relative to the IP base (not cwd) so the listing
+    # stays readable even when the user runs from far away.
+    def _short(p):
+        try:
+            return os.path.relpath(p, base)
+        except ValueError:
+            return p
+    out = [f"✓ Scaffolded IP '{name}' at {base}/"]
+    if created_dirs:
+        names = sorted(_short(d) for d in created_dirs)
+        out.append(f"  + {len(created_dirs)} dirs: " + ", ".join(f"{n}/" for n in names))
+    if created_files:
+        out.append(f"  + {len(created_files)} files:")
+        for fp in sorted(created_files):
+            out.append(f"      {_short(fp)}")
+    if skipped_files:
+        out.append(f"  · {len(skipped_files)} kept (already existed):")
+        for fp in sorted(skipped_files):
+            out.append(f"      {_short(fp)}")
+    return "\n".join(out)
+
+
 def read_doc(path):
     """Convert a Word, PDF, PowerPoint, Excel, or HTML doc to markdown.
 
@@ -4385,6 +4485,8 @@ AVAILABLE_TOOLS = {
     "ask_user": ask_user,
     # Document ingestion (markitdown — pdf/docx/pptx/xlsx/html → md)
     "read_doc": read_doc,
+    # IP layout scaffolder
+    "scaffold_ip": scaffold_ip,
 }
 
 # Import and register Verilog analysis tools
