@@ -969,6 +969,7 @@ class AskUserModal(ModalScreen):
     AskUserModal #q-opts { height: auto; max-height: 12; border: tall $panel; padding: 0 1; }
     AskUserModal #q-note-label { padding-top: 1; color: $text-muted; }
     AskUserModal #q-note { margin-bottom: 1; }
+    AskUserModal #q-hint { color: $text-muted; padding: 0 1; text-align: center; }
     AskUserModal #q-buttons { height: 3; align-horizontal: right; }
     AskUserModal #q-buttons Button { margin-left: 1; }
     AskUserModal .selected-tag { color: $accent; }
@@ -1004,6 +1005,16 @@ class AskUserModal(ModalScreen):
                 yield ol
             yield Static("Custom note (optional):", id="q-note-label")
             yield Input(placeholder="Free-form answer or override…", id="q-note")
+            # Keyboard hint footer — without this, users can't tell how to
+            # interact (the dialog's bottom Submit button can scroll out
+            # of view on short terminals).
+            if r.kind == "single":
+                _hint = "[dim]↑/↓ navigate · ↵ select & submit · Tab → note · Ctrl+S submit · Esc cancel[/dim]"
+            elif r.kind == "multi":
+                _hint = "[dim]↑/↓ navigate · Space toggle · ↵ submit · Tab → note · Ctrl+S submit · Esc cancel[/dim]"
+            else:
+                _hint = "[dim]Type your answer · ↵ or Ctrl+S submit · Esc cancel[/dim]"
+            yield Static(_hint, id="q-hint")
             with Horizontal(id="q-buttons"):
                 yield Button("Cancel", id="q-cancel", variant="default")
                 yield Button("Submit (Ctrl+S)", id="q-submit", variant="primary")
