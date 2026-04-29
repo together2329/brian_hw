@@ -1014,13 +1014,41 @@ def run_react_agent_impl(
                 if deps.emit_tool_fn: deps.emit_tool_fn("▶ todo_write  Auto-parsed from markdown plan")
                 print(_fmt_result(observation, "todo_write"))
 
-        # Completion signal check — skip if there are still incomplete todos
+        # Completion signal check — break the loop when:
+        #   1) no actions queued AND
+        #   2) the model emitted a "done" signal AND
+        #   3) no todo is still pending or in-progress.
+        # `is_all_processed()` only counts approved/rejected as terminal,
+        # so a todo at status='completed' would block the loop forever
+        # (the user reported this). For the loop-exit decision we also
+        # accept 'completed' as terminal — the agent has already done
+        # the work; explicit approval is the user's call, not a gate
+        # for ending the iteration.
+        _terminal = ("approved", "rejected", "completed")
         _todo_still_active = (
             todo_tracker is not None
-            and not todo_tracker.is_all_processed()
-            and todo_tracker.todos
+            and bool(todo_tracker.todos)
+            and any(t.status not in _terminal for t in todo_tracker.todos)
         )
         if not actions and deps.detect_completion_fn(collected_content) and not _todo_still_active:
+            # Auto-promote any 'completed' todos to 'approved' so the
+            # final state is consistent (is_all_processed() returns True
+            # next time it's queried).
+            if todo_tracker and todo_tracker.todos:
+                for _t in todo_tracker.todos:
+                    if _t.status == "completed":
+                        _t.status = "approved"
+                        if not _t.approved_reason:
+                            _t.approved_reason = "agent emitted completion signal"
+                try:
+                    todo_tracker.save()
+                except Exception:
+                    pass
+                if deps.emit_todo_fn:
+                    try:
+                        deps.emit_todo_fn(todo_tracker.format_simple())
+                    except Exception:
+                        pass
             print(f"\n{Color.DIM}{Color.GRAY}Ending ReAct loop.{Color.RESET}\n")
             break
 
