@@ -1041,8 +1041,15 @@ def run_react_agent_impl(
         # next read of the tracker is consistent:
         #   completed   → approved   (agent finished it)
         #   in_progress → approved   (agent declared the turn done)
-        #   pending     → rejected   (agent finished before touching it;
-        #                             user can review and re-add later)
+        #   pending     → approved   (optimistic — agent emitted a
+        #                             completion signal, so it claims
+        #                             everything was done. The agent
+        #                             often forgets to call todo_update
+        #                             between iterations; flipping to
+        #                             rejected made the sidebar show
+        #                             ❌ for tasks the agent had clearly
+        #                             completed in chat. User can
+        #                             downgrade manually if needed.)
         #   approved/rejected stay as-is.
         if not actions and deps.detect_completion_fn(collected_content):
             if todo_tracker and todo_tracker.todos:
@@ -1062,10 +1069,11 @@ def run_react_agent_impl(
                             )
                         _resolved["in_progress"] += 1
                     elif _from == "pending":
-                        _t.status = "rejected"
-                        if not _t.rejection_reason:
-                            _t.rejection_reason = (
-                                "skipped — agent finished before starting"
+                        _t.status = "approved"
+                        if not _t.approved_reason:
+                            _t.approved_reason = (
+                                "auto-approved at completion — agent finished "
+                                "without explicit todo_update; verify manually"
                             )
                         _resolved["pending"] += 1
                 try:
@@ -1091,7 +1099,7 @@ def run_react_agent_impl(
                         )
                     if _resolved["pending"]:
                         _summary_parts.append(
-                            f"{_resolved['pending']} pending→rejected (skipped)"
+                            f"{_resolved['pending']} pending→approved (verify manually)"
                         )
                     try:
                         deps.emit_content_fn(
