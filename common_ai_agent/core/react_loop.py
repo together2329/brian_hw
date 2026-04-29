@@ -1626,9 +1626,26 @@ def run_react_agent_impl(
             elif (todo_tracker and todo_tracker.todos
                     and not todo_tracker.is_all_processed()):
                 _task_key = _get_task_key(todo_tracker)
-                if _task_key != _last_injected_task_key:
+                _current = todo_tracker.get_current_todo()
+                # Re-inject the continuation prompt every iteration while
+                # the current todo is still PENDING — i.e. the agent has
+                # been working on tools without first calling
+                # todo_update(...,'in_progress'). Without this, the
+                # reminder fires once and the agent ignores it for the
+                # rest of the run, leaving every todo at "pending"
+                # forever (the symptom the user reported).
+                _stuck_pending = _current and _current.status == "pending"
+                if _stuck_pending or _task_key != _last_injected_task_key:
                     reminder = todo_tracker.get_continuation_prompt()
                     if reminder:
+                        if _stuck_pending:
+                            reminder = (
+                                "⚠️ TODO TRACKING REQUIRED — your last reply did "
+                                "tool work without first calling todo_update. "
+                                "Before any more file writes / commands, you "
+                                "MUST call todo_update for the active task.\n\n"
+                                + reminder
+                            )
                         messages.append({"role": "user", "content": reminder})
                         _last_injected_task_key = _task_key
 

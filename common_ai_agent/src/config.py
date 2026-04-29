@@ -1445,10 +1445,19 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
 
     if not plan_mode:
         rules_parts.append(
-            "\n3. TODO TOOLS:\n"
-            "   - In normal/execution mode, do NOT call todo_write. It is reserved for Plan Mode.\n"
-            "   - Use todo_update to mark tasks in_progress/completed, todo_add to add a task.\n"
-            "   - If you feel the need to rewrite the entire task list, switch to Plan Mode instead.\n"
+            "\n3. TODO TOOLS — MANDATORY WORKFLOW:\n"
+            "   - When a todo list is active, EVERY task MUST follow this exact sequence:\n"
+            "       (a) todo_update(index=N, status='in_progress')   ← BEFORE any work on task N\n"
+            "       (b) Do the work (write_file, replace_in_file, run_command, …)\n"
+            "       (c) todo_update(index=N, status='completed')    ← AFTER work is done\n"
+            "       (d) Verify the result\n"
+            "       (e) todo_update(index=N, status='approved', reason='what you verified')\n"
+            "   - NEVER write files, run commands, or invoke any mutating tool while the\n"
+            "     current task is still 'pending'. Bump it to 'in_progress' first.\n"
+            "   - Only ONE task may be 'in_progress' at a time. Bump previous to 'completed'\n"
+            "     before starting the next.\n"
+            "   - Do NOT call todo_write in execution mode (Plan Mode only).\n"
+            "   - If you need to rewrite the entire task list, switch back to Plan Mode.\n"
         )
 
     rules_parts.append(
