@@ -189,18 +189,43 @@
       const r = await fetch('/healthz');
       if (!r.ok) return;
       const d = await r.json();
-      // healthz currently returns {ok, frontend}; keep room to expand later.
       window.CONTEXT = Object.assign({}, window.CONTEXT, {
-        frontend: d.frontend || '',
+        frontend:    d.frontend  || '',
+        model:       d.model     || window.CONTEXT.model || '—',
+        maxTokens:   d.max_context    || window.CONTEXT.maxTokens || 0,
+        iterMax:     d.max_iterations || window.CONTEXT.iterMax    || 0,
+        workspace:   d.workspace || '',
       });
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' }));
+    } catch (e) { /* ignore */ }
+  }
+
+  async function refreshWorkflows() {
+    try {
+      const r = await fetch('/api/workspaces');
+      if (!r.ok) return;
+      const d = await r.json();
+      const items = Array.isArray(d.items) ? d.items : [];
+      // Map workspace dirs to workflow stage badges. Color cycles
+      // through accent / cyan / magenta / ok / warn / err so each
+      // stage has a visually distinct chip.
+      const palette = ['var(--accent)','var(--cyan)','var(--mag)','var(--ok)','var(--warn)','var(--err)'];
+      window.FLOW_STAGES = items.map((w, i) => ({
+        id:    w.id,
+        label: w.label || w.name,
+        cmd:   '/wf ' + w.id,
+        color: palette[i % palette.length],
+      }));
+      window.CONTEXT.workspace = d.active || '';
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FLOW_STAGES' }));
     } catch (e) { /* ignore */ }
   }
 
   // Public API for workspace.jsx so it can pull a fresh slice on demand.
   window.atlasData = {
     refreshFileTree, refreshTodos, refreshSsotList, refreshHealth,
-    refreshSlashCommands,
+    refreshSlashCommands, refreshWorkflows,
+    clearTodos: () => fetch('/api/todos/clear', { method: 'POST' }).then(refreshTodos),
     fetchFile: (path) =>
       fetch('/api/file?path=' + encodeURIComponent(path)).then(r => r.json()),
     fetchSsot: (path) =>
@@ -221,6 +246,7 @@
     refreshTodos();
     refreshSsotList();
     refreshSlashCommands();
+    refreshWorkflows();
     // Hook the WS pubsub once it's available so todo_line events trigger
     // a fresh /api/todos fetch (the lines are ANSI-formatted strings; the
     // structured todo state lives behind the API).
@@ -248,7 +274,20 @@
         }
       });
       // /wf <name> swaps the slash registry on the server — re-fetch.
-      window.backend.subscribe('commands_changed', () => refreshSlashCommands());
+      window.backend.subscribe('commands_changed', () => {
+        refreshSlashCommands();
+        // Workspace switch also potentially changes todos and ssot.
+        refreshTodos();
+        refreshSsotList();
+        refreshHealth();
+        refreshWorkflows();
+      });
+      // Every flush (end of a slash result, end of an iteration's tokens)
+      // is a cheap excuse to resync state so /todo clear, /clear, etc.
+      // reflect immediately instead of waiting for the next 5 s poll.
+      window.backend.subscribe('flush', () => {
+        refreshTodos();
+      });
     }
     attach();
     // Belt-and-suspenders polling: every 5 s, refresh the file tree

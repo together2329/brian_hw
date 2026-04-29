@@ -442,3 +442,63 @@
 /* fade-in */
 @keyframes fadein { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
 .fade-in { animation: fadein 0.2s ease-out; }
+
+/* ── Markdown rendering for agent replies ─────────────────────────── */
+.md-agent { color: var(--fg); }
+.md-agent p { margin: 6px 0; }
+.md-agent h1, .md-agent h2, .md-agent h3 {
+  color: var(--accent);
+  margin: 10px 0 4px;
+  font-weight: 600;
+  font-size: inherit;
+}
+.md-agent ul, .md-agent ol { padding-left: 22px; margin: 4px 0; }
+.md-agent li { margin: 2px 0; }
+.md-agent code {
+  background: var(--bg-2);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+}
+.md-agent pre {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  margin: 6px 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre;
+}
+.md-agent pre code {
+  background: none;
+  padding: 0;
+  color: var(--fg);
+}
+.md-agent table {
+  border-collapse: collapse;
+  margin: 6px 0;
+}
+.md-agent th, .md-agent td {
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+  text-align: left;
+}
+.md-agent th { background: var(--bg-2); color: var(--accent); }
+.md-agent a { color: var(--accent); text-decoration: none; }
+.md-agent a:hover { text-decoration: underline; }
+.md-agent blockquote {
+  border-left: 3px solid var(--line);
+  margin: 6px 0;
+  padding: 0 10px;
+  color: var(--fg-mute);
+}
+.md-agent hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 8px 0;
+}

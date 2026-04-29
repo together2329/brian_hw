@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import queue
 import sys
 import threading
@@ -159,7 +160,63 @@ def create_app():
 
     @app.get("/healthz")
     async def healthz():
-        return JSONResponse({"ok": True, "frontend": str(FRONTEND)})
+        info = {"ok": True, "frontend": str(FRONTEND)}
+        # Expose the real model + context window so the sidebar doesn't
+        # have to invent values. Pull from src.config (the per-process
+        # frozen settings); if config isn't importable yet, fall through
+        # to env vars.
+        try:
+            import src.config as _cfg  # noqa: WPS433
+        except Exception:
+            try: import config as _cfg  # noqa: WPS433
+            except Exception: _cfg = None
+        if _cfg is not None:
+            info["model"] = (
+                getattr(_cfg, "PRIMARY_MODEL", None)
+                or getattr(_cfg, "MODEL_NAME", None)
+                or getattr(_cfg, "LLM_MODEL_NAME", "")
+            )
+            info["max_context"] = getattr(_cfg, "MAX_CONTEXT_TOKENS", 0)
+            info["max_iterations"] = getattr(_cfg, "MAX_ITERATIONS", 0)
+            info["workspace"] = (os.environ.get("ACTIVE_WORKSPACE")
+                                  or os.environ.get("WORKSPACE")
+                                  or "")
+        else:
+            import os as _os
+            info["model"] = _os.environ.get("LLM_MODEL_NAME", "") or _os.environ.get("MODEL_NAME", "")
+            info["max_context"] = int(_os.environ.get("MAX_CONTEXT_TOKENS", "0") or "0")
+            info["max_iterations"] = int(_os.environ.get("MAX_ITERATIONS", "0") or "0")
+            info["workspace"] = _os.environ.get("ACTIVE_WORKSPACE", "") or _os.environ.get("WORKSPACE", "")
+        return JSONResponse(info)
+
+    @app.get("/api/workspaces")
+    async def api_workspaces():
+        """List every workspace under workflow/ with a workspace.json.
+
+        Used by the Atlas frontend to populate the workflow tab strip
+        with real, clickable entries (each click fires /wf <name>).
+        """
+        workflow_dir = ROOT / "workflow"
+        items = []
+        if workflow_dir.is_dir():
+            for d in sorted(workflow_dir.iterdir()):
+                if not d.is_dir():
+                    continue
+                ws_json = d / "workspace.json"
+                if not ws_json.exists():
+                    continue
+                try:
+                    spec = json.loads(ws_json.read_text())
+                except Exception:
+                    spec = {}
+                items.append({
+                    "id": d.name,
+                    "name": d.name,
+                    "label": spec.get("name", d.name),
+                    "description": spec.get("description", ""),
+                })
+        active = os.environ.get("ACTIVE_WORKSPACE", "")
+        return JSONResponse({"active": active, "items": items})
 
     # ── REAL project data API ────────────────────────────────────
     # File-system backed endpoints. All paths are confined to ROOT and
@@ -231,6 +288,35 @@ def create_app():
             "path": path, "size": stat.st_size, "mtime": stat.st_mtime,
             "truncated": truncated, "content": content,
         })
+
+    @app.post("/api/todos/clear")
+    async def api_todos_clear():
+        """Wipe both the in-memory tracker and the on-disk file."""
+        try:
+            import main as _main  # noqa: WPS433
+            tt = getattr(_main, "todo_tracker", None)
+            if tt is not None and hasattr(tt, "todos"):
+                tt.todos = []
+                if hasattr(tt, "current_index"):
+                    tt.current_index = -1
+                if hasattr(tt, "save"):
+                    try: tt.save()
+                    except Exception: pass
+        except Exception:
+            pass
+        # Remove the on-disk file too so the legacy fallback can't
+        # re-surface old todos.
+        try:
+            from pathlib import Path as _P
+            for cand in ("current_todos.json",
+                         str(_P.home() / ".common_ai_agent" / "current_todos.json")):
+                p = _P(cand)
+                if p.exists():
+                    try: p.unlink()
+                    except Exception: pass
+        except Exception:
+            pass
+        return JSONResponse({"ok": True})
 
     @app.get("/api/todos")
     async def api_todos():
@@ -423,9 +509,21 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     _main._textual_esc_check_fn = bridge.check_stop
     _main._textual_poll_human_input_fn = bridge.poll_interrupt
 
-    _main._textual_emit_content_fn   = lambda text, cls="": bridge.emit("token",     text=text, cls=cls)
-    _main._textual_emit_reasoning_fn = lambda text, blank=False: bridge.emit("reasoning", text=text)
-    _main._textual_emit_todo_fn      = lambda text: bridge.emit("todo_line", text=text)
+    # Strip ANSI escape sequences from ANY text destined for the browser.
+    # The terminal-targeting Color class wraps lines in \x1b[2m … \x1b[0m;
+    # the browser renders the ESC byte invisibly but happily prints the
+    # leftover "[2m" / "[0m" markers, which leaked into the chat as visible
+    # garbage. Doing the strip once here covers every emit path.
+    import re as _re_ansi
+    _ANSI_RE = _re_ansi.compile(
+        r"\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)"
+    )
+    def _clean(s):
+        return _ANSI_RE.sub("", s) if isinstance(s, str) else s
+
+    _main._textual_emit_content_fn   = lambda text, cls="": bridge.emit("token",     text=_clean(text), cls=cls)
+    _main._textual_emit_reasoning_fn = lambda text, blank=False: bridge.emit("reasoning", text=_clean(text))
+    _main._textual_emit_todo_fn      = lambda text: bridge.emit("todo_line", text=_clean(text))
     _main._textual_emit_flush_fn     = lambda: (
         bridge.emit("flush"),
         # Workspace switches happen behind a slash command and re-register
@@ -433,9 +531,9 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         # autocomplete dropdown picks up new workspace commands.
         bridge.emit("commands_changed"),
     )
-    _main._textual_emit_tool_fn      = lambda text: bridge.emit("tool", text=text)
+    _main._textual_emit_tool_fn      = lambda text: bridge.emit("tool", text=_clean(text))
     _main._textual_emit_tool_result_fn = lambda obs, tool="": bridge.emit(
-        "tool_result", text=obs[:8000], tool=tool, truncated=len(obs) > 8000
+        "tool_result", text=_clean(obs)[:8000], tool=tool, truncated=len(obs) > 8000
     )
 
     def _ctx_update(tokens, max_tok):

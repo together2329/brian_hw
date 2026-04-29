@@ -25,12 +25,17 @@ const Workspace = ({ dir, onScreen }) => {
     refreshFeed(i, workflow);
   };
   const switchWorkflow = (w) => {
-    // Workflow badges are inert in live mode — there is no mock advance
-    // sequence anymore. Toggling just stores the selection so the
-    // agent can read it from a future API endpoint.
+    // Click a workflow chip → fire `/wf <name>` to actually swap the
+    // agent's workspace on the server. The slash command is processed
+    // locally by the dispatcher (no LLM call) and re-registers the
+    // workspace's slash commands. We also update local state so the
+    // chip is highlighted.
     const next = workflow === w ? null : w;
     setWorkflow(next);
     refreshFeed(intent, next);
+    if (next && window.backend) {
+      window.backend.send({ type: 'prompt', text: `/wf ${next}` });
+    }
   };
   const [input, setInput] = React.useState('');
   const [showSlash, setShowSlash] = React.useState(false);
@@ -388,7 +393,9 @@ const Workspace = ({ dir, onScreen }) => {
           <div className="box-h">
             <span>▸ ip files</span>
             <span style={{ flex: 1 }} />
-            <span className="acc" style={{ textTransform: 'none', fontSize: 11, letterSpacing: 0 }}>spi_master</span>
+            <span className="acc" style={{ textTransform: 'none', fontSize: 11, letterSpacing: 0 }}>
+              {(window.SCOPE_PATH || '').split('/').pop() || 'project root'}
+            </span>
           </div>
           {/* scope path bar — editable; constrains the agent to this dir */}
           <div style={{
@@ -611,10 +618,18 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
     );
   }
   if (entry.kind === 'agent') {
+    // Use marked.js for full markdown rendering (code fences, lists,
+    // headings, tables, links). Falls back to the inline renderer if
+    // marked isn't loaded yet.
+    const html = (typeof window.marked !== 'undefined' && window.marked.parse)
+      ? window.marked.parse(entry.text || '', { breaks: true, gfm: true })
+      : renderInline(entry.text || '');
     return (
       <div style={{ padding: '8px 0 12px', marginBottom: 4 }}>
-        <span className="ok" style={{ fontWeight: 600, marginRight: 8, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
-        <span style={{ fontSize: 13, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: renderInline(entry.text) }} />
+        <span className="ok" style={{ fontWeight: 600, marginRight: 8,
+          fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
+        <div className="md-agent" style={{ fontSize: 14, lineHeight: 1.65,
+          marginTop: 4 }} dangerouslySetInnerHTML={{ __html: html }} />
       </div>
     );
   }
@@ -998,10 +1013,30 @@ const TodoPanel = () => {
   const todos = window.TODOS;
   const done = todos.filter(t => t.state === 'done').length;
 
-  const stateCfg = (s) =>
-    s === 'done'   ? { glyph: '☒', color: 'var(--ok)' } :
-    s === 'active' ? { glyph: '◉', color: 'var(--accent)' } :
-                     { glyph: '☐', color: 'var(--fg-mute)' };
+  // Map every status to a glyph + color so the right panel reads at a
+  // glance. data.jsx normalizes TodoTracker statuses
+  // (pending/in_progress/completed/approved/rejected) into the simpler
+  // pending/active/done used by this UI; the renderer below also keeps
+  // explicit cases for the raw statuses so live updates render right.
+  const stateCfg = (s) => {
+    switch (s) {
+      case 'done':        return { glyph: '☑', color: '#3fb950', label: 'done' };
+      case 'approved':    return { glyph: '☑', color: '#3fb950', label: 'approved' };
+      case 'completed':   return { glyph: '✓', color: '#3fb950', label: 'completed' };
+      case 'active':      return { glyph: '◉', color: '#58a6ff', label: 'in-progress' };
+      case 'in_progress': return { glyph: '◉', color: '#58a6ff', label: 'in-progress' };
+      case 'rejected':    return { glyph: '✕', color: '#f85149', label: 'rejected' };
+      case 'pending':     return { glyph: '☐', color: '#d29922', label: 'pending' };
+      default:            return { glyph: '☐', color: 'var(--fg-mute)', label: s || '?' };
+    }
+  };
+
+  // Counts per state for the header summary
+  const counts = todos.reduce((acc, t) => {
+    const cfg = stateCfg(t.state);
+    acc[cfg.label] = (acc[cfg.label] || 0) + 1;
+    return acc;
+  }, {});
 
   // ── header tab strip
   const Tab = ({ id, label }) => (
@@ -1019,10 +1054,27 @@ const TodoPanel = () => {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <div style={{
         padding: '8px 12px', borderBottom: '1px solid var(--line)',
-        display: 'flex', alignItems: 'center', gap: 6, fontSize: 11,
+        display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, flexWrap: 'wrap',
       }}>
         <span className="mute" style={{ fontFamily: 'var(--mono)' }}>{done}/{todos.length}</span>
-        <span className="mute">·</span>
+        {/* color-coded count chips per state */}
+        {['in-progress','pending','done','approved','completed','rejected'].filter(k => counts[k]).map(k => {
+          const c = stateCfg(k === 'done' ? 'done' : k.replace('-', '_'));
+          return (
+            <span key={k} style={{
+              fontSize: 10, padding: '1px 6px', borderRadius: 8,
+              border: `1px solid ${c.color}`, color: c.color,
+            }}>{counts[k]} {k}</span>
+          );
+        })}
+        <span style={{ flex: 1 }} />
+        <span title="Clear all todos"
+          onClick={() => { if (confirm('Clear all todos?')) window.atlasData.clearTodos(); }}
+          style={{
+            cursor: 'pointer', fontSize: 10, padding: '2px 8px',
+            border: '1px solid var(--line)', color: 'var(--fg-mute)',
+            borderRadius: 2,
+          }}>✕ clear</span>
         <span className="mute" style={{ fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase' }}>view</span>
         <Tab id="compact" label="list" />
         <Tab id="detail" label="detail" />
