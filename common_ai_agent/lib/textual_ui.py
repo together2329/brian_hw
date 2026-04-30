@@ -1496,7 +1496,14 @@ class AgentTUI(App):
         cwd = cwd_full.replace(home, "~") if cwd_full.startswith(home) else cwd_full
 
         with Vertical(id="main-col"):
-            yield RichLog(id="main", highlight=True, wrap=True, markup=False, auto_scroll=True)
+            # max_lines caps the RichLog buffer. Without it, long
+            # sessions accumulate every emitted line forever — a 4-hour
+            # debug session pushed RichLog past 200k lines and the TUI
+            # got noticeably sluggish on scroll. 20k is generous (~hours
+            # of typical agent chatter) and the user's history is
+            # persisted to .session/<ws>/conversation.json anyway.
+            yield RichLog(id="main", highlight=True, wrap=True, markup=False,
+                          auto_scroll=True, max_lines=20000)
             yield Static("", id="live")
         with Vertical(id="sidebar"):
             yield Static("UPD Agent", id="agent-label")

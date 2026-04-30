@@ -34,6 +34,12 @@
   <!-- Markdown renderer for agent replies (code fences, lists, links…). -->
   <script src="https://unpkg.com/marked@9/marked.min.js"></script>
 
+  <!-- DOMPurify — strips <script>, on*-handlers, javascript: URIs, etc.
+       Without it, agent text containing raw HTML (relayed from a
+       malicious file read, web fetch, or grep result) would inject via
+       dangerouslySetInnerHTML and execute. -->
+  <script src="https://unpkg.com/dompurify@3.1.6/dist/purify.min.js"></script>
+
   <!-- Syntax highlighting for the file preview pane (Prism core +
        autoloader → loads language grammars on demand from CDN). -->
   <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism-tomorrow.css">

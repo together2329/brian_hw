@@ -1141,16 +1141,38 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
   if (entry.kind === 'agent') {
     // Use marked.js for full markdown rendering (code fences, lists,
     // headings, tables, links). Falls back to the inline renderer if
-    // marked isn't loaded yet.
-    const html = (typeof window.marked !== 'undefined' && window.marked.parse)
+    // marked isn't loaded yet. Always run the result through
+    // DOMPurify before injecting via dangerouslySetInnerHTML —
+    // the agent relays untrusted content (file reads, web fetches,
+    // command output) and marked@9 has no built-in sanitizer, so a
+    // <script> or <img onerror> in any of those payloads would
+    // execute without this guard.
+    const rawHtml = (typeof window.marked !== 'undefined' && window.marked.parse)
       ? window.marked.parse(entry.text || '', { breaks: true, gfm: true })
       : renderInline(entry.text || '');
+    const html = (typeof window.DOMPurify !== 'undefined' && window.DOMPurify.sanitize)
+      ? window.DOMPurify.sanitize(rawHtml, {
+          // Allow target/rel on <a> so our post-process can add them.
+          ADD_ATTR: ['target', 'rel'],
+        })
+      : rawHtml;
     return (
       <div style={{ padding: '8px 0 12px', marginBottom: 4 }}>
         <span className="ok" style={{ fontWeight: 600, marginRight: 8,
           fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
         <div className="md-agent" style={{ fontSize: 14, lineHeight: 1.65,
-          marginTop: 4 }} dangerouslySetInnerHTML={{ __html: html }} />
+          marginTop: 4 }} dangerouslySetInnerHTML={{ __html: html }}
+          ref={node => {
+            // Markdown links should open in a new tab so the user
+            // doesn't lose Atlas state. Apply post-render so we don't
+            // need to fork marked's renderer just for this.
+            if (!node) return;
+            node.querySelectorAll('a[href]').forEach(a => {
+              a.setAttribute('target', '_blank');
+              a.setAttribute('rel', 'noopener noreferrer');
+            });
+          }}
+        />
       </div>
     );
   }
@@ -1261,8 +1283,21 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
   return null;
 };
 
-const renderInline = (s) => s.replace(/`([^`]+)`/g, '<code class="acc" style="background:var(--bg-2);padding:1px 4px;border-radius:2px;">$1</code>')
-                            .replace(/\*\*([^*]+)\*\*/g, '<b style="color:var(--fg);">$1</b>');
+// HTML-escape before any interpolation. Without this, the fallback
+// renderer was happy to drop user-controlled text (e.g. file contents
+// the agent quoted) straight into HTML — `</code><img src=x onerror=…>`
+// inside a backtick span would have escaped the <code> tag and
+// injected a payload. DOMPurify catches it downstream now too, but
+// belt-and-suspenders.
+const _escHtml = (s) => String(s)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+const renderInline = (s) => _escHtml(s)
+  .replace(/`([^`]+)`/g, '<code class="acc" style="background:var(--bg-2);padding:1px 4px;border-radius:2px;">$1</code>')
+  .replace(/\*\*([^*]+)\*\*/g, '<b style="color:var(--fg);">$1</b>');
 
 // ── ask_user — compact in-feed tool-call line ─────────────────────
 // Renders as `action: ask_user(...)` matching the other tool calls,
