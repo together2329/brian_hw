@@ -1114,14 +1114,27 @@ def replace_in_file(path=None, old_text=None, new_text=None, count=-1, start_lin
     try:
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
-        
+
+        # LLM tool-call args arrive as JSON strings. Coerce numeric
+        # params to int so `str.replace(text, new, count)` (which
+        # requires int) and the `count == -1` sentinel comparison
+        # both work even when the model passes count="3" or
+        # start_line="42" as strings. fuzzy_whitespace can arrive as
+        # the JSON string "false" — coerce that to a real bool.
+        try:
+            count = int(count) if count is not None else -1
+        except (ValueError, TypeError):
+            return f"Error: replace_in_file() 'count' must be an integer (got {count!r})"
+        if isinstance(fuzzy_whitespace, str):
+            fuzzy_whitespace = fuzzy_whitespace.strip().lower() not in ("false", "0", "no", "off", "")
+
         with open(path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
-        
+
         # Determine working range
         start_idx = 0
         end_idx = len(lines)
-        
+
         if start_line is not None:
             start_idx = max(0, int(start_line) - 1)
         if end_line is not None:
