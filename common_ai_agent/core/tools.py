@@ -460,6 +460,14 @@ def run_command(command, timeout=60):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
+            # Force UTF-8 decoding of stdout/stderr — without this,
+            # text=True falls back to locale.getpreferredencoding(),
+            # which is cp949 on Korean macOS / Windows. Subprocesses
+            # that emit em-dash or other non-CP949 chars then crash
+            # decoding here. errors='replace' keeps the agent alive
+            # even on truly malformed bytes.
+            encoding='utf-8',
+            errors='replace',
             # Create new process group so we can kill the entire tree
             preexec_fn=os.setsid if hasattr(os, 'setsid') else None,
             # Windows: create new process group via CREATE_NEW_PROCESS_GROUP
@@ -987,12 +995,14 @@ def git_diff(path=None):
             shell=True,
             capture_output=True,
             text=True,
+            encoding='utf-8',
+            errors='replace',
             timeout=10
         )
-        
+
         if result.returncode != 0:
             return f"Git error: {result.stderr}"
-        
+
         output = result.stdout.strip()
         if not output:
             return "No changes detected (working tree is clean)."
@@ -1015,6 +1025,8 @@ def git_status():
             shell=True,
             capture_output=True,
             text=True,
+            encoding='utf-8',
+            errors='replace',
             timeout=10
         )
         
@@ -1052,17 +1064,21 @@ def git_revert(path: str) -> str:
             ['git', 'restore', abs_path],
             capture_output=True,
             text=True,
+            encoding='utf-8',
+            errors='replace',
             cwd=git_root
         )
-        
+
         if result.returncode == 0:
             return f"Successfully reverted changes to '{path}' using git restore."
-        
+
         # Fallback to git checkout
         result = subprocess.run(
             ['git', 'checkout', 'HEAD', '--', abs_path],
             capture_output=True,
             text=True,
+            encoding='utf-8',
+            errors='replace',
             cwd=git_root
         )
         
@@ -3179,6 +3195,9 @@ def cursor_agent(task="", yolo="false", mode=""):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
+            # Force UTF-8 (see run_command for why).
+            encoding='utf-8',
+            errors='replace',
             bufsize=1,
         )
     except FileNotFoundError:
@@ -4300,7 +4319,13 @@ def scaffold_ip(name=None, root="."):
                 if os.path.exists(fp):
                     skipped_files.append(os.path.relpath(fp))
                     continue
-                with open(fp, "w") as f:
+                # encoding="utf-8" is critical: the templates contain
+                # em-dashes (—, U+2014). Without an explicit encoding,
+                # Python falls back to locale.getpreferredencoding(),
+                # which is cp949 on Korean macOS / Korean Windows and
+                # can't encode em-dash → "cp949 codec can't encode
+                # character —" crash from tool_dispatcher.
+                with open(fp, "w", encoding="utf-8") as f:
                     f.write(body)
                 created_files.append(os.path.relpath(fp))
     except OSError as e:
