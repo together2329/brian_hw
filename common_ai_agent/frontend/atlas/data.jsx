@@ -338,31 +338,39 @@
         window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'COST' }));
       });
       // /wf <name> swaps the slash registry on the server — re-fetch.
+      // NOTE: backend currently emits 'commands_changed' on EVERY flush
+      // (per-iteration), not just on workspace switch. We dedupe at this
+      // layer by tracking the last-seen workspace name and only running
+      // the heavy hydrate (conversation replay) when it actually
+      // changed. Re-firing the conversation fetch per-iteration was
+      // wiping the live feed under the hydrated snapshot — the chat
+      // appeared to lose messages.
+      let _lastWs = null;
       window.backend.subscribe('commands_changed', () => {
         refreshSlashCommands();
-        // Workspace switch also potentially changes todos and ssot.
         refreshTodos();
         refreshSsotList();
-        refreshHealth();
         refreshWorkflows();
-        // SCOPE_PATH is intentionally preserved across workspace
-        // switches — re-navigating into the same dir every time was
-        // worse UX than seeing one extra click of staleness. The ✕
-        // button next to the scope input clears it explicitly.
-        //
-        // Conversation hydration: pull the new workspace's
-        // conversation.json and dispatch 'atlas-conversation-loaded'
-        // so workspace.jsx can replay past turns into the chat feed.
-        // Browser-session-only chat was hiding all the context that
-        // /wf had just loaded into agent memory.
-        fetch('/api/conversation?limit=200')
-          .then(r => r.json())
-          .then(d => {
-            const msgs = Array.isArray(d.messages) ? d.messages : [];
-            window.dispatchEvent(new CustomEvent('atlas-conversation-loaded',
-              { detail: { messages: msgs } }));
-          })
-          .catch(() => { /* ignore — feed stays as-is on fetch failure */ });
+        // refreshHealth tells us the active workspace; chain after it.
+        refreshHealth().then(() => {
+          const ws = (window.CONTEXT && window.CONTEXT.workspace) || '';
+          if (ws !== _lastWs) {
+            _lastWs = ws;
+            // Conversation hydration: pull the new workspace's
+            // conversation.json and dispatch 'atlas-conversation-loaded'
+            // so workspace.jsx can replay past turns into the chat feed.
+            // Only fires on actual workspace change to avoid clobbering
+            // the live feed mid-iteration.
+            fetch('/api/conversation?limit=200')
+              .then(r => r.json())
+              .then(d => {
+                const msgs = Array.isArray(d.messages) ? d.messages : [];
+                window.dispatchEvent(new CustomEvent('atlas-conversation-loaded',
+                  { detail: { messages: msgs } }));
+              })
+              .catch(() => { /* ignore — feed stays as-is on fetch failure */ });
+          }
+        });
       });
       // Every flush (end of a slash result, end of an iteration's tokens)
       // is a cheap excuse to resync state so /todo clear, /clear, etc.
