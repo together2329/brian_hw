@@ -531,6 +531,46 @@ def create_app():
                 continue
         return JSONResponse({"files": results})
 
+    @app.get("/api/conversation")
+    async def api_conversation(limit: int = 200):
+        """Return the last N messages from the active workspace's
+        conversation.json. Used by the Atlas frontend to hydrate the
+        chat feed when the user switches workflow (/wf <name>) — without
+        this the Atlas chat is browser-session-only and prior context
+        from the workflow is invisible.
+
+        config.HISTORY_FILE is already redirected per workspace by
+        session_setup.setup_session, so we just read whichever file
+        the live session points at right now.
+        """
+        try:
+            try: import src.config as _cfg  # type: ignore
+            except Exception:
+                try: import config as _cfg  # type: ignore
+                except Exception: _cfg = None
+            if _cfg is None:
+                return JSONResponse({"messages": [], "error": "config unavailable"})
+            hpath = Path(getattr(_cfg, "HISTORY_FILE", "") or "")
+            if not hpath.is_file():
+                return JSONResponse({"messages": [], "path": str(hpath)})
+            try:
+                msgs = json.loads(hpath.read_text(encoding="utf-8"))
+                if not isinstance(msgs, list):
+                    msgs = []
+            except Exception as e:
+                return JSONResponse({"messages": [], "path": str(hpath),
+                                       "error": f"parse: {e}"})
+            # Drop system prompts (huge, useless in chat replay) and
+            # keep only the last `limit` items.
+            msgs = [m for m in msgs if isinstance(m, dict) and m.get("role") != "system"]
+            if len(msgs) > limit:
+                msgs = msgs[-limit:]
+            return JSONResponse({"messages": msgs, "path": str(hpath),
+                                  "truncated_to": limit})
+        except Exception as e:
+            return JSONResponse({"messages": [], "error": str(e)},
+                                 status_code=500)
+
     # ── Git API — status / diff / commit / push ─────────────────
     # All git commands run inside PROJECT_ROOT (the user's cwd at
     # launch). Read-only ops stream back; commit + push run sync

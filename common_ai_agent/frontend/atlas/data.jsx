@@ -349,6 +349,20 @@
         // switches — re-navigating into the same dir every time was
         // worse UX than seeing one extra click of staleness. The ✕
         // button next to the scope input clears it explicitly.
+        //
+        // Conversation hydration: pull the new workspace's
+        // conversation.json and dispatch 'atlas-conversation-loaded'
+        // so workspace.jsx can replay past turns into the chat feed.
+        // Browser-session-only chat was hiding all the context that
+        // /wf had just loaded into agent memory.
+        fetch('/api/conversation?limit=200')
+          .then(r => r.json())
+          .then(d => {
+            const msgs = Array.isArray(d.messages) ? d.messages : [];
+            window.dispatchEvent(new CustomEvent('atlas-conversation-loaded',
+              { detail: { messages: msgs } }));
+          })
+          .catch(() => { /* ignore — feed stays as-is on fetch failure */ });
       });
       // Every flush (end of a slash result, end of an iteration's tokens)
       // is a cheap excuse to resync state so /todo clear, /clear, etc.

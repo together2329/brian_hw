@@ -1107,14 +1107,33 @@ def run_react_agent_impl(
                         )
                     except Exception:
                         pass
-            print(f"\n{Color.DIM}{Color.GRAY}Ending ReAct loop.{Color.RESET}\n")
-            # Surface in chat too — silent stdout exit was confusing.
+            # Build a prominent loop-end block matching the iteration
+            # header's visual rhythm. Old "Ending ReAct loop." was dim
+            # gray and easy to miss between repeated `── Iter N / 1000`
+            # lines; user couldn't tell from the terminal log when the
+            # agent had actually stopped.
+            _todo_count = len(todo_tracker.todos) if todo_tracker else 0
+            _approved   = sum(1 for t in (todo_tracker.todos if todo_tracker else [])
+                                if t.status == "approved")
+            _rejected   = sum(1 for t in (todo_tracker.todos if todo_tracker else [])
+                                if t.status == "rejected")
+            _iters      = tracker.current + 1
+            _max_iters  = tracker.max_iterations
+            _todo_str   = (f"{_approved}/{_todo_count} approved"
+                           + (f", {_rejected} rejected" if _rejected else "")) \
+                          if _todo_count else "no todos"
+            _bar = "═" * 63
+            _block = (
+                f"\n{Color.GREEN}{_bar}\n"
+                f"✓ LOOP ENDED · {_iters}/{_max_iters} iterations · {_todo_str}\n"
+                f"{_bar}{Color.RESET}\n"
+            )
+            print(_block, flush=True)
+            # Surface in chat too (Atlas + Textual TUI) — silent stdout
+            # exit was confusing.
             if deps.emit_content_fn:
                 try:
-                    _todo_count = len(todo_tracker.todos) if todo_tracker else 0
                     if _todo_count:
-                        _approved = sum(1 for t in todo_tracker.todos if t.status == "approved")
-                        _rejected = sum(1 for t in todo_tracker.todos if t.status == "rejected")
                         deps.emit_content_fn(
                             f"✓ Loop ended — agent finished. "
                             f"Todos: {_approved} approved, {_rejected} rejected, "

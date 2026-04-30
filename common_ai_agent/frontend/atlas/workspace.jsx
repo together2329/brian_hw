@@ -161,6 +161,57 @@ const Workspace = ({ dir, onScreen }) => {
     return () => window.removeEventListener('atlas-data-changed', h);
   }, []);
 
+  // Hydrate the chat feed from .session/<ws>/conversation.json on
+  // workspace switch. data.jsx fires 'atlas-conversation-loaded' after
+  // /wf so the user sees prior context for that workflow instead of an
+  // empty browser-session-only feed.
+  React.useEffect(() => {
+    const onConvLoaded = (ev) => {
+      const msgs = (ev.detail && ev.detail.messages) || [];
+      const newFeed = [];
+      for (const m of msgs) {
+        const role = m.role;
+        const content = typeof m.content === 'string' ? m.content
+          : Array.isArray(m.content) ? m.content.map(c => c.text || '').join('')
+          : '';
+        if (role === 'user' && content) {
+          newFeed.push({ kind: 'user', text: content });
+        } else if (role === 'assistant') {
+          // assistant message may have content + tool_calls
+          if (content && content.trim()) {
+            newFeed.push({ kind: 'agent', text: content });
+          }
+          if (Array.isArray(m.tool_calls)) {
+            for (const tc of m.tool_calls) {
+              const fn = (tc.function && tc.function.name) || tc.name || '?';
+              const args = (tc.function && tc.function.arguments) || tc.arguments || '';
+              const argsShort = typeof args === 'string'
+                ? args.slice(0, 120)
+                : JSON.stringify(args).slice(0, 120);
+              newFeed.push({ kind: 'action', text: `▶ ${fn} ${argsShort}` });
+            }
+          }
+        } else if (role === 'tool' && content) {
+          newFeed.push({
+            kind: 'obs',
+            text: content.slice(0, 8000),
+            tool: m.name || '',
+            truncated: content.length > 8000,
+          });
+        }
+      }
+      // Drop a turn-end divider so the user can tell where the
+      // hydrated history ends and live tokens begin.
+      if (newFeed.length) {
+        newFeed.push({ kind: 'turn_end', text: `↓ live (workspace history above) ↓` });
+      }
+      setFeed(newFeed.length ? newFeed : [{ kind: 'agent',
+        text: 'Connected. Type a message and press Enter to talk to the agent.' }]);
+    };
+    window.addEventListener('atlas-conversation-loaded', onConvLoaded);
+    return () => window.removeEventListener('atlas-conversation-loaded', onConvLoaded);
+  }, []);
+
   const inputRef = React.useRef(null);
   const feedRef = React.useRef(null);
 
@@ -1202,7 +1253,32 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
     );
   }
   if (entry.kind === 'obs') {
-    const txt = entry.text || '';
+    let txt = entry.text || '';
+    // Plan A: condense todo_* tool results — strip the redundant
+    // ── TODO ── list block from the chat OBS. The right-sidebar
+    // TodoPanel already shows the full live state via /api/todos;
+    // re-printing the 7-line list per iteration drowns the chat in
+    // duplicates. Keep the agent's actual response (e.g. "✅ Task 2
+    // approved" / "Task 3 marked completed. Now perform a CRITICAL
+    // ADVERSARIAL review...") because that's the actionable content.
+    if (entry.tool && /^todo_(write|update|add|remove|status|note)$/i.test(entry.tool)) {
+      const m = txt.match(/^([\s\S]*?)\n\s*── TODO ──[\s\S]*$/);
+      if (m) {
+        const head = m[1].trim();
+        // Count statuses to put a one-line tally where the list was.
+        const tally = {};
+        const todoBlock = txt.slice(m[1].length);
+        const statusRe = /^\s*(⏸|▶|👀|✅|❌)\s/gm;
+        let mm;
+        while ((mm = statusRe.exec(todoBlock)) !== null) {
+          const k = ({'⏸':'pending','▶':'in-progress','👀':'completed','✅':'approved','❌':'rejected'})[mm[1]];
+          if (k) tally[k] = (tally[k] || 0) + 1;
+        }
+        const tallyStr = ['in-progress','pending','completed','approved','rejected']
+          .filter(k => tally[k]).map(k => `${tally[k]} ${k}`).join(' · ');
+        txt = head + (tallyStr ? `\n— ${tallyStr} (full list in sidebar →)` : '');
+      }
+    }
     const isMulti = txt.includes('\n');
     // Diff colorizing — replace_in_file / write_file emit a body where
     // each line is "<lineno> [+|-| ] <content>". Mark + lines green and
@@ -1643,6 +1719,10 @@ const SsotPanel = () => {
 const TodoPanel = () => {
   const [view, setView] = React.useState('compact'); // compact | detail | graph
   const [openId, setOpenId] = React.useState(null);
+  // Per-group collapse state in compact view: {approved: true, ...}
+  // means that group is collapsed. Defaults set via collapsedDefault
+  // inside the render so they're not duplicated.
+  const [collapsedTodoGroups, setCollapsedTodoGroups] = React.useState({});
   const todos = window.TODOS;
   // "Done" counter spans every terminal state (done/approved/completed)
   // — without this, the counter showed 0/7 for tasks the agent had
@@ -1718,49 +1798,129 @@ const TodoPanel = () => {
         <Tab id="graph" label="graph" />
       </div>
 
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        {view === 'compact' && (
-          <div style={{ padding: '6px 0' }}>
-            {todos.map(t => {
-              const cfg = stateCfg(t.state);
-              const open = openId === t.id;
-              return (
-                <div key={t.id}>
-                  <div
-                    onClick={() => setOpenId(open ? null : t.id)}
-                    style={{
-                      display: 'grid', gridTemplateColumns: '24px 36px 1fr 16px',
-                      alignItems: 'baseline', gap: 6, padding: '4px 12px',
-                      cursor: 'pointer', fontFamily: 'var(--mono)', fontSize: 12,
-                      background: t.state === 'active' ? 'color-mix(in oklch, var(--accent) 8%, transparent)' : 'transparent',
-                      borderLeft: t.state === 'active' ? '2px solid var(--accent)' : '2px solid transparent',
-                    }}
-                  >
-                    <span style={{ color: cfg.color, fontSize: 13 }}>{cfg.glyph}</span>
-                    <span className="mute" style={{ fontSize: 11 }}>{t.section}</span>
-                    <span style={{ color: t.state === 'pending' ? 'var(--fg-mute)' : 'var(--fg)' }}>{t.title}</span>
-                    <span className="mute" style={{ fontSize: 10 }}>{open ? '▾' : '▸'}</span>
-                  </div>
-                  {open && (
-                    <div className="mute fade-in" style={{
-                      padding: '6px 12px 10px 64px', fontSize: 11, lineHeight: 1.5,
-                      borderLeft: '2px solid var(--line)', marginLeft: 12, marginRight: 12,
-                      background: 'var(--bg-2)',
-                    }}>
-                      {t.detail}
-                      {t.deps && t.deps.length > 0 && (
-                        <div style={{ marginTop: 4, fontSize: 10 }}>
-                          <span className="mute">deps:</span>{' '}
-                          {t.deps.map(d => <span key={d} className="acc">§{d} </span>)}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+      {/* Progress bar — at-a-glance "X / Y approved" with green fill */}
+      {todos.length > 0 && (
+        <div style={{ padding: '6px 12px 4px', borderBottom: '1px solid var(--line)',
+                       background: 'var(--bg-2)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between',
+                         fontSize: 10, fontFamily: 'var(--mono)',
+                         color: 'var(--fg-mute)', marginBottom: 3 }}>
+            <span>progress</span>
+            <span><b style={{ color: 'var(--ok)' }}>{done}</b> / {todos.length} approved</span>
           </div>
-        )}
+          <div style={{ height: 4, background: 'var(--bg-input, #1c2128)',
+                         border: '1px solid var(--line)', borderRadius: 2,
+                         overflow: 'hidden' }}>
+            <div style={{
+              height: '100%',
+              width: `${todos.length ? Math.round(100 * done / todos.length) : 0}%`,
+              background: '#3fb950',
+              transition: 'width 240ms ease-out',
+            }} />
+          </div>
+        </div>
+      )}
+
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        {view === 'compact' && (() => {
+          // Group by status order: in_progress → pending → completed →
+          // rejected → approved (approved collapsed by default since it's
+          // usually the long tail of "done" todos that the user no longer
+          // needs to scan).
+          const groupOf = (t) => {
+            const s = t.state;
+            if (s === 'active' || s === 'in_progress') return 'in_progress';
+            if (s === 'completed') return 'completed';
+            if (s === 'approved' || s === 'done') return 'approved';
+            if (s === 'rejected') return 'rejected';
+            return 'pending';
+          };
+          const groups = { in_progress: [], pending: [], completed: [], rejected: [], approved: [] };
+          todos.forEach(t => groups[groupOf(t)].push(t));
+          const order = ['in_progress', 'pending', 'completed', 'rejected', 'approved'];
+          const labels = {
+            in_progress: 'IN PROGRESS', pending: 'PENDING',
+            completed: 'COMPLETED',     rejected: 'REJECTED', approved: 'APPROVED',
+          };
+          // approved + rejected default-collapsed; in-progress/pending/completed default-open
+          const collapsedDefault = { approved: true, rejected: true };
+          const isCollapsed = (g) => collapsedTodoGroups[g] !== undefined
+            ? collapsedTodoGroups[g] : (collapsedDefault[g] || false);
+          const toggleGroup = (g) => setCollapsedTodoGroups(prev =>
+            ({ ...prev, [g]: !isCollapsed(g) }));
+          return (
+            <div style={{ padding: '4px 0' }}>
+              {order.map(g => {
+                const items = groups[g];
+                if (!items.length) return null;
+                const collapsed = isCollapsed(g);
+                const cfg = stateCfg(g === 'in_progress' ? 'in_progress' : g);
+                return (
+                  <div key={g}>
+                    {/* Group divider — uppercase label, click to toggle */}
+                    <div
+                      onClick={() => toggleGroup(g)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        padding: '4px 12px 2px', cursor: 'pointer',
+                        fontFamily: 'var(--mono)', fontSize: 9,
+                        letterSpacing: '0.1em', textTransform: 'uppercase',
+                        color: cfg.color, userSelect: 'none',
+                      }}
+                    >
+                      <span>{collapsed ? '▸' : '▾'}</span>
+                      <span>{labels[g]}</span>
+                      <span style={{ flex: 1, height: 1, background: 'var(--line)',
+                                       opacity: 0.5, marginLeft: 6 }} />
+                      <span className="mute">{items.length}</span>
+                    </div>
+                    {!collapsed && items.map(t => {
+                      const tcfg = stateCfg(t.state);
+                      const open = openId === t.id;
+                      return (
+                        <div key={t.id}>
+                          <div
+                            onClick={() => setOpenId(open ? null : t.id)}
+                            style={{
+                              display: 'grid', gridTemplateColumns: '24px 36px 1fr 16px',
+                              alignItems: 'baseline', gap: 6, padding: '4px 12px',
+                              cursor: 'pointer', fontFamily: 'var(--mono)', fontSize: 12,
+                              background: t.state === 'active' || t.state === 'in_progress'
+                                ? 'color-mix(in oklch, var(--accent) 8%, transparent)'
+                                : 'transparent',
+                              borderLeft: (t.state === 'active' || t.state === 'in_progress')
+                                ? '2px solid var(--accent)' : '2px solid transparent',
+                            }}
+                          >
+                            <span style={{ color: tcfg.color, fontSize: 13 }}>{tcfg.glyph}</span>
+                            <span className="mute" style={{ fontSize: 11 }}>{t.section}</span>
+                            <span style={{ color: t.state === 'pending' ? 'var(--fg-mute)' : 'var(--fg)' }}>{t.title}</span>
+                            <span className="mute" style={{ fontSize: 10 }}>{open ? '▾' : '▸'}</span>
+                          </div>
+                          {open && (
+                            <div className="mute fade-in" style={{
+                              padding: '6px 12px 10px 64px', fontSize: 11, lineHeight: 1.5,
+                              borderLeft: '2px solid var(--line)', marginLeft: 12, marginRight: 12,
+                              background: 'var(--bg-2)',
+                            }}>
+                              {t.detail}
+                              {t.deps && t.deps.length > 0 && (
+                                <div style={{ marginTop: 4, fontSize: 10 }}>
+                                  <span className="mute">deps:</span>{' '}
+                                  {t.deps.map(d => <span key={d} className="acc">§{d} </span>)}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
 
         {view === 'detail' && (
           <div>
