@@ -368,6 +368,44 @@ class _LeftMarkdown(_RichMarkdown):
     }
 
 
+def _close_unclosed_markdown(text: str) -> str:
+    """Make a streaming-mid markdown buffer safe to render.
+
+    During streaming the live preview re-renders the partial buffer
+    every 300 ms. If a code fence has opened but not yet closed
+    (`'```python\\ndef foo():'` mid-keystroke), Rich's markdown parser
+    treats EVERYTHING after the fence as code — until the fence
+    closes. The user sees their plain prose flicker into a green
+    code block and back. Same trick on bold/italic/inline-code.
+
+    Defensively close the obvious unfinished tokens before render so
+    the preview stays sane:
+
+    - odd number of ```          → append a closing ```
+    - odd number of inline `     → append a closing `
+    - odd number of **           → append a closing **
+    - odd number of __           → append a closing __
+    """
+    if not text:
+        return text
+    out = text
+    # Triple-backtick fences (count standalone occurrences of ``` at line start)
+    fence_count = sum(1 for ln in out.splitlines() if ln.lstrip().startswith("```"))
+    if fence_count % 2 == 1:
+        out += ("\n" if not out.endswith("\n") else "") + "```"
+    # Inline backticks (only count after fence balancing — not exact, but good
+    # enough; the live preview tolerates a stray unmatched tick).
+    # Strip fence content first to avoid counting backticks inside code blocks.
+    _stripped_for_inline = re.sub(r"```.*?```", "", out, flags=re.DOTALL)
+    if _stripped_for_inline.count("`") % 2 == 1:
+        out += "`"
+    if _stripped_for_inline.count("**") % 2 == 1:
+        out += "**"
+    if _stripped_for_inline.count("__") % 2 == 1:
+        out += "__"
+    return out
+
+
 # ── Color palette (GitHub-dark inspired) ────────────────────────────────────
 _BG         = "#0d1117"
 _BG_INPUT   = "#161b22"
@@ -2168,8 +2206,13 @@ class AgentTUI(App):
         try:
             from rich.panel import Panel
             live = self.query_one("#live", Static)
+            # _close_unclosed_markdown defensively balances any
+            # mid-stream fence/bold/italic markers so the live
+            # preview doesn't flicker between "plain prose" and
+            # "everything is a code block" while the user watches.
+            _safe = _close_unclosed_markdown(self._response_buf)
             live.update(Panel(
-                _LeftMarkdown(_fix_md(self._response_buf)),
+                _LeftMarkdown(_fix_md(_safe)),
                 border_style=f"dim {_BORDER_DIM}",
                 padding=(0, 1),
                 expand=True,
