@@ -367,6 +367,20 @@ class _LeftMarkdown(_RichMarkdown):
         "paragraph_open": _TightParagraph,
     }
 
+    def __init__(self, markup, *args, **kwargs):
+        # Pin code_theme so syntax highlighting in code blocks is
+        # consistent across Rich versions. Without this, Rich's default
+        # was reportedly drifting between releases ("monokai" → "ansi"
+        # → "monokai" again), producing different shades of green for
+        # the same SystemVerilog code on different machines. Caller can
+        # still override by passing code_theme=… explicitly.
+        kwargs.setdefault("code_theme", "monokai")
+        # inline code background highlight off — Rich's default smudges
+        # backticked tokens against the dark TUI bg in a way that's
+        # harder to read than just colored text.
+        kwargs.setdefault("inline_code_lexer", None)
+        super().__init__(markup, *args, **kwargs)
+
 
 def _close_unclosed_markdown(text: str) -> str:
     """Make a streaming-mid markdown buffer safe to render.
@@ -1258,55 +1272,21 @@ class AgentTUI(App):
         color: {_TEXT_DIM};
         padding: 0 0 1 0;
     }}
-    #model-header {{
+    /* Sidebar section headers — accent-colored uppercase labels with a
+       single leading blank row above each, so the rhythm is
+       MODEL\\n<value>\\n\\nCONTEXT\\n<value>\\n\\nCOST\\n<value>… */
+    #model-header, #context-header, #skill-header,
+    #cost-header, #todo-header {{
         height: auto;
-        color: {_TEXT};
+        color: {_ACCENT};
         padding: 1 0 0 0;
         text-style: bold;
     }}
-    #model {{
+    /* Section bodies — dimmed value text, single trailing blank row */
+    #model, #context, #skill, #cost, #todo {{
         height: auto;
         color: {_TEXT_DIM};
         padding: 0 0 1 0;
-    }}
-    #context-header {{
-        height: auto;
-        color: {_TEXT};
-        padding: 1 0 0 0;
-        text-style: bold;
-    }}
-    #context {{
-        height: auto;
-        color: {_TEXT_DIM};
-        padding: 0 0 1 0;
-    }}
-    #skill-header {{
-        height: auto;
-        color: {_TEXT};
-        padding: 1 0 0 0;
-        text-style: bold;
-    }}
-    #skill {{
-        height: auto;
-        color: {_TEXT_DIM};
-        padding: 0 0 1 0;
-    }}
-    #cost-header {{
-        height: auto;
-        color: {_TEXT};
-        padding: 1 0 0 0;
-        text-style: bold;
-    }}
-    #cost {{
-        height: auto;
-        color: {_TEXT_DIM};
-        padding: 0 0 1 0;
-    }}
-    #todo-header {{
-        height: auto;
-        color: {_TEXT};
-        padding: 1 0 0 0;
-        text-style: bold;
     }}
     #todo {{
         height: 1fr;
@@ -1548,15 +1528,17 @@ class AgentTUI(App):
             yield Static("", id="task-title")
             yield Static("", id="mode")
             yield Static("", id="activity")
-            yield Static("Model", id="model-header")
+            # Section headers — uppercase to match Atlas web UI style;
+            # values below stay mixed-case from upstream emit fns.
+            yield Static("MODEL",   id="model-header")
             yield Static("", id="model")
-            yield Static("Context", id="context-header")
+            yield Static("CONTEXT", id="context-header")
             yield Static("", id="context")
-            yield Static("Cost", id="cost-header")
+            yield Static("COST",    id="cost-header")
             yield Static("", id="cost")
-            yield Static("Skill", id="skill-header")
+            yield Static("SKILL",   id="skill-header")
             yield Static("", id="skill")
-            yield Static("Todo", id="todo-header")
+            yield Static("TODO",    id="todo-header")
             yield Static("", id="todo")
             yield Static(cwd, id="cwd-label")
         yield OptionList(id="completion-list")
@@ -2022,7 +2004,34 @@ class AgentTUI(App):
     # ── Response buffer ───────────────────────────────────────────────────────
 
     def _scroll_down(self) -> None:
-        """Scroll #main-col to the bottom so latest content is visible."""
+        """Scroll #main-col to the bottom so latest content is visible —
+        but ONLY if the user hasn't manually scrolled up to read older
+        content. Without this guard, every streaming token yanked the
+        viewport back to the bottom, fighting users who paged up to
+        re-read an earlier OBS/THOUGHT.
+
+        Heuristic: consider "near bottom" = within 4 lines of the end.
+        If the user is further up than that, leave their scroll alone.
+        """
+        try:
+            col = self.query_one("#main-col")
+            # scroll_y is current top of viewport; max_scroll_y is the
+            # furthest-down position. If the user is within 4 lines of
+            # max, treat as "still tailing" and snap to bottom.
+            try:
+                _at_bottom = (col.max_scroll_y - col.scroll_y) <= 4
+            except Exception:
+                _at_bottom = True   # widget not laid out yet; safe default
+            if _at_bottom:
+                col.scroll_end(animate=False)
+        except Exception:
+            pass
+
+    def _force_scroll_down(self) -> None:
+        """Unconditional scroll-to-end. Used at user-initiated turn
+        boundaries (after submitting a prompt) so the input box and
+        the freshest agent reply are always visible regardless of
+        where they were reading before."""
         try:
             self.query_one("#main-col").scroll_end(animate=False)
         except Exception:
@@ -2127,6 +2136,12 @@ class AgentTUI(App):
         _indented = "\n  ".join(text.splitlines())
         t.append(f"  {_indented}", style=f"bold {_ACCENT}")
         log.write(t)
+        # Force the viewport to the bottom on user submit. The new
+        # smart _scroll_down() respects "user has scrolled up to read"
+        # for streaming chunks, but a fresh user prompt is the explicit
+        # "I'm interacting now" signal — yank back to the live edge so
+        # the agent's reply lands in view.
+        self._force_scroll_down()
         self._in_diff = False
         self._in_edit = False
         # Slash commands (/plan, /compact, etc.) don't always trigger an LLM call.
@@ -3063,7 +3078,7 @@ class AgentTUI(App):
             t.append(task_title, style=_TEXT_DIM)
             self.query_one("#task-title", Static).update(t)
         # Restore header in case it was hidden before
-        self.query_one("#todo-header", Static).update("Todo")
+        self.query_one("#todo-header", Static).update("TODO")
 
         _MAX = 38
         out = RichText()
