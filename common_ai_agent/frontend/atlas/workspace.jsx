@@ -1160,7 +1160,10 @@ const RightTab = ({ id, cur, onTab, children }) => (
 
 // ── Feed entry: dispatcher ─────────────────────────────────────────
 const CollapsibleThought = ({ text }) => {
-  const [open, setOpen] = React.useState(false);
+  // Expanded by default — user wants the full reasoning visible to
+  // follow the agent's chain of thought; collapsing was hiding too
+  // much. Click anywhere on the row to fold to one-line summary.
+  const [open, setOpen] = React.useState(true);
   const lines = text.split('\n').filter(l => l.trim());
   const firstLine = lines[0] || '';
   const more = lines.length - 1;
@@ -1169,7 +1172,10 @@ const CollapsibleThought = ({ text }) => {
          onClick={() => setOpen(o => !o)}>
       <span className="rb-tag">thought {more > 0 && `(${lines.length})`}</span>
       {open ? (
-        <span style={{ whiteSpace: 'pre-wrap' }}>{text}</span>
+        <span style={{ whiteSpace: 'pre-wrap' }}>
+          {text}
+          {more > 0 && <span className="mute" style={{ marginLeft: 6, fontSize: 10 }}> · click to collapse</span>}
+        </span>
       ) : (
         <span style={{ opacity: 0.7 }}>
           {firstLine}
@@ -1187,7 +1193,13 @@ const CollapsibleThought = ({ text }) => {
 // the user clicks. Inline (single-line) results are shown in full as
 // they're already brief.
 const ObsCard = ({ entry }) => {
-  const [open, setOpen] = React.useState(false);
+  // Expanded by default — chat log was losing too much info when
+  // collapsed (Read results, command output, etc. were hidden behind
+  // a one-line header so the user couldn't follow what the agent did
+  // without clicking each row). Click the header to collapse if a
+  // particular result is too long. Single-line obs always renders
+  // inline regardless of this state.
+  const [open, setOpen] = React.useState(true);
   let txt = entry.text || '';
 
   // Condense todo_* tool results — strip the redundant ── TODO ──
