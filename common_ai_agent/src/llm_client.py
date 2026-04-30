@@ -1480,11 +1480,29 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
             is_retryable = (parsed["is_retryable"] or e.code == 429 or
                           e.code == 400 or (500 <= e.code < 600))
             if is_retryable and retry_count < max_retries - 1:
-                delay = 5 if e.code == 400 else _RETRY_DELAYS[retry_count]
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {_msg}."))
+                # 504 Gateway Timeout = upstream proxy waited too long
+                # for the LLM origin to respond. Usually transient and
+                # clears in 2-10s. Use a short fixed-but-jittered delay
+                # so we don't sleep 30s the first time when 5s would do.
+                # 400 stays at the explicit 5s; everything else uses the
+                # standard backoff schedule.
+                if e.code == 504:
+                    import random as _rnd
+                    delay = 5 + retry_count * 5 + _rnd.uniform(0, 3)
+                    print(Color.warning(
+                        f"\n[Retry {retry_count + 1}/{max_retries - 1}] "
+                        f"HTTP 504 Gateway Timeout — upstream busy, "
+                        f"retrying in {delay:.1f}s..."))
+                elif e.code == 400:
+                    delay = 5
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {_msg}."))
+                else:
+                    delay = _RETRY_DELAYS[retry_count]
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {_msg}."))
                 if error_body and config.DEBUG_MODE:
                     print(Color.warning(f"  Body: {error_body[:300]}"))
-                print(Color.warning(f"Waiting {delay}s...\n"))
+                if e.code != 504:
+                    print(Color.warning(f"Waiting {delay}s...\n"))
                 time.sleep(delay)
                 continue
 
@@ -1498,6 +1516,9 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
             return
 
         except (socket.timeout, urllib.error.URLError, ssl.SSLError) as e:
+            if _stream_cancelled:
+                _stream_cancelled = False
+                return
             if retry_count < max_retries - 1:
                 delay = _RETRY_DELAYS[retry_count]
                 err_msg = str(e)
@@ -1508,6 +1529,9 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
             return
 
         except Exception as e:
+            if _stream_cancelled:
+                _stream_cancelled = False
+                return
             if retry_count < max_retries - 1:
                 delay = _RETRY_DELAYS[retry_count]
                 print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] {type(e).__name__}: {e}. Waiting {delay}s...\n"))
@@ -2161,11 +2185,23 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             # ── Generic retryable: 400 (vLLM transient), 429 or 5xx ──
             is_retryable = e.code == 400 or e.code == 429 or (500 <= e.code < 600)
             if is_retryable and retry_count < max_retries - 1:
-                delay = 5 if e.code == 400 else _RETRY_DELAYS[retry_count]
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {e.reason}"))
+                # See zai-code-1xxx block above for 504 rationale.
+                # 504 = upstream gateway timeout; short jittered delay
+                # so we don't sit on 30s when 5s usually clears it.
+                if e.code == 504:
+                    import random as _rnd
+                    delay = 5 + retry_count * 5 + _rnd.uniform(0, 3)
+                    print(Color.warning(
+                        f"\n[Retry {retry_count + 1}/{max_retries - 1}] "
+                        f"HTTP 504 Gateway Timeout — upstream busy, "
+                        f"retrying in {delay:.1f}s..."))
+                else:
+                    delay = 5 if e.code == 400 else _RETRY_DELAYS[retry_count]
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {e.reason}"))
                 if error_body and config.DEBUG_MODE:
                     print(Color.warning(f"  Body: {error_body[:300]}"))
-                print(Color.warning(f"Waiting {delay}s before retry...\n"))
+                if e.code != 504:
+                    print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
                 continue
 
@@ -2182,6 +2218,9 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             return
 
         except socket.timeout as e:
+            if _stream_cancelled:
+                _stream_cancelled = False
+                return
             # Covers both real socket timeouts and inactivity-watchdog triggers
             inactivity_triggered = getattr(e, '_inactivity', False) or 'inactivity' in str(e).lower()
             label = f"Inactivity ({_inactivity_s}s)" if inactivity_triggered else f"Read timeout ({config.STREAM_API_TIMEOUT}s)"
@@ -2195,6 +2234,9 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             return
 
         except (urllib.error.URLError, ssl.SSLError) as e:
+            if _stream_cancelled:
+                _stream_cancelled = False
+                return
             if retry_count < max_retries - 1:
                 delay = _RETRY_DELAYS[retry_count]
                 error_msg = str(e.reason) if hasattr(e, 'reason') else str(e)
@@ -2208,6 +2250,9 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
             return
 
         except Exception as e:
+            if _stream_cancelled:
+                _stream_cancelled = False
+                return
             # Watchdog closed the connection → convert to socket.timeout for retry
             if _wd_triggered[0]:
                 if retry_count < max_retries - 1:
@@ -2698,8 +2743,18 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     return
                 is_retryable = e.code == 400 or e.code == 429 or (500 <= e.code < 600)
                 if is_retryable and _ns_retry < _ns_max - 1:
-                    delay = 5 if e.code == 400 else _ns_delays[_ns_retry]
-                    print(Color.warning(f"\n[Retry {_ns_retry + 1}/{_ns_max - 1}] HTTP {e.code}: {e.reason}. Waiting {delay}s...\n"))
+                    # 504 = transient upstream gateway timeout; use a
+                    # short jittered delay (see streaming path above).
+                    if e.code == 504:
+                        import random as _rnd
+                        delay = 5 + _ns_retry * 5 + _rnd.uniform(0, 3)
+                        print(Color.warning(
+                            f"\n[Retry {_ns_retry + 1}/{_ns_max - 1}] "
+                            f"HTTP 504 Gateway Timeout — upstream busy, "
+                            f"retrying in {delay:.1f}s..."))
+                    else:
+                        delay = 5 if e.code == 400 else _ns_delays[_ns_retry]
+                        print(Color.warning(f"\n[Retry {_ns_retry + 1}/{_ns_max - 1}] HTTP {e.code}: {e.reason}. Waiting {delay}s...\n"))
                     time.sleep(delay)
                     continue
                 yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
@@ -3150,6 +3205,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             _perf_gen_elapsed = None
             _perf_chunks = 0
             response = _persistent_post(url, headers, _post_body, timeout=config.STREAM_API_TIMEOUT)
+            global _active_stream_response
+            _active_stream_response = response
             _inactivity_s = getattr(config, 'STREAM_INACTIVITY_TIMEOUT', 120)
             _last_data = [time.time()]
             _wd_stop, _wd_triggered = _make_stream_watchdog(response, _inactivity_s, _last_data)
@@ -3411,6 +3468,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             finally:
                 if _wd_stop is not None:
                     _wd_stop.set()
+                _active_stream_response = None  # stream done
                 # Drain any unread bytes so the connection can be reused
                 try:
                     response.read()
@@ -3496,9 +3554,20 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             # ── Generic retryable: 400 (vLLM transient), 429 or 5xx ──
             is_retryable = e.code == 400 or e.code == 429 or (500 <= e.code < 600)
             if is_retryable and retry_count < max_retries - 1:
-                delay = 5 if e.code == 400 else _RETRY_DELAYS2[retry_count]
-                print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {e.reason}"))
-                print(Color.warning(f"Waiting {delay}s before retry...\n"))
+                # 504 = transient upstream gateway timeout; use shorter
+                # jittered delay (see streaming-path block for full
+                # rationale).
+                if e.code == 504:
+                    import random as _rnd
+                    delay = 5 + retry_count * 5 + _rnd.uniform(0, 3)
+                    print(Color.warning(
+                        f"\n[Retry {retry_count + 1}/{max_retries - 1}] "
+                        f"HTTP 504 Gateway Timeout — upstream busy, "
+                        f"retrying in {delay:.1f}s..."))
+                else:
+                    delay = 5 if e.code == 400 else _RETRY_DELAYS2[retry_count]
+                    print(Color.warning(f"\n[Retry {retry_count + 1}/{max_retries - 1}] HTTP {e.code}: {e.reason}"))
+                    print(Color.warning(f"Waiting {delay}s before retry...\n"))
                 time.sleep(delay)
                 continue
 
@@ -3521,6 +3590,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             return
 
         except urllib.error.URLError as e:
+            if _stream_cancelled:
+                _stream_cancelled = False
+                return
             # Connection error - retry
             if retry_count < max_retries - 1:
                 delay = _RETRY_DELAYS2[min(retry_count, len(_RETRY_DELAYS2)-1)]
@@ -3544,6 +3616,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             return
 
         except socket.timeout as e:
+            if _stream_cancelled:
+                _stream_cancelled = False
+                return
             # Covers real socket timeouts and inactivity-watchdog triggers
             inactivity_triggered = 'inactivity' in str(e).lower()
             label = f"Inactivity ({_inactivity_s}s, no data)" if inactivity_triggered else f"Read timeout ({config.STREAM_API_TIMEOUT}s)"
@@ -3562,6 +3637,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             return
 
         except ssl.SSLError as e:
+            if _stream_cancelled:
+                _stream_cancelled = False
+                return
             # Explicit SSL error handling (backup catch)
             if retry_count < max_retries - 1:
                 delay = _RETRY_DELAYS2[min(retry_count, len(_RETRY_DELAYS2)-1)]
@@ -3585,6 +3663,12 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             return
 
         except Exception as e:
+            # ESC pressed during stream → cancel_current_stream() closes the underlying
+            # socket, which can surface here as AttributeError/OSError/IncompleteRead.
+            # Honor the cancel flag immediately — no retry message, no sleep.
+            if _stream_cancelled:
+                _stream_cancelled = False
+                return
             # Catch-all for unexpected errors (incl. ResponseNotReady from stale connection,
             # or watchdog-closed connection raising OSError/IncompleteRead)
             if _wd_triggered[0]:
