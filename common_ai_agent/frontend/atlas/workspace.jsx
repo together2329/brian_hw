@@ -1180,6 +1180,113 @@ const CollapsibleThought = ({ text }) => {
   );
 };
 
+// Tool-call observation card — collapsible by default, click to expand.
+// Replaces the previous always-expanded <pre> block that drowned the
+// chat in tool output. Header shows tool name + first line summary +
+// expand chevron; body (full text + diff coloring) stays hidden until
+// the user clicks. Inline (single-line) results are shown in full as
+// they're already brief.
+const ObsCard = ({ entry }) => {
+  const [open, setOpen] = React.useState(false);
+  let txt = entry.text || '';
+
+  // Condense todo_* tool results — strip the redundant ── TODO ──
+  // list block from chat. Right-sidebar TodoPanel has the live full
+  // state; reprinting per iteration drowns the chat.
+  if (entry.tool && /^todo_(write|update|add|remove|status|note)$/i.test(entry.tool)) {
+    const m = txt.match(/^([\s\S]*?)\n\s*── TODO ──[\s\S]*$/);
+    if (m) {
+      const head = m[1].trim();
+      const tally = {};
+      const todoBlock = txt.slice(m[1].length);
+      const statusRe = /^\s*(⏸|▶|👀|✅|❌)\s/gm;
+      let mm;
+      while ((mm = statusRe.exec(todoBlock)) !== null) {
+        const k = ({'⏸':'pending','▶':'in-progress','👀':'completed','✅':'approved','❌':'rejected'})[mm[1]];
+        if (k) tally[k] = (tally[k] || 0) + 1;
+      }
+      const tallyStr = ['in-progress','pending','completed','approved','rejected']
+        .filter(k => tally[k]).map(k => `${tally[k]} ${k}`).join(' · ');
+      txt = head + (tallyStr ? `\n— ${tallyStr} (full list in sidebar →)` : '');
+    }
+  }
+
+  const lines = txt.split('\n');
+  const isMulti = lines.length > 1;
+  const firstLine = lines[0] || '(empty)';
+  const lineCount = lines.length;
+
+  // Diff coloring — opt in by tool name or "Added N, removed M" header.
+  const looksLikeDiff = /(^|\n)\s*⎿?\s*Added \d+ lines?,? removed \d+ lines?/.test(txt)
+                     || (entry.tool && /^(replace_in_file|write_file|edit|patch)/i.test(entry.tool));
+
+  const renderBody = () => looksLikeDiff
+    ? txt.split('\n').map((line, i) => {
+        const m = line.match(/^(\s*\d+ )([+\-])(.*)$/);
+        if (!m) return <div key={i} style={{ color: 'var(--fg-mute)' }}>{line || ' '}</div>;
+        const [, prefix, marker, rest] = m;
+        const add = marker === '+';
+        return (
+          <div key={i} style={{
+            background: add ? 'color-mix(in oklch, #3fb950 18%, transparent)'
+                            : 'color-mix(in oklch, #f85149 18%, transparent)',
+            color: add ? '#7ee787' : '#ffa198',
+            borderLeft: `2px solid ${add ? '#3fb950' : '#f85149'}`,
+            paddingLeft: 6,
+          }}>
+            <span style={{ color: 'var(--fg-mute)' }}>{prefix}</span>
+            <b>{marker}</b><span>{rest}</span>
+          </div>
+        );
+      })
+    : txt;
+
+  // Single-line results: show inline (no toggle, already compact).
+  if (!isMulti) {
+    return (
+      <div className="react-block obs">
+        <span className="rb-tag">obs{entry.tool ? ` · ${entry.tool}` : ''}</span>
+        <span>{txt}{entry.truncated ? ' …[truncated]' : ''}</span>
+      </div>
+    );
+  }
+
+  // Multi-line: collapsible header + hidden body.
+  return (
+    <div className="react-block obs">
+      <div
+        onClick={() => setOpen(o => !o)}
+        title={open ? 'click to collapse' : 'click to expand full result'}
+        style={{
+          display: 'flex', alignItems: 'baseline', gap: 8,
+          cursor: 'pointer', userSelect: 'none',
+        }}
+      >
+        <span className="rb-tag">obs{entry.tool ? ` · ${entry.tool}` : ''}</span>
+        <span className="mute trunc" style={{ flex: 1, fontSize: 12 }}>
+          {firstLine}
+        </span>
+        <span className="mute" style={{ fontSize: 10 }}>
+          {lineCount} line{lineCount === 1 ? '' : 's'}
+          {entry.truncated ? ' · truncated' : ''}
+        </span>
+        <span className="mute" style={{ fontSize: 11 }}>{open ? '▾' : '▸'}</span>
+      </div>
+      {open && (
+        <pre style={{
+          margin: '4px 0 0', maxHeight: 280, overflow: 'auto',
+          background: 'var(--bg-input, #1c2128)', padding: '6px 10px',
+          borderRadius: 4, fontSize: 11, lineHeight: 1.45,
+          whiteSpace: 'pre', wordBreak: 'normal',
+        }}>
+          {renderBody()}
+          {entry.truncated ? '\n…[truncated]' : ''}
+        </pre>
+      )}
+    </div>
+  );
+};
+
 const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
   if (entry.kind === 'user') {
     return (
@@ -1253,6 +1360,11 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
     );
   }
   if (entry.kind === 'obs') {
+    return <ObsCard entry={entry} />;
+  }
+  // legacy inline (unused — kept so the surrounding block compiles
+  // until I fully extract; never reached because of return above)
+  if (false) {
     let txt = entry.text || '';
     // Plan A: condense todo_* tool results — strip the redundant
     // ── TODO ── list block from the chat OBS. The right-sidebar
