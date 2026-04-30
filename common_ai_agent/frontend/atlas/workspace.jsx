@@ -1160,28 +1160,33 @@ const RightTab = ({ id, cur, onTab, children }) => (
 
 // ── Feed entry: dispatcher ─────────────────────────────────────────
 const CollapsibleThought = ({ text }) => {
-  // Expanded by default — user wants the full reasoning visible to
-  // follow the agent's chain of thought; collapsing was hiding too
-  // much. Click anywhere on the row to fold to one-line summary.
-  const [open, setOpen] = React.useState(true);
+  // Default state: show only the LAST ~5 lines, dimmed. Reasoning is
+  // valuable as a tail (what the agent just decided), but the early
+  // chain-of-thought lines are usually scaffolding the user doesn't
+  // need to read. Click to expand for the full text.
+  const TAIL_LINES = 5;
+  const [open, setOpen] = React.useState(false);
   const lines = text.split('\n').filter(l => l.trim());
-  const firstLine = lines[0] || '';
-  const more = lines.length - 1;
+  const tail = lines.slice(-TAIL_LINES);
+  const hidden = Math.max(0, lines.length - TAIL_LINES);
   return (
-    <div className="react-block thought" style={{ cursor: 'pointer' }}
-         onClick={() => setOpen(o => !o)}>
-      <span className="rb-tag">thought {more > 0 && `(${lines.length})`}</span>
-      {open ? (
-        <span style={{ whiteSpace: 'pre-wrap' }}>
-          {text}
-          {more > 0 && <span className="mute" style={{ marginLeft: 6, fontSize: 10 }}> · click to collapse</span>}
-        </span>
-      ) : (
-        <span style={{ opacity: 0.7 }}>
-          {firstLine}
-          {more > 0 && <span className="mute" style={{ marginLeft: 6 }}>· +{more} more · click to expand</span>}
-        </span>
-      )}
+    <div
+      className="react-block thought"
+      style={{ cursor: 'pointer', opacity: 0.62 /* dim */ }}
+      onClick={() => setOpen(o => !o)}
+      title={open ? 'click to collapse' : 'click to expand full reasoning'}
+    >
+      <span className="rb-tag">
+        thought{lines.length > 1 && ` (${lines.length})`}
+        {!open && hidden > 0 && (
+          <span className="mute" style={{ marginLeft: 6, fontSize: 10, fontWeight: 400 }}>
+            · +{hidden} earlier · click to expand
+          </span>
+        )}
+      </span>
+      <span style={{ whiteSpace: 'pre-wrap' }}>
+        {open ? text : tail.join('\n')}
+      </span>
     </div>
   );
 };
