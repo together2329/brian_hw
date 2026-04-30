@@ -1543,11 +1543,33 @@ def chat_loop():
                             t.status != 'approved' for t in todo_tracker_main.todos
                         ) if todo_tracker_main else False
                         if _has_non_approved:
-                            print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
-                            print(f"  {Color.DIM}y        → execute plan now")
-                            print(f"  yc       → execute + compress context (clean up conversation)")
-                            print(f"  n        → cancel / revise")
-                            print(f"  <other>  → feedback / refinement{Color.RESET}")
+                            # Emit to BOTH terminal (colored) and Atlas/Textual
+                            # (plain via _textual_emit_content_fn) so the Atlas
+                            # web UI sees the plan-confirmation menu instead of
+                            # nothing — same one-or-the-other pattern used for
+                            # the mode-flip banner. The user types `y` (or
+                            # clicks via the existing y-bypass-scope-prefix
+                            # path) to approve and trigger plan→normal flip.
+                            _plan_menu_lines = [
+                                "[Plan Mode] Plan ready. Confirm to execute or give feedback.",
+                                "  y        → execute plan now",
+                                "  yc       → execute + compress context (clean up conversation)",
+                                "  n        → cancel / revise",
+                                "  <other>  → feedback / refinement",
+                            ]
+                            if _textual_emit_content_fn is not None:
+                                try:
+                                    for _l in _plan_menu_lines:
+                                        _textual_emit_content_fn(_l)
+                                    if _textual_emit_flush_fn is not None:
+                                        _textual_emit_flush_fn()
+                                except Exception: pass
+                            else:
+                                print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
+                                print(f"  {Color.DIM}y        → execute plan now")
+                                print(f"  yc       → execute + compress context (clean up conversation)")
+                                print(f"  n        → cancel / revise")
+                                print(f"  <other>  → feedback / refinement{Color.RESET}")
                             _plan_prompt = ANSI(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
                             user_input = _multiline_prompt.prompt(_plan_prompt, multiline=False)
                         else:
@@ -1565,11 +1587,33 @@ def chat_loop():
                             t.status != 'approved' for t in todo_tracker_main.todos
                         ) if todo_tracker_main else False
                         if _has_non_approved:
-                            print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
-                            print(f"  {Color.DIM}y        → execute plan now")
-                            print(f"  yc       → execute + compress context (clean up conversation)")
-                            print(f"  n        → cancel / revise")
-                            print(f"  <other>  → feedback / refinement{Color.RESET}")
+                            # Emit to BOTH terminal (colored) and Atlas/Textual
+                            # (plain via _textual_emit_content_fn) so the Atlas
+                            # web UI sees the plan-confirmation menu instead of
+                            # nothing — same one-or-the-other pattern used for
+                            # the mode-flip banner. The user types `y` (or
+                            # clicks via the existing y-bypass-scope-prefix
+                            # path) to approve and trigger plan→normal flip.
+                            _plan_menu_lines = [
+                                "[Plan Mode] Plan ready. Confirm to execute or give feedback.",
+                                "  y        → execute plan now",
+                                "  yc       → execute + compress context (clean up conversation)",
+                                "  n        → cancel / revise",
+                                "  <other>  → feedback / refinement",
+                            ]
+                            if _textual_emit_content_fn is not None:
+                                try:
+                                    for _l in _plan_menu_lines:
+                                        _textual_emit_content_fn(_l)
+                                    if _textual_emit_flush_fn is not None:
+                                        _textual_emit_flush_fn()
+                                except Exception: pass
+                            else:
+                                print(f"{Color.YELLOW}[Plan Mode]{Color.RESET} Plan ready. Confirm to execute or give feedback.")
+                                print(f"  {Color.DIM}y        → execute plan now")
+                                print(f"  yc       → execute + compress context (clean up conversation)")
+                                print(f"  n        → cancel / revise")
+                                print(f"  <other>  → feedback / refinement{Color.RESET}")
                             user_input = _input_fn(Color.warning("Plan Confirmation [y/yc/n/feedback] ") + Color.CYAN + "> " + Color.RESET)
                         else:
                             user_input = _input_fn(Color.user("> ") + Color.RESET)
