@@ -56,6 +56,62 @@ def _tool_cfg(attr: str, default: int) -> int:
 
 
 # ---------------------------------------------------------------------------
+# LLM arg coercion — JSON tool calls deliver every value as a string,
+# even for params with numeric / boolean defaults. The previous behavior
+# relied on Python truthiness for bools (so recursive="false" silently
+# evaluated to True) and on raw int passthrough (so count="3" crashed
+# str.replace with "'str' object cannot be interpreted as an integer").
+# These helpers normalize incoming strings before the body uses them.
+# ---------------------------------------------------------------------------
+def _as_bool(v, default: bool = False) -> bool:
+    """Coerce LLM-supplied value to bool. Accepts real bools, ints,
+    and the strings true/false/yes/no/on/off/1/0/y/n (case-insensitive,
+    trimmed). Empty string and unrecognized values return *default*
+    (treated as absence of value, not a false)."""
+    if v is None:
+        return default
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, (int, float)):
+        return bool(v)
+    if isinstance(v, str):
+        s = v.strip().lower()
+        if not s:
+            return default
+        if s in ('true', 't', '1', 'yes', 'y', 'on'):
+            return True
+        if s in ('false', 'f', '0', 'no', 'n', 'off'):
+            return False
+    return default
+
+
+def _as_int(v, default=None):
+    """Coerce LLM-supplied value to int. Accepts ints, "42", "  -1 "
+    style strings, floats. Returns *default* (which may itself be None)
+    if v is None or can't be parsed."""
+    if v is None:
+        return default
+    if isinstance(v, bool):  # bool is a subclass of int — preserve intent
+        return int(v)
+    if isinstance(v, int):
+        return v
+    if isinstance(v, float):
+        return int(v)
+    if isinstance(v, str):
+        s = v.strip()
+        if not s:
+            return default
+        try:
+            return int(s)
+        except ValueError:
+            try:
+                return int(float(s))
+            except ValueError:
+                return default
+    return default
+
+
+# ---------------------------------------------------------------------------
 # File access log — tracks which paths were touched during the session
 # ---------------------------------------------------------------------------
 import builtins as _bi
@@ -358,6 +414,9 @@ def write_file(path: str = None, content: str = None, append: bool = False) -> s
         ENABLE_LINTING = True  # Default to enabled
 
     try:
+        # LLM may pass append="false" (string) — that's truthy and would
+        # silently flip mode to append. Coerce explicitly.
+        append = _as_bool(append, default=False)
         dir_name = os.path.dirname(path)
         if dir_name:
             os.makedirs(dir_name, exist_ok=True)
@@ -445,6 +504,9 @@ def run_command(command, timeout=60):
     import time
 
     try:
+        # subprocess.communicate(timeout=...) needs int/float — coerce
+        # so the LLM can pass timeout="60" as a string without crashing.
+        timeout = _as_int(timeout, default=60) or 60
         # Block destructive commands unless explicitly permitted via config
         _blocked = _is_dangerous_command(command)
         if _blocked:
@@ -609,6 +671,8 @@ def list_dir(path=".", show_hidden=True, **kwargs):
         show_hidden: Whether to show hidden files (starting with .)
     """
     try:
+        # Coerce LLM-supplied "false"/"true" string → real bool.
+        show_hidden = _as_bool(show_hidden, default=True)
         if os.path.isfile(path):
             return f"'{path}' is a file, not a directory. Use read_file() or grep_file() instead."
         if not os.path.exists(path):
@@ -645,7 +709,9 @@ def grep_file(pattern=None, path=None, context_lines=2, recursive=False, **kwarg
         return "Error: grep_file() requires 'pattern'. Usage: grep_file(pattern=\"def foo\", path=\"src/\")"
     if path is None:
         return "Error: grep_file() requires 'path'. Usage: grep_file(pattern=\"def foo\", path=\"src/\")"
-    context_lines = int(context_lines)  # LLM may pass "2" as string
+    # LLM may pass numeric / bool args as JSON strings — coerce.
+    context_lines = _as_int(context_lines, default=2) or 2
+    recursive = _as_bool(recursive, default=False)
     import subprocess
     import sys
     
@@ -926,10 +992,15 @@ def find_files(pattern=None, directory=".", max_depth=None, path=None, recursive
         return "Error: find_files() requires 'pattern'. Usage: find_files(pattern=\"*.sv\", directory=\".\")"
     import fnmatch
     try:
+        # LLM args arrive stringified — coerce numeric / bool params or
+        # "false" silently passes the truthiness check and we recurse
+        # anyway, and "3" passed to range() / int comparison crashes.
+        recursive = _as_bool(recursive, default=True)
+        max_depth = _as_int(max_depth, default=None)
         # Support 'path' as alias for 'directory'
         if path is not None:
             directory = path
-            
+
         # Handle recursive parameter
         if not recursive:
             max_depth = 0
