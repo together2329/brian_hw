@@ -2452,6 +2452,18 @@ class AgentTUI(App):
             self._reasoning_open = False
             self._reasoning_header_written = False
             self._current_tool = ""
+            # CRITICAL: clear the #live preview here too. Without this,
+            # an early-return path (empty buffer, or buffer reduced to
+            # nothing by _fix_md stripping "Thought:" / "Final Answer:")
+            # leaves stale Panel content + .active class on #live, which
+            # shows up as an empty bordered box during the NEXT turn's
+            # "Reasoning..." phase.
+            try:
+                live = self.query_one("#live", Static)
+                live.update("")
+                live.remove_class("active")
+            except Exception:
+                pass
             try: self._update_activity()
             except Exception: pass
 
@@ -2629,6 +2641,16 @@ class AgentTUI(App):
         # \x00 sentinel = new LLM call started → Reasoning... first
         if msg.text == "\x00":
             self._reasoning_open = True
+            # Defensive: ensure #live is clean before reasoning starts.
+            # Some early-return paths in _flush_response (now fixed) used
+            # to leave stale Panel content visible; this is the belt-and-
+            # suspenders that guarantees a fresh slate per LLM call.
+            try:
+                live = self.query_one("#live", Static)
+                live.update("")
+                live.remove_class("active")
+            except Exception:
+                pass
             self._update_activity()
             return
         # First content chunk: reasoning done → Generating...
