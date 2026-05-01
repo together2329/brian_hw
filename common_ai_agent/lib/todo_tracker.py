@@ -170,6 +170,11 @@ class TodoItem:
     # ── Gate check (fake-completion prevention) ─────────────
     tools_since_in_progress: int = 0    # Count of non-todo tool calls since in_progress.
                                         # Reset on mark_completed. Survives serialization.
+    tools_since_completed: int = 0      # Count of read tool calls since completed.
+                                        # Reset on mark_completed. Used to gate the
+                                        # review decision (approved/rejected) so the
+                                        # agent must re-read evidence, not trust its
+                                        # own self-written reports.
 
     # ── Rejection-loop detection ────────────────────────────
     rejection_count: int = 0            # Times this task has been rejected. Used to
@@ -301,6 +306,7 @@ class TodoTracker:
                 delegate_result=todo_dict.get("delegate_result", ""),
                 workflow=todo_dict.get("workflow", ""),
                 tools_since_in_progress=int(todo_dict.get("tools_since_in_progress", 0)),
+                tools_since_completed=int(todo_dict.get("tools_since_completed", 0)),
                 rejection_count=int(todo_dict.get("rejection_count", 0)),
                 notes=list(todo_dict.get("notes", [])),
                 command=todo_dict.get("command", ""),
@@ -1300,6 +1306,7 @@ class TodoTracker:
                     "delegate_result": t.delegate_result,
                     "workflow": t.workflow,
                     "tools_since_in_progress": t.tools_since_in_progress,
+                    "tools_since_completed": t.tools_since_completed,
                     "rejection_count": t.rejection_count,
                     "notes": t.notes or [],
                     "command": t.command,

@@ -1690,6 +1690,15 @@ def run_react_agent_impl(
                         messages.append({"role": "user", "content": reminder})
                         _last_injected_task_key = _task_key
 
+            # Tools that don't count as "evidence gathering" — they MODIFY state
+            # rather than verify it. Used by both gate counters below.
+            _WRITE_TOOLS_FOR_GATE = {
+                "write_file", "write_to_file",
+                "replace_in_file", "replace_lines", "replace_file_content",
+                "edit_file", "create_file",
+            }
+            _is_write_tool = tool_name in _WRITE_TOOLS_FOR_GATE
+
             # Track non-todo tool calls for gate check (reject fake completions).
             # When a task IS in_progress, increment its counter directly. When NO
             # task is in_progress (e.g. agent did work BEFORE calling
@@ -1707,6 +1716,17 @@ def run_react_agent_impl(
                         todo_tracker.save()
                     except Exception:
                         pass
+                elif _current and _current.status == "completed":
+                    # Task is in review — count evidence-gathering calls
+                    # (read/grep/find/run_command/list_dir, NOT write tools)
+                    # so the review-gate in tools.py can require at least one
+                    # non-write verification before approve/reject.
+                    if not _is_write_tool:
+                        _current.tools_since_completed = getattr(_current, 'tools_since_completed', 0) + 1
+                        try:
+                            todo_tracker.save()
+                        except Exception:
+                            pass
                 else:
                     # No active task — buffer the credit for the next
                     # mark_in_progress() call to consume.

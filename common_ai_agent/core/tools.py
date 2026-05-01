@@ -2946,6 +2946,26 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             )
 
         if status == "approved":
+            # Review-gate: must have called at least one non-write evidence tool
+            # since the task transitioned to "completed". Prevents the agent from
+            # approving based on its own self-written summary file (sim_report.txt
+            # etc.) — common false-approval pattern observed in tb-gen sessions
+            # where the agent's report was stale/wrong but it approved anyway.
+            # Counter is incremented in react_loop for both native and non-native
+            # tool-call modes when current task is in review (status=completed)
+            # and the tool isn't a write or todo tool.
+            _evidence = int(getattr(item, "tools_since_completed", 0) or 0)
+            if item.status == "completed" and _evidence == 0:
+                return (
+                    f"❌ Cannot approve Task {index} — no verification tool has been called since "
+                    f"this task entered review.\n"
+                    f"Self-written summary/report files are NOT trustworthy evidence. You must\n"
+                    f"verify against ground-truth artifacts.\n"
+                    f"→ Re-read the actual source file(s) you produced (read_file / read_lines)\n"
+                    f"→ OR run the test/build directly (run_command) and check the output\n"
+                    f"→ OR grep for what should be there (grep_file / find_files)\n"
+                    f"Then call todo_update(index={index}, status='approved', reason='<evidence with file:line>') again."
+                )
             _reason_stripped = (reason or "").strip()
             if len(_reason_stripped) < 15:
                 return (
@@ -2998,22 +3018,49 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                 )
             item.rejection_reason = ""
             item.tools_since_in_progress = 0  # reset for potential re-work
+            item.tools_since_completed = 0    # reset review-gate counter
             todo_tracker.mark_completed(idx)  # internally calls save()
             review_steps = (
                 f"Task {index} marked completed. Now perform a CRITICAL, ADVERSARIAL review.\n"
                 f"You are a skeptical reviewer — your job is to find problems, not to approve.\n\n"
-                f"MANDATORY checks before approving:\n"
-                f"  1. Actually READ the changed files / run the command / check the output\n"
-                f"  2. Does the result EXACTLY match the goal: \"{item.content}\"?\n"
-                f"  3. Are there regressions, side effects, or edge cases broken?\n"
-                f"  4. Is there anything incomplete, missing, or just partially done?\n"
-                f"  5. Would a strict senior engineer be satisfied — or would they send it back?\n\n"
+                f"MANDATORY before deciding (you MUST call at least one read tool before "
+                f"approving or rejecting — the gate check enforces this):\n"
+                f"  1. RE-READ the actual source artifacts you produced — never trust your\n"
+                f"     own previous summary/report text from this conversation.\n"
+                f"  2. If you wrote a report file (sim_report.txt, *.log, summary.md), it\n"
+                f"     can be stale or inaccurate. Verify against ground-truth artifacts\n"
+                f"     (results.xml, build output, the actual source file) FIRST.\n"
+                f"  3. Does the result EXACTLY match the goal: \"{item.content}\"?\n"
+                f"  4. Are there regressions, side effects, or edge cases broken?\n"
+                f"  5. Is there anything incomplete, missing, or just partially done?\n"
+                f"  6. Would a strict senior engineer be satisfied — or would they send it back?\n\n"
+                f"⚠ Common failure mode: trusting your own self-written report. If you\n"
+                f"   claim \"X is missing from file Y\", you MUST read Y first and quote\n"
+                f"   the actual content as evidence — not paraphrase from memory.\n\n"
                 f"DEFAULT to REJECT if there is ANY doubt. Approval requires concrete evidence.\n"
-                f"→ All checks pass → todo_update(index={index}, status='approved', reason='<specific evidence: what you read/ran and what you confirmed>')\n"
-                f"→ Any issue found → todo_update(index={index}, status='rejected', reason='<exact problem and what needs to be fixed>')"
+                f"→ All checks pass → todo_update(index={index}, status='approved', reason='<specific evidence: file:line you read, exact content quoted>')\n"
+                f"→ Any issue found → todo_update(index={index}, status='rejected', reason='<exact problem with file:line evidence>')"
             )
             return review_steps
         elif status == "rejected":
+            # Review-gate (same as approved branch): must have called at least
+            # one non-write evidence tool since this task entered review.
+            # Prevents agents from rejecting based on their own stale summary
+            # text — the false-rejection observed in tb-gen for Task 22 where
+            # the agent claimed "SC2/SC4 missing from tb.py" but never re-read
+            # tb.py (which actually contained all 9 scenarios).
+            _evidence = int(getattr(item, "tools_since_completed", 0) or 0)
+            if item.status == "completed" and _evidence == 0:
+                return (
+                    f"❌ Cannot reject Task {index} — no verification tool has been called since "
+                    f"this task entered review.\n"
+                    f"You may be looking at stale evidence (your own report file or a prior\n"
+                    f"compressed summary). Verify against ground truth before rejecting:\n"
+                    f"→ Re-read the source file(s) you claim are wrong (read_file / read_lines)\n"
+                    f"→ OR run the test/check directly (run_command) to see real output\n"
+                    f"→ OR grep for what you claim is missing (grep_file)\n"
+                    f"Then call todo_update(index={index}, status='rejected', reason='<problem with file:line evidence>') again."
+                )
             _reason_stripped = (reason or "").strip()
             if not _reason_stripped:
                 return (
