@@ -243,6 +243,7 @@
         { id: 'ssot-gen', color: 'var(--mag)'    },
         { id: 'rtl-gen',  color: 'var(--accent)' },
         { id: 'tb-gen',   color: 'var(--ok)'     },
+        { id: 'coverage', color: 'var(--cyan)'   },
       ];
       const byId = new Map(items.map(w => [w.id, w]));
       window.FLOW_STAGES = PIPELINE
