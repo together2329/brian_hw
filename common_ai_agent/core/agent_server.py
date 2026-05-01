@@ -547,11 +547,16 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                     pass
 
             # ── 3. Compression prompt patch ──
+            # Default mode is "append" so workflow prompts EXTEND the rich default
+            # (with universal preservation rules). Workflows can opt back to
+            # "replace" via workspace.json if they really want a fully custom format.
             if ws.compression_prompt_text:
                 try:
                     _orig_comp_prompt = getattr(_comp, 'STRUCTURED_SUMMARY_PROMPT', "")
                     _comp.STRUCTURED_SUMMARY_PROMPT = merge_prompt(
-                        _orig_comp_prompt, ws.compression_prompt_text, "replace"
+                        _orig_comp_prompt,
+                        ws.compression_prompt_text,
+                        getattr(ws, "compression_prompt_mode", "append"),
                     )
                     _b._WORKSPACE_HOOK_MESSAGES["compression_system"] = _comp.STRUCTURED_SUMMARY_PROMPT
                 except Exception:

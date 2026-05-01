@@ -75,6 +75,7 @@ class WorkspaceConfig:
     plan_prompt_text: Optional[str] = None
     plan_prompt_mode: str = "append"
     compression_prompt_text: Optional[str] = None
+    compression_prompt_mode: str = "append"
 
     # Hook message overrides {key: template_string}
     hook_messages: dict = field(default_factory=dict)
@@ -153,6 +154,7 @@ def load_workspace(name: str, project_root: Path) -> WorkspaceConfig:
         plan_prompt_text=_read_md("plan_prompt.md"),
         plan_prompt_mode=prompt_cfg.get("plan_prompt_mode", "append"),
         compression_prompt_text=_read_md("compression_prompt.md"),
+        compression_prompt_mode=prompt_cfg.get("compression_prompt_mode", "append"),
         hook_messages=hook_messages,
         rules_dir=_opt_dir("rules"),
         todo_templates_dir=_opt_dir("todo_templates"),

@@ -198,7 +198,22 @@ def _default_estimate(message: Dict[str, Any]) -> int:
         )
     else:
         text = str(content)
-    return len(text) // 4
+    total = len(text)
+
+    # Native tool-call assistant turns often have empty content; the actual
+    # tokens live in tool_calls (function name + serialized arguments). Without
+    # this, threshold checks fire late on tool-heavy sessions.
+    tcs = message.get("tool_calls")
+    if tcs and isinstance(tcs, list):
+        for tc in tcs:
+            if not isinstance(tc, dict):
+                continue
+            fn = tc.get("function", {}) if isinstance(tc.get("function"), dict) else {}
+            total += len(str(fn.get("name", "")))
+            args = fn.get("arguments", "")
+            total += len(args) if isinstance(args, str) else len(str(args))
+
+    return total // 4
 
 
 def _message_text(m: Dict[str, Any]) -> str:
@@ -573,11 +588,71 @@ def _detect_awaiting_user(messages: List[Dict[str, Any]]) -> bool:
 _REASONING_PREFIX = "[assistant reasoning] "
 _REASONING_MAX_CHARS = 800  # keep first ~400 + last ~400 chars (head+tail strategy)
 
+
+def _serialize_tool_calls(tool_calls: Any) -> str:
+    """Render an assistant message's native tool_calls as `[name(arg=val, ...)]` text.
+
+    Empty-content assistant turns that only carry tool_calls would otherwise
+    disappear from the compression input — the summarizer would never see
+    that the agent took an action.  Both _compress_single and _compress_chunked
+    use this so chunked mode preserves the same fidelity as single-pass.
+    """
+    if not tool_calls or not isinstance(tool_calls, list):
+        return ""
+    calls: list = []
+    for tc in tool_calls:
+        if not isinstance(tc, dict):
+            continue
+        fn = tc.get("function", {})
+        name = fn.get("name", "?")
+        args_raw = fn.get("arguments", "{}")
+        try:
+            args = json.loads(args_raw) if isinstance(args_raw, str) else args_raw
+            arg_str = ", ".join(
+                f"{k}={repr(v)[:60]}"
+                for k, v in (args.items() if isinstance(args, dict) else [])
+            )
+        except Exception:
+            arg_str = str(args_raw)[:80]
+        calls.append(f"{name}({arg_str})")
+    if not calls:
+        return ""
+    return "[" + ", ".join(calls) + "]"
+
+def _resolve_compress_char_budget(cfg: Any = None) -> int:
+    """Decide how many characters of conversation_text to feed the summarizer.
+
+    Old behavior was a hardcoded 80_000 (~20K tokens). On a 128K-token model
+    that capped input at ~16% of the window, dropping the middle of long
+    sessions via head+tail truncation. Scaling with MAX_CONTEXT_TOKENS keeps
+    long sessions intact while leaving room for the prompt + output budget.
+
+    Order of resolution:
+      1. cfg.COMPRESSION_INPUT_MAX_CHARS  (explicit override, 0 = use default)
+      2. cfg.MAX_CONTEXT_TOKENS * 4 * COMPRESSION_INPUT_BUDGET_RATIO (default 0.5)
+      3. fallback to 80_000
+    """
+    try:
+        explicit = int(getattr(cfg, "COMPRESSION_INPUT_MAX_CHARS", 0) or 0)
+        if explicit > 0:
+            return explicit
+        ctx_tokens = int(getattr(cfg, "MAX_CONTEXT_TOKENS", 0) or 0)
+        ratio = float(getattr(cfg, "COMPRESSION_INPUT_BUDGET_RATIO", 0.5) or 0.5)
+        if ctx_tokens > 0:
+            # 4 chars/token heuristic; cap ratio to a safe band
+            ratio = max(0.2, min(0.8, ratio))
+            return max(20_000, int(ctx_tokens * 4 * ratio))
+    except Exception:
+        pass
+    return 80_000
+
+
 def _compress_single(
     messages: List[Dict],
     *,
     llm_call_fn: Callable,
     instruction: Optional[str] = None,
+    cfg: Any = None,
 ) -> Dict[str, Any]:
     """Single-pass compression: summarize all messages at once.
 
@@ -586,11 +661,12 @@ def _compress_single(
         llm_call_fn: Callable(messages, **kwargs) -> Iterable[str | tuple].
             Yields text chunks or ('reasoning', ...) tuples (which are ignored).
         instruction: Optional custom summarization prompt.
+        cfg: Config namespace (for COMPRESSION_INPUT_MAX_CHARS / MAX_CONTEXT_TOKENS).
 
     Returns:
         A single system message dict containing the summary.
     """
-    MAX_COMPRESS_CHARS = 80_000  # ~20K tokens, leaves room for prompt + output
+    MAX_COMPRESS_CHARS = _resolve_compress_char_budget(cfg)
     summary_prompt = instruction if instruction else STRUCTURED_SUMMARY_PROMPT
 
     conversation_text = ""
@@ -610,25 +686,7 @@ def _compress_single(
         # Tool-calling assistant turns have no text — annotate with func(args) so the
         # summarizing LLM knows exactly what was called and with what arguments.
         if role == "assistant" and not content.strip():
-            _tcs = m.get("tool_calls")
-            if _tcs and isinstance(_tcs, list):
-                _calls = []
-                for _tc in _tcs:
-                    if not isinstance(_tc, dict):
-                        continue
-                    _fn = _tc.get("function", {})
-                    _name = _fn.get("name", "?")
-                    _args_raw = _fn.get("arguments", "{}")
-                    try:
-                        _args = json.loads(_args_raw) if isinstance(_args_raw, str) else _args_raw
-                        _arg_str = ", ".join(
-                            f"{k}={repr(v)[:60]}" for k, v in (_args.items() if isinstance(_args, dict) else [])
-                        )
-                    except Exception:
-                        _arg_str = str(_args_raw)[:80]
-                    _calls.append(f"{_name}({_arg_str})")
-                if _calls:
-                    content = "[" + ", ".join(_calls) + "]"
+            content = _serialize_tool_calls(m.get("tool_calls"))
             if not content.strip():
                 continue  # nothing to add (no tool_calls at all)
 
@@ -728,7 +786,23 @@ def _compress_chunked(
         conversation_text = ""
         for m in chunk:
             role = m.get("role", "unknown")
-            content = _smart_truncate(str(m.get("content", "")), role)
+            if role == "tool":
+                content = _smart_truncate(str(m.get("content", "")), role)
+                tool_name = m.get("name", "")
+                if tool_name:
+                    conversation_text += f"tool({tool_name}): {content}\n"
+                else:
+                    conversation_text += f"observation: {content}\n"
+                continue
+            content = _smart_truncate(str(m.get("content") or ""), role)
+
+            # Tool-calling assistant turns have no text — annotate with func(args)
+            # so the summarizing LLM still sees what action the agent took.
+            if role == "assistant" and not content.strip():
+                content = _serialize_tool_calls(m.get("tool_calls"))
+                if not content.strip():
+                    continue
+
             # Preserve reasoning_content for assistant messages
             reasoning_text = ""
             reasoning = m.get("reasoning_content")
@@ -1140,24 +1214,42 @@ def compress_history(
 
     # Native tool call pair integrity: ensure no assistant message with tool_calls
     # is split from its corresponding role:tool response messages across the
-    # old_msgs/recent_msgs boundary. If the last message in old_msgs is an assistant
-    # with tool_calls, move those orphaned tool messages from recent_msgs into old_msgs
-    # so they are compressed together (and the sequence remains valid).
+    # old_msgs/recent_msgs boundary. Find the last assistant-with-tool_calls in
+    # old_msgs (could be old_msgs[-1] OR earlier if some sibling tool responses
+    # already landed in old_msgs), then absorb any remaining sibling responses
+    # that are stuck at the head of recent_msgs.
     if old_msgs and recent_msgs:
-        if (old_msgs[-1].get("role") == "assistant"
-                and old_msgs[-1].get("tool_calls")):
-            # Collect the tool_call_ids that need responses
-            _needed_ids = {tc["id"] for tc in old_msgs[-1]["tool_calls"]}
-            _move: list = []
-            for _m in list(recent_msgs):
-                if _m.get("role") == "tool" and _m.get("tool_call_id") in _needed_ids:
-                    _move.append(_m)
-                    _needed_ids.discard(_m.get("tool_call_id"))
-                else:
-                    break  # tool messages are always contiguous after their assistant msg
-            if _move:
-                old_msgs = old_msgs + _move
-                recent_msgs = recent_msgs[len(_move):]
+        _parent_idx: Optional[int] = None
+        for _i in range(len(old_msgs) - 1, -1, -1):
+            _r = old_msgs[_i].get("role")
+            if _r == "assistant" and old_msgs[_i].get("tool_calls"):
+                _parent_idx = _i
+                break
+            if _r != "tool":
+                break  # walked past the contiguous tool-block — no parent here
+        if _parent_idx is not None:
+            _parent = old_msgs[_parent_idx]
+            _all_ids = {
+                tc["id"] for tc in _parent["tool_calls"]
+                if isinstance(tc, dict) and tc.get("id")
+            }
+            _already = {
+                old_msgs[_j].get("tool_call_id")
+                for _j in range(_parent_idx + 1, len(old_msgs))
+                if old_msgs[_j].get("role") == "tool"
+            }
+            _needed_ids = _all_ids - _already
+            if _needed_ids:
+                _move: list = []
+                for _m in list(recent_msgs):
+                    if _m.get("role") == "tool" and _m.get("tool_call_id") in _needed_ids:
+                        _move.append(_m)
+                        _needed_ids.discard(_m.get("tool_call_id"))
+                    else:
+                        break  # tool messages are always contiguous after their assistant msg
+                if _move:
+                    old_msgs = old_msgs + _move
+                    recent_msgs = recent_msgs[len(_move):]
 
     # Inject prior summaries (extracted from system messages above) as context so
     # the LLM produces ONE unified summary covering all prior + new context.
@@ -1232,7 +1324,7 @@ def compress_history(
                 print(f"  [Compress] chunked (chunk_size={cfg.COMPRESSION_CHUNK_SIZE})")
                 compressed = _compress_chunked(old_msgs, cfg=cfg, llm_call_fn=llm_call_fn, instruction=instruction)
             else:
-                compressed = [_compress_single(old_msgs, llm_call_fn=llm_call_fn, instruction=instruction)]
+                compressed = [_compress_single(old_msgs, llm_call_fn=llm_call_fn, instruction=instruction, cfg=cfg)]
         except Exception as exc:
             print(f"  [Compress] LLM compression failed entirely: {exc}")
 

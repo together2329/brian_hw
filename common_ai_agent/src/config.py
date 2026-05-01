@@ -467,6 +467,16 @@ COMPRESSION_KEEP_RECENT = int(os.getenv("COMPRESSION_KEEP_RECENT", "4"))
 # Most-recently-accessed tool call paths to embed in compression system msg (0=disable)
 COMPRESSION_TOOL_CALL_PATHS = int(os.getenv("COMPRESSION_TOOL_CALL_PATHS", "0"))
 
+# Hard cap on conversation_text fed to the summarizer LLM, in characters.
+# 0 = derive from MAX_CONTEXT_TOKENS * 4 * COMPRESSION_INPUT_BUDGET_RATIO.
+# Set explicitly when you need a fixed budget regardless of model context size.
+COMPRESSION_INPUT_MAX_CHARS = int(os.getenv("COMPRESSION_INPUT_MAX_CHARS", "0"))
+# Fraction of MAX_CONTEXT_TOKENS used for compression input (0.2-0.8).
+# 0.5 = use up to half the context window for the conversation text being summarized,
+# leaving the other half for the prompt + output. Larger = less head+tail truncation
+# of long sessions, smaller = faster/cheaper summarization calls.
+COMPRESSION_INPUT_BUDGET_RATIO = float(os.getenv("COMPRESSION_INPUT_BUDGET_RATIO", "0.5"))
+
 # Number of LLM retry attempts on empty/failed response (0 = no retry)
 LLM_RETRY_COUNT = int(os.getenv("LLM_RETRY_COUNT", "1"))
 

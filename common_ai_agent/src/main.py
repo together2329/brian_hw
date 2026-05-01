@@ -246,6 +246,8 @@ def _setup_workspace(name: str) -> None:
         pass
 
     # ── 4. Patch compression prompt ────────────────────────────────────────
+    # Default merge mode is "append" so workflow prompts extend the rich
+    # default (universal preservation rules) instead of fully replacing it.
     try:
         import core.compressor as _comp
         if ws.compression_prompt_text:
@@ -253,7 +255,7 @@ def _setup_workspace(name: str) -> None:
             _comp.STRUCTURED_SUMMARY_PROMPT = merge_prompt(
                 base_comp,
                 ws.compression_prompt_text,
-                "replace",
+                getattr(ws, "compression_prompt_mode", "append"),
             )
             _b._WORKSPACE_HOOK_MESSAGES["compression_system"] = _comp.STRUCTURED_SUMMARY_PROMPT
         else:
