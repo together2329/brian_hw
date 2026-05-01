@@ -47,40 +47,144 @@ def _apply_workspace_env_early():
 
 _apply_workspace_env_early()
 
-# Load .env file if it exists
-def load_env_file():
-    # Load config files in order of priority (first loaded takes precedence)
-    # .config has highest priority, then .env files
-    search_paths = [
-        Path.home() / '.config' / 'common_ai_agent' / 'config',  # ~/.config/common_ai_agent/config (highest priority)
-        Path(__file__).parent.parent / '.config',  # common_ai_agent/.config
-        Path(__file__).parent.parent / '.env',  # common_ai_agent/.env
-        Path(__file__).parent / '.env',  # src/.env
+# ── .env loading + hot reload ─────────────────────────────────────────────
+# Two failure modes are addressed here:
+#   1. First-load: shell-set vars must NOT be clobbered by .env
+#      → force_reload=False keeps existing os.environ values.
+#   2. Hot reload: when the user edits .env mid-session, os.environ still
+#      holds the old values. force_reload=True overwrites them so
+#      reload_env() can pick the edits up without restarting the process.
+# Session/runtime keys (workspace, etc.) are protected from overwrite —
+# editing .env should never silently switch the active workspace.
+
+# .env-derived keys that runtime mutates and should NOT be force-restored
+# from .env on hot reload. ACTIVE_WORKSPACE in particular is set by the
+# CLI -w flag and survives /workspace switches.
+_PROTECTED_ENV_KEYS = frozenset({
+    'ACTIVE_WORKSPACE', 'WORKSPACE', 'ACTIVE_PROJECT',
+})
+
+# mtime cache: path -> last seen mtime. reload_env() only does I/O when at
+# least one .env file has changed since the previous successful reload.
+_ENV_MTIME_CACHE: dict = {}
+
+
+def _env_search_paths() -> list:
+    """Return the .env / .config search paths in priority order.
+
+    First entry has highest precedence — but precedence is enforced via
+    "first writer wins" (once os.environ has a key, later files don't
+    overwrite). On force_reload=True the LAST writer wins so later edits
+    in the project-local .env override stale ~/.config values.
+    """
+    return [
+        Path.home() / '.config' / 'common_ai_agent' / 'config',
+        Path(__file__).parent.parent / '.config',
+        Path(__file__).parent.parent / '.env',
+        Path(__file__).parent / '.env',
     ]
 
-    for env_path in search_paths:
-        if env_path.exists():
+
+def load_env_file(force_reload: bool = False):
+    """Read .env / .config files into os.environ.
+
+    force_reload=False: only set keys not already present (boot-time;
+    preserves shell-supplied values).
+    force_reload=True: overwrite existing os.environ with the latest
+    .env value, except for keys in _PROTECTED_ENV_KEYS.
+    """
+    for env_path in _env_search_paths():
+        if not env_path.exists():
+            continue
+        try:
             with open(env_path, encoding='utf-8') as f:
-                for line in f:
-                    line = line.strip()
-                    # Skip comments and empty lines
-                    if not line or line.startswith('#'):
-                        continue
-                    # Parse KEY=VALUE
-                    if '=' in line:
-                        key, value = line.split('=', 1)
-                        key = key.strip()
-                        value = value.strip()
+                lines = f.readlines()
+        except OSError:
+            continue
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if '=' not in line:
+                continue
+            key, value = line.split('=', 1)
+            key = key.strip()
+            value = value.strip()
+            if '#' in value:
+                value = value.split('#')[0].strip()
+            if not key or not value:
+                continue
+            if key in _PROTECTED_ENV_KEYS:
+                continue
+            if force_reload or key not in os.environ:
+                os.environ[key] = value
 
-                        # Remove inline comments (e.g., "value    # comment")
-                        if '#' in value:
-                            value = value.split('#')[0].strip()
 
-                        # Only set if not already in environment
-                        if key and value and key not in os.environ:
-                            os.environ[key] = value
-            # Continue loading other files (no break)
+def _refresh_runtime_globals():
+    """Re-derive the module-level config globals from current os.environ.
 
+    Called after a force-reload so callers using `config.MODEL_NAME` see
+    the new value without re-importing the module. Mirrors the assignment
+    block lower in this file — keep them in sync if either side changes.
+    """
+    g = globals()
+    g['BASE_URL'] = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
+    g['API_KEY'] = os.getenv("LLM_API_KEY", "your-openai-api-key-here")
+    g['MODEL_NAME'] = os.getenv("LLM_MODEL_NAME", "gpt-4o-mini")
+    g['PRIMARY_MODEL'] = os.getenv("PRIMARY_MODEL", g['MODEL_NAME'])
+    g['SECONDARY_MODEL'] = os.getenv("SECONDARY_MODEL", g['MODEL_NAME'])
+    # Mirror Azure auto-switch from initial load (config.py:126-134)
+    if (os.getenv("LLM_PROVIDER", "openai").lower() == "azure"
+            and os.getenv("AZURE_OPENAI_ENDPOINT")):
+        dep = os.getenv("AZURE_OPENAI_DEPLOYMENT") or g['MODEL_NAME']
+        g['MODEL_NAME'] = dep
+        g['BASE_URL'] = os.getenv("AZURE_OPENAI_ENDPOINT", "").rstrip("/")
+        if os.getenv("AZURE_OPENAI_API_KEY"):
+            g['API_KEY'] = os.getenv("AZURE_OPENAI_API_KEY", "")
+
+
+def reload_env() -> bool:
+    """Re-read .env files and refresh module globals if any file changed.
+
+    mtime-cached: returns immediately when nothing has changed since the
+    previous call, so it's safe to invoke on hot paths (per LLM call,
+    per /api/info request).
+
+    Returns True iff at least one .env file's mtime changed (and thus
+    the in-memory config was refreshed).
+    """
+    changed = False
+    for env_path in _env_search_paths():
+        try:
+            mtime = env_path.stat().st_mtime if env_path.exists() else 0.0
+        except OSError:
+            mtime = 0.0
+        prev = _ENV_MTIME_CACHE.get(str(env_path), -1.0)
+        if mtime != prev:
+            _ENV_MTIME_CACHE[str(env_path)] = mtime
+            changed = True
+    if changed:
+        load_env_file(force_reload=True)
+        _refresh_runtime_globals()
+        # Re-apply the active profile after refreshing globals so an edit
+        # to PROFILE_<active>_* in .env is picked up live. Guarded against
+        # the first call during module bootstrap, where _apply_profile is
+        # defined later in the file.
+        try:
+            active = os.getenv("LLM_PROFILE", "").strip()
+            if active:
+                _apply_profile(active)  # type: ignore[name-defined]
+        except NameError:
+            pass
+    return changed
+
+
+# Prime the mtime cache + load files for the first time.
+for _p in _env_search_paths():
+    try:
+        _ENV_MTIME_CACHE[str(_p)] = _p.stat().st_mtime if _p.exists() else 0.0
+    except OSError:
+        _ENV_MTIME_CACHE[str(_p)] = 0.0
 load_env_file()
 
 # Configuration for the Internal LLM
@@ -132,6 +236,99 @@ if LLM_PROVIDER == "azure" and AZURE_OPENAI_ENDPOINT:
     BASE_URL = AZURE_OPENAI_ENDPOINT.rstrip("/")
     API_KEY = AZURE_OPENAI_API_KEY
     MODEL_NAME = AZURE_OPENAI_DEPLOYMENT
+
+# ============================================================
+# LLM Profile System  (multi-provider: deepseek / glm / kimi / ...)
+# ============================================================
+# Each profile bundles BASE_URL + API_KEY + MODEL together so /model
+# <name> can switch the entire trio in one shot.  Define profiles in
+# .env using the PROFILE_<name>_* prefix:
+#
+#   PROFILE_glm_BASE_URL=https://api.z.ai/api/coding/paas/v4
+#   PROFILE_glm_API_KEY=...
+#   PROFILE_glm_MODEL=glm-5.1
+#
+# Selection (highest priority first):
+#   1. /model <name>   — set at runtime via slash command (this session)
+#   2. --model <name>  — CLI flag (sets LLM_PROFILE before config import)
+#   3. LLM_PROFILE     — env var
+#   4. <none>          — fall back to LLM_BASE_URL / LLM_API_KEY /
+#                        LLM_MODEL_NAME (legacy single-provider mode)
+# ============================================================
+
+def list_profiles() -> list:
+    """Names of every profile defined via PROFILE_<name>_MODEL in env.
+
+    The MODEL key is treated as the canonical marker — a profile must at
+    least name a model. BASE_URL / API_KEY can fall through to the
+    top-level LLM_BASE_URL / LLM_API_KEY when omitted (handy for
+    same-provider, different-model setups).
+    """
+    seen = set()
+    for k in os.environ:
+        if k.startswith("PROFILE_") and k.endswith("_MODEL"):
+            name = k[len("PROFILE_"):-len("_MODEL")]
+            if name:
+                seen.add(name)
+    return sorted(seen)
+
+
+def get_profile(name: str) -> dict:
+    """Return the BASE_URL/API_KEY/MODEL trio for a profile, or {} if
+    the profile has no MODEL set (= not defined)."""
+    pfx = f"PROFILE_{name}_"
+    model = os.getenv(pfx + "MODEL", "").strip()
+    if not model:
+        return {}
+    return {
+        "name": name,
+        "base_url": os.getenv(pfx + "BASE_URL", "").strip()
+                    or os.getenv("LLM_BASE_URL", "").strip(),
+        "api_key": os.getenv(pfx + "API_KEY", "").strip()
+                   or os.getenv("LLM_API_KEY", "").strip(),
+        "model": model,
+    }
+
+
+def _apply_profile(name: str) -> bool:
+    """Apply a profile to the live module globals + os.environ so dispatch
+    (LLM call) and external workers (cmux) both see the same trio.
+    Returns True on success, False if the profile is undefined."""
+    p = get_profile(name)
+    if not p:
+        return False
+    g = globals()
+    g['BASE_URL'] = p['base_url'] or g.get('BASE_URL', '')
+    g['API_KEY'] = p['api_key'] or g.get('API_KEY', '')
+    g['MODEL_NAME'] = p['model']
+    # Mirror to env so cmux workers / sub-processes pick up the same values.
+    if p['base_url']:
+        os.environ['LLM_BASE_URL'] = p['base_url']
+    if p['api_key']:
+        os.environ['LLM_API_KEY'] = p['api_key']
+    os.environ['LLM_MODEL_NAME'] = p['model']
+    os.environ['MODEL_NAME'] = p['model']
+    os.environ['LLM_PROFILE'] = name
+    return True
+
+
+def set_active_profile(name: str) -> bool:
+    """Public entry point — switch the active LLM profile by name.
+
+    No-op + returns False when `name` doesn't match any defined profile,
+    so callers (slash commands, CLI flag) can fall back to single-model
+    switching (MODEL_SWITCH:<literal-name>) when the user passes a bare
+    model name rather than a profile.
+    """
+    return _apply_profile(name)
+
+
+# Apply LLM_PROFILE if set in env (boot-time selection: --model flag
+# or shell export). After this point, BASE_URL / API_KEY / MODEL_NAME
+# reflect the active profile rather than the bare LLM_* vars.
+_active_profile = os.getenv("LLM_PROFILE", "").strip()
+if _active_profile:
+    _apply_profile(_active_profile)
 
 # ============================================================
 # cursor-agent Backend Configuration

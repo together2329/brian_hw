@@ -199,6 +199,14 @@ def create_app():
         except Exception:
             try: import config as _cfg  # noqa: WPS433
             except Exception: _cfg = None
+        # Pick up any .env edits made while the server has been running so
+        # the sidebar (and dispatch on the next call) reflect the latest
+        # active model / profile without a restart. mtime-cached → cheap.
+        if _cfg is not None:
+            try:
+                _cfg.reload_env()
+            except Exception:
+                pass
         if _cfg is not None:
             model = ""
             try:

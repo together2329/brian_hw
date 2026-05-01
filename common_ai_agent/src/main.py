@@ -2197,16 +2197,34 @@ def chat_loop():
                         target = result.split(":", 1)[1]
                         if target == "1":
                             config.MODEL_NAME = config.PRIMARY_MODEL
+                            os.environ["LLM_MODEL_NAME"] = config.MODEL_NAME
+                            os.environ["MODEL_NAME"] = config.MODEL_NAME
+                            print(Color.success(f"\n✅ Model switched to: {config.MODEL_NAME}\n"))
                         elif target == "2":
                             config.MODEL_NAME = config.SECONDARY_MODEL
+                            os.environ["LLM_MODEL_NAME"] = config.MODEL_NAME
+                            os.environ["MODEL_NAME"] = config.MODEL_NAME
+                            print(Color.success(f"\n✅ Model switched to: {config.MODEL_NAME}\n"))
+                        elif target.startswith("profile:"):
+                            # Multi-provider profile switch — flip BASE_URL,
+                            # API_KEY, and MODEL_NAME atomically. set_active_profile
+                            # also mirrors to os.environ so cmux workers pick up
+                            # the new credentials on their next call.
+                            _pname = target.split(":", 1)[1]
+                            if config.set_active_profile(_pname):
+                                print(Color.success(
+                                    f"\n✅ Profile '{_pname}' active "
+                                    f"→ {config.MODEL_NAME} @ {config.BASE_URL}\n"))
+                            else:
+                                print(Color.warning(
+                                    f"\n⚠ Profile '{_pname}' not defined "
+                                    f"(no PROFILE_{_pname}_MODEL in .env)\n"))
                         else:
+                            # Bare model name override (no provider switch)
                             config.MODEL_NAME = target
-                        # Update os.environ so external tools (e.g. cmux)
-                        # that read LLM_MODEL_NAME / MODEL_NAME see the
-                        # new value immediately.
-                        os.environ["LLM_MODEL_NAME"] = config.MODEL_NAME
-                        os.environ["MODEL_NAME"] = config.MODEL_NAME
-                        print(Color.success(f"\n✅ Model switched to: {config.MODEL_NAME}\n"))
+                            os.environ["LLM_MODEL_NAME"] = config.MODEL_NAME
+                            os.environ["MODEL_NAME"] = config.MODEL_NAME
+                            print(Color.success(f"\n✅ Model switched to: {config.MODEL_NAME}\n"))
                         if _textual_emit_todo_fn:
                             # Refresh sidebar: reload todo and send current state (don't wipe it)
                             _tt = TodoTracker.load(Path(config.TODO_FILE)) if Path(config.TODO_FILE).exists() else None
@@ -2464,7 +2482,31 @@ if __name__ == "__main__":
                          help='Coordinator URL to register with (e.g. http://localhost:8000)')
     _parser.add_argument('--worker-name', type=str, default='',
                          help='Name to register as (e.g. lint_worker, requires --coordinator)')
+    _parser.add_argument('--model', type=str, default='',
+                         help='Active LLM profile or bare model name. Profiles '
+                              '(PROFILE_<name>_BASE_URL/API_KEY/MODEL in .env) switch '
+                              'all three at once; bare names only override LLM_MODEL_NAME.')
     _args, _ = _parser.parse_known_args()
+
+    # --model: switch profile (BASE_URL+API_KEY+MODEL) or bare model name.
+    # Done after config import on purpose — config has already loaded .env;
+    # we mutate config.MODEL_NAME (+ profile trio) in-place so dispatch and
+    # UI both see the override without a re-import.
+    if getattr(_args, 'model', ''):
+        _m = _args.model.strip()
+        if config.set_active_profile(_m):
+            print(Color.success(
+                f"[--model] profile '{_m}' active "
+                f"→ {config.MODEL_NAME} @ {config.BASE_URL}"))
+        else:
+            # Not a known profile — treat as bare model name override.
+            config.MODEL_NAME = _m
+            os.environ['LLM_MODEL_NAME'] = _m
+            os.environ['MODEL_NAME'] = _m
+            print(Color.warning(
+                f"[--model] '{_m}' is not a defined profile; "
+                f"applied as bare LLM_MODEL_NAME override "
+                f"(BASE_URL/API_KEY unchanged)."))
 
     # Each project gets its own session context:
     # if -s is not explicitly given, use the workspace name as the project name

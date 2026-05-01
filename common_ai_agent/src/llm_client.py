@@ -51,7 +51,16 @@ def get_active_model() -> str:
     When cursor-agent is enabled, returns "Cursor (<model>)" where <model>
     is the human-readable label from cursor-agent's init event (e.g. "Auto",
     "Sonnet 4.6 1M"). Falls back to config.MODEL_NAME for the normal path.
+
+    Also calls config.reload_env() so a .env edit (model swap, profile
+    change) takes effect without restarting the process — the UI sidebar
+    and the next LLM dispatch call will both see the same fresh value.
+    The mtime cache makes this near-free on the hot path.
     """
+    try:
+        config.reload_env()
+    except Exception:
+        pass
     if getattr(config, "CURSOR_AGENT_ENABLE", False):
         try:
             from src.cursor_agent_backend import last_cursor_model

@@ -2546,11 +2546,18 @@ class SlashCommandRegistry:
         return "CLEAR_HISTORY"  # Special signal for main loop
 
     def _cmd_model(self, args: str) -> str:
-        """Switch model. /model 1 (primary), /model 2 (secondary), /model <name>"""
+        """Switch model. /model 1|2 (primary/secondary), /model <profile>, /model <bare-name>."""
         import sys
+        import os as _os
         _config = sys.modules.get('config') or sys.modules.get('src.config')
         if _config is None:
             import src.config as _config
+        # Pick up any .env edits before reading current state — keeps the
+        # listing honest when the user has changed PROFILE_* mid-session.
+        try:
+            _config.reload_env()
+        except Exception:
+            pass
         name = args.strip()
         if not name:
             try:
@@ -2587,12 +2594,35 @@ class SlashCommandRegistry:
             ]
             if _config.PRIMARY_MODEL == _config.SECONDARY_MODEL:
                 lines.append("  (tip: set PRIMARY_MODEL / SECONDARY_MODEL in .config to use different models)")
+            # List defined LLM profiles (multi-provider trios) so the user
+            # can /model <profile> instead of remembering raw model strings.
+            try:
+                _profiles = _config.list_profiles()
+            except Exception:
+                _profiles = []
+            if _profiles:
+                _active = _os.environ.get("LLM_PROFILE", "").strip()
+                lines.append("")
+                lines.append("Profiles (BASE_URL + API_KEY + MODEL):")
+                for _pn in _profiles:
+                    _p = _config.get_profile(_pn)
+                    _mark = " ◀ active" if _pn == _active else ""
+                    lines.append(f"  {_pn:<12s} → {_p.get('model','?')}{_mark}")
+                lines.append("  usage: /model <profile>  (switches the whole trio)")
             lines.append("  usage: /model 1|2|<model-name>")
             return "\n".join(lines)
         if name == "1":
             return "MODEL_SWITCH:1"
         if name == "2":
             return "MODEL_SWITCH:2"
+        # If `name` matches a defined profile, signal a profile switch so
+        # the main loop can update BASE_URL/API_KEY/MODEL_NAME together.
+        # Otherwise fall through to bare-model switching.
+        try:
+            if name in _config.list_profiles():
+                return f"MODEL_SWITCH:profile:{name}"
+        except Exception:
+            pass
         return f"MODEL_SWITCH:{name}"
 
     def _cmd_window(self, args: str) -> str:
