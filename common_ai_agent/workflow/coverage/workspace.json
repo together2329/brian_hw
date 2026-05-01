@@ -1,0 +1,13 @@
+{
+  "description": "Verilator coverage analysis & gap closure — line/toggle coverage, directed test generation",
+  "prompt": {
+    "system_prompt_mode": "append",
+    "compression_prompt_mode": "append"
+  },
+  "env": {
+    "ENABLE_TODO_TRACKING": "true",
+    "COMPRESSION_TOOL_CALL_PATHS": "10"
+  },
+  "execution_mode": "sequential",
+  "default_delegate": ""
+}

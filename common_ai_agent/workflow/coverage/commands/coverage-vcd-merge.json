@@ -1,0 +1,7 @@
+{
+  "name": "coverage-vcd-merge",
+  "description": "Concat-merge multiple VCD waveform files into one (post-process channel)",
+  "aliases": ["cov-vcd-merge", "vcd-merge"],
+  "handler": "bash:coverage_vcd_merge.sh",
+  "usage": "/coverage-vcd-merge [<dut>] [--mode concat]"
+}
