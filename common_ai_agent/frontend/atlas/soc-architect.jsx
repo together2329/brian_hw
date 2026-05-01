@@ -446,6 +446,41 @@
 .bd-stub.magenta { color: var(--magenta); border-color: color-mix(in oklch, var(--magenta) 50%, var(--line-2)); }
 .bd-stub.cyan    { color: var(--cyan);    border-color: color-mix(in oklch, var(--cyan)    50%, var(--line-2)); }
 .bd-stub.warn    { color: var(--warn);    border-color: color-mix(in oklch, var(--warn)    50%, var(--line-2)); }
+
+/* ── Mini-map (cluster view, top-right corner) ─────────────────── */
+.bd-minimap {
+  position: absolute; top: 12px; right: 12px; z-index: 6;
+  background: color-mix(in oklch, var(--panel) 92%, transparent);
+  border: 1px solid var(--line-2);
+  font-family: var(--mono);
+  cursor: crosshair;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+.bd-minimap-head {
+  padding: 2px 6px; font-size: 9px; color: var(--fg-mute);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 4px;
+}
+.bd-minimap-head > span:last-child { padding: 0 4px; }
+.bd-minimap-head > span:last-child:hover { color: var(--err); }
+.bd-minimap-body {
+  position: relative;
+  background:
+    radial-gradient(circle at 1px 1px, color-mix(in oklch, var(--line) 70%, transparent) 1px, transparent 0) 0 0/6px 6px,
+    var(--bg);
+}
+.bd-minimap-toggle {
+  position: absolute; top: 12px; right: 12px; z-index: 6;
+  background: color-mix(in oklch, var(--panel) 92%, transparent);
+  border: 1px solid var(--line);
+  color: var(--fg-mute); font-family: var(--mono); font-size: 10px;
+  padding: 4px 10px; cursor: pointer;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  backdrop-filter: blur(8px);
+}
+.bd-minimap-toggle:hover { color: var(--accent); border-color: var(--accent); }
 `;
   document.head.appendChild(s);
 })();
@@ -556,6 +591,14 @@ window.SocArchitect = function SocArchitect() {
   const [pan, setPan] = React.useState({ x: 0, y: 0 });
   const bdCanvasRef = React.useRef(null);
   const panDragRef = React.useRef(null);
+  // Per-block manual position overrides + persistence. The actual
+  // localStorage key depends on `soc.name`, but `soc` is declared later
+  // in this function — so we initialise the state to {} here and the
+  // useEffect below (after soc is in scope) loads the right slot.
+  const [layout, setLayout] = React.useState({});
+  const blockDragRef = React.useRef(null);
+  // Mini-map toggle
+  const [miniOpen, setMiniOpen] = React.useState(true);
   // Hierarchy tree search query — case-insensitive substring match
   // against module id + name. Empty string means "show everything".
   const [treeQuery, setTreeQuery] = React.useState('');
@@ -610,6 +653,18 @@ window.SocArchitect = function SocArchitect() {
   const soc = (live && live.clusters && live.clusters.length) ? live : window.SOC;
   const lookup = (live && live.clusters && live.clusters.length) ? _buildLookup(live) : window.SOC_LOOKUP;
   const isLive = !!(live && live.clusters && live.clusters.length);
+
+  // Layout-persistence key depends on the SoC name so different SoCs
+  // keep independent block-position layouts. Reload the layout slot
+  // whenever the SoC name changes (Tier-1 ↔ Tier-2 swap, /wf switch).
+  const _layoutKey = `architectLayout:${(soc && soc.name) || 'default'}`;
+  React.useEffect(() => {
+    try { setLayout(JSON.parse(localStorage.getItem(_layoutKey) || '{}') || {}); }
+    catch (_) { setLayout({}); }
+  }, [_layoutKey]);
+  const persistLayout = React.useCallback((next) => {
+    try { localStorage.setItem(_layoutKey, JSON.stringify(next)); } catch (_) {}
+  }, [_layoutKey]);
 
   // Default selection: first module of first cluster (so we don't
   // hold a stale 'periph_ss/spi' ref on a live project that has
@@ -977,10 +1032,14 @@ window.SocArchitect = function SocArchitect() {
     const gapY = Math.max(40, (H - rowsN * maxBlockH - 60) / (rowsN + 1));
     const positions = {};
     c.modules.forEach((m, i) => {
+      const ref = `${c.id}/${m.id}`;
       const col = i % cols, rIdx = Math.floor(i / cols);
+      // Honour user-dragged position from `layout[ref]` if present;
+      // otherwise fall back to the auto-grid default.
+      const ov = layout && layout[ref];
       positions[m.id] = {
-        x: gapX + col * (blockW + gapX),
-        y: 40 + gapY + rIdx * (maxBlockH + gapY),
+        x: (ov && typeof ov.x === 'number') ? ov.x : gapX + col * (blockW + gapX),
+        y: (ov && typeof ov.y === 'number') ? ov.y : 40 + gapY + rIdx * (maxBlockH + gapY),
         w: blockW,
         h: sizes[i].h,
       };
@@ -1168,9 +1227,63 @@ window.SocArchitect = function SocArchitect() {
           return (
             <div key={m.id} className={`bd-block with-ports ${m.kind || ''} ${sel ? 'sel' : ''} ${touched ? 'touched' : ''}`}
                  style={{ left: p.x, top: p.y, width: p.w, height: p.h }}
-                 onClick={(e) => { e.stopPropagation(); setSelMod(ref); }}
+                 onClick={(e) => {
+                   // Skip if this was the end of a drag — block-head's
+                   // mouseup already handles the drag-stop, but a click
+                   // on body still selects.
+                   if (blockDragRef.current && blockDragRef.current.dragged) return;
+                   e.stopPropagation(); setSelMod(ref);
+                 }}
                  onDoubleClick={() => setView(`module:${ref}`)}>
-              <div className="bd-block-head">
+              <div className="bd-block-head"
+                   title="drag to move · double-click to drill in"
+                   style={{ cursor: 'grab' }}
+                   onMouseDown={(e) => {
+                     // Start a block drag. We store the screen-space start
+                     // and the block's stage-space base so mousemove can
+                     // compute a delta divided by the current zoom scale.
+                     // (Pan doesn't enter the math because pan is a
+                     // sibling translate that affects screen coords by
+                     // the same amount on both endpoints.)
+                     e.stopPropagation();
+                     const scale = zoom / 100;
+                     blockDragRef.current = {
+                       ref, scale, dragged: false,
+                       startX: e.clientX, startY: e.clientY,
+                       baseX: p.x, baseY: p.y,
+                     };
+                     e.currentTarget.style.cursor = 'grabbing';
+                   }}
+                   onMouseMove={(e) => {
+                     const d = blockDragRef.current;
+                     if (!d || d.ref !== ref) return;
+                     const dx = (e.clientX - d.startX) / d.scale;
+                     const dy = (e.clientY - d.startY) / d.scale;
+                     if (Math.abs(dx) + Math.abs(dy) < 2) return; // dead zone
+                     d.dragged = true;
+                     setLayout(prev => ({ ...prev, [ref]: {
+                       x: Math.max(0, Math.min(W - 60, d.baseX + dx)),
+                       y: Math.max(0, Math.min(H - 30, d.baseY + dy)),
+                     }}));
+                   }}
+                   onMouseUp={(e) => {
+                     const d = blockDragRef.current;
+                     if (!d || d.ref !== ref) return;
+                     e.currentTarget.style.cursor = 'grab';
+                     // Persist the new layout (only if user actually
+                     // moved — pure click stays a click).
+                     if (d.dragged) {
+                       setLayout(prev => { persistLayout(prev); return prev; });
+                     }
+                     // Clear after the click handler sees `dragged`.
+                     setTimeout(() => { blockDragRef.current = null; }, 0);
+                   }}
+                   onMouseLeave={(e) => {
+                     // If the mouse leaves the head while dragging, stop
+                     // — the canvas-level mouseup would clear it anyway,
+                     // but this avoids a stuck grabbing cursor.
+                     e.currentTarget.style.cursor = 'grab';
+                   }}>
                 <span className="nm-instance">{instLabel}</span>
                 <span className="nm-type">{typeLabel}</span>
                 <span style={{ flex: 1 }} />
@@ -1538,6 +1651,16 @@ window.SocArchitect = function SocArchitect() {
                 <span className="pct">{zoom}%</span>
                 <button onClick={() => setZoom(z => Math.min(200, z + 10))}>+</button>
                 <button onClick={fitZoom} title="fit diagram to canvas">fit</button>
+                <button onClick={() => {
+                          if (Object.keys(layout).length === 0) return;
+                          if (!confirm('Reset all dragged block positions to the auto-grid layout?')) return;
+                          setLayout({}); persistLayout({});
+                        }}
+                        title="discard user-dragged block positions and revert to auto-grid"
+                        style={{ borderLeft: '1px solid var(--line)',
+                                 opacity: Object.keys(layout).length ? 1 : 0.4 }}>
+                  reset
+                </button>
               </div>
               <div className="bd-legend">
                 <span className="swatch acc">AXI/ACE</span>
@@ -1566,6 +1689,126 @@ window.SocArchitect = function SocArchitect() {
                   {view.startsWith('module:') && renderModuleView(view.split(':')[1])}
                 </div>
               </div>
+              {/* Mini-map (cluster view only — soc/module views don't
+                  benefit since they're either a fixed 4-cluster layout
+                  or a single big block). */}
+              {miniOpen && view.startsWith('cluster:') && (() => {
+                const cid = view.split(':')[1];
+                const cc = soc.clusters.find(x => x.id === cid);
+                if (!cc) return null;
+                const W = 1180, H = 720;
+                const mw = 180, mh = Math.round(mw * H / W);
+                // Recompute positions the same way renderClusterView
+                // does (auto-grid + layout overrides) so the mini-map
+                // matches exactly.
+                const cols = Math.min(3, cc.modules.length);
+                const blockW = 220;
+                const partition = (m) => {
+                  const ifs = (m.interfaces || []);
+                  let lc = 0, rc = 0;
+                  for (const it of ifs) {
+                    const r = (it.role || 'slave').toLowerCase();
+                    const p = (it.proto || '').toUpperCase();
+                    if (p === 'CLK' || p === 'RST') lc++;
+                    else if (r === 'master') rc++;
+                    else lc++;
+                  }
+                  return Math.max(lc, rc, 2);
+                };
+                const sizes = cc.modules.map(m => ({ h: 24 + Math.max(76, partition(m) * 14 + 24) }));
+                const maxBlockH = Math.max(140, ...sizes.map(s => s.h));
+                const rowsN = Math.ceil(cc.modules.length / cols);
+                const gapX = Math.max(40, (W - cols * blockW) / (cols + 1));
+                const gapY = Math.max(40, (H - rowsN * maxBlockH - 60) / (rowsN + 1));
+                const sx = mw / W, sy = mh / H;
+                return (
+                  <div className="bd-minimap"
+                       onMouseDown={(e) => {
+                         // Click on minimap → pan stage so the click
+                         // location maps to the canvas center.
+                         const rect = e.currentTarget.getBoundingClientRect();
+                         const xWorld = (e.clientX - rect.left) / sx;
+                         const yWorld = (e.clientY - rect.top)  / sy;
+                         const scale = zoom / 100;
+                         setPan({
+                           x: ((W / 2) - xWorld) * scale,
+                           y: ((H / 2) - yWorld) * scale,
+                         });
+                         e.stopPropagation();
+                       }}>
+                    <div className="bd-minimap-head">
+                      <span>map</span>
+                      <span style={{ flex: 1 }} />
+                      <span style={{ cursor: 'pointer' }}
+                            onClick={(e) => { e.stopPropagation(); setMiniOpen(false); }}>×</span>
+                    </div>
+                    <div className="bd-minimap-body" style={{ width: mw, height: mh }}>
+                      {cc.modules.map((m, i) => {
+                        const ref = `${cc.id}/${m.id}`;
+                        const ov = layout && layout[ref];
+                        const col = i % cols, rIdx = Math.floor(i / cols);
+                        const x = (ov && typeof ov.x === 'number') ? ov.x : gapX + col * (blockW + gapX);
+                        const y = (ov && typeof ov.y === 'number') ? ov.y : 40 + gapY + rIdx * (maxBlockH + gapY);
+                        const h = sizes[i].h;
+                        const isSel = selMod === ref;
+                        const tint = m.kind === 'cpu' ? 'var(--accent)'
+                                   : m.kind === 'bus' ? 'var(--magenta)'
+                                   : m.kind === 'mem' ? 'var(--cyan)'
+                                   : m.kind === 'analog' ? 'var(--warn)'
+                                   : 'var(--ok)';
+                        return (
+                          <div key={m.id}
+                               title={m.name}
+                               onClick={(ev) => { ev.stopPropagation(); setSelMod(ref); }}
+                               onDoubleClick={(ev) => { ev.stopPropagation(); setView(`module:${ref}`); }}
+                               style={{
+                                 position: 'absolute',
+                                 left: x * sx, top: y * sy,
+                                 width: blockW * sx, height: h * sy,
+                                 background: isSel ? tint : 'color-mix(in oklch, ' + tint + ' 30%, var(--bg-2))',
+                                 border: '1px solid ' + (isSel ? 'var(--fg)' : tint),
+                                 cursor: 'pointer',
+                                 borderRadius: 1,
+                               }} />
+                        );
+                      })}
+                      {/* Viewport rectangle: shows what's currently
+                          visible given pan + zoom. The visible region in
+                          stage coords is centered at (W/2 - pan/scale,
+                          H/2 - pan/scale) with size = canvas / scale. */}
+                      {(() => {
+                        const el = bdCanvasRef.current;
+                        if (!el) return null;
+                        const scale = zoom / 100;
+                        const vw = (el.clientWidth || W) / scale;
+                        const vh = (el.clientHeight || H) / scale;
+                        const cx = W / 2 - pan.x / scale;
+                        const cy = H / 2 - pan.y / scale;
+                        const x = Math.max(0, cx - vw / 2);
+                        const y = Math.max(0, cy - vh / 2);
+                        const w = Math.min(W - x, vw);
+                        const h = Math.min(H - y, vh);
+                        return (
+                          <div style={{
+                            position: 'absolute',
+                            left: x * sx, top: y * sy,
+                            width: w * sx, height: h * sy,
+                            border: '1.5px solid var(--accent)',
+                            background: 'color-mix(in oklch, var(--accent) 8%, transparent)',
+                            pointerEvents: 'none',
+                            borderRadius: 1,
+                          }} />
+                        );
+                      })()}
+                    </div>
+                  </div>
+                );
+              })()}
+              {!miniOpen && view.startsWith('cluster:') && (
+                <button className="bd-minimap-toggle"
+                        onClick={(e) => { e.stopPropagation(); setMiniOpen(true); }}
+                        title="show mini-map">map</button>
+              )}
             </div>
           )}
 
