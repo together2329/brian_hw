@@ -658,25 +658,39 @@ def format_tree_display(tree_text: str, max_lines: int = None, head_lines: int =
     # Count dirs and files for summary
     dir_count = sum(1 for l in lines if l.strip().endswith('/') or '/>' in l)
     file_count = total - dir_count
-    summary = f"  {Color.DIM}📊 Total: {dir_count} directories, {file_count} files{Color.RESET}"
+    summary = f"  {Color.DIM}└ Total: {dir_count} directories, {file_count} files{Color.RESET}"
+
+    # Indent every entry line with the same 2-space prefix used by the
+    # summary line, so list-result rows align under "⎿  N entries" /
+    # "└ Total: ...". Prefixing at line-start is ANSI-safe: colour codes
+    # in tree output never span newlines, so we never insert into a CSI.
+    # Also wrap each entry in Color.DIM/RESET so the Textual renderer
+    # recognises these as continuation lines of the result block (it keys
+    # on ANSI presence — `_plain != text`); without ANSI codes the renderer
+    # treats the first plain entry as a "non-result line after result block"
+    # and inserts a blank separator between "⎿  N entries" and the entries.
+    _IND = f"  {Color.DIM}"
+    _END = Color.RESET
+    indented = [_IND + l + _END for l in lines]
 
     # Short tree — return as-is + summary
     if total <= max_lines:
-        return tree_text.rstrip('\n') + '\n' + summary
+        return '\n'.join(indented) + '\n' + summary
 
     # Long tree — truncate with head + omission marker + tail + summary
     # Ensure head doesn't overlap with tail; skip marker if nothing actually omitted
     _head_lines = min(head_lines, total - tail_lines)
     _tail_lines = min(tail_lines, total - _head_lines)
     omitted = total - _head_lines - _tail_lines
-    head = lines[:_head_lines]
-    tail = lines[-_tail_lines:] if _tail_lines > 0 else []
+    head = indented[:_head_lines]
+    tail = indented[-_tail_lines:] if _tail_lines > 0 else []
 
     parts = ['\n'.join(head)]
     if omitted > 0:
         marker = f"  {Color.DIM}... {omitted} directories/files omitted ...{Color.RESET}"
         parts.append(marker)
-    parts.append('\n'.join(tail))
+    if tail:
+        parts.append('\n'.join(tail))
     parts.append(summary)
     result = '\n'.join(parts)
 
@@ -846,7 +860,7 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                     _LABEL_W = 10
                     _HC = _G   # header/reason color = green
                     _TC = _R   # todo/detail/criteria content = white (reset)
-                    lines = [f"{_G}✅ approved{_R}"]
+                    lines = [f"{_G}[OK] approved{_R}"]
                     if approved_reason:
                         _wrapped = _tw.fill(
                             approved_reason,
@@ -960,7 +974,7 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                     _LABEL_W = 10
                     _HC = _RD  # header/reason color = red
                     _TC = _R   # todo/detail/criteria content = white (reset)
-                    lines = [f"{_RD}❌ rejected{_R}"]
+                    lines = [f"{_RD}[X] rejected{_R}"]
                     if rejected_reason:
                         _wrapped = _tw.fill(
                             rejected_reason,

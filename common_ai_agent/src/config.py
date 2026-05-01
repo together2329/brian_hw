@@ -326,6 +326,17 @@ ENABLE_NATIVE_TOOL_CALLS = os.getenv("ENABLE_NATIVE_TOOL_CALLS", "false").lower(
 TOOL_SCHEMA_COMPACT     = os.getenv("TOOL_SCHEMA_COMPACT", "false").lower() in ("true", "1", "yes")
 
 # ============================================================
+# Mode-gated tool unlocking
+# ============================================================
+# Default ON: all todo tools (todo_write/todo_remove/todo_update/
+# todo_add/todo_status) are exposed in Normal Mode too, so the agent
+# can manage its own task list during execution without flipping into
+# Plan Mode first. Set UNLOCK_NORMAL_MODE_TOOLS=false to restore the
+# old gating (todo_write/todo_remove plan-only; todo_update execution-
+# only).
+UNLOCK_NORMAL_MODE_TOOLS = os.getenv("UNLOCK_NORMAL_MODE_TOOLS", "true").lower() in ("true", "1", "yes")
+
+# ============================================================
 # Type Validation & Linting (Zero-Dependency Features)
 # ============================================================
 # Enable parameter type validation (always available - uses standard library only)
@@ -350,10 +361,13 @@ VERILOG_SIMULATOR = os.getenv("VERILOG_SIMULATOR", "vcs")
 GIT_VERSION_CONTROL_ENABLE = os.getenv("GIT_VERSION_CONTROL_ENABLE", "true").lower() in ("true", "1", "yes")
 
 # Permission flags — control whether destructive shell commands are allowed in run_command.
-# Default: disabled (blocked). Enable only when you explicitly need the agent to delete/move files.
+# Default ON: rm/mv are usable from run_command without an extra permission flip.
+# Always-blocked-regardless: sudo, shutdown/reboot/halt/poweroff, mkfs, `dd if=`,
+# `git reset --hard`, `git clean -f` — see `_is_dangerous_command()` in core/tools.py.
 # Toggle at runtime with: /permission rm on|off  or  /permission mv on|off
-ALLOW_RM = os.getenv("ALLOW_RM", "false").lower() in ("true", "1", "yes")
-ALLOW_MV = os.getenv("ALLOW_MV", "false").lower() in ("true", "1", "yes")
+# Set ALLOW_RM=false / ALLOW_MV=false in .env to restore the old gated behaviour.
+ALLOW_RM = os.getenv("ALLOW_RM", "true").lower() in ("true", "1", "yes")
+ALLOW_MV = os.getenv("ALLOW_MV", "true").lower() in ("true", "1", "yes")
 AUTO_CHMOD_WRITE = os.getenv("AUTO_CHMOD_WRITE", "false").lower() in ("true", "1", "yes")
 
 # Tool data limits — max items/lines actually returned to the LLM context.
@@ -1234,12 +1248,16 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     # Task Management (conditional)
     # todo_write is ALWAYS visible in Plan Mode (used to start a list)
     # Others only if todo_active is True
+    # When UNLOCK_NORMAL_MODE_TOOLS is set, expose every todo tool
+    # regardless of mode — the user wants the agent to manage its own
+    # list during execution without flipping into Plan Mode.
+    _unlock_all = UNLOCK_NORMAL_MODE_TOOLS
     task_tools = []
-    if plan_mode:
-        task_tools.append(_tool_line("todo_write", 'tasks', "Create task list (Plan Mode only). Format: [{content, activeForm, status, command, on_reject}]. command: shell str or {tool,args} dict — runs LLM-free, auto approved/rejected. on_reject: 1-based task index to jump to on failure."))
+    if plan_mode or _unlock_all:
+        task_tools.append(_tool_line("todo_write", 'tasks', "Create task list. Format: [{content, activeForm, status, command, on_reject}]. command: shell str or {tool,args} dict — runs LLM-free, auto approved/rejected. on_reject: 1-based task index to jump to on failure."))
         task_tools.append(_tool_line("todo_remove", 'index', "Remove a task (index REQUIRED, 1-based)."))
-    
-    if todo_active:
+
+    if todo_active or _unlock_all:
         task_tools.append(_tool_line("todo_update", 'index, status, content, detail', "Update task status (index REQUIRED, 1-based)."))
         task_tools.append(_tool_line("todo_add", 'content, priority, index', "Add task (index is target position, 1-based)."))
         task_tools.append(_tool_line("todo_status", '', "Show current task progress."))
@@ -1247,6 +1265,31 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     task_tools = [t for t in task_tools if t]
     if task_tools:
         tool_lines["Task Management"] = task_tools
+
+    # Workflow / IP scaffolding / interactive Q&A (visible in text mode too —
+    # otherwise the LLM falls back to run_command(scaffold_ip(...)) and emits
+    # inline fake-dialogs because it doesn't know ask_user exists).
+    workflow_tools = [
+        _tool_line("scaffold_ip", 'name, root="."',
+                   "Create the canonical IP directory layout under <root>/<name>/ "
+                   "(yaml, rtl, list, tb, tc, sim, sdc, lint, doc, req). "
+                   "Idempotent. Call this FIRST for any new IP request."),
+        _tool_line("ask_user", 'question, kind, options=[], subtitle="", questions=None',
+                   "Ask the user one or more decisions via the GUI/TUI and "
+                   "BLOCK until answered. Single mode: pass question+kind+options. "
+                   "kind: single|multi|input. options: list of {id,label,detail?}. "
+                   "BATCHED mode: pass questions=[{question,kind,options,subtitle}, ...] "
+                   "to ask N related questions at once — user navigates with ←/→ and "
+                   "submits all in one click (much less disruptive than N sequential "
+                   "calls). PREFER batched when you have multiple related TBDs."),
+        _tool_line("read_doc", 'path',
+                   "Convert PDF/DOCX/PPTX/XLSX/HTML → markdown (≤32k chars) via "
+                   "markitdown. Use when the user references a spec/datasheet/"
+                   "requirement doc in a non-text format."),
+    ]
+    workflow_tools = [t for t in workflow_tools if t]
+    if workflow_tools:
+        tool_lines["Workflow"] = workflow_tools
 
     tool_lines["Sub-Agents"] = [
         _tool_line("background_task", 'agent, prompt', "Delegate to sub-agent (explore/workflow)."),
@@ -1499,11 +1542,16 @@ PLAN_MODE_BLOCKED_TOOLS = frozenset({
     'replace_file_content', 'multi_replace_file_content',
     'apply_diffs', 'run_command', 'git_revert',
     'background_task', 'background_output', 'spawn_explore',
-    'todo_update',  # Plan mode: use todo_write/todo_add/todo_remove; todo_update is for execution
-})
+} | (set() if UNLOCK_NORMAL_MODE_TOOLS else {
+    # Plan-mode default: use todo_write/todo_add/todo_remove instead of
+    # todo_update (which is for execution).
+    'todo_update',
+}))
 
-# Tools only available in Plan Mode (blocked in Normal/Execution mode)
-NORMAL_MODE_BLOCKED_TOOLS = frozenset({
+# Tools only available in Plan Mode (blocked in Normal/Execution mode).
+# UNLOCK_NORMAL_MODE_TOOLS=true clears this set so the agent can use
+# todo_write/todo_remove during execution too.
+NORMAL_MODE_BLOCKED_TOOLS = frozenset() if UNLOCK_NORMAL_MODE_TOOLS else frozenset({
     'todo_write',   # Use todo_update/todo_add during execution
     'todo_remove',  # Task removal only during planning
 })

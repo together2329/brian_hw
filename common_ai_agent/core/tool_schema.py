@@ -694,31 +694,33 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
     "ask_user": _fn(
         "ask_user",
         (
-            "Ask the user a question through the GUI and BLOCK until they "
-            "answer. The Atlas web UI renders the call as an inline question "
-            "card with selectable options + a free-form note field; the "
-            "Textual TUI renders it as an inline panel above the input row. "
-            "Always prefer this over plain-prose questions when you need a "
-            "single decision from the user."
+            "Ask the user one or more questions through the GUI and BLOCK "
+            "until they answer. Two modes:\n"
+            "  • Single-question (default): pass `question` (+ options/kind/subtitle).\n"
+            "  • Batched: pass `questions=[{question, kind, options, subtitle}, ...]` "
+            "to ask multiple related questions in one round-trip. The user "
+            "navigates between them with ←/→ and submits all answers at once. "
+            "PREFER batched when you have N related TBDs to resolve in one "
+            "iteration — far less disruptive than N sequential calls."
         ),
         properties={
             "question": {
                 "type": "string",
-                "description": "Short, single-decision question text shown as the card title.",
+                "description": "Single-mode: the main question text. Omit when using `questions`.",
             },
             "kind": {
                 "type": "string",
                 "enum": ["single", "multi", "input"],
                 "description": (
-                    "single = one option (radio); multi = many options "
-                    "(checkboxes); input = free-form text only."
+                    "Single-mode: single = radio, multi = checkboxes, "
+                    "input = free-form text only. Omit when using `questions`."
                 ),
             },
             "options": {
                 "type": "array",
                 "description": (
-                    "List of {id, label, detail?} for single/multi. Omit "
-                    "or pass [] for kind='input'. Provide 2-6 options."
+                    "Single-mode: list of {id, label, detail?} for single/multi. "
+                    "Omit or pass [] for kind='input'. Provide 2-6 options."
                 ),
                 "items": {
                     "type": "object",
@@ -733,12 +735,43 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "subtitle": {
                 "type": "string",
                 "description": (
-                    "Explainer line under the question. Convention: "
+                    "Short explainer used as the breadcrumb tab label in "
+                    "batch mode. Convention: "
                     "'§<N> <field path> — Suggest: <recommended value>'."
                 ),
             },
+            "questions": {
+                "type": "array",
+                "description": (
+                    "Batched mode: a list of question dicts, each with the "
+                    "same {question, kind, options, subtitle} keys as a "
+                    "single call. When set, the other top-level fields are "
+                    "ignored. Use 2-5 questions per batch."
+                ),
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "question": {"type": "string"},
+                        "kind":     {"type": "string", "enum": ["single", "multi", "input"]},
+                        "subtitle": {"type": "string"},
+                        "options": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "id":     {"type": "string"},
+                                    "label":  {"type": "string"},
+                                    "detail": {"type": "string"},
+                                },
+                                "required": ["id", "label"],
+                            },
+                        },
+                    },
+                    "required": ["question", "kind"],
+                },
+            },
         },
-        required=["question", "kind"],
+        required=[],  # validation done at runtime: either question or questions
     ),
 
     # ── Document ingestion (Word / PDF / etc. → markdown) ────────────────────

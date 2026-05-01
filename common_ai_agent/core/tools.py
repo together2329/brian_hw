@@ -4476,41 +4476,104 @@ def read_doc(path):
     return text
 
 
-def ask_user(question, options=None, kind="single", subtitle=""):
-    """Ask the user a question through the GUI and wait for their answer.
+def _normalize_options(options):
+    """Normalize options into a list of {id, label, detail?}."""
+    norm = []
+    for i, o in enumerate(options or []):
+        if isinstance(o, str):
+            norm.append({"id": f"opt_{i}", "label": o})
+        elif isinstance(o, dict) and o.get("label"):
+            norm.append({
+                "id": str(o.get("id", f"opt_{i}")),
+                "label": str(o["label"]),
+                "detail": str(o.get("detail", "")) or None,
+            })
+    return norm
+
+
+def ask_user(question=None, options=None, kind="single", subtitle="",
+             questions=None):
+    """Ask the user one or more questions through the GUI and wait for
+    their answer(s).
+
+    Two modes:
+      • Single-question (default): pass `question` (+ optional `options`,
+        `kind`, `subtitle`).
+      • Batched: pass `questions=[{question, kind, options, subtitle},
+        ...]` to ask multiple related questions at once. The user
+        navigates between them with ← / → and submits all answers in
+        one click. Use this when you have N related TBDs to resolve in
+        one round-trip — much less disruptive than N sequential calls.
 
     Args:
-        question: Required. The main question text shown to the user.
-        options:  Optional list. Either a list of strings, or a list of
-                  dicts {id, label, detail?}. Required when kind in
-                  ('single', 'multi'); ignored when kind == 'input'.
-        kind:     'single' (radio, default), 'multi' (checkbox), or
-                  'input' (free-form text only).
-        subtitle: Optional explainer line under the question.
+        question:  Single-mode: the main question text.
+        options:   Single-mode: list of strings or {id, label, detail?}.
+        kind:      Single-mode: 'single' | 'multi' | 'input'.
+        subtitle:  Single-mode: short explainer used as the breadcrumb
+                   tab label in batch mode too.
+        questions: Batched mode: list of dicts. Each dict has the same
+                   keys as a single-question call.
 
     Returns:
-        Plain-text summary of the user's answer.
+        Plain-text summary of the user's answer(s).
     """
     if _ask_user_callback is None:
         return ("[ask_user unavailable — running outside GUI mode. "
                 "Restate the question to the user in your reply instead.]")
+
+    # ── Batched mode ─────────────────────────────────────────────────
+    if questions:
+        if not isinstance(questions, list) or not questions:
+            return "[ask_user: 'questions' must be a non-empty list]"
+        norm_qs = []
+        for i, q in enumerate(questions):
+            if not isinstance(q, dict):
+                return f"[ask_user: questions[{i}] must be a dict]"
+            qtext = q.get("question", "")
+            if not isinstance(qtext, str) or not qtext.strip():
+                return f"[ask_user: questions[{i}].question must be a non-empty string]"
+            qkind = (q.get("kind") or "single").lower()
+            if qkind not in ("single", "multi", "input"):
+                return f"[ask_user: questions[{i}].kind invalid; use single|multi|input]"
+            qopts = _normalize_options(q.get("options"))
+            if qkind in ("single", "multi") and not qopts:
+                return f"[ask_user: questions[{i}].kind={qkind!r} requires options]"
+            norm_qs.append({
+                "question": qtext,
+                "kind": qkind,
+                "options": qopts,
+                "subtitle": q.get("subtitle", "") or "",
+            })
+        try:
+            # Pass batch through the callback. Callbacks that don't
+            # support batched mode receive only the first question to
+            # stay backward-compatible.
+            try:
+                return _ask_user_callback(
+                    norm_qs[0]["question"], norm_qs[0]["options"],
+                    norm_qs[0]["kind"], norm_qs[0]["subtitle"],
+                    questions=norm_qs,
+                )
+            except TypeError:
+                # Callback doesn't accept questions kwarg → fall back to
+                # sequential single-question calls and concatenate.
+                parts = []
+                for q in norm_qs:
+                    r = _ask_user_callback(
+                        q["question"], q["options"], q["kind"], q["subtitle"]
+                    )
+                    parts.append(f"[{q.get('subtitle') or q['question'][:30]}] {r}")
+                return "\n".join(parts)
+        except Exception as e:
+            return f"[ask_user error: {type(e).__name__}: {e}]"
+
+    # ── Single-question mode (legacy) ────────────────────────────────
     if not isinstance(question, str) or not question.strip():
         return "[ask_user: 'question' must be a non-empty string]"
     kind = (kind or "single").lower()
     if kind not in ("single", "multi", "input"):
         return f"[ask_user: invalid kind={kind!r}; use single|multi|input]"
-    # Normalize options into a list of {id, label, detail?}.
-    norm_opts = []
-    if options:
-        for i, o in enumerate(options):
-            if isinstance(o, str):
-                norm_opts.append({"id": f"opt_{i}", "label": o})
-            elif isinstance(o, dict) and o.get("label"):
-                norm_opts.append({
-                    "id": str(o.get("id", f"opt_{i}")),
-                    "label": str(o["label"]),
-                    "detail": str(o.get("detail", "")) or None,
-                })
+    norm_opts = _normalize_options(options)
     if kind in ("single", "multi") and not norm_opts:
         return f"[ask_user: kind={kind!r} requires non-empty options list]"
     try:

@@ -2179,6 +2179,61 @@ class SlashCommandRegistry:
             return "No skills loaded.\n"
         return section + "\n"
 
+    @staticmethod
+    def _colorize_ctx_line(line: str) -> str:
+        """Apply ANSI colours to scan-friendly patterns within a content
+        line: ReAct labels, status marks, file paths, numbers, tool
+        names. Used by /context -v so the verbose dump reads more like
+        a syntax-highlighted log than a flat blob."""
+        import re as _re
+        _RESET = "\033[0m"
+        # palette
+        _ACC   = "\033[36m"        # cyan
+        _GRN   = "\033[32m"
+        _RED   = "\033[31m"
+        _YEL   = "\033[33m"
+        _MAG   = "\033[35m"
+        _BLU   = "\033[94m"        # bright blue
+        _ORN   = "\033[38;5;208m"
+        _BOLD  = "\033[1m"
+        _DIM   = "\033[2m"
+        _ITALIC= "\033[3m"
+
+        # ReAct/think labels at line start (after optional whitespace)
+        for label, color in [
+            ("Final Answer", f"{_BOLD}{_ORN}"),
+            ("Thought",      f"{_BOLD}{_BLU}"),
+            ("Action",       f"{_BOLD}{_MAG}"),
+            ("Observation",  f"{_BOLD}{_ACC}"),
+            ("Reasoning",    f"{_DIM}{_ITALIC}"),
+        ]:
+            line = _re.sub(
+                rf"^(\s*)({label})\s*:",
+                rf"\1{color}\2:{_RESET}",
+                line,
+            )
+        # ✓ / ✗ / ⚠ status marks
+        line = _re.sub(r"(✓|✔)([ \t])", rf"{_GRN}\1{_RESET}\2", line)
+        line = _re.sub(r"(✗|✘|❌)([ \t])", rf"{_RED}\1{_RESET}\2", line)
+        line = _re.sub(r"(⚠️?)([ \t])", rf"{_YEL}\1{_RESET}\2", line)
+        # [Tool Use: name]
+        line = _re.sub(
+            r"(\[Tool Use:\s*)([^\]]+)(\])",
+            rf"{_DIM}\1{_RESET}{_MAG}\2{_RESET}{_DIM}\3{_RESET}",
+            line,
+        )
+        # file paths (rough — only when surrounded by whitespace/quotes/parens)
+        line = _re.sub(
+            r"(?<![\w\-/.])([\w\-]+(?:/[\w\-.]+)+\.\w{1,6})(?![\w\-/.])",
+            rf"{_ACC}\1{_RESET}",
+            line,
+        )
+        # token / size numbers like  1,234   2.0k   200k   $0.0023
+        line = _re.sub(r"\b(\d+(?:[,.]\d+)*[kKmMgG]?)\b(?=\s+(?:tokens?|chars?|bytes?))",
+                        rf"{_YEL}\1{_RESET}", line)
+        line = _re.sub(r"\$(\d+\.\d+)", rf"{_GRN}$\1{_RESET}", line)
+        return line
+
     def _format_full_context(self, tracker) -> str:
         """Format the full conversation history for verbose display."""
         if not hasattr(tracker, 'messages') or not tracker.messages:
@@ -2276,11 +2331,14 @@ class SlashCommandRegistry:
                     token_str = f" [{count} tokens]"
 
             lines.append(f"\n{role_fmt}{turn_str}{token_str}")
-            
-            # Print content with subtle indentation
+
+            # Print content with subtle indentation + per-line colourisation.
+            # The colorizer highlights ReAct labels, status marks, file paths,
+            # tool names, token counts, and dollar amounts so the verbose
+            # dump scans more like a syntax-highlighted log.
             for line in content.splitlines():
-                lines.append(f"  {line}")
-            
+                lines.append(f"  {self._colorize_ctx_line(line)}")
+
             lines.append("\033[2m" + "-" * 40 + "\033[0m") # Dim separator
 
         lines.append("\n\033[2m" + "=" * 60 + "\033[0m")

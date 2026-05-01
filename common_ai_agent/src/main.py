@@ -1662,6 +1662,15 @@ def chat_loop():
                             _textual_emit_todo_fn(_tt.format_simple())
                         else:
                             _textual_emit_todo_fn("")
+                    # Refresh the SKILL sidebar immediately so the user
+                    # sees the activation/deactivation reflected without
+                    # waiting for the next LLM call. Pass (0, 0) — the
+                    # emitter reads the current token count internally.
+                    if _textual_emit_context_fn:
+                        try:
+                            _textual_emit_context_fn(0, 0)
+                        except Exception:
+                            pass
                     continue
 
                 result = slash_registry.execute(user_input)
@@ -2103,9 +2112,13 @@ def chat_loop():
                         ws_name = result.split(":", 1)[1].strip()
 
                         def _ws_emit(line: str) -> None:
-                            """Mirror workspace-switch status to terminal AND
-                            web UI; print() alone leaves the browser blank."""
-                            print(line)
+                            """Mirror workspace-switch status to the right
+                            sink. In Textual/Atlas mode the explicit
+                            emit feeds the chat; print() would *also*
+                            fire because stdout is captured and routed
+                            into the chat → the same line appears twice
+                            (once plain, once as a bordered panel). So
+                            we only print() in plain-CLI mode."""
                             if _textual_emit_content_fn is not None:
                                 try:
                                     import re as _re
@@ -2114,6 +2127,8 @@ def chat_loop():
                                         _textual_emit_content_fn(_l)
                                 except Exception:
                                     pass
+                            else:
+                                print(line)
 
                         try:
                             # Switch session context — flat project layout (single param)
@@ -2258,10 +2273,23 @@ def chat_loop():
                                     # `#` characters render verbatim instead
                                     # of being parsed as markdown emphasis
                                     # / headings.
-                                    _textual_emit_content_fn("```")
-                                    for _line in _clean.splitlines() or [""]:
-                                        _textual_emit_content_fn(_line)
-                                    _textual_emit_content_fn("```")
+                                    # Emit as a single payload with explicit
+                                    # newlines between every line. Per-call
+                                    # emits used to ship lines without a
+                                    # trailing "\n", so the WS bridge
+                                    # concatenated them into one long string
+                                    # ("```Line1Line2```") and the browser
+                                    # rendered it as continuous text.
+                                    # Nesting-safe fence: pick a backtick run
+                                    # length one longer than the longest run
+                                    # already present in the body, so any
+                                    # embedded ``` doesn't terminate our wrap
+                                    # early (which previously caused marked.js
+                                    # to split the block into ~10 fragments).
+                                    _longest = max((len(m.group(0)) for m in re.finditer(r"`+", _clean)), default=0)
+                                    _fence = "`" * max(3, _longest + 1)
+                                    _payload = f"{_fence}\n" + "\n".join(_clean.splitlines() or [""]) + f"\n{_fence}\n"
+                                    _textual_emit_content_fn(_payload)
                                     if _textual_emit_flush_fn is not None:
                                         _textual_emit_flush_fn()
                                 except Exception:

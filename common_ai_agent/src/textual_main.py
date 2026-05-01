@@ -171,18 +171,29 @@ def _run_agent(app: AgentTUI) -> None:
         if custom: parts.append("note: " + custom)
         return " · ".join(parts) if parts else "(user submitted with no selection)"
 
-    def _ask_user_textual(question, options, kind, subtitle):
+    def _ask_user_textual(question, options, kind, subtitle, questions=None):
         flow_id = "qa_" + _uuid.uuid4().hex[:10]
         answer_q: _queue.Queue = _queue.Queue()
         app.post_message(AskUserRequest(
             flow_id=flow_id, question=question, kind=kind,
             subtitle=subtitle or "", options=options or [],
-            answer_q=answer_q,
+            answer_q=answer_q, questions=questions,
         ))
         try:
             ans = answer_q.get(timeout=900)  # 15 min ceiling
         except _queue.Empty:
             return "[ask_user: no answer received within 15 min]"
+        # Cancel-all from the user — match Claude Code's wording so the
+        # agent recognizes this consistent signal.
+        if ans.get("type") == "cancel":
+            return "User declined to answer questions"
+        # Batched response: list of per-question answers.
+        if questions and "answers" in ans:
+            blocks = []
+            for q, qa in zip(questions, ans.get("answers") or []):
+                label = (q.get("subtitle") or q.get("question", ""))[:40]
+                blocks.append(f"  • {label}\n    {_format_answer(qa, q.get('options'))}")
+            return "Batched answers:\n" + "\n".join(blocks) if blocks else "(no answers)"
         return _format_answer(ans, options or [])
 
     try:

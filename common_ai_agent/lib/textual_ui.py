@@ -15,6 +15,10 @@ from rich.markdown import Markdown as _RichMarkdown
 from rich.markdown import Heading as _RichHeading
 from rich.markdown import ListItem as _RichListItem
 from rich.markdown import Paragraph as _RichParagraph
+from rich.markdown import TableElement as _RichTable
+from rich.markdown import TableRowElement as _RichTableRow
+from rich.markdown import TableDataElement as _RichTableCell
+from rich.markdown import CodeBlock as _RichCodeBlock
 from rich.text import Text as RichText
 from rich.table import Table as RichTable
 from textual.app import App, ComposeResult
@@ -73,6 +77,16 @@ def _fix_table_block(rows: list) -> list:
         ncols = _col_count(rows[0])
         rows = [rows[0], _make_sep(ncols)] + rows[1:]
         sep_idx = 1
+    elif sep_idx == 0:
+        # Separator on first line with no header above. Markdown spec
+        # requires a header row; without one, Rich's renderer falls
+        # back to per-paragraph rendering and inserts huge vertical
+        # spacing between every row. Insert an empty header row.
+        ncols = _col_count(rows[0])
+        empty_header = "|" + "|".join("   " for _ in range(ncols)) + "|"
+        rows = [empty_header] + rows
+        sep_idx = 1
+        rows[sep_idx] = _make_sep(ncols)
     else:
         # Normalise existing separator
         ncols = _col_count(rows[0])
@@ -107,7 +121,32 @@ def _fix_md(text: str) -> str:
     8. Highlight syntax (==text==) -> **bold**
     9. Footnotes ([^N]) -> stripped
     10. Blank lines before/after list blocks
+    11. ReAct labels: `Thought:` / `Final Answer:` / `Action:` /
+        `Observation:` rendered with bold + colour so they pop out of
+        the response panel instead of appearing as flat plain text.
     '''
+    # ReAct label cleanup. The Reasoning panel above the response
+    # already shows the model's internal thought stream — duplicating
+    # it as `Thought:` text inside the response panel is just noise.
+    # And `Final Answer:` is scaffolding, not content the user needs
+    # to see — strip the label, keep the body.
+    #
+    # • Drop `Thought: …` lines entirely (redundant with Reasoning).
+    # • Drop the `Final Answer:` label, keep its body.
+    # • Leave `Action:` / `Observation:` alone — those map to actual
+    #   tool calls / results which DO carry information beyond reasoning.
+    text = re.sub(
+        r"^[ \t]*Thought\s*:.*(?:\n|$)",
+        "",
+        text,
+        flags=re.MULTILINE,
+    )
+    text = re.sub(
+        r"^[ \t]*Final Answer\s*:[ \t]*",
+        "",
+        text,
+        flags=re.MULTILINE,
+    )
     raw_lines = text.splitlines()
 
     # -- Pass 0: wrap directory-tree blocks in code fences --
@@ -355,6 +394,49 @@ class _TightParagraph(_RichParagraph):
     new_line = False
 
 
+class _TightTable(_RichTable):
+    """Table without a leading blank line."""
+    new_line = False
+
+
+class _TightTableRow(_RichTableRow):
+    """Table row without a leading blank line — Rich's default sets
+    new_line=True per row, which is what produces the runaway vertical
+    spacing in the Textual TUI when an LLM emits a multi-row table."""
+    new_line = False
+
+
+class _TightTableCell(_RichTableCell):
+    """Table cell without a leading blank line."""
+    new_line = False
+
+
+class _TightCodeBlock(_RichCodeBlock):
+    """Code fence renderer with no leading blank line and no vertical
+    padding around the syntax-highlighted content. Rich's default
+    CodeBlock sets ``new_line=True`` AND wraps the inner ``Syntax`` in
+    ``padding=1`` — together those add a blank line before the fence,
+    one blank line above the code, and one blank line below the code,
+    so even a two-line fence renders inside a panel as 6 lines tall.
+    Drop both: ``new_line=False`` for the leading break and
+    ``padding=(0, 0)`` for the inner vertical gaps. The outer Panel
+    already provides its own ``padding=(0, 1)`` so we don't need
+    additional horizontal padding here either.
+    """
+    new_line = False
+
+    def __rich_console__(self, console, options):  # type: ignore[override]
+        from rich.syntax import Syntax
+        code = str(self.text).rstrip()
+        yield Syntax(
+            code,
+            self.lexer_name,
+            theme=self.theme,
+            word_wrap=True,
+            padding=0,
+        )
+
+
 class _LeftMarkdown(_RichMarkdown):
     # Override list_item_open + paragraph_open so consecutive bullets
     # render without a blank line between each item. Rich's defaults
@@ -365,6 +447,12 @@ class _LeftMarkdown(_RichMarkdown):
         "heading_open":   _LeftHeading,
         "list_item_open": _TightListItem,
         "paragraph_open": _TightParagraph,
+        "table_open":     _TightTable,
+        "tr_open":        _TightTableRow,
+        "th_open":        _TightTableCell,
+        "td_open":        _TightTableCell,
+        "fence":          _TightCodeBlock,
+        "code_block":     _TightCodeBlock,
     }
 
     def __init__(self, markup, *args, **kwargs):
@@ -479,15 +567,25 @@ class TokenUsage(Message):
 
 
 class AskUserRequest(Message):
-    """Agent thread → TUI: open an ask_user question card."""
+    """Agent thread → TUI: open an ask_user question card.
+
+    Two modes:
+      • Single-question: `questions` is None; `question/kind/options/subtitle`
+        carry the single question data.
+      • Batched: `questions` is a non-empty list of dicts. Each dict has
+        keys {question, kind, options, subtitle}. The other top-level
+        fields mirror questions[0] for backward compatibility.
+    """
     def __init__(self, flow_id: str, question: str, kind: str,
-                 subtitle: str, options: list, answer_q) -> None:
-        self.flow_id  = flow_id
-        self.question = question
-        self.kind     = kind         # 'single' | 'multi' | 'input'
-        self.subtitle = subtitle
-        self.options  = options      # list of {id, label, detail?}
-        self.answer_q = answer_q     # queue.Queue — modal puts answer dict here
+                 subtitle: str, options: list, answer_q,
+                 questions: list = None) -> None:
+        self.flow_id   = flow_id
+        self.question  = question
+        self.kind      = kind         # 'single' | 'multi' | 'input'
+        self.subtitle  = subtitle
+        self.options   = options      # list of {id, label, detail?}
+        self.answer_q  = answer_q     # queue.Queue — modal puts answer dict here
+        self.questions = questions    # None = single mode, list = batched
         super().__init__()
 
 
@@ -609,6 +707,29 @@ def _clipboard_copy(text: str) -> None:
                 continue
     except Exception:
         pass
+
+
+_SENTINEL_OID_RE = __import__("re").compile(r"^__\w+__$")
+
+
+def _is_sentinel_oid(oid) -> bool:
+    """True if `oid` is one of the internal ask-panel sentinel option IDs
+    (e.g. __separator__, __type_something__, __chat_about__,
+    __review_submit__, __review_cancel__). These IDs are implementation
+    detail and must NEVER appear as visible text in the UI."""
+    if not isinstance(oid, str):
+        return False
+    return bool(_SENTINEL_OID_RE.match(oid))
+
+
+def _strip_sentinel_text(text: str) -> str:
+    """Remove any sentinel-shaped tokens (`__\\w+__`) from `text`. Used as
+    a defensive sanitizer when restoring focus to the input box after the
+    ask panel closes — so a stale leak (if one ever happens) doesn't show."""
+    if not text:
+        return text
+    return _SENTINEL_OID_RE.sub("", text) if _SENTINEL_OID_RE.fullmatch(text) \
+        else __import__("re").sub(r"__\w+__", "", text)
 
 
 class AgentInputSubmitted(Message):
@@ -1307,6 +1428,12 @@ class AgentTUI(App):
         dock: bottom;
         background: {_BG_INPUT};
     }}
+    #input-activity {{
+        height: 1;
+        background: {_BG_INPUT};
+        color: {_TEXT_DIM};
+        padding: 0 2;
+    }}
     #input-topline {{
         height: 1;
         color: {_BORDER_DIM};
@@ -1367,16 +1494,25 @@ class AgentTUI(App):
     /* ── Inline ask_user panel — sits just above the input row ─── */
     #ask-user-panel {{
         dock: bottom;
-        margin-bottom: 4;
+        margin-bottom: 0;
         display: none;
         height: auto;
-        max-height: 16;
-        background: {_BG_INPUT};
-        border: round {_ACCENT};
-        padding: 0 1;
+        max-height: 32;
+        background: $surface;
+        border-top: hkey {_ACCENT};
+        border-bottom: hkey {_ACCENT};
+        padding: 1 2;
     }}
     #ask-user-panel.visible {{
         display: block;
+    }}
+    #ask-crumbs {{
+        color: {_TEXT_DIM};
+        padding-bottom: 1;
+    }}
+    #ask-review {{
+        color: {_TEXT};
+        padding: 1 0;
     }}
     #ask-q {{
         color: {_ACCENT};
@@ -1389,13 +1525,51 @@ class AgentTUI(App):
     }}
     #ask-opts {{
         height: auto;
-        max-height: 8;
-        background: {_BG_INPUT};
-        border: tall {_BORDER_DIM};
+        max-height: 18;
+        background: transparent;
+        border: none;
+        padding: 0;
+    }}
+    #ask-opts > .option-list--option {{
+        padding: 0 1;
     }}
     #ask-note {{
         margin-top: 1;
         background: {_BG_INPUT};
+        border: tall {_BORDER_DIM};
+    }}
+    #ask-buttons {{
+        display: none;
+        height: 3;
+        align-horizontal: right;
+        padding: 1 1 0 1;
+    }}
+    #ask-buttons.visible {{
+        display: block;
+    }}
+    #ask-buttons Button {{
+        margin-left: 2;
+        min-width: 14;
+        height: 3;
+    }}
+    #ask-submit-btn {{
+        background: {_ACCENT};
+        color: black;
+        text-style: bold;
+    }}
+    #ask-submit-btn:focus {{
+        background: {_ACCENT};
+        color: black;
+        text-style: bold reverse;
+        border: tall white;
+    }}
+    #ask-cancel-btn {{
+        background: {_BORDER_DIM};
+        color: {_TEXT};
+    }}
+    #ask-cancel-btn:focus {{
+        text-style: bold reverse;
+        border: tall white;
     }}
     #ask-hint {{
         color: {_TEXT_DIM};
@@ -1438,6 +1612,10 @@ class AgentTUI(App):
     BINDINGS = [
         ("ctrl+q", "quit", "Quit"),
         ("escape", "stop", "Stop"),
+        # App-level ask_user submit: works even when _AgentInput is
+        # disabled (it's disabled while a dialog is open so it doesn't
+        # steal focus, which also disables its own ctrl+s binding).
+        ("ctrl+s", "ask_submit", "Submit ask"),
     ]
 
     def __init__(self, run_agent_fn: Callable) -> None:
@@ -1545,12 +1723,21 @@ class AgentTUI(App):
         # Inline ask_user panel — sits just above the input row, hidden by
         # default. Replaces the old modal-screen popup.
         with Vertical(id="ask-user-panel", classes="hidden"):
+            yield Static("", id="ask-crumbs")
             yield Static("", id="ask-q")
             yield Static("", id="ask-sub")
             yield OptionList(id="ask-opts")
+            yield Static("", id="ask-review")
             yield Input(placeholder="Custom note (optional)…", id="ask-note")
+            with Horizontal(id="ask-buttons"):
+                yield Button("Submit", id="ask-submit-btn", variant="primary")
+                yield Button("Cancel", id="ask-cancel-btn")
             yield Static("", id="ask-hint")
         with Vertical(id="input-wrap"):
+            # Inline activity line — mirrors the sidebar's Waiting for
+            # input… / Generating… / Reasoning… so the status is visible
+            # right above the prompt where the eye is already sitting.
+            yield Static("", id="input-activity")
             yield Static("", id="input-topline")
             with Horizontal(id="input-row"):
                 yield Static("❯", id="input-prompt")
@@ -1869,7 +2056,26 @@ class AgentTUI(App):
     def _on_agent_idle(self) -> None:
         """Called from InputBridge.get_input() when agent thread is back at prompt."""
         self._esc_fired = False
+        # Reset every activity flag — without this, the sidebar can stay
+        # stuck on a stale label (Reasoning… / Writing… / Action(...))
+        # if the agent finished mid-block and the closing transition
+        # didn't fire. The canonical "agent is idle" reset belongs here.
         self._generating = False
+        self._reasoning_open = False
+        self._reasoning_header_written = False
+        self._in_edit = False
+        self._in_diff = False
+        self._in_parallel = False
+        self._current_tool = ""
+        self._compressing = False
+        try:
+            self._update_activity()      # sidebar → "Waiting for input..."
+            self._update_statusbar()
+        except Exception:
+            pass
+        # Don't yank focus off an open ask_user dialog.
+        if getattr(self, "_ask_active", None) is not None:
+            return
         try:
             self.query_one(_AgentInput).focus()
         except Exception:
@@ -1882,21 +2088,223 @@ class AgentTUI(App):
 
     def on_app_focus(self) -> None:
         """Restore input focus when terminal window is refocused."""
+        # Treat re-gaining focus as a focus event too — terminals (esp.
+        # cmux) often emit FOCUSIN \x1b[I which can also race with the
+        # xterm parser and produce a spurious ESC. Touching the same
+        # debounce timestamp ensures the next ESC within the window is
+        # ignored as well.
+        import time
+        self._last_blur_time = time.time()
+        # If an ask_user dialog is open, refocus the dialog instead of the
+        # bottom Input — otherwise tabbing away and back kicks focus off
+        # the dialog and the user's arrow keys stop working.
+        if getattr(self, "_ask_active", None) is not None:
+            try:
+                msg = self._ask_active
+                if msg.kind in ("single", "multi"):
+                    self.query_one("#ask-opts", OptionList).focus()
+                else:
+                    self.query_one("#ask-note", Input).focus()
+                return
+            except Exception:
+                pass
         try:
             self.query_one(_AgentInput).focus()
         except Exception:
             pass
 
+    def action_ask_submit(self) -> None:
+        """App-level Ctrl+S: submit the open ask_user dialog regardless of
+        which widget currently holds focus. Without this, Ctrl+S only
+        worked when _AgentInput had focus — but _AgentInput is disabled
+        while a dialog is open, so its binding never fired."""
+        if getattr(self, "_ask_active", None) is not None:
+            self._submit_ask()
+
+    def on_input_submitted(self, event) -> None:
+        """Enter on #ask-note (input-kind dialog) submits the answer.
+        Without this handler, Enter in the note field is a no-op."""
+        try:
+            iid = getattr(event.input, "id", None) or getattr(event.control, "id", None)
+        except Exception:
+            iid = None
+        if iid == "ask-note" and getattr(self, "_ask_active", None) is not None:
+            self._submit_ask()
+
+    @on(Button.Pressed, "#ask-submit-btn")
+    def _on_ask_submit_btn(self, event) -> None:
+        if getattr(self, "_ask_active", None) is not None:
+            self._submit_ask()
+
+    @on(Button.Pressed, "#ask-cancel-btn")
+    def _on_ask_cancel_btn(self, event) -> None:
+        if getattr(self, "_ask_active", None) is not None:
+            self._cancel_ask()
+
+    def on_key(self, event) -> None:
+        """While ask_user is open, let Tab/Shift+Tab/Down/Up cycle focus
+        through OptionList → Note → Submit → Cancel so users can drive
+        the dialog entirely with the keyboard. ←/→ switch between
+        breadcrumb tabs in batched mode. The OptionList consumes ↑/↓ for
+        option navigation; we only intercept Down on the LAST option
+        (and Up on the FIRST option) so it doesn't fight option
+        navigation."""
+        if getattr(self, "_ask_active", None) is None:
+            return
+        is_batch = bool(getattr(self._ask_active, "questions", None))
+
+        # ─ Inline-typing mode ──────────────────────────────────────────
+        # When the user picked "Type something", we hijack key input so
+        # printable chars / backspace go into the question's custom
+        # buffer and the option label re-renders live. Enter submits;
+        # Esc exits typing mode (keeping any text already entered as the
+        # placeholder for next time).
+        if getattr(self, "_ask_typing", False):
+            try:
+                fid_now = getattr(self.focused, "id", None)
+            except Exception:
+                fid_now = None
+            if fid_now == "ask-opts":
+                k = event.key
+                idx = self._ask_idx
+                st = self._ask_states[idx] if idx < len(self._ask_states) else None
+                if st is None:
+                    return
+                if k == "enter":
+                    # Commit the typed text. _save_current_tab_state pulls
+                    # from #ask-note (now hidden) so write directly here.
+                    self._ask_typing = False
+                    # Treat custom note as the answer. Advance to next tab
+                    # in batch mode, or submit immediately in single mode.
+                    if is_batch:
+                        qs = self._ask_batch_questions()
+                        next_idx = min(self._ask_idx + 1, len(qs))
+                        self._switch_tab(next_idx)
+                    else:
+                        self._submit_ask()
+                    event.stop(); event.prevent_default(); return
+                if k == "escape":
+                    self._ask_typing = False
+                    self._render_question_tab(idx)
+                    event.stop(); event.prevent_default(); return
+                if k == "backspace":
+                    cur = st.get("custom", "")
+                    st["custom"] = cur[:-1]
+                    self._render_question_tab(idx)
+                    event.stop(); event.prevent_default(); return
+                # Printable single character (Textual sets event.character
+                # for typeable keys; arrow keys / function keys leave it
+                # as None so navigation still works if user wants to bail
+                # out of typing without Esc).
+                ch = getattr(event, "character", None)
+                if ch and ch.isprintable() and len(ch) == 1:
+                    st["custom"] = st.get("custom", "") + ch
+                    self._render_question_tab(idx)
+                    event.stop(); event.prevent_default(); return
+                # Fall through for other keys (left/right/up/down) so the
+                # existing OptionList navigation still works as an escape
+                # hatch — moving off the type row also exits typing mode.
+                if k in ("up", "down", "left", "right"):
+                    self._ask_typing = False
+                    # Re-render so cursor marker disappears, then let the
+                    # event continue to OptionList for normal navigation.
+                    self._render_question_tab(idx)
+                    return
+
+        # ─ ←/→ tab switching (batch mode only) ─────────────────────────
+        if is_batch and event.key in ("left", "right"):
+            qs = self._ask_batch_questions()
+            new_idx = self._ask_idx + (1 if event.key == "right" else -1)
+            if 0 <= new_idx <= len(qs):
+                self._switch_tab(new_idx)
+                # After tab switch, focus the right widget
+                kind = self._current_kind()
+                if self._ask_idx == len(qs):
+                    target_id = "ask-submit-btn"
+                elif kind in ("single", "multi"):
+                    target_id = "ask-opts"
+                else:
+                    target_id = "ask-note"
+                try:
+                    self.query_one(f"#{target_id}").focus()
+                except Exception:
+                    pass
+                event.stop()
+                event.prevent_default()
+            return
+
+        try:
+            focused = self.focused
+        except Exception:
+            return
+        fid = getattr(focused, "id", None)
+        if fid not in ("ask-opts", "ask-note", "ask-submit-btn", "ask-cancel-btn"):
+            return
+        cycle = ["ask-opts", "ask-note", "ask-submit-btn", "ask-cancel-btn"]
+        # Skip OptionList from the cycle for input-kind dialogs and review tab
+        kind = self._current_kind()
+        if kind in ("input", "review"):
+            cycle = ["ask-note", "ask-submit-btn", "ask-cancel-btn"] if kind == "input" \
+                    else ["ask-submit-btn", "ask-cancel-btn"]
+        if fid not in cycle:
+            return
+        idx = cycle.index(fid)
+
+        def _focus(target_id):
+            try:
+                self.query_one(f"#{target_id}").focus()
+                event.stop()
+                event.prevent_default()
+            except Exception:
+                pass
+
+        if event.key in ("tab", "down"):
+            # On OptionList, let the widget handle ↓ as long as there's
+            # a next option to highlight. Only intercept ↓ when the user
+            # is on the LAST option (or no option highlighted with empty
+            # list). Tab always cycles to the next widget.
+            if fid == "ask-opts" and event.key == "down":
+                try:
+                    ol = self.query_one("#ask-opts", OptionList)
+                    # No highlight yet → let OptionList start navigation
+                    # from item 0 instead of stealing focus to next widget
+                    if ol.highlighted is None or ol.highlighted < ol.option_count - 1:
+                        return
+                except Exception:
+                    return  # safer to do nothing than misroute the key
+            _focus(cycle[(idx + 1) % len(cycle)])
+        elif event.key in ("shift+tab", "up"):
+            if fid == "ask-opts" and event.key == "up":
+                try:
+                    ol = self.query_one("#ask-opts", OptionList)
+                    if ol.highlighted is None or ol.highlighted > 0:
+                        return
+                except Exception:
+                    return
+            _focus(cycle[(idx - 1) % len(cycle)])
+
     def action_stop(self) -> None:
-        """ESC: interrupt current agent execution."""
+        """ESC: cancel an open ask_user dialog first; otherwise interrupt
+        the current agent execution."""
+        if getattr(self, "_ask_active", None) is not None:
+            self._cancel_ask()
+            return
         if not self._generating:
             # No active generation — ESC is a no-op (avoids poisoning next command)
             return
-        # Ignore ESC events that arrive within 300ms of a focus-loss event.
-        # Moving the terminal window sends \x1b[O (FOCUSOUT) which can cause
-        # Textual's xterm parser to time out and fire a spurious ESC key.
-        import time
-        if time.time() - self._last_blur_time < 0.3:
+        # Ignore ESC events that arrive close to a focus-loss event.
+        # Moving the terminal window — or in cmux, switching panes /
+        # workspaces — sends \x1b[O (FOCUSOUT). Textual's xterm parser
+        # can time out waiting for the rest of the sequence and fall
+        # back to treating the lone \x1b as an ESC key, firing this
+        # action even though the user never hit ESC.
+        # cmux's switch latency is bigger than a desktop window blur,
+        # so use a wider window when running under cmux.
+        import time, os as _os
+        _under_cmux = bool(_os.environ.get("CMUX_WORKSPACE_ID") or
+                           _os.environ.get("CMUX_SURFACE_ID"))
+        _debounce = 1.5 if _under_cmux else 0.3
+        if time.time() - self._last_blur_time < _debounce:
             return
         self._interrupt = True
         self._esc_fired = True
@@ -2038,9 +2446,25 @@ class AgentTUI(App):
             pass
 
     def _flush_response(self) -> None:
-        if not self._response_buf.strip():
+        def _early_return_idle():
             self._response_buf = ""
             self._generating = False
+            self._reasoning_open = False
+            self._reasoning_header_written = False
+            self._current_tool = ""
+            try: self._update_activity()
+            except Exception: pass
+
+        if not self._response_buf.strip():
+            _early_return_idle()
+            return
+        # _fix_md strips `Thought:` lines (now redundant with the
+        # Reasoning panel above) and the `Final Answer:` label. If the
+        # buffer was *only* `Thought:` text, the result is empty —
+        # rendering it would produce a blank Panel with nothing inside.
+        _fixed = _fix_md(self._response_buf)
+        if not _fixed.strip():
+            _early_return_idle()
             return
         log = self.query_one("#main", RichLog)
         if self._in_result:
@@ -2049,7 +2473,7 @@ class AgentTUI(App):
         from rich.panel import Panel
         start_line = len(log.lines)
         log.write(Panel(
-            _LeftMarkdown(_fix_md(self._response_buf)),
+            _LeftMarkdown(_fixed),
             border_style=f"dim {_BORDER_DIM}",
             padding=(0, 1),
             expand=True,
@@ -2101,12 +2525,24 @@ class AgentTUI(App):
 
         ol.remove_class("visible")
 
+    @on(OptionList.OptionSelected, "#completion-list")
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
-        """Accept a completion from the dropdown (mouse click)."""
+        """Accept a completion from the dropdown (mouse click).
+
+        Scoped to `#completion-list` only — without the selector this fires
+        for EVERY OptionList in the app (including `#ask-opts`), which
+        would push sentinel option IDs (`__separator__`,
+        `__type_something__`, etc.) into the bottom input box."""
+        # Defense in depth: even within #completion-list, never insert a
+        # sentinel-shaped value — completion items should never have one,
+        # but if a future code path adds them, drop the leak silently.
+        oid = event.option.id
+        if _is_sentinel_oid(oid):
+            return
         inp = self.query_one(_AgentInput)
         self.query_one("#completion-list", OptionList).remove_class("visible")
         inp._skip_dropdown = True
-        inp._set_text(event.option.id or str(event.option.prompt))
+        inp._set_text(oid or str(event.option.prompt))
         inp.focus()
 
     def on_agent_input_submitted(self, event: AgentInputSubmitted) -> None:
@@ -2196,19 +2632,33 @@ class AgentTUI(App):
             self._update_activity()
             return
         # First content chunk: reasoning done → Generating...
+        # NOTE: previously wrote a blank RichText("") here as a visual
+        # separator between the reasoning block and the response Panel.
+        # User wants the Panel attached directly under the last reasoning
+        # line with no gap, so we drop that blank.
         if self._reasoning_open:
             self._reasoning_open = False
             self._reasoning_header_written = False
             self._update_activity()
-            log = self.query_one("#main", RichLog)
-            log.write(RichText(""))
         import config as _cfg
         if not getattr(_cfg, "ENABLE_MARKDOWN_RENDER", True):
             log = self.query_one("#main", RichLog)
             log.write(msg.text)
             self._scroll_down()
             return
-        self._response_buf += msg.text + "\n"
+        # Append chunk to response buffer. Earlier code unconditionally
+        # added a trailing "\n" per chunk, which doubled newlines whenever
+        # the model emitted a chunk that already ended with "\n" (common
+        # for line-aligned providers and for code-fence content). The
+        # double-newline turned into a visible blank line inside the
+        # rendered panel — most obviously inside ```code``` fences where
+        # ``.session\ndma`` showed up as ``.session\n\ndma`` and rendered
+        # with a blank gap between the two lines. Only add the trailing
+        # newline when the chunk does not already end with one.
+        if msg.text.endswith("\n"):
+            self._response_buf += msg.text
+        else:
+            self._response_buf += msg.text + "\n"
         # Debounced live Markdown preview — at most one render per 300 ms
         if not getattr(self, "_live_timer_pending", False):
             self._live_timer_pending = True
@@ -2259,63 +2709,292 @@ class AgentTUI(App):
             return
         self._open_ask_panel(msg)
 
-    def _open_ask_panel(self, msg: "AskUserRequest") -> None:
-        self._ask_active = msg
-        self._ask_selected = set()
+    # ── Batch helpers ─────────────────────────────────────────────────────────
+    def _ask_batch_questions(self) -> list:
+        """Return the list of question dicts for the active request, or
+        a single-element list reconstructed from legacy fields."""
+        msg = self._ask_active
+        if msg is None:
+            return []
+        if getattr(msg, "questions", None):
+            return msg.questions
+        return [{
+            "question": msg.question, "kind": msg.kind,
+            "options": msg.options or [], "subtitle": msg.subtitle or "",
+        }]
+
+    def _ask_is_answered(self, idx: int) -> bool:
+        """A question is 'answered' if it has any selection or a non-empty note."""
+        try:
+            st = self._ask_states[idx]
+            return bool(st.get("selected")) or bool((st.get("custom") or "").strip())
+        except Exception:
+            return False
+
+    def _render_breadcrumb(self) -> None:
+        """Render the top tab bar: ←  ☐ Q1  ☒ Q2  ✔ Submit  →
+
+        Shown whenever the agent used the batched API (`questions=...`),
+        even with a single question — matches Claude Code's behavior."""
+        try:
+            crumbs = self.query_one("#ask-crumbs", Static)
+        except Exception:
+            return
+        qs = self._ask_batch_questions()
+        is_batch = bool(getattr(self._ask_active, "questions", None))
+        if not is_batch:
+            crumbs.update("")
+            return
+        parts = []
+        for i, q in enumerate(qs):
+            label = (q.get("subtitle") or q.get("question", ""))[:18]
+            mark = "☒" if self._ask_is_answered(i) else "☐"
+            tag = f"{mark} {label}"
+            if i == self._ask_idx:
+                tag = f"[reverse]{tag}[/reverse]"
+            parts.append(tag)
+        # Submit tab
+        sub_tag = "✔ Submit"
+        if self._ask_idx == len(qs):
+            sub_tag = f"[reverse]{sub_tag}[/reverse]"
+        parts.append(sub_tag)
+        crumbs.update("[dim]←[/dim]  " + "  ".join(parts) + "  [dim]→[/dim]")
+
+    def _save_current_tab_state(self) -> None:
+        """Sync UI state (note input) into self._ask_states for the active tab.
+
+        Inline-typing writes directly to `state["custom"]`, so when typing
+        is active (or whenever the hidden #ask-note widget is empty) we
+        must not clobber the buffer with the Input's stale value.
+        """
+        if self._ask_idx >= len(self._ask_states):
+            return
+        try:
+            note_val = self.query_one("#ask-note", Input).value or ""
+        except Exception:
+            note_val = ""
+        if not getattr(self, "_ask_typing", False) and note_val:
+            # Strip any sentinel-shaped tokens before persisting so a stale
+            # leak in the hidden #ask-note never reaches the answer payload.
+            self._ask_states[self._ask_idx]["custom"] = _strip_sentinel_text(note_val)
+        # Also drop any sentinel ids that somehow ended up in the selection
+        # set (e.g. from a future code path that forgets to filter).
+        self._ask_states[self._ask_idx]["selected"] = {
+            s for s in set(self._ask_selected) if not _is_sentinel_oid(s)
+        }
+
+    def _switch_tab(self, new_idx: int) -> None:
+        qs = self._ask_batch_questions()
+        if new_idx < 0 or new_idx > len(qs):  # len(qs) == Submit tab
+            return
+        self._save_current_tab_state()
+        # Inline-typing is per-tab — clear when navigating away so the
+        # next tab doesn't open with the cursor marker.
+        self._ask_typing = False
+        self._ask_idx = new_idx
+        if new_idx == len(qs):
+            self._render_review_tab()
+        else:
+            self._render_question_tab(new_idx)
+        self._render_breadcrumb()
+
+    def _render_question_tab(self, idx: int) -> None:
+        """Render the panel for question[idx] in a minimal Claude-Code-style
+        layout: numbered options with [ ] / [✔] checkboxes, no separate
+        custom note / Submit / Cancel widgets — those are replaced by the
+        last option ('Type something'), the breadcrumb's Submit tab, and
+        Esc respectively."""
+        qs = self._ask_batch_questions()
+        q_dict = qs[idx]
         try:
             q = self.query_one("#ask-q", Static)
             sub = self.query_one("#ask-sub", Static)
             opts = self.query_one("#ask-opts", OptionList)
             note = self.query_one("#ask-note", Input)
+            review = self.query_one("#ask-review", Static)
             hint = self.query_one("#ask-hint", Static)
+        except Exception:
+            return
+        kind = q_dict.get("kind", "single")
+        kind_tag = {"single": "single-select", "multi": "multi-select", "input": "text"}.get(kind, "")
+        q.update(q_dict.get("question", "(no question)"))
+        sub.update(f"[dim]({kind_tag})[/dim]" + (f" {q_dict.get('subtitle','')}" if q_dict.get("subtitle") else ""))
+        review.update("")
+        review.styles.display = "none"
+        opts.clear_options()
+        # Restore selected set for this tab
+        self._ask_selected = set(self._ask_states[idx].get("selected") or [])
+        custom_val = self._ask_states[idx].get("custom", "")
+        # Build numbered options
+        options_list = q_dict.get("options") or []
+        n = 1
+        for o in options_list:
+            oid = o.get("id", o.get("label", ""))
+            base_label = o.get("label", oid)
+            mark = "[✔]" if oid in self._ask_selected else "[ ]"
+            line = f"{n}. {mark} {base_label}"
+            if o.get("detail"):
+                line += f"\n   [dim]{o['detail']}[/dim]"
+            opts.add_option(_Option(line, id=oid))
+            n += 1
+        # Always include "Type something" + a "Submit" hint underneath
+        # (matches Claude Code's batched-question layout — "Submit" tells
+        # the user that selecting this option will submit the answer).
+        # When inline-typing mode is active for this tab, the option's
+        # label IS the live editable buffer with a "▎" cursor marker —
+        # no separate Input widget appears below.
+        typing_here = bool(getattr(self, "_ask_typing", False))
+        if typing_here:
+            if custom_val == "":
+                # Empty buffer — show cursor first, then a dim italic
+                # placeholder hint that vanishes the moment a char is typed.
+                type_label = "[reverse] [/reverse][dim italic]Type your answer here…[/dim italic]"
+                type_mark = "[ ]"
+            else:
+                type_label = f"{custom_val}[reverse] [/reverse]"
+                type_mark = "[✔]"
+        else:
+            type_label = custom_val if custom_val else "[i]Type something[/i]"
+            type_mark = "[✔]" if custom_val.strip() else "[ ]"
+        opts.add_option(_Option(
+            f"{n}. {type_mark} {type_label}\n   [dim]Enter to submit · Esc to cancel typing[/dim]"
+            if typing_here else
+            f"{n}. {type_mark} {type_label}\n   [dim]Submit[/dim]",
+            id="__type_something__",
+        ))
+        type_option_index = n - 1  # 0-based highlight index for the type row
+        n += 1
+        # Visual separator between regular options and the "Chat about this"
+        # cancel item — also mirrors Claude Code's horizontal rule.
+        opts.add_option(_Option(
+            "[dim]" + "─" * 60 + "[/dim]",
+            id="__separator__",
+        ))
+        # Always include "Chat about this" as the cancel option.
+        opts.add_option(_Option(f"{n}. [dim]Chat about this (cancel)[/dim]", id="__chat_about__"))
+        opts.styles.display = "block"
+        # Highlight the first option so ↑/↓ navigation works without
+        # needing an initial keypress to "wake up" the cursor. When
+        # inline-typing is active, keep the highlight pinned on the
+        # "Type something" row so the visible cursor stays where the
+        # user is actually editing.
+        try:
+            opts.highlighted = type_option_index if typing_here else 0
+        except Exception:
+            pass
+        # Note Input is now obsolete (typing happens inline on the option
+        # row) — keep the widget present in the DOM for backwards-compat
+        # focus paths but always hide it.
+        note.placeholder = "Type your answer, then Enter to confirm"
+        note.value = custom_val
+        note.styles.display = "none"
+        # Footer hint mirrors Claude Code's style
+        hint.update("[dim]Enter to select · Tab/Arrow keys to navigate · ←/→ next/prev question · Esc to cancel[/dim]")
+
+    def _render_review_tab(self) -> None:
+        """Render the final Submit tab — minimal: per-question summary
+        + a 2-item OptionList (1. Submit answers, 2. Cancel)."""
+        qs = self._ask_batch_questions()
+        try:
+            q = self.query_one("#ask-q", Static)
+            sub = self.query_one("#ask-sub", Static)
+            opts = self.query_one("#ask-opts", OptionList)
+            note = self.query_one("#ask-note", Input)
+            review = self.query_one("#ask-review", Static)
+            hint = self.query_one("#ask-hint", Static)
+        except Exception:
+            return
+        q.update("Review your answers")
+        unanswered = [i for i in range(len(qs)) if not self._ask_is_answered(i)]
+        if unanswered:
+            sub.update(f"[bold yellow]⚠ You have not answered all questions[/bold yellow]")
+        else:
+            sub.update("[green]All questions answered.[/green]")
+        # Build per-question summary as static text above the option list
+        lines = []
+        for i, qd in enumerate(qs):
+            label = qd.get("subtitle") or qd.get("question", "")
+            mark = "[green]●[/green]" if self._ask_is_answered(i) else "[dim]○[/dim]"
+            st = self._ask_states[i]
+            sel_ids = list(st.get("selected") or [])
+            label_by_id = {o.get("id"): o.get("label", o.get("id")) for o in qd.get("options") or []}
+            sel_labels = [label_by_id.get(s, s) for s in sel_ids]
+            note_v = (st.get("custom") or "").strip()
+            ans_parts = []
+            if sel_labels: ans_parts.append(", ".join(sel_labels))
+            if note_v:     ans_parts.append(f"[i]{note_v}[/i]")
+            ans_text = " · ".join(ans_parts) if ans_parts else "[dim](no answer)[/dim]"
+            lines.append(f" {mark} {label}\n   → {ans_text}")
+        review.update("\n".join(lines) + "\n\n[bold]Ready to submit your answers?[/bold]")
+        review.styles.display = "block"
+        # Replace the option list with two action items
+        opts.clear_options()
+        opts.add_option(_Option("1. Submit answers", id="__review_submit__"))
+        opts.add_option(_Option("2. Cancel", id="__review_cancel__"))
+        opts.styles.display = "block"
+        try:
+            opts.highlighted = 0
+        except Exception:
+            pass
+        # Hide the note field on the review tab
+        note.styles.display = "none"
+        hint.update("[dim]Enter to select · ↑/↓ navigate · ←/→ back to questions · Esc to cancel[/dim]")
+
+    def _open_ask_panel(self, msg: "AskUserRequest") -> None:
+        self._ask_active = msg
+        self._ask_selected = set()
+        # Inline-type mode: when True, printable keys/backspace go into the
+        # current question's `custom` buffer instead of OptionList navigation.
+        # Set when user selects "Type something"; cleared on Enter/Esc.
+        self._ask_typing = False
+        # Tracks the last non-separator highlight index so the separator-
+        # skip handler can infer ↑ vs ↓ direction (Textual's
+        # OptionHighlighted message doesn't carry direction).
+        self._ask_last_highlight = 0
+        # Initialize batch state (1 entry for legacy single-question mode).
+        qs = self._ask_batch_questions()
+        self._ask_states = [{"selected": set(), "custom": ""} for _ in qs]
+        self._ask_idx = 0
+        try:
             panel = self.query_one("#ask-user-panel")
         except Exception:
             return
-
-        q.update(msg.question or "(no question)")
-        sub.update(msg.subtitle or "")
-        opts.clear_options()
-        note.value = ""
-
-        if msg.kind in ("single", "multi"):
-            for o in (msg.options or []):
-                label = o.get("label", o.get("id", ""))
-                if msg.kind == "multi":
-                    label = "☐ " + label
-                if o.get("detail"):
-                    label = f"{label}  ─  [dim]{o['detail']}[/dim]"
-                opts.add_option(_Option(label, id=o.get("id", label)))
-            # Show OptionList, restore the "optional note" placeholder.
-            opts.styles.display = "block"
-            note.placeholder = "Custom note (optional)…"
-        else:
-            # 'input' kind: there are no options to pick. Hiding the
-            # empty OptionList is what fixes the "no reaction" complaint
-            # — users were trying to type into the empty list. Repurpose
-            # the note field as the primary answer with a clearer label.
-            opts.styles.display = "none"
-            note.placeholder = "Type your answer here, then ↵ or Ctrl+S to submit"
-
-        if msg.kind == "single":
-            hint.update("[dim]↑/↓ navigate · ↵ select & submit · esc cancel[/dim]")
-        elif msg.kind == "multi":
-            hint.update("[dim]↑/↓ navigate · ↵ toggle · ctrl+s submit · esc cancel[/dim]")
-        else:
-            hint.update("[dim]type your answer · ↵ or ctrl+s submit · esc cancel[/dim]")
-
         panel.add_class("visible")
-        # Focus the right widget for the kind. Use widget.focus() rather
-        # than App.set_focus(widget) — set_focus can race with the panel
-        # layout when the .visible class transition is still in flight,
-        # leaving focus dangling on the previous widget.
-        if msg.kind in ("single", "multi"):
-            try: opts.focus()
+        # Hide the entire bottom input row (#input-wrap contains ❯, the
+        # _AgentInput, the top/bottom rules, and the status bar) so the
+        # dialog visually replaces the input row instead of floating
+        # above it. Disabling the inner _AgentInput also prevents the
+        # TextArea from capturing ↑/↓/↵ via stale focus.
+        try:
+            inp = self.query_one(_AgentInput)
+            inp.disabled = True
+        except Exception:
+            pass
+        try:
+            self.query_one("#input-wrap").styles.display = "none"
+        except Exception:
+            pass
+        # Render initial state
+        self._render_question_tab(0)
+        self._render_breadcrumb()
+        # Focus options or note depending on first question's kind. Defer
+        # to after_refresh so the .visible class transition has settled.
+        first_kind = qs[0].get("kind", "single")
+        try:
+            target = self.query_one(
+                "#ask-opts" if first_kind in ("single", "multi") else "#ask-note"
+            )
+        except Exception:
+            return
+        def _focus_target():
+            try: target.focus()
             except Exception:
-                self.set_focus(opts)
-        else:
-            try: note.focus()
-            except Exception:
-                self.set_focus(note)
+                try: self.set_focus(target)
+                except Exception: pass
+        try:
+            self.call_after_refresh(_focus_target)
+        except Exception:
+            _focus_target()
 
     def _close_ask_panel(self) -> None:
         try:
@@ -2329,22 +3008,54 @@ class AgentTUI(App):
             nxt = self._ask_queue.pop(0)
             self._open_ask_panel(nxt)
         else:
-            # Refocus the main input
+            # Refocus the main input (re-enable + reveal first —
+            # _open_ask_panel disables _AgentInput and hides #input-wrap
+            # so the dialog can visually replace the input row).
             try:
-                self.query_one(_AgentInput).focus()
+                self.query_one("#input-wrap").styles.display = "block"
+            except Exception:
+                pass
+            try:
+                inp = self.query_one(_AgentInput)
+                inp.disabled = False
+                # Defense in depth: if a sentinel-shaped token ever leaked
+                # into the input while the panel was open, scrub it before
+                # giving focus back to the user.
+                try:
+                    cur_text = inp.text
+                except Exception:
+                    cur_text = ""
+                cleaned = _strip_sentinel_text(cur_text)
+                if cleaned != cur_text:
+                    try:
+                        inp._set_text(cleaned)
+                    except Exception:
+                        pass
+                inp.focus()
             except Exception:
                 pass
 
+    def _current_kind(self) -> str:
+        qs = self._ask_batch_questions()
+        if 0 <= self._ask_idx < len(qs):
+            return qs[self._ask_idx].get("kind", "single")
+        return "review"
+
+    def _current_options(self) -> list:
+        qs = self._ask_batch_questions()
+        if 0 <= self._ask_idx < len(qs):
+            return qs[self._ask_idx].get("options") or []
+        return []
+
     def _refresh_multi_marks(self) -> None:
         """Re-render multi-mode option labels with ☑/☐ prefixes."""
-        msg = getattr(self, "_ask_active", None)
-        if not msg or msg.kind != "multi":
+        if self._current_kind() != "multi":
             return
         try:
             opts = self.query_one("#ask-opts", OptionList)
         except Exception:
             return
-        for i, o in enumerate(msg.options or []):
+        for i, o in enumerate(self._current_options()):
             oid = o.get("id", o.get("label"))
             mark = "☑" if oid in self._ask_selected else "☐"
             label = o.get("label", oid)
@@ -2361,39 +3072,99 @@ class AgentTUI(App):
         msg = getattr(self, "_ask_active", None)
         if not msg:
             return
-        try:
-            note_val = self.query_one("#ask-note", Input).value or ""
-        except Exception:
-            note_val = ""
-        # In single mode the user submits via Enter on a row, which already
-        # populates _ask_selected; if Ctrl+S was pressed without a row pick,
-        # take the highlighted option.
-        if msg.kind == "single" and not self._ask_selected:
+        # In single mode, if user hit Ctrl+S/Submit without selecting,
+        # use the currently highlighted option as the selection.
+        if self._current_kind() == "single" and not self._ask_selected:
             try:
                 opts = self.query_one("#ask-opts", OptionList)
                 if opts.highlighted is not None and opts.option_count > opts.highlighted:
                     self._ask_selected = {opts.get_option_at_index(opts.highlighted).id}
             except Exception:
                 pass
-        msg.answer_q.put({
-            "type": "answer",
-            "flow_id": msg.flow_id,
-            "selected": list(self._ask_selected),
-            "custom": note_val,
-        })
+        # Persist the active tab's state before assembling the response.
+        self._save_current_tab_state()
+
+        if getattr(msg, "questions", None):
+            # Batched mode: return per-question answers.
+            answers = [
+                {"selected": list(st.get("selected") or []), "custom": st.get("custom", "")}
+                for st in self._ask_states
+            ]
+            msg.answer_q.put({
+                "type": "answer",
+                "flow_id": msg.flow_id,
+                "answers": answers,
+            })
+        else:
+            # Single-question legacy mode.
+            st = self._ask_states[0] if self._ask_states else {}
+            msg.answer_q.put({
+                "type": "answer",
+                "flow_id": msg.flow_id,
+                "selected": list(st.get("selected") or self._ask_selected),
+                "custom": st.get("custom", ""),
+            })
         self._close_ask_panel()
 
     def _cancel_ask(self) -> None:
         msg = getattr(self, "_ask_active", None)
         if not msg:
             return
-        msg.answer_q.put({
-            "type": "answer",
-            "flow_id": msg.flow_id,
-            "selected": [],
-            "custom": "",
-        })
+        if getattr(msg, "questions", None):
+            msg.answer_q.put({
+                "type": "cancel",
+                "flow_id": msg.flow_id,
+                "answers": [],
+            })
+        else:
+            msg.answer_q.put({
+                "type": "cancel",
+                "flow_id": msg.flow_id,
+                "selected": [],
+                "custom": "",
+            })
         self._close_ask_panel()
+
+    @on(OptionList.OptionHighlighted, "#ask-opts")
+    def _on_ask_opt_highlighted(self, event) -> None:
+        """Skip past the visual `__separator__` row when the user lands on
+        it via ↑/↓. Tracks last-known highlight to infer direction so we
+        bump the cursor the same way the user was moving — not always
+        forward."""
+        if getattr(self, "_ask_active", None) is None:
+            return
+        try:
+            ol = self.query_one("#ask-opts", OptionList)
+        except Exception:
+            return
+        cur = ol.highlighted
+        if cur is None:
+            return
+        try:
+            opt = ol.get_option_at_index(cur)
+        except Exception:
+            return
+        if not _is_sentinel_oid(opt.id) or opt.id != "__separator__":
+            self._ask_last_highlight = cur
+            return
+        # Landed on the separator — skip past it in the direction of motion.
+        prev = getattr(self, "_ask_last_highlight", None)
+        if prev is not None and prev > cur:
+            new_idx = cur - 1
+        else:
+            new_idx = cur + 1
+        # Clamp; if we'd fall off either edge, wrap to the other side of
+        # the separator instead of getting stuck.
+        if new_idx < 0:
+            new_idx = cur + 1
+        if new_idx >= ol.option_count:
+            new_idx = cur - 1
+        if 0 <= new_idx < ol.option_count:
+            try:
+                ol.highlighted = new_idx
+                self._ask_last_highlight = new_idx
+            except Exception:
+                pass
 
     @on(OptionList.OptionSelected, "#ask-opts")
     def _on_ask_opt_selected(self, event: OptionList.OptionSelected) -> None:
@@ -2401,15 +3172,58 @@ class AgentTUI(App):
         if not msg:
             return
         oid = event.option.id
-        if msg.kind == "single":
-            self._ask_selected = {oid} if oid else set()
+        # Separator — ignore selection on the visual rule
+        if oid == "__separator__":
+            return
+        # Review tab actions
+        if oid == "__review_submit__":
             self._submit_ask()
-        elif msg.kind == "multi":
+            return
+        if oid == "__review_cancel__":
+            self._cancel_ask()
+            return
+        # Per-question virtual options
+        if oid == "__chat_about__":
+            self._cancel_ask()
+            return
+        if oid == "__type_something__":
+            # Enter inline-typing mode: subsequent printable keys feed
+            # the current question's `custom` buffer (handled in on_key).
+            # Keep focus on the OptionList so on_key continues to fire.
+            self._ask_typing = True
+            self._render_question_tab(self._ask_idx)
+            try:
+                self.query_one("#ask-opts", OptionList).focus()
+            except Exception:
+                pass
+            return
+        kind = self._current_kind()
+        if kind == "single":
+            self._ask_selected = {oid} if oid else set()
+            # Save BEFORE re-render — _render_question_tab reloads
+            # _ask_selected from state, which would otherwise wipe the
+            # selection we just made.
+            self._save_current_tab_state()
+            self._render_question_tab(self._ask_idx)
+            # In batched mode, advance to next tab automatically (or to
+            # Submit tab if this was the last question). In single-
+            # question mode, auto-submit.
+            if getattr(msg, "questions", None):
+                self._render_breadcrumb()
+                next_idx = min(self._ask_idx + 1, len(self._ask_batch_questions()))
+                self._switch_tab(next_idx)
+            else:
+                self._submit_ask()
+        elif kind == "multi":
             if oid in self._ask_selected:
                 self._ask_selected.discard(oid)
             else:
                 self._ask_selected.add(oid)
-            self._refresh_multi_marks()
+            # Save BEFORE re-render (same reason as single mode).
+            self._save_current_tab_state()
+            self._render_question_tab(self._ask_idx)
+            if getattr(msg, "questions", None):
+                self._render_breadcrumb()
 
     def on_token_usage(self, msg: TokenUsage) -> None:
         self._has_direct_emit = True    # text-parse path will skip to avoid double-count
@@ -2477,6 +3291,10 @@ class AgentTUI(App):
             self._reasoning_open = True
             self._reasoning_header_written = True
             self._update_activity()
+            # Blank line before the header so Reasoning visually separates
+            # from whatever was just written above (tool result, prior
+            # response panel, user prompt, etc).
+            log.write(RichText(""))
             hdr = RichText()
             hdr.append("  ┆ ", style=f"dim {_BORDER_DIM}")
             hdr.append("Reasoning", style=f"italic {_TEXT_DIM}")
@@ -2566,10 +3384,30 @@ class AgentTUI(App):
                 label = "Generating..."
             else:
                 label = "Waiting for input..."
-            a = RichText()
-            if label:
-                a.append(label, style=f"italic dim {_TEXT_DIM}")
-            self.query_one("#activity", Static).update(a)
+            # Right-sidebar `#activity` widget is intentionally NOT
+            # updated anymore — the inline `#input-activity` above the
+            # prompt already shows the same status, and showing it
+            # twice (sidebar + inline) was redundant. Keep the widget
+            # cleared so any stale text from before this change goes
+            # away.
+            try:
+                self.query_one("#activity", Static).update("")
+            except Exception:
+                pass
+            # Inline activity line — sits just above the prompt so the
+            # status is visible where the user is typing.
+            try:
+                inline = RichText()
+                if label == "Waiting for input...":
+                    # Use a quieter rendering when idle so the prompt
+                    # area doesn't keep nagging the user with text.
+                    inline.append("● ready", style=f"dim {_GREEN}")
+                else:
+                    inline.append("● ", style=_ACCENT)
+                    inline.append(label, style=f"italic {_TEXT_DIM}")
+                self.query_one("#input-activity", Static).update(inline)
+            except Exception:
+                pass
         except Exception:
             pass
 
