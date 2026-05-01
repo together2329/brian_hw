@@ -550,6 +550,11 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             # Default mode is "append" so workflow prompts EXTEND the rich default
             # (with universal preservation rules). Workflows can opt back to
             # "replace" via workspace.json if they really want a fully custom format.
+            #
+            # Both "compression_user_instruction" (new canonical) and
+            # "compression_system" (legacy) keys are written so existing
+            # consumers keep working. compressor._load_default_compression_prompt
+            # prefers the new key.
             if ws.compression_prompt_text:
                 try:
                     _orig_comp_prompt = getattr(_comp, 'STRUCTURED_SUMMARY_PROMPT', "")
@@ -558,6 +563,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                         ws.compression_prompt_text,
                         getattr(ws, "compression_prompt_mode", "append"),
                     )
+                    _b._WORKSPACE_HOOK_MESSAGES["compression_user_instruction"] = _comp.STRUCTURED_SUMMARY_PROMPT
                     _b._WORKSPACE_HOOK_MESSAGES["compression_system"] = _comp.STRUCTURED_SUMMARY_PROMPT
                 except Exception:
                     pass

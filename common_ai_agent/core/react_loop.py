@@ -1690,7 +1690,14 @@ def run_react_agent_impl(
                         messages.append({"role": "user", "content": reminder})
                         _last_injected_task_key = _task_key
 
-            # Track non-todo tool calls for gate check (reject fake completions)
+            # Track non-todo tool calls for gate check (reject fake completions).
+            # When a task IS in_progress, increment its counter directly. When NO
+            # task is in_progress (e.g. agent did work BEFORE calling
+            # todo_update(N, in_progress) — the common "work-first-track-after"
+            # pattern), buffer the count on the tracker so the next
+            # mark_in_progress can credit it. Without the buffer, the gate
+            # check at todo_update(completed) auto-rejects with "no tools were
+            # called since starting this task" even though the agent did work.
             if todo_tracker and todo_tracker.todos and not _last_tool_was_todo:
                 _current = todo_tracker.get_current_todo()
                 if _current and _current.status == "in_progress":
@@ -1700,6 +1707,12 @@ def run_react_agent_impl(
                         todo_tracker.save()
                     except Exception:
                         pass
+                else:
+                    # No active task — buffer the credit for the next
+                    # mark_in_progress() call to consume.
+                    todo_tracker._pending_tool_credit = int(
+                        getattr(todo_tracker, "_pending_tool_credit", 0) or 0
+                    ) + 1
 
             if _perf:
                 _iter_total = time.time() - _perf_iter_start

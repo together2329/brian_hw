@@ -325,6 +325,14 @@ class TodoTracker:
         """
         특정 todo를 in_progress로 변경.
         한 번에 하나의 todo만 in_progress 가능 — 이전 것은 pending으로 복귀.
+
+        Gate check counter (tools_since_in_progress) consumes any buffered
+        tool credit (_pending_tool_credit) accumulated by react_loop while no
+        task was in_progress. This handles the common pattern:
+            run_command → todo_update(N, in_progress) → todo_update(N, completed)
+        where the agent does the work BEFORE flipping status. Without the
+        buffer, completed would be auto-rejected with "no tools were called"
+        because the counter only increments while in_progress.
         """
         if not (0 <= index < len(self.todos)):
             return
@@ -334,7 +342,11 @@ class TodoTracker:
                 todo.status = "pending"
 
         self.todos[index].status = "in_progress"
-        self.todos[index].tools_since_in_progress = 0  # Reset gate check counter
+        # Consume the buffered tool-call credit (set by react_loop when tools
+        # are called outside any in_progress task). Reset to 0 if no buffer.
+        _credit = int(getattr(self, "_pending_tool_credit", 0) or 0)
+        self.todos[index].tools_since_in_progress = _credit
+        self._pending_tool_credit = 0
         self.current_index = index
         self.save()
 

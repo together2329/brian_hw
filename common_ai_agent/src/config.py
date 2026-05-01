@@ -674,6 +674,14 @@ COMPRESSION_INPUT_MAX_CHARS = int(os.getenv("COMPRESSION_INPUT_MAX_CHARS", "0"))
 # of long sessions, smaller = faster/cheaper summarization calls.
 COMPRESSION_INPUT_BUDGET_RATIO = float(os.getenv("COMPRESSION_INPUT_BUDGET_RATIO", "0.5"))
 
+# Per-message smart-truncation caps (used by compressor._smart_truncate).
+# Bump these if your tool results / assistant turns are getting silently
+# chopped before the summarizer sees them. Plain text vs tool results have
+# separate caps; high-value content (code/error/diff) gets multiplied.
+SMART_TRUNCATE_TEXT_MAX = int(os.getenv("SMART_TRUNCATE_TEXT_MAX", "2000"))
+SMART_TRUNCATE_TOOL_MAX = int(os.getenv("SMART_TRUNCATE_TOOL_MAX", "2000"))
+SMART_TRUNCATE_HIGHVALUE_MULT = float(os.getenv("SMART_TRUNCATE_HIGHVALUE_MULT", "2.0"))
+
 # Number of LLM retry attempts on empty/failed response (0 = no retry)
 LLM_RETRY_COUNT = int(os.getenv("LLM_RETRY_COUNT", "1"))
 

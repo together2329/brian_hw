@@ -130,17 +130,28 @@ Omit any section with nothing to report."""
 def _load_default_compression_prompt() -> str:
     """
     Load compression prompt from the active workspace, falling back to default.
-    Priority: builtins._WORKSPACE_HOOK_MESSAGES["compression_system"]
+    Priority: builtins._WORKSPACE_HOOK_MESSAGES["compression_user_instruction"]
+              → builtins._WORKSPACE_HOOK_MESSAGES["compression_system"]  (legacy)
               → workflow/default/compression_prompt.md
               → built-in default
+
+    Naming history: the legacy key is "compression_system" but the value is
+    used as the *user-instruction* prompt, not the system-role prompt — a
+    long-standing foot-gun. New code should use "compression_user_instruction".
+    The legacy key is still read for backward compatibility but emits a
+    deprecation note via stderr-quiet print so existing customizations keep
+    working without surprise.
     """
     import builtins as _b
-    # 1. Active workspace hook message
     msgs = getattr(_b, "_WORKSPACE_HOOK_MESSAGES", {})
+    # 1. New canonical key
+    if msgs.get("compression_user_instruction"):
+        return msgs["compression_user_instruction"]
+    # 2. Legacy key (still supported)
     if msgs.get("compression_system"):
         return msgs["compression_system"]
 
-    # 2. workflow/default/compression_prompt.md (adjacent to common_ai_agent/)
+    # 3. workflow/default/compression_prompt.md (adjacent to common_ai_agent/)
     candidates = [
         Path(__file__).parent.parent.parent / "new_feature" / "workflow" / "default" / "compression_prompt.md",
         Path(__file__).parent.parent / "workflow" / "default" / "compression_prompt.md",
@@ -236,26 +247,44 @@ _ERROR_PATTERNS = ("Traceback", "Error:", "error:", "Exception", "FAILED", "Asse
 _DIFF_PATTERNS = ("--- a/", "+++ b/", "@@ -", "@@ +", "diff --git")
 
 
-def _smart_truncate(content: str, role: str, default_max: int = 2000) -> str:
+def _smart_truncate(content: str, role: str, default_max: int = 2000, cfg: Any = None) -> str:
     """Truncate message content adaptively based on content type.
 
-    Code blocks, error traces, and diffs get up to 2x more characters
-    than plain text, because losing half a function definition or stack
-    trace is far worse than losing conversational filler.
+    Code blocks, error traces, and diffs get an upgraded budget compared
+    to plain text — losing half a function definition or stack trace is
+    far worse than losing conversational filler.
+
+    Caps are configurable via cfg:
+      - SMART_TRUNCATE_TEXT_MAX: per-message char cap for plain user/assistant text
+        (default 2000)
+      - SMART_TRUNCATE_TOOL_MAX: per-message char cap for tool results
+        (default 2000 — bump to 8000+ if your tools return long outputs)
+      - SMART_TRUNCATE_HIGHVALUE_MULT: multiplier applied when code/error/diff
+        patterns are detected (default 2.0)
 
     Args:
         content: The message content string.
         role: Message role ('user', 'assistant', 'tool', etc.).
-        default_max: Default character limit for plain text.
+        default_max: Default character limit for plain text (overridden by
+            SMART_TRUNCATE_TEXT_MAX when cfg is provided).
+        cfg: Optional config namespace for the knobs above.
 
     Returns:
         Truncated content string.
     """
-    # Tool results are often code/output — give them a generous default
-    if role == "tool":
-        base_max = 2000
-    else:
-        base_max = default_max
+    # Resolve caps from cfg with sensible fallbacks
+    _text_max = default_max
+    _tool_max = 2000
+    _hv_mult = 2.0
+    if cfg is not None:
+        try:
+            _text_max = int(getattr(cfg, "SMART_TRUNCATE_TEXT_MAX", default_max) or default_max)
+            _tool_max = int(getattr(cfg, "SMART_TRUNCATE_TOOL_MAX", 2000) or 2000)
+            _hv_mult = float(getattr(cfg, "SMART_TRUNCATE_HIGHVALUE_MULT", 2.0) or 2.0)
+        except Exception:
+            pass
+
+    base_max = _tool_max if role == "tool" else _text_max
 
     # Detect high-value content patterns
     is_code = any(p in content for p in _CODE_PATTERNS)
@@ -263,7 +292,7 @@ def _smart_truncate(content: str, role: str, default_max: int = 2000) -> str:
     is_diff = any(p in content for p in _DIFF_PATTERNS)
 
     if is_code or is_error or is_diff:
-        base_max *= 2  # Double the allocation for structured/valuable content
+        base_max = int(base_max * _hv_mult)
 
     return content[:base_max]
 
@@ -444,9 +473,17 @@ def _validate_and_repair_sequence(
             pass
 
     if "deepseek" in _model_lower:
+        # DeepSeek reasoning mode requires reasoning_content on every assistant
+        # message round-tripped back. Compression / repair can drop the field
+        # on synthesized assistant messages (e.g. emergency-prune fillers,
+        # placeholder content). Some DeepSeek revisions reject whitespace-only
+        # values, so use a short non-empty placeholder.
+        _RC_PLACEHOLDER = "[reasoning omitted by compression]"
         for msg in repaired:
-            if msg.get("role") == "assistant" and "reasoning_content" not in msg:
-                msg["reasoning_content"] = " "
+            if msg.get("role") == "assistant":
+                _rc = msg.get("reasoning_content")
+                if _rc is None or (isinstance(_rc, str) and not _rc.strip()):
+                    msg["reasoning_content"] = _RC_PLACEHOLDER
 
     # --- Pass 4: ensure first non-system message is user or assistant ---
     # Strict APIs reject sequences that start with system → tool.
@@ -545,15 +582,33 @@ _AWAIT_PATTERNS = (
 )
 
 
+def _strip_code_fences(text: str) -> str:
+    """Remove fenced code blocks (```...```) and inline code (`...`) so that
+    a "?" inside a code sample doesn't trigger the awaiting-user heuristic.
+    """
+    if not text:
+        return text
+    # Triple-backtick fences (multi-line). Use a non-greedy DOTALL match.
+    text = _re.sub(r"```.*?```", " ", text, flags=_re.DOTALL)
+    # Inline single-backtick code spans.
+    text = _re.sub(r"`[^`\n]+`", " ", text)
+    return text
+
+
 def _detect_awaiting_user(messages: List[Dict[str, Any]]) -> bool:
     """Detect whether the conversation ended with the assistant asking
     the user a question that was never answered.
 
     Heuristic: walk backward from the tail, skipping system/tool frames.
     - If we see a user message with real content first → not awaiting.
-    - If we see an assistant message first AND its text contains a
-      question mark or an await-prompt phrase → awaiting user input.
+    - If we see an assistant message first AND its text (with code blocks
+      stripped) contains a question mark or an await-prompt phrase →
+      awaiting user input.
     Otherwise → not awaiting.
+
+    Code fences are stripped before scanning because "?" inside ``` python
+    code samples (e.g. "if x?:" or "user.get('?')") is a false positive
+    for the question-mark check.
     """
     for m in reversed(messages):
         role = m.get("role", "")
@@ -569,8 +624,9 @@ def _detect_awaiting_user(messages: List[Dict[str, Any]]) -> bool:
         if role == "assistant":
             if not text:
                 return False
-            low = text.lower()
-            if "?" in text:
+            scan_text = _strip_code_fences(text)
+            low = scan_text.lower()
+            if "?" in scan_text:
                 return True
             return any(p in low for p in _AWAIT_PATTERNS)
     return False
@@ -674,14 +730,14 @@ def _compress_single(
         role = m.get("role", "unknown")
         if role == "tool":
             # Tool result — include tool name if available for context
-            content = _smart_truncate(str(m.get("content", "")), role)
+            content = _smart_truncate(str(m.get("content", "")), role, cfg=cfg)
             tool_name = m.get("name", "")
             if tool_name:
                 conversation_text += f"tool({tool_name}): {content}\n"
             else:
                 conversation_text += f"observation: {content}\n"
             continue
-        content = _smart_truncate(str(m.get("content") or ""), role)
+        content = _smart_truncate(str(m.get("content") or ""), role, cfg=cfg)
 
         # Tool-calling assistant turns have no text — annotate with func(args) so the
         # summarizing LLM knows exactly what was called and with what arguments.
@@ -719,9 +775,21 @@ def _compress_single(
         {"role": "user", "content": f"{summary_prompt}\n\n{conversation_text}"},
     ]
 
+    # Real-message count excludes the synthetic [Prior summary context] system
+    # message that compress_history may prepend to old_msgs as a context hint.
+    # Including it inflated the "(N messages)" header by 1 every time prior
+    # summaries were merged.
+    _real_count = sum(
+        1 for _m in messages
+        if not (
+            _m.get("role") == "system"
+            and str(_m.get("content", "")).startswith("[Prior summary context")
+        )
+    )
+
     summary_content = ""
     try:
-        print(f"  [Compress] Summarizing {len(messages)} messages...", end="", flush=True)
+        print(f"  [Compress] Summarizing {_real_count} messages...", end="", flush=True)
         for chunk in llm_call_fn(summary_request, suppress_spinner=True):
             if isinstance(chunk, tuple) and chunk[0] == "reasoning":
                 continue
@@ -730,7 +798,7 @@ def _compress_single(
 
         return {
             "role": "system",
-            "content": f"[Previous Conversation Summary ({len(messages)} messages)]: {summary_content}",
+            "content": f"[Previous Conversation Summary ({_real_count} messages)]: {summary_content}",
         }
     except Exception as e:
         print(f"\n  [Compress] Failed: {e}")
@@ -744,7 +812,7 @@ def _compress_single(
         )
         return {
             "role": "system",
-            "content": f"[Previous Conversation Summary ({len(messages)} messages, compression failed)]: {combined}",
+            "content": f"[Previous Conversation Summary ({_real_count} messages, compression failed)]: {combined}",
         }
 
 
@@ -787,14 +855,14 @@ def _compress_chunked(
         for m in chunk:
             role = m.get("role", "unknown")
             if role == "tool":
-                content = _smart_truncate(str(m.get("content", "")), role)
+                content = _smart_truncate(str(m.get("content", "")), role, cfg=cfg)
                 tool_name = m.get("name", "")
                 if tool_name:
                     conversation_text += f"tool({tool_name}): {content}\n"
                 else:
                     conversation_text += f"observation: {content}\n"
                 continue
-            content = _smart_truncate(str(m.get("content") or ""), role)
+            content = _smart_truncate(str(m.get("content") or ""), role, cfg=cfg)
 
             # Tool-calling assistant turns have no text — annotate with func(args)
             # so the summarizing LLM still sees what action the agent took.
