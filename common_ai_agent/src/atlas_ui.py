@@ -1017,6 +1017,12 @@ def create_app():
                 if v is None: return ""
                 if isinstance(v, int):
                     h = f"{v:x}"
+                    # Zero-pad to at least 8 hex digits (32-bit address
+                    # convention) so 0x0800_0000 doesn't collapse to
+                    # 0x800_0000 after grouping. Larger values use the
+                    # next multiple of 4.
+                    target = max(8, ((len(h) - 1) // 4 + 1) * 4)
+                    h = h.zfill(target)
                     if len(h) > 4:
                         rev = h[::-1]
                         groups = [rev[i:i+4] for i in range(0, len(rev), 4)]
@@ -1077,7 +1083,7 @@ def create_app():
                             for r in rs[:2]:
                                 if isinstance(r, dict):
                                     interfaces.append({"name": r.get("name") or "rst_n",
-                                                       "proto": "CLK", "role": "slave", "side": "left"})
+                                                       "proto": "RST", "role": "slave", "side": "left"})
                             mm = doc.get("memoryMap") or []
                             if isinstance(mm, list) and mm and isinstance(mm[0], dict):
                                 base = mm[0].get("base")
@@ -1174,6 +1180,12 @@ def create_app():
                     if inst.get("name"):  m["name"] = inst["name"]; m["label"] = inst["name"]
                     if inst.get("addr") is not None: m["addr"] = _hex_addr(inst["addr"])
                     if inst.get("kind"):  m["kind"] = inst["kind"]
+                    # Saved layout: `instances[].x/y` from soc.ssot.yaml
+                    # (set by /api/soc/layout). Surfaces as module.savedX/Y
+                    # so the frontend can use it as the default block
+                    # position when localStorage doesn't override.
+                    if isinstance(inst.get("x"), (int, float)): m["savedX"] = float(inst["x"])
+                    if isinstance(inst.get("y"), (int, float)): m["savedY"] = float(inst["y"])
                     if isinstance(inst.get("overrides"), dict):
                         # Surface overrides as extra params.
                         for k, v in inst["overrides"].items():
@@ -1249,6 +1261,7 @@ def create_app():
                     "version": str(soc_doc.get("version") or "live"),
                     "clusters": clusters_out,
                     "busses": norm_conns,
+                    "connections": norm_conns,        # alias for clarity
                     "addrMap": [
                         {**e, "base": _hex_addr(e.get("base")), "range": _hex_addr(e.get("range"))}
                         for e in (addr_map if isinstance(addr_map, list) else [])
@@ -1286,6 +1299,87 @@ def create_app():
             })
         except Exception as e:
             return JSONResponse({"error": str(e), "clusters": []}, status_code=500)
+
+    @app.post("/api/soc/layout")
+    async def api_soc_layout(request: Request):
+        """Persist user-dragged block positions back into soc.ssot.yaml.
+
+        Body (JSON): `{"layout": {"<cluster>/<inst>": {"x": <num>, "y": <num>}, …}}`
+
+        For each entry, find the matching `instances[].id` (`<cluster>/<inst>`
+        is split on `/`; we use just the inst id since SoC SSOT instance
+        ids are unique) and set its `x:` / `y:` keys. Other fields are
+        left untouched. The file is rewritten in-place with
+        `yaml.safe_dump`. Empty layout `{}` clears all x/y from every
+        instance (paired with the frontend's [reset] button).
+
+        Architect screen reads these on the next /api/soc fetch and
+        uses them as the default block position (overriding the
+        auto-grid). LocalStorage layout still wins as the most-local
+        cache, so a user can preview drag-arounds before committing.
+        """
+        try:
+            body = await request.json()
+        except Exception as e:
+            return JSONResponse({"error": f"bad json: {e}"}, status_code=400)
+        layout = body.get("layout") if isinstance(body, dict) else None
+        if not isinstance(layout, dict):
+            return JSONResponse({"error": "missing 'layout' object"}, status_code=400)
+        try:
+            import yaml as _yaml
+        except ImportError:
+            return JSONResponse({"error": "PyYAML not installed"}, status_code=500)
+
+        soc_path = PROJECT_ROOT / "soc.ssot.yaml"
+        if not soc_path.is_file():
+            return JSONResponse({"error": "soc.ssot.yaml not found at project root"},
+                                 status_code=404)
+        try:
+            doc = _yaml.safe_load(soc_path.read_text(encoding="utf-8")) or {}
+        except Exception as e:
+            return JSONResponse({"error": f"parse: {e}"}, status_code=500)
+        if not isinstance(doc, dict): doc = {}
+        instances = doc.get("instances")
+        if not isinstance(instances, list):
+            return JSONResponse({"error": "soc.ssot.yaml has no instances[]"},
+                                 status_code=400)
+
+        # Build lookup `inst_id → ref` from layout keys.
+        ref_for_inst = {}
+        for ref in layout.keys():
+            if not isinstance(ref, str) or "/" not in ref: continue
+            inst_id = ref.split("/", 1)[1]
+            ref_for_inst[inst_id] = ref
+
+        touched = 0
+        cleared = 0
+        for inst in instances:
+            if not isinstance(inst, dict): continue
+            iid = inst.get("id")
+            if not iid: continue
+            ref = ref_for_inst.get(iid)
+            if ref is None:
+                # Instance not in incoming layout: if it has stale x/y
+                # AND the incoming layout was empty `{}`, clear them.
+                if not layout:
+                    if "x" in inst: inst.pop("x"); cleared += 1
+                    if "y" in inst: inst.pop("y"); cleared += 1
+                continue
+            pos = layout.get(ref)
+            if isinstance(pos, dict) and isinstance(pos.get("x"), (int, float)) \
+               and isinstance(pos.get("y"), (int, float)):
+                inst["x"] = round(float(pos["x"]), 1)
+                inst["y"] = round(float(pos["y"]), 1)
+                touched += 1
+
+        try:
+            with open(soc_path, "w", encoding="utf-8") as f:
+                _yaml.safe_dump(doc, f, sort_keys=False,
+                                default_flow_style=False, allow_unicode=True)
+        except OSError as e:
+            return JSONResponse({"error": f"write: {e}"}, status_code=500)
+        return JSONResponse({"ok": True, "touched": touched, "cleared": cleared,
+                              "path": str(soc_path.relative_to(PROJECT_ROOT))})
 
     @app.post("/api/ipxact/import")
     async def api_ipxact_import(request: Request):

@@ -599,17 +599,6 @@ window.SocArchitect = function SocArchitect() {
   const blockDragRef = React.useRef(null);
   // Mini-map toggle
   const [miniOpen, setMiniOpen] = React.useState(true);
-  // Hierarchy tree search query — case-insensitive substring match
-  // against module id + name. Empty string means "show everything".
-  const [treeQuery, setTreeQuery] = React.useState('');
-  const treeMatches = React.useMemo(() => {
-    if (!treeQuery) return [];
-    const out = [];
-    for (const c of soc.clusters || [])
-      for (const m of c.modules || [])
-        if (_matchesQuery(m, c.id, treeQuery)) out.push({ ref: `${c.id}/${m.id}`, m, c });
-    return out;
-  }, [treeQuery, soc]);
   // Sparkline hover popover state — which row is hovered, for the
   // status grid TREND column. {ref, x, y} or null.
   const [sparkPop, setSparkPop] = React.useState(null);
@@ -647,12 +636,25 @@ window.SocArchitect = function SocArchitect() {
   const prevMtimeRef = React.useRef(new Map());
 
   // ── Derived data (computed every render, must come BEFORE any
-  // useEffect that references them — otherwise the deps array hits a
-  // TDZ ReferenceError on the first call to React.useEffect, the whole
+  // useEffect/useMemo that references them — otherwise the deps
+  // array hits a TDZ ReferenceError on the first call, the whole
   // component throws, and the screen unmounts.)
   const soc = (live && live.clusters && live.clusters.length) ? live : window.SOC;
   const lookup = (live && live.clusters && live.clusters.length) ? _buildLookup(live) : window.SOC_LOOKUP;
   const isLive = !!(live && live.clusters && live.clusters.length);
+
+  // Hierarchy tree search query — case-insensitive substring match
+  // against module id + name. Empty string means "show everything".
+  // (Declared after `soc` so the useMemo deps array doesn't hit TDZ.)
+  const [treeQuery, setTreeQuery] = React.useState('');
+  const treeMatches = React.useMemo(() => {
+    if (!treeQuery) return [];
+    const out = [];
+    for (const c of soc.clusters || [])
+      for (const m of c.modules || [])
+        if (_matchesQuery(m, c.id, treeQuery)) out.push({ ref: `${c.id}/${m.id}`, m, c });
+    return out;
+  }, [treeQuery, soc]);
 
   // Layout-persistence key depends on the SoC name so different SoCs
   // keep independent block-position layouts. Reload the layout slot
@@ -1034,12 +1036,20 @@ window.SocArchitect = function SocArchitect() {
     c.modules.forEach((m, i) => {
       const ref = `${c.id}/${m.id}`;
       const col = i % cols, rIdx = Math.floor(i / cols);
-      // Honour user-dragged position from `layout[ref]` if present;
-      // otherwise fall back to the auto-grid default.
+      // Position precedence (most-local first):
+      //   1. layout[ref] from localStorage (user-dragged, not yet saved)
+      //   2. m.savedX/savedY from soc.ssot.yaml (saved layout)
+      //   3. auto-grid fallback
       const ov = layout && layout[ref];
+      const hasOv = ov && typeof ov.x === 'number';
+      const hasSaved = typeof m.savedX === 'number';
       positions[m.id] = {
-        x: (ov && typeof ov.x === 'number') ? ov.x : gapX + col * (blockW + gapX),
-        y: (ov && typeof ov.y === 'number') ? ov.y : 40 + gapY + rIdx * (maxBlockH + gapY),
+        x: hasOv  ? ov.x
+          : hasSaved ? m.savedX
+          : gapX + col * (blockW + gapX),
+        y: hasOv  ? ov.y
+          : hasSaved ? m.savedY
+          : 40 + gapY + rIdx * (maxBlockH + gapY),
         w: blockW,
         h: sizes[i].h,
       };
@@ -1651,6 +1661,42 @@ window.SocArchitect = function SocArchitect() {
                 <span className="pct">{zoom}%</span>
                 <button onClick={() => setZoom(z => Math.min(200, z + 10))}>+</button>
                 <button onClick={fitZoom} title="fit diagram to canvas">fit</button>
+                <button onClick={async () => {
+                          // Save current localStorage layout into
+                          // soc.ssot.yaml's instances[].x/y. After save
+                          // we keep the localStorage cache so reload
+                          // fingerprints match; subsequent /api/soc
+                          // fetches will pick up savedX/Y too.
+                          if (!isLive) {
+                            alert('Save needs a live soc.ssot.yaml — currently in mock mode.');
+                            return;
+                          }
+                          try {
+                            const r = await fetch('/api/soc/layout', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ layout }),
+                            });
+                            const d = await r.json().catch(() => ({}));
+                            if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
+                            // Re-fetch /api/soc so savedX/Y land on the
+                            // module dicts (and the layout is now the
+                            // canonical source of truth).
+                            refreshSoc();
+                            // brief visual confirm via the run-bar text
+                            // or just a console hint — keep noise low.
+                            console.info('[architect] layout saved →', d.path,
+                                         '· touched:', d.touched, 'cleared:', d.cleared);
+                          } catch (err) {
+                            alert('Save failed: ' + (err.message || err));
+                          }
+                        }}
+                        title="save dragged block positions into soc.ssot.yaml (instances[].x/y)"
+                        style={{ borderLeft: '1px solid var(--line)',
+                                 color: Object.keys(layout).length ? 'var(--accent)' : 'inherit',
+                                 opacity: Object.keys(layout).length ? 1 : 0.4 }}>
+                  save
+                </button>
                 <button onClick={() => {
                           if (Object.keys(layout).length === 0) return;
                           if (!confirm('Reset all dragged block positions to the auto-grid layout?')) return;
