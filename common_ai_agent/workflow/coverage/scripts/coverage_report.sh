@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 # coverage_report.sh — Generate annotated/ + .info from merged.dat.
-# Prints summary line/toggle %.
+# Side-effects on each run:
+#   <DUT>/cov/annotated/        verilator_coverage annotated source
+#   <DUT>/cov/coverage.info     LCOV info file (DA/BRDA records)
+#   <DUT>/cov/coverage.json     parsed summary snapshot for the UI
+#   <DUT>/cov/history.jsonl     append-only run log (one JSON per iter)
+#   <DUT>/cov/html/             optional HTML report (when genhtml available)
 set -e
 
 DUT="${HOOK_CMD_ARGS:-${1:-gpio_pad}}"
 WANT_HTML=0
+NO_HTML=0
 for arg in "$@"; do
-    [ "$arg" = "--html" ] && WANT_HTML=1
+    case "$arg" in
+        --html)    WANT_HTML=1 ;;
+        --no-html) NO_HTML=1 ;;
+    esac
 done
 DUT="${DUT// /}"
 
@@ -18,6 +27,14 @@ if [ ! -f "${MERGED}" ]; then
     exit 1
 fi
 
+# Auto-enable HTML when genhtml is available (unless --no-html was passed).
+# This makes /coverage-report do the right thing without remembering --html.
+if [ ${WANT_HTML} -eq 0 ] && [ ${NO_HTML} -eq 0 ]; then
+    if command -v genhtml >/dev/null 2>&1; then
+        WANT_HTML=1
+    fi
+fi
+
 echo "=== Annotated source ==="
 verilator_coverage "${MERGED}" --annotate "${OUT}/annotated/" 2>&1 | tail -5
 
@@ -27,19 +44,20 @@ verilator_coverage "${MERGED}" --write-info "${OUT}/coverage.info" 2>&1 | tail -
 
 if [ ${WANT_HTML} -eq 1 ]; then
     if command -v genhtml >/dev/null 2>&1; then
-        genhtml "${OUT}/coverage.info" -o "${OUT}/html" 2>&1 | tail -3
-        echo "HTML report: ${OUT}/html/index.html"
+        echo ""
+        echo "=== HTML report (genhtml) ==="
+        genhtml "${OUT}/coverage.info" -o "${OUT}/html" --quiet 2>&1 | tail -5 \
+            || echo "WARN: genhtml exited non-zero — partial HTML may be present"
+        echo "HTML index: ${OUT}/html/index.html"
     else
-        echo "WARN: genhtml not available — skipping HTML"
+        echo ""
+        echo "WARN: genhtml not available — skipping HTML."
+        echo "      Install with: brew install lcov   (provides genhtml)"
     fi
 fi
 
 echo ""
 echo "=== Summary (line / branch %) ==="
-# Verilator --write-info emits per-line `DA:<line>,<count>` and per-branch
-# `BRDA:<line>,<block>,<branch>,<count>` records but does NOT emit LCOV's
-# LF:/LH: rollup lines (lcov/genhtml compute those at render time). So
-# count DA / BRDA records directly.
 LINES_TOTAL=$(grep -c "^DA:" "${OUT}/coverage.info" 2>/dev/null || echo 0)
 LINES_HIT=$(awk -F'[:,]' '/^DA:/ && $3 != "0" {n++} END{print n+0}' "${OUT}/coverage.info")
 BRS_TOTAL=$(grep -c "^BRDA:" "${OUT}/coverage.info" 2>/dev/null || echo 0)
@@ -49,21 +67,49 @@ if [ "${LINES_TOTAL}" -gt 0 ]; then
     LPCT=$(awk -v h="${LINES_HIT}" -v f="${LINES_TOTAL}" 'BEGIN{printf "%.2f", (h/f)*100}')
     echo "Lines    : ${LINES_HIT}/${LINES_TOTAL}  (${LPCT}%)"
 else
+    LPCT="0.00"
     echo "Lines    : 0/0  (no DA records — coverage.info empty?)"
 fi
 if [ "${BRS_TOTAL}" -gt 0 ]; then
     BPCT=$(awk -v h="${BRS_HIT}" -v f="${BRS_TOTAL}" 'BEGIN{printf "%.2f", (h/f)*100}')
     echo "Branches : ${BRS_HIT}/${BRS_TOTAL}  (${BPCT}%)"
+else
+    BPCT="0.00"
 fi
-# Toggle coverage doesn't show up in --write-info output. Pull from the
-# annotate output's "Total coverage (X/Y) Z%" line instead.
 TOG_LINE=$(verilator_coverage "${MERGED}" 2>&1 | grep -i "total coverage" | head -1)
 if [ -n "${TOG_LINE}" ]; then
     echo "Overall  : ${TOG_LINE# }"
 fi
+
+# ── Write summary snapshot for the UI ─────────────────────────────────
+# coverage.json: latest stats, used by coverage.jsx as the canonical source
+# of truth (no need to re-parse coverage.info on every fetch — though the
+# UI also supports falling back to .info parsing).
+TIMESTAMP_ISO=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+TIMESTAMP_EPOCH=$(date +%s)
+cat > "${OUT}/coverage.json" <<EOF
+{
+  "timestamp_iso": "${TIMESTAMP_ISO}",
+  "timestamp_epoch": ${TIMESTAMP_EPOCH},
+  "dut": "${DUT}",
+  "lines":    { "hit": ${LINES_HIT:-0}, "total": ${LINES_TOTAL:-0}, "pct": ${LPCT:-0} },
+  "branches": { "hit": ${BRS_HIT:-0},   "total": ${BRS_TOTAL:-0},   "pct": ${BPCT:-0} },
+  "html_available": ${WANT_HTML}
+}
+EOF
+
+# ── Append to per-run history ────────────────────────────────────────
+# history.jsonl: one JSON object per /coverage-report invocation. The UI
+# reads the last 20 to render the delta tracker.
+mkdir -p "${OUT}"
+echo "{\"timestamp_iso\":\"${TIMESTAMP_ISO}\",\"timestamp_epoch\":${TIMESTAMP_EPOCH},\"lines\":{\"hit\":${LINES_HIT:-0},\"total\":${LINES_TOTAL:-0},\"pct\":${LPCT:-0}},\"branches\":{\"hit\":${BRS_HIT:-0},\"total\":${BRS_TOTAL:-0},\"pct\":${BPCT:-0}}}" >> "${OUT}/history.jsonl"
+HIST_COUNT=$(wc -l < "${OUT}/history.jsonl" | tr -d ' ')
+
 echo ""
 echo "Annotated dir : ${OUT}/annotated/"
 echo "LCOV info     : ${OUT}/coverage.info"
+echo "JSON summary  : ${OUT}/coverage.json"
+echo "History       : ${OUT}/history.jsonl  (${HIST_COUNT} runs)"
 [ ${WANT_HTML} -eq 1 ] && echo "HTML report   : ${OUT}/html/index.html"
 echo ""
 echo "Next: /coverage-gaps     (find uncovered hot-spots)"

@@ -339,31 +339,175 @@ const CovGapNav = ({ annotated, activePath, onJump }) => {
   );
 };
 
+// ── Toggle coverage widget (per-scope toggle %) ───────────────
+// Reads <DUT>/cov/toggle.json (written by /coverage-vcd-toggle).
+// Each scope row shows %, toggled/total bits, net count.
+const CovToggleWidget = ({ toggle }) => {
+  if (!toggle) {
+    return (
+      <div className="box">
+        <div className="box-h"><span>▸ toggle (VCD)</span></div>
+        <div style={{ padding: 12, color: 'var(--fg-mute)', fontSize: 11 }}>
+          Run <code>/coverage-vcd-toggle</code> to extract toggle coverage from a VCD.
+        </div>
+      </div>
+    );
+  }
+  const sorted = (toggle.scopes || []).slice().sort((a, b) => a.pct - b.pct);
+  const top = sorted.slice(0, 6);
+  return (
+    <div className="box">
+      <div className="box-h">
+        <span>▸ toggle (VCD)</span>
+        <span style={{ flex: 1 }} />
+        <span className="mute" style={{ fontSize: 10 }}>{toggle.nets} nets</span>
+      </div>
+      <div style={{ padding: '10px 12px', display: 'grid', gridTemplateColumns: '1fr auto', gap: 8 }}>
+        <div>
+          <div style={{ fontSize: 10, color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Bits toggled</div>
+          <div style={{ fontSize: 22, fontWeight: 600, fontFamily: 'var(--mono)', marginTop: 2 }}>
+            {toggle.pct.toFixed(2)}%
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--fg-mute)', marginTop: 2 }}>
+            {toggle.toggled_bits} / {toggle.total_bits}
+          </div>
+        </div>
+        <div style={{ width: 6, background: 'var(--bg-2)', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{
+            width: '100%',
+            height: `${Math.max(0, Math.min(100, toggle.pct))}%`,
+            background: 'var(--mag, #d063ff)',
+            transform: 'translateY(' + (100 - toggle.pct) + '%)',
+          }} />
+        </div>
+      </div>
+      {top.length > 0 && (
+        <div style={{ borderTop: '1px solid var(--line)', maxHeight: 130, overflowY: 'auto' }}>
+          {top.map((s) => (
+            <div key={s.scope} style={{
+              display: 'grid', gridTemplateColumns: '50px 1fr',
+              padding: '4px 12px', fontSize: 11, fontFamily: 'var(--mono)',
+            }}>
+              <span style={{
+                textAlign: 'right', paddingRight: 6,
+                color: s.pct >= 80 ? '#3fb950' : s.pct >= 50 ? '#d4a72c' : '#f85149',
+              }}>
+                {s.pct.toFixed(0)}%
+              </span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {s.scope || '(root)'}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Delta tracker (current vs previous run from history.jsonl) ─
+// history.jsonl is appended to by coverage_report.sh on each run.
+// Each line is one JSON object with timestamp + lines/branches stats.
+const CovDeltaWidget = ({ history }) => {
+  if (!history || history.length === 0) {
+    return (
+      <div className="box">
+        <div className="box-h"><span>▸ delta</span></div>
+        <div style={{ padding: 12, color: 'var(--fg-mute)', fontSize: 11 }}>
+          Run <code>/coverage-report</code> at least twice to see iteration deltas.
+        </div>
+      </div>
+    );
+  }
+  const cur = history[history.length - 1];
+  const prev = history.length >= 2 ? history[history.length - 2] : null;
+  const deltaLine = prev ? cur.lines.pct - prev.lines.pct : 0;
+  const deltaBr = prev ? cur.branches.pct - prev.branches.pct : 0;
+  const arrow = (d) => d > 0 ? '▲' : d < 0 ? '▼' : '·';
+  const color = (d) => d > 0 ? '#3fb950' : d < 0 ? '#f85149' : 'var(--fg-mute)';
+  return (
+    <div className="box">
+      <div className="box-h">
+        <span>▸ delta</span>
+        <span style={{ flex: 1 }} />
+        <span className="mute" style={{ fontSize: 10 }}>iter {history.length}</span>
+      </div>
+      <div style={{ padding: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 10, color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Lines Δ</div>
+          <div style={{ fontSize: 18, fontWeight: 600, fontFamily: 'var(--mono)', color: color(deltaLine), marginTop: 2 }}>
+            {arrow(deltaLine)} {prev ? (deltaLine >= 0 ? '+' : '') + deltaLine.toFixed(2) + '%' : '—'}
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--fg-mute)', marginTop: 2 }}>
+            now {cur.lines.pct.toFixed(2)}%{prev ? ` (was ${prev.lines.pct.toFixed(2)}%)` : ''}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 10, color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Branches Δ</div>
+          <div style={{ fontSize: 18, fontWeight: 600, fontFamily: 'var(--mono)', color: color(deltaBr), marginTop: 2 }}>
+            {arrow(deltaBr)} {prev ? (deltaBr >= 0 ? '+' : '') + deltaBr.toFixed(2) + '%' : '—'}
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--fg-mute)', marginTop: 2 }}>
+            now {cur.branches.pct.toFixed(2)}%{prev ? ` (was ${prev.branches.pct.toFixed(2)}%)` : ''}
+          </div>
+        </div>
+      </div>
+      {history.length > 1 && (
+        <div style={{
+          borderTop: '1px solid var(--line)', padding: '6px 12px',
+          fontSize: 10, color: 'var(--fg-mute)', fontFamily: 'var(--mono)',
+        }}>
+          trend (last {Math.min(10, history.length)}):
+          {' '}
+          {history.slice(-10).map((h, i) => (
+            <span key={i} title={`iter ${history.length - history.slice(-10).length + i + 1}: ${h.lines.pct.toFixed(2)}%`}>
+              {h.lines.pct.toFixed(0)}{i < history.slice(-10).length - 1 ? ' → ' : ''}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── Top-level Coverage panel ──────────────────────────────────
 window.Coverage = () => {
   const [dut, setDut] = React.useState(_COV_DEFAULT_DUT);
   const [summary, setSummary] = React.useState(null);
+  const [toggle, setToggle] = React.useState(null);
+  const [history, setHistory] = React.useState([]);
   const [activeFile, setActiveFile] = React.useState(null);
   const [annotatedContent, setAnnotatedContent] = React.useState('');
   const [jumpLine, setJumpLine] = React.useState(null);
   const [error, setError] = React.useState('');
   const [lastRefresh, setLastRefresh] = React.useState('');
+  const [htmlAvailable, setHtmlAvailable] = React.useState(false);
 
-  // Fetch coverage.info via /api/file
+  // Fetch coverage.info via /api/file (also pulls toggle.json and history.jsonl
+  // in parallel — all three are written by the coverage_report / vcd_toggle
+  // scripts and live under <DUT>/cov/).
   const loadInfo = React.useCallback(async () => {
     setError('');
-    try {
-      const r = await fetch('/api/file?path=' + encodeURIComponent(`${dut}/cov/coverage.info`));
-      if (!r.ok) {
-        setSummary(null);
-        setError(`coverage.info not found — run /coverage-report ${dut} first`);
-        return;
-      }
-      const j = await r.json();
-      const parsed = parseCoverageInfo(j.content || '');
+    // ── Fire all three fetches in parallel ──
+    const tryFetch = async (path) => {
+      try {
+        const r = await fetch('/api/file?path=' + encodeURIComponent(path));
+        if (!r.ok) return null;
+        return await r.json();
+      } catch (_) { return null; }
+    };
+    const [infoResp, toggleResp, histResp, snapshotResp] = await Promise.all([
+      tryFetch(`${dut}/cov/coverage.info`),
+      tryFetch(`${dut}/cov/toggle.json`),
+      tryFetch(`${dut}/cov/history.jsonl`),
+      tryFetch(`${dut}/cov/coverage.json`),
+    ]);
+
+    // Coverage.info → parsed summary (or null if missing)
+    if (infoResp) {
+      const parsed = parseCoverageInfo(infoResp.content || '');
       setSummary(parsed);
       setLastRefresh(new Date().toLocaleTimeString());
-      // Auto-pick the worst-coverage file if nothing selected yet
       if (!activeFile && Object.keys(parsed.files).length) {
         const worst = Object.keys(parsed.files).sort((a, b) => {
           const pa = parsed.files[a].lines.total ? parsed.files[a].lines.hit / parsed.files[a].lines.total : 1;
@@ -372,8 +516,38 @@ window.Coverage = () => {
         })[0];
         setActiveFile(worst);
       }
-    } catch (e) {
-      setError(`load error: ${e.message}`);
+    } else {
+      setSummary(null);
+      setError(`coverage.info not found — run /coverage-report ${dut} first`);
+    }
+
+    // toggle.json → optional
+    if (toggleResp) {
+      try {
+        setToggle(JSON.parse(toggleResp.content || 'null'));
+      } catch (_) { setToggle(null); }
+    } else {
+      setToggle(null);
+    }
+
+    // history.jsonl → optional, line-delimited JSON
+    if (histResp && histResp.content) {
+      const rows = histResp.content
+        .split('\n')
+        .filter(l => l.trim())
+        .map(l => { try { return JSON.parse(l); } catch (_) { return null; } })
+        .filter(Boolean);
+      setHistory(rows);
+    } else {
+      setHistory([]);
+    }
+
+    // coverage.json snapshot → tells us whether HTML is available
+    if (snapshotResp) {
+      try {
+        const snap = JSON.parse(snapshotResp.content || '{}');
+        setHtmlAvailable(!!snap.html_available);
+      } catch (_) { setHtmlAvailable(false); }
     }
   }, [dut, activeFile]);
 
@@ -401,11 +575,36 @@ window.Coverage = () => {
   return (
     <div style={{
       display: 'grid',
-      gridTemplateRows: 'auto 1fr',
+      gridTemplateRows: 'auto auto 1fr',
       gap: 12, height: '100%', overflow: 'hidden',
     }}>
-      {/* Top: stats widget */}
-      <CovStatsWidget summary={summary} dut={dut} onRefresh={loadInfo} lastRefresh={lastRefresh} />
+      {/* Top: stats widget + HTML link */}
+      <div style={{ position: 'relative' }}>
+        <CovStatsWidget summary={summary} dut={dut} onRefresh={loadInfo} lastRefresh={lastRefresh} />
+        {htmlAvailable && (
+          <a
+            href={`/${dut}/cov/html/index.html`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="open genhtml report in a new tab"
+            style={{
+              position: 'absolute', top: 8, right: 12, fontSize: 11,
+              color: 'var(--accent)', fontFamily: 'var(--mono)',
+              textDecoration: 'none',
+            }}
+          >↗ HTML report</a>
+        )}
+      </div>
+
+      {/* Middle row: toggle widget + delta tracker */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: 12,
+      }}>
+        <CovToggleWidget toggle={toggle} />
+        <CovDeltaWidget history={history} />
+      </div>
 
       {/* Bottom: 3-pane (files | source | gaps) */}
       <div style={{

@@ -45,8 +45,31 @@ fi
 echo "VCD: ${TARGET}"
 echo ""
 
+# Always persist a JSON copy to <DUT>/cov/toggle.json so the Atlas UI
+# panel can fetch it. The text or --json output is what gets shown to
+# the agent; the persisted JSON is what the UI consumes.
+mkdir -p "${DUT}/cov"
+TOGGLE_JSON_PATH="${DUT}/cov/toggle.json"
+python3 "${ADAPTER}" --json --top "${TOP}" "${TARGET}" > "${TOGGLE_JSON_PATH}"
+echo "JSON snapshot: ${TOGGLE_JSON_PATH}"
+
 if [ ${WANT_JSON} -eq 1 ]; then
-    python3 "${ADAPTER}" --json --top "${TOP}" "${TARGET}"
+    cat "${TOGGLE_JSON_PATH}"
 else
-    python3 "${ADAPTER}" --top "${TOP}" "${TARGET}"
+    # Pretty-print summary from the JSON we just wrote (avoid running
+    # the parser twice — that's wasted work on big VCDs).
+    python3 - "${TOGGLE_JSON_PATH}" <<'PYEOF'
+import json, sys
+d = json.load(open(sys.argv[1]))
+print()
+print(f"=== VCD Toggle Coverage: {d['vcd']} ===")
+print(f"Nets         : {d['nets']}")
+print(f"Total bits   : {d['total_bits']}")
+print(f"Toggled bits : {d['toggled_bits']}")
+print(f"Toggle %     : {d['pct']:.2f} %")
+print()
+print(f"=== Worst-{len(d['scopes'])} scopes (by toggle %) ===")
+for s in sorted(d['scopes'], key=lambda x: x['pct'])[:10]:
+    print(f"  {s['pct']:5.1f} %  {s['toggled']:>4}/{s['total']:<4} bits  ({s['nets']} nets)  {s['scope']}")
+PYEOF
 fi
