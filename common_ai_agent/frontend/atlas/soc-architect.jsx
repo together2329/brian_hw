@@ -481,6 +481,89 @@
   backdrop-filter: blur(8px);
 }
 .bd-minimap-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── Block ⚡ dispatch button + running pill ───────────────────── */
+.bd-dispatch-btn {
+  background: transparent; border: 0; cursor: pointer;
+  color: var(--fg-mute); font-size: 11px;
+  padding: 0 4px; line-height: 1;
+  transition: color .12s, transform .12s;
+}
+.bd-dispatch-btn:hover { color: var(--warn); transform: scale(1.2); }
+.bd-running-pill {
+  font-size: 9px; color: var(--cyan); font-family: var(--mono);
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  background: color-mix(in oklch, var(--cyan) 12%, transparent);
+  border: 1px solid color-mix(in oklch, var(--cyan) 50%, var(--line));
+  border-radius: 1px;
+  animation: plBlink 1.2s ease-in-out infinite;
+}
+.bd-block.with-ports.job-running {
+  box-shadow: 0 0 0 1px var(--cyan), 0 0 22px color-mix(in oklch, var(--cyan) 35%, transparent);
+  border-color: var(--cyan);
+}
+.bd-dispatch-item {
+  padding: 5px 10px; cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  color: var(--fg-dim);
+  border-bottom: 1px solid var(--line);
+}
+.bd-dispatch-item:last-child { border-bottom: 0; }
+.bd-dispatch-item:hover { background: var(--bg-2); color: var(--accent); }
+
+/* ── JobTracker panel ───────────────────────────────────────── */
+.job-tracker {
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-2);
+  font-family: var(--mono);
+  display: flex; flex-direction: column;
+  flex: 0 0 auto;
+  max-height: 220px; overflow: hidden;
+}
+.job-tracker-head {
+  padding: 4px 10px; background: var(--bg-3);
+  font-size: 10px; color: var(--fg-mute);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--line);
+}
+.job-tracker-head:hover { color: var(--fg); }
+.job-tracker-head .badge {
+  font-size: 9px; padding: 0 5px; border-radius: 1px;
+  background: var(--accent); color: var(--bg); font-weight: 700;
+}
+.job-tracker-list {
+  flex: 1; overflow: auto; padding: 4px 0;
+}
+.job-row {
+  display: grid;
+  grid-template-columns: 18px 1fr 80px 60px 16px;
+  gap: 6px; align-items: center;
+  padding: 4px 10px; font-size: 10.5px; color: var(--fg-dim);
+  cursor: pointer; border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.job-row:last-child { border-bottom: 0; }
+.job-row:hover { background: color-mix(in oklch, var(--accent) 6%, transparent); }
+.job-row .icn { text-align: center; font-size: 11px; }
+.job-row.running .icn { color: var(--cyan); animation: plBlink 1s infinite; }
+.job-row.completed .icn { color: var(--ok); }
+.job-row.error .icn { color: var(--err); }
+.job-row.cancelled .icn { color: var(--fg-mute); }
+.job-row .ip { color: var(--fg); font-weight: 500; }
+.job-row .wf { color: var(--accent); font-size: 10px; padding: 0 4px;
+               background: color-mix(in oklch, var(--accent) 10%, transparent);
+               border: 1px solid color-mix(in oklch, var(--accent) 30%, var(--line));
+               border-radius: 1px; }
+.job-row .meta { color: var(--fg-mute); font-size: 9.5px; text-align: right; }
+.job-row .x {
+  color: var(--fg-mute); cursor: pointer; opacity: 0;
+  transition: opacity .12s;
+}
+.job-row:hover .x { opacity: 1; }
+.job-row .x:hover { color: var(--err); }
 `;
   document.head.appendChild(s);
 })();
@@ -599,6 +682,57 @@ window.SocArchitect = function SocArchitect() {
   const blockDragRef = React.useRef(null);
   // Mini-map toggle
   const [miniOpen, setMiniOpen] = React.useState(true);
+  // Active worker jobs (HTTP-worker dispatched). Polled from /api/jobs
+  // every 2s; used by the JobTracker panel + the per-block "running"
+  // ring + the block ⚡ menu.
+  const [jobs, setJobs] = React.useState([]);
+  React.useEffect(() => {
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const r = await fetch('/api/jobs');
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const d = await r.json();
+        if (!cancelled) setJobs(Array.isArray(d.jobs) ? d.jobs : []);
+      } catch (_) { /* keep last good */ }
+    };
+    tick();
+    const id = setInterval(tick, 2000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+  // Map ip → most recent running job (used for diagram ring).
+  const runningByIp = React.useMemo(() => {
+    const m = {};
+    for (const j of jobs) {
+      if (j.status === 'running' && j.ip) {
+        if (!m[j.ip] || (j.started_at || 0) > (m[j.ip].started_at || 0)) m[j.ip] = j;
+      }
+    }
+    return m;
+  }, [jobs]);
+  // Per-block dispatch menu state — anchored to the ⚡ button.
+  // {ipRef, x, y} or null.
+  const [dispatchMenu, setDispatchMenu] = React.useState(null);
+  const dispatchJob = React.useCallback(async (workflow, ip) => {
+    setDispatchMenu(null);
+    try {
+      const r = await fetch('/api/job/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workflow, ip }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
+      // Force a job poll soon so the ring + tracker update fast.
+      setTimeout(() => fetch('/api/jobs').then(r => r.json())
+        .then(dd => setJobs(dd.jobs || [])).catch(() => {}), 200);
+    } catch (e) {
+      alert(`dispatch failed: ${e.message || e}\n\n` +
+            `Check the worker for ${workflow} is running:\n` +
+            `  python src/main.py --serve --port 8001 --worker-name ${workflow}\n` +
+            `Or set WORKER_URL_${workflow.toUpperCase().replace(/-/g, '_')} env var.`);
+    }
+  }, []);
   // Sparkline hover popover state — which row is hovered, for the
   // status grid TREND column. {ref, x, y} or null.
   const [sparkPop, setSparkPop] = React.useState(null);
@@ -1235,7 +1369,7 @@ window.SocArchitect = function SocArchitect() {
                             m.kind ? `(${(window.MOD_KIND_LABEL || {})[m.kind] || m.kind})` : '';
           const centerGlyph = (window.MOD_ICON || {})[m.kind] || 'C';
           return (
-            <div key={m.id} className={`bd-block with-ports ${m.kind || ''} ${sel ? 'sel' : ''} ${touched ? 'touched' : ''}`}
+            <div key={m.id} className={`bd-block with-ports ${m.kind || ''} ${sel ? 'sel' : ''} ${touched ? 'touched' : ''} ${runningByIp[m.id] ? 'job-running' : ''}`}
                  style={{ left: p.x, top: p.y, width: p.w, height: p.h }}
                  onClick={(e) => {
                    // Skip if this was the end of a drag — block-head's
@@ -1299,7 +1433,27 @@ window.SocArchitect = function SocArchitect() {
                 <span style={{ flex: 1 }} />
                 {touched && <span className="add-badge">+</span>}
                 {m.status.sim === 'err' && <span style={{ color: 'var(--err)', fontSize: 11 }}>✗</span>}
+                {/* Running-job ring marker */}
+                {runningByIp[m.id] && (
+                  <span className="bd-running-pill"
+                        title={`${runningByIp[m.id].workflow} · iter ${runningByIp[m.id].iterations}`}>
+                    ◌ {runningByIp[m.id].workflow}
+                  </span>
+                )}
                 {m.addr && <span style={{ fontSize: 9, color: 'var(--cyan)', fontFamily: 'var(--mono)' }}>{(m.addr.split(' ')[0] || '').replace(/^0x/, '')}</span>}
+                {/* ⚡ dispatch button — opens menu to run workflows on
+                    this IP via an HTTP worker. */}
+                <button className="bd-dispatch-btn"
+                        title="dispatch a workflow on this IP"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const r = e.currentTarget.getBoundingClientRect();
+                          setDispatchMenu({
+                            ip: m.id,
+                            x: r.right + 4, y: r.top,
+                          });
+                        }}>⚡</button>
               </div>
               {top.length > 0 && (
                 <div className="bd-ports-edge top">
@@ -1974,10 +2128,60 @@ memoryMap:
           )}
         </div>
 
-        {/* RIGHT — chat (live · routes prompts to the same WS bridge
-            the Workspace screen uses). */}
-        <window.ArchitectChat view={view} selModule={selModule} selCluster={selCluster} />
+        {/* RIGHT — vertical stack: JobTracker (collapsible) + chat. */}
+        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden',
+                      borderLeft: '1px solid var(--line)', background: 'var(--panel)' }}>
+          <window.JobTracker jobs={jobs}
+                             onSelectIp={(ip) => {
+                               const lk = lookup[Object.keys(lookup).find(k => lookup[k].module.id === ip)];
+                               if (lk) {
+                                 setSelMod(`${lk.cluster.id}/${ip}`);
+                                 setView(`cluster:${lk.cluster.id}`);
+                               }
+                             }} />
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <window.ArchitectChat view={view} selModule={selModule} selCluster={selCluster} />
+          </div>
+        </div>
       </div>
+
+      {/* Block ⚡ dispatch menu — popover anchored to the button. */}
+      {dispatchMenu && (
+        <>
+          <div onClick={() => setDispatchMenu(null)}
+               style={{ position: 'fixed', inset: 0, zIndex: 999 }} />
+          <div style={{
+            position: 'fixed', left: dispatchMenu.x, top: dispatchMenu.y,
+            zIndex: 1000, minWidth: 180,
+            background: 'var(--panel)', border: '1px solid var(--line-2)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+            font: '11px var(--mono)',
+          }}>
+            <div style={{ padding: '4px 10px', background: 'var(--bg-2)',
+                          borderBottom: '1px solid var(--line)',
+                          fontSize: 10, color: 'var(--fg-mute)',
+                          letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              dispatch on <b style={{ color: 'var(--accent)' }}>{dispatchMenu.ip}</b>
+            </div>
+            {[
+              { wf: 'ssot-gen', icon: '◐', label: 'ssot-gen — refresh SSOT' },
+              { wf: 'rtl-gen',  icon: '⚙', label: 'rtl-gen — generate RTL' },
+              { wf: 'tb-gen',   icon: '⌬', label: 'tb-gen — testbench' },
+              { wf: 'lint',     icon: '✓', label: 'lint' },
+              { wf: 'sim',      icon: '▶', label: 'sim' },
+              { wf: 'syn',      icon: '⊕', label: 'syn' },
+              { wf: 'sta',      icon: '⊞', label: 'sta' },
+            ].map(o => (
+              <div key={o.wf}
+                   className="bd-dispatch-item"
+                   onClick={() => dispatchJob(o.wf, dispatchMenu.ip)}>
+                <span style={{ width: 14, textAlign: 'center', color: 'var(--fg-mute)' }}>{o.icon}</span>
+                <span style={{ flex: 1 }}>{o.label}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Sparkline hover popover — full sim_history of the hovered IP.
           Position-fixed so it can spill out of the grid container. */}
@@ -2296,3 +2500,95 @@ window.IpxactImportBtn = function IpxactImportBtn({ onImported }) {
   );
 };
 
+
+// ── JobTracker — collapsible list of dispatched HTTP-worker jobs ──
+// Lives above ArchitectChat in the right column. Rows show:
+//   <icon> <ip> <workflow> <runtime/iter> <cancel-x>
+// Click a row → drill the architect view to that IP's cluster.
+// Click cancel × → POST /api/job/<id>/cancel.
+window.JobTracker = function JobTracker({ jobs, onSelectIp }) {
+  const [open, setOpen] = React.useState(true);
+  const live = (jobs || []).filter(j => j.status === 'running');
+  const recent = (jobs || []).filter(j => j.status !== 'running');
+
+  if ((jobs || []).length === 0) {
+    // Compact "no active jobs" header so the user sees the slot exists.
+    return (
+      <div className="job-tracker" style={{ maxHeight: 32 }}>
+        <div className="job-tracker-head" style={{ cursor: 'default', opacity: 0.6 }}>
+          <span>jobs</span>
+          <span style={{ flex: 1 }} />
+          <span style={{ fontSize: 9, fontStyle: 'italic' }}>no active dispatch — click ⚡ on a block</span>
+        </div>
+      </div>
+    );
+  }
+
+  const fmtElapsed = (j) => {
+    const t = j.duration_ms ? Math.round(j.duration_ms / 1000)
+            : Math.round((Date.now() / 1000) - (j.started_at || 0));
+    if (t < 60) return `${t}s`;
+    return `${Math.floor(t / 60)}m${(t % 60).toString().padStart(2, '0')}s`;
+  };
+
+  const cancel = async (e, jobId) => {
+    e.stopPropagation();
+    try {
+      await fetch(`/api/job/${jobId}/cancel`, { method: 'POST' });
+    } catch (_) {}
+  };
+
+  const clearDone = async () => {
+    try { await fetch('/api/jobs/clear', { method: 'POST' }); } catch (_) {}
+  };
+
+  return (
+    <div className="job-tracker" style={!open ? { maxHeight: 28 } : null}>
+      <div className="job-tracker-head" onClick={() => setOpen(o => !o)}>
+        <span>{open ? '▾' : '▸'} jobs</span>
+        {live.length > 0 && <span className="badge">{live.length}</span>}
+        <span style={{ flex: 1 }} />
+        {recent.length > 0 && (
+          <span style={{ fontSize: 9, color: 'var(--fg-mute)' }}>
+            {recent.length} done
+            <span onClick={(e) => { e.stopPropagation(); clearDone(); }}
+                  style={{ marginLeft: 8, cursor: 'pointer', color: 'var(--fg-mute)' }}
+                  title="clear completed jobs">×</span>
+          </span>
+        )}
+      </div>
+      {open && (
+        <div className="job-tracker-list">
+          {[...live, ...recent].map(j => {
+            const sym = j.status === 'running' ? '◌'
+                      : j.status === 'completed' ? '✓'
+                      : j.status === 'error' ? '✗'
+                      : j.status === 'cancelled' ? '○' : '·';
+            const subtitle = j.status === 'running'
+              ? `iter ${j.iterations || 0}`
+              : j.status === 'error' ? (j.error || '').slice(0, 40)
+              : j.status === 'completed' ? `+${(j.files_modified || []).length} files`
+              : j.status;
+            return (
+              <div key={j.job_id || j.run_id}
+                   className={`job-row ${j.status || ''}`}
+                   title={`${j.workflow} on ${j.ip || '-'} · ${j.prompt || ''}\nworker: ${j.worker || '-'}\nrun_id: ${j.run_id || '-'}`}
+                   onClick={() => j.ip && typeof onSelectIp === 'function' && onSelectIp(j.ip)}>
+                <span className="icn">{sym}</span>
+                <span className="ip">{j.ip || '(no ip)'}{' '}
+                  <span style={{ color: 'var(--fg-mute)', fontSize: 9.5, fontWeight: 400 }}>· {subtitle}</span>
+                </span>
+                <span className="wf">{j.workflow}</span>
+                <span className="meta">{fmtElapsed(j)}</span>
+                {j.status === 'running' ? (
+                  <span className="x" onClick={(e) => cancel(e, j.job_id)}
+                        title="cancel job">✕</span>
+                ) : <span />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};

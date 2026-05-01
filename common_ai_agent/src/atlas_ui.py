@@ -1300,6 +1300,206 @@ def create_app():
         except Exception as e:
             return JSONResponse({"error": str(e), "clusters": []}, status_code=500)
 
+    # ── Jobs (HTTP-worker dispatch tracker) ────────────────────────
+    # Atlas UI tracks jobs the user dispatched from the Architect screen
+    # via the block ⚡ button. We fire-and-forget POST /run (sync=False)
+    # to the matching worker, store the run_id locally, and the
+    # frontend's JobTracker polls /api/jobs which in turn polls each
+    # worker's /status/{run_id}. The atlas_ui process never blocks on
+    # a worker; the worker carries the full main-loop ReAct work.
+    _jobs_lock = threading.Lock()
+    _jobs: dict = {}     # job_id (uuid) → {workflow, ip, run_id, worker, started_at, status, …}
+
+    def _resolve_worker_url(workflow: str) -> str:
+        """Same precedence as core.delegate_runner.HTTPWorkerDelegate."""
+        if workflow:
+            key = "WORKER_URL_" + workflow.upper().replace("-", "_")
+            url = os.environ.get(key)
+            if url:
+                return url
+        return os.environ.get("WORKER_URL_DEFAULT", "http://localhost:8001")
+
+    @app.post("/api/job/dispatch")
+    async def api_job_dispatch(request: Request):
+        """Dispatch a workflow onto an IP via an HTTP worker.
+
+        Body: `{workflow: 'rtl-gen', ip: 'counter', prompt?: '...'}`
+
+        Defaults the prompt to a workflow-specific template so the user
+        can just click the block menu without typing. Returns
+        `{job_id, run_id, worker, status: 'queued'}` immediately; the
+        frontend polls /api/jobs to track progress.
+        """
+        try:
+            body = await request.json()
+        except Exception as e:
+            return JSONResponse({"error": f"bad json: {e}"}, status_code=400)
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "expected JSON object"}, status_code=400)
+        workflow = (body.get("workflow") or "").strip()
+        ip       = (body.get("ip") or "").strip()
+        prompt   = (body.get("prompt") or "").strip()
+        if not workflow:
+            return JSONResponse({"error": "missing 'workflow'"}, status_code=400)
+        if not re.match(r"^[A-Za-z][A-Za-z0-9_\-]*$", workflow):
+            return JSONResponse({"error": f"invalid workflow {workflow!r}"}, status_code=400)
+        if ip and not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
+            return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
+
+        # Default prompt per workflow — short and explicit so the worker
+        # has a clear task even when the user just clicks the menu.
+        if not prompt:
+            prompt_for = {
+                "rtl-gen":  f"regenerate RTL for {ip} from {ip}/yaml/{ip}.ssot.yaml",
+                "tb-gen":   f"generate testbench for {ip}",
+                "sim":      f"run simulation for {ip}",
+                "lint":     f"lint {ip}/rtl/*.sv",
+                "syn":      f"synthesise {ip}",
+                "sta":      f"run STA for {ip}",
+                "ssot-gen": f"refresh SSOT for {ip}",
+            }
+            prompt = prompt_for.get(workflow,
+                f"run {workflow}" + (f" on {ip}" if ip else ""))
+
+        worker_url = _resolve_worker_url(workflow)
+        # Fire-and-forget POST /run with sync=False.
+        try:
+            import urllib.request as _u
+            payload = json.dumps({
+                "task": prompt,
+                "workflow": workflow,
+                "sync": False,
+            }).encode("utf-8")
+            req = _u.Request(
+                f"{worker_url.rstrip('/')}/run",
+                data=payload, method="POST",
+                headers={"Content-Type": "application/json"},
+            )
+            with _u.urlopen(req, timeout=10) as resp:
+                resp_data = json.loads(resp.read().decode("utf-8"))
+        except Exception as e:
+            return JSONResponse({
+                "error": f"worker dispatch failed at {worker_url}: {e}",
+                "worker": worker_url,
+            }, status_code=502)
+
+        run_id = resp_data.get("run_id", "")
+        if not run_id:
+            return JSONResponse({
+                "error": "worker did not return run_id",
+                "worker": worker_url,
+                "raw": resp_data,
+            }, status_code=502)
+
+        import uuid
+        job_id = uuid.uuid4().hex[:12]
+        now = time.time()
+        with _jobs_lock:
+            _jobs[job_id] = {
+                "job_id": job_id,
+                "run_id": run_id,
+                "worker": worker_url,
+                "workflow": workflow,
+                "ip": ip,
+                "prompt": prompt,
+                "started_at": now,
+                "status": "running",
+                "iterations": 0,
+                "files_modified": [],
+                "result_summary": "",
+                "error": "",
+                "_last_polled": 0.0,
+            }
+        return JSONResponse({
+            "ok": True,
+            "job_id": job_id,
+            "run_id": run_id,
+            "worker": worker_url,
+            "status": "running",
+        })
+
+    @app.get("/api/jobs")
+    async def api_jobs():
+        """Aggregate job status across all dispatched workers.
+
+        For each tracked job, poll the worker's /status/{run_id} (with a
+        small 1.5s per-job cache to avoid hammering during a 2-second
+        frontend poll cycle) and return the merged list. Sorted by
+        started_at descending so the most-recent job is first.
+        """
+        out = []
+        now = time.time()
+        with _jobs_lock:
+            snapshot = list(_jobs.values())
+        for job in snapshot:
+            if job["status"] in ("running",) and (now - job.get("_last_polled", 0)) > 1.5:
+                # Poll worker for fresh state.
+                try:
+                    import urllib.request as _u
+                    req = _u.Request(
+                        f"{job['worker'].rstrip('/')}/status/{job['run_id']}",
+                        method="GET",
+                    )
+                    with _u.urlopen(req, timeout=5) as resp:
+                        s = json.loads(resp.read().decode("utf-8"))
+                    job["_last_polled"] = now
+                    job["status"] = s.get("status", job["status"])
+                    if isinstance(s.get("iterations"), int):
+                        job["iterations"] = s["iterations"]
+                    if s.get("status") in ("completed", "error", "cancelled"):
+                        # Fetch full result body once on completion.
+                        try:
+                            req2 = _u.Request(
+                                f"{job['worker'].rstrip('/')}/result/{job['run_id']}",
+                                method="GET",
+                            )
+                            with _u.urlopen(req2, timeout=5) as r2:
+                                rr = json.loads(r2.read().decode("utf-8"))
+                            job["files_modified"] = rr.get("files_modified") or []
+                            job["result_summary"] = (rr.get("result") or "")[:600]
+                            job["error"] = rr.get("error") or ""
+                            job["finished_at"] = now
+                            if rr.get("execution_time_ms"):
+                                job["duration_ms"] = rr["execution_time_ms"]
+                        except Exception:
+                            pass
+                except Exception as e:
+                    job["error"] = f"poll failed: {e}"
+            out.append({k: v for k, v in job.items() if not k.startswith("_")})
+        out.sort(key=lambda j: j.get("started_at", 0), reverse=True)
+        return JSONResponse({"jobs": out, "count": len(out)})
+
+    @app.post("/api/job/{job_id}/cancel")
+    async def api_job_cancel(job_id: str):
+        with _jobs_lock:
+            job = _jobs.get(job_id)
+        if not job:
+            return JSONResponse({"error": "job not found"}, status_code=404)
+        if job["status"] != "running":
+            return JSONResponse({"error": f"job already {job['status']}"}, status_code=400)
+        try:
+            import urllib.request as _u
+            req = _u.Request(
+                f"{job['worker'].rstrip('/')}/cancel/{job['run_id']}",
+                method="POST",
+            )
+            with _u.urlopen(req, timeout=5) as resp:
+                resp.read()
+        except Exception as e:
+            return JSONResponse({"error": f"cancel failed: {e}"}, status_code=502)
+        with _jobs_lock:
+            job["status"] = "cancelled"
+        return JSONResponse({"ok": True})
+
+    @app.post("/api/jobs/clear")
+    async def api_jobs_clear():
+        """Drop completed/cancelled/failed jobs from the tracker."""
+        with _jobs_lock:
+            for jid in list(_jobs.keys()):
+                if _jobs[jid]["status"] != "running":
+                    _jobs.pop(jid, None)
+        return JSONResponse({"ok": True})
+
     @app.post("/api/soc/layout")
     async def api_soc_layout(request: Request):
         """Persist user-dragged block positions back into soc.ssot.yaml.
@@ -1928,23 +2128,52 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     except ImportError:
         _tools = None
 
-    def _ask_user_cb(question, options, kind, subtitle):
+    def _ask_user_cb(question, options, kind, subtitle, questions=None):
+        """ask_user UI bridge.
+
+        Single-question mode: pass `question/options/kind/subtitle`.
+        Batched mode (mirrors textual UI): pass `questions=[{...}, ...]`
+        and the frontend renders a tab strip — one breadcrumb per
+        question, ☐/☒ answered marker, plus a final 'Submit' tab — so
+        the user fills N answers in one round-trip.
+        """
         flow_id = "qa_" + uuid.uuid4().hex[:10]
         bridge.open_question(flow_id)
-        bridge.emit(
-            "ask_user",
-            flow_id=flow_id,
-            question=question,
-            kind=kind,
-            subtitle=subtitle or "",
-            options=options or [],
-        )
+        if questions:
+            # Batched payload — frontend (workspace.jsx) detects the
+            # `questions` array and switches to tabbed render.
+            bridge.emit(
+                "ask_user",
+                flow_id=flow_id,
+                questions=questions,
+            )
+        else:
+            bridge.emit(
+                "ask_user",
+                flow_id=flow_id,
+                question=question,
+                kind=kind,
+                subtitle=subtitle or "",
+                options=options or [],
+            )
         try:
             ans = bridge.wait_answer(flow_id, timeout=900)  # 15 min ceiling
         finally:
             bridge.close_question(flow_id)
         if ans is None:
             return "[ask_user: no answer received within 15 min]"
+        # Cancel-all from the user — match textual UI wording.
+        if isinstance(ans, dict) and ans.get("type") == "cancel":
+            return "User declined to answer questions"
+        # Batched answer format: {"answers": [{...}, ...]} aligned with questions.
+        if questions and isinstance(ans, dict) and "answers" in ans:
+            blocks = []
+            for q, qa in zip(questions, ans.get("answers") or []):
+                label = (q.get("subtitle") or q.get("question", ""))[:40]
+                blocks.append(
+                    f"  • {label}\n    {_format_answer(qa, q.get('options'))}"
+                )
+            return "Batched answers:\n" + "\n".join(blocks) if blocks else "(no answers)"
         return _format_answer(ans, options or [])
 
     if _tools and hasattr(_tools, "set_ask_user_callback"):
