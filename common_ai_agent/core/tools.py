@@ -455,8 +455,14 @@ def write_file(path: str = None, content: str = None, append: bool = False) -> s
         if os.path.exists(path):
             _auto_chmod_if_needed(path)
         mode = 'a' if append else 'w'
-        with open(path, mode, encoding='utf-8') as f:
-            f.write(content)
+        # Cross-process lock at the IP-directory granularity. When
+        # multiple HTTP workers run in parallel they may both target
+        # the same IP — we serialise by sentinel file inside <ip>/.
+        # Files outside any IP dir lock at the project root.
+        from core.worker_lock import with_ip_lock
+        with with_ip_lock(path, label=f"write_file:{os.path.basename(path)}"):
+            with open(path, mode, encoding='utf-8') as f:
+                f.write(content)
 
         result = f"Successfully {'appended to' if append else 'wrote to'} '{path}'."
 
@@ -1465,10 +1471,12 @@ Common issues: wrong indentation, tabs vs spaces, text doesn't exist (verify wit
         # Generate clean snippet diff before writing
         old_full_content = "".join(lines)
 
-        # Write back
+        # Write back (under cross-process IP lock — see write_file).
         _auto_chmod_if_needed(path)
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(new_full_content)
+        from core.worker_lock import with_ip_lock
+        with with_ip_lock(path, label=f"replace_in_file:{os.path.basename(path)}"):
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(new_full_content)
 
         # Generate diff snippet AFTER writing (so we show final state)
         diff_output = format_diff_snippet(path, old_full_content, new_full_content, context_lines=3)
