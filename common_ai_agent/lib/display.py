@@ -954,14 +954,43 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                     pass
                 # Prefer tracker's stored rejection_reason (always set by tools.py)
                 rejected_reason = (todo_item and getattr(todo_item, 'rejection_reason', '')) or ""
-                # Fallback: extract from observation text if tracker has nothing
+                # Fallback: extract from observation text if tracker has nothing.
+                # Three rejection shapes appear in the wild:
+                #   (a) "...rejected. [<reason>]"            — bracketed user reason
+                #   (b) "❌ ... [<reason>]"                  — bracketed body
+                #   (c) "rejected: <reason>"                 — colon-style
+                # Plus the auto-reject path from tools.py which has NO brackets:
+                #   (d) "❌ Cannot mark Task N as completed — no tools were called..."
+                # Without a match for (d), the card renders "[X] rejected" with no
+                # reason — exactly the symptom reported.
                 if not rejected_reason:
                     bracket_m = re.search(r'rejected\.\s*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
                     if not bracket_m:
                         bracket_m = re.search(r'❌[^[]*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
                     if not bracket_m:
                         bracket_m = re.search(r'rejected:\s*(.+?)(?:\n|$)', observation, re.IGNORECASE)
-                    rejected_reason = bracket_m.group(1).strip() if bracket_m else ""
+                    if bracket_m:
+                        rejected_reason = bracket_m.group(1).strip()
+                    else:
+                        # (d) Bracket-less form. Grab the first line after ❌ as a
+                        # short summary, then append the next non-trailer line if it
+                        # adds context (e.g. "You MUST produce a deliverable...").
+                        # Stop before bullet/arrow trailers like "→ Call a tool NOW"
+                        # or boilerplate reminders ("[System] ...").
+                        first_m = re.search(r'❌\s*(.+?)(?:\n|$)', observation)
+                        if first_m:
+                            _parts = [first_m.group(1).strip()]
+                            # Pull the next informative line if present
+                            _tail = observation[first_m.end():]
+                            for _ln in _tail.splitlines():
+                                _s = _ln.strip()
+                                if not _s:
+                                    break
+                                if _s.startswith(('→', '[', '•', '*', '-')):
+                                    break
+                                _parts.append(_s)
+                                break  # one extra line is enough
+                            rejected_reason = " ".join(_parts).strip()
                 _RD = Color.RED
                 _D = Color.DIM
                 _R = Color.RESET
