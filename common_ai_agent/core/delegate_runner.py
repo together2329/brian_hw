@@ -35,6 +35,7 @@ class DelegateRunner:
         self.project_root = project_root or Path.cwd()
         self._backends = {
             "sub-agent": SubAgentDelegate,
+            "http-worker": HTTPWorkerDelegate,
             "cursor-agent": CursorAgentDelegate,
             "codex": CodexDelegate,
             "gemini": GeminiDelegate,
@@ -69,7 +70,7 @@ class DelegateRunner:
     @staticmethod
     def list_backends() -> list:
         """Return list of available backend names."""
-        return ["sub-agent", "cursor-agent", "codex", "gemini", "api"]
+        return ["sub-agent", "http-worker", "cursor-agent", "codex", "gemini", "api"]
 
 
 # ============================================================
@@ -138,6 +139,81 @@ class SubAgentDelegate:
         if prompt_path.exists():
             return prompt_path.read_text(encoding="utf-8").strip()
         return None
+
+
+# ============================================================
+# Backend: HTTP Worker (full main agent in a separate process)
+# ============================================================
+
+class HTTPWorkerDelegate:
+    """Delegates to a long-running HTTP worker (full main-agent ReAct loop
+    in a separate process, registered via `python src/main.py --serve`).
+
+    Use this for **multi-step execution** workflows (rtl-gen, tb-gen, sim,
+    lint) where the in-process sub-agent's reduced loop tends to stall.
+    The worker carries the full main-loop semantics: todo continuation
+    re-injection, hooks, compression, parallel actions, native tool calls.
+
+    Worker URL resolution (in priority order):
+      1. `WORKER_URL_<workflow_name>` env var (e.g. WORKER_URL_RTL_GEN)
+      2. `WORKER_URL_DEFAULT` env var
+      3. http://localhost:8001  (single-worker dev default)
+
+    The worker process is launched independently — this delegate only
+    talks to it over HTTP. To start one:
+        python src/main.py --serve --port 8001 --worker-name rtl
+    """
+
+    def __init__(self, project_root: Optional[Path] = None):
+        self.project_root = project_root or Path.cwd()
+
+    def run(self, task: str, context: str = "", workflow_name: str = "") -> str:
+        """POST /run on the matching HTTP worker; block until /result; return summary."""
+        try:
+            from core.agent_client import worker_call
+        except Exception as e:
+            return f"[http-worker delegate: agent_client unavailable: {e}]"
+
+        worker_url = self._resolve_worker_url(workflow_name)
+        # Stitch context into the task prompt the same way SubAgentDelegate
+        # does so the LLM sees the parent's intent on top of the task.
+        full_task = task
+        if context:
+            full_task = f"[Context from primary agent]\n{context}\n\n[Task]\n{task}"
+
+        timeout = int(os.environ.get("HTTP_WORKER_TIMEOUT", "1800"))
+        try:
+            resp = worker_call(
+                worker=worker_url,
+                task=full_task,
+                model="",
+                workflow=workflow_name or "",
+                timeout=timeout,
+                poll_interval=2.0,
+                show_log=False,
+            )
+        except Exception as e:
+            return f"[http-worker delegate: call failed at {worker_url}: {e}]"
+
+        if isinstance(resp, dict):
+            if resp.get("error"):
+                return f"[http-worker error] {resp['error']}"
+            res = resp.get("result", "")
+            if isinstance(res, str) and res.strip():
+                return res
+            # Fall back to a short summary if result was empty
+            return (f"[http-worker {workflow_name or '?'} done] "
+                    f"iters={resp.get('iterations', '?')} "
+                    f"files_modified={len(resp.get('files_modified') or [])}")
+        return str(resp)
+
+    def _resolve_worker_url(self, workflow_name: str) -> str:
+        if workflow_name:
+            key = "WORKER_URL_" + workflow_name.upper().replace("-", "_")
+            url = os.environ.get(key)
+            if url:
+                return url
+        return os.environ.get("WORKER_URL_DEFAULT", "http://localhost:8001")
 
 
 # ============================================================

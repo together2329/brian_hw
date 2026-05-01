@@ -3475,7 +3475,8 @@ def cursor_agent(task="", yolo="false", mode=""):
 # Background Agent Tools (v2 Architecture)
 # ============================================================
 
-def background_task(agent="explore", prompt="", context="", foreground="true"):
+def background_task(agent="explore", prompt="", context="", foreground="true",
+                    delegate="", workflow=""):
     """
     Launch an agent to handle a sub-task.
 
@@ -3486,6 +3487,16 @@ def background_task(agent="explore", prompt="", context="", foreground="true"):
         prompt: Clear description of what the agent should do
         context: Optional context from current conversation to pass to the agent
         foreground: "true" (default) for synchronous execution, "false" for background
+        delegate: Delegate backend — "" (default in-process sub-agent),
+                  "http-worker" to dispatch to a separate full-main-loop
+                  worker process (configured via WORKER_URL_<workflow> /
+                  WORKER_URL_DEFAULT env vars). Use this for multi-step
+                  execution where the in-process sub-agent's reduced
+                  loop tends to stall.
+        workflow: Workflow name (e.g. "rtl-gen") to activate inside the
+                  delegate. With delegate="http-worker" the worker
+                  loads the matching workspace; in-process sub-agent
+                  loads the system prompt from `workflow/<name>/`.
 
     Returns:
         Foreground: Direct result from the agent.
@@ -3495,6 +3506,7 @@ def background_task(agent="explore", prompt="", context="", foreground="true"):
         Action: background_task(agent="explore", prompt="Find all Verilog modules in rtl/")
         Action: background_task(agent="execute", prompt="Fix the bug in src/main.py")
         Action: background_task(agent="review", prompt="Verify the fix in src/main.py is correct")
+        Action: background_task(delegate="http-worker", workflow="rtl-gen", prompt="Generate counter.sv from counter.ssot.yaml")
     """
     try:
         import sys as _sys
@@ -3520,6 +3532,31 @@ def background_task(agent="explore", prompt="", context="", foreground="true"):
             return f"Error: Invalid agent type '{agent}'. Must be one of: {', '.join(sorted(valid_agents))}"
 
         is_foreground = str(foreground).lower() in ("true", "1", "yes")
+
+        # ── Delegate routing (http-worker etc.) ─────────────────────────
+        # When `delegate` is non-empty, route through DelegateRunner
+        # instead of the in-process sub-agent. http-worker dispatches to
+        # a separate full-main-loop worker process — best for multi-step
+        # execution. Other backends (cursor-agent, codex, gemini, api)
+        # are handled the same way.
+        if delegate:
+            try:
+                from core.delegate_runner import DelegateRunner
+                runner = DelegateRunner()
+                if delegate not in runner.list_backends():
+                    return (f"Error: Invalid delegate '{delegate}'. "
+                            f"Available: {', '.join(runner.list_backends())}")
+                out = runner.run(backend=delegate, task=prompt,
+                                 context=context, workflow_name=workflow)
+                from lib.display import Color
+                print(f"\n  {Color.CYAN}◀ {delegate}/{workflow or '?'} → primary{Color.RESET}")
+                return (
+                    f"=== Foreground Delegate Result: {delegate} (workflow={workflow or '-'}) ===\n"
+                    f"{out}\n"
+                    f"=== End ==="
+                )
+            except Exception as e:
+                return f"Error: delegate '{delegate}' failed: {e}"
 
         if is_foreground:
             # Foreground: synchronous execution

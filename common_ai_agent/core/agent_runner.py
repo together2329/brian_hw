@@ -271,6 +271,37 @@ def run_agent_session(
     sub_agent_max_tokens = int(os.getenv("SUBAGENT_MAX_CONTEXT_TOKENS", "32000"))
     compression_threshold = 0.75  # 75%에서 압축
 
+    # ── Sub-agent TodoTracker handle ────────────────────────────────────
+    # When the sub-agent's tool calls write todos via `todo_update` /
+    # `todo_write`, they hit the redirected TODO_FILE allocated above.
+    # We bind a TodoTracker instance to that file so we can re-inject
+    # `get_continuation_prompt()` into the LLM context every turn —
+    # mirroring `react_loop.py:540-557`. Without this the sub-agent
+    # writes its todos but the LLM forgets the task plan after 2-3 turns
+    # and stalls. The tracker is recreated each iteration so it always
+    # picks up the latest disk state (the tool dispatcher writes via
+    # its own TodoTracker; ours is read-mostly).
+    def _read_sub_tracker():
+        try:
+            from lib.todo_tracker import TodoTracker
+            tt = TodoTracker()
+            tt.load()
+            return tt
+        except Exception:
+            return None
+
+    # Track the last task/status combo we injected so we don't spam
+    # the same reminder on every LLM call when nothing changed
+    # (matches react_loop.py's `_last_injected_task_key` pattern).
+    _last_injected_task_key = (-1, "")
+    def _sub_task_key(tt):
+        if not tt or not getattr(tt, "todos", None):
+            return (-1, "")
+        cur = tt.get_current_todo() if hasattr(tt, "get_current_todo") else None
+        if cur is None:
+            return (-1, "")
+        return (tt.current_index, getattr(cur, "status", ""))
+
     # Mini ReAct loop
     all_observations = []
     iteration = 0
@@ -320,6 +351,31 @@ def run_agent_session(
                 _log(f"Context {current_tokens}/{sub_agent_max_tokens} ({int(current_tokens/sub_agent_max_tokens*100)}%) — compressing...")
                 messages = _compress_agent_context(messages, agent_name, keep_recent=4, model=model)
                 _context_status(messages, sub_agent_max_tokens, agent_name, verbose)
+
+            # ── TODO continuation re-injection (mirrors react_loop.py) ──
+            # Read the latest tracker state (the tool dispatcher updated
+            # the file last turn) and append continuation_prompt to the
+            # last user msg when task index or status moved. Skips when
+            # nothing changed so we don't spam identical reminders.
+            try:
+                _sub_tt = _read_sub_tracker()
+                if _sub_tt and _sub_tt.todos and not _sub_tt.is_all_processed():
+                    _key = _sub_task_key(_sub_tt)
+                    if _key != _last_injected_task_key:
+                        _reminder = _sub_tt.get_continuation_prompt() or ""
+                        if _reminder:
+                            _user_idxs = [i for i, m in enumerate(messages) if m.get("role") == "user"]
+                            if _user_idxs:
+                                _ui = _user_idxs[-1]
+                                _uc = messages[_ui].get("content", "")
+                                if isinstance(_uc, str) and _reminder.strip() not in _uc:
+                                    messages[_ui] = dict(messages[_ui])
+                                    messages[_ui]["content"] = _uc + "\n\n" + _reminder
+                            _last_injected_task_key = _key
+                            _log(f"TODO continuation injected ({len(_reminder)} chars, "
+                                 f"task {_sub_tt.current_index+1}/{len(_sub_tt.todos)})")
+            except Exception as _e:
+                _log(f"todo continuation re-inject skipped: {_e}")
 
             # LLM call (non-blocking, ESC can abort mid-call)
             collected_content = ""
