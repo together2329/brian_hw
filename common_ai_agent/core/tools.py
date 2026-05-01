@@ -2954,11 +2954,21 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             # Counter is incremented in react_loop for both native and non-native
             # tool-call modes when current task is in review (status=completed)
             # and the tool isn't a write or todo tool.
+            #
+            # Escalation (Option F): tasks already rejected ≥2 times have shown
+            # they're prone to bouncing — agent's review judgment is unreliable.
+            # Require ≥2 evidence calls instead of ≥1 to break the livelock.
             _evidence = int(getattr(item, "tools_since_completed", 0) or 0)
-            if item.status == "completed" and _evidence == 0:
+            _rej_count = int(getattr(item, "rejection_count", 0) or 0)
+            _required = 2 if _rej_count >= 2 else 1
+            if item.status == "completed" and _evidence < _required:
+                _esc = (
+                    f"\n⚠ Escalated requirement: this task has been rejected "
+                    f"{_rej_count} times — needs ≥{_required} verification calls."
+                ) if _rej_count >= 2 else ""
                 return (
-                    f"❌ Cannot approve Task {index} — no verification tool has been called since "
-                    f"this task entered review.\n"
+                    f"❌ Cannot approve Task {index} — only {_evidence} verification tool call(s) "
+                    f"since review started (need ≥{_required}).{_esc}\n"
                     f"Self-written summary/report files are NOT trustworthy evidence. You must\n"
                     f"verify against ground-truth artifacts.\n"
                     f"→ Re-read the actual source file(s) you produced (read_file / read_lines)\n"
@@ -3049,11 +3059,19 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             # text — the false-rejection observed in tb-gen for Task 22 where
             # the agent claimed "SC2/SC4 missing from tb.py" but never re-read
             # tb.py (which actually contained all 9 scenarios).
+            # Escalation matches the approved branch: ≥2 evidence required when
+            # the task has already been rejected ≥2 times (livelock guard).
             _evidence = int(getattr(item, "tools_since_completed", 0) or 0)
-            if item.status == "completed" and _evidence == 0:
+            _rej_count = int(getattr(item, "rejection_count", 0) or 0)
+            _required = 2 if _rej_count >= 2 else 1
+            if item.status == "completed" and _evidence < _required:
+                _esc = (
+                    f"\n⚠ Escalated requirement: this task has been rejected "
+                    f"{_rej_count} times — needs ≥{_required} verification calls before another reject."
+                ) if _rej_count >= 2 else ""
                 return (
-                    f"❌ Cannot reject Task {index} — no verification tool has been called since "
-                    f"this task entered review.\n"
+                    f"❌ Cannot reject Task {index} — only {_evidence} verification tool call(s) "
+                    f"since review started (need ≥{_required}).{_esc}\n"
                     f"You may be looking at stale evidence (your own report file or a prior\n"
                     f"compressed summary). Verify against ground truth before rejecting:\n"
                     f"→ Re-read the source file(s) you claim are wrong (read_file / read_lines)\n"
