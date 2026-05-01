@@ -66,10 +66,25 @@
   <!-- Backend adapter: window.backend (live WebSocket) -->
   <script src="backend.js"></script>
 
+  <!-- VCD parser (pure JS, no Babel — ships as plain script). -->
+  <script src="vcd-parser.js"></script>
+
   <!-- App modules (Babel-transpiled in-browser) -->
   <script type="text/babel" data-presets="react" src="data.jsx"></script>
   <script type="text/babel" data-presets="react" src="shared.jsx"></script>
+  <!-- sim_debug components (loaded BEFORE workspace.jsx so the
+       conditional render in workspace.jsx can reference them). -->
+  <script type="text/babel" data-presets="react" src="debug-shared.jsx"></script>
+  <script type="text/babel" data-presets="react" src="debug-inline-cards.jsx"></script>
+  <script type="text/babel" data-presets="react" src="sim-debug.jsx"></script>
+  <!-- coverage workflow panel — same loading rule as sim_debug -->
+  <script type="text/babel" data-presets="react" src="coverage.jsx"></script>
   <script type="text/babel" data-presets="react" src="workspace.jsx"></script>
+  <!-- SoC Architect (mock data; loaded before app.jsx so the screen
+       toggle in app.jsx can mount <SocArchitect />). -->
+  <script type="text/babel" data-presets="react" src="soc-data.jsx"></script>
+  <script type="text/babel" data-presets="react" src="soc-shared.jsx"></script>
+  <script type="text/babel" data-presets="react" src="soc-architect.jsx"></script>
   <script type="text/babel" data-presets="react" src="app.jsx"></script>
 
   <script>

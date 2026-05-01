@@ -30,6 +30,21 @@ import sys
 import threading
 from pathlib import Path
 
+# `from __future__ import annotations` turns every type annotation into
+# a string. FastAPI's `get_type_hints()` then needs to resolve those
+# strings in the *module globals*. The inner endpoint functions live
+# inside create_app() (they import fastapi locally), so without a
+# module-level alias of `Request`, the annotation `request: Request`
+# becomes an unresolvable ForwardRef and pydantic v2 falls back to
+# treating `request` as a query parameter (→ 422 on every POST).
+# This conditional import keeps the script usable even when fastapi is
+# missing — `Request` just becomes None and the endpoint won't be
+# registered (the local import inside create_app sys.exits first).
+try:
+    from fastapi import Request  # noqa: F401  (used as a forward-ref target)
+except ImportError:
+    Request = None  # type: ignore
+
 # ── Paths ──────────────────────────────────────────────────────────
 HERE         = Path(__file__).resolve().parent
 SOURCE_ROOT  = HERE.parent                            # common_ai_agent/ (source)
@@ -145,7 +160,7 @@ class _AtlasBridge:
 # ── App factory ────────────────────────────────────────────────────
 def create_app():
     try:
-        from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+        from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
         from fastapi.responses import FileResponse, JSONResponse
         from fastapi.staticfiles import StaticFiles
         from starlette.routing import WebSocketRoute
@@ -421,6 +436,390 @@ def create_app():
             "truncated": truncated, "content": content,
         })
 
+    # ── VCD (waveform) endpoints — sim_debug workspace ────────────
+    # VCD files can be MB+ so we bypass MAX_READ_BYTES with a separate
+    # ceiling. Path resolution still goes through _safe() so the user
+    # can't escape PROJECT_ROOT.
+    MAX_VCD_BYTES = 32 * 1024 * 1024  # 32 MB
+
+    @app.get("/api/vcd/list")
+    async def api_vcd_list(ip: str = "", scope: str = ""):
+        """Discover VCD files under PROJECT_ROOT.
+
+        - `ip`    — restrict to `<ip>/sim/*.vcd` (matches the IP-tree convention).
+        - `scope` — arbitrary sub-directory under PROJECT_ROOT to search.
+        - neither — recursive scan up to depth 4 (cheap on typical projects).
+        Returns: `{files: [{path, size, mtime}]}` sorted by mtime desc.
+        """
+        if ip:
+            base = _safe(ip + "/sim")
+        elif scope:
+            base = _safe(scope)
+        else:
+            base = PROJECT_ROOT
+        if base is None or not base.is_dir():
+            return JSONResponse({"files": [], "error": "scope not found"}, status_code=404)
+
+        results = []
+        try:
+            if ip or scope:
+                # Direct *.vcd in chosen dir.
+                for f in base.glob("*.vcd"):
+                    if f.is_file():
+                        st = f.stat()
+                        rel = str(f.relative_to(PROJECT_ROOT))
+                        results.append({"path": rel, "size": st.st_size, "mtime": st.st_mtime})
+            else:
+                # Recursive scan (capped depth).
+                for f in base.rglob("*.vcd"):
+                    try:
+                        rel = f.relative_to(PROJECT_ROOT)
+                    except ValueError:
+                        continue
+                    if any(p in SKIP_DIRS for p in rel.parts):
+                        continue
+                    if len(rel.parts) > 5:
+                        continue
+                    st = f.stat()
+                    results.append({"path": str(rel), "size": st.st_size, "mtime": st.st_mtime})
+        except OSError as e:
+            return JSONResponse({"error": str(e), "files": []}, status_code=500)
+        results.sort(key=lambda x: x["mtime"], reverse=True)
+        return JSONResponse({"files": results, "project_root": str(PROJECT_ROOT)})
+
+    @app.get("/api/vcd/raw")
+    async def api_vcd_raw(path: str):
+        """Return raw VCD content (UTF-8, replace errors). Capped at 32 MB."""
+        target = _safe(path)
+        if target is None or not target.is_file():
+            return JSONResponse({"error": "not found"}, status_code=404)
+        if target.suffix.lower() != ".vcd":
+            return JSONResponse({"error": "not a .vcd file"}, status_code=400)
+        st = target.stat()
+        truncated = st.st_size > MAX_VCD_BYTES
+        try:
+            data = target.read_bytes()[:MAX_VCD_BYTES]
+            content = data.decode("utf-8", errors="replace")
+        except OSError as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({
+            "path": path,
+            "size": st.st_size,
+            "mtime": st.st_mtime,
+            "truncated": truncated,
+            "content": content,
+        })
+
+    # ── Source endpoint — sim_debug signal→driver + cocotb test view ─
+    # Accepts SV/V plus the text extensions that show up in the
+    # cocotb tab (Python tests, sequences, agents, env, Makefile,
+    # YAML/JSON, etc.). Rejects binaries to avoid shipping .vvp / .out
+    # contents over WS.
+    _SOURCE_EXTS = {
+        ".sv", ".v", ".svh", ".vh",          # SystemVerilog
+        ".py",                                # cocotb / Python testbench
+        ".sdc", ".tcl", ".f",                 # constraints / filelists
+        ".yaml", ".yml", ".json", ".md",      # config / docs
+        ".txt", ".log", ".rpt",               # reports
+        ".sh", ".bash",                       # scripts
+        ".c", ".h", ".cpp", ".hpp",           # firmware
+        ".xml",                               # results.xml
+    }
+    _SOURCE_NO_EXT_NAMES = {"Makefile", "makefile", "Dockerfile"}
+
+    @app.get("/api/source")
+    async def api_source(path: str):
+        """Read a source file. Accepts SV / V / Python / Make /
+        constraints / YAML / JSON / Markdown / shell / firmware /
+        results.xml. Returns split-by-line array for the SourceViewer
+        component."""
+        target = _safe(path)
+        if target is None or not target.is_file():
+            return JSONResponse({"error": "not found"}, status_code=404)
+        suffix = target.suffix.lower()
+        if suffix not in _SOURCE_EXTS and target.name not in _SOURCE_NO_EXT_NAMES:
+            return JSONResponse({
+                "error": f"unsupported extension '{suffix or target.name}'",
+                "allowed": sorted(_SOURCE_EXTS) + sorted(_SOURCE_NO_EXT_NAMES),
+            }, status_code=400)
+        try:
+            content = target.read_text(encoding="utf-8", errors="replace")
+        except OSError as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({
+            "path": path,
+            "size": len(content),
+            "content": content,
+            "lines": content.split("\n"),
+        })
+
+    # ── sim_debug elab module loader ─────────────────────────────
+    # Lives at workflow/sim_debug/elab.py — co-located with the rest
+    # of the sim_debug workspace (system_prompt.md, commands/, rules/,
+    # scripts/). Loaded via importlib so we don't have to add
+    # workflow/sim_debug/ to sys.path globally.
+    _ELAB_CACHE = {}
+    def _load_sim_debug_elab():
+        if "mod" in _ELAB_CACHE:
+            return _ELAB_CACHE["mod"]
+        import importlib.util as _ilu
+        elab_path = SOURCE_ROOT / "workflow" / "sim_debug" / "elab.py"
+        if not elab_path.is_file():
+            raise FileNotFoundError(f"sim_debug elab module not found at {elab_path}")
+        spec = _ilu.spec_from_file_location("sim_debug_elab", str(elab_path))
+        mod = _ilu.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _ELAB_CACHE["mod"] = mod
+        return mod
+
+    # ── Elab endpoints (pyslang / Verilator / slang) — sim_debug hierarchy + trace ─
+    @app.get("/api/elab/status")
+    async def api_elab_status():
+        try:
+            mod = _load_sim_debug_elab()
+            return JSONResponse(mod.status())
+        except Exception as e:
+            return JSONResponse({"error": str(e), "pyslang": False, "verilator": False, "slang": False}, status_code=500)
+
+    def _elab_resolve_sources(sources_glob: str, ip: str = "") -> list:
+        """Resolve a comma-separated glob list (or a single ip-tree default).
+        Each pattern is interpreted relative to PROJECT_ROOT and clipped to
+        files that pass _safe(). Default: `<ip>/rtl/*.sv`.
+        """
+        from pathlib import Path as _P
+        out: list = []
+        if not sources_glob and ip:
+            sources_glob = f"{ip}/rtl/*.sv"
+        for pat in (sources_glob or "").split(","):
+            pat = pat.strip().lstrip("/")
+            if not pat:
+                continue
+            for f in PROJECT_ROOT.glob(pat):
+                try:
+                    f.resolve().relative_to(PROJECT_ROOT)
+                except ValueError:
+                    continue
+                if f.is_file() and f.suffix.lower() in (".sv", ".v", ".svh", ".vh"):
+                    out.append(f)
+        return out
+
+    @app.get("/api/hierarchy")
+    async def api_hierarchy(top: str, sources: str = "", ip: str = "",
+                            backend: str = ""):
+        """Return the elaborated instance tree.
+
+        Query params:
+          - top      : top module name (required)
+          - sources  : comma-separated globs of SV/V files (relative to PROJECT_ROOT)
+          - ip       : shorthand — equivalent to sources=`<ip>/rtl/*.sv`
+          - backend  : 'verilator' (default) or 'slang'; falls back if unavailable
+        """
+        try:
+            mod = _load_sim_debug_elab()
+            build_hierarchy_cached = mod.build_hierarchy_cached
+        except Exception as e:
+            return JSONResponse({"error": f"elab module: {e}"}, status_code=500)
+        srcs = _elab_resolve_sources(sources, ip)
+        if not srcs:
+            return JSONResponse({"error": "no SV sources matched", "sources_tried": sources or ip}, status_code=400)
+        try:
+            return JSONResponse(build_hierarchy_cached(backend, top, srcs))
+        except ValueError as e:
+            return JSONResponse({"error": str(e)}, status_code=503)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/api/trace")
+    async def api_trace(signal: str, top: str = "", scope: str = "",
+                        sources: str = "", ip: str = "",
+                        backend: str = ""):
+        """Trace driver/sinks for a signal. Top module resolution priority:
+        explicit `top` > scope[0] > `ip` > signal[0]. Same source resolution
+        as /api/hierarchy."""
+        try:
+            mod = _load_sim_debug_elab()
+            trace_driver_cached = mod.trace_driver_cached
+        except Exception as e:
+            return JSONResponse({"error": f"elab module: {e}"}, status_code=500)
+        srcs = _elab_resolve_sources(sources, ip)
+        if not srcs:
+            return JSONResponse({"error": "no SV sources matched"}, status_code=400)
+        # Prefer explicit top > scope's first segment > ip > signal's first segment.
+        resolved_top = (
+            top
+            or (scope.split(".", 1)[0] if scope else "")
+            or ip
+            or signal.split(".", 1)[0]
+        )
+        try:
+            return JSONResponse(trace_driver_cached(backend, resolved_top, signal, srcs))
+        except ValueError as e:
+            return JSONResponse({"error": str(e)}, status_code=503)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── cocotb / TB env browsing — sim_debug "TB" tab ─────────────
+    @app.get("/api/cocotb")
+    async def api_cocotb(ip: str = ""):
+        """Inspect a cocotb testbench environment under <ip>/cocotb/.
+        Returns a categorised file tree + parsed results.xml summary
+        so the sim_debug UI can show 'TB' alongside the RTL hierarchy.
+        """
+        if not ip:
+            return JSONResponse({"error": "ip parameter required"}, status_code=400)
+        base = _safe(ip + "/cocotb")
+        if base is None or not base.is_dir():
+            return JSONResponse({"error": f"no cocotb dir under {ip}/", "exists": False})
+        out = {
+            "exists": True,
+            "ip": ip,
+            "tests":     [],   # tests/*.py
+            "sequences": [],
+            "env":       [],
+            "agent":     [],
+            "other":     [],   # Makefile, __init__.py, sim_dump.v, etc.
+            "build":     [],   # sim_build/*
+            "results":   None, # parsed results.xml
+        }
+        bucket_dirs = {
+            "tests": "tests", "sequences": "sequences",
+            "env": "env", "agent": "agent",
+        }
+
+        def _parse_py(p):
+            """Static-analyse a cocotb Python file via the `ast` module.
+            Returns { classes, tests, functions } with file:line locs.
+            Same idea as pyslang for SV — no execution, fast, accurate."""
+            import ast as _ast
+            try:
+                src = p.read_text(encoding="utf-8", errors="replace")
+                tree = _ast.parse(src, filename=str(p))
+            except Exception as e:
+                return {"error": str(e)}
+            classes, tests, funcs = [], [], []
+            for node in tree.body:
+                if isinstance(node, _ast.ClassDef):
+                    bases = [_ast.unparse(b) if hasattr(_ast, "unparse") else "" for b in node.bases]
+                    methods = []
+                    for sub in node.body:
+                        if isinstance(sub, (_ast.FunctionDef, _ast.AsyncFunctionDef)):
+                            methods.append({"name": sub.name, "line": sub.lineno, "is_async": isinstance(sub, _ast.AsyncFunctionDef)})
+                    classes.append({"name": node.name, "line": node.lineno, "bases": bases, "methods": methods})
+                elif isinstance(node, (_ast.FunctionDef, _ast.AsyncFunctionDef)):
+                    decorators = []
+                    is_test = False
+                    for d in node.decorator_list:
+                        try:
+                            ds = _ast.unparse(d) if hasattr(_ast, "unparse") else ""
+                        except Exception:
+                            ds = ""
+                        decorators.append(ds)
+                        if "cocotb.test" in ds:
+                            is_test = True
+                    entry = {
+                        "name": node.name, "line": node.lineno,
+                        "is_async": isinstance(node, _ast.AsyncFunctionDef),
+                        "decorators": decorators,
+                    }
+                    (tests if is_test else funcs).append(entry)
+            return {"classes": classes, "tests": tests, "functions": funcs}
+
+        try:
+            for sub in sorted(base.iterdir()):
+                if sub.is_file():
+                    rel = str(sub.relative_to(PROJECT_ROOT))
+                    out["other"].append({"path": rel, "name": sub.name, "size": sub.stat().st_size})
+                    continue
+                if sub.is_dir():
+                    bucket = next((k for k, v in bucket_dirs.items() if v == sub.name), None)
+                    if bucket:
+                        for f in sorted(sub.rglob("*.py")):
+                            if "__pycache__" in f.parts or f.name == "__init__.py":
+                                rel = str(f.relative_to(PROJECT_ROOT))
+                                if f.name == "__init__.py":
+                                    out[bucket].append({"path": rel, "name": f.name, "size": f.stat().st_size, "parsed": None})
+                                continue
+                            rel = str(f.relative_to(PROJECT_ROOT))
+                            out[bucket].append({
+                                "path": rel, "name": f.name,
+                                "size": f.stat().st_size,
+                                "parsed": _parse_py(f),
+                            })
+                    elif sub.name == "sim_build":
+                        for f in sorted(sub.iterdir()):
+                            if not f.is_file(): continue
+                            rel = str(f.relative_to(PROJECT_ROOT))
+                            out["build"].append({"path": rel, "name": f.name, "size": f.stat().st_size})
+        except OSError as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+        # Build TB hierarchy: aggregate class definitions across files.
+        tb_hier = {"agents": [], "envs": [], "scoreboards": [], "sequences": [], "tests": []}
+        for bucket in ("agent", "env", "sequences", "tests"):
+            for f in out.get(bucket, []):
+                p = f.get("parsed") or {}
+                for c in p.get("classes", []):
+                    info = {"name": c["name"], "line": c["line"], "file": f["path"], "bases": c["bases"], "methods": [m["name"] for m in c["methods"]]}
+                    bases_blob = " ".join(c["bases"]).lower()
+                    if "scoreboard" in c["name"].lower() or "scoreboard" in bases_blob:
+                        tb_hier["scoreboards"].append(info)
+                    elif bucket == "agent" or "agent" in c["name"].lower() or "driver" in c["name"].lower() or "monitor" in c["name"].lower():
+                        tb_hier["agents"].append(info)
+                    elif bucket == "env" or "env" in c["name"].lower() or "tb" in c["name"].lower():
+                        tb_hier["envs"].append(info)
+                    elif bucket == "sequences" or "sequence" in c["name"].lower() or "seq" in c["name"].lower():
+                        tb_hier["sequences"].append(info)
+                for t in p.get("tests", []):
+                    tb_hier["tests"].append({"name": t["name"], "line": t["line"], "file": f["path"], "decorators": t["decorators"]})
+        out["tb_hierarchy"] = tb_hier
+
+        # Parse results.xml (cocotb format) for test pass/fail summary.
+        rx = base / "results.xml"
+        if rx.is_file():
+            try:
+                import xml.etree.ElementTree as _ET
+                root_xml = _ET.parse(str(rx)).getroot()
+                cases = []
+                pass_n = 0; fail_n = 0; skip_n = 0
+                for tc in root_xml.iter("testcase"):
+                    name = tc.attrib.get("name", "")
+                    classname = tc.attrib.get("classname", "")
+                    time_s = tc.attrib.get("time", "0")
+                    sim_t  = tc.attrib.get("sim_time_ns", "")
+                    file_attr = tc.attrib.get("file", "")
+                    line_attr = tc.attrib.get("lineno", "0")
+                    failure = tc.find("failure") is not None or tc.find("error") is not None
+                    skipped = tc.find("skipped") is not None
+                    if failure: fail_n += 1
+                    elif skipped: skip_n += 1
+                    else: pass_n += 1
+                    rel_file = ""
+                    if file_attr:
+                        try:
+                            rel_file = str(_safe(str(_safe(file_attr) or file_attr)).relative_to(PROJECT_ROOT)) if _safe(file_attr) else ""
+                        except Exception:
+                            # Strip PROJECT_ROOT prefix manually.
+                            try:
+                                rel_file = str(Path(file_attr).resolve().relative_to(PROJECT_ROOT))
+                            except Exception:
+                                rel_file = file_attr
+                    cases.append({
+                        "name": name, "classname": classname,
+                        "time_s": float(time_s) if time_s else 0,
+                        "sim_time_ns": sim_t,
+                        "file": rel_file, "line": int(line_attr) if line_attr.isdigit() else 0,
+                        "status": "fail" if failure else ("skip" if skipped else "pass"),
+                    })
+                out["results"] = {
+                    "total": pass_n + fail_n + skip_n,
+                    "pass": pass_n, "fail": fail_n, "skip": skip_n,
+                    "cases": cases,
+                    "mtime": rx.stat().st_mtime,
+                }
+            except Exception as e:
+                out["results"] = {"error": f"parse failed: {e}"}
+        return JSONResponse(out)
+
     @app.post("/api/todos/clear")
     async def api_todos_clear():
         """Wipe both the in-memory tracker and the on-disk file."""
@@ -547,6 +946,427 @@ def create_app():
             except OSError:
                 continue
         return JSONResponse({"files": results})
+
+    @app.get("/api/soc")
+    async def api_soc():
+        """Build a SoC-Architect-friendly view of the project's IPs.
+
+        Two-tier source-of-truth model:
+          1. SoC-level SSOT  — `<project_root>/soc.ssot.yaml`
+             Owned by the Architect supervisor. Lists clusters, IP
+             instances (with overrides + addresses), connections, and
+             generators. When present, drives the architect view.
+          2. Per-IP leaf SSOT — `<ip>/yaml/<ip>.ssot.yaml`
+             Each instance points to its leaf SSOT for parameters,
+             busInterfaces, model.ports → clocks/resets, memoryMap.
+
+        When the SoC SSOT is missing we fall back to the directory walk
+        (every `*.ssot.yaml` under the project becomes a module under a
+        single `ips` cluster) so existing projects keep working without
+        an explicit SoC file.
+
+        Status (ssot/rtl/sim) is derived from filesystem presence:
+          ssot = ok  if yaml file parses
+          rtl  = ok  if <ip>/rtl/*.sv exists, partial if dir exists empty,
+                     pending otherwise
+          sim  = ok  if <ip>/sim/ has any *.log or *.vcd, pending otherwise
+        Used by the Atlas Architect screen to replace the mock SOC.
+        """
+        try:
+            try: import yaml as _yaml  # type: ignore
+            except Exception: _yaml = None
+
+            def _kind_for(name: str) -> str:
+                """Infer module kind from its name. Used as a fallback
+                when no cluster.role is available (dir-walk mode) or
+                when the cluster lists a generic role. Heuristic patterns
+                broaden to catch real-world IP names: cortexa15, riscv,
+                cci550, ccn508, nic400, etc."""
+                n = (name or "").lower()
+                if any(s in n for s in ("cpu", "core", "rv", "cortex", "riscv",
+                                         "arm", "neoverse", "amba_a", "hart")): return "cpu"
+                if any(s in n for s in ("mem", "ram", "ddr", "cache", "sram",
+                                         "rom", "flash", "ocm")): return "mem"
+                if any(s in n for s in ("noc", "bus", "axi", "apb", "ahb", "xbar",
+                                         "cci", "ccn", "nic", "nip", "interconnect",
+                                         "crossbar", "smmu", "iommu")): return "bus"
+                if any(s in n for s in ("phy", "ana", "pll", "ldo", "vco",
+                                         "adc", "dac", "afe", "rf")): return "analog"
+                return "periph"
+
+            # Cluster role string from soc.ssot.yaml → module kind. The
+            # role is more authoritative than the name heuristic; we let
+            # it win when present so cortexa15_0 under a CPU cluster is
+            # always classified `cpu` regardless of name.
+            _ROLE_TO_KIND = {
+                "CPU": "cpu", "MEM": "mem", "BUS": "bus",
+                "PERIPH": "periph", "ANALOG": "analog",
+                "INTERCONNECT": "bus", "FABRIC": "bus", "NOC": "bus",
+                "PERIPHERAL": "periph", "MISC": "periph",
+            }
+            def _kind_from_role(role):
+                if not isinstance(role, str): return None
+                return _ROLE_TO_KIND.get(role.strip().upper())
+
+            # YAML hex literals like `0x8000_0000` are parsed by PyYAML
+            # to a Python int. Re-format as a hex string with 4-digit
+            # underscore groups so the architect UI shows the canonical
+            # SoC notation (`0x8000_0000`, `0x4000_2000`) instead of a
+            # raw decimal (`2147483648`).
+            def _hex_addr(v):
+                if v is None: return ""
+                if isinstance(v, int):
+                    h = f"{v:x}"
+                    if len(h) > 4:
+                        rev = h[::-1]
+                        groups = [rev[i:i+4] for i in range(0, len(rev), 4)]
+                        h = "_".join(groups)[::-1]
+                    return f"0x{h}"
+                # Already a string (might or might not be hex-prefixed).
+                s = str(v).strip()
+                if s.startswith("0x") or s.startswith("0X"): return s
+                # Try parse as int — covers decimal-string cases.
+                try:
+                    return _hex_addr(int(s))
+                except ValueError:
+                    return s
+
+            def _build_module(leaf_ssot_path):
+                """Read a leaf <ip>/yaml/<ip>.ssot.yaml → architect module dict."""
+                p = leaf_ssot_path
+                ip_dir = p.parent
+                if ip_dir.name == "yaml":
+                    ip_dir = ip_dir.parent
+                ip_name = ip_dir.name
+                top = ip_name
+                params, interfaces = [], []
+                clocks_n, resets_n = 0, 0
+                addr = ""
+                if _yaml is not None:
+                    try:
+                        doc = _yaml.safe_load(p.read_text(encoding="utf-8", errors="replace")) or {}
+                        if isinstance(doc, dict):
+                            top = doc.get("top_module") or top
+                            cl = doc.get("clocks") or []
+                            rs = doc.get("resets") or []
+                            clocks_n, resets_n = len(cl), len(rs)
+                            for k in ("parameters", "params"):
+                                if isinstance(doc.get(k), list):
+                                    for it in doc[k][:6]:
+                                        if isinstance(it, dict):
+                                            nm = it.get("name") or it.get("k")
+                                            vv = it.get("value") if "value" in it else it.get("v")
+                                            if nm is not None:
+                                                params.append({"k": str(nm), "v": str(vv)})
+                            bif = doc.get("busInterfaces") or doc.get("interfaces") or []
+                            if isinstance(bif, list):
+                                _sides = ["right", "left", "top", "bottom"]
+                                for i, it in enumerate(bif[:8]):
+                                    if not isinstance(it, dict): continue
+                                    interfaces.append({
+                                        "name": str(it.get("name") or f"if{i}"),
+                                        "proto": str(it.get("proto") or it.get("protocol") or "AXI4"),
+                                        "role":  str(it.get("role") or "slave"),
+                                        "side":  str(it.get("side") or _sides[i % 4]),
+                                        "width": int(it.get("width") or 0) or None,
+                                    })
+                            for c in cl[:2]:
+                                if isinstance(c, dict):
+                                    interfaces.append({"name": c.get("name") or "clk",
+                                                       "proto": "CLK", "role": "slave", "side": "left"})
+                            for r in rs[:2]:
+                                if isinstance(r, dict):
+                                    interfaces.append({"name": r.get("name") or "rst_n",
+                                                       "proto": "CLK", "role": "slave", "side": "left"})
+                            mm = doc.get("memoryMap") or []
+                            if isinstance(mm, list) and mm and isinstance(mm[0], dict):
+                                base = mm[0].get("base")
+                                if base is not None: addr = _hex_addr(base)
+                    except Exception:
+                        pass
+                rtl_dir = ip_dir / "rtl"
+                rtl_files = list(rtl_dir.glob("*.sv")) + list(rtl_dir.glob("*.v")) if rtl_dir.is_dir() else []
+                sim_dir = ip_dir / "sim"
+                sim_files = []
+                if sim_dir.is_dir():
+                    sim_files = list(sim_dir.rglob("*.log")) + list(sim_dir.rglob("*.vcd"))
+                sim_history = []
+                hist = sim_dir / "history.json"
+                if hist.is_file():
+                    try:
+                        h = json.loads(hist.read_text(encoding="utf-8"))
+                        if isinstance(h, dict) and isinstance(h.get("runs"), list):
+                            sim_history = h["runs"][-12:]
+                    except Exception:
+                        pass
+                ssot_st = "ok"
+                rtl_st  = "ok" if rtl_files else ("partial" if rtl_dir.is_dir() else "pending")
+                sim_st  = "ok" if sim_files else "pending"
+                return {
+                    "id": ip_name,
+                    "name": top,
+                    "label": top,
+                    "kind": _kind_for(ip_name),
+                    "params": params,
+                    "status": {"ssot": ssot_st, "rtl": rtl_st, "sim": sim_st},
+                    "interfaces": interfaces,
+                    "addr": addr,
+                    "rtl_files": [str(f.relative_to(PROJECT_ROOT)) for f in rtl_files],
+                    "ssot_path": str(p.relative_to(PROJECT_ROOT)),
+                    "ip_dir": str(ip_dir.relative_to(PROJECT_ROOT)),
+                    "clocks": clocks_n,
+                    "resets": resets_n,
+                    "sim_history": sim_history,
+                    "ssot_mtime": p.stat().st_mtime,
+                }
+
+            def _aggregate_status(modules):
+                if not modules:
+                    return {"ssot": "pending", "rtl": "pending", "sim": "pending"}
+                return {
+                    "ssot": "ok",
+                    "rtl":  "ok" if all(m["status"]["rtl"] == "ok" for m in modules)
+                          else ("partial" if any(m["status"]["rtl"] == "ok" for m in modules) else "pending"),
+                    "sim":  "ok" if all(m["status"]["sim"] == "ok" for m in modules)
+                          else ("partial" if any(m["status"]["sim"] == "ok" for m in modules) else "pending"),
+                }
+
+            project_name = PROJECT_ROOT.name or "project"
+            soc_path = PROJECT_ROOT / "soc.ssot.yaml"
+
+            # ── Tier 1: SoC-level SSOT exists → use it as the spine ──
+            if _yaml is not None and soc_path.is_file():
+                try:
+                    soc_doc = _yaml.safe_load(soc_path.read_text(encoding="utf-8", errors="replace")) or {}
+                except Exception as e:
+                    return JSONResponse({"error": f"soc.ssot.yaml parse: {e}", "clusters": []},
+                                        status_code=500)
+                if not isinstance(soc_doc, dict): soc_doc = {}
+
+                instances = soc_doc.get("instances") or []
+                clusters_def = soc_doc.get("clusters") or []
+                connections = soc_doc.get("connections") or []
+                addr_map = soc_doc.get("addrMap") or []
+
+                # Build module dict per instance, looking up its leaf SSOT.
+                inst_to_mod = {}
+                for inst in instances:
+                    if not isinstance(inst, dict): continue
+                    iid = inst.get("id")
+                    if not iid: continue
+                    leaf = inst.get("ssot")
+                    leaf_path = (PROJECT_ROOT / leaf) if leaf else None
+                    if leaf_path and leaf_path.is_file():
+                        m = _build_module(leaf_path)
+                    else:
+                        # No leaf SSOT yet — minimal stub.
+                        m = {
+                            "id": iid, "name": iid, "label": iid,
+                            "kind": _kind_for(inst.get("kind") or iid),
+                            "params": [], "interfaces": [],
+                            "status": {"ssot": "pending", "rtl": "pending", "sim": "pending"},
+                            "rtl_files": [], "ssot_path": leaf or "",
+                            "ip_dir": "", "addr": "",
+                            "clocks": 0, "resets": 0, "sim_history": [], "ssot_mtime": 0,
+                        }
+                    # Apply instance-level overrides.
+                    m["id"] = iid
+                    if inst.get("name"):  m["name"] = inst["name"]; m["label"] = inst["name"]
+                    if inst.get("addr") is not None: m["addr"] = _hex_addr(inst["addr"])
+                    if inst.get("kind"):  m["kind"] = inst["kind"]
+                    if isinstance(inst.get("overrides"), dict):
+                        # Surface overrides as extra params.
+                        for k, v in inst["overrides"].items():
+                            m["params"].append({"k": str(k), "v": str(v)})
+                    inst_to_mod[iid] = m
+
+                # Group modules by cluster membership. Anything not in a
+                # cluster falls into a synthetic "uncategorized" cluster.
+                # While we're walking, propagate `cluster.role` → each
+                # member's `kind` (CPU/BUS/MEM/PERIPH/ANALOG). The role
+                # is the architect's explicit declaration and beats the
+                # name heuristic (e.g. cortexa15_0 has no "cpu" in its
+                # name; without role propagation it would fall through
+                # to "periph").
+                claimed = set()
+                clusters_out = []
+                for c in clusters_def:
+                    if not isinstance(c, dict): continue
+                    cid = c.get("id") or c.get("name")
+                    if not cid: continue
+                    members = c.get("members") or []
+                    role_kind = _kind_from_role(c.get("role"))
+                    cmods = []
+                    for mid in members:
+                        if mid not in inst_to_mod: continue
+                        mod = inst_to_mod[mid]
+                        # Role-from-cluster wins UNLESS the instance had
+                        # an explicit `kind:` override in soc.ssot.yaml
+                        # (set above when applying instance overrides).
+                        # We detect "explicit override" by checking the
+                        # raw instance dict, not the heuristic-derived
+                        # value already in mod.
+                        inst_def = next((i for i in instances
+                                         if isinstance(i, dict) and i.get("id") == mid), {})
+                        if not inst_def.get("kind") and role_kind:
+                            mod["kind"] = role_kind
+                        cmods.append(mod)
+                    for m in members: claimed.add(m)
+                    clusters_out.append({
+                        "id": cid,
+                        "name": cid,
+                        "label": c.get("label") or cid,
+                        "x": c.get("x", 60), "y": c.get("y", 80),
+                        "w": c.get("w", 1200), "h": c.get("h", 600),
+                        "role": c.get("role"),
+                        "status": _aggregate_status(cmods),
+                        "modules": cmods,
+                    })
+                stray = [m for iid, m in inst_to_mod.items() if iid not in claimed]
+                if stray:
+                    clusters_out.append({
+                        "id": "uncategorized", "name": "uncategorized",
+                        "label": "Uncategorized",
+                        "x": 60, "y": 80, "w": 1200, "h": 600,
+                        "status": _aggregate_status(stray),
+                        "modules": stray,
+                    })
+
+                # Normalize connections — frontend renderer expects
+                # {from: 'inst/iface', to: 'inst/iface', proto: 'AXI4'}.
+                norm_conns = []
+                for cn in connections:
+                    if not isinstance(cn, dict): continue
+                    if cn.get("from") and cn.get("to"):
+                        norm_conns.append({
+                            "from": str(cn["from"]),
+                            "to":   str(cn["to"]),
+                            "proto": str(cn.get("proto") or "AXI4"),
+                        })
+
+                return JSONResponse({
+                    "name": soc_doc.get("name") or project_name,
+                    "version": str(soc_doc.get("version") or "live"),
+                    "clusters": clusters_out,
+                    "busses": norm_conns,
+                    "addrMap": [
+                        {**e, "base": _hex_addr(e.get("base")), "range": _hex_addr(e.get("range"))}
+                        for e in (addr_map if isinstance(addr_map, list) else [])
+                        if isinstance(e, dict)
+                    ],
+                    "module_count": len(inst_to_mod),
+                    "source": "soc.ssot.yaml",
+                    "soc_ssot_path": str(soc_path.relative_to(PROJECT_ROOT)),
+                    "soc_ssot_mtime": soc_path.stat().st_mtime,
+                })
+
+            # ── Tier 2: no soc.ssot.yaml → fall back to dir-walk ──
+            modules = []
+            for p in PROJECT_ROOT.rglob("*.ssot.yaml"):
+                if any(part in SKIP_DIRS or part.startswith(".")
+                       for part in p.parts):
+                    continue
+                if p.name == "soc.ssot.yaml": continue  # handled above
+                modules.append(_build_module(p))
+            modules.sort(key=lambda m: m["id"])
+            cluster = {
+                "id": "ips", "name": "ips", "label": "Project IPs",
+                "x": 60, "y": 80, "w": 1200, "h": 600,
+                "status": _aggregate_status(modules),
+                "modules": modules,
+            }
+            return JSONResponse({
+                "name": project_name,
+                "version": "live",
+                "clusters": [cluster] if modules else [],
+                "busses": [],
+                "addrMap": [],
+                "module_count": len(modules),
+                "source": "dir-walk",
+            })
+        except Exception as e:
+            return JSONResponse({"error": str(e), "clusters": []}, status_code=500)
+
+    @app.post("/api/ipxact/import")
+    async def api_ipxact_import(request: Request):
+        """Import an IP-XACT XML payload into the project as a new IP.
+
+        Accepts either:
+          • multipart/form-data with a `xml` file part + optional `name`
+          • application/json: {"xml": "<XML…>", "name": "spi_master"}
+          • application/xml or text/xml body + ?name=<ip_name> query
+
+        Writes <project_root>/<name>/yaml/<name>.ssot.yaml and scaffolds
+        the surrounding IP layout. Returns the parsed SSOT + path.
+        """
+        try:
+            ct = (request.headers.get("content-type") or "").lower()
+            xml_text: str = ""
+            ip_name: str = ""
+            if ct.startswith("multipart/form-data"):
+                form = await request.form()
+                up = form.get("xml")
+                if up is None:
+                    return JSONResponse({"error": "missing 'xml' file part"}, status_code=400)
+                if hasattr(up, "read"):
+                    raw = await up.read()
+                    xml_text = raw.decode("utf-8", errors="replace") if isinstance(raw, (bytes, bytearray)) else str(raw)
+                else:
+                    xml_text = str(up)
+                ip_name = (form.get("name") or "").strip()
+            elif "json" in ct:
+                body = await request.json()
+                xml_text = body.get("xml", "") or ""
+                ip_name = (body.get("name") or "").strip()
+            else:
+                raw = await request.body()
+                xml_text = raw.decode("utf-8", errors="replace") if isinstance(raw, (bytes, bytearray)) else str(raw)
+                ip_name = (request.query_params.get("name") or "").strip()
+            if not xml_text.strip():
+                return JSONResponse({"error": "empty XML payload"}, status_code=400)
+
+            try:
+                from core.ipxact_import import import_ipxact as _conv
+            except Exception:
+                try: from ipxact_import import import_ipxact as _conv  # type: ignore
+                except Exception as e:
+                    return JSONResponse({"error": f"importer unavailable: {e}"}, status_code=500)
+            try:
+                ssot = _conv(xml_text, ip_name=ip_name or None)
+            except Exception as e:
+                return JSONResponse({"error": f"parse error: {e}"}, status_code=400)
+            name = (ip_name or ssot.get("top_module") or "").strip()
+            if not name or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", name):
+                return JSONResponse({"error": f"invalid ip name {name!r}"}, status_code=400)
+
+            # Write into <project_root>/<name>/yaml/<name>.ssot.yaml.
+            ip_dir = PROJECT_ROOT / name
+            (ip_dir / "yaml").mkdir(parents=True, exist_ok=True)
+            for sub in ("rtl", "sim", "tb", "list", "lint", "doc"):
+                (ip_dir / sub).mkdir(parents=True, exist_ok=True)
+            yaml_path = ip_dir / "yaml" / f"{name}.ssot.yaml"
+            try:
+                import yaml as _yaml
+                with open(yaml_path, "w", encoding="utf-8") as f:
+                    f.write("# Auto-imported from IP-XACT — review and edit as needed.\n")
+                    _yaml.safe_dump(ssot, f, sort_keys=False, default_flow_style=False, allow_unicode=True)
+            except ImportError:
+                # No PyYAML → write a JSON sidecar so the import still
+                # produces something usable.
+                with open(yaml_path.with_suffix(".json"), "w", encoding="utf-8") as f:
+                    json.dump(ssot, f, indent=2)
+                yaml_path = yaml_path.with_suffix(".json")
+            except OSError as e:
+                return JSONResponse({"error": f"write error: {e}"}, status_code=500)
+
+            return JSONResponse({
+                "ok": True,
+                "name": name,
+                "path": str(yaml_path.relative_to(PROJECT_ROOT)),
+                "ssot": ssot,
+            })
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
 
     @app.get("/api/conversation")
     async def api_conversation(limit: int = 200):

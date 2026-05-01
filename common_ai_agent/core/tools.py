@@ -709,16 +709,41 @@ def list_dir(path=".", show_hidden=True, **kwargs):
             return f"'{path}' is a file, not a directory. Use read_file() or grep_file() instead."
         if not os.path.exists(path):
             return f"'{path}' does not exist. Use find_files() to locate the correct path."
-        files = os.listdir(path)
+        entries = os.listdir(path)
         if not show_hidden:
-            files = [f for f in files if not f.startswith('.')]
-        sorted_files = sorted(files)
-        if not sorted_files:
+            entries = [e for e in entries if not e.startswith('.')]
+        sorted_entries = sorted(entries)
+        if not sorted_entries:
             return f"(empty directory: {path})"
         max_entries = _tool_cfg('TOOL_LIST_MAX_ENTRIES', 200)
-        if len(sorted_files) > max_entries:
-            return "\n".join(sorted_files[:max_entries]) + f"\n... ({len(sorted_files) - max_entries} more entries — increase TOOL_LIST_MAX_ENTRIES to see all)"
-        return "\n".join(sorted_files)
+
+        # Distinguish directories from files — add '/' suffix for dirs
+        dir_count = 0
+        file_count = 0
+        lines = []
+        for entry in sorted_entries:
+            full = os.path.join(path, entry)
+            if os.path.isdir(full):
+                lines.append(entry + "/")
+                dir_count += 1
+            else:
+                lines.append(entry)
+                file_count += 1
+
+        # Truncate if too many entries
+        if len(lines) > max_entries:
+            shown = lines[:max_entries]
+            summary = f"... ({len(lines) - max_entries} more entries — increase TOOL_LIST_MAX_ENTRIES to see all)"
+        else:
+            shown = lines
+            summary = ""
+
+        # Build output with directory/file count summary
+        result = "\n".join(shown)
+        if summary:
+            result += "\n" + summary
+        result += f"\nTotal: {dir_count} directories, {file_count} files"
+        return result
     except Exception as e:
         return f"Error listing directory: {e}"
 
@@ -4557,6 +4582,434 @@ def scaffold_ip(name=None, root="."):
     return "\n".join(out)
 
 
+def ipxact_import(xml_path=None, ip_name=None, root=".", scaffold=True):
+    """Import an IP-XACT (IEEE 1685) XML component into the project SSOT.
+
+    Reads the XML at `xml_path`, converts the busInterfaces, parameters,
+    memoryMap, model.ports → clocks/resets sections into our SSOT-lite
+    YAML shape, and writes it under `<root>/<ip_name>/yaml/<ip_name>.ssot.yaml`.
+    When `scaffold=True` (default) the surrounding IP layout (rtl/, sim/,
+    tb/, list/, doc/, lint/) is created as well via scaffold_ip — but
+    the SSOT YAML is overwritten by the imported content rather than the
+    TBD placeholder.
+
+    Args:
+        xml_path: path to the source IP-XACT XML file. Required.
+        ip_name:  override for top_module / IP directory name. Defaults
+                  to the <ipxact:name> element from the XML.
+        root:     where to root the IP (default: current dir).
+        scaffold: also create the canonical IP layout (default: True).
+
+    Returns:
+        Human-readable status string with the resulting SSOT path.
+    """
+    if not isinstance(xml_path, str) or not xml_path.strip():
+        return "[ipxact_import: 'xml_path' is required]"
+    xml_path = os.path.expanduser(xml_path)
+    if not os.path.isfile(xml_path):
+        return f"[ipxact_import: file not found: {xml_path}]"
+    try:
+        from core.ipxact_import import import_ipxact_file as _imp
+    except Exception:
+        try:
+            from ipxact_import import import_ipxact_file as _imp  # type: ignore
+        except Exception as e:
+            return f"[ipxact_import: importer module unavailable: {e}]"
+
+    # Peek at the SSOT first so we can derive the IP name when caller
+    # didn't supply one (and the XML's <name> element is the canonical
+    # source of truth in IP-XACT).
+    try:
+        peek = _imp(xml_path, ip_name=None)
+    except Exception as e:
+        return f"[ipxact_import: parse error: {e}]"
+    name = (ip_name or peek.get("top_module") or "ipxact_import").strip()
+    if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", name):
+        return f"[ipxact_import: invalid ip_name {name!r} — letters, digits, underscore only]"
+
+    base = os.path.abspath(os.path.join(root, name))
+    yaml_path = os.path.join(base, "yaml", f"{name}.ssot.yaml")
+
+    # Optionally lay down the IP scaffold so RTL/sim/tb dirs exist for
+    # subsequent rtl-gen / sim runs to drop their outputs into.
+    scaffold_log = ""
+    if _as_bool(scaffold, True):
+        scaffold_log = scaffold_ip(name=name, root=root)
+
+    # Now overwrite the placeholder SSOT YAML with the converted IP-XACT
+    # content. import_ipxact_file does both the parse and the write.
+    try:
+        ssot = _imp(xml_path, ip_name=name, out_path=yaml_path)
+    except Exception as e:
+        return f"[ipxact_import: write error: {e}]"
+
+    parts = [f"✓ Imported IP-XACT '{xml_path}' → {os.path.relpath(yaml_path)}"]
+    origin = ssot.get("_ipxact_origin", {})
+    if origin.get("vendor") or origin.get("library") or origin.get("version"):
+        ident = ".".join(filter(None, [origin.get("vendor"), origin.get("library"),
+                                       origin.get("name"), origin.get("version")]))
+        if ident: parts.append(f"  origin: {ident}")
+    parts.append(f"  top_module: {ssot.get('top_module')}")
+    if ssot.get("busInterfaces"):
+        parts.append(f"  busInterfaces: {len(ssot['busInterfaces'])}")
+    if ssot.get("memoryMap"):
+        parts.append(f"  memoryMap: {len(ssot['memoryMap'])}")
+    if ssot.get("parameters"):
+        parts.append(f"  parameters: {len(ssot['parameters'])}")
+    if ssot.get("clocks"):
+        parts.append(f"  clocks: {len(ssot['clocks'])}")
+    if ssot.get("resets"):
+        parts.append(f"  resets: {len(ssot['resets'])}")
+    if scaffold_log:
+        parts.append("")
+        parts.append(scaffold_log)
+    return "\n".join(parts)
+
+
+# ────────────────────────────────────────────────────────────────────
+# SoC Architect supervisor tools
+# ────────────────────────────────────────────────────────────────────
+# These operate on `<project_root>/soc.ssot.yaml` — the SoC-level SSOT
+# the Architect supervisor owns. They read leaf SSOTs (per-IP) but
+# never modify them.
+
+def _arch_load_soc():
+    """Load `<cwd>/soc.ssot.yaml` → dict, or {} if missing/unparseable."""
+    try: import yaml as _yaml
+    except ImportError:
+        return None, "PyYAML not installed — install with `pip install pyyaml`"
+    p = os.path.join(os.getcwd(), "soc.ssot.yaml")
+    if not os.path.isfile(p):
+        return None, f"soc.ssot.yaml not found at {p}"
+    try:
+        return _yaml.safe_load(open(p, "r", encoding="utf-8").read()) or {}, None
+    except Exception as e:
+        return None, f"parse error: {e}"
+
+
+def _arch_parse_addr(s):
+    """Parse '0x4000_2000' / '4000_2000' / 1073750016 → int, or None."""
+    if isinstance(s, int): return s
+    if not isinstance(s, str): return None
+    t = s.strip().replace("_", "").replace("'", "")
+    try:
+        if t.lower().startswith("0x"): return int(t, 16)
+        if t.lower().startswith("0b"): return int(t, 2)
+        return int(t, 0)
+    except (ValueError, TypeError):
+        return None
+
+
+def _arch_hex(n):
+    """Pretty hex with 4-digit groups: 0x4000_2000."""
+    if n is None: return "?"
+    h = f"{n:x}"
+    if len(h) > 4:
+        rev = h[::-1]
+        groups = [rev[i:i+4] for i in range(0, len(rev), 4)]
+        h = "_".join(groups)[::-1]
+    return f"0x{h}"
+
+
+def addrmap_check():
+    """Validate the SoC address map in `<cwd>/soc.ssot.yaml`.
+
+    Runs the rules from `workflow/architect/rules/addrmap-checks.md`:
+      • overlap detection
+      • zero base reservation
+      • range > 0
+      • base alignment to range (power-of-2 decoder hygiene)
+      • range power-of-2
+
+    Returns a multi-line report. A single ✗ line indicates a hard error
+    (the architect must halt and revert the offending edit).
+    """
+    soc, err = _arch_load_soc()
+    if soc is None:
+        return f"[addrmap_check: {err}]"
+    addr_map = soc.get("addrMap") or []
+    if not isinstance(addr_map, list) or not addr_map:
+        return "[addrmap_check] addrMap is empty — nothing to validate"
+
+    entries = []
+    for e in addr_map:
+        if not isinstance(e, dict): continue
+        b = _arch_parse_addr(e.get("base"))
+        r = _arch_parse_addr(e.get("range"))
+        entries.append({"name": e.get("name") or "?", "base": b, "range": r, "raw": e})
+
+    out = []
+    hard = 0
+    soft = 0
+
+    # overlap
+    es = sorted([e for e in entries if e["base"] is not None and e["range"]],
+                key=lambda x: x["base"])
+    overlap_msgs = []
+    for i in range(len(es) - 1):
+        a, b = es[i], es[i + 1]
+        a_end = a["base"] + a["range"]
+        if a_end > b["base"]:
+            overlap_msgs.append(f"{a['name']} ({_arch_hex(a['base'])}+{_arch_hex(a['range'])}) "
+                                f"overlaps {b['name']} ({_arch_hex(b['base'])})")
+    if overlap_msgs:
+        for m in overlap_msgs: out.append(f"✗ overlap        — {m}"); hard += 1
+    else:
+        out.append("✓ overlap        — clean")
+
+    # zero base
+    zb = [e for e in entries if e["base"] == 0]
+    if zb:
+        out.append(f"✗ zero base      — {zb[0]['name']} uses 0x0000_0000 (reserved)"); hard += 1
+    else:
+        out.append("✓ zero base      — clean")
+
+    # range > 0
+    bad_r = [e for e in entries if not e["range"] or e["range"] <= 0]
+    if bad_r:
+        out.append(f"✗ range > 0      — {bad_r[0]['name']} has range {bad_r[0]['raw'].get('range')}"); hard += 1
+    else:
+        out.append("✓ range > 0      — clean")
+
+    # alignment: base % range == 0
+    misalign = [e for e in entries
+                if e["base"] is not None and e["range"]
+                and (e["base"] % e["range"]) != 0]
+    if misalign:
+        for e in misalign:
+            out.append(f"✗ alignment      — {e['name']} base {_arch_hex(e['base'])} "
+                       f"not multiple of range {_arch_hex(e['range'])}"); hard += 1
+    else:
+        out.append("✓ alignment      — clean")
+
+    # range power-of-2
+    def _pow2(n): return n > 0 and (n & (n - 1)) == 0
+    npo2 = [e for e in entries if e["range"] and not _pow2(e["range"])]
+    if npo2:
+        for e in npo2:
+            out.append(f"⚠ range pow2     — {e['name']} range {_arch_hex(e['range'])} not power-of-2"); soft += 1
+    else:
+        out.append("✓ range pow2     — clean")
+
+    # huge gap > 1 GiB
+    gap_msgs = []
+    for i in range(len(es) - 1):
+        a, b = es[i], es[i + 1]
+        gap = b["base"] - (a["base"] + a["range"])
+        if gap > 0x4000_0000:
+            gap_msgs.append(f"gap of {_arch_hex(gap)} between {a['name']} and {b['name']}")
+    if gap_msgs:
+        for m in gap_msgs: out.append(f"⚠ gap            — {m}"); soft += 1
+    else:
+        out.append("✓ gap            — clean")
+
+    out.append("")
+    out.append(f"summary: {hard} hard error(s), {soft} warning(s)" + (" — HALT" if hard else ""))
+    return "\n".join(out)
+
+
+def soc_status():
+    """Print a one-screen overview of the current SoC composition.
+
+    Shows clusters, instance count per cluster, address map summary,
+    and per-IP pipeline status (ssot/rtl/sim derived from filesystem).
+    Read-only. Useful as the architect's first move on any session.
+    """
+    soc, err = _arch_load_soc()
+    if soc is None:
+        return f"[soc_status: {err}]"
+    name = soc.get("name") or "soc"
+    version = soc.get("version") or "?"
+    clusters = soc.get("clusters") or []
+    instances = soc.get("instances") or []
+    addr_map = soc.get("addrMap") or []
+    connections = soc.get("connections") or []
+
+    # Build inst lookup
+    inst_by_id = {i.get("id"): i for i in instances if isinstance(i, dict) and i.get("id")}
+
+    lines = [f"SoC: {name} v{version}",
+             f"  clusters:    {len(clusters)}",
+             f"  instances:   {len(instances)}",
+             f"  connections: {len(connections)}",
+             f"  addrMap:     {len(addr_map)} entries",
+             ""]
+
+    for c in clusters:
+        if not isinstance(c, dict): continue
+        cid = c.get("id") or c.get("name") or "?"
+        members = c.get("members") or []
+        role = c.get("role") or ""
+        lines.append(f"┌── {cid} {('[' + role + ']') if role else ''} · {len(members)} IPs")
+        for mid in members:
+            inst = inst_by_id.get(mid) or {}
+            leaf = inst.get("ssot") or ""
+            addr = inst.get("addr") or ""
+            # Status from leaf dir
+            ip_dir = os.path.dirname(os.path.dirname(leaf)) if leaf else ""
+            ssot_st = "ok" if (leaf and os.path.isfile(leaf)) else "·"
+            rtl_dir = os.path.join(ip_dir, "rtl") if ip_dir else ""
+            rtl_st = "ok" if (rtl_dir and os.path.isdir(rtl_dir) and
+                              any(f.endswith(".sv") or f.endswith(".v") for f in os.listdir(rtl_dir))) else "·"
+            sim_dir = os.path.join(ip_dir, "sim") if ip_dir else ""
+            sim_st = "ok" if (sim_dir and os.path.isdir(sim_dir) and
+                              any(f.endswith(".log") or f.endswith(".vcd")
+                                  for f in os.listdir(sim_dir))) else "·"
+            addr_n = _arch_parse_addr(addr) if isinstance(addr, str) else (addr if isinstance(addr, int) else None)
+            addr_str = f" @ {_arch_hex(addr_n)}" if addr_n is not None else (f" @ {addr}" if addr else "")
+            lines.append(f"│   {mid:<20s}  ssot:{ssot_st}  rtl:{rtl_st}  sim:{sim_st}{addr_str}")
+        lines.append("└──")
+
+    if addr_map:
+        lines.append("")
+        lines.append("addr map:")
+        def _key(x):
+            v = x.get("base")
+            n = _arch_parse_addr(v) if isinstance(v, str) else (v if isinstance(v, int) else None)
+            return n or 0
+        for e in sorted([e for e in addr_map if isinstance(e, dict)], key=_key):
+            b = e.get("base"); r = e.get("range")
+            bn = _arch_parse_addr(b) if isinstance(b, str) else (b if isinstance(b, int) else None)
+            rn = _arch_parse_addr(r) if isinstance(r, str) else (r if isinstance(r, int) else None)
+            lines.append(f"  {(e.get('name') or '?'):<24s} {_arch_hex(bn)}  +{_arch_hex(rn)}")
+
+    return "\n".join(lines)
+
+
+def wrapper_gen(top_name=None):
+    """Generate a top-level SystemVerilog wrapper from soc.ssot.yaml.
+
+    Reads `instances`, their leaf SSOT `busInterfaces`, and `connections`,
+    then emits a SystemVerilog top module that instantiates each IP and
+    wires them per the connection list.
+
+    Args:
+        top_name: override for the top module name (defaults to
+                  soc.ssot.yaml's `name` field).
+
+    Output goes to `generators.top.output` from soc.ssot.yaml, falling
+    back to `rtl/<top_name>.sv`.
+    """
+    soc, err = _arch_load_soc()
+    if soc is None:
+        return f"[wrapper_gen: {err}]"
+    try: import yaml as _yaml
+    except ImportError:
+        return "[wrapper_gen: PyYAML not installed]"
+
+    name = top_name or soc.get("name") or "soc_top"
+    instances = soc.get("instances") or []
+    connections = soc.get("connections") or []
+    gen = (soc.get("generators") or {}).get("top") or {}
+    out_path = gen.get("output") or f"rtl/{name}.sv"
+
+    # Load each leaf SSOT to read busInterfaces.
+    inst_ifaces = {}
+    for inst in instances:
+        if not isinstance(inst, dict): continue
+        iid = inst.get("id"); leaf = inst.get("ssot")
+        if not iid or not leaf or not os.path.isfile(leaf): continue
+        try:
+            doc = _yaml.safe_load(open(leaf, "r", encoding="utf-8").read()) or {}
+        except Exception:
+            doc = {}
+        inst_ifaces[iid] = {
+            "top": doc.get("top_module") or iid,
+            "params": doc.get("parameters") or [],
+            "ifaces": doc.get("busInterfaces") or [],
+            "clocks": doc.get("clocks") or [],
+            "resets": doc.get("resets") or [],
+        }
+
+    # Build the wrapper. This is a starter — generates instance
+    # declarations + a comment block describing connections; users
+    # iterate from here. (A full bus-matrix synthesis is a larger
+    # effort tracked separately.)
+    lines = [
+        f"// Auto-generated top-level wrapper for SoC '{name}'.",
+        f"// Source of truth: soc.ssot.yaml ({len(instances)} instances, "
+        f"{len(connections)} connections)",
+        "// Edit the SoC SSOT and re-run /wrapper-gen instead of editing this file.",
+        "",
+        f"module {name} (",
+        "    input  wire clk,",
+        "    input  wire rst_n",
+        ");",
+        "",
+    ]
+    for iid, info in inst_ifaces.items():
+        lines.append(f"    // ─ {iid} ({info['top']})")
+        lines.append(f"    {info['top']} u_{iid} (")
+        lines.append(f"        .clk   (clk),")
+        lines.append(f"        .rst_n (rst_n)")
+        lines.append(f"        // TODO: hook bus interfaces ({len(info['ifaces'])} ifaces)")
+        lines.append(f"    );")
+        lines.append("")
+    if connections:
+        lines.append("    /* ─ connections (manual hookup pending) ─")
+        for cn in connections:
+            if not isinstance(cn, dict): continue
+            lines.append(f"     *   {cn.get('from','?')} -> {cn.get('to','?')} "
+                         f"({cn.get('proto','?')})")
+        lines.append("     */")
+        lines.append("")
+    lines.append("endmodule")
+    body = "\n".join(lines) + "\n"
+
+    out_abs = os.path.abspath(out_path)
+    os.makedirs(os.path.dirname(out_abs) or ".", exist_ok=True)
+    try:
+        with open(out_abs, "w", encoding="utf-8") as f:
+            f.write(body)
+    except OSError as e:
+        return f"[wrapper_gen: write error: {e}]"
+    return (f"✓ wrapper generated → {out_path}\n"
+            f"  top module: {name}\n"
+            f"  instances:  {len(instances)}\n"
+            f"  connections (commented): {len(connections)}\n"
+            f"  ⚠ bus hookup is TODO — review the file and fill in "
+            f"the per-iface ports, then re-run.")
+
+
+def dispatch_workflow(workflow=None, scope=None, prompt=None):
+    """Hand a focused task to a sub-workflow as a sub-agent run.
+
+    The Architect supervisor uses this to delegate per-IP work
+    (rtl-gen, sim, lint, syn, sta, …) without leaving its own
+    workflow. The sub-agent runs in its own conversation, returns its
+    final summary, and the supervisor folds that summary into its
+    own todo tracker.
+
+    Args:
+        workflow: target sub-workflow name (e.g. 'rtl-gen', 'sim').
+        scope:    optional `/scope` path — typically the IP directory.
+        prompt:   the user-facing instruction the sub-agent receives.
+
+    For now this returns instructions describing what the supervisor
+    should ask the user to do manually (the full sub-agent
+    infrastructure is wired through delegate_runner — registered as
+    a separate tool when that path is fully integrated). Once the
+    sub-agent dispatch is hooked, this function will return the
+    sub-agent's final assistant message.
+    """
+    if not workflow:
+        return "[dispatch_workflow: 'workflow' is required]"
+    parts = [f"⏵ Sub-workflow dispatch requested:",
+             f"    workflow: {workflow}",
+             f"    scope:    {scope or '(none)'}",
+             f"    prompt:   {prompt or '(none)'}",
+             "",
+             "Currently this is a manual handoff — switch with:",
+             f"    /workflow {workflow}",
+             *([f"    /scope {scope}"] if scope else []),
+             "    " + (prompt or "<user prompt>"),
+             "",
+             "Once the sub-agent dispatch path lands, the architect",
+             "will run this in a child agent and fold the result back",
+             "into its own conversation automatically."]
+    return "\n".join(parts)
+
+
 def read_doc(path):
     """Convert a Word, PDF, PowerPoint, Excel, or HTML doc to markdown.
 
@@ -4758,6 +5211,13 @@ AVAILABLE_TOOLS = {
     "read_doc": read_doc,
     # IP layout scaffolder
     "scaffold_ip": scaffold_ip,
+    # IP-XACT (IEEE 1685) → SSOT YAML importer
+    "ipxact_import": ipxact_import,
+    # Architect supervisor tools (whole-SoC level)
+    "addrmap_check": addrmap_check,
+    "soc_status": soc_status,
+    "wrapper_gen": wrapper_gen,
+    "dispatch_workflow": dispatch_workflow,
 }
 
 # Import and register Verilog analysis tools
