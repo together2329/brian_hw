@@ -389,6 +389,40 @@ class TestStripNativeToolTokens(unittest.TestCase):
         result = _strip_native_tool_tokens(text)
         self.assertIn("read_file", result)
 
+    def test_two_line_action_with_json_args(self):
+        """Regression: LLM output `Action: tool\\nAction: {json}` (no `Input:`).
+
+        Pattern 4 only handles `Action Input:`; without Pattern 4b the bare
+        `Action: tool_name` line gets dropped (no `(`) and the call vanishes.
+        Caused tb-gen task 21 to never get approved → TODO_STAGNATION x50.
+        """
+        text = (
+            'Action: todo_update\n'
+            'Action: {"index": 21, "status": "approved", "reason": "verified"}'
+        )
+        result = _strip_native_tool_tokens(text)
+        actions = parse_all_actions(result)
+        self.assertEqual(len(actions), 1)
+        tool, args, _ = actions[0]
+        self.assertEqual(tool, "todo_update")
+        self.assertIn("index=21", args)
+        self.assertIn('status="approved"', args)
+        self.assertIn('reason="verified"', args)
+
+    def test_two_line_action_multiple_calls(self):
+        """Multiple `Action: tool\\nAction: {json}` pairs all extracted."""
+        text = (
+            'Action: read_file\n'
+            'Action: {"file_path": "/x/y.py"}\n'
+            'Action: todo_update\n'
+            'Action: {"index": 9, "status": "completed"}'
+        )
+        result = _strip_native_tool_tokens(text)
+        actions = parse_all_actions(result)
+        self.assertEqual(len(actions), 2)
+        self.assertEqual(actions[0][0], "read_file")
+        self.assertEqual(actions[1][0], "todo_update")
+
 
 # ---------------------------------------------------------------------------
 # _convert_all_glm_tool_calls

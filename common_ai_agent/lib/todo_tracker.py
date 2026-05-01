@@ -1403,12 +1403,15 @@ class TodoTracker:
 
         elapsed_str = f" ({_fmt_elapsed(current.elapsed)} elapsed)" if current.elapsed else ""
         priority_str = f" [{current.priority.upper()}]" if current.priority != "medium" else ""
-        completed = sum(1 for t in self.todos if t.status == "completed")
+        # Count both `completed` (review pending) and `approved` (final) — matches
+        # check_stagnation's progress metric so the hint doesn't mislead the agent
+        # into thinking nothing is done when most tasks have already been approved.
+        done = sum(1 for t in self.todos if t.status in ("completed", "approved"))
 
         return (
             f"[Stagnation x{self.stagnation_count}] Stuck on task {self.current_index + 1}/{len(self.todos)}"
             f"{priority_str}: \"{current.content}\"{elapsed_str}\n"
-            f"Progress: {completed}/{len(self.todos)} completed. "
+            f"Progress: {done}/{len(self.todos)} done ({current.status}). "
             f"Try a different approach or use todo_update to mark it completed if done."
         )
 

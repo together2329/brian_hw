@@ -566,6 +566,67 @@ def _strip_native_tool_tokens(text: str) -> str:
         flags=re.DOTALL,
     )
 
+    # Pattern 4b: "Action: tool_name\nAction: {json}" — LLM variant where the
+    # second line uses "Action:" instead of "Action Input:" before JSON args.
+    # Without this fixup, the bare `Action: tool_name` line (no `(`) is silently
+    # dropped by parse_all_actions and the tool call never executes — observed in
+    # tb-gen runs where todo_update(status='approved') vanished and the agent
+    # got stuck reviewing the same task 50 turns until TODO_STAGNATION fired.
+    # Only triggers when the second-line content starts with `{` (JSON object).
+    _two_line_json_re = re.compile(
+        r'(?:^|\n)\s*[Aa]ction\s*:\s*(\w+)\s*\n+\s*[Aa]ction\s*:\s*(?=\{)'
+    )
+    _out: List[str] = []
+    _pos = 0
+    while True:
+        _m = _two_line_json_re.search(text, _pos)
+        if not _m:
+            _out.append(text[_pos:])
+            break
+        _out.append(text[_pos:_m.start()])
+        _tool = _resolve_tool_name(_m.group(1))
+        _json_start = _m.end()
+        # Walk balanced braces (string- and escape-aware) to find the JSON end
+        _depth = 0
+        _in_str = False
+        _esc = False
+        _i = _json_start
+        while _i < len(text):
+            _c = text[_i]
+            if _esc:
+                _esc = False
+            elif _c == '\\':
+                _esc = True
+            elif _c == '"' and not _esc:
+                _in_str = not _in_str
+            elif not _in_str:
+                if _c == '{':
+                    _depth += 1
+                elif _c == '}':
+                    _depth -= 1
+                    if _depth == 0:
+                        _i += 1
+                        break
+            _i += 1
+        if _depth != 0:
+            _out.append(_m.group(0))
+            _pos = _m.end()
+            continue
+        _json_block = text[_json_start:_i]
+        try:
+            _data = json.loads(_json_block)
+        except (json.JSONDecodeError, AttributeError):
+            _data = None
+        if isinstance(_data, dict):
+            _args = ", ".join(
+                f'{k}={json.dumps(v, ensure_ascii=False)}' for k, v in _data.items()
+            )
+            _out.append(f"\nAction: {_tool}({_args})\n")
+        else:
+            _out.append(_m.group(0))
+        _pos = _i
+    text = ''.join(_out)
+
     # Pattern 5: Bare function calls without Action: prefix (Qwen / GLM style)
     # First split inline tool calls: "tool1(...) tool2(...)" → separate lines
     _tools_pattern = '|'.join(re.escape(t) for t in KNOWN_TOOLS)
