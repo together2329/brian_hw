@@ -534,6 +534,22 @@ TOOL_SCHEMA_COMPACT     = os.getenv("TOOL_SCHEMA_COMPACT", "false").lower() in (
 UNLOCK_NORMAL_MODE_TOOLS = os.getenv("UNLOCK_NORMAL_MODE_TOOLS", "true").lower() in ("true", "1", "yes")
 
 # ============================================================
+# RTL dialect for the rtl-gen / ssot-gen workflows
+# ============================================================
+# Selects the Verilog dialect used by the RTL generator and the
+# scaffold_ip tool's placeholder files.
+#   verilog_2001       — IEEE 1364, file ext .v, wire/reg, always @(...)
+#   systemverilog_2012 — IEEE 1800, file ext .sv, logic, always_ff/always_comb
+# Default: verilog_2001 — narrower language surface = fewer ways for the
+# LLM to hallucinate broken RTL, plus universal toolchain compatibility.
+# Project-wide convention (independent of this flag): `package` and
+# `interface` are forbidden in RTL even in SystemVerilog mode — use module
+# ports + localparam blocks for shared constants instead.
+_RTL_DIALECT_RAW = os.getenv("RTL_DIALECT", "verilog_2001").strip().lower()
+RTL_DIALECT = _RTL_DIALECT_RAW if _RTL_DIALECT_RAW in ("verilog_2001", "systemverilog_2012") else "verilog_2001"
+RTL_FILE_EXT = ".v" if RTL_DIALECT == "verilog_2001" else ".sv"
+
+# ============================================================
 # Type Validation & Linting (Zero-Dependency Features)
 # ============================================================
 # Enable parameter type validation (always available - uses standard library only)
@@ -1131,6 +1147,11 @@ ENABLE_MULTILINE_INPUT = os.getenv("ENABLE_MULTILINE_INPUT", "true").lower() in 
 UI_MODE = os.getenv("UI_MODE", "textual").lower()
 WEB_UI_PORT = int(os.getenv("WEB_UI_PORT", "8080"))
 ATLAS_UI_PORT = int(os.getenv("ATLAS_UI_PORT", "8765"))
+
+# sim_debug elaboration backend: "pyslang" | "verilator" | "slang"
+# Used by /api/hierarchy and /api/trace. Override via the
+# SIM_DEBUG_ELAB_BACKEND env var or this config value.
+SIM_DEBUG_ELAB_BACKEND = os.getenv("SIM_DEBUG_ELAB_BACKEND", "pyslang").lower()
 
 # ============================================================
 # Phase 4: Autonomous Decision-Making

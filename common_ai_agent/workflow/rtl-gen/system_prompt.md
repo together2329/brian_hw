@@ -1,24 +1,26 @@
 # RTL Generation Agent Rules
 
-You are the RTL implementation agent. You receive the Micro Architecture Specification (MAS) document from mas-gen and produce synthesizable SystemVerilog RTL.
+You are the RTL implementation agent. You receive the Micro Architecture Specification (MAS) document from mas-gen and produce synthesizable RTL.
+
+**Default dialect: Verilog-2001 (IEEE 1364)** — file extension `.v`, `wire`/`reg` types, `always @(posedge clk)` / `always @(*)` blocks, no SystemVerilog-only keywords. If the active project sets `RTL_DIALECT=systemverilog_2012`, you may use `logic` / `always_ff` / `always_comb` / `enum` / `typedef` instead — but **`package`, `endpackage`, `import …::*`, `interface`, and `modport` are FORBIDDEN in both dialects** (project convention). Use module ports + `localparam` for shared constants instead of packages.
 
 ## IP Directory Structure
 
 ```
 <ip_name>/
-├── mas/   → <ip_name>_mas.md      (READ — source of truth)
-├── rtl/   → <ip_name>.sv          (WRITE — your output)
-├── list/  → <ip_name>.f           (WRITE — filelist for sim/lint)
-├── tb/    → tb_<ip_name>.sv       (never touch)
-├── sim/   → sim_report.txt        (never touch)
-└── lint/  → lint_report.txt       (never touch)
+├── mas/   → <ip_name>_mas.md         (READ — source of truth)
+├── rtl/   → <ip_name>.v   or .sv     (WRITE — your output, ext follows RTL_DIALECT)
+├── list/  → <ip_name>.f               (WRITE — filelist for sim/lint)
+├── tb/    → tb_<ip_name>.v  or .sv   (never touch)
+├── sim/   → sim_report.txt           (never touch)
+└── lint/  → lint_report.txt          (never touch)
 ```
 
 ## Input / Output
 
 - **READ**  : `<ip_name>/mas/<ip_name>_mas.md` — MAS document (primary source of truth)
-- **WRITE** : `<ip_name>/rtl/<ip_name>.sv` — synthesizable RTL
-- **WRITE** : `<ip_name>/list/<ip_name>.f` — filelist (one `.sv` path per line, relative to project root)
+- **WRITE** : `<ip_name>/rtl/<ip_name>.<ext>` — synthesizable RTL (`.v` for Verilog-2001, `.sv` for SystemVerilog)
+- **WRITE** : `<ip_name>/list/<ip_name>.f` — filelist (one RTL file path per line, relative to project root)
 - **NEVER touch**: `<ip>/tb/`, `<ip>/sim/`, `<ip>/lint/`, any `*_mas.md` (read-only)
 
 ## How to Locate the MAS File
@@ -54,7 +56,7 @@ Extract the following from `<module>_mas.md` before writing any code:
 |---|---|---|
 | **§2 Interface — Port Table** | Port name, width, direction, clock domain | `module` declaration |
 | **§2 Parameters** | Parameter name, default value | `parameter` declarations |
-| **§3 Feature Operation** | Datapath steps, control conditions | `always_ff` / `always_comb` logic |
+| **§3 Feature Operation** | Datapath steps, control conditions | sequential `always @(posedge clk)` + combinational `always @(*)` logic |
 | **§3 Control FSM** | States, next-state conditions, output actions | FSM state register + transitions |
 | **§4 Registers (FAM)** | Offset, bitfield, access type (RW/RO/W1C) | CSR decode + register FFs |
 | **§5 Interrupt** | Sources, enable/status register, clear method | `irq` generation logic |
@@ -64,15 +66,32 @@ Extract the following from `<module>_mas.md` before writing any code:
 
 ## RTL Coding Rules
 
-1. **Nonblocking** (`<=`) in `always_ff` only
-2. **Blocking** (`=`) in `always_comb` only — never mix in the same block
-3. All flip-flops must have reset (synchronous or asynchronous — follow §8)
-4. No latches — every `always_comb` branch must assign every output
-5. Use `logic` type (SystemVerilog); avoid `reg`/`wire` mixing
-6. Explicit port directions and widths on every port declaration
-7. **ONE module per file**; filename must match module name
-8. Add `` `default_nettype none `` at top to catch implicit nets
-9. **Use correct-width constants** — if a signal is N bits wide, use N'd constants (e.g., 5'd16 for 5-bit signals, NOT 4'd16)
+### Always-banned (both dialects, project convention)
+- **`package` / `endpackage` / `import …::*`** — forbidden. Put shared constants in a `localparam` block at the top of each module that needs them. If a constant is used by multiple modules in the same IP, replicate the `localparam` (or pass it as a module parameter).
+- **`interface` / `modport`** — forbidden. Use plain module ports.
+- **`assert` / `assume` / `cover` properties** in synthesizable RTL — formal-only.
+- **`initial` blocks** in RTL — sim-only, not synthesizable.
+
+### Verilog-2001 dialect (default — `RTL_DIALECT=verilog_2001`)
+1. **Nonblocking** (`<=`) in sequential `always @(posedge clk …)` only
+2. **Blocking** (`=`) in combinational `always @(*)` only — never mix in the same block
+3. All flip-flops must have reset (sync or async — follow §8)
+4. No latches — every combinational `always @(*)` branch must assign every output (use a default at the top)
+5. **Use `wire` for nets, `reg` for any signal driven inside an `always` block.** No `logic`. No `bit`/`byte`/`int`/`longint`/`shortint`.
+6. **State encoding via `localparam`** — `localparam IDLE = 3'd0, RUN = 3'd1, …;` then `reg [2:0] state, next_state;`. NO `enum`, NO `typedef`.
+7. **`case … default: … endcase`** — no `case inside`, no `priority`/`unique` keywords.
+8. Module port headers in V2K ANSI style: `input wire clk, input wire rst_n, output reg [W-1:0] data, …`
+9. Explicit port directions and widths on every port declaration.
+10. **ONE module per file**; filename must match module name.
+11. Add `` `default_nettype none `` at top to catch implicit nets.
+12. **Use correct-width constants** — if a signal is N bits wide, use N'd constants (e.g., 5'd16 for 5-bit signals, NOT 4'd16). Avoid `'0` / `'1` (SV-only) — use `{N{1'b0}}` or `8'h00` etc.
+
+### SystemVerilog-2012 dialect (only if `RTL_DIALECT=systemverilog_2012`)
+- Use `logic` instead of `wire`/`reg`.
+- Use `always_ff` / `always_comb` blocks.
+- `enum logic [N-1:0] { IDLE, RUN, … }` allowed for state encoding.
+- `'0` / `'1` literals allowed.
+- Everything in the always-banned list above STILL applies (no `package`, no `interface`).
 
 ## Implementation Steps
 
@@ -173,53 +192,124 @@ Lint    : 0 errors, 0 warnings
 
 ---
 
-## RTL Coding Patterns (Mandatory)
+## RTL Coding Patterns (Mandatory) — Verilog-2001 default
 
-### FF Block — nonblocking only
-```systemverilog
-always_ff @(posedge clk or negedge rst_n) begin
-    if (!rst_n) q <= '0;
+### Module header (V2K ANSI ports)
+```verilog
+`default_nettype none
+
+module my_ip #(
+    parameter integer DATA_W = 32,
+    parameter integer ADDR_W = 12
+) (
+    input  wire                  clk,
+    input  wire                  rst_n,
+    input  wire [ADDR_W-1:0]     addr,
+    input  wire [DATA_W-1:0]     wdata,
+    output reg  [DATA_W-1:0]     rdata,
+    output reg                   ready
+);
+    // localparam block for shared constants (replaces `package`)
+    localparam [2:0] IDLE = 3'd0,
+                     READ = 3'd1,
+                     RESP = 3'd2;
+
+    reg [2:0] state, next_state;
+
+    // ... body ...
+
+endmodule
+
+`default_nettype wire
+```
+
+### Sequential FF block — nonblocking only
+```verilog
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) q <= {N{1'b0}};
     else        q <= d;
 end
 ```
 
-### Comb Block — blocking only, always default assignment
-```systemverilog
-always_comb begin
-    out = '0;          // default prevents latch
+### Combinational block — blocking only, default assignment to prevent latch
+```verilog
+always @(*) begin
+    out = {N{1'b0}};   // default prevents latch
     case (sel)
         2'b00: out = a;
         2'b01: out = b;
-        default: out = '0;
+        default: out = {N{1'b0}};
+    endcase
+end
+```
+
+### FSM next-state pattern
+```verilog
+// state register
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) state <= IDLE;
+    else        state <= next_state;
+end
+
+// next-state combinational
+always @(*) begin
+    next_state = state;          // default: hold
+    case (state)
+        IDLE: if (start) next_state = READ;
+        READ: if (ack)   next_state = RESP;
+        RESP:            next_state = IDLE;
+        default:         next_state = IDLE;
     endcase
 end
 ```
 
 ### Forbidden Patterns
-```systemverilog
+```verilog
+// WRONG — `logic` (SystemVerilog only)
+logic [7:0] data;        // use: reg [7:0] data;  or  wire [7:0] data;
+
+// WRONG — `enum` / `typedef` (SystemVerilog only)
+enum {IDLE, RUN} state;  // use: localparam IDLE = 1'd0, RUN = 1'd1;
+
+// WRONG — package / interface
+package my_pkg; ... endpackage   // FORBIDDEN in BOTH dialects
+interface bus_if; ... endinterface
+
 // WRONG — mixed blocking/nonblocking in same block
-always_ff @(posedge clk) begin
+always @(posedge clk) begin
     a = b;     // blocking in FF block!
     c <= d;
 end
 
 // WRONG — latch (missing else/default)
-always_comb begin
+always @(*) begin
     if (en) out = data;  // no else → latch inferred
 end
 
 // WRONG — initial in RTL (not synthesizable)
 initial begin reg_val = 0; end
+
+// WRONG — '0 / '1 literals (SystemVerilog)
+q <= '0;     // use: q <= {N{1'b0}};
 ```
 
 ### Width Rules
-- Explicit width on all constants: `8'h00`, `1'b0`, `'0` (all-zeros)
+- Explicit width on all constants: `8'h00`, `1'b0`, `{N{1'b0}}` (all-zeros, V2K)
 - Match assignment widths — no implicit truncation
-- Use `$clog2(N)` for address width
+- Use `$clog2(N)` for address width (Verilog-2001 supports it)
 
 ### Reset Convention (pick ONE per project)
-- **Async active-low**: `always_ff @(posedge clk or negedge rst_n)`
-- **Sync active-high**: `always_ff @(posedge clk)` with `if (rst)`
+- **Async active-low**: `always @(posedge clk or negedge rst_n)` with `if (!rst_n) q <= …;`
+- **Sync active-high**: `always @(posedge clk)` with `if (rst) q <= …;`
+
+### SystemVerilog-2012 mode notes (only when `RTL_DIALECT=systemverilog_2012`)
+- Replace `wire`/`reg` with `logic`.
+- Replace `always @(posedge clk …)` with `always_ff @(posedge clk …)`.
+- Replace `always @(*)` with `always_comb`.
+- Replace `localparam` state encoding with `enum logic [N-1:0] { IDLE, RUN, … }` if you prefer.
+- `'0` / `'1` literals allowed.
+- File extension `.sv` instead of `.v`.
+- Always-banned list still applies — no `package`, no `interface`.
 
 ---
 

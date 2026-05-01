@@ -336,14 +336,16 @@ fsm:
 
 # SECTION 13: Coding Rules
 coding_rules:
-  verilog_style: "systemverilog_2012"
+  # Default: pure Verilog-2001 (.v files, wire/reg, always @(...)).
+  # Override per-IP to "systemverilog_2012" for SV-specific designs.
+  verilog_style: "verilog_2001"
   conventions:
-    - "nonblocking (<=) in always_ff"
-    - "blocking (=) in always_comb"
-    - "No latches: every always_comb branch assigns all outputs"
-    - "Active-low reset: dmacresetn"
-    - "Synchronous reset deassertion"
+    - "nonblocking (<=) in sequential always @(posedge clk …)  /  always_ff (SV mode)"
+    - "blocking (=) in combinational always @(*)  /  always_comb (SV mode)"
+    - "No latches: every combinational branch assigns all outputs"
+    - "Active-low async reset"
     - "Parameterize widths (no hardcoded numbers)"
+    - "BANNED in both dialects: package / interface / modport"
   lint_waivers:
     - "UNUSEDSIGNAL: generated template tie-offs"
     - "WIDTHEXPAND: peripheral_events indexing"

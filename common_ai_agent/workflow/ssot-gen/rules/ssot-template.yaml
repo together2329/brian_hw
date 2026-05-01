@@ -381,14 +381,18 @@ fsm:
 # SECTION 13: Coding Rules (Optional)
 # =============================================================================
 coding_rules:
-  verilog_style: "systemverilog_2012"
+  # Default: pure Verilog-2001. Override per-IP to "systemverilog_2012" if a
+  # specific IP needs SV constructs. The system-wide default is also taken
+  # from src/config.py:RTL_DIALECT (env var RTL_DIALECT).
+  verilog_style: "verilog_2001"
   conventions:
-    - "nonblocking (<=) in always_ff"
-    - "blocking (=) in always_comb"
-    - "No latches: every always_comb branch assigns all outputs"
-    - "Active-low reset: dmacresetn"
-    - "Synchronous reset deassertion"
+    - "nonblocking (<=) in sequential always @(posedge clk …)  /  always_ff (SV mode)"
+    - "blocking (=) in combinational always @(*)  /  always_comb (SV mode)"
+    - "No latches: every combinational branch assigns all outputs (use a default)"
+    - "Active-low async reset: always @(posedge clk or negedge rst_n)  with  if (!rst_n)"
     - "Parameterize widths (no hardcoded numbers)"
+    - "BANNED in both dialects: package / endpackage / import / interface / modport"
+    - "V2K: use wire/reg, NOT logic; use localparam state encoding, NOT enum"
   lint_waivers:
     - "UNUSEDSIGNAL: generated template tie-offs"
     - "WIDTHEXPAND: peripheral_events indexing"

@@ -4441,12 +4441,16 @@ def set_ask_user_callback(cb):
 def scaffold_ip(name=None, root="."):
     """Create the canonical IP directory layout in the project root.
 
-    Layout (under `<root>/<name>/`):
+    File extensions and port placeholders follow `config.RTL_DIALECT`:
+      • verilog_2001 (default) → .v files, `input wire clk` / `reg`
+      • systemverilog_2012     → .sv files, `input logic clk` / `logic`
+
+    Layout (under `<root>/<name>/`, ext = .v or .sv):
         yaml/<name>.ssot.yaml         # Single Source of Truth
-        rtl/<name>.sv                 # top-level SystemVerilog
+        rtl/<name>.<ext>              # top-level RTL
         list/<name>.f                 # synthesis/sim filelist
-        tb/tb_<name>.sv               # testbench
-        tc/tc_<name>.sv               # test cases
+        tb/tb_<name>.<ext>            # testbench
+        tc/tc_<name>.<ext>            # test cases
         sim/                          # simulation outputs (waves, logs)
         sdc/<name>.sdc                # synthesis constraints
         lint/                         # lint reports
@@ -4468,24 +4472,33 @@ def scaffold_ip(name=None, root="."):
     if not __re.match(r"^[A-Za-z][A-Za-z0-9_]*$", name):
         return f"[scaffold_ip: invalid name {name!r} — letters, digits, underscore only]"
 
+    # Resolve dialect-specific file extension and port style. config is
+    # imported lazily so this function works even when invoked outside the
+    # main agent process (e.g. from a unit test).
+    import sys as __sys
+    _cfg = __sys.modules.get('config') or __sys.modules.get('src.config')
+    _dialect = getattr(_cfg, 'RTL_DIALECT', 'verilog_2001') if _cfg else 'verilog_2001'
+    _ext = '.v' if _dialect == 'verilog_2001' else '.sv'
+    _port_kw = 'wire' if _dialect == 'verilog_2001' else 'logic'
+
     base = os.path.abspath(os.path.join(root, name))
     layout = {
         "yaml": [(f"{name}.ssot.yaml",
                   f"# {name}.ssot.yaml — Single Source of Truth\n"
                   f"top_module:\n  name: {name}\n  type: \"<TBD>\"  # TBD\n"
                   f"  description: \"<TBD>\"  # TBD\n")],
-        "rtl":  [(f"{name}.sv",
-                  f"// {name}.sv — generated from {name}.ssot.yaml\n"
+        "rtl":  [(f"{name}{_ext}",
+                  f"// {name}{_ext} — generated from {name}.ssot.yaml ({_dialect})\n"
                   f"// TODO: replace with Jinja2 / LLM output\n"
-                  f"module {name} (\n  input  logic clk,\n  input  logic rst_n\n);\n"
+                  f"module {name} (\n  input  {_port_kw} clk,\n  input  {_port_kw} rst_n\n);\n"
                   f"  // TBD\nendmodule\n")],
         "list": [(f"{name}.f",
-                  f"// {name}.f — filelist\nrtl/{name}.sv\n")],
-        "tb":   [(f"tb_{name}.sv",
-                  f"// tb_{name}.sv\n`timescale 1ns/1ps\n"
+                  f"// {name}.f — filelist\nrtl/{name}{_ext}\n")],
+        "tb":   [(f"tb_{name}{_ext}",
+                  f"// tb_{name}{_ext}\n`timescale 1ns/1ps\n"
                   f"module tb_{name};\n  // TBD\nendmodule\n")],
-        "tc":   [(f"tc_{name}.sv",
-                  f"// tc_{name}.sv — test cases\n// TBD\n")],
+        "tc":   [(f"tc_{name}{_ext}",
+                  f"// tc_{name}{_ext} — test cases\n// TBD\n")],
         "sim":  [],
         "sdc":  [(f"{name}.sdc",
                   f"# {name}.sdc — timing constraints\n"
