@@ -100,6 +100,18 @@ def process_chat_turn(
             state.agent_mode = "normal"
             import os as _os; _os.environ["PLAN_MODE"] = "false"
 
+            # Notify the atlas / textual frontend so its mode pill flips.
+            # Without this, backend silently transitions plan_q→normal but
+            # the UI keeps showing "PLAN" and the user wonders why writes
+            # are happening in what looks like read-only mode.
+            try:
+                import main as _main_mod  # type: ignore
+                _emit_mode = getattr(_main_mod, "_textual_emit_mode_fn", None)
+                if _emit_mode is not None:
+                    _emit_mode("normal")
+            except Exception:
+                pass
+
             # Rebuild system prompt to restore full toolset
             if state.messages and state.messages[0].get("role") == "system":
                 system_prompt_data = deps.build_system_prompt_fn(
@@ -211,6 +223,22 @@ def process_chat_turn(
         state.agent_mode = "plan"
 
     # --- Post-turn ---
+    # Push fresh context-token estimate to the sidebar so the "Context"
+    # panel actually moves after each LLM turn. The cost panel updates on
+    # every emit_token_fn call (per-call delta) but context only refreshed
+    # via /compact and /clear handlers — meaning a long conversation never
+    # showed real token usage growth in the UI.
+    try:
+        import main as _main_mod  # type: ignore
+        _ctx_emit = getattr(_main_mod, "_textual_emit_context_fn", None)
+        if _ctx_emit is not None:
+            from llm_client import estimate_message_tokens as _ctx_est  # type: ignore
+            _ctx_max = getattr(cfg, "MAX_CONTEXT_TOKENS", 0)
+            _ctx_used = sum(_ctx_est(m) for m in state.messages)
+            _ctx_emit(_ctx_used, _ctx_max)
+    except Exception:
+        pass
+
     try:
         deps.on_conversation_end_fn(state.messages)
     except Exception:

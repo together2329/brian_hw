@@ -138,6 +138,8 @@ _textual_input_fn = None  # replaces input() when set
 _textual_esc_check_fn = None # () → bool: TUI interrupt check
 _textual_poll_human_input_fn = None  # () → str | None: poll mid-run human message
 _textual_set_agent_running_fn = None  # (bool) → None: set agent_running flag on InputBridge
+_textual_emit_slash_output_fn = None  # (text: str) → None: atlas-only safety-net emit for slash command output, bypasses streamBuffer pipeline
+_textual_emit_mode_fn = None  # (mode: str) → None: notify frontend that agent_mode flipped (plan_q/plan/normal). Used to sync the UI mode pill when chat_loop's `y`/`yc` confirmation auto-promotes plan→normal — without this signal, the user typed "y", agent started executing, but the sidebar still showed PLAN.
 
 # ChatLoopDeps instance (set inside chat_loop(); exposed for textual_main.py)
 _loop_deps = None
@@ -2197,6 +2199,11 @@ def chat_loop():
                             config.MODEL_NAME = config.SECONDARY_MODEL
                         else:
                             config.MODEL_NAME = target
+                        # Update os.environ so external tools (e.g. cmux)
+                        # that read LLM_MODEL_NAME / MODEL_NAME see the
+                        # new value immediately.
+                        os.environ["LLM_MODEL_NAME"] = config.MODEL_NAME
+                        os.environ["MODEL_NAME"] = config.MODEL_NAME
                         print(Color.success(f"\n✅ Model switched to: {config.MODEL_NAME}\n"))
                         if _textual_emit_todo_fn:
                             # Refresh sidebar: reload todo and send current state (don't wipe it)
@@ -2289,9 +2296,39 @@ def chat_loop():
                                     _longest = max((len(m.group(0)) for m in re.finditer(r"`+", _clean)), default=0)
                                     _fence = "`" * max(3, _longest + 1)
                                     _payload = f"{_fence}\n" + "\n".join(_clean.splitlines() or [""]) + f"\n{_fence}\n"
+                                    # Emit through the streaming pipeline
+                                    # (token → slash_output → flush).
+                                    # Order matters: slash_output is a
+                                    # safety net that deduplicates against
+                                    # streamBufferRef in workspace.jsx —
+                                    # it MUST fire after token (so the
+                                    # payload is in the buffer) but BEFORE
+                                    # flush (which parks/clears the buffer).
+                                    # Token        → appends to streamBufferRef
+                                    # slash_output → checks buffer, skips if found
+                                    # flush        → parks buffer into feed
                                     _textual_emit_content_fn(_payload)
+                                    if _textual_emit_slash_output_fn is not None:
+                                        try:
+                                            _textual_emit_slash_output_fn(_payload)
+                                        except Exception:
+                                            pass
                                     if _textual_emit_flush_fn is not None:
                                         _textual_emit_flush_fn()
+                                except Exception:
+                                    pass
+                            # Slash commands don't run the LLM, so the
+                            # agent_state(running:true/false) bracket never
+                            # fires. Frontend submitMsg optimistically sets
+                            # streaming=true for every prompt — without an
+                            # explicit running:false here, the "Agent is
+                            # working / streaming…" banner stays stuck after
+                            # /context, /help, /skills, etc. Emit it now so
+                            # workspace.jsx's agent_state handler can call
+                            # turnEnd() and park the slash output.
+                            if _textual_set_agent_running_fn is not None:
+                                try:
+                                    _textual_set_agent_running_fn(False)
                                 except Exception:
                                     pass
                         # Refresh Textual sidebar after any slash command that may change todo state

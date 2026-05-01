@@ -1246,20 +1246,21 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     }
 
     # Task Management (conditional)
-    # todo_write is ALWAYS visible in Plan Mode (used to start a list)
-    # Others only if todo_active is True
-    # When UNLOCK_NORMAL_MODE_TOOLS is set, expose every todo tool
-    # regardless of mode — the user wants the agent to manage its own
-    # list during execution without flipping into Plan Mode.
+    # todo_write is DESTRUCTIVE — replaces the entire task list — so it stays
+    # plan-mode-only regardless of UNLOCK_NORMAL_MODE_TOOLS. Without this
+    # restriction the agent can wipe a 12-item list down to 3 just by
+    # re-emitting todo_write during execution. Use todo_add / todo_update /
+    # todo_remove for incremental edits in Normal mode.
     _unlock_all = UNLOCK_NORMAL_MODE_TOOLS
     task_tools = []
+    if plan_mode:
+        task_tools.append(_tool_line("todo_write", 'tasks', "Create task list (Plan Mode only — REPLACES all existing tasks). Format: [{content, activeForm, status, command, on_reject}]. command: shell str or {tool,args} dict — runs LLM-free, auto approved/rejected. on_reject: 1-based task index to jump to on failure."))
     if plan_mode or _unlock_all:
-        task_tools.append(_tool_line("todo_write", 'tasks', "Create task list. Format: [{content, activeForm, status, command, on_reject}]. command: shell str or {tool,args} dict — runs LLM-free, auto approved/rejected. on_reject: 1-based task index to jump to on failure."))
         task_tools.append(_tool_line("todo_remove", 'index', "Remove a task (index REQUIRED, 1-based)."))
 
     if todo_active or _unlock_all:
         task_tools.append(_tool_line("todo_update", 'index, status, content, detail', "Update task status (index REQUIRED, 1-based)."))
-        task_tools.append(_tool_line("todo_add", 'content, priority, index', "Add task (index is target position, 1-based)."))
+        task_tools.append(_tool_line("todo_add", 'content, priority, index', "Add task (index is target position, 1-based) — non-destructive, use this in Normal mode instead of todo_write."))
         task_tools.append(_tool_line("todo_status", '', "Show current task progress."))
     
     task_tools = [t for t in task_tools if t]
@@ -1549,11 +1550,13 @@ PLAN_MODE_BLOCKED_TOOLS = frozenset({
 }))
 
 # Tools only available in Plan Mode (blocked in Normal/Execution mode).
-# UNLOCK_NORMAL_MODE_TOOLS=true clears this set so the agent can use
-# todo_write/todo_remove during execution too.
-NORMAL_MODE_BLOCKED_TOOLS = frozenset() if UNLOCK_NORMAL_MODE_TOOLS else frozenset({
-    'todo_write',   # Use todo_update/todo_add during execution
-    'todo_remove',  # Task removal only during planning
+# `todo_write` ALWAYS stays here — it's destructive (replaces entire list).
+# UNLOCK_NORMAL_MODE_TOOLS=true unlocks `todo_remove` only, since deletion of
+# a single task is benign during execution; the catastrophic "wipe-and-replace"
+# behaviour comes from `todo_write` and is the bug that triggered this guard.
+NORMAL_MODE_BLOCKED_TOOLS = frozenset({'todo_write'}) if UNLOCK_NORMAL_MODE_TOOLS else frozenset({
+    'todo_write',   # destructive — Plan-mode only, regardless of unlock flag
+    'todo_remove',  # Task removal only during planning when unlock is off
 })
 
 

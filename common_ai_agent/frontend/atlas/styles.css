@@ -582,3 +582,67 @@
   margin-right: 6px;
   accent-color: var(--accent);
 }
+
+/* Hover-revealed affordances (copy button, timestamp pill).
+   Markup: any element with class .has-hover-affordance must be
+   position:relative; the inner .copy-btn / .ts-pill is opacity:0
+   until the parent is hovered. */
+.has-hover-affordance:hover .copy-btn,
+.has-hover-affordance:hover .ts-pill {
+  opacity: 1 !important;
+}
+.copy-btn:hover {
+  background: color-mix(in oklch, var(--accent) 15%, var(--bg-2)) !important;
+  color: var(--accent) !important;
+}
+
+/* ToolCard — paired action+obs with tool-themed left border.
+   Border color comes from inline style; this rule provides the
+   shared box layout. */
+.tool-card {
+  position: relative;
+  margin: 6px 0;
+  padding: 4px 0 4px 10px;
+  border-left: 3px solid var(--fg-mute);
+  background: color-mix(in oklch, var(--bg-2) 70%, transparent);
+  border-radius: 0 3px 3px 0;
+}
+.tool-card .tool-card-head {
+  display: flex; align-items: baseline; gap: 8px;
+  font-family: var(--mono); font-size: 12px;
+  padding: 2px 0;
+}
+.tool-card .tool-card-glyph { font-size: 14px; }
+.tool-card .tool-card-tool  { font-weight: 700; }
+.tool-card .tool-card-args  { color: var(--fg-mute); font-size: 11px; flex: 1; min-width: 0; }
+.tool-card .tool-card-status { font-size: 12px; }
+.tool-card .tool-card-ts    {
+  position: absolute; top: 4px; right: 6px;
+  opacity: 0; transition: opacity .15s;
+  font-size: 10px; font-family: var(--mono); color: var(--fg-mute);
+}
+.tool-card-sep {
+  height: 1px; background: var(--line);
+  margin: 4px 0; opacity: 0.45;
+}
+
+/* Subtle iteration-marker label (replaces the loud full-width row). */
+.iter-marker {
+  display: flex; align-items: center; gap: 8px;
+  margin: 14px 0 4px;
+  font-family: var(--mono); font-size: 10px;
+  color: var(--fg-mute); letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.iter-marker .iter-marker-line {
+  flex: 1; height: 1px; background: var(--line); opacity: 0.4;
+}
+.iter-marker .iter-marker-label { color: var(--fg-mute); }
+.iter-marker .iter-marker-model { color: var(--cyan); opacity: 0.85; }
+/* The ts-pill mirrors the timestamp affordance shown on agent cards. */
+.ts-pill {
+  position: absolute; top: 4px; right: 64px;
+  opacity: 0; transition: opacity .15s;
+  font-size: 10px; font-family: var(--mono); color: var(--fg-mute);
+  pointer-events: none;
+}

@@ -23,6 +23,15 @@ _project_root = os.path.dirname(_script_dir)
 sys.path.insert(0, _script_dir)
 sys.path.insert(0, _project_root)
 
+# Publish the common_ai_agent install root so file-resolution tools (read_file,
+# find_files, grep_file) can fall back to it when a relative path doesn't
+# exist in the user's cwd. This lets each developer run `python3 textual_main.py`
+# from THEIR own project directory (e.g. NEW_ATLAS, NEW_IP, …) and still
+# reference shared assets like `workflow/ssot-gen/rules/ssot-template.yaml`
+# without symlinks or absolute paths in their prompts. Tools should NEVER
+# write to this root — only read.
+os.environ.setdefault("COMMON_AI_AGENT_HOME", _project_root)
+
 _vendor_dir = os.path.join(_project_root, "vendor")
 if _vendor_dir not in sys.path:
     sys.path.insert(0, _vendor_dir)

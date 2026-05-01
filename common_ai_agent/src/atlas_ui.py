@@ -231,11 +231,14 @@ def create_app():
                                   or os.environ.get("WORKSPACE")
                                   or getattr(_cfg, "ACTIVE_PROJECT", "")
                                   or "default")
-            # Per-model pricing (USD / 1M tokens) — input / cache / output
+            # Per-model pricing (USD / 1M tokens) — input / cache / output.
+            # get_active_pricing honors LLM_BASE_MODEL env first, falling
+            # back to LLM_MODEL_NAME / config.MODEL_NAME, so the rate shown
+            # in the sidebar always matches the model actually in use.
             info["pricing"] = None
             try:
-                from lib.model_pricing import get_pricing
-                p = get_pricing(model) if model else None
+                from lib.model_pricing import get_active_pricing
+                p = get_active_pricing()
                 if p is not None:
                     info["pricing"] = {
                         "input": p.input, "cache": p.cache, "output": p.output,
@@ -254,9 +257,15 @@ def create_app():
                 for c in _candidates:
                     if c.exists():
                         d = _json.loads(c.read_text())
-                        info["tokens_in"]    = d.get("input", 0)
-                        info["tokens_cache"] = d.get("cached", 0)
-                        info["tokens_out"]   = d.get("output", 0)
+                        # cost.json schema (written by lib/textual_ui.py):
+                        # {in_tok, cache_tok, out_tok, sum_tok}. The
+                        # previous code read input/cached/output, which
+                        # always missed and reported 0 — that wiped the
+                        # live-accumulated tokens on every flush via the
+                        # /healthz refresh path.
+                        info["tokens_in"]    = d.get("in_tok",    d.get("input",  0))
+                        info["tokens_cache"] = d.get("cache_tok", d.get("cached", 0))
+                        info["tokens_out"]   = d.get("out_tok",   d.get("output", 0))
                         # Cost in USD
                         if info["pricing"]:
                             ti = info["tokens_in"]    or 0
@@ -699,18 +708,43 @@ def create_app():
         await websocket.send_json({"type": "hello", "frontend": "atlas",
                                     "running": bridge.agent_running})
 
-        # Pump outbox → all sockets (one task shared per connection is fine)
+        # Pump outbox → all sockets. Broadcast in parallel with a per-client
+        # timeout so a single half-dead WS (browser tab closed but TCP FIN
+        # not yet processed by uvicorn — send_json blocks instead of
+        # raising) doesn't strand the message for the rest of the live
+        # clients. The previous sequential loop made every emit hostage to
+        # the slowest peer, which on browser-reload races caused token
+        # frames to silently disappear while later events (agent_state,
+        # done) still landed via a different pump_out task.
+        async def _send_one(client, msg):
+            # Scale the per-client send timeout with the message size so
+            # large payloads (e.g. /context with a 50 kB full system prompt
+            # + conversation dump) don't get killed mid-flight and strand
+            # subsequent events (flush, slash_output, agent_state). Floor
+            # at 4 s so tiny control frames still get a reasonable window.
+            try:
+                import json
+                raw = json.dumps(msg, ensure_ascii=False)
+                size_kb = max(len(raw.encode("utf-8", errors="replace")) / 1024, 1)
+                timeout = max(4.0, size_kb * 0.25)  # 0.25 s per kB → 50 kB ≈ 12.5 s
+                await asyncio.wait_for(client.send_json(msg), timeout=timeout)
+                return None
+            except Exception:
+                return client
+
         async def pump_out():
             while True:
                 msg = await bridge.next_event()
-                stale = []
-                for client in list(clients):
-                    try:
-                        await client.send_json(msg)
-                    except Exception:
-                        stale.append(client)
-                for c in stale:
-                    clients.discard(c)
+                snapshot = list(clients)
+                if not snapshot:
+                    continue
+                results = await asyncio.gather(
+                    *(_send_one(c, msg) for c in snapshot),
+                    return_exceptions=False,
+                )
+                for stale_client in results:
+                    if stale_client is not None:
+                        clients.discard(stale_client)
 
         pump_task = asyncio.create_task(pump_out())
         try:
@@ -903,14 +937,67 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     def _ctx_update(tokens, max_tok):
         bridge.emit("context", used=tokens, max=max_tok)
     _main._textual_emit_context_fn = _ctx_update
-    _main._textual_emit_token_fn = lambda in_tok, cache_tok, out_tok: bridge.emit(
-        "cost", input=in_tok, cached=cache_tok, output=out_tok
-    )
+    def _emit_token(in_tok, cache_tok, out_tok):
+        # Resolve pricing at LLM-call time so the rate matches the model
+        # actually used for THIS call (LLM_BASE_MODEL env can pin the base
+        # model; otherwise fall back to MODEL_NAME / LLM_MODEL_NAME).
+        # Computing the USD delta on the backend keeps frontend math simple
+        # and avoids drift between page-load /healthz pricing and the
+        # current call's model.
+        try:
+            from lib.model_pricing import get_active_pricing
+            p = get_active_pricing()
+        except Exception:
+            p = None
+        cost_delta = 0.0
+        if p is not None:
+            cost_delta = (
+                (in_tok or 0)    * p.input  +
+                (cache_tok or 0) * p.cache  +
+                (out_tok or 0)   * p.output
+            ) / 1_000_000.0
+        # Resolve display model name for the frontend cost panel.
+        try:
+            import os as _os_cost
+            _model_now = (
+                _os_cost.getenv("LLM_BASE_MODEL", "").strip()
+                or _os_cost.getenv("LLM_MODEL_NAME", "").strip()
+            )
+            if not _model_now:
+                try:
+                    from src.llm_client import get_active_model as _gam
+                    _model_now = _gam() or ""
+                except Exception:
+                    _model_now = ""
+        except Exception:
+            _model_now = ""
+        bridge.emit(
+            "cost",
+            input=in_tok, cached=cache_tok, output=out_tok,
+            cost_usd_delta=cost_delta,
+            pricing={"input": p.input, "cache": p.cache, "output": p.output} if p else None,
+            model=_model_now,
+        )
+    _main._textual_emit_token_fn = _emit_token
 
     def _set_running(val: bool):
         bridge.agent_running = val
         bridge.emit("agent_state", running=val)
     _main._textual_set_agent_running_fn = _set_running
+
+    # Safety-net emit for slash command output. The token+flush pipeline has
+    # shown intermittent delivery for slash payloads (frontend gets the
+    # subsequent agent_state but no token frame), leaving the user with a
+    # missing /context / /help / /skills response. This event lands the
+    # payload directly in the feed via workspace.jsx's slash_output handler.
+    _main._textual_emit_slash_output_fn = lambda text: bridge.emit(
+        "slash_output", text=_clean(text)
+    )
+
+    # Mode-change notification — chat_loop auto-promotes plan_q→normal when
+    # the user types "y" to confirm. Without this signal the React mode pill
+    # stays on PLAN even though the agent is now executing.
+    _main._textual_emit_mode_fn = lambda mode: bridge.emit("mode_change", mode=mode)
 
     # ── ask_user → emit qcard event, block on answer queue ────────
     import uuid

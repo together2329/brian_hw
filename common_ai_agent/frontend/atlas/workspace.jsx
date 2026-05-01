@@ -1,5 +1,83 @@
 // workspace.jsx — Chat-centric: ReAct + inline Q&A cards + SSOT/Todo sidebar + file viewer
 
+// ── Tool-call visual theme ────────────────────────────────────────
+// Each tool gets a glyph + accent color so a long chat can be
+// visually scanned ("the agent just did 4 writes and a grep") at a
+// glance. Used by ToolCard's left border + header glyph.
+const TOOL_THEME = {
+  write_file:        { glyph: '✏️',  color: '#3fb950' },  // green
+  replace_in_file:   { glyph: '✏️',  color: '#3fb950' },
+  replace_lines:     { glyph: '✏️',  color: '#3fb950' },
+  read_file:         { glyph: '📄',  color: '#58a6ff' },  // blue
+  read_lines:        { glyph: '📄',  color: '#58a6ff' },
+  grep_file:         { glyph: '🔍',  color: '#d29922' },  // amber
+  find_files:        { glyph: '🔍',  color: '#d29922' },
+  list_dir:          { glyph: '🔍',  color: '#d29922' },
+  run_command:       { glyph: '⚡',  color: '#a371f7' },  // purple
+  todo_update:       { glyph: '☑',  color: '#39c5cf' },  // cyan
+  todo_write:        { glyph: '☑',  color: '#39c5cf' },
+  todo_add:          { glyph: '☑',  color: '#39c5cf' },
+  todo_remove:       { glyph: '☑',  color: '#39c5cf' },
+  todo_status:       { glyph: '☑',  color: '#39c5cf' },
+  todo_note:         { glyph: '☑',  color: '#39c5cf' },
+  scaffold_ip:       { glyph: '🛠️', color: '#f0883e' },  // orange
+  ask_user:          { glyph: '⏸',  color: '#d29922' },
+  read_doc:          { glyph: '📄',  color: '#58a6ff' },
+  git_diff:          { glyph: '⚙',  color: '#a371f7' },
+  git_status:        { glyph: '⚙',  color: '#a371f7' },
+  __default:         { glyph: '▶',  color: 'var(--fg-mute)' },
+};
+const _toolTheme = (name) => TOOL_THEME[name] || TOOL_THEME.__default;
+
+// Detect success/error in a tool result body. Used by ObsCard to
+// stamp a leading ✓/✗ badge + override border color on errors.
+const _obsStatus = (txt) => {
+  const t = (txt || '').toLowerCase();
+  if (/^\s*(error[:!]|\[error\]|✗|❌|\[plan mode\] .* blocked|exit code [1-9]|traceback|^exception:|fatal:)/m.test(t)) return 'err';
+  if (/✓|^\s*ok\b|successfully|approved|wrote to|completed|matched|^✅|file does not exist/m.test(t)) {
+    // "file does not exist" comes from read_file on a missing path —
+    // ambiguous; lean neutral rather than green.
+    if (/file does not exist|not found/m.test(t)) return 'neutral';
+    return 'ok';
+  }
+  return 'neutral';
+};
+
+// Relative timestamp helper for hover-revealed "5m ago" labels.
+const _relTime = (ts) => {
+  if (!ts) return '';
+  const d = Math.max(0, (Date.now() - ts) / 1000);
+  if (d < 5) return 'just now';
+  if (d < 60) return `${Math.floor(d)}s ago`;
+  if (d < 3600) return `${Math.floor(d / 60)}m ago`;
+  if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
+  return `${Math.floor(d / 86400)}d ago`;
+};
+
+// Hover-revealed copy button (positioned absolute; parent must be
+// position:relative and apply CSS `:hover .copy-btn{opacity:1}`).
+const CopyBtn = ({ text, label = 'copy' }) => {
+  const [copied, setCopied] = React.useState(false);
+  const onClick = (e) => {
+    e.stopPropagation();
+    try { navigator.clipboard.writeText(text || ''); setCopied(true); setTimeout(() => setCopied(false), 1200); }
+    catch (_) {}
+  };
+  return (
+    <button onClick={onClick} className="copy-btn" type="button"
+      style={{
+        position: 'absolute', top: 6, right: 6,
+        opacity: 0, transition: 'opacity .15s',
+        background: 'var(--bg-2)', border: '1px solid var(--line)',
+        color: copied ? 'var(--ok)' : 'var(--fg-mute)',
+        fontSize: 10, padding: '1px 6px', borderRadius: 2,
+        cursor: 'pointer', fontFamily: 'var(--mono)',
+      }}>
+      {copied ? '✓ copied' : label}
+    </button>
+  );
+};
+
 // ── Column-resize helpers ─────────────────────────────────────────
 // useResizable: state + localStorage persistence + clamp.
 // `0` is the special "collapsed" value; any positive width is clamped
@@ -188,7 +266,10 @@ const Workspace = ({ dir, onScreen }) => {
               const argsShort = typeof args === 'string'
                 ? args.slice(0, 120)
                 : JSON.stringify(args).slice(0, 120);
-              newFeed.push({ kind: 'action', text: `▶ ${fn} ${argsShort}` });
+              // Stamp `tool` so the render-time pre-pass can pair this
+              // hydrated action with the next 'tool'-role obs into a
+              // single ToolCard (matching the live shape).
+              newFeed.push({ kind: 'action', text: `▶ ${fn} ${argsShort}`, tool: fn, args: argsShort });
             }
           }
         } else if (role === 'tool' && content) {
@@ -389,7 +470,7 @@ const Workspace = ({ dir, onScreen }) => {
         setStreamText('');
       };
       if (!arg) {
-        setFeed(f => [...f, { kind: 'user', text: raw }]);
+        setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
         setFeed(f => [...f, {
           kind: 'agent',
           text: cur
@@ -401,7 +482,7 @@ const Workspace = ({ dir, onScreen }) => {
       }
       const next = (arg === '/' || arg === '~' || arg === '-') ? '' : arg.replace(/^\/+|\/+$/g, '');
       window.atlasData.setScopePath(next);
-      setFeed(f => [...f, { kind: 'user', text: raw }]);
+      setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
       setFeed(f => [...f, {
         kind: 'agent',
         text: next
@@ -427,7 +508,7 @@ const Workspace = ({ dir, onScreen }) => {
       const target = /^\/(plan|mode\s+plan)$/i.test(raw) ? 'plan' : 'normal';
       const wire = target === 'plan' ? '/plan' : '/mode normal';
       setIntent(target);
-      setFeed(f => [...f, { kind: 'user', text: raw }]);
+      setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
       if (window.backend) window.backend.send({ type: 'prompt', text: wire });
       // Slash commands don't run the agent — clear any stale streaming
       // state inherited from a prior turn that didn't close out cleanly
@@ -487,26 +568,51 @@ const Workspace = ({ dir, onScreen }) => {
         const last = l[l.length - 1];
         if (last && last.kind === 'thought') {
           return [...l.slice(0, -1),
-                  { kind: 'thought', text: last.text + '\n' + t }];
+                  { kind: 'thought', text: last.text + '\n' + t, createdAt: last.createdAt || Date.now() }];
         }
-        return [...l, { kind: 'thought', text: t }];
+        return [...l, { kind: 'thought', text: t, createdAt: Date.now() }];
       });
     }));
     subs.push(window.backend.subscribe('todo_line', (m) => {
       const t = (m.text || '').trim();
-      if (t) setFeed(l => [...l, { kind: 'obs', text: t }]);
+      if (t) setFeed(l => [...l, { kind: 'obs', text: t, createdAt: Date.now() }]);
     }));
     // Tool call header: agent is about to invoke a tool.
     subs.push(window.backend.subscribe('tool', (m) => {
       const t = (m.text || '').trim();
       if (!t) return;
+      // Detect the per-iteration banner (── Iter N / M  [model]) and
+      // route to a thinner iter_marker kind so the feed doesn't break
+      // tool action+obs cards with a full-width separator.
+      const iterMatch = t.match(/^──\s*Iter\s+(\d+)\s*\/\s*(\d+)\s*\[([^\]]+)\]/);
+      if (iterMatch) {
+        setFeed(l => [...l, {
+          kind: 'iter_marker',
+          n: parseInt(iterMatch[1], 10),
+          max: parseInt(iterMatch[2], 10),
+          model: iterMatch[3].trim(),
+          createdAt: Date.now(),
+        }]);
+        return;
+      }
       // Finalize any pending streaming text first so the tool-call entry
       // sits AFTER the pre-tool reasoning/agent text in the feed.
       const buf = streamBufferRef.current;
-      if (buf.trim()) setFeed(l => [...l, { kind: 'agent', text: buf }]);
+      if (buf.trim()) setFeed(l => [...l, { kind: 'agent', text: buf, createdAt: Date.now() }]);
       streamBufferRef.current = '';
       setStreamText('');
-      setFeed(l => [...l, { kind: 'action', text: t }]);
+      // Parse "▶ tool_name  args…" → capture tool name so ToolCard can
+      // pair this with its tool_result obs and pick a theme color.
+      const am = t.match(/^▶\s*(\S+)\s*(.*)$/);
+      const toolName = am ? am[1] : '';
+      const argsText = am ? (am[2] || '').trim() : '';
+      setFeed(l => [...l, {
+        kind: 'action',
+        text: t,
+        tool: toolName,
+        args: argsText,
+        createdAt: Date.now(),
+      }]);
     }));
     // Tool observation: the result the agent just received from the tool.
     subs.push(window.backend.subscribe('tool_result', (m) => {
@@ -517,6 +623,7 @@ const Workspace = ({ dir, onScreen }) => {
         text: t,
         tool: m.tool || '',
         truncated: !!m.truncated,
+        createdAt: Date.now(),
       }]);
     }));
     // Park the in-progress streaming buffer into the feed without
@@ -525,7 +632,7 @@ const Workspace = ({ dir, onScreen }) => {
     // agent_state(running:false) explicitly says we're done.
     const parkBuffer = () => {
       const buf = streamBufferRef.current;
-      if (buf.trim()) setFeed(l => [...l, { kind: 'agent', text: buf }]);
+      if (buf.trim()) setFeed(l => [...l, { kind: 'agent', text: buf, createdAt: Date.now() }]);
       streamBufferRef.current = '';
       setStreamText('');
     };
@@ -539,9 +646,45 @@ const Workspace = ({ dir, onScreen }) => {
       setFeed(l => {
         const last = l[l.length - 1];
         if (last && last.kind === 'turn_end') return l;
-        return [...l, { kind: 'turn_end', text: '✓ end of loop' }];
+        return [...l, { kind: 'turn_end', text: '✓ end of loop', createdAt: Date.now() }];
       });
     };
+    // Mode flip from backend (chat_loop auto-promotes plan_q→normal when
+    // the user types "y" to confirm). Sync the UI pill so it doesn't
+    // stay stuck on PLAN while the agent is already executing writes.
+    subs.push(window.backend.subscribe('mode_change', (m) => {
+      const target = (m.mode || '').toLowerCase();
+      if (target === 'normal' || target === 'plan') {
+        setIntent(target);
+      }
+    }));
+
+    // Safety-net feed entry for slash command output. Backend mirrors the
+    // fenced output via both the token+flush pipeline and this event; we
+    // dedupe by checking streamBufferRef (normal case: token fired first)
+    // AND the feed's last agent entry (edge case: flush already parked the
+    // buffer and cleared it before this event arrived).
+    subs.push(window.backend.subscribe('slash_output', (m) => {
+      const t = m.text || '';
+      if (!t) return;
+      // Fast path — token landed in the buffer before us (new emit order).
+      const buf = streamBufferRef.current;
+      if (buf && buf.indexOf(t) >= 0) return;
+      // Slow path — flush may have already parked the buffer. Check if the
+      // last agent entry in the feed is a duplicate.
+      let dup = false;
+      setFeed(l => {
+        const last = l[l.length - 1];
+        if (last && last.kind === 'agent' && last.text === t) {
+          dup = true;
+          return l;
+        }
+        return [...l, { kind: 'agent', text: t, createdAt: Date.now() }];
+      });
+      if (dup) return;
+      streamBufferRef.current = '';
+      setStreamText('');
+    }));
     subs.push(window.backend.subscribe('flush', parkBuffer));
     subs.push(window.backend.subscribe('done', turnEnd));
     subs.push(window.backend.subscribe('agent_state', (m) => {
@@ -549,7 +692,7 @@ const Workspace = ({ dir, onScreen }) => {
       else if (m.running === true) setStreaming(true);
     }));
     subs.push(window.backend.subscribe('error', (m) => {
-      setFeed(l => [...l, { kind: 'agent', text: `[error] ${m.message || ''}` }]);
+      setFeed(l => [...l, { kind: 'agent', text: `[error] ${m.message || ''}`, createdAt: Date.now() }]);
       streamBufferRef.current = '';
       setStreamText('');
       setStreaming(false);
@@ -986,17 +1129,46 @@ const Workspace = ({ dir, onScreen }) => {
           </div>
           {mainTab === 'chat' ? (
             <div ref={feedRef} style={{ flex: 1, overflow: 'auto', padding: '14px 18px' }}>
-              {feed.map((entry, i) => (
-                <FeedEntry
-                  key={i}
-                  entry={entry}
-                  qaState={qaState}
-                  onToggle={toggleOpt}
-                  onCustom={setCustom}
-                  onSubmit={submitCard}
-                  dir={dir}
-                />
-              ))}
+              {(() => {
+                // Pairing pre-pass: when an action entry is immediately
+                // followed by an obs entry whose tool matches, fuse them
+                // into one ToolCard. Without a match, render the action
+                // (and the next entry, whatever it is) on their own.
+                const out = [];
+                for (let i = 0; i < feed.length; i++) {
+                  const cur = feed[i];
+                  const nxt = feed[i + 1];
+                  if (cur && cur.kind === 'action' && nxt && nxt.kind === 'obs'
+                      && cur.tool && nxt.tool && cur.tool === nxt.tool) {
+                    out.push(
+                      <ToolCard key={i} action={cur} obs={nxt} />
+                    );
+                    i++; // skip the obs we just consumed
+                    continue;
+                  }
+                  // Standalone action with a known tool but no obs yet
+                  // (e.g. ask_user pause, plan-mode block): still render
+                  // through ToolCard so the visual style stays consistent.
+                  if (cur && cur.kind === 'action' && cur.tool) {
+                    out.push(
+                      <ToolCard key={i} action={cur} obs={null} />
+                    );
+                    continue;
+                  }
+                  out.push(
+                    <FeedEntry
+                      key={i}
+                      entry={cur}
+                      qaState={qaState}
+                      onToggle={toggleOpt}
+                      onCustom={setCustom}
+                      onSubmit={submitCard}
+                      dir={dir}
+                    />
+                  );
+                }
+                return out;
+              })()}
               {/* Streaming preview removed — used to render the in-progress
                   buffer as plain text, then the same text reappeared as a
                   markdown-rendered 'agent' entry on flush, with very
@@ -1197,7 +1369,11 @@ const CollapsibleThought = ({ text }) => {
 // expand chevron; body (full text + diff coloring) stays hidden until
 // the user clicks. Inline (single-line) results are shown in full as
 // they're already brief.
-const ObsCard = ({ entry }) => {
+//
+// Optional `embedded` prop: when true, render WITHOUT the outer
+// react-block wrapper (used by ToolCard which provides its own
+// outer container).
+const ObsCard = ({ entry, embedded }) => {
   // Expanded by default — chat log was losing too much info when
   // collapsed (Read results, command output, etc. were hidden behind
   // a one-line header so the user couldn't follow what the agent did
@@ -1258,19 +1434,32 @@ const ObsCard = ({ entry }) => {
       })
     : txt;
 
+  // Status detection — leading ✓/✗ badge so errors stand out
+  const status = _obsStatus(txt);
+  const statusBadge = status === 'err' ? <span style={{ color: '#f85149' }}>✗</span>
+                    : status === 'ok'  ? <span style={{ color: '#3fb950' }}>✓</span>
+                    : null;
+
+  // Wrapper element: `embedded=true` → no outer react-block (used inside ToolCard).
+  const Wrapper = embedded ? React.Fragment : 'div';
+  const wrapperProps = embedded ? {} : { className: 'react-block obs has-hover-affordance', style: { position: 'relative' } };
+
   // Single-line results: show inline (no toggle, already compact).
   if (!isMulti) {
     return (
-      <div className="react-block obs">
-        <span className="rb-tag">obs{entry.tool ? ` · ${entry.tool}` : ''}</span>
+      <Wrapper {...wrapperProps}>
+        {!embedded && <CopyBtn text={txt} />}
+        <span className="rb-tag">{embedded ? '' : 'obs'}{entry.tool && !embedded ? ` · ${entry.tool}` : ''}</span>
+        {statusBadge && <span style={{ marginRight: 6 }}>{statusBadge}</span>}
         <span>{txt}{entry.truncated ? ' …[truncated]' : ''}</span>
-      </div>
+      </Wrapper>
     );
   }
 
   // Multi-line: collapsible header + hidden body.
   return (
-    <div className="react-block obs">
+    <Wrapper {...wrapperProps}>
+      {!embedded && <CopyBtn text={txt} />}
       <div
         onClick={() => setOpen(o => !o)}
         title={open ? 'click to collapse' : 'click to expand full result'}
@@ -1279,7 +1468,8 @@ const ObsCard = ({ entry }) => {
           cursor: 'pointer', userSelect: 'none',
         }}
       >
-        <span className="rb-tag">obs{entry.tool ? ` · ${entry.tool}` : ''}</span>
+        {!embedded && <span className="rb-tag">obs{entry.tool ? ` · ${entry.tool}` : ''}</span>}
+        {statusBadge && <span style={{ fontSize: 12 }}>{statusBadge}</span>}
         <span className="mute trunc" style={{ flex: 1, fontSize: 12 }}>
           {firstLine}
         </span>
@@ -1300,6 +1490,36 @@ const ObsCard = ({ entry }) => {
           {entry.truncated ? '\n…[truncated]' : ''}
         </pre>
       )}
+    </Wrapper>
+  );
+};
+
+// ToolCard: pairs an action entry with its obs entry into a single
+// connected card with tool-themed left border + glyph + status badge.
+// Either half can be missing (action-only when blocked, obs-only is
+// uncommon but handled).
+const ToolCard = ({ action, obs }) => {
+  const tool = (action && action.tool) || (obs && obs.tool) || '';
+  const theme = _toolTheme(tool);
+  // If the obs indicates an error, override the border to red so the
+  // eye finds it. Otherwise use the tool theme color.
+  const status = obs ? _obsStatus(obs.text || '') : 'neutral';
+  const borderColor = status === 'err' ? '#f85149' : theme.color;
+  const argsText = action && action.text ? action.text.replace(/^▶\s*/, '').replace(new RegExp('^' + tool + '\\s*'), '') : '';
+  const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
+  return (
+    <div className="tool-card has-hover-affordance"
+         style={{ borderLeftColor: borderColor }}>
+      <span className="tool-card-ts">{_relTime(ts)}</span>
+      <div className="tool-card-head">
+        <span className="tool-card-glyph" style={{ color: borderColor }}>{theme.glyph}</span>
+        <span className="tool-card-tool" style={{ color: borderColor }}>{tool || '?'}</span>
+        {argsText && <span className="tool-card-args trunc">{argsText}</span>}
+        {status === 'err' && <span className="tool-card-status" style={{ color: '#f85149' }}>✗</span>}
+        {status === 'ok'  && <span className="tool-card-status" style={{ color: '#3fb950' }}>✓</span>}
+      </div>
+      {obs && <div className="tool-card-sep" />}
+      {obs && <ObsCard entry={obs} embedded={true} />}
     </div>
   );
 };
@@ -1332,9 +1552,13 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
         })
       : rawHtml;
     return (
-      <div style={{ padding: '8px 0 12px', marginBottom: 4 }}>
+      <div className="has-hover-affordance" style={{ padding: '8px 0 12px', marginBottom: 4, position: 'relative' }}>
         <span className="ok" style={{ fontWeight: 600, marginRight: 8,
           fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
+        {entry.createdAt ? (
+          <span className="ts-pill">{_relTime(entry.createdAt)}</span>
+        ) : null}
+        <CopyBtn text={entry.text || ''} />
         <div className="md-agent" style={{ fontSize: 14, lineHeight: 1.65,
           marginTop: 4 }} dangerouslySetInnerHTML={{ __html: html }}
           ref={node => {
@@ -1353,6 +1577,20 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
   }
   if (entry.kind === 'thought') {
     return <CollapsibleThought text={entry.text || ''} />;
+  }
+  if (entry.kind === 'iter_marker') {
+    // Thin right-aligned label for the per-iteration banner. Replaces
+    // the loud full-width "── Iter N / M  [model]" separator that used
+    // to break the visual flow between an action and its obs.
+    return (
+      <div className="iter-marker">
+        <span className="iter-marker-line" />
+        <span className="iter-marker-label">
+          iter {entry.n}{entry.max ? ` / ${entry.max}` : ''}
+          {entry.model ? <span className="iter-marker-model"> · {entry.model}</span> : null}
+        </span>
+      </div>
+    );
   }
   if (entry.kind === 'action') {
     const planned = entry.planned;

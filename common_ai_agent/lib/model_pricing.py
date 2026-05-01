@@ -42,9 +42,18 @@ _TABLE: Dict[str, Pricing] = {
 
 
 def get_pricing(model_name: str) -> Optional[Pricing]:
-    """Return Pricing for model_name by longest prefix match, or None if unknown."""
+    """Return Pricing for model_name by longest prefix match, or None if unknown.
+
+    LLM_BASE_MODEL env var, when set, overrides the passed-in model_name for
+    pricing lookup. Use this when the runtime model alias (e.g. a vendor-
+    specific deployment label) doesn't match a key in _TABLE but the
+    underlying base model does — set LLM_BASE_MODEL to the base name
+    (e.g. "deepseek-v4-pro") so cost figures stay correct on every LLM call.
+    """
     import os
-    name = model_name.lower().split("/")[-1]  # strip provider prefix
+    base_override = os.getenv("LLM_BASE_MODEL", "").strip()
+    lookup_name = base_override or (model_name or "")
+    name = lookup_name.lower().split("/")[-1]  # strip provider prefix
     # Custom flat pricing: all GLM models → $1/$0/$1 per 1M when CUSTOM_PRICE=true
     if os.getenv("CUSTOM_PRICE", "false").lower() == "true":
         if name.startswith("glm"):
@@ -56,3 +65,22 @@ def get_pricing(model_name: str) -> Optional[Pricing]:
             best_key = key
             best = pricing
     return best
+
+
+def get_active_pricing() -> Optional[Pricing]:
+    """Resolve current model pricing without callers needing to know the
+    name resolution rules. Honors LLM_BASE_MODEL env var first, then falls
+    back to config.MODEL_NAME / LLM_MODEL_NAME (set from .env).
+    """
+    import os
+    base = os.getenv("LLM_BASE_MODEL", "").strip()
+    if base:
+        return get_pricing(base)
+    name = os.getenv("LLM_MODEL_NAME", "").strip()
+    if not name:
+        try:
+            import config as _cfg  # type: ignore
+            name = getattr(_cfg, "MODEL_NAME", "") or ""
+        except Exception:
+            name = ""
+    return get_pricing(name) if name else None

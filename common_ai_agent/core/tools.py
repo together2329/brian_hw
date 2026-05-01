@@ -195,6 +195,37 @@ def get_file_access_summary() -> str:
     return "\n".join(lines)
 
 
+def _resolve_asset_path(path):
+    """Resolve a relative path the user/agent gave against the user's cwd
+    AND, as a fallback, the common_ai_agent install root (COMMON_AI_AGENT_HOME,
+    set by textual_main.py at startup).
+
+    Why: people run `python3 textual_main.py` from their OWN project
+    directories (NEW_ATLAS, NEW_IP, …), but the agent often references
+    bundled assets like `workflow/ssot-gen/rules/ssot-template.yaml` that
+    only live under the common_ai_agent install. Without this fallback the
+    bundled-asset reference 404s on every developer machine that isn't
+    cwd'd into common_ai_agent itself.
+
+    Read-only. Returns the original path if neither resolves (so the
+    caller's existing not-found error message still fires correctly).
+    """
+    if not path:
+        return path
+    # Absolute paths bypass the search entirely.
+    if os.path.isabs(path):
+        return path
+    # cwd wins if the file exists there (preserves user-intended layouts).
+    if os.path.exists(path):
+        return path
+    home = os.environ.get("COMMON_AI_AGENT_HOME", "")
+    if home:
+        candidate = os.path.join(home, path)
+        if os.path.exists(candidate):
+            return candidate
+    return path
+
+
 def read_file(path):
     """
     Reads the content of a file with smart truncation for large files.
@@ -205,6 +236,7 @@ def read_file(path):
     - Use read_lines with offset/limit for targeted reading
     """
     try:
+        path = _resolve_asset_path(path)
 
         if not os.path.exists(path):
             # Try to suggest similar files nearby (limited scope)
@@ -712,6 +744,11 @@ def grep_file(pattern=None, path=None, context_lines=2, recursive=False, **kwarg
     # LLM may pass numeric / bool args as JSON strings — coerce.
     context_lines = _as_int(context_lines, default=2) or 2
     recursive = _as_bool(recursive, default=False)
+    # Fall back to COMMON_AI_AGENT_HOME for bundled assets (templates,
+    # rules, schemas) when the user's cwd doesn't have them. Skip if path
+    # already contains glob meta — those are user-intended patterns.
+    if not any(c in str(path) for c in ('*', '?', '[')):
+        path = _resolve_asset_path(path)
     import subprocess
     import sys
     
@@ -1004,7 +1041,12 @@ def find_files(pattern=None, directory=".", max_depth=None, path=None, recursive
         # Handle recursive parameter
         if not recursive:
             max_depth = 0
-        
+
+        # Try the user's cwd-relative directory first; fall back to
+        # COMMON_AI_AGENT_HOME so bundled asset locations like
+        # `workflow/ssot-gen/rules/` resolve regardless of where the agent
+        # was launched from.
+        directory = _resolve_asset_path(directory)
         if not os.path.exists(directory):
             return f"Error: Directory '{directory}' does not exist."
         

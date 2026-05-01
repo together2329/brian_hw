@@ -893,6 +893,20 @@ def run_react_agent_impl(
         if deps.emit_token_fn and (_in_tok > 0 or _out_tok > 0):
             deps.emit_token_fn(_in_tok, _cr, _out_tok)
 
+        # Context panel mirrors cost on a per-iteration basis. Without this
+        # the cost meter updates after every LLM call but the "Context"
+        # token gauge stayed at 0 until the user typed /compact or /clear.
+        try:
+            import main as _ctx_main_mod  # type: ignore
+            _ctx_emit = getattr(_ctx_main_mod, "_textual_emit_context_fn", None)
+            if _ctx_emit is not None:
+                from llm_client import estimate_message_tokens as _ctx_est  # type: ignore
+                _ctx_max = getattr(cfg, "MAX_CONTEXT_TOKENS", 0)
+                _ctx_used = sum(_ctx_est(m) for m in messages)
+                _ctx_emit(_ctx_used, _ctx_max)
+        except Exception:
+            pass
+
         if not getattr(cfg, "DEBUG_MODE", False) and (_show_tok or _show_tok_sidebar):
             elapsed_str = f"{llm_elapsed:.1f}s" if llm_elapsed < 60 else f"{int(llm_elapsed//60)}m{int(llm_elapsed%60):02d}s"
             if _in_tok > 0 and _out_tok > 0:

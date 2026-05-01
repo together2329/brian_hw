@@ -329,7 +329,17 @@
         ctx.tokensIn    = (ctx.tokensIn    || 0) + (m.input  || 0);
         ctx.tokensCache = (ctx.tokensCache || 0) + (m.cached || 0);
         ctx.tokensOut   = (ctx.tokensOut   || 0) + (m.output || 0);
-        if (ctx.pricing) {
+        // Backend now resolves pricing at LLM-call time (honors
+        // LLM_BASE_MODEL env) and ships both the USD delta and the pricing
+        // it used. Prefer those over the page-load pricing snapshot so the
+        // sidebar reflects the actual model in use right now.
+        if (m.pricing) ctx.pricing = m.pricing;
+        if (m.model)   ctx.model   = m.model;
+        if (typeof m.cost_usd_delta === 'number' && !isNaN(m.cost_usd_delta)) {
+          ctx.costUsd = (ctx.costUsd || 0) + m.cost_usd_delta;
+        } else if (ctx.pricing) {
+          // Fallback for older backends that don't ship cost_usd_delta:
+          // recompute from cumulative tokens.
           ctx.costUsd =
             (ctx.tokensIn    * ctx.pricing.input  +
              ctx.tokensCache * ctx.pricing.cache  +
@@ -346,32 +356,37 @@
       // wiping the live feed under the hydrated snapshot — the chat
       // appeared to lose messages.
       let _lastWs = null;
+      // Single hydrate path: dedup on workspace name so we don't
+      // clobber the live feed every flush, but DO fire on initial
+      // attach (the server's `commands_changed` only emits on flush
+      // — without an explicit kickoff, a fresh page load shows an
+      // empty chat until the user sends something).
+      const _maybeHydrateConversation = () => {
+        return refreshHealth().then(() => {
+          const ws = (window.CONTEXT && window.CONTEXT.workspace) || '';
+          if (ws === _lastWs) return;
+          _lastWs = ws;
+          return fetch('/api/conversation?limit=200')
+            .then(r => r.json())
+            .then(d => {
+              const msgs = Array.isArray(d.messages) ? d.messages : [];
+              window.dispatchEvent(new CustomEvent('atlas-conversation-loaded',
+                { detail: { messages: msgs } }));
+            })
+            .catch(() => { /* ignore — feed stays as-is on fetch failure */ });
+        });
+      };
       window.backend.subscribe('commands_changed', () => {
         refreshSlashCommands();
         refreshTodos();
         refreshSsotList();
         refreshWorkflows();
-        // refreshHealth tells us the active workspace; chain after it.
-        refreshHealth().then(() => {
-          const ws = (window.CONTEXT && window.CONTEXT.workspace) || '';
-          if (ws !== _lastWs) {
-            _lastWs = ws;
-            // Conversation hydration: pull the new workspace's
-            // conversation.json and dispatch 'atlas-conversation-loaded'
-            // so workspace.jsx can replay past turns into the chat feed.
-            // Only fires on actual workspace change to avoid clobbering
-            // the live feed mid-iteration.
-            fetch('/api/conversation?limit=200')
-              .then(r => r.json())
-              .then(d => {
-                const msgs = Array.isArray(d.messages) ? d.messages : [];
-                window.dispatchEvent(new CustomEvent('atlas-conversation-loaded',
-                  { detail: { messages: msgs } }));
-              })
-              .catch(() => { /* ignore — feed stays as-is on fetch failure */ });
-          }
-        });
+        _maybeHydrateConversation();
       });
+      // Initial-load hydrate: kick off once now so a fresh page open
+      // already shows the previous conversation instead of waiting for
+      // the first agent turn to fire `commands_changed`.
+      _maybeHydrateConversation();
       // Every flush (end of a slash result, end of an iteration's tokens)
       // is a cheap excuse to resync state so /todo clear, /clear, etc.
       // reflect immediately instead of waiting for the next 5 s poll.
