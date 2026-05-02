@@ -28,6 +28,7 @@ import queue
 import re
 import sys
 import threading
+import time
 from pathlib import Path
 
 # `from __future__ import annotations` turns every type annotation into
@@ -1572,6 +1573,28 @@ def create_app():
                 inst["y"] = round(float(pos["y"]), 1)
                 touched += 1
 
+        # Preserve hex formatting on address fields. PyYAML parses
+        # `0x4000_2000` to int 1073750016 on load; safe_dump would write
+        # it back as decimal. Walk the doc and stringify any int in
+        # known address slots so the rewritten file keeps the canonical
+        # `0x4000_2000` notation the user wrote.
+        def _hex8(n):
+            h = f"{n:x}"
+            target = max(8, ((len(h) - 1) // 4 + 1) * 4)
+            h = h.zfill(target)
+            if len(h) > 4:
+                rev = h[::-1]
+                groups = [rev[i:i+4] for i in range(0, len(rev), 4)]
+                h = "_".join(groups)[::-1]
+            return f"0x{h}"
+        for inst in (doc.get("instances") or []):
+            if isinstance(inst, dict) and isinstance(inst.get("addr"), int):
+                inst["addr"] = _hex8(inst["addr"])
+        for e in (doc.get("addrMap") or []):
+            if isinstance(e, dict):
+                if isinstance(e.get("base"), int):  e["base"]  = _hex8(e["base"])
+                if isinstance(e.get("range"), int): e["range"] = _hex8(e["range"])
+
         try:
             with open(soc_path, "w", encoding="utf-8") as f:
                 _yaml.safe_dump(doc, f, sort_keys=False,
@@ -1653,10 +1676,63 @@ def create_app():
             except OSError as e:
                 return JSONResponse({"error": f"write error: {e}"}, status_code=500)
 
+            # Auto-register into soc.ssot.yaml when Tier-1 is active so
+            # the new IP appears in the architect tree on the next
+            # /api/soc fetch (was P1 bug — yaml on disk but tree empty).
+            registered = False
+            try:
+                soc_path = PROJECT_ROOT / "soc.ssot.yaml"
+                if soc_path.is_file():
+                    import yaml as _y
+                    sd = _y.safe_load(soc_path.read_text(encoding="utf-8")) or {}
+                    if isinstance(sd, dict):
+                        instances = sd.setdefault("instances", [])
+                        # Skip if an instance with this id already exists.
+                        existing = next((i for i in instances
+                                          if isinstance(i, dict) and i.get("id") == name), None)
+                        if existing is None:
+                            new_inst = {
+                                "id": name,
+                                "ssot": str(yaml_path.relative_to(PROJECT_ROOT)),
+                            }
+                            # Pull addr from the imported IP's memoryMap
+                            # so addrmap_check can validate it.
+                            mm = (ssot or {}).get("memoryMap") or []
+                            if isinstance(mm, list) and mm and isinstance(mm[0], dict):
+                                base = mm[0].get("base")
+                                if base: new_inst["addr"] = base
+                            instances.append(new_inst)
+                            # Drop into a synthetic "uncategorized" cluster
+                            # if nothing else claims it (clusters[].members
+                            # is the source of truth — auto-add a stub).
+                            clusters = sd.setdefault("clusters", [])
+                            uncat = next((c for c in clusters
+                                          if isinstance(c, dict) and c.get("id") == "uncategorized"),
+                                          None)
+                            if uncat is None:
+                                clusters.append({
+                                    "id": "uncategorized",
+                                    "role": "PERIPH",
+                                    "label": "Uncategorized (auto-imported)",
+                                    "members": [name],
+                                })
+                            else:
+                                members = uncat.setdefault("members", [])
+                                if name not in members: members.append(name)
+                            with open(soc_path, "w", encoding="utf-8") as f:
+                                _y.safe_dump(sd, f, sort_keys=False,
+                                             default_flow_style=False, allow_unicode=True)
+                            registered = True
+            except Exception as e:
+                # Non-fatal — IP file is on disk, just couldn't auto-register.
+                # Frontend will still see it via Tier-2 fallback.
+                pass
+
             return JSONResponse({
                 "ok": True,
                 "name": name,
                 "path": str(yaml_path.relative_to(PROJECT_ROOT)),
+                "registered_in_soc": registered,
                 "ssot": ssot,
             })
         except Exception as e:
@@ -1826,9 +1902,16 @@ def create_app():
     async def ws_agent(websocket: WebSocket):
         await websocket.accept()
         clients.add(websocket)
-        # Greeting
+        # Greeting — surface user-tunable layout settings so the frontend
+        # can pick its center-column shape (classic vs tabbed Chat/Preview/Q&A).
+        try:
+            import src.config as _cfg_hello
+            _center_layout = getattr(_cfg_hello, "ATLAS_CENTER_LAYOUT", "classic")
+        except Exception:
+            _center_layout = "classic"
         await websocket.send_json({"type": "hello", "frontend": "atlas",
-                                    "running": bridge.agent_running})
+                                    "running": bridge.agent_running,
+                                    "center_layout": _center_layout})
 
         # Pump outbox → all sockets. Broadcast in parallel with a per-client
         # timeout so a single half-dead WS (browser tab closed but TCP FIN
