@@ -1488,6 +1488,9 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
 
             is_retryable = (parsed["is_retryable"] or e.code == 429 or
                           e.code == 400 or (500 <= e.code < 600))
+            # Error 1214 = permanent validation error — never retry
+            if parsed.get("is_invalid_messages"):
+                is_retryable = False
             if is_retryable and retry_count < max_retries - 1:
                 # 504 Gateway Timeout = upstream proxy waited too long
                 # for the LLM origin to respond. Usually transient and
@@ -1640,6 +1643,7 @@ def _parse_zai_error(error_body: str) -> dict:
         "is_high_traffic": False,
         "is_rate_limit": False,
         "is_retryable": False,
+        "is_invalid_messages": False,
         "reset_time": "",
     }
     try:
@@ -1687,6 +1691,9 @@ def _parse_zai_error(error_body: str) -> dict:
         # 1309 = GLM Coding Plan expired
         elif code == "1309":
             result["is_balance_exhausted"] = True
+        # 1214 = messages parameter is illegal — permanent validation error
+        elif code == "1214":
+            result["is_invalid_messages"] = True
         # 1312 = model high traffic, suggests alternative model
         elif code == "1312":
             result["is_high_traffic"] = True
@@ -1729,6 +1736,7 @@ def _parse_openai_error(error_body: str, http_status: int = 0) -> dict:
         "is_rate_limit": False,
         "is_retryable": False,
         "is_deployment_missing": False,
+        "is_invalid_messages": False,
         "reset_time": "",
     }
     try:
@@ -1763,10 +1771,12 @@ def _parse_openai_error(error_body: str, http_status: int = 0) -> dict:
         result["is_deployment_missing"] = True
     if _type == "server_error" or 500 <= http_status < 600:
         result["is_retryable"] = True
+    # Z.AI code 1214 = messages parameter is illegal — permanent validation error
+    if _code == "1214" or "messages parameter is illegal" in _msg_lc:
+        result["is_invalid_messages"] = True
+        result["is_retryable"] = False
 
     return result
-
-
 def _extract_responses_reasoning_text(item: dict) -> str:
     """Extract visible reasoning text from a Responses API reasoning item."""
     parts = []
@@ -2193,6 +2203,9 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
 
             # ── Generic retryable: 400 (vLLM transient), 429 or 5xx ──
             is_retryable = e.code == 400 or e.code == 429 or (500 <= e.code < 600)
+            # Error 1214 = permanent validation error — never retry (zai/GLM)
+            if zai.get("is_invalid_messages"):
+                is_retryable = False
             if is_retryable and retry_count < max_retries - 1:
                 # See zai-code-1xxx block above for 504 rationale.
                 # 504 = upstream gateway timeout; short jittered delay
@@ -2751,6 +2764,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     yield f"\n{Color.error('[401 Unauthorized] Token quota exhausted — please top up your API credits.')}\n"
                     return
                 is_retryable = e.code == 400 or e.code == 429 or (500 <= e.code < 600)
+                # Error 1214 = permanent validation error — never retry (zai/GLM)
+                _ns_zai = _parse_zai_error(error_body) if error_body else {}
+                if _ns_zai.get("is_invalid_messages"):
+                    is_retryable = False
                 if is_retryable and _ns_retry < _ns_max - 1:
                     # 504 = transient upstream gateway timeout; use a
                     # short jittered delay (see streaming path above).
@@ -3562,6 +3579,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
             # ── Generic retryable: 400 (vLLM transient), 429 or 5xx ──
             is_retryable = e.code == 400 or e.code == 429 or (500 <= e.code < 600)
+            # Error 1214 = permanent validation error — never retry (zai/GLM)
+            if zai.get("is_invalid_messages"):
+                is_retryable = False
             if is_retryable and retry_count < max_retries - 1:
                 # 504 = transient upstream gateway timeout; use shorter
                 # jittered delay (see streaming-path block for full

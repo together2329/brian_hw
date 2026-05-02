@@ -3028,6 +3028,73 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                     f"Provide what you actually verified (files read, commands run, outputs checked).\n"
                     f"→ todo_update(index={index}, status='approved', reason='<what you checked, with specifics>')"
                 )
+
+            # ── File-existence ground-truth check ──────────────────────────
+            # The evidence/reason gates above are STRUCTURAL — they don't
+            # verify that claimed deliverables actually exist on disk.
+            # Common failure: agent writes a long convincing reason like
+            # "Verified tc_uart.sv:47 contains all 17 tests" without ever
+            # calling write_file. The tracker would let that through.
+            #
+            # This check scans the task content + criteria + detail for
+            # file-path-like tokens (with hardware/sw extensions). Any
+            # token that resolves to an absolute or relative path with
+            # size < min_bytes blocks approval until the file is real.
+            try:
+                import re as _re
+                import os as _os_fs
+                _scan_text = " ".join([
+                    str(item.content or ""),
+                    str(getattr(item, "criteria", "") or ""),
+                    str(getattr(item, "detail", "") or ""),
+                ])
+                # Match file paths ending in synthesizable / verification /
+                # toolchain extensions. Greedy enough to catch nested paths
+                # like "uart/rtl/uart_wrapper.v" but not URLs or domain names.
+                _path_re = _re.compile(
+                    r'(?<![/\w.-])'
+                    r'((?:[\w.-]+/)+[\w.-]+\.'
+                    r'(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl|lib|lef|gds|spef|sdf|vcd|out|netlist))'
+                    r'(?![\w/.-])'
+                )
+                _candidates = set(_path_re.findall(_scan_text))
+                # Skip generic <ip> placeholders — content templates often
+                # carry "<ip>/rtl/<ip>.sv" style examples that aren't real
+                # deliverables for THIS task.
+                _candidates = {p for p in _candidates if "<" not in p and ">" not in p}
+                _missing = []
+                _MIN_BYTES = 50  # filter out 1-2 line stubs; real deliverables are larger
+                for _p in _candidates:
+                    # Try absolute, cwd-relative, and a few common project bases
+                    _resolved = None
+                    for _base in (None, _os_fs.getcwd()):
+                        _full = _p if _base is None else _os_fs.path.join(_base, _p)
+                        if _os_fs.path.exists(_full):
+                            try:
+                                if _os_fs.path.getsize(_full) >= _MIN_BYTES:
+                                    _resolved = _full
+                                    break
+                            except OSError:
+                                pass
+                    if _resolved is None:
+                        _missing.append(_p)
+                if _missing:
+                    return (
+                        f"❌ Cannot approve Task {index} — declared deliverable(s) missing or too small on disk:\n"
+                        + "\n".join(f"  • {p}" for p in _missing[:8])
+                        + (f"\n  • … (+{len(_missing) - 8} more)" if len(_missing) > 8 else "")
+                        + f"\nThe task content references these files but no `write_file` or `run_command` "
+                        f"actually produced them (or they are < {_MIN_BYTES} bytes — likely stubs).\n"
+                        f"This blocks fake-DONE loops where the agent claims completion without real artifacts.\n"
+                        f"→ Action: write_file(path=\"<one of the above>\", content=\"...\")  ← actually create the file\n"
+                        f"→ OR Action: run_command(\"...\")  ← if the file is produced by a build/sim tool\n"
+                        f"→ Then call todo_update(index={index}, status='approved') again."
+                    )
+            except Exception:
+                # File-existence check is advisory — never block approval on
+                # an exception in the validator itself.
+                pass
+
             item.rejection_reason = ""
             todo_tracker.mark_approved(idx, _reason_stripped)  # internally calls save() + persists approved_reason
             _git_tag_todo(index, "approved", item.content)
@@ -3190,7 +3257,59 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             # ── End static command execution ──────────────────────────────────
 
             todo_tracker.save()
-            return f"▶ Task {index} in progress: {item.content}"
+            # ── Reality-check audit on task entry ──────────────────────────
+            # Surface ground-truth disk state for any file path tokens in the
+            # task content/criteria. Without this, agents enter a task with no
+            # awareness of what's actually on disk and tend to claim DONE
+            # against fake state (esp. after compression). The audit lines
+            # below are appended to the in_progress confirmation so the LLM
+            # sees disk reality at the very moment the task begins.
+            try:
+                import re as _re_rc
+                import os as _os_rc
+                _scan_text = " ".join([
+                    str(item.content or ""),
+                    str(getattr(item, "criteria", "") or ""),
+                    str(getattr(item, "detail", "") or ""),
+                ])
+                _path_re = _re_rc.compile(
+                    r'(?<![/\w.-])'
+                    r'((?:[\w.-]+/)+[\w.-]+\.'
+                    r'(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl|lib|lef|gds|spef|sdf|vcd|out|netlist))'
+                    r'(?![\w/.-])'
+                )
+                _candidates = [p for p in set(_path_re.findall(_scan_text))
+                               if "<" not in p and ">" not in p]
+                _audit_lines = []
+                for _p in _candidates[:10]:  # cap at 10 paths to keep output bounded
+                    _resolved = None
+                    for _base in (None, _os_rc.getcwd()):
+                        _full = _p if _base is None else _os_rc.path.join(_base, _p)
+                        if _os_rc.path.exists(_full):
+                            try:
+                                _sz = _os_rc.path.getsize(_full)
+                                _resolved = (_full, _sz)
+                                break
+                            except OSError:
+                                pass
+                    if _resolved:
+                        _f, _s = _resolved
+                        _tag = "STUB" if _s < 50 else f"{_s}B"
+                        _audit_lines.append(f"  ✓ {_p}: exists ({_tag})")
+                    else:
+                        _audit_lines.append(f"  ✗ {_p}: MISSING on disk")
+                _audit_block = ""
+                if _audit_lines:
+                    _audit_block = (
+                        "\n[Reality Check — disk audit at task start]\n"
+                        + "\n".join(_audit_lines)
+                        + "\nGround truth above. Do NOT claim done unless a real Action: write_file or run_command\n"
+                          "actually transforms these paths from MISSING/STUB to the required state."
+                    )
+                return f"▶ Task {index} in progress: {item.content}{_audit_block}"
+            except Exception:
+                # Reality check is advisory — never fail the in_progress transition.
+                return f"▶ Task {index} in progress: {item.content}"
         else:  # pending
             # NOTE: Do NOT store reason in rejection_reason for pending either.
             todo_tracker.save()

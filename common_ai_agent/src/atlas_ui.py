@@ -1187,6 +1187,10 @@ def create_app():
                     # position when localStorage doesn't override.
                     if isinstance(inst.get("x"), (int, float)): m["savedX"] = float(inst["x"])
                     if isinstance(inst.get("y"), (int, float)): m["savedY"] = float(inst["y"])
+                    # Separate full-SoC canvas placement. Cluster/module
+                    # views use x/y in a different coordinate system.
+                    if isinstance(inst.get("top_x"), (int, float)): m["savedTopX"] = float(inst["top_x"])
+                    if isinstance(inst.get("top_y"), (int, float)): m["savedTopY"] = float(inst["top_y"])
                     if isinstance(inst.get("overrides"), dict):
                         # Surface overrides as extra params.
                         for k, v in inst["overrides"].items():
@@ -1565,12 +1569,18 @@ def create_app():
                 if not layout:
                     if "x" in inst: inst.pop("x"); cleared += 1
                     if "y" in inst: inst.pop("y"); cleared += 1
+                    if "top_x" in inst: inst.pop("top_x"); cleared += 1
+                    if "top_y" in inst: inst.pop("top_y"); cleared += 1
                 continue
             pos = layout.get(ref)
             if isinstance(pos, dict) and isinstance(pos.get("x"), (int, float)) \
                and isinstance(pos.get("y"), (int, float)):
-                inst["x"] = round(float(pos["x"]), 1)
-                inst["y"] = round(float(pos["y"]), 1)
+                if ref.startswith("top:"):
+                    inst["top_x"] = round(float(pos["x"]), 1)
+                    inst["top_y"] = round(float(pos["y"]), 1)
+                else:
+                    inst["x"] = round(float(pos["x"]), 1)
+                    inst["y"] = round(float(pos["y"]), 1)
                 touched += 1
 
         # Preserve hex formatting on address fields. PyYAML parses
@@ -1603,6 +1613,194 @@ def create_app():
             return JSONResponse({"error": f"write: {e}"}, status_code=500)
         return JSONResponse({"ok": True, "touched": touched, "cleared": cleared,
                               "path": str(soc_path.relative_to(PROJECT_ROOT))})
+
+    @app.post("/api/soc/connect")
+    async def api_soc_connect(request: Request):
+        """Append a port-to-port connection to soc.ssot.yaml.
+
+        Body: {"from": "ip/PORT", "to": "ip/PORT", "proto": "AXI4"}
+        """
+        try:
+            body = await request.json()
+        except Exception as e:
+            return JSONResponse({"error": f"bad json: {e}"}, status_code=400)
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "expected json object"}, status_code=400)
+        src = str(body.get("from") or "").strip()
+        dst = str(body.get("to") or "").strip()
+        proto = str(body.get("proto") or "").strip().upper()
+        if "/" not in src or "/" not in dst:
+            return JSONResponse({"error": "from/to must look like ip/PORT"},
+                                status_code=400)
+        if src == dst:
+            return JSONResponse({"error": "cannot connect a port to itself"},
+                                status_code=400)
+        try:
+            import yaml as _yaml
+        except ImportError:
+            return JSONResponse({"error": "PyYAML not installed"}, status_code=500)
+
+        soc_path = PROJECT_ROOT / "soc.ssot.yaml"
+        if not soc_path.is_file():
+            return JSONResponse({"error": "soc.ssot.yaml not found at project root"},
+                                status_code=404)
+        try:
+            doc = _yaml.safe_load(soc_path.read_text(encoding="utf-8")) or {}
+        except Exception as e:
+            return JSONResponse({"error": f"parse: {e}"}, status_code=500)
+        if not isinstance(doc, dict):
+            doc = {}
+        conns = doc.setdefault("connections", [])
+        if not isinstance(conns, list):
+            return JSONResponse({"error": "soc.ssot.yaml connections is not a list"},
+                                status_code=400)
+        for c in conns:
+            if isinstance(c, dict) and c.get("from") == src and c.get("to") == dst:
+                return JSONResponse({"ok": True, "duplicate": True,
+                                     "connection": c,
+                                     "path": str(soc_path.relative_to(PROJECT_ROOT))})
+        entry = {"from": src, "to": dst}
+        if proto:
+            entry["proto"] = proto
+        conns.append(entry)
+
+        def _hex8(n):
+            h = f"{n:x}"
+            target = max(8, ((len(h) - 1) // 4 + 1) * 4)
+            h = h.zfill(target)
+            if len(h) > 4:
+                rev = h[::-1]
+                groups = [rev[i:i+4] for i in range(0, len(rev), 4)]
+                h = "_".join(groups)[::-1]
+            return f"0x{h}"
+        for inst in (doc.get("instances") or []):
+            if isinstance(inst, dict) and isinstance(inst.get("addr"), int):
+                inst["addr"] = _hex8(inst["addr"])
+        for e in (doc.get("addrMap") or []):
+            if isinstance(e, dict):
+                if isinstance(e.get("base"), int):  e["base"]  = _hex8(e["base"])
+                if isinstance(e.get("range"), int): e["range"] = _hex8(e["range"])
+        try:
+            with open(soc_path, "w", encoding="utf-8") as f:
+                _yaml.safe_dump(doc, f, sort_keys=False,
+                                default_flow_style=False, allow_unicode=True)
+        except OSError as e:
+            return JSONResponse({"error": f"write: {e}"}, status_code=500)
+        return JSONResponse({"ok": True, "connection": entry,
+                             "path": str(soc_path.relative_to(PROJECT_ROOT))})
+
+    @app.post("/api/diagram/plan")
+    async def api_diagram_plan(request: Request):
+        """Plan diagram edits with the configured LLM.
+
+        The model returns a narrow action JSON. The frontend owns actual
+        application through existing layout/connect APIs.
+        """
+        try:
+            body = await request.json()
+        except Exception as e:
+            return JSONResponse({"error": f"bad json: {e}"}, status_code=400)
+        prompt = str((body or {}).get("prompt") or "").strip()
+        if not prompt:
+            return JSONResponse({"error": "missing prompt"}, status_code=400)
+        try:
+            import yaml as _yaml
+        except ImportError:
+            return JSONResponse({"error": "PyYAML not installed"}, status_code=500)
+        soc_path = PROJECT_ROOT / "soc.ssot.yaml"
+        if not soc_path.is_file():
+            return JSONResponse({"error": "soc.ssot.yaml not found at project root"},
+                                status_code=404)
+        try:
+            doc = _yaml.safe_load(soc_path.read_text(encoding="utf-8")) or {}
+        except Exception as e:
+            return JSONResponse({"error": f"soc parse: {e}"}, status_code=500)
+        if not isinstance(doc, dict):
+            doc = {}
+        modules = []
+        for inst in (doc.get("instances") or []):
+            if not isinstance(inst, dict) or not inst.get("id"):
+                continue
+            mid = str(inst["id"])
+            ports = []
+            leaf = inst.get("ssot")
+            if leaf:
+                p = PROJECT_ROOT / str(leaf)
+                if p.is_file():
+                    try:
+                        leaf_doc = _yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+                        for bi in (leaf_doc.get("busInterfaces") or []):
+                            if isinstance(bi, dict):
+                                ports.append({
+                                    "name": bi.get("name"),
+                                    "proto": bi.get("proto"),
+                                    "role": bi.get("role"),
+                                    "side": bi.get("side"),
+                                })
+                    except Exception:
+                        pass
+            modules.append({"id": mid, "name": inst.get("name") or mid,
+                            "addr": inst.get("addr"), "ports": ports})
+        context = {
+            "soc": doc.get("name") or PROJECT_ROOT.name,
+            "clusters": doc.get("clusters") or [],
+            "modules": modules,
+            "connections": doc.get("connections") or [],
+            "current_layout": (body or {}).get("layout") or {},
+            "canvas": {"w": 1180, "h": 720},
+        }
+        sys_prompt = (
+            "You are an SoC Architect diagram planner. Convert the user request "
+            "into ONLY strict JSON. No markdown. No prose. Schema: "
+            "{\"summary\":\"...\",\"actions\":[...]}. "
+            "Allowed actions: "
+            "{\"type\":\"move_block\",\"id\":\"<module id>\",\"x\":number,\"y\":number}; "
+            "{\"type\":\"connect_ports\",\"from\":\"<module>/<port>\",\"to\":\"<module>/<port>\",\"proto\":\"ACE|AXI4|APB|IRQ|...\"}; "
+            "{\"type\":\"auto_layout\"}. "
+            "Use only module ids and ports present in context. For vague placement, choose reasonable canvas coordinates."
+        )
+        user_prompt = "CONTEXT JSON:\n" + json.dumps(context, ensure_ascii=False, default=str) + "\n\nUSER REQUEST:\n" + prompt
+        try:
+            from src.llm_client import call_llm_raw
+            raw = await asyncio.to_thread(
+                call_llm_raw,
+                messages=[
+                    {"role": "system", "content": sys_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.1,
+                max_tokens=1200,
+                caller_tag="atlas_diagram_plan",
+            )
+        except Exception as e:
+            return JSONResponse({"error": f"llm: {e}"}, status_code=500)
+        txt = str(raw or "").strip()
+        if txt.startswith("```"):
+            txt = re.sub(r"^```(?:json)?\s*", "", txt)
+            txt = re.sub(r"\s*```$", "", txt)
+        try:
+            plan = json.loads(txt)
+        except Exception:
+            m = re.search(r"\{.*\}", txt, re.S)
+            if not m:
+                return JSONResponse({"error": "llm returned non-json", "raw": txt},
+                                    status_code=500)
+            try:
+                plan = json.loads(m.group(0))
+            except Exception as e:
+                return JSONResponse({"error": f"json parse: {e}", "raw": txt},
+                                    status_code=500)
+        if not isinstance(plan, dict):
+            return JSONResponse({"error": "plan must be object", "raw": txt},
+                                status_code=500)
+        actions = plan.get("actions")
+        if not isinstance(actions, list):
+            return JSONResponse({"error": "plan.actions must be list", "plan": plan},
+                                status_code=500)
+        allowed = {"move_block", "connect_ports", "auto_layout"}
+        plan["actions"] = [a for a in actions[:12]
+                           if isinstance(a, dict) and a.get("type") in allowed]
+        return JSONResponse({"ok": True, "plan": plan, "raw": txt})
 
     @app.post("/api/ipxact/import")
     async def api_ipxact_import(request: Request):

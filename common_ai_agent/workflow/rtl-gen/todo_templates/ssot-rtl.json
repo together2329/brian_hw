@@ -49,7 +49,8 @@
     },
     {
       "content": "[SSOT→RTL] Write filelist + compile + lint",
-      "detail": "Write <ip>/list/<ip>_core.f from filelist.rtl section (or generate from sub_modules list). Run iverilog to verify compilation: iverilog -o /tmp/<ip>_test -c <ip>/list/<ip>_core.f. Fix any errors. Run verilator --lint-only. Fix any warnings or add documented waivers.\nGate: 0 compile errors, 0 lint warnings.",
+      "detail": "Write <ip>/list/<ip>_core.f from filelist.rtl section (or generate from sub_modules list). Run iverilog to verify compilation: iverilog -o /tmp/<ip>_test -c <ip>/list/<ip>_core.f. Fix any errors. Run verilator --lint-only. Fix any warnings or add documented waivers.\nGate: 0 compile errors, 0 lint warnings — verified by check_rtl_disk.sh (filelist exists + each .v file ≥200B + iverilog parse-only clean).",
+      "validator": "bash workflow/rtl-gen/scripts/check_rtl_disk.sh",
       "priority": "high"
     },
     {

@@ -29,7 +29,8 @@
     },
     {
       "content": "[LINT] Write lint_report.txt",
-      "detail": "Write <ip>/lint/lint_report.txt with:\n- [ ] Date and verilator version\n- [ ] Input files: <ip>/rtl/<ip>.sv, <ip>/list/<ip>.f\n- [ ] Result: CLEAN / WARNINGS REMAIN\n- [ ] Total errors fixed: N\n- [ ] Total warnings fixed: N\n- [ ] Remaining waivers: list each with justification\nGate: File written to <ip>/lint/lint_report.txt.",
+      "detail": "Write <ip>/lint/lint_report.txt with:\n- [ ] Date and verilator version\n- [ ] Input files: <ip>/rtl/<ip>.sv, <ip>/list/<ip>.f\n- [ ] Result: CLEAN / WARNINGS REMAIN\n- [ ] Total errors fixed: N\n- [ ] Total warnings fixed: N\n- [ ] Remaining waivers: list each with justification\nGate: File written to <ip>/lint/lint_report.txt — verified by check_lint_disk.sh (file exists + contains 0 errors / 0 warnings or pass signature).",
+      "validator": "bash workflow/lint/scripts/check_lint_disk.sh",
       "priority": "normal"
     }
   ]

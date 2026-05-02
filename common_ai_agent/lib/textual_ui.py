@@ -2633,11 +2633,20 @@ class AgentTUI(App):
 
     def on_stream_chunk(self, msg: StreamChunk) -> None:
         # End of compression — LLM is responding again
+        _was_compressing = self._compressing
         if self._compressing:
             self._compressing = False
         if not self._generating:
             self._generating = True
             self._update_statusbar("generating…")
+        # If we just exited compression, refresh inline activity label
+        # so the "Compressing context..." flips to "Generating..." instead
+        # of staying stuck.
+        if _was_compressing:
+            try:
+                self._update_activity()
+            except Exception:
+                pass
         # \x00 sentinel = new LLM call started → Reasoning... first
         if msg.text == "\x00":
             self._reasoning_open = True
@@ -2713,7 +2722,13 @@ class AgentTUI(App):
         """Worker signals stream done — render whatever accumulated in _response_buf."""
         self._flush_response()
         # Clear compression state after LLM response completes
+        _was_compressing = self._compressing
         self._compressing = False
+        if _was_compressing:
+            try:
+                self._update_activity()
+            except Exception:
+                pass
 
     def on_ask_user_request(self, msg: AskUserRequest) -> None:
         """Agent thread asked a question via the ask_user tool —
@@ -3392,7 +3407,9 @@ class AgentTUI(App):
 
     def _update_activity(self) -> None:
         try:
-            if self._reasoning_open:
+            if self._compressing:
+                label = "Compressing context..."
+            elif self._reasoning_open:
                 label = "Reasoning..."
             elif self._in_edit:
                 label = "Editing..."
@@ -3677,6 +3694,12 @@ class AgentTUI(App):
                 except Exception:
                     pass
                 self._proactive_timer = None
+            # Refresh inline activity label so user sees "Compressing context..."
+            # instead of stale "● ready" while a multi-minute compress runs.
+            try:
+                self._update_activity()
+            except Exception:
+                pass
 
         # Model switched → immediately update sidebar (before path shortening)
         m_model_switch = re.search(r"Model switched to:\s*(\S+)", _plain)

@@ -40,6 +40,7 @@
     {
       "content": "Write filelist and lint check: 0 errors, 0 warnings",
       "detail": "Write <ip_name>/list/<ip_name>.f — one line per RTL file path (e.g. <ip_name>/rtl/<ip_name>.sv). Run /lint <ip_name>/rtl/<ip_name>.sv. Fix all errors. Width mismatch warnings: fix or add //lint_waive with comment. Undriven output warnings: add explicit '0 assignment. Write <ip_name>/lint/lint_report.txt. Report to mas-gen: [MAS RESULT] rtl-gen DONE.",
+      "validator": "bash workflow/rtl-gen/scripts/check_rtl_disk.sh",
       "priority": "high"
     }
   ]

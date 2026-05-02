@@ -443,6 +443,10 @@
 @keyframes fadein { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
 .fade-in { animation: fadein 0.2s ease-out; }
 
+/* pulse — used by the Q&A tab notification dot when ask_user is pending
+   and the user is on a different center tab (centerLayout === 'tabbed') */
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
 /* ── Markdown rendering for agent replies ─────────────────────────── */
 .md-agent {
   color: var(--fg);
@@ -645,4 +649,164 @@
   opacity: 0; transition: opacity .15s;
   font-size: 10px; font-family: var(--mono); color: var(--fg-mute);
   pointer-events: none;
+}
+
+/* ==========================================================
+   Verdi-style waveform viewer (sim_debug workspace)
+   - Black canvas, sharp bright signal colors, tight rows,
+     hex bus flags. Designed to match the look of commercial
+     mixed-signal viewers (Verdi, GTKWave) on first glance.
+   ========================================================== */
+
+/* Wave panel root — opt-in dark canvas. Anything wrapped in
+   .wave-panel inherits these. The sim_debug bottom band sets
+   this class. */
+.wave-panel {
+  background: #0a0d12;
+  color: #c8d2dc;
+  font-family: var(--mono);
+}
+.wave-panel .wave-row {
+  display: grid;
+  grid-template-columns: 180px 90px 1fr;
+  align-items: center;
+  height: 24px;
+  border-bottom: 1px solid #11141b;
+  cursor: pointer;
+  transition: background 0.05s;
+}
+.wave-panel .wave-row:hover {
+  background: #131720;
+}
+.wave-panel .wave-row.sel {
+  background: #1a2030;
+  border-left: 2px solid #ffb84d;
+}
+.wave-panel .wave-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px 0 12px;
+  font-size: 11px;
+  color: #ffe066;          /* Verdi signal-name yellow */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wave-panel .wave-name .scope-glyph {
+  color: #6c7888;
+  font-size: 10px;
+}
+.wave-panel .wave-name .radix {
+  color: #6c7888;
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  margin-left: 4px;
+}
+.wave-panel .wave-val {
+  font-size: 11px;
+  color: #4dd0e1;          /* current-value cyan */
+  text-align: right;
+  padding: 0 10px;
+  font-family: var(--mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wave-panel .wave-val.x { color: #ff5252; font-weight: 700; }
+.wave-panel .wave-val.z { color: #b388ff; font-weight: 700; }
+.wave-panel .wave-track {
+  position: relative;
+  height: 24px;
+  /* Vertical Verdi-style time grid — minor every 50px (lighter), major
+     every 250px (brighter). The TimeRuler ticks are anchored at the
+     same x-positions so they line up. */
+  background:
+    linear-gradient(to right, rgba(74,85,102,0.55) 1px, transparent 1px) repeat-x,
+    linear-gradient(to right, rgba(34,40,52,0.6) 1px, transparent 1px) repeat-x;
+  background-size: 250px 100%, 50px 100%;
+}
+.wave-panel .wave-svg {
+  display: block;
+  height: 24px;
+}
+/* Bit signal stroke — bright lime (matches Verdi clock/control) */
+.wave-panel .wave-svg path { shape-rendering: crispEdges; }
+
+/* Bus flag text inside the SVG — bright Verdi yellow, bold. */
+.wave-panel .bus-flag-text {
+  fill: #ffd24d;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.wave-panel .bus-flag-text.x { fill: #ff5252; }
+
+/* Time ruler — Verdi-style. Markup is .time-ruler > .tr-corner +
+   .tr-vcorner + .tr-axis (see window.TimeRuler). */
+.wave-panel .time-ruler {
+  display: grid;
+  grid-template-columns: 180px 90px 1fr;
+  height: 22px;
+  border-bottom: 1px solid #2a3140;
+  background: #0d1118;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: #8a96a8;
+  flex-shrink: 0;
+}
+.wave-panel .time-ruler .tr-corner,
+.wave-panel .time-ruler .tr-vcorner {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  color: #6c7888;
+  border-right: 1px solid #161a22;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 9px;
+}
+.wave-panel .time-ruler .tr-axis {
+  position: relative;
+  border-left: 1px solid #2a3140;
+}
+.wave-panel .time-ruler .tr-tick {
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  color: #ffd24d;          /* Verdi yellow tick labels */
+  font-size: 10px;
+  font-weight: 600;
+}
+.wave-panel .time-ruler .tr-tick::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 1px;
+  height: 6px;
+  background: #ffd24d;
+}
+
+/* Cursor markers — A=amber, B=cyan (Verdi convention). */
+.wave-panel .wave-cursor.a { stroke: #ffb84d; }
+.wave-panel .wave-cursor.b { stroke: #4dd0e1; }
+
+/* ===== sim_debug full-screen mode =====================
+   When the user activates the sim_debug workflow we hide the
+   App-level TitleBar (workspace/cwd row) and StatusBar (token
+   counter row) so the waveform debug panels get the entire
+   viewport. The "← exit sim_debug" floating button restores
+   the normal layout. */
+body.atlas-sim-debug-fullscreen .titlebar,
+body.atlas-sim-debug-fullscreen .dir-switcher,
+body.atlas-sim-debug-fullscreen .statusbar {
+  display: none !important;
+}
+body.atlas-sim-debug-fullscreen #scaler > #root > div > div {
+  /* The App's column wrapper: collapse padding/gap on the surrounding
+     containers so atlas-frame stretches edge-to-edge. */
+  height: 100% !important;
 }

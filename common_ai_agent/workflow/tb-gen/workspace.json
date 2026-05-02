@@ -3,7 +3,8 @@
   "description": "Testbench generation agent — spawned by mas-gen for TB, TC, and simulation",
   "env": {
     "MAX_ITERATIONS": "200",
-    "ENABLE_MARKDOWN_RENDER": "true"
+    "ENABLE_MARKDOWN_RENDER": "true",
+    "_MODEL_NAME_hint": "Override LLM_MODEL_NAME here for tb-gen-specific routing (e.g. deepseek-v4-pro for stronger debug-fix loops). Leave this hint key in place; it's ignored by the loader. To activate, add a real key/value: \"LLM_MODEL_NAME\": \"deepseek-v4-pro\""
   },
   "skills": {
     "force_activate": ["verilog-expert"],

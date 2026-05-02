@@ -223,9 +223,15 @@ const Workspace = ({ dir, onScreen }) => {
   const [rightTab, setRightTab] = React.useState('todo'); // todo | git
   // Main column tab: 'chat' shows the conversation feed; 'preview' shows
   // the contents of the file at previewPath with syntax highlighting.
+  // 'qa' is only available when centerLayout === 'tabbed' — it surfaces
+  // the dedicated ask_user pane with breadcrumb-tabbed batched questions.
   // Double-clicking a file in the left tree sets previewPath + flips tab.
-  const [mainTab, setMainTab] = React.useState('chat');     // chat | preview
+  const [mainTab, setMainTab] = React.useState('chat');     // chat | preview | qa
   const [previewPath, setPreviewPath] = React.useState(null);
+  // Center layout: 'classic' (chat with inline ask_user) or 'tabbed'
+  // (Chat / Preview / Q&A tab strip with auto-switch). Comes from the
+  // server hello payload (driven by ATLAS_CENTER_LAYOUT in .config).
+  const [centerLayout, setCenterLayout] = React.useState('classic');
   // qaState is keyed by flow_id. Dynamic flows are added on-the-fly
   // when the agent emits an ask_user event over the WS.
   const [qaState, setQaState] = React.useState({});
@@ -304,6 +310,20 @@ const Workspace = ({ dir, onScreen }) => {
     }
     return null;
   }, [feed, qaState]);
+
+  // Tabbed center layout — auto-switch to Q&A tab when ask_user fires,
+  // and back to chat after the user submits.  Classic layout ignores
+  // mainTab='qa' entirely (still routes ask_user inline below the feed).
+  const _qcardActiveFlow = pendingQcard?.flowId || null;
+  const _qcardSubmitted = !!(pendingQcard && qaState[pendingQcard.flowId]?.submitted);
+  React.useEffect(() => {
+    if (centerLayout !== 'tabbed') return;
+    if (_qcardActiveFlow && !_qcardSubmitted && mainTab !== 'qa') {
+      setMainTab('qa');
+    } else if (!_qcardActiveFlow && mainTab === 'qa') {
+      setMainTab('chat');
+    }
+  }, [centerLayout, _qcardActiveFlow, _qcardSubmitted]);
 
   // Keyboard navigation cursor for the ask_user inline form.
   // Index space: 0..opts.length-1 = option rows, opts.length = custom-text row,
@@ -551,6 +571,13 @@ const Workspace = ({ dir, onScreen }) => {
   React.useEffect(() => {
     if (!window.backend) return;
     const subs = [];
+    // Hello payload — server tells us which center-column layout the
+    // user has configured (.config: ATLAS_CENTER_LAYOUT=classic|tabbed).
+    subs.push(window.backend.subscribe('hello', (m) => {
+      if (m && (m.center_layout === 'tabbed' || m.center_layout === 'classic')) {
+        setCenterLayout(m.center_layout);
+      }
+    }));
     subs.push(window.backend.subscribe('token', (m) => {
       const t = m.text || '';
       if (!t || t === '\x00') return;  // skip sentinel
@@ -698,32 +725,75 @@ const Workspace = ({ dir, onScreen }) => {
       setStreaming(false);
     }));
     // ask_user → register a dynamic flow and append a qcard to the feed.
+    // Two payload shapes:
+    //   • Single  : {question, kind, options, subtitle}
+    //   • Batched : {questions: [{question, kind, options, subtitle}, ...]}
+    // Batched mirrors the textual UI's ask_user breadcrumb-tab flow:
+    // the user sees N tabs (☐/☒ marker per tab + a final ✔ Submit tab),
+    // fills each, then submits all answers in one round-trip.
     subs.push(window.backend.subscribe('ask_user', (m) => {
       const flowId = m.flow_id;
       if (!flowId) return;
-      // Build a synthetic QA_FLOWS entry so the existing AskUserPrompt renders it.
-      const opts = (m.options || []).map(o => ({
-        id: o.id,
-        label: o.label,
-        detail: o.detail || '',
-        selected: false,
-      }));
-      window.QA_FLOWS[flowId] = {
-        stage: 'Agent', stageDetail: 'ask_user',
-        title: m.question || 'Question',
-        step: 1, total: 1,
-        breadcrumbs: [], activeBreadcrumb: 0,
-        question: m.question || '',
-        subtitle: m.subtitle || '',
-        kind: m.kind === 'multi' ? 'multi' : 'single',
-        options: opts,
-        history: [], upcoming: [],
-        dynamic: true,
-      };
-      setQaState(s => ({
-        ...s,
-        [flowId]: { opts: opts.map(o => ({ ...o })), custom: '', submitted: false }
-      }));
+      const isBatched = Array.isArray(m.questions) && m.questions.length > 0;
+      if (isBatched) {
+        const qs = m.questions.map(q => ({
+          question: q.question || '',
+          kind: q.kind === 'multi' ? 'multi'
+              : q.kind === 'input' ? 'input' : 'single',
+          subtitle: q.subtitle || '',
+          options: (q.options || []).map(o => ({
+            id: o.id, label: o.label, detail: o.detail || '', selected: false,
+          })),
+        }));
+        window.QA_FLOWS[flowId] = {
+          stage: 'Agent', stageDetail: 'ask_user',
+          title: qs[0].question || 'Questions',
+          step: 1, total: qs.length,
+          breadcrumbs: [], activeBreadcrumb: 0,
+          // legacy single fields point to first question (so any
+          // existing single-question render fallback still works)
+          question: qs[0].question, subtitle: qs[0].subtitle,
+          kind: qs[0].kind, options: qs[0].options,
+          // batched extras
+          batched: true,
+          questions: qs,
+          history: [], upcoming: [],
+          dynamic: true,
+        };
+        setQaState(s => ({
+          ...s,
+          [flowId]: {
+            batched: true,
+            active: 0,
+            states: qs.map(q => ({
+              opts: q.options.map(o => ({ ...o })),
+              custom: '',
+            })),
+            submitted: false,
+          },
+        }));
+      } else {
+        // Single-question path — unchanged
+        const opts = (m.options || []).map(o => ({
+          id: o.id, label: o.label, detail: o.detail || '', selected: false,
+        }));
+        window.QA_FLOWS[flowId] = {
+          stage: 'Agent', stageDetail: 'ask_user',
+          title: m.question || 'Question',
+          step: 1, total: 1,
+          breadcrumbs: [], activeBreadcrumb: 0,
+          question: m.question || '',
+          subtitle: m.subtitle || '',
+          kind: m.kind === 'multi' ? 'multi' : 'single',
+          options: opts,
+          history: [], upcoming: [],
+          dynamic: true,
+        };
+        setQaState(s => ({
+          ...s,
+          [flowId]: { opts: opts.map(o => ({ ...o })), custom: '', submitted: false }
+        }));
+      }
       setFeed(f => [...f, { kind: 'qcard', flowId, dynamic: true }]);
     }));
     return () => subs.forEach(u => u && u());
@@ -759,11 +829,31 @@ const Workspace = ({ dir, onScreen }) => {
   };
 
   // ── question card handlers ─────────────────────────────────────
+  // Both single-question and batched (tabbed) flows share these
+  // helpers; in batched mode they operate on the active tab's slice
+  // (states[active]) instead of the top-level opts/custom.
   const toggleOpt = (flowId, optId) => {
     const flow = window.QA_FLOWS[flowId];
     setQaState(s => {
       const cur = s[flowId];
       if (cur.submitted) return s;
+      if (cur.batched) {
+        const idx = cur.active || 0;
+        const q = flow.questions[idx];
+        const tabState = cur.states[idx];
+        let opts;
+        if (q.kind === 'multi') {
+          opts = tabState.opts.map(o =>
+            o.id === optId ? (o.locked ? o : { ...o, selected: !o.selected }) : o
+          );
+        } else {
+          opts = tabState.opts.map(o => ({ ...o, selected: o.id === optId }));
+        }
+        const states = cur.states.map((st, i) =>
+          i === idx ? { ...st, opts } : st
+        );
+        return { ...s, [flowId]: { ...cur, states } };
+      }
       let opts;
       if (flow.kind === 'multi') {
         opts = cur.opts.map(o => o.id === optId ? (o.locked ? o : { ...o, selected: !o.selected }) : o);
@@ -775,38 +865,98 @@ const Workspace = ({ dir, onScreen }) => {
   };
 
   const setCustom = (flowId, val) => {
-    setQaState(s => ({ ...s, [flowId]: { ...s[flowId], custom: val } }));
+    setQaState(s => {
+      const cur = s[flowId];
+      if (!cur) return s;
+      if (cur.batched) {
+        const idx = cur.active || 0;
+        const states = cur.states.map((st, i) =>
+          i === idx ? { ...st, custom: val } : st
+        );
+        return { ...s, [flowId]: { ...cur, states } };
+      }
+      return { ...s, [flowId]: { ...cur, custom: val } };
+    });
+  };
+
+  // Switch active tab in a batched ask_user flow. `idx` may equal
+  // questions.length to land on the synthetic 'Submit' tab (review).
+  const setActiveTab = (flowId, idx) => {
+    setQaState(s => {
+      const cur = s[flowId];
+      if (!cur || !cur.batched) return s;
+      const flow = window.QA_FLOWS[flowId];
+      const max = (flow.questions || []).length; // .length = Submit tab
+      const next = Math.max(0, Math.min(max, idx));
+      return { ...s, [flowId]: { ...cur, active: next } };
+    });
   };
 
   // submitCard ships an ask_user answer back to the agent over the WS.
-  // All flows that reach this point are dynamic (registered when an
-  // ask_user event arrives); the mock SSOT/RTL advance simulator that
-  // used to live here has been removed along with the mock data files.
+  // Batched flows package every per-tab answer into a single
+  // {answers: [...]} payload so the backend resolves all of them in
+  // one round-trip — matches the textual UI's batched ask_user.
   const submitCard = (flowId) => {
     const st = qaState[flowId];
     if (!st) return;
-    const selectedIds = st.opts.filter(o => o.selected).map(o => o.id);
     setQaState(s => ({ ...s, [flowId]: { ...s[flowId], submitted: true } }));
     if (window.backend) {
-      window.backend.send({
-        type: 'answer',
-        flow_id: flowId,
-        selected: selectedIds,
-        custom: st.custom || '',
-      });
+      if (st.batched) {
+        const answers = (st.states || []).map(tab => ({
+          selected: tab.opts.filter(o => o.selected).map(o => o.id),
+          custom: tab.custom || '',
+        }));
+        window.backend.send({
+          type: 'answer',
+          flow_id: flowId,
+          answers,
+        });
+      } else {
+        const selectedIds = st.opts.filter(o => o.selected).map(o => o.id);
+        window.backend.send({
+          type: 'answer',
+          flow_id: flowId,
+          selected: selectedIds,
+          custom: st.custom || '',
+        });
+      }
     }
     setStreaming(true);  // agent resumes after receiving answer
   };
 
   // ── layout ─────────────────────────────────────────────────────
+  // sim_debug owns its own hierarchy / source / wave / chat panels —
+  // hide the outer ATLAS sidebars (mode/workflow/files on the left,
+  // UPD Agent + SSOT/Todo/Diff on the right) so the inner 3-zone
+  // debug surface gets the full viewport. Width state is preserved so
+  // switching back to another workflow restores the original layout.
+  const isSimDebug = workflow === 'sim_debug';
+  const effLeftW  = isSimDebug ? 0 : leftW;
+  const effRightW = isSimDebug ? 0 : rightW;
+
+  // Toggle a body-level class so the App-level TitleBar / StatusBar
+  // can self-collapse when sim_debug owns the screen — gives the
+  // waveform / hierarchy / chat panels true full-viewport real estate.
+  React.useEffect(() => {
+    if (isSimDebug) document.body.classList.add('atlas-sim-debug-fullscreen');
+    else            document.body.classList.remove('atlas-sim-debug-fullscreen');
+    return () => document.body.classList.remove('atlas-sim-debug-fullscreen');
+  }, [isSimDebug]);
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: `${leftW}px 4px 1fr 4px ${rightW}px`,
-      gap: 12, padding: 16, height: '100%', overflow: 'hidden',
+      // When sim_debug owns the surface there's exactly one child
+      // (the SimDebug wrapper); collapsing the grid to a single 1fr
+      // column keeps that child from auto-placing into a 0px slot.
+      gridTemplateColumns: isSimDebug
+        ? '1fr'
+        : `${leftW}px 4px 1fr 4px ${rightW}px`,
+      gap: isSimDebug ? 0 : 12,
+      padding: isSimDebug ? 0 : 16,
+      height: '100%', overflow: 'hidden',
     }}>
-      {/* LEFT — Mode/Workflow + Files (collapsed when leftW===0) */}
-      {leftW > 0 ? (
+      {/* LEFT — Mode/Workflow + Files (collapsed when leftW===0 OR sim_debug) */}
+      {effLeftW > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
         <div className="box">
           <div className="box-h">
@@ -1038,10 +1188,55 @@ const Workspace = ({ dir, onScreen }) => {
         <div /> /* collapsed — empty grid cell so the 5-track grid stays aligned */
       )}
 
-      {/* LEFT ↔ CENTER splitter — drag to resize, dbl-click toggles collapse */}
-      <Splitter width={leftW} side="left" onResize={setLeftW} onToggle={toggleLeft} />
+      {/* LEFT ↔ CENTER splitter — hidden when sim_debug owns the surface */}
+      {effLeftW > 0 && (
+        <Splitter width={leftW} side="left" onResize={setLeftW} onToggle={toggleLeft} />
+      )}
 
-      {/* CENTER — chat feed */}
+      {/* CENTER — sim_debug / coverage workflows swap the chat panel for
+          their domain-specific UI (waveform debug center / coverage stats
+          + annotated source viewer); every other workflow keeps the chat. */}
+      {workflow === 'sim_debug' && window.SimDebug ? (
+        <div style={{
+          width: '100%', height: '100%',
+          minWidth: 0, overflow: 'hidden', position: 'relative',
+          display: 'flex', flexDirection: 'column',
+        }}>
+          <window.SimDebug />
+          <button
+            onClick={() => switchWorkflow('sim_debug')}
+            title="Exit sim_debug → restore default ATLAS layout"
+            style={{
+              position: 'absolute', top: 8, right: 8, zIndex: 100,
+              background: 'rgba(20,24,30,0.85)', color: 'var(--fg)',
+              border: '1px solid var(--line)', borderRadius: 4,
+              padding: '4px 10px', fontSize: 11,
+              fontFamily: 'var(--mono)', cursor: 'pointer',
+              backdropFilter: 'blur(2px)',
+            }}
+          >← exit sim_debug</button>
+        </div>
+      ) : workflow === 'coverage' && window.Coverage ? (
+        <div style={{
+          width: '100%', height: '100%',
+          minWidth: 0, overflow: 'hidden', position: 'relative',
+          display: 'flex', flexDirection: 'column',
+        }}>
+          <window.Coverage />
+          <button
+            onClick={() => switchWorkflow('coverage')}
+            title="Exit coverage → restore default ATLAS layout"
+            style={{
+              position: 'absolute', top: 8, right: 8, zIndex: 100,
+              background: 'rgba(20,24,30,0.85)', color: 'var(--fg)',
+              border: '1px solid var(--line)', borderRadius: 4,
+              padding: '4px 10px', fontSize: 11,
+              fontFamily: 'var(--mono)', cursor: 'pointer',
+              backdropFilter: 'blur(2px)',
+            }}
+          >← exit coverage</button>
+        </div>
+      ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
         {intent === 'plan' && (
           <div style={{
@@ -1085,6 +1280,31 @@ const Workspace = ({ dir, onScreen }) => {
                 fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
               }}
             >preview</span>
+            {centerLayout === 'tabbed' && (
+              <span
+                onClick={() => setMainTab('qa')}
+                title={pendingQcard ? 'Answer the agent\'s questions' : 'No pending questions'}
+                style={{
+                  cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                  position: 'relative',
+                  color: mainTab === 'qa' ? 'var(--warn)' : (pendingQcard ? 'var(--warn)' : 'var(--fg-mute)'),
+                  background: mainTab === 'qa' ? 'color-mix(in oklch, var(--warn) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'qa' ? 'var(--warn)' : 'transparent'),
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                }}
+              >
+                Q&amp;A
+                {pendingQcard && mainTab !== 'qa' && (
+                  <span style={{
+                    position: 'absolute', top: 1, right: 1,
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: 'var(--warn)',
+                    animation: 'pulse 1.5s infinite',
+                  }} />
+                )}
+              </span>
+            )}
             <span className="mute" style={{ margin: '0 6px' }}>·</span>
             {mainTab === 'chat' ? (
               <>
@@ -1176,8 +1396,45 @@ const Workspace = ({ dir, onScreen }) => {
                   already signals work-in-progress; the final clean
                   markdown lands once when the buffer parks. */}
             </div>
-          ) : (
+          ) : mainTab === 'preview' ? (
             <PreviewPane path={previewPath} onClose={() => setMainTab('chat')} />
+          ) : (
+            /* mainTab === 'qa' — only reachable when centerLayout==='tabbed' */
+            <div style={{ flex: 1, overflow: 'auto', padding: '14px 18px' }}>
+              {pendingQcard ? (
+                <AskUserPrompt
+                  flowId={pendingQcard.flowId}
+                  state={qaState[pendingQcard.flowId]}
+                  sel={askSel}
+                  intent={intent}
+                  onSel={setAskSel}
+                  onToggle={toggleOpt}
+                  onCustom={setCustom}
+                  onSubmit={submitCard}
+                  onChat={() => { setMainTab('chat'); setAskSel(0); inputRef.current?.focus(); }}
+                  onSetTab={setActiveTab}
+                />
+              ) : (
+                <div style={{
+                  padding: 20, color: 'var(--fg-mute)', fontSize: 12,
+                  fontFamily: 'var(--mono)',
+                }}>
+                  <div style={{ marginBottom: 8, color: 'var(--fg)' }}>No pending questions.</div>
+                  <div>
+                    When the agent calls <code style={{ color: 'var(--cyan)' }}>ask_user</code> or{' '}
+                    <code style={{ color: 'var(--cyan)' }}>ask_user(questions=[...])</code>,
+                    the answer panel appears here automatically.
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <span onClick={() => setMainTab('chat')} className="acc"
+                          style={{ cursor: 'pointer', padding: '2px 8px',
+                                   border: '1px solid var(--accent)', borderRadius: 2 }}>
+                      ← back to chat
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -1262,7 +1519,12 @@ const Workspace = ({ dir, onScreen }) => {
               </div>
             );
           })()}
-          {pendingQcard ? (
+          {/* Bottom prompt area — three rendering modes:
+              1. classic + pending qcard      → inline AskUserPrompt (legacy)
+              2. tabbed   + on Q&A tab        → hidden (AskUserPrompt lives in tab body)
+              3. tabbed   + chat/preview tab  → hint to switch to Q&A tab (not input)
+              4. anything + no pending qcard  → normal input row */}
+          {pendingQcard && centerLayout === 'classic' ? (
             <AskUserPrompt
               flowId={pendingQcard.flowId}
               state={qaState[pendingQcard.flowId]}
@@ -1273,7 +1535,31 @@ const Workspace = ({ dir, onScreen }) => {
               onCustom={setCustom}
               onSubmit={submitCard}
               onChat={() => { setAskSel(0); inputRef.current?.focus(); }}
+              onSetTab={setActiveTab}
             />
+          ) : pendingQcard && centerLayout === 'tabbed' && mainTab !== 'qa' ? (
+            <div
+              onClick={() => setMainTab('qa')}
+              className="ask-feed-placeholder"
+              style={{
+                padding: '8px 12px',
+                border: '1px dashed var(--warn)',
+                borderRadius: 2,
+                background: 'color-mix(in oklch, var(--warn) 10%, transparent)',
+                color: 'var(--warn)',
+                fontSize: 12,
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}
+              title="Click to open the Q&A tab"
+            >
+              <span>⏸</span>
+              <span>Agent is waiting on you · click here or open the <b>Q&amp;A</b> tab to answer</span>
+              <span style={{ flex: 1 }} />
+              <span style={{ fontSize: 10, color: 'var(--fg-mute)' }}>→ Q&amp;A</span>
+            </div>
+          ) : pendingQcard && centerLayout === 'tabbed' && mainTab === 'qa' ? (
+            null /* AskUserPrompt is rendered inside the tab body above */
           ) : (
             <div className="prompt-row">
               <span className="ps" style={{ color: 'var(--fg-mute)' }}>❯</span>
@@ -1293,12 +1579,15 @@ const Workspace = ({ dir, onScreen }) => {
         {/* hotkey footer — terminal-style */}
         <HotkeyFooter intent={intent} streaming={streaming} />
       </div>
+      )}
 
-      {/* CENTER ↔ RIGHT splitter — drag to resize, dbl-click toggles collapse */}
-      <Splitter width={rightW} side="right" onResize={setRightW} onToggle={toggleRight} />
+      {/* CENTER ↔ RIGHT splitter — hidden when sim_debug owns the surface */}
+      {effRightW > 0 && (
+        <Splitter width={rightW} side="right" onResize={setRightW} onToggle={toggleRight} />
+      )}
 
-      {/* RIGHT — UPD Agent status + SSOT/Todo/Diff (collapsed when rightW===0) */}
-      {rightW > 0 ? (
+      {/* RIGHT — UPD Agent status + SSOT/Todo/Diff (hidden when sim_debug or collapsed) */}
+      {effRightW > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
         <AgentStatusPanel intent={intent} workflow={workflow}
                           onCollapse={toggleRight} />
@@ -1748,10 +2037,25 @@ const renderInline = (s) => _escHtml(s)
 const AskUserCall = ({ flowId, state, dir }) => {
   const flow = window.QA_FLOWS[flowId];
   if (!flow || !state) return null;
-  const sel = state.opts.filter(o => o.selected);
   const submitted = state.submitted;
-  const argSummary = `flow="${flowId}", question="${flow.question.length > 48 ? flow.question.slice(0, 48) + '…' : flow.question}", kind=${flow.kind}, options=${flow.options.length}`;
-  const replySummary = sel.map(o => o.label).join(', ') + (state.custom ? `, +"${state.custom}"` : '');
+  const isBatched = !!state.batched;
+  let sel = [];
+  let replySummary = '';
+  let argSummary;
+  if (isBatched) {
+    const tabCount = (flow.questions || []).length;
+    const allSel = (state.states || []).map((ts, i) => {
+      const ss = (ts.opts || []).filter(o => o.selected).map(o => o.label).join(', ');
+      const c = (ts.custom || '').trim();
+      return `Q${i + 1}: ${ss}${c ? (ss ? ' · ' : '') + 'note=' + c : ''}`;
+    });
+    replySummary = allSel.join(' | ');
+    argSummary = `flow="${flowId}", batched=${tabCount} questions`;
+  } else {
+    sel = state.opts.filter(o => o.selected);
+    replySummary = sel.map(o => o.label).join(', ') + (state.custom ? `, +"${state.custom}"` : '');
+    argSummary = `flow="${flowId}", question="${flow.question.length > 48 ? flow.question.slice(0, 48) + '…' : flow.question}", kind=${flow.kind}, options=${flow.options.length}`;
+  }
 
   return (
     <>
@@ -1786,16 +2090,55 @@ const AskUserCall = ({ flowId, state, dir }) => {
 // ── ask_user — inline bottom prompt (replaces the regular input row) ──
 // Mirrors the screenshot: numbered options, inline `[ ]`/`[✓]`, single
 // custom-text line, Submit + "Chat about this" affordances, hint footer.
-const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmit, onChat, onSel }) => {
+//
+// Batched mode (mirror of textual UI's breadcrumb tabs): when the flow
+// carries `flow.batched === true` and `flow.questions: [...]`, a tab
+// strip renders above the question — one tab per question with a
+// ☐/☒ "answered" marker, plus a final ✔ Submit tab. Active tab
+// content is shown using the same option/custom widgets; state lives
+// in `state.states[active]` instead of the flat `state.opts/state.custom`.
+const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmit, onChat, onSel, onSetTab }) => {
   const flow = window.QA_FLOWS[flowId];
   if (!flow || !state) return null;
-  const opts = state.opts;
+
+  // Batched flow virtualization — derive the "view" for the active tab
+  // and reuse all the existing single-question rendering below.
+  const isBatched = !!state.batched;
+  const tabCount = isBatched ? (flow.questions || []).length : 0;
+  const active = isBatched ? (state.active || 0) : 0;
+  const isSubmitTab = isBatched && active === tabCount;
+  // Active tab view (used by the option/custom widgets below)
+  const tabState = isBatched
+    ? (state.states && state.states[active]) || { opts: [], custom: '' }
+    : state;
+  const tabFlowKind = isBatched && !isSubmitTab ? flow.questions[active].kind : flow.kind;
+  const tabFlowQuestion = isBatched && !isSubmitTab ? flow.questions[active].question : flow.question;
+  const tabFlowSubtitle = isBatched && !isSubmitTab ? flow.questions[active].subtitle : (flow.subtitle || '');
+  const tabAnswered = (i) => {
+    const ts = state.states && state.states[i];
+    if (!ts) return false;
+    return (ts.opts || []).some(o => o.selected) || (ts.custom || '').trim().length > 0;
+  };
+  const allAnswered = isBatched
+    ? (state.states || []).every((_, i) => tabAnswered(i))
+    : true;
+
+  const opts = tabState.opts || [];
   const customIdx = opts.length;       // row index for custom-text line
   const submitIdx = opts.length + 1;   // Submit menu line
   const chatIdx   = opts.length + 2;   // "Chat about this" menu line
   const lastIdx   = chatIdx;
 
   const onKey = (e) => {
+    // Batched flow: ←/→ switch tabs (textual UI parity).
+    if (isBatched) {
+      if (e.key === 'ArrowLeft' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault(); onSetTab && onSetTab(flowId, Math.max(0, active - 1)); return;
+      }
+      if (e.key === 'ArrowRight' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault(); onSetTab && onSetTab(flowId, Math.min(tabCount, active + 1)); return;
+      }
+    }
     if (e.key === 'ArrowDown' || (e.key === 'j' && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== 'INPUT')) {
       e.preventDefault(); onSel(Math.min(sel + 1, lastIdx)); return;
     }
@@ -1809,11 +2152,141 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
       e.preventDefault();
       if (sel < opts.length) { onToggle(flowId, opts[sel].id); return; }
       if (sel === customIdx) { /* focus the input */ const el = e.currentTarget.querySelector('input.askcustom'); el?.focus(); return; }
-      if (sel === submitIdx) { onSubmit(flowId); return; }
+      if (sel === submitIdx) {
+        // Batched: only submit from the Submit tab AND only when all answered
+        if (isBatched && (!isSubmitTab || !allAnswered)) {
+          if (!isSubmitTab) onSetTab && onSetTab(flowId, tabCount);
+          return;
+        }
+        onSubmit(flowId);
+        return;
+      }
       if (sel === chatIdx)   { onChat(flowId); return; }
     }
     if (e.key === 'Escape') { e.preventDefault(); onSel(0); }
   };
+
+  // Tab strip — only when batched. Mirrors textual `_render_breadcrumb`:
+  //   ←  ☐ Q1   ☒ Q2   ☐ Q3   ✔ Submit  →
+  const tabStrip = isBatched ? (
+    <div
+      className="ask-crumbs"
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 6,
+        marginBottom: 8,
+        paddingBottom: 6,
+        borderBottom: '1px dashed var(--line)',
+        alignItems: 'center',
+        fontSize: 11,
+        fontFamily: 'var(--mono)',
+      }}
+    >
+      <span className="mute" style={{ marginRight: 4 }}>←</span>
+      {(flow.questions || []).map((q, i) => {
+        const isActive = i === active;
+        const ans = tabAnswered(i);
+        const label = ((q.subtitle || q.question) || `Q${i + 1}`).slice(0, 20);
+        return (
+          <button
+            key={i}
+            onClick={() => onSetTab && onSetTab(flowId, i)}
+            title={q.question}
+            style={{
+              padding: '2px 8px',
+              border: `1px solid ${isActive ? 'var(--accent)' : 'var(--line)'}`,
+              background: isActive ? 'color-mix(in oklch, var(--accent) 20%, transparent)' : 'transparent',
+              color: isActive ? 'var(--accent)' : 'var(--fg-mute)',
+              fontFamily: 'var(--mono)',
+              fontSize: 11,
+              fontWeight: isActive ? 700 : 400,
+              cursor: 'pointer',
+              borderRadius: 2,
+            }}
+          >
+            <span style={{ marginRight: 4 }}>{ans ? '☒' : '☐'}</span>
+            <span>Q{i + 1}: {label}</span>
+          </button>
+        );
+      })}
+      <button
+        onClick={() => allAnswered ? onSubmit(flowId) : onSetTab && onSetTab(flowId, tabCount)}
+        disabled={!allAnswered}
+        title={allAnswered ? 'Submit all answers' : 'Answer every tab first'}
+        style={{
+          marginLeft: 'auto',
+          padding: '2px 10px',
+          border: `1px solid ${isSubmitTab ? 'var(--ok)' : 'var(--line)'}`,
+          background: isSubmitTab ? 'color-mix(in oklch, var(--ok) 22%, transparent)' : 'transparent',
+          color: allAnswered ? 'var(--ok)' : 'var(--fg-mute)',
+          fontFamily: 'var(--mono)',
+          fontSize: 11,
+          fontWeight: 700,
+          cursor: allAnswered ? 'pointer' : 'not-allowed',
+          opacity: allAnswered ? 1 : 0.55,
+          borderRadius: 2,
+        }}
+      >
+        ✔ Submit
+      </button>
+      <span className="mute" style={{ marginLeft: 4 }}>→</span>
+    </div>
+  ) : null;
+
+  // Review tab content — shown when active === questions.length.
+  // Lists each question with its answer summary and a final Submit row.
+  const reviewBody = isBatched && isSubmitTab ? (
+    <div style={{ fontFamily: 'var(--mono)', fontSize: 13 }}>
+      <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 10, color: 'var(--fg)' }}>
+        Review all {tabCount} answer{tabCount === 1 ? '' : 's'}
+      </div>
+      {(flow.questions || []).map((q, i) => {
+        const ts = (state.states || [])[i] || { opts: [], custom: '' };
+        const sels = ts.opts.filter(o => o.selected).map(o => o.label);
+        const ans = sels.length
+          ? sels.join(', ') + (ts.custom ? ` · note: "${ts.custom}"` : '')
+          : (ts.custom ? `note: "${ts.custom}"` : '(no answer yet)');
+        return (
+          <div
+            key={i}
+            onClick={() => onSetTab && onSetTab(flowId, i)}
+            style={{
+              padding: '6px 8px',
+              marginBottom: 4,
+              borderLeft: `2px solid ${tabAnswered(i) ? 'var(--ok)' : 'var(--warn)'}`,
+              background: 'color-mix(in oklch, var(--bg-2) 80%, transparent)',
+              cursor: 'pointer',
+              fontSize: 12,
+            }}
+          >
+            <div style={{ color: 'var(--fg-mute)', fontSize: 11 }}>
+              {tabAnswered(i) ? '☒' : '☐'} Q{i + 1}: {(q.subtitle || q.question).slice(0, 60)}
+            </div>
+            <div style={{ color: tabAnswered(i) ? 'var(--fg)' : 'var(--warn)', marginTop: 2 }}>
+              → {ans}
+            </div>
+          </div>
+        );
+      })}
+      <div
+        onClick={() => allAnswered && onSubmit(flowId)}
+        style={{
+          marginTop: 10,
+          padding: '6px 8px',
+          textAlign: 'center',
+          border: `1px solid ${allAnswered ? 'var(--ok)' : 'var(--line)'}`,
+          background: allAnswered ? 'color-mix(in oklch, var(--ok) 18%, transparent)' : 'transparent',
+          color: allAnswered ? 'var(--ok)' : 'var(--fg-mute)',
+          fontWeight: 700,
+          cursor: allAnswered ? 'pointer' : 'not-allowed',
+          opacity: allAnswered ? 1 : 0.55,
+        }}
+      >
+        ✔ Submit all answers
+      </div>
+    </div>
+  ) : null;
 
   return (
     <div
@@ -1844,17 +2317,33 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
           <span className="warn" style={{ fontSize: 10, fontWeight: 700 }}>◐ plan mode · still asks</span>
         )}
         <span className="mute" style={{ textTransform: 'none', letterSpacing: 0, fontSize: 10 }}>
-          {flow.kind === 'multi' ? 'multi-select' : 'single-select'}
+          {tabFlowKind === 'multi' ? 'multi-select' : tabFlowKind === 'input' ? 'text' : 'single-select'}
         </span>
+        {isBatched && (
+          <span className="mute" style={{ textTransform: 'none', letterSpacing: 0, fontSize: 10, marginLeft: 6 }}>
+            · tab {Math.min(active + 1, tabCount)}/{tabCount}
+          </span>
+        )}
       </div>
+
+      {/* breadcrumb tabs (batched mode only) */}
+      {tabStrip}
+
+      {/* review tab — replaces question/options when on Submit */}
+      {isSubmitTab ? reviewBody : (<>
 
       {/* question */}
       <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 10, color: 'var(--fg)' }}>
-        {flow.question}
+        {tabFlowQuestion}
+        {tabFlowSubtitle && (
+          <div className="mute" style={{ fontSize: 11, fontWeight: 400, marginTop: 2 }}>
+            {tabFlowSubtitle}
+          </div>
+        )}
       </div>
 
       {/* multi-mode bulk select / clear */}
-      {flow.kind === 'multi' && opts.length > 1 && (
+      {tabFlowKind === 'multi' && opts.length > 1 && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: 11 }}>
           <span
             onClick={() => {
@@ -1903,7 +2392,7 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
             >
               <span className="mute" style={{ textAlign: 'right' }}>{i + 1}.</span>
               <span style={{ color: isSel ? 'var(--accent)' : 'var(--fg-mute)', fontWeight: 700 }}>
-                {flow.kind === 'multi' ? (isSel ? '[✓]' : '[ ]') : (isSel ? '(•)' : '( )')}
+                {tabFlowKind === 'multi' ? (isSel ? '[✓]' : '[ ]') : (isSel ? '(•)' : '( )')}
               </span>
               <div>
                 <span style={{ color: focused ? 'var(--fg)' : (isSel ? 'var(--fg)' : 'var(--fg-dim, var(--fg))') }}>
@@ -1935,13 +2424,13 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
           }}
         >
           <span className="mute" style={{ textAlign: 'right' }}>{opts.length + 1}.</span>
-          <span style={{ color: state.custom ? 'var(--warn)' : 'var(--fg-mute)', fontWeight: 700 }}>
-            {state.custom ? '[✓]' : '[ ]'}
+          <span style={{ color: tabState.custom ? 'var(--warn)' : 'var(--fg-mute)', fontWeight: 700 }}>
+            {tabState.custom ? '[✓]' : '[ ]'}
           </span>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
             <input
               className="askcustom"
-              value={state.custom}
+              value={tabState.custom}
               onChange={(e) => onCustom(flowId, e.target.value)}
               onFocus={() => onSel(customIdx)}
               placeholder="custom answer / free-form note…"
@@ -1971,7 +2460,7 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
         >
           <span className="mute" style={{ marginRight: 6 }}>›</span>Submit
           <span className="mute" style={{ marginLeft: 8, fontSize: 11 }}>
-            ({sel.length || 0}{state.custom ? '+1' : ''} reply)
+            ({(opts.filter(o => o.selected) || []).length}{tabState.custom ? '+1' : ''} reply)
           </span>
         </div>
         <div
@@ -1988,6 +2477,7 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
           <span className="mute" style={{ marginLeft: 8, fontSize: 11 }}>(send a free-form message instead)</span>
         </div>
       </div>
+      </>)}
 
       {/* hint footer — terminal-style */}
       <div className="mute" style={{
@@ -1998,6 +2488,7 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
         <span><Kbd>↑↓</Kbd>/<Kbd>j k</Kbd> navigate</span>
         <span><Kbd>Space</Kbd> toggle</span>
         <span><Kbd>Tab</Kbd> next field</span>
+        {isBatched && <span><Kbd>⌘/⌃ ←→</Kbd> switch tab</span>}
         <span><Kbd>Esc</Kbd> top</span>
       </div>
     </div>

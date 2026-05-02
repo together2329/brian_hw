@@ -44,7 +44,8 @@
     },
     {
       "content": "[SSOT] Phase 2h: <ip>_schema.yaml — Cerberus validation",
-      "detail": "Write <ip>/yaml/<ip>_schema.yaml. Cerberus-compatible schema that validates all other YAML files. Required fields, types, min/max limits, enum values. Run <ip>/generators/common.py to validate all YAML. Fix any errors. Gate: ALL YAML files pass validation before Phase 3.",
+      "detail": "Write <ip>/yaml/<ip>_schema.yaml. Cerberus-compatible schema that validates all other YAML files. Required fields, types, min/max limits, enum values. Run <ip>/generators/common.py to validate all YAML. Fix any errors. Gate: ALL YAML files pass validation before Phase 3 — verified by check_ssot_disk.sh (file ≥4KB, ≥18 sections, parses, ≤5 TBDs).",
+      "validator": "bash workflow/ssot-gen/scripts/check_ssot_disk.sh",
       "priority": "high"
     },
     {

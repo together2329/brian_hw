@@ -485,8 +485,14 @@ def _validate_and_repair_sequence(
                 if _rc is None or (isinstance(_rc, str) and not _rc.strip()):
                     msg["reasoning_content"] = _RC_PLACEHOLDER
 
-    # --- Pass 4: ensure first non-system message is user or assistant ---
-    # Strict APIs reject sequences that start with system → tool.
+    # --- Pass 4: ensure first non-system message is 'user' ---
+    # Strict APIs (GLM-5.1, Z.AI, etc.) reject sequences where the first
+    # non-system message is 'assistant' or 'tool'.  After compression the
+    # kept recent messages are typically the ReAct tail:
+    #   [assistant, tool, assistant, tool]
+    # which yields  system → assistant → …  → HTTP 400 code 1214.
+    # Fix: prepend a synthetic user message so the sequence starts with
+    #   system → user → assistant → …
     _first_non_sys = None
     for _i, _m in enumerate(repaired):
         if _m.get("role") != "system":
@@ -494,16 +500,28 @@ def _validate_and_repair_sequence(
             break
     if _first_non_sys is not None:
         _first_role = repaired[_first_non_sys].get("role", "")
-        if _first_role == "tool":
-            # Already converted to user by Pass 1, but double-check.
-            # If somehow still tool, wrap it.
-            repaired[_first_non_sys] = {
+        if _first_role != "user":
+            # Build a synthetic user message from the system summary context
+            # so the model has enough context to continue the task.
+            _synth_content = (
+                "[Context restored after compression. Continue the current task.]\n"
+            )
+            # Try to extract a task hint from the system message
+            for _sm in repaired[:_first_non_sys]:
+                _sc = str(_sm.get("content", ""))
+                # Pull the first line that looks like a goal/task instruction
+                for _line in _sc.split("\n"):
+                    _line = _line.strip().lstrip("#-= ").strip()
+                    if _line and len(_line) > 10:
+                        _synth_content += _line[:300]
+                        break
+                if len(_synth_content) > 100:
+                    break
+
+            repaired.insert(_first_non_sys, {
                 "role": "user",
-                "content": (
-                    "[Reconstructed] "
-                    + str(repaired[_first_non_sys].get("content", ""))[:500]
-                ),
-            }
+                "content": _synth_content,
+            })
 
     # --- Pass 5: orphaned assistant tool_calls (reverse of Pass 1) ---
     # An assistant message with tool_calls must be IMMEDIATELY followed by tool
@@ -557,6 +575,132 @@ def _validate_and_repair_sequence(
             _final.append(_m)
         _pi += 1
     repaired = _final
+
+    # --- Pass 6: collapse consecutive same-role messages ---
+    # Strict APIs (GLM-5.1, Anthropic) reject A→A→A or U→U→U sequences
+    # without the alternating role between them.  This can happen when
+    # react_loop appends multiple assistant responses without tool calls
+    # (loop detected in Pass B fix above) or when context injection
+    # creates consecutive user messages.  Merge them by concatenating
+    # content with a separator.
+    _collapsed: List[Dict] = []
+    for _m in repaired:
+        _role = _m.get("role")
+        if (
+            _collapsed
+            and _collapsed[-1].get("role") == _role
+            and _role in ("user", "assistant")
+        ):
+            _prev = _collapsed[-1]
+            _prev_c = str(_prev.get("content") or "")
+            _cur_c = str(_m.get("content") or "")
+            if _prev_c and _cur_c:
+                _prev["content"] = _prev_c + "\n\n---\n\n" + _cur_c
+            else:
+                _prev["content"] = _prev_c or _cur_c
+            # Preserve tool_calls if either has them
+            if _m.get("tool_calls"):
+                _prev["tool_calls"] = _m["tool_calls"]
+            # Preserve last reasoning_content
+            if _m.get("reasoning_content"):
+                _prev["reasoning_content"] = _m["reasoning_content"]
+        else:
+            _collapsed.append(_m)
+    repaired = _collapsed
+
+    # --- Pass 7: dedupe consecutive identical assistant+tool pairs ---
+    # react_loop can replay the same Action multiple times when the LLM
+    # repeats itself.  Compression preserves all of them, leaving the API
+    # with a redundant (and sometimes malformed) tail.  Detect identical
+    # adjacent (assistant→tool) pairs by content fingerprint and keep only
+    # the first occurrence.
+    def _fp(_msg: Dict) -> str:
+        _c = str(_msg.get("content") or "")[:400]
+        _r = _msg.get("role", "")
+        _t = ""
+        _tcs = _msg.get("tool_calls") or []
+        if _tcs:
+            try:
+                _t = "|".join(
+                    (tc.get("function", {}).get("name", "") + ":" +
+                     str(tc.get("function", {}).get("arguments", ""))[:200])
+                    for tc in _tcs if isinstance(tc, dict)
+                )
+            except Exception:
+                _t = ""
+        return f"{_r}::{_c}::{_t}"
+
+    _deduped: List[Dict] = []
+    _i2 = 0
+    while _i2 < len(repaired):
+        _m = repaired[_i2]
+        # Look for assistant→(tool×N) block; dedupe against previous identical block
+        if _m.get("role") == "assistant" and _i2 + 1 < len(repaired):
+            _block_end = _i2 + 1
+            while _block_end < len(repaired) and repaired[_block_end].get("role") == "tool":
+                _block_end += 1
+            _cur_block_fp = _fp(_m) + "##" + "||".join(_fp(repaired[k]) for k in range(_i2 + 1, _block_end))
+            # Compare with last block in _deduped
+            if _deduped and len(_deduped) >= (_block_end - _i2):
+                _dedup_start = len(_deduped) - (_block_end - _i2)
+                if _deduped[_dedup_start].get("role") == "assistant":
+                    _prev_fp = _fp(_deduped[_dedup_start]) + "##" + "||".join(
+                        _fp(_deduped[k]) for k in range(_dedup_start + 1, len(_deduped))
+                    )
+                    if _prev_fp == _cur_block_fp:
+                        # identical block — skip
+                        _i2 = _block_end
+                        continue
+            _deduped.extend(repaired[_i2:_block_end])
+            _i2 = _block_end
+        else:
+            _deduped.append(_m)
+            _i2 += 1
+    repaired = _deduped
+
+    # --- Pass 8: final assistant content/tool_calls sanity scrub ---
+    # After all transforms above, an assistant message can still slip
+    # through with content=None AND tool_calls=[] (or tool_calls full of
+    # entries with no `id`).  Strict APIs (GLM 1214) reject this.
+    # This pass is the last line of defense: every assistant message
+    # MUST have a non-empty string content.  GLM-5.1 rejects content=null
+    # even when tool_calls is present (observed in mini_cpu run logs).
+    # Always force content to a non-empty string regardless of tool_calls.
+    for _m in repaired:
+        if _m.get("role") != "assistant":
+            continue
+        _c = _m.get("content")
+        _tcs = _m.get("tool_calls")
+        # Normalize tool_calls: drop entries without id, drop empty list
+        if isinstance(_tcs, list):
+            _valid_tcs = [
+                tc for tc in _tcs
+                if isinstance(tc, dict) and tc.get("id")
+            ]
+            if not _valid_tcs:
+                _m.pop("tool_calls", None)
+                _tcs = None
+            else:
+                _m["tool_calls"] = _valid_tcs
+                _tcs = _valid_tcs
+        # Force non-empty string content ALWAYS (GLM-5.1 rejects null
+        # content even with valid tool_calls; OpenAI accepts but space
+        # placeholder is harmless there).
+        if _c is None or not isinstance(_c, str) or _c == "None":
+            _m["content"] = " " if _tcs else " "
+        elif not _c.strip():
+            _m["content"] = " "
+
+    # --- Pass 9: scrub user/tool messages with null content too ---
+    # Strict APIs reject any message with content=null.
+    for _m in repaired:
+        _r = _m.get("role")
+        if _r in ("user", "tool"):
+            _c = _m.get("content")
+            if _c is None or _c == "None":
+                _m["content"] = " "
+            elif not isinstance(_c, str):
+                _m["content"] = str(_c)
 
     return repaired
 
@@ -1277,6 +1421,21 @@ def compress_history(
             recent_msgs = other_msgs[-keep_recent:]
             old_msgs = other_msgs[:-keep_recent]
 
+        # Option 1: Always preserve the most recent user message in recent_msgs.
+        # Without this, post-compression tail can be all assistant/tool which
+        # gives the LLM no driving "intent" — it produces a recap instead of
+        # action.  If recent_msgs has no user message, expand backward to the
+        # latest user message in old_msgs.
+        if recent_msgs and not any(m.get("role") == "user" for m in recent_msgs):
+            _last_user_idx = next(
+                (i for i in range(len(old_msgs) - 1, -1, -1)
+                 if old_msgs[i].get("role") == "user"),
+                None
+            )
+            if _last_user_idx is not None:
+                recent_msgs = old_msgs[_last_user_idx:] + recent_msgs
+                old_msgs = old_msgs[:_last_user_idx]
+
         if not old_msgs:
             return messages
 
@@ -1335,6 +1494,7 @@ def compress_history(
 
     # Todo preservation
     todo_preservation: List[Dict] = []
+    todo_tail_directive: List[Dict] = []
     if todo_tracker and todo_tracker.todos:
         status_icon = {
             "pending": "⏸",
@@ -1361,6 +1521,10 @@ def compress_history(
             todo_lines.append(line)
         todo_snapshot = "\n".join(todo_lines)
 
+        # Snapshot stays as system (background context).  The directive
+        # ("do TODO #N now") moves to a SEPARATE user-role message at the
+        # tail (Option 2) so the LLM treats it as a directive, not buried
+        # system context.
         if not todo_tracker.is_all_processed():
             prompt = todo_tracker.get_continuation_prompt()
             next_idx = todo_tracker._get_next_pending()
@@ -1376,13 +1540,23 @@ def compress_history(
                 )
             else:
                 next_instruction = ""
+            # System snapshot only — no directive in system anymore.
             todo_preservation = [
-                {"role": "system", "content": todo_snapshot + next_instruction}
+                {"role": "system", "content": todo_snapshot}
             ]
+            # Tail directive (USER role) — drives action post-compression.
+            if next_instruction.strip():
+                todo_tail_directive = [
+                    {"role": "user",
+                     "content": f"[Resume after compression]{next_instruction}"}
+                ]
+            else:
+                todo_tail_directive = []
         else:
             todo_preservation = [
                 {"role": "system", "content": todo_snapshot + "\n[All tasks completed]"}
             ]
+            todo_tail_directive = []
 
     # Compress (skip if all old messages were frozen summaries)
     compressed = None
@@ -1415,15 +1589,19 @@ def compress_history(
             ),
         }]
 
+    # Tail directive: when a TODO is active, the directive lives at the
+    # very end as a user-role message so the LLM treats it as the next
+    # action to take, not background context.  When all tasks are done
+    # or there's no tracker, this is empty.
     if compressed is not None:
         raw_history = (
             system_msgs + important_msgs + compressed
-            + awaiting_note + todo_preservation + recent_msgs
+            + awaiting_note + todo_preservation + recent_msgs + todo_tail_directive
         )
     else:
         raw_history = (
             system_msgs + important_msgs
-            + awaiting_note + todo_preservation + recent_msgs
+            + awaiting_note + todo_preservation + recent_msgs + todo_tail_directive
         )
 
     # Consolidate all system messages into a single leading system message.

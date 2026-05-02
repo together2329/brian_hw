@@ -1,0 +1,31 @@
+{
+  "name": "ssot-tb-goal",
+  "description": "SSOT→TB outcome-driven (3 goals): real TB on disk + iverilog clean + vvp PASS or [SIM ESCALATE]. Replaces 9-step ssot-tb for hallucination-prone models — fewer tasks = fewer fake-DONE opportunities.",
+  "tasks": [
+    {
+      "content": "[Goal 1/3] Produce TB+TC on disk passing iverilog compile",
+      "activeForm": "Building TB+TC for {ip} — attempt {loop_count}/{max_loop_iterations}",
+      "detail": "End state required:\n  • <ip>/tc/tc_<ip>.sv  ≥ 1 KB  (real V2001 task body)\n  • <ip>/tb/tb_<ip>.sv  ≥ 0.5 KB (real top-level)\n  • <ip>/list/<ip>.f references all 7 RTL + tb + tc\n  • iverilog -g2012 -f <ip>/list/<ip>.f -o /tmp/<ip>.out 2>&1 → exit 0\nDo whatever needed: read SSOT, read RTL, write_file, run_command. No prose-only turns. The validator (check_tb_disk.sh) reads the disk — fake reasons fail.",
+      "validator": "bash workflow/tb-gen/scripts/check_tb_disk.sh",
+      "loop": true,
+      "max_loop_iterations": 10,
+      "exit_condition": "real artifacts on disk, iverilog clean",
+      "priority": "high"
+    },
+    {
+      "content": "[Goal 2/3] Run vvp + capture sim_report.txt with disk-verified PASS",
+      "activeForm": "Running simulation — attempt {loop_count}/{max_loop_iterations}",
+      "detail": "End state required:\n  • <ip>/sim/<ip>.out (or <ip>_simv) compiled binary on disk\n  • <ip>/sim/sim_report.txt with positive pass signature ('all PASS' OR 'All N tests passed' OR '0 errors, 0 warnings')\n  • NO failure markers ([FAIL], 'N FAILED' with N>0, 'got=0xxx', FATAL, Aborted)\nIf sim has failures → DO NOT mark approved. Instead: jump to Goal 3 ([SIM ESCALATE]) OR fix RTL/TB and retry.\nThe validator (check_sim_disk.sh) reads the report on disk — claiming PASS in prose without backing artifact fails.",
+      "validator": "bash workflow/sim/scripts/check_sim_disk.sh",
+      "loop": true,
+      "max_loop_iterations": 15,
+      "exit_condition": "sim_report.txt has all PASS, no FAIL markers",
+      "priority": "high"
+    },
+    {
+      "content": "[Goal 3/3] Output [SSOT RESULT] tb-gen DONE OR [SIM ESCALATE]",
+      "detail": "Decision branch based on Goal 2 outcome:\n\n— If Goal 2 reached PASS:\n  Emit:\n    [SSOT RESULT] tb-gen DONE\n    Module    : <ip>\n    TB        : <ip>/tb/tb_<ip>.sv (cite line count)\n    TC        : <ip>/tc/tc_<ip>.sv (cite line count)\n    Simulator : iverilog | VCS\n    Tests     : N scenarios, M scoreboard checks\n    Result    : 0 errors, 0 warnings; M/M PASS\n    Handoff   : ssot-gen\n\n— If Goal 2 had failures (DUT bugs): emit each bug as a [SIM ESCALATE] block:\n    [SIM ESCALATE] → rtl-gen\n    Module    : <ip>\n    File      : <ip>/rtl/<file>.v\n    Test      : <SCx test name>\n    Expected  : <value from tc_>\n    Got       : <verbatim from sim_report.txt>\n    Hypothesis: <one-line guess at RTL fix>\n  One block per failing test. Do NOT silently approve when sim has failures.\n\nApprovable only when (PASS path → real DONE block) OR (FAIL path → SIM ESCALATE blocks emitted).",
+      "priority": "normal"
+    }
+  ]
+}

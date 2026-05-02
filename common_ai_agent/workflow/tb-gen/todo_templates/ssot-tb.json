@@ -35,12 +35,14 @@
     {
       "content": "[SSOT→TB] Write/update filelist <ip>/list/<ip>.f",
       "detail": "From SSOT filelist.rtl[] + filelist.sim[]: create <ip>/list/<ip>.f. One file path per line (relative to project root). Include ALL RTL files and ALL TB files. Verify with: iverilog -g2012 -c <ip>/list/<ip>.f 2>&1 (compile check only, no run). Fix any missing files.\nGate: Filelist compiles without missing file errors.",
+      "validator": "bash workflow/tb-gen/scripts/check_tb_disk.sh",
       "priority": "high"
     },
     {
       "content": "[SIM] Compile + Run simulation: 0 errors, 0 warnings, all [PASS]",
       "activeForm": "Running simulation — attempt {loop_count}/{max_loop_iterations}",
-      "detail": "SIMULATOR from SSOT test_requirements.simulator (default: iverilog).\nIVERILOG: iverilog -g2012 -f <ip>/list/<ip>.f -o <ip>/sim/<ip>.out && vvp <ip>/sim/<ip>.out\nVCS: vcs -full64 -sverilog -f <ip>/list/<ip>.f -o <ip>/sim/<ip>_simv && ./<ip>/sim/<ip>_simv\nCheck output: count [PASS] vs [FAIL], verify scoreboard_checks match expected count, check for $error. Diagnose failures: TB bug → fix tc_<ip>.sv; DUT bug → [SSOT ESCALATE] rtl-gen.\nLoop until ALL [PASS], 0 errors, 0 warnings. Write <ip>/sim/sim_report.txt.\nGate: sim_report.txt shows ALL TESTS PASSED.",
+      "detail": "SIMULATOR from SSOT test_requirements.simulator (default: iverilog).\nIVERILOG: iverilog -g2012 -f <ip>/list/<ip>.f -o <ip>/sim/<ip>.out && vvp <ip>/sim/<ip>.out\nVCS: vcs -full64 -sverilog -f <ip>/list/<ip>.f -o <ip>/sim/<ip>_simv && ./<ip>/sim/<ip>_simv\nCheck output: count [PASS] vs [FAIL], verify scoreboard_checks match expected count, check for $error. Diagnose failures: TB bug → fix tc_<ip>.sv; DUT bug → [SIM ESCALATE] rtl-gen.\nLoop until ALL [PASS], 0 errors, 0 warnings. Write <ip>/sim/sim_report.txt.\nGate: sim_report.txt shows ALL TESTS PASSED — verified by check_sim_disk.sh (real binary + report on disk + 0 failure markers).",
+      "validator": "bash workflow/sim/scripts/check_sim_disk.sh",
       "loop": true,
       "max_loop_iterations": 15,
       "exit_condition": "0 errors, 0 warnings, all [PASS]",

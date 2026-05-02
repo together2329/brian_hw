@@ -1148,6 +1148,16 @@ UI_MODE = os.getenv("UI_MODE", "textual").lower()
 WEB_UI_PORT = int(os.getenv("WEB_UI_PORT", "8080"))
 ATLAS_UI_PORT = int(os.getenv("ATLAS_UI_PORT", "8765"))
 
+# Atlas UI center column layout:
+#   "classic" (default): chat feed + inline ask_user prompt — original behavior.
+#   "tabbed":            Chat / Preview / Q&A tabs in the center column;
+#                        UI auto-switches to Q&A when ask_user fires and back
+#                        to Chat after submission. Mirrors the textual UI's
+#                        breadcrumb-tab batched ask_user flow.
+ATLAS_CENTER_LAYOUT = os.getenv("ATLAS_CENTER_LAYOUT", "classic").lower()
+if ATLAS_CENTER_LAYOUT not in ("classic", "tabbed"):
+    ATLAS_CENTER_LAYOUT = "classic"
+
 # sim_debug elaboration backend: "pyslang" | "verilator" | "slang"
 # Used by /api/hierarchy and /api/trace. Override via the
 # SIM_DEBUG_ELAB_BACKEND env var or this config value.

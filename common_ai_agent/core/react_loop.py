@@ -446,6 +446,8 @@ def run_react_agent_impl(
                     f"[Inject] Compression:   {_pre_count} msgs → {_post_count} msgs"
                     f"  |  tokens: {_pre_tok:,} → {_post_tok:,}  (-{_pct}%)"
                 ))
+        # Post-compression user-role TODO directive is appended by
+        # compressor.py (todo_tail_directive) — no nudge needed here.
         if _perf:
             print(f"  {Color.DIM}[PERF] compress: {time.time()-_t:.3f}s{Color.RESET}")
 
@@ -951,9 +953,13 @@ def run_react_agent_impl(
                 }
                 for tc in _native_calls
             ]
-            # GLM/Z.AI requires content=null (not "") when tool_calls are present
+            # Empirical: GLM-5.1 rejects content=null with HTTP 400 1214
+            # ("messages parameter is illegal") — even when tool_calls
+            # is present.  Use a single-space placeholder; OpenAI accepts
+            # this and GLM does too.  (Was previously set to None based
+            # on a stale spec assumption.)
             if not assistant_msg["content"]:
-                assistant_msg["content"] = None
+                assistant_msg["content"] = " "
 
         # Preserved thinking: attach reasoning_content to assistant message.
         # - DeepSeek: REQUIRED — API returns HTTP 400 if reasoning_content is missing.
@@ -971,6 +977,31 @@ def run_react_agent_impl(
                     assistant_msg["reasoning_content"] = "".join(_iter_reasoning_buf)
 
         messages.append(assistant_msg)
+
+        # ── Loop detection: consecutive tool-less assistant messages ──
+        # Strict APIs (GLM, Anthropic) reject A→A→A sequences without
+        # user/tool between.  If the LLM keeps producing content without
+        # tool_calls or a completion signal, break before the sequence
+        # becomes invalid (default threshold: 5 consecutive — leaves
+        # headroom for post-compression recap turns before declaring a
+        # genuine loop).
+        _MAX_NO_TOOL_ASSISTANT = getattr(cfg, "MAX_NO_TOOL_ASSISTANT_RUN", 5)
+        if _MAX_NO_TOOL_ASSISTANT > 0:
+            _n_consec = 0
+            for _m in reversed(messages):
+                if _m.get("role") != "assistant" or _m.get("tool_calls"):
+                    break
+                _n_consec += 1
+            if _n_consec >= _MAX_NO_TOOL_ASSISTANT:
+                _loop_msg = (
+                    f"[react_loop] Loop detected: {_n_consec} consecutive "
+                    f"assistant responses without tool calls. "
+                    f"Breaking iteration loop to prevent API 1214 errors."
+                )
+                print(Color.warning(f"\n{_loop_msg}\n"))
+                if deps.emit_content_fn:
+                    deps.emit_content_fn(_loop_msg)
+                break
 
         # Hook: AFTER_LLM_CALL
         # In native mode: deferred until after tool role messages are added (below),
