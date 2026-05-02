@@ -15,6 +15,10 @@ When the user runs `/connect <a/iface> <b/iface> [proto]`, expand to:
    AHB / APB / AXIS / IRQ / CLK / RST).
 6. **Patch soc.ssot.yaml.** Append to `connections[]`:
        { from: <a>/<iface_a>, to: <b>/<iface_b>, proto: <proto> }
-7. **Suggest next step.** If the connection adds new bus traffic into
+7. **Disk-truth verification.** Run
+   `Action: run_command("bash workflow/architect/scripts/check_architect_disk.sh")`.
+   PASS = the connection is on disk. FAIL = re-open soc.ssot.yaml
+   with `read_file`; the claimed edit didn't actually land.
+8. **Suggest next step.** If the connection adds new bus traffic into
    an existing instance, hint that the user may want to `/wrapper-gen`
    to refresh the top-level wrapper.

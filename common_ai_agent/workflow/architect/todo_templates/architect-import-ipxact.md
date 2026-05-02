@@ -17,7 +17,12 @@ to this todo sequence:
    If no cluster named, leave the instance "uncategorized" — the
    architect view will surface it in a default cluster.
 5. **Run `addrmap_check`.** Halt + revert step 4 on ✗.
-6. **Summarize.** Read back the new instance + count its
+6. **Disk-truth verification.** Run
+   `Action: run_command("bash workflow/architect/scripts/check_architect_disk.sh")`
+   AND `Action: read_file(path="<name>/yaml/<name>.ssot.yaml")` to
+   confirm the leaf SSOT actually exists with parsed content. ipxact_import
+   returning success is NOT proof — only the read_file output is.
+7. **Summarize.** Read back the new instance + count its
    `busInterfaces` from the leaf SSOT. Report:
        "Imported `<name>` (vendor.library.version) — N busInterfaces,
         M parameters, base @ 0x…. Next: `/connect` to wire it up, or

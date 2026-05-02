@@ -12,5 +12,12 @@ When the user runs `/regen-all`, expand to:
    scope="<ip>", prompt="regenerate RTL from <ip>.ssot.yaml")`.
 5. **Per-IP summary.** After each dispatch, log: "✓ <ip>: +N/-M lines"
    or "✗ <ip>: <error>". Do NOT paste the sub-agent transcript.
-6. **Final.** Report the count of successes / failures and suggest
-   `/wrapper-gen` if any IP succeeded.
+6. **Disk-truth verification (per IP).** After each `[MAS RESULT] DONE`
+   from rtl-gen, IMMEDIATELY run
+   `Action: run_command("ls -la <ip>/rtl/ <ip>/list/")` to confirm
+   `.sv` and `.f` files actually exist with non-zero size. The
+   sub-workflow's DONE message alone is NOT proof — surface DONE as
+   `(claimed)` until disk verification passes.
+7. **Final.** Report the count of VERIFIED-on-disk successes / failures
+   (claimed-only DONEs do NOT count as success) and suggest
+   `/wrapper-gen` if any IP truly succeeded.

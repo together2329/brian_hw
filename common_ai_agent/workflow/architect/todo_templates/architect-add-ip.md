@@ -20,7 +20,12 @@ todo sequence (all items start as `pending`):
        { name: <name>, base: <addr>, range: 0x1000 }
    If a cluster was named, append `<name>` to that cluster's `members`.
 6. **Run `addrmap_check`.** Halt + revert step 5 if it returns ✗.
-7. **Suggest next step.** "IP `<name>` added. Next: `/workflow ssot-gen`
+7. **Disk-truth verification.** Run
+   `Action: run_command("bash workflow/architect/scripts/check_architect_disk.sh")`
+   and confirm exit 0 + `[check_architect_disk] PASS` line. If it
+   fails, the soc.ssot.yaml on disk does NOT match the claimed edit;
+   re-open the file with `read_file` and diagnose before proceeding.
+8. **Suggest next step.** "IP `<name>` added. Next: `/workflow ssot-gen`
    to fill in the leaf SSOT (interfaces / parameters / memory map),
    or `/import-ipxact` if you have an XML to bring in."
 
