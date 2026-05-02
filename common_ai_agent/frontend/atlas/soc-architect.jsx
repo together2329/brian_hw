@@ -91,6 +91,37 @@
   background: color-mix(in oklch, var(--bg-2) 95%, var(--accent));
   border-style: dashed;
 }
+/* Cluster card tinted per kind so the SoC overview reads CPU vs BUS
+   vs MEM at a glance. Same palette as bd-block.with-ports kind colors
+   used inside cluster view. */
+.bd-block.cluster.cpu {
+  background: color-mix(in oklch, var(--accent) 8%, var(--panel));
+  border-color: color-mix(in oklch, var(--accent) 50%, var(--line-2));
+}
+.bd-block.cluster.cpu .ico { color: var(--accent); }
+.bd-block.cluster.bus {
+  background: color-mix(in oklch, var(--magenta) 10%, var(--panel));
+  border-color: color-mix(in oklch, var(--magenta) 50%, var(--line-2));
+}
+.bd-block.cluster.bus .ico { color: var(--magenta); }
+.bd-block.cluster.mem {
+  background: color-mix(in oklch, var(--cyan) 8%, var(--panel));
+  border-color: color-mix(in oklch, var(--cyan) 50%, var(--line-2));
+}
+.bd-block.cluster.mem .ico { color: var(--cyan); }
+.bd-block.cluster.periph {
+  background: color-mix(in oklch, var(--ok) 8%, var(--panel));
+  border-color: color-mix(in oklch, var(--ok) 50%, var(--line-2));
+}
+.bd-block.cluster.periph .ico { color: var(--ok); }
+.bd-block.cluster.analog {
+  background: color-mix(in oklch, var(--warn) 10%, var(--panel));
+  border-color: color-mix(in oklch, var(--warn) 50%, var(--line-2));
+}
+.bd-block.cluster.analog .ico { color: var(--warn); }
+/* Legacy .bd-block.noc — kept for backwards-compat; cluster.bus
+   class above wins for new code paths but this still applies when
+   the kind isn't recognised. */
 .bd-block.noc {
   background: color-mix(in oklch, var(--magenta) 10%, var(--panel));
   border-color: color-mix(in oklch, var(--magenta) 50%, var(--line-2));
@@ -1048,51 +1079,56 @@ window.SocArchitect = function SocArchitect() {
             </g>
           ))}
         </svg>
-        {(() => {
-          const c = soc.clusters.find(c => c.id === 'noc'); if (!c) return null;
-          const p = positions.noc;
-          const sel = view === 'cluster:noc';
-          return (
-            <div className={`bd-block noc cluster ${sel ? 'sel' : ''}`}
-                 style={{ left: p.x, top: p.y, width: p.w, height: p.h }}
-                 onClick={() => setView('cluster:noc')}>
-              <div className="bd-block-head">
-                <span className="ico" style={{ color: 'var(--magenta)' }}>╫</span>
-                <span className="nm">noc</span>
-                {layers.labels && <span style={{ fontSize: 9, color: 'var(--fg-mute)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>interconnect</span>}
-              </div>
-              <div className="bd-block-body">
-                <div>
-                  <div className="lbl">cci_550 · apb_bridge · dmac_330</div>
-                  <div className="lbl" style={{ marginTop: 2 }}>{c.modules.length} modules</div>
-                </div>
-                <window.PipelineStrip status={c.status} modId={c.id} big />
-              </div>
-            </div>
-          );
-        })()}
-        {soc.clusters.filter(c => c.id !== 'noc').map(c => {
+        {/* All clusters render through the same code path. Each card
+            gets a kind-tint class (cpu/mem/bus/periph/analog) so the
+            border + center icon match the per-block category palette
+            used in cluster view. The kind comes from cluster.role
+            when present, falls back to id-based heuristic. Member
+            names are pulled live from `c.modules` instead of any
+            hardcoded placeholder. */}
+        {soc.clusters.map(c => {
           const p = positions[c.id]; if (!p) return null;
           const sel = view === `cluster:${c.id}`;
           const hasTouched = c.modules.some(m => isTouched(`${c.id}/${m.id}`));
           const errCount = c.modules.filter(m => m.status.sim === 'err').length;
-          const role = c.id === 'cpu_ss' ? 'CPU'
-                     : c.id === 'mem_ss' ? 'MEM'
-                     : c.id === 'periph_ss' ? 'PERIPH'
-                     : 'ANALOG';
+          const _role = (c.role || '').toUpperCase();
+          const role = _role || (
+            c.id === 'cpu_ss' ? 'CPU'
+            : c.id === 'mem_ss' ? 'MEM'
+            : c.id === 'periph_ss' ? 'PERIPH'
+            : c.id === 'noc' ? 'INTERCONNECT'
+            : 'MISC'
+          );
+          const kind = _role === 'CPU'    ? 'cpu'
+                     : _role === 'MEM'    ? 'mem'
+                     : _role === 'BUS'    || _role === 'INTERCONNECT' || _role === 'NOC' ? 'bus'
+                     : _role === 'PERIPH' || _role === 'PERIPHERAL' ? 'periph'
+                     : _role === 'ANALOG' ? 'analog'
+                     : (c.id === 'cpu_ss' ? 'cpu'
+                        : c.id === 'mem_ss' ? 'mem'
+                        : c.id === 'noc'    ? 'bus'
+                        : c.id === 'periph_ss' ? 'periph'
+                        : c.id === 'analog_ss' ? 'analog'
+                        : 'periph');
+          const icon = kind === 'cpu'    ? '◆'
+                     : kind === 'mem'    ? '▦'
+                     : kind === 'bus'    ? '╫'
+                     : kind === 'periph' ? '⊟'
+                     : kind === 'analog' ? '∿'
+                     : '◇';
           return (
-            <div key={c.id} className={`bd-block cluster ${sel ? 'sel' : ''} ${hasTouched ? 'touched' : ''}`}
+            <div key={c.id} className={`bd-block cluster ${kind} ${sel ? 'sel' : ''} ${hasTouched ? 'touched' : ''}`}
                  style={{ left: p.x, top: p.y, width: p.w, height: p.h }}
                  onClick={() => setView(`cluster:${c.id}`)}>
               <div className="bd-block-head">
-                <span className="ico">{c.id === 'cpu_ss' ? '◆' : c.id === 'mem_ss' ? '▦' : c.id === 'periph_ss' ? '⊟' : '∿'}</span>
+                <span className="ico">{icon}</span>
                 <span className="nm">{c.id}</span>
                 {hasTouched && <span className="add-badge">+1</span>}
                 {layers.labels && <span style={{ fontSize: 9, color: 'var(--fg-mute)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{role}</span>}
               </div>
               <div className="bd-block-body">
                 <div>
-                  <div className="lbl">{c.modules.slice(0, 3).map(m => m.name).join(' · ')}{c.modules.length > 3 && ' · …'}</div>
+                  <div className="lbl">{c.modules.slice(0, 3).map(m => m.name).join(' · ') || '—'}{c.modules.length > 3 && ' · …'}</div>
                   <div className="lbl" style={{ marginTop: 2 }}>
                     {c.modules.length} modules
                     {errCount > 0 && <span style={{ color: 'var(--err)' }}> · {errCount} sim ✗</span>}
@@ -1440,7 +1476,7 @@ window.SocArchitect = function SocArchitect() {
                     ◌ {runningByIp[m.id].workflow}
                   </span>
                 )}
-                {m.addr && <span style={{ fontSize: 9, color: 'var(--cyan)', fontFamily: 'var(--mono)' }}>{(m.addr.split(' ')[0] || '').replace(/^0x/, '')}</span>}
+                {m.addr && <span style={{ fontSize: 9, color: 'var(--cyan)', fontFamily: 'var(--mono)' }}>{m.addr.split(' ')[0] || ''}</span>}
                 {/* ⚡ dispatch button — opens menu to run workflows on
                     this IP via an HTTP worker. */}
                 <button className="bd-dispatch-btn"
