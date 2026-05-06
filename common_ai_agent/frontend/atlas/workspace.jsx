@@ -83,11 +83,14 @@ const CopyBtn = ({ text, label = 'copy' }) => {
 // `0` is the special "collapsed" value; any positive width is clamped
 // to [minW, maxW]. A separate "lastNonZero" remembers the user's last
 // open width so collapse → expand restores cleanly.
-const useResizable = (initial, storageKey, minW, maxW) => {
+const useResizable = (initial, storageKey, minW, maxW, restoreCollapsed = true) => {
   const [w, setW] = React.useState(() => {
     try {
       const raw = parseInt(localStorage.getItem(storageKey), 10);
-      if (Number.isFinite(raw) && (raw === 0 || raw >= minW)) {
+      if (Number.isFinite(raw) && raw === 0 && restoreCollapsed) {
+        return 0;
+      }
+      if (Number.isFinite(raw) && raw >= minW) {
         return Math.min(maxW, raw);
       }
     } catch (_) {}
@@ -163,7 +166,7 @@ const Workspace = ({ dir, onScreen }) => {
 
   // Column widths (drag-resizable, persisted in localStorage).
   // 0 = collapsed; any positive width is clamped to [min, max].
-  const [leftW,  setLeftW,  toggleLeft]  = useResizable(230, 'atlasLeftW',  160, 480);
+  const [leftW,  setLeftW,  toggleLeft]  = useResizable(230, 'atlasLeftW',  160, 480, false);
   const [rightW, setRightW, toggleRight] = useResizable(360, 'atlasRightW', 260, 600);
 
   // File-tree sort mode — 'name' (alphabetical, dirs first; default) or
@@ -1386,8 +1389,8 @@ const Workspace = ({ dir, onScreen }) => {
         <div /> /* collapsed — empty grid cell so the 5-track grid stays aligned */
       )}
 
-      {/* LEFT ↔ CENTER splitter — hidden when sim_debug owns the surface */}
-      {effLeftW > 0 && (
+      {/* LEFT ↔ CENTER splitter — keep visible at 0px so collapsed panels can reopen. */}
+      {!isSimDebug && (
         <Splitter width={leftW} side="left" onResize={setLeftW} onToggle={toggleLeft} />
       )}
 
@@ -1798,8 +1801,8 @@ const Workspace = ({ dir, onScreen }) => {
       </div>
       )}
 
-      {/* CENTER ↔ RIGHT splitter — hidden when sim_debug owns the surface */}
-      {effRightW > 0 && (
+      {/* CENTER ↔ RIGHT splitter — keep visible at 0px so collapsed panels can reopen. */}
+      {!isSimDebug && (
         <Splitter width={rightW} side="right" onResize={setRightW} onToggle={toggleRight} />
       )}
 

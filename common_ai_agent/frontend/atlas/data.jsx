@@ -38,9 +38,17 @@
     { cmd: '/session', alias: 'ss', hint: '(client) show or switch session: /session default' },
   ];
 
-  // Workflow stage badges. Empty by default — populated only if a future
-  // /api/workflows endpoint exists. Workspace tolerates an empty list.
-  window.FLOW_STAGES = [];
+  const DEFAULT_FLOW_STAGES = [
+    { id: 'ssot-gen',     label: 'ssot-gen',     cmd: '/wf ssot-gen',     color: 'var(--mag)',    glyph: 'SS' },
+    { id: 'fl-model-gen', label: 'fl-model-gen', cmd: '/wf fl-model-gen', color: 'var(--cyan)',   glyph: 'FL' },
+    { id: 'rtl-gen',      label: 'rtl-gen',      cmd: '/wf rtl-gen',      color: 'var(--accent)', glyph: 'RT' },
+    { id: 'tb-gen',       label: 'tb-gen',       cmd: '/wf tb-gen',       color: 'var(--ok)',     glyph: 'TB' },
+    { id: 'sim_debug',    label: 'sim_debug',    cmd: '/wf sim_debug',    color: 'var(--warn)',   glyph: 'DB' },
+  ];
+
+  // Workflow stage badges. Seed the canonical IP flow immediately so the
+  // left workflow rail is visible even before /api/workspaces returns.
+  window.FLOW_STAGES = DEFAULT_FLOW_STAGES.slice();
 
   // Question flows for ask_user. Dynamic flows are pushed in by
   // workspace.jsx's `ask_user` WS subscription, so we only need an
@@ -356,26 +364,20 @@
       if (!r.ok) return;
       const d = await r.json();
       const items = Array.isArray(d.items) ? d.items : [];
-      // Show the end-to-end SoC/IP implementation flow in order.
-      const PIPELINE = [
-        { id: 'ssot-gen',  color: 'var(--mag)'    },
-        { id: 'fl-model-gen', color: 'var(--cyan)' },
-        { id: 'rtl-gen',   color: 'var(--accent)' },
-        { id: 'tb-gen',    color: 'var(--ok)'     },
-        { id: 'sim_debug', color: 'var(--warn)'   },
-      ];
       const byId = new Map(items.map(w => [w.id, w]));
-      window.FLOW_STAGES = PIPELINE
+      const live = DEFAULT_FLOW_STAGES
         .filter(p => byId.has(p.id))
         .map(p => {
           const w = byId.get(p.id);
           return {
             id:    w.id,
             label: w.label || w.name,
-            cmd:   '/wf ' + w.id,
+            cmd:   p.cmd,
             color: p.color,
+            glyph: p.glyph,
           };
         });
+      window.FLOW_STAGES = live.length ? live : DEFAULT_FLOW_STAGES.slice();
       window.CONTEXT.workspace = d.active || '';
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FLOW_STAGES' }));
     } catch (e) { /* ignore */ }
