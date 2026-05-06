@@ -184,11 +184,28 @@ const Workspace = ({ dir, onScreen }) => {
     { kind: 'agent', text: '**Plan mode** · read-only. The agent will analyze and propose without executing mutating tools. Use `apply` (or switch back to Normal) to run the plan.' },
   ];
 
+  const resolveSession = React.useCallback((...candidates) => {
+    const norm = window.atlasData && window.atlasData.normalizeSessionName;
+    for (const candidate of candidates) {
+      try {
+        const sid = norm ? norm(candidate || '') : '';
+        if (sid) return sid;
+      } catch (_) {}
+    }
+    return 'default';
+  }, []);
+
   const [feed, setFeed] = React.useState(NORMAL_FEED);
   const [activeSession, setActiveSession] = React.useState(() => {
     const norm = window.atlasData && window.atlasData.normalizeSessionName;
-    try { return (norm && norm(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession'))) || window.ACTIVE_SESSION || 'default'; }
-    catch (_) { return window.ACTIVE_SESSION || 'default'; }
+    try {
+      const sid = (norm && norm(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession'))) || 'default';
+      window.ACTIVE_SESSION = sid;
+      return sid;
+    } catch (_) {
+      window.ACTIVE_SESSION = 'default';
+      return 'default';
+    }
   });
 
   const refreshFeed = (newIntent /*, newWorkflow */) => {
@@ -200,9 +217,10 @@ const Workspace = ({ dir, onScreen }) => {
   };
 
   const activateSession = React.useCallback((scopePath, wf) => {
-    const sid = (window.atlasData && window.atlasData.sessionFor)
+    const rawSid = (window.atlasData && window.atlasData.sessionFor)
       ? window.atlasData.sessionFor(scopePath || window.SCOPE_PATH || '', wf || '')
       : 'default';
+    const sid = resolveSession(rawSid);
     window.ACTIVE_SESSION = sid;
     setActiveSession(sid);
     try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
@@ -214,16 +232,14 @@ const Workspace = ({ dir, onScreen }) => {
 
   const sendPrompt = React.useCallback((text, sessionOverride) => {
     if (window.backend) {
-      const norm = window.atlasData && window.atlasData.normalizeSessionName;
-      const session = (norm && norm(sessionOverride || activeSession || window.ACTIVE_SESSION))
-        || sessionOverride || activeSession || window.ACTIVE_SESSION || 'default';
+      const session = resolveSession(sessionOverride, activeSession, window.ACTIVE_SESSION);
       window.backend.send({
         type: 'prompt',
         text,
         session,
       });
     }
-  }, [activeSession]);
+  }, [activeSession, resolveSession]);
 
   const switchIntent = (i) => {
     setIntent(i);
@@ -2197,10 +2213,16 @@ const SsotApprovalCard = ({ payload }) => {
   const send = (text) => {
     if (!text || !window.backend?.send) return;
     const norm = window.atlasData && window.atlasData.normalizeSessionName;
+    let session = 'default';
+    try {
+      session = (norm && norm(window.ACTIVE_SESSION || '')) || 'default';
+    } catch (_) {
+      session = 'default';
+    }
     window.backend.send({
       type: 'prompt',
       text,
-      session: (norm && norm(window.ACTIVE_SESSION)) || window.ACTIVE_SESSION || 'default',
+      session,
     });
   };
   const rows = [

@@ -679,6 +679,30 @@ class TestAtlasUiWorkerDispatchTemplateWorkflow(unittest.TestCase):
         self.assertTrue(response.get("ok"), response)
         self.assertEqual(posted.get("session"), "dma330/rtl-gen")
 
+    def test_dispatch_accepts_windows_scope_path_session(self):
+        response, posted = self._dispatch({
+            "workflow": "ssot-gen",
+            "ip": "SQA",
+            "session": r"C:\Users\207\Desktop\SQA/ssot-gen",
+            "worker": "http://localhost:8001",
+        })
+
+        self.assertTrue(response.get("ok"), response)
+        self.assertEqual(posted.get("session"), "SQA/ssot-gen")
+
+    def test_session_state_accepts_leading_backslash_namespace(self):
+        try:
+            from fastapi.testclient import TestClient
+            import atlas_ui
+        except ImportError as e:
+            self.skipTest(f"fastapi/atlas_ui unavailable: {e}")
+
+        client = TestClient(atlas_ui.create_app())
+        response = client.get("/api/session/state", params={"session": r"\SQA/ssot-gen"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json().get("session"), "SQA/ssot-gen")
+
     def test_rtl_dispatch_without_ip_does_not_fallback_to_static_seed(self):
         response, posted = self._dispatch({
             "workflow": "rtl-gen",

@@ -108,6 +108,21 @@
     }));
   }
 
+  const KNOWN_WORKFLOWS = new Set([
+    'architect',
+    'coverage',
+    'fl-model-gen',
+    'goal-audit',
+    'lint',
+    'mas-gen',
+    'rtl-gen',
+    'signoff',
+    'sim',
+    'sim_debug',
+    'ssot-gen',
+    'tb-gen',
+  ]);
+
   function normalizeSessionName(value) {
     const raw = String(value || '').trim().replace(/^["']|["']$/g, '');
     if (!raw) return '';
@@ -118,11 +133,18 @@
     const lower = parts.map(p => p.toLowerCase());
     const idx = lower.lastIndexOf('.session');
     if (idx >= 0) parts = parts.slice(idx + 1);
+    else if (/^[A-Za-z]:$/.test(parts[0])) {
+      parts = parts.slice(1);
+      if (parts.length > 2) parts = parts.slice(-2);
+    }
     const knownFiles = new Set(['conversation.json', 'todo.json', 'todo_error.json', 'cost.json', 'state.json']);
     if (parts.length && knownFiles.has(String(parts[parts.length - 1]).toLowerCase())) {
       parts = parts.slice(0, -1);
     }
     if (!parts.length) return '';
+    if (parts.length > 2 && KNOWN_WORKFLOWS.has(String(parts[parts.length - 1]).toLowerCase())) {
+      parts = parts.slice(-2);
+    }
     for (const part of parts) {
       if (part === '..' || part.includes(':') || !/^[A-Za-z0-9_.-]+$/.test(part)) return '';
     }
@@ -130,8 +152,15 @@
   }
 
   function sessionFor(scopePath, workflow) {
-    const scope = String(scopePath || '').replace(/^\/+|\/+$/g, '');
-    const wf = String(workflow || '').replace(/^\/+|\/+$/g, '');
+    let scope = normalizeSessionName(scopePath || '');
+    const wf = normalizeSessionName(String(workflow || '').replace(/^\/+|\/+$/g, ''));
+    if (wf && scope) {
+      const parts = scope.split('/').filter(Boolean);
+      if (parts[parts.length - 1] === wf) {
+        parts.pop();
+        scope = parts.join('/');
+      }
+    }
     if (scope && wf) return `${scope}/${wf}`;
     if (scope) return `${scope}/user`;
     if (wf) return `soc/${wf}`;
