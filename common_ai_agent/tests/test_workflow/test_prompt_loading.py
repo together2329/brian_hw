@@ -415,6 +415,51 @@ class TestTodoPromptLoading(unittest.TestCase):
         data = _json.loads(Path(todo_file).read_text())
         self.assertEqual(len(data.get("todos", data if isinstance(data, list) else [])), 2)
 
+    def test_todo_template_load_dynamic_ssot_rtl_for_ip(self):
+        self._make_registry({
+            "ssot-rtl": {
+                "name": "ssot-rtl",
+                "tasks": [{"content": "static seed", "priority": "low"}],
+            }
+        })
+        ip = "todo_dynamic_ip"
+        tracker_dir = self.tmp / ip / "rtl"
+        tracker_dir.mkdir(parents=True)
+        (tracker_dir / "rtl_todo_tracker.json").write_text(
+            json.dumps({
+                "name": f"{ip}-rtl",
+                "source_plan": "rtl/rtl_todo_plan.json",
+                "tasks": [
+                    {
+                        "content": "Implement SSOT-specific RTL behavior",
+                        "activeForm": "Implementing SSOT-specific RTL behavior",
+                        "detail": "Generated from function_model and cycle_model.",
+                        "criteria": "Function model behavior covered\nCycle timing covered",
+                        "priority": "high",
+                    },
+                    {"content": "Close dynamic gate", "criteria": "gate.status pass"},
+                ],
+            }),
+            encoding="utf-8",
+        )
+        todo_file = str(self.tmp / "todo.json")
+
+        from core.slash_commands import SlashCommandRegistry
+        reg = SlashCommandRegistry()
+        cwd = os.getcwd()
+        try:
+            os.chdir(self.tmp)
+            result = reg._todo_load_template("ssot-rtl", todo_file, dynamic_ip=ip)
+        finally:
+            os.chdir(cwd)
+
+        self.assertIn("dynamic template 'ssot-rtl'", result)
+        data = json.loads(Path(todo_file).read_text())
+        todos = data["todos"]
+        self.assertEqual(len(todos), 2)
+        self.assertEqual(todos[0]["content"], "Implement SSOT-specific RTL behavior")
+        self.assertIn("Cycle timing covered", todos[0]["criteria"])
+
     def test_todo_template_load_unknown_name_returns_error(self):
         self._make_registry({"known": {"name": "known", "tasks": []}})
         from core.slash_commands import SlashCommandRegistry

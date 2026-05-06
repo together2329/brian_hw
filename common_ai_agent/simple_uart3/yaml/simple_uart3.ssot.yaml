@@ -1,0 +1,48 @@
+top_module: simple_uart3
+parameters:
+  - {name: DATA_BITS, value: 8}
+  - {name: FIFO_DEPTH, value: 16}
+  - {name: CLK_FREQ_HZ, value: 50000000}
+  - {name: BAUD, value: 115200}
+clocks:
+  - {name: clk, period_ns: 20.0, source_port: clk}
+resets:
+  - {name: rst_n, polarity: active_low, source_port: rst_n}
+ports:
+  - {name: clk, dir: input, width: 1, kind: clock}
+  - {name: rst_n, dir: input, width: 1, kind: reset}
+  - {name: psel, dir: input, width: 1, bus: S_APB}
+  - {name: penable, dir: input, width: 1, bus: S_APB}
+  - {name: pwrite, dir: input, width: 1, bus: S_APB}
+  - {name: paddr, dir: input, width: 12, bus: S_APB}
+  - {name: pwdata, dir: input, width: 32, bus: S_APB}
+  - {name: prdata, dir: output, width: 32, bus: S_APB}
+  - {name: pready, dir: output, width: 1, bus: S_APB}
+  - {name: pslverr, dir: output, width: 1, bus: S_APB}
+  - {name: rx, dir: input, width: 1, bus: UART_RX}
+  - {name: tx, dir: output, width: 1, bus: UART_TX}
+  - {name: irq, dir: output, width: 1, bus: IRQ}
+busInterfaces:
+  - {name: S_APB, proto: APB, role: slave, side: left, width: 32}
+  - {name: IRQ, proto: IRQ, role: master, side: right, width: 1}
+  - {name: UART_RX, proto: UART, role: slave, side: left, width: 1}
+  - {name: UART_TX, proto: UART, role: master, side: right, width: 1}
+memoryMap:
+  - {name: regs, base: 0x4000_4000, range: 0x1000}
+sub_modules:
+  - name: simple_uart3_regs
+    file: rtl/simple_uart3_regs.sv
+    ownership: manifest
+    role: apb_register_bank
+  - name: simple_uart3_baud
+    file: rtl/simple_uart3_baud.sv
+    ownership: manifest
+    role: baud_tick_generator
+  - name: simple_uart3_rx
+    file: rtl/simple_uart3_rx.sv
+    ownership: manifest
+    role: uart_receiver
+  - name: simple_uart3_tx
+    file: rtl/simple_uart3_tx.sv
+    ownership: manifest
+    role: uart_transmitter

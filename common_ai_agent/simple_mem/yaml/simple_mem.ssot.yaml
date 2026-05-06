@@ -1,0 +1,32 @@
+top_module: simple_mem
+version: 0.1.0
+type: memory
+description: Tiny smoke-test memory target.
+ports:
+  - {name: clk, direction: input, width: 1}
+  - {name: rst_n, direction: input, width: 1}
+  - {name: s_addr, direction: input, width: 16}
+  - {name: s_wdata, direction: input, width: 32}
+  - {name: s_rdata, direction: output, width: 32}
+  - {name: s_valid, direction: input, width: 1}
+  - {name: s_write, direction: input, width: 1}
+  - {name: s_ready, direction: output, width: 1}
+clocks:
+  - {name: clk, period_ns: 10.0, source_port: clk}
+resets:
+  - {name: rst_n, polarity: active_low, source_port: rst_n}
+busInterfaces:
+  - {name: S_MEM, proto: SIMPLE, role: slave, side: left, width: 32}
+memoryMap:
+  - {name: ram, base: 0x0000_0000, range: 0x0000_1000}
+sub_modules:
+  - {name: simple_mem_array, file: rtl/simple_mem_array.sv, ownership: manifest, ssot_gen: true, description: Small RAM array shell}
+parameters:
+  - {name: ADDR_WIDTH, default: 16, type: int}
+  - {name: DATA_WIDTH, default: 32, type: int}
+features:
+  - Single-cycle ready response
+filelist:
+  rtl:
+    - rtl/simple_mem_array.sv
+    - rtl/simple_mem.sv

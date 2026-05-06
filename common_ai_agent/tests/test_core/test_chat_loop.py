@@ -224,11 +224,17 @@ class TestPlanModeConfirmation(unittest.TestCase):
         new_state, ctrl = _call("n", state=state)
         self.assertEqual(new_state.agent_mode, "plan")
 
-    def test_typo_returns_skip(self):
-        """Single char non-slash, non-y/n → skip (don't waste LLM call)."""
+    def test_short_feedback_text_passes_to_react(self):
+        """Short non-command text still reaches the LLM in plan mode."""
+        called = []
+        def mock_react(msgs, tracker, task, **kw):
+            called.append(task)
+            return msgs + [{"role": "assistant", "content": "updated plan"}], "plan"
+        deps = _make_deps(run_react_agent_fn=mock_react)
         state = self._plan_state()
-        _, ctrl = _call("]", state=state)
-        self.assertEqual(ctrl, "skip")
+        _, ctrl = _call("Hi", state=state, deps=deps)
+        self.assertEqual(ctrl, "continue")
+        self.assertEqual(called, ["Hi"])
 
     def test_feedback_text_passes_to_react(self):
         """Long feedback text in plan mode should call run_react_agent."""

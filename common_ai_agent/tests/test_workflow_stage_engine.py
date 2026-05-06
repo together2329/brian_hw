@@ -482,8 +482,12 @@ def test_dynamic_rtl_todos_scale_from_ssot_complexity(tmp_path: Path):
     gate_kinds = {task["gate_todo"]["kind"] for task in gate_tasks}
     assert {"dut_compile", "dut_lint", "static_rtl_evidence", "dynamic_todo_closure"}.issubset(gate_kinds)
     assert any(task["source_ref"] == "quality_gates.rtl_gen.dut_compile" for task in gate_tasks)
-    template_plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    disk_plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    assert disk_plan["summary"]["total_tasks"] == summary["total_tasks"]
+    assert disk_plan["gate"]["status"] == "planned"
+    template_plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_tracker.json").read_text(encoding="utf-8"))
     assert template_plan["name"] == f"{ip}-rtl"
+    assert template_plan["source_plan"] == "rtl/rtl_todo_plan.json"
     assert "tasks" in template_plan
     assert len(template_plan["tasks"]) == summary["total_tasks"]
     first_task = template_plan["tasks"][0]
@@ -491,6 +495,7 @@ def test_dynamic_rtl_todos_scale_from_ssot_complexity(tmp_path: Path):
     assert "activeForm" in first_task
     assert "detail" in first_task
     assert "priority" in first_task
+    assert "criteria" in first_task
 
 
 def test_dynamic_rtl_todos_import_ssot_workflow_todo_content_detail_criteria(tmp_path: Path):

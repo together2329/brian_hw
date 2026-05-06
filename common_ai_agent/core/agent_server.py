@@ -40,6 +40,8 @@ if _script_dir not in sys.path:
 if os.path.join(_project_root, 'src') not in sys.path:
     sys.path.insert(0, os.path.join(_project_root, 'src'))
 
+from core.session_names import normalize_session_name
+
 
 # ─── Data Models ─────────────────────────────────────────────────────────
 
@@ -418,7 +420,7 @@ def _build_todos_summary(todos: list, entry) -> list:
     return summary
 
 
-def _load_todo_template(name: str, workflow: str = "") -> Optional[list]:
+def _load_todo_template(name: str, workflow: str = "", ip: str = "") -> Optional[list]:
     """Load tasks from a todo template JSON file.
 
     Search order:
@@ -427,6 +429,16 @@ def _load_todo_template(name: str, workflow: str = "") -> Optional[list]:
 
     Returns the tasks list on success, None if not found.
     """
+    if ip:
+        try:
+            from workflow.loader import load_dynamic_todo_template
+            tasks, source, _ = load_dynamic_todo_template(name, ip, project_root=Path(_project_root))
+            if tasks and source:
+                print(f"[template] Loaded dynamic '{name}' for {ip} ({len(tasks)} tasks) from {source}")
+                return tasks
+        except Exception as e:
+            print(f"[template] WARNING: Failed to load dynamic template {name} for {ip}: {e}")
+
     candidates: list[Path] = []
 
     if workflow:
@@ -659,7 +671,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         # can be reopened after worker restart via .session/<ip>/<workflow>.
         session_overrides: Dict[str, str] = {}
         run_todo_tracker = _worker_todo_tracker
-        active_session = (session_name or "").strip()
+        active_session = normalize_session_name(session_name)
         if active_session:
             session_dir = Path(_project_root) / ".session" / active_session
             session_dir.mkdir(parents=True, exist_ok=True)
@@ -1329,15 +1341,19 @@ def create_app():
         todos = request.get("todos")
         template = str(request.get("template", ""))
         workflow = str(request.get("workflow", ""))
-        session_name = str(request.get("session", ""))
+        session_raw = str(request.get("session", ""))
+        session_name = normalize_session_name(session_raw)
         context = str(request.get("context", ""))
         sync = bool(request.get("sync", False))
         if not task:
             raise HTTPException(status_code=400, detail="'task' is required")
-        if session_name and (".." in session_name or not re.match(r"^[A-Za-z0-9_.\-/]+$", session_name)):
+        if session_raw.strip() and not session_name:
             raise HTTPException(status_code=400, detail="invalid 'session'")
+        template_ip = str(request.get("ip", "")).strip()
+        if not template_ip and session_name:
+            template_ip = session_name.split("/", 1)[0].strip()
         if template and not todos:
-            todos = _load_todo_template(template, workflow)
+            todos = _load_todo_template(template, workflow, template_ip)
             if todos is None:
                 raise HTTPException(status_code=404, detail=f"Template '{template}' not found")
         entry = _create_run(task, model)

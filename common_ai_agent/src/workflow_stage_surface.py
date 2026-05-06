@@ -32,6 +32,27 @@ COMMON_ENGINE_STAGES = {
 }
 
 
+LLM_RTL_BLOCKERS = {
+    "RTL_TODO_PLAN_MISSING",
+    "DETERMINISTIC_RTL_ARTIFACT_NOT_APPROVED",
+    "LLM_RTL_IMPLEMENTATION_REQUIRED",
+    "COMMON_AI_AGENT_RTL_PROVENANCE_REQUIRED",
+}
+
+
+def _is_llm_rtl_blocker(doc: Any) -> bool:
+    if not isinstance(doc, dict):
+        return False
+    questions = doc.get("questions")
+    if not isinstance(questions, list) or not questions:
+        return False
+    return all(
+        isinstance(question, dict)
+        and str(question.get("id") or "") in LLM_RTL_BLOCKERS
+        for question in questions
+    )
+
+
 @dataclass
 class StageSurfaceResult:
     handled: bool
@@ -76,6 +97,26 @@ def run_common_stage_surface(
     )
     metadata = result.metadata if isinstance(result.metadata, dict) else {}
 
+    if engine_alias == "ssot-rtl" and _is_llm_rtl_blocker(metadata.get("rtl_blocked")):
+        surface.queue_prompts = [
+            "/mode normal",
+            "/wf rtl-gen",
+            "/clear",
+            f"/todo template {template} {ip}",
+            (
+                f"Implement RTL for {ip} from {ip}/yaml/{ip}.ssot.yaml and the dynamic "
+                f"TodoTracker list loaded from {ip}/rtl/rtl_todo_tracker.json. Write only RTL-owned "
+                "artifacts, keep SSOT/function model/coverage/interface targets locked, write "
+                "rtl/rtl_authoring_provenance.json with common_ai_agent rtl-gen provenance, then rerun "
+                "/ssot-rtl until the dynamic TODO gate, DUT-only compile, and DUT-only lint pass.\n\n"
+                "Stage-engine evidence:\n```text\n"
+                f"{result.message}\n"
+                "```"
+            ),
+        ]
+        surface.keep_running = True
+        return surface
+
     if engine_alias == "ssot-rtl" and metadata.get("rtl_blocked"):
         surface.rtl_blocked = True
         surface.keep_running = True
@@ -86,7 +127,7 @@ def run_common_stage_surface(
             "/mode normal",
             "/wf rtl-gen",
             "/clear",
-            f"/todo template {template}",
+            f"/todo template {template} {ip}",
             (
                 f"Repair generated RTL for {ip} from {ip}/yaml/{ip}.ssot.yaml using the "
                 "common stage-engine evidence below. Repair only RTL-owned artifacts; do not "
@@ -105,7 +146,7 @@ def run_common_stage_surface(
             "/mode normal",
             "/wf tb-gen",
             "/clear",
-            f"/todo template {template}",
+            f"/todo template {template} {ip}",
             (
                 f"Repair generated pyuvm/cocotb TB for {ip} using SSOT, FunctionalModel, "
                 "equivalence_goals.json, rtl_contract.json, and the common stage-engine evidence "

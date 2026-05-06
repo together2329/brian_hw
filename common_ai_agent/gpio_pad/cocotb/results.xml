@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1777623336" />
+    <testcase name="tb_gpio_pad" classname="tests.tb" file="/Users/brian/Desktop/Project/NEW_ATLAS/gpio_pad/cocotb/tests/tb.py" lineno="243" time="0.03247404098510742" sim_time_ns="3320.001" ratio_time="102235.53642500332" />
+  </testsuite>
+</testsuites>

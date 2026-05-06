@@ -156,13 +156,8 @@ def process_chat_turn(
                 "Let's refine it further or address my concerns."
             )
 
-        # Short non-slash token → likely a typo, skip
-        elif len(inp) <= 2 and not inp.startswith("/"):
-            if state.messages:
-                state.messages.pop()
-            return state, "skip"
-
-        # Otherwise: treat as feedback and fall through to run_react_agent
+        # Otherwise: treat as feedback and fall through to run_react_agent.
+        # Short text such as "Hi" is still valid feedback in Atlas plan mode.
 
     # --- Keep-going signal ---
     if getattr(cfg, "ENABLE_TODO_TRACKING", False) and state.todo_tracker:

@@ -1,0 +1,129 @@
+name: aurora_soc
+version: 0.2.0
+top_ssot: aurora_soc/yaml/aurora_soc.ssot.yaml
+clusters:
+- id: cpu_ss
+  role: CPU
+  members:
+  - cortexa15_0
+  - cortexa15_0_0
+- id: noc
+  role: BUS
+  members:
+  - cci550
+- id: mem_ss
+  role: MEM
+  members:
+  - ddr_phy
+  - ddr_phy_0
+- id: periph_ss
+  role: PERIPH
+  members:
+  - spi_master
+  - gic_400
+  - counter
+  - counter_0
+  - simple_uart3
+  - simple_gpio3
+  - simple_pwm3
+- id: uncategorized
+  role: PERIPH
+  label: Uncategorized (auto-imported)
+  members:
+  - uart_lite
+instances:
+- id: cortexa15_0
+  ssot: cortexa15_0/yaml/cortexa15_0.ssot.yaml
+- id: cci550
+  ssot: cci550/yaml/cci550.ssot.yaml
+- id: ddr_phy
+  ssot: ddr_phy/yaml/ddr_phy.ssot.yaml
+  addr: '0x8000_0000'
+- id: spi_master
+  ssot: spi_master/yaml/spi_master.ssot.yaml
+  addr: '0x4000_2000'
+  x: 100.0
+  y: 200.0
+- id: gic_400
+  ssot: gic_400/yaml/gic_400.ssot.yaml
+  addr: '0x0800_0000'
+- id: uart_lite
+  ssot: uart_lite/yaml/uart_lite.ssot.yaml
+- id: counter
+  ssot: counter/yaml/counter.ssot.yaml
+  top_x: 620.0
+  top_y: 600.0
+- id: cortexa15_0_0
+  ssot: cortexa15_0/yaml/cortexa15_0.ssot.yaml
+  top_x: 170.0
+  top_y: 560.0
+- id: ddr_phy_0
+  ssot: ddr_phy/yaml/ddr_phy.ssot.yaml
+  top_x: 850.0
+  top_y: 560.0
+- id: counter_0
+  ssot: counter/yaml/counter.ssot.yaml
+  top_x: 170.0
+  top_y: 560.0
+- id: simple_uart3
+  ssot: simple_uart3/yaml/simple_uart3.ssot.yaml
+  addr: '0x4000_4000'
+  top_x: 560.0
+  top_y: 760.0
+- id: simple_gpio3
+  ssot: simple_gpio3/yaml/simple_gpio3.ssot.yaml
+  addr: '0x4000_5000'
+  top_x: 560.0
+  top_y: 1020.0
+- id: simple_pwm3
+  ssot: simple_pwm3/yaml/simple_pwm3.ssot.yaml
+  addr: '0x4000_6000'
+  top_x: 560.0
+  top_y: 1280.0
+connections:
+- from: cortexa15_0/M_ACE
+  to: cci550/S0_ACE
+  proto: ACE
+- from: cci550/M_AXI
+  to: ddr_phy/S_AXI
+  proto: AXI4
+- from: spi_master/IRQ
+  to: gic_400/IRQ_M
+  proto: IRQ
+- from: cci550/M_APB
+  to: simple_uart3/S_APB
+  proto: APB
+- from: cci550/M_APB
+  to: simple_gpio3/S_APB
+  proto: APB
+- from: cci550/M_APB
+  to: simple_pwm3/S_APB
+  proto: APB
+- from: simple_uart3/IRQ
+  to: gic_400/IRQ_M
+  proto: IRQ
+- from: simple_gpio3/IRQ
+  to: gic_400/IRQ_M
+  proto: IRQ
+- from: simple_pwm3/IRQ
+  to: gic_400/IRQ_M
+  proto: IRQ
+addrMap:
+- name: gic_400
+  base: '0x0800_0000'
+  range: '0x0000_1000'
+- name: spi_master
+  base: '0x4000_2000'
+  range: '0x0000_1000'
+- name: ddr_phy
+  base: '0x8000_0000'
+  range: '0x4000_0000'
+- name: simple_uart3
+  base: '0x4000_4000'
+  range: '0x0000_1000'
+- name: simple_gpio3
+  base: '0x4000_5000'
+  range: '0x0000_1000'
+- name: simple_pwm3
+  base: '0x4000_6000'
+  range: '0x0000_1000'

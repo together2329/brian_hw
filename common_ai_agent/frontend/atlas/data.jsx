@@ -63,7 +63,7 @@
     window.SCOPE_PATH = '';
   }
   try {
-    window.ACTIVE_SESSION = localStorage.getItem('atlasActiveSession') || 'default';
+    window.ACTIVE_SESSION = normalizeSessionName(localStorage.getItem('atlasActiveSession')) || 'default';
   } catch (_) {
     window.ACTIVE_SESSION = 'default';
   }
@@ -108,6 +108,27 @@
     }));
   }
 
+  function normalizeSessionName(value) {
+    const raw = String(value || '').trim().replace(/^["']|["']$/g, '');
+    if (!raw) return '';
+    let parts = raw.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')
+      .split('/')
+      .filter(p => p && p !== '.');
+    if (!parts.length) return '';
+    const lower = parts.map(p => p.toLowerCase());
+    const idx = lower.lastIndexOf('.session');
+    if (idx >= 0) parts = parts.slice(idx + 1);
+    const knownFiles = new Set(['conversation.json', 'todo.json', 'todo_error.json', 'cost.json', 'state.json']);
+    if (parts.length && knownFiles.has(String(parts[parts.length - 1]).toLowerCase())) {
+      parts = parts.slice(0, -1);
+    }
+    if (!parts.length) return '';
+    for (const part of parts) {
+      if (part === '..' || part.includes(':') || !/^[A-Za-z0-9_.-]+$/.test(part)) return '';
+    }
+    return parts.join('/');
+  }
+
   function sessionFor(scopePath, workflow) {
     const scope = String(scopePath || '').replace(/^\/+|\/+$/g, '');
     const wf = String(workflow || '').replace(/^\/+|\/+$/g, '');
@@ -118,7 +139,7 @@
   }
 
   async function refreshSessionState(session, hydrateConversation = true) {
-    const sid = (session || window.ACTIVE_SESSION || 'default').replace(/^\/+|\/+$/g, '');
+    const sid = normalizeSessionName(session || window.ACTIVE_SESSION || 'default');
     if (!sid) return null;
     try {
       const r = await fetch('/api/session/state?session=' + encodeURIComponent(sid) + '&limit=200');
@@ -331,7 +352,7 @@
   window.atlasData = {
     refreshFileTree, refreshTodos, refreshSsotList, refreshHealth,
     refreshSlashCommands, refreshWorkflows, refreshSessionState, sessionFor,
-    refreshProgress,
+    refreshProgress, normalizeSessionName,
     clearTodos: () => fetch('/api/todos/clear', { method: 'POST' }).then(refreshTodos),
     fetchFile: (path) =>
       fetch('/api/file?path=' + encodeURIComponent(path)).then(r => r.json()),

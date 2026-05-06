@@ -1408,11 +1408,9 @@ def _convert_to_template_format(plan: dict[str, Any]) -> dict[str, Any]:
 
         content = task.get("content", "")
         criteria = task.get("criteria", [])
-        criteria_lines = criteria if isinstance(criteria, list) else [str(criteria)]
+        criteria_lines = [str(item) for item in criteria] if isinstance(criteria, list) else [str(criteria)]
 
         detail = task.get("detail", "")
-        if criteria_lines:
-            detail = f"{detail}\n\nDone when:\n" + "\n".join(f"  • {c}" for c in criteria_lines)
 
         active_form = content
         verb_map = {
@@ -1432,12 +1430,15 @@ def _convert_to_template_format(plan: dict[str, Any]) -> dict[str, Any]:
             "content": content,
             "activeForm": active_form,
             "detail": detail,
+            "criteria": "\n".join(line for line in criteria_lines if line),
             "priority": task.get("priority", "medium"),
         })
 
     return {
         "name": f"{plan.get('ip', 'unknown')}-rtl",
-        "description": f"Auto-generated RTL tasks from SSOT for {plan.get('ip', '')}",
+        "description": f"Auto-generated TodoTracker tasks from SSOT RTL plan for {plan.get('ip', '')}",
+        "source_plan": "rtl/rtl_todo_plan.json",
+        "lock_additions": False,
         "tasks": tasks,
     }
 
@@ -1448,12 +1449,13 @@ def _write_outputs(ip_dir: Path, plan: dict[str, Any]) -> None:
     rtl_dir.mkdir(parents=True, exist_ok=True)
     logs_dir.mkdir(parents=True, exist_ok=True)
 
-    internal_text = json.dumps(plan, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-    (logs_dir / "rtl_todo_plan.json").write_text(internal_text, encoding="utf-8")
+    full_plan_text = json.dumps(plan, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    (logs_dir / "rtl_todo_plan.json").write_text(full_plan_text, encoding="utf-8")
+    (rtl_dir / "rtl_todo_plan.json").write_text(full_plan_text, encoding="utf-8")
 
     template_plan = _convert_to_template_format(plan)
     template_text = json.dumps(template_plan, ensure_ascii=False, indent=2) + "\n"
-    (rtl_dir / "rtl_todo_plan.json").write_text(template_text, encoding="utf-8")
+    (rtl_dir / "rtl_todo_tracker.json").write_text(template_text, encoding="utf-8")
     trace = {
         "schema_version": plan["schema_version"],
         "type": "rtl_traceability_matrix",

@@ -1,0 +1,682 @@
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - button "⌂ Workspace" [ref=e6] [cursor=pointer]
+    - button "◫ Architect" [ref=e7] [cursor=pointer]
+    - button "A · Console" [ref=e9] [cursor=pointer]
+    - button "B · Workbench" [ref=e10] [cursor=pointer]
+    - button "Dark" [ref=e12] [cursor=pointer]
+    - button "Light" [ref=e13] [cursor=pointer]
+    - button "■ Stop · Esc" [ref=e15] [cursor=pointer]
+    - button "✕ Exit · ⌃Q" [ref=e16] [cursor=pointer]
+  - generic [ref=e17]:
+    - generic [ref=e18]:
+      - generic [ref=e20]: common_ai_agent
+      - generic [ref=e21]: │
+      - generic [ref=e22]: "workspace: default"
+      - generic [ref=e23]: │
+      - generic "/Users/brian/Desktop/Project/brian_hw/common_ai_agent" [ref=e24]: "cwd: ~/Desktop/Project/brian_hw/common_ai_agent"
+      - generic [ref=e25] [cursor=pointer]: Chat
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: ▸ mode
+            - generic "collapse left panel (double-click splitter to restore)" [ref=e32] [cursor=pointer]: ‹
+            - generic [ref=e33]: shift+tab
+          - generic [ref=e34]:
+            - generic [ref=e35] [cursor=pointer]: ● Normal
+            - generic [ref=e36] [cursor=pointer]: ◐ Plan
+          - generic [ref=e37]:
+            - generic [ref=e38]: workflow
+            - generic [ref=e39]: · optional · click to toggle
+          - generic [ref=e40]:
+            - generic [ref=e41] [cursor=pointer]:
+              - generic [ref=e42]: "1"
+              - generic [ref=e43]: ssot-gen
+              - generic [ref=e44]: ○
+            - generic [ref=e45] [cursor=pointer]:
+              - generic [ref=e46]: "2"
+              - generic [ref=e47]: rtl-gen
+              - generic [ref=e48]: ○
+            - generic [ref=e49] [cursor=pointer]:
+              - generic [ref=e50]: "3"
+              - generic [ref=e51]: lint
+              - generic [ref=e52]: ○
+            - generic [ref=e53] [cursor=pointer]:
+              - generic [ref=e54]: "4"
+              - generic [ref=e55]: tb-gen
+              - generic [ref=e56]: ○
+            - generic [ref=e57] [cursor=pointer]:
+              - generic [ref=e58]: "5"
+              - generic [ref=e59]: sim
+              - generic [ref=e60]: ○
+            - generic [ref=e61] [cursor=pointer]:
+              - generic [ref=e62]: "6"
+              - generic [ref=e63]: syn
+              - generic [ref=e64]: ○
+            - generic [ref=e65] [cursor=pointer]:
+              - generic [ref=e66]: "7"
+              - generic [ref=e67]: dft
+              - generic [ref=e68]: ○
+            - generic [ref=e69] [cursor=pointer]:
+              - generic [ref=e70]: "8"
+              - generic [ref=e71]: sta
+              - generic [ref=e72]: ○
+            - generic [ref=e73] [cursor=pointer]:
+              - generic [ref=e74]: "9"
+              - generic [ref=e75]: pnr
+              - generic [ref=e76]: ○
+            - generic [ref=e77] [cursor=pointer]:
+              - generic [ref=e78]: "10"
+              - generic [ref=e79]: sta-post
+              - generic [ref=e80]: ○
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - generic [ref=e83]: ▸ workspace
+            - generic [ref=e84]: project root
+          - generic [ref=e85]:
+            - generic [ref=e86]: scope
+            - generic [ref=e87]: ›
+            - textbox "Agent will be asked to confine all reads/writes to this path. Empty = whole project root (/Users/brian/Desktop/Project/brian_hw/common_ai_agent)" [ref=e88]:
+              - /placeholder: "(root: brian_hw/common_ai_agent) — type sub-dir, ↵ to set"
+            - 'generic "sort: A→Z (dirs first) — click for recent" [ref=e89] [cursor=pointer]': A→Z
+            - generic "refresh — pull the latest file list now" [ref=e90] [cursor=pointer]: ↻
+          - generic [ref=e91]:
+            - generic "aurora_soc" [ref=e92] [cursor=pointer]:
+              - generic [ref=e93]: ▸
+              - generic [ref=e95]: aurora_soc/
+            - generic "cci550" [ref=e96] [cursor=pointer]:
+              - generic [ref=e97]: ▸
+              - generic [ref=e99]: cci550/
+            - generic "common_ai_agent" [ref=e100] [cursor=pointer]:
+              - generic [ref=e101]: ▸
+              - generic [ref=e103]: common_ai_agent/
+            - generic "core" [ref=e104] [cursor=pointer]:
+              - generic [ref=e105]: ▸
+              - generic [ref=e107]: core/
+            - generic "cortexa15_0" [ref=e108] [cursor=pointer]:
+              - generic [ref=e109]: ▸
+              - generic [ref=e111]: cortexa15_0/
+            - generic "counter" [ref=e112] [cursor=pointer]:
+              - generic [ref=e113]: ▸
+              - generic [ref=e115]: counter/
+            - generic "ddr_phy" [ref=e116] [cursor=pointer]:
+              - generic [ref=e117]: ▸
+              - generic [ref=e119]: ddr_phy/
+            - generic "dma" [ref=e120] [cursor=pointer]:
+              - generic [ref=e121]: ▸
+              - generic [ref=e123]: dma/
+            - generic "frontend" [ref=e124] [cursor=pointer]:
+              - generic [ref=e125]: ▸
+              - generic [ref=e127]: frontend/
+            - generic "gic_400" [ref=e128] [cursor=pointer]:
+              - generic [ref=e129]: ▸
+              - generic [ref=e131]: gic_400/
+            - generic "gpio" [ref=e132] [cursor=pointer]:
+              - generic [ref=e133]: ▸
+              - generic [ref=e135]: gpio/
+            - generic "gpio_pad" [ref=e136] [cursor=pointer]:
+              - generic [ref=e137]: ▸
+              - generic [ref=e139]: gpio_pad/
+            - generic "i2c" [ref=e140] [cursor=pointer]:
+              - generic [ref=e141]: ▸
+              - generic [ref=e143]: i2c/
+            - generic "lib" [ref=e144] [cursor=pointer]:
+              - generic [ref=e145]: ▸
+              - generic [ref=e147]: lib/
+            - generic "list" [ref=e148] [cursor=pointer]:
+              - generic [ref=e149]: ▸
+              - generic [ref=e151]: list/
+            - generic "mcp" [ref=e152] [cursor=pointer]:
+              - generic [ref=e153]: ▸
+              - generic [ref=e155]: mcp/
+            - generic "pdk" [ref=e156] [cursor=pointer]:
+              - generic [ref=e157]: ▸
+              - generic [ref=e159]: pdk/
+            - generic "pwm" [ref=e160] [cursor=pointer]:
+              - generic [ref=e161]: ▸
+              - generic [ref=e163]: pwm/
+            - generic "scripts" [ref=e164] [cursor=pointer]:
+              - generic [ref=e165]: ▸
+              - generic [ref=e167]: scripts/
+            - generic "simple_bus" [ref=e168] [cursor=pointer]:
+              - generic [ref=e169]: ▸
+              - generic [ref=e171]: simple_bus/
+            - generic "simple_cpu" [ref=e172] [cursor=pointer]:
+              - generic [ref=e173]: ▸
+              - generic [ref=e175]: simple_cpu/
+            - generic "simple_gpio3" [ref=e176] [cursor=pointer]:
+              - generic [ref=e177]: ▸
+              - generic [ref=e179]: simple_gpio3/
+            - generic "simple_mem" [ref=e180] [cursor=pointer]:
+              - generic [ref=e181]: ▸
+              - generic [ref=e183]: simple_mem/
+            - generic "simple_pwm3" [ref=e184] [cursor=pointer]:
+              - generic [ref=e185]: ▸
+              - generic [ref=e187]: simple_pwm3/
+            - generic "simple_timer" [ref=e188] [cursor=pointer]:
+              - generic [ref=e189]: ▸
+              - generic [ref=e191]: simple_timer/
+            - generic "simple_uart3" [ref=e192] [cursor=pointer]:
+              - generic [ref=e193]: ▸
+              - generic [ref=e195]: simple_uart3/
+            - generic "skills" [ref=e196] [cursor=pointer]:
+              - generic [ref=e197]: ▸
+              - generic [ref=e199]: skills/
+            - generic "spi" [ref=e200] [cursor=pointer]:
+              - generic [ref=e201]: ▸
+              - generic [ref=e203]: spi/
+            - generic "spi_master" [ref=e204] [cursor=pointer]:
+              - generic [ref=e205]: ▸
+              - generic [ref=e207]: spi_master/
+            - generic "src" [ref=e208] [cursor=pointer]:
+              - generic [ref=e209]: ▸
+              - generic [ref=e211]: src/
+            - generic "template" [ref=e212] [cursor=pointer]:
+              - generic [ref=e213]: ▸
+              - generic [ref=e215]: template/
+            - generic "tests" [ref=e216] [cursor=pointer]:
+              - generic [ref=e217]: ▸
+              - generic [ref=e219]: tests/
+            - generic "timer" [ref=e220] [cursor=pointer]:
+              - generic [ref=e221]: ▸
+              - generic [ref=e223]: timer/
+            - generic "uart" [ref=e224] [cursor=pointer]:
+              - generic [ref=e225]: ▸
+              - generic [ref=e227]: uart/
+            - generic "uart_lite" [ref=e228] [cursor=pointer]:
+              - generic [ref=e229]: ▸
+              - generic [ref=e231]: uart_lite/
+            - generic "workflow" [ref=e232] [cursor=pointer]:
+              - generic [ref=e233]: ▸
+              - generic [ref=e235]: workflow/
+            - generic "_add_re_import.py (double-click to preview)" [ref=e236] [cursor=pointer]:
+              - generic [ref=e237]: ◆
+              - generic [ref=e238]: _add_re_import.py
+              - generic [ref=e239]: 332 B
+            - generic "_check_client.py (double-click to preview)" [ref=e240] [cursor=pointer]:
+              - generic [ref=e241]: ◆
+              - generic [ref=e242]: _check_client.py
+              - generic [ref=e243]: 469 B
+            - generic "_check_tools.py (double-click to preview)" [ref=e244] [cursor=pointer]:
+              - generic [ref=e245]: ◆
+              - generic [ref=e246]: _check_tools.py
+              - generic [ref=e247]: 135 B
+            - generic "_check_worker_ready.py (double-click to preview)" [ref=e248] [cursor=pointer]:
+              - generic [ref=e249]: ◆
+              - generic [ref=e250]: _check_worker_ready.py
+              - generic [ref=e251]: 850 B
+            - generic "_fix_as.py (double-click to preview)" [ref=e252] [cursor=pointer]:
+              - generic [ref=e253]: ◆
+              - generic [ref=e254]: _fix_as.py
+              - generic [ref=e255]: 1.5 KB
+            - generic "_gen_as.py (double-click to preview)" [ref=e256] [cursor=pointer]:
+              - generic [ref=e257]: ◆
+              - generic [ref=e258]: _gen_as.py
+              - generic [ref=e259]: 4.0 KB
+            - generic "_gen_bad_v.py (double-click to preview)" [ref=e260] [cursor=pointer]:
+              - generic [ref=e261]: ◆
+              - generic [ref=e262]: _gen_bad_v.py
+              - generic [ref=e263]: 553 B
+            - generic "_gen_cancel_test.py (double-click to preview)" [ref=e264] [cursor=pointer]:
+              - generic [ref=e265]: ◆
+              - generic [ref=e266]: _gen_cancel_test.py
+              - generic [ref=e267]: 2.7 KB
+            - generic "_gen_fail_tests.py (double-click to preview)" [ref=e268] [cursor=pointer]:
+              - generic [ref=e269]: ◆
+              - generic [ref=e270]: _gen_fail_tests.py
+              - generic [ref=e271]: 5.3 KB
+            - generic "_gen_rtl_test.py (double-click to preview)" [ref=e272] [cursor=pointer]:
+              - generic [ref=e273]: ◆
+              - generic [ref=e274]: _gen_rtl_test.py
+              - generic [ref=e275]: 18.2 KB
+            - generic "_gen_verify_todos.py (double-click to preview)" [ref=e276] [cursor=pointer]:
+              - generic [ref=e277]: ◆
+              - generic [ref=e278]: _gen_verify_todos.py
+              - generic [ref=e279]: 1.1 KB
+            - generic "_parallel_output.txt (double-click to preview)" [ref=e280] [cursor=pointer]:
+              - generic [ref=e281]: ◆
+              - generic [ref=e282]: _parallel_output.txt
+              - generic [ref=e283]: 164 B
+            - generic "_patch1.py (double-click to preview)" [ref=e284] [cursor=pointer]:
+              - generic [ref=e285]: ◆
+              - generic [ref=e286]: _patch1.py
+              - generic [ref=e287]: 422 B
+            - generic "_patch_as.py (double-click to preview)" [ref=e288] [cursor=pointer]:
+              - generic [ref=e289]: ◆
+              - generic [ref=e290]: _patch_as.py
+              - generic [ref=e291]: 628 B
+            - generic "_patch_cancel.py (double-click to preview)" [ref=e292] [cursor=pointer]:
+              - generic [ref=e293]: ◆
+              - generic [ref=e294]: _patch_cancel.py
+              - generic [ref=e295]: 2.1 KB
+            - generic "_patch_client.py (double-click to preview)" [ref=e296] [cursor=pointer]:
+              - generic [ref=e297]: ◆
+              - generic [ref=e298]: _patch_client.py
+              - generic [ref=e299]: 2.5 KB
+            - generic "_patch_todos.py (double-click to preview)" [ref=e300] [cursor=pointer]:
+              - generic [ref=e301]: ◆
+              - generic [ref=e302]: _patch_todos.py
+              - generic [ref=e303]: 1.5 KB
+            - generic "_patch_todos2.py (double-click to preview)" [ref=e304] [cursor=pointer]:
+              - generic [ref=e305]: ◆
+              - generic [ref=e306]: _patch_todos2.py
+              - generic [ref=e307]: 2.2 KB
+            - generic "_run_lint_worker.py (double-click to preview)" [ref=e308] [cursor=pointer]:
+              - generic [ref=e309]: ◆
+              - generic [ref=e310]: _run_lint_worker.py
+              - generic [ref=e311]: 2.1 KB
+            - generic "_run_parallel_dispatch.py (double-click to preview)" [ref=e312] [cursor=pointer]:
+              - generic [ref=e313]: ◆
+              - generic [ref=e314]: _run_parallel_dispatch.py
+              - generic [ref=e315]: 4.8 KB
+            - generic "_run_sim_worker.py (double-click to preview)" [ref=e316] [cursor=pointer]:
+              - generic [ref=e317]: ◆
+              - generic [ref=e318]: _run_sim_worker.py
+              - generic [ref=e319]: 2.3 KB
+            - generic "_run_web_tests.sh (double-click to preview)" [ref=e320] [cursor=pointer]:
+              - generic [ref=e321]: ◆
+              - generic [ref=e322]: _run_web_tests.sh
+            - generic "_sim_worker_output.txt (double-click to preview)" [ref=e323] [cursor=pointer]:
+              - generic [ref=e324]: ◆
+              - generic [ref=e325]: _sim_worker_output.txt
+            - generic "_test_cancel_endpoint.py (double-click to preview)" [ref=e326] [cursor=pointer]:
+              - generic [ref=e327]: ◆
+              - generic [ref=e328]: _test_cancel_endpoint.py
+              - generic [ref=e329]: 2.5 KB
+            - generic "_test_lint_worker.py (double-click to preview)" [ref=e330] [cursor=pointer]:
+              - generic [ref=e331]: ◆
+              - generic [ref=e332]: _test_lint_worker.py
+              - generic [ref=e333]: 2.7 KB
+            - generic "_test_todo_smoke.py (double-click to preview)" [ref=e334] [cursor=pointer]:
+              - generic [ref=e335]: ◆
+              - generic [ref=e336]: _test_todo_smoke.py
+              - generic [ref=e337]: 2.4 KB
+            - generic "_test_todo_worker.py (double-click to preview)" [ref=e338] [cursor=pointer]:
+              - generic [ref=e339]: ◆
+              - generic [ref=e340]: _test_todo_worker.py
+              - generic [ref=e341]: 2.3 KB
+            - generic "_test_todos_summary.py (double-click to preview)" [ref=e342] [cursor=pointer]:
+              - generic [ref=e343]: ◆
+              - generic [ref=e344]: _test_todos_summary.py
+              - generic [ref=e345]: 2.1 KB
+            - generic "_test_web_quick.py (double-click to preview)" [ref=e346] [cursor=pointer]:
+              - generic [ref=e347]: ◆
+              - generic [ref=e348]: _test_web_quick.py
+              - generic [ref=e349]: 489 B
+            - generic "_verify_cancel.py (double-click to preview)" [ref=e350] [cursor=pointer]:
+              - generic [ref=e351]: ◆
+              - generic [ref=e352]: _verify_cancel.py
+              - generic [ref=e353]: 324 B
+            - generic "_verify_todos.py (double-click to preview)" [ref=e354] [cursor=pointer]:
+              - generic [ref=e355]: ◆
+              - generic [ref=e356]: _verify_todos.py
+              - generic [ref=e357]: 898 B
+            - generic "a.out (double-click to preview)" [ref=e358] [cursor=pointer]:
+              - generic [ref=e359]: ◆
+              - generic [ref=e360]: a.out
+              - generic [ref=e361]: 3.8 KB
+            - generic "abundant-knitting-forest.md (double-click to preview)" [ref=e362] [cursor=pointer]:
+              - generic [ref=e363]: ◆
+              - generic [ref=e364]: abundant-knitting-forest.md
+              - generic [ref=e365]: 7.7 KB
+            - generic "ASCII_TREE.txt (double-click to preview)" [ref=e366] [cursor=pointer]:
+              - generic [ref=e367]: ◆
+              - generic [ref=e368]: ASCII_TREE.txt
+              - generic [ref=e369]: 16.8 KB
+            - generic "ATLAS-2.zip (double-click to preview)" [ref=e370] [cursor=pointer]:
+              - generic [ref=e371]: ◆
+              - generic [ref=e372]: ATLAS-2.zip
+              - generic [ref=e373]: 5.9 MB
+            - generic "ATLAS-3.zip (double-click to preview)" [ref=e374] [cursor=pointer]:
+              - generic [ref=e375]: ◆
+              - generic [ref=e376]: ATLAS-3.zip
+              - generic [ref=e377]: 6.0 MB
+            - generic "ATLAS.zip (double-click to preview)" [ref=e378] [cursor=pointer]:
+              - generic [ref=e379]: ◆
+              - generic [ref=e380]: ATLAS.zip
+              - generic [ref=e381]: 5.7 MB
+            - generic "BUG_REPORT.md (double-click to preview)" [ref=e382] [cursor=pointer]:
+              - generic [ref=e383]: ◆
+              - generic [ref=e384]: BUG_REPORT.md
+              - generic [ref=e385]: 2.5 KB
+            - generic "CLAUDE_CODE_ANALYSIS.md (double-click to preview)" [ref=e386] [cursor=pointer]:
+              - generic [ref=e387]: ◆
+              - generic [ref=e388]: CLAUDE_CODE_ANALYSIS.md
+              - generic [ref=e389]: 17.0 KB
+            - generic "cmd_output_1777665744.txt (double-click to preview)" [ref=e390] [cursor=pointer]:
+              - generic [ref=e391]: ◆
+              - generic [ref=e392]: cmd_output_1777665744.txt
+              - generic [ref=e393]: 3.6 KB
+            - generic "cmd_output_1777665994.txt (double-click to preview)" [ref=e394] [cursor=pointer]:
+              - generic [ref=e395]: ◆
+              - generic [ref=e396]: cmd_output_1777665994.txt
+              - generic [ref=e397]: 2.8 KB
+            - generic "cmd_output_1777666925.txt (double-click to preview)" [ref=e398] [cursor=pointer]:
+              - generic [ref=e399]: ◆
+              - generic [ref=e400]: cmd_output_1777666925.txt
+              - generic [ref=e401]: 2.1 KB
+            - generic "cmd_output_1777667915.txt (double-click to preview)" [ref=e402] [cursor=pointer]:
+              - generic [ref=e403]: ◆
+              - generic [ref=e404]: cmd_output_1777667915.txt
+              - generic [ref=e405]: 2.7 KB
+            - generic "cmd_output_1777668108.txt (double-click to preview)" [ref=e406] [cursor=pointer]:
+              - generic [ref=e407]: ◆
+              - generic [ref=e408]: cmd_output_1777668108.txt
+              - generic [ref=e409]: 4.2 KB
+            - generic "cmd_output_1777668155.txt (double-click to preview)" [ref=e410] [cursor=pointer]:
+              - generic [ref=e411]: ◆
+              - generic [ref=e412]: cmd_output_1777668155.txt
+              - generic [ref=e413]: 2.1 KB
+            - generic "cmd_output_1777668268.txt (double-click to preview)" [ref=e414] [cursor=pointer]:
+              - generic [ref=e415]: ◆
+              - generic [ref=e416]: cmd_output_1777668268.txt
+              - generic [ref=e417]: 3.9 KB
+            - generic "cmd_output_1777668274.txt (double-click to preview)" [ref=e418] [cursor=pointer]:
+              - generic [ref=e419]: ◆
+              - generic [ref=e420]: cmd_output_1777668274.txt
+              - generic [ref=e421]: 3.9 KB
+            - generic "cmd_output_1777668280.txt (double-click to preview)" [ref=e422] [cursor=pointer]:
+              - generic [ref=e423]: ◆
+              - generic [ref=e424]: cmd_output_1777668280.txt
+              - generic [ref=e425]: 3.5 KB
+            - generic "cmd_output_1777669078.txt (double-click to preview)" [ref=e426] [cursor=pointer]:
+              - generic [ref=e427]: ◆
+              - generic [ref=e428]: cmd_output_1777669078.txt
+              - generic [ref=e429]: 5.9 KB
+            - generic "cmd_output_1777669259.txt (double-click to preview)" [ref=e430] [cursor=pointer]:
+              - generic [ref=e431]: ◆
+              - generic [ref=e432]: cmd_output_1777669259.txt
+              - generic [ref=e433]: 5.9 KB
+            - generic "cmd_output_1777669264.txt (double-click to preview)" [ref=e434] [cursor=pointer]:
+              - generic [ref=e435]: ◆
+              - generic [ref=e436]: cmd_output_1777669264.txt
+              - generic [ref=e437]: 5.9 KB
+            - generic "cmd_output_1777677957.txt (double-click to preview)" [ref=e438] [cursor=pointer]:
+              - generic [ref=e439]: ◆
+              - generic [ref=e440]: cmd_output_1777677957.txt
+              - generic [ref=e441]: 22.1 KB
+            - generic "cmd_output_1777678181.txt (double-click to preview)" [ref=e442] [cursor=pointer]:
+              - generic [ref=e443]: ◆
+              - generic [ref=e444]: cmd_output_1777678181.txt
+              - generic [ref=e445]: 2.3 KB
+            - generic "cmd_output_1777681719.txt (double-click to preview)" [ref=e446] [cursor=pointer]:
+              - generic [ref=e447]: ◆
+              - generic [ref=e448]: cmd_output_1777681719.txt
+              - generic [ref=e449]: 6.6 KB
+            - generic "cmd_output_1777681796.txt (double-click to preview)" [ref=e450] [cursor=pointer]:
+              - generic [ref=e451]: ◆
+              - generic [ref=e452]: cmd_output_1777681796.txt
+              - generic [ref=e453]: 4.7 KB
+            - generic "cmd_output_1777682862.txt (double-click to preview)" [ref=e454] [cursor=pointer]:
+              - generic [ref=e455]: ◆
+              - generic [ref=e456]: cmd_output_1777682862.txt
+              - generic [ref=e457]: 2.0 KB
+            - generic "cmd_output_1777682871.txt (double-click to preview)" [ref=e458] [cursor=pointer]:
+              - generic [ref=e459]: ◆
+              - generic [ref=e460]: cmd_output_1777682871.txt
+              - generic [ref=e461]: 2.0 KB
+            - generic "cmd_output_1777682876.txt (double-click to preview)" [ref=e462] [cursor=pointer]:
+              - generic [ref=e463]: ◆
+              - generic [ref=e464]: cmd_output_1777682876.txt
+              - generic [ref=e465]: 2.0 KB
+            - generic "cmd_output_1777683166.txt (double-click to preview)" [ref=e466] [cursor=pointer]:
+              - generic [ref=e467]: ◆
+              - generic [ref=e468]: cmd_output_1777683166.txt
+              - generic [ref=e469]: 2.0 KB
+            - generic "cmd_output_1777684583.txt (double-click to preview)" [ref=e470] [cursor=pointer]:
+              - generic [ref=e471]: ◆
+              - generic [ref=e472]: cmd_output_1777684583.txt
+              - generic [ref=e473]: 2.3 KB
+            - generic "cmd_output_1777711510.txt (double-click to preview)" [ref=e474] [cursor=pointer]:
+              - generic [ref=e475]: ◆
+              - generic [ref=e476]: cmd_output_1777711510.txt
+              - generic [ref=e477]: 3.8 KB
+            - generic "cmd_output_1777711979.txt (double-click to preview)" [ref=e478] [cursor=pointer]:
+              - generic [ref=e479]: ◆
+              - generic [ref=e480]: cmd_output_1777711979.txt
+              - generic [ref=e481]: 9.3 KB
+            - generic "cmd_output_1777715077.txt (double-click to preview)" [ref=e482] [cursor=pointer]:
+              - generic [ref=e483]: ◆
+              - generic [ref=e484]: cmd_output_1777715077.txt
+              - generic [ref=e485]: 13.7 KB
+            - generic "cmd_output_1777715094.txt (double-click to preview)" [ref=e486] [cursor=pointer]:
+              - generic [ref=e487]: ◆
+              - generic [ref=e488]: cmd_output_1777715094.txt
+              - generic [ref=e489]: 13.7 KB
+            - generic "cmd_output_1777715115.txt (double-click to preview)" [ref=e490] [cursor=pointer]:
+              - generic [ref=e491]: ◆
+              - generic [ref=e492]: cmd_output_1777715115.txt
+              - generic [ref=e493]: 2.1 KB
+            - generic "cmd_output_1777715166.txt (double-click to preview)" [ref=e494] [cursor=pointer]:
+              - generic [ref=e495]: ◆
+              - generic [ref=e496]: cmd_output_1777715166.txt
+              - generic [ref=e497]: 3.0 KB
+            - generic "cmd_output_1777715188.txt (double-click to preview)" [ref=e498] [cursor=pointer]:
+              - generic [ref=e499]: ◆
+              - generic [ref=e500]: cmd_output_1777715188.txt
+              - generic [ref=e501]: 3.0 KB
+            - generic "counter.vcd (double-click to preview)" [ref=e502] [cursor=pointer]:
+              - generic [ref=e503]: ◆
+              - generic [ref=e504]: counter.vcd
+              - generic [ref=e505]: 973 B
+            - generic "current_todos.json (double-click to preview)" [ref=e506] [cursor=pointer]:
+              - generic [ref=e507]: ◆
+              - generic [ref=e508]: current_todos.json
+              - generic [ref=e509]: 2.3 KB
+            - generic "EDA_LOOP_SPEC.md (double-click to preview)" [ref=e510] [cursor=pointer]:
+              - generic [ref=e511]: ◆
+              - generic [ref=e512]: EDA_LOOP_SPEC.md
+              - generic [ref=e513]: 32.0 KB
+            - generic "example_workerflow.md (double-click to preview)" [ref=e514] [cursor=pointer]:
+              - generic [ref=e515]: ◆
+              - generic [ref=e516]: example_workerflow.md
+              - generic [ref=e517]: 13.1 KB
+            - generic "file_a.txt (double-click to preview)" [ref=e518] [cursor=pointer]:
+              - generic [ref=e519]: ◆
+              - generic [ref=e520]: file_a.txt
+              - generic [ref=e521]: 5 B
+            - generic "final_test.txt (double-click to preview)" [ref=e522] [cursor=pointer]:
+              - generic [ref=e523]: ◆
+              - generic [ref=e524]: final_test.txt
+              - generic [ref=e525]: 17 B
+            - generic "firecrawl_guide.md (double-click to preview)" [ref=e526] [cursor=pointer]:
+              - generic [ref=e527]: ◆
+              - generic [ref=e528]: firecrawl_guide.md
+              - generic [ref=e529]: 5.1 KB
+            - generic "goal_simple_soc.ssot.yaml (double-click to preview)" [ref=e530] [cursor=pointer]:
+              - generic [ref=e531]: ◆
+              - generic [ref=e532]: goal_simple_soc.ssot.yaml
+              - generic [ref=e533]: 641 B
+            - generic "hello.txt (double-click to preview)" [ref=e534] [cursor=pointer]:
+              - generic [ref=e535]: ◆
+              - generic [ref=e536]: hello.txt
+              - generic [ref=e537]: 11 B
+            - generic "lint_report.txt (double-click to preview)" [ref=e538] [cursor=pointer]:
+              - generic [ref=e539]: ◆
+              - generic [ref=e540]: lint_report.txt
+              - generic [ref=e541]: 1.5 KB
+            - generic "lint_result.json (double-click to preview)" [ref=e542] [cursor=pointer]:
+              - generic [ref=e543]: ◆
+              - generic [ref=e544]: lint_result.json
+              - generic [ref=e545]: 186 B
+            - generic "parallel_result.json (double-click to preview)" [ref=e546] [cursor=pointer]:
+              - generic [ref=e547]: ◆
+              - generic [ref=e548]: parallel_result.json
+              - generic [ref=e549]: 487 B
+            - generic "path (double-click to preview)" [ref=e550] [cursor=pointer]:
+              - generic [ref=e551]: ◆
+              - generic [ref=e552]: path
+              - generic [ref=e553]: 7 B
+            - generic "PROJECT_TREE.txt (double-click to preview)" [ref=e554] [cursor=pointer]:
+              - generic [ref=e555]: ◆
+              - generic [ref=e556]: PROJECT_TREE.txt
+              - generic [ref=e557]: 21.2 KB
+            - generic "PROJECT_TREE_CLEAN.md (double-click to preview)" [ref=e558] [cursor=pointer]:
+              - generic [ref=e559]: ◆
+              - generic [ref=e560]: PROJECT_TREE_CLEAN.md
+              - generic [ref=e561]: 13.1 KB
+            - generic "python_files.txt (double-click to preview)" [ref=e562] [cursor=pointer]:
+              - generic [ref=e563]: ◆
+              - generic [ref=e564]: python_files.txt
+              - generic [ref=e565]: 92 B
+            - generic "quote.txt (double-click to preview)" [ref=e566] [cursor=pointer]:
+              - generic [ref=e567]: ◆
+              - generic [ref=e568]: quote.txt
+              - generic [ref=e569]: 18 B
+            - generic "sim_result.json (double-click to preview)" [ref=e570] [cursor=pointer]:
+              - generic [ref=e571]: ◆
+              - generic [ref=e572]: sim_result.json
+              - generic [ref=e573]: 437 B
+            - generic "soc.ssot.yaml (double-click to preview)" [ref=e574] [cursor=pointer]:
+              - generic [ref=e575]: ◆
+              - generic [ref=e576]: soc.ssot.yaml
+              - generic [ref=e577]: 2.5 KB
+            - generic "tables.txt (double-click to preview)" [ref=e578] [cursor=pointer]:
+              - generic [ref=e579]: ◆
+              - generic [ref=e580]: tables.txt
+              - generic [ref=e581]: 436 B
+            - generic "task_description.txt (double-click to preview)" [ref=e582] [cursor=pointer]:
+              - generic [ref=e583]: ◆
+              - generic [ref=e584]: task_description.txt
+              - generic [ref=e585]: 165 B
+            - generic "test_openrouter_env (double-click to preview)" [ref=e586] [cursor=pointer]:
+              - generic [ref=e587]: ◆
+              - generic [ref=e588]: test_openrouter_env
+              - generic [ref=e589]: 114 B
+            - generic "test_output.txt (double-click to preview)" [ref=e590] [cursor=pointer]:
+              - generic [ref=e591]: ◆
+              - generic [ref=e592]: test_output.txt
+              - generic [ref=e593]: 12 B
+            - generic "WORKER_GUIDE.md (double-click to preview)" [ref=e594] [cursor=pointer]:
+              - generic [ref=e595]: ◆
+              - generic [ref=e596]: WORKER_GUIDE.md
+              - generic [ref=e597]: 9.3 KB
+            - generic "worker_test.txt (double-click to preview)" [ref=e598] [cursor=pointer]:
+              - generic [ref=e599]: ◆
+              - generic [ref=e600]: worker_test.txt
+              - generic [ref=e601]: 15 B
+          - generic [ref=e602]:
+            - generic [ref=e603]: 128 entries
+            - generic [ref=e604]: ·
+            - generic "Auto-refreshes on tool_result + every 5s" [ref=e605]: 오후 7:26:07
+            - generic "/Users/brian/Desktop/Project/brian_hw/common_ai_agent" [ref=e606]: common_ai_agent
+      - generic "drag to resize · double-click to collapse" [ref=e607]
+      - generic [ref=e608]:
+        - generic [ref=e609]:
+          - generic [ref=e610]:
+            - generic [ref=e611] [cursor=pointer]: chat
+            - generic "Double-click a file in the tree to preview it here" [ref=e612]: preview
+            - generic "No pending questions" [ref=e613] [cursor=pointer]: Q&A
+            - generic [ref=e614]: ·
+            - generic [ref=e615]: ● normal
+            - generic [ref=e616]: ✓ end of loop · ready
+          - generic [ref=e618]:
+            - text: Agent
+            - button "copy" [ref=e619] [cursor=pointer]
+            - generic [ref=e620]: Connected. Type a message and press Enter to talk to the agent.
+        - generic [ref=e621]:
+          - generic [ref=e622]:
+            - generic [ref=e623]: ✓
+            - generic [ref=e624]: End of loop · agent ready
+          - generic [ref=e625]:
+            - generic [ref=e626]: ❯
+            - textbox "Type a message · \"/\" for commands · \"@\" for files" [active] [ref=e627]
+            - generic [ref=e628]: / cmd · @ file · ↵ send
+        - generic [ref=e629]:
+          - generic [ref=e630]: ↑
+          - generic [ref=e631]: glm-5.1
+          - generic [ref=e633]: shift+tab plan
+          - generic [ref=e634]: ⌫⌫ clear
+          - generic [ref=e635]: ctrl+c quit
+          - generic [ref=e636]: ctrl+j newline
+          - generic [ref=e637]: shift+drag copy
+          - generic [ref=e638]: shift+insert paste
+          - generic [ref=e639]: ready
+      - generic "drag to resize · double-click to collapse" [ref=e640]
+      - generic [ref=e641]:
+        - generic [ref=e642]:
+          - generic [ref=e643]:
+            - generic [ref=e644]: UPD Agent
+            - generic [ref=e645]: ● normal
+            - generic "collapse right panel (double-click splitter to restore)" [ref=e646] [cursor=pointer]: ›
+          - generic [ref=e647]:
+            - generic [ref=e648]:
+              - generic [ref=e649]: Mode
+              - generic [ref=e650]:
+                - text: Normal
+                - generic [ref=e651]: · free chat
+            - generic [ref=e652]:
+              - generic [ref=e653]: Model
+              - generic "https://api.z.ai/api/coding/paas/v4" [ref=e654]: glm-5.1
+            - generic [ref=e655]:
+              - generic [ref=e656]: via
+              - generic "https://api.z.ai/api/coding/paas/v4" [ref=e657]: openai · api.z.ai/api/coding/paas/v4
+            - generic [ref=e658]:
+              - generic [ref=e659]: Context
+              - generic [ref=e660]:
+                - text: 0.0K
+                - generic [ref=e661]: / 200K ·
+                - generic [ref=e662]: 0%
+            - generic [ref=e664]:
+              - text: Cost
+              - generic [ref=e665]: "@ $1.4/$0.26/$4.4 per 1M"
+            - generic [ref=e666]:
+              - generic [ref=e667]: Input
+              - generic [ref=e668]: 13.12M
+              - generic [ref=e669]: $18.3722
+              - generic [ref=e670]: Cached
+              - generic [ref=e671]: 12.60M
+              - generic [ref=e672]: $3.2770
+              - generic [ref=e673]: Output
+              - generic [ref=e674]: 32.5K
+              - generic [ref=e675]: $0.1429
+              - generic [ref=e676]: Total
+              - generic [ref=e677]: 25.76M
+              - generic [ref=e678]: $21.7921
+            - generic [ref=e679]:
+              - generic [ref=e680]: ▸ atlas
+              - generic [ref=e681]: · session
+              - generic [ref=e682]: ● live
+            - generic [ref=e683]:
+              - generic [ref=e685]: ✓ SSOT
+              - generic [ref=e687]: ✓ RTL
+              - generic [ref=e689]: ● LINT
+              - generic [ref=e691]: ○ TB
+            - generic [ref=e692]:
+              - generic [ref=e693]: ▸ talos
+              - generic [ref=e694]: · backend
+              - generic [ref=e695]: ⊘ tbd
+            - generic [ref=e696]:
+              - generic [ref=e698]: ⋯ DFT
+              - generic [ref=e700]: ⋯ SYN
+              - generic [ref=e702]: ⋯ STA
+              - generic [ref=e704]: ⋯ P&R
+            - generic [ref=e705]:
+              - text: talos.handshake › heartbeat ok · queue empty
+              - text: awaiting atlas → talos handoff (not yet wired)
+        - generic [ref=e706]:
+          - generic [ref=e707]:
+            - generic [ref=e708] [cursor=pointer]: Todo
+            - generic [ref=e709] [cursor=pointer]: Git
+          - generic [ref=e711]:
+            - generic [ref=e712]: 0/0
+            - generic "Clear all todos" [ref=e713] [cursor=pointer]: ✕ clear
+            - generic [ref=e714]: view
+            - generic [ref=e715] [cursor=pointer]: list
+            - generic [ref=e716] [cursor=pointer]: detail
+            - generic [ref=e717] [cursor=pointer]: graph
+    - generic [ref=e720]:
+      - generic [ref=e721]: glm-5.1
+      - generic [ref=e722]:
+        - text: tokens 0
+        - generic [ref=e723]: / NaNk
+      - generic [ref=e724]:
+        - text: iter
+        - generic [ref=e725]: / 1000
+      - generic [ref=e726]: rate —
+      - generic [ref=e727]: UNSAFE
+      - generic [ref=e728]: ⌘ K cmd
+      - generic [ref=e729]: ⌘ / help
+      - generic [ref=e730]: shift+tab normal/plan
+      - generic [ref=e731]: ⌘ \ sidebar

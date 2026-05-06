@@ -889,6 +889,7 @@ class WorkflowStageEngine:
         artifacts = [
             f"{ip}/yaml/{ip}.ssot.yaml",
             f"{ip}/rtl/rtl_todo_plan.json",
+            f"{ip}/rtl/rtl_todo_tracker.json",
             f"{ip}/rtl/rtl_traceability.json",
             f"{ip}/list/{ip}.f",
             f"{ip}/rtl/rtl_compile.json",

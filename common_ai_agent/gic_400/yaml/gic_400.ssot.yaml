@@ -1,0 +1,7 @@
+top_module: gic_400
+clocks: [{name: clk, period_ns: 1.0, source_port: clk}]
+resets: [{name: rst_n, polarity: active_low, source_port: rst_n}]
+busInterfaces:
+  - {name: S_APB, proto: APB, role: slave,  side: left}
+  - {name: IRQ_M, proto: IRQ, role: master, side: right}
+memoryMap: [{name: dist, base: 0x0800_0000, range: 0x1000}]

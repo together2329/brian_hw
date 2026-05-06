@@ -1,0 +1,23 @@
+{
+  "vcd": "gpio_pad/sim/gpio_pad_test.vcd",
+  "total_bits": 163,
+  "toggled_bits": 2,
+  "pct": 1.2269938650306749,
+  "nets": 8,
+  "scopes": [
+    {
+      "scope": "tb_gpio_pad",
+      "total": 2,
+      "toggled": 1,
+      "nets": 2,
+      "pct": 50.0
+    },
+    {
+      "scope": "tb_gpio_pad.dut",
+      "total": 161,
+      "toggled": 1,
+      "nets": 6,
+      "pct": 0.6211180124223602
+    }
+  ]
+}

@@ -1,0 +1,351 @@
+# =============================================================================
+# Timer Controller IP — Single Source of Truth (SSOT)
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# 1. IP Identity
+# ---------------------------------------------------------------------------
+ip:
+  name:         timer
+  full_name:    System Timer Controller
+  version:      "1.0.0"
+  description:  >
+    32-bit countdown timer with auto-reload, configurable prescaler
+    (divide-by-1 to divide-by-65536), periodic and one-shot modes,
+    interrupt on expiry, and APB4 slave interface.
+  license:      MIT
+  vendor:       NEW_SOC
+
+# ---------------------------------------------------------------------------
+# 2. Type Classification
+# ---------------------------------------------------------------------------
+type: peripheral
+
+# ---------------------------------------------------------------------------
+# 3. Revision History
+# ---------------------------------------------------------------------------
+revision_history:
+  - version: "1.0.0"
+    date:    "2025-01-01"
+    author:  "NEW_SOC Team"
+    changes:
+      - Initial release — 32-bit countdown timer with auto-reload, prescaler,
+        periodic/one-shot modes, and APB4 interface.
+
+# ---------------------------------------------------------------------------
+# 4. Block-Level Interfaces
+# ---------------------------------------------------------------------------
+interfaces:
+  - name: apb4_slave
+    role: slave
+    protocol: APB4
+    description: >
+      AMBA APB4 slave interface for register access. 8-bit address bus,
+      32-bit data bus. Zero wait states.
+    signals:
+      - { name: pclk,       direction: input,  width: 1,  active: edge_rising, description: "APB clock (100 MHz)" }
+      - { name: preset_n,   direction: input,  width: 1,  active: low,         description: "Asynchronous active-low reset" }
+      - { name: psel,       direction: input,  width: 1,  active: high,        description: "APB select" }
+      - { name: penable,    direction: input,  width: 1,  active: high,        description: "APB enable" }
+      - { name: pwrite,     direction: input,  width: 1,  active: high,        description: "APB write (1=write, 0=read)" }
+      - { name: paddr,      direction: input,  width: 8,  active: high,        description: "APB address bus" }
+      - { name: pwdata,     direction: input,  width: 32, active: high,        description: "APB write data" }
+      - { name: prdata,     direction: output, width: 32, active: high,        description: "APB read data" }
+      - { name: pready,     direction: output, width: 1,  active: high,        description: "APB ready (always 1)" }
+      - { name: pslverr,    direction: output, width: 1,  active: high,        description: "APB slave error (always 0)" }
+
+  - name: irq
+    role: master
+    protocol: interrupt
+    description: >
+      Interrupt output, asserted when timer expires and remains asserted
+      until software clears the INT_STATUS register.
+    signals:
+      - { name: irq, direction: output, width: 1, active: high, description: "Timer expire interrupt" }
+
+# ---------------------------------------------------------------------------
+# 5. Clock & Reset Architecture
+# ---------------------------------------------------------------------------
+clock_reset:
+  clocks:
+    - name:     pclk
+      freq_hz:  100_000_000
+      domain:   default
+      source:   external
+      duty:     50
+  resets:
+    - name:     preset_n
+      type:     async_low
+      domain:   default
+      active:   low
+      description: "Asynchronous active-low reset; de-assertion synchronised to pclk"
+
+# ---------------------------------------------------------------------------
+# 6. Design Parameters (compile-time)
+# ---------------------------------------------------------------------------
+parameters:
+  - name:      COUNTER_WIDTH
+    type:      integer
+    default:   32
+    min:       16
+    max:       64
+    description: "Width of the countdown counter and LOAD register"
+  - name:      PRESCALER_WIDTH
+    type:      integer
+    default:   16
+    min:       8
+    max:       16
+    description: "Width of the prescaler divider register"
+  - name:      ADDR_WIDTH
+    type:      integer
+    default:   8
+    description: "APB address bus width"
+
+# ---------------------------------------------------------------------------
+# 7. Register Map
+# ---------------------------------------------------------------------------
+registers:
+  - name:       LOAD
+    offset:     0x00
+    access:     rw
+    width:      32
+    reset:      0x00000000
+    description: >
+      Load value for the countdown counter. When the counter reaches zero
+      it reloads from this register (periodic mode) or stops (one-shot mode).
+      Writing LOAD while the timer is running also resets the counter.
+    fields:
+      - { name: load_value, bits: "[31:0]", access: rw, reset: 0x00000000, description: "Reload value" }
+
+  - name:       VALUE
+    offset:     0x04
+    access:     ro
+    width:      32
+    reset:      0x00000000
+    description: "Current counter value (read-only snapshot)."
+    fields:
+      - { name: current_value, bits: "[31:0]", access: ro, reset: 0x00000000, description: "Current countdown value" }
+
+  - name:       CTRL
+    offset:     0x08
+    access:     rw
+    width:      32
+    reset:      0x00000000
+    description: "Timer control register."
+    fields:
+      - { name: enable,    bits: "[0]",    access: rw, reset: 0, description: "Timer enable (0=stopped, 1=running)" }
+      - { name: mode,      bits: "[1]",    access: rw, reset: 0, description: "0=periodic (auto-reload), 1=one-shot" }
+      - { name: prescaler, bits: "[17:2]", access: rw, reset: 0, description: "Prescaler value; tick = pclk / (prescaler+1)" }
+      - { name: int_en,    bits: "[18]",   access: rw, reset: 0, description: "Interrupt enable on timer expire" }
+
+  - name:       INT_STATUS
+    offset:     0x0C
+    access:     rw
+    width:      32
+    reset:      0x00000000
+    description: >
+      Interrupt status. Bit [0] is set when timer expires.
+      Write 1 to clear (write-one-to-clear / W1C).
+    fields:
+      - { name: expired, bits: "[0]", access: wc, reset: 0, description: "Timer expired flag (write 1 to clear)" }
+
+# ---------------------------------------------------------------------------
+# 8. Feature / Functional Description
+# ---------------------------------------------------------------------------
+features:
+  - id:   FEAT_COUNTDOWN
+    name: "32-bit Countdown Counter"
+    description: >
+      A 32-bit down-counter decrements on every prescaled clock tick.
+      When it reaches zero, the expired flag in INT_STATUS is set,
+      and the counter either reloads from LOAD (periodic) or stops (one-shot).
+
+  - id:   FEAT_PRESCALER
+    name: "Configurable Prescaler"
+    description: >
+      16-bit prescaler divides pclk by (prescaler+1), giving a range of
+      divide-by-1 to divide-by-65536. At 100 MHz pclk, the slowest tick
+      is ~655.36 us.
+
+  - id:   FEAT_PERIODIC
+    name: "Periodic Mode"
+    description: >
+      In periodic mode (CTRL.mode=0), the counter auto-reloads from LOAD
+      and continues counting after each expiry.
+
+  - id:   FEAT_ONESHOT
+    name: "One-shot Mode"
+    description: >
+      In one-shot mode (CTRL.mode=1), the counter counts down once,
+      sets the expired flag, then halts. Software must re-enable to restart.
+
+  - id:   FEAT_IRQ
+    name: "Interrupt Generation"
+    description: >
+      When the counter expires, INT_STATUS.expired is set. If CTRL.int_en=1,
+      the irq output is asserted. Software clears the flag by writing 1 to
+      INT_STATUS (W1C).
+
+  - id:   FEAT_APB4
+    name: "APB4 Slave Interface"
+    description: >
+      Standard AMBA APB4 with 8-bit address, 32-bit data. Zero wait states.
+      No PSLVERR errors.
+
+# ---------------------------------------------------------------------------
+# 9. Operational Modes
+# ---------------------------------------------------------------------------
+modes:
+  - name:        RESET
+    description: "Held in reset (preset_n LOW). Counter stopped, registers cleared."
+    entry:       "preset_n == 0"
+    exit:        "preset_n rises"
+
+  - name:        DISABLED
+    description: "Timer not enabled (CTRL.enable=0). Counter halted."
+    entry:       "CTRL.enable == 0"
+    exit:        "CTRL.enable written to 1"
+
+  - name:        RUNNING_PERIODIC
+    description: "Counting down; reloads from LOAD on reaching zero."
+    entry:       "CTRL.enable=1 and CTRL.mode=0"
+    exit:        "Counter reaches zero or CTRL.enable cleared"
+
+  - name:        RUNNING_ONESHOT
+    description: "Counting down once; stops on reaching zero."
+    entry:       "CTRL.enable=1 and CTRL.mode=1"
+    exit:        "Counter reaches zero (auto-disable)"
+
+# ---------------------------------------------------------------------------
+# 10. Timing / Performance Constraints
+# ---------------------------------------------------------------------------
+timing:
+  - constraint: "Minimum timer period"
+    value:      "LOAD+1 prescaled ticks"
+    notes:      "With LOAD=0, prescaler=0 → 1 pclk cycle period at 100 MHz."
+
+  - constraint: "Maximum timer period"
+    value:      "2^32 × 65536 pclk cycles ≈ 2814 seconds at 100 MHz"
+    notes:      "LOAD=0xFFFFFFFF, prescaler=0xFFFF."
+
+  - constraint: "APB access latency"
+    value:      "0 wait states"
+    notes:      "pready always HIGH."
+
+  - constraint: "Interrupt assertion latency"
+    value:      "<= 2 pclk cycles"
+    notes:      "From counter zero-detect to irq assertion."
+
+# ---------------------------------------------------------------------------
+# 11. Power & Reset Behaviour
+# ---------------------------------------------------------------------------
+power:
+  domain:        default
+  clock_gating:  none
+  description:   >
+    Single-clock, single-domain design. No power gating. Reset clears all
+    registers, stops counter, de-asserts irq.
+
+# ---------------------------------------------------------------------------
+# 12. Verification Strategy
+# ---------------------------------------------------------------------------
+verification:
+  - name:   "Periodic countdown"
+    desc:   "Load value N, enable periodic mode, verify N+1 ticks until IRQ, then auto-reload repeats."
+  - name:   "One-shot countdown"
+    desc:   "Load value N, enable one-shot mode, verify single IRQ then timer stops."
+  - name:   "Prescaler division"
+    desc:   "Set prescaler to 9; verify counter ticks every 10 pclk cycles."
+  - name:   "INT_STATUS W1C"
+    desc:   "Trigger IRQ, read INT_STATUS=1, write 1, verify INT_STATUS=0 and irq de-asserted."
+  - name:   "APB register access"
+    desc:   "Write/read all registers; verify reset values."
+  - name:   "Zero-load edge case"
+    desc:   "LOAD=0, periodic mode; verify immediate reload on expiry."
+  - name:   "Dynamic LOAD update"
+    desc:   "Change LOAD while timer running; verify new value used on next reload."
+
+# ---------------------------------------------------------------------------
+# 13. Dependencies
+# ---------------------------------------------------------------------------
+dependencies:
+  - name:     iverilog
+    version:  ">= 11.0"
+    purpose:  "Lint and simulation"
+  - name:     verilator
+    version:  ">= 5.0"
+    purpose:  "Optional lint"
+
+# ---------------------------------------------------------------------------
+# 14. File Manifest
+# ---------------------------------------------------------------------------
+file_manifest:
+  - { path: yaml/timer.ssot.yaml,  role: "SSOT definition" }
+  - { path: rtl/timer.v,           role: "RTL implementation (Verilog-2001)" }
+  - { path: list/timer.f,          role: "File list" }
+  - { path: tb/tb_timer.v,         role: "Testbench" }
+  - { path: tc/tc_timer.v,         role: "Test cases" }
+  - { path: doc/timer_mas.md,      role: "MAS documentation" }
+  - { path: req/timer_requirements.md, role: "Requirements" }
+  - { path: sdc/timer.sdc,         role: "Timing constraints" }
+
+# ---------------------------------------------------------------------------
+# 15. Coding Style
+# ---------------------------------------------------------------------------
+coding_style:
+  language:        verilog_2001
+  indentation:     2 spaces
+  naming:          "snake_case for signals; UPPER_CASE for parameters"
+  reset_style:     async_active_low
+  clock_edge:      posedge
+  description:     >
+    Strict Verilog-2001 (IEEE 1364-2001). No SystemVerilog features.
+    All sequential logic uses always @(posedge pclk or negedge preset_n).
+    Reset disables timer, clears counter and interrupt.
+
+# ---------------------------------------------------------------------------
+# 16. Design Quality Rules
+# ---------------------------------------------------------------------------
+quality:
+  - rule:    "No latches"
+    tool:    "iverilog -g2012 -Wall"
+  - rule:    "No undriven signals"
+    tool:    "iverilog -g2012 -Wall"
+  - rule:    "All outputs driven in reset"
+    check:   "manual"
+  - rule:    "Zero warnings (cosmetic warnings acceptable)"
+    tool:    "iverilog -g2012 -Wall"
+
+# ---------------------------------------------------------------------------
+# 17. External References
+# ---------------------------------------------------------------------------
+references:
+  - title:   "AMBA APB4 Protocol Specification"
+    url:     "https://developer.arm.com/documentation/ihi0024/latest"
+  - title:   "ARM Cortex-M Generic Timer Concepts"
+    url:     "https://developer.arm.com/documentation/"
+
+# ---------------------------------------------------------------------------
+# 18. Security / Safety Notes
+# ---------------------------------------------------------------------------
+security:
+  - note: "No security-sensitive data. LOAD value should be set before enabling timer to avoid premature expiry."
+  - note: "INT_STATUS uses W1C semantics — writing incorrect values can inadvertently clear pending interrupts."
+
+# ---------------------------------------------------------------------------
+# 19. Design Notes
+# ---------------------------------------------------------------------------
+design_notes:
+  - note: "Prescaler is implemented as a free-running down-counter that generates a tick when it underflows."
+  - note: "VALUE register provides a synchronous read of the current counter — no clock-domain crossing needed."
+  - note: "One-shot mode auto-clears CTRL.enable on expiry; software must re-enable for another count cycle."
+
+# ---------------------------------------------------------------------------
+# 20. MAS Metadata
+# ---------------------------------------------------------------------------
+mas:
+  version:      "1.0"
+  ssot_version: "1.0.0"
+  status:       "complete"
+  generated_at: "2025-01-01T00:00:00Z"
+  generator:    "manual"

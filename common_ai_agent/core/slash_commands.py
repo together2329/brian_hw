@@ -1548,7 +1548,8 @@ class SlashCommandRegistry:
                 return self._todo_list_templates()
             if subcmd == 'template':
                 tname = parts[1] if len(parts) > 1 else ''
-                return self._todo_load_template(tname, todo_file)
+                dynamic_ip = parts[2].strip() if len(parts) > 2 else ''
+                return self._todo_load_template(tname, todo_file, dynamic_ip=dynamic_ip)
             if subcmd == 'delegate':
                 return self._todo_delegate(parts[1:], todo_file)
             if subcmd == 'workflow':
@@ -2088,7 +2089,7 @@ class SlashCommandRegistry:
         except Exception as e:
             return f"Error listing templates: {e}\n"
 
-    def _todo_load_template(self, template_name: str, todo_file) -> str:
+    def _todo_load_template(self, template_name: str, todo_file, dynamic_ip: str = "") -> str:
         """Load a todo template and write it to the todo file. /todo template <name>"""
         if not template_name:
             return "Usage: /todo template <name>\nSee /todo templates for available templates.\n"
@@ -2096,6 +2097,40 @@ class SlashCommandRegistry:
             import builtins as _b
             import json
             from pathlib import Path
+            dynamic_source = None
+            dynamic_tmpl = None
+            if dynamic_ip:
+                try:
+                    from workflow.loader import load_dynamic_todo_template
+                    tasks, source, dynamic_tmpl = load_dynamic_todo_template(
+                        template_name,
+                        dynamic_ip,
+                        project_root=Path.cwd(),
+                    )
+                    if tasks and source:
+                        dynamic_source = source
+                        tmpl = dynamic_tmpl or {}
+                        desc = tmpl.get("description", "")
+                        from lib.todo_tracker import TodoTracker
+                        tracker = TodoTracker(persist_path=Path(todo_file))
+                        tracker.add_todos(tasks)
+                        tracker.save()
+                        import os as _os
+                        _os.environ.pop("TODO_TEMPLATE_LOCK_ADDITIONS", None)
+                        _os.environ.pop("TODO_TEMPLATE_LOCK_NAME", None)
+                        try:
+                            source_text = str(source.relative_to(Path.cwd()))
+                        except ValueError:
+                            source_text = str(source)
+                        return (
+                            f"Loaded dynamic template '{template_name}' for {dynamic_ip}: {len(tasks)} tasks added.\n"
+                            f"Source: {source_text}\n"
+                            + (f"Description: {desc}\n" if desc else "")
+                            + "Run /todo to see the list.\n"
+                        )
+                except Exception:
+                    dynamic_source = None
+
             registry = getattr(_b, "_TODO_TEMPLATE_REGISTRY", None)
             if registry is None:
                 try:
@@ -2108,6 +2143,12 @@ class SlashCommandRegistry:
             tmpl = registry.get_template(template_name)
             if not tmpl:
                 available = ", ".join(registry.list_templates()) or "(none)"
+                if dynamic_ip:
+                    return (
+                        f"Template '{template_name}' not found and no dynamic TodoTracker file was found for {dynamic_ip}.\n"
+                        f"Expected: {dynamic_ip}/rtl/rtl_todo_tracker.json\n"
+                        f"Available: {available}\n"
+                    )
                 return f"Template '{template_name}' not found.\nAvailable: {available}\n"
 
             tasks = tmpl.get("tasks", [])

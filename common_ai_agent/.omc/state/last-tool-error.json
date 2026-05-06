@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"ls /Users/brian/.local/share/opencode/ 2>/dev/null; echo \\\"---\\\"; which opencode 2>/dev/null; opencode --version 2>/dev/null\",\"description\":\"Check opencode install\"}",
+  "error": "Exit code 127\nauth.json\nbin\nlog\nopencode.db\nopencode.db-shm\nopencode.db-wal\nsnapshot\nstorage\ntool-output\n---\nopencode not found",
+  "timestamp": "2026-05-02T05:59:31.262Z",
+  "retry_count": 1
+}

@@ -1,0 +1,8 @@
+top_module: spi_master
+parameters: [{name: NUM_CS, value: 4}]
+clocks: [{name: clk, period_ns: 10.0, source_port: clk}]
+resets: [{name: rst_n, polarity: active_low, source_port: rst_n}]
+busInterfaces:
+  - {name: S_APB, proto: APB, role: slave,  side: left}
+  - {name: IRQ,   proto: IRQ, role: master, side: right}
+memoryMap: [{name: regs, base: 0x4000_2000, range: 0x1000}]

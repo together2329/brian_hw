@@ -1,0 +1,90 @@
+top_module: aurora_soc
+version: 0.2.0
+type: soc
+description: Top-level SoC SSOT for the Architect-owned aurora_soc integration.
+ownership: top_ssot
+clock_domains:
+  - {name: clk, period_ns: 10.0, source_port: clk}
+resets:
+  - {name: rst_n, polarity: active_low, source_port: rst_n}
+sub_modules:
+  - name: cortexa15_0
+    ssot: cortexa15_0/yaml/cortexa15_0.ssot.yaml
+    ownership: child_ssot
+    cluster: cpu_ss
+    role: cpu
+  - name: cci550
+    ssot: cci550/yaml/cci550.ssot.yaml
+    ownership: child_ssot
+    cluster: noc
+    role: bus
+  - name: ddr_phy
+    ssot: ddr_phy/yaml/ddr_phy.ssot.yaml
+    ownership: child_ssot
+    cluster: mem_ss
+    role: memory
+    addr: '0x8000_0000'
+  - name: spi_master
+    ssot: spi_master/yaml/spi_master.ssot.yaml
+    ownership: child_ssot
+    cluster: periph_ss
+    role: peripheral
+    addr: '0x4000_2000'
+  - name: gic_400
+    ssot: gic_400/yaml/gic_400.ssot.yaml
+    ownership: child_ssot
+    cluster: periph_ss
+    role: interrupt_controller
+    addr: '0x0800_0000'
+  - name: simple_uart3
+    ssot: simple_uart3/yaml/simple_uart3.ssot.yaml
+    ownership: child_ssot
+    cluster: periph_ss
+    role: peripheral
+    addr: '0x4000_4000'
+  - name: simple_gpio3
+    ssot: simple_gpio3/yaml/simple_gpio3.ssot.yaml
+    ownership: child_ssot
+    cluster: periph_ss
+    role: peripheral
+    addr: '0x4000_5000'
+  - name: simple_pwm3
+    ssot: simple_pwm3/yaml/simple_pwm3.ssot.yaml
+    ownership: child_ssot
+    cluster: periph_ss
+    role: peripheral
+    addr: '0x4000_6000'
+instances:
+  - {id: cortexa15_0, module: cortexa15_0, cluster: cpu_ss}
+  - {id: cci550, module: cci550, cluster: noc}
+  - {id: ddr_phy, module: ddr_phy, cluster: mem_ss, addr: '0x8000_0000'}
+  - {id: spi_master, module: spi_master, cluster: periph_ss, addr: '0x4000_2000'}
+  - {id: gic_400, module: gic_400, cluster: periph_ss, addr: '0x0800_0000'}
+  - {id: simple_uart3, module: simple_uart3, cluster: periph_ss, addr: '0x4000_4000'}
+  - {id: simple_gpio3, module: simple_gpio3, cluster: periph_ss, addr: '0x4000_5000'}
+  - {id: simple_pwm3, module: simple_pwm3, cluster: periph_ss, addr: '0x4000_6000'}
+busInterfaces:
+  - {name: CPU_ACE, proto: ACE, role: initiator, from: cortexa15_0/M_ACE, to: cci550/S0_ACE}
+  - {name: DDR_AXI, proto: AXI4, role: memory_path, from: cci550/M_AXI, to: ddr_phy/S_AXI}
+  - {name: PERIPH_APB_UART, proto: APB, role: register_path, from: cci550/M_APB, to: simple_uart3/S_APB}
+  - {name: PERIPH_APB_GPIO, proto: APB, role: register_path, from: cci550/M_APB, to: simple_gpio3/S_APB}
+  - {name: PERIPH_APB_PWM, proto: APB, role: register_path, from: cci550/M_APB, to: simple_pwm3/S_APB}
+  - {name: SPI_IRQ, proto: IRQ, role: interrupt, from: spi_master/IRQ, to: gic_400/IRQ_M}
+  - {name: UART_IRQ, proto: IRQ, role: interrupt, from: simple_uart3/IRQ, to: gic_400/IRQ_M}
+  - {name: GPIO_IRQ, proto: IRQ, role: interrupt, from: simple_gpio3/IRQ, to: gic_400/IRQ_M}
+  - {name: PWM_IRQ, proto: IRQ, role: interrupt, from: simple_pwm3/IRQ, to: gic_400/IRQ_M}
+memoryMap:
+  - {name: gic_400, base: '0x0800_0000', range: '0x0000_1000'}
+  - {name: spi_master, base: '0x4000_2000', range: '0x0000_1000'}
+  - {name: simple_uart3, base: '0x4000_4000', range: '0x0000_1000'}
+  - {name: simple_gpio3, base: '0x4000_5000', range: '0x0000_1000'}
+  - {name: simple_pwm3, base: '0x4000_6000', range: '0x0000_1000'}
+  - {name: ddr_phy, base: '0x8000_0000', range: '0x4000_0000'}
+generation:
+  owner: architect
+  leaf_workflows:
+    - ssot-gen
+    - rtl-gen
+  top_workflows:
+    - architect
+    - integration

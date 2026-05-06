@@ -1,0 +1,5 @@
+# timer_ssot_clean.ssot.yaml — Single Source of Truth
+top_module:
+  name: timer_ssot_clean
+  type: "<TBD>"  # TBD
+  description: "<TBD>"  # TBD

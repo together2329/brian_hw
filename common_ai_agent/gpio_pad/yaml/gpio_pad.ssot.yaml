@@ -1,0 +1,361 @@
+
+# =============================================================================
+# SSOT — gpio_pad : Simple GPIO Pad Control with APB Interface
+# =============================================================================
+
+# SECTION 0: Top Module Identity
+top_module:
+  name: "gpio_pad"
+  version: "1.0"
+  type: "peripheral"
+  description: "Simple GPIO pad control module with APB slave interface for direction and data control"
+  reference_spec: "Custom — simple GPIO"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+
+# SECTION 1: Sub-Module List (Hierarchy)
+sub_modules:
+  - { name: "gpio_pad_pkg",     file: "gpio_pad_pkg.sv",     ssot_gen: true,  description: "Parameter package" }
+  - { name: "gpio_pad_regs",    file: "gpio_pad_regs.sv",    ssot_gen: true,  description: "APB register block" }
+  - { name: "gpio_pad_core",    file: "gpio_pad_core.sv",    ssot_gen: false, description: "Pad control logic (LLM-written)" }
+  - { name: "gpio_pad_wrapper", file: "gpio_pad_wrapper.sv", ssot_gen: true,  description: "Integration wrapper" }
+
+# SECTION 2: Parameters
+parameters:
+  - name: "NUM_PADS"
+    default: 32
+    type: int
+    description: "Number of GPIO pads"
+    drives: ["gpio_pad_pkg.sv", "gpio_pad_regs.sv", "gpio_pad_core.sv"]
+  - name: "APB_ADDR_WIDTH"
+    default: 12
+    type: int
+    description: "APB address bus width"
+    drives: ["gpio_pad_regs.sv", "gpio_pad_wrapper.sv"]
+  - name: "APB_DATA_WIDTH"
+    default: 32
+    type: int
+    description: "APB data bus width"
+    drives: ["gpio_pad_regs.sv", "gpio_pad_wrapper.sv"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 100
+    type: int
+    description: "Target clock frequency in MHz"
+    drives: ["tb_top.sv", "docs/README.md"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    drives: ["ALL .sv files"]
+
+# SECTION 3: IO List (Ports)
+io_list:
+  clock_domains:
+    - name: "pclk"
+      frequency_mhz: 100
+      description: "APB clock"
+      ports:
+        - { name: "pclk", width: 1, direction: "input", description: "APB clock" }
+  resets:
+    - name: "presetn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "APB reset"
+      ports:
+        - { name: "presetn", width: 1, direction: "input", description: "Active-low reset" }
+  interfaces:
+    - name: "apb_slave"
+      type: "APB4"
+      role: "slave"
+      description: "Register access interface"
+      ports:
+        - { name: "paddr",   width: 12, direction: "input",  description: "APB address" }
+        - { name: "psel",    width: 1,  direction: "input",  description: "APB select" }
+        - { name: "penable", width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "pwrite",  width: 1,  direction: "input",  description: "APB write" }
+        - { name: "pwdata",  width: 32, direction: "input",  description: "APB write data" }
+        - { name: "pstrb",   width: 4,  direction: "input",  description: "APB strobes (4B granularity)" }
+        - { name: "prdata",  width: 32, direction: "output", description: "APB read data" }
+        - { name: "pready",  width: 1,  direction: "output", description: "APB ready" }
+        - { name: "pslverr", width: 1,  direction: "output", description: "APB error" }
+    - name: "gpio_pads"
+      type: "custom"
+      description: "Bidirectional GPIO pad interface"
+      ports:
+        - { name: "gpio_in",   width: 32, direction: "input",  description: "Pad input values" }
+        - { name: "gpio_out",  width: 32, direction: "output", description: "Pad output values" }
+        - { name: "gpio_oe",   width: 32, direction: "output", description: "Pad output enable (1=driven)" }
+    - name: "interrupt"
+      type: "custom"
+      description: "Edge-detect interrupt output"
+      ports:
+        - { name: "gpio_irq", width: 1, direction: "output", description: "Combined interrupt — OR(INTEN & INTSTAT)" }
+
+# SECTION 4: Main Features
+features:
+  - name: "Direction / Output Enable"
+    trigger: "APB write to DIR register"
+    datapath: "DIR register -> gpio_oe output pins. DIR=1 enables output driver."
+    control: "Combinational; no FSM needed. DIR doubles as output enable."
+    output: "gpio_oe[NUM_PADS-1:0] = DIR; gpio_out driven when DIR=1"
+  - name: "Output Data Control"
+    trigger: "APB write to OUT register"
+    datapath: "OUT register -> gpio_out pins"
+    control: "Registered output on pclk. gpio_out only meaningful when DIR=1."
+    output: "gpio_out[NUM_PADS-1:0] reflects OUT register"
+  - name: "Input Data Read"
+    trigger: "APB read from IN register"
+    datapath: "gpio_in pins -> double-flop synchronizer -> IN register -> APB read"
+    control: "2-DFF synchronizer per pin; register updated every pclk cycle"
+    output: "prdata returns synchronized pad state"
+  - name: "Edge-Detect Interrupt"
+    trigger: "Any enabled pin changes value between consecutive pclk cycles"
+    datapath: "IN_sync[n] XOR IN_sync_prev[n] -> edge detect -> per-pin interrupt status"
+    control: "INTEN register enables per-pin; INTSTAT latches edge events (W1C via INTCLEAR)"
+    output: "gpio_irq = OR(INTEN & INTSTAT); level-sensitive interrupt"
+
+# SECTION 5: Data Flow
+dataflow:
+  write_path:
+    source: "APB pwdata"
+    burst: "Single word write per register"
+    destination: "DIR, OUT, INTEN, INTCLEAR registers"
+    sequence: "APB write -> register update -> gpio_oe/gpio_out pins (DIR/OUT) or interrupt mask (INTEN) or status clear (INTCLEAR)"
+  read_path:
+    source: "gpio_in pads"
+    sequence: "pads -> 2-DFF synchronizer -> IN register -> APB prdata"
+    buffer: "Double-flop synchronizer (2-stage per pin)"
+  interrupt_path:
+    source: "IN register (synchronized)"
+    detect: "IN[n] XOR IN_prev[n] -> posedge detect"
+    status: "INTSTAT[n] set on edge; masked by INTEN[n]"
+    output: "gpio_irq = |(INTEN & INTSTAT)"
+  note: "No burst support. All registers single-word."
+
+# SECTION 6: Clock & Reset Domain
+clock_reset_domains:
+  domains:
+    - { name: "pclk", frequency_mhz: 100, description: "APB clock domain" }
+  reset_scheme:
+    signal: "presetn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+# SECTION 7: CDC Requirements
+cdc_requirements:
+  crossings:
+    - { from_domain: "external_pads", to_domain: "pclk", signal: "gpio_in", synchronizer: "double_flop", description: "Pad inputs are asynchronous to pclk" }
+  synchronizers:
+    - { name: "gpio_in_sync", type: "double_flop", width: 32, description: "2-DFF synchronizer per input bit" }
+  note: "Single clock domain for core logic. Only gpio_in crosses from external pads."
+
+# SECTION 8: RDC Requirements
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain — no RDC required"
+
+# SECTION 9: Registers
+registers:
+  config:
+    register_width: 32
+    addr_width: 12
+    byte_addressable: true
+    num_channels: 1   # single GPIO block, no channel repeat
+  register_list:
+    - name: "DIR"
+      offset: 0x000
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Direction Register (0=input, 1=output)"
+      fields:
+        - { name: "dir", bits: [31, 0], access: "rw", reset: 0x0, description: "Per-pin direction: 0=input, 1=output" }
+    - name: "OUT"
+      offset: 0x004
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Output Data Register"
+      fields:
+        - { name: "out", bits: [31, 0], access: "rw", reset: 0x0, description: "Output value when DIR=1. Ignored when DIR=0." }
+    - name: "IN"
+      offset: 0x008
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Input Data Register (read-only)"
+      fields:
+        - { name: "in", bits: [31, 0], access: "ro", reset: 0x0, description: "Synchronized pad input state" }
+    - name: "INTEN"
+      offset: 0x00C
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "interrupt"
+      description: "Interrupt Enable Register — per-pin edge detect enable"
+      fields:
+        - { name: "inten", bits: [31, 0], access: "rw", reset: 0x0, description: "1=enables edge-detect interrupt for that pin" }
+    - name: "INTSTAT"
+      offset: 0x010
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "interrupt"
+      description: "Interrupt Status Register — latched edge events (RO from APB; cleared via INTCLEAR)"
+      fields:
+        - { name: "intstat", bits: [31, 0], access: "ro", reset: 0x0, description: "Read: 1=edge detected on enabled pin since last clear" }
+    - name: "INTCLEAR"
+      offset: 0x014
+      width: 32
+      access: "wo"
+      reset: 0x00000000
+      category: "interrupt"
+      description: "Interrupt Clear Register — write-1-to-clear INTSTAT bits"
+      fields:
+        - { name: "intclear", bits: [31, 0], access: "wo", reset: 0x0, description: "Write 1 to corresponding bit clears INTSTAT[n]" }
+
+# SECTION 10: Memory Requirements
+memory:
+  instances: []
+  note: "No SRAM/FIFO required. Pure register-based GPIO."
+
+# SECTION 11: Interrupt
+interrupts:
+  sources:
+    - { name: "PIN_EDGE", bit: 0, type: "edge", enable_reg: "INTEN", status_reg: "INTSTAT", clear: "W1C via INTCLEAR", description: "Per-pin edge detect — any toggle on interrupt-enabled input pin" }
+  output:
+    signal: "gpio_irq"
+    polarity: "active_high"
+    type: "level"
+  note: "Edge detect uses registered IN values. INTCLEAR write: write-1-to-clear per-pin status bits."
+
+# SECTION 12: FSM
+fsm:
+  edge_detect:
+    description: "Per-pin edge detection via registered comparison"
+    states: []
+    transitions: []
+  note: "No FSM required — edge detect uses registered previous-IN value. Combinational XOR + registered INTSTAT."
+
+# SECTION 13: Coding Rules
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  conventions:
+    - "nonblocking (<=) in always_ff"
+    - "blocking (=) in always_comb"
+    - "No latches: every always_comb branch assigns all outputs"
+    - "Active-low reset: presetn"
+    - "Synchronous reset deassertion"
+    - "Parameterize widths using NUM_PADS (no hardcoded 32)"
+  lint_waivers:
+    - "UNUSEDSIGNAL: prdata mux when fewer registers than address space"
+    - "WIDTHEXPAND: gpio_oe/gpio_out/gpio_in vectors"
+
+# SECTION 14: Reuse Modules
+reuse_modules: []
+
+# SECTION 15: Custom Extensions
+custom:
+  note: "Edge-detect interrupts included per user request. No pull-up/down, drive strength, or alternate functions in this version."
+
+# SECTION 16: Dir Structure
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+# SECTION 17: Filelist
+filelist:
+  rtl:
+    - "rtl/gpio_pad_pkg.sv"
+    - "rtl/gpio_pad_regs.sv"
+    - "rtl/gpio_pad_core.sv"
+    - "rtl/gpio_pad_wrapper.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/gpio_pad_model.sv"
+  firmware:
+    - "firmware/gpio_pad_regs.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/README.md"
+
+# SECTION 18: Test Requirements
+test_requirements:
+  scenarios:
+    - { id: "SC1", name: "Direction set to output, write data", expected: "gpio_out = OUT register value, gpio_oe = DIR bits" }
+    - { id: "SC2", name: "Direction set to input, read pad", expected: "IN register reflects gpio_in after synchronizer delay" }
+    - { id: "SC3", name: "APB read back DIR/OUT registers", expected: "prdata returns written value" }
+    - { id: "SC4", name: "APB read IN register during input", expected: "prdata returns synchronized gpio_in" }
+    - { id: "SC5", name: "Reset default", expected: "All registers at reset value, gpio_oe=0 (all inputs)" }
+    - { id: "SC6", name: "Edge detect triggers interrupt", expected: "gpio_irq asserts when enabled input pin toggles" }
+    - { id: "SC7", name: "Interrupt mask blocks detection", expected: "gpio_irq stays low when INTEN=0 even if pin toggles" }
+    - { id: "SC8", name: "W1C clears interrupt status", expected: "Write INTCLEAR=1 clears INTSTAT=0, gpio_irq deasserts" }
+    - { id: "SC9", name: "Output pin does not generate interrupt", expected: "When DIR=1, pin toggles do not set INTSTAT" }
+  scoreboard_checks: 9
+  coverage_goals:
+    functional: "All registers R/W verified, pad direction toggled, edge-detect ISR flow"
+    code: "line >= 95%, branch >= 90%"
+
+# SECTION 19: Traceability
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "gpio_pad_pkg.sv (localparam)" }
+    - { yaml: "io_list.interfaces", output: "gpio_pad_wrapper.sv (port list)" }
+    - { yaml: "registers.register_list", output: "gpio_pad_regs.sv + firmware + docs" }
+    - { yaml: "test_requirements.scenarios", output: "tb/tb_gpio_pad.sv" }
+
+# SECTION 20: Generation Flow
+generation_flow:
+  steps:
+    - { name: "validate", command: "make yaml-validate", description: "Cerberus schema check" }
+    - { name: "gen_rtl",  command: "python3 generators/gen_rtl.py", description: "Render .sv.j2 -> .sv" }
+    - { name: "gen_fw",   command: "python3 generators/gen_fw.py", description: "Write C headers" }
+    - { name: "gen_docs", command: "python3 generators/gen_docs.py", description: "Write markdown docs" }
+    - { name: "lint",     command: "verilator --lint-only -Wall", description: "SystemVerilog lint" }
+    - { name: "sim",      command: "iverilog -o sim + vvp", description: "Simulation with scoreboard" }
+  makefile_targets:
+    - "make yaml-validate"
+    - "make rtl"
+    - "make sim"
+    - "make lint"
+    - "make all"
+    - "make clean"
+
+# ============================================================================
+# WORKFLOW-COMPAT (flat schema consumed by syn/sta/dft/pnr/sta-post scripts)
+# ============================================================================
+# Mirror of io_list.clock_domains and io_list.resets in the flat shape that
+# workflow/sta/scripts/write_sdc.sh and friends expect.
+clocks:
+  - { name: pclk, period_ns: 10.0, source_port: pclk }
+resets:
+  - { name: presetn, polarity: active_low, sync_async: async_assert_sync_deassert, source_port: presetn }
+io_delay:
+  input_pct:  0.20
+  output_pct: 0.20
+pnr:
+  utilization_pct: 50
+  aspect_ratio: 1.0
+  core_space_um: 4.0
+  global_density: 0.65
+  cts_buf_list: "sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8"
+  io_layers:
+    horizontal: met3
+    vertical:   met2

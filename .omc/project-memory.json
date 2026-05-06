@@ -1,0 +1,270 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1777691725162,
+  "projectRoot": "/Users/brian/Desktop/Project/brian_hw",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "test"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "COUNTER": {
+      "path": "COUNTER",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1777691725144,
+      "keyFiles": []
+    },
+    "CPU": {
+      "path": "CPU",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1777691725145,
+      "keyFiles": []
+    },
+    "DMA": {
+      "path": "DMA",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1777691725145,
+      "keyFiles": [
+        "dma330_spec.md",
+        "simv"
+      ]
+    },
+    "DMA330": {
+      "path": "DMA330",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1777691725146,
+      "keyFiles": []
+    },
+    "DMA_TEST": {
+      "path": "DMA_TEST",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1777691725146,
+      "keyFiles": [
+        "tb_dma.vcd",
+        "tb_dma.vvp"
+      ]
+    },
+    "GOOD": {
+      "path": "GOOD",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1777691725146,
+      "keyFiles": [
+        "dma.spec",
+        "dma_ctrl_wave.vcd",
+        "sim_output.txt",
+        "sim_output2.txt"
+      ]
+    },
+    "NEW_CPU": {
+      "path": "NEW_CPU",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1777691725147,
+      "keyFiles": []
+    },
+    "TIMER": {
+      "path": "TIMER",
+      "purpose": null,
+      "fileCount": 83,
+      "lastAccessed": 1777691725148,
+      "keyFiles": [
+        "Makefile",
+        "SOC_REVIEW_REPORT.md",
+        "ahb_apb_bridge.v",
+        "ahb_arbiter.v",
+        "ahb_axi_bridge.v"
+      ]
+    },
+    "TODO_SYSTEM": {
+      "path": "TODO_SYSTEM",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1777691725154,
+      "keyFiles": []
+    },
+    "TODO_TEST": {
+      "path": "TODO_TEST",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1777691725155,
+      "keyFiles": []
+    },
+    "TOOLCALL": {
+      "path": "TOOLCALL",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1777691725155,
+      "keyFiles": []
+    },
+    "WOW": {
+      "path": "WOW",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1777691725155,
+      "keyFiles": [
+        "b.py",
+        "compression_display_fix_discussion.md",
+        "compression_improvement_points.md",
+        "out.sv",
+        "test_rtl_pipeline.py"
+      ]
+    },
+    "common_ai_agent": {
+      "path": "common_ai_agent",
+      "purpose": null,
+      "fileCount": 93,
+      "lastAccessed": 1777691725156,
+      "keyFiles": [
+        "ASCII_TREE.txt",
+        "ATLAS-2.zip",
+        "ATLAS-3.zip",
+        "ATLAS.zip",
+        "BUG_REPORT.md"
+      ]
+    },
+    "glm_test": {
+      "path": "glm_test",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1777691725157,
+      "keyFiles": [
+        "counter.sv",
+        "tb_counter.sv"
+      ]
+    },
+    "gpt_test": {
+      "path": "gpt_test",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1777691725158,
+      "keyFiles": []
+    },
+    "leaked-claude-code": {
+      "path": "leaked-claude-code",
+      "purpose": null,
+      "fileCount": 20,
+      "lastAccessed": 1777691725158,
+      "keyFiles": [
+        "LEGAL.md",
+        "QueryEngine.ts",
+        "README.md",
+        "Task.ts",
+        "Tool.ts"
+      ]
+    },
+    "test": {
+      "path": "test",
+      "purpose": "Test files",
+      "fileCount": 1,
+      "lastAccessed": 1777691725158,
+      "keyFiles": [
+        "tb_dma.vvp"
+      ]
+    },
+    "DMA/docs": {
+      "path": "DMA/docs",
+      "purpose": "Documentation",
+      "fileCount": 2,
+      "lastAccessed": 1777691725159,
+      "keyFiles": [
+        "quality_report.md",
+        "simple_dma_plan.md"
+      ]
+    },
+    "DMA/test": {
+      "path": "DMA/test",
+      "purpose": "Test files",
+      "fileCount": 22,
+      "lastAccessed": 1777691725159,
+      "keyFiles": [
+        "Makefile",
+        "Makefile.test",
+        "cocotb-config"
+      ]
+    },
+    "DMA_TEST/scripts": {
+      "path": "DMA_TEST/scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 1,
+      "lastAccessed": 1777691725159,
+      "keyFiles": [
+        "run_sim.sh"
+      ]
+    },
+    "gpt_test/docs": {
+      "path": "gpt_test/docs",
+      "purpose": "Documentation",
+      "fileCount": 2,
+      "lastAccessed": 1777691725162,
+      "keyFiles": [
+        "dma_spec.md",
+        "sim_results.md"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "common_ai_agent/src/llm_client.py",
+      "accessCount": 25,
+      "lastAccessed": 1777704799766,
+      "type": "file"
+    },
+    {
+      "path": "common_ai_agent/src/config.py",
+      "accessCount": 9,
+      "lastAccessed": 1777703934603,
+      "type": "file"
+    },
+    {
+      "path": "common_ai_agent/src/opencode_backend.py",
+      "accessCount": 5,
+      "lastAccessed": 1777703537165,
+      "type": "file"
+    },
+    {
+      "path": "common_ai_agent/src/main.py",
+      "accessCount": 2,
+      "lastAccessed": 1777703947468,
+      "type": "file"
+    },
+    {
+      "path": "common_ai_agent/src/cursor_agent_backend.py",
+      "accessCount": 1,
+      "lastAccessed": 1777701926513,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

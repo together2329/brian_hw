@@ -618,6 +618,109 @@ class TestAgentClientTemplateWorkflow(unittest.TestCase):
         self.assertEqual(result["status"], "completed")
 
 
+class TestAtlasUiWorkerDispatchTemplateWorkflow(unittest.TestCase):
+    """ATLAS UI job dispatch must preserve template/ip for worker /run loading."""
+
+    def _dispatch(self, body: dict) -> tuple[dict, dict]:
+        try:
+            from fastapi.testclient import TestClient
+            import atlas_ui
+        except ImportError as e:
+            self.skipTest(f"fastapi/atlas_ui unavailable: {e}")
+
+        posted: dict = {}
+
+        def mock_urlopen(req, timeout=10):
+            posted.update(json.loads(req.data.decode("utf-8")))
+            resp = MagicMock()
+            resp.read.return_value = json.dumps({"run_id": "atlas_run_1"}).encode("utf-8")
+            resp.__enter__ = lambda s: s
+            resp.__exit__ = MagicMock(return_value=False)
+            return resp
+
+        app = atlas_ui.create_app()
+        with patch("urllib.request.urlopen", side_effect=mock_urlopen):
+            client = TestClient(app)
+            response = client.post("/api/job/dispatch", json=body)
+
+        return response.json(), posted
+
+    def test_rtl_dispatch_defaults_to_ssot_rtl_template_and_ip(self):
+        response, posted = self._dispatch({
+            "workflow": "rtl-gen",
+            "ip": "dma330",
+            "worker": "http://localhost:8001",
+        })
+
+        self.assertTrue(response.get("ok"), response)
+        self.assertEqual(posted.get("workflow"), "rtl-gen")
+        self.assertEqual(posted.get("template"), "ssot-rtl")
+        self.assertEqual(posted.get("ip"), "dma330")
+
+    def test_dispatch_preserves_explicit_template(self):
+        response, posted = self._dispatch({
+            "workflow": "rtl-gen",
+            "ip": "dma330",
+            "template": "custom-rtl",
+            "worker": "http://localhost:8001",
+        })
+
+        self.assertTrue(response.get("ok"), response)
+        self.assertEqual(posted.get("template"), "custom-rtl")
+
+    def test_dispatch_accepts_windows_session_path_as_namespace(self):
+        response, posted = self._dispatch({
+            "workflow": "rtl-gen",
+            "ip": "dma330",
+            "session": r"C:\repo\common_ai_agent\.session\dma330\rtl-gen\conversation.json",
+            "worker": "http://localhost:8001",
+        })
+
+        self.assertTrue(response.get("ok"), response)
+        self.assertEqual(posted.get("session"), "dma330/rtl-gen")
+
+    def test_rtl_dispatch_without_ip_does_not_fallback_to_static_seed(self):
+        response, posted = self._dispatch({
+            "workflow": "rtl-gen",
+            "worker": "http://localhost:8001",
+        })
+
+        self.assertTrue(response.get("ok"), response)
+        self.assertNotIn("template", posted)
+
+    def test_session_history_accepts_windows_session_artifact_path(self):
+        try:
+            from fastapi.testclient import TestClient
+            import atlas_ui
+        except ImportError as e:
+            self.skipTest(f"fastapi/atlas_ui unavailable: {e}")
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td).resolve()
+            session_dir = root / ".session" / "dma330" / "rtl-gen"
+            session_dir.mkdir(parents=True)
+            (session_dir / "conversation.json").write_text(
+                json.dumps([{"role": "user", "content": "hello"}]),
+                encoding="utf-8",
+            )
+
+            old_root = atlas_ui.PROJECT_ROOT
+            atlas_ui.PROJECT_ROOT = root
+            try:
+                client = TestClient(atlas_ui.create_app())
+                response = client.get(
+                    "/api/session/history",
+                    params={"session": r"C:\repo\common_ai_agent\.session\dma330\rtl-gen\conversation.json"},
+                )
+            finally:
+                atlas_ui.PROJECT_ROOT = old_root
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data.get("session"), "dma330/rtl-gen")
+        self.assertEqual(data.get("messages", [])[0].get("content"), "hello")
+
+
 class TestPostRunFunction(unittest.TestCase):
     """Direct unit tests for _post_run helper."""
 

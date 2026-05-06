@@ -522,6 +522,51 @@ def get_todo_template_registry() -> TodoTemplateRegistry:
     return _todo_template_registry
 
 
+def _dynamic_todo_project_roots(project_root: Path | None = None) -> list[Path]:
+    roots: list[Path] = []
+    for raw in (project_root, Path.cwd(), Path.cwd().parent):
+        if raw is None:
+            continue
+        path = Path(raw).resolve()
+        if path not in roots:
+            roots.append(path)
+    return roots
+
+
+def load_dynamic_todo_template(
+    template_name: str,
+    ip: str = "",
+    *,
+    project_root: Path | None = None,
+) -> tuple[Optional[list], Optional[Path], Optional[dict]]:
+    """Load a per-IP dynamic TodoTracker template when one exists.
+
+    The static ``ssot-rtl`` template is only a seed.  Once rtl-gen has derived
+    SSOT-specific tasks, the active TodoTracker list must come from
+    ``<ip>/rtl/rtl_todo_tracker.json`` instead of the fixed seed template.
+    """
+    if template_name != "ssot-rtl" or not ip:
+        return None, None, None
+    if ".." in ip or "/" in ip or "\\" in ip:
+        return None, None, None
+
+    for root in _dynamic_todo_project_roots(project_root):
+        for path in (
+            root / ip / "rtl" / "rtl_todo_tracker.json",
+            root / ip / "rtl" / "rtl_todo_plan.todo.json",
+        ):
+            if not path.is_file():
+                continue
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            tasks = data.get("tasks", data if isinstance(data, list) else None)
+            if tasks:
+                return tasks, path, data if isinstance(data, dict) else {}
+    return None, None, None
+
+
 # ─────────────────────────────────────────────────────────────
 # Custom slash commands
 # ─────────────────────────────────────────────────────────────
@@ -597,6 +642,27 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
             surface = run_common_stage_surface(project_root=Path.cwd(), source_root=None, alias=alias, ip=ip)
             if not surface.handled:
                 return f"[Error] Unknown stage: {alias}"
+            if alias == "ssot-rtl" and surface.status in {"blocked", "fail"}:
+                tasks, path, _ = load_dynamic_todo_template("ssot-rtl", ip, project_root=Path.cwd())
+                if tasks and path:
+                    try:
+                        import config
+                        from lib.todo_tracker import TodoTracker
+                        tracker = TodoTracker(Path(config.TODO_FILE))
+                        tracker.add_todos(tasks)
+                        tracker.save()
+                        try:
+                            source_text = str(path.relative_to(Path.cwd()))
+                        except ValueError:
+                            source_text = str(path)
+                        return (
+                            surface.message
+                            + f"\n\ntodo_tracker: loaded {len(tasks)} dynamic SSOT RTL TODOs from "
+                            + source_text
+                            + "\n"
+                        )
+                    except Exception as exc:
+                        return surface.message + f"\n\ntodo_tracker: failed to load dynamic RTL TODOs: {exc}\n"
             return surface.message
 
         return _stage_handler

@@ -1,0 +1,3 @@
+timer_ssot_web/rtl/timer_ssot_web_regs.sv
+timer_ssot_web/rtl/timer_ssot_web_core.sv
+timer_ssot_web/rtl/timer_ssot_web_wrapper.sv

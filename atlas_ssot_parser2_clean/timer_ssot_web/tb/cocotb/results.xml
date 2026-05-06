@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1777726702" />
+    <testcase name="apb_timer_regression" classname="test_timer_ssot_web" file="/Users/brian/Desktop/Project/brian_hw/atlas_ssot_parser2_clean/timer_ssot_web/tb/cocotb/test_timer_ssot_web.py" lineno="112" time="0.024051904678344727" sim_time_ns="970.001" ratio_time="40329.487954163815" />
+  </testsuite>
+</testsuites>

@@ -70,6 +70,11 @@ except Exception:
     except Exception:
         _shared_rtl_manifest_progress = None  # type: ignore
 
+try:
+    from core.session_names import normalize_session_name
+except Exception:
+    from session_names import normalize_session_name  # type: ignore
+
 
 # ── ask_user answer formatter ──────────────────────────────────────
 def _format_answer(ans: dict[str, Any], options: list[dict[str, Any]]) -> str:
@@ -3647,11 +3652,12 @@ def create_app():
         return parts[0].lstrip("/").lower(), (parts[1] if len(parts) > 1 else "").strip()
 
     def _session_json_path(session: str) -> Path:
-        clean = session.strip().strip("/")
+        clean = normalize_session_name(session)
         return PROJECT_ROOT / ".session" / clean / "conversation.json"
 
     def _append_session_message(session: str, role: str, content: str) -> None:
-        if not session or ".." in session.split("/"):
+        session = normalize_session_name(session)
+        if not session:
             return
         path = _session_json_path(session)
         try:
@@ -4652,7 +4658,7 @@ def create_app():
         bridge.queue_prompt("/mode normal")
         bridge.queue_prompt("/wf rtl-gen")
         bridge.queue_prompt("/clear")
-        bridge.queue_prompt("/todo template ssot-rtl")
+        bridge.queue_prompt(f"/todo template ssot-rtl {ip}")
         bridge.queue_prompt(
             f"Repair RTL for {ip} using only SSOT-driven rtl-gen ownership.\n\n"
             f"Read these evidence files first:\n"
@@ -4781,7 +4787,7 @@ def create_app():
             bridge.queue_prompt("/mode normal")
             bridge.queue_prompt(f"/wf {workflow}")
             bridge.queue_prompt("/clear")
-            bridge.queue_prompt(f"/todo template {template}")
+            bridge.queue_prompt(f"/todo template {template} {ip}")
             payload = json.dumps(items, indent=2, ensure_ascii=False)[:12000]
             bridge.queue_prompt(
                 f"Execute classified FL-vs-RTL repair for {ip}.\n\n"
@@ -5202,7 +5208,7 @@ def create_app():
                 bridge.queue_prompt("/mode normal")
                 bridge.queue_prompt(f"/wf {workflow}")
                 bridge.queue_prompt("/clear")
-                bridge.queue_prompt(f"/todo template {template}")
+                bridge.queue_prompt(f"/todo template {template} {ip}")
                 bridge.queue_prompt(
                     f"Execute {alias} for {ip} from {ip}/yaml/{ip}.ssot.yaml. "
                     "The SSOT-driven RTL generator produced artifacts but compile/lint did not approve them. "
@@ -5441,7 +5447,7 @@ def create_app():
                 bridge.queue_prompt("/mode normal")
                 bridge.queue_prompt(f"/wf {workflow}")
                 bridge.queue_prompt("/clear")
-                bridge.queue_prompt(f"/todo template {template}")
+                bridge.queue_prompt(f"/todo template {template} {ip}")
                 bridge.queue_prompt(
                     f"Repair generated pyuvm/cocotb TB for {ip} using SSOT, FunctionalModel, "
                     "equivalence_goals.json, rtl_contract.json, and the validator output below. "
@@ -5685,7 +5691,7 @@ def create_app():
         # context from a previous IP. The concrete SSOT path and rerun prompt
         # below re-establish the only context the worker should use.
         bridge.queue_prompt("/clear")
-        bridge.queue_prompt(f"/todo template {template}")
+        bridge.queue_prompt(f"/todo template {template} {ip}")
         bridge.queue_prompt(
             f"Execute {alias} for {ip} from {ip}/yaml/{ip}.ssot.yaml. "
             "Use the workflow todo detail/criteria. Do not use fixed IP templates; "
@@ -5729,17 +5735,27 @@ def create_app():
         }
         return prompt_for.get(workflow, f"run {workflow}" + (f" on {ip}" if ip else ""))
 
+    def _default_todo_template_for_job(workflow: str, stage_id: str, ip: str) -> str:
+        if ip and (workflow == "rtl-gen" or stage_id == "rtl"):
+            return "ssot-rtl"
+        return ""
+
     def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
         try:
             import urllib.request as _u
-            payload = json.dumps({
+            body = {
                 "task": job["prompt"],
                 "workflow": job["workflow"],
                 "session": job.get("session", ""),
                 "model": job.get("model", ""),
                 "context": job["prompt"].split("\n\n", 1)[0],
                 "sync": False,
-            }).encode("utf-8")
+            }
+            if job.get("template"):
+                body["template"] = job["template"]
+            if job.get("ip"):
+                body["ip"] = job["ip"]
+            payload = json.dumps(body).encode("utf-8")
             req = _u.Request(
                 f"{job['worker'].rstrip('/')}/run",
                 data=payload, method="POST",
@@ -5767,9 +5783,11 @@ def create_app():
         *, workflow: str, ip: str, prompt: str, model: str = "",
         session_name: str = "", stage_id: str = "", pipeline_id: str = "",
         pipeline_index: int = 0, depends_on: str = "",
-        worker_override: str = "", auto_start: bool = True,
+        worker_override: str = "", auto_start: bool = True, template: str = "",
     ) -> dict[str, Any]:
         import uuid
+        stage_id = stage_id or (_PIPELINE_BY_WORKFLOW.get(workflow, {}).get("id") or workflow)
+        template = template or _default_todo_template_for_job(workflow, stage_id, ip)
         session_name = session_name or (f"{ip}/{workflow}" if ip else workflow)
         scope_path = str((PROJECT_ROOT / ip).resolve()) if ip else str(PROJECT_ROOT)
         try:
@@ -5800,7 +5818,8 @@ def create_app():
             "run_id": "",
             "worker": worker_url,
             "workflow": workflow,
-            "stage_id": stage_id or (_PIPELINE_BY_WORKFLOW.get(workflow, {}).get("id") or workflow),
+            "stage_id": stage_id,
+            "template": template,
             "ip": ip,
             "model": model,
             "session": session_name,
@@ -5924,18 +5943,22 @@ def create_app():
         ip       = (body.get("ip") or "").strip()
         prompt   = (body.get("prompt") or "").strip()
         model    = (body.get("model") or "").strip()
-        session_name = (body.get("session") or "").strip()
+        template = (body.get("template") or "").strip()
+        session_raw = (body.get("session") or "").strip()
+        session_name = normalize_session_name(session_raw)
         worker_override = (body.get("worker") or "").strip()
         if not workflow:
             return JSONResponse({"error": "missing 'workflow'"}, status_code=400)
         if not re.match(r"^[A-Za-z][A-Za-z0-9_\-]*$", workflow):
             return JSONResponse({"error": f"invalid workflow {workflow!r}"}, status_code=400)
+        if template and not re.match(r"^[A-Za-z][A-Za-z0-9_\-]*$", template):
+            return JSONResponse({"error": f"invalid template {template!r}"}, status_code=400)
         if ip and not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
             return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
         if model and not re.match(r"^[A-Za-z0-9_.:/@+\-]+$", model):
             return JSONResponse({"error": f"invalid model {model!r}"}, status_code=400)
-        if session_name and not re.match(r"^[A-Za-z0-9_.\-/]+$", session_name):
-            return JSONResponse({"error": f"invalid session {session_name!r}"}, status_code=400)
+        if session_raw and not session_name:
+            return JSONResponse({"error": f"invalid session {session_raw!r}"}, status_code=400)
         if worker_override and not re.match(r"^https?://[A-Za-z0-9_.:\-/]+$", worker_override):
             return JSONResponse({"error": f"invalid worker {worker_override!r}"}, status_code=400)
 
@@ -5943,7 +5966,7 @@ def create_app():
         job = _make_job_record(
             workflow=workflow, ip=ip, prompt=prompt, model=model,
             session_name=session_name, stage_id=stage_id,
-            worker_override=worker_override, auto_start=True,
+            worker_override=worker_override, auto_start=True, template=template,
         )
         if job.get("status") == "error":
             return JSONResponse({"error": job.get("error"), "worker": job.get("worker")}, status_code=502)
@@ -5992,11 +6015,16 @@ def create_app():
             ip = (item.get("ip") or "").strip()
             prompt = (item.get("prompt") or "").strip()
             model = (item.get("model") or "").strip()
-            session_name = (item.get("session") or "").strip()
+            template = (item.get("template") or "").strip()
+            session_raw = (item.get("session") or "").strip()
+            session_name = normalize_session_name(session_raw)
             worker_override = (item.get("worker") or "").strip()
 
             if not workflow or not re.match(r"^[A-Za-z][A-Za-z0-9_\-]*$", workflow):
                 errors.append({"index": idx, "error": f"invalid workflow {workflow!r}"})
+                continue
+            if template and not re.match(r"^[A-Za-z][A-Za-z0-9_\-]*$", template):
+                errors.append({"index": idx, "error": f"invalid template {template!r}"})
                 continue
             if ip and not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
                 errors.append({"index": idx, "error": f"invalid ip {ip!r}"})
@@ -6004,8 +6032,8 @@ def create_app():
             if model and not re.match(r"^[A-Za-z0-9_.:/@+\-]+$", model):
                 errors.append({"index": idx, "error": f"invalid model {model!r}"})
                 continue
-            if session_name and not re.match(r"^[A-Za-z0-9_.\-/]+$", session_name):
-                errors.append({"index": idx, "error": f"invalid session {session_name!r}"})
+            if session_raw and not session_name:
+                errors.append({"index": idx, "error": f"invalid session {session_raw!r}"})
                 continue
             if worker_override and not re.match(r"^https?://[A-Za-z0-9_.:\-/]+$", worker_override):
                 errors.append({"index": idx, "error": f"invalid worker {worker_override!r}"})
@@ -6015,7 +6043,7 @@ def create_app():
             job = _make_job_record(
                 workflow=workflow, ip=ip, prompt=prompt, model=model,
                 session_name=session_name, stage_id=stage_id,
-                worker_override=worker_override, auto_start=True,
+                worker_override=worker_override, auto_start=True, template=template,
             )
             created.append(_public_job(job))
 
@@ -7214,11 +7242,12 @@ def create_app():
         Architect uses this to reload per-IP/per-workflow agent history,
         e.g. `.session/spi_master/rtl-gen/conversation.json`.
         """
-        session = (session or "").strip().strip("/")
+        session_raw = session or ""
+        session = normalize_session_name(session_raw)
         if not session:
-            return JSONResponse({"error": "missing session"}, status_code=400)
-        if not re.match(r"^[A-Za-z0-9_.\-/]+$", session) or ".." in session.split("/"):
-            return JSONResponse({"error": f"invalid session {session!r}"}, status_code=400)
+            status = 400
+            error = "missing session" if not str(session_raw).strip() else f"invalid session {session_raw!r}"
+            return JSONResponse({"error": error}, status_code=status)
         root = (PROJECT_ROOT / ".session").resolve()
         sdir = (root / session).resolve()
         try:
@@ -7254,11 +7283,12 @@ def create_app():
         modules without losing chat/todo state because the authoritative
         data lives under `.session/<session>/`.
         """
-        session = (session or "").strip().strip("/")
+        session_raw = session or ""
+        session = normalize_session_name(session_raw)
         if not session:
-            return JSONResponse({"error": "missing session"}, status_code=400)
-        if not re.match(r"^[A-Za-z0-9_.\-/]+$", session) or ".." in session.split("/"):
-            return JSONResponse({"error": f"invalid session {session!r}"}, status_code=400)
+            status = 400
+            error = "missing session" if not str(session_raw).strip() else f"invalid session {session_raw!r}"
+            return JSONResponse({"error": error}, status_code=status)
         root = (PROJECT_ROOT / ".session").resolve()
         sdir = (root / session).resolve()
         try:
@@ -7486,11 +7516,11 @@ def create_app():
                 if t in ("prompt", "send") and msg.get("text"):
                     _txt = msg["text"].strip()
                     import os as _os
-                    _session = str(msg.get("session") or "").strip().strip("/")
-                    if _session:
-                        if (not re.match(r"^[A-Za-z0-9_.\-/]+$", _session)
-                                or ".." in _session.split("/")):
-                            bridge.emit("error", message=f"invalid session: {_session!r}")
+                    _session_raw = str(msg.get("session") or "").strip()
+                    _session = normalize_session_name(_session_raw)
+                    if _session_raw:
+                        if not _session:
+                            bridge.emit("error", message=f"invalid session: {_session_raw!r}")
                             continue
                         _os.environ["ATLAS_ACTIVE_SESSION"] = _session
                     # ── Mode-flip slashes need to apply mid-loop ──

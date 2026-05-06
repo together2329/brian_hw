@@ -1,0 +1,6 @@
+top_module: ddr_phy
+clocks: [{name: clk, period_ns: 0.625, source_port: clk}]
+resets: [{name: rst_n, polarity: active_low, source_port: rst_n}]
+busInterfaces:
+  - {name: S_AXI, proto: AXI4, role: slave, side: left}
+memoryMap: [{name: ddr, base: 0x8000_0000, range: 0x4000_0000}]

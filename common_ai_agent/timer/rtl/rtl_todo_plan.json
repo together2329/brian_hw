@@ -1,0 +1,126 @@
+{
+  "name": "timer-rtl",
+  "description": "Auto-generated RTL tasks from SSOT for timer",
+  "tasks": [
+    {
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "activeForm": "Reading SSOT and build dynamic RTL implementation ledger",
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: timer in rtl/timer.sv via top_module.\n\nDone when:\n  • rtl_todo_plan.json was regenerated from the current SSOT\n  • Every required task in the plan is either implemented, evidenced, or escalated\n  • No IP-specific fixed template is used as the source of truth\n  • Traceability keeps source_ref top_module\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "high"
+    },
+    {
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "activeForm": "Implementing top-level ports, reset, and filelist integration",
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: timer in rtl/timer.sv via top_module.\nSSOT item context: value=timer.\n\nDone when:\n  • Top module name matches SSOT top_module\n  • Every SSOT top-level port appears with matching direction and width\n  • Filelist contains all LLM-authored RTL sources and no stale sources\n  • Traceability keeps source_ref io_list\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "high"
+    },
+    {
+      "content": "Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "activeForm": "Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "detail": "rtl-gen cannot implement production RTL until the SSOT contains both the functional golden behavior and the cycle/handshake contract.\nSSOT ref: quality_gates.rtl_gen.ssot_required_sections.\nOwner: timer in rtl/timer.sv via top_module.\n\nDone when:\n  • function_model is present and non-empty in the SSOT\n  • cycle_model is present and non-empty in the SSOT\n  • Missing authority artifacts open a human/ssot-gen gate instead of being bypassed in RTL\n  • Traceability keeps source_ref quality_gates.rtl_gen.ssot_required_sections\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "critical"
+    },
+    {
+      "content": "Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "activeForm": "Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "detail": "Every SSOT workflow_todos.rtl-gen item must be executable by rtl-gen and therefore must carry content, detail, and criteria.\nSSOT ref: quality_gates.rtl_gen.workflow_todo_contract.\nOwner: timer in rtl/timer.sv via top_module.\n\nDone when:\n  • Every workflow_todos.rtl-gen item has content\n  • Every workflow_todos.rtl-gen item has detail\n  • Every workflow_todos.rtl-gen item has at least one criteria entry\n  • Traceability keeps source_ref quality_gates.rtl_gen.workflow_todo_contract\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "critical"
+    },
+    {
+      "content": "Gate: every SSOT-derived RTL behavior has an owner module",
+      "activeForm": "Gate: every SSOT-derived RTL behavior has an owner module",
+      "detail": "Function-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.\nSSOT ref: quality_gates.rtl_gen.owner_traceability.\nOwner: timer in rtl/timer.sv via top_module.\n\nDone when:\n  • No required function_model task is orphaned\n  • No required cycle_model task is orphaned\n  • No required register/dataflow/FSM task is orphaned\n  • Owner module and owner file are recorded in rtl_todo_plan.json\n  • Traceability keeps source_ref quality_gates.rtl_gen.owner_traceability\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "critical"
+    },
+    {
+      "content": "Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "activeForm": "Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "detail": "RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.\nSSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.\nOwner: timer in rtl/timer.sv via top_module.\n\nDone when:\n  • rtl/rtl_authoring_provenance.json exists\n  • provenance agent is common_ai_agent\n  • provenance workflow is rtl-gen\n  • provenance surface is atlas_ui, textual_ui, or headless_common_engine\n  • provenance todo_plan_sha256 matches the current rtl_todo_plan.json\n  • provenance rtl_files lists every SSOT manifest RTL file\n  • Traceability keeps source_ref quality_gates.rtl_gen.common_ai_agent_authoring\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "critical"
+    },
+    {
+      "content": "Gate: required SSOT behavior has static DUT RTL evidence after audit",
+      "activeForm": "Gate: required SSOT behavior has static DUT RTL evidence after audit",
+      "detail": "After RTL exists, derive_rtl_todos.py --audit-rtl must find concrete DUT source terms for every static-evidence-required task.\nSSOT ref: quality_gates.rtl_gen.static_rtl_evidence.\nOwner: timer in rtl/timer.sv via top_module.\n\nDone when:\n  • derive_rtl_todos.py --audit-rtl ran after the final RTL edit\n  • rtl_todo_plan.json static_rtl_evidence.missing is zero\n  • No task requiring DUT evidence is satisfied only by comments, TB, scoreboard, or FunctionalModel code\n  • Traceability keeps source_ref quality_gates.rtl_gen.static_rtl_evidence\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "critical"
+    },
+    {
+      "content": "Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "activeForm": "Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "detail": "Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.\nSSOT ref: quality_gates.rtl_gen.dut_compile.\nOwner: timer in rtl/timer.sv via top_module.\n\nDone when:\n  • rtl/rtl_compile.json exists\n  • rtl_compile.json reports dut_only=true\n  • rtl_compile.json passed=true with zero errors, diagnostics, and style violations\n  • Traceability keeps source_ref quality_gates.rtl_gen.dut_compile\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "critical"
+    },
+    {
+      "content": "Gate: DUT-only lint report passes after the final RTL edit",
+      "activeForm": "Gate: DUT-only lint report passes after the final RTL edit",
+      "detail": "Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.\nSSOT ref: quality_gates.rtl_gen.dut_lint.\nOwner: timer in rtl/timer.sv via top_module.\n\nDone when:\n  • lint/dut_lint.json exists\n  • dut_lint.json reports dut_only=true\n  • dut_lint.json passed=true with zero errors and zero warnings\n  • No ad-hoc lint suppression violation remains unless represented by an exact SSOT waiver\n  • Traceability keeps source_ref quality_gates.rtl_gen.dut_lint\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "critical"
+    },
+    {
+      "content": "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS",
+      "activeForm": "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS",
+      "detail": "rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.\nSSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.\nOwner: timer in rtl/timer.sv via top_module.\n\nDone when:\n  • Every required non-closure task has todo_completion.status=pass\n  • open_required_todos is zero\n  • all_required_todos_pass is true\n  • Traceability keeps source_ref quality_gates.rtl_gen.dynamic_todo_closure\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "critical"
+    },
+    {
+      "content": "Implement parameter COUNTER_WIDTH",
+      "activeForm": "Implementing parameter COUNTER_WIDTH",
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.COUNTER_WIDTH.\nOwner: timer in rtl/timer.sv via single_owner.\nSSOT item context: name=COUNTER_WIDTH.\n\nDone when:\n  • Parameter default/value matches SSOT\n  • Parameter-derived widths are implemented outside procedural part-selects\n  • Compile/lint evidence covers the parameterized form\n  • Traceability keeps source_ref parameters.COUNTER_WIDTH\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "normal"
+    },
+    {
+      "content": "Implement parameter PRESCALER_WIDTH",
+      "activeForm": "Implementing parameter PRESCALER_WIDTH",
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.PRESCALER_WIDTH.\nOwner: timer in rtl/timer.sv via single_owner.\nSSOT item context: name=PRESCALER_WIDTH.\n\nDone when:\n  • Parameter default/value matches SSOT\n  • Parameter-derived widths are implemented outside procedural part-selects\n  • Compile/lint evidence covers the parameterized form\n  • Traceability keeps source_ref parameters.PRESCALER_WIDTH\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "normal"
+    },
+    {
+      "content": "Implement parameter ADDR_WIDTH",
+      "activeForm": "Implementing parameter ADDR_WIDTH",
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.ADDR_WIDTH.\nOwner: timer in rtl/timer.sv via single_owner.\nSSOT item context: name=ADDR_WIDTH.\n\nDone when:\n  • Parameter default/value matches SSOT\n  • Parameter-derived widths are implemented outside procedural part-selects\n  • Compile/lint evidence covers the parameterized form\n  • Traceability keeps source_ref parameters.ADDR_WIDTH\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "normal"
+    },
+    {
+      "content": "Implement feature FEAT_COUNTDOWN",
+      "activeForm": "Implementing feature FEAT_COUNTDOWN",
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.FEAT_COUNTDOWN.\nOwner: timer in rtl/timer.sv via single_owner.\nSSOT item context: id=FEAT_COUNTDOWN; name=32-bit Countdown Counter.\n\nDone when:\n  • Feature trigger/control/data behavior has RTL owner logic\n  • Feature observability and error behavior match SSOT\n  • Feature is covered by function/cycle/coverage tasks or explicitly blocked\n  • Traceability keeps source_ref features.FEAT_COUNTDOWN\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "high"
+    },
+    {
+      "content": "Implement feature FEAT_PRESCALER",
+      "activeForm": "Implementing feature FEAT_PRESCALER",
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.FEAT_PRESCALER.\nOwner: timer in rtl/timer.sv via single_owner.\nSSOT item context: id=FEAT_PRESCALER; name=Configurable Prescaler.\n\nDone when:\n  • Feature trigger/control/data behavior has RTL owner logic\n  • Feature observability and error behavior match SSOT\n  • Feature is covered by function/cycle/coverage tasks or explicitly blocked\n  • Traceability keeps source_ref features.FEAT_PRESCALER\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "high"
+    },
+    {
+      "content": "Implement feature FEAT_PERIODIC",
+      "activeForm": "Implementing feature FEAT_PERIODIC",
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.FEAT_PERIODIC.\nOwner: timer in rtl/timer.sv via single_owner.\nSSOT item context: id=FEAT_PERIODIC; name=Periodic Mode.\n\nDone when:\n  • Feature trigger/control/data behavior has RTL owner logic\n  • Feature observability and error behavior match SSOT\n  • Feature is covered by function/cycle/coverage tasks or explicitly blocked\n  • Traceability keeps source_ref features.FEAT_PERIODIC\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "high"
+    },
+    {
+      "content": "Implement feature FEAT_ONESHOT",
+      "activeForm": "Implementing feature FEAT_ONESHOT",
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.FEAT_ONESHOT.\nOwner: timer in rtl/timer.sv via single_owner.\nSSOT item context: id=FEAT_ONESHOT; name=One-shot Mode.\n\nDone when:\n  • Feature trigger/control/data behavior has RTL owner logic\n  • Feature observability and error behavior match SSOT\n  • Feature is covered by function/cycle/coverage tasks or explicitly blocked\n  • Traceability keeps source_ref features.FEAT_ONESHOT\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "high"
+    },
+    {
+      "content": "Implement feature FEAT_IRQ",
+      "activeForm": "Implementing feature FEAT_IRQ",
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.FEAT_IRQ.\nOwner: timer in rtl/timer.sv via single_owner.\nSSOT item context: id=FEAT_IRQ; name=Interrupt Generation.\n\nDone when:\n  • Feature trigger/control/data behavior has RTL owner logic\n  • Feature observability and error behavior match SSOT\n  • Feature is covered by function/cycle/coverage tasks or explicitly blocked\n  • Traceability keeps source_ref features.FEAT_IRQ\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "high"
+    },
+    {
+      "content": "Implement feature FEAT_APB4",
+      "activeForm": "Implementing feature FEAT_APB4",
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.FEAT_APB4.\nOwner: timer in rtl/timer.sv via single_owner.\nSSOT item context: id=FEAT_APB4; name=APB4 Slave Interface.\n\nDone when:\n  • Feature trigger/control/data behavior has RTL owner logic\n  • Feature observability and error behavior match SSOT\n  • Feature is covered by function/cycle/coverage tasks or explicitly blocked\n  • Traceability keeps source_ref features.FEAT_APB4\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "high"
+    },
+    {
+      "content": "Prove module timer is functionally equivalent to FL",
+      "activeForm": "Prove module timer is functionally equivalent to FL",
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.timer.module_equivalence.\nOwner: timer in rtl/timer.sv via module_equivalence.\n\nDone when:\n  • verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module\n  • cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff\n  • scoreboard row fl_expected.model_api is FunctionalModel.apply\n  • scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data\n  • Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong\n  • Traceability keeps source_ref sub_modules.timer.module_equivalence\n  • Primary implementation evidence is in rtl/timer.sv",
+      "priority": "high"
+    }
+  ]
+}

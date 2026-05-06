@@ -31,6 +31,7 @@
   let ws = null;
   let reconnectTimer = null;
   let liveQueue = [];
+  let connectionState = 'connecting';
 
   function liveConnect() {
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
@@ -44,6 +45,7 @@
       return;
     }
     ws.onopen = () => {
+      connectionState = 'open';
       emit('connection', { state: 'open' });
       while (liveQueue.length) ws.send(JSON.stringify(liveQueue.shift()));
     };
@@ -53,10 +55,14 @@
       if (msg && msg.type) emit(msg.type, msg);
     };
     ws.onclose = () => {
+      connectionState = 'closed';
       emit('connection', { state: 'closed' });
       scheduleReconnect();
     };
-    ws.onerror = (e) => emit('connection', { state: 'error', error: String(e) });
+    ws.onerror = (e) => {
+      connectionState = 'error';
+      emit('connection', { state: 'error', error: String(e) });
+    };
   }
   function scheduleReconnect() {
     clearTimeout(reconnectTimer);
@@ -78,6 +84,7 @@
     send: liveSend,
     connect: liveConnect,
     disconnect: liveDisconnect,
+    getConnectionState: () => connectionState,
     // Test/debug hook — lets UI code synthesize events in tests.
     _emit: emit,
   };

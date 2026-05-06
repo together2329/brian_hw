@@ -186,7 +186,8 @@ const Workspace = ({ dir, onScreen }) => {
 
   const [feed, setFeed] = React.useState(NORMAL_FEED);
   const [activeSession, setActiveSession] = React.useState(() => {
-    try { return window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || 'default'; }
+    const norm = window.atlasData && window.atlasData.normalizeSessionName;
+    try { return (norm && norm(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession'))) || window.ACTIVE_SESSION || 'default'; }
     catch (_) { return window.ACTIVE_SESSION || 'default'; }
   });
 
@@ -213,10 +214,13 @@ const Workspace = ({ dir, onScreen }) => {
 
   const sendPrompt = React.useCallback((text, sessionOverride) => {
     if (window.backend) {
+      const norm = window.atlasData && window.atlasData.normalizeSessionName;
+      const session = (norm && norm(sessionOverride || activeSession || window.ACTIVE_SESSION))
+        || sessionOverride || activeSession || window.ACTIVE_SESSION || 'default';
       window.backend.send({
         type: 'prompt',
         text,
-        session: sessionOverride || activeSession || window.ACTIVE_SESSION || 'default',
+        session,
       });
     }
   }, [activeSession]);
@@ -250,6 +254,13 @@ const Workspace = ({ dir, onScreen }) => {
   const [showSlash, setShowSlash] = React.useState(false);
   const [slashSel, setSlashSel] = React.useState(0);
   const [streaming, setStreaming] = React.useState(false);
+  const streamingRef = React.useRef(false);
+  const streamBufferRef = React.useRef('');
+  React.useEffect(() => { streamingRef.current = streaming; }, [streaming]);
+  const [backendState, setBackendState] = React.useState(() => {
+    if (!window.backend) return 'missing';
+    return window.backend.getConnectionState ? window.backend.getConnectionState() : 'connecting';
+  });
   const [streamText, setStreamText] = React.useState('');
   const [openFile, setOpenFile] = React.useState(null);
   const [rightTab, setRightTab] = React.useState('progress'); // progress | todo | git
@@ -304,6 +315,9 @@ const Workspace = ({ dir, onScreen }) => {
       const msgs = (ev.detail && ev.detail.messages) || [];
       const session = ev.detail && ev.detail.session;
       if (session) setActiveSession(session);
+      if (streamingRef.current || (streamBufferRef.current || '').trim()) {
+        return;
+      }
       const newFeed = [];
       for (const m of msgs) {
         const role = m.role;
@@ -595,7 +609,7 @@ const Workspace = ({ dir, onScreen }) => {
       // Slash commands don't run the agent — clear any stale streaming
       // state inherited from a prior turn that didn't close out cleanly
       // (agent crash, dropped WS, etc.). Without this, the banner
-      // claims "Agent is working" forever after the user types /plan.
+      // leaves the running status stuck after the user types /plan.
       setStreaming(false);
       streamBufferRef.current = '';
       setStreamText('');
@@ -629,15 +643,33 @@ const Workspace = ({ dir, onScreen }) => {
   };
 
   // Subscribe to backend events and translate them into feed entries.
-  const streamBufferRef = React.useRef('');
   React.useEffect(() => {
-    if (!window.backend) return;
+    if (!window.backend) {
+      setBackendState('missing');
+      setStreaming(false);
+      return;
+    }
+    if (window.backend.getConnectionState) {
+      setBackendState(window.backend.getConnectionState());
+    }
     const subs = [];
     // Hello payload — server tells us which center-column layout the
     // user has configured (.config: ATLAS_CENTER_LAYOUT=classic|tabbed).
     subs.push(window.backend.subscribe('hello', (m) => {
       if (m && (m.center_layout === 'tabbed' || m.center_layout === 'classic')) {
         setCenterLayout(m.center_layout);
+      }
+      if (m && typeof m.running === 'boolean') {
+        setStreaming(!!m.running);
+      }
+    }));
+    subs.push(window.backend.subscribe('connection', (m) => {
+      const state = (m && m.state) || '';
+      setBackendState(state || 'unknown');
+      if (state === 'closed' || state === 'error') {
+        streamBufferRef.current = '';
+        setStreamText('');
+        setStreaming(false);
       }
     }));
     subs.push(window.backend.subscribe('token', (m) => {
@@ -1608,10 +1640,16 @@ const Workspace = ({ dir, onScreen }) => {
           {/* Status strip directly above the input — at-a-glance state
               the user doesn't have to look up at the chat header for. */}
           {(() => {
-            const s = pendingQcard
+            const backendDown = !window.backend || backendState === 'missing' ||
+              backendState === 'closed' || backendState === 'error';
+            const s = backendDown
+              ? { icon: '!', text: backendState === 'missing' ? 'Backend adapter missing' : 'Backend disconnected', color: 'var(--err)', bg: 'color-mix(in oklch, var(--err) 12%, transparent)' }
+              : backendState === 'connecting'
+                ? { icon: '·', text: 'Backend connecting', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 10%, transparent)' }
+                : pendingQcard
               ? { icon: '⏸', text: 'Waiting on you · answer the ask_user above', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
               : streaming
-                ? { icon: '⚙', text: 'Agent is working — Esc to stop, or type to interrupt', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)', spin: true }
+                ? { icon: '•', text: 'Running', color: 'var(--fg-mute)', bg: 'color-mix(in oklch, var(--fg-mute) 8%, transparent)' }
                 : ssotApproval && ssotApproval.approved
                   ? { icon: '◆', text: `SSOT approved · run ${ssotApproval.generate_cmd || `/to-ssot ${ssotApproval.ip}`}`, color: 'var(--ok)', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)' }
                   : ssotApproval
@@ -2158,10 +2196,11 @@ const SsotApprovalCard = ({ payload }) => {
   const approved = !!payload?.approved;
   const send = (text) => {
     if (!text || !window.backend?.send) return;
+    const norm = window.atlasData && window.atlasData.normalizeSessionName;
     window.backend.send({
       type: 'prompt',
       text,
-      session: window.ACTIVE_SESSION || 'default',
+      session: (norm && norm(window.ACTIVE_SESSION)) || window.ACTIVE_SESSION || 'default',
     });
   };
   const rows = [

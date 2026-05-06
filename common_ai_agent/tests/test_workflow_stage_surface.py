@@ -43,6 +43,27 @@ def test_common_surface_runs_engine_and_names_session(tmp_path: Path):
     assert not surface.queue_prompts
 
 
+def test_ssot_rtl_surface_loads_dynamic_todos_for_llm_owned_rtl_work(tmp_path: Path):
+    ip = "surface_rtl_probe"
+    _write_ssot(tmp_path, ip)
+
+    surface = run_common_stage_surface(
+        project_root=tmp_path,
+        source_root=None,
+        alias="ssot-rtl",
+        ip=ip,
+    )
+
+    assert surface.handled
+    assert surface.alias == "ssot-rtl"
+    assert surface.workflow == "rtl-gen"
+    assert surface.keep_running
+    assert not surface.rtl_blocked
+    assert f"/todo template ssot-rtl {ip}" in surface.queue_prompts
+    assert (tmp_path / ip / "rtl" / "rtl_todo_plan.json").is_file()
+    assert (tmp_path / ip / "rtl" / "rtl_todo_tracker.json").is_file()
+
+
 def test_legacy_direct_command_entrypoints_are_removed():
     removed = [
         "workflow/rtl-gen/commands/new-ip-rtl.json",

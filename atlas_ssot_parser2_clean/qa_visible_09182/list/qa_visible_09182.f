@@ -1,0 +1,5 @@
+qa_visible_09182/rtl/qa_visible_09182_regs.sv
+qa_visible_09182/rtl/qa_visible_09182_core.sv
+qa_visible_09182/rtl/qa_visible_09182_irq.sv
+qa_visible_09182/rtl/qa_visible_09182_wrapper.sv
+qa_visible_09182/rtl/qa_visible_09182.sv

@@ -1,0 +1,20 @@
+# Minimal SSOT for syn/sta workflow smoke test.
+top_module: counter
+rtl_files:
+  - counter/rtl/counter.sv
+clocks:
+  - { name: clk, period_ns: 10.0, source_port: clk }
+resets:
+  - { name: rst_n, polarity: active_low, sync_async: async_assert_sync_deassert, source_port: rst_n }
+io_delay:
+  input_pct: 0.20
+  output_pct: 0.20
+pnr:
+  utilization_pct: 30
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.50
+  cts_buf_list: "sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8"
+  io_layers:
+    horizontal: met3   # sky130hd: met3 is horizontal-preferred
+    vertical:   met2   # sky130hd: met2 is vertical-preferred

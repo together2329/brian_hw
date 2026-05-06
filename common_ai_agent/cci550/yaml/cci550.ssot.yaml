@@ -1,0 +1,7 @@
+top_module: cci550
+clocks: [{name: clk, period_ns: 1.0, source_port: clk}]
+resets: [{name: rst_n, polarity: active_low, source_port: rst_n}]
+busInterfaces:
+  - {name: S0_ACE, proto: ACE,  role: slave,  side: left}
+  - {name: M_AXI,  proto: AXI4, role: master, side: right}
+  - {name: M_APB,  proto: APB,  role: master, side: right}

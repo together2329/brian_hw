@@ -1,0 +1,394 @@
+# =============================================================================
+# UART SSOT — Universal Asynchronous Receiver-Transmitter
+# =============================================================================
+# IP       : uart
+# Version  : 1.0
+# Type     : peripheral
+# Flow     : User Input → Requirements → SSOT(YAML) → Validation → Jinja2/LLM → RTL
+# =============================================================================
+
+# SECTION 0: Top Module Identity
+top_module:
+  name: "uart"
+  version: "1.0"
+  type: "peripheral"
+  description: "Configurable UART with APB4 slave register interface, TX/RX FIFOs, and optional interrupt output"
+  reference_spec: "ARM APB4 (IHI 0024C), Industry-standard 16550-like UART"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+
+# SECTION 1: Sub-Module List (Hierarchy)
+sub_modules:
+  - { name: "uart_pkg",    file: "rtl/uart_pkg.sv",    ownership: "manifest", ssot_gen: true,  description: "Parameter and type package" }
+  - { name: "uart_regs",   file: "rtl/uart_regs.sv",   ownership: "manifest", ssot_gen: true,  description: "APB4 register decode and read-back" }
+  - { name: "uart_baud",   file: "rtl/uart_baud.sv",   ownership: "manifest", ssot_gen: true,  description: "Baud-rate clock divider" }
+  - { name: "uart_tx",     file: "rtl/uart_tx.sv",     ownership: "manifest", ssot_gen: true,  description: "Transmitter with TX FIFO and serializer" }
+  - { name: "uart_rx",     file: "rtl/uart_rx.sv",     ownership: "manifest", ssot_gen: true,  description: "Receiver with RX FIFO and deserializer" }
+  - { name: "uart_core",   file: "rtl/uart_core.sv",   ownership: "manifest", ssot_gen: false, description: "Top integration (LLM-written glue)" }
+  - { name: "uart_wrapper", file: "rtl/uart_wrapper.sv", ownership: "manifest", ssot_gen: true,  description: "APB4 integration wrapper" }
+
+# SECTION 2: Parameters
+parameters:
+  - name: "DATA_WIDTH"
+    default: 8
+    type: int
+    description: "Serial data width in bits (fixed at 8 for standard UART)"
+    drives: ["uart_tx.sv", "uart_rx.sv", "uart_regs.sv"]
+  - name: "BAUD_DIV"
+    default: 16
+    type: int
+    description: "Oversampling divisor (clocks per baud bit); e.g. 16 for 16x oversampling"
+    drives: ["uart_baud.sv", "uart_tx.sv", "uart_rx.sv"]
+  - name: "FIFO_DEPTH"
+    default: 16
+    type: int
+    description: "Depth of TX and RX FIFOs in entries (power-of-2 recommended)"
+    drives: ["uart_tx.sv", "uart_rx.sv"]
+  - name: "APB_ADDR_WIDTH"
+    default: 4
+    type: int
+    description: "APB address bus width in bits (word-aligned, covers 16 bytes)"
+    drives: ["uart_regs.sv", "uart_wrapper.sv"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 100
+    type: int
+    description: "System clock frequency in MHz"
+    drives: ["uart_baud.sv", "tb_top.sv", "doc/uart_mas.md"]
+  - name: "HAS_IRQ"
+    default: true
+    type: bool
+    description: "Instantiate interrupt output when true"
+    drives: ["uart_core.sv", "uart_wrapper.sv"]
+
+# SECTION 3: IO List (Ports)
+io_list:
+  clock_domains:
+    - name: "clk"
+      frequency_mhz: 100
+      description: "System clock"
+      ports:
+        - { name: "clk", width: 1, direction: "input", description: "System clock" }
+  resets:
+    - name: "rst_n"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "System reset"
+      ports:
+        - { name: "rst_n", width: 1, direction: "input", description: "Active-low asynchronous reset" }
+  interfaces:
+    - name: "apb_slave"
+      type: "APB4"
+      role: "slave"
+      description: "APB4 register access interface"
+      ports:
+        - { name: "paddr",   width: 4,  direction: "input",  description: "APB address (word-aligned)" }
+        - { name: "psel",    width: 1,  direction: "input",  description: "APB select" }
+        - { name: "penable", width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "pwrite",  width: 1,  direction: "input",  description: "APB write (1=write, 0=read)" }
+        - { name: "pwdata",  width: 32, direction: "input",  description: "APB write data" }
+        - { name: "prdata",  width: 32, direction: "output", description: "APB read data" }
+        - { name: "pready",  width: 1,  direction: "output", description: "APB ready" }
+        - { name: "pslverr", width: 1,  direction: "output", description: "APB slave error" }
+    - name: "uart_pins"
+      type: "custom"
+      description: "UART serial pins"
+      ports:
+        - { name: "tx",  width: 1, direction: "output", description: "UART transmit output" }
+        - { name: "rx",  width: 1, direction: "input",  description: "UART receive input" }
+    - name: "interrupt"
+      type: "custom"
+      description: "Interrupt output (gated by HAS_IRQ parameter)"
+      ports:
+        - { name: "irq", width: 1, direction: "output", description: "Combined interrupt request" }
+
+# SECTION 4: Main Features
+features:
+  - name: "TX Transmission"
+    trigger: "CPU writes byte to TX_DATA register (or FIFO push)"
+    datapath: "APB pwdata → TX FIFO → serializer → tx pin"
+    control: "TX FSM: IDLE→START→DATA→(PARITY)→STOP→IDLE"
+    output: "Serialized frame on tx pin at configured baud rate"
+  - name: "RX Reception"
+    trigger: "Start-bit detected on rx pin (high-to-low edge)"
+    datapath: "rx pin → oversampling sampler → deserializer → RX FIFO → APB prdata"
+    control: "RX FSM: IDLE→START→DATA→(PARITY)→STOP→PUSH→IDLE"
+    output: "Received byte readable from RX_DATA register"
+  - name: "Configurable Baud Rate"
+    trigger: "BAUD_DIV register write"
+    datapath: "System clock divided by BAUD_DIV produces baud tick"
+    control: "Free-running counter in uart_baud"
+    output: "Baud tick enables TX/RX shifters"
+  - name: "FIFO Buffering"
+    trigger: "Data push/pop on TX/RX FIFOs"
+    datapath: "Circular-pointer FIFO of depth FIFO_DEPTH"
+    control: "Read/write pointers, full/empty flags"
+    output: "Back-pressure via STATUS register and optional IRQ"
+  - name: "Interrupt Generation"
+    trigger: "RX FIFO not-empty, TX FIFO empty, or framing error"
+    datapath: "Event flags → enable mask → IRQ OR gate"
+    control: "INT_ENABLE register masks each source"
+    output: "Active-high irq pin (when HAS_IRQ=true)"
+
+# SECTION 5: Data Flow
+dataflow:
+  tx_path:
+    source: "CPU via APB (write to TX_DATA at offset 0x08)"
+    fifo: "TX FIFO (FIFO_DEPTH entries, DATA_WIDTH=8 bits wide)"
+    serializer: "Shift register with start/stop bit insertion"
+    sequence: "APB write → TX FIFO push → FIFO pop → start bit → 8 data bits LSB-first → stop bit → tx=1"
+    backpressure: "STATUS[TX_FULL]=1 blocks new writes; pready=0 until space available"
+  rx_path:
+    source: "rx pin (external serial data)"
+    sampler: "Majority-vote 3-sample center-of-bit detector at 16x oversampling"
+    deserializer: "Shift register accumulates 8 data bits MSB-first"
+    fifo: "RX FIFO (FIFO_DEPTH entries, DATA_WIDTH=8 bits wide)"
+    sequence: "rx falling edge → start-bit verify → 8 data bits → stop-bit check → push RX FIFO → CPU reads RX_DATA (offset 0x0C)"
+    error_flags: "Framing error (stop-bit=0), overrun (FIFO full on push)"
+  baud_generation:
+    source: "System clock (CLOCK_FREQ_MHZ)"
+    divider: "BAUD_DIV register sets oversampling ratio"
+    baud_tick: "Baud-rate tick = clk / (BAUD_DIV × baud_rate_configured)"
+
+# SECTION 6: Clock & Reset Domain
+clock_reset_domains:
+  domains:
+    - { name: "clk", frequency_mhz: 100, description: "Single system clock domain" }
+  reset_scheme:
+    signal: "rst_n"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+# SECTION 7: CDC Requirements
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain — no CDC required"
+
+# SECTION 8: RDC Requirements
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "No reset domain crossings — single rst_n"
+
+# SECTION 9: Registers
+registers:
+  config:
+    register_width: 32
+    addr_width: 4
+    byte_addressable: false
+    stride: 4
+    num_channels: 1
+  register_list:
+    - name: "CTRL"
+      offset: 0x00
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Control register — enable TX, RX, FIFOs, parity, stop bits"
+      fields:
+        - { name: "tx_en",   bits: [0, 0], access: "rw", reset: 0x0, description: "TX enable (1=active)" }
+        - { name: "rx_en",   bits: [1, 1], access: "rw", reset: 0x0, description: "RX enable (1=active)" }
+        - { name: "fifo_en", bits: [2, 2], access: "rw", reset: 0x0, description: "FIFO mode enable" }
+        - { name: "parity_en", bits: [3, 3], access: "rw", reset: 0x0, description: "Parity enable" }
+        - { name: "parity_odd", bits: [4, 4], access: "rw", reset: 0x0, description: "0=even parity, 1=odd parity" }
+        - { name: "stop_bits", bits: [5, 5], access: "rw", reset: 0x0, description: "0=1 stop bit, 1=2 stop bits" }
+        - { name: "baud_div", bits: [15, 8], access: "rw", reset: 0x10, description: "Oversampling divisor (default 16)" }
+    - name: "STATUS"
+      offset: 0x04
+      width: 32
+      access: "ro"
+      reset: 0x00000030
+      category: "status"
+      description: "Status register — FIFO and busy flags"
+      fields:
+        - { name: "tx_empty", bits: [0, 0], access: "ro", reset: 0x1, description: "TX FIFO empty" }
+        - { name: "tx_full",  bits: [1, 1], access: "ro", reset: 0x0, description: "TX FIFO full" }
+        - { name: "rx_empty", bits: [2, 2], access: "ro", reset: 0x1, description: "RX FIFO empty" }
+        - { name: "rx_full",  bits: [3, 3], access: "ro", reset: 0x0, description: "RX FIFO full" }
+        - { name: "tx_busy",  bits: [4, 4], access: "ro", reset: 0x0, description: "TX serializer active" }
+        - { name: "rx_busy",  bits: [5, 5], access: "ro", reset: 0x0, description: "RX deserializer active" }
+        - { name: "framing_err", bits: [6, 6], access: "ro", reset: 0x0, description: "Framing error (latched, cleared on read)" }
+        - { name: "overrun_err", bits: [7, 7], access: "ro", reset: 0x0, description: "RX overrun (latched, cleared on read)" }
+    - name: "TX_DATA"
+      offset: 0x08
+      width: 32
+      access: "wo"
+      reset: 0x00000000
+      category: "data"
+      description: "TX data write — push byte into TX FIFO"
+      fields:
+        - { name: "tx_data", bits: [7, 0], access: "wo", reset: 0x00, description: "Byte to transmit" }
+    - name: "RX_DATA"
+      offset: 0x0C
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "data"
+      description: "RX data read — pop byte from RX FIFO"
+      fields:
+        - { name: "rx_data", bits: [7, 0], access: "ro", reset: 0x00, description: "Received byte" }
+        - { name: "rx_valid", bits: [8, 8], access: "ro", reset: 0x0, description: "1=rx_data valid (FIFO was not empty)" }
+
+# SECTION 10: Memory Requirements
+memory:
+  instances:
+    - { name: "tx_fifo", type: "fifo",     depth: 16, width: 8,  read_ports: 1, write_ports: 1, latency: 1, description: "TX data FIFO" }
+    - { name: "rx_fifo", type: "fifo",     depth: 16, width: 8,  read_ports: 1, write_ports: 1, latency: 1, description: "RX data FIFO" }
+    - { name: "tx_shift", type: "register", depth: 1,  width: 8,  read_ports: 1, write_ports: 1, latency: 0, description: "TX shift register" }
+    - { name: "rx_shift", type: "register", depth: 1,  width: 10, read_ports: 1, write_ports: 1, latency: 0, description: "RX shift register (8 data + start + stop)" }
+  note: "FIFO depth is parameterized via FIFO_DEPTH. Simple register-based FIFO (no SRAM)."
+
+# SECTION 11: Interrupt
+interrupts:
+  sources:
+    - { name: "RX_NOT_EMPTY",  bit: 0, type: "level", enable_reg: "INT_ENABLE (conceptual, via CTRL fifo_en)", status_reg: "STATUS[rx_empty]", clear: "read RX_DATA",  description: "RX FIFO has data" }
+    - { name: "TX_EMPTY",      bit: 1, type: "level", enable_reg: "INT_ENABLE (conceptual)", status_reg: "STATUS[tx_empty]",  clear: "write TX_DATA", description: "TX FIFO drained" }
+    - { name: "FRAMING_ERROR", bit: 2, type: "level", enable_reg: "INT_ENABLE (conceptual)", status_reg: "STATUS[framing_err]", clear: "read STATUS", description: "Stop-bit framing error" }
+    - { name: "OVERRUN_ERROR", bit: 3, type: "level", enable_reg: "INT_ENABLE (conceptual)", status_reg: "STATUS[overrun_err]", clear: "read STATUS", description: "RX FIFO overflow" }
+  output:
+    signal: "irq"
+    polarity: "active_high"
+    type: "level"
+  note: "For this first pass, interrupt is a simple OR of enabled sources. Full INT_ENABLE register can be added in a later revision."
+
+# SECTION 12: FSM
+fsm:
+  tx_fsm:
+    states:
+      - "TX_IDLE"
+      - "TX_START"
+      - "TX_DATA"
+      - "TX_PARITY"
+      - "TX_STOP"
+    transitions:
+      - { from: "TX_IDLE",   to: "TX_START",  condition: "tx_fifo_pop_valid=1" }
+      - { from: "TX_START",  to: "TX_DATA",   condition: "baud_tick=1 (start bit sent)" }
+      - { from: "TX_DATA",   to: "TX_PARITY", condition: "bit_count=8 AND parity_en=1" }
+      - { from: "TX_DATA",   to: "TX_STOP",   condition: "bit_count=8 AND parity_en=0" }
+      - { from: "TX_PARITY", to: "TX_STOP",   condition: "baud_tick=1 (parity bit sent)" }
+      - { from: "TX_STOP",   to: "TX_IDLE",   condition: "baud_tick=1 (stop bit sent)" }
+    note: "Standard 8-N-1 frame: start(0) → 8 data bits LSB-first → optional parity → stop(1)"
+  rx_fsm:
+    states:
+      - "RX_IDLE"
+      - "RX_START"
+      - "RX_DATA"
+      - "RX_PARITY"
+      - "RX_STOP"
+      - "RX_PUSH"
+    transitions:
+      - { from: "RX_IDLE",   to: "RX_START",  condition: "rx=0 (start-bit detected)" }
+      - { from: "RX_START",  to: "RX_DATA",   condition: "mid-bit sample confirms start=0" }
+      - { from: "RX_START",  to: "RX_IDLE",   condition: "mid-bit sample shows start=1 (glitch)" }
+      - { from: "RX_DATA",   to: "RX_PARITY", condition: "bit_count=8 AND parity_en=1" }
+      - { from: "RX_DATA",   to: "RX_STOP",   condition: "bit_count=8 AND parity_en=0" }
+      - { from: "RX_PARITY", to: "RX_STOP",   condition: "parity sampled" }
+      - { from: "RX_STOP",   to: "RX_PUSH",   condition: "stop-bit sampled" }
+      - { from: "RX_PUSH",   to: "RX_IDLE",   condition: "FIFO push complete" }
+    note: "3-sample majority vote at center of each bit for noise immunity"
+
+# SECTION 13: Coding Rules
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  conventions:
+    - "nonblocking (<=) in sequential always_ff @(posedge clk or negedge rst_n)"
+    - "blocking (=) in combinational always_comb"
+    - "No latches: every combinational branch assigns all outputs"
+    - "Active-low async reset (rst_n)"
+    - "Parameterize widths — no hardcoded magic numbers beyond default values"
+    - "Use SystemVerilog logic type, always_ff/always_comb"
+  lint_waivers:
+    - "UNUSEDSIGNAL: irq tie-off when HAS_IRQ=0"
+    - "WIDTHEXPAND: byte-to-word alignment in APB data path"
+
+# SECTION 14: Reuse Modules
+reuse_modules: []
+
+# SECTION 15: Custom Extensions
+custom:
+  note: "No custom extensions in first pass"
+
+# SECTION 16: Dir Structure
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+# SECTION 17: Filelist
+filelist:
+  rtl:
+    - "rtl/uart_pkg.sv"
+    - "rtl/uart_regs.sv"
+    - "rtl/uart_baud.sv"
+    - "rtl/uart_tx.sv"
+    - "rtl/uart_rx.sv"
+    - "rtl/uart_core.sv"
+    - "rtl/uart_wrapper.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_uart_agent.sv"
+    - "sim/tb_apb_agent.sv"
+  firmware:
+    - "firmware/uart_regs.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/uart_programming_guide.md"
+    - "docs/README.md"
+
+# SECTION 18: Test Requirements
+test_requirements:
+  scenarios:
+    - { id: "SC1", name: "TX single byte",         expected: "Correct 8-N-1 frame appears on tx pin" }
+    - { id: "SC2", name: "RX single byte",         expected: "Byte received and readable from RX_DATA" }
+    - { id: "SC3", name: "TX FIFO fill and drain", expected: "Multiple bytes transmitted in order" }
+    - { id: "SC4", name: "RX FIFO fill and read",  expected: "Multiple bytes received in order" }
+    - { id: "SC5", name: "FIFO backpressure",      expected: "TX_FULL blocks writes; RX_FULL sets overrun" }
+    - { id: "SC6", name: "Baud rate accuracy",     expected: "Bit timing within ±2% of target" }
+    - { id: "SC7", name: "Parity mode",            expected: "Even and odd parity generated and checked" }
+    - { id: "SC8", name: "Framing error detection", expected: "Missing stop bit sets framing_err flag" }
+    - { id: "SC9", name: "APB register access",    expected: "All registers readable/writable per spec" }
+    - { id: "SC10", name: "Interrupt generation",  expected: "IRQ asserted on enabled events" }
+    - { id: "SC11", name: "Reset behavior",        expected: "All state cleared on rst_n assertion" }
+  scoreboard_checks: 11
+  coverage_goals:
+    functional: "All TX and RX FSM states visited; all register fields exercised"
+    code: "line >= 95%, branch >= 90%, FSM state >= 100%"
+
+# SECTION 19: Traceability
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name",      output: "ALL files (module name prefix)" }
+    - { yaml: "parameters",           output: "rtl/uart_pkg.sv (localparam declarations)" }
+    - { yaml: "io_list.interfaces",   output: "rtl/uart_wrapper.sv (port list)" }
+    - { yaml: "registers.register_list", output: "rtl/uart_regs.sv + firmware/uart_regs.h + docs/register_map.md" }
+    - { yaml: "fsm",                  output: "rtl/uart_tx.sv + rtl/uart_rx.sv + docs/README.md" }
+    - { yaml: "test_requirements.scenarios", output: "sim/tb_top.sv + sim/tb_uart_agent.sv" }
+
+# SECTION 20: Generation Flow
+generation_flow:
+  steps:
+    - { name: "validate",  command: "make yaml-validate",                      description: "Cerberus schema check" }
+    - { name: "gen_rtl",   command: "python3 generators/gen_rtl.py",           description: "Render .sv.j2 -> .sv" }
+    - { name: "gen_sim",   command: "python3 generators/gen_sim.py",           description: "Render sim templates" }
+    - { name: "gen_fw",    command: "python3 generators/gen_fw.py",            description: "Write C header" }
+    - { name: "gen_docs",  command: "python3 generators/gen_docs.py",          description: "Write markdown docs" }
+    - { name: "lint",      command: "verilator --lint-only -Wall rtl/*.sv",    description: "SystemVerilog lint" }
+    - { name: "sim",       command: "iverilog -o sim/tb_uart.vvp sim/*.sv rtl/*.sv && vvp sim/tb_uart.vvp", description: "Compile and run simulation" }
+  makefile_targets:
+    - "make yaml-validate"
+    - "make rtl"
+    - "make sim"
+    - "make lint"
+    - "make all"
+    - "make clean"
