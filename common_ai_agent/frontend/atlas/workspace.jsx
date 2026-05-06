@@ -241,6 +241,17 @@ const Workspace = ({ dir, onScreen }) => {
     }
   }, [activeSession, resolveSession]);
 
+  const switchToDefaultSession = React.useCallback(() => {
+    const sid = 'default';
+    window.ACTIVE_SESSION = sid;
+    setActiveSession(sid);
+    try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+    if (window.atlasData && window.atlasData.refreshSessionState) {
+      window.atlasData.refreshSessionState(sid);
+    }
+    return sid;
+  }, []);
+
   const switchIntent = (i) => {
     setIntent(i);
     refreshFeed(i, workflow);
@@ -569,6 +580,41 @@ const Workspace = ({ dir, onScreen }) => {
     // Some commands operate on browser state (SCOPE_PATH lives in
     // localStorage / window) and don't need an agent round-trip.
     // Handle them here BEFORE sending anything to the backend.
+    const sessionMatch = raw.match(/^\/(session|sess)(\s+(.*))?$/);
+    if (sessionMatch) {
+      const arg = (sessionMatch[3] || '').trim();
+      setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      const _clearStreaming = () => {
+        setStreaming(false);
+        streamBufferRef.current = '';
+        setStreamText('');
+      };
+      if (!arg) {
+        setFeed(f => [...f, {
+          kind: 'agent',
+          text: `Current session: \`${activeSession || window.ACTIVE_SESSION || 'default'}\`\nUse \`/session default\` to return to the default session.`,
+        }]);
+        _clearStreaming();
+        return;
+      }
+      if (arg.toLowerCase() === 'default') {
+        const sid = switchToDefaultSession();
+        setFeed(f => [...f, { kind: 'agent', text: `Session set to \`${sid}\`.` }]);
+        _clearStreaming();
+        return;
+      }
+      const sid = resolveSession(arg, activeSession, window.ACTIVE_SESSION);
+      window.ACTIVE_SESSION = sid;
+      setActiveSession(sid);
+      try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+      if (window.atlasData && window.atlasData.refreshSessionState) {
+        window.atlasData.refreshSessionState(sid);
+      }
+      setFeed(f => [...f, { kind: 'agent', text: `Session set to \`${sid}\`.` }]);
+      _clearStreaming();
+      return;
+    }
+
     const m = raw.match(/^\/(scope|cd)(\s+(.*))?$/);
     if (m) {
       const arg = (m[3] || '').trim();
@@ -1472,8 +1518,10 @@ const Workspace = ({ dir, onScreen }) => {
                   </>
                 )}
                 <span className="mute" style={{ margin: '0 6px' }}>›</span>
-                <span className="trunc" title={`.session/${activeSession || 'default'}`}
-                      style={{ color: 'var(--fg-mute)', fontSize: 11, maxWidth: 220 }}>
+                <span className="trunc"
+                      title={`.session/${activeSession || 'default'}\nclick to switch to .session/default`}
+                      onClick={switchToDefaultSession}
+                      style={{ color: 'var(--fg-mute)', fontSize: 11, maxWidth: 220, cursor: 'pointer' }}>
                   session: {activeSession || 'default'}
                 </span>
               </>

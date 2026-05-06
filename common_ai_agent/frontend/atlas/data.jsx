@@ -25,7 +25,7 @@
 
   // Slash commands — populated from /api/commands at boot. Until the
   // first fetch lands, seed with built-ins the agent always supports
-  // plus the client-side ones (/scope, /cd) workspace.jsx handles
+  // plus the client-side ones (/scope, /cd, /session) workspace.jsx handles
   // locally without round-tripping to the backend.
   window.SLASH_COMMANDS = [
     { cmd: '/help',    alias: 'h',  hint: 'show available commands' },
@@ -35,6 +35,7 @@
     { cmd: '/todo',    alias: 't',  hint: 'show / manage todos' },
     { cmd: '/scope',   alias: 'sc', hint: '(client) confine agent to a directory: /scope <path>' },
     { cmd: '/cd',      alias: 'cd', hint: '(client) alias for /scope' },
+    { cmd: '/session', alias: 'ss', hint: '(client) show or switch session: /session default' },
   ];
 
   // Workflow stage badges. Empty by default — populated only if a future
@@ -279,6 +280,9 @@
           { cmd: '/cd',    alias: 'cd',
             hint: '(client) alias for /scope',
             desc: '(client) alias for /scope' },
+          { cmd: '/session', alias: 'ss',
+            hint: '(client) show or switch session: /session default',
+            desc: '(client) show or switch session: /session default' },
         ];
         const present = new Set(live.map(c => c.cmd));
         for (const c of clientOnly) {
@@ -394,7 +398,12 @@
       refreshFileTree(window.SCOPE_PATH);
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
     },
-    setActiveSession: (session) => refreshSessionState(session),
+    setActiveSession: (session) => {
+      const sid = normalizeSessionName(session) || 'default';
+      window.ACTIVE_SESSION = sid;
+      try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+      return refreshSessionState(sid);
+    },
   };
 
   // ── Bootstrap ───────────────────────────────────────────────────

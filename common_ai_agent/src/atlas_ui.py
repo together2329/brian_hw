@@ -202,9 +202,15 @@ class _AtlasBridge:
             return True
         return False
 
-    async def next_event(self) -> dict[str, Any]:
+    async def next_event(self, timeout: float = 0.25) -> dict[str, Any] | None:
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, self._outbox.get)
+        def _poll() -> dict[str, Any] | None:
+            try:
+                return self._outbox.get(timeout=timeout)
+            except queue.Empty:
+                return None
+
+        return await loop.run_in_executor(None, _poll)
 
 
 # ── App factory ────────────────────────────────────────────────────
@@ -253,6 +259,8 @@ def create_app():
         """
         while True:
             msg = await bridge.next_event()
+            if msg is None:
+                continue
             snapshot = list(clients)
             if not snapshot:
                 continue
@@ -3532,6 +3540,7 @@ def create_app():
     _WORKFLOW_SLASHES = {
         "/wf", "/workflow",
         "/new-ip", "/ni",
+        "/import", "/imp",
         "/grill-me", "/grill", "/g",
         "/to-ssot", "/ssot", "/ts",
         "/resolve-rtl-blockers", "/rrb",
@@ -3634,6 +3643,15 @@ def create_app():
         ("test_expectation", "minimum RTL/TB/SIM acceptance expectations"),
     ]
 
+    _SSOT_IMPORT_EXTENSIONS = {
+        ".md", ".txt", ".rst", ".yaml", ".yml", ".json", ".sv", ".svh",
+        ".v", ".vh", ".py", ".csv", ".tsv", ".xml",
+    }
+    _SSOT_IMPORT_SKIP_DIRS = {
+        ".git", ".session", ".omx", "__pycache__", "node_modules",
+        ".pytest_cache", ".mypy_cache", ".ruff_cache",
+    }
+
     def _valid_ip_name(name: str) -> bool:
         return bool(re.match(r"^[A-Za-z][A-Za-z0-9_]*$", name or ""))
 
@@ -3731,6 +3749,128 @@ def create_app():
         state["updated_at"] = time.time()
         path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
+    def _ssot_yaml_path(ip: str) -> Path:
+        return PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
+
+    def _load_ssot_draft(ip: str) -> dict[str, Any]:
+        path = _ssot_yaml_path(ip)
+        if not path.is_file():
+            return {}
+        try:
+            import yaml as _yaml  # type: ignore
+
+            doc = _yaml.safe_load(path.read_text(encoding="utf-8", errors="replace")) or {}
+            return doc if isinstance(doc, dict) else {}
+        except Exception:
+            return {}
+
+    def _save_ssot_draft(ip: str, doc: dict[str, Any]) -> None:
+        path = _ssot_yaml_path(ip)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            import yaml as _yaml  # type: ignore
+        except Exception as exc:
+            raise RuntimeError(f"PyYAML is required to update SSOT draft: {exc}") from exc
+        path.write_text(_yaml.safe_dump(doc, sort_keys=False, allow_unicode=True, width=120), encoding="utf-8")
+
+    def _ensure_ssot_draft(ip: str, kind: str = "simple APB peripheral") -> dict[str, Any]:
+        doc = _load_ssot_draft(ip)
+        if not doc:
+            doc = {
+                "top_module": {
+                    "name": ip,
+                    "type": "draft",
+                    "description": kind or "simple APB peripheral",
+                    "version": "draft",
+                },
+                "custom": {},
+            }
+        top = doc.setdefault("top_module", {})
+        if isinstance(top, dict):
+            top.setdefault("name", ip)
+            top.setdefault("type", "draft")
+            top.setdefault("description", kind or "simple APB peripheral")
+            top.setdefault("version", "draft")
+        custom = doc.setdefault("custom", {})
+        if not isinstance(custom, dict):
+            custom = {}
+            doc["custom"] = custom
+        workflow = custom.setdefault("atlas_workflow", {})
+        if isinstance(workflow, dict):
+            workflow.setdefault("status", "draft")
+            workflow.setdefault("source", "atlas-ui")
+            workflow["updated_at"] = time.time()
+        custom.setdefault("atlas_decisions", {})
+        custom.setdefault("atlas_decision_sources", {})
+        custom.setdefault("atlas_imports", [])
+        custom.setdefault("atlas_import_conflicts", [])
+        _save_ssot_draft(ip, doc)
+        return doc
+
+    def _ssot_custom(ip: str, kind: str = "simple APB peripheral") -> tuple[dict[str, Any], dict[str, Any]]:
+        doc = _ensure_ssot_draft(ip, kind)
+        custom = doc.setdefault("custom", {})
+        if not isinstance(custom, dict):
+            custom = {}
+            doc["custom"] = custom
+        return doc, custom
+
+    def _ssot_decisions(ip: str, state: dict[str, Any] | None = None) -> dict[str, str]:
+        doc = _load_ssot_draft(ip)
+        custom = doc.get("custom") if isinstance(doc.get("custom"), dict) else {}
+        raw = custom.get("atlas_decisions") if isinstance(custom, dict) else {}
+        if not isinstance(raw, dict) or not raw:
+            legacy = state if isinstance(state, dict) else _load_ssot_state(ip)
+            raw = legacy.get("decisions") if isinstance(legacy.get("decisions"), dict) else {}
+        return {str(k): str(v).strip() for k, v in (raw or {}).items() if str(v or "").strip()}
+
+    def _missing_ssot_decisions(ip: str, state: dict[str, Any] | None = None) -> list[str]:
+        decisions = _ssot_decisions(ip, state)
+        return [key for key, _ in _SSOT_REQUIRED_DECISIONS if not str(decisions.get(key) or "").strip()]
+
+    def _record_ssot_decisions(
+        ip: str,
+        kind: str,
+        updates: dict[str, str],
+        sources: dict[str, list[dict[str, str]]] | None = None,
+    ) -> tuple[list[str], list[dict[str, Any]]]:
+        doc, custom = _ssot_custom(ip, kind)
+        decisions = custom.get("atlas_decisions")
+        if not isinstance(decisions, dict):
+            decisions = {}
+            custom["atlas_decisions"] = decisions
+        decision_sources = custom.get("atlas_decision_sources")
+        if not isinstance(decision_sources, dict):
+            decision_sources = {}
+            custom["atlas_decision_sources"] = decision_sources
+        filled: list[str] = []
+        conflicts: list[dict[str, Any]] = []
+        source_map = sources or {}
+        for key, value in updates.items():
+            candidate = str(value or "").strip()
+            if not candidate:
+                continue
+            existing = str(decisions.get(key) or "").strip()
+            if existing:
+                if re.sub(r"\s+", " ", existing).lower() != re.sub(r"\s+", " ", candidate).lower():
+                    conflicts.append({
+                        "key": key,
+                        "existing": existing[:500],
+                        "candidate": candidate[:500],
+                        "sources": source_map.get(key, [])[:5],
+                    })
+                continue
+            decisions[key] = candidate
+            decision_sources[key] = source_map.get(key, [])[:8]
+            filled.append(key)
+        if conflicts:
+            prior = custom.get("atlas_import_conflicts")
+            if not isinstance(prior, list):
+                prior = []
+            custom["atlas_import_conflicts"] = prior + conflicts
+        _save_ssot_draft(ip, doc)
+        return filled, conflicts
+
     def _latest_pending_ssot_ip() -> str:
         root = PROJECT_ROOT / ".session"
         candidates: list[tuple[float, str]] = []
@@ -3745,16 +3885,30 @@ def create_app():
         candidates.sort(reverse=True)
         return candidates[0][1] if candidates else ""
 
-    def _missing_decisions(state: dict[str, Any]) -> list[str]:
-        decisions = state.get("decisions") if isinstance(state.get("decisions"), dict) else {}
-        return [key for key, _ in _SSOT_REQUIRED_DECISIONS if not str(decisions.get(key) or "").strip()]
+    def _set_active_ssot_ip(ip: str) -> None:
+        if not _valid_ip_name(ip):
+            return
+        os.environ["ATLAS_ACTIVE_IP"] = ip
+        os.environ["ATLAS_ACTIVE_SESSION"] = f"{ip}/ssot-gen"
+
+    def _active_ssot_ip() -> str:
+        env_ip = str(os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
+        if _valid_ip_name(env_ip):
+            return env_ip
+        session = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+        parts = [p for p in session.split("/") if p]
+        if len(parts) >= 2 and parts[1] == "ssot-gen" and _valid_ip_name(parts[0]):
+            return parts[0]
+        if len(parts) == 1 and _valid_ip_name(parts[0]) and _ssot_state_path(parts[0]).is_file():
+            return parts[0]
+        return _latest_pending_ssot_ip()
 
     def _render_new_ip_plan(ip: str, kind: str, state: dict[str, Any]) -> str:
-        missing = _missing_decisions(state)
+        missing = _missing_ssot_decisions(ip, state)
         lines = [
             f"[SSOT PLAN] {ip}",
             f"kind: {kind or 'simple APB peripheral'}",
-            "mode: plan + grill-me Q&A",
+            "mode: active IP scaffold; import-first is allowed",
             "",
             "Required decisions before YAML write:",
         ]
@@ -3764,9 +3918,10 @@ def create_app():
         lines += [
             "",
             "Next:",
-            f"  1. Continue the Web Q&A cards for {ip}.",
-            f"  2. When the spec is acceptable, type: approve {ip}",
-            f"  3. Then /to-ssot {ip} can write {ip}/yaml/{ip}.ssot.yaml.",
+            f"  1. Optional: /import <doc_or_rtl_path>   # seeds {ip} from existing evidence",
+            "  2. /grill-me                         # asks only missing/conflicting decisions",
+            "  3. approve                           # uses the active IP",
+            f"  4. /to-ssot                         # writes {ip}/yaml/{ip}.ssot.yaml",
         ]
         if missing:
             lines.append("")
@@ -3774,11 +3929,11 @@ def create_app():
         return "\n".join(lines)
 
     def _render_approved_ssot_spec(ip: str, state: dict[str, Any]) -> str:
-        decisions = state.get("decisions") if isinstance(state.get("decisions"), dict) else {}
+        decisions = _ssot_decisions(ip, state)
         lines = [
             f"[APPROVED WEB SSOT SPEC] {ip}",
             f"kind: {state.get('kind') or 'simple APB peripheral'}",
-            "source: Web UI Plan Mode + Q&A",
+            "source: Web UI Plan Mode + SSOT draft decisions",
             "",
             "Use this as the source of truth for /to-ssot. Do not invent over missing fields.",
         ]
@@ -3787,8 +3942,8 @@ def create_app():
         return "\n".join(lines)
 
     def _emit_ssot_approval_ready(ip: str, state: dict[str, Any], missing: list[str] | None = None) -> None:
-        decisions = state.get("decisions") if isinstance(state.get("decisions"), dict) else {}
-        miss = missing if missing is not None else _missing_decisions(state)
+        decisions = _ssot_decisions(ip, state)
+        miss = missing if missing is not None else _missing_ssot_decisions(ip, state)
         bridge.emit(
             "ssot_approval_ready",
             ip=ip,
@@ -3865,6 +4020,278 @@ def create_app():
         labels = [by_id.get(str(s), str(s)) for s in selected]
         return ", ".join([x for x in labels if x]).strip()
 
+    def _required_decision_index() -> dict[str, int]:
+        return {key: idx for idx, (key, _label) in enumerate(_SSOT_REQUIRED_DECISIONS)}
+
+    def _new_ssot_state(ip: str, kind: str = "simple APB peripheral") -> dict[str, Any]:
+        return {
+            "ip": ip,
+            "kind": kind,
+            "approved": False,
+            "approved_at": 0,
+            "status": "planned",
+            "active_session": f"{ip}/ssot-gen",
+            "last_step": "new-ip",
+            "created_at": time.time(),
+        }
+
+    def _relative_project_path(path: Path) -> str:
+        try:
+            return str(path.resolve().relative_to(PROJECT_ROOT.resolve()))
+        except Exception:
+            return str(path)
+
+    def _safe_import_path(raw: str) -> Path | None:
+        token = str(raw or "").strip().strip("\"'")
+        if not token:
+            return None
+        if os.name != "nt":
+            token = token.replace("\\", "/")
+        try:
+            p = Path(token).expanduser()
+            if not p.is_absolute():
+                p = PROJECT_ROOT / token
+            resolved = p.resolve()
+            resolved.relative_to(PROJECT_ROOT.resolve())
+            return resolved
+        except Exception:
+            return None
+
+    def _resolve_import_path(ip: str, raw: str) -> tuple[Path | None, str]:
+        token = str(raw or "").strip().strip("\"'")
+        if not token:
+            return None, "empty import path"
+        candidates = [token]
+        maybe_path = Path(token)
+        if not maybe_path.is_absolute():
+            norm = token.replace("\\", "/")
+            if not norm.startswith(f"{ip}/"):
+                candidates.append(f"{ip}/{token}")
+        first_safe: Path | None = None
+        for candidate in candidates:
+            p = _safe_import_path(candidate)
+            if p is None:
+                continue
+            if first_safe is None:
+                first_safe = p
+            if p.exists():
+                return p, ""
+        if first_safe is None:
+            return None, f"unsafe import path: {token}"
+        return first_safe, f"import path not found: {_relative_project_path(first_safe)}"
+
+    def _parse_import_args(args: str) -> tuple[str, list[str], str]:
+        import shlex
+
+        try:
+            tokens = [t.strip().strip("\"'") for t in shlex.split(args or "", posix=False) if t.strip()]
+        except ValueError as exc:
+            return "", [], f"cannot parse /import arguments: {exc}"
+        ip = ""
+        paths: list[str] = []
+        idx = 0
+        while idx < len(tokens):
+            tok = tokens[idx]
+            if tok in ("--ip", "-i"):
+                if idx + 1 >= len(tokens):
+                    return "", [], "missing value after --ip"
+                ip = tokens[idx + 1]
+                idx += 2
+                continue
+            paths.append(tok)
+            idx += 1
+        if not ip and len(paths) > 1 and _valid_ip_name(paths[0]):
+            maybe_ip = paths[0]
+            if _ssot_state_path(maybe_ip).is_file() or (PROJECT_ROOT / maybe_ip).exists():
+                ip = maybe_ip
+                paths = paths[1:]
+        if not ip:
+            ip = _active_ssot_ip()
+        if not _valid_ip_name(ip):
+            return "", [], (
+                "[SSOT IMPORT] no active IP found\n"
+                "usage: /new-ip <ip_name> first, then /import [path ...]\n"
+                "or: /import --ip <ip_name> [path ...]"
+            )
+        return ip, paths, ""
+
+    def _default_import_roots(ip: str) -> list[Path]:
+        ip_dir = PROJECT_ROOT / ip
+        roots: list[Path] = []
+        for name in ("req", "requirements", "docs", "doc", "spec", "specs", "rtl", "yaml"):
+            p = ip_dir / name
+            if p.exists():
+                roots.append(p)
+        if ip_dir.is_dir():
+            roots.extend([p for p in ip_dir.iterdir() if p.is_file()])
+        return roots
+
+    def _collect_import_files(ip: str, raw_paths: list[str]) -> tuple[list[Path], list[str]]:
+        roots: list[Path] = []
+        errors: list[str] = []
+        if raw_paths:
+            for raw in raw_paths:
+                p, err = _resolve_import_path(ip, raw)
+                if err:
+                    errors.append(err)
+                if p is not None and p.exists():
+                    roots.append(p)
+        else:
+            roots = _default_import_roots(ip)
+
+        files: list[Path] = []
+        seen: set[Path] = set()
+        for root in roots:
+            candidates = [root]
+            if root.is_dir():
+                candidates = list(root.rglob("*"))
+            for p in candidates:
+                try:
+                    rp = p.resolve()
+                    rel_parts = rp.relative_to(PROJECT_ROOT.resolve()).parts
+                except Exception:
+                    continue
+                if any(part in _SSOT_IMPORT_SKIP_DIRS or part.startswith(".") for part in rel_parts[:-1]):
+                    continue
+                if not rp.is_file() or rp.suffix.lower() not in _SSOT_IMPORT_EXTENSIONS:
+                    continue
+                if rp in seen:
+                    continue
+                seen.add(rp)
+                files.append(rp)
+                if len(files) >= 64:
+                    errors.append("import file limit reached at 64 files")
+                    return files, errors
+        return files, errors
+
+    def _clean_import_line(line: str) -> str:
+        line = re.sub(r"\s+", " ", str(line or "").strip())
+        line = line.lstrip("#/*- ").rstrip("*/ ")
+        return line[:260]
+
+    def _snippet_lines(text: str, pattern: str, *, limit: int = 5) -> list[str]:
+        out: list[str] = []
+        seen: set[str] = set()
+        for raw in text.splitlines():
+            line = _clean_import_line(raw)
+            if len(line) < 4 or line in seen:
+                continue
+            if re.search(pattern, line, re.IGNORECASE):
+                seen.add(line)
+                out.append(line)
+                if len(out) >= limit:
+                    break
+        return out
+
+    def _purpose_lines(ip: str, path: Path, text: str) -> list[str]:
+        out: list[str] = []
+        module_names = re.findall(r"\bmodule\s+([A-Za-z_][A-Za-z0-9_]*)\b", text)
+        if module_names:
+            out.append("RTL modules: " + ", ".join(module_names[:8]))
+        for raw in text.splitlines():
+            line = _clean_import_line(raw)
+            if len(line) < 12:
+                continue
+            if re.search(r"\b(purpose|overview|summary|objective|function|module|ip)\b", line, re.IGNORECASE):
+                out.append(line)
+            elif ip.lower() in line.lower():
+                out.append(line)
+            elif path.suffix.lower() in {".md", ".txt", ".rst"} and not out:
+                out.append(line)
+            if len(out) >= 5:
+                break
+        return out
+
+    def _extract_import_candidates(
+        ip: str,
+        files: list[Path],
+    ) -> tuple[list[dict[str, Any]], dict[str, str], dict[str, list[dict[str, str]]]]:
+        patterns = {
+            "bus_interface": r"\b(APB|APB4|AXI|AXI4|AXI4[- ]?Lite|AHB|Wishbone|I2C|I3C|SMBus|SPI|UART|PCIe|VDM)\b",
+            "register_map": r"\b(register|csr|offset|address|addr|0x[0-9a-f]+|CTRL|STATUS|DATA|CMD|PRESCALE|IRQ|W1C|RO|RW)\b",
+            "clock_reset": r"\b(clock|clk|reset|rst|rst_n|resetn|frequency|MHz|active[- ]?(low|high))\b",
+            "interrupt": r"\b(interrupt|irq|int_|level|pulse|w1c|done|error)\b",
+            "memory_map": r"\b(memory map|base address|base|range|window|SRAM|RAM|FIFO|buffer|address map)\b",
+            "parameters": r"\b(parameter|localparam|define|configurable|width|depth|DATA_WIDTH|ADDR_WIDTH|FIFO_DEPTH|default)\b",
+            "submodule_structure": r"\b(submodule|hierarchy|block|fsm|module|parser|core|regs|fifo|engine|controller)\b",
+            "test_expectation": r"\b(test|verify|verification|coverage|scenario|assert|scoreboard|cocotb|uvm|regression|acceptance)\b",
+        }
+        snippets: dict[str, list[str]] = {key: [] for key, _ in _SSOT_REQUIRED_DECISIONS}
+        sources: dict[str, list[dict[str, str]]] = {key: [] for key, _ in _SSOT_REQUIRED_DECISIONS}
+        artifacts: list[dict[str, Any]] = []
+
+        for path in files:
+            try:
+                raw = path.read_text(encoding="utf-8", errors="ignore")
+            except Exception as exc:
+                artifacts.append({
+                    "path": _relative_project_path(path),
+                    "error": f"read failed: {exc}",
+                    "bytes": 0,
+                })
+                continue
+            text = raw[:262_144]
+            rel = _relative_project_path(path)
+            artifacts.append({
+                "path": rel,
+                "bytes": len(raw.encode("utf-8", errors="ignore")),
+                "truncated": len(raw) > len(text),
+            })
+            for line in _purpose_lines(ip, path, text):
+                if line not in snippets["purpose"]:
+                    snippets["purpose"].append(line)
+                    sources["purpose"].append({"path": rel, "excerpt": line})
+            for key, pattern in patterns.items():
+                for line in _snippet_lines(text, pattern):
+                    if line not in snippets[key]:
+                        snippets[key].append(line)
+                        sources[key].append({"path": rel, "excerpt": line})
+
+        candidates: dict[str, str] = {}
+        for key, _label in _SSOT_REQUIRED_DECISIONS:
+            vals = snippets.get(key) or []
+            if vals:
+                candidates[key] = "; ".join(vals[:8])[:1200]
+        return artifacts, candidates, sources
+
+    def _merge_import_candidates(
+        ip: str,
+        kind: str,
+        state: dict[str, Any],
+        artifacts: list[dict[str, Any]],
+        candidates: dict[str, str],
+        sources: dict[str, list[dict[str, str]]],
+    ) -> tuple[list[str], list[dict[str, Any]]]:
+        filled, conflicts = _record_ssot_decisions(ip, kind, candidates, sources)
+        doc, custom = _ssot_custom(ip, kind)
+        imports = custom.get("atlas_imports")
+        if not isinstance(imports, list):
+            imports = []
+        imports.append({
+            "imported_at": time.time(),
+            "artifacts": artifacts,
+            "filled": filled,
+            "conflicts": conflicts,
+        })
+        custom["atlas_imports"] = imports
+        _save_ssot_draft(ip, doc)
+        imported_artifacts = state.get("imported_artifacts")
+        if not isinstance(imported_artifacts, list):
+            imported_artifacts = []
+        imported_artifacts.extend({
+            "path": str(a.get("path") or ""),
+            "imported_at": time.time(),
+        } for a in artifacts if a.get("path"))
+        state["imported_artifacts"] = imported_artifacts[-64:]
+        state["last_step"] = "import"
+        if conflicts:
+            state["last_issue"] = "import_conflicts"
+        if filled or conflicts:
+            state["approved"] = False
+            state["approved_at"] = 0
+        state["status"] = "answered" if not _missing_ssot_decisions(ip, state) else "planned"
+        return filled, conflicts
+
     def _start_ssot_qna(ip: str, kind: str) -> None:
         """Run the v1 SSOT planning interview through the same Web
         ask_user card UI the LLM uses, but keep it deterministic and
@@ -3872,7 +4299,28 @@ def create_app():
         """
         def _worker() -> None:
             import uuid as _uuid
-            questions = _ssot_qna_questions(ip, kind)
+            all_questions = _ssot_qna_questions(ip, kind)
+            _ensure_ssot_draft(ip, kind)
+            state = _load_ssot_state(ip) or _new_ssot_state(ip, kind)
+            missing_keys = _missing_ssot_decisions(ip, state)
+            if not missing_keys:
+                msg = (
+                    f"[SSOT Q&A] {ip}: no missing decisions.\n"
+                    "Next: approve, then /to-ssot."
+                )
+                _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+                _append_workflow_history("ssot-gen", "assistant", msg)
+                _append_active_history("assistant", "```\n" + msg + "\n```")
+                _emit_workflow_result(msg, "ssot-qna")
+                _emit_ssot_approval_ready(ip, state, [])
+                return
+            index = _required_decision_index()
+            q_pairs = [
+                (key, _SSOT_REQUIRED_DECISIONS[index[key]][1], all_questions[index[key]])
+                for key in missing_keys
+                if key in index
+            ]
+            questions = [q for _key, _label, q in q_pairs]
             flow_id = "ssot_" + _uuid.uuid4().hex[:10]
             bridge.open_question(flow_id)
             bridge.emit("ask_user", flow_id=flow_id, questions=questions)
@@ -3890,21 +4338,25 @@ def create_app():
                 return
 
             answers = ans.get("answers") or []
-            state = _load_ssot_state(ip)
-            decisions = state.get("decisions") if isinstance(state.get("decisions"), dict) else {}
-            for (key, _label), q, a in zip(_SSOT_REQUIRED_DECISIONS, questions, answers):
+            state = _load_ssot_state(ip) or state
+            updates: dict[str, str] = {}
+            for (key, _label, q), a in zip(q_pairs, answers):
                 val = _answer_text(a if isinstance(a, dict) else {}, q)
                 if val:
-                    decisions[key] = val
+                    updates[key] = val
+            if updates:
+                _record_ssot_decisions(ip, kind, updates, {})
+            decisions = _ssot_decisions(ip, state)
             state.update({
                 "ip": ip,
                 "kind": kind,
-                "decisions": decisions,
-                "status": "answered" if not _missing_decisions({"decisions": decisions}) else "planned",
+                "status": "answered" if not _missing_ssot_decisions(ip, state) else "planned",
                 "approved": bool(state.get("approved")),
+                "active_session": f"{ip}/ssot-gen",
+                "last_step": "grill-me",
             })
             _save_ssot_state(ip, state)
-            missing = _missing_decisions(state)
+            missing = _missing_ssot_decisions(ip, state)
             lines = [f"[SSOT Q&A COMPLETE] {ip}", ""]
             for key, label in _SSOT_REQUIRED_DECISIONS:
                 lines.append(f"- {key}: {decisions.get(key) or '(missing)'}")
@@ -4309,6 +4761,153 @@ def create_app():
         bridge.emit("commands_changed")
         bridge.emit("agent_state", running=False)
 
+    def _handle_import_command(text: str) -> bool:
+        cmd, args = _split_slash(text)
+        if cmd not in ("import", "imp"):
+            return False
+
+        ip, raw_paths, err = _parse_import_args(args)
+        if err:
+            _emit_workflow_result(err, "import")
+            return True
+        _set_active_ssot_ip(ip)
+        try:
+            (PROJECT_ROOT / ip).mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            _emit_workflow_result(f"[SSOT IMPORT] failed to scaffold {ip}: {exc}", "import")
+            return True
+
+        state = _load_ssot_state(ip) or _new_ssot_state(ip)
+        kind = str(state.get("kind") or "imported IP evidence")
+        _ensure_ssot_draft(ip, kind)
+        files, errors = _collect_import_files(ip, raw_paths)
+        if not files:
+            msg = (
+                f"[SSOT IMPORT] {ip}: no importable files found\n"
+                f"searched: {', '.join(raw_paths) if raw_paths else f'{ip}/req, {ip}/docs, {ip}/spec, {ip}/rtl, {ip}/yaml'}\n"
+                "usage: /import [path ...]  or  /import --ip <ip_name> [path ...]"
+            )
+            if errors:
+                msg += "\n\nnotes:\n" + "\n".join(f"- {e}" for e in errors[:8])
+            _append_session_message(f"{ip}/ssot-gen", "user", text)
+            _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+            _append_workflow_history("ssot-gen", "user", text)
+            _append_workflow_history("ssot-gen", "assistant", msg)
+            _append_active_history("user", text)
+            _append_active_history("assistant", "```\n" + msg + "\n```")
+            _emit_workflow_result(msg, "import")
+            _emit_ssot_approval_ready(ip, state)
+            return True
+
+        artifacts, candidates, sources = _extract_import_candidates(ip, files)
+        filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources)
+        state.setdefault("ip", ip)
+        state.setdefault("kind", kind)
+        state["active_session"] = f"{ip}/ssot-gen"
+        _save_ssot_state(ip, state)
+
+        missing = _missing_ssot_decisions(ip, state)
+        lines = [
+            f"[SSOT IMPORT] {ip}",
+            f"imported files: {len(files)}",
+        ]
+        if filled:
+            lines.append("filled decisions: " + ", ".join(filled))
+        else:
+            lines.append("filled decisions: (none)")
+        if conflicts:
+            lines.append("conflicts needing /grill-me review: " + ", ".join(c["key"] for c in conflicts[:8]))
+        if missing:
+            lines.append("missing decisions: " + ", ".join(missing))
+        else:
+            lines.append("missing decisions: (none)")
+        if errors:
+            lines += ["", "notes:"]
+            lines.extend(f"- {e}" for e in errors[:8])
+        lines += [
+            "",
+            "evidence:",
+        ]
+        lines.extend(f"- {a.get('path')}" for a in artifacts[:12])
+        if len(artifacts) > 12:
+            lines.append(f"- ... {len(artifacts) - 12} more")
+        lines += [
+            "",
+            "Next:",
+            "  /grill-me" if missing or conflicts else "  approve",
+            "  /to-ssot after approval",
+        ]
+        msg = "\n".join(lines)
+        _append_session_message(f"{ip}/ssot-gen", "user", text)
+        _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+        _append_workflow_history("ssot-gen", "user", text)
+        _append_workflow_history("ssot-gen", "assistant", msg)
+        _append_active_history("user", text)
+        _append_active_history("assistant", "```\n" + msg + "\n```")
+        _emit_workflow_result(msg, "import")
+        _emit_ssot_approval_ready(ip, state, missing)
+        return True
+
+    def _handle_grill_me_command(text: str) -> bool:
+        cmd, args = _split_slash(text)
+        if cmd not in ("grill-me", "grill", "g"):
+            return False
+        ip_arg = args.split(None, 1)[0] if args else ""
+        if ip_arg and not _valid_ip_name(ip_arg):
+            _emit_workflow_result(
+                "[SSOT GRILL] invalid IP name\nusage: /grill-me [<ip_name>]",
+                "grill-me",
+            )
+            return True
+        ip = ip_arg or _active_ssot_ip()
+        if not _valid_ip_name(ip):
+            _emit_workflow_result(
+                "[SSOT GRILL] no active IP found\n"
+                "usage: /new-ip <ip_name> first, then /grill-me",
+                "grill-me",
+            )
+            return True
+        _set_active_ssot_ip(ip)
+        try:
+            (PROJECT_ROOT / ip).mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            _emit_workflow_result(f"[SSOT GRILL] failed to scaffold {ip}: {exc}", "grill-me")
+            return True
+        state = _load_ssot_state(ip) or _new_ssot_state(ip)
+        _ensure_ssot_draft(ip, str(state.get("kind") or "simple APB peripheral"))
+        state["active_session"] = f"{ip}/ssot-gen"
+        state["last_step"] = "grill-me"
+        _save_ssot_state(ip, state)
+        missing = _missing_ssot_decisions(ip, state)
+        if not missing:
+            msg = (
+                f"[SSOT GRILL] {ip}: all required decisions are already filled.\n"
+                "Next: approve, then /to-ssot."
+            )
+            _append_session_message(f"{ip}/ssot-gen", "user", text)
+            _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+            _append_workflow_history("ssot-gen", "user", text)
+            _append_workflow_history("ssot-gen", "assistant", msg)
+            _append_active_history("user", text)
+            _append_active_history("assistant", "```\n" + msg + "\n```")
+            _emit_workflow_result(msg, "grill-me")
+            _emit_ssot_approval_ready(ip, state, [])
+            return True
+
+        msg = (
+            f"[SSOT GRILL] {ip}: opening {len(missing)} missing decision card(s).\n"
+            "Only missing fields are asked; imported/answered fields remain locked unless you edit them explicitly."
+        )
+        _append_session_message(f"{ip}/ssot-gen", "user", text)
+        _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+        _append_workflow_history("ssot-gen", "user", text)
+        _append_workflow_history("ssot-gen", "assistant", msg)
+        _append_active_history("user", text)
+        _append_active_history("assistant", "```\n" + msg + "\n```")
+        _emit_workflow_result(msg, "grill-me")
+        _start_ssot_qna(ip, str(state.get("kind") or "simple APB peripheral"))
+        return True
+
     def _handle_new_ip_command(text: str) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("new-ip", "ni"):
@@ -4325,25 +4924,18 @@ def create_app():
             )
             return True
 
-        # Approval gate allows scaffold/session creation only. YAML is
-        # intentionally not created here; /to-ssot remains blocked until
-        # explicit approval.
+        # Approval gate allows scaffold/session creation and draft SSOT
+        # accumulation only. Production SSOT canonicalization remains
+        # blocked until explicit approval.
         try:
             (PROJECT_ROOT / ip).mkdir(parents=True, exist_ok=True)
         except OSError as e:
             _emit_workflow_result(f"[SSOT PLAN] failed to scaffold {ip}: {e}", "new-ip")
             return True
 
-        state = {
-            "ip": ip,
-            "kind": kind,
-            "approved": False,
-            "approved_at": 0,
-            "status": "planned",
-            "decisions": {},
-            "required": [{"key": k, "label": v} for k, v in _SSOT_REQUIRED_DECISIONS],
-            "created_at": time.time(),
-        }
+        _set_active_ssot_ip(ip)
+        state = _new_ssot_state(ip, kind)
+        _ensure_ssot_draft(ip, kind)
         _save_ssot_state(ip, state)
         session = f"{ip}/ssot-gen"
         plan = _render_new_ip_plan(ip, kind, state)
@@ -4354,8 +4946,7 @@ def create_app():
         _append_active_history("user", text)
         _append_active_history("assistant", "```\n" + plan + "\n```")
         _emit_workflow_result(plan, "new-ip")
-
-        _start_ssot_qna(ip, kind)
+        _emit_ssot_approval_ready(ip, state)
         return True
 
     def _handle_approval_command(text: str) -> bool:
@@ -4364,28 +4955,25 @@ def create_app():
         if not (low.startswith("approve") or raw.startswith("승인")):
             return False
         parts = raw.split()
-        ip = parts[1] if len(parts) > 1 else _latest_pending_ssot_ip()
+        ip = parts[1] if len(parts) > 1 else _active_ssot_ip()
         if not _valid_ip_name(ip):
             _emit_workflow_result(
                 "[SSOT APPROVAL] no pending IP found\n"
-                "usage: approve <ip_name>  or  승인 <ip_name>",
+                "usage: approve [<ip_name>]  or  승인 [<ip_name>]",
                 "approve",
             )
             return True
+        _set_active_ssot_ip(ip)
         state = _load_ssot_state(ip)
         if not state:
-            state = {
-                "ip": ip,
-                "kind": "simple APB peripheral",
-                "required": [{"key": k, "label": v} for k, v in _SSOT_REQUIRED_DECISIONS],
-                "decisions": {},
-            }
-        missing = _missing_decisions(state)
+            state = _new_ssot_state(ip)
+        _ensure_ssot_draft(ip, str(state.get("kind") or "simple APB peripheral"))
+        missing = _missing_ssot_decisions(ip, state)
         if missing:
             msg = (
                 f"[SSOT APPROVAL] blocked: {ip} still has missing decisions\n"
                 f"missing decisions: {', '.join(missing)}\n"
-                f"Use /new-ip {ip} {state.get('kind') or ''} to reopen the Web Q&A."
+                "Use /import to seed existing evidence, then /grill-me to answer only the gaps."
             )
             _append_session_message(f"{ip}/ssot-gen", "user", text)
             _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
@@ -4399,12 +4987,14 @@ def create_app():
         state["approved"] = True
         state["approved_at"] = time.time()
         state["status"] = "approved"
+        state["active_session"] = f"{ip}/ssot-gen"
+        state["last_step"] = "approve"
         _save_ssot_state(ip, state)
         spec = _render_approved_ssot_spec(ip, state)
         msg = (
             f"[SSOT APPROVED] {ip}\n"
             f"YAML write is now allowed.\n"
-            f"Next: type /to-ssot {ip} in the Web UI when the Q&A summary looks correct."
+            "Next: type /to-ssot in the Web UI when the summary looks correct."
         )
         session = f"{ip}/ssot-gen"
         _append_session_message(session, "user", text)
@@ -4423,22 +5013,23 @@ def create_app():
         cmd, args = _split_slash(text)
         if cmd not in ("to-ssot", "ssot", "ts"):
             return False
-        ip = args.split(None, 1)[0] if args else _latest_pending_ssot_ip()
+        ip = args.split(None, 1)[0] if args else _active_ssot_ip()
         if not _valid_ip_name(ip):
             _emit_workflow_result(
                 "[SSOT GATE] missing IP name\n"
-                "usage: /to-ssot <ip_name>",
+                "usage: /to-ssot [<ip_name>]",
                 "to-ssot",
             )
             return True
+        _set_active_ssot_ip(ip)
         state = _load_ssot_state(ip)
         if not state.get("approved"):
-            missing = _missing_decisions(state) if state else [k for k, _ in _SSOT_REQUIRED_DECISIONS]
+            missing = _missing_ssot_decisions(ip, state) if state else [k for k, _ in _SSOT_REQUIRED_DECISIONS]
             msg = (
                 f"[SSOT GATE] blocked: {ip} is not approved yet\n"
                 "YAML writes require Plan Mode + Grill Me Q&A + explicit approval.\n"
                 f"missing decisions: {', '.join(missing) if missing else '(review not approved)'}\n\n"
-                f"Run /new-ip {ip} first, answer the Q&A cards, then type: approve {ip}"
+                f"Run /new-ip {ip} first, optionally /import evidence, then /grill-me and approve."
             )
             _append_session_message(f"{ip}/ssot-gen", "user", text)
             _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
@@ -7536,6 +8127,10 @@ def create_app():
                     # reads it at the top of each iteration.
                     _low = _txt.lower()
                     if _handle_new_ip_command(_txt):
+                        continue
+                    if _handle_import_command(_txt):
+                        continue
+                    if _handle_grill_me_command(_txt):
                         continue
                     if _handle_approval_command(_txt):
                         continue

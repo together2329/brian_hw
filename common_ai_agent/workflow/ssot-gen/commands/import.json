@@ -1,0 +1,7 @@
+{
+  "name": "import",
+  "description": "Import existing docs, RTL, YAML, or other evidence into the active ssot-gen state before asking missing questions",
+  "aliases": ["imp"],
+  "handler": "prompt:Import existing docs, RTL, YAML, or other evidence into the active SSOT state, then ask only missing or conflicting decisions.",
+  "usage": "/import [--ip <ip_name>] [<path> ...]"
+}

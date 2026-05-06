@@ -1120,6 +1120,61 @@ def test_atlas_websocket_runs_ssot_equivalence_goal_command(tmp_path: Path, monk
     assert goals_doc["summary"]["blocked"] == 0
 
 
+def test_atlas_websocket_import_seeds_active_ssot_before_grill_me(tmp_path: Path, monkeypatch):
+    ip = "sqa"
+    doc_dir = tmp_path / "docs"
+    doc_dir.mkdir()
+    (doc_dir / "sqa_spec.md").write_text(
+        "\n".join([
+            "# SQA overview",
+            "Purpose: sqa is an APB4-controlled status and quality-assurance block for firmware-visible checks.",
+            "Bus interface: APB4 slave, firmware-mapped CSR access.",
+            "Register map: CTRL 0x00 RW enable bit0, STATUS 0x04 RO done/error bits, IRQ_STATUS 0x08 W1C.",
+            "Clock reset: clk at 100 MHz, rst_n active-low reset.",
+            "Interrupt: irq level-high when IRQ_STATUS has enabled bits set.",
+            "Memory map: CSR window only, 0x1000 byte range, base address assigned by SoC integration.",
+            "Parameters: DATA_WIDTH=32, ADDR_WIDTH=12, FIFO_DEPTH=4 defaults.",
+            "Submodule structure: sqa_regs, sqa_core, sqa_irq are manifest-owned submodules.",
+            "Test expectation: cocotb tests cover reset, APB reads/writes, irq set/clear, error path, and coverage bins.",
+        ]) + "\n",
+        encoding="utf-8",
+    )
+
+    from fastapi.testclient import TestClient
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    client = TestClient(atlas_ui.create_app())
+    with client.websocket_connect("/ws/agent") as ws:
+        assert ws.receive_json()["type"] == "hello"
+        ws.send_json({"type": "prompt", "text": f"/new-ip {ip} APB4 SQA controller"})
+        plan = _receive_slash_output(ws, "[SSOT PLAN]")
+        assert "/import <doc_or_rtl_path>" in plan
+
+        ws.send_json({"type": "prompt", "text": "/import docs/sqa_spec.md"})
+        imported = _receive_slash_output(ws, "[SSOT IMPORT]")
+        assert "filled decisions:" in imported
+        assert "missing decisions: (none)" in imported
+
+        ws.send_json({"type": "prompt", "text": "approve"})
+        approved = _receive_slash_output(ws, "[SSOT APPROVED]")
+        assert ip in approved
+
+    state = json.loads((tmp_path / ".session" / ip / "ssot-gen" / "state.json").read_text(encoding="utf-8"))
+    assert state["approved"] is True
+    assert "decisions" not in state
+    assert "decision_sources" not in state
+    assert "imports" not in state
+    assert state["imported_artifacts"][0]["path"] == "docs/sqa_spec.md"
+
+    import yaml
+
+    ssot_doc = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    atlas_decisions = ssot_doc["custom"]["atlas_decisions"]
+    assert atlas_decisions["bus_interface"]
+    assert atlas_decisions["test_expectation"]
+
+
 def test_atlas_websocket_fresh_new_ip_to_ssot_fl_equivalence_flow(tmp_path: Path, monkeypatch):
     ip = "fresh_web_timer_ip"
 
@@ -1133,6 +1188,9 @@ def test_atlas_websocket_fresh_new_ip_to_ssot_fl_equivalence_flow(tmp_path: Path
         ws.send_json({"type": "prompt", "text": f"/new-ip {ip} APB4 programmable timer"})
         plan = _receive_slash_output(ws, "[SSOT PLAN]")
         assert ip in plan
+        ws.send_json({"type": "prompt", "text": "/grill-me"})
+        grill = _receive_slash_output(ws, "[SSOT GRILL]")
+        assert "opening" in grill
         qcard = _receive_ws_event(ws, "ask_user", ip)
         answers = [
             {

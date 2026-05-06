@@ -68,12 +68,29 @@ def _load_state(root: Path, ip: str) -> dict[str, Any]:
     doc = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(doc, dict) or not doc.get("approved"):
         raise SystemExit(f"[approved_to_ssot] {ip} is not approved")
+    ssot_path = root / ip / "yaml" / f"{ip}.ssot.yaml"
+    if ssot_path.is_file():
+        ssot_doc = yaml.safe_load(ssot_path.read_text(encoding="utf-8", errors="replace")) or {}
+        if isinstance(ssot_doc, dict):
+            custom = ssot_doc.get("custom") if isinstance(ssot_doc.get("custom"), dict) else {}
+            decisions = custom.get("atlas_decisions") if isinstance(custom.get("atlas_decisions"), dict) else {}
+            if decisions:
+                doc["_ssot_decisions"] = decisions
+            if custom:
+                doc["_ssot_custom"] = custom
     return doc
 
 
 def _decisions(state: dict[str, Any]) -> dict[str, str]:
-    raw = state.get("decisions") if isinstance(state.get("decisions"), dict) else {}
+    raw = state.get("_ssot_decisions") if isinstance(state.get("_ssot_decisions"), dict) else {}
+    if not raw:
+        raw = state.get("decisions") if isinstance(state.get("decisions"), dict) else {}
     return {str(k): str(v).strip() for k, v in raw.items() if str(v or "").strip()}
+
+
+def _ssot_custom(state: dict[str, Any]) -> dict[str, Any]:
+    custom = state.get("_ssot_custom") if isinstance(state.get("_ssot_custom"), dict) else {}
+    return custom if isinstance(custom, dict) else {}
 
 
 def _safe_markdown_text(value: Any) -> str:
@@ -1301,6 +1318,7 @@ def _cycle_model(decisions: dict[str, str], io: dict[str, Any]) -> dict[str, Any
 
 def _doc(ip: str, state: dict[str, Any]) -> dict[str, Any]:
     decisions = _decisions(state)
+    source_custom = _ssot_custom(state)
     params = _parse_parameters(decisions.get("parameters", ""))
     machine = _machine_rules(decisions, params)
     ip_type = _infer_ip_type(ip, state)
@@ -1461,6 +1479,10 @@ def _doc(ip: str, state: dict[str, Any]) -> dict[str, Any]:
         "reuse_modules": [],
         "custom": {
             "approved_web_decisions": decisions,
+            "atlas_decisions": decisions,
+            "atlas_decision_sources": source_custom.get("atlas_decision_sources", {}),
+            "atlas_imports": source_custom.get("atlas_imports", []),
+            "atlas_import_conflicts": source_custom.get("atlas_import_conflicts", []),
             "optional_behavior_policy": {
                 "resolution": (
                     "No optional RTL behavior is implied by prose. Features not explicitly approved "

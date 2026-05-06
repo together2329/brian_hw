@@ -742,10 +742,11 @@ def _module_equivalence_goals(ssot: dict[str, Any], decomp: dict[str, Any], fcov
         function_refs = [str(ref) for ref in _as_list(contract.get("function_model_refs")) if str(ref).strip()]
         cycle_refs = [str(ref) for ref in _as_list(contract.get("cycle_model_refs")) if str(ref).strip()]
         requires = contract.get("requires_module_equivalence") is not False
+        if not requires:
+            continue
         blocked = (
             bool(contract.get("blocked"))
             or bool(tx_contract["blocked"])
-            or not requires
             or not function_refs
         )
         blocker_bits: list[str] = []
@@ -753,8 +754,6 @@ def _module_equivalence_goals(ssot: dict[str, Any], decomp: dict[str, Any], fcov
             blocker_bits.append(str(contract.get("blocker")))
         if tx_contract["blocked"]:
             blocker_bits.append("FunctionalModel transaction contract lacks executable observables/state/error behavior")
-        if not requires:
-            blocker_bits.append("module is marked as not requiring module equivalence")
         if not function_refs:
             blocker_bits.append("module owns no function_model refs, so exact functionality cannot be compared")
         scope = {

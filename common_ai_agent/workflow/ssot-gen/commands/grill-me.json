@@ -1,6 +1,6 @@
 {
   "name": "grill-me",
-  "description": "Interrogate the user about the SSOT plan one decision at a time, including function_model and cycle_model gaps",
+  "description": "Ask only missing or conflicting SSOT decisions for the active IP after /new-ip and optional /import",
   "aliases": ["grill", "g"],
   "handler": "skill:grill-me",
   "usage": "/grill-me [<ip_name>]"
