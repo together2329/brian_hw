@@ -65,5 +65,28 @@ current_todos.json
 */sta-post/run.tcl
 */sta-post/out/
 
+# OMC session files
+.omc/
+
+# Benchmark logs
+.benchmark/
+
+# Playwright MCP artifacts
+.playwright-mcp/
+
+# ATLAS build artifacts
+ATLAS-*.zip
+
+# Atlas temporary clean directories
+atlas_i2c_clean/
+atlas_ssot_parser2_clean/
+atlas_ssot_web_clean/
+
+# RTL generation artifacts (regenerable from SSOT)
+*/logs/rtl-gen/
+*/rtl/rtl_todo_plan.json
+*/rtl/rtl_blocked.json
+*/rtl/rtl_traceability.json
+
 # Required workflow validators whose names match parent repo sim-output globs.
 !workflow/tb-gen/scripts/check_tb_sim_evidence.sh
