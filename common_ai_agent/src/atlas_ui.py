@@ -105,6 +105,8 @@ class _AtlasBridge:
         self._outbox: queue.Queue[dict[str, Any]] = queue.Queue()
         self._answer_qs: dict[str, queue.Queue[Any]] = {}            # flow_id → queue.Queue
         self._answer_lock = threading.Lock()
+        self._pending_ask_user: dict[str, dict[str, Any]] = {}
+        self._pending_ask_user_lock = threading.Lock()
         self.agent_running: bool = False
         self.agent_alive: bool = False
         self._agent_lock = threading.Lock()
@@ -124,7 +126,19 @@ class _AtlasBridge:
             return None
 
     def emit(self, msg_type: str, **payload: Any) -> None:
-        self._outbox.put_nowait({"type": msg_type, **payload})
+        msg = {"type": msg_type, **payload}
+        flow_id = str(payload.get("flow_id") or "")
+        if flow_id:
+            with self._pending_ask_user_lock:
+                if msg_type == "ask_user":
+                    self._pending_ask_user[flow_id] = dict(msg)
+                elif msg_type in {"ask_user_answered", "ask_user_closed"}:
+                    self._pending_ask_user.pop(flow_id, None)
+        self._outbox.put_nowait(msg)
+
+    def pending_ask_user_events(self) -> list[dict[str, Any]]:
+        with self._pending_ask_user_lock:
+            return [dict(event) for event in self._pending_ask_user.values()]
 
     # ask_user lifecycle (agent-side, sync) —
     def open_question(self, flow_id: str) -> "queue.Queue[Any]":
@@ -8096,6 +8110,8 @@ def create_app():
         await websocket.send_json({"type": "hello", "frontend": "atlas",
                                     "running": bridge.agent_running,
                                     "center_layout": _center_layout})
+        for pending_event in bridge.pending_ask_user_events():
+            await websocket.send_json(pending_event)
         try:
             while True:
                 data = await websocket.receive_text()

@@ -893,6 +893,9 @@ const Workspace = ({ dir, onScreen }) => {
     subs.push(window.backend.subscribe('ask_user', (m) => {
       const flowId = m.flow_id;
       if (!flowId) return;
+      streamBufferRef.current = '';
+      setStreamText('');
+      setStreaming(false);
       const isBatched = Array.isArray(m.questions) && m.questions.length > 0;
       if (isBatched) {
         const qs = m.questions.map(q => ({
@@ -957,7 +960,11 @@ const Workspace = ({ dir, onScreen }) => {
           [flowId]: { opts: opts.map(o => ({ ...o })), custom: '', submitted: false }
         }));
       }
-      setFeed(f => [...f, { kind: 'qcard', flowId, dynamic: true }]);
+      setFeed(f => (
+        f.some(e => e && e.kind === 'qcard' && e.flowId === flowId)
+          ? f
+          : [...f, { kind: 'qcard', flowId, dynamic: true }]
+      ));
     }));
     subs.push(window.backend.subscribe('ssot_approval_ready', (m) => {
       if (!m || !m.ip) return;
