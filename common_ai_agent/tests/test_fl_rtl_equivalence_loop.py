@@ -22,6 +22,7 @@ COMPARATOR_PATH = REPO / "workflow" / "sim_debug" / "scripts" / "compare_fl_rtl_
 AUDIT_PATH = REPO / "workflow" / "sim_debug" / "scripts" / "audit_fl_rtl_equivalence_goal.py"
 CHECK_SCOREBOARD_PATH = REPO / "workflow" / "tb-gen" / "scripts" / "check_scoreboard_events.py"
 RTL_GEN_PATH = REPO / "workflow" / "rtl-gen" / "scripts" / "ssot_to_rtl.py"
+DERIVE_RTL_TODOS_PATH = REPO / "workflow" / "rtl-gen" / "scripts" / "derive_rtl_todos.py"
 RTL_COMPILE_PATH = REPO / "workflow" / "rtl-gen" / "scripts" / "rtl_compile_report.py"
 DUT_LINT_PATH = REPO / "workflow" / "lint" / "scripts" / "dut_lint_report.py"
 TB_GEN_PATH = REPO / "workflow" / "tb-gen" / "scripts" / "emit_goal_scoreboard_cocotb.py"
@@ -1190,63 +1191,13 @@ def test_atlas_websocket_fresh_new_ip_to_ssot_fl_equivalence_flow(tmp_path: Path
         assert ip in plan
         ws.send_json({"type": "prompt", "text": "/grill-me"})
         grill = _receive_slash_output(ws, "[SSOT GRILL]")
-        assert "opening" in grill
-        qcard = _receive_ws_event(ws, "ask_user", ip)
-        answers = [
-            {
-                "custom": (
-                    "APB4 programmable timer that increments a counter when enabled, "
-                    "raises irq when COUNT reaches COMPARE, and exposes CTRL/COUNT/COMPARE/STATUS CSRs."
-                )
-            },
-            {"custom": "APB4 slave, firmware-mapped, local CSR window only."},
-            {
-                "custom": (
-                    "CTRL 0x00 RW enable bit0 irq_enable bit1; COUNT 0x04 RO counter; "
-                    "COMPARE 0x08 RW compare value reset 100; STATUS 0x0c W1C irq_status bit0 error bit1."
-                )
-            },
-            {"custom": "clk 100 MHz, rst_n active-low asynchronous assert synchronous deassert."},
-            {"custom": "irq is level-high while STATUS.irq_status is set; clear by W1C write to STATUS bit0."},
-            {"custom": "CSR window only, 0x1000 byte range, base address assigned by SoC integration."},
-            {"custom": "DATA_WIDTH=32, ADDR_WIDTH=8, COMPARE_RESET=100."},
-            {"custom": "timer_regs, timer_core, timer_irq are manifest-owned submodules under one SSOT."},
-            {
-                "custom": (
-                    "Tests cover reset, APB CSR read/write, enable counting, compare match, irq set/clear, "
-                    "illegal access error, and back-to-back APB accesses with functional coverage for each scenario."
-                )
-            },
-        ]
-        assert len(answers) == len(qcard["questions"])
-        ws.send_json({"type": "answer", "flow_id": qcard["flow_id"], "answers": answers})
-        qdone = _receive_slash_output(ws, "[SSOT Q&A COMPLETE]")
-        assert "register_map" in qdone
-
-        ws.send_json({"type": "prompt", "text": f"approve {ip}"})
-        approved = _receive_slash_output(ws, "[SSOT APPROVED]")
-        assert "YAML write is now allowed" in approved
-
-        ws.send_json({"type": "prompt", "text": f"/to-ssot {ip}"})
-        ssot_out = _receive_slash_output(ws, "[to-ssot]")
-        assert "bridge exit: 0" in ssot_out
-        assert "validator exit: 0" in ssot_out
-
-        ws.send_json({"type": "prompt", "text": f"/ssot-fl-model {ip}"})
-        fl_out = _receive_slash_output(ws, "[ssot-fl-model]")
-        assert "exit: 0" in fl_out
-
-        ws.send_json({"type": "prompt", "text": f"/ssot-equiv-goals {ip}"})
-        eq_out = _receive_slash_output(ws, "[ssot-equiv-goals]")
-        assert "[ssot-equiv-goals] PASS" in eq_out
+        assert "queued ssot-gen LLM" in grill
 
     ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
-    model_check = json.loads((tmp_path / ip / "model" / "fl_model_check.json").read_text(encoding="utf-8"))
-    goals_doc = json.loads((tmp_path / ip / "verify" / "equivalence_goals.json").read_text(encoding="utf-8"))
+    state = json.loads((tmp_path / ".session" / ip / "ssot-gen" / "state.json").read_text(encoding="utf-8"))
     assert ssot_path.is_file()
-    assert model_check["passed"] is True
-    assert goals_doc["summary"]["total"] > 0
-    assert goals_doc["summary"]["blocked"] == 0
+    assert state["last_step"] == "grill-me"
+    assert state["active_session"] == f"{ip}/ssot-gen"
 
 
 def test_atlas_websocket_generates_fl_equivalence_from_ssot_only_ip(tmp_path: Path, monkeypatch):
@@ -1586,12 +1537,7 @@ class FunctionalModel:
     assert expected["model_result"]["transaction_id"] == "FM_PRIMARY"
 
 
-def test_structured_ssot_rules_drive_fl_model_rtl_compile_and_lint(tmp_path: Path):
-    if not shutil.which("iverilog"):
-        pytest.skip("iverilog is required for the canonical DUT compile report")
-    if not (shutil.which("verilator") or shutil.which("iverilog")):
-        pytest.skip("verilator or iverilog is required for the canonical DUT lint report")
-
+def test_structured_ssot_rules_drive_fl_model_equivalence_and_rtl_todo_handoff(tmp_path: Path):
     ip = _write_structured_rule_ssot(tmp_path)
     fl_path = REPO / "workflow" / "fl-model-gen" / "scripts" / "emit_fl_model.py"
     equiv_path = REPO / "workflow" / "fl-model-gen" / "scripts" / "emit_equivalence_goals.py"
@@ -1621,6 +1567,15 @@ def test_structured_ssot_rules_drive_fl_model_rtl_compile_and_lint(tmp_path: Pat
     )
     assert eq_run.returncode == 0, eq_run.stdout
 
+    derive_run = subprocess.run(
+        [sys.executable, str(DERIVE_RTL_TODOS_PATH), ip, "--root", str(tmp_path)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    assert derive_run.returncode == 0, derive_run.stdout
+
     rtl_run = subprocess.run(
         [sys.executable, str(RTL_GEN_PATH), ip, "--root", str(tmp_path)],
         text=True,
@@ -1628,74 +1583,25 @@ def test_structured_ssot_rules_drive_fl_model_rtl_compile_and_lint(tmp_path: Pat
         stderr=subprocess.STDOUT,
         check=False,
     )
-    assert rtl_run.returncode == 0, rtl_run.stdout
-    assert not (tmp_path / ip / "rtl" / "rtl_blocked.json").exists()
+    assert rtl_run.returncode == 2, rtl_run.stdout
+    assert "[RTL BLOCKED]" in rtl_run.stdout
+    assert "LLM-authored RTL" in rtl_run.stdout
+    assert not (tmp_path / ip / "rtl" / f"{ip}.sv").exists()
+    blocked = json.loads((tmp_path / ip / "rtl" / "rtl_blocked.json").read_text(encoding="utf-8"))
+    question_ids = {q["id"] for q in blocked["questions"]}
+    assert "LLM_RTL_IMPLEMENTATION_REQUIRED" in question_ids
+    assert (tmp_path / ip / "rtl" / "rtl_todo_plan.json").is_file()
+    todo_plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    assert todo_plan["summary"]["total_tasks"] > 0
+    assert todo_plan["policy"]["fixed_template_role"] == "seed_only"
 
-    compile_run = subprocess.run(
-        [
-            sys.executable,
-            str(RTL_COMPILE_PATH),
-            ip,
-            "--top",
-            ip,
-            "--project-root",
-            str(tmp_path),
-        ],
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        check=False,
-    )
-    assert compile_run.returncode == 0, compile_run.stdout
-
-    lint_run = subprocess.run(
-        [sys.executable, str(DUT_LINT_PATH), ip, "--top", ip],
-        cwd=tmp_path,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        check=False,
-    )
-    assert lint_run.returncode == 0, lint_run.stdout
-
-    rtl_contract = json.loads((tmp_path / ip / "rtl" / "rtl_contract.json").read_text(encoding="utf-8"))
-    rtl_text = (tmp_path / ip / "rtl" / f"{ip}.sv").read_text(encoding="utf-8")
-    compile_doc = json.loads((tmp_path / ip / "rtl" / "rtl_compile.json").read_text(encoding="utf-8"))
-    lint_doc = json.loads((tmp_path / ip / "lint" / "dut_lint.json").read_text(encoding="utf-8"))
     goals_doc = json.loads((tmp_path / ip / "verify" / "equivalence_goals.json").read_text(encoding="utf-8"))
 
-    assert rtl_contract["type"] == "generic_ssot_rule_rtl_contract"
-    assert rtl_contract["contract"]["source"] == "rtl_contract + function_model.output_rules"
-    assert "result =" in rtl_text
-    assert "data_in * 2" in rtl_text
-    assert "accepted_count <=" in rtl_text
-    assert "result_valid =" in rtl_text
-    assert compile_doc["passed"] is True
-    assert compile_doc["dut_only"] is True
-    assert lint_doc["passed"] is True
-    assert lint_doc["dut_only"] is True
     transaction_goal = next(goal for goal in goals_doc["goals"] if goal["goal_id"] == "EQ_TRANSACTION_FM_PRIMARY")
     assert "result" in transaction_goal["expected_contract"]["observables"]
 
-    tb_run = subprocess.run(
-        [sys.executable, str(TB_GEN_PATH), ip, "--root", str(tmp_path)],
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        check=False,
-    )
-    assert tb_run.returncode == 0, tb_run.stdout
-    manifest = json.loads((tmp_path / ip / "tb" / "cocotb" / "tb_manifest.json").read_text(encoding="utf-8"))
-    observed_outputs = {item["name"] for item in manifest["outputs"]}
-    assert {"result", "result_valid", "ready", "accepted_count"}.issubset(observed_outputs)
 
-
-def test_atlas_websocket_ssot_rtl_generates_dut_compile_lint_evidence(tmp_path: Path, monkeypatch):
-    if not shutil.which("iverilog"):
-        pytest.skip("iverilog is required for the canonical DUT compile report")
-    if not (shutil.which("verilator") or shutil.which("iverilog")):
-        pytest.skip("verilator or iverilog is required for the canonical DUT lint report")
-
+def test_atlas_websocket_ssot_rtl_queues_llm_authored_rtl_handoff(tmp_path: Path, monkeypatch):
     ip = _write_structured_rule_ssot(tmp_path)
     fl_path = REPO / "workflow" / "fl-model-gen" / "scripts" / "emit_fl_model.py"
     equiv_path = REPO / "workflow" / "fl-model-gen" / "scripts" / "emit_equivalence_goals.py"
@@ -1710,13 +1616,15 @@ def test_atlas_websocket_ssot_rtl_generates_dut_compile_lint_evidence(tmp_path: 
     with client.websocket_connect("/ws/agent") as ws:
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({"type": "prompt", "text": f"/ssot-rtl {ip}"})
-        output = _receive_slash_output(ws, "[RTL RESULT]")
+        output = _receive_slash_output(ws, "[RTL BLOCKED]")
 
-    assert "PASS - generated RTL, dynamic SSOT TODO gate, and DUT-only compile/lint evidence" in output
-    assert f"{ip}/rtl/rtl_compile.json" in output
-    assert f"{ip}/lint/dut_lint.json" in output
-    assert json.loads((tmp_path / ip / "rtl" / "rtl_compile.json").read_text(encoding="utf-8"))["passed"] is True
-    assert json.loads((tmp_path / ip / "lint" / "dut_lint.json").read_text(encoding="utf-8"))["passed"] is True
+    assert "LLM-authored RTL" in output
+    assert "rtl_dynamic_todos" in output
+    assert f"{ip}/rtl/rtl_blocked.json" in output
+    blocked = json.loads((tmp_path / ip / "rtl" / "rtl_blocked.json").read_text(encoding="utf-8"))
+    question_ids = {q["id"] for q in blocked["questions"]}
+    assert "LLM_RTL_IMPLEMENTATION_REQUIRED" in question_ids
+    assert (tmp_path / ip / "rtl" / "rtl_todo_plan.json").is_file()
 
 
 def test_atlas_websocket_runs_sim_debug_command(tmp_path: Path, monkeypatch):

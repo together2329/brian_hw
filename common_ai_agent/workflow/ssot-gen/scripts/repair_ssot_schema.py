@@ -134,6 +134,50 @@ def _has_tbd(value: Any) -> bool:
     return False
 
 
+def _norm_token(value: Any) -> str:
+    return "".join(ch.lower() if ch.isalnum() else "_" for ch in str(value or "")).strip("_")
+
+
+def _rtl_quality_profile(doc: dict[str, Any], ip: str) -> str:
+    qg = doc.get("quality_gates") if isinstance(doc.get("quality_gates"), dict) else {}
+    rtl_gen = qg.get("rtl_gen") or qg.get("rtl-gen") if isinstance(qg, dict) else {}
+    if not isinstance(rtl_gen, dict):
+        rtl_gen = {}
+    top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+    raw = (
+        rtl_gen.get("profile")
+        or rtl_gen.get("quality_profile")
+        or qg.get("rtl_quality_profile")
+        or qg.get("quality_profile")
+        or top.get("quality_profile")
+        or top.get("rtl_quality_profile")
+        or ""
+    )
+    norm = _norm_token(raw)
+    if norm in {"prod", "production", "signoff", "pl330", "pl330_level", "dma330", "dma330_level"}:
+        return "production"
+    name_text = f"{ip} {top.get('name') or ''}".lower()
+    if any(token in name_text for token in ("pl330", "dma330", "dma_330")):
+        return "production"
+    return "standard"
+
+
+def _first_manifest_child(doc: dict[str, Any], ip: str) -> str:
+    top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+    top_names = {str(ip).lower(), str(top.get("name") or "").lower()}
+    for item in doc.get("sub_modules") or []:
+        if not isinstance(item, dict):
+            continue
+        if str(item.get("ownership") or "manifest").lower() in {"child_ssot", "external", "blackbox"}:
+            continue
+        if bool(item.get("wiring_only")):
+            continue
+        name = str(item.get("name") or "")
+        if name and name.lower() not in top_names:
+            return name
+    return str(top.get("name") or ip)
+
+
 def _ensure_top_module(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any]:
     decisions = _decisions(state)
     top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
@@ -183,13 +227,13 @@ def _ensure_sub_modules(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
                 "description": "Top-level integration module matching SSOT top_module",
             })
         return fixed
-    names = ["pkg", "axi_slv", "crypto", "mem", "core", "top"]
+    names = ["pkg", "control", "datapath", "status", "core", "top"]
     desc = {
         "pkg": "Parameter and shared type definitions",
-        "axi_slv": "AXI4-Lite slave channel handling and response sequencing",
-        "crypto": "Parameterized encrypt/decrypt transform used for data-at-rest",
-        "mem": "Parameterized SRAM storage array",
-        "core": "Read/write merge, crypto, memory, and debug control",
+        "control": "Control/protocol sequencing derived from function_model and cycle_model",
+        "datapath": "Datapath or payload transformation derived from approved features",
+        "status": "Status, error, interrupt, and debug observability derived from SSOT",
+        "core": "Primary behavior owner for function_model transactions and state updates",
         "top": "Top-level integration module matching SSOT top_module",
     }
     return [
@@ -299,6 +343,44 @@ def _ensure_submodule_behavior_ownership(doc: dict[str, Any], ip: str) -> list[d
         if owner is not None:
             _append_unique_ref(owner, "function_model_refs", "function_model.inputs")
 
+    if isinstance(doc.get("cycle_model"), dict) and doc["cycle_model"]:
+        owner = _choose_behavior_owner(candidates, {"cycle", "handshake", "pipeline", "control"})
+        if owner is not None:
+            _append_unique_ref(owner, "cycle_model_refs", "cycle_model")
+            _append_unique_ref(owner, "source_sections", "cycle_model")
+
+    if isinstance(doc.get("features"), list) and doc["features"]:
+        owner = _choose_behavior_owner(candidates, {"feature", "datapath", "core", "control"})
+        if owner is not None:
+            _append_unique_ref(owner, "feature_refs", "features")
+            _append_unique_ref(owner, "source_sections", "features")
+
+    if isinstance(doc.get("dataflow"), dict) and doc["dataflow"]:
+        owner = _choose_behavior_owner(candidates, {"dataflow", "datapath", "core", "routing"})
+        if owner is not None:
+            _append_unique_ref(owner, "dataflow_refs", "dataflow")
+            _append_unique_ref(owner, "source_sections", "dataflow")
+
+    if isinstance(doc.get("fsm"), dict) and doc["fsm"]:
+        owner = _choose_behavior_owner(candidates, {"fsm", "state", "control", "manager"})
+        if owner is not None:
+            _append_unique_ref(owner, "fsm_refs", "fsm")
+            _append_unique_ref(owner, "source_sections", "fsm")
+
+    tests = doc.get("test_requirements") if isinstance(doc.get("test_requirements"), dict) else {}
+    if isinstance(tests.get("scenarios"), list) and tests["scenarios"]:
+        owner = _choose_behavior_owner(candidates, {"test", "scenario", "coverage", "core"})
+        if owner is not None:
+            _append_unique_ref(owner, "test_refs", "test_requirements")
+            _append_unique_ref(owner, "source_sections", "test_requirements")
+
+    regs = doc.get("registers") if isinstance(doc.get("registers"), dict) else {}
+    if isinstance(regs.get("register_list"), list) and regs["register_list"]:
+        owner = _choose_behavior_owner(candidates, {"register", "csr", "status", "control"})
+        if owner is not None:
+            _append_unique_ref(owner, "register_refs", "registers.register_list")
+            _append_unique_ref(owner, "source_sections", "registers")
+
     return subs
 
 
@@ -343,35 +425,9 @@ def _ensure_parameters_section(doc: dict[str, Any], state: dict[str, Any]) -> li
     if isinstance(params, list) and params and not _has_tbd(params):
         return params
     return [
-        {"name": "DATA_WIDTH", "default": 32, "type": "int", "description": "AXI data and SRAM word width in bits", "drives": ["rtl", "tb", "coverage"]},
-        {"name": "ADDR_WIDTH", "default": 8, "type": "int", "description": "SRAM word address width; default 256 words", "drives": ["rtl", "tb", "coverage"]},
-        {"name": "STRB_WIDTH", "default": "DATA_WIDTH/8", "type": "int", "description": "AXI byte strobe width derived from DATA_WIDTH", "drives": ["axi_slv", "core"]},
-        {"name": "CRYPTO_ENABLE", "default": 1, "type": "bit", "description": "Enable encrypted-at-rest transform", "drives": ["crypto", "core", "tb"]},
-        {"name": "CRYPTO_KEY", "default": "32'hA5A5_5A5A", "type": "logic [DATA_WIDTH-1:0]", "description": "Default XOR transform key", "drives": ["crypto", "tb"]},
-        {"name": "DEBUG_ENABLE", "default": 1, "type": "bit", "description": "Enable debug observability outputs", "drives": ["wrapper", "core"]},
-        {"name": "RESET_MEMORY", "default": 0, "type": "bit", "description": "When set, reset initializes SRAM contents to zero", "drives": ["mem", "tb"]},
-    ]
-
-
-def _axi_lite_ports(data_width: str = "DATA_WIDTH", strb_width: str = "STRB_WIDTH") -> list[dict[str, Any]]:
-    return [
-        {"name": "s_axi_awaddr", "width": "ADDR_WIDTH+2", "direction": "input", "description": "AXI4-Lite write address"},
-        {"name": "s_axi_awvalid", "width": 1, "direction": "input", "description": "AXI4-Lite write address valid"},
-        {"name": "s_axi_awready", "width": 1, "direction": "output", "description": "AXI4-Lite write address ready"},
-        {"name": "s_axi_wdata", "width": data_width, "direction": "input", "description": "AXI4-Lite write data plaintext"},
-        {"name": "s_axi_wstrb", "width": strb_width, "direction": "input", "description": "AXI4-Lite write byte strobes"},
-        {"name": "s_axi_wvalid", "width": 1, "direction": "input", "description": "AXI4-Lite write data valid"},
-        {"name": "s_axi_wready", "width": 1, "direction": "output", "description": "AXI4-Lite write data ready"},
-        {"name": "s_axi_bresp", "width": 2, "direction": "output", "description": "AXI4-Lite write response"},
-        {"name": "s_axi_bvalid", "width": 1, "direction": "output", "description": "AXI4-Lite write response valid"},
-        {"name": "s_axi_bready", "width": 1, "direction": "input", "description": "AXI4-Lite write response ready"},
-        {"name": "s_axi_araddr", "width": "ADDR_WIDTH+2", "direction": "input", "description": "AXI4-Lite read address"},
-        {"name": "s_axi_arvalid", "width": 1, "direction": "input", "description": "AXI4-Lite read address valid"},
-        {"name": "s_axi_arready", "width": 1, "direction": "output", "description": "AXI4-Lite read address ready"},
-        {"name": "s_axi_rdata", "width": data_width, "direction": "output", "description": "AXI4-Lite read data plaintext"},
-        {"name": "s_axi_rresp", "width": 2, "direction": "output", "description": "AXI4-Lite read response"},
-        {"name": "s_axi_rvalid", "width": 1, "direction": "output", "description": "AXI4-Lite read data valid"},
-        {"name": "s_axi_rready", "width": 1, "direction": "input", "description": "AXI4-Lite read data ready"},
+        {"name": "DATA_WIDTH", "default": 32, "type": "int", "description": "Primary payload/result width in bits", "drives": ["rtl", "tb", "coverage"]},
+        {"name": "ID_WIDTH", "default": 4, "type": "int", "description": "Optional request/context identifier width when the SSOT declares tagged work", "drives": ["rtl", "tb", "coverage"]},
+        {"name": "DEPTH", "default": 4, "type": "int", "description": "Generic internal queue/state depth only if a later SSOT section assigns storage semantics", "drives": ["rtl", "tb", "coverage"]},
     ]
 
 
@@ -381,32 +437,31 @@ def _ensure_io_list(doc: dict[str, Any]) -> dict[str, Any]:
         return io
     return {
         "clock_domains": [{
-            "name": "aclk",
+            "name": "clk",
             "frequency_mhz": 100,
-            "description": "Primary AXI and SRAM clock",
-            "ports": [{"name": "aclk", "width": 1, "direction": "input", "description": "Primary clock"}],
+            "description": "Primary synchronous clock",
+            "ports": [{"name": "clk", "width": 1, "direction": "input", "description": "Primary clock"}],
         }],
         "resets": [{
-            "name": "aresetn",
+            "name": "rst_n",
             "polarity": "active_low",
             "sync_async": "async_assert_sync_deassert",
             "description": "Active-low reset, asynchronous assert and synchronous release",
-            "ports": [{"name": "aresetn", "width": 1, "direction": "input", "description": "Primary reset"}],
+            "ports": [{"name": "rst_n", "width": 1, "direction": "input", "description": "Primary reset"}],
         }],
         "interfaces": [{
-            "name": "s_axi",
-            "type": "AXI4-Lite",
-            "role": "slave",
-            "description": "Firmware-visible plaintext memory aperture",
-            "ports": _axi_lite_ports(),
-        }, {
-            "name": "debug",
-            "type": "custom",
-            "role": "output",
-            "description": "Optional debug observability",
+            "name": "control_data",
+            "type": "native_valid_ready",
+            "role": "target",
+            "description": "Generic request/response interface synthesized only as a repair fallback; replace with approved protocol ports before production signoff.",
             "ports": [
-                {"name": "dbg_crypto_active", "width": 1, "direction": "output", "description": "High when encrypted-at-rest transform is enabled"},
-                {"name": "dbg_raw_word", "width": "DATA_WIDTH", "direction": "output", "description": "Raw SRAM word after encrypted-at-rest storage"},
+                {"name": "req_valid", "width": 1, "direction": "input", "description": "Request/control payload valid"},
+                {"name": "req_ready", "width": 1, "direction": "output", "description": "Request/control payload accepted when high with req_valid"},
+                {"name": "req_data", "width": "DATA_WIDTH", "direction": "input", "description": "Generic request/control payload"},
+                {"name": "rsp_valid", "width": 1, "direction": "output", "description": "Response/result payload valid"},
+                {"name": "rsp_ready", "width": 1, "direction": "input", "description": "Response/result accepted when high with rsp_valid"},
+                {"name": "rsp_data", "width": "DATA_WIDTH", "direction": "output", "description": "Generic response/result payload"},
+                {"name": "error", "width": 1, "direction": "output", "description": "Generic architectural error indication"},
             ],
         }],
     }
@@ -417,10 +472,9 @@ def _ensure_features(doc: dict[str, Any]) -> list[dict[str, Any]]:
     if isinstance(features, list) and features and not _has_tbd(features):
         return features
     return [
-        {"name": "encrypted_full_write", "trigger": "AXI write address and data handshakes complete with all byte strobes asserted", "datapath": "Plaintext write data is transformed by crypto block and stored in SRAM", "control": "Write FSM accepts AW/W, performs crypto, writes memory, then returns B OKAY", "output": "SRAM raw word differs from plaintext when CRYPTO_ENABLE=1; B response completes"},
-        {"name": "plaintext_read", "trigger": "AXI read address handshake completes", "datapath": "Raw SRAM word is read, inverse transform is applied, plaintext is returned on R channel", "control": "Read FSM accepts AR, reads memory, decrypts, then holds RVALID until RREADY", "output": "Read data equals last architecturally written plaintext word"},
-        {"name": "byte_strobe_merge", "trigger": "AXI write completes with partial s_axi_wstrb", "datapath": "Existing raw word is decrypted, selected byte lanes merge with new plaintext, merged word is re-encrypted and stored", "control": "Partial write uses read-modify-write sequence before B response", "output": "Unstrobed bytes retain previous plaintext value"},
-        {"name": "backpressure_stability", "trigger": "Any AXI ready signal is deasserted while valid is asserted", "datapath": "Payload and state remain stable until handshake", "control": "FSM stalls only affected channel", "output": "No duplicated or dropped transaction"},
+        {"name": "primary_approved_behavior", "trigger": "A legal request, transaction, packet, command, or CSR operation is accepted", "datapath": "Inputs are transformed only according to function_model transactions and declared state", "control": "Control advances through cycle_model pipeline and fsm transitions", "output": "Observable outputs/status/events match function_model outputs and side effects"},
+        {"name": "backpressure_stability", "trigger": "Any declared ready/acceptance signal is deasserted while valid/work is pending", "datapath": "Payload and state remain stable until the matching handshake or acceptance condition", "control": "FSM stalls only the affected phase", "output": "No duplicated, dropped, or reordered transaction unless explicitly allowed"},
+        {"name": "error_policy", "trigger": "A declared error_handling.error_sources condition is observed", "datapath": "No unrelated state is corrupted by the error path", "control": "Recovery follows error_handling.recovery", "output": "Error/status/response/debug behavior follows error_handling.propagation"},
     ]
 
 
@@ -429,10 +483,15 @@ def _ensure_dataflow(doc: dict[str, Any]) -> dict[str, Any]:
     if dataflow and not _has_tbd(dataflow):
         return dataflow
     return {
-        "write_path": {"sequence": "AW/W handshake -> address decode -> plaintext merge -> crypto transform -> SRAM write -> B response", "storage": "Encrypted raw word in SRAM", "ordering": "One architectural write commits before its B response is accepted"},
-        "read_path": {"sequence": "AR handshake -> address decode -> SRAM read -> inverse crypto transform -> R response", "output": "Plaintext data on s_axi_rdata", "ordering": "R payload remains stable until RREADY"},
-        "partial_write_path": {"sequence": "Read old raw word -> decrypt old plaintext -> merge byte lanes by WSTRB -> encrypt merged plaintext -> write raw word", "hazard_rule": "Do not write SRAM until merge data is computed from a valid old word"},
-        "debug_path": {"dbg_crypto_active": "Reflects CRYPTO_ENABLE", "dbg_raw_word": "Shows most recent raw SRAM word when DEBUG_ENABLE=1"},
+        "source": "declared io_list request/control interfaces",
+        "sequence": [
+            "accept legal work under cycle_model handshake or command rules",
+            "evaluate function_model transaction and declared feature behavior",
+            "update only declared architectural state/status/events",
+            "publish response, output, interrupt, or debug observability event",
+        ],
+        "sinks": ["declared outputs", "status/debug observability", "register reads if registers exist"],
+        "ordering": "Externally visible ordering follows cycle_model.ordering unless the SSOT explicitly approves reordering.",
     }
 
 
@@ -441,8 +500,8 @@ def _ensure_clock_reset_domains(doc: dict[str, Any]) -> dict[str, Any]:
     if isinstance(value, dict) and value and not _has_tbd(value):
         return value
     return {
-        "domains": [{"clock": "aclk", "reset": "aresetn", "frequency_mhz": 100, "reset_scheme": "async_assert_sync_deassert"}],
-        "reset_behavior": ["AXI channel valid/ready state resets to idle", "Debug outputs reset to zero", "SRAM contents are unspecified unless RESET_MEMORY=1"],
+        "domains": [{"clock": "clk", "reset": "rst_n", "frequency_mhz": 100, "reset_scheme": "async_assert_sync_deassert"}],
+        "reset_behavior": ["Handshake/control state resets to idle", "Observable outputs reset to function_model reset values"],
     }
 
 
@@ -452,7 +511,7 @@ def _ensure_cdc_rdc(section: str, doc: dict[str, Any]) -> dict[str, Any]:
         return value
     return {
         "required": False,
-        "rationale": "Single aclk/aresetn domain in v1 leaf IP",
+        "rationale": "Single clock/reset domain in the repaired draft; update SSOT if additional clocks or resets are introduced",
         "checks": ["No crossing paths expected; update SSOT if additional clocks or resets are introduced"],
     }
 
@@ -462,11 +521,8 @@ def _ensure_registers(doc: dict[str, Any]) -> dict[str, Any]:
     if regs and not _has_tbd(regs):
         return _promote_register_note_entries(regs)
     return {
-        "policy": "No discrete firmware CSRs in v1; AXI4-Lite address window directly maps SRAM words",
-        "register_list": [
-            {"name": "SRAM_WORD", "offset": "word_address << 2", "access": "RW", "reset": "unspecified", "description": "Memory-mapped plaintext data word; stored encrypted internally", "fields": [{"name": "data", "bits": "DATA_WIDTH-1:0", "access": "RW", "reset": "unspecified", "description": "Plaintext read/write data"}]},
-            {"name": "DEBUG_RAW_WORD", "offset": "debug-only", "access": "RO", "reset": 0, "description": "Optional non-firmware debug observation of encrypted raw word", "fields": [{"name": "raw", "bits": "DATA_WIDTH-1:0", "access": "RO", "reset": 0, "description": "Encrypted-at-rest raw SRAM word"}]},
-        ],
+        "policy": "No firmware-visible registers are implied by repair; add explicit register_list entries before rtl-gen implements CSR behavior.",
+        "register_list": [],
     }
 
 
@@ -522,9 +578,9 @@ def _ensure_memory(doc: dict[str, Any]) -> dict[str, Any]:
     if mem and not _has_tbd(mem):
         return mem
     return {
-        "instances": [{"name": "sram", "type": "sync_sram", "depth": "1 << ADDR_WIDTH", "width": "DATA_WIDTH", "write_mask": "STRB_WIDTH", "reset": "controlled by RESET_MEMORY"}],
-        "addressing": {"word_index": "s_axi_*addr[ADDR_WIDTH+1:2]", "alignment_bytes": "DATA_WIDTH/8", "out_of_range": "respond SLVERR when detectable"},
-        "storage_policy": "Raw SRAM stores transformed/encrypted data when CRYPTO_ENABLE=1 and plaintext data when CRYPTO_ENABLE=0",
+        "instances": [],
+        "addressing": {"policy": "No SSOT-approved internal memory instances; add explicit memories before rtl-gen may implement storage behavior."},
+        "storage_policy": "No storage behavior is implied by repair. rtl-gen may only implement memory described by SSOT facts.",
     }
 
 
@@ -532,34 +588,38 @@ def _ensure_interrupts(doc: dict[str, Any]) -> dict[str, Any]:
     intr = doc.get("interrupts") if isinstance(doc.get("interrupts"), dict) else {}
     if intr and not _has_tbd(intr):
         return intr
-    return {"present": False, "sources": [], "rationale": "AXI4-Lite responses carry completion/error status for v1; no interrupt output"}
+    return {"present": False, "sources": [], "rationale": "No interrupt output is implied by repair; add interrupt sources explicitly before rtl-gen implements IRQ behavior"}
 
 
 def _ensure_fsm(doc: dict[str, Any]) -> dict[str, Any]:
     fsm = doc.get("fsm") if isinstance(doc.get("fsm"), dict) else {}
     if fsm and not _has_tbd(fsm):
         return fsm
+    feature_names = [
+        str(item.get("name") or f"feature_{idx}").upper()
+        for idx, item in enumerate(doc.get("features") or [], start=1)
+        if isinstance(item, dict)
+    ][:6]
+    execute_states = [f"EXEC_{re.sub(r'[^A-Z0-9_]+', '_', name).strip('_') or idx}" for idx, name in enumerate(feature_names, start=1)]
+    states = ["IDLE", "ACCEPT"] + (execute_states or ["EXECUTE"]) + ["COMPLETE", "ERROR"]
+    transitions = [
+        {"from": "IDLE", "to": "ACCEPT", "when": "A legal transaction, packet, command, or CSR operation is accepted"},
+        {"from": "ACCEPT", "to": execute_states[0] if execute_states else "EXECUTE", "when": "Inputs and configuration match function_model preconditions"},
+    ]
+    for prev, nxt in zip(execute_states or ["EXECUTE"], (execute_states or ["EXECUTE"])[1:] + ["COMPLETE"]):
+        transitions.append({"from": prev, "to": nxt, "when": "The current SSOT-owned behavior slice completes"})
+    transitions.extend(
+        [
+            {"from": "COMPLETE", "to": "IDLE", "when": "Observable result/status handoff completes"},
+            {"from": "*", "to": "ERROR", "when": "error_handling.error_sources condition is detected"},
+            {"from": "ERROR", "to": "IDLE", "when": "Reset or approved recovery action clears the error"},
+        ]
+    )
     return {
-        "write_fsm": {
-            "states": ["W_IDLE", "W_CAPTURE", "W_READ_OLD", "W_MERGE_ENCRYPT", "W_WRITE_MEM", "W_RESP"],
-            "transitions": [
-                {"from": "W_IDLE", "to": "W_CAPTURE", "when": "AW and W accepted"},
-                {"from": "W_CAPTURE", "to": "W_READ_OLD", "when": "partial strobe requires old word"},
-                {"from": "W_CAPTURE", "to": "W_MERGE_ENCRYPT", "when": "full strobe"},
-                {"from": "W_READ_OLD", "to": "W_MERGE_ENCRYPT", "when": "old raw word valid"},
-                {"from": "W_MERGE_ENCRYPT", "to": "W_WRITE_MEM", "when": "merged encrypted word ready"},
-                {"from": "W_WRITE_MEM", "to": "W_RESP", "when": "SRAM write committed"},
-                {"from": "W_RESP", "to": "W_IDLE", "when": "B handshake completes"},
-            ],
-        },
-        "read_fsm": {
-            "states": ["R_IDLE", "R_READ_MEM", "R_DECRYPT", "R_RESP"],
-            "transitions": [
-                {"from": "R_IDLE", "to": "R_READ_MEM", "when": "AR accepted"},
-                {"from": "R_READ_MEM", "to": "R_DECRYPT", "when": "raw word valid"},
-                {"from": "R_DECRYPT", "to": "R_RESP", "when": "plaintext ready"},
-                {"from": "R_RESP", "to": "R_IDLE", "when": "R handshake completes"},
-            ],
+        "control": {
+            "states": states,
+            "transitions": transitions,
+            "source": "repair synthesized only generic control structure from existing SSOT facts; no IP-kind fixed FSM is implied",
         },
     }
 
@@ -623,7 +683,20 @@ def _ensure_function_model(doc: dict[str, Any], state: dict[str, Any]) -> dict[s
         and str(existing_txs[0].get("name") or "").lower() in {"primary_operation", "basic_operation"}
     )
     if fm.get("state_variables") and fm.get("transactions") and fm.get("invariants") and not generic_only:
-        return fm
+        repaired = dict(fm)
+        repaired_txs: list[dict[str, Any]] = []
+        for idx, tx in enumerate(existing_txs, start=1):
+            item = dict(tx) if isinstance(tx, dict) else {"name": str(tx)}
+            tx_id = str(item.get("id") or item.get("name") or f"FM{idx}")
+            item["id"] = tx_id
+            item["name"] = item.get("name") or tx_id.lower()
+            item["preconditions"] = item.get("preconditions") or ["transaction is accepted under cycle_model rules"]
+            item["outputs"] = item.get("outputs") or ["observable outputs/status match the approved SSOT behavior"]
+            if not (item.get("side_effects") or item.get("error_cases")):
+                item["side_effects"] = ["updates only SSOT-declared architectural state, status, events, or output handoff state"]
+            repaired_txs.append(item)
+        repaired["transactions"] = repaired_txs
+        return repaired
     decisions = state.get("decisions") if isinstance(state.get("decisions"), dict) else {}
     features = [f for f in (doc.get("features") or []) if isinstance(f, dict)]
     dataflow = doc.get("dataflow") if isinstance(doc.get("dataflow"), dict) else {}
@@ -642,42 +715,38 @@ def _ensure_function_model(doc: dict[str, Any], state: dict[str, Any]) -> dict[s
             ],
         })
     if not transactions or generic_only:
+        top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+        primary = top.get("description") or decisions.get("purpose") or "the approved IP behavior"
         transactions = [
             {
-                "id": "FM1",
-                "name": "full_word_write_read",
-                "preconditions": ["CRYPTO_ENABLE may be 0 or 1", "AXI write and read addresses are in range and aligned"],
-                "inputs": ["plaintext write word", "word address", "byte strobe mask"],
-                "outputs": ["subsequent read at the same address returns the plaintext write word"],
-                "side_effects": ["SRAM raw word stores crypto_transform(plaintext) when CRYPTO_ENABLE=1"],
-                "error_cases": [{"condition": "address is outside implemented SRAM aperture", "result": "AXI response is SLVERR and memory is not modified"}],
+                "id": "FM_RESET",
+                "name": "reset",
+                "preconditions": ["declared reset is asserted"],
+                "inputs": ["clock", "reset", "retention/configuration policy from SSOT"],
+                "outputs": ["all architectural state returns to declared reset values"],
+                "side_effects": ["clears transient protocol, status, and error state unless SSOT explicitly marks retained state"],
+                "error_cases": [],
             },
             {
-                "id": "FM2",
-                "name": "partial_byte_strobe_merge",
-                "preconditions": ["Old plaintext word exists at selected address", "WSTRB is neither all-zero nor all-one"],
-                "inputs": ["old raw SRAM word", "new plaintext write data", "byte strobe mask"],
-                "outputs": ["readback equals byte-lane merge of old plaintext and new plaintext"],
-                "side_effects": ["merged plaintext is transformed and stored as a single committed raw word"],
-                "error_cases": [{"condition": "read-modify-write old word is not valid", "result": "write must stall; no corrupt raw word may be committed"}],
+                "id": "FM_PRIMARY",
+                "name": "primary_approved_behavior",
+                "preconditions": ["a legal request, command, packet, transaction, or CSR operation is accepted under cycle_model rules"],
+                "inputs": ["external interface signals", "configuration/register state", "declared internal state"],
+                "outputs": [str(primary)],
+                "side_effects": ["updates only SSOT-declared state, status, counters, events, interrupts, buffers, or output handoff state"],
+                "error_cases": [
+                    {"condition": src["condition"], "result": src["architectural_effect"]}
+                    for src in _error_sources(doc)[:3]
+                ],
             },
             {
-                "id": "FM3",
-                "name": "crypto_passthrough_mode",
-                "preconditions": ["CRYPTO_ENABLE=0"],
-                "inputs": ["plaintext write word"],
-                "outputs": ["readback equals plaintext and raw debug word equals plaintext when DEBUG_ENABLE=1"],
-                "side_effects": ["crypto_active debug output is 0"],
-                "error_cases": [{"condition": "CRYPTO_ENABLE changes during an active transaction", "result": "behavior is constrained by integration to stable parameter/configuration"}],
-            },
-            {
-                "id": "FM4",
-                "name": "debug_encrypted_visibility",
-                "preconditions": ["CRYPTO_ENABLE=1", "DEBUG_ENABLE=1"],
-                "inputs": ["plaintext write word and CRYPTO_KEY"],
-                "outputs": ["dbg_raw_word observes encrypted raw storage, while AXI read returns plaintext"],
-                "side_effects": ["debug outputs update only from committed memory operations"],
-                "error_cases": [{"condition": "DEBUG_ENABLE=0", "result": "debug outputs are tied off or held inactive"}],
+                "id": "FM_CONTROL_STATUS",
+                "name": "control_status_access",
+                "preconditions": ["a legal control/status access is accepted, if the SSOT declares such an interface"],
+                "inputs": ["address/control fields", "write data or command payload", "current architectural state"],
+                "outputs": ["read/status/response values match registers, debug_observability, and error_handling"],
+                "side_effects": ["RW/W1C/command side effects occur only as declared in registers or features"],
+                "error_cases": [{"condition": "unsupported access or illegal control operation", "result": "error_handling policy is applied without changing unrelated state"}],
             },
         ]
     invariants = [
@@ -749,26 +818,15 @@ def _ensure_cycle_model(doc: dict[str, Any]) -> dict[str, Any]:
             "deassertion": f"Logic may accept transactions after {sync_async} deassertion completes",
         },
         "latency": {
-            "register_read": {"min_cycles": 0, "max_cycles": None, "description": "Bounded by slave ready/valid backpressure"},
-            "register_write": {"min_cycles": 0, "max_cycles": None, "description": "Bounded by slave ready/valid backpressure"},
-            "primary_operation": {"min_cycles": 1, "max_cycles": None, "description": f"Runs on {clock} at nominal {freq} MHz; max depends on downstream backpressure"},
+            "control_or_request_accept": {"min_cycles": 0, "max_cycles": None, "description": "Bounded by declared valid/ready or protocol acceptance rules"},
+            "primary_operation": {"min_cycles": 1, "max_cycles": None, "description": f"Runs on {clock} at nominal {freq} MHz; max depends on declared backpressure and implementation state"},
+            "response_or_observable_result": {"min_cycles": 0, "max_cycles": None, "description": "Held stable until the declared response/output acceptance condition"},
         },
-        "handshake_rules": [
-            {"signal": "s_axi_awvalid/s_axi_awready", "rule": "Write address payload remains stable until AW handshake completes."},
-            {"signal": "s_axi_wvalid/s_axi_wready", "rule": "Write data and byte strobes remain stable until W handshake completes."},
-            {"signal": "s_axi_bvalid/s_axi_bready", "rule": "B response remains stable until accepted and is emitted only after the memory commit point."},
-            {"signal": "s_axi_arvalid/s_axi_arready", "rule": "Read address payload remains stable until AR handshake completes."},
-            {"signal": "s_axi_rvalid/s_axi_rready", "rule": "R data and response remain stable until accepted."},
-            {"signal": "partial_write_rmw", "rule": "Partial writes must wait for a valid old word before committing merged encrypted data."},
-        ],
+        "handshake_rules": _interface_handshakes(doc),
         "pipeline": [
-            {"stage": "W_CAPTURE", "cycle": "0..N", "action": "Capture write address/data after AW/W handshakes; stall under backpressure."},
-            {"stage": "W_READ_OLD", "cycle": "N+1", "action": "For partial writes, read old raw word and decrypt to plaintext before merge."},
-            {"stage": "W_MERGE_ENCRYPT", "cycle": "N+2", "action": "Merge byte lanes and apply crypto transform to merged plaintext."},
-            {"stage": "W_COMMIT", "cycle": "N+3", "action": "Write encrypted raw word to SRAM and prepare B response."},
-            {"stage": "R_READ", "cycle": "0..N", "action": "Capture read address and read raw SRAM word."},
-            {"stage": "R_DECRYPT", "cycle": "N+1", "action": "Apply inverse crypto transform to produce plaintext read data."},
-            {"stage": "R_RESP", "cycle": "N+2", "action": "Hold read payload stable until R handshake completes."},
+            {"stage": "S0_ACCEPT", "cycle": "0..N", "action": "Accept legal request/command/packet/control work under declared handshake rules."},
+            {"stage": "S1_EVALUATE", "cycle": "N..M", "action": "Evaluate function_model transaction and update only declared state."},
+            {"stage": "S2_OBSERVE", "cycle": "M..K", "action": "Publish response/status/output/debug event and hold it stable until accepted."},
         ],
         "ordering": [
             "Accepted requests update architectural state only on clock edges.",
@@ -838,25 +896,55 @@ def _ensure_error_handling(doc: dict[str, Any]) -> dict[str, Any]:
 
 def _ensure_debug(doc: dict[str, Any]) -> dict[str, Any]:
     clock, _ = _first_clock(doc)
-    return {
-        "waveform_must_probe": [clock, _first_reset(doc)[0], "fsm_state", "start_or_request", "done_or_response", "error_status", "irq_or_status_outputs"],
-        "trace_events": [
+    debug = doc.get("debug_observability") if isinstance(doc.get("debug_observability"), dict) else {}
+    debug.setdefault("waveform_must_probe", [clock, _first_reset(doc)[0], "fsm_state", "start_or_request", "done_or_response", "error_status", "irq_or_status_outputs"])
+    debug.setdefault(
+        "trace_events",
+        [
             {"name": "operation_start", "trigger": "start/request accepted"},
             {"name": "operation_complete", "trigger": "done/response accepted"},
             {"name": "error_detected", "trigger": "any error_handling.error_sources condition"},
         ],
-        "status_outputs": ["status/debug signals declared in io_list or registers"],
-    }
+    )
+    debug.setdefault("status_outputs", ["status/debug signals declared in io_list or registers"])
+    return debug
 
 
 def _ensure_integration(doc: dict[str, Any]) -> dict[str, Any]:
+    existing = doc.get("integration") if isinstance(doc.get("integration"), dict) else {}
     io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
     interfaces = [i.get("name") for i in io.get("interfaces") or [] if isinstance(i, dict) and i.get("name")]
-    return {
-        "bus_attachment": {"interfaces": interfaces, "address_ownership": "SoC assigns base addresses and external routing not owned by this leaf IP"},
-        "dependencies": {"external_modules": [], "external_clocks": [_first_clock(doc)[0]], "external_resets": [_first_reset(doc)[0]]},
-        "integration_notes": ["Integrator must connect every declared io_list port and honor timing/reset assumptions."],
-    }
+    existing.setdefault("bus_attachment", {"interfaces": interfaces, "address_ownership": "SoC assigns base addresses and external routing not owned by this leaf IP"})
+    existing.setdefault("dependencies", {"external_modules": [], "external_clocks": [_first_clock(doc)[0]], "external_resets": [_first_reset(doc)[0]]})
+    existing.setdefault("connections", [])
+    existing.setdefault(
+        "connection_contract_status",
+        (
+            "missing machine-readable module wiring; child RTL drafts may proceed from owner packets, "
+            "but top integration/signoff must stay blocked until SSOT authors integration.connections "
+            "or sub_modules[].connections with module/port/signal records"
+        ),
+    )
+    existing.setdefault("integration_notes", ["Integrator must connect every declared io_list port and honor timing/reset assumptions."])
+    return existing
+
+
+def _ensure_dft(doc: dict[str, Any]) -> dict[str, Any]:
+    dft = doc.get("dft") if isinstance(doc.get("dft"), dict) else {}
+    dft.setdefault("scan_required", False)
+    dft.setdefault("controllability", {"reset": _first_reset(doc)[0], "clocks": [_first_clock(doc)[0]], "primary_inputs": "all io_list inputs controllable in testbench"})
+    dft.setdefault("observability", {"required_internal_points": ["fsm_state", "status", "error_status"], "outputs": "all io_list outputs observable"})
+    dft.setdefault("mbist_required", bool((doc.get("memory") or {}).get("instances")) if isinstance(doc.get("memory"), dict) else False)
+    return dft
+
+
+def _ensure_synthesis(doc: dict[str, Any], ip: str) -> dict[str, Any]:
+    syn = doc.get("synthesis") if isinstance(doc.get("synthesis"), dict) else {}
+    syn.setdefault("dialect", (doc.get("coding_rules") or {}).get("verilog_style", "systemverilog_2012") if isinstance(doc.get("coding_rules"), dict) else "systemverilog_2012")
+    syn.setdefault("top_module", doc.get("top_module", {}).get("name", ip) if isinstance(doc.get("top_module"), dict) else ip)
+    syn.setdefault("constraints", ["No inferred latches", "No unresolved black boxes", "All sequential state reset or intentionally initialized"])
+    syn.setdefault("required_outputs", ["syn/out/area.rpt", "syn/out/timing_summary.rpt", "sta/out/wns.json"])
+    return syn
 
 
 def _ensure_test_requirements(doc: dict[str, Any]) -> dict[str, Any]:
@@ -881,20 +969,62 @@ def _ensure_test_requirements(doc: dict[str, Any]) -> dict[str, Any]:
         or any(str(sc.get("name") or "").lower() in {"primary operation", "basic operation"} for sc in scenarios)
     )
     if weak_default:
+        fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+        transactions = [tx for tx in (fm.get("transactions") or []) if isinstance(tx, dict)]
         scenarios = [
-            {"id": "SC01", "name": "Reset idle", "stimulus": "Assert and deassert aresetn with no AXI valid asserted", "expected": "All AXI valid outputs are low, ready/state is idle, debug outputs are reset or inactive", "checker": "Reset checker samples outputs after reset release", "coverage": ["reset", "cycle_model.reset"]},
-            {"id": "SC02", "name": "Full-word encrypted write read", "stimulus": "Write 0xDEADBEEF to an aligned word with all byte strobes, then read the same address", "expected": "Read data is 0xDEADBEEF and raw SRAM/debug word is transformed when CRYPTO_ENABLE=1", "checker": "Scoreboard compares plaintext readback and crypto raw-word model", "coverage": ["FM1", "write_fsm", "read_fsm", "crypto_enabled"]},
-            {"id": "SC03", "name": "Multiple address retention", "stimulus": "Write distinct data to addresses 0x00, 0x04, and 0x100, then read all back in mixed order", "expected": "Each address returns its own last plaintext value", "checker": "Associative memory scoreboard keyed by word address", "coverage": ["address_decode", "memory_depth", "ordering"]},
-            {"id": "SC04", "name": "Partial byte-strobe merge", "stimulus": "Write 0xAABBCCDD, then partial write 0x00341200 with WSTRB=0x6, then read back", "expected": "Readback is 0xAA3412DD with unstrobed byte lanes preserved", "checker": "Reference model performs byte-lane merge before crypto transform", "coverage": ["FM2", "partial_write_rmw", "byte_strobes"]},
-            {"id": "SC05", "name": "AXI write response", "stimulus": "Complete legal writes while delaying BREADY", "expected": "BVALID holds stable with OKAY until BREADY and no second response appears", "checker": "AXI response monitor checks stability and one response per write", "coverage": ["b_channel", "backpressure"]},
-            {"id": "SC06", "name": "AXI read response", "stimulus": "Complete legal reads while delaying RREADY", "expected": "RDATA/RRESP hold stable with OKAY until RREADY", "checker": "AXI read monitor checks payload stability and response code", "coverage": ["r_channel", "backpressure"]},
-            {"id": "SC07", "name": "Crypto pass-through mode", "stimulus": "Run write/read sequence with CRYPTO_ENABLE=0 configuration or parameter override", "expected": "Readback and raw debug word both equal plaintext; dbg_crypto_active is low", "checker": "Scoreboard compares raw and plaintext models under pass-through mode", "coverage": ["FM3", "crypto_disabled"]},
-            {"id": "SC08", "name": "Debug encrypted visibility", "stimulus": "Run encrypted write/read with DEBUG_ENABLE=1", "expected": "dbg_crypto_active is high and dbg_raw_word matches transformed storage while readback is plaintext", "checker": "Debug checker compares raw debug output against crypto reference", "coverage": ["FM4", "debug_observability"]},
-            {"id": "SC09", "name": "Back-to-back write then read", "stimulus": "Issue a write followed immediately by a read to the same address under minimal idle cycles", "expected": "Read returns the committed write value without stale or X data", "checker": "Hazard checker verifies write commit precedes dependent read response", "coverage": ["ordering", "read_after_write"]},
-            {"id": "SC10", "name": "Full SRAM sweep", "stimulus": "Write and read every word in the default 256-word SRAM aperture", "expected": "Every location returns the expected plaintext and no neighboring location is corrupted", "checker": "Memory scoreboard covers every ADDR_WIDTH index", "coverage": ["memory_depth", "address_bins"]},
-            {"id": "SC11", "name": "Independent channel backpressure", "stimulus": "Randomly deassert AWREADY/WREADY/BREADY/ARREADY/RREADY equivalents through slave response timing", "expected": "Payloads remain stable and transaction ordering follows cycle_model", "checker": "AXI protocol checker and scoreboard run under randomized stalls", "coverage": ["cycle_model.handshake_rules", "random_backpressure"]},
-            {"id": "SC12", "name": "Invalid address or unsupported access", "stimulus": "Drive out-of-range or otherwise unsupported access when detectable by implementation", "expected": "Response is SLVERR/DECERR per error_handling and memory contents are unchanged", "checker": "Negative test checker verifies error response and no side effect", "coverage": ["ERR_PROTOCOL", "negative_access"]},
+            {
+                "id": "SC01",
+                "name": "reset contract",
+                "stimulus": "Assert and release the declared reset while all external interfaces remain idle.",
+                "expected": "Architectural state, status, outputs, and debug observability match function_model reset outputs.",
+                "checker": "Reset checker compares all declared reset-visible state against function_model and cycle_model reset rules.",
+                "coverage": ["function_model.reset", "cycle_model.reset"],
+            },
+            {
+                "id": "SC02",
+                "name": "primary approved behavior",
+                "stimulus": "Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.",
+                "expected": "Externally observable result/status/side effects match the function_model primary transaction.",
+                "checker": "FL-vs-RTL scoreboard compares observable outputs and state updates from the locked function_model.",
+                "coverage": ["function_model.primary", "features", "dataflow"],
+            },
+            {
+                "id": "SC03",
+                "name": "cycle handshake and backpressure",
+                "stimulus": "Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.",
+                "expected": "Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.",
+                "checker": "Protocol monitor and scoreboard check cycle_model.handshake_rules, ordering, and latency budget.",
+                "coverage": ["cycle_model.handshake_rules", "cycle_model.ordering", "backpressure"],
+            },
+            {
+                "id": "SC04",
+                "name": "error and recovery policy",
+                "stimulus": "Inject each declared error_handling.error_sources condition where the interface can represent it.",
+                "expected": "Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.",
+                "checker": "Negative checker compares error result and recovery state against function_model error_cases.",
+                "coverage": ["error_handling.error_sources", "function_model.error_cases"],
+            },
+            {
+                "id": "SC05",
+                "name": "debug and trace observability",
+                "stimulus": "Run nominal and error flows while sampling every debug_observability waveform/status/trace point.",
+                "expected": "Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.",
+                "checker": "Waveform/trace checker validates debug_observability entries and traceability.yaml_to_output rows.",
+                "coverage": ["debug_observability", "traceability"],
+            },
         ]
+        for idx, tx in enumerate(transactions[:7], start=6):
+            tx_id = str(tx.get("id") or tx.get("name") or f"FM{idx}")
+            scenarios.append(
+                {
+                    "id": f"SC{idx:02d}",
+                    "name": f"function_model transaction {tx_id}",
+                    "stimulus": f"Drive preconditions for function_model transaction `{tx_id}`.",
+                    "expected": f"Outputs and side effects match `{tx_id}` exactly.",
+                    "checker": "Transaction scoreboard compares RTL observations against the locked function_model transaction.",
+                    "coverage": [f"function_model.transactions.{tx_id}"],
+                }
+            )
     tr["scenarios"] = scenarios
     tr["scoreboard_checks"] = max(int(tr.get("scoreboard_checks") or 0), len(scenarios))
     tr["coverage_goals"] = {
@@ -902,7 +1032,7 @@ def _ensure_test_requirements(doc: dict[str, Any]) -> dict[str, Any]:
             {
                 "functional": (
                     "100% of SSOT-planned functional bins from function_model transactions, "
-                    "byte-strobe bins, crypto modes, debug bins, error paths, and protocol backpressure bins covered"
+                    "debug/status observability, error paths, state transitions, ordering, and protocol backpressure bins covered"
                 ),
                 "evidence": (
                     "Tool-instrumented structural metrics are optional unless an explicit SSOT metric goal "
@@ -912,20 +1042,60 @@ def _ensure_test_requirements(doc: dict[str, Any]) -> dict[str, Any]:
             if not isinstance(tr.get("coverage_goals"), dict)
             else tr.get("coverage_goals")
         ),
-        "scenario": "All SSOT scenarios SC01-SC12 pass with executable cocotb/pyuvm checkers",
+        "scenario": "All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence",
     }
     return tr
 
 
-def _ensure_quality_gates() -> dict[str, Any]:
+def _ensure_quality_gates(doc: dict[str, Any] | None = None, ip: str = "") -> dict[str, Any]:
+    doc = doc or {}
+    profile = _rtl_quality_profile(doc, ip) if ip else "standard"
     return {
         "ssot": {"pass": "check_ssot_disk.sh exits 0 and ATLAS SSOT progress is fully approved", "evidence": ["check_ssot_disk.sh PASS", "ATLAS /api/progress ssot all sections approved"]},
         "rtl": {"pass": "All expected RTL files exist, are production-ready, compile, and lint within warning budget", "evidence": ["list/<ip>.f", "compile log", "lint log"]},
+        "rtl_gen": {
+            "profile": profile,
+            "pass": (
+                "rtl-gen execution_policy.pass_allowed is true, every required SSOT-derived RTL TODO is closed, "
+                "and provenance proves common_ai_agent rtl-gen authored the RTL without fixed-template fallback behavior"
+            ),
+            "evidence": [
+                "rtl/rtl_authoring_plan.json",
+                "logs/rtl-gen/rtl_todo_plan.json",
+                "rtl/provenance.json",
+                "rtl_compile.json",
+                "lint/dut_lint.json",
+            ],
+        },
         "dv": {"pass": "Every SSOT test_requirements scenario has an executable checker and FL-vs-RTL equivalence goal", "evidence": ["verify/equivalence_goals.json", "sim/scoreboard_events.jsonl", "tb/cocotb tests", "scenario implementation map"]},
         "coverage": {"pass": "Functional coverage passes and any explicitly requested structural metrics have matching evidence or approved waivers", "evidence": ["coverage report", "coverage waiver list if any"]},
         "eda": {"pass": "Synthesis/STA/DFT expectations have reports or approved waivers", "evidence": ["syn/sta/dft reports"]},
         "signoff": {"pass": "SSOT, FL/equivalence, RTL, lint, DV, sim, coverage, and EDA gates pass with fresh artifacts", "evidence": ["ATLAS progress signoff PASS"]},
     }
+
+
+def _merge_quality_gates(doc: dict[str, Any], ip: str) -> dict[str, Any]:
+    defaults = _ensure_quality_gates(doc, ip)
+    existing = doc.get("quality_gates") if isinstance(doc.get("quality_gates"), dict) else {}
+    merged: dict[str, Any] = {}
+    for key, default in defaults.items():
+        current = existing.get(key) if isinstance(existing.get(key), dict) else {}
+        merged[key] = {**default, **current}
+    for key, value in existing.items():
+        if key not in merged:
+            merged[key] = value
+    rtl_gen = merged.get("rtl_gen") if isinstance(merged.get("rtl_gen"), dict) else {}
+    rtl_gen.setdefault("profile", _rtl_quality_profile({**doc, "quality_gates": merged}, ip))
+    rtl_gen.setdefault(
+        "pass",
+        (
+            "rtl-gen execution_policy.pass_allowed is true, every required SSOT-derived RTL TODO is closed, "
+            "and provenance proves common_ai_agent rtl-gen authored the RTL without fixed-template fallback behavior"
+        ),
+    )
+    rtl_gen.setdefault("evidence", defaults["rtl_gen"]["evidence"])
+    merged["rtl_gen"] = rtl_gen
+    return merged
 
 
 def _ensure_traceability(doc: dict[str, Any]) -> dict[str, Any]:
@@ -969,6 +1139,139 @@ def _todo_id(prefix: str, value: Any, index: int) -> str:
     token = "".join(ch if ch.isalnum() else "_" for ch in token.upper()).strip("_")
     token = token or f"ITEM_{index}"
     return f"{prefix}_{token[:64]}"
+
+
+def _machine_connection_count(raw: Any, default_module: str = "") -> int:
+    if isinstance(raw, list):
+        return sum(_machine_connection_count(item, default_module) for item in raw)
+    if not isinstance(raw, dict):
+        return 0
+    module = raw.get("module") or raw.get("child") or raw.get("target_module") or raw.get("sink_module") or default_module
+    for key in ("ports", "port_map", "connections"):
+        nested = raw.get(key)
+        if isinstance(nested, dict):
+            return sum(
+                1
+                for port, signal in nested.items()
+                if str(module or "").strip() and str(port or "").strip() and str(signal or "").strip()
+            )
+        if isinstance(nested, list):
+            return sum(_machine_connection_count(item, str(module or "")) for item in nested)
+    port = raw.get("port") or raw.get("child_port") or raw.get("target_port") or raw.get("sink_port") or raw.get("to_port") or raw.get("dst_port")
+    signal = raw.get("signal") or raw.get("expr") or raw.get("expression") or raw.get("source_signal") or raw.get("from_signal") or raw.get("top_signal")
+    return 1 if str(module or "").strip() and str(port or "").strip() and str(signal or "").strip() else 0
+
+
+def _production_connection_contract_missing(doc: dict[str, Any], ip: str) -> bool:
+    if _rtl_quality_profile(doc, ip) != "production":
+        return False
+    top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+    top_names = {str(ip).lower(), str(top.get("name") or "").lower()}
+    active_children = []
+    for item in doc.get("sub_modules") or []:
+        if not isinstance(item, dict):
+            continue
+        ownership = str(item.get("ownership") or "manifest").lower()
+        if ownership in {"child_ssot", "external", "blackbox", "conceptual", "coverage", "verification"}:
+            continue
+        if item.get("rtl_emit") is False or bool(item.get("wiring_only")):
+            continue
+        name = str(item.get("name") or "").lower()
+        if name and name not in top_names:
+            active_children.append(item)
+    if not active_children:
+        return False
+    integration = doc.get("integration") if isinstance(doc.get("integration"), dict) else {}
+    count = 0
+    for key in ("connections", "internal_connections", "port_connections", "wiring"):
+        count += _machine_connection_count(integration.get(key), "")
+    for item in active_children:
+        count += _machine_connection_count(item.get("connections"), str(item.get("name") or ""))
+    return count <= 0
+
+
+def _has_connection_contract_todo(todos: list[dict[str, Any]]) -> bool:
+    for item in todos:
+        if not isinstance(item, dict):
+            continue
+        text = " ".join(
+            [
+                str(item.get("id") or ""),
+                str(item.get("content") or ""),
+                str(item.get("detail") or ""),
+                " ".join(str(ref) for ref in item.get("source_refs") or []),
+            ]
+        ).lower()
+        if "connection" in text and ("integration" in text or "sub_modules" in text or "module" in text):
+            return True
+    return False
+
+
+_TARGET_SCALE_MIN_ALIASES: tuple[tuple[str, ...], ...] = (
+    ("min_source_files", "source_files_min", "file_count_min", "files_min", "min_files"),
+    ("min_modules", "modules_min", "module_count_min"),
+    ("min_lines", "lines_min", "line_count_min"),
+    ("min_nonconstant_assigns", "nonconstant_assigns_min", "assigns_min", "min_assigns"),
+    ("min_procedural_blocks", "procedural_blocks_min", "always_blocks_min", "min_always_blocks"),
+    ("min_state_updates", "state_updates_min"),
+    ("min_control_flow", "control_flow_min", "case_blocks_min", "min_case_blocks"),
+    ("min_instances", "instances_min", "instance_candidates_min"),
+    ("min_depth_score", "depth_score_min", "implementation_depth_score_min"),
+    ("min_logic_modules", "logic_modules_min"),
+    ("min_behavior_owner_logic_modules", "behavior_owner_logic_modules_min", "behavior_owner_modules_min"),
+)
+
+
+def _positive_int(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    try:
+        parsed = int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed > 0 else None
+
+
+def _target_scale_has_positive_min(raw: Any) -> bool:
+    if not isinstance(raw, dict):
+        return False
+    for names in _TARGET_SCALE_MIN_ALIASES:
+        if any(_positive_int(raw.get(name)) is not None for name in names):
+            return True
+    return False
+
+
+def _target_scale_waiver_approved(raw: Any) -> bool:
+    return isinstance(raw, dict) and bool(raw.get("approved") or raw.get("accepted") or raw.get("waived"))
+
+
+def _production_target_scale_policy_missing(doc: dict[str, Any], ip: str) -> bool:
+    if _rtl_quality_profile(doc, ip) != "production":
+        return False
+    qg = doc.get("quality_gates") if isinstance(doc.get("quality_gates"), dict) else {}
+    rtl_gen = qg.get("rtl_gen") if isinstance(qg.get("rtl_gen"), dict) else {}
+    if _target_scale_has_positive_min(rtl_gen.get("target_scale")):
+        return False
+    if _target_scale_waiver_approved(rtl_gen.get("target_scale_waiver")):
+        return False
+    return True
+
+
+def _has_target_scale_policy_todo(todos: list[dict[str, Any]]) -> bool:
+    for item in todos:
+        if not isinstance(item, dict):
+            continue
+        text = " ".join(
+            [
+                str(item.get("id") or ""),
+                str(item.get("content") or ""),
+                str(item.get("detail") or ""),
+                " ".join(str(ref) for ref in item.get("source_refs") or []),
+            ]
+        ).lower()
+        if "target_scale" in text or ("target scale" in text and "quality_gates.rtl_gen" in text):
+            return True
+    return False
 
 
 def _module_owner(doc: dict[str, Any], ip: str, refs: list[str] | None = None) -> tuple[str, str]:
@@ -1020,6 +1323,7 @@ def _append_rtl_todo(
     source_refs: list[str],
     owner: tuple[str, str],
     priority: str = "high",
+    extra: dict[str, Any] | None = None,
 ) -> None:
     seen = {item.get("id") for item in todos if isinstance(item, dict)}
     base = id
@@ -1027,19 +1331,20 @@ def _append_rtl_todo(
     while id in seen:
         id = f"{base}_{suffix}"
         suffix += 1
-    todos.append(
-        {
-            "id": id,
-            "content": content,
-            "detail": detail,
-            "criteria": [item for item in criteria if str(item or "").strip()],
-            "source_refs": source_refs,
-            "owner_module": owner[0],
-            "owner_file": owner[1],
-            "priority": priority,
-            "required": True,
-        }
-    )
+    item = {
+        "id": id,
+        "content": content,
+        "detail": detail,
+        "criteria": [item for item in criteria if str(item or "").strip()],
+        "source_refs": source_refs,
+        "owner_module": owner[0],
+        "owner_file": owner[1],
+        "priority": priority,
+        "required": True,
+    }
+    if extra:
+        item.update(extra)
+    todos.append(item)
 
 
 def _synthesize_rtl_workflow_todos(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
@@ -1060,7 +1365,7 @@ def _synthesize_rtl_workflow_todos(doc: dict[str, Any], ip: str) -> list[dict[st
             "No placeholder heartbeat, tie-off, alive-only, or comment-only implementation is used as evidence",
             "derive_rtl_todos.py --audit-rtl reports every required TODO as pass",
         ],
-        source_refs=["top_module", "function_model", "cycle_model", "quality_gates.rtl"],
+        source_refs=["top_module", "function_model", "cycle_model", "quality_gates.rtl", "quality_gates.rtl_gen"],
         owner=top_owner,
     )
 
@@ -1232,7 +1537,7 @@ def _synthesize_rtl_workflow_todos(doc: dict[str, Any], ip: str) -> list[dict[st
             "rtl_compile.json and lint/dut_lint.json are fresh and clean",
             "open_required_todos is zero",
         ],
-        source_refs=["quality_gates.rtl", "workflow_todos.rtl-gen", "generation_flow"],
+        source_refs=["quality_gates.rtl", "quality_gates.rtl_gen", "workflow_todos.rtl-gen", "generation_flow"],
         owner=top_owner,
     )
     return todos
@@ -1243,6 +1548,109 @@ def _ensure_workflow_todos(doc: dict[str, Any], ip: str) -> dict[str, Any]:
     rtl_todos = todos.get("rtl-gen") if isinstance(todos.get("rtl-gen"), list) else []
     if not rtl_todos:
         rtl_todos = _synthesize_rtl_workflow_todos(doc, ip)
+    if _production_target_scale_policy_missing(doc, ip) and not _has_target_scale_policy_todo(rtl_todos):
+        top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+        top_name = str(top.get("name") or ip)
+        _append_rtl_todo(
+            rtl_todos,
+            id="RTL_TARGET_SCALE_POLICY",
+            content="Lock or waive RTL target-scale policy before production signoff",
+            detail=(
+                "The SSOT is production-profile, but quality_gates.rtl_gen.target_scale has no positive structural minima "
+                "and no approved target_scale_waiver is present. Reference-derived target-scale candidates are review inputs "
+                "only; a human must lock the chosen minima in SSOT or explicitly approve a waiver before rtl-gen can claim "
+                "PL330-level or production top signoff."
+            ),
+            criteria=[
+                "quality_gates.rtl_gen.target_scale contains at least one positive structural minimum such as source_files_min, modules_min, or depth_score_min",
+                "or quality_gates.rtl_gen.target_scale_waiver.approved is true with owner and reason",
+                "rtl_todo_plan.json target_scale_policy gate passes after rerunning rtl-gen TODO derivation",
+            ],
+            source_refs=["quality_gates.rtl_gen.target_scale", "quality_gates.rtl_gen.target_scale_waiver", "reports/rtl_reference_profile.json"],
+            owner=(top_name, f"rtl/{top_name}.sv"),
+            priority="high",
+            extra={
+                "answer_schema": {
+                    "format": "YAML or JSON",
+                    "root_key": "target_scale or target_scale_waiver",
+                    "target_scale_fields": [
+                        "source_files_min",
+                        "modules_min",
+                        "lines_min",
+                        "depth_score_min",
+                        "nonconstant_assigns_min",
+                        "procedural_blocks_min",
+                        "instances_min",
+                        "basis",
+                    ],
+                    "target_scale_waiver_required_fields": ["approved", "reason", "owner"],
+                    "rule": "Only human-approved SSOT minima or waiver can close this gate; do not infer target scale from generated RTL.",
+                },
+                "example_answer": {
+                    "target_scale": {
+                        "source_files_min": 4,
+                        "modules_min": 8,
+                        "lines_min": 1200,
+                        "depth_score_min": 120,
+                        "basis": "Human-approved architecture review calibrated from rtl_reference_profile.json.",
+                    },
+                    "target_scale_waiver": {
+                        "approved": True,
+                        "reason": "Smaller variant intentionally does not enforce reference-scale minima.",
+                        "owner": "human-review",
+                    },
+                },
+            },
+        )
+    if _production_connection_contract_missing(doc, ip) and not _has_connection_contract_todo(rtl_todos):
+        top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+        top_name = str(top.get("name") or ip)
+        _append_rtl_todo(
+            rtl_todos,
+            id="RTL_RESOLVE_CONNECTION_CONTRACTS",
+            content="Resolve production multi-module connection contracts before top integration signoff",
+            detail=(
+                "The SSOT is production-profile and declares manifest child modules, but it has no machine-readable "
+                "integration.connections or sub_modules[].connections records. Child module drafts may proceed from "
+                "their owner packets; top wiring, PASS, and signoff must remain blocked until SSOT authors module/port/signal contracts."
+            ),
+            criteria=[
+                "integration.connections or sub_modules[].connections lists every active child module connection as module/port/signal data",
+                "rtl_authoring_plan.execution_policy.connection_contract_gap.status becomes ok",
+                "Top/gate authoring packet integration_signoff_allowed is true after rerunning rtl-gen TODO derivation",
+            ],
+            source_refs=["integration.connections", "sub_modules[].connections", "quality_gates.rtl_gen", "workflow_todos.rtl-gen"],
+            owner=(top_name, f"rtl/{top_name}.sv"),
+            priority="high",
+            extra={
+                "answer_schema": {
+                    "format": "YAML or JSON",
+                    "root_key": "connection_contracts",
+                    "item_required_fields": ["module", "port", "signal"],
+                    "item_optional_fields": [
+                        "instance",
+                        "direction",
+                        "source_ref",
+                        "allow_constant",
+                        "allow_unused",
+                        "tieoff",
+                        "reason",
+                    ],
+                    "rule": "Only approved rows become SSOT wiring contracts; do not infer missing wiring from RTL.",
+                },
+                "example_answer": {
+                    "connection_contracts": [
+                        {
+                            "module": f"{top_name}_engine",
+                            "instance": "u_engine",
+                            "port": "done_o",
+                            "signal": "done",
+                            "source_ref": "integration.connections.done_o",
+                        }
+                    ]
+                },
+            },
+        )
     todos["rtl-gen"] = rtl_todos
     todos.setdefault("tb-gen", [])
     todos.setdefault("sim_debug", [])
@@ -1271,20 +1679,10 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     out["power"] = _ensure_power(out)
     out["security"] = _ensure_security(out)
     out["error_handling"] = _ensure_error_handling(out)
-    out["debug_observability"] = out.get("debug_observability") if isinstance(out.get("debug_observability"), dict) else _ensure_debug(out)
-    out["integration"] = out.get("integration") if isinstance(out.get("integration"), dict) else _ensure_integration(out)
-    out["dft"] = out.get("dft") if isinstance(out.get("dft"), dict) else {
-        "scan_required": False,
-        "controllability": {"reset": _first_reset(out)[0], "clocks": [_first_clock(out)[0]], "primary_inputs": "all io_list inputs controllable in testbench"},
-        "observability": {"required_internal_points": ["fsm_state", "status", "error_status"], "outputs": "all io_list outputs observable"},
-        "mbist_required": bool((out.get("memory") or {}).get("instances")) if isinstance(out.get("memory"), dict) else False,
-    }
-    out["synthesis"] = out.get("synthesis") if isinstance(out.get("synthesis"), dict) else {
-        "dialect": (out.get("coding_rules") or {}).get("verilog_style", "systemverilog_2012") if isinstance(out.get("coding_rules"), dict) else "systemverilog_2012",
-        "top_module": out.get("top_module", {}).get("name", ip) if isinstance(out.get("top_module"), dict) else ip,
-        "constraints": ["No inferred latches", "No unresolved black boxes", "All sequential state reset or intentionally initialized"],
-        "required_outputs": ["syn/out/area.rpt", "syn/out/timing_summary.rpt", "sta/out/wns.json"],
-    }
+    out["debug_observability"] = _ensure_debug(out)
+    out["integration"] = _ensure_integration(out)
+    out["dft"] = _ensure_dft(out)
+    out["synthesis"] = _ensure_synthesis(out, ip)
     out["coding_rules"] = out.get("coding_rules") if isinstance(out.get("coding_rules"), dict) else {
         "verilog_style": "systemverilog_2012",
         "conventions": [
@@ -1298,8 +1696,8 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     out["reuse_modules"] = out.get("reuse_modules") if isinstance(out.get("reuse_modules"), list) else []
     out["custom"] = out.get("custom") if isinstance(out.get("custom"), dict) else {
         "assumptions": [
-            "Base address decode is owned by the integrating SoC fabric",
-            "XOR transform is a functional crypto demonstration for v1 and must not be claimed as production cryptographic strength",
+            "Integration-owned address, routing, privilege, and clock/reset policies must be captured explicitly before signoff",
+            "Repair does not imply IP-kind behavior; rtl-gen must implement only SSOT-owned function_model, cycle_model, and interface contracts",
             "Line/branch coverage is required when tool-supported; otherwise a waiver must be explicit in coverage evidence",
         ]
     }
@@ -1312,17 +1710,17 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     rtl_filelist = [item["file"] for item in out["sub_modules"] if isinstance(item, dict) and item.get("file")]
     if not isinstance(filelist.get("rtl"), list) or _has_tbd(filelist.get("rtl")) or f"rtl/{ip}.sv" not in filelist.get("rtl", []):
         filelist["rtl"] = rtl_filelist
-    filelist.setdefault("tb", ["tb/cocotb/test_axi_crypto_sram.py", "tb/cocotb/axi_lite_agent.py", "tb/cocotb/scoreboard.py"])
+    filelist.setdefault("tb", [f"tb/cocotb/test_{ip}.py", "tb/cocotb/test_runner.py", "tb/cocotb/scoreboard.py"])
     filelist.setdefault("sim", ["sim/results.xml", "sim/waves.fst"])
     filelist.setdefault("coverage", ["cov/coverage.json"])
     out["filelist"] = filelist if filelist else {
         "rtl": [item["file"] for item in out["sub_modules"] if isinstance(item, dict) and item.get("file")],
-        "tb": ["tb/cocotb/test_axi_crypto_sram.py", "tb/cocotb/axi_lite_agent.py", "tb/cocotb/scoreboard.py"],
+        "tb": [f"tb/cocotb/test_{ip}.py", "tb/cocotb/test_runner.py", "tb/cocotb/scoreboard.py"],
         "sim": ["sim/results.xml", "sim/waves.fst"],
         "coverage": ["cov/coverage.json"],
     }
     out["test_requirements"] = _ensure_test_requirements(out)
-    out["quality_gates"] = out.get("quality_gates") if isinstance(out.get("quality_gates"), dict) else _ensure_quality_gates()
+    out["quality_gates"] = _merge_quality_gates(out, ip)
     out["traceability"] = _ensure_traceability(out)
     out["workflow_todos"] = _ensure_workflow_todos(out, ip)
     out["generation_flow"] = {

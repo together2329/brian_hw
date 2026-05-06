@@ -1,0 +1,8 @@
+{
+  "name": "ssot-cycle-model",
+  "description": "Emit executable Python CycleModel that wraps FunctionalModel with handshake/latency/ordering",
+  "aliases": ["scm"],
+  "handler": "stage:ssot-cycle-model",
+  "usage": "/ssot-cycle-model <module_name>",
+  "area": "model"
+}

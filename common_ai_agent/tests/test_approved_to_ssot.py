@@ -131,6 +131,38 @@ def test_approved_bridge_writes_audit_clean_requirements(tmp_path):
         assert marker.lower() not in text.lower()
 
 
+def test_dma330_doc_starts_with_rtl_gen_gate_and_deferred_connections():
+    bridge = _load_bridge()
+    state = {
+        "kind": "DMA controller",
+        "decisions": {
+            "purpose": "DMA330-like controller with manifest control, datapath, and status modules.",
+            "submodule_structure": (
+                "submodules: engine schedules transfers; axi_frontend handles bus commands; "
+                "status tracks completion. Top wrapper only wires these units."
+            ),
+        },
+    }
+
+    doc = bridge._doc("dma330", state)
+
+    assert doc["quality_gates"]["rtl_gen"]["profile"] == "production"
+    assert doc["quality_gates"]["rtl_gen"]["pass"]
+    assert doc["integration"]["connections"] == []
+    assert doc["integration"]["connection_contract_status"].startswith("missing machine-readable")
+    scale_todo = next(item for item in doc["workflow_todos"]["rtl-gen"] if item["id"] == "RTL_TARGET_SCALE_POLICY")
+    assert scale_todo["answer_schema"]["root_key"] == "target_scale or target_scale_waiver"
+    assert "source_files_min" in scale_todo["answer_schema"]["target_scale_fields"]
+    assert "lines_min" in scale_todo["answer_schema"]["target_scale_fields"]
+    assert scale_todo["example_answer"]["target_scale"]["depth_score_min"] == 120
+    todo = next(item for item in doc["workflow_todos"]["rtl-gen"] if item["id"] == "RTL_RESOLVE_CONNECTION_CONTRACTS")
+    assert "integration.connections" in todo["source_refs"]
+    assert "module/port/signal" in todo["criteria"][0]
+    assert todo["answer_schema"]["root_key"] == "connection_contracts"
+    assert todo["answer_schema"]["item_required_fields"] == ["module", "port", "signal"]
+    assert todo["example_answer"]["connection_contracts"][0]["module"] == "dma330_engine"
+
+
 def test_goal_audit_placeholder_detection_ignores_negated_quality_text(tmp_path):
     audit = _load_module(
         "workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py",
@@ -223,7 +255,7 @@ def test_rtl_single_top_conceptual_units_do_not_require_module_ownership_gate():
     assert rtl._ssot_behavior_ownership_questions(doc, "demo") == []
 
 
-def test_rtl_manifest_assignment_prefers_named_observable_over_expression_noise():
+def test_rtl_manifest_requires_explicit_module_contracts_instead_of_name_heuristics():
     rtl = _load_module("workflow/rtl-gen/scripts/ssot_to_rtl.py", "ssot_to_rtl_bridge")
     submods = [
         {"name": "smbus_transaction_control", "file": "rtl/smbus_transaction_control.sv", "description": "samples valid transactions and drives ready/result_valid"},
@@ -231,46 +263,34 @@ def test_rtl_manifest_assignment_prefers_named_observable_over_expression_noise(
         {"name": "smbus_response_datapath", "file": "rtl/smbus_response_datapath.sv", "description": "computes result from addr command data_in"},
         {"name": "smbus_count_state", "file": "rtl/smbus_count_state.sv", "description": "maintains accepted_count"},
     ]
-    primary = submods[0]
-    rule = {
-        "name": "packet_ok",
-        "port": "packet_ok",
-        "expr": "pec_in == ((data_in ^ command ^ addr) & 255)",
+    doc = {
+        "top_module": "smbus",
+        "filelist": {"rtl": [sm["file"] for sm in submods]},
+        "sub_modules": submods,
+        "function_model": {
+            "transactions": [
+                {
+                    "id": "primary",
+                    "output_rules": [
+                        {
+                            "name": "packet_ok",
+                            "port": "packet_ok",
+                            "expr": "pec_in == ((data_in ^ command ^ addr) & 255)",
+                        },
+                        {"name": "result", "port": "result", "expr": "(data_in ^ command ^ addr) & 255"},
+                        {"name": "result_valid", "port": "result_valid", "expr": "1"},
+                    ],
+                }
+            ]
+        },
     }
 
-    chosen = rtl._choose_behavior_module(
-        submods,
-        rtl._rule_tokens(rule, rule["port"]),
-        primary,
-        rtl._rule_exact_terms(rule, rule["port"]),
-        rtl._rule_context_tokens(rule),
-    )
+    questions = rtl._module_contract_questions(doc, "smbus")
 
-    assert chosen["name"] == "smbus_pec_checker"
-
-    result_rule = {
-        "name": "result",
-        "port": "result",
-        "expr": "(data_in ^ command ^ addr) & 255",
-    }
-    chosen = rtl._choose_behavior_module(
-        submods,
-        rtl._rule_tokens(result_rule, result_rule["port"]),
-        primary,
-        rtl._rule_exact_terms(result_rule, result_rule["port"]),
-        rtl._rule_context_tokens(result_rule),
-    )
-    assert chosen["name"] == "smbus_response_datapath"
-
-    valid_rule = {"name": "result_valid", "port": "result_valid", "expr": "1"}
-    chosen = rtl._choose_behavior_module(
-        submods,
-        rtl._rule_tokens(valid_rule, valid_rule["port"]),
-        primary,
-        rtl._rule_exact_terms(valid_rule, valid_rule["port"]),
-        rtl._rule_context_tokens(valid_rule),
-    )
-    assert chosen["name"] == "smbus_transaction_control"
+    assert [q["id"] for q in questions] == ["RTL_MODULE_CONTRACTS"]
+    missing = {item["name"] for item in questions[0]["missing_modules"]}
+    assert missing == {sm["name"] for sm in submods}
+    assert "function_model_refs" in questions[0]["required_fields"]
 
 
 def test_machine_rule_predicates_infer_one_bit_widths_before_address_widths():
@@ -398,10 +418,13 @@ def test_rtl_boolean_lowering_casts_wide_terms_before_logical_ops():
         "hdr_unsupported": "32'(hdr_unsupported)",
         "illegal_ccc": "32'(illegal_ccc)",
     }
+    widths = {name: 32 for name in env}
 
-    expr = rtl._ast_to_rtl(
+    expr = rtl._ast_to_rtl_width(
         rtl._parse_rule_expr("parity_error or hdr_unsupported or illegal_ccc"),
         env,
+        widths,
+        1,
     )
 
     assert "!= 0" in expr
@@ -457,14 +480,12 @@ def test_rtl_output_rule_dependencies_use_same_cycle_expression():
 
     contract, questions = rtl._generic_rule_contract(doc, "arm_m0_i3c_bus", ports)
     assert questions == []
-    text = rtl._generic_rule_rtl("arm_m0_i3c_bus", ports, contract)
+    by_port = {item["port"]: item["expr"] for item in contract["outputs"]}
 
-    cmd_line = next(line for line in text.splitlines() if "i3c_cmd_valid <=" in line and "cpu_req" in line)
-    ready_line = next(line for line in text.splitlines() if "cpu_ready <=" in line and "cpu_addr" in line)
-    assert "i3c_hit" not in cmd_line
-    assert "i3c_hit" not in ready_line
-    assert "cpu_addr" in cmd_line
-    assert "cpu_addr" in ready_line
+    assert "i3c_hit" not in by_port["i3c_cmd_valid"]
+    assert "i3c_hit" not in by_port["cpu_ready"]
+    assert "cpu_addr" in by_port["i3c_cmd_valid"]
+    assert "cpu_addr" in by_port["cpu_ready"]
 
 
 def test_cocotb_template_normalizes_stimulus_to_port_width_before_scoreboard():

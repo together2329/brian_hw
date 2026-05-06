@@ -1,0 +1,8 @@
+{
+  "name": "ssot-module-harness",
+  "description": "L2 — Emit per-sub_module cocotb-style harnesses that load the sub-FL and produce module-level scoreboard rows",
+  "aliases": ["smh"],
+  "handler": "stage:ssot-module-harness",
+  "usage": "/ssot-module-harness <module_name>",
+  "area": "verify"
+}

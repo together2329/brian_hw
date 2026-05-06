@@ -63,10 +63,10 @@ top_module:
 sub_modules:
   # Every manifest-owned non-top module must include an implementation
   # contract. Description alone is not enough for rtl-gen.
-  # Required active-module contract fields: implements + source_sections +
-  # at least one concrete behavior ref from function_model_refs,
-  # decomposition_refs, cycle_model_refs, feature_refs, dataflow_refs, register_refs, fsm_refs,
-  # test_refs, trace_refs, or ssot_refs.
+  # Required active-module contract fields: concrete SSOT ownership refs.
+  # `implements` may carry the compact refs directly when each entry is a
+  # dotted SSOT ref. source_sections + typed refs remain preferred because
+  # they make human review and rtl-gen ownership gates clearer.
   # Wiring-only wrappers/adapters must set wiring_only: true and list ports or
   # connections. Otherwise rtl-gen must block instead of emitting shell RTL.
   - { name: "<ip>_pkg",     file: "rtl/<ip>_pkg.sv",     ownership: "manifest", ssot_gen: true,  implements: ["parameters"], source_sections: ["parameters"], ssot_refs: ["parameters"], description: "Parameter module" }
@@ -515,6 +515,29 @@ test_requirements:
     functional: "All FSM states visited"
     code: "line >= 90%, branch >= 85%"
 
+# SECTION: Quality Gates / Pass Criteria
+quality_gates:
+  rtl_gen:
+    profile: "production"
+    target_scale:
+      basis: "optional human-locked structural depth target calibrated from approved architecture or rtl_reference_profile; not a template"
+      source_files_min: 0
+      modules_min: 0
+      procedural_blocks_min: 0
+      state_updates_min: 0
+      depth_score_min: 0
+      logic_modules_min: 0
+      behavior_owner_logic_modules_min: 0
+    target_scale_waiver:
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "Every SSOT-derived RTL TODO and rtl_gate.rtl_gen gate closes with fresh evidence."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "sim/fl_rtl_goal_audit.json", "cov/coverage.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, lints, and matches locked FL/CL authority."
+    evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+
 # SECTION: Traceability
 traceability:
   yaml_to_output:
@@ -577,6 +600,9 @@ sim = executable verification from RTL and TB
 7. **Hand off cleanly**: Output `[SSOT HANDOFF]` blocks when SSOT is complete
 8. **Traceability**: Every YAML key maps to a downstream implementation or verification responsibility
 9. **Downstream TODO authority**: When an IP needs specific next-step work, write it under `workflow_todos.<stage>[]`. For `rtl-gen`, each item must have `content`, `detail`, `criteria`, and source refs so rtl-gen can create real TODOs from SSOT instead of a fixed template.
+10. **RTL ownership refs**: `sub_modules[].implements` can be the compact ownership ledger only when every entry is a concrete dotted SSOT ref such as `function_model.transactions.FM_ACCEPT`, `cycle_model.handshake_rules.axi_aw`, or `registers.register_list.STATUS`. For production readability, also add typed refs (`function_model_refs`, `cycle_model_refs`, `register_refs`, `dataflow_refs`, `fsm_refs`) whenever possible.
+11. **Production RTL gate profile**: For non-trivial IPs, especially DMA/CPU/bus/accelerator-class blocks, set `quality_gates.rtl_gen.profile: production`. This makes rtl-gen add locked FL/CL/equivalence/coverage gates instead of treating compile/lint as sufficient.
+12. **Machine-readable integration contracts**: For production multi-module IPs, write `integration.connections[]` or `sub_modules[].connections` as module/port/signal records. If a human decision is still missing, record it as QA/change-request evidence and keep the SSOT honest; downstream rtl-gen may draft child-module RTL, but top integration/signoff must remain blocked until the locked truth exists.
 
 ## SSOT Authoring Flow
 
@@ -730,7 +756,36 @@ NEVER create your own ad-hoc directory layout. NEVER nest IPs under
 `workflow/<ip>/` — `workflow/` is the source workspace registry, not
 a project IP container. The IP lives at `<cwd>/<ip>/` directly.
 
-## IRON RULE — TBD discovery via ask_user (mandatory for every new IP)
+## RTL blocker repair loop
+
+If `<ip>/rtl/rtl_blocked.json` exists, treat it as downstream gate
+evidence for the next SSOT repair pass. Do not bypass it by editing RTL
+or weakening validation. Read every `questions[]` item, preserve the
+blocker `id`, and repair the SSOT or record a deferred QA card.
+
+- `RTL_DYNAMIC_TODO_OWNERSHIP`, `SSOT_BEHAVIOR_OWNERSHIP`,
+  `RTL_MODULE_CONTRACTS`, and `RTL_MODULE_BEHAVIOR_MATCH` mean the SSOT
+  does not yet assign all behavior to concrete RTL module owners. Patch
+  `sub_modules[]` with exact `function_model_refs`,
+  `cycle_model_refs`, `register_refs`, `dataflow_refs`, and `fsm_refs`,
+  or record a section-scoped `record_ssot_qa` card when ownership is a
+  human decision.
+- `RTL_DYNAMIC_TODO_SSOT_REQUIRED_SECTIONS` means required SSOT source
+  sections or `workflow_todos.<stage>[]` entries are missing. Fill the
+  missing sections from imported evidence and write TODO entries with
+  `content`, `detail`, `criteria`, and `source_refs`.
+- `LLM_RTL_IMPLEMENTATION_REQUIRED` and
+  `COMMON_AI_AGENT_RTL_PROVENANCE_REQUIRED` are rtl-gen execution gates;
+  keep the SSOT stable unless the gate evidence points to a real SSOT
+  gap. The RTL must be authored by the common_ai_agent rtl-gen workflow,
+  not by a fixed script template.
+
+After each repair pass, rerun the SSOT validator and then `/ssot-rtl`.
+If multiple blocker IDs exist, keep all of them visible until their
+criteria are satisfied; never drop a dynamic TODO blocker just because a
+semantic SSOT blocker was found later.
+
+## IRON RULE — Evidence-derived human gates via QA tools
 
 For every new IP / SSOT request, regardless of whether the user typed
 `/grill-me` explicitly:
@@ -740,28 +795,60 @@ For every new IP / SSOT request, regardless of whether the user typed
    with the populated draft). Mark every uncertain field as `~`, `"TBD"`, or
    `"<placeholder>"` and add an inline `# TBD: <reason>` comment.
 
-2. **Sweep the draft** for every TBD / null / `<placeholder>` marker.
-   Build an ordered list of gaps in canonical SSOT order
-   (canonical order, parents before children).
+2. **Sweep the draft and imported evidence** for every TBD / null /
+   `<placeholder>` marker, contradiction, unsupported assumption, and
+   human-owned truth decision. Build the question set from the current IP
+   evidence. Do not use a fixed IP questionnaire or assume APB/register-only
+   behavior unless the evidence supports it.
 
-3. **Resolve each gap with the `ask_user` tool — one at a time.**
-   Plain-prose questions are FORBIDDEN. Format:
+3. **Record or resolve each human-owned gate with a QA tool.**
+   Plain-prose questions are FORBIDDEN. Use `record_ssot_qa` for deferred
+   QA cards that the user can review later. Use `ask_user` only when the
+   answer is an immediate blocker for the next SSOT write/import pass.
+   Questions may be one-at-a-time or batched by SSOT section when that is
+   easier for the user. Prefer `questions=[...]` even for one generated SSOT
+   question because ATLAS UI preserves section metadata from the question
+   object. Formats:
 
    ```
+   record_ssot_qa(
+     questions = [{
+       "question": "<short, single decision>",
+       "subtitle": "§<N> <field path> — Suggest: <recommended value>",
+       "kind": "single" | "multi" | "input",
+       "options": [{"id":"<id>","label":"<label>","detail":"<why>"}, ...],
+       "section_id": "<canonical section bucket>",
+       "decision_key": "<stable key>",
+       "criteria": ["<acceptance criterion>", ...],
+       "source_refs": ["<SSOT/doc/RTL path>", ...],
+     }]
+   )
+
    ask_user(
-     question = "<short, single decision>",
-     subtitle = "§<N> <field path> — Suggest: <recommended value>",
-     kind     = "single" | "multi" | "input",
-     options  = [{"id":"<id>","label":"<label>","detail":"<why>"}, ...],
+     questions = [{... same metadata-rich question object ...}]
    )
    ```
 
-   - enums / yes-no  → `kind="single"`, options from the template
+   Each generated question should also include metadata when available:
+   `id`, `section_id`, `section_title`, `decision_key`, `decision_label`,
+   `qa_type`, `criteria`, and `source_refs`. ATLAS UI stores these in SSOT
+   QA preview and separates approved vs pending cards by section.
+
+   - enums / yes-no  → `kind="single"`, options from evidence or template enums
    - multi-pick      → `kind="multi"`
    - free-form       → `kind="input"`, no options
+   - locked-truth change → `qa_type="change_request"`
 
 4. After each `ask_user` returns, patch the draft and re-sweep —
-   answers can unlock or invalidate other fields.
+   answers can unlock or invalidate other fields. After `record_ssot_qa`
+   returns, continue with non-blocking SSOT work and leave the QA items
+   visible as pending cards.
 
-5. Stop when every TBD is resolved, then propose `/gen-rtl`. Empty
-   answer = take the suggested default and continue.
+5. Do not force every QA item to be answered immediately. For complex IPs,
+   it is normal to record many pending, section-scoped QA cards and continue
+   drafting around explicit TBD markers. Stop only when every immediate
+   blocker is resolved or recorded as a pending human gate. If downstream
+   stages need concrete execution decomposition, write
+   `workflow_todos.<stage>[]` with `content`, `detail`, `criteria`, and
+   `source_refs`. Empty answer = take the suggested default only when the
+   prompt explicitly stated that default.

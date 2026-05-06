@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
 import json
 import os
 import queue
@@ -127,6 +128,13 @@ class _AtlasBridge:
 
     def emit(self, msg_type: str, **payload: Any) -> None:
         msg = {"type": msg_type, **payload}
+        if msg_type == "ask_user":
+            session = normalize_session_name(str(msg.get("session") or os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+            if session:
+                msg.setdefault("session", session)
+            ip = str(msg.get("ip") or os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
+            if ip:
+                msg.setdefault("ip", ip)
         flow_id = str(payload.get("flow_id") or "")
         if flow_id:
             with self._pending_ask_user_lock:
@@ -1106,6 +1114,33 @@ def create_app():
             except OSError:
                 continue
         return JSONResponse({"files": results})
+
+    @app.get("/api/ssot/qa")
+    async def api_ssot_qa(ip: str = "", session: str = ""):
+        session_name = normalize_session_name(session or "")
+        target = str(ip or "").strip()
+        if not target and session_name:
+            parts = [p for p in session_name.split("/") if p]
+            if len(parts) >= 2 and parts[-1] == "ssot-gen":
+                target = parts[-2]
+        if target and not _valid_ip_name(target):
+            return JSONResponse({"error": f"invalid ip {target!r}"}, status_code=400)
+        if not target:
+            target = _active_ssot_ip()
+        if not target or not _valid_ip_name(target):
+            return JSONResponse({
+                "ip": "",
+                "workflow": "ssot-gen",
+                "toc": [],
+                "sections": [],
+                "summary": {"total": 0, "approved": 0, "pending": 0},
+                "items": [],
+            })
+        return JSONResponse(_ssot_qa_view(target, session=session_name))
+
+    @app.get("/api/ssot/qa/sessions")
+    async def api_ssot_qa_sessions():
+        return JSONResponse(_ssot_qa_sessions_view())
 
     @app.get("/api/soc")
     async def api_soc():
@@ -2547,8 +2582,6 @@ def create_app():
                     rtl_status = "fail"
                 elif rtl_mismatches:
                     rtl_status = "fail"
-                elif rtl_quality:
-                    rtl_status = "fail"
                 elif rtl_modules_status == "ok" and compile_status == "pass" and lint_status == "pass":
                     rtl_status = "ok"
                 elif rtl_modules_status == "pending":
@@ -3378,7 +3411,7 @@ def create_app():
             seen_ids = {m.get("id") for m in modules}
             session_root = PROJECT_ROOT / ".session"
             if session_root.is_dir():
-                for state_path in session_root.glob("*/ssot-gen/state.json"):
+                for state_path in session_root.rglob("ssot-gen/state.json"):
                     ip_name = state_path.parent.parent.name
                     if ip_name in seen_ids or not _valid_ip_name(ip_name):
                         continue
@@ -3763,6 +3796,330 @@ def create_app():
         state["updated_at"] = time.time()
         path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
+    _SSOT_QA_SECTIONS = {
+        "purpose": ("00_overview", "0. Overview / Intent"),
+        "parameters": ("01_parameters", "1. Parameters"),
+        "clock_reset": ("02_clock_reset", "2. Clock / Reset"),
+        "bus_interface": ("03_interface", "3. Interface"),
+        "submodule_structure": ("04_architecture", "4. Architecture / Decomposition"),
+        "memory_map": ("05_memory", "5. Memory / Buffering"),
+        "register_map": ("06_registers", "6. Register Map"),
+        "interrupt": ("07_interrupt_error", "7. Interrupt / Error Policy"),
+        "test_expectation": ("18_verification", "18. Verification / Gates"),
+    }
+
+    def _ssot_session_dir(ip: str, session: str | None = None) -> Path:
+        clean = normalize_session_name(str(session or os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+        parts = [p for p in clean.split("/") if p]
+        if len(parts) >= 2 and parts[-1] == "ssot-gen" and parts[-2] == ip:
+            return PROJECT_ROOT / ".session" / clean
+        return PROJECT_ROOT / ".session" / ip / "ssot-gen"
+
+    def _legacy_ssot_session_dir(ip: str) -> Path:
+        return PROJECT_ROOT / ".session" / ip / "ssot-gen"
+
+    def _ssot_qa_path(ip: str, session: str | None = None) -> Path:
+        return _ssot_session_dir(ip, session) / "qa.json"
+
+    def _ssot_qa_section(decision_key: str) -> tuple[str, str]:
+        return _SSOT_QA_SECTIONS.get(
+            decision_key,
+            ("99_other", "99. Other / Open Decisions"),
+        )
+
+    def _load_ssot_qa_items(ip: str, session: str | None = None) -> list[dict[str, Any]]:
+        path = _ssot_qa_path(ip, session)
+        if not path.is_file() and session:
+            path = _legacy_ssot_session_dir(ip) / "qa.json"
+        if not path.is_file():
+            return []
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return []
+        items = raw.get("items") if isinstance(raw, dict) else raw
+        if not isinstance(items, list):
+            return []
+        return [dict(x) for x in items if isinstance(x, dict)]
+
+    def _save_ssot_qa_items(ip: str, items: list[dict[str, Any]], session: str | None = None) -> None:
+        path = _ssot_qa_path(ip, session)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        doc = {
+            "ip": ip,
+            "workflow": "ssot-gen",
+            "updated_at": time.time(),
+            "items": items,
+        }
+        path.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    def _status_group(status: str) -> str:
+        return "approved" if str(status or "").lower() in {"approved", "answered", "resolved"} else "pending"
+
+    def _qa_slug(value: str, fallback: str) -> str:
+        slug = re.sub(r"[^a-z0-9_]+", "_", str(value or "").strip().lower())
+        slug = re.sub(r"_+", "_", slug).strip("_")
+        return (slug[:72] or fallback)
+
+    def _ssot_q_pairs_from_questions(questions: list[dict[str, Any]] | None) -> list[tuple[str, str, dict[str, Any]]]:
+        pairs: list[tuple[str, str, dict[str, Any]]] = []
+        for idx, raw in enumerate(questions or []):
+            if not isinstance(raw, dict):
+                continue
+            question = dict(raw)
+            key_src = (
+                question.get("decision_key")
+                or question.get("id")
+                or question.get("field_path")
+                or question.get("section_id")
+                or question.get("question")
+            )
+            key = _qa_slug(str(key_src or ""), f"qa_{idx + 1}")
+            label = str(
+                question.get("decision_label")
+                or question.get("field_path")
+                or question.get("subtitle")
+                or question.get("question")
+                or key
+            ).strip()
+            pairs.append((key, label[:240] or key, question))
+        return pairs
+
+    def _active_ssot_qa_context() -> tuple[str, str]:
+        session = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+        parts = [p for p in session.split("/") if p]
+        if len(parts) >= 2 and parts[-1] == "ssot-gen" and _valid_ip_name(parts[-2]):
+            return parts[-2], session
+        ip = str(os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
+        if _valid_ip_name(ip):
+            return ip, f"{ip}/ssot-gen"
+        return "", ""
+
+    def _upsert_ssot_qa_items(
+        ip: str,
+        *,
+        flow_id: str,
+        kind: str,
+        q_pairs: list[tuple[str, str, dict[str, Any]]],
+        status: str,
+        answers: dict[str, dict[str, Any]] | None = None,
+        session: str | None = None,
+        source: str = "ssot-qna",
+    ) -> None:
+        items = _load_ssot_qa_items(ip, session)
+        index = {
+            (str(item.get("flow_id") or ""), str(item.get("decision_key") or "")): idx
+            for idx, item in enumerate(items)
+        }
+        now = time.time()
+        answers = answers or {}
+        for order, (key, label, question) in enumerate(q_pairs):
+            default_section_id, default_section_title = _ssot_qa_section(key)
+            section_id = str(
+                question.get("section_id")
+                or question.get("section")
+                or default_section_id
+            ).strip()
+            section_title = str(
+                question.get("section_title")
+                or question.get("section_name")
+                or question.get("section")
+                or default_section_title
+            ).strip()
+            answer = answers.get(key) if isinstance(answers.get(key), dict) else {}
+            answer_text = str(answer.get("answer") or "").strip()
+            existing_idx = index.get((flow_id, key))
+            prior = items[existing_idx] if existing_idx is not None else {}
+            prior_answer_text = str(prior.get("answer") or "").strip()
+            item_status = "approved" if answer_text or prior_answer_text else status
+            item = {
+                **prior,
+                "ip": ip,
+                "workflow": "ssot-gen",
+                "kind": kind or "simple APB peripheral",
+                "flow_id": flow_id,
+                "source": source or "ssot-qna",
+                "section_id": section_id,
+                "section_title": section_title,
+                "decision_key": key,
+                "decision_label": label,
+                "question": str(question.get("question") or ""),
+                "subtitle": str(question.get("subtitle") or ""),
+                "question_kind": str(question.get("kind") or "single"),
+                "options": question.get("options") or [],
+                "qa_type": str(question.get("qa_type") or question.get("type") or "human_decision"),
+                "content": question.get("content") or "",
+                "detail": question.get("detail") or "",
+                "criteria": question.get("criteria") or [],
+                "source_refs": question.get("source_refs") or question.get("sources") or [],
+                "field_path": question.get("field_path") or "",
+                "order": order,
+                "status": item_status,
+                "status_group": _status_group(item_status),
+                "answer": answer_text or str(prior.get("answer") or ""),
+                "selected": answer.get("selected") or prior.get("selected") or [],
+                "custom": answer.get("custom") or prior.get("custom") or "",
+                "updated_at": now,
+                "created_at": prior.get("created_at") or now,
+            }
+            if existing_idx is None:
+                items.append(item)
+            else:
+                items[existing_idx] = item
+        _save_ssot_qa_items(ip, items, session)
+
+    def _ssot_qa_view(ip: str, session: str | None = None) -> dict[str, Any]:
+        state = _load_ssot_state(ip)
+        decisions = _ssot_decisions(ip, state)
+        items = _load_ssot_qa_items(ip, session)
+        required_index = {key: idx for idx, (key, _label) in enumerate(_SSOT_REQUIRED_DECISIONS)}
+        seen_keys = {str(item.get("decision_key") or "") for item in items}
+        for key, label in _SSOT_REQUIRED_DECISIONS:
+            if key in seen_keys:
+                continue
+            answer = str(decisions.get(key) or "").strip()
+            if not answer:
+                continue
+            section_id, section_title = _ssot_qa_section(key)
+            items.append({
+                "ip": ip,
+                "workflow": "ssot-gen",
+                "kind": state.get("kind") or "simple APB peripheral",
+                "flow_id": f"decision:{key}",
+                "source": "ssot-decision",
+                "section_id": section_id,
+                "section_title": section_title,
+                "decision_key": key,
+                "decision_label": label,
+                "question": label,
+                "subtitle": key,
+                "question_kind": "derived",
+                "options": [],
+                "order": required_index.get(key, 999),
+                "status": "approved",
+                "status_group": "approved",
+                "answer": answer,
+                "selected": [],
+                "custom": "",
+                "created_at": state.get("created_at") or 0,
+                "updated_at": state.get("updated_at") or 0,
+            })
+        for item in items:
+            key = str(item.get("decision_key") or "")
+            answer = str(item.get("answer") or decisions.get(key) or "").strip()
+            status = "approved" if answer else _status_group(str(item.get("status") or "pending"))
+            item["answer"] = answer
+            item["status_group"] = "approved" if status == "approved" else "pending"
+            if item["status_group"] == "approved":
+                item["status"] = "approved"
+        items.sort(key=lambda item: (
+            str(item.get("section_id") or ""),
+            required_index.get(str(item.get("decision_key") or ""), 999),
+            float(item.get("created_at") or 0),
+        ))
+        groups: dict[str, dict[str, Any]] = {}
+        for item in items:
+            section_id = str(item.get("section_id") or "99_other")
+            section = groups.setdefault(section_id, {
+                "id": section_id,
+                "title": str(item.get("section_title") or "99. Other / Open Decisions"),
+                "approved": [],
+                "pending": [],
+                "items": [],
+            })
+            copied = dict(item)
+            section["items"].append(copied)
+            bucket = "approved" if copied.get("status_group") == "approved" else "pending"
+            section[bucket].append(copied)
+        sections = list(groups.values())
+        toc = [
+            {
+                "id": section["id"],
+                "title": section["title"],
+                "approved": len(section["approved"]),
+                "pending": len(section["pending"]),
+                "total": len(section["items"]),
+            }
+            for section in sections
+        ]
+        approved = sum(1 for item in items if item.get("status_group") == "approved")
+        pending = sum(1 for item in items if item.get("status_group") != "approved")
+        return {
+            "ip": ip,
+            "workflow": "ssot-gen",
+            "session": normalize_session_name(str(session or os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen")),
+            "approved": bool(state.get("approved")),
+            "state_status": state.get("status") or "",
+            "toc": toc,
+            "sections": sections,
+            "summary": {"total": approved + pending, "approved": approved, "pending": pending},
+            "items": items,
+            "path": str(_ssot_qa_path(ip, session).relative_to(PROJECT_ROOT)),
+        }
+
+    def _ssot_qa_sessions_view() -> dict[str, Any]:
+        root = PROJECT_ROOT / ".session"
+        sessions: list[dict[str, Any]] = []
+        if not root.is_dir():
+            return {"sessions": sessions, "count": 0}
+        seen: set[str] = set()
+        for sdir in root.rglob("ssot-gen"):
+            if not sdir.is_dir():
+                continue
+            try:
+                rel = sdir.relative_to(root)
+            except Exception:
+                continue
+            parts = [p for p in rel.parts if p]
+            if len(parts) < 2 or parts[-1] != "ssot-gen":
+                continue
+            ip = parts[-2]
+            if not _valid_ip_name(ip):
+                continue
+            session = str(rel)
+            if session in seen:
+                continue
+            seen.add(session)
+            files = [sdir / name for name in ("state.json", "qa.json", "conversation.json")]
+            if not any(p.is_file() for p in files):
+                continue
+            mtimes = []
+            for p in files:
+                try:
+                    if p.is_file():
+                        mtimes.append(p.stat().st_mtime)
+                except Exception:
+                    pass
+            state = {}
+            state_path = sdir / "state.json"
+            if state_path.is_file():
+                try:
+                    loaded = json.loads(state_path.read_text(encoding="utf-8"))
+                    state = loaded if isinstance(loaded, dict) else {}
+                except Exception:
+                    state = {}
+            if not state:
+                state = _load_ssot_state(ip)
+            view = _ssot_qa_view(ip, session=session)
+            summary = view.get("summary") if isinstance(view.get("summary"), dict) else {}
+            sessions.append({
+                "session": session,
+                "owner": "/".join(parts[:-2]),
+                "ip": ip,
+                "workflow": "ssot-gen",
+                "status": state.get("status") or view.get("state_status") or "draft",
+                "approved": bool(state.get("approved") or view.get("approved")),
+                "summary": {
+                    "total": int(summary.get("total") or 0),
+                    "approved": int(summary.get("approved") or 0),
+                    "pending": int(summary.get("pending") or 0),
+                },
+                "updated_at": max(mtimes) if mtimes else float(state.get("updated_at") or 0),
+                "qa_path": view.get("path") or "",
+            })
+        sessions.sort(key=lambda row: float(row.get("updated_at") or 0), reverse=True)
+        return {"sessions": sessions, "count": len(sessions)}
+
     def _ssot_yaml_path(ip: str) -> Path:
         return PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
 
@@ -3889,7 +4246,7 @@ def create_app():
         root = PROJECT_ROOT / ".session"
         candidates: list[tuple[float, str]] = []
         if root.is_dir():
-            for p in root.glob("*/ssot-gen/state.json"):
+            for p in root.rglob("ssot-gen/state.json"):
                 try:
                     doc = json.loads(p.read_text(encoding="utf-8"))
                     if isinstance(doc, dict) and not doc.get("approved"):
@@ -3902,8 +4259,15 @@ def create_app():
     def _set_active_ssot_ip(ip: str) -> None:
         if not _valid_ip_name(ip):
             return
+        owner = ""
+        current = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+        current_parts = [p for p in current.split("/") if p]
+        if len(current_parts) >= 3:
+            owner = current_parts[0]
+        elif len(current_parts) >= 2 and current_parts[-1] == "default":
+            owner = current_parts[0]
         os.environ["ATLAS_ACTIVE_IP"] = ip
-        os.environ["ATLAS_ACTIVE_SESSION"] = f"{ip}/ssot-gen"
+        os.environ["ATLAS_ACTIVE_SESSION"] = f"{owner}/{ip}/ssot-gen" if owner else f"{ip}/ssot-gen"
 
     def _active_ssot_ip() -> str:
         env_ip = str(os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
@@ -3911,8 +4275,8 @@ def create_app():
             return env_ip
         session = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
         parts = [p for p in session.split("/") if p]
-        if len(parts) >= 2 and parts[1] == "ssot-gen" and _valid_ip_name(parts[0]):
-            return parts[0]
+        if len(parts) >= 2 and parts[-1] == "ssot-gen" and _valid_ip_name(parts[-2]):
+            return parts[-2]
         if len(parts) == 1 and _valid_ip_name(parts[0]) and _ssot_state_path(parts[0]).is_file():
             return parts[0]
         return _latest_pending_ssot_ip()
@@ -3942,6 +4306,63 @@ def create_app():
             lines.append("missing decisions: " + ", ".join(missing))
         return "\n".join(lines)
 
+    def _render_ssot_llm_qna_prompt(ip: str, kind: str, state: dict[str, Any]) -> str:
+        session = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen"))
+        imported = state.get("imported_artifacts") if isinstance(state.get("imported_artifacts"), list) else []
+        imported_paths = [
+            str(item.get("path") or "").strip()
+            for item in imported
+            if isinstance(item, dict) and str(item.get("path") or "").strip()
+        ]
+        missing = _missing_ssot_decisions(ip, state)
+        lang = "Korean" if os.environ.get("ATLAS_UI_LANG") == "ko" else "English"
+        path_lines = "\n".join(f"- {p}" for p in imported_paths[:24]) or "- (none recorded; inspect the IP directory and draft SSOT)"
+        missing_line = ", ".join(missing) if missing else "(backend baseline decisions already filled; still inspect for SSOT TBD/conflicts)"
+        return "\n".join([
+            f"You are ssot-gen for IP `{ip}` in ATLAS UI.",
+            f"Session: `{session}`",
+            f"Preferred visible language: {lang}.",
+            "",
+            "Goal: create IP-specific SSOT Q&A from the current evidence, not from a fixed template.",
+            "This is a general-IP flow. Do not assume APB/register-only/simple peripheral structure unless evidence says so.",
+            "",
+            "Truth ownership model:",
+            "- Human owns requirement/spec/interface/FL golden model/coverage goals/performance targets/sign-off.",
+            "- LLM owns drafting, import analysis, QA generation, SSOT patch proposals, and downstream workflow_todos.",
+            "- Do not change locked truth to make downstream RTL pass; make a change-request question instead.",
+            "- TODOs are execution work, not substitutes for unresolved human decisions.",
+            "",
+            "Current backend baseline missing keys, for orientation only:",
+            f"- {missing_line}",
+            "",
+            "Evidence paths imported or known:",
+            path_lines,
+            "",
+            "Required action:",
+            f"1. Read `{ip}/yaml/{ip}.ssot.yaml` if it exists, plus relevant docs/RTL under `{ip}/` and the evidence paths above.",
+            "2. Detect unresolved SSOT decisions, contradictions, assumptions, TBD/null/placeholders, and any truth that needs human approval.",
+            "3. Generate ONLY the questions needed for this IP. The question set may be 0, 1, 4, 20, or more depending on complexity.",
+            "4. If the answer is not an immediate blocker, use `record_ssot_qa(questions=[...])` to save deferred QA cards.",
+            "5. Use `ask_user(questions=[...])` only when the answer blocks the next SSOT write or import pass.",
+            "   Do not ask plain prose questions in chat. Both tools preserve SSOT QA metadata.",
+            "6. Each question object must carry metadata so ATLAS can save it in SSOT QA preview:",
+            "   - id: stable snake_case id",
+            "   - section_id: canonical section bucket such as 00_overview, 03_interface, 06_registers, 18_verification, 19_workflow_todos, or a specific section number",
+            "   - section_title: human-readable SSOT section title",
+            "   - decision_key: stable key for the decision",
+            "   - decision_label: short label",
+            "   - qa_type: human_decision | clarification | change_request | execution_blocker",
+            "   - question, subtitle, kind, options when useful",
+            "   - criteria: pass/fail criteria for using the answer downstream",
+            "   - source_refs: SSOT paths, doc paths, or RTL paths that caused the question",
+            "7. Prefer section-specific QA cards. Group by SSOT section and ask concrete decisions, not generic template prompts.",
+            "8. If downstream RTL needs explicit decomposition, write `workflow_todos.rtl-gen[]` with content/detail/criteria/source_refs.",
+            "9. If no immediate answer is needed after recording deferred QA, say `[SSOT Q&A] deferred questions recorded` with a short evidence summary.",
+            "10. If no human decision is needed at all, say `[SSOT Q&A] no generated questions required` and explain the evidence briefly.",
+            "",
+            "Important: fixed question templates are forbidden here. Derive the QA from this IP's evidence and current SSOT only.",
+        ])
+
     def _render_approved_ssot_spec(ip: str, state: dict[str, Any]) -> str:
         decisions = _ssot_decisions(ip, state)
         lines = [
@@ -3970,60 +4391,6 @@ def create_app():
             generate_cmd=f"/to-ssot {ip}",
         )
 
-    def _ssot_qna_questions(ip: str, kind: str) -> list[dict[str, Any]]:
-        return [
-            {
-                "question": f"What is the exact purpose of {ip}?",
-                "kind": "input",
-                "subtitle": "purpose · one sentence behavior. Suggest: APB4-controlled I2C controller.",
-            },
-            {
-                "question": "Which bus interface should firmware use?",
-                "kind": "single",
-                "subtitle": "bus_interface · register access bus and role. Suggest: APB4 slave.",
-                "options": [
-                    {"id": "apb4_slave", "label": "APB4 slave", "detail": "Simple CSR access, good default for peripheral IP."},
-                    {"id": "axi4_lite_slave", "label": "AXI4-Lite slave", "detail": "Use when the SoC control fabric is AXI-lite."},
-                    {"id": "native", "label": "Native custom", "detail": "Use only if this IP is not firmware-mapped."},
-                ],
-            },
-            {
-                "question": "What register map should v1 expose?",
-                "kind": "input",
-                "subtitle": "register_map · offsets, names, access. Suggest: CTRL/STATUS/DATA/CMD/PRESCALE/IRQ_STATUS.",
-            },
-            {
-                "question": "What clock/reset contract should the IP use?",
-                "kind": "input",
-                "subtitle": "clock_reset · names/frequency/polarity. Suggest: clk 100 MHz, rst_n active-low.",
-            },
-            {
-                "question": "What interrupt behavior is required?",
-                "kind": "input",
-                "subtitle": "interrupt · level/pulse/source/none. Suggest: irq level-high for tx_done/rx_done/error.",
-            },
-            {
-                "question": "Does this IP need a memory map or base address assumption?",
-                "kind": "input",
-                "subtitle": "memory_map · base/range or none. Suggest: CSR window only, 0x1000 range, base assigned by SoC.",
-            },
-            {
-                "question": "Which parameters should be configurable?",
-                "kind": "input",
-                "subtitle": "parameters · defaults. Suggest: DBITS=32, ABITS=6, FIFO_DEPTH=8, PRESCALE_WIDTH=16.",
-            },
-            {
-                "question": "How should submodules be represented?",
-                "kind": "input",
-                "subtitle": "submodule_structure · manifest vs child_ssot. Suggest: regs/core/bit_ctrl/byte_ctrl/fifo as manifest.",
-            },
-            {
-                "question": "What should RTL/TB/SIM acceptance cover?",
-                "kind": "input",
-                "subtitle": "test_expectation · minimum tests/coverage. Suggest: APB CSR, start/stop, byte tx/rx, ack/nack, irq.",
-            },
-        ]
-
     def _answer_text(answer: dict[str, Any], question: dict[str, Any]) -> str:
         custom = str(answer.get("custom") or "").strip()
         if custom:
@@ -4034,9 +4401,6 @@ def create_app():
         labels = [by_id.get(str(s), str(s)) for s in selected]
         return ", ".join([x for x in labels if x]).strip()
 
-    def _required_decision_index() -> dict[str, int]:
-        return {key: idx for idx, (key, _label) in enumerate(_SSOT_REQUIRED_DECISIONS)}
-
     def _new_ssot_state(ip: str, kind: str = "simple APB peripheral") -> dict[str, Any]:
         return {
             "ip": ip,
@@ -4044,7 +4408,7 @@ def create_app():
             "approved": False,
             "approved_at": 0,
             "status": "planned",
-            "active_session": f"{ip}/ssot-gen",
+            "active_session": os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen",
             "last_step": "new-ip",
             "created_at": time.time(),
         }
@@ -4306,89 +4670,6 @@ def create_app():
         state["status"] = "answered" if not _missing_ssot_decisions(ip, state) else "planned"
         return filled, conflicts
 
-    def _start_ssot_qna(ip: str, kind: str) -> None:
-        """Run the v1 SSOT planning interview through the same Web
-        ask_user card UI the LLM uses, but keep it deterministic and
-        IP-scoped so old workspace history cannot pollute the questions.
-        """
-        def _worker() -> None:
-            import uuid as _uuid
-            all_questions = _ssot_qna_questions(ip, kind)
-            _ensure_ssot_draft(ip, kind)
-            state = _load_ssot_state(ip) or _new_ssot_state(ip, kind)
-            missing_keys = _missing_ssot_decisions(ip, state)
-            if not missing_keys:
-                msg = (
-                    f"[SSOT Q&A] {ip}: no missing decisions.\n"
-                    "Next: approve, then /to-ssot."
-                )
-                _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
-                _append_workflow_history("ssot-gen", "assistant", msg)
-                _append_active_history("assistant", "```\n" + msg + "\n```")
-                _emit_workflow_result(msg, "ssot-qna")
-                _emit_ssot_approval_ready(ip, state, [])
-                return
-            index = _required_decision_index()
-            q_pairs = [
-                (key, _SSOT_REQUIRED_DECISIONS[index[key]][1], all_questions[index[key]])
-                for key in missing_keys
-                if key in index
-            ]
-            questions = [q for _key, _label, q in q_pairs]
-            flow_id = "ssot_" + _uuid.uuid4().hex[:10]
-            bridge.open_question(flow_id)
-            bridge.emit("ask_user", flow_id=flow_id, questions=questions)
-            bridge.emit("agent_state", running=True)
-            try:
-                ans = bridge.wait_answer(flow_id, timeout=900)
-            finally:
-                bridge.close_question(flow_id)
-            if not isinstance(ans, dict) or not isinstance(ans.get("answers"), list):
-                msg = f"[SSOT Q&A] {ip}: no answer received; YAML remains blocked."
-                _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
-                _append_workflow_history("ssot-gen", "assistant", msg)
-                _append_active_history("assistant", "```\n" + msg + "\n```")
-                _emit_workflow_result(msg, "ssot-qna")
-                return
-
-            answers = ans.get("answers") or []
-            state = _load_ssot_state(ip) or state
-            updates: dict[str, str] = {}
-            for (key, _label, q), a in zip(q_pairs, answers):
-                val = _answer_text(a if isinstance(a, dict) else {}, q)
-                if val:
-                    updates[key] = val
-            if updates:
-                _record_ssot_decisions(ip, kind, updates, {})
-            decisions = _ssot_decisions(ip, state)
-            state.update({
-                "ip": ip,
-                "kind": kind,
-                "status": "answered" if not _missing_ssot_decisions(ip, state) else "planned",
-                "approved": bool(state.get("approved")),
-                "active_session": f"{ip}/ssot-gen",
-                "last_step": "grill-me",
-            })
-            _save_ssot_state(ip, state)
-            missing = _missing_ssot_decisions(ip, state)
-            lines = [f"[SSOT Q&A COMPLETE] {ip}", ""]
-            for key, label in _SSOT_REQUIRED_DECISIONS:
-                lines.append(f"- {key}: {decisions.get(key) or '(missing)'}")
-            lines += [
-                "",
-                "Next:",
-                f"  approve {ip}" if not missing else f"  answer missing fields before approve: {', '.join(missing)}",
-                f"  /to-ssot {ip}",
-            ]
-            msg = "\n".join(lines)
-            _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
-            _append_workflow_history("ssot-gen", "assistant", msg)
-            _append_active_history("assistant", "```\n" + msg + "\n```")
-            _emit_workflow_result(msg, "ssot-qna")
-            _emit_ssot_approval_ready(ip, state, missing)
-
-        threading.Thread(target=_worker, daemon=True).start()
-
     def _rtl_blocker_path(ip: str) -> Path:
         return PROJECT_ROOT / ip / "rtl" / "rtl_blocked.json"
 
@@ -4440,12 +4721,54 @@ def create_app():
             ]
         return "\n".join(rows)
 
+    _RTL_OWNERSHIP_BLOCKER_IDS = {
+        "RTL_DYNAMIC_TODO_OWNERSHIP",
+        "RTL_MODULE_CONTRACTS",
+        "RTL_MODULE_BEHAVIOR_MATCH",
+        "SSOT_BEHAVIOR_OWNERSHIP",
+    }
+    _RTL_CONNECTION_BLOCKER_IDS = {
+        "RTL_RESOLVE_CONNECTION_CONTRACTS",
+        "RTL_CONNECTION_CONTRACTS",
+        "RTL_MANIFEST_CONNECTION_CONTRACTS",
+    }
+    _RTL_IMPL_BLOCKER_IDS = {
+        "RTL_TODO_PLAN_MISSING",
+        "DETERMINISTIC_RTL_ARTIFACT_NOT_APPROVED",
+        "LLM_RTL_IMPLEMENTATION_REQUIRED",
+        "COMMON_AI_AGENT_RTL_PROVENANCE_REQUIRED",
+    }
+
+    def _rtl_blocker_qa_section(qid: str, raw: dict[str, Any]) -> tuple[str, str, str]:
+        text = " ".join(
+            [
+                qid,
+                str(raw.get("decision_needed") or ""),
+                str(raw.get("evidence") or ""),
+                " ".join(str(ref) for ref in raw.get("source_refs") or [] if isinstance(raw.get("source_refs"), list)),
+                " ".join(str(field) for field in raw.get("required_fields") or [] if isinstance(raw.get("required_fields"), list)),
+            ]
+        ).lower()
+        if qid == "RTL_TARGET_SCALE_POLICY" or "target_scale" in text or "target scale" in text:
+            return "19_workflow_todos", "19. Workflow / Human Gates", "quality_gates.rtl_gen.target_scale"
+        if qid in _RTL_CONNECTION_BLOCKER_IDS or "connection_contract" in text or "integration.connections" in text:
+            return "17_integration", "17. Integration / Connection Contracts", "integration.connections"
+        if qid in _RTL_OWNERSHIP_BLOCKER_IDS or "sub_modules" in text or "ownership" in text:
+            return "04_architecture", "4. Architecture / Decomposition", "sub_modules"
+        if "interface" in text or "port" in text or "clock" in text or "reset" in text:
+            return "03_interface", "3. Interface", "io_list"
+        if "coverage" in text or "test_requirements" in text or "verification" in text:
+            return "18_verification", "18. Verification / Gates", "test_requirements"
+        return "19_workflow_todos", "19. Workflow / Human Gates", "workflow_todos.rtl-gen"
+
     def _rtl_blocker_cards(blocker: dict[str, Any]) -> list[dict[str, Any]]:
         cards: list[dict[str, Any]] = []
         for q in blocker.get("questions") if isinstance(blocker.get("questions"), list) else []:
             if not isinstance(q, dict):
                 continue
             qid = str(q.get("id") or "").strip() or "RTL_BLOCKER"
+            if qid in _RTL_IMPL_BLOCKER_IDS:
+                continue
             raw_options = q.get("options") if isinstance(q.get("options"), list) else []
             options = [
                 {
@@ -4469,7 +4792,7 @@ def create_app():
                 "options": options,
                 "blocker": q,
             }
-            if qid in {"RTL_MODULE_CONTRACTS", "RTL_MODULE_BEHAVIOR_MATCH", "SSOT_BEHAVIOR_OWNERSHIP"}:
+            if qid in _RTL_OWNERSHIP_BLOCKER_IDS:
                 card["kind"] = "input"
                 card["multiline"] = True
                 card["subtitle"] = (
@@ -4479,6 +4802,67 @@ def create_app():
                 card["placeholder"] = _rtl_module_contract_placeholder(q)
             cards.append(card)
         return cards
+
+    def _rtl_blocker_flow_id(blocker: dict[str, Any]) -> str:
+        payload = json.dumps(blocker.get("questions") or blocker, ensure_ascii=False, sort_keys=True, default=str)
+        digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()[:12]
+        return f"rtl_blocker_{digest}"
+
+    def _rtl_blocker_qa_questions(
+        ip: str,
+        blocker: dict[str, Any],
+        cards: list[dict[str, Any]],
+        *,
+        reason: str,
+    ) -> list[dict[str, Any]]:
+        source_path = str(_rtl_blocker_path(ip).relative_to(PROJECT_ROOT))
+        questions: list[dict[str, Any]] = []
+        for card in cards:
+            qid = str(card.get("id") or "RTL_BLOCKER").strip() or "RTL_BLOCKER"
+            raw = card.get("blocker") if isinstance(card.get("blocker"), dict) else {}
+            orphan_refs = raw.get("orphan_refs") if isinstance(raw.get("orphan_refs"), list) else []
+            required_fields = raw.get("required_fields") if isinstance(raw.get("required_fields"), list) else []
+            candidate_modules = raw.get("candidate_modules") if isinstance(raw.get("candidate_modules"), list) else []
+            section_id, section_title, field_path = _rtl_blocker_qa_section(qid, raw)
+            criteria = [
+                "Resolve the blocker by updating SSOT-owned authority artifacts, not by hand-editing generated RTL.",
+                f"Rerun rtl-gen preflight until `{qid}` no longer appears in `{source_path}`.",
+            ]
+            if qid in _RTL_OWNERSHIP_BLOCKER_IDS:
+                criteria.append("Every orphan source_ref must be covered by an exact or dotted-parent ref in one RTL module contract.")
+            elif qid == "RTL_TARGET_SCALE_POLICY":
+                criteria.append("Lock positive quality_gates.rtl_gen.target_scale minima or approve target_scale_waiver with owner and reason.")
+            elif qid in _RTL_CONNECTION_BLOCKER_IDS:
+                criteria.append("Answer with machine-readable module/port/signal connection contracts before top integration signoff.")
+            source_refs = [source_path]
+            source_refs.extend(str(ref) for ref in orphan_refs[:64])
+            if raw.get("evidence"):
+                source_refs.append(str(raw.get("evidence")))
+            questions.append({
+                "id": qid,
+                "decision_key": qid,
+                "decision_label": str(card.get("question") or raw.get("decision_needed") or qid),
+                "question": str(card.get("question") or raw.get("decision_needed") or qid),
+                "kind": str(card.get("kind") or "input"),
+                "subtitle": str(card.get("subtitle") or ""),
+                "options": card.get("options") or [],
+                "qa_type": "rtl_blocker",
+                "source": reason,
+                "source_refs": source_refs,
+                "field_path": field_path,
+                "section_id": section_id,
+                "section_title": section_title,
+                "content": f"Resolve rtl-gen blocker `{qid}` for `{ip}`.",
+                "detail": (
+                    f"Evidence: {raw.get('evidence') or blocker.get('reason') or source_path}. "
+                    f"Required fields: {', '.join(str(v) for v in required_fields[:12]) or 'SSOT module contract fields'}. "
+                    f"Orphan refs: {len(orphan_refs)}. Candidate modules: {len(candidate_modules)}."
+                ),
+                "criteria": criteria,
+                "placeholder": card.get("placeholder") or "",
+                "multiline": bool(card.get("multiline")),
+            })
+        return questions
 
     def _run_rtl_blocker_resolution(ip: str, blocker: dict[str, Any], answer_entries: list[dict[str, Any]]) -> str:
         import subprocess
@@ -4561,7 +4945,12 @@ def create_app():
             bridge.queue_prompt(f"/ssot-rtl {ip}")
         return "\n".join(lines)
 
-    def _start_rtl_blocker_qna(ip: str, *, reason: str = "rtl-gen preflight") -> bool:
+    def _start_rtl_blocker_qna(
+        ip: str,
+        *,
+        reason: str = "rtl-gen preflight",
+        interactive: bool = True,
+    ) -> bool:
         blocker = _load_rtl_blocker(ip)
         cards = _rtl_blocker_cards(blocker)
         if not blocker or not cards:
@@ -4569,6 +4958,43 @@ def create_app():
                 f"[RTL BLOCKER Q&A] no rtl_blocked.json questions found for {ip}",
                 "resolve-rtl-blockers",
             )
+            return True
+
+        ctx_ip, ctx_session = _active_ssot_qa_context()
+        ssot_session = ctx_session if ctx_ip == ip and ctx_session else f"{ip}/ssot-gen"
+        qa_flow_id = _rtl_blocker_flow_id(blocker)
+        qa_questions = _rtl_blocker_qa_questions(ip, blocker, cards, reason=reason)
+        qa_pairs = _ssot_q_pairs_from_questions(qa_questions)
+        if qa_pairs:
+            _upsert_ssot_qa_items(
+                ip,
+                flow_id=qa_flow_id,
+                kind=str((_load_ssot_state(ip) or {}).get("kind") or "general IP"),
+                q_pairs=qa_pairs,
+                status="pending",
+                session=ssot_session,
+                source="rtl-blocker",
+            )
+            bridge.emit(
+                "ssot_qa_updated",
+                ip=ip,
+                workflow="ssot-gen",
+                flow_id=qa_flow_id,
+                session=ssot_session,
+            )
+
+        if not interactive:
+            msg = (
+                f"[RTL BLOCKER Q&A] recorded {len(qa_pairs)} pending SSOT QA card(s) for {ip}\n"
+                f"source: {_rtl_blocker_path(ip).relative_to(PROJECT_ROOT)}\n"
+                f"session: {ssot_session}\n"
+                "next: answer from SSOT QA/Preview, or run /resolve-rtl-blockers "
+                f"{ip} when ready to apply the decisions."
+            )
+            _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
+            _append_workflow_history("ssot-gen", "assistant", msg)
+            _append_active_history("assistant", "```\n" + msg + "\n```")
+            _emit_workflow_result(msg, "resolve-rtl-blockers")
             return True
 
         def _worker() -> None:
@@ -4594,16 +5020,42 @@ def create_app():
                 return
 
             answer_entries: list[dict[str, Any]] = []
-            for card, raw_answer in zip(cards, ans.get("answers") or []):
+            qa_answers: dict[str, dict[str, Any]] = {}
+            for qa_pair, card, raw_answer in zip(qa_pairs, cards, ans.get("answers") or []):
                 qa = raw_answer if isinstance(raw_answer, dict) else {}
+                key, _label, question = qa_pair
+                answer_text = _answer_text(qa, question)
                 answer_entries.append({
                     "id": card.get("id"),
                     "decision_needed": card.get("question"),
-                    "answer": _answer_text(qa, card),
+                    "answer": answer_text,
                     "selected": qa.get("selected") or [],
                     "custom": str(qa.get("custom") or "").strip(),
                     "source": reason,
                 })
+                qa_answers[key] = {
+                    "answer": answer_text,
+                    "selected": qa.get("selected") or [],
+                    "custom": str(qa.get("custom") or "").strip(),
+                }
+            if qa_pairs:
+                _upsert_ssot_qa_items(
+                    ip,
+                    flow_id=qa_flow_id,
+                    kind=str((_load_ssot_state(ip) or {}).get("kind") or "general IP"),
+                    q_pairs=qa_pairs,
+                    status="approved",
+                    answers=qa_answers,
+                    session=ssot_session,
+                    source="rtl-blocker",
+                )
+                bridge.emit(
+                    "ssot_qa_updated",
+                    ip=ip,
+                    workflow="ssot-gen",
+                    flow_id=qa_flow_id,
+                    session=ssot_session,
+                )
             try:
                 msg = _run_rtl_blocker_resolution(ip, blocker, answer_entries)
             except Exception as exc:
@@ -4766,6 +5218,9 @@ def create_app():
             return True
         return _start_rtl_blocker_qna(ip, reason="manual /resolve-rtl-blockers")
 
+    app.state.atlas_bridge = bridge
+    app.state.start_rtl_blocker_qna = _start_rtl_blocker_qna
+
     def _emit_workflow_result(text: str, tool: str = "workflow") -> None:
         body = (text or "").strip() or "(no output)"
         payload = "```\n" + body + "\n```"
@@ -4817,7 +5272,7 @@ def create_app():
         filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources)
         state.setdefault("ip", ip)
         state.setdefault("kind", kind)
-        state["active_session"] = f"{ip}/ssot-gen"
+        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen"
         _save_ssot_state(ip, state)
 
         missing = _missing_ssot_decisions(ip, state)
@@ -4889,28 +5344,14 @@ def create_app():
             return True
         state = _load_ssot_state(ip) or _new_ssot_state(ip)
         _ensure_ssot_draft(ip, str(state.get("kind") or "simple APB peripheral"))
-        state["active_session"] = f"{ip}/ssot-gen"
+        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen"
         state["last_step"] = "grill-me"
         _save_ssot_state(ip, state)
         missing = _missing_ssot_decisions(ip, state)
-        if not missing:
-            msg = (
-                f"[SSOT GRILL] {ip}: all required decisions are already filled.\n"
-                "Next: approve, then /to-ssot."
-            )
-            _append_session_message(f"{ip}/ssot-gen", "user", text)
-            _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
-            _append_workflow_history("ssot-gen", "user", text)
-            _append_workflow_history("ssot-gen", "assistant", msg)
-            _append_active_history("user", text)
-            _append_active_history("assistant", "```\n" + msg + "\n```")
-            _emit_workflow_result(msg, "grill-me")
-            _emit_ssot_approval_ready(ip, state, [])
-            return True
-
         msg = (
-            f"[SSOT GRILL] {ip}: opening {len(missing)} missing decision card(s).\n"
-            "Only missing fields are asked; imported/answered fields remain locked unless you edit them explicitly."
+            f"[SSOT GRILL] {ip}: queued ssot-gen LLM to generate IP-specific Q&A.\n"
+            f"backend baseline missing keys: {', '.join(missing) if missing else '(none)'}\n"
+            "Fixed question templates are bypassed; questions must be derived from the current SSOT/imported evidence."
         )
         _append_session_message(f"{ip}/ssot-gen", "user", text)
         _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
@@ -4919,7 +5360,10 @@ def create_app():
         _append_active_history("user", text)
         _append_active_history("assistant", "```\n" + msg + "\n```")
         _emit_workflow_result(msg, "grill-me")
-        _start_ssot_qna(ip, str(state.get("kind") or "simple APB peripheral"))
+        bridge.queue_prompt("/mode normal")
+        bridge.queue_prompt("/wf ssot-gen")
+        bridge.queue_prompt(_render_ssot_llm_qna_prompt(ip, str(state.get("kind") or "simple APB peripheral"), state))
+        bridge.emit("agent_state", running=True)
         return True
 
     def _handle_new_ip_command(text: str) -> bool:
@@ -5001,7 +5445,7 @@ def create_app():
         state["approved"] = True
         state["approved_at"] = time.time()
         state["status"] = "approved"
-        state["active_session"] = f"{ip}/ssot-gen"
+        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen"
         state["last_step"] = "approve"
         _save_ssot_state(ip, state)
         spec = _render_approved_ssot_spec(ip, state)
@@ -5542,7 +5986,7 @@ def create_app():
             _emit_workflow_result(msg, engine_alias)
 
             if surface.rtl_blocked:
-                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight")
+                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight", interactive=False)
                 return True
             for prompt in surface.queue_prompts:
                 bridge.queue_prompt(prompt)
@@ -5570,6 +6014,7 @@ def create_app():
             session = f"{ip}/sim"
             script = SOURCE_ROOT / "workflow" / "tb-gen" / "scripts" / "sim.sh"
             validator = SOURCE_ROOT / "workflow" / "tb-gen" / "scripts" / "check_tb_sim_evidence.sh"
+            coverage_script = SOURCE_ROOT / "workflow" / "coverage" / "scripts" / "ssot_coverage_summary.py"
             runner_candidates = [
                 PROJECT_ROOT / ip / "tb" / "cocotb" / "test_runner.py",
                 PROJECT_ROOT / ip / "tb" / "cocotb" / "run_tests.py",
@@ -5613,6 +6058,20 @@ def create_app():
                     capture_output=True,
                     timeout=180,
                 )
+                coverage_run = subprocess.CompletedProcess(
+                    args=[sys.executable, str(coverage_script), str(PROJECT_ROOT / ip)],
+                    returncode=0,
+                    stdout="",
+                    stderr="",
+                )
+                if sim_run.returncode == 0 and validate_run.returncode == 0:
+                    coverage_run = subprocess.run(
+                        [sys.executable, str(coverage_script), str(PROJECT_ROOT / ip)],
+                        cwd=str(PROJECT_ROOT),
+                        text=True,
+                        capture_output=True,
+                        timeout=90,
+                    )
             except Exception as exc:
                 msg = f"[sim] failed: {exc}"
                 _append_session_message(session, "assistant", msg)
@@ -5621,11 +6080,12 @@ def create_app():
                 _emit_workflow_result(msg, alias)
                 return True
 
-            status_word = "PASS" if sim_run.returncode == 0 and validate_run.returncode == 0 else "FAIL"
+            status_word = "PASS" if sim_run.returncode == 0 and validate_run.returncode == 0 and coverage_run.returncode == 0 else "FAIL"
             parts = [
                 f"[sim] {status_word}",
                 f"script: {script}",
                 f"validator: {validator}",
+                f"coverage: {coverage_script}",
                 f"module: {ip}",
                 f"runner: {runner.relative_to(PROJECT_ROOT)}",
                 f"sim exit: {sim_run.returncode}",
@@ -5639,6 +6099,11 @@ def create_app():
                 parts += ["", "validator stdout:", validate_run.stdout.strip()]
             if validate_run.stderr.strip():
                 parts += ["", "validator stderr:", validate_run.stderr.strip()]
+            parts += ["", f"coverage exit: {coverage_run.returncode}"]
+            if coverage_run.stdout.strip():
+                parts += ["", "coverage stdout:", coverage_run.stdout.strip()]
+            if coverage_run.stderr.strip():
+                parts += ["", "coverage stderr:", coverage_run.stderr.strip()]
             parts += [
                 "",
                 "expected artifacts:",
@@ -5806,7 +6271,7 @@ def create_app():
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, alias)
             if blocked_doc:
-                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight")
+                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight", interactive=False)
             elif gen_rc == 0 and (compile_rc != 0 or lint_rc != 0):
                 workflow = str(spec["workflow"])
                 template = str(spec.get("template") or alias)
@@ -8123,6 +8588,18 @@ def create_app():
                 if t in ("prompt", "send") and msg.get("text"):
                     _txt = msg["text"].strip()
                     import os as _os
+                    _ui_lang_raw = str(msg.get("ui_lang") or _os.environ.get("ATLAS_UI_LANG") or "").strip().lower()
+                    _ui_lang = {
+                        "ko": "ko",
+                        "kr": "ko",
+                        "korean": "ko",
+                        "한국어": "ko",
+                        "en": "en",
+                        "eng": "en",
+                        "english": "en",
+                    }.get(_ui_lang_raw, "")
+                    if _ui_lang:
+                        _os.environ["ATLAS_UI_LANG"] = _ui_lang
                     _session_raw = str(msg.get("session") or "").strip()
                     _session = normalize_session_name(_session_raw)
                     if _session_raw:
@@ -8216,6 +8693,23 @@ def create_app():
                             "→ todo_update(completed) → verify → todo_update(approved)."
                         )
                         continue
+                    _control_heads = {"approve", "y", "yes", "yc", "confirm", "ok", "proceed", "ㅇㅇ", "확인", "진행"}
+                    _head = (_txt.split(None, 1)[0] if _txt else "").lower()
+                    if _ui_lang and _txt and not _txt.startswith("/") and _head not in _control_heads:
+                        if _ui_lang == "ko":
+                            _txt = (
+                                "[Atlas UI language preference]\n"
+                                "User-visible explanations, status summaries, questions, and reports should be written in Korean as much as possible. "
+                                "Keep code, file paths, commands, signal names, protocol names, and exact identifiers unchanged.\n\n"
+                                + _txt
+                            )
+                        elif _ui_lang == "en":
+                            _txt = (
+                                "[Atlas UI language preference]\n"
+                                "User-visible explanations, status summaries, questions, and reports should be written in English as much as possible. "
+                                "Keep code, file paths, commands, signal names, protocol names, and exact identifiers unchanged.\n\n"
+                                + _txt
+                            )
                     bridge.submit_prompt(_txt)
                 elif t == "interrupt":
                     bridge.submit_prompt(msg.get("text", ""))
@@ -8407,6 +8901,44 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     except ImportError:
         _tools = None
 
+    def _record_ssot_qa_cb(questions=None, ip=None, session=None, kind="",
+                           source="llm-ssot-qna", status="pending"):
+        """Record deferred SSOT QA without blocking the agent thread."""
+        ctx_ip, ctx_session = _active_ssot_qa_context()
+        target_ip = str(ip or ctx_ip or "").strip()
+        if not _valid_ip_name(target_ip):
+            return "[record_ssot_qa: no active valid SSOT IP]"
+        target_session = normalize_session_name(str(session or ctx_session or f"{target_ip}/ssot-gen"))
+        flow_id = "qa_backlog_" + uuid.uuid4().hex[:10]
+        q_pairs = _ssot_q_pairs_from_questions(questions or [])
+        if not q_pairs:
+            return "[record_ssot_qa: no valid QA items to record]"
+        state = _load_ssot_state(target_ip) or {}
+        ip_kind = str(kind or "").strip()
+        if ip_kind.lower() in {"single", "multi", "input"}:
+            ip_kind = ""
+        _upsert_ssot_qa_items(
+            target_ip,
+            flow_id=flow_id,
+            kind=str(ip_kind or state.get("kind") or "general IP"),
+            q_pairs=q_pairs,
+            status=str(status or "pending"),
+            session=target_session,
+            source=str(source or "llm-ssot-qna"),
+        )
+        bridge.emit(
+            "ssot_qa_updated",
+            ip=target_ip,
+            workflow="ssot-gen",
+            flow_id=flow_id,
+            session=target_session,
+        )
+        return (
+            f"[record_ssot_qa] recorded {len(q_pairs)} "
+            f"{_status_group(str(status or 'pending'))} SSOT QA item(s) "
+            f"for {target_session}"
+        )
+
     def _ask_user_cb(question, options, kind, subtitle, questions=None):
         """ask_user UI bridge.
 
@@ -8417,6 +8949,35 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         the user fills N answers in one round-trip.
         """
         flow_id = "qa_" + uuid.uuid4().hex[:10]
+        ssot_ip, ssot_session = _active_ssot_qa_context()
+        ssot_q_pairs: list[tuple[str, str, dict[str, Any]]] = []
+        if ssot_ip:
+            if questions:
+                ssot_q_pairs = _ssot_q_pairs_from_questions(questions)
+            elif question:
+                ssot_q_pairs = _ssot_q_pairs_from_questions([{
+                    "id": "question",
+                    "decision_key": "question",
+                    "decision_label": subtitle or question,
+                    "question": question,
+                    "kind": kind,
+                    "subtitle": subtitle or "",
+                    "options": options or [],
+                }])
+            if ssot_q_pairs:
+                _upsert_ssot_qa_items(
+                    ssot_ip,
+                    flow_id=flow_id,
+                    kind=str((_load_ssot_state(ssot_ip) or {}).get("kind") or "general IP"),
+                    q_pairs=ssot_q_pairs,
+                    status="pending",
+                    session=ssot_session,
+                )
+                bridge.emit("ssot_qa_updated", ip=ssot_ip, workflow="ssot-gen", flow_id=flow_id)
+        ssot_emit = (
+            {"session": ssot_session, "ip": ssot_ip, "workflow": "ssot-gen", "source": "llm-ssot-qna"}
+            if ssot_ip else {}
+        )
         bridge.open_question(flow_id)
         if questions:
             # Batched payload — frontend (workspace.jsx) detects the
@@ -8425,6 +8986,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                 "ask_user",
                 flow_id=flow_id,
                 questions=questions,
+                **ssot_emit,
             )
         else:
             bridge.emit(
@@ -8434,6 +8996,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                 kind=kind,
                 subtitle=subtitle or "",
                 options=options or [],
+                **ssot_emit,
             )
         try:
             ans = bridge.wait_answer(flow_id, timeout=900)  # 15 min ceiling
@@ -8447,16 +9010,55 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         # Batched answer format: {"answers": [{...}, ...]} aligned with questions.
         if questions and isinstance(ans, dict) and "answers" in ans:
             blocks = []
+            qa_answers: dict[str, dict[str, Any]] = {}
             for q, qa in zip(questions, ans.get("answers") or []):
                 label = (q.get("subtitle") or q.get("question", ""))[:40]
                 blocks.append(
                     f"  • {label}\n    {_format_answer(qa, q.get('options'))}"
                 )
+            if ssot_ip and ssot_q_pairs:
+                for (key, _label, q), qa in zip(ssot_q_pairs, ans.get("answers") or []):
+                    qa_dict = qa if isinstance(qa, dict) else {}
+                    qa_answers[key] = {
+                        "answer": _answer_text(qa_dict, q),
+                        "selected": qa_dict.get("selected") or [],
+                        "custom": str(qa_dict.get("custom") or "").strip(),
+                    }
+                _upsert_ssot_qa_items(
+                    ssot_ip,
+                    flow_id=flow_id,
+                    kind=str((_load_ssot_state(ssot_ip) or {}).get("kind") or "general IP"),
+                    q_pairs=ssot_q_pairs,
+                    status="approved",
+                    answers=qa_answers,
+                    session=ssot_session,
+                )
+                bridge.emit("ssot_qa_updated", ip=ssot_ip, workflow="ssot-gen", flow_id=flow_id)
             return "Batched answers:\n" + "\n".join(blocks) if blocks else "(no answers)"
+        if ssot_ip and ssot_q_pairs and isinstance(ans, dict):
+            key, _label, q = ssot_q_pairs[0]
+            _upsert_ssot_qa_items(
+                ssot_ip,
+                flow_id=flow_id,
+                kind=str((_load_ssot_state(ssot_ip) or {}).get("kind") or "general IP"),
+                q_pairs=ssot_q_pairs,
+                status="approved",
+                answers={
+                    key: {
+                        "answer": _answer_text(ans, q),
+                        "selected": ans.get("selected") or [],
+                        "custom": str(ans.get("custom") or "").strip(),
+                    }
+                },
+                session=ssot_session,
+            )
+            bridge.emit("ssot_qa_updated", ip=ssot_ip, workflow="ssot-gen", flow_id=flow_id)
         return _format_answer(ans, options or [])
 
     if _tools and hasattr(_tools, "set_ask_user_callback"):
         _tools.set_ask_user_callback(_ask_user_cb)
+    if _tools and hasattr(_tools, "set_record_ssot_qa_callback"):
+        _tools.set_record_ssot_qa_callback(_record_ssot_qa_cb)
 
     def _run_agent():
         try:

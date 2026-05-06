@@ -39,6 +39,7 @@ def normalize_session_name(value: str) -> str:
 
     Accepted inputs:
     - ``dma330/rtl-gen``
+    - ``u-mabc123/dma330/rtl-gen``
     - ``.session/dma330/rtl-gen``
     - ``C:\\repo\\common_ai_agent\\.session\\dma330\\rtl-gen``
     - ``C:\\repo\\common_ai_agent\\.session\\dma330\\rtl-gen\\conversation.json``
@@ -50,12 +51,14 @@ def normalize_session_name(value: str) -> str:
     if not raw:
         return ""
 
+    pathish = "\\" in raw or ":" in raw or raw.startswith(("/", "~"))
     normalized = raw.replace("\\", "/").strip("/")
     parts = [part for part in normalized.split("/") if part and part != "."]
     if not parts:
         return ""
 
     lowered = [part.lower() for part in parts]
+    had_session_marker = ".session" in lowered
     if ".session" in lowered:
         index = len(lowered) - 1 - lowered[::-1].index(".session")
         parts = parts[index + 1:]
@@ -78,7 +81,11 @@ def normalize_session_name(value: str) -> str:
     # "C:\Users\me\Desktop\SQA\ssot-gen". Treat those as path-ish and
     # keep the namespace-looking tail instead of accepting the entire host
     # filesystem path as a deeply nested session name.
-    if len(parts) > 2 and parts[-1].lower() in _KNOWN_WORKFLOWS:
+    if (
+        len(parts) > 2
+        and parts[-1].lower() in _KNOWN_WORKFLOWS
+        and ((pathish and not had_session_marker) or len(parts) > 3)
+    ):
         parts = parts[-2:]
 
     safe_parts: list[str] = []

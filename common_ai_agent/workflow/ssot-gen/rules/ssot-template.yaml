@@ -44,8 +44,13 @@ sub_modules:
   # ownership: manifest   → internal block described by this leaf YAML
   # ownership: child_ssot → independently reusable/verifiable child IP
   # Each manifest-owned non-top module needs an implementation contract.
-  # Description alone is not enough. Active modules need implements +
-  # source_sections + at least one concrete behavior ref from
+  # Description alone is not enough. Active modules need concrete SSOT ownership refs.
+  # Behavior modules should point to function_model/cycle_model/fsm refs and require
+  # module equivalence. Structural modules may point to memory/dataflow/registers/
+  # parameters/features refs and require structural traceability instead.
+  # `implements` may carry those refs directly when they are dotted SSOT refs
+  # such as function_model.transactions.FM_ACCEPT or cycle_model.handshake_rules.axi_aw.
+  # Explicit source_sections plus typed refs are still preferred for review:
   # function_model_refs, decomposition_refs, cycle_model_refs, feature_refs, dataflow_refs,
   # register_refs, fsm_refs, test_refs, trace_refs, or ssot_refs.
   # Wiring-only modules must set wiring_only: true and list ports plus
@@ -429,7 +434,7 @@ interrupts:
     type: "level"
 
 # =============================================================================
-# SECTION 14: FSM (Optional — when RTL is template-generated)
+# SECTION 14: FSM (Optional — when generated RTL needs explicit state machines)
 # =============================================================================
 fsm:
   channel_level:
@@ -458,7 +463,7 @@ fsm:
       - "SEND_WR"
       - "WAIT_WR_RESP"
       - "DONE_STATE"
-    note: "LLM-written FSM in <ip>_core.sv — not template-generated"
+    note: "LLM-written FSM in <ip>_core.sv from SSOT behavior — not a fixed IP generator template"
 
 # =============================================================================
 # SECTION 15: Timing & Performance
@@ -549,6 +554,16 @@ integration:
   bus_attachment:
     control: "APB4 slave"
     data: "AXI4 master read/write"
+  # Machine-readable child wiring contracts. These are used by rtl-gen gates:
+  # child modules must be instantiated with named port maps that match these
+  # module/port/signal contracts. Do not replace this with prose for
+  # production-profile multi-module IPs. If a contract is not yet known,
+  # record the missing human decision as QA/change_request evidence; rtl-gen
+  # can draft child-module RTL, but top integration/signoff remains blocked.
+  connections:
+    - { module: "<ip>_core", port: "clk_i", signal: "dmaclk" }
+    - { module: "<ip>_core", port: "rst_ni", signal: "dmacresetn" }
+    - { module: "<ip>_apb_regs", port: "irq_o", signal: "dmac_irq" }
   address_map_requirements:
     alignment_bytes: 4
     decode_owner: "SoC interconnect"
@@ -612,9 +627,9 @@ coding_rules:
     - "BANNED in both dialects: package / endpackage / import / interface / modport"
     - "V2K: use wire/reg, NOT logic; use localparam state encoding, NOT enum"
   lint_waivers:
-    - "UNUSEDSIGNAL: generated template tie-offs"
+    - "UNUSEDSIGNAL: explicit approved tie-offs only"
     - "WIDTHEXPAND: peripheral_events indexing"
-    - "UNUSEDPARAM: CHANNEL_ID in templated FSM"
+    - "UNUSEDPARAM: CHANNEL_ID only when justified by SSOT configurability"
 
 # =============================================================================
 # SECTION 24: Reuse Modules
@@ -631,6 +646,7 @@ custom:
 # SECTION 26: Dir Structure
 # =============================================================================
 dir_structure:
+  # Legacy directory keys are retained for compatibility; they are not fixed IP implementation templates.
   template_dirs:
     rtl: "templates/rtl/"
     sim: "templates/sim/"
@@ -714,6 +730,23 @@ quality_gates:
   ssot:
     pass: "All canonical sections are present, substantive, internally consistent, and have no live TBD placeholders."
     evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+  rtl_gen:
+    profile: "production"                  # standard | production; production adds FL/CL/protocol-assertion/equivalence/coverage authority gates
+    target_scale:                          # Optional human-locked structural depth minima for PL330/DMA330-class targets; omit or lower for smaller IPs
+      basis: "calibrated from approved architecture/review or rtl_reference_profile; not a template"
+      source_files_min: 0
+      modules_min: 0
+      procedural_blocks_min: 0
+      state_updates_min: 0
+      depth_score_min: 0
+      logic_modules_min: 0
+      behavior_owner_logic_modules_min: 0
+    target_scale_waiver:                   # Optional explicit human waiver when a reference profile exists but target_scale is intentionally not enforced
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "SSOT-derived rtl_todo_plan has no blockers/orphans; all implementation TODOs and rtl_gate.rtl_gen gates close with fresh evidence generated after the final RTL source edit, including locked Human/LLM authority approval, current model signature evidence, rich owner-file static evidence, owner logic structure evidence, placeholder-free RTL evidence, top IO contract evidence, top output drive evidence, top input consumption evidence, top hierarchy reachability, named port-connection evidence, manifest signal-flow evidence, SSOT connection-contract evidence for manifest-owned submodules, FL-vs-RTL goal coverage, and RTL-observed coverage closure."
+    evidence: ["rtl/rtl_todo_plan.json", "governance/authority.json type == human_llm_authority_manifest", "governance/authority.json operating_rules R1..R6 present", "governance/authority.json llm_loops L1..L9 present", "governance/authority.json human_gates G1..G7 approved before production RTL-GEN", "governance/authority.json repo_layout separates locked truth from LLM-editable work", "model/model_signature.json matches current SSOT-derived golden signature", "rtl/rtl_traceability.json", "rtl/rtl_authoring_provenance.json", "rtl/rtl_authoring_provenance.json todo_plan_sha256 matches current rtl_todo_plan", "rtl/rtl_authoring_provenance.json rtl_files covers manifest/filelist RTL sources", "rtl/static_rtl_evidence.missing == 0", "rtl/tasks[].static_evidence.matched_count >= required_match_count", "rtl/owner_logic_evidence in rtl_todo_plan.json", "rtl/owner_logic_evidence.issues == []", "rtl/rtl_placeholder_free_evidence in rtl_todo_plan.json", "rtl/rtl_placeholder_free_evidence.issues == []", "rtl/top_io_contract_evidence in rtl_todo_plan.json", "rtl/top_io_contract_evidence.issues == []", "rtl/top_output_drive_evidence in rtl_todo_plan.json", "rtl/top_output_drive_evidence.issues == []", "rtl/top_input_consumption_evidence in rtl_todo_plan.json", "rtl/top_input_consumption_evidence.issues == []", "rtl/manifest_hierarchy_evidence in rtl_todo_plan.json", "rtl/manifest_hierarchy_evidence.port_connection_issues == []", "rtl/manifest_signal_flow_evidence in rtl_todo_plan.json", "rtl/manifest_signal_flow_evidence.issues == []", "rtl/manifest_hierarchy_evidence.connection_contract_issues == []", "rtl/rtl_compile.json fresh vs listed RTL sources", "rtl/rtl_compile.json rtl_files covers current filelist", "lint/dut_lint.json fresh vs listed RTL sources", "lint/dut_lint.json rtl_files covers current filelist", "verify/protocol_assertions.sva", "sim/assertion_failures.jsonl fresh vs listed RTL sources", "sim/fl_rtl_goal_audit.json fresh vs listed RTL sources", "sim/fl_rtl_compare.json covers every required unblocked equivalence goal", "cov/coverage.json fresh vs listed RTL sources", "cov/coverage.json source == ssot_coverage_summary", "cov/coverage.json rtl_observed.status == pass", "cov/coverage.json rtl_observed missing_bins/invalid_rows are empty"]
   rtl:
     pass: "RTL implements function_model and cycle_model, compiles, and has no unwaived lint warnings."
     evidence: ["rtl filelist", "compile log", "lint report"]

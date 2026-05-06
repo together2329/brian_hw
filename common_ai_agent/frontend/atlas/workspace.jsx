@@ -157,7 +157,19 @@ const Splitter = ({ width, side, onResize, onToggle }) => {
   );
 };
 
-const Workspace = ({ dir, onScreen }) => {
+const normalizeUiSession = (session) => {
+  const norm = window.atlasData && window.atlasData.normalizeSessionName;
+  try { return norm ? norm(session || '') : String(session || '').replace(/^\/+|\/+$/g, ''); }
+  catch (_) { return ''; }
+};
+
+const ssotIpFromSession = (session) => {
+  const parts = normalizeUiSession(session).split('/').filter(Boolean);
+  const idx = parts.lastIndexOf('ssot-gen');
+  return idx > 0 ? parts[idx - 1] : '';
+};
+
+const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // Two-axis mode model:
   //   intent: 'normal' | 'plan'   (top-level — shift+tab to swap)
   //   workflow: null | 'ssot' | 'rtl_gen' | 'lint' | 'tb_gen'
@@ -240,12 +252,15 @@ const Workspace = ({ dir, onScreen }) => {
         type: 'prompt',
         text,
         session,
+        ui_lang: window.ATLAS_UI_LANG || uiLang,
       });
     }
-  }, [activeSession, resolveSession]);
+  }, [activeSession, resolveSession, uiLang]);
 
   const switchToDefaultSession = React.useCallback(() => {
-    const sid = 'default';
+    const sid = (window.atlasData && window.atlasData.sessionFor)
+      ? (window.atlasData.sessionFor('', '') || 'default')
+      : 'default';
     window.ACTIVE_SESSION = sid;
     setActiveSession(sid);
     try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
@@ -309,6 +324,76 @@ const Workspace = ({ dir, onScreen }) => {
   // when the agent emits an ask_user event over the WS.
   const [qaState, setQaState] = React.useState({});
   const [ssotApproval, setSsotApproval] = React.useState(null);
+  const [ssotQa, setSsotQa] = React.useState(null);
+  const [ssotQaSessions, setSsotQaSessions] = React.useState([]);
+
+  const currentSession = React.useMemo(
+    () => resolveSession(activeSession, window.ACTIVE_SESSION),
+    [activeSession, resolveSession],
+  );
+
+  const activeSsotIp = React.useCallback(() => {
+    const fromSession = ssotIpFromSession(currentSession || window.ACTIVE_SESSION);
+    if (fromSession) return fromSession;
+    const scoped = String(window.SCOPE_PATH || '').split('/').filter(Boolean).pop() || '';
+    return /^[A-Za-z][A-Za-z0-9_]*$/.test(scoped) ? scoped : '';
+  }, [currentSession]);
+
+  const refreshSsotQa = React.useCallback(async (sessionOverride) => {
+    const session = normalizeUiSession(sessionOverride || currentSession || window.ACTIVE_SESSION || '');
+    const ip = ssotIpFromSession(session) || activeSsotIp();
+    if (!ip) {
+      setSsotQa({ ip: '', toc: [], sections: [], summary: { total: 0, approved: 0, pending: 0 } });
+      return null;
+    }
+    try {
+      const qs = new URLSearchParams({ ip });
+      if (session) qs.set('session', session);
+      const r = await fetch('/api/ssot/qa?' + qs.toString());
+      if (!r.ok) return null;
+      const d = await r.json();
+      setSsotQa(d);
+      return d;
+    } catch (_) {
+      return null;
+    }
+  }, [activeSsotIp, currentSession]);
+
+  const refreshSsotQaSessions = React.useCallback(async () => {
+    try {
+      const r = await fetch('/api/ssot/qa/sessions', { cache: 'no-store' });
+      if (!r.ok) return null;
+      const d = await r.json();
+      const rows = Array.isArray(d.sessions) ? d.sessions : [];
+      setSsotQaSessions(rows);
+      return rows;
+    } catch (_) {
+      return null;
+    }
+  }, []);
+
+  const activateSsotQaSession = React.useCallback((row) => {
+    const sid = normalizeUiSession(row?.session || '');
+    if (!sid) return;
+    window.ACTIVE_SESSION = sid;
+    setActiveSession(sid);
+    try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+    if (row?.ip && window.atlasData?.setScopePath) {
+      window.atlasData.setScopePath(row.ip);
+    }
+    if (window.atlasData?.refreshSessionState) {
+      window.atlasData.refreshSessionState(sid);
+    }
+    setWorkflow('ssot-gen');
+    refreshSsotQa(sid);
+  }, [refreshSsotQa]);
+
+  const flowMatchesCurrentSession = React.useCallback((flowId, eventSession) => {
+    const flow = window.QA_FLOWS && window.QA_FLOWS[flowId];
+    const flowSession = normalizeUiSession(eventSession || (flow && flow.session) || '');
+    const active = normalizeUiSession(currentSession || window.ACTIVE_SESSION || '');
+    return !flowSession || !active || flowSession === active;
+  }, [currentSession]);
 
   // Force a re-render when the live data layer (data.jsx) refreshes
   // FILE_TREE / TODOS / SSOT_FILES so dependent panels show fresh data.
@@ -320,6 +405,19 @@ const Workspace = ({ dir, onScreen }) => {
   }, []);
 
   React.useEffect(() => {
+    refreshSsotQa();
+    refreshSsotQaSessions();
+    const h = (ev) => {
+      if (!ev.detail || ['SESSION_STATE', 'SCOPE_PATH', 'SSOT_QA', 'SSOT_FILES'].includes(ev.detail)) {
+        refreshSsotQa();
+        refreshSsotQaSessions();
+      }
+    };
+    window.addEventListener('atlas-data-changed', h);
+    return () => window.removeEventListener('atlas-data-changed', h);
+  }, [refreshSsotQa, refreshSsotQaSessions]);
+
+  React.useEffect(() => {
     const onData = (ev) => {
       if (ev.detail === 'CONTEXT' || ev.detail === 'FLOW_STAGES') {
         const backendWorkflow = (window.CONTEXT && window.CONTEXT.workspace) || '';
@@ -329,7 +427,11 @@ const Workspace = ({ dir, onScreen }) => {
         }
       }
       if (ev.detail === 'SCOPE_PATH') {
-        activateSession(window.SCOPE_PATH || '', workflow || '');
+        const activeParts = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+        const activeWorkflow = (window.FLOW_STAGES || []).some(s => s.id === activeParts[activeParts.length - 1])
+          ? activeParts[activeParts.length - 1]
+          : '';
+        activateSession(window.SCOPE_PATH || '', activeWorkflow || workflow || (window.CONTEXT && window.CONTEXT.workspace) || '');
       }
     };
     onData({ detail: 'CONTEXT' });
@@ -405,14 +507,24 @@ const Workspace = ({ dir, onScreen }) => {
   const inputRef = React.useRef(null);
   const feedRef = React.useRef(null);
 
-  // Derived: the latest unsubmitted qcard in the feed (the "open ask_user tool call")
+  // Derived: the latest unsubmitted qcard. Live ask_user normally appends
+  // a qcard to the chat feed, but session-history hydration can replace
+  // the feed after a reconnect. Keep Q&A visible from qaState as the
+  // authoritative pending-flow state.
   const pendingQcard = React.useMemo(() => {
     for (let i = feed.length - 1; i >= 0; i--) {
       const e = feed[i];
-      if (e.kind === 'qcard' && !qaState[e.flowId]?.submitted) return e;
+      if (e.kind === 'qcard' && !qaState[e.flowId]?.submitted && flowMatchesCurrentSession(e.flowId)) return e;
+    }
+    const flowIds = Object.keys(qaState || {});
+    for (let i = flowIds.length - 1; i >= 0; i--) {
+      const flowId = flowIds[i];
+      if (!qaState[flowId]?.submitted && window.QA_FLOWS && window.QA_FLOWS[flowId] && flowMatchesCurrentSession(flowId)) {
+        return { kind: 'qcard', flowId, dynamic: true };
+      }
     }
     return null;
-  }, [feed, qaState]);
+  }, [feed, qaState, flowMatchesCurrentSession]);
 
   // Tabbed center layout — auto-switch to Q&A tab when ask_user fires,
   // and back to chat after the user submits.  Classic layout ignores
@@ -893,6 +1005,7 @@ const Workspace = ({ dir, onScreen }) => {
     subs.push(window.backend.subscribe('ask_user', (m) => {
       const flowId = m.flow_id;
       if (!flowId) return;
+      if (!flowMatchesCurrentSession(flowId, m.session)) return;
       streamBufferRef.current = '';
       setStreamText('');
       setStreaming(false);
@@ -922,6 +1035,10 @@ const Workspace = ({ dir, onScreen }) => {
           batched: true,
           questions: qs,
           history: [], upcoming: [],
+          session: normalizeUiSession(m.session || ''),
+          ip: m.ip || '',
+          workflow: m.workflow || '',
+          source: m.source || '',
           dynamic: true,
         };
         setQaState(s => ({
@@ -953,6 +1070,10 @@ const Workspace = ({ dir, onScreen }) => {
           kind: m.kind === 'multi' ? 'multi' : m.kind === 'input' ? 'input' : 'single',
           options: opts,
           history: [], upcoming: [],
+          session: normalizeUiSession(m.session || ''),
+          ip: m.ip || '',
+          workflow: m.workflow || '',
+          source: m.source || '',
           dynamic: true,
         };
         setQaState(s => ({
@@ -963,8 +1084,11 @@ const Workspace = ({ dir, onScreen }) => {
       setFeed(f => (
         f.some(e => e && e.kind === 'qcard' && e.flowId === flowId)
           ? f
-          : [...f, { kind: 'qcard', flowId, dynamic: true }]
+          : [...f, { kind: 'qcard', flowId, dynamic: true, session: normalizeUiSession(m.session || '') }]
       ));
+      if (m.workflow === 'ssot-gen' || m.source === 'ssot-qna') {
+        setTimeout(refreshSsotQa, 150);
+      }
     }));
     subs.push(window.backend.subscribe('ssot_approval_ready', (m) => {
       if (!m || !m.ip) return;
@@ -989,11 +1113,13 @@ const Workspace = ({ dir, onScreen }) => {
         if (!cur || cur.submitted) return s;
         return { ...s, [flowId]: { ...cur, submitted: true } };
       });
+      setTimeout(refreshSsotQa, 250);
     };
     subs.push(window.backend.subscribe('ask_user_answered', closeAskUser));
     subs.push(window.backend.subscribe('ask_user_closed', closeAskUser));
+    subs.push(window.backend.subscribe('ssot_qa_updated', refreshSsotQa));
     return () => subs.forEach(u => u && u());
-  }, []);
+  }, [flowMatchesCurrentSession, refreshSsotQa]);
 
   const onKey = (e) => {
     if (showSlash) {
@@ -1631,24 +1757,15 @@ const Workspace = ({ dir, onScreen }) => {
                   onAdvance={advanceBatchedQuestion}
                 />
               ) : (
-                <div style={{
-                  padding: 20, color: 'var(--fg-mute)', fontSize: 12,
-                  fontFamily: 'var(--mono)',
-                }}>
-                  <div style={{ marginBottom: 8, color: 'var(--fg)' }}>No pending questions.</div>
-                  <div>
-                    When the agent calls <code style={{ color: 'var(--cyan)' }}>ask_user</code> or{' '}
-                    <code style={{ color: 'var(--cyan)' }}>ask_user(questions=[...])</code>,
-                    the answer panel appears here automatically.
-                  </div>
-                  <div style={{ marginTop: 12 }}>
-                    <span onClick={() => setMainTab('chat')} className="acc"
-                          style={{ cursor: 'pointer', padding: '2px 8px',
-                                   border: '1px solid var(--accent)', borderRadius: 2 }}>
-                      ← back to chat
-                    </span>
-                  </div>
-                </div>
+                <SsotQaBoard
+                  data={ssotQa}
+                  sessions={ssotQaSessions}
+                  activeSession={currentSession}
+                  uiLang={uiLang}
+                  onSelectSession={activateSsotQaSession}
+                  onBack={() => setMainTab('chat')}
+                  onRefresh={() => { refreshSsotQa(); refreshSsotQaSessions(); }}
+                />
               )}
             </div>
           )}
@@ -2281,6 +2398,7 @@ const SsotApprovalCard = ({ payload }) => {
       type: 'prompt',
       text,
       session,
+      ui_lang: window.ATLAS_UI_LANG || 'ko',
     });
   };
   const rows = [
@@ -2364,6 +2482,261 @@ const SsotApprovalCard = ({ payload }) => {
         </button>
         <code className="acc">{approved ? (payload?.generate_cmd || `/to-ssot ${ip}`) : (payload?.approve_cmd || `approve ${ip}`)}</code>
       </div>
+    </div>
+  );
+};
+
+const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSession, onBack, onRefresh }) => {
+  const sections = Array.isArray(data?.sections) ? data.sections : [];
+  const toc = Array.isArray(data?.toc) ? data.toc : [];
+  const sessionRows = Array.isArray(sessions) ? sessions : [];
+  const summary = data?.summary || { total: 0, approved: 0, pending: 0 };
+  const hasIp = !!data?.ip;
+  const t = uiLang === 'en'
+    ? {
+        noSession: 'No SSOT QA session selected.',
+        selectSession: 'Select an IP/session that uses',
+        back: 'back to chat',
+        title: 'SSOT QA Preview',
+        refresh: 'refresh',
+        chat: 'chat',
+        total: 'total',
+        approved: 'approved',
+        pending: 'pending',
+        ssot: 'ssot',
+        draft: 'draft',
+        sessions: 'Sessions',
+        toc: 'Table of contents',
+        none: 'No QA records yet.',
+        noSaved: 'No saved SSOT sessions yet.',
+        noCards: 'No section QA cards yet. Start',
+        noAnswer: 'No answer captured yet.',
+      }
+    : {
+        noSession: '선택된 SSOT QA 세션이 없습니다.',
+        selectSession: 'IP/session을 선택하세요:',
+        back: '채팅으로',
+        title: 'SSOT QA 미리보기',
+        refresh: '새로고침',
+        chat: '채팅',
+        total: '전체',
+        approved: '승인',
+        pending: '대기',
+        ssot: 'SSOT',
+        draft: '작성중',
+        sessions: '세션',
+        toc: '목차',
+        none: '아직 QA 기록이 없습니다.',
+        noSaved: '저장된 SSOT 세션이 없습니다.',
+        noCards: '아직 section QA 카드가 없습니다. 시작:',
+        noAnswer: '아직 답변이 저장되지 않았습니다.',
+      };
+  const scrollTo = (id) => {
+    try {
+      document.getElementById('ssot-qa-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (_) {}
+  };
+  const renderQa = (item, status) => (
+    <div
+      key={`${item.flow_id || ''}:${item.decision_key || item.question}`}
+      style={{
+        padding: '8px 10px',
+        border: '1px solid var(--line)',
+        borderLeft: `3px solid ${status === 'approved' ? 'var(--ok)' : 'var(--warn)'}`,
+        background: status === 'approved'
+          ? 'color-mix(in oklch, var(--ok) 7%, transparent)'
+          : 'color-mix(in oklch, var(--warn) 8%, transparent)',
+        marginBottom: 8,
+        fontFamily: 'var(--mono)',
+      }}
+    >
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+        <span style={{
+          color: status === 'approved' ? 'var(--ok)' : 'var(--warn)',
+          fontSize: 10,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+        }}>
+          {status}
+        </span>
+        <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
+          {item.decision_key || item.source || 'qa'}
+        </span>
+      </div>
+      <div style={{ color: 'var(--fg)', fontSize: 12, lineHeight: 1.45 }}>
+        {item.question || item.decision_label || 'Untitled question'}
+      </div>
+      {item.subtitle ? (
+        <div style={{ color: 'var(--fg-mute)', fontSize: 11, marginTop: 3 }}>
+          {item.subtitle}
+        </div>
+      ) : null}
+      <div style={{ color: item.answer ? 'var(--fg)' : 'var(--fg-mute)', fontSize: 12, marginTop: 7, lineHeight: 1.45 }}>
+        {item.answer || t.noAnswer}
+      </div>
+    </div>
+  );
+
+  if (!hasIp) {
+    return (
+      <div style={{ padding: 20, color: 'var(--fg-mute)', fontSize: 12, fontFamily: 'var(--mono)' }}>
+        <div style={{ marginBottom: 8, color: 'var(--fg)' }}>{t.noSession}</div>
+        <div>{t.selectSession} <code style={{ color: 'var(--cyan)' }}>ssot-gen</code>.</div>
+        <div style={{ marginTop: 12 }}>
+          <button className="mini-btn" type="button" onClick={onBack}>{t.back}</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontFamily: 'var(--mono)' }}>
+      <div style={{
+        border: '1px solid var(--line)',
+        background: 'var(--bg-1)',
+        padding: 12,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ color: 'var(--fg)', fontSize: 15, fontWeight: 700 }}>{t.title}</div>
+          <code className="acc">{data.ip}</code>
+          <span style={{ flex: 1 }} />
+          <button className="mini-btn" type="button" onClick={onRefresh}>{t.refresh}</button>
+          <button className="mini-btn" type="button" onClick={onBack}>{t.chat}</button>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10, fontSize: 11 }}>
+          <span style={{ color: 'var(--fg-mute)' }}>{t.total} {summary.total || 0}</span>
+          <span style={{ color: 'var(--ok)' }}>{t.approved} {summary.approved || 0}</span>
+          <span style={{ color: 'var(--warn)' }}>{t.pending} {summary.pending || 0}</span>
+          <span style={{ color: data.approved ? 'var(--ok)' : 'var(--fg-mute)' }}>
+            {t.ssot} {data.approved ? t.approved : (data.state_status || t.draft)}
+          </span>
+        </div>
+      </div>
+
+      <div style={{
+        border: '1px solid var(--line)',
+        padding: 10,
+        background: 'color-mix(in oklch, var(--bg-1) 75%, transparent)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <div style={{ fontSize: 11, color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            {t.sessions}
+          </div>
+          <span style={{ flex: 1 }} />
+          <span style={{ fontSize: 10, color: 'var(--fg-mute)' }}>{sessionRows.length} ssot-gen</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 8 }}>
+          {sessionRows.length ? sessionRows.slice(0, 12).map(row => {
+            const active = normalizeUiSession(row.session) === normalizeUiSession(activeSession || data.session || '');
+            const rowSummary = row.summary || {};
+            return (
+              <button
+                key={row.session}
+                type="button"
+                onClick={() => onSelectSession && onSelectSession(row)}
+                style={{
+                  textAlign: 'left',
+                  border: `1px solid ${active ? 'var(--accent)' : 'var(--line)'}`,
+                  background: active ? 'color-mix(in oklch, var(--accent) 12%, transparent)' : 'transparent',
+                  color: 'var(--fg)',
+                  padding: '8px 9px',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--mono)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ color: row.approved ? 'var(--ok)' : 'var(--warn)' }}>
+                    {row.approved ? 'approved' : row.status || 'draft'}
+                  </span>
+                  <span style={{ flex: 1 }} />
+                  <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>{row.workflow || 'ssot-gen'}</span>
+                </div>
+                <div style={{ marginTop: 5, fontSize: 12, color: 'var(--fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {row.ip || '(no ip)'}
+                </div>
+                <div style={{ marginTop: 3, fontSize: 10, color: 'var(--fg-mute)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {row.session}
+                </div>
+                <div style={{ marginTop: 6, fontSize: 10 }}>
+                  <span style={{ color: 'var(--ok)' }}>{rowSummary.approved || 0} {t.approved}</span>
+                  <span style={{ color: 'var(--fg-mute)' }}> / </span>
+                  <span style={{ color: 'var(--warn)' }}>{rowSummary.pending || 0} {t.pending}</span>
+                </div>
+              </button>
+            );
+          }) : (
+            <div style={{ color: 'var(--fg-mute)', fontSize: 12 }}>{t.noSaved}</div>
+          )}
+        </div>
+      </div>
+
+      <div style={{
+        border: '1px solid var(--line)',
+        padding: 10,
+        background: 'color-mix(in oklch, var(--bg-1) 75%, transparent)',
+      }}>
+        <div style={{ fontSize: 11, color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+          {t.toc}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 6 }}>
+          {toc.length ? toc.map(section => (
+            <button
+              key={section.id}
+              type="button"
+              onClick={() => scrollTo(section.id)}
+              style={{
+                textAlign: 'left',
+                border: '1px solid var(--line)',
+                background: 'transparent',
+                color: 'var(--fg)',
+                padding: '6px 8px',
+                cursor: 'pointer',
+                fontFamily: 'var(--mono)',
+              }}
+            >
+              <div style={{ fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {section.title}
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--fg-mute)', marginTop: 3 }}>
+                {section.approved || 0} {t.approved} / {section.pending || 0} {t.pending}
+              </div>
+            </button>
+          )) : (
+            <div style={{ color: 'var(--fg-mute)', fontSize: 12 }}>{t.none}</div>
+          )}
+        </div>
+      </div>
+
+      {sections.length ? sections.map(section => (
+        <section
+          key={section.id}
+          id={'ssot-qa-' + section.id}
+          style={{ border: '1px solid var(--line)', background: 'var(--bg-1)', padding: 12 }}
+        >
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
+            <div style={{ color: 'var(--fg)', fontSize: 13, fontWeight: 700 }}>{section.title}</div>
+            <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
+              {(section.approved || []).length} {t.approved} / {(section.pending || []).length} {t.pending}
+            </span>
+          </div>
+          {(section.pending || []).length ? (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ color: 'var(--warn)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{t.pending}</div>
+              {(section.pending || []).map(item => renderQa(item, 'pending'))}
+            </div>
+          ) : null}
+          {(section.approved || []).length ? (
+            <div>
+              <div style={{ color: 'var(--ok)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{t.approved}</div>
+              {(section.approved || []).map(item => renderQa(item, 'approved'))}
+            </div>
+          ) : null}
+        </section>
+      )) : (
+        <div style={{ padding: 20, color: 'var(--fg-mute)', fontSize: 12 }}>
+          {t.noCards} <code style={{ color: 'var(--cyan)' }}>/new-ip</code> / <code style={{ color: 'var(--cyan)' }}>/grill-me</code>.
+        </div>
+      )}
     </div>
   );
 };

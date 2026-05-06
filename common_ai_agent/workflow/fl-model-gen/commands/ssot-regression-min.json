@@ -1,0 +1,8 @@
+{
+  "name": "ssot-regression-min",
+  "description": "L8 — Bisect/shrink a failing transaction sequence to a minimal reproducer using the IP's FunctionalModel as the oracle",
+  "aliases": ["srm", "regression-min"],
+  "handler": "stage:ssot-regression-min",
+  "usage": "/ssot-regression-min <module_name> --seed <ip>/sim/<seed>.jsonl",
+  "area": "sim"
+}

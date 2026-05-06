@@ -1,0 +1,99 @@
+{
+  "name": "golden-ip-augment",
+  "description": "Catalog of conditional per-IP TODO templates instantiated by emit_golden_todos.py. The actual per-IP todo list lives at <ip>/golden/golden_todos_tracker.json — this file is metadata describing what the emitter may produce.",
+  "lock_additions": false,
+  "templates": [
+    {
+      "id": "GLD_AUG_CL_EMIT",
+      "trigger": "ssot.cycle_model has handshake_rules OR ordering OR arbitration OR outstanding>1",
+      "content_pattern": "GLD_AUG_CL_EMIT — Generate executable CL model for ${ip}",
+      "activeForm": "Verifying executable CL exists for ${ip}",
+      "detail": "Cycle-level model wraps FunctionalModel; provides .drive(), .tick(), .observe(), .coverage(). CL must NEVER re-evaluate output_rules/state_updates.",
+      "criteria": "<ip>/model/cycle_model.py exists\nFile contains zero occurrences of output_rules / state_updates / _eval_rule_expr\nCycleModel API smoke test passes",
+      "validator": "test -f ${ip}/model/cycle_model.py && ! grep -E 'output_rules|state_updates|_eval_rule_expr' ${ip}/model/cycle_model.py",
+      "priority": "high",
+      "loop": false
+    },
+    {
+      "id": "GLD_AUG_PYMTL3_PARITY",
+      "trigger": "ssot.cycle_model.executable == 'pymtl3'",
+      "content_pattern": "GLD_AUG_PYMTL3_PARITY — Verify PyMTL3 FL/CL parity vs pure-Python on golden_vectors.jsonl",
+      "activeForm": "Comparing PyMTL3 backend output to pure-Python oracle",
+      "detail": "Run the same golden vector through both pure-Python FunctionalModel.apply and PyMTL3 FunctionalModelPyMTL.apply; outputs must match byte-for-byte.",
+      "criteria": "Parity script exists at <ip>/verify/check_pymtl_parity.py\nAll golden vectors produce identical outputs across backends",
+      "validator": "python3 ${ip}/verify/check_pymtl_parity.py",
+      "priority": "medium",
+      "loop": true,
+      "max_loop_iterations": 5
+    },
+    {
+      "id": "GLD_AUG_PPA_SWEEP",
+      "trigger": "ssot.synthesis.ppa_targets has any of {area_um2_max, power_mw_max, frequency_mhz_min}",
+      "content_pattern": "GLD_AUG_PPA_SWEEP — Drive PPA sweep through CL.tick and report measured area/power/fmax",
+      "activeForm": "Running PPA sweep via CL",
+      "detail": "Use CycleModel to produce activity vectors fed into syn / sta-post / pnr workers; capture measured PPA.",
+      "criteria": "<ip>/reports/ppa_sweep.json exists with measured_area_um2, measured_power_mw, measured_fmax_mhz\nMeasured values within budgets defined by SSOT, or escalation noted",
+      "validator": "python3 ${ip}/verify/check_ppa.py",
+      "priority": "medium",
+      "loop": true,
+      "max_loop_iterations": 5
+    },
+    {
+      "id": "GLD_AUG_SECURITY_GOALS",
+      "trigger": "ssot.security has assets OR threats",
+      "content_pattern": "GLD_AUG_SECURITY_GOALS — Add EQ_SECURITY_* goals for ${ip}",
+      "activeForm": "Generating EQ_SECURITY_* equivalence goals",
+      "detail": "Each declared asset/threat should produce a security equivalence goal with stimulus + observable.",
+      "criteria": "equivalence_goals.json contains at least one EQ_SECURITY_* goal\nEach asset/threat from SSOT is referenced",
+      "validator": "python3 -c \"import json; g=json.load(open('${ip}/verify/equivalence_goals.json')); raise SystemExit(0 if any(x['goal_id'].startswith('EQ_SECURITY_') for x in g['goals']) else 1)\"",
+      "priority": "high",
+      "loop": false
+    },
+    {
+      "id": "GLD_AUG_MEMORY_BOUNDARY",
+      "trigger": "ssot.memory.instances non-empty",
+      "content_pattern": "GLD_AUG_MEMORY_BOUNDARY — Drive memory boundary scoreboard via CL.observe for ${ip}",
+      "activeForm": "Validating memory boundary against FL+CL",
+      "detail": "Observable memory state must match FunctionalModel state for read/write/byte-strobe/boundary cases.",
+      "criteria": "<ip>/verify/check_memory_boundary.py exists and exits 0\nReports per-instance status",
+      "validator": "python3 ${ip}/verify/check_memory_boundary.py",
+      "priority": "medium",
+      "loop": true,
+      "max_loop_iterations": 5
+    },
+    {
+      "id": "GLD_AUG_SIGNATURE",
+      "trigger": "always",
+      "content_pattern": "GLD_AUG_SIGNATURE — Emit and verify model_signature.json for ${ip}",
+      "activeForm": "Verifying model_signature.json freshness for ${ip}",
+      "detail": "Signature must be fresh after every SSOT change; --check mode detects drift.",
+      "criteria": "<ip>/model/model_signature.json exists\npython3 emit_model_signature.py ${ip} --root . --check returns 0",
+      "validator": "test -f ${ip}/model/model_signature.json && python3 workflow/fl-model-gen/scripts/emit_model_signature.py ${ip} --root . --check",
+      "priority": "medium",
+      "loop": false
+    },
+    {
+      "id": "GLD_AUG_COCOTB_RUN",
+      "trigger": "always",
+      "content_pattern": "GLD_AUG_COCOTB_RUN — Run cocotb harness fl_cl_rtl end-to-end for ${ip}",
+      "activeForm": "Running cocotb fl_cl_rtl harness",
+      "detail": "Full DUT + FL + CL co-simulation; scoreboard compares RTL observable to FunctionalModel.apply expected.",
+      "criteria": "make -C ${ip}/verify -f Makefile.sim fl_cl_rtl exits 0\nCoverage report written under ${ip}/cov/",
+      "validator": "make -C ${ip}/verify -f Makefile.sim fl_cl_rtl",
+      "priority": "high",
+      "loop": true,
+      "max_loop_iterations": 5
+    },
+    {
+      "id": "GLD_AUG_LOOP_MAP",
+      "trigger": "always",
+      "content_pattern": "GLD_AUG_LOOP_MAP — Emit human-vs-LLM loop_map.svg for ${ip}",
+      "activeForm": "Generating human-vs-LLM loop diagram",
+      "detail": "Render <ip>/model/loop_map.mmd from authority_contract; convert to SVG.",
+      "criteria": "<ip>/model/loop_map.svg exists",
+      "validator": "test -f ${ip}/model/loop_map.svg",
+      "priority": "low",
+      "loop": false
+    }
+  ]
+}

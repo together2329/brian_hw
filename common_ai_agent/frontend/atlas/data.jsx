@@ -62,10 +62,21 @@
   window.TODOS = [];
   window.SSOT_FILES = [];
   window.ATLAS_PROGRESS = null;
+  try {
+    window.ATLAS_UI_LANG = localStorage.getItem('atlasUiLang') || window.ATLAS_UI_LANG || 'ko';
+  } catch (_) {
+    window.ATLAS_UI_LANG = window.ATLAS_UI_LANG || 'ko';
+  }
 
   // Scope path: agent is asked (via prompt prefix) to keep all reads,
   // writes, and tool calls confined to this directory. Empty string =
   // whole project root. Persists across reloads via localStorage.
+  function createUserSessionId() {
+    const stamp = Date.now().toString(36);
+    const rand = Math.random().toString(36).slice(2, 8);
+    return `u-${stamp}-${rand}`;
+  }
+
   try {
     window.SCOPE_PATH = localStorage.getItem('atlasScopePath') || '';
   } catch (_) {
@@ -135,12 +146,14 @@
   function normalizeSessionName(value) {
     const raw = String(value || '').trim().replace(/^["']|["']$/g, '');
     if (!raw) return '';
+    const pathish = raw.includes('\\') || raw.includes(':') || raw.startsWith('/') || raw.startsWith('~');
     let parts = raw.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')
       .split('/')
       .filter(p => p && p !== '.');
     if (!parts.length) return '';
     const lower = parts.map(p => p.toLowerCase());
     const idx = lower.lastIndexOf('.session');
+    const hadSessionMarker = idx >= 0;
     if (idx >= 0) parts = parts.slice(idx + 1);
     else if (/^[A-Za-z]:$/.test(parts[0])) {
       parts = parts.slice(1);
@@ -151,7 +164,11 @@
       parts = parts.slice(0, -1);
     }
     if (!parts.length) return '';
-    if (parts.length > 2 && KNOWN_WORKFLOWS.has(String(parts[parts.length - 1]).toLowerCase())) {
+    if (
+      parts.length > 2 &&
+      KNOWN_WORKFLOWS.has(String(parts[parts.length - 1]).toLowerCase()) &&
+      ((pathish && !hadSessionMarker) || parts.length > 3)
+    ) {
       parts = parts.slice(-2);
     }
     for (const part of parts) {
@@ -160,9 +177,43 @@
     return parts.join('/');
   }
 
+  try {
+    let sid = normalizeSessionName(localStorage.getItem('atlasUserSessionId'));
+    if (!sid || sid.includes('/')) {
+      sid = createUserSessionId();
+      localStorage.setItem('atlasUserSessionId', sid);
+    }
+    window.ATLAS_USER_SESSION_ID = sid;
+  } catch (_) {
+    window.ATLAS_USER_SESSION_ID = createUserSessionId();
+  }
+  try {
+    const storedActive = normalizeSessionName(localStorage.getItem('atlasActiveSession'));
+    if (!storedActive || storedActive === 'default') {
+      window.ACTIVE_SESSION = `${window.ATLAS_USER_SESSION_ID}/default`;
+      localStorage.setItem('atlasActiveSession', window.ACTIVE_SESSION);
+    } else {
+      const parts = storedActive.split('/').filter(Boolean);
+      const legacyIpWorkflow = parts.length === 2 && KNOWN_WORKFLOWS.has(parts[1]);
+      const legacyWorkflow = parts.length === 1 && KNOWN_WORKFLOWS.has(parts[0]);
+      if (legacyIpWorkflow) {
+        window.ACTIVE_SESSION = `${window.ATLAS_USER_SESSION_ID}/${storedActive}`;
+        localStorage.setItem('atlasActiveSession', window.ACTIVE_SESSION);
+      } else if (legacyWorkflow) {
+        window.ACTIVE_SESSION = `${window.ATLAS_USER_SESSION_ID}/soc/${storedActive}`;
+        localStorage.setItem('atlasActiveSession', window.ACTIVE_SESSION);
+      }
+    }
+  } catch (_) {
+    if (!window.ACTIVE_SESSION || window.ACTIVE_SESSION === 'default') {
+      window.ACTIVE_SESSION = `${window.ATLAS_USER_SESSION_ID}/default`;
+    }
+  }
+
   function sessionFor(scopePath, workflow) {
     let scope = normalizeSessionName(scopePath || '');
     const wf = normalizeSessionName(String(workflow || '').replace(/^\/+|\/+$/g, ''));
+    const userSession = normalizeSessionName(window.ATLAS_USER_SESSION_ID || '') || '';
     if (wf && scope) {
       const parts = scope.split('/').filter(Boolean);
       if (parts[parts.length - 1] === wf) {
@@ -170,6 +221,10 @@
         scope = parts.join('/');
       }
     }
+    if (userSession && scope && wf) return `${userSession}/${scope}/${wf}`;
+    if (userSession && scope) return `${userSession}/${scope}/user`;
+    if (userSession && wf) return `${userSession}/soc/${wf}`;
+    if (userSession) return `${userSession}/default`;
     if (scope && wf) return `${scope}/${wf}`;
     if (scope) return `${scope}/user`;
     if (wf) return `soc/${wf}`;
@@ -183,16 +238,22 @@
       const r = await fetch('/api/session/state?session=' + encodeURIComponent(sid) + '&limit=200');
       if (!r.ok) return null;
       const d = await r.json();
-      window.ACTIVE_SESSION = d.session || sid;
-      try { localStorage.setItem('atlasActiveSession', window.ACTIVE_SESSION); } catch (_) {}
+      const responseSession = normalizeSessionName(d.session || sid) || sid;
+      const currentSession = normalizeSessionName(window.ACTIVE_SESSION || '') || sid;
+      if (currentSession !== sid && currentSession !== responseSession) {
+        return d;
+      }
+      const appliedSession = responseSession === sid ? responseSession : sid;
+      window.ACTIVE_SESSION = appliedSession;
+      try { localStorage.setItem('atlasActiveSession', appliedSession); } catch (_) {}
       const todos = d.todos && Array.isArray(d.todos.todos) ? d.todos.todos : [];
       window.TODOS = normalizeTodos(todos);
       if (hydrateConversation) {
-        window.dispatchEvent(new CustomEvent('atlas-session-loaded', { detail: d }));
+        window.dispatchEvent(new CustomEvent('atlas-session-loaded', { detail: { ...d, session: appliedSession } }));
         window.dispatchEvent(new CustomEvent('atlas-conversation-loaded', {
           detail: {
             messages: (d.conversation && d.conversation.messages) || [],
-            session: window.ACTIVE_SESSION,
+            session: appliedSession,
           },
         }));
       }
@@ -327,12 +388,20 @@
     }
   }
 
+  function activeWorkflowFromSession(session) {
+    const parts = normalizeSessionName(session || window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+    const last = parts[parts.length - 1] || '';
+    return KNOWN_WORKFLOWS.has(last) ? last : '';
+  }
+
   async function refreshHealth() {
     try {
       const r = await fetch('/healthz');
       if (!r.ok) return;
       const d = await r.json();
       const _prev = window.CONTEXT || {};
+      const activeWorkflow = activeWorkflowFromSession();
+      const backendWorkspace = normalizeSessionName(d.workspace || '');
       window.CONTEXT = Object.assign({}, _prev, {
         frontend:    d.frontend  || '',
         model:       d.model     || _prev.model || '—',
@@ -341,7 +410,7 @@
         provider:    d.provider   || '',
         maxTokens:   d.max_context    || _prev.maxTokens || 0,
         iterMax:     d.max_iterations || _prev.iterMax    || 0,
-        workspace:   d.workspace || '',
+        workspace:   (backendWorkspace && backendWorkspace !== 'default') ? backendWorkspace : (activeWorkflow || backendWorkspace || ''),
         projectRoot: d.project_root || '',
         cwd:         d.cwd || '',
         pricing:     d.pricing || null,    // {input, cache, output} USD/1M
@@ -378,7 +447,9 @@
           };
         });
       window.FLOW_STAGES = live.length ? live : DEFAULT_FLOW_STAGES.slice();
-      window.CONTEXT.workspace = d.active || '';
+      const activeWorkflow = activeWorkflowFromSession();
+      const backendActive = normalizeSessionName(d.active || '');
+      window.CONTEXT.workspace = (backendActive && backendActive !== 'default') ? backendActive : (activeWorkflow || backendActive || '');
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FLOW_STAGES' }));
     } catch (e) { /* ignore */ }
   }
@@ -388,6 +459,14 @@
     refreshFileTree, refreshTodos, refreshSsotList, refreshHealth,
     refreshSlashCommands, refreshWorkflows, refreshSessionState, sessionFor,
     refreshProgress, normalizeSessionName,
+    setUserSessionId: (sessionId) => {
+      const sid = normalizeSessionName(sessionId);
+      if (!sid || sid.includes('/')) return window.ATLAS_USER_SESSION_ID || '';
+      window.ATLAS_USER_SESSION_ID = sid;
+      try { localStorage.setItem('atlasUserSessionId', sid); } catch (_) {}
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'USER_SESSION_ID' }));
+      return sid;
+    },
     clearTodos: () => fetch('/api/todos/clear', { method: 'POST' }).then(refreshTodos),
     fetchFile: (path) =>
       fetch('/api/file?path=' + encodeURIComponent(path)).then(r => r.json()),

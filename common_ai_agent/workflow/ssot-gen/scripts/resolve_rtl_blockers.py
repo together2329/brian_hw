@@ -42,6 +42,39 @@ _MODULE_CONTRACT_KEYS = (
     "wiring_only",
 )
 
+_CONNECTION_CONTRACT_QIDS = {
+    "RTL_RESOLVE_CONNECTION_CONTRACTS",
+    "RTL_CONNECTION_CONTRACTS",
+    "RTL_MANIFEST_CONNECTION_CONTRACTS",
+}
+
+_CONNECTION_CONTAINER_KEYS = (
+    "connection_contracts",
+    "integration_connections",
+    "module_connections",
+    "connections",
+    "contracts",
+)
+
+_CONNECTION_OPTIONAL_STRING_KEYS = (
+    "instance",
+    "direction",
+    "source_ref",
+    "ssot_ref",
+    "source",
+    "sink",
+    "width",
+    "clock_domain",
+    "reset_domain",
+    "tieoff",
+    "reason",
+)
+
+_CONNECTION_OPTIONAL_BOOL_KEYS = (
+    "allow_constant",
+    "allow_unused",
+)
+
 
 def _load_json(path: Path) -> dict[str, Any]:
     if not path.is_file():
@@ -59,7 +92,20 @@ def _load_answers(root: Path, ip: str, answers_path: Path | None) -> list[dict[s
     else:
         doc = _load_json(root / ".session" / ip / "ssot-gen" / "state.json")
     answers = doc.get("rtl_blocker_answers") if isinstance(doc, dict) else []
+    if not isinstance(answers, list):
+        return []
     return [a for a in answers if isinstance(a, dict)]
+
+
+def _suggested_target_scale_answer(blocker: dict[str, Any]) -> dict[str, Any]:
+    qdoc = _question_doc(blocker, "RTL_TARGET_SCALE_POLICY")
+    suggested = qdoc.get("suggested_ssot_target_scale") if isinstance(qdoc.get("suggested_ssot_target_scale"), dict) else {}
+    if not suggested:
+        raise SystemExit("[resolve_rtl_blockers] RTL_TARGET_SCALE_POLICY has no suggested_ssot_target_scale")
+    return {
+        "id": "RTL_TARGET_SCALE_POLICY",
+        "answer": "Use the suggested target scale candidate after human architecture review.",
+    }
 
 
 def _ensure_dict(parent: dict[str, Any], key: str) -> dict[str, Any]:
@@ -515,6 +561,146 @@ def _contract_rows_from_answer(answer: dict[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
+def _first_nonempty(row: dict[str, Any], keys: tuple[str, ...]) -> str:
+    for key in keys:
+        value = str(row.get(key) or "").strip()
+        if value:
+            return value
+    return ""
+
+
+def _normalize_connection_row(row: dict[str, Any], *, module_hint: str = "") -> tuple[dict[str, Any] | None, str]:
+    module = _first_nonempty(
+        row,
+        ("module", "module_name", "child_module", "child", "name", "file"),
+    ) or module_hint
+    port = _first_nonempty(row, ("port", "child_port", "pin", "endpoint"))
+    signal = _first_nonempty(row, ("signal", "net", "wire", "expr", "expression", "source_signal"))
+    missing = [name for name, value in (("module", module), ("port", port), ("signal", signal)) if not value]
+    if missing:
+        label = _first_nonempty(row, ("module", "name", "instance", "port")) or "<unnamed>"
+        return None, f"{label}: missing {', '.join(missing)}"
+    normalized: dict[str, Any] = {
+        "module": module,
+        "port": port,
+        "signal": signal,
+        "machine_readable": True,
+    }
+    for key in _CONNECTION_OPTIONAL_STRING_KEYS:
+        value = str(row.get(key) or "").strip()
+        if value:
+            normalized[key] = value
+    for key in _CONNECTION_OPTIONAL_BOOL_KEYS:
+        if key in row:
+            normalized[key] = _as_bool(row.get(key))
+    return normalized, ""
+
+
+def _connection_rows_from_answer(answer: dict[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:
+    """Extract explicit module/port/signal connection rows from an answer.
+
+    This is intentionally generic and conservative: rows are applied only when
+    they carry machine-readable module, port, and signal fields. Free-form text
+    is retained in the resolution log but never converted into wiring.
+    """
+
+    candidates: list[Any] = []
+    for key in _CONNECTION_CONTAINER_KEYS:
+        if key in answer:
+            candidates.append({key: answer.get(key)})
+    for key in ("custom", "answer"):
+        parsed = _parse_structured_answer(str(answer.get(key) or ""))
+        if parsed is not None:
+            candidates.append(parsed)
+
+    rows: list[dict[str, Any]] = []
+    rejected: list[str] = []
+
+    def append_row(row: dict[str, Any], *, module_hint: str = "") -> None:
+        normalized, reason = _normalize_connection_row(row, module_hint=module_hint)
+        if normalized is None:
+            rejected.append(reason)
+        else:
+            rows.append(normalized)
+
+    def append_port_map(value: Any, *, module_hint: str) -> None:
+        if isinstance(value, dict):
+            for port, signal in value.items():
+                if isinstance(signal, dict):
+                    nested = dict(signal)
+                    nested.setdefault("module", module_hint)
+                    nested.setdefault("port", str(port))
+                    append_row(nested)
+                else:
+                    append_row({"module": module_hint, "port": str(port), "signal": signal})
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    append_row(item, module_hint=module_hint)
+
+    def collect(candidate: Any, *, module_hint: str = "") -> None:
+        if isinstance(candidate, list):
+            for item in candidate:
+                collect(item, module_hint=module_hint)
+            return
+        if not isinstance(candidate, dict):
+            return
+
+        if any(key in candidate for key in ("port", "signal", "net", "wire", "expr", "expression")):
+            append_row(candidate, module_hint=module_hint)
+
+        row_module = _first_nonempty(
+            candidate,
+            ("module", "module_name", "child_module", "child", "name", "file"),
+        ) or module_hint
+        if isinstance(candidate.get("connections"), dict) and row_module:
+            append_port_map(candidate["connections"], module_hint=row_module)
+        elif isinstance(candidate.get("connections"), list):
+            collect(candidate["connections"], module_hint=row_module)
+
+        for key in _CONNECTION_CONTAINER_KEYS:
+            if key == "connections":
+                continue
+            if key not in candidate:
+                continue
+            value = candidate.get(key)
+            if isinstance(value, list):
+                collect(value, module_hint=module_hint)
+            elif isinstance(value, dict):
+                if any(field in value for field in ("port", "signal", "net", "wire", "expr", "expression")):
+                    append_row(value, module_hint=module_hint)
+                else:
+                    for name, nested in value.items():
+                        hint = str(name or "").strip() or module_hint
+                        if isinstance(nested, dict):
+                            if any(field in nested for field in ("port", "signal", "net", "wire", "expr", "expression")):
+                                row = dict(nested)
+                                row.setdefault("module", hint)
+                                append_row(row)
+                            else:
+                                append_port_map(nested, module_hint=hint)
+                        elif isinstance(nested, list):
+                            collect(nested, module_hint=hint)
+
+    for candidate in candidates:
+        collect(candidate)
+
+    deduped: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str, str]] = set()
+    for row in rows:
+        key = (
+            str(row.get("module") or ""),
+            str(row.get("instance") or ""),
+            str(row.get("port") or ""),
+            str(row.get("signal") or ""),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(row)
+    return deduped, rejected
+
+
 def _as_string_list(value: Any) -> list[str]:
     if isinstance(value, list):
         return [str(item).strip() for item in value if str(item).strip()]
@@ -534,6 +720,85 @@ def _as_bool(value: Any) -> bool:
     if isinstance(value, bool):
         return value
     return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def _target_scale_payloads_from_answer(blocker: dict[str, Any], answer: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    candidates: list[Any] = []
+    for key in ("target_scale", "scale_targets", "implementation_scale"):
+        if isinstance(answer.get(key), dict):
+            candidates.append({"target_scale": answer[key]})
+    for key in ("target_scale_waiver", "scale_waiver", "implementation_scale_waiver"):
+        if isinstance(answer.get(key), dict):
+            candidates.append({"target_scale_waiver": answer[key]})
+    for key in ("custom", "answer"):
+        parsed = _parse_structured_answer(str(answer.get(key) or ""))
+        if parsed is not None:
+            candidates.append(parsed)
+
+    scale: dict[str, Any] = {}
+    waiver: dict[str, Any] = {}
+
+    def collect(candidate: Any) -> None:
+        nonlocal scale, waiver
+        if not isinstance(candidate, dict):
+            return
+        for key in ("target_scale", "scale_targets", "implementation_scale"):
+            if isinstance(candidate.get(key), dict):
+                scale.update(candidate[key])
+        for key in ("target_scale_waiver", "scale_waiver", "implementation_scale_waiver"):
+            if isinstance(candidate.get(key), dict):
+                waiver.update(candidate[key])
+        if any(str(key).endswith("_min") or str(key).startswith("min_") for key in candidate):
+            scale.update(candidate)
+        if {"approved", "reason"} & set(candidate):
+            waiver.update(candidate)
+
+    for candidate in candidates:
+        collect(candidate)
+
+    text = _answer_text(answer).lower()
+    if not scale and not waiver and any(token in text for token in ("recommended", "suggested", "candidate", "use reference")):
+        qdoc = _question_doc(blocker, str(answer.get("id") or answer.get("question_id") or ""))
+        suggested = qdoc.get("suggested_ssot_target_scale") if isinstance(qdoc.get("suggested_ssot_target_scale"), dict) else {}
+        if suggested:
+            scale.update(suggested)
+
+    return scale, waiver
+
+
+def _apply_target_scale_policy(doc: dict[str, Any], blocker: dict[str, Any], answer: dict[str, Any]) -> None:
+    scale, waiver = _target_scale_payloads_from_answer(blocker, answer)
+    qg = _ensure_dict(doc, "quality_gates")
+    rtl_gen = _ensure_dict(qg, "rtl_gen")
+
+    def positive_int(value: Any) -> int | None:
+        if isinstance(value, bool):
+            return None
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return None
+        return parsed if parsed > 0 else None
+
+    clean_scale: dict[str, Any] = {}
+    for key, value in scale.items():
+        if key in {"basis", "source", "reference_profile", "policy"} and str(value).strip():
+            clean_scale[key] = str(value).strip()
+            continue
+        parsed = positive_int(value)
+        if parsed is not None:
+            clean_scale[str(key)] = parsed
+    if clean_scale and any(str(key).endswith("_min") or str(key).startswith("min_") for key in clean_scale):
+        clean_scale.setdefault("basis", "human-approved RTL target scale from RTL blocker resolution")
+        rtl_gen["target_scale"] = clean_scale
+        rtl_gen.pop("target_scale_waiver", None)
+    elif waiver:
+        reason = str(waiver.get("reason") or waiver.get("rationale") or _answer_text(answer)).strip()
+        rtl_gen["target_scale_waiver"] = {
+            "approved": bool(waiver.get("approved", True)),
+            "reason": reason,
+            "owner": str(waiver.get("owner") or waiver.get("approver") or "human-review").strip(),
+        }
 
 
 def _submodule_index(doc: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -645,6 +910,90 @@ def _apply_rtl_module_contracts(doc: dict[str, Any], blocker: dict[str, Any], an
     })
 
 
+def _connection_identity(row: dict[str, Any]) -> tuple[str, str, str, str]:
+    return (
+        str(row.get("module") or ""),
+        str(row.get("instance") or ""),
+        str(row.get("port") or ""),
+        str(row.get("signal") or ""),
+    )
+
+
+def _apply_rtl_connection_contracts(doc: dict[str, Any], blocker: dict[str, Any], answer: dict[str, Any]) -> None:
+    """Project approved connection-contract answers into integration metadata.
+
+    The resolver records only explicit module/port/signal rows. It may mirror
+    those rows into matching sub_modules[].connections, but it never derives or
+    guesses missing wiring from RTL names.
+    """
+
+    rows, rejected = _connection_rows_from_answer(answer)
+    qid = str(answer.get("id") or answer.get("question_id") or "RTL_RESOLVE_CONNECTION_CONTRACTS").strip()
+    qdoc = _question_doc(blocker, qid)
+    integration = _ensure_dict(doc, "integration")
+    connections = _ensure_list(integration, "connections")
+    existing = {
+        _connection_identity(item)
+        for item in connections
+        if isinstance(item, dict)
+    }
+    applied: list[dict[str, Any]] = []
+    for row in rows:
+        identity = _connection_identity(row)
+        if identity not in existing:
+            connections.append(row)
+            existing.add(identity)
+        applied.append({
+            "module": row["module"],
+            "port": row["port"],
+            "signal": row["signal"],
+        })
+
+    submodule_updates: list[dict[str, str]] = []
+    unmatched_modules: list[str] = []
+    index = _submodule_index(doc)
+    for row in rows:
+        module = str(row.get("module") or "")
+        sm = index.get(module) or index.get(Path(module).stem)
+        if sm is None:
+            unmatched_modules.append(module)
+            continue
+        sm_connections = sm.get("connections")
+        if not isinstance(sm_connections, dict):
+            sm_connections = {}
+            sm["connections"] = sm_connections
+        port = str(row["port"])
+        signal = str(row["signal"])
+        if sm_connections.get(port) != signal:
+            sm_connections[port] = signal
+        sm["connection_contract_status"] = "approved_by_rtl_blocker_answer"
+        sm["connection_contract_source"] = _answer_text(answer)
+        sm["connection_contract_updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        submodule_updates.append({"module": module, "port": port, "signal": signal})
+
+    if rows:
+        integration["connection_contract_status"] = "approved_by_rtl_blocker_answer"
+        integration["connection_contract_source"] = _answer_text(answer)
+        integration["connection_contract_updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+    unresolved: list[dict[str, str]] = [{"name": item, "reason": "invalid or incomplete connection row"} for item in rejected]
+    unresolved.extend(
+        {"name": module, "reason": "no matching sub_modules[] row; kept in integration.connections"}
+        for module in sorted(set(unmatched_modules))
+    )
+    custom = _ensure_dict(doc, "custom")
+    history = _ensure_list(custom, "rtl_connection_contract_resolution_history")
+    history.append({
+        "source": "rtl_blocked.json -> ATLAS ask_user",
+        "blocker_id": qid or "RTL_RESOLVE_CONNECTION_CONTRACTS",
+        "applied": applied,
+        "submodule_updates": submodule_updates,
+        "unresolved": unresolved,
+        "required_fields": qdoc.get("required_fields") or ["module", "port", "signal"],
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
+
+
 def _record_resolution(doc: dict[str, Any], blocker: dict[str, Any], answer: dict[str, Any]) -> None:
     custom = _ensure_dict(doc, "custom")
     rows = _ensure_list(custom, "rtl_blocker_resolutions")
@@ -672,6 +1021,8 @@ def _record_resolution(doc: dict[str, Any], blocker: dict[str, Any], answer: dic
             "error_handling",
             "test_requirements",
             "sub_modules",
+            "integration.connections",
+            "quality_gates",
         ],
     })
 
@@ -697,8 +1048,19 @@ def apply_answers(doc: dict[str, Any], blocker: dict[str, Any], answers: list[di
         if qid == "RTL_OBSERVABLE_STATE_RULES":
             _apply_observable_state_rules(doc, blocker, answer)
             continue
-        if qid in {"RTL_MODULE_CONTRACTS", "RTL_MODULE_BEHAVIOR_MATCH", "SSOT_BEHAVIOR_OWNERSHIP"}:
+        if qid in {
+            "RTL_DYNAMIC_TODO_OWNERSHIP",
+            "RTL_MODULE_CONTRACTS",
+            "RTL_MODULE_BEHAVIOR_MATCH",
+            "SSOT_BEHAVIOR_OWNERSHIP",
+        }:
             _apply_rtl_module_contracts(doc, blocker, answer)
+            continue
+        if qid in _CONNECTION_CONTRACT_QIDS:
+            _apply_rtl_connection_contracts(doc, blocker, answer)
+            continue
+        if qid == "RTL_TARGET_SCALE_POLICY":
+            _apply_target_scale_policy(doc, blocker, answer)
             continue
         handler = handlers.get(qid)
         if handler:
@@ -722,6 +1084,11 @@ def main() -> int:
     ap.add_argument("ip")
     ap.add_argument("--root", default=".")
     ap.add_argument("--answers-json", default="")
+    ap.add_argument(
+        "--use-suggested-target-scale",
+        action="store_true",
+        help="Explicitly lock the RTL_TARGET_SCALE_POLICY suggested_ssot_target_scale into SSOT target_scale.",
+    )
     ns = ap.parse_args()
     root = Path(ns.root).resolve()
     ip_dir = root / ns.ip
@@ -731,14 +1098,16 @@ def main() -> int:
         raise SystemExit(f"[resolve_rtl_blockers] missing SSOT: {ssot_path}")
     if not blocker_path.is_file():
         raise SystemExit(f"[resolve_rtl_blockers] missing blocker: {blocker_path}")
-    answers_path = Path(ns.answers_json).resolve() if ns.answers_json else None
-    answers = _load_answers(root, ns.ip, answers_path)
-    if not answers:
-        raise SystemExit("[resolve_rtl_blockers] no rtl_blocker_answers found")
     doc = yaml.safe_load(ssot_path.read_text(encoding="utf-8")) or {}
     if not isinstance(doc, dict):
         raise SystemExit("[resolve_rtl_blockers] SSOT top-level must be mapping")
     blocker = _load_json(blocker_path)
+    answers_path = Path(ns.answers_json).resolve() if ns.answers_json else None
+    answers = _load_answers(root, ns.ip, answers_path)
+    if ns.use_suggested_target_scale:
+        answers.append(_suggested_target_scale_answer(blocker))
+    if not answers:
+        raise SystemExit("[resolve_rtl_blockers] no rtl_blocker_answers found")
     doc = apply_answers(doc, blocker, answers)
     ssot_path.write_text(yaml.safe_dump(doc, sort_keys=False, width=120), encoding="utf-8")
     resolved_path = ip_dir / "rtl" / "rtl_blocked_resolved.json"

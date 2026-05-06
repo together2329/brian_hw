@@ -64,6 +64,29 @@ STATIC_EVIDENCE_CATEGORIES = (
     "debug_observability.",
 )
 
+AUTHORING_PACKET_TASK_LIMIT = 48
+AUTHORING_RECOMMENDED_PACKET_BATCH_LIMIT = 4
+AUTHORING_PACKET_SECTION_ORDER = {
+    "rtl_flow": 0,
+    "io_list": 1,
+    "parameters": 2,
+    "integration": 3,
+    "function_model": 4,
+    "cycle_model": 5,
+    "fsm": 6,
+    "registers": 7,
+    "memory": 8,
+    "features": 9,
+    "error_handling": 10,
+    "interrupts": 11,
+    "security": 12,
+    "synthesis": 13,
+    "test_requirements": 14,
+    "coverage": 15,
+    "equivalence": 16,
+    "workflow_todo": 17,
+}
+
 EVIDENCE_STOPWORDS = {
     "access",
     "according",
@@ -182,7 +205,90 @@ def _as_list(value: Any) -> list[Any]:
     return [value]
 
 
+def _load_reference_profile(ip_dir: Path) -> dict[str, Any] | None:
+    for rel in ("reports/rtl_reference_profile.json", "rtl/rtl_reference_profile.json"):
+        path = ip_dir / rel
+        if not path.exists():
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(data, dict) or data.get("type") != "rtl_reference_profile":
+            continue
+        guidance = data.get("guidance") if isinstance(data.get("guidance"), dict) else {}
+        summary = data.get("summary") if isinstance(data.get("summary"), dict) else {}
+        target_summary = (
+            data.get("target_candidate_summary")
+            if isinstance(data.get("target_candidate_summary"), dict)
+            else {}
+        )
+        bucket_summaries = (
+            data.get("bucket_summaries")
+            if isinstance(data.get("bucket_summaries"), dict)
+            else {}
+        )
+        summary_keys = (
+            "file_count",
+            "lines",
+            "modules",
+            "always_blocks",
+            "assigns",
+            "nonconstant_assigns",
+            "case_blocks",
+            "instance_candidates",
+            "state_updates",
+        )
+        return {
+            "path": rel,
+            "label": data.get("label") or "",
+            "generated_at": data.get("generated_at") or "",
+            "summary": {
+                key: summary.get(key)
+                for key in summary_keys
+                if key in summary
+            },
+            "target_candidate_summary": {
+                key: target_summary.get(key)
+                for key in summary_keys
+                if key in target_summary
+            },
+            "target_candidate_basis": data.get("target_candidate_basis") or "",
+            "bucket_summaries": bucket_summaries,
+            "top_by_lines": data.get("top_by_lines") if isinstance(data.get("top_by_lines"), list) else [],
+            "suggested_ssot_target_scale": data.get("suggested_ssot_target_scale")
+            if isinstance(data.get("suggested_ssot_target_scale"), dict)
+            else {},
+            "guidance": {
+                "calibration_only": guidance.get("calibration_only", True),
+                "do_not_copy_reference_rtl": guidance.get("do_not_copy_reference_rtl", True),
+                "target_candidate_rule": guidance.get("target_candidate_rule") or "",
+            },
+        }
+    return None
+
+
 RTL_WORKFLOW_NAMES = {"rtl", "rtl-gen", "ssot-rtl", "ssot-rtl-gen", "rtl-generation"}
+
+TOP_FALLBACK_SECTIONS = {
+    "top_module",
+    "io_list",
+    "parameters",
+    "interrupts",
+    "features",
+    "error_handling",
+    "security",
+    "debug_observability",
+    "integration",
+    "timing",
+    "power",
+    "synthesis",
+    "dft",
+    "test_requirements",
+    "quality_gates",
+    "workflow_todos",
+    "next_step_todos",
+}
 
 
 def _norm_workflow(value: Any) -> str:
@@ -203,6 +309,149 @@ def _ci_get(item: dict[str, Any], *keys: str) -> Any:
         if actual is not None:
             return item[actual]
     return None
+
+
+def _rtl_gen_gate_config(doc: dict[str, Any]) -> dict[str, Any]:
+    qg = doc.get("quality_gates") if isinstance(doc.get("quality_gates"), dict) else {}
+    rtl_gen = (
+        _ci_get(qg, "rtl_gen", "rtl-gen", "rtl_gate", "rtl_gate.rtl_gen")
+        if isinstance(qg, dict) else {}
+    )
+    if not isinstance(rtl_gen, dict):
+        rtl_gen = {}
+    return rtl_gen
+
+
+def _rtl_quality_profile(doc: dict[str, Any], ip: str) -> str:
+    """Return the RTL gate profile requested by SSOT.
+
+    The default remains generic/lightweight.  Complex signoff profiles are
+    opt-in from SSOT quality_gates, with a narrow DMA330/PL330 name heuristic
+    for the common high-complexity DMA flow.
+    """
+    qg = doc.get("quality_gates") if isinstance(doc.get("quality_gates"), dict) else {}
+    rtl_gen = _rtl_gen_gate_config(doc)
+    top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+    raw = (
+        _ci_get(rtl_gen, "profile", "quality_profile", "level", "signoff_profile")
+        or _ci_get(qg, "rtl_quality_profile", "quality_profile")
+        or _ci_get(top, "quality_profile", "rtl_quality_profile")
+        or ""
+    )
+    norm = re.sub(r"[^a-z0-9]+", "_", str(raw).strip().lower()).strip("_")
+    if norm in {"prod", "production", "signoff", "pl330", "pl330_level", "dma330", "dma330_level"}:
+        return "production"
+    name_text = f"{ip} {_ci_get(top, 'name') or ''}".lower()
+    if any(token in name_text for token in ("pl330", "dma330", "dma_330")):
+        return "production"
+    return "standard"
+
+
+def _int_target(value: Any) -> int | None:
+    if value is None or value is False:
+        return None
+    if isinstance(value, bool):
+        return None
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed > 0 else None
+
+
+def _rtl_target_scale(doc: dict[str, Any]) -> dict[str, Any]:
+    """Return optional SSOT-locked implementation-scale targets.
+
+    These targets are human-owned SSOT policy, not values inferred from a
+    reference RTL tree.  Reference profiles may help humans choose the numbers,
+    but this parser only trusts explicit SSOT quality_gates fields.
+    """
+    rtl_gen = _rtl_gen_gate_config(doc)
+    raw = _ci_get(
+        rtl_gen,
+        "target_scale",
+        "scale_targets",
+        "implementation_scale",
+        "rtl_scale",
+        "depth_targets",
+    )
+    if not isinstance(raw, dict):
+        return {}
+
+    aliases = {
+        "min_source_files": ("min_source_files", "source_files_min", "file_count_min", "files_min", "min_files"),
+        "min_modules": ("min_modules", "modules_min", "module_count_min"),
+        "min_lines": ("min_lines", "lines_min", "line_count_min"),
+        "min_nonconstant_assigns": (
+            "min_nonconstant_assigns",
+            "nonconstant_assigns_min",
+            "assigns_min",
+            "min_assigns",
+        ),
+        "min_procedural_blocks": (
+            "min_procedural_blocks",
+            "procedural_blocks_min",
+            "always_blocks_min",
+            "min_always_blocks",
+        ),
+        "min_state_updates": ("min_state_updates", "state_updates_min"),
+        "min_control_flow": ("min_control_flow", "control_flow_min", "case_blocks_min", "min_case_blocks"),
+        "min_instances": ("min_instances", "instances_min", "instance_candidates_min"),
+        "min_depth_score": ("min_depth_score", "depth_score_min", "implementation_depth_score_min"),
+        "min_logic_modules": ("min_logic_modules", "logic_modules_min"),
+        "min_behavior_owner_logic_modules": (
+            "min_behavior_owner_logic_modules",
+            "behavior_owner_logic_modules_min",
+            "behavior_owner_modules_min",
+        ),
+    }
+    targets: dict[str, Any] = {}
+    for canonical, names in aliases.items():
+        value = None
+        for name in names:
+            value = _ci_get(raw, name)
+            if value is not None:
+                break
+        parsed = _int_target(value)
+        if parsed is not None:
+            targets[canonical] = parsed
+
+    if not any(key.startswith("min_") for key in targets):
+        return {}
+
+    basis = _ci_get(raw, "basis", "source", "rationale", "reference")
+    if _present(basis):
+        targets["basis"] = _short_text(basis, limit=240)
+    reference_profile = _ci_get(raw, "reference_profile", "reference_profile_path", "calibrated_from")
+    if _present(reference_profile):
+        targets["reference_profile"] = str(reference_profile).strip()
+    targets["policy"] = (
+        "SSOT-locked scale target. It may be calibrated from a reference profile, "
+        "but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    )
+    return targets
+
+
+def _rtl_target_scale_waiver(doc: dict[str, Any]) -> dict[str, Any]:
+    rtl_gen = _rtl_gen_gate_config(doc)
+    raw = _ci_get(
+        rtl_gen,
+        "target_scale_waiver",
+        "scale_waiver",
+        "implementation_scale_waiver",
+        "rtl_scale_waiver",
+    )
+    if not isinstance(raw, dict):
+        return {}
+    approved = bool(_ci_get(raw, "approved", "accepted", "waived"))
+    reason = _ci_get(raw, "reason", "rationale", "why", "basis")
+    owner = _ci_get(raw, "owner", "approver", "approved_by")
+    waiver: dict[str, Any] = {
+        "approved": approved,
+        "reason": _short_text(reason, limit=240) if _present(reason) else "",
+        "owner": str(owner).strip() if _present(owner) else "",
+    }
+    return {key: value for key, value in waiver.items() if value not in {"", False}}
 
 
 def _criteria_items(value: Any) -> list[str]:
@@ -293,12 +542,344 @@ def _safe_read_json(path: Path) -> dict[str, Any]:
     return data if isinstance(data, dict) else {}
 
 
+def _json_report_passed(report: dict[str, Any]) -> bool:
+    status = str(report.get("status") or "").strip().lower()
+    return report.get("passed") is True or status in {"pass", "passed", "ok"}
+
+
+def _truthy(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value or "").strip().lower() in {"1", "true", "yes", "y", "pass", "passed", "ok"}
+
+
+def _falsey(value: Any) -> bool:
+    if isinstance(value, bool):
+        return not value
+    return str(value or "").strip().lower() in {"0", "false", "no", "n", "optional", "waived"}
+
+
+def _required_unblocked_equivalence_goal_ids(goals_doc: dict[str, Any]) -> list[str]:
+    goals = goals_doc.get("goals") if isinstance(goals_doc.get("goals"), list) else []
+    ids: list[str] = []
+    seen: set[str] = set()
+    for goal in goals:
+        if not isinstance(goal, dict):
+            continue
+        blocked = _truthy(goal.get("blocked"))
+        required = not _falsey(goal.get("required"))
+        optional = _truthy(goal.get("optional"))
+        gid = str(goal.get("goal_id") or goal.get("id") or "").strip()
+        if not gid or blocked or optional or not required:
+            continue
+        if gid not in seen:
+            ids.append(gid)
+            seen.add(gid)
+    return ids
+
+
+def _int_field(data: dict[str, Any], *keys: str) -> int | None:
+    for key in keys:
+        value = data.get(key)
+        if isinstance(value, bool):
+            continue
+        if isinstance(value, (int, float)):
+            return int(value)
+        try:
+            text = str(value).strip()
+            if text:
+                return int(float(text))
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def _fl_rtl_compare_goal_coverage_issue(goals_doc: dict[str, Any], compare: dict[str, Any]) -> str:
+    required_ids = _required_unblocked_equivalence_goal_ids(goals_doc)
+    if not required_ids:
+        return "equivalence_goals.json has no required unblocked equivalence goals."
+    if not compare:
+        return "Missing FL-vs-RTL compare artifact: sim/fl_rtl_compare.json."
+    if not _json_report_passed(compare):
+        return "FL-vs-RTL compare report is not pass."
+
+    summary = compare.get("summary") if isinstance(compare.get("summary"), dict) else {}
+    missing_evidence = summary.get("missing_evidence") if isinstance(summary.get("missing_evidence"), list) else []
+    stale_evidence = summary.get("stale_evidence") if isinstance(summary.get("stale_evidence"), list) else []
+    if missing_evidence:
+        return "FL-vs-RTL compare report has missing evidence: " + ", ".join(str(item) for item in missing_evidence[:6])
+    if stale_evidence:
+        return "FL-vs-RTL compare report has stale evidence: " + ", ".join(str(item) for item in stale_evidence[:6])
+    blocked = _int_field(summary, "goals_blocked", "blocked")
+    failed = _int_field(summary, "goals_failed", "failed")
+    untested = _int_field(summary, "goals_untested", "untested")
+    if blocked and blocked > 0:
+        return f"FL-vs-RTL compare report still has {blocked} blocked goal(s)."
+    if failed and failed > 0:
+        return f"FL-vs-RTL compare report still has {failed} failed goal(s)."
+    if untested and untested > 0:
+        return f"FL-vs-RTL compare report still has {untested} untested goal(s)."
+
+    required_set = set(required_ids)
+    goal_rows = compare.get("goals") if isinstance(compare.get("goals"), list) else []
+    if goal_rows:
+        seen_ids: set[str] = set()
+        passed_ids: set[str] = set()
+        for row in goal_rows:
+            if not isinstance(row, dict):
+                continue
+            gid = str(row.get("goal_id") or row.get("id") or "").strip()
+            if gid not in required_set:
+                continue
+            status = str(row.get("status") or "").strip().lower()
+            events = _int_field(row, "events", "scoreboard_events", "rows")
+            if status not in {"untested", "missing", "blocked"} and (events is None or events > 0):
+                seen_ids.add(gid)
+            if status in {"pass", "passed", "ok"} and (events is None or events > 0):
+                passed_ids.add(gid)
+        missing = sorted(required_set - seen_ids)
+        if missing:
+            return "FL-vs-RTL compare did not check required goal(s): " + ", ".join(missing[:8])
+        not_passed = sorted(required_set - passed_ids)
+        if not_passed:
+            return "FL-vs-RTL compare did not pass required goal(s): " + ", ".join(not_passed[:8])
+        return ""
+
+    required_count = len(required_ids)
+    total = _int_field(summary, "total", "goals_total")
+    checked = _int_field(summary, "goals_checked", "checked")
+    passed = _int_field(summary, "goals_passed", "passed")
+    if total is not None and total < required_count:
+        return f"FL-vs-RTL compare total={total} is smaller than required unblocked goals={required_count}."
+    if checked is None or checked < required_count:
+        return f"FL-vs-RTL compare checked={checked or 0} is smaller than required unblocked goals={required_count}."
+    if passed is None or passed < required_count:
+        return f"FL-vs-RTL compare passed={passed or 0} is smaller than required unblocked goals={required_count}."
+    return ""
+
+
+def _coverage_closure_issue(report: dict[str, Any]) -> str:
+    if not _json_report_passed(report):
+        return "Coverage closure report is not pass."
+    if report.get("source") != "ssot_coverage_summary":
+        return "Coverage closure must be produced by ssot_coverage_summary, not a raw or ad-hoc report."
+    limitations = report.get("limitations") if isinstance(report.get("limitations"), dict) else {}
+    if limitations:
+        return "Coverage closure report still has unwaived limitations."
+
+    functional = report.get("functional") if isinstance(report.get("functional"), dict) else {}
+    hit = _int_field(functional, "hit")
+    total = _int_field(functional, "total")
+    pct_value = functional.get("pct")
+    try:
+        pct = float(pct_value)
+    except (TypeError, ValueError):
+        pct = -1.0
+    if total is None or total <= 0:
+        return "Coverage closure has no planned functional bins."
+    if hit is None or hit < total or pct < 100.0:
+        return f"Functional coverage is not closed by RTL-observed evidence: hit={hit or 0} total={total} pct={pct_value}."
+
+    rtl_observed = report.get("rtl_observed") if isinstance(report.get("rtl_observed"), dict) else {}
+    rtl_status = str(rtl_observed.get("status") or "").strip().lower()
+    if rtl_status not in {"pass", "passed", "ok"}:
+        return "RTL-observed coverage status is not pass."
+    missing_bins = rtl_observed.get("missing_bins") if isinstance(rtl_observed.get("missing_bins"), list) else []
+    invalid_rows = rtl_observed.get("invalid_rows") if isinstance(rtl_observed.get("invalid_rows"), list) else []
+    if missing_bins:
+        return "RTL-observed coverage is missing bin(s): " + ", ".join(str(item) for item in missing_bins[:8])
+    if invalid_rows:
+        return "RTL-observed coverage has invalid scoreboard row(s): " + ", ".join(str(item) for item in invalid_rows[:4])
+    if (_int_field(rtl_observed, "scoreboard_events") or 0) <= 0:
+        return "Coverage closure has no scoreboard_events evidence."
+    if (_int_field(rtl_observed, "scoreboard_passed_events_with_refs") or 0) <= 0:
+        return "Coverage closure has no passing scoreboard event with coverage refs."
+    goal_refs = rtl_observed.get("goal_refs") if isinstance(rtl_observed.get("goal_refs"), list) else []
+    if not goal_refs:
+        return "Coverage closure has no RTL-observed equivalence goal coverage refs."
+    return ""
+
+
+def _string_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [str(item).strip() for item in value if str(item).strip()]
+
+
+def _rows_by_id(rows: Any) -> dict[str, dict[str, Any]]:
+    out: dict[str, dict[str, Any]] = {}
+    if not isinstance(rows, list):
+        return out
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        rid = str(row.get("id") or "").strip()
+        if rid:
+            out[rid] = row
+    return out
+
+
+def _authority_manifest_issue(authority: dict[str, Any], ip: str) -> str:
+    if not authority:
+        return "Missing or invalid governance/authority.json."
+    if authority.get("type") != "human_llm_authority_manifest":
+        return "authority.json is not a human_llm_authority_manifest."
+    if str(authority.get("ip") or "") != ip:
+        return f"authority.json ip does not match {ip}."
+
+    rules = _rows_by_id(authority.get("operating_rules"))
+    missing_rules = [rid for rid in (f"R{idx}" for idx in range(1, 7)) if rid not in rules]
+    if missing_rules:
+        return "authority.json is missing operating rule(s): " + ", ".join(missing_rules)
+
+    loops = _rows_by_id(authority.get("llm_loops"))
+    missing_loops = [lid for lid in (f"L{idx}" for idx in range(1, 10)) if lid not in loops]
+    if missing_loops:
+        return "authority.json is missing LLM loop(s): " + ", ".join(missing_loops)
+
+    gates = _rows_by_id(authority.get("human_gates"))
+    missing_gates = [gid for gid in (f"G{idx}" for idx in range(1, 10)) if gid not in gates]
+    if missing_gates:
+        return "authority.json is missing human gate(s): " + ", ".join(missing_gates)
+
+    rtl_gen_required_gates = [f"G{idx}" for idx in range(1, 8)]
+    not_approved = [
+        f"{gid}={str(gates[gid].get('status') or 'missing')}"
+        for gid in rtl_gen_required_gates
+        if str(gates[gid].get("status") or "").strip().lower() != "approved"
+    ]
+    if not_approved:
+        return "Human authority gate(s) required before production RTL-GEN are not approved: " + ", ".join(not_approved)
+
+    for gid in rtl_gen_required_gates:
+        gate = gates[gid]
+        if not _string_list(gate.get("locked_artifacts")):
+            return f"authority.json {gid} has no locked_artifacts."
+        if not _string_list(gate.get("evidence_required")):
+            return f"authority.json {gid} has no evidence_required."
+
+    layout = authority.get("repo_layout") if isinstance(authority.get("repo_layout"), dict) else {}
+    locked = set(_string_list(layout.get("locked")))
+    llm_editable = set(_string_list(layout.get("llm_editable")))
+    validators = set(_string_list(layout.get("agent_runnable_validators")))
+    for required in ("yaml/", "model/", "verify/equivalence_goals.json"):
+        if required not in locked:
+            return f"authority.json repo_layout.locked is missing {required}."
+    for required in ("rtl/", "tb/", "sim/", "reports/"):
+        if required not in llm_editable:
+            return f"authority.json repo_layout.llm_editable is missing {required}."
+    for required in ("lint/", "sim/", "cov/coverage.json"):
+        if required not in validators:
+            return f"authority.json repo_layout.agent_runnable_validators is missing {required}."
+    return ""
+
+
+def _signature_canon(obj: Any) -> str:
+    return json.dumps(obj, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
+
+
+def _signature_hash(obj: Any) -> str:
+    return hashlib.sha256(_signature_canon(obj).encode("utf-8")).hexdigest()
+
+
+def _signature_rule_items(section: Any) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    if isinstance(section, dict):
+        for key, value in section.items():
+            items.append({"name": key, "value": value})
+    elif isinstance(section, list):
+        for entry in section:
+            if isinstance(entry, dict):
+                items.append(entry)
+            else:
+                items.append({"value": entry})
+    return items
+
+
+def _expected_model_signature(ip: str, ssot: dict[str, Any]) -> dict[str, Any]:
+    fm = ssot.get("function_model") if isinstance(ssot.get("function_model"), dict) else {}
+    txs = _as_list(fm.get("transactions"))
+
+    def hash_lines(parts: list[str]) -> str:
+        return hashlib.sha256("\n".join(parts).encode("utf-8")).hexdigest()
+
+    transaction_parts = [_signature_canon(tx) for tx in txs] if txs else []
+    invariants = fm.get("invariants")
+    exprs: list[str] = []
+    for tx in txs:
+        if not isinstance(tx, dict):
+            continue
+        sample_condition = tx.get("sample_condition")
+        if sample_condition is not None:
+            exprs.append(str(sample_condition))
+        for item in _signature_rule_items(tx.get("output_rules")):
+            for field in ("expr", "expression", "value"):
+                value = item.get(field)
+                if value is not None:
+                    exprs.append(str(value))
+        for item in _signature_rule_items(tx.get("state_updates")):
+            for field in ("expr", "expression", "value"):
+                value = item.get(field)
+                if value is not None:
+                    exprs.append(str(value))
+    exprs.sort()
+    return {
+        "schema_version": 1,
+        "type": "model_signature",
+        "ip": ip,
+        "ssot_hash": _signature_hash(ssot),
+        "transactions_hash": hash_lines(transaction_parts),
+        "invariants_hash": hashlib.sha256((_signature_canon(invariants) if invariants is not None else "").encode("utf-8")).hexdigest(),
+        "expressions_hash": hash_lines(exprs),
+    }
+
+
+def _model_signature_issue(ip_dir: Path, ip: str, signature: dict[str, Any]) -> str:
+    if not signature:
+        return "Missing or invalid model/model_signature.json."
+    ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
+    if not ssot_path.is_file():
+        return "Missing SSOT YAML needed to verify model_signature.json."
+    try:
+        ssot = yaml.safe_load(ssot_path.read_text(encoding="utf-8", errors="replace")) or {}
+    except Exception as exc:
+        return f"Cannot read SSOT YAML needed to verify model_signature.json: {exc}."
+    if not isinstance(ssot, dict):
+        return "SSOT YAML is not a mapping; model_signature.json cannot be verified."
+    expected = _expected_model_signature(ip, ssot)
+    for key, expected_value in expected.items():
+        actual = signature.get(key)
+        if actual != expected_value:
+            return f"model_signature.json drift at {key}: expected current SSOT-derived value."
+    return ""
+
+
 def _sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+RTL_TODO_HASH_VOLATILE_KEYS = {
+    "connection_contract_suggestions",
+    "generated_at",
+    "gate",
+    "manifest_hierarchy_evidence",
+    "manifest_signal_flow_evidence",
+    "owner_logic_evidence",
+    "reference_profile",
+    "reference_scale_gap",
+    "rtl_implementation_depth_evidence",
+    "rtl_placeholder_free_evidence",
+    "static_evidence",
+    "static_rtl_evidence",
+    "todo_completion",
+    "top_input_consumption_evidence",
+    "top_io_contract_evidence",
+    "top_output_drive_evidence",
+}
+
+
 def _stable_json_sha256(path: Path, *, volatile_keys: set[str] | None = None) -> str:
-    volatile_keys = volatile_keys or {"generated_at"}
+    volatile_keys = volatile_keys or RTL_TODO_HASH_VOLATILE_KEYS
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
@@ -367,7 +948,24 @@ def _module_contract_refs(module: dict[str, Any]) -> list[str]:
             refs.extend(str(item).strip() for item in value if str(item).strip())
         elif isinstance(value, dict):
             refs.extend(str(key2).strip() for key2 in value if str(key2).strip())
-    return sorted({ref for ref in refs if ref})
+    return _expand_relative_refs(refs)
+
+
+def _expand_relative_refs(refs: list[str]) -> list[str]:
+    """Expand shorthand SSOT refs like `.decode` using the prior ref prefix."""
+
+    out: list[str] = []
+    base_prefix = ""
+    for raw in refs:
+        ref = str(raw or "").strip()
+        if not ref:
+            continue
+        if ref.startswith(".") and base_prefix:
+            ref = base_prefix + ref
+        if not ref.startswith(".") and "." in ref:
+            base_prefix = ref.rsplit(".", 1)[0]
+        out.append(ref)
+    return sorted({ref for ref in out if ref})
 
 
 def _active_modules(doc: dict[str, Any], ip: str, top: str) -> list[dict[str, Any]]:
@@ -389,29 +987,210 @@ def _active_modules(doc: dict[str, Any], ip: str, top: str) -> list[dict[str, An
                 "refs": _module_contract_refs(item),
                 "raw": item,
             })
+    if modules and not any(str(module.get("name") or "") == top or Path(str(module.get("file") or "")).stem == top for module in modules):
+        modules.append({
+            "name": top,
+            "file": f"rtl/{top}.sv",
+            "refs": [
+                "top_module",
+                "io_list",
+                "parameters",
+                "interrupts",
+                "features",
+                "error_handling",
+                "security",
+                "debug_observability",
+                "integration",
+                "timing",
+                "power",
+                "synthesis",
+                "dft",
+                "test_requirements",
+                "quality_gates",
+                "workflow_todos",
+                "next_step_todos",
+            ],
+            "raw": {"synthetic_top_owner": True},
+        })
     if not modules:
         modules.append({"name": top, "file": f"rtl/{top}.sv", "refs": ["top_module", "function_model", "cycle_model"], "raw": {}})
     return modules
 
 
 def _ref_is_covered(ref: str, owner_ref: str) -> bool:
-    return ref == owner_ref or ref.startswith(owner_ref + ".") or owner_ref.startswith(ref + ".")
+    return (
+        ref == owner_ref
+        or ref.startswith(owner_ref + ".")
+        or owner_ref.startswith(ref + ".")
+        or _ref_leaf_strong_match(ref, owner_ref)
+    )
 
 
-def _owner_for(ref: str, modules: list[dict[str, Any]], top: str) -> dict[str, str]:
-    matches: list[dict[str, Any]] = []
+def _ref_leaf_strong_match(ref: str, owner_ref: str) -> bool:
+    ref_parent, _, ref_leaf = ref.rpartition(".")
+    owner_parent, _, owner_leaf = owner_ref.rpartition(".")
+    if not ref_parent or ref_parent != owner_parent:
+        return False
+    ref_parts = {part for part in re.split(r"[_\\W]+", ref_leaf.lower()) if len(part) > 1}
+    owner_parts = {part for part in re.split(r"[_\\W]+", owner_leaf.lower()) if len(part) > 1}
+    if not ref_parts or not owner_parts:
+        return False
+    return owner_parts.issubset(ref_parts) or ref_parts.issubset(owner_parts)
+
+
+def _owner_token_set(value: Any) -> set[str]:
+    tokens: set[str] = set()
+
+    def add_text(text: Any) -> None:
+        for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", str(text or "")):
+            for part in re.split(r"[_\W]+", token):
+                lower = part.lower().strip("_")
+                if len(lower) <= 1 or lower in EVIDENCE_STOPWORDS or lower in REFERENCE_STOPWORDS:
+                    continue
+                tokens.add(lower)
+            lower_token = token.lower().strip("_")
+            if len(lower_token) > 1 and lower_token not in EVIDENCE_STOPWORDS and lower_token not in REFERENCE_STOPWORDS:
+                tokens.add(lower_token)
+
+    def visit(item: Any) -> None:
+        if item is None:
+            return
+        if isinstance(item, dict):
+            for key, val in item.items():
+                if str(key).lower() not in {"metadata", "notes"}:
+                    visit(val)
+            return
+        if isinstance(item, list):
+            for val in item:
+                visit(val)
+            return
+        add_text(item)
+
+    visit(value)
+    return tokens
+
+
+def _module_owner_terms(module: dict[str, Any], top: str) -> tuple[set[str], set[str]]:
+    top_terms = _owner_token_set(top)
+    name_text = " ".join(str(module.get(key) or "") for key in ("name", "file"))
+    name_terms = _owner_token_set(name_text) - top_terms - {"rtl", "sv", "v", "module"}
+    ref_terms: set[str] = set()
+    for owner_ref in module.get("refs") or []:
+        ref_terms.update(_owner_token_set(owner_ref))
+    return name_terms, ref_terms - top_terms
+
+
+def _module_owner_ref_terms_for_task(module: dict[str, Any], task_ref: str, top: str) -> set[str]:
+    top_terms = _owner_token_set(top)
+    section = str(task_ref or "").split(".", 1)[0]
+    terms: set[str] = set()
+    for owner_ref in module.get("refs") or []:
+        owner_ref = str(owner_ref or "")
+        if owner_ref == section or owner_ref.startswith(section + "."):
+            terms.update(_owner_token_set(owner_ref))
+    return terms - top_terms
+
+
+def _semantic_task_terms(ref: str, value: Any) -> set[str]:
+    terms = _owner_token_set(ref)
+    if re.fullmatch(r"function_model\.transactions\.[^.]+", ref) and isinstance(value, dict):
+        primary = {
+            key: value.get(key)
+            for key in ("id", "name", "opcode", "op", "category", "class", "type", "kind")
+            if _present(value.get(key))
+        }
+        terms.update(_owner_token_set(primary))
+        return terms
+    terms.update(_owner_token_set(value))
+    return terms
+
+
+def _semantic_owner_match(ref: str, value: Any, modules: list[dict[str, Any]], top: str) -> dict[str, str] | None:
+    task_terms = _semantic_task_terms(ref, value)
+    task_terms -= {"function", "model", "cycle", "transactions", "transaction", "state", "variables"}
+    if not task_terms:
+        return None
+    scored: list[tuple[int, int, dict[str, Any], str]] = []
+    for index, module in enumerate(modules):
+        name_terms, _all_ref_terms = _module_owner_terms(module, top)
+        ref_terms = _module_owner_ref_terms_for_task(module, ref, top)
+        name_hits = task_terms & name_terms
+        ref_hits = task_terms & ref_terms
+        score = len(ref_hits) * 2 + len(name_hits) * 3
+        if score <= 0:
+            continue
+        hit_terms = sorted(ref_hits | name_hits)
+        scored.append((score, -index, module, "semantic_terms:" + ",".join(hit_terms[:6])))
+    if not scored:
+        return None
+    scored.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    if len(scored) > 1 and scored[0][0] == scored[1][0]:
+        return None
+    score, _neg_index, module, matched_ref = scored[0]
+    if score < 2:
+        return None
+    return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
+
+
+def _control_owner_fallback(ref: str, modules: list[dict[str, Any]], top: str) -> dict[str, str] | None:
+    if not ref.startswith(("function_model.", "cycle_model.")):
+        return None
+    candidates: list[tuple[int, int, dict[str, Any], str]] = []
+    for index, module in enumerate(modules):
+        name_terms, ref_terms = _module_owner_terms(module, top)
+        combined = name_terms | ref_terms
+        score = 0
+        if combined & {"engine", "core", "controller", "control", "fsm"}:
+            score += 4
+        if combined & {"pipeline", "execute", "decode", "fetch"}:
+            score += 2
+        if "top" in combined:
+            score += 1
+        if score:
+            candidates.append((score, -index, module, "control_owner_fallback"))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    if len(candidates) > 1 and candidates[0][0] == candidates[1][0]:
+        return None
+    score, _neg_index, module, matched_ref = candidates[0]
+    if score < 2:
+        return None
+    return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
+
+
+def _owner_for(ref: str, modules: list[dict[str, Any]], top: str, value: Any = None) -> dict[str, str]:
+    matches: list[tuple[dict[str, Any], str]] = []
     for module in modules:
         refs = module.get("refs") if isinstance(module.get("refs"), list) else []
-        if any(_ref_is_covered(ref, str(owner_ref)) for owner_ref in refs):
-            matches.append(module)
+        for owner_ref in refs:
+            owner_ref = str(owner_ref)
+            if _ref_is_covered(ref, owner_ref):
+                matches.append((module, owner_ref))
+                break
     if matches:
-        module = matches[0]
-        return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": str((module.get("refs") or [""])[0])}
+        module, matched_ref = matches[0]
+        return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
+    semantic_owner = _semantic_owner_match(ref, value, modules, top)
+    if semantic_owner is not None:
+        return semantic_owner
+    section = ref.split(".", 1)[0]
+    section_matches = [
+        module
+        for module in modules
+        if any(str(owner_ref) == section or str(owner_ref).startswith(section + ".") for owner_ref in (module.get("refs") or []))
+    ]
+    if len(section_matches) == 1:
+        module = section_matches[0]
+        return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": f"unique_{section}_owner"}
     if len(modules) == 1:
         module = modules[0]
         return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": "single_owner"}
+    control_owner = _control_owner_fallback(ref, modules, top)
+    if control_owner is not None:
+        return control_owner
     top_module = next((m for m in modules if str(m.get("name")) == top or Path(str(m.get("file"))).stem == top), None)
-    if top_module is not None:
+    if top_module is not None and section in TOP_FALLBACK_SECTIONS:
         return {"module": str(top_module["name"]), "file": str(top_module["file"]), "matched_ref": "top_fallback"}
     return {"module": "", "file": "", "matched_ref": ""}
 
@@ -468,6 +1247,19 @@ NAME_EVIDENCE_CATEGORIES = {
 
 def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
     terms: set[str] = set()
+    protocol_alias_seen = False
+
+    def add_protocol_aliases(text: str) -> None:
+        nonlocal protocol_alias_seen
+        lower = text.lower()
+        if "okay" not in lower and "ok" not in lower:
+            return
+        if "rresp" in lower or "read response" in lower:
+            terms.update({"rsp", "ld_rsp_error_i", "ld_rsp_error"})
+            protocol_alias_seen = True
+        if "bresp" in lower or "write response" in lower:
+            terms.update({"rsp", "st_rsp_error_i", "st_rsp_error"})
+            protocol_alias_seen = True
 
     def visit(value: Any) -> None:
         if value is None:
@@ -483,6 +1275,7 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
                     visit(value.get(key))
             for key in ("expr", "expression", "condition"):
                 if isinstance(value.get(key), str):
+                    add_protocol_aliases(value[key])
                     for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", value[key]):
                         if _looks_like_design_token(token):
                             terms.update(_split_design_token(token))
@@ -502,6 +1295,10 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
                 terms.update(_split_design_token(token))
 
     visit(value)
+    if protocol_alias_seen and category.startswith("function_model."):
+        for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", source_ref):
+            if token.startswith("FM_"):
+                terms.update(_split_design_token(token))
     terms = {term for term in terms if term.lower() not in EVIDENCE_STOPWORDS | REFERENCE_STOPWORDS}
     return sorted(terms)[:16]
 
@@ -712,7 +1509,7 @@ def _add_base_tasks(tasks: list[dict[str, Any]], ip: str, top: str, owner: dict[
     )
 
 
-def _add_rtl_gate_todo_tasks(tasks: list[dict[str, Any]], owner: dict[str, str]) -> None:
+def _add_rtl_gate_todo_tasks(tasks: list[dict[str, Any]], owner: dict[str, str], *, profile: str) -> None:
     gate_specs = [
         {
             "kind": "ssot_required_sections",
@@ -763,6 +1560,7 @@ def _add_rtl_gate_todo_tasks(tasks: list[dict[str, Any]], owner: dict[str, str])
                 "provenance surface is atlas_ui, textual_ui, or headless_common_engine",
                 "provenance todo_plan_sha256 matches the current rtl_todo_plan.json",
                 "provenance rtl_files lists every SSOT manifest RTL file",
+                "provenance rtl_files covers the current DUT filelist sources",
             ],
             "artifact": "rtl/rtl_authoring_provenance.json",
         },
@@ -774,7 +1572,147 @@ def _add_rtl_gate_todo_tasks(tasks: list[dict[str, Any]], owner: dict[str, str])
             "criteria": [
                 "derive_rtl_todos.py --audit-rtl ran after the final RTL edit",
                 "rtl_todo_plan.json static_rtl_evidence.missing is zero",
+                "Rich SSOT-derived tasks match multiple owner-file RTL evidence terms, not a single incidental token",
                 "No task requiring DUT evidence is satisfied only by comments, TB, scoreboard, or FunctionalModel code",
+            ],
+            "artifact": "rtl/rtl_todo_plan.json",
+        },
+        {
+            "kind": "owner_logic_structure_evidence",
+            "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
+            "content": "Gate: behavior-owner RTL modules contain real implementation structure",
+            "detail": (
+                "Static token evidence is not enough. Each SSOT behavior-owner RTL module must contain "
+                "real assign/procedural/state structure appropriate for its owned function_model, cycle_model, register, memory, or FSM contract."
+            ),
+            "criteria": [
+                "Every active behavior-owner module is declared in its owner file",
+                "Behavior-owner modules contain non-placeholder assign/procedural implementation logic",
+                "State/register/memory/FSM owners contain sequential or storage-update evidence, not only token mentions",
+            ],
+            "artifact": "rtl/rtl_todo_plan.json",
+        },
+        {
+            "kind": "rtl_placeholder_free_evidence",
+            "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+            "content": "Gate: RTL sources contain no placeholder implementation markers",
+            "detail": (
+                "Production RTL cannot carry TODO/TBD/FIXME/stub/dummy/not-implemented markers in source code or comments. "
+                "If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract."
+            ),
+            "criteria": [
+                "Listed RTL source files contain no TODO/TBD/FIXME/HACK markers",
+                "Listed RTL source files contain no placeholder/stub/dummy/not-implemented implementation text",
+                "Intentional reserved behavior is represented in SSOT contracts instead of RTL placeholder comments",
+            ],
+            "artifact": "rtl/rtl_todo_plan.json",
+        },
+        {
+            "kind": "top_io_contract_evidence",
+            "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
+            "content": "Gate: SSOT top IO contracts match the RTL top module",
+            "detail": (
+                "The top wrapper must expose the SSOT-declared clock/reset and explicit IO ports. "
+                "A compiling top with missing, renamed, or wrong-direction ports cannot close RTL generation."
+            ),
+            "criteria": [
+                "SSOT clock/reset names are declared on the RTL top module",
+                "Explicit io_list ports/signals are declared on the RTL top module",
+                "Known SSOT directions and simple widths match RTL declarations",
+            ],
+            "artifact": "rtl/rtl_todo_plan.json",
+        },
+        {
+            "kind": "top_output_drive_evidence",
+            "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
+            "content": "Gate: SSOT top outputs are driven by real RTL logic",
+            "detail": (
+                "Declaring output ports is not enough. Each SSOT-declared top output must be driven by "
+                "nonconstant RTL logic, a procedural assignment, or a declared child-module output connection. "
+                "Constant tieoffs require an explicit SSOT constant/tieoff allowance."
+            ),
+            "criteria": [
+                "Every SSOT output/inout top contract has drive evidence in the RTL top",
+                "Non-waived output constants are rejected as placeholder tieoffs",
+                "Child-instance drive evidence uses a declared child output/inout port, not an unknown direction",
+            ],
+            "artifact": "rtl/rtl_todo_plan.json",
+        },
+        {
+            "kind": "top_input_consumption_evidence",
+            "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
+            "content": "Gate: SSOT top inputs are consumed by RTL logic or child inputs",
+            "detail": (
+                "Declaring input ports is not enough. Each SSOT-declared non-clock/reset top input must feed "
+                "real RTL logic, a procedural/control expression, or a declared child-module input/inout connection. "
+                "Unused inputs require an explicit SSOT unused/reserved allowance."
+            ),
+            "criteria": [
+                "Every non-clock/reset SSOT input/inout top contract has consumption evidence in the RTL top",
+                "Child-instance consumption evidence uses a declared child input/inout port, not an unknown direction",
+                "Unused or reserved inputs are accepted only when explicitly waived by SSOT",
+            ],
+            "artifact": "rtl/rtl_todo_plan.json",
+        },
+        {
+            "kind": "manifest_hierarchy_integration",
+            "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
+            "content": "Gate: manifest-owned RTL modules are integrated into the top hierarchy",
+            "detail": (
+                "File existence is not enough for general IP RTL. Every SSOT manifest-owned non-top "
+                "RTL module must be declared and reachable from the SSOT top through real module instantiation."
+            ),
+            "criteria": [
+                "Every manifest-owned non-top submodule is declared in listed DUT RTL sources",
+                "Each child module is reachable from the SSOT top module through SystemVerilog instantiation",
+                "A disconnected child file or flattened top cannot close the manifest hierarchy gate",
+            ],
+            "artifact": "rtl/rtl_todo_plan.json",
+        },
+        {
+            "kind": "manifest_port_connection_evidence",
+            "source_ref": "quality_gates.rtl_gen.manifest_port_connection_evidence",
+            "content": "Gate: manifest-owned child instances have machine-checkable port connections",
+            "detail": (
+                "Reachability alone is not enough. Every reachable SSOT manifest-owned child module with declared ports "
+                "must be instantiated with named, non-empty port connections so ATLAS can audit wrapper wiring for general IPs."
+            ),
+            "criteria": [
+                "Each reachable manifest child instance uses named port mapping",
+                "Every declared child port is connected by name on at least one reachable instance",
+                "No child port connection is empty unless represented by an explicit SSOT waiver",
+            ],
+            "artifact": "rtl/rtl_todo_plan.json",
+        },
+        {
+            "kind": "manifest_signal_flow_evidence",
+            "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+            "content": "Gate: manifest child port connections carry live RTL signal flow",
+            "detail": (
+                "Named port maps prove that ports are connected, but not that the connected signals are useful. "
+                "Child inputs must not be placeholder constants unless SSOT explicitly allows the tieoff, and "
+                "child outputs must feed a top output, parent logic, or another declared child input/inout."
+            ),
+            "criteria": [
+                "Reachable manifest child input/inout ports are not tied to constants without an SSOT connection/tieoff allowance",
+                "Reachable manifest child output/inout ports are consumed by top outputs, parent RTL logic, or declared child inputs/inouts",
+                "Named port-map entries reference ports declared by the child module",
+            ],
+            "artifact": "rtl/rtl_todo_plan.json",
+        },
+        {
+            "kind": "manifest_connection_contract_evidence",
+            "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+            "content": "Gate: SSOT connection contracts match RTL child port maps",
+            "detail": (
+                "Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. "
+                "When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those "
+                "machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts."
+            ),
+            "criteria": [
+                "Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections",
+                "Each SSOT connection contract resolves to a reachable manifest child module and port",
+                "RTL named port-map expressions match the SSOT-intended signal terms or carry an explicit SSOT waiver",
             ],
             "artifact": "rtl/rtl_todo_plan.json",
         },
@@ -787,6 +1725,8 @@ def _add_rtl_gate_todo_tasks(tasks: list[dict[str, Any]], owner: dict[str, str])
                 "rtl/rtl_compile.json exists",
                 "rtl_compile.json reports dut_only=true",
                 "rtl_compile.json passed=true with zero errors, diagnostics, and style violations",
+                "rtl_compile.json is newer than or equal to every listed DUT RTL source",
+                "rtl_compile.json rtl_files covers the current DUT filelist Verilog/SystemVerilog sources",
             ],
             "artifact": "rtl/rtl_compile.json",
         },
@@ -799,6 +1739,8 @@ def _add_rtl_gate_todo_tasks(tasks: list[dict[str, Any]], owner: dict[str, str])
                 "lint/dut_lint.json exists",
                 "dut_lint.json reports dut_only=true",
                 "dut_lint.json passed=true with zero errors and zero warnings",
+                "dut_lint.json is newer than or equal to every listed DUT RTL source",
+                "dut_lint.json rtl_files covers the current DUT filelist RTL/header sources",
                 "No ad-hoc lint suppression violation remains unless represented by an exact SSOT waiver",
             ],
             "artifact": "lint/dut_lint.json",
@@ -816,6 +1758,138 @@ def _add_rtl_gate_todo_tasks(tasks: list[dict[str, Any]], owner: dict[str, str])
             "artifact": "rtl/rtl_todo_plan.json",
         },
     ]
+    if profile == "production":
+        gate_specs.extend([
+            {
+                "kind": "golden_authority_artifacts",
+                "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
+                "content": "Gate: production RTL uses locked SSOT/FL/coverage authority artifacts",
+                "detail": (
+                    "PL330-level RTL cannot proceed from prose alone. It must carry machine-readable "
+                    "authority artifacts that separate human-owned truth from LLM-editable implementation."
+                ),
+                "criteria": [
+                    "governance/authority.json exists",
+                    "authority.json is the current IP human_llm_authority_manifest",
+                    "authority operating rules R1..R6 and LLM loops L1..L9 are present",
+                    "human authority gates G1..G7 are approved before production RTL-GEN",
+                    "repo_layout separates locked SSOT/model/coverage truth from LLM-editable rtl/tb/sim/report work",
+                    "model/functional_model.py exists",
+                    "model/fl_model_check.json passed=true",
+                    "model/model_signature.json matches the current SSOT-derived golden model signature",
+                    "model/decomposition.json complete=true with unblocked implementation units",
+                    "cov/fcov_plan.json has planned bins before RTL signoff",
+                    "verify/equivalence_goals.json has required, unblocked goals",
+                ],
+                "artifact": "governance/authority.json",
+            },
+            {
+                "kind": "target_scale_policy",
+                "source_ref": "quality_gates.rtl_gen.target_scale",
+                "content": "Gate: production RTL scale target is locked or explicitly waived",
+                "detail": (
+                    "When a calibration reference profile provides target-scale candidates, a human must "
+                    "lock the chosen minimum structural scale in SSOT quality_gates.rtl_gen.target_scale "
+                    "or record an explicit SSOT target_scale_waiver before rtl-gen can claim production signoff."
+                ),
+                "criteria": [
+                    "Reference-derived suggested_ssot_target_scale candidates are review inputs only",
+                    "SSOT quality_gates.rtl_gen.target_scale contains human-locked structural depth minima before PL330-level PASS claims",
+                    "If target scale is intentionally not enforced, SSOT contains target_scale_waiver.approved=true with a rationale",
+                ],
+                "artifact": "yaml/<ip>.ssot.yaml",
+            },
+            {
+                "kind": "rtl_implementation_depth_evidence",
+                "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
+                "content": "Gate: production RTL has SSOT-scaled implementation depth",
+                "detail": (
+                    "Production-profile RTL cannot be a shallow shell that merely satisfies names, ports, "
+                    "or compile checks. The RTL must contain aggregate implementation structure scaled from "
+                    "the current SSOT task count, behavior-owner modules, and manifest hierarchy."
+                ),
+                "criteria": [
+                    "Implementation depth thresholds are derived from SSOT owner/task complexity, not a fixed IP template",
+                    "Listed DUT RTL sources contain enough nonconstant logic, procedural/state/control structure, and child instances for the SSOT profile",
+                    "Production multi-module IPs distribute implementation depth across behavior-owner modules instead of hiding behavior in a wrapper shell",
+                ],
+                "artifact": "rtl/rtl_todo_plan.json",
+            },
+            {
+                "kind": "cycle_model_artifacts",
+                "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
+                "content": "Gate: production RTL has executable cycle/handshake model evidence",
+                "detail": (
+                    "Complex DMA-class RTL needs a cycle-level oracle for latency, handshake, "
+                    "ordering, backpressure, and performance-sensitive behavior."
+                ),
+                "criteria": [
+                    "model/cycle_model.py exists",
+                    "model/cl_model_check.json passed=true",
+                    "cycle_model evidence traces to SSOT cycle_model",
+                ],
+                "artifact": "model/cycle_model.py",
+            },
+            {
+                "kind": "protocol_assertion_evidence",
+                "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+                "content": "Gate: production RTL has protocol assertion generation and clean simulation evidence",
+                "detail": (
+                    "PL330-level RTL needs protocol-checker style evidence for interface, ordering, "
+                    "valid/ready, reset, and backpressure rules. The assertion source comes from SSOT "
+                    "cycle_model; the pass condition comes from real simulation evidence."
+                ),
+                "criteria": [
+                    "verify/protocol_assertions.sva exists",
+                    "verify/protocol_assertions.summary.json has assertions_total > 0",
+                    "sim/assertion_failures.jsonl exists after simulation",
+                    "assertion_failures.jsonl is newer than or equal to every listed DUT RTL source",
+                    "assertion_failures.jsonl has zero non-empty failure records",
+                    "Assertion rules trace to SSOT cycle_model/interface contracts",
+                ],
+                "artifact": "verify/protocol_assertions.sva",
+            },
+            {
+                "kind": "fl_rtl_goal_audit",
+                "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+                "content": "Gate: production RTL passes FL-vs-RTL goal audit",
+                "detail": (
+                    "Passing compile/lint is not enough. The final RTL must be proven against "
+                    "FunctionalModel-derived equivalence goals using real RTL-observed evidence."
+                ),
+                "criteria": [
+                    "sim/fl_rtl_goal_audit.json exists",
+                    "fl_rtl_goal_audit.json is newer than or equal to every listed DUT RTL source",
+                    "fl_rtl_goal_audit status is pass",
+                    "failed_checks is zero",
+                    "blockers list is empty",
+                    "sim/fl_rtl_compare.json exists and is newer than or equal to every listed DUT RTL source",
+                    "Every required unblocked verify/equivalence_goals.json goal is checked and passed by fl_rtl_compare",
+                ],
+                "artifact": "sim/fl_rtl_goal_audit.json",
+            },
+            {
+                "kind": "coverage_closure",
+                "source_ref": "quality_gates.rtl_gen.coverage_closure",
+                "content": "Gate: production RTL closes SSOT functional coverage goals",
+                "detail": (
+                    "Coverage must be measured from passing RTL-observed scoreboard evidence. "
+                    "Raw FL-only coverage or weakened coverage goals cannot close this gate."
+                ),
+                "criteria": [
+                    "cov/coverage.json exists",
+                    "coverage.json is newer than or equal to every listed DUT RTL source",
+                    "coverage status is pass",
+                    "functional coverage pct meets target",
+                    "coverage.json source is ssot_coverage_summary",
+                    "functional hit equals total with pct >= 100 for planned bins",
+                    "rtl_observed.status is pass with passing scoreboard events and coverage refs",
+                    "rtl_observed missing_bins and invalid_rows are empty",
+                    "coverage limitations are empty or explicitly waived in SSOT",
+                ],
+                "artifact": "cov/coverage.json",
+            },
+        ])
     for spec in gate_specs:
         _task(
             tasks,
@@ -833,6 +1907,7 @@ def _add_rtl_gate_todo_tasks(tasks: list[dict[str, Any]], owner: dict[str, str])
             "stage": "rtl-gen",
             "kind": spec["kind"],
             "artifact": spec["artifact"],
+            "profile": profile,
         }
         task["ssot_refs"] = sorted({spec["source_ref"], "quality_gates"})
 
@@ -913,7 +1988,7 @@ def _add_function_model_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], 
                 "Reset value matches SSOT",
                 "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
             ],
-            owner=_owner_for(ref, modules, top),
+            owner=_owner_for(ref, modules, top, value=item),
             value=item,
         )
     for idx, tx in enumerate(_as_list(fm.get("transactions"))):
@@ -932,7 +2007,7 @@ def _add_function_model_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], 
                 "All outputs and side effects occur exactly once per accepted transaction",
                 "The transaction is covered by equivalence goals and scoreboard observations downstream",
             ],
-            owner=_owner_for(base, modules, top),
+            owner=_owner_for(base, modules, top, value=tx),
             value=tx,
         )
         for key, category, label in (
@@ -960,7 +2035,7 @@ def _add_function_model_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], 
                         "Reset/enable/error behavior is consistent with the parent transaction",
                         "Downstream equivalence/coverage can observe this behavior",
                     ],
-                    owner=_owner_for(ref, modules, top),
+                    owner=_owner_for(ref, modules, top, value=sub),
                     value=sub,
                 )
     for idx, item in enumerate(_as_list(fm.get("invariants"))):
@@ -977,7 +2052,7 @@ def _add_function_model_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], 
                 "If the invariant is verification-only, the SSOT names that evidence owner",
                 "Coverage/equivalence references this invariant when observable",
             ],
-            owner=_owner_for(ref, modules, top),
+            owner=_owner_for(ref, modules, top, value=item),
             value=item,
         )
 
@@ -1000,7 +2075,7 @@ def _add_cycle_model_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], mod
                     "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
                     "Downstream scoreboard samples the same acceptance/result phase",
                 ],
-                owner=_owner_for(ref, modules, top),
+                owner=_owner_for(ref, modules, top, value=cm.get(key)),
                 value=cm.get(key),
             )
     for key, label in (
@@ -1028,7 +2103,7 @@ def _add_cycle_model_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], mod
                     "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
                     "TB scoreboard/coverage can observe the rule at the declared phase",
                 ],
-                owner=_owner_for(ref, modules, top),
+                owner=_owner_for(ref, modules, top, value=item),
                 value=item,
             )
 
@@ -1443,6 +2518,1590 @@ def _convert_to_template_format(plan: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _priority_rank(task: dict[str, Any]) -> tuple[int, str]:
+    priority = str(task.get("priority") or "normal").strip().lower()
+    ranks = {"critical": 0, "high": 1, "normal": 2, "medium": 2, "low": 3}
+    return (ranks.get(priority, 2), str(task.get("id") or task.get("source_ref") or ""))
+
+
+def _packet_slug(value: object, fallback: str = "packet") -> str:
+    return _slug(value, fallback=fallback).lower()
+
+
+def _packet_task_item(task: dict[str, Any]) -> dict[str, Any]:
+    keys = (
+        "id",
+        "category",
+        "source_ref",
+        "ssot_refs",
+        "content",
+        "detail",
+        "criteria",
+        "ssot_context",
+        "owner_module",
+        "owner_file",
+        "evidence_terms",
+        "static_evidence",
+        "todo_completion",
+        "priority",
+        "required",
+        "gate_todo",
+        "workflow_todo",
+    )
+    return {key: task.get(key) for key in keys if key in task}
+
+
+def _packet_section_key(task: dict[str, Any]) -> str:
+    category = str(task.get("category") or "unknown").split(".", 1)[0]
+    return _packet_slug(category or "unknown", fallback="section")
+
+
+def _chunked(items: list[dict[str, Any]], limit: int) -> list[list[dict[str, Any]]]:
+    if limit <= 0:
+        return [items]
+    return [items[index:index + limit] for index in range(0, len(items), limit)]
+
+
+def _module_authoring_slices(
+    owner_module: str,
+    tasks: list[dict[str, Any]],
+    *,
+    task_limit: int = AUTHORING_PACKET_TASK_LIMIT,
+) -> list[dict[str, Any]]:
+    ordered = sorted(tasks, key=_priority_rank)
+    if len(ordered) <= task_limit:
+        return [
+            {
+                "enabled": False,
+                "key": "all",
+                "index": 1,
+                "count": 1,
+                "module_task_count": len(ordered),
+                "task_limit": task_limit,
+                "tasks": ordered,
+            }
+        ]
+
+    section_groups: dict[str, list[dict[str, Any]]] = {}
+    for task in ordered:
+        section_groups.setdefault(_packet_section_key(task), []).append(task)
+
+    def section_sort_key(item: tuple[str, list[dict[str, Any]]]) -> tuple[int, str]:
+        section, _items = item
+        return (AUTHORING_PACKET_SECTION_ORDER.get(section, 100), section)
+
+    raw_slices: list[dict[str, Any]] = []
+    for section, section_tasks in sorted(section_groups.items(), key=section_sort_key):
+        chunks = _chunked(section_tasks, task_limit)
+        for chunk_index, chunk in enumerate(chunks, start=1):
+            key = section if len(chunks) == 1 else f"{section}_{chunk_index:02d}"
+            raw_slices.append({
+                "enabled": True,
+                "key": key,
+                "section": section,
+                "section_chunk_index": chunk_index,
+                "section_chunk_count": len(chunks),
+                "module_task_count": len(ordered),
+                "task_limit": task_limit,
+                "tasks": chunk,
+            })
+
+    total = len(raw_slices)
+    for index, item in enumerate(raw_slices, start=1):
+        item["index"] = index
+        item["count"] = total
+        item["rule"] = (
+            f"Owner module {owner_module} is split into {total} authoring slices. "
+            "Update the same owner_file incrementally and preserve logic from earlier slices."
+        )
+    return raw_slices
+
+
+_DRAFT_BLOCKING_GATE_KINDS = {
+    "ssot_required_sections",
+    "ssot_workflow_todo_format",
+    "owner_traceability",
+}
+
+_LOCKED_TRUTH_GATE_KINDS = {
+    "ssot_required_sections",
+    "ssot_workflow_todo_format",
+    "owner_traceability",
+    "manifest_connection_contract_evidence",
+    "golden_authority_artifacts",
+    "target_scale_policy",
+    "cycle_model_artifacts",
+}
+
+
+_TOOL_EVIDENCE_GATE_KINDS = {
+    "common_ai_agent_authoring",
+    "dut_compile",
+    "dut_lint",
+    "dynamic_todo_closure",
+    "protocol_assertion_evidence",
+    "fl_rtl_goal_audit",
+    "coverage_closure",
+}
+
+
+_CONNECTION_CONTRACT_DEPENDENT_GATE_KINDS = {
+    "manifest_connection_contract_evidence",
+}
+
+
+def _task_status(task: dict[str, Any]) -> str:
+    completion = task.get("todo_completion") if isinstance(task.get("todo_completion"), dict) else {}
+    return str(completion.get("status") or "unknown")
+
+
+def _task_reason(task: dict[str, Any]) -> str:
+    completion = task.get("todo_completion") if isinstance(task.get("todo_completion"), dict) else {}
+    return str(completion.get("reason") or "")
+
+
+def _is_open_required_task(task: dict[str, Any]) -> bool:
+    return bool(task.get("required", True)) and _task_status(task) != "pass"
+
+
+def _gate_kind(task: dict[str, Any]) -> str:
+    gate = task.get("gate_todo") if isinstance(task.get("gate_todo"), dict) else {}
+    return str(gate.get("kind") or "")
+
+
+def _compact_policy_blocker(item: dict[str, Any], *, source: str) -> dict[str, Any]:
+    if source == "plan_blocker":
+        return {
+            "source": source,
+            "id": str(item.get("id") or ""),
+            "source_ref": str(item.get("source_ref") or ""),
+            "reason": str(item.get("reason") or ""),
+            "owner": str(item.get("owner") or ""),
+        }
+    if source == "orphan_task":
+        return {
+            "source": source,
+            "task_id": str(item.get("task_id") or ""),
+            "source_ref": str(item.get("source_ref") or ""),
+            "category": str(item.get("category") or ""),
+            "reason": str(item.get("reason") or ""),
+        }
+    return {
+        "source": source,
+        "task_id": str(item.get("id") or ""),
+        "gate_kind": _gate_kind(item),
+        "source_ref": str(item.get("source_ref") or ""),
+        "status": _task_status(item),
+        "reason": _task_reason(item),
+        "owner_module": str(item.get("owner_module") or ""),
+    }
+
+
+def _tool_evidence_instruction(plan: dict[str, Any], task: dict[str, Any]) -> dict[str, Any]:
+    ip = str(plan.get("ip") or "<ip>")
+    top = str(plan.get("top") or ip or "<top>")
+    kind = _gate_kind(task)
+    status = _task_status(task)
+    reason = _task_reason(task)
+    common = {
+        "gate_kind": kind,
+        "task_id": str(task.get("id") or ""),
+        "source_ref": str(task.get("source_ref") or ""),
+        "status": status,
+        "reason": reason,
+        "artifact": str((task.get("gate_todo") or {}).get("artifact") or task.get("artifact") or ""),
+    }
+    by_kind: dict[str, dict[str, Any]] = {
+        "common_ai_agent_authoring": {
+            "stage_sequence": ["ssot-rtl"],
+            "commands": [
+                f"python3 src/headless_workflow.py --root . --ip {ip} --stages rtl-gen",
+                f"python3 workflow/rtl-gen/scripts/derive_rtl_todos.py {ip} --root . --audit-rtl",
+            ],
+            "artifacts": [
+                f"{ip}/rtl/rtl_authoring_provenance.json",
+                f"{ip}/rtl/rtl_todo_plan.json",
+            ],
+            "prerequisites": ["An LLM authoring pass emitted or repaired DUT RTL files."],
+            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        },
+        "dut_compile": {
+            "stage_sequence": ["ssot-rtl", "dut_compile"],
+            "commands": [
+                f"python3 workflow/rtl-gen/scripts/rtl_compile_report.py {ip} --top {top} --project-root .",
+                f"python3 workflow/rtl-gen/scripts/derive_rtl_todos.py {ip} --root . --audit-rtl",
+            ],
+            "artifacts": [f"{ip}/rtl/rtl_compile.json", f"{ip}/rtl/rtl_compile.log"],
+            "prerequisites": [f"{ip}/list/{ip}.f covers the current DUT RTL sources."],
+            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+        },
+        "dut_lint": {
+            "stage_sequence": ["lint", "dut_lint"],
+            "commands": [
+                f"python3 workflow/lint/scripts/dut_lint_report.py {ip} --top {top}",
+                f"python3 workflow/rtl-gen/scripts/derive_rtl_todos.py {ip} --root . --audit-rtl",
+            ],
+            "artifacts": [f"{ip}/lint/dut_lint.json"],
+            "prerequisites": [f"{ip}/list/{ip}.f covers the current DUT RTL/header sources."],
+            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+        },
+        "protocol_assertion_evidence": {
+            "stage_sequence": ["ssot-protocol-assertions", "sim"],
+            "commands": [
+                f"python3 workflow/fl-model-gen/scripts/emit_protocol_assertions.py {ip} --root .",
+                f"python3 workflow/rtl-gen/scripts/derive_rtl_todos.py {ip} --root . --audit-rtl",
+            ],
+            "artifacts": [
+                f"{ip}/verify/protocol_assertions.sva",
+                f"{ip}/verify/protocol_assertions.summary.json",
+                f"{ip}/sim/assertion_failures.jsonl",
+            ],
+            "prerequisites": ["SSOT cycle_model/protocol rules are machine-checkable.", "Simulation has run after RTL edits."],
+            "closure_rule": "Generated assertions exist and latest simulation has zero assertion failure records.",
+        },
+        "fl_rtl_goal_audit": {
+            "stage_sequence": ["ssot-fl-model", "ssot-equiv-goals", "ssot-tb-cocotb", "sim", "goal-audit"],
+            "commands": [
+                f"python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py {ip} --root .",
+                f"python3 workflow/rtl-gen/scripts/derive_rtl_todos.py {ip} --root . --audit-rtl",
+            ],
+            "artifacts": [f"{ip}/sim/fl_rtl_goal_audit.json"],
+            "prerequisites": ["FL model, equivalence goals, TB, and simulation evidence are current."],
+            "closure_rule": "fl_rtl_goal_audit.json must be fresh and status=pass.",
+        },
+        "coverage_closure": {
+            "stage_sequence": ["sim", "coverage"],
+            "commands": [
+                f"python3 workflow/coverage/scripts/ssot_coverage_summary.py {ip}",
+                f"python3 workflow/rtl-gen/scripts/derive_rtl_todos.py {ip} --root . --audit-rtl",
+            ],
+            "artifacts": [f"{ip}/cov/coverage.json"],
+            "prerequisites": ["Simulation evidence exists and planned coverage bins are observable."],
+            "closure_rule": "coverage.json must be fresh, come from ssot_coverage_summary, and close every planned required bin.",
+        },
+        "dynamic_todo_closure": {
+            "stage_sequence": ["audit-rtl"],
+            "commands": [f"python3 workflow/rtl-gen/scripts/derive_rtl_todos.py {ip} --root . --audit-rtl"],
+            "artifacts": [f"{ip}/rtl/rtl_todo_plan.json", f"{ip}/rtl/rtl_authoring_status.md"],
+            "prerequisites": ["All non-closure required TODOs have pass status."],
+            "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        },
+    }
+    detail = by_kind.get(kind, {
+        "stage_sequence": [],
+        "commands": [f"python3 workflow/rtl-gen/scripts/derive_rtl_todos.py {ip} --root . --audit-rtl"],
+        "artifacts": [str((task.get("gate_todo") or {}).get("artifact") or "")],
+        "prerequisites": [],
+        "closure_rule": "Run the canonical evidence producer for this gate, then rerun rtl_todo_plan audit.",
+    })
+    return {**common, **detail}
+
+
+def _tool_evidence_plan(plan: dict[str, Any], tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    instructions: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for task in tasks:
+        if not isinstance(task, dict) or not _is_tool_evidence_gate_task(task):
+            continue
+        key = (_gate_kind(task), str(task.get("id") or ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        instructions.append(_tool_evidence_instruction(plan, task))
+    return instructions
+
+
+def _machine_connection_contracts(plan: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        item for item in plan.get("ssot_connection_contracts", [])
+        if isinstance(item, dict) and item.get("machine_readable")
+    ]
+
+
+def _production_connection_contract_gap(plan: dict[str, Any]) -> dict[str, Any]:
+    summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
+    policy = plan.get("policy") if isinstance(plan.get("policy"), dict) else {}
+    quality_profile = str(
+        policy.get("rtl_quality_profile")
+        or summary.get("rtl_quality_profile")
+        or "standard"
+    )
+    top = str(plan.get("top") or "")
+    owner_modules = [
+        item for item in summary.get("owner_modules", [])
+        if isinstance(item, dict)
+    ]
+    child_count = sum(
+        1
+        for item in owner_modules
+        if str(item.get("name") or "") != top and not bool(item.get("wiring_only"))
+    )
+    required = quality_profile == "production" and child_count > 0
+    machine_contracts = _machine_connection_contracts(plan)
+    missing = required and not machine_contracts
+    return {
+        "status": "missing" if missing else "ok",
+        "required_for_profile": required,
+        "machine_readable_contract_count": len(machine_contracts),
+        "reason": (
+            "Production-profile multi-module RTL requires machine-readable integration.connections "
+            "or sub_modules[].connections before top integration or signoff can close."
+        ),
+    }
+
+
+def _sv_declared_signal_names_from_module_body(body: str) -> set[str]:
+    clean = _strip_sv_comments(body)
+    signals: set[str] = set()
+    for decl in re.findall(r"\b(?:wire|reg|logic)\b(?P<decl>[^;]+);", clean):
+        text = re.sub(r"\[[^\]]+\]", " ", decl)
+        text = re.sub(r"\b(?:wire|reg|logic|signed|unsigned)\b", " ", text)
+        for segment in text.split(","):
+            names = re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\b", segment)
+            if names:
+                signals.add(names[-1])
+    return signals
+
+
+def _connection_contract_suggestion_context(plan: dict[str, Any]) -> dict[str, Any]:
+    suggestions = (
+        plan.get("connection_contract_suggestions")
+        if isinstance(plan.get("connection_contract_suggestions"), dict)
+        else {}
+    )
+    if not suggestions:
+        return {}
+    rows = suggestions.get("rows") if isinstance(suggestions.get("rows"), list) else []
+    summary = suggestions.get("summary") if isinstance(suggestions.get("summary"), dict) else {}
+    return {
+        "path": "rtl/connection_contract_suggestions.json",
+        "summary": summary,
+        "sample_rows": [
+            {
+                key: row.get(key)
+                for key in ("module", "instance", "port", "signal", "direction", "confidence", "review_status")
+                if key in row
+            }
+            for row in rows[:16]
+            if isinstance(row, dict)
+        ],
+        "rule": suggestions.get("rule"),
+    }
+
+
+def _packet_connection_contract_suggestions(plan: dict[str, Any], owner_module: str, kind: str) -> dict[str, Any]:
+    suggestions = (
+        plan.get("connection_contract_suggestions")
+        if isinstance(plan.get("connection_contract_suggestions"), dict)
+        else {}
+    )
+    if not suggestions:
+        return {}
+    rows = suggestions.get("rows") if isinstance(suggestions.get("rows"), list) else []
+    top = str(plan.get("top") or "")
+    if kind == "gate" or owner_module == top:
+        selected = [row for row in rows if isinstance(row, dict)]
+    else:
+        owner_l = owner_module.lower()
+        selected = [
+            row for row in rows
+            if isinstance(row, dict)
+            and (
+                str(row.get("module") or "").lower() == owner_l
+                or str(row.get("instance") or "").lower() == owner_l
+            )
+        ]
+    if not selected:
+        return {}
+    summary = suggestions.get("summary") if isinstance(suggestions.get("summary"), dict) else {}
+    return {
+        "path": "rtl/connection_contract_suggestions.json",
+        "summary": {
+            key: summary.get(key)
+            for key in ("status", "suggested_rows", "pending_review", "applied_to_ssot", "draft_top_integration_fragment")
+            if key in summary
+        },
+        "rows": [
+            {
+                key: row.get(key)
+                for key in ("module", "instance", "port", "signal", "direction", "confidence", "review_status")
+                if key in row
+            }
+            for row in selected[:32]
+        ],
+        "rule": suggestions.get("rule"),
+    }
+
+
+def _rtl_module_short_name(module: str, top: str) -> str:
+    name = str(module or "").strip()
+    for prefix in (f"{top}_target_", f"{top}_"):
+        if top and name.startswith(prefix) and len(name) > len(prefix):
+            name = name[len(prefix):]
+            break
+    return re.sub(r"[^A-Za-z0-9_]+", "_", name).strip("_") or "child"
+
+
+def _conventional_top_signal(port: str, top_symbols: set[str]) -> tuple[str, str]:
+    lower = port.lower()
+    clock_candidates = ("clk", "clock", "aclk", "pclk", "hclk")
+    reset_candidates = ("rst_n", "resetn", "aresetn", "presetn", "reset_n", "rst", "reset")
+    if lower in clock_candidates:
+        for candidate in clock_candidates:
+            if candidate in top_symbols:
+                return candidate, "conventional_clock"
+    if lower in reset_candidates:
+        for candidate in reset_candidates:
+            if candidate in top_symbols:
+                return candidate, "conventional_reset"
+    return "", ""
+
+
+def _suggest_connection_signal(
+    *,
+    module: str,
+    port: str,
+    direction: str,
+    top: str,
+    top_symbols: set[str],
+) -> tuple[str, str]:
+    if port in top_symbols:
+        return port, "exact_top_signal"
+    conventional, confidence = _conventional_top_signal(port, top_symbols)
+    if conventional:
+        return conventional, confidence
+    short = _rtl_module_short_name(module, top)
+    if port.startswith(short + "_"):
+        signal = port
+    else:
+        signal = f"{short}_{port}"
+    if signal in top_symbols:
+        return signal, "exact_internal_signal"
+    suffix = "output_signal" if direction == "output" else "input_signal"
+    return signal, f"proposed_{suffix}"
+
+
+def _draft_connection_contract_suggestions(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any]:
+    gap = _production_connection_contract_gap(plan)
+    if gap.get("status") != "missing":
+        return {
+            "schema_version": 1,
+            "type": "rtl_connection_contract_suggestions",
+            "summary": {
+                "status": "not_required",
+                "suggested_rows": 0,
+                "pending_review": 0,
+                "applied_to_ssot": False,
+            },
+            "rows": [],
+            "rule": "Suggestions are emitted only when production connection contracts are missing.",
+        }
+
+    sources = _read_rtl_sources(ip_dir)
+    module_bodies: dict[str, str] = {}
+    module_files: dict[str, str] = {}
+    for rel, text in sources.items():
+        for module_name, body in _sv_module_bodies(text).items():
+            module_bodies[module_name] = body
+            module_files[module_name] = rel
+
+    top = str(plan.get("top") or ip_dir.name)
+    top_candidates = [name for name in _top_aliases(top) if name in module_bodies]
+    top_module = top if top in module_bodies else (sorted(top_candidates)[0] if top_candidates else "")
+    top_body = module_bodies.get(top_module, "")
+    top_ports = _sv_declared_port_details_from_module_body(top_body) if top_body else {}
+    top_symbols = set(top_ports) | _sv_declared_signal_names_from_module_body(top_body)
+    top_instances = _sv_instance_named_port_maps(top_body) if top_body else []
+    instances_by_module: dict[str, list[dict[str, Any]]] = {}
+    for instance in top_instances:
+        module_name = str(instance.get("module") or "")
+        if module_name:
+            instances_by_module.setdefault(module_name, []).append(instance)
+
+    summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
+    owners = summary.get("owner_modules") if isinstance(summary.get("owner_modules"), list) else []
+    top_aliases = _top_aliases(top)
+    rows: list[dict[str, Any]] = []
+    issues: list[dict[str, Any]] = []
+    child_count = 0
+
+    for owner in owners:
+        if not isinstance(owner, dict) or owner.get("wiring_only") or _skip_hierarchy_module(owner):
+            continue
+        aliases = _hierarchy_module_aliases(owner)
+        if aliases & top_aliases:
+            continue
+        child_count += 1
+        declared = sorted(alias for alias in aliases if alias in module_bodies)
+        module_name = str(owner.get("name") or Path(str(owner.get("file") or "")).stem)
+        rtl_module = module_name if module_name in module_bodies else (declared[0] if declared else module_name)
+        body = module_bodies.get(rtl_module, "")
+        port_details = _sv_declared_port_details_from_module_body(body) if body else {}
+        if not port_details:
+            issues.append({
+                "module": module_name,
+                "file": owner.get("file") or module_files.get(rtl_module, ""),
+                "issue": "No RTL-declared ports were available for connection-contract suggestions.",
+            })
+            continue
+        module_instances = [
+            instance
+            for alias in sorted(aliases)
+            for instance in instances_by_module.get(alias, [])
+        ]
+        for port, details in sorted(port_details.items()):
+            direction = str(details.get("direction") or "")
+            port_range = str(details.get("range") or "")
+            observed = next(
+                (
+                    instance for instance in module_instances
+                    if isinstance(instance.get("ports"), dict)
+                    and str((instance.get("ports") or {}).get(port) or "").strip()
+                ),
+                None,
+            )
+            if observed:
+                signal = str((observed.get("ports") or {}).get(port) or "").strip()
+                instance_name = str(observed.get("instance") or "")
+                confidence = "observed_named_port_map"
+            else:
+                signal, confidence = _suggest_connection_signal(
+                    module=rtl_module,
+                    port=port,
+                    direction=direction,
+                    top=top,
+                    top_symbols=top_symbols,
+                )
+                instance_name = f"u_{_rtl_module_short_name(rtl_module, top)}"
+            row = {
+                "module": rtl_module,
+                "instance": instance_name,
+                "port": port,
+                "signal": signal,
+                "signal_terms": sorted(_signal_terms(signal)),
+                "direction": direction,
+                "range": port_range,
+                "source_ref": f"rtl.connection_contract_suggestions.{rtl_module}.{port}",
+                "confidence": confidence,
+                "review_status": "pending",
+                "applied_to_ssot": False,
+                "machine_readable": False,
+                "approval_target": "integration.connections",
+                "approval_rule": (
+                    "Human approval through RTL_RESOLVE_CONNECTION_CONTRACTS is required before "
+                    "this row becomes SSOT authority."
+                ),
+            }
+            if _is_constant_expr(signal):
+                row["tieoff_candidate"] = True
+            rows.append(row)
+
+    return {
+        "schema_version": 1,
+        "type": "rtl_connection_contract_suggestions",
+        "summary": {
+            "status": "pending_review" if rows else "unavailable",
+            "reason": gap.get("reason"),
+            "top": top,
+            "top_module": top_module,
+            "child_modules": child_count,
+            "suggested_rows": len(rows),
+            "pending_review": len(rows),
+            "applied_to_ssot": False,
+            "draft_top_integration_fragment": "rtl/connection_contract_draft_top.svfrag" if rows else "",
+            "observed_named_port_map_rows": sum(1 for row in rows if row.get("confidence") == "observed_named_port_map"),
+            "proposed_rows": sum(1 for row in rows if str(row.get("confidence") or "").startswith("proposed_")),
+        },
+        "rows": rows,
+        "issues": issues[:64],
+        "rule": (
+            "This artifact is a pending QA aid only. It is not SSOT authority, does not close "
+            "manifest_connection_contract_evidence, and must be approved into integration.connections "
+            "or sub_modules[].connections by a human."
+        ),
+    }
+
+
+def _connection_contract_draft_fragment_text(suggestions: dict[str, Any]) -> str:
+    rows = suggestions.get("rows") if isinstance(suggestions.get("rows"), list) else []
+    valid_rows = [
+        row for row in rows
+        if isinstance(row, dict)
+        and str(row.get("module") or "").strip()
+        and str(row.get("instance") or "").strip()
+        and str(row.get("port") or "").strip()
+        and str(row.get("signal") or "").strip()
+    ]
+    if not valid_rows:
+        return ""
+
+    declarations: dict[str, str] = {}
+    for row in valid_rows:
+        signal = str(row.get("signal") or "").strip()
+        confidence = str(row.get("confidence") or "")
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", signal):
+            continue
+        if not (confidence.startswith("proposed_") or confidence == "exact_internal_signal"):
+            continue
+        declarations.setdefault(signal, str(row.get("range") or "").strip())
+
+    groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for row in valid_rows:
+        key = (str(row.get("module") or "").strip(), str(row.get("instance") or "").strip())
+        groups.setdefault(key, []).append(row)
+
+    lines = [
+        "// DRAFT ONLY: generated from pending connection_contract_suggestions.",
+        "// This fragment is not SSOT authority and must be reviewed before signoff.",
+        "// Paste/adapt inside the top module only after checking directions, widths, and reset/clock domains.",
+        "",
+    ]
+    if declarations:
+        lines.extend(["// Suggested internal signals."])
+        for signal, port_range in sorted(declarations.items()):
+            range_text = f" {port_range}" if port_range else ""
+            lines.append(f"logic{range_text} {signal};")
+        lines.append("")
+
+    lines.extend(["// Suggested child instances."])
+    for (module, instance), group_rows in sorted(groups.items()):
+        lines.append(f"{module} {instance} (")
+        port_lines = []
+        sorted_rows = sorted(group_rows, key=lambda item: str(item.get("port") or ""))
+        for row in sorted_rows:
+            port = str(row.get("port") or "").strip()
+            signal = str(row.get("signal") or "").strip()
+            port_lines.append(f"  .{port}({signal})")
+        for index, port_line in enumerate(port_lines):
+            suffix = "," if index < len(port_lines) - 1 else ""
+            row = sorted_rows[index]
+            confidence = str(row.get("confidence") or "pending")
+            lines.append(f"{port_line}{suffix} // {confidence}; review_status=pending")
+        lines.append(");")
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _is_tool_evidence_gate_task(task: dict[str, Any]) -> bool:
+    return task.get("category") == "rtl_gate.rtl_gen" and _gate_kind(task) in _TOOL_EVIDENCE_GATE_KINDS
+
+
+def _is_locked_truth_gate_task(task: dict[str, Any]) -> bool:
+    return task.get("category") == "rtl_gate.rtl_gen" and _gate_kind(task) in _LOCKED_TRUTH_GATE_KINDS
+
+
+def _is_connection_contract_blocked_gate_task(plan: dict[str, Any], task: dict[str, Any]) -> bool:
+    if task.get("category") != "rtl_gate.rtl_gen":
+        return False
+    if _gate_kind(task) not in _CONNECTION_CONTRACT_DEPENDENT_GATE_KINDS:
+        return False
+    return _production_connection_contract_gap(plan).get("status") == "missing"
+
+
+def _is_llm_actionable_gate_task(plan: dict[str, Any], task: dict[str, Any]) -> bool:
+    if task.get("category") != "rtl_gate.rtl_gen":
+        return False
+    return not (
+        _is_locked_truth_gate_task(task)
+        or _is_tool_evidence_gate_task(task)
+        or _is_connection_contract_blocked_gate_task(plan, task)
+    )
+
+
+def _authoring_execution_policy(plan: dict[str, Any]) -> dict[str, Any]:
+    tasks = [task for task in plan.get("tasks", []) if isinstance(task, dict)]
+    open_required = [task for task in tasks if _is_open_required_task(task)]
+    open_gate_tasks = [task for task in open_required if task.get("category") == "rtl_gate.rtl_gen"]
+    hard_blockers = [
+        _compact_policy_blocker(item, source="plan_blocker")
+        for item in (plan.get("blockers") if isinstance(plan.get("blockers"), list) else [])
+        if isinstance(item, dict)
+    ]
+    hard_blockers.extend(
+        _compact_policy_blocker(item, source="orphan_task")
+        for item in (plan.get("orphans") if isinstance(plan.get("orphans"), list) else [])
+        if isinstance(item, dict)
+    )
+    hard_blockers.extend(
+        _compact_policy_blocker(task, source="gate_todo")
+        for task in open_gate_tasks
+        if _gate_kind(task) in _DRAFT_BLOCKING_GATE_KINDS and _task_status(task) == "open"
+    )
+
+    locked_truth_blockers = [
+        _compact_policy_blocker(task, source="gate_todo")
+        for task in open_gate_tasks
+        if _is_locked_truth_gate_task(task)
+        and not _is_connection_contract_blocked_gate_task(plan, task)
+    ]
+    connection_gap = _production_connection_contract_gap(plan)
+    if connection_gap.get("status") == "missing":
+        suggestion_context = _connection_contract_suggestion_context(plan)
+        locked_truth_blockers.insert(0, {
+            "source": "ssot_connection_contracts",
+            "gate_kind": "manifest_connection_contract_evidence",
+            "status": "missing",
+            "reason": connection_gap["reason"],
+            "pending_suggestions": suggestion_context,
+        })
+        locked_truth_blockers.extend(
+            _compact_policy_blocker(task, source="gate_todo")
+            for task in open_gate_tasks
+            if _is_connection_contract_blocked_gate_task(plan, task)
+        )
+
+    llm_work_blockers = [
+        _compact_policy_blocker(task, source="gate_todo")
+        for task in open_gate_tasks
+        if _is_llm_actionable_gate_task(plan, task)
+    ]
+    tool_evidence_blockers = [
+        _compact_policy_blocker(task, source="gate_todo")
+        for task in open_gate_tasks
+        if _is_tool_evidence_gate_task(task)
+    ]
+    tool_evidence_plan = _tool_evidence_plan(plan, open_gate_tasks)
+    gate = plan.get("gate") if isinstance(plan.get("gate"), dict) else {}
+    pass_allowed = (
+        gate.get("status") == "pass"
+        and bool((plan.get("todo_completion") or {}).get("all_required_todos_pass"))
+    )
+    draft_allowed = not hard_blockers
+    return {
+        "draft_allowed": draft_allowed,
+        "deferred_human_qa_allowed": draft_allowed and not pass_allowed,
+        "pass_allowed": pass_allowed,
+        "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
+        "gate_status": str(gate.get("status") or "unknown"),
+        "open_required_todos": int((plan.get("todo_completion") or {}).get("open_required_tasks") or 0),
+        "hard_blockers": hard_blockers[:32],
+        "blocked_by_locked_truth": locked_truth_blockers[:32],
+        "blocked_by_llm_work": llm_work_blockers[:32],
+        "blocked_by_tool_evidence": tool_evidence_blockers[:32],
+        "tool_evidence_plan": tool_evidence_plan[:32],
+        "connection_contract_gap": connection_gap,
+        "connection_contract_suggestions": _connection_contract_suggestion_context(plan),
+        "allowed_draft_work": [
+            "Author module RTL from SSOT-derived TODO packets.",
+            "Add tests, vectors, assertions, reports, and repair RTL under LLM-editable surfaces.",
+            "Leave unresolved locked-truth decisions as human_gate/change-request records instead of changing SSOT authority.",
+        ],
+        "stop_conditions": [
+            "Do not edit SSOT/FL/coverage/interface/performance authority artifacts without human approval.",
+            "Do not claim rtl-gen PASS while pass_allowed is false.",
+            "Do not sign off top integration while required connection contracts are missing.",
+        ],
+    }
+
+
+def _packet_execution_policy(
+    plan: dict[str, Any],
+    kind: str,
+    owner_module: str,
+    ordered_tasks: list[dict[str, Any]],
+    context: dict[str, Any],
+) -> dict[str, Any]:
+    plan_policy = _authoring_execution_policy(plan)
+    packet_open_required = [
+        task for task in ordered_tasks
+        if _is_open_required_task(task)
+    ]
+    packet_locked = [
+        _compact_policy_blocker(task, source="packet_task")
+        for task in packet_open_required
+        if _is_locked_truth_gate_task(task)
+        or _is_connection_contract_blocked_gate_task(plan, task)
+    ]
+    packet_tool_evidence = [
+        _compact_policy_blocker(task, source="packet_task")
+        for task in packet_open_required
+        if _is_tool_evidence_gate_task(task)
+    ]
+    packet_tool_evidence_plan = _tool_evidence_plan(plan, packet_open_required)
+    human_locked_open_count = len(packet_locked)
+    llm_actionable_open_count = sum(
+        1
+        for task in packet_open_required
+        if not (
+            _is_locked_truth_gate_task(task)
+            or _is_tool_evidence_gate_task(task)
+            or _is_connection_contract_blocked_gate_task(plan, task)
+        )
+    )
+    gap = context.get("connection_contract_gap") if isinstance(context.get("connection_contract_gap"), dict) else {}
+    top = str(plan.get("top") or "")
+    top_or_gate = kind == "gate" or (owner_module and owner_module == top)
+    integration_signoff_allowed = not (top_or_gate and gap.get("status") == "missing")
+    if not integration_signoff_allowed and kind == "gate" and packet_locked:
+        human_locked_open_count += 1
+        packet_locked.insert(0, {
+            "source": "ssot_connection_contracts",
+            "gate_kind": "manifest_connection_contract_evidence",
+            "status": "missing",
+            "reason": gap.get("reason") or "Missing machine-readable SSOT connection contracts.",
+        })
+    work_allowed = bool(plan_policy.get("draft_allowed"))
+    pass_allowed = (
+        bool(plan_policy.get("pass_allowed"))
+        and not packet_open_required
+        and integration_signoff_allowed
+    )
+    return {
+        "work_allowed": work_allowed,
+        "draft_allowed": work_allowed and kind != "gate",
+        "evidence_closure_allowed": work_allowed and kind == "gate",
+        "deferred_human_qa_allowed": bool(plan_policy.get("deferred_human_qa_allowed")),
+        "pass_allowed": pass_allowed,
+        "integration_signoff_allowed": integration_signoff_allowed,
+        "open_required_count": len(packet_open_required),
+        "llm_actionable": llm_actionable_open_count > 0,
+        "llm_actionable_open_count": llm_actionable_open_count,
+        "human_locked_open_count": human_locked_open_count,
+        "tool_evidence_open_count": len(packet_tool_evidence),
+        "contract_blocked_open_count": sum(
+            1 for task in packet_open_required if _is_connection_contract_blocked_gate_task(plan, task)
+        ),
+        "blocked_by_locked_truth": packet_locked[:32],
+        "blocked_by_tool_evidence": packet_tool_evidence[:32],
+        "tool_evidence_plan": packet_tool_evidence_plan[:32],
+        "stop_conditions": [
+            "Close this packet only after every required task in the packet has pass status.",
+            "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+            "Never use a fixed RTL template as the implementation.",
+        ],
+    }
+
+
+REFERENCE_PROFILE_PACKET_CONTEXT_KEYS = (
+    "path",
+    "label",
+    "summary",
+    "target_candidate_basis",
+    "target_candidate_summary",
+    "suggested_ssot_target_scale",
+    "guidance",
+)
+
+
+def _packet_reference_profile_context(plan: dict[str, Any]) -> dict[str, Any] | None:
+    profile = plan.get("reference_profile") if isinstance(plan.get("reference_profile"), dict) else {}
+    if not profile:
+        return None
+    return {
+        key: profile.get(key)
+        for key in REFERENCE_PROFILE_PACKET_CONTEXT_KEYS
+        if key in profile
+    }
+
+
+def _packet_target_scale_context(plan: dict[str, Any]) -> dict[str, Any] | None:
+    target_scale = plan.get("target_scale") if isinstance(plan.get("target_scale"), dict) else {}
+    return dict(target_scale) if target_scale else None
+
+
+def _packet_owner_context(plan: dict[str, Any], kind: str, owner_module: str, owner_file: str) -> dict[str, Any]:
+    summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
+    owner_modules = [
+        item for item in summary.get("owner_modules", [])
+        if isinstance(item, dict)
+    ]
+    top = str(plan.get("top") or "")
+    quality_profile = str(
+        (plan.get("policy") or {}).get("rtl_quality_profile")
+        or summary.get("rtl_quality_profile")
+        or "standard"
+    )
+    contracts = [
+        item for item in plan.get("ssot_connection_contracts", [])
+        if isinstance(item, dict)
+    ]
+    owner = next(
+        (
+            {
+                "name": str(item.get("name") or ""),
+                "file": str(item.get("file") or ""),
+                "refs": [str(ref) for ref in item.get("refs", [])[:32]] if isinstance(item.get("refs"), list) else [],
+                "wiring_only": bool(item.get("wiring_only")),
+            }
+            for item in owner_modules
+            if str(item.get("name") or "") == owner_module
+        ),
+        {"name": owner_module, "file": owner_file, "refs": [], "wiring_only": False},
+    )
+
+    def compact_contract(item: dict[str, Any]) -> dict[str, Any]:
+        return {
+            key: item.get(key)
+            for key in ("source_ref", "module", "instance", "port", "signal", "signal_terms", "machine_readable")
+            if key in item
+        }
+
+    if kind == "gate" or owner_module == top:
+        relevant_contracts = contracts
+    else:
+        owner_l = owner_module.lower()
+        relevant_contracts = [
+            item for item in contracts
+            if str(item.get("module") or "").lower() == owner_l
+            or str(item.get("instance") or "").lower() == owner_l
+        ]
+
+    contract_gap = _production_connection_contract_gap(plan)
+    top_io = [
+        {
+            key: item.get(key)
+            for key in ("source_ref", "name", "direction", "width", "aliases", "allow_constant", "allow_unused")
+            if key in item
+        }
+        for item in (plan.get("ssot_top_io_contracts") or [])
+        if isinstance(item, dict)
+    ]
+    peer_modules = [
+        {
+            "name": str(item.get("name") or ""),
+            "file": str(item.get("file") or ""),
+            "wiring_only": bool(item.get("wiring_only")),
+        }
+        for item in owner_modules[:64]
+    ]
+    return {
+        "quality_profile": quality_profile,
+        "owner": owner,
+        "peer_modules": peer_modules,
+        "reference_profile": _packet_reference_profile_context(plan),
+        "target_scale": _packet_target_scale_context(plan),
+        "connection_contract_gap": contract_gap,
+        "connection_contract_suggestions": _packet_connection_contract_suggestions(plan, owner_module, kind),
+        "ssot_connection_contracts": [compact_contract(item) for item in relevant_contracts[:128]],
+        "ssot_top_io_contracts": top_io[:128] if kind == "gate" or owner_module == top else [],
+    }
+
+
+def _packet_markdown(packet: dict[str, Any]) -> str:
+    lines = [
+        f"# RTL Authoring Packet: {packet['packet_id']}",
+        "",
+        f"- Kind: {packet['kind']}",
+        f"- Owner module: {packet.get('owner_module') or '<none>'}",
+        f"- Owner file: {packet.get('owner_file') or '<none>'}",
+        f"- Task count: {packet['summary']['task_count']}",
+        f"- Required tasks: {packet['summary']['required_count']}",
+        "",
+        "## Rules",
+        "",
+        *[f"- {rule}" for rule in packet.get("rules", [])],
+        "",
+        "## Context",
+        "",
+        f"- Quality profile: {(packet.get('context') or {}).get('quality_profile') or '<unknown>'}",
+    ]
+    context = packet.get("context") if isinstance(packet.get("context"), dict) else {}
+    policy = packet.get("execution_policy") if isinstance(packet.get("execution_policy"), dict) else {}
+    lines.extend([
+        f"- Work allowed: {bool(policy.get('work_allowed'))}",
+        f"- Draft allowed: {bool(policy.get('draft_allowed'))}",
+        f"- Evidence closure allowed: {bool(policy.get('evidence_closure_allowed'))}",
+        f"- PASS allowed: {bool(policy.get('pass_allowed'))}",
+        f"- Integration signoff allowed: {bool(policy.get('integration_signoff_allowed', True))}",
+        f"- LLM-actionable open tasks: {int(policy.get('llm_actionable_open_count') or 0)}",
+        f"- Human-locked open tasks: {int(policy.get('human_locked_open_count') or 0)}",
+    ])
+    owner = context.get("owner") if isinstance(context.get("owner"), dict) else {}
+    refs = owner.get("refs") if isinstance(owner.get("refs"), list) else []
+    if refs:
+        lines.append("- Owner refs: " + ", ".join(str(ref) for ref in refs[:16]))
+    module_slice = context.get("module_slice") if isinstance(context.get("module_slice"), dict) else {}
+    if module_slice.get("enabled"):
+        lines.append(
+            "- Module slice: "
+            f"{module_slice.get('index')}/{module_slice.get('count')} "
+            f"section={module_slice.get('section') or module_slice.get('key')} "
+            f"task_limit={module_slice.get('task_limit')}"
+        )
+        if module_slice.get("rule"):
+            lines.append(f"- Slice rule: {module_slice.get('rule')}")
+    reference_profile = context.get("reference_profile") if isinstance(context.get("reference_profile"), dict) else {}
+    reference_summary = reference_profile.get("summary") if isinstance(reference_profile.get("summary"), dict) else {}
+    target_candidate_summary = (
+        reference_profile.get("target_candidate_summary")
+        if isinstance(reference_profile.get("target_candidate_summary"), dict)
+        else {}
+    )
+    if reference_summary:
+        lines.append(
+            "- Reference scale profile: "
+            f"{reference_profile.get('path') or '<profile>'} "
+            f"(calibration-only, files={reference_summary.get('file_count', 0)}, "
+                f"modules={reference_summary.get('modules', 0)}, lines={reference_summary.get('lines', 0)})"
+        )
+    if target_candidate_summary and target_candidate_summary != reference_summary:
+        lines.append(
+            "- Reference target-candidate subset: "
+            f"basis={reference_profile.get('target_candidate_basis') or '<unknown>'}, "
+            f"files={target_candidate_summary.get('file_count', 0)}, "
+            f"modules={target_candidate_summary.get('modules', 0)}, "
+            f"lines={target_candidate_summary.get('lines', 0)}"
+        )
+    target_scale = context.get("target_scale") if isinstance(context.get("target_scale"), dict) else {}
+    target_keys = [key for key in sorted(target_scale) if key.startswith("min_")]
+    if target_keys:
+        lines.append(
+            "- SSOT target scale: "
+            + ", ".join(f"{key}={target_scale[key]}" for key in target_keys[:12])
+        )
+    candidate = (reference_profile.get("suggested_ssot_target_scale") if isinstance(reference_profile, dict) else None)
+    if isinstance(candidate, dict) and candidate and not target_keys:
+        lines.append("- Reference target-scale candidate present; SSOT target_scale is not locked yet")
+    gap = context.get("connection_contract_gap") if isinstance(context.get("connection_contract_gap"), dict) else {}
+    if gap.get("status") == "missing":
+        lines.append(f"- Connection contract gap: {gap.get('reason')}")
+    suggestion_context = context.get("connection_contract_suggestions") if isinstance(context.get("connection_contract_suggestions"), dict) else {}
+    suggestion_rows = suggestion_context.get("rows") if isinstance(suggestion_context.get("rows"), list) else []
+    suggestion_summary = suggestion_context.get("summary") if isinstance(suggestion_context.get("summary"), dict) else {}
+    if suggestion_rows:
+        lines.append(
+            "- Pending connection-contract suggestions: "
+            f"{suggestion_summary.get('pending_review', len(suggestion_rows))} rows in "
+            f"{suggestion_context.get('path') or 'rtl/connection_contract_suggestions.json'}"
+        )
+        if suggestion_summary.get("draft_top_integration_fragment"):
+            lines.append(f"- Draft top integration fragment: {suggestion_summary.get('draft_top_integration_fragment')}")
+        lines.append(
+            "- Suggestion usage: draft RTL wiring may use these rows to close hierarchy/signal-flow evidence, "
+            "but they are not SSOT authority and cannot close connection-contract signoff."
+        )
+        for row in suggestion_rows[:8]:
+            if not isinstance(row, dict):
+                continue
+            lines.append(
+                "  - "
+                f"{row.get('module') or '<module>'}.{row.get('port') or '<port>'} <= "
+                f"{row.get('signal') or '<signal>'} "
+                f"({row.get('confidence') or 'pending'})"
+            )
+    locked = policy.get("blocked_by_locked_truth") if isinstance(policy.get("blocked_by_locked_truth"), list) else []
+    if locked:
+        lines.append("- Locked-truth blockers:")
+        for item in locked[:8]:
+            if not isinstance(item, dict):
+                continue
+            lines.append(
+                "  - "
+                f"{item.get('gate_kind') or item.get('source') or 'gate'}: "
+                f"{item.get('reason') or item.get('status') or '<open>'}"
+            )
+    tool_blockers = policy.get("blocked_by_tool_evidence") if isinstance(policy.get("blocked_by_tool_evidence"), list) else []
+    if tool_blockers:
+        lines.append("- Tool-evidence blockers:")
+        for item in tool_blockers[:8]:
+            if not isinstance(item, dict):
+                continue
+            lines.append(
+                "  - "
+                f"{item.get('gate_kind') or item.get('source') or 'gate'}: "
+                f"{item.get('reason') or item.get('status') or '<open>'}"
+            )
+    tool_plan = policy.get("tool_evidence_plan") if isinstance(policy.get("tool_evidence_plan"), list) else []
+    if tool_plan:
+        lines.append("- Tool-evidence runbook:")
+        for item in tool_plan[:8]:
+            if not isinstance(item, dict):
+                continue
+            stages = item.get("stage_sequence") if isinstance(item.get("stage_sequence"), list) else []
+            artifacts = item.get("artifacts") if isinstance(item.get("artifacts"), list) else []
+            lines.append(
+                "  - "
+                f"{item.get('gate_kind') or '<gate>'}: "
+                f"stages={', '.join(str(stage) for stage in stages[:6]) or '<manual>'}; "
+                f"artifact={artifacts[0] if artifacts else item.get('artifact') or '<artifact>'}"
+            )
+    contracts = context.get("ssot_connection_contracts") if isinstance(context.get("ssot_connection_contracts"), list) else []
+    if contracts:
+        lines.append("- SSOT connection contracts:")
+        for item in contracts[:12]:
+            if not isinstance(item, dict):
+                continue
+            lines.append(
+                "  - "
+                f"{item.get('module') or '<module>'}.{item.get('port') or '<port>'} <= "
+                f"{item.get('signal') or '<signal>'} ({item.get('source_ref') or '<source>'})"
+            )
+    top_io = context.get("ssot_top_io_contracts") if isinstance(context.get("ssot_top_io_contracts"), list) else []
+    if top_io:
+        lines.append(f"- SSOT top IO contracts: {len(top_io)}")
+    lines.extend([
+        "",
+        "## Tasks",
+        "",
+    ])
+    for task in packet.get("tasks", []):
+        criteria = task.get("criteria") if isinstance(task.get("criteria"), list) else []
+        lines.extend([
+            f"### {task.get('id') or '<unknown>'}: {task.get('content') or '<no content>'}",
+            "",
+            f"- Priority: {task.get('priority') or 'normal'}",
+            f"- Required: {bool(task.get('required', True))}",
+            f"- Status: {(task.get('todo_completion') or {}).get('status') or '<unknown>'}",
+            f"- Category: {task.get('category') or '<none>'}",
+            f"- Source ref: {task.get('source_ref') or '<none>'}",
+            f"- Detail: {task.get('detail') or '<none>'}",
+        ])
+        reason = (task.get("todo_completion") or {}).get("reason")
+        if reason:
+            lines.append(f"- Current reason: {reason}")
+        if criteria:
+            lines.append("- Criteria:")
+            lines.extend(f"  - {item}" for item in criteria)
+        refs = task.get("ssot_refs")
+        if isinstance(refs, list) and refs:
+            lines.append("- SSOT refs: " + ", ".join(str(item) for item in refs[:16]))
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _authoring_status_markdown(authoring_plan: dict[str, Any]) -> str:
+    summary = authoring_plan.get("summary") if isinstance(authoring_plan.get("summary"), dict) else {}
+    reference_profile = authoring_plan.get("reference_profile") if isinstance(authoring_plan.get("reference_profile"), dict) else {}
+    reference_summary = reference_profile.get("summary") if isinstance(reference_profile.get("summary"), dict) else {}
+    target_candidate = (
+        reference_profile.get("suggested_ssot_target_scale")
+        if isinstance(reference_profile.get("suggested_ssot_target_scale"), dict)
+        else {}
+    )
+    packets = authoring_plan.get("packets") if isinstance(authoring_plan.get("packets"), list) else []
+    packet_by_id = {
+        str(packet.get("packet_id") or ""): packet
+        for packet in packets
+        if isinstance(packet, dict) and packet.get("packet_id")
+    }
+    lines = [
+        f"# RTL Authoring Status: {authoring_plan.get('ip') or '<ip>'}",
+        "",
+        "## Status",
+        "",
+        f"- Top: {authoring_plan.get('top') or '<unknown>'}",
+        f"- Packets: {summary.get('packets', 0)}",
+        f"- LLM-actionable tasks: {summary.get('llm_actionable_tasks', 0)}",
+        f"- Human-locked tasks: {summary.get('human_locked_tasks', 0)}",
+        f"- Tool-evidence tasks: {summary.get('tool_evidence_tasks', 0)}",
+        f"- Deferred human QA allowed: {bool(summary.get('deferred_human_qa_allowed'))}",
+        f"- PASS allowed: {bool(summary.get('pass_allowed'))}",
+        f"- Target scale locked: {bool(summary.get('target_scale_present'))}",
+        f"- Pending connection-contract suggestions: {int(summary.get('pending_connection_contract_suggestions') or 0)}",
+        f"- Recommended packet batch limit: {summary.get('recommended_packet_batch_limit', AUTHORING_RECOMMENDED_PACKET_BATCH_LIMIT)}",
+    ]
+    if reference_summary:
+        lines.extend([
+            f"- Reference profile: {reference_profile.get('path') or reference_profile.get('label') or 'rtl_reference_profile'}",
+            (
+                "- Reference scale: "
+                f"files={reference_summary.get('file_count', 0)}, "
+                f"modules={reference_summary.get('modules', 0)}, "
+                f"lines={reference_summary.get('lines', 0)}, "
+                f"procedural_blocks={reference_summary.get('always_blocks', 0)}"
+            ),
+        ])
+    target_candidate_summary = (
+        reference_profile.get("target_candidate_summary")
+        if isinstance(reference_profile.get("target_candidate_summary"), dict)
+        else {}
+    )
+    if target_candidate_summary and target_candidate_summary != reference_summary:
+        lines.append(
+            "- Reference target-candidate subset: "
+            f"basis={reference_profile.get('target_candidate_basis') or '<unknown>'}, "
+            f"files={target_candidate_summary.get('file_count', 0)}, "
+            f"modules={target_candidate_summary.get('modules', 0)}, "
+            f"lines={target_candidate_summary.get('lines', 0)}"
+        )
+    reference_scale_gap = authoring_plan.get("reference_scale_gap") if isinstance(authoring_plan.get("reference_scale_gap"), dict) else {}
+    gap_metrics = reference_scale_gap.get("metrics") if isinstance(reference_scale_gap.get("metrics"), dict) else {}
+    if gap_metrics:
+        parts = []
+        for key in ("source_files", "modules", "lines", "instances", "procedural_blocks"):
+            item = gap_metrics.get(key)
+            if not isinstance(item, dict):
+                continue
+            parts.append(
+                f"{key}={item.get('current', 0)}/{item.get('reference', 0)} ({item.get('percent', 0)}%)"
+            )
+        if parts:
+            lines.append("- Reference scale gap: " + ", ".join(parts))
+    if target_candidate and not summary.get("target_scale_present"):
+        lines.append("- Target scale candidate: present but not SSOT-locked")
+    next_packets = summary.get("next_llm_packets") if isinstance(summary.get("next_llm_packets"), list) else []
+    if next_packets:
+        lines.extend(["", "## Next LLM Packets", ""])
+        for packet_id in next_packets[:8]:
+            packet = packet_by_id.get(str(packet_id), {})
+            policy = packet.get("execution_policy") if isinstance(packet.get("execution_policy"), dict) else {}
+            lines.append(
+                f"- {packet_id}: {packet.get('json') or '<packet>'} "
+                f"(llm_open={int(policy.get('llm_actionable_open_count') or 0)}, "
+                f"human_locked={int(policy.get('human_locked_open_count') or 0)})"
+            )
+    tool_packets = [
+        packet for packet in packets
+        if isinstance(packet, dict)
+        and int((packet.get("execution_policy") or {}).get("tool_evidence_open_count") or 0) > 0
+    ]
+    if tool_packets:
+        lines.extend(["", "## Tool Evidence Queue", ""])
+        for packet in tool_packets[:12]:
+            policy = packet.get("execution_policy") if isinstance(packet.get("execution_policy"), dict) else {}
+            plan_items = policy.get("tool_evidence_plan") if isinstance(policy.get("tool_evidence_plan"), list) else []
+            first_plan = plan_items[0] if plan_items and isinstance(plan_items[0], dict) else {}
+            stages = first_plan.get("stage_sequence") if isinstance(first_plan.get("stage_sequence"), list) else []
+            lines.append(
+                f"- {packet.get('packet_id') or '<packet>'}: "
+                f"tool_evidence={int(policy.get('tool_evidence_open_count') or 0)}, "
+                f"next_tool={stages[0] if stages else first_plan.get('gate_kind') or '<tool>'}, "
+                f"json={packet.get('json') or '<packet>'}"
+            )
+    locked_packets = [
+        packet for packet in packets
+        if isinstance(packet, dict)
+        and int((packet.get("execution_policy") or {}).get("human_locked_open_count") or 0) > 0
+    ]
+    if locked_packets:
+        lines.extend(["", "## Human-Locked Queue", ""])
+        for packet in locked_packets[:12]:
+            policy = packet.get("execution_policy") if isinstance(packet.get("execution_policy"), dict) else {}
+            lines.append(
+                f"- {packet.get('packet_id') or '<packet>'}: "
+                f"human_locked={int(policy.get('human_locked_open_count') or 0)}, "
+                f"json={packet.get('json') or '<packet>'}"
+            )
+    lines.extend([
+        "",
+        "## Rules",
+        "",
+    ])
+    lines.extend(f"- {rule}" for rule in authoring_plan.get("rules", []) if isinstance(rule, str))
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _write_authoring_packets(ip_dir: Path, plan: dict[str, Any], *, todo_plan_sha256: str) -> dict[str, Any]:
+    rtl_dir = ip_dir / "rtl"
+    packet_dir = rtl_dir / "authoring_packets"
+    packet_dir.mkdir(parents=True, exist_ok=True)
+    for stale in list(packet_dir.glob("*.json")) + list(packet_dir.glob("*.md")):
+        stale.unlink()
+
+    module_groups: dict[str, list[dict[str, Any]]] = {}
+    gate_tasks: list[dict[str, Any]] = []
+    unowned_tasks: list[dict[str, Any]] = []
+    owner_files: dict[str, str] = {}
+
+    for task in plan.get("tasks", []):
+        if not isinstance(task, dict):
+            continue
+        if task.get("category") == "rtl_gate.rtl_gen":
+            gate_tasks.append(task)
+            continue
+        owner_module = str(task.get("owner_module") or "").strip()
+        owner_file = str(task.get("owner_file") or "").strip()
+        if owner_module:
+            module_groups.setdefault(owner_module, []).append(task)
+            owner_files.setdefault(owner_module, owner_file)
+        else:
+            unowned_tasks.append(task)
+
+    packets: list[dict[str, Any]] = []
+
+    def add_packet(
+        kind: str,
+        packet_id: str,
+        tasks: list[dict[str, Any]],
+        *,
+        owner_module: str = "",
+        owner_file: str = "",
+        module_slice: dict[str, Any] | None = None,
+    ) -> None:
+        ordered = sorted(tasks, key=_priority_rank)
+        context = _packet_owner_context(plan, kind, owner_module, owner_file)
+        slice_context = {
+            key: value
+            for key, value in (module_slice or {}).items()
+            if key != "tasks"
+        }
+        if slice_context:
+            context["module_slice"] = slice_context
+        packet = {
+            "schema_version": plan.get("schema_version", 1),
+            "type": "rtl_authoring_packet",
+            "packet_id": packet_id,
+            "kind": kind,
+            "ip": plan.get("ip"),
+            "top": plan.get("top"),
+            "source_plan": "rtl/rtl_todo_plan.json",
+            "todo_plan_sha256": todo_plan_sha256,
+            "owner_module": owner_module,
+            "owner_file": owner_file,
+            "rules": [
+                "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+                "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+                "Every task must satisfy content, detail, and criteria before the packet is closed.",
+                "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+                "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.",
+            ],
+            "summary": {
+                "task_count": len(ordered),
+                "required_count": sum(1 for item in ordered if item.get("required", True)),
+                "status_counts": dict(sorted(Counter(str((item.get("todo_completion") or {}).get("status") or "unknown") for item in ordered).items())),
+                "open_required_count": sum(
+                    1
+                    for item in ordered
+                    if item.get("required", True) and (item.get("todo_completion") or {}).get("status") != "pass"
+                ),
+                "categories": dict(sorted(Counter(str(item.get("category") or "unknown") for item in ordered).items())),
+                "source_refs": [str(item.get("source_ref")) for item in ordered if item.get("source_ref")][:24],
+                "module_slice": slice_context,
+            },
+            "context": context,
+            "execution_policy": _packet_execution_policy(plan, kind, owner_module, ordered, context),
+            "tasks": [_packet_task_item(task) for task in ordered],
+        }
+        json_rel = f"rtl/authoring_packets/{packet_id}.json"
+        md_rel = f"rtl/authoring_packets/{packet_id}.md"
+        (ip_dir / json_rel).write_text(
+            json.dumps(packet, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        (ip_dir / md_rel).write_text(_packet_markdown(packet), encoding="utf-8")
+        packets.append({
+            "packet_id": packet_id,
+            "kind": kind,
+            "owner_module": owner_module,
+            "owner_file": owner_file,
+            "json": json_rel,
+            "markdown": md_rel,
+            "summary": packet["summary"],
+            "execution_policy": packet["execution_policy"],
+        })
+
+    for owner_module in sorted(module_groups):
+        owner_slug = _packet_slug(owner_module, fallback="module")
+        module_slices = _module_authoring_slices(owner_module, module_groups[owner_module])
+        used_ids: set[str] = set()
+        for module_slice in module_slices:
+            if module_slice.get("enabled"):
+                base_id = f"module__{owner_slug}__{_packet_slug(module_slice.get('key'), fallback='slice')}"
+                packet_id = base_id
+                suffix = 2
+                while packet_id in used_ids:
+                    packet_id = f"{base_id}_{suffix}"
+                    suffix += 1
+            else:
+                packet_id = f"module__{owner_slug}"
+            used_ids.add(packet_id)
+            add_packet(
+                "module",
+                packet_id,
+                module_slice["tasks"],
+                owner_module=owner_module,
+                owner_file=owner_files.get(owner_module, ""),
+                module_slice=module_slice,
+            )
+    if unowned_tasks:
+        add_packet("unowned", "unowned_tasks", unowned_tasks)
+    if gate_tasks:
+        top_owner = str(plan.get("top") or "")
+        top_owner_file = f"rtl/{plan.get('top') or plan.get('ip')}.sv"
+        llm_gate_tasks = [
+            task
+            for task in gate_tasks
+            if _is_llm_actionable_gate_task(plan, task)
+        ]
+        tool_gate_tasks = [
+            task
+            for task in gate_tasks
+            if _is_tool_evidence_gate_task(task)
+        ]
+        contract_blocked_gate_tasks = [
+            task
+            for task in gate_tasks
+            if _is_connection_contract_blocked_gate_task(plan, task)
+        ]
+        locked_gate_tasks = [
+            task
+            for task in gate_tasks
+            if _is_locked_truth_gate_task(task)
+            and not _is_connection_contract_blocked_gate_task(plan, task)
+        ]
+        if llm_gate_tasks:
+            add_packet(
+                "gate",
+                "rtl_gate_evidence_closure",
+                llm_gate_tasks,
+                owner_module=top_owner,
+                owner_file=top_owner_file,
+            )
+        if tool_gate_tasks:
+            add_packet(
+                "gate",
+                "rtl_gate_tool_evidence",
+                tool_gate_tasks,
+                owner_module=top_owner,
+                owner_file=top_owner_file,
+            )
+        if contract_blocked_gate_tasks:
+            add_packet(
+                "gate",
+                "rtl_gate_contract_blocked",
+                contract_blocked_gate_tasks,
+                owner_module=top_owner,
+                owner_file=top_owner_file,
+            )
+        if locked_gate_tasks:
+            add_packet(
+                "gate",
+                "rtl_gate_human_closure",
+                locked_gate_tasks,
+                owner_module=top_owner,
+                owner_file=top_owner_file,
+            )
+
+    top = str(plan.get("top") or plan.get("ip") or "").strip()
+    top_file = f"rtl/{top}.sv" if top else ""
+    top_file_exists = bool(top_file and (ip_dir / top_file).is_file())
+    owner_order = {
+        str(item.get("name") or ""): index
+        for index, item in enumerate((plan.get("summary") or {}).get("owner_modules") or [])
+        if isinstance(item, dict)
+    }
+
+    def packet_work_rank(packet: dict[str, Any]) -> tuple[int, int, int, int, int, str]:
+        summary = packet.get("summary") if isinstance(packet.get("summary"), dict) else {}
+        policy = packet.get("execution_policy") if isinstance(packet.get("execution_policy"), dict) else {}
+        kind = str(packet.get("kind") or "")
+        owner_module = str(packet.get("owner_module") or "")
+        owner_file = str(packet.get("owner_file") or "")
+        llm_open = int(policy.get("llm_actionable_open_count") or 0)
+        open_required = int(summary.get("open_required_count") or 0)
+        owner_missing = bool(owner_file and not (ip_dir / owner_file).is_file())
+        kind_rank = {"module": 0, "unowned": 1, "gate": 2}.get(kind, 3)
+        if llm_open <= 0:
+            actionable_rank = 2 if open_required <= 0 else 1
+        else:
+            actionable_rank = 0
+        # Once the top RTL exists, missing manifest children should be authored before
+        # residual top-level TODO slices; otherwise PL330-class runs keep expanding top.
+        missing_child_rank = 0 if top_file_exists and kind == "module" and owner_module != top and owner_missing else 1
+        return (
+            actionable_rank,
+            kind_rank,
+            missing_child_rank,
+            owner_order.get(owner_module, 10_000),
+            -llm_open,
+            str(packet.get("packet_id") or ""),
+        )
+
+    packets.sort(key=packet_work_rank)
+
+    llm_actionable_packets = [
+        packet
+        for packet in packets
+        if int((packet.get("execution_policy") or {}).get("llm_actionable_open_count") or 0) > 0
+    ]
+    human_locked_packets = [
+        packet
+        for packet in packets
+        if int((packet.get("execution_policy") or {}).get("human_locked_open_count") or 0) > 0
+    ]
+    tool_evidence_packets = [
+        packet
+        for packet in packets
+        if int((packet.get("execution_policy") or {}).get("tool_evidence_open_count") or 0) > 0
+    ]
+    plan_execution_policy = _authoring_execution_policy(plan)
+    connection_suggestions = (
+        plan.get("connection_contract_suggestions")
+        if isinstance(plan.get("connection_contract_suggestions"), dict)
+        else {}
+    )
+    connection_suggestion_summary = (
+        connection_suggestions.get("summary")
+        if isinstance(connection_suggestions.get("summary"), dict)
+        else {}
+    )
+    reference_scale_gap = _reference_scale_gap_summary(plan)
+    authoring_plan = {
+        "schema_version": plan.get("schema_version", 1),
+        "type": "rtl_authoring_plan",
+        "ip": plan.get("ip"),
+        "top": plan.get("top"),
+        "source_plan": "rtl/rtl_todo_plan.json",
+        "todo_plan_sha256": todo_plan_sha256,
+        "packet_dir": "rtl/authoring_packets",
+        "status_markdown": "rtl/rtl_authoring_status.md",
+        "execution_policy": plan_execution_policy,
+        "policy": plan.get("policy"),
+        "target_scale": plan.get("target_scale"),
+        "reference_scale_gap": reference_scale_gap,
+        "rules": [
+            "Use rtl_todo_plan.json as the complete ledger and rtl_authoring_plan.json as the LLM work queue.",
+            "Process one authoring packet at a time: module packets first, then unowned tasks if any, then rtl_gate_evidence_closure; leave rtl_gate_tool_evidence to tools and rtl_gate_contract_blocked/rtl_gate_human_closure to human-locked authority gaps.",
+            "Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.",
+            "If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.",
+            "After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.",
+            "Keep locked authority artifacts unchanged unless a human approves a change request.",
+            "Rerun rtl_todo_plan audit, compile, lint, sim, and coverage evidence until required TODOs pass.",
+        ],
+        "summary": {
+            "packets": len(packets),
+            "module_packets": sum(1 for packet in packets if packet["kind"] == "module"),
+            "gate_packets": sum(1 for packet in packets if packet["kind"] == "gate"),
+            "unowned_packets": sum(1 for packet in packets if packet["kind"] == "unowned"),
+            "total_tasks": len(plan.get("tasks", [])),
+            "required_tasks": sum(1 for task in plan.get("tasks", []) if isinstance(task, dict) and task.get("required", True)),
+            "reference_profile_present": bool(plan.get("reference_profile")),
+            "target_scale_present": bool(plan.get("target_scale")),
+            "connection_contract_suggestions_present": bool(
+                int(connection_suggestion_summary.get("suggested_rows") or 0)
+            ),
+            "reference_scale_gap_present": bool(reference_scale_gap),
+            "pending_connection_contract_suggestions": int(connection_suggestion_summary.get("pending_review") or 0),
+            "deferred_human_qa_allowed": bool(plan_execution_policy.get("deferred_human_qa_allowed")),
+            "pass_allowed": bool(plan_execution_policy.get("pass_allowed")),
+            "recommended_packet_batch_limit": AUTHORING_RECOMMENDED_PACKET_BATCH_LIMIT,
+            "llm_actionable_packets": len(llm_actionable_packets),
+            "llm_actionable_tasks": sum(
+                int((packet.get("execution_policy") or {}).get("llm_actionable_open_count") or 0)
+                for packet in llm_actionable_packets
+            ),
+            "human_locked_packets": len(human_locked_packets),
+            "human_locked_tasks": sum(
+                int((packet.get("execution_policy") or {}).get("human_locked_open_count") or 0)
+                for packet in human_locked_packets
+            ),
+            "tool_evidence_packets": len(tool_evidence_packets),
+            "tool_evidence_tasks": sum(
+                int((packet.get("execution_policy") or {}).get("tool_evidence_open_count") or 0)
+                for packet in tool_evidence_packets
+            ),
+            "next_llm_packets": [str(packet.get("packet_id") or "") for packet in llm_actionable_packets[:8] if packet.get("packet_id")],
+            "packet_task_limit": AUTHORING_PACKET_TASK_LIMIT,
+            "sliced_module_packets": sum(
+                1
+                for packet in packets
+                if (packet.get("summary") or {}).get("module_slice", {}).get("enabled")
+            ),
+            "max_packet_required_tasks": max(
+                [int((packet.get("summary") or {}).get("required_count") or 0) for packet in packets] or [0]
+            ),
+        },
+        "reference_profile": plan.get("reference_profile"),
+        "packets": packets,
+    }
+    (rtl_dir / "rtl_authoring_plan.json").write_text(
+        json.dumps(authoring_plan, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (rtl_dir / "rtl_authoring_status.md").write_text(_authoring_status_markdown(authoring_plan), encoding="utf-8")
+    return authoring_plan
+
+
 def _write_outputs(ip_dir: Path, plan: dict[str, Any]) -> None:
     rtl_dir = ip_dir / "rtl"
     logs_dir = ip_dir / "logs" / "rtl-gen"
@@ -1451,7 +4110,48 @@ def _write_outputs(ip_dir: Path, plan: dict[str, Any]) -> None:
 
     full_plan_text = json.dumps(plan, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     (logs_dir / "rtl_todo_plan.json").write_text(full_plan_text, encoding="utf-8")
-    (rtl_dir / "rtl_todo_plan.json").write_text(full_plan_text, encoding="utf-8")
+    todo_plan_path = rtl_dir / "rtl_todo_plan.json"
+    todo_plan_path.write_text(full_plan_text, encoding="utf-8")
+    todo_plan_sha256 = _stable_json_sha256(todo_plan_path) or hashlib.sha256(full_plan_text.encode("utf-8")).hexdigest()
+    authoring_plan = _write_authoring_packets(ip_dir, plan, todo_plan_sha256=todo_plan_sha256)
+
+    connection_suggestions = (
+        plan.get("connection_contract_suggestions")
+        if isinstance(plan.get("connection_contract_suggestions"), dict)
+        else {}
+    )
+    connection_suggestion_rows = (
+        connection_suggestions.get("rows")
+        if isinstance(connection_suggestions.get("rows"), list)
+        else []
+    )
+    connection_suggestion_path = rtl_dir / "connection_contract_suggestions.json"
+    connection_fragment_path = rtl_dir / "connection_contract_draft_top.svfrag"
+    if connection_suggestion_rows:
+        connection_suggestion_path.write_text(
+            json.dumps(connection_suggestions, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        fragment_text = _connection_contract_draft_fragment_text(connection_suggestions)
+        if fragment_text:
+            connection_fragment_path.write_text(fragment_text, encoding="utf-8")
+        elif connection_fragment_path.exists():
+            connection_fragment_path.unlink()
+    else:
+        if connection_suggestion_path.exists():
+            connection_suggestion_path.unlink()
+        if connection_fragment_path.exists():
+            connection_fragment_path.unlink()
+
+    reference_scale_gap = plan.get("reference_scale_gap") if isinstance(plan.get("reference_scale_gap"), dict) else {}
+    reference_scale_gap_path = rtl_dir / "reference_scale_gap.json"
+    if reference_scale_gap:
+        reference_scale_gap_path.write_text(
+            json.dumps(reference_scale_gap, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+    elif reference_scale_gap_path.exists():
+        reference_scale_gap_path.unlink()
 
     template_plan = _convert_to_template_format(plan)
     template_text = json.dumps(template_plan, ensure_ascii=False, indent=2) + "\n"
@@ -1473,6 +4173,11 @@ def _write_outputs(ip_dir: Path, plan: dict[str, Any]) -> None:
                 "static_evidence": task.get("static_evidence"),
             }
             for task in plan["tasks"]
+        ],
+        "authoring_plan": "rtl/rtl_authoring_plan.json",
+        "authoring_packets": [
+            {"packet_id": packet["packet_id"], "json": packet["json"], "markdown": packet["markdown"]}
+            for packet in authoring_plan["packets"]
         ],
         "gate": plan["gate"],
     }
@@ -1524,6 +4229,7 @@ def _write_dynamic_blocker(ip_dir: Path, plan: dict[str, Any]) -> None:
             ],
             "recommended_default": "Patch sub_modules[] with function_model_refs, cycle_model_refs, register_refs, dataflow_refs, and fsm_refs.",
             "orphan_refs": [item.get("source_ref") for item in orphans[:128] if isinstance(item, dict)],
+            "orphan_groups": _orphan_groups(orphans),
             "candidate_modules": candidate_modules[:32],
             "required_fields": [
                 "sub_modules[].function_model_refs",
@@ -1555,7 +4261,41 @@ def _write_dynamic_blocker(ip_dir: Path, plan: dict[str, Any]) -> None:
     path.write_text(json.dumps(out, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def _read_rtl_sources(ip_dir: Path) -> dict[str, str]:
+def _orphan_groups(orphans: list[dict[str, Any]], limit: int = 24) -> list[dict[str, Any]]:
+    field_by_section = {
+        "function_model": "function_model_refs",
+        "cycle_model": "cycle_model_refs",
+        "registers": "register_refs",
+        "dataflow": "dataflow_refs",
+        "features": "feature_refs",
+        "fsm": "fsm_refs",
+    }
+    groups: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for item in orphans:
+        if not isinstance(item, dict):
+            continue
+        source_ref = str(item.get("source_ref") or "").strip()
+        category = str(item.get("category") or "").strip()
+        section = source_ref.split(".", 1)[0] if "." in source_ref else source_ref
+        field = field_by_section.get(section, "ssot_refs")
+        key = (section, category, field)
+        group = groups.setdefault(
+            key,
+            {
+                "section_id": section,
+                "category": category,
+                "required_field": f"sub_modules[].{field}",
+                "count": 0,
+                "sample_refs": [],
+            },
+        )
+        group["count"] += 1
+        if source_ref and len(group["sample_refs"]) < 12:
+            group["sample_refs"].append(source_ref)
+    return sorted(groups.values(), key=lambda item: (-int(item["count"]), item["section_id"], item["category"]))[:limit]
+
+
+def _rtl_source_paths(ip_dir: Path) -> list[tuple[str, Path]]:
     entries: list[str] = []
     filelist = ip_dir / "list" / f"{ip_dir.name}.f"
     if filelist.is_file():
@@ -1565,23 +4305,2023 @@ def _read_rtl_sources(ip_dir: Path) -> dict[str, str]:
                 entries.append(line)
     if not entries and (ip_dir / "rtl").is_dir():
         entries = [str(path.relative_to(ip_dir)) for path in sorted((ip_dir / "rtl").glob("*.sv")) + sorted((ip_dir / "rtl").glob("*.v"))]
-    sources: dict[str, str] = {}
+    paths: list[tuple[str, Path]] = []
+    seen: set[Path] = set()
     for rel in entries:
         path = ip_dir / rel
         if not path.is_file():
             path = ip_dir.parent / rel
         if path.is_file():
-            try:
-                sources[rel] = path.read_text(encoding="utf-8", errors="replace")[:400000]
-            except OSError:
-                pass
+            resolved = path.resolve()
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            paths.append((rel, path))
+    return paths
+
+
+def _read_rtl_sources(ip_dir: Path) -> dict[str, str]:
+    sources: dict[str, str] = {}
+    for rel, path in _rtl_source_paths(ip_dir):
+        try:
+            sources[rel] = path.read_text(encoding="utf-8", errors="replace")[:400000]
+        except OSError:
+            pass
     return sources
 
 
-def _audit_static_evidence(ip_dir: Path, plan: dict[str, Any]) -> None:
+def _artifact_freshness_issue(ip_dir: Path, artifact_path: Path, label: str) -> str:
+    sources = _rtl_source_paths(ip_dir)
+    if not sources:
+        return f"{label} freshness cannot be proven because no DUT RTL source files are listed."
+    try:
+        artifact_mtime = artifact_path.stat().st_mtime
+    except OSError as exc:
+        return f"Cannot stat {artifact_path.relative_to(ip_dir)} for freshness: {exc}."
+    latest: tuple[float, str] | None = None
+    for rel, path in sources:
+        try:
+            mtime = path.stat().st_mtime
+        except OSError:
+            continue
+        if latest is None or mtime > latest[0]:
+            latest = (mtime, rel)
+    if latest is None:
+        return f"{label} freshness cannot be proven because listed DUT RTL source files could not be statted."
+    latest_mtime, latest_rel = latest
+    if artifact_mtime + 1e-6 < latest_mtime:
+        rel_artifact = artifact_path.relative_to(ip_dir)
+        return f"{rel_artifact} is older than current RTL source {latest_rel}; rerun {label} after the final RTL edit."
+    return ""
+
+
+def _normalize_rtl_rel(ip_dir: Path, value: Any) -> str:
+    rel = str(value or "").strip().replace("\\", "/")
+    if rel.startswith("./"):
+        rel = rel[2:]
+    prefix = f"{ip_dir.name}/"
+    if rel.startswith(prefix):
+        rel = rel[len(prefix) :]
+    return rel
+
+
+def _report_source_set_issue(
+    ip_dir: Path,
+    report: dict[str, Any],
+    label: str,
+    *,
+    extensions: tuple[str, ...],
+) -> str:
+    current = {
+        _normalize_rtl_rel(ip_dir, rel)
+        for rel, _path in _rtl_source_paths(ip_dir)
+        if _normalize_rtl_rel(ip_dir, rel).endswith(extensions)
+    }
+    if not current:
+        return f"{label} source coverage cannot be proven because no matching DUT RTL source files are listed."
+    raw_reported = report.get("rtl_files")
+    if not isinstance(raw_reported, list):
+        return f"{label} report does not list rtl_files for current filelist coverage."
+    reported = {
+        _normalize_rtl_rel(ip_dir, item)
+        for item in raw_reported
+        if str(item or "").strip().endswith(extensions)
+    }
+    missing = sorted(current - reported)
+    if missing:
+        sample = ", ".join(missing[:6])
+        return f"{label} report rtl_files does not cover current DUT filelist source(s): {sample}."
+    return ""
+
+
+def _manifest_rtl_files_from_plan(plan: dict[str, Any]) -> set[str]:
+    summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
+    owners = summary.get("owner_modules") if isinstance(summary.get("owner_modules"), list) else []
+    files: set[str] = set()
+    for owner in owners:
+        if not isinstance(owner, dict):
+            continue
+        rel = str(owner.get("file") or "").strip().replace("\\", "/")
+        if rel.endswith((".v", ".sv")):
+            files.add(rel)
+    return files
+
+
+def _reported_rtl_file_set(ip_dir: Path, report: dict[str, Any], key: str = "rtl_files") -> set[str]:
+    raw = report.get(key)
+    if not isinstance(raw, list):
+        return set()
+    return {
+        _normalize_rtl_rel(ip_dir, item)
+        for item in raw
+        if str(item or "").strip().endswith((".v", ".sv", ".vh", ".svh"))
+    }
+
+
+def _strip_sv_comments(text: str) -> str:
+    text = re.sub(r"/\*.*?\*/", "", text or "", flags=re.S)
+    return re.sub(r"//.*", "", text)
+
+
+def _strip_sv_subprogram_blocks(text: str) -> str:
+    clean = text or ""
+    clean = re.sub(r"\bfunction\b.*?\bendfunction\b", " ", clean, flags=re.S)
+    return re.sub(r"\btask\b.*?\bendtask\b", " ", clean, flags=re.S)
+
+
+def _sv_module_bodies(text: str) -> dict[str, str]:
+    clean = _strip_sv_comments(text)
+    modules: dict[str, str] = {}
+    pattern = re.compile(
+        r"\bmodule\s+([A-Za-z_][A-Za-z0-9_]*)\b(?P<body>.*?)(?=\bendmodule\b)",
+        re.S,
+    )
+    for match in pattern.finditer(clean):
+        modules[match.group(1)] = match.group("body")
+    return modules
+
+
+def _sv_declared_ports_from_module_body(body: str) -> set[str]:
+    return set(_sv_declared_port_details_from_module_body(body))
+
+
+def _sv_declared_port_details_from_module_body(body: str) -> dict[str, dict[str, str]]:
+    clean = _strip_sv_comments(body)
+    ports: dict[str, dict[str, str]] = {}
+    header_match = re.search(r"\((?P<header>.*?)\)\s*;", clean, flags=re.S)
+    current_direction = ""
+    current_range = ""
+    if header_match:
+        for segment in header_match.group("header").split(","):
+            range_match = re.search(r"\[[^\]]+\]", segment)
+            if range_match:
+                current_range = range_match.group(0)
+            text = re.sub(r"\[[^\]]+\]", " ", segment)
+            direction = re.search(r"\b(input|output|inout)\b", text)
+            if direction:
+                current_direction = direction.group(1)
+                if not range_match:
+                    current_range = ""
+            if not current_direction:
+                continue
+            text = re.sub(r"\b(?:input|output|inout|wire|reg|logic|signed|unsigned)\b", " ", text)
+            names = re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\b", text)
+            if names:
+                ports[names[-1]] = {"direction": current_direction, "range": current_range}
+    decl_scan = clean[header_match.end():] if header_match else clean
+    decl_scan = _strip_sv_subprogram_blocks(decl_scan)
+    for direction, decl in re.findall(r"\b(input|output|inout)\b(?P<decl>[^;]+);", decl_scan):
+        range_match = re.search(r"\[[^\]]+\]", decl)
+        port_range = range_match.group(0) if range_match else ""
+        text = re.sub(r"\[[^\]]+\]", " ", decl)
+        text = re.sub(r"\b(?:wire|reg|logic|signed|unsigned)\b", " ", text)
+        for segment in text.split(","):
+            names = re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\b", segment)
+            if names:
+                ports[names[-1]] = {"direction": direction, "range": port_range}
+    return {
+        port: info
+        for port, info in ports.items()
+        if port not in {"input", "output", "inout"}
+    }
+
+
+def _sv_instance_named_port_maps(text: str) -> list[dict[str, Any]]:
+    clean = _strip_sv_comments(text)
+    keywords = {
+        "assign",
+        "always",
+        "always_comb",
+        "always_ff",
+        "always_latch",
+        "begin",
+        "case",
+        "casex",
+        "casez",
+        "class",
+        "end",
+        "endcase",
+        "endclass",
+        "endfunction",
+        "endgenerate",
+        "endmodule",
+        "endpackage",
+        "endtask",
+        "enum",
+        "for",
+        "function",
+        "generate",
+        "if",
+        "initial",
+        "input",
+        "inout",
+        "interface",
+        "localparam",
+        "logic",
+        "modport",
+        "module",
+        "output",
+        "package",
+        "parameter",
+        "reg",
+        "return",
+        "struct",
+        "task",
+        "typedef",
+        "union",
+        "while",
+        "wire",
+    }
+    instances: list[dict[str, Any]] = []
+    pattern = re.compile(
+        r"(?<![$A-Za-z0-9_])([A-Za-z_][A-Za-z0-9_]*)\s*(?:#\s*\((?:[^()]|\([^()]*\))*\)\s*)?"
+        r"([A-Za-z_][A-Za-z0-9_]*)\s*\((?P<ports>[^;]*)\)\s*;",
+        re.S,
+    )
+    for match in pattern.finditer(clean):
+        module_name = match.group(1)
+        if module_name.lower() in keywords:
+            continue
+        raw_ports = match.group("ports")
+        named_ports: dict[str, str] = {}
+        for port, expr in re.findall(r"\.([A-Za-z_][A-Za-z0-9_]*)\s*\(([^()]*)\)", raw_ports, re.S):
+            named_ports[port] = " ".join(expr.split())
+        instances.append({
+            "module": module_name,
+            "instance": match.group(2),
+            "has_named_ports": bool(re.search(r"\.[A-Za-z_][A-Za-z0-9_]*\s*\(", raw_ports)),
+            "ports": named_ports,
+        })
+    return instances
+
+
+def _sv_instantiated_modules(text: str) -> set[str]:
+    return {item["module"] for item in _sv_instance_named_port_maps(text)}
+
+
+def _top_aliases(top: str) -> set[str]:
+    return {name for name in {top, f"{top}_top", "top", "wrapper"} if name}
+
+
+def _hierarchy_module_aliases(item: dict[str, Any]) -> set[str]:
+    aliases: set[str] = set()
+    for raw in (item.get("name"), Path(str(item.get("file") or "")).stem):
+        name = str(raw or "").strip()
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name):
+            aliases.add(name)
+    return aliases
+
+
+def _skip_hierarchy_module(item: dict[str, Any]) -> bool:
+    rel = str(item.get("file") or "")
+    name = str(item.get("name") or Path(rel).stem)
+    if rel.endswith((".svh", ".vh")):
+        return True
+    return name.endswith("_pkg") or name.endswith("_types")
+
+
+def _contract_aliases_for_module(name: str, file_name: str, top: str) -> set[str]:
+    aliases: set[str] = set()
+    for raw in (name, Path(str(file_name or "")).stem):
+        text = str(raw or "").strip()
+        if not text:
+            continue
+        aliases.add(text)
+        for prefix in (f"{top}_", f"{top}_target_"):
+            if top and text.startswith(prefix) and len(text) > len(prefix):
+                aliases.add(text[len(prefix):])
+        parts = [part for part in text.split("_") if part]
+        if parts:
+            aliases.add(parts[-1])
+    return {alias for alias in aliases if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", alias)}
+
+
+def _contract_alias_map(modules: list[dict[str, Any]], top: str) -> dict[str, str]:
+    raw: dict[str, set[str]] = {}
+    for item in modules:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").strip()
+        file_name = str(item.get("file") or "").strip()
+        if not name and not file_name:
+            continue
+        canonical = name or Path(file_name).stem
+        for alias in _contract_aliases_for_module(canonical, file_name, top):
+            raw.setdefault(alias.lower(), set()).add(canonical)
+    return {
+        alias: next(iter(names))
+        for alias, names in raw.items()
+        if len(names) == 1
+    }
+
+
+def _parse_endpoint(value: Any, alias_map: dict[str, str]) -> tuple[str, str]:
+    text = str(value or "").strip()
+    if not text:
+        return "", ""
+    tokens = re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text)
+    if not tokens:
+        return "", ""
+    if len(tokens) == 1:
+        return "", tokens[0]
+    module = alias_map.get(tokens[-2].lower(), tokens[-2])
+    return module, tokens[-1]
+
+
+def _signal_terms(value: Any) -> set[str]:
+    text = str(value or "").strip()
+    terms: set[str] = set()
+    for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text):
+        terms.add(token)
+    if terms:
+        terms.add(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text)[-1])
+    return {term for term in terms if term.lower() not in EVIDENCE_STOPWORDS | REFERENCE_STOPWORDS}
+
+
+def _normalize_expr(value: Any) -> str:
+    return re.sub(r"\s+", "", str(value or ""))
+
+
+def _connection_contract_from_entry(
+    raw: Any,
+    *,
+    source_ref: str,
+    default_module: str,
+    alias_map: dict[str, str],
+) -> list[dict[str, Any]]:
+    contracts: list[dict[str, Any]] = []
+
+    def contract(module: str, port: str, signal: Any, instance: Any = "") -> dict[str, Any]:
+        resolved = alias_map.get(str(module or "").lower(), str(module or ""))
+        return {
+            "source_ref": source_ref,
+            "module": resolved,
+            "instance": str(instance or "").strip(),
+            "port": str(port or "").strip(),
+            "signal": str(signal or "").strip(),
+            "signal_terms": sorted(_signal_terms(signal)),
+            "machine_readable": bool(resolved and str(port or "").strip()),
+            "raw": _short_text(raw, limit=240),
+        }
+
+    if isinstance(raw, dict):
+        for map_key in ("ports", "port_map", "connections"):
+            nested = _ci_get(raw, map_key)
+            if isinstance(nested, dict):
+                module = _ci_get(raw, "module", "child", "target_module", "sink_module") or default_module
+                instance = _ci_get(raw, "instance", "inst")
+                for port, signal in nested.items():
+                    contracts.append(contract(str(module), str(port), signal, instance))
+                return contracts
+            if isinstance(nested, list):
+                module = _ci_get(raw, "module", "child", "target_module", "sink_module") or default_module
+                for idx, item in enumerate(nested):
+                    contracts.extend(
+                        _connection_contract_from_entry(
+                            item,
+                            source_ref=f"{source_ref}.{map_key}[{idx}]",
+                            default_module=str(module),
+                            alias_map=alias_map,
+                        )
+                    )
+                return contracts
+
+        explicit_module = _ci_get(raw, "module", "child", "target_module", "sink_module")
+        module = explicit_module or default_module
+        port = _ci_get(raw, "port", "child_port", "target_port", "sink_port", "to_port", "dst_port")
+        signal = _ci_get(raw, "signal", "expr", "expression", "source_signal", "from_signal", "top_signal")
+        instance = _ci_get(raw, "instance", "inst")
+        endpoint = _ci_get(raw, "to", "sink", "target", "dst", "destination")
+        if _present(endpoint):
+            endpoint_module, endpoint_port = _parse_endpoint(endpoint, alias_map)
+            module = module or endpoint_module
+            port = port or endpoint_port
+        source = _ci_get(raw, "from", "source", "src")
+        if not _present(signal) and _present(source):
+            _, signal_port = _parse_endpoint(source, alias_map)
+            signal = signal_port or source
+        if _present(port):
+            contracts.append(contract(str(module or ""), str(port or ""), signal or "", instance))
+            return contracts
+
+        mapping_like = [
+            (key, value)
+            for key, value in raw.items()
+            if str(key).lower()
+            not in {
+                "id",
+                "name",
+                "description",
+                "note",
+                "notes",
+                "type",
+                "rule",
+                "module",
+                "child",
+                "target_module",
+                "sink_module",
+                "instance",
+                "inst",
+                "machine_readable",
+                "source_ref",
+                "ssot_ref",
+            }
+            and not isinstance(value, (dict, list))
+        ]
+        if mapping_like:
+            for port_key, signal_value in mapping_like:
+                contracts.append(contract(str(module or default_module), str(port_key), signal_value, instance))
+            return contracts
+        if _present(explicit_module):
+            contracts.append(contract(str(module or ""), "", signal or "", instance))
+            return contracts
+
+    elif isinstance(raw, list):
+        for idx, item in enumerate(raw):
+            contracts.extend(
+                _connection_contract_from_entry(
+                    item,
+                    source_ref=f"{source_ref}[{idx}]",
+                    default_module=default_module,
+                    alias_map=alias_map,
+                )
+            )
+        return contracts
+
+    if _present(raw):
+        contracts.append({
+            "source_ref": source_ref,
+            "module": default_module,
+            "instance": "",
+            "port": "",
+            "signal": "",
+            "signal_terms": [],
+            "machine_readable": False,
+            "raw": _short_text(raw, limit=240),
+        })
+    return contracts
+
+
+def _collect_connection_contracts(doc: dict[str, Any], modules: list[dict[str, Any]], top: str) -> list[dict[str, Any]]:
+    alias_map = _contract_alias_map(modules, top)
+    contracts: list[dict[str, Any]] = []
+    for idx, module in enumerate(modules):
+        if not isinstance(module, dict):
+            continue
+        raw_item = module.get("raw") if isinstance(module.get("raw"), dict) else {}
+        if not _present(raw_item.get("connections")):
+            continue
+        name = str(module.get("name") or Path(str(module.get("file") or "")).stem)
+        contracts.extend(
+            _connection_contract_from_entry(
+                raw_item.get("connections"),
+                source_ref=f"sub_modules[{idx}].connections",
+                default_module=name,
+                alias_map=alias_map,
+            )
+        )
+
+    integration = doc.get("integration") if isinstance(doc.get("integration"), dict) else {}
+    for key in ("connections", "internal_connections", "port_connections", "wiring"):
+        if key not in integration:
+            continue
+        contracts.extend(
+            _connection_contract_from_entry(
+                integration.get(key),
+                source_ref=f"integration.{key}",
+                default_module="",
+                alias_map=alias_map,
+            )
+        )
+    return contracts
+
+
+def _infer_bundle_direction(item: dict[str, Any]) -> str:
+    explicit = _ci_get(item, "direction", "dir")
+    if _present(explicit):
+        direction = str(explicit).strip().lower()
+        return direction if direction in {"input", "output", "inout"} else ""
+    text = f"{_ci_get(item, 'type', 'kind') or ''} {_ci_get(item, 'role') or ''}".lower()
+    if "inout" in text:
+        return "inout"
+    if "input" in text:
+        return "input"
+    if "output" in text or "irq" in text:
+        return "output"
+    return ""
+
+
+def _simple_width(value: Any) -> str:
+    if not _present(value):
+        return ""
+    text = str(value).strip()
+    if text in {"1", "1'b1", "1'b0"}:
+        return "1"
+    return text
+
+
+def _top_io_contract(
+    *,
+    source_ref: str,
+    name: str,
+    direction: str = "",
+    width: Any = "",
+    aliases: list[str] | None = None,
+    allow_constant: bool = False,
+    constant_value: Any = None,
+    allow_unused: bool = False,
+) -> dict[str, Any]:
+    alias_set = {str(name or "").strip()}
+    alias_set.update(str(alias or "").strip() for alias in (aliases or []))
+    alias_set = {alias for alias in alias_set if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", alias)}
+    return {
+        "source_ref": source_ref,
+        "name": str(name or "").strip(),
+        "aliases": sorted(alias_set),
+        "direction": direction if direction in {"input", "output", "inout"} else "",
+        "width": _simple_width(width),
+        "allow_constant": bool(allow_constant),
+        "constant_value": _short_text(constant_value) if _present(constant_value) else "",
+        "allow_unused": bool(allow_unused),
+    }
+
+
+def _constant_allowed_from_io_item(item: dict[str, Any]) -> tuple[bool, Any]:
+    constant_value = _ci_get(item, "constant", "tieoff", "fixed_value", "constant_value")
+    allow_constant = _ci_get(item, "allow_constant", "constant_ok", "tieoff_ok")
+    if _present(constant_value):
+        return True, constant_value
+    return bool(allow_constant), constant_value
+
+
+def _unused_allowed_from_io_item(item: dict[str, Any]) -> bool:
+    return bool(_ci_get(item, "allow_unused", "unused_ok", "reserved", "no_connect", "nc"))
+
+
+def _collect_top_io_contracts(doc: dict[str, Any]) -> list[dict[str, Any]]:
+    contracts: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str]] = set()
+
+    def add(contract: dict[str, Any]) -> None:
+        name = str(contract.get("name") or "").strip()
+        if not name:
+            return
+        key = (name, str(contract.get("direction") or ""), str(contract.get("width") or ""))
+        if key in seen:
+            return
+        seen.add(key)
+        contracts.append(contract)
+
+    for idx, item in enumerate(_as_list(doc.get("clocks"))):
+        if isinstance(item, dict):
+            name = _ci_get(item, "name", "signal", "clock")
+        else:
+            name = item
+        if _present(name):
+            add(_top_io_contract(source_ref=f"clocks[{idx}]", name=str(name), direction="input", width=1))
+
+    for idx, item in enumerate(_as_list(doc.get("resets"))):
+        if isinstance(item, dict):
+            name = _ci_get(item, "name", "signal", "reset")
+        else:
+            name = item
+        if _present(name):
+            add(_top_io_contract(source_ref=f"resets[{idx}]", name=str(name), direction="input", width=1))
+
+    io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
+    for group_key, direction in (("clock_domains", "input"), ("resets", "input")):
+        for group_idx, group in enumerate(_as_list(io.get(group_key))):
+            if isinstance(group, dict):
+                group_name = _ci_get(group, "name", "signal", "clock", "reset")
+                ports = group.get("ports")
+                if _present(group_name) and not ports:
+                    add(_top_io_contract(source_ref=f"io_list.{group_key}[{group_idx}]", name=str(group_name), direction=direction, width=1))
+                for port_idx, port in enumerate(_as_list(ports)):
+                    if isinstance(port, dict):
+                        name = _ci_get(port, "name", "signal", "port")
+                        width = _ci_get(port, "width", "bits")
+                        port_dir = _ci_get(port, "direction", "dir") or direction
+                        allow_unused = _unused_allowed_from_io_item(port)
+                    else:
+                        name, width, port_dir = port, 1, direction
+                        allow_unused = False
+                    if _present(name):
+                        add(_top_io_contract(source_ref=f"io_list.{group_key}[{group_idx}].ports[{port_idx}]", name=str(name), direction=str(port_dir).lower(), width=width or 1, allow_unused=allow_unused))
+            elif _present(group):
+                add(_top_io_contract(source_ref=f"io_list.{group_key}[{group_idx}]", name=str(group), direction=direction, width=1))
+
+    for if_idx, iface in enumerate(_as_list(io.get("interfaces"))):
+        if not isinstance(iface, dict):
+            continue
+        iface_name = str(_ci_get(iface, "name") or f"if_{if_idx}")
+        iface_dir = _infer_bundle_direction(iface)
+        iface_width = _ci_get(iface, "width", "data_width")
+        if _present(iface.get("count")) and ("array" in str(_ci_get(iface, "type", "kind") or "").lower() or not _present(iface_width)):
+            iface_width = iface.get("count")
+        ports = _as_list(iface.get("ports")) if _present(iface.get("ports")) else []
+        signals = _as_list(iface.get("signals")) if _present(iface.get("signals")) else []
+        for port_idx, port in enumerate(ports):
+            allow_constant = False
+            constant_value = None
+            allow_unused = False
+            if isinstance(port, dict):
+                name = _ci_get(port, "name", "signal", "port")
+                width = _ci_get(port, "width", "bits") or iface_width
+                port_dir = _ci_get(port, "direction", "dir") or iface_dir
+                allow_constant, constant_value = _constant_allowed_from_io_item(port)
+                allow_unused = _unused_allowed_from_io_item(port)
+            else:
+                name, width, port_dir = port, iface_width, iface_dir
+            if _present(name):
+                aliases = [f"{iface_name}_{name}"] if iface_name and str(name) != iface_name else []
+                add(_top_io_contract(source_ref=f"io_list.interfaces[{if_idx}].ports[{port_idx}]", name=str(name), direction=str(port_dir).lower(), width=width, aliases=aliases, allow_constant=allow_constant, constant_value=constant_value, allow_unused=allow_unused))
+        for sig_idx, signal in enumerate(signals):
+            allow_constant = False
+            constant_value = None
+            allow_unused = False
+            if isinstance(signal, dict):
+                name = _ci_get(signal, "name", "signal", "port")
+                width = _ci_get(signal, "width", "bits") or iface_width
+                sig_dir = _ci_get(signal, "direction", "dir") or iface_dir
+                allow_constant, constant_value = _constant_allowed_from_io_item(signal)
+                allow_unused = _unused_allowed_from_io_item(signal)
+            else:
+                name, width, sig_dir = signal, iface_width, iface_dir
+            if _present(name):
+                aliases = [f"{iface_name}_{name}"] if iface_name and str(name) != iface_name else []
+                add(_top_io_contract(source_ref=f"io_list.interfaces[{if_idx}].signals[{sig_idx}]", name=str(name), direction=str(sig_dir).lower(), width=width, aliases=aliases, allow_constant=allow_constant, constant_value=constant_value, allow_unused=allow_unused))
+        if not ports and not signals and iface_dir and _present(iface_name):
+            allow_constant, constant_value = _constant_allowed_from_io_item(iface)
+            add(_top_io_contract(source_ref=f"io_list.interfaces[{if_idx}]", name=iface_name, direction=iface_dir, width=iface_width, allow_constant=allow_constant, constant_value=constant_value, allow_unused=_unused_allowed_from_io_item(iface)))
+    return contracts
+
+
+def _width_matches_contract(actual_range: str, expected_width: str) -> bool:
+    width = str(expected_width or "").strip()
+    if not width:
+        return True
+    actual = _normalize_expr(actual_range)
+    expected = _normalize_expr(width)
+    if expected in {"", "1"}:
+        return actual in {"", "[0:0]"}
+    if not actual:
+        return False
+    simple_range = re.fullmatch(r"\[(\d+):(\d+)\]", actual)
+    simple_width = re.fullmatch(r"\d+", expected)
+    if simple_range and simple_width:
+        msb = int(simple_range.group(1))
+        lsb = int(simple_range.group(2))
+        return abs(msb - lsb) + 1 == int(expected)
+    return expected in actual
+
+
+def _is_constant_expr(expr: str) -> bool:
+    norm = re.sub(r"\s+", "", str(expr or "")).lower().replace("_", "")
+    norm = norm.strip("()")
+    if norm in {"", "0", "1", "'0", "'1"}:
+        return True
+    if re.fullmatch(r"\d+'[s]?[bdho][0-9a-fxz?]+", norm):
+        return True
+    if re.fullmatch(r"\d+", norm):
+        return True
+    return False
+
+
+def _owner_refs_claim_behavior(refs: list[Any]) -> bool:
+    behavior_prefixes = (
+        "function_model",
+        "cycle_model",
+        "registers",
+        "memory",
+        "interrupts",
+        "fsm",
+        "features",
+        "dataflow",
+        "error_handling",
+        "security",
+        "debug_observability",
+    )
+    return any(str(ref).startswith(behavior_prefixes) for ref in refs)
+
+
+def _owner_refs_require_state(refs: list[Any]) -> bool:
+    state_prefixes = (
+        "function_model.state_variables",
+        "function_model.transactions",
+        "registers",
+        "memory",
+        "interrupts",
+        "fsm",
+        "error_handling",
+        "debug_observability",
+    )
+    return any(str(ref).startswith(state_prefixes) for ref in refs)
+
+
+def _module_logic_metrics(body: str) -> dict[str, Any]:
+    clean = _strip_sv_comments(body)
+    assignments = re.findall(r"\bassign\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([^;]+);", clean)
+    nonconstant_assigns = [
+        lhs
+        for lhs, expr in assignments
+        if not lhs.startswith("ssot_") and not _is_constant_expr(expr)
+    ]
+    procedural_blocks = len(re.findall(r"\balways(?:_[a-zA-Z0-9_]+)?\b", clean))
+    state_updates = len(re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\s*<=", clean))
+    storage_decls = len(re.findall(r"\b(?:reg|logic)\b[^;]*\b[A-Za-z_][A-Za-z0-9_]*\b[^;]*;", clean))
+    control_flow = len(re.findall(r"\b(?:if|case|for)\b", clean))
+    instances = len(_sv_instance_named_port_maps(clean))
+    return {
+        "nonconstant_assigns": len(nonconstant_assigns),
+        "procedural_blocks": procedural_blocks,
+        "state_updates": state_updates,
+        "storage_decls": storage_decls,
+        "control_flow": control_flow,
+        "instances": instances,
+        "placeholder_tokens": bool(re.search(r"\b(?:TBD|TODO|FIXME|HACK)\b", clean, flags=re.I)),
+    }
+
+
+def _audit_owner_logic_structure(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any]:
     sources = _read_rtl_sources(ip_dir)
-    all_text = "\n".join(sources.values())
-    clean = re.sub(r"/\*.*?\*/", "", all_text, flags=re.S)
+    modules_by_source: dict[str, dict[str, str]] = {
+        rel: _sv_module_bodies(text)
+        for rel, text in sources.items()
+    }
+    summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
+    owners = summary.get("owner_modules") if isinstance(summary.get("owner_modules"), list) else []
+    top = str(plan.get("top") or ip_dir.name)
+    issues: list[dict[str, Any]] = []
+    checked = 0
+
+    for owner in owners:
+        if not isinstance(owner, dict):
+            continue
+        refs = owner.get("refs") if isinstance(owner.get("refs"), list) else []
+        if not _owner_refs_claim_behavior(refs):
+            continue
+        name = str(owner.get("name") or "").strip()
+        rel = str(owner.get("file") or "").strip()
+        if str(owner.get("wiring_only") or "").lower() == "true":
+            continue
+        if rel.endswith((".svh", ".vh")) or name.endswith(("_pkg", "_types")):
+            continue
+        module_bodies = modules_by_source.get(rel, {})
+        aliases = {name, Path(rel).stem} - {""}
+        body = ""
+        matched_module = ""
+        for alias in aliases:
+            if alias in module_bodies:
+                body = module_bodies[alias]
+                matched_module = alias
+                break
+        if not body:
+            checked += 1
+            issues.append({
+                "module": name or Path(rel).stem,
+                "file": rel,
+                "issue": "Behavior-owner module is not declared in its owner file",
+            })
+            continue
+
+        checked += 1
+        metrics = _module_logic_metrics(body)
+        has_logic = bool(
+            metrics["nonconstant_assigns"]
+            or metrics["procedural_blocks"]
+            or metrics["state_updates"]
+            or metrics["instances"]
+        )
+        if metrics["placeholder_tokens"]:
+            issues.append({
+                "module": matched_module,
+                "file": rel,
+                "issue": "Behavior-owner module still contains placeholder TODO/TBD markers",
+                "metrics": metrics,
+            })
+        if not has_logic:
+            issues.append({
+                "module": matched_module,
+                "file": rel,
+                "issue": "Behavior-owner module has no nonconstant assign, procedural block, state update, or child instance",
+                "metrics": metrics,
+            })
+        state_required = _owner_refs_require_state(refs)
+        top_wrapper_with_children = matched_module in _top_aliases(top) and bool(metrics["instances"])
+        if state_required and not top_wrapper_with_children and not (metrics["state_updates"] or metrics["procedural_blocks"]):
+            issues.append({
+                "module": matched_module,
+                "file": rel,
+                "issue": "State/register/memory/FSM owner lacks sequential/procedural update evidence",
+                "metrics": metrics,
+            })
+
+    return {
+        "status": "pass" if not issues else "fail",
+        "checked": checked,
+        "issues": issues[:128],
+    }
+
+
+def _audit_rtl_placeholder_free(ip_dir: Path) -> dict[str, Any]:
+    placeholder_re = re.compile(
+        r"\b(?:TODO|TBD|FIXME|HACK|PLACEHOLDER|STUB|DUMMY)\b|not\s+implemented|implement\s+later",
+        flags=re.I,
+    )
+    issues: list[dict[str, Any]] = []
+    checked = 0
+    for rel, path in _rtl_source_paths(ip_dir):
+        if not rel.endswith((".v", ".sv", ".vh", ".svh")):
+            continue
+        checked += 1
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError as exc:
+            issues.append({"file": rel, "issue": f"Cannot read RTL source: {exc}"})
+            continue
+        for line_no, line in enumerate(lines, start=1):
+            match = placeholder_re.search(line)
+            if match:
+                issues.append({
+                    "file": rel,
+                    "line": line_no,
+                    "token": match.group(0),
+                    "issue": "RTL source contains a placeholder implementation marker",
+                })
+                if len(issues) >= 128:
+                    break
+        if len(issues) >= 128:
+            break
+    if checked == 0:
+        issues.append({
+            "issue": "No listed RTL source files were readable, so placeholder-free evidence cannot be checked",
+        })
+    return {
+        "status": "pass" if not issues else "fail",
+        "checked": checked,
+        "issues": issues,
+    }
+
+
+def _rtl_behavior_tasks(plan: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        task
+        for task in (plan.get("tasks") if isinstance(plan.get("tasks"), list) else [])
+        if isinstance(task, dict)
+        and bool(task.get("required", True))
+        and str(task.get("category") or "").startswith(STATIC_EVIDENCE_CATEGORIES)
+    ]
+
+
+def _rtl_behavior_owners(plan: dict[str, Any]) -> list[dict[str, Any]]:
+    summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
+    owners = summary.get("owner_modules") if isinstance(summary.get("owner_modules"), list) else []
+    result: list[dict[str, Any]] = []
+    for owner in owners:
+        if not isinstance(owner, dict):
+            continue
+        refs = owner.get("refs") if isinstance(owner.get("refs"), list) else []
+        if not _owner_refs_claim_behavior(refs):
+            continue
+        if str(owner.get("wiring_only") or "").lower() == "true":
+            continue
+        if _skip_hierarchy_module(owner):
+            continue
+        result.append(owner)
+    return result
+
+
+def _rtl_depth_thresholds(plan: dict[str, Any]) -> dict[str, int]:
+    behavior_tasks = _rtl_behavior_tasks(plan)
+    behavior_owners = _rtl_behavior_owners(plan)
+    manifest_files = _manifest_rtl_files_from_plan(plan)
+    machine_connections = _machine_connection_contracts(plan)
+    behavior_task_count = len(behavior_tasks)
+    behavior_owner_count = len(behavior_owners)
+    connection_count = len(machine_connections)
+    thresholds = {
+        "behavior_tasks": behavior_task_count,
+        "behavior_owners": behavior_owner_count,
+        "manifest_rtl_files": len(manifest_files),
+        "machine_connection_contracts": connection_count,
+        "min_depth_score": max(
+            6,
+            min(
+                240,
+                (behavior_task_count + 2) // 3
+                + behavior_owner_count * 4
+                + min(connection_count, 32) * 2,
+            ),
+        ),
+        "min_logic_modules": max(1, min(behavior_owner_count or 1, max(1, (behavior_task_count + 15) // 16))),
+    }
+    target_scale = plan.get("target_scale") if isinstance(plan.get("target_scale"), dict) else {}
+    target_mapping = {
+        "min_source_files": "min_source_files",
+        "min_modules": "min_modules",
+        "min_lines": "min_lines",
+        "min_nonconstant_assigns": "min_nonconstant_assigns",
+        "min_procedural_blocks": "min_procedural_blocks",
+        "min_state_updates": "min_state_updates",
+        "min_control_flow": "min_control_flow",
+        "min_instances": "min_instances",
+        "min_depth_score": "min_depth_score",
+        "min_logic_modules": "min_logic_modules",
+        "min_behavior_owner_logic_modules": "min_behavior_owner_logic_modules",
+    }
+    for source_key, threshold_key in target_mapping.items():
+        parsed = _int_target(target_scale.get(source_key))
+        if parsed is not None:
+            thresholds[threshold_key] = max(int(thresholds.get(threshold_key) or 0), parsed)
+    return thresholds
+
+
+def _module_depth_score(metrics: dict[str, Any]) -> int:
+    return (
+        int(metrics.get("nonconstant_assigns") or 0)
+        + int(metrics.get("procedural_blocks") or 0) * 3
+        + int(metrics.get("state_updates") or 0) * 2
+        + int(metrics.get("storage_decls") or 0)
+        + int(metrics.get("control_flow") or 0)
+        + int(metrics.get("instances") or 0) * 2
+    )
+
+
+def _rtl_reference_comparison(aggregate: dict[str, Any], reference_profile: Any) -> dict[str, Any] | None:
+    if not isinstance(reference_profile, dict):
+        return None
+    target_candidate_summary = (
+        reference_profile.get("target_candidate_summary")
+        if isinstance(reference_profile.get("target_candidate_summary"), dict)
+        else {}
+    )
+    reference_summary = target_candidate_summary or reference_profile.get("summary")
+    if not isinstance(reference_summary, dict) or not reference_summary:
+        return None
+    reference_basis = (
+        str(reference_profile.get("target_candidate_basis") or "target_candidate")
+        if target_candidate_summary
+        else "summary"
+    )
+    pairs = {
+        "source_files": "file_count",
+        "lines": "lines",
+        "modules": "modules",
+        "procedural_blocks": "always_blocks",
+        "nonconstant_assigns": "nonconstant_assigns",
+        "control_flow": "case_blocks",
+        "instances": "instance_candidates",
+        "state_updates": "state_updates",
+    }
+    ratios: dict[str, dict[str, Any]] = {}
+    for current_key, reference_key in pairs.items():
+        reference_value = int(reference_summary.get(reference_key) or 0)
+        current_value = int(aggregate.get(current_key) or 0)
+        if reference_value <= 0:
+            continue
+        ratios[current_key] = {
+            "current": current_value,
+            "reference": reference_value,
+            "ratio": round(current_value / reference_value, 4),
+        }
+    if not ratios:
+        return None
+    return {
+        "status": "diagnostic_only",
+        "reference_profile": reference_profile.get("path") or reference_profile.get("label") or "rtl_reference_profile",
+        "reference_basis": reference_basis,
+        "calibration_only": True,
+        "do_not_copy_reference_rtl": True,
+        "ratios": ratios,
+        "rule": "Reference comparison is a scale diagnostic only; it must not become a template or PASS gate.",
+    }
+
+
+def _reference_scale_gap_summary(plan: dict[str, Any]) -> dict[str, Any]:
+    depth = plan.get("rtl_implementation_depth_evidence") if isinstance(plan.get("rtl_implementation_depth_evidence"), dict) else {}
+    comparison = depth.get("reference_comparison") if isinstance(depth.get("reference_comparison"), dict) else {}
+    ratios = comparison.get("ratios") if isinstance(comparison.get("ratios"), dict) else {}
+    if not ratios:
+        return {}
+    metric_order = (
+        "source_files",
+        "modules",
+        "lines",
+        "instances",
+        "procedural_blocks",
+        "nonconstant_assigns",
+        "control_flow",
+        "state_updates",
+    )
+    metrics: dict[str, dict[str, Any]] = {}
+    below: list[dict[str, Any]] = []
+    for key in metric_order:
+        item = ratios.get(key)
+        if not isinstance(item, dict):
+            continue
+        current = int(item.get("current") or 0)
+        reference = int(item.get("reference") or 0)
+        ratio = float(item.get("ratio") or 0.0)
+        row = {
+            "current": current,
+            "reference": reference,
+            "ratio": ratio,
+            "percent": round(ratio * 100.0, 1),
+        }
+        metrics[key] = row
+        if reference > 0 and ratio < 1.0:
+            below.append({"metric": key, **row})
+    return {
+        "schema_version": 1,
+        "type": "rtl_reference_scale_gap",
+        "status": "diagnostic_only",
+        "calibration_only": True,
+        "do_not_copy_reference_rtl": True,
+        "reference_profile": comparison.get("reference_profile"),
+        "reference_basis": comparison.get("reference_basis"),
+        "metrics": metrics,
+        "below_reference": sorted(below, key=lambda item: (float(item.get("ratio") or 0.0), str(item.get("metric") or ""))),
+        "rule": (
+            "This is a scale diagnostic and target-scale review aid. It does not close or fail PASS by itself; "
+            "production PASS still requires human-approved quality_gates.rtl_gen.target_scale or an approved waiver."
+        ),
+    }
+
+
+def _reference_target_scale_candidate(plan: dict[str, Any]) -> dict[str, Any]:
+    reference_profile = plan.get("reference_profile") if isinstance(plan.get("reference_profile"), dict) else {}
+    suggested = reference_profile.get("suggested_ssot_target_scale")
+    return suggested if isinstance(suggested, dict) and suggested else {}
+
+
+def _audit_rtl_implementation_depth(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any]:
+    summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
+    policy = plan.get("policy") if isinstance(plan.get("policy"), dict) else {}
+    profile = str(policy.get("rtl_quality_profile") or summary.get("rtl_quality_profile") or "standard")
+    thresholds = _rtl_depth_thresholds(plan)
+    sources = {
+        rel: text
+        for rel, text in _read_rtl_sources(ip_dir).items()
+        if rel.endswith((".v", ".sv"))
+    }
+    aggregate = {
+        "source_files": len(sources),
+        "modules": 0,
+        "lines": 0,
+        "nonconstant_assigns": 0,
+        "procedural_blocks": 0,
+        "state_updates": 0,
+        "storage_decls": 0,
+        "control_flow": 0,
+        "instances": 0,
+        "depth_score": 0,
+        "logic_modules": 0,
+        "behavior_owner_logic_modules": 0,
+    }
+    module_rows: list[dict[str, Any]] = []
+    metrics_by_module: dict[str, dict[str, Any]] = {}
+    for rel, text in sources.items():
+        for module_name, body in _sv_module_bodies(text).items():
+            metrics = _module_logic_metrics(body)
+            score = _module_depth_score(metrics)
+            metrics_by_module[module_name] = metrics
+            aggregate["modules"] += 1
+            aggregate["lines"] += body.count("\n") + 1
+            aggregate["depth_score"] += score
+            for key in (
+                "nonconstant_assigns",
+                "procedural_blocks",
+                "state_updates",
+                "storage_decls",
+                "control_flow",
+                "instances",
+            ):
+                aggregate[key] += int(metrics.get(key) or 0)
+            if score > 0:
+                aggregate["logic_modules"] += 1
+            module_rows.append({
+                "module": module_name,
+                "file": rel,
+                "depth_score": score,
+                "metrics": metrics,
+            })
+
+    behavior_owner_hits: set[str] = set()
+    for owner in _rtl_behavior_owners(plan):
+        name = str(owner.get("name") or "").strip()
+        rel = str(owner.get("file") or "").strip()
+        aliases = {name, Path(rel).stem} - {""}
+        for alias in aliases:
+            metrics = metrics_by_module.get(alias)
+            if metrics and _module_depth_score(metrics) > 0:
+                behavior_owner_hits.add(name or alias)
+                break
+    aggregate["behavior_owner_logic_modules"] = len(behavior_owner_hits)
+
+    target_scale = plan.get("target_scale") if isinstance(plan.get("target_scale"), dict) else {}
+    issues: list[dict[str, Any]] = []
+    if profile == "production" or target_scale:
+        if not sources:
+            issues.append({
+                "issue": "No listed DUT RTL sources are available for production implementation-depth audit",
+            })
+
+        def require_metric(metric: str, threshold_key: str, issue: str) -> None:
+            required = int(thresholds.get(threshold_key) or 0)
+            if required <= 0:
+                return
+            actual = int(aggregate.get(metric) or 0)
+            if actual < required:
+                issues.append({
+                    "issue": issue,
+                    "actual": actual,
+                    "required": required,
+                    "source": "quality_gates.rtl_gen.target_scale" if threshold_key in target_scale else "ssot_derived_threshold",
+                })
+
+        require_metric(
+            "source_files",
+            "min_source_files",
+            "Production RTL source-file count is below the SSOT-locked target scale",
+        )
+        require_metric(
+            "modules",
+            "min_modules",
+            "Production RTL module count is below the SSOT-locked target scale",
+        )
+        require_metric(
+            "lines",
+            "min_lines",
+            "Production RTL line count is below the SSOT-locked target scale",
+        )
+        require_metric(
+            "nonconstant_assigns",
+            "min_nonconstant_assigns",
+            "Production RTL nonconstant assignment count is below the SSOT-locked target scale",
+        )
+        require_metric(
+            "procedural_blocks",
+            "min_procedural_blocks",
+            "Production RTL procedural block count is below the SSOT-locked target scale",
+        )
+        require_metric(
+            "state_updates",
+            "min_state_updates",
+            "Production RTL state-update count is below the SSOT-locked target scale",
+        )
+        require_metric(
+            "control_flow",
+            "min_control_flow",
+            "Production RTL control-flow count is below the SSOT-locked target scale",
+        )
+        require_metric(
+            "instances",
+            "min_instances",
+            "Production RTL instance count is below the SSOT-locked target scale",
+        )
+        if int(aggregate["depth_score"]) < thresholds["min_depth_score"]:
+            issues.append({
+                "issue": "Production RTL implementation depth score is below the SSOT-derived or target-scale threshold",
+                "actual": aggregate["depth_score"],
+                "required": thresholds["min_depth_score"],
+                "source": "quality_gates.rtl_gen.target_scale"
+                if _int_target(target_scale.get("min_depth_score")) is not None
+                else "ssot_derived_threshold",
+            })
+        if int(aggregate["logic_modules"]) < thresholds["min_logic_modules"]:
+            issues.append({
+                "issue": "Too few RTL modules contain implementation structure for the SSOT behavior complexity",
+                "actual": aggregate["logic_modules"],
+                "required": thresholds["min_logic_modules"],
+                "source": "quality_gates.rtl_gen.target_scale"
+                if _int_target(target_scale.get("min_logic_modules")) is not None
+                else "ssot_derived_threshold",
+            })
+        min_behavior_owner_logic_modules = int(
+            thresholds.get("min_behavior_owner_logic_modules")
+            or thresholds.get("min_logic_modules")
+            or 0
+        )
+        if int(aggregate["behavior_owner_logic_modules"]) < min_behavior_owner_logic_modules:
+            issues.append({
+                "issue": "Too few SSOT behavior-owner modules contain implementation-depth evidence",
+                "actual": aggregate["behavior_owner_logic_modules"],
+                "required": min_behavior_owner_logic_modules,
+                "source": "quality_gates.rtl_gen.target_scale"
+                if _int_target(target_scale.get("min_behavior_owner_logic_modules")) is not None
+                else "ssot_derived_threshold",
+            })
+
+    return {
+        "status": "pass" if not issues else "fail",
+        "profile": profile,
+        "target_scale": target_scale,
+        "thresholds": thresholds,
+        "aggregate": aggregate,
+        "reference_comparison": _rtl_reference_comparison(aggregate, plan.get("reference_profile")),
+        "modules": sorted(module_rows, key=lambda item: (-int(item["depth_score"]), item["module"]))[:128],
+        "issues": issues,
+    }
+
+
+def _audit_top_io_contracts(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any]:
+    sources = _read_rtl_sources(ip_dir)
+    declarations: dict[str, str] = {}
+    port_details_by_module: dict[str, dict[str, dict[str, str]]] = {}
+    for rel, text in sources.items():
+        for module_name, body in _sv_module_bodies(text).items():
+            declarations[module_name] = rel
+            port_details_by_module[module_name] = _sv_declared_port_details_from_module_body(body)
+
+    top = str(plan.get("top") or ip_dir.name)
+    roots = sorted(_top_aliases(top) & set(declarations))
+    contracts = plan.get("ssot_top_io_contracts") if isinstance(plan.get("ssot_top_io_contracts"), list) else []
+    summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
+    policy = plan.get("policy") if isinstance(plan.get("policy"), dict) else {}
+    profile = str(policy.get("rtl_quality_profile") or summary.get("rtl_quality_profile") or "standard")
+    issues: list[dict[str, Any]] = []
+
+    if profile == "production" and not contracts:
+        issues.append({
+            "issue": "Production-profile RTL has no machine-readable SSOT top IO contracts",
+            "required_sources": ["clocks", "resets", "io_list"],
+        })
+    if contracts and not roots:
+        issues.append({
+            "module": top,
+            "file": f"rtl/{top}.sv",
+            "issue": "SSOT top module is not declared in listed RTL sources",
+        })
+        return {
+            "status": "fail",
+            "contracts": len(contracts),
+            "roots": roots,
+            "issues": issues,
+        }
+
+    top_ports: dict[str, dict[str, str]] = {}
+    for root in roots:
+        top_ports.update(port_details_by_module.get(root, {}))
+    lower_to_port = {name.lower(): name for name in top_ports}
+    for contract in contracts:
+        if not isinstance(contract, dict):
+            continue
+        aliases = [str(item) for item in contract.get("aliases") or [] if str(item).strip()]
+        if not aliases and contract.get("name"):
+            aliases = [str(contract.get("name"))]
+        matched_name = ""
+        for alias in aliases:
+            matched_name = lower_to_port.get(alias.lower(), "")
+            if matched_name:
+                break
+        if not matched_name:
+            issues.append({
+                "source_ref": contract.get("source_ref"),
+                "port": contract.get("name"),
+                "aliases": aliases,
+                "issue": "SSOT top IO port is missing from RTL top declaration",
+            })
+            continue
+        actual = top_ports.get(matched_name, {})
+        expected_direction = str(contract.get("direction") or "")
+        actual_direction = str(actual.get("direction") or "")
+        if expected_direction and actual_direction and expected_direction != actual_direction:
+            issues.append({
+                "source_ref": contract.get("source_ref"),
+                "port": matched_name,
+                "expected_direction": expected_direction,
+                "actual_direction": actual_direction,
+                "issue": "RTL top port direction does not match SSOT",
+            })
+        if not _width_matches_contract(str(actual.get("range") or ""), str(contract.get("width") or "")):
+            issues.append({
+                "source_ref": contract.get("source_ref"),
+                "port": matched_name,
+                "expected_width": contract.get("width"),
+                "actual_range": actual.get("range") or "",
+                "issue": "RTL top port width/range does not match SSOT",
+            })
+
+    return {
+        "status": "pass" if not issues else "fail",
+        "contracts": len(contracts),
+        "roots": roots,
+        "declared_top_ports": sorted(top_ports),
+        "issues": issues[:128],
+    }
+
+
+def _expr_references_signal(expr: str, signal: str) -> bool:
+    return signal in _signal_terms(expr) or _normalize_expr(expr) == _normalize_expr(signal)
+
+
+def _assignment_exprs_for_lhs(body: str, port: str) -> list[dict[str, Any]]:
+    clean = _strip_sv_comments(body)
+    escaped = re.escape(port)
+    records: list[dict[str, Any]] = []
+    lhs_pattern = rf"(?:\{{[^;}}]*\b{escaped}\b[^;}}]*\}}|\b{escaped}\b\s*(?:\[[^\]]+\])?)"
+    for match in re.finditer(rf"\bassign\s+{lhs_pattern}\s*=\s*([^;]+);", clean, re.S):
+        expr = " ".join(match.group(1).split())
+        records.append({"kind": "continuous_assign", "expr": expr, "constant": _is_constant_expr(expr)})
+    for match in re.finditer(rf"{lhs_pattern}\s*(?:<=|=)\s*([^;]+);", clean, re.S):
+        prefix = clean[max(0, match.start() - 12):match.start()]
+        if re.search(r"\bassign\s+$", prefix):
+            continue
+        expr = " ".join(match.group(1).split())
+        records.append({"kind": "procedural_assign", "expr": expr, "constant": _is_constant_expr(expr)})
+    return records
+
+
+def _child_output_drive_records(
+    body: str,
+    port: str,
+    port_details_by_module: dict[str, dict[str, dict[str, str]]],
+) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    for instance in _sv_instance_named_port_maps(body):
+        module = str(instance.get("module") or "")
+        child_ports = port_details_by_module.get(module, {})
+        for child_port, expr in (instance.get("ports") or {}).items():
+            if not _expr_references_signal(str(expr), port):
+                continue
+            direction = str((child_ports.get(child_port) or {}).get("direction") or "")
+            records.append({
+                "kind": "child_output_connection",
+                "module": module,
+                "instance": instance.get("instance") or "",
+                "child_port": child_port,
+                "direction": direction,
+                "accepted": direction in {"output", "inout"},
+            })
+    return records
+
+
+def _sv_implementation_body(body: str) -> str:
+    clean = _strip_sv_comments(body)
+    header_match = re.search(r"\((?P<header>.*?)\)\s*;", clean, flags=re.S)
+    if header_match:
+        clean = clean[header_match.end():]
+    return re.sub(r"\b(?:input|output|inout)\b[^;]*;", "", clean)
+
+
+def _rhs_use_records_for_signal(body: str, signal: str) -> list[dict[str, Any]]:
+    clean = _sv_implementation_body(body)
+    records: list[dict[str, Any]] = []
+    for match in re.finditer(r"\bassign\s+([A-Za-z_][A-Za-z0-9_]*(?:\s*\[[^\]]+\])?)\s*=\s*([^;]+);", clean, re.S):
+        expr = " ".join(match.group(2).split())
+        if _expr_references_signal(expr, signal):
+            records.append({"kind": "continuous_rhs", "lhs": match.group(1).strip(), "expr": expr})
+    for match in re.finditer(r"\b([A-Za-z_][A-Za-z0-9_]*(?:\s*\[[^\]]+\])?)\s*(?:<=|=)\s*([^;]+);", clean, re.S):
+        prefix = clean[max(0, match.start() - 12):match.start()]
+        if re.search(r"\bassign\s+$", prefix):
+            continue
+        expr = " ".join(match.group(2).split())
+        if _expr_references_signal(expr, signal):
+            records.append({"kind": "procedural_rhs", "lhs": match.group(1).strip(), "expr": expr})
+    for keyword in ("if", "case", "for", "while"):
+        for match in re.finditer(rf"\b{keyword}\s*\(([^)]*)\)", clean, re.S):
+            expr = " ".join(match.group(1).split())
+            if _expr_references_signal(expr, signal):
+                records.append({"kind": f"{keyword}_condition", "expr": expr})
+    return records
+
+
+def _child_input_use_records(
+    body: str,
+    port: str,
+    port_details_by_module: dict[str, dict[str, dict[str, str]]],
+) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    for instance in _sv_instance_named_port_maps(body):
+        module = str(instance.get("module") or "")
+        child_ports = port_details_by_module.get(module, {})
+        for child_port, expr in (instance.get("ports") or {}).items():
+            if not _expr_references_signal(str(expr), port):
+                continue
+            direction = str((child_ports.get(child_port) or {}).get("direction") or "")
+            records.append({
+                "kind": "child_input_connection",
+                "module": module,
+                "instance": instance.get("instance") or "",
+                "child_port": child_port,
+                "direction": direction,
+                "accepted": direction in {"input", "inout"},
+            })
+    return records
+
+
+def _audit_top_output_drives(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any]:
+    sources = _read_rtl_sources(ip_dir)
+    module_bodies: dict[str, str] = {}
+    port_details_by_module: dict[str, dict[str, dict[str, str]]] = {}
+    for text in sources.values():
+        for module_name, body in _sv_module_bodies(text).items():
+            module_bodies[module_name] = body
+            port_details_by_module[module_name] = _sv_declared_port_details_from_module_body(body)
+
+    top = str(plan.get("top") or ip_dir.name)
+    roots = sorted(_top_aliases(top) & set(module_bodies))
+    contracts = plan.get("ssot_top_io_contracts") if isinstance(plan.get("ssot_top_io_contracts"), list) else []
+    output_contracts = [
+        contract
+        for contract in contracts
+        if isinstance(contract, dict) and str(contract.get("direction") or "") in {"output", "inout"}
+    ]
+    issues: list[dict[str, Any]] = []
+    checked = 0
+    driven = 0
+
+    if output_contracts and not roots:
+        issues.append({
+            "module": top,
+            "issue": "SSOT top module is not declared, so output drive evidence cannot be checked",
+        })
+        return {"status": "fail", "checked": 0, "driven": 0, "roots": roots, "issues": issues}
+
+    top_ports: dict[str, dict[str, str]] = {}
+    for root in roots:
+        top_ports.update(port_details_by_module.get(root, {}))
+    lower_to_port = {name.lower(): name for name in top_ports}
+
+    for contract in output_contracts:
+        aliases = [str(item) for item in contract.get("aliases") or [] if str(item).strip()]
+        if not aliases and contract.get("name"):
+            aliases = [str(contract.get("name"))]
+        port = ""
+        for alias in aliases:
+            port = lower_to_port.get(alias.lower(), "")
+            if port:
+                break
+        if not port:
+            continue
+        checked += 1
+        allow_constant = bool(contract.get("allow_constant"))
+        assignment_records: list[dict[str, Any]] = []
+        child_records: list[dict[str, Any]] = []
+        for root in roots:
+            body = module_bodies.get(root, "")
+            assignment_records.extend(_assignment_exprs_for_lhs(body, port))
+            child_records.extend(_child_output_drive_records(body, port, port_details_by_module))
+        nonconstant_assigns = [record for record in assignment_records if not record.get("constant")]
+        constant_assigns = [record for record in assignment_records if record.get("constant")]
+        accepted_child = [record for record in child_records if record.get("accepted")]
+        if nonconstant_assigns or accepted_child:
+            driven += 1
+            continue
+        if constant_assigns and allow_constant:
+            driven += 1
+            continue
+        if constant_assigns:
+            issues.append({
+                "source_ref": contract.get("source_ref"),
+                "port": port,
+                "issue": "RTL top output is driven only by a constant without explicit SSOT tieoff allowance",
+                "assignments": constant_assigns[:4],
+            })
+            continue
+        rejected_child = [record for record in child_records if not record.get("accepted")]
+        if rejected_child:
+            issues.append({
+                "source_ref": contract.get("source_ref"),
+                "port": port,
+                "issue": "RTL top output is connected only to child ports without declared output/inout direction",
+                "connections": rejected_child[:4],
+            })
+            continue
+        issues.append({
+            "source_ref": contract.get("source_ref"),
+            "port": port,
+            "issue": "RTL top output has no nonconstant assignment or declared child-output drive evidence",
+        })
+
+    return {
+        "status": "pass" if not issues else "fail",
+        "checked": checked,
+        "driven": driven,
+        "roots": roots,
+        "issues": issues[:128],
+    }
+
+
+def _is_clock_reset_contract(contract: dict[str, Any]) -> bool:
+    source_ref = str(contract.get("source_ref") or "")
+    if source_ref.startswith(("clocks[", "resets[", "io_list.clock_domains", "io_list.resets")):
+        return True
+    name = str(contract.get("name") or "").lower()
+    return bool(re.fullmatch(r"(?:clk|clock|rst|reset|rst_n|reset_n|aresetn|aclk)", name))
+
+
+def _audit_top_input_consumption(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any]:
+    sources = _read_rtl_sources(ip_dir)
+    module_bodies: dict[str, str] = {}
+    port_details_by_module: dict[str, dict[str, dict[str, str]]] = {}
+    for text in sources.values():
+        for module_name, body in _sv_module_bodies(text).items():
+            module_bodies[module_name] = body
+            port_details_by_module[module_name] = _sv_declared_port_details_from_module_body(body)
+
+    top = str(plan.get("top") or ip_dir.name)
+    roots = sorted(_top_aliases(top) & set(module_bodies))
+    contracts = plan.get("ssot_top_io_contracts") if isinstance(plan.get("ssot_top_io_contracts"), list) else []
+    input_contracts = [
+        contract
+        for contract in contracts
+        if (
+            isinstance(contract, dict)
+            and str(contract.get("direction") or "") in {"input", "inout"}
+            and not _is_clock_reset_contract(contract)
+            and not bool(contract.get("allow_unused"))
+        )
+    ]
+    issues: list[dict[str, Any]] = []
+    checked = 0
+    consumed = 0
+
+    if input_contracts and not roots:
+        issues.append({
+            "module": top,
+            "issue": "SSOT top module is not declared, so input consumption evidence cannot be checked",
+        })
+        return {"status": "fail", "checked": 0, "consumed": 0, "roots": roots, "issues": issues}
+
+    top_ports: dict[str, dict[str, str]] = {}
+    for root in roots:
+        top_ports.update(port_details_by_module.get(root, {}))
+    lower_to_port = {name.lower(): name for name in top_ports}
+
+    for contract in input_contracts:
+        aliases = [str(item) for item in contract.get("aliases") or [] if str(item).strip()]
+        if not aliases and contract.get("name"):
+            aliases = [str(contract.get("name"))]
+        port = ""
+        for alias in aliases:
+            port = lower_to_port.get(alias.lower(), "")
+            if port:
+                break
+        if not port:
+            continue
+        checked += 1
+        rhs_records: list[dict[str, Any]] = []
+        child_records: list[dict[str, Any]] = []
+        for root in roots:
+            body = module_bodies.get(root, "")
+            rhs_records.extend(_rhs_use_records_for_signal(body, port))
+            child_records.extend(_child_input_use_records(body, port, port_details_by_module))
+        accepted_child = [record for record in child_records if record.get("accepted")]
+        if rhs_records or accepted_child:
+            consumed += 1
+            continue
+        rejected_child = [record for record in child_records if not record.get("accepted")]
+        if rejected_child:
+            issues.append({
+                "source_ref": contract.get("source_ref"),
+                "port": port,
+                "issue": "RTL top input is connected only to child ports without declared input/inout direction",
+                "connections": rejected_child[:4],
+            })
+            continue
+        issues.append({
+            "source_ref": contract.get("source_ref"),
+            "port": port,
+            "issue": "RTL top input has no RHS/control use or declared child-input consumption evidence",
+        })
+
+    return {
+        "status": "pass" if not issues else "fail",
+        "checked": checked,
+        "consumed": consumed,
+        "roots": roots,
+        "issues": issues[:128],
+    }
+
+
+def _contract_allows_constant_tieoff(contracts: list[Any], module: str, port: str, expr: str) -> bool:
+    expr_norm = _normalize_expr(expr)
+    for item in contracts:
+        if not isinstance(item, dict):
+            continue
+        if str(item.get("module") or "") != module or str(item.get("port") or "") != port:
+            continue
+        signal = str(item.get("signal") or "")
+        if _is_constant_expr(signal) and _normalize_expr(signal) == expr_norm:
+            return True
+        raw = str(item.get("raw") or "").lower()
+        if any(token in raw for token in ("tieoff", "tie-off", "constant", "fixed", "reserved")):
+            return True
+    return False
+
+
+def _contract_allows_unconsumed_output(contracts: list[Any], module: str, port: str) -> bool:
+    for item in contracts:
+        if not isinstance(item, dict):
+            continue
+        if str(item.get("module") or "") != module or str(item.get("port") or "") != port:
+            continue
+        signal = str(item.get("signal") or "").strip().lower()
+        raw = str(item.get("raw") or "").lower()
+        if signal in {"unused", "reserved", "nc", "no_connect", "unconnected"}:
+            return True
+        if any(token in raw for token in ("unused", "reserved", "no_connect", "unconnected", "waive")):
+            return True
+    return False
+
+
+def _manifest_child_module_aliases(plan: dict[str, Any]) -> set[str]:
+    summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
+    modules = summary.get("owner_modules") if isinstance(summary.get("owner_modules"), list) else []
+    top = str(plan.get("top") or "")
+    top_names = _top_aliases(top)
+    child_modules: set[str] = set()
+    for item in modules:
+        if not isinstance(item, dict) or _skip_hierarchy_module(item):
+            continue
+        aliases = _hierarchy_module_aliases(item)
+        if aliases & top_names:
+            continue
+        child_modules.update(aliases)
+    return child_modules
+
+
+def _signal_consumed_by_child_input(
+    instances: list[dict[str, Any]],
+    signal: str,
+    port_details_by_module: dict[str, dict[str, dict[str, str]]],
+    *,
+    producer_instance: str,
+    producer_port: str,
+) -> bool:
+    for instance in instances:
+        module = str(instance.get("module") or "")
+        child_ports = port_details_by_module.get(module, {})
+        for child_port, expr in (instance.get("ports") or {}).items():
+            if str(instance.get("instance") or "") == producer_instance and child_port == producer_port:
+                continue
+            if not _expr_references_signal(str(expr), signal):
+                continue
+            direction = str((child_ports.get(child_port) or {}).get("direction") or "")
+            if direction in {"input", "inout"}:
+                return True
+    return False
+
+
+def _audit_manifest_signal_flow(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any]:
+    sources = _read_rtl_sources(ip_dir)
+    declarations: set[str] = set()
+    graph: dict[str, set[str]] = {}
+    instances_by_parent: dict[str, list[dict[str, Any]]] = {}
+    bodies_by_module: dict[str, str] = {}
+    port_details_by_module: dict[str, dict[str, dict[str, str]]] = {}
+    for text in sources.values():
+        for module_name, body in _sv_module_bodies(text).items():
+            declarations.add(module_name)
+            bodies_by_module[module_name] = body
+            port_details_by_module[module_name] = _sv_declared_port_details_from_module_body(body)
+            instances = _sv_instance_named_port_maps(body)
+            instances_by_parent[module_name] = instances
+            graph[module_name] = {str(instance.get("module") or "") for instance in instances if instance.get("module")}
+
+    top = str(plan.get("top") or ip_dir.name)
+    roots = sorted(_top_aliases(top) & declarations)
+    reachable: set[str] = set()
+    stack = list(roots)
+    while stack:
+        current = stack.pop()
+        if current in reachable:
+            continue
+        reachable.add(current)
+        for child in graph.get(current, set()):
+            if child in declarations and child not in reachable:
+                stack.append(child)
+
+    manifest_children = _manifest_child_module_aliases(plan)
+    contracts = plan.get("ssot_connection_contracts") if isinstance(plan.get("ssot_connection_contracts"), list) else []
+    issues: list[dict[str, Any]] = []
+    checked_inputs = 0
+    checked_outputs = 0
+
+    if manifest_children and not roots:
+        issues.append({
+            "module": top,
+            "issue": "SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
+        })
+        return {
+            "status": "fail",
+            "roots": roots,
+            "reachable_modules": sorted(reachable),
+            "checked_inputs": checked_inputs,
+            "checked_outputs": checked_outputs,
+            "issues": issues,
+        }
+
+    for parent in reachable:
+        parent_body = bodies_by_module.get(parent, "")
+        parent_ports = port_details_by_module.get(parent, {})
+        instances = instances_by_parent.get(parent, [])
+        for instance in instances:
+            module = str(instance.get("module") or "")
+            if module not in manifest_children or module not in reachable:
+                continue
+            child_ports = port_details_by_module.get(module, {})
+            for child_port, expr_raw in (instance.get("ports") or {}).items():
+                expr = str(expr_raw or "").strip()
+                if not expr:
+                    continue
+                details = child_ports.get(child_port)
+                if not details:
+                    issues.append({
+                        "parent": parent,
+                        "module": module,
+                        "instance": instance.get("instance") or "",
+                        "port": child_port,
+                        "expr": expr,
+                        "issue": "Named port-map entry targets a port not declared by the child module",
+                    })
+                    continue
+                direction = str(details.get("direction") or "")
+                if direction in {"input", "inout"}:
+                    checked_inputs += 1
+                    if _is_constant_expr(expr) and not _contract_allows_constant_tieoff(contracts, module, child_port, expr):
+                        issues.append({
+                            "parent": parent,
+                            "module": module,
+                            "instance": instance.get("instance") or "",
+                            "port": child_port,
+                            "expr": expr,
+                            "issue": "Manifest child input is tied to a constant without explicit SSOT tieoff allowance",
+                        })
+                if direction in {"output", "inout"}:
+                    checked_outputs += 1
+                    if _is_constant_expr(expr):
+                        issues.append({
+                            "parent": parent,
+                            "module": module,
+                            "instance": instance.get("instance") or "",
+                            "port": child_port,
+                            "expr": expr,
+                            "issue": "Manifest child output is connected to a constant expression",
+                        })
+                        continue
+                    signal_terms = sorted(_signal_terms(expr))
+                    consumed = False
+                    for signal in signal_terms:
+                        if signal in parent_ports and str(parent_ports.get(signal, {}).get("direction") or "") in {"output", "inout"}:
+                            consumed = True
+                            break
+                        if _rhs_use_records_for_signal(parent_body, signal):
+                            consumed = True
+                            break
+                        if _signal_consumed_by_child_input(
+                            instances,
+                            signal,
+                            port_details_by_module,
+                            producer_instance=str(instance.get("instance") or ""),
+                            producer_port=child_port,
+                        ):
+                            consumed = True
+                            break
+                    if not consumed and not _contract_allows_unconsumed_output(contracts, module, child_port):
+                        issues.append({
+                            "parent": parent,
+                            "module": module,
+                            "instance": instance.get("instance") or "",
+                            "port": child_port,
+                            "expr": expr,
+                            "issue": "Manifest child output does not feed a top output, parent RTL logic, or another child input/inout",
+                        })
+
+    if manifest_children and not (checked_inputs or checked_outputs):
+        issues.append({
+            "module": top,
+            "issue": "No reachable manifest child port flow evidence was found",
+        })
+
+    return {
+        "status": "pass" if not issues else "fail",
+        "roots": roots,
+        "reachable_modules": sorted(reachable),
+        "checked_inputs": checked_inputs,
+        "checked_outputs": checked_outputs,
+        "issues": issues[:128],
+    }
+
+
+def _audit_manifest_hierarchy(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any]:
+    sources = _read_rtl_sources(ip_dir)
+    declarations: dict[str, str] = {}
+    ports_by_module: dict[str, set[str]] = {}
+    graph: dict[str, set[str]] = {}
+    instances_by_parent: dict[str, list[dict[str, Any]]] = {}
+    for rel, text in sources.items():
+        for module_name, body in _sv_module_bodies(text).items():
+            declarations[module_name] = rel
+            ports_by_module[module_name] = _sv_declared_ports_from_module_body(body)
+            instances = _sv_instance_named_port_maps(body)
+            instances_by_parent[module_name] = instances
+            graph[module_name] = {str(instance.get("module") or "") for instance in instances if instance.get("module")}
+
+    top = str(plan.get("top") or ip_dir.name)
+    roots = sorted(_top_aliases(top) & set(declarations))
+    reachable: set[str] = set()
+    stack = list(roots)
+    while stack:
+        current = stack.pop()
+        if current in reachable:
+            continue
+        reachable.add(current)
+        for child in graph.get(current, set()):
+            if child in declarations and child not in reachable:
+                stack.append(child)
+
+    summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
+    modules = summary.get("owner_modules") if isinstance(summary.get("owner_modules"), list) else []
+    policy = plan.get("policy") if isinstance(plan.get("policy"), dict) else {}
+    profile = str(policy.get("rtl_quality_profile") or summary.get("rtl_quality_profile") or "standard")
+    contracts = plan.get("ssot_connection_contracts") if isinstance(plan.get("ssot_connection_contracts"), list) else []
+    issues: list[dict[str, Any]] = []
+    if modules and not roots:
+        issues.append({
+            "module": top,
+            "file": f"rtl/{top}.sv",
+            "issue": "SSOT top module is not declared in listed RTL sources",
+        })
+
+    top_names = _top_aliases(top)
+    port_issues: list[dict[str, Any]] = []
+    connection_contract_issues: list[dict[str, Any]] = []
+    reachable_instances = [
+        instance
+        for parent in reachable
+        for instance in instances_by_parent.get(parent, [])
+        if isinstance(instance, dict)
+    ]
+    manifest_child_modules: set[str] = set()
+    for item in modules:
+        if not isinstance(item, dict) or _skip_hierarchy_module(item):
+            continue
+        aliases = _hierarchy_module_aliases(item)
+        if aliases & top_names:
+            continue
+        manifest_child_modules.update(aliases)
+        declared = sorted(aliases & set(declarations))
+        rel = str(item.get("file") or "")
+        if not declared:
+            issues.append({
+                "module": str(item.get("name") or Path(rel).stem),
+                "file": rel,
+                "issue": "SSOT manifest child module is not declared in listed RTL sources",
+            })
+            continue
+        if not (set(declared) & reachable):
+            issues.append({
+                "module": declared[0],
+                "file": rel or declarations.get(declared[0], ""),
+                "issue": "SSOT manifest child module is declared but not reachable from the top RTL hierarchy",
+            })
+            continue
+
+        declared_ports = sorted(set().union(*(ports_by_module.get(name, set()) for name in declared)))
+        if not declared_ports:
+            continue
+        child_instances = [
+            instance
+            for instance in reachable_instances
+            if str(instance.get("module") or "") in set(declared)
+        ]
+        named_instances = [instance for instance in child_instances if instance.get("has_named_ports")]
+        if not named_instances:
+            port_issues.append({
+                "module": declared[0],
+                "file": rel or declarations.get(declared[0], ""),
+                "issue": "Reachable child module has no machine-checkable named port map",
+                "required_ports": declared_ports,
+            })
+            continue
+        connected = {
+            port
+            for instance in named_instances
+            for port, expr in (instance.get("ports") or {}).items()
+            if str(expr).strip()
+        }
+        empty_ports = sorted({
+            port
+            for instance in named_instances
+            for port, expr in (instance.get("ports") or {}).items()
+            if not str(expr).strip()
+        })
+        missing_ports = sorted(set(declared_ports) - connected)
+        if missing_ports or empty_ports:
+            port_issues.append({
+                "module": declared[0],
+                "file": rel or declarations.get(declared[0], ""),
+                "issue": "Reachable child instance has missing or empty named port connections",
+                "missing_ports": missing_ports,
+                "empty_ports": empty_ports,
+            })
+
+    machine_contracts = [item for item in contracts if isinstance(item, dict) and item.get("machine_readable")]
+    if profile == "production" and manifest_child_modules and not machine_contracts:
+        connection_contract_issues.append({
+            "issue": "Production-profile multi-module RTL has no machine-readable SSOT connection contracts",
+            "required_sources": ["integration.connections", "sub_modules[].connections"],
+        })
+
+    for contract in contracts:
+        if not isinstance(contract, dict):
+            continue
+        if not contract.get("machine_readable"):
+            connection_contract_issues.append({
+                "source_ref": contract.get("source_ref"),
+                "module": contract.get("module"),
+                "issue": "SSOT connection contract is not machine-readable; use module/port/signal fields or a port_map mapping",
+                "raw": contract.get("raw"),
+            })
+            continue
+        module = str(contract.get("module") or "")
+        port = str(contract.get("port") or "")
+        if module in top_names:
+            continue
+        if module not in declarations:
+            connection_contract_issues.append({
+                "source_ref": contract.get("source_ref"),
+                "module": module,
+                "port": port,
+                "issue": "SSOT connection contract targets a module not declared in RTL",
+            })
+            continue
+        if module not in reachable:
+            connection_contract_issues.append({
+                "source_ref": contract.get("source_ref"),
+                "module": module,
+                "port": port,
+                "issue": "SSOT connection contract targets a module not reachable from top RTL hierarchy",
+            })
+            continue
+        matching_instances = [
+            instance
+            for instance in reachable_instances
+            if str(instance.get("module") or "") == module
+            and (not contract.get("instance") or str(instance.get("instance") or "") == str(contract.get("instance")))
+        ]
+        if not matching_instances:
+            connection_contract_issues.append({
+                "source_ref": contract.get("source_ref"),
+                "module": module,
+                "instance": contract.get("instance"),
+                "port": port,
+                "issue": "SSOT connection contract has no matching reachable RTL instance",
+            })
+            continue
+        port_exprs = [
+            str((instance.get("ports") or {}).get(port) or "").strip()
+            for instance in matching_instances
+            if isinstance(instance.get("ports"), dict)
+        ]
+        non_empty_exprs = [expr for expr in port_exprs if expr]
+        if not non_empty_exprs:
+            connection_contract_issues.append({
+                "source_ref": contract.get("source_ref"),
+                "module": module,
+                "port": port,
+                "issue": "SSOT connection contract port is not connected by the RTL named port map",
+            })
+            continue
+        expected_signal = str(contract.get("signal") or "").strip()
+        expected_terms = set(contract.get("signal_terms") or [])
+        if expected_signal:
+            matched = False
+            for expr in non_empty_exprs:
+                expr_terms = _signal_terms(expr)
+                if _normalize_expr(expr) == _normalize_expr(expected_signal) or (expected_terms and expected_terms & expr_terms):
+                    matched = True
+                    break
+            if not matched:
+                connection_contract_issues.append({
+                    "source_ref": contract.get("source_ref"),
+                    "module": module,
+                    "port": port,
+                    "expected_signal": expected_signal,
+                    "rtl_exprs": non_empty_exprs,
+                    "issue": "RTL named port-map expression does not match SSOT connection signal terms",
+                })
+
+    return {
+        "status": "pass" if not issues else "fail",
+        "port_connection_status": "pass" if not port_issues else "fail",
+        "connection_contract_status": "pass" if not connection_contract_issues else "fail",
+        "connection_contract_count": len(contracts),
+        "sources": sorted(sources),
+        "roots": roots,
+        "declared_modules": sorted(declarations),
+        "reachable_modules": sorted(reachable),
+        "graph": {key: sorted(value) for key, value in sorted(graph.items())},
+        "issues": issues[:128],
+        "port_connection_issues": port_issues[:128],
+        "connection_contract_issues": connection_contract_issues[:128],
+    }
+
+
+def _rtl_token_set(text: str) -> set[str]:
+    clean = re.sub(r"/\*.*?\*/", "", text or "", flags=re.S)
     clean = re.sub(r"//.*", "", clean)
     tokens: set[str] = set()
     for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", clean):
@@ -1592,6 +6332,55 @@ def _audit_static_evidence(ip_dir: Path, plan: dict[str, Any]) -> None:
             suffix = "_".join(parts[idx:])
             if suffix:
                 tokens.add(suffix)
+            for end in range(idx + 2, len(parts) + 1):
+                phrase = "_".join(parts[idx:end])
+                if phrase:
+                    tokens.add(phrase)
+    return tokens
+
+
+def _source_tokens_for_owner(source_tokens: dict[str, set[str]], owner_file: str) -> tuple[set[str], str]:
+    owner = str(owner_file or "").strip()
+    if not owner:
+        merged: set[str] = set()
+        for tokens in source_tokens.values():
+            merged.update(tokens)
+        return merged, "all_sources_without_owner"
+    if owner in source_tokens:
+        return source_tokens[owner], owner
+    for rel, tokens in source_tokens.items():
+        if rel.endswith("/" + owner) or owner.endswith("/" + rel) or Path(rel).name == Path(owner).name:
+            return tokens, rel
+    return set(), owner
+
+
+def _required_static_match_count(category: str, terms: list[str]) -> int:
+    if not terms:
+        return 0
+    if len(terms) == 1:
+        return 1
+    rich_categories = (
+        "workflow_todo.rtl_gen",
+        "function_model.",
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "cycle_model.backpressure",
+        "cycle_model.ordering",
+        "fsm.transition",
+        "dataflow.",
+        "error_handling.",
+        "security.",
+    )
+    if category == "workflow_todo.rtl_gen":
+        return min(3, len(terms))
+    if any(category.startswith(prefix) for prefix in rich_categories):
+        return min(2, len(terms))
+    return 1
+
+
+def _audit_static_evidence(ip_dir: Path, plan: dict[str, Any]) -> None:
+    sources = _read_rtl_sources(ip_dir)
+    source_tokens = {rel: _rtl_token_set(text) for rel, text in sources.items()}
     missing: list[dict[str, Any]] = []
     checked = 0
     passed = 0
@@ -1601,15 +6390,22 @@ def _audit_static_evidence(ip_dir: Path, plan: dict[str, Any]) -> None:
             continue
         checked += 1
         terms = [term for term in task.get("evidence_terms") or [] if len(str(term)) > 1]
-        matched = sorted({term for term in terms if term in tokens})
-        status = "pass" if matched else "missing"
-        if matched:
+        tokens, source_scope = _source_tokens_for_owner(source_tokens, str(task.get("owner_file") or ""))
+        lower_tokens = {token.lower() for token in tokens}
+        matched = sorted({term for term in terms if term in tokens or term.lower() in lower_tokens})
+        required_match_count = _required_static_match_count(str(task.get("category") or ""), terms)
+        status = "pass" if len(matched) >= required_match_count else "missing"
+        if status == "pass":
             passed += 1
         task["static_evidence"] = {
             "required": True,
             "status": status,
             "matched_terms": matched,
+            "matched_count": len(matched),
+            "required_match_count": required_match_count,
             "required_terms": terms,
+            "source_scope": source_scope,
+            "owner_file_scoped": bool(task.get("owner_file")),
         }
         if status != "pass":
             missing.append({
@@ -1617,6 +6413,10 @@ def _audit_static_evidence(ip_dir: Path, plan: dict[str, Any]) -> None:
                 "source_ref": task["source_ref"],
                 "category": task["category"],
                 "owner_file": task["owner_file"],
+                "source_scope": source_scope,
+                "matched_terms": matched,
+                "matched_count": len(matched),
+                "required_match_count": required_match_count,
                 "required_terms": terms[:8],
             })
     plan["static_rtl_evidence"] = {
@@ -1682,14 +6482,147 @@ def _gate_todo_completion(plan: dict[str, Any], ip_dir: Path, task: dict[str, An
             issues.append("todo_plan_sha256")
         if not rtl_files:
             issues.append("rtl_files")
+        reported_files = _reported_rtl_file_set(ip_dir, report)
+        manifest_files = _manifest_rtl_files_from_plan(plan)
+        missing_manifest = sorted(manifest_files - reported_files)
+        if missing_manifest:
+            issues.append("rtl_files_missing_manifest:" + ",".join(missing_manifest[:6]))
+        current_sources = {
+            _normalize_rtl_rel(ip_dir, rel)
+            for rel, _path in _rtl_source_paths(ip_dir)
+            if _normalize_rtl_rel(ip_dir, rel).endswith((".v", ".sv"))
+        }
+        missing_current_sources = sorted(current_sources - reported_files)
+        if missing_current_sources:
+            issues.append("rtl_files_missing_filelist:" + ",".join(missing_current_sources[:6]))
         if issues:
             return "open", "RTL authoring provenance is incomplete: " + ", ".join(issues), basis
         return "pass", "RTL authoring provenance proves common_ai_agent rtl-gen ownership.", basis
+    if kind == "target_scale_policy":
+        target_scale = plan.get("target_scale") if isinstance(plan.get("target_scale"), dict) else {}
+        candidate = _reference_target_scale_candidate(plan)
+        waiver = plan.get("target_scale_waiver") if isinstance(plan.get("target_scale_waiver"), dict) else {}
+        if target_scale:
+            return "pass", "SSOT quality_gates.rtl_gen.target_scale contains human-locked structural scale minima.", basis
+        if waiver.get("approved") is True and waiver.get("reason"):
+            return "pass", "SSOT target_scale_waiver explicitly waives reference-scale enforcement.", basis
+        if candidate:
+            return (
+                "open",
+                "Reference profile provides suggested_ssot_target_scale, but SSOT target_scale is not locked and no approved waiver is present.",
+                basis,
+            )
+        return "pass", "No reference-derived target scale candidate is present, so no target-scale policy lock is required.", basis
     if kind == "static_rtl_evidence":
         missing = int(static.get("missing") or 0)
         if missing:
             return "open", f"{missing} static-evidence-required task(s) still lack DUT RTL evidence.", basis
         return "pass", "Static DUT RTL evidence audit has no missing required task.", basis
+    if kind == "owner_logic_structure_evidence":
+        logic = plan.get("owner_logic_evidence") if isinstance(plan.get("owner_logic_evidence"), dict) else {}
+        issues = logic.get("issues") if isinstance(logic.get("issues"), list) else []
+        if issues:
+            sample = "; ".join(
+                f"{item.get('module') or item.get('file')}: {item.get('issue')}"
+                for item in issues[:3]
+                if isinstance(item, dict)
+            )
+            return "open", f"{len(issues)} owner logic structure issue(s) remain. {sample}".strip(), basis
+        return "pass", "Behavior-owner RTL modules contain real implementation structure.", basis
+    if kind == "rtl_placeholder_free_evidence":
+        placeholders = plan.get("rtl_placeholder_free_evidence") if isinstance(plan.get("rtl_placeholder_free_evidence"), dict) else {}
+        issues = placeholders.get("issues") if isinstance(placeholders.get("issues"), list) else []
+        if issues:
+            sample = "; ".join(
+                f"{item.get('file')}:{item.get('line')}: {item.get('token')}"
+                for item in issues[:3]
+                if isinstance(item, dict)
+            )
+            return "open", f"{len(issues)} RTL placeholder marker(s) remain. {sample}".strip(), basis
+        return "pass", "RTL sources contain no placeholder implementation markers.", basis
+    if kind == "top_io_contract_evidence":
+        top_io = plan.get("top_io_contract_evidence") if isinstance(plan.get("top_io_contract_evidence"), dict) else {}
+        issues = top_io.get("issues") if isinstance(top_io.get("issues"), list) else []
+        if issues:
+            sample = "; ".join(
+                f"{item.get('port') or item.get('module') or item.get('source_ref')}: {item.get('issue')}"
+                for item in issues[:3]
+                if isinstance(item, dict)
+            )
+            return "open", f"{len(issues)} top IO contract issue(s) remain. {sample}".strip(), basis
+        return "pass", "SSOT top IO contracts match the RTL top declaration.", basis
+    if kind == "top_output_drive_evidence":
+        drives = plan.get("top_output_drive_evidence") if isinstance(plan.get("top_output_drive_evidence"), dict) else {}
+        issues = drives.get("issues") if isinstance(drives.get("issues"), list) else []
+        if issues:
+            sample = "; ".join(
+                f"{item.get('port') or item.get('module') or item.get('source_ref')}: {item.get('issue')}"
+                for item in issues[:3]
+                if isinstance(item, dict)
+            )
+            return "open", f"{len(issues)} top output drive issue(s) remain. {sample}".strip(), basis
+        return "pass", "SSOT top outputs have non-placeholder RTL drive evidence.", basis
+    if kind == "top_input_consumption_evidence":
+        inputs = plan.get("top_input_consumption_evidence") if isinstance(plan.get("top_input_consumption_evidence"), dict) else {}
+        issues = inputs.get("issues") if isinstance(inputs.get("issues"), list) else []
+        if issues:
+            sample = "; ".join(
+                f"{item.get('port') or item.get('module') or item.get('source_ref')}: {item.get('issue')}"
+                for item in issues[:3]
+                if isinstance(item, dict)
+            )
+            return "open", f"{len(issues)} top input consumption issue(s) remain. {sample}".strip(), basis
+        return "pass", "SSOT top inputs have RTL consumption evidence.", basis
+    if kind == "manifest_hierarchy_integration":
+        hierarchy = plan.get("manifest_hierarchy_evidence") if isinstance(plan.get("manifest_hierarchy_evidence"), dict) else {}
+        if not hierarchy:
+            hierarchy = _audit_manifest_hierarchy(ip_dir, plan)
+        issues = hierarchy.get("issues") if isinstance(hierarchy.get("issues"), list) else []
+        if issues:
+            sample = "; ".join(
+                f"{item.get('module') or item.get('file')}: {item.get('issue')}"
+                for item in issues[:3]
+                if isinstance(item, dict)
+            )
+            return "open", f"{len(issues)} manifest hierarchy integration issue(s) remain. {sample}".strip(), basis
+        return "pass", "Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.", basis
+    if kind == "manifest_port_connection_evidence":
+        hierarchy = plan.get("manifest_hierarchy_evidence") if isinstance(plan.get("manifest_hierarchy_evidence"), dict) else {}
+        if not hierarchy:
+            hierarchy = _audit_manifest_hierarchy(ip_dir, plan)
+        issues = hierarchy.get("port_connection_issues") if isinstance(hierarchy.get("port_connection_issues"), list) else []
+        if issues:
+            sample = "; ".join(
+                f"{item.get('module') or item.get('file')}: {item.get('issue')}"
+                for item in issues[:3]
+                if isinstance(item, dict)
+            )
+            return "open", f"{len(issues)} manifest port connection issue(s) remain. {sample}".strip(), basis
+        return "pass", "Every reachable manifest child instance has named, non-empty port connections.", basis
+    if kind == "manifest_signal_flow_evidence":
+        flow = plan.get("manifest_signal_flow_evidence") if isinstance(plan.get("manifest_signal_flow_evidence"), dict) else {}
+        issues = flow.get("issues") if isinstance(flow.get("issues"), list) else []
+        if issues:
+            sample = "; ".join(
+                f"{item.get('module') or item.get('parent')}: {item.get('port')}: {item.get('issue')}"
+                for item in issues[:3]
+                if isinstance(item, dict)
+            )
+            return "open", f"{len(issues)} manifest signal-flow issue(s) remain. {sample}".strip(), basis
+        return "pass", "Manifest child port maps carry live non-placeholder RTL signal flow.", basis
+    if kind == "manifest_connection_contract_evidence":
+        hierarchy = plan.get("manifest_hierarchy_evidence") if isinstance(plan.get("manifest_hierarchy_evidence"), dict) else {}
+        if not hierarchy:
+            hierarchy = _audit_manifest_hierarchy(ip_dir, plan)
+        issues = hierarchy.get("connection_contract_issues") if isinstance(hierarchy.get("connection_contract_issues"), list) else []
+        if issues:
+            sample = "; ".join(
+                f"{item.get('module') or item.get('source_ref') or 'connection'}: {item.get('issue')}"
+                for item in issues[:3]
+                if isinstance(item, dict)
+            )
+            return "open", f"{len(issues)} SSOT connection contract issue(s) remain. {sample}".strip(), basis
+        return "pass", "SSOT connection contracts are satisfied by reachable RTL named port maps.", basis
     if kind == "dut_compile":
         path = ip_dir / "rtl" / "rtl_compile.json"
         report = _safe_read_json(path)
@@ -1704,6 +6637,12 @@ def _gate_todo_completion(plan: dict[str, Any], ip_dir: Path, task: dict[str, An
         )
         if not passed:
             return "open", "DUT compile artifact is not clean.", basis
+        freshness_issue = _artifact_freshness_issue(ip_dir, path, "DUT compile")
+        if freshness_issue:
+            return "open", freshness_issue, basis
+        source_issue = _report_source_set_issue(ip_dir, report, "DUT compile", extensions=(".v", ".sv"))
+        if source_issue:
+            return "open", source_issue, basis
         return "pass", "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.", basis
     if kind == "dut_lint":
         path = ip_dir / "lint" / "dut_lint.json"
@@ -1719,25 +6658,197 @@ def _gate_todo_completion(plan: dict[str, Any], ip_dir: Path, task: dict[str, An
         )
         if not passed:
             return "open", "DUT lint artifact is not clean.", basis
+        freshness_issue = _artifact_freshness_issue(ip_dir, path, "DUT lint")
+        if freshness_issue:
+            return "open", freshness_issue, basis
+        source_issue = _report_source_set_issue(ip_dir, report, "DUT lint", extensions=(".v", ".sv", ".vh", ".svh"))
+        if source_issue:
+            return "open", source_issue, basis
         return "pass", "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.", basis
+    if kind == "golden_authority_artifacts":
+        required_paths = [
+            ip_dir / "governance" / "authority.json",
+            ip_dir / "model" / "functional_model.py",
+            ip_dir / "model" / "fl_model_check.json",
+            ip_dir / "model" / "model_signature.json",
+            ip_dir / "model" / "decomposition.json",
+            ip_dir / "cov" / "fcov_plan.json",
+            ip_dir / "verify" / "equivalence_goals.json",
+        ]
+        missing = [str(path.relative_to(ip_dir)) for path in required_paths if not path.is_file()]
+        if missing:
+            return "open", "Missing production golden authority artifact(s): " + ", ".join(missing), basis
+        authority = _safe_read_json(ip_dir / "governance" / "authority.json")
+        authority_issue = _authority_manifest_issue(authority, ip_dir.name)
+        if authority_issue:
+            return "open", authority_issue, basis
+        fl_check = _safe_read_json(ip_dir / "model" / "fl_model_check.json")
+        if fl_check.get("passed") is not True:
+            return "open", "FunctionalModel self-check has not passed.", basis
+        signature = _safe_read_json(ip_dir / "model" / "model_signature.json")
+        signature_issue = _model_signature_issue(ip_dir, ip_dir.name, signature)
+        if signature_issue:
+            return "open", signature_issue, basis
+        decomp = _safe_read_json(ip_dir / "model" / "decomposition.json")
+        units = decomp.get("units") if isinstance(decomp.get("units"), list) else []
+        if not units:
+            return "open", "decomposition.json has no implementation units.", basis
+        if decomp.get("complete") is not True:
+            return "open", "decomposition.json is not complete=true.", basis
+        blocked_units = [
+            str(unit.get("name") or unit.get("rtl_file") or "unit")
+            for unit in units
+            if isinstance(unit, dict) and _truthy(unit.get("blocked"))
+        ]
+        if blocked_units:
+            return "open", "decomposition.json still has blocked unit(s): " + ", ".join(blocked_units[:8]), basis
+        fcov = _safe_read_json(ip_dir / "cov" / "fcov_plan.json")
+        bins = fcov.get("bins") if isinstance(fcov.get("bins"), list) else []
+        if not bins:
+            return "open", "fcov_plan.json has no planned bins.", basis
+        if fcov.get("planned_before_rtl") is not True:
+            return "open", "fcov_plan.json is not planned_before_rtl=true.", basis
+        goals = _safe_read_json(ip_dir / "verify" / "equivalence_goals.json")
+        summary = goals.get("summary") if isinstance(goals.get("summary"), dict) else {}
+        required_goal_ids = _required_unblocked_equivalence_goal_ids(goals)
+        if not required_goal_ids:
+            return "open", "equivalence_goals.json has no required unblocked goals.", basis
+        if int(summary.get("blocked") or 0) > 0:
+            return "open", "equivalence_goals.json still has blocked goals.", basis
+        return "pass", "Production golden authority artifacts are locked, approved, current, and machine-readable.", basis
+    if kind == "rtl_implementation_depth_evidence":
+        depth = plan.get("rtl_implementation_depth_evidence") if isinstance(plan.get("rtl_implementation_depth_evidence"), dict) else {}
+        issues = depth.get("issues") if isinstance(depth.get("issues"), list) else []
+        aggregate = depth.get("aggregate") if isinstance(depth.get("aggregate"), dict) else {}
+        thresholds = depth.get("thresholds") if isinstance(depth.get("thresholds"), dict) else {}
+        if issues:
+            sample = "; ".join(
+                f"{item.get('issue')}: actual={item.get('actual')} required={item.get('required')}"
+                if isinstance(item, dict) and "actual" in item
+                else str(item.get("issue") if isinstance(item, dict) else item)
+                for item in issues[:3]
+            )
+            return "open", f"{len(issues)} production RTL implementation-depth issue(s) remain. {sample}".strip(), basis
+        return (
+            "pass",
+            "Production RTL implementation depth meets SSOT-derived/target-scale thresholds "
+            f"(score={aggregate.get('depth_score')}, required={thresholds.get('min_depth_score')}).",
+            basis,
+        )
+    if kind == "cycle_model_artifacts":
+        model_path = ip_dir / "model" / "cycle_model.py"
+        check = _safe_read_json(ip_dir / "model" / "cl_model_check.json")
+        if not model_path.is_file():
+            return "open", "Missing executable cycle model: model/cycle_model.py.", basis
+        if check.get("passed") is not True:
+            return "open", "Cycle model self-check has not passed.", basis
+        return "pass", "Cycle model artifact and self-check are present.", basis
+    if kind == "protocol_assertion_evidence":
+        sva_path = ip_dir / "verify" / "protocol_assertions.sva"
+        summary = _safe_read_json(ip_dir / "verify" / "protocol_assertions.summary.json")
+        failures_path = ip_dir / "sim" / "assertion_failures.jsonl"
+        if not sva_path.is_file():
+            return "open", "Missing protocol assertion artifact: verify/protocol_assertions.sva.", basis
+        if int(summary.get("assertions_total") or 0) <= 0:
+            return "open", "protocol_assertions.summary.json has no generated assertions.", basis
+        if not failures_path.is_file():
+            return "open", "Missing protocol assertion simulation evidence: sim/assertion_failures.jsonl.", basis
+        try:
+            failure_rows = [line for line in failures_path.read_text(encoding="utf-8", errors="replace").splitlines() if line.strip()]
+        except OSError as exc:
+            return "open", f"Cannot read protocol assertion failures evidence: {exc}.", basis
+        if failure_rows:
+            return "open", f"Protocol assertion simulation reported {len(failure_rows)} failure record(s).", basis
+        freshness_issue = _artifact_freshness_issue(ip_dir, failures_path, "protocol assertion simulation")
+        if freshness_issue:
+            return "open", freshness_issue, basis
+        return "pass", "Protocol assertions were generated and simulation reported zero assertion failures.", basis
+    if kind == "fl_rtl_goal_audit":
+        report_path = ip_dir / "sim" / "fl_rtl_goal_audit.json"
+        compare_path = ip_dir / "sim" / "fl_rtl_compare.json"
+        goals_path = ip_dir / "verify" / "equivalence_goals.json"
+        report = _safe_read_json(report_path)
+        if not report:
+            return "open", "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.", basis
+        summary = report.get("summary") if isinstance(report.get("summary"), dict) else {}
+        blockers = summary.get("blockers") if isinstance(summary.get("blockers"), list) else []
+        failed = int(summary.get("failed_checks") or 0)
+        if not _json_report_passed(report) or failed or blockers:
+            return "open", "FL-vs-RTL goal audit is not clean.", basis
+        stop_condition = report.get("stop_condition") if isinstance(report.get("stop_condition"), dict) else {}
+        if stop_condition:
+            if stop_condition.get("fl_rtl_compare_complete") is not True:
+                return "open", "FL-vs-RTL goal audit stop_condition does not prove compare completion.", basis
+            if stop_condition.get("signoff_evidence_backed") is not True:
+                return "open", "FL-vs-RTL goal audit stop_condition is not signoff_evidence_backed.", basis
+        goals_doc = _safe_read_json(goals_path)
+        compare = _safe_read_json(compare_path)
+        coverage_issue = _fl_rtl_compare_goal_coverage_issue(goals_doc, compare)
+        if coverage_issue:
+            return "open", coverage_issue, basis
+        compare_freshness_issue = _artifact_freshness_issue(ip_dir, compare_path, "FL-vs-RTL compare")
+        if compare_freshness_issue:
+            return "open", compare_freshness_issue, basis
+        freshness_issue = _artifact_freshness_issue(ip_dir, report_path, "FL-vs-RTL goal audit")
+        if freshness_issue:
+            return "open", freshness_issue, basis
+        return "pass", "FL-vs-RTL goal audit passed and compare covers every required unblocked equivalence goal.", basis
+    if kind == "coverage_closure":
+        report_path = ip_dir / "cov" / "coverage.json"
+        report = _safe_read_json(report_path)
+        if not report:
+            return "open", "Missing coverage closure artifact: cov/coverage.json.", basis
+        coverage_issue = _coverage_closure_issue(report)
+        if coverage_issue:
+            return "open", coverage_issue, basis
+        freshness_issue = _artifact_freshness_issue(ip_dir, report_path, "coverage closure")
+        if freshness_issue:
+            return "open", freshness_issue, basis
+        return "pass", "SSOT functional coverage closure passed with RTL-observed evidence.", basis
     if kind == "dynamic_todo_closure":
         return "deferred", "Dynamic TODO closure is evaluated after other required TODOs.", basis
     return "open", "Unknown RTL gate kind.", basis
 
 
-def _default_todo_completion(task: dict[str, Any], *, audit_rtl: bool) -> tuple[str, str, list[str]]:
+def _owner_file_completion_issue(ip_dir: Path, task: dict[str, Any]) -> str:
+    category = str(task.get("category") or "")
+    if category == "rtl_flow.seed":
+        return ""
+    owner_file = str(task.get("owner_file") or "").strip()
+    owner_module = str(task.get("owner_module") or "").strip()
+    if not owner_file:
+        return "Task has no RTL owner file."
+    path = ip_dir / owner_file
+    if not path.is_file():
+        return f"Owner RTL file is missing: {owner_file}."
+    if owner_file.endswith((".svh", ".vh")):
+        return ""
+    try:
+        modules = _sv_module_bodies(path.read_text(encoding="utf-8", errors="replace"))
+    except OSError as exc:
+        return f"Cannot read owner RTL file {owner_file}: {exc}."
+    aliases = {owner_module, Path(owner_file).stem} - {""}
+    if aliases and not any(alias in modules for alias in aliases):
+        return f"Owner RTL module {owner_module or Path(owner_file).stem} is not declared in {owner_file}."
+    return ""
+
+
+def _default_todo_completion(task: dict[str, Any], ip_dir: Path, *, audit_rtl: bool) -> tuple[str, str, list[str]]:
     static = task.get("static_evidence") if isinstance(task.get("static_evidence"), dict) else {}
     basis = [
         "rtl_todo_plan.json task criteria",
         "rtl_traceability.json source_ref mapping",
-        "DUT-only compile/lint stage evidence",
+        "owner RTL file/module declaration evidence",
         "static RTL evidence audit when evidence_terms are required",
     ]
     if not audit_rtl:
         return "planned", "RTL audit has not run yet.", basis
+    owner_issue = _owner_file_completion_issue(ip_dir, task)
+    if owner_issue:
+        return "open", owner_issue, basis
     if static.get("status") == "missing":
         return "open", "Required RTL static evidence is missing.", basis
-    return "pass", "Task criteria are closed by SSOT traceability plus RTL audit/compile/lint evidence.", basis
+    return "pass", "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.", basis
 
 
 def _update_todo_completion(plan: dict[str, Any], ip_dir: Path, *, audit_rtl: bool) -> None:
@@ -1751,7 +6862,7 @@ def _update_todo_completion(plan: dict[str, Any], ip_dir: Path, *, audit_rtl: bo
             if (task.get("gate_todo") or {}).get("kind") == "dynamic_todo_closure":
                 closure_tasks.append(task)
         else:
-            status, reason, basis = _default_todo_completion(task, audit_rtl=audit_rtl)
+            status, reason, basis = _default_todo_completion(task, ip_dir, audit_rtl=audit_rtl)
         task["todo_completion"] = {
             "status": status,
             "required": bool(task.get("required")),
@@ -1821,13 +6932,19 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
     ssot_path, doc = _load_ssot(root, ip)
     top = _top_name(doc, ip)
     ip_dir = root / ip
+    reference_profile = _load_reference_profile(ip_dir)
     modules = _active_modules(doc, ip, top)
     top_owner = _owner_for("top_module", modules, top)
+    quality_profile = _rtl_quality_profile(doc, ip)
+    target_scale = _rtl_target_scale(doc)
+    target_scale_waiver = _rtl_target_scale_waiver(doc)
+    top_io_contracts = _collect_top_io_contracts(doc)
+    connection_contracts = _collect_connection_contracts(doc, modules, top)
     tasks: list[dict[str, Any]] = []
     blockers: list[dict[str, Any]] = []
 
     _add_base_tasks(tasks, ip, top, top_owner)
-    _add_rtl_gate_todo_tasks(tasks, top_owner)
+    _add_rtl_gate_todo_tasks(tasks, top_owner, profile=quality_profile)
     _add_workflow_todo_tasks(tasks, blockers, doc, modules, top)
     _add_parameter_tasks(tasks, doc, modules, top)
     _add_io_tasks(tasks, doc, modules, top)
@@ -1885,26 +7002,66 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
             "by_section": dict(sorted(by_section.items())),
             "ssot_workflow_todos": counts.get("workflow_todo.rtl_gen", 0),
             "rtl_gate_todos": counts.get("rtl_gate.rtl_gen", 0),
-            "owner_modules": [{"name": item["name"], "file": item["file"], "refs": item["refs"]} for item in modules],
+            "owner_modules": [
+                {
+                    "name": item["name"],
+                    "file": item["file"],
+                    "refs": item["refs"],
+                    "wiring_only": bool((item.get("raw") or {}).get("wiring_only")),
+                }
+                for item in modules
+            ],
             "blocking_questions": len(blockers),
             "orphan_tasks": len(orphans),
+            "rtl_quality_profile": quality_profile,
+            "reference_profile_present": bool(reference_profile),
+            "target_scale_present": bool(target_scale),
+            "target_scale_waived": bool(target_scale_waiver.get("approved")),
         },
         "policy": {
             "fixed_template_role": "seed_only",
+            "rtl_quality_profile": quality_profile,
+            "rtl_target_scale": target_scale,
+            "rtl_target_scale_waiver": target_scale_waiver,
             "dynamic_task_rule": "Use every required task in this file as the active RTL implementation checklist; add as many UI todos as this plan requires.",
             "ssot_workflow_todo_rule": "workflow_todos.rtl-gen[] entries are first-class downstream tasks; content/detail/criteria must be preserved and satisfied by RTL evidence.",
-            "rtl_gate_todo_rule": "RTL-gen quality gates are first-class rtl_gate.rtl_gen TODOs; compile/lint/static/ownership gates must close as TODOs before PASS.",
+            "rtl_gate_todo_rule": "RTL-gen quality gates are first-class rtl_gate.rtl_gen TODOs; compile/lint/static/ownership/owner-logic/placeholder-free/implementation-depth/top-io/top-output-drive/top-input-consumption/hierarchy/port-connection/signal-flow/connection-contract gates must close as TODOs before PASS.",
+            "reference_profile_rule": "Optional rtl_reference_profile artifacts are calibration-only scale reports; they must not be copied, transformed, or used as fixed RTL templates.",
+            "target_scale_rule": "Optional quality_gates.rtl_gen.target_scale is SSOT-locked human policy. It can be calibrated from a reference profile, but it is enforced as generic structural depth evidence, not as copied reference RTL.",
             "no_orphan_function_level": True,
             "single_source_of_truth": "SSOT YAML is the only authority for function_model, cycle_model, RTL ownership, DV plan, and coverage.",
         },
+        "target_scale": target_scale,
+        "target_scale_waiver": target_scale_waiver,
+        "reference_profile": reference_profile,
+        "ssot_connection_contracts": connection_contracts,
         "blockers": blockers,
         "orphans": orphans[:128],
+        "ssot_top_io_contracts": top_io_contracts,
         "tasks": tasks,
         "static_rtl_evidence": {"sources": [], "checked": 0, "passed": 0, "missing": 0, "missing_tasks": []},
+        "owner_logic_evidence": {"status": "not_run", "checked": 0, "issues": []},
+        "rtl_placeholder_free_evidence": {"status": "not_run", "checked": 0, "issues": []},
+        "rtl_implementation_depth_evidence": {"status": "not_run", "thresholds": {}, "aggregate": {}, "issues": []},
+        "top_io_contract_evidence": {"status": "not_run", "contracts": len(top_io_contracts), "issues": []},
+        "top_output_drive_evidence": {"status": "not_run", "checked": 0, "driven": 0, "issues": []},
+        "top_input_consumption_evidence": {"status": "not_run", "checked": 0, "consumed": 0, "issues": []},
+        "manifest_hierarchy_evidence": {"status": "not_run", "sources": [], "issues": []},
+        "manifest_signal_flow_evidence": {"status": "not_run", "checked_inputs": 0, "checked_outputs": 0, "issues": []},
         "gate": {},
     }
     if audit_rtl:
         _audit_static_evidence(ip_dir, plan)
+        plan["owner_logic_evidence"] = _audit_owner_logic_structure(ip_dir, plan)
+        plan["rtl_placeholder_free_evidence"] = _audit_rtl_placeholder_free(ip_dir)
+        plan["rtl_implementation_depth_evidence"] = _audit_rtl_implementation_depth(ip_dir, plan)
+        plan["top_io_contract_evidence"] = _audit_top_io_contracts(ip_dir, plan)
+        plan["top_output_drive_evidence"] = _audit_top_output_drives(ip_dir, plan)
+        plan["top_input_consumption_evidence"] = _audit_top_input_consumption(ip_dir, plan)
+        plan["manifest_hierarchy_evidence"] = _audit_manifest_hierarchy(ip_dir, plan)
+        plan["manifest_signal_flow_evidence"] = _audit_manifest_signal_flow(ip_dir, plan)
+    plan["reference_scale_gap"] = _reference_scale_gap_summary(plan)
+    plan["connection_contract_suggestions"] = _draft_connection_contract_suggestions(ip_dir, plan)
     _update_todo_completion(plan, ip_dir, audit_rtl=audit_rtl)
     static_missing = int((plan.get("static_rtl_evidence") or {}).get("missing") or 0)
     open_todos = int((plan.get("todo_completion") or {}).get("open_required_tasks") or 0)

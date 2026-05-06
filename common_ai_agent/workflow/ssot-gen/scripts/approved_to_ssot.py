@@ -1441,6 +1441,12 @@ def _doc(ip: str, state: dict[str, Any]) -> dict[str, Any]:
             "bus_attachment": {"control": decisions.get("bus_interface") or "approved interface", "data": decisions.get("purpose") or "approved leaf behavior"},
             "address_map_requirements": {"memory_map": decisions.get("memory_map") or "Assigned by SoC/integration; leaf IP uses local offsets when registers exist."},
             "dependencies": {"external_modules": [], "external_clocks": [clk], "external_resets": [rst_name]},
+            "connections": [],
+            "connection_contract_status": (
+                "missing machine-readable module wiring; child RTL drafts may proceed from owner packets, "
+                "but top integration/signoff must stay blocked until SSOT authors integration.connections "
+                "or sub_modules[].connections with module/port/signal records"
+            ),
             "integration_notes": [
                 "Do not modify SoC/RISC-V development files during leaf IP generation.",
                 "Top integration owns base address assignment and system-level routing.",
@@ -1518,6 +1524,14 @@ def _doc(ip: str, state: dict[str, Any]) -> dict[str, Any]:
         "quality_gates": {
             "ssot": {"pass": "All production SSOT sections validate with check_ssot_disk.sh and no unresolved open-decision markers.", "evidence": ["check_ssot_disk.sh PASS"]},
             "rtl": {"pass": "RTL implements function_model/cycle_model and DUT-only compile/lint pass with fresh evidence.", "evidence": ["list/<ip>.f", "rtl compile report", "dut lint report"]},
+            "rtl_gen": {
+                "profile": "production" if any(token in ip.lower() for token in ("pl330", "dma330", "dma_330")) else "standard",
+                "pass": (
+                    "rtl-gen execution_policy.pass_allowed is true, every required SSOT-derived RTL TODO is closed, "
+                    "and provenance proves common_ai_agent rtl-gen authored the RTL without fixed-template fallback behavior."
+                ),
+                "evidence": ["rtl/rtl_authoring_plan.json", "logs/rtl-gen/rtl_todo_plan.json", "rtl/provenance.json", "rtl_compile.json", "lint/dut_lint.json"],
+            },
             "dv": {"pass": "Every SSOT scenario has an executable cocotb/pyuvm test, checker, FL-vs-RTL equivalence goal, and scoreboard comparison.", "evidence": ["verify/equivalence_goals.json", "sim/scoreboard_events.jsonl", "tb/cocotb/results.xml", "sim/results.xml"]},
             "coverage": {"pass": "Functional coverage bins meet planned threshold and limitations are zero or explicitly waived.", "evidence": ["cov/coverage.json", "cov/fcov_plan.json"]},
             "eda": {"pass": "Synthesis/STA/DFT evidence is produced or explicitly out-of-scope for this leaf signoff.", "evidence": ["syn/out/area.rpt", "sta/out/wns.json"]},
@@ -1550,11 +1564,105 @@ def _doc(ip: str, state: dict[str, Any]) -> dict[str, Any]:
                         "DUT-only compile/lint reports are fresh and clean after the final RTL edit",
                         "RTL preserves SSOT authority: SSOT, FunctionalModel, coverage goals, interface rules, and performance targets are not edited to make RTL pass",
                     ],
-                    "source_refs": ["function_model", "cycle_model", "sub_modules", "quality_gates.rtl"],
+                    "source_refs": ["function_model", "cycle_model", "sub_modules", "quality_gates.rtl", "quality_gates.rtl_gen"],
                     "owner_module": f"{ip}_core",
                     "owner_file": f"rtl/{ip}.sv",
                     "priority": "high",
                     "required": True,
+                },
+                {
+                    "id": "RTL_TARGET_SCALE_POLICY",
+                    "content": "Lock or waive RTL target-scale policy before production signoff",
+                    "detail": (
+                        "Production-profile RTL can use reference-derived scale candidates as review inputs, "
+                        "but rtl-gen must not treat them as truth until a human locks positive minima in "
+                        "quality_gates.rtl_gen.target_scale or approves target_scale_waiver."
+                    ),
+                    "criteria": [
+                        "quality_gates.rtl_gen.target_scale contains at least one positive structural minimum such as source_files_min, modules_min, or depth_score_min",
+                        "or quality_gates.rtl_gen.target_scale_waiver.approved is true with owner and reason",
+                        "rtl_todo_plan.json target_scale_policy gate passes after rerunning rtl-gen TODO derivation",
+                    ],
+                    "source_refs": ["quality_gates.rtl_gen.target_scale", "quality_gates.rtl_gen.target_scale_waiver", "reports/rtl_reference_profile.json"],
+                    "owner_module": ip,
+                    "owner_file": f"rtl/{ip}.sv",
+                    "priority": "high",
+                    "required": True,
+                    "answer_schema": {
+                        "format": "YAML or JSON",
+                        "root_key": "target_scale or target_scale_waiver",
+                        "target_scale_fields": [
+                            "source_files_min",
+                            "modules_min",
+                            "lines_min",
+                            "depth_score_min",
+                            "nonconstant_assigns_min",
+                            "procedural_blocks_min",
+                            "instances_min",
+                            "basis",
+                        ],
+                        "target_scale_waiver_required_fields": ["approved", "reason", "owner"],
+                        "rule": "Only human-approved SSOT minima or waiver can close this gate; do not infer target scale from generated RTL.",
+                    },
+                    "example_answer": {
+                        "target_scale": {
+                            "source_files_min": 4,
+                            "modules_min": 8,
+                            "lines_min": 1200,
+                            "depth_score_min": 120,
+                            "basis": "Human-approved architecture review calibrated from rtl_reference_profile.json.",
+                        },
+                        "target_scale_waiver": {
+                            "approved": True,
+                            "reason": "Smaller variant intentionally does not enforce reference-scale minima.",
+                            "owner": "human-review",
+                        },
+                    },
+                },
+                {
+                    "id": "RTL_RESOLVE_CONNECTION_CONTRACTS",
+                    "content": "Resolve production multi-module connection contracts before top integration signoff",
+                    "detail": (
+                        "The SSOT may declare manifest child modules before machine-readable wiring is approved. "
+                        "Child module drafts may proceed from owner packets; top wiring, PASS, and signoff must remain "
+                        "blocked until SSOT authors integration.connections or sub_modules[].connections records."
+                    ),
+                    "criteria": [
+                        "integration.connections or sub_modules[].connections lists every active child module connection as module/port/signal data",
+                        "rtl_authoring_plan.execution_policy.connection_contract_gap.status becomes ok",
+                        "Top/gate authoring packet integration_signoff_allowed is true after rerunning rtl-gen TODO derivation",
+                    ],
+                    "source_refs": ["integration.connections", "sub_modules[].connections", "quality_gates.rtl_gen"],
+                    "owner_module": ip,
+                    "owner_file": f"rtl/{ip}.sv",
+                    "priority": "high",
+                    "required": True,
+                    "answer_schema": {
+                        "format": "YAML or JSON",
+                        "root_key": "connection_contracts",
+                        "item_required_fields": ["module", "port", "signal"],
+                        "item_optional_fields": [
+                            "instance",
+                            "direction",
+                            "source_ref",
+                            "allow_constant",
+                            "allow_unused",
+                            "tieoff",
+                            "reason",
+                        ],
+                        "rule": "Only approved rows become SSOT wiring contracts; do not infer missing wiring from RTL.",
+                    },
+                    "example_answer": {
+                        "connection_contracts": [
+                            {
+                                "module": f"{ip}_engine",
+                                "instance": "u_engine",
+                                "port": "done_o",
+                                "signal": "done",
+                                "source_ref": "integration.connections.done_o",
+                            }
+                        ]
+                    },
                 }
             ],
             "tb-gen": [],

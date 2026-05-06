@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -71,6 +72,101 @@ def _as_list(value: Any) -> list[Any]:
     if isinstance(value, dict):
         return [{"name": key, "value": val} for key, val in value.items()]
     return [value]
+
+
+EVIDENCE_STOPWORDS = {
+    "access",
+    "according",
+    "all",
+    "an",
+    "and",
+    "any",
+    "approved",
+    "as",
+    "be",
+    "before",
+    "behavior",
+    "boundary",
+    "clear",
+    "clears",
+    "control",
+    "counter",
+    "counters",
+    "cycle",
+    "effect",
+    "effects",
+    "error",
+    "event",
+    "events",
+    "exactly",
+    "externally",
+    "feature",
+    "field",
+    "fields",
+    "fl",
+    "for",
+    "from",
+    "function_model",
+    "gen",
+    "implement",
+    "input",
+    "is",
+    "listed",
+    "model",
+    "module",
+    "non",
+    "observable",
+    "output",
+    "pending",
+    "preserve",
+    "protocol",
+    "retained",
+    "rtl",
+    "rule",
+    "side",
+    "state",
+    "the",
+    "to",
+    "transaction",
+    "with",
+}
+
+REFERENCE_STOPWORDS = {
+    "backpressure",
+    "cycle_model",
+    "dataflow",
+    "error_cases",
+    "fsm",
+    "function_model",
+    "handshake_rules",
+    "inputs",
+    "invariants",
+    "observability",
+    "ordering",
+    "output_rules",
+    "outputs",
+    "pipeline",
+    "preconditions",
+    "register_list",
+    "registers",
+    "side_effects",
+    "state_updates",
+    "state_variables",
+    "test_requirements",
+    "transactions",
+}
+
+
+def _present(value: Any) -> bool:
+    if value is None:
+        return False
+    if value is False:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip()) and value.strip().lower() not in {"none", "n/a", "na", "tbd", "todo"}
+    if isinstance(value, (list, tuple, set, dict)):
+        return bool(value)
+    return True
 
 
 def _authority_contract(ip: str) -> dict[str, Any]:
@@ -161,12 +257,29 @@ def _module_contract_refs(module: dict[str, Any]) -> list[str]:
     ):
         value = module.get(key)
         if isinstance(value, str):
-            refs.extend(item.strip() for item in value.replace(";", ",").split(",") if item.strip())
+            refs.extend(item.strip() for item in re.split(r"[,;\n]+", value) if item.strip())
         elif isinstance(value, list):
             refs.extend(str(item).strip() for item in value if str(item).strip())
         elif isinstance(value, dict):
             refs.extend(str(item).strip() for item in value if str(item).strip())
-    return sorted({ref for ref in refs if ref})
+    return _expand_relative_refs(refs)
+
+
+def _expand_relative_refs(refs: list[str]) -> list[str]:
+    """Expand shorthand SSOT refs like `.store` using the prior ref prefix."""
+
+    out: list[str] = []
+    base_prefix = ""
+    for raw in refs:
+        ref = str(raw or "").strip()
+        if not ref:
+            continue
+        if ref.startswith(".") and base_prefix:
+            ref = base_prefix + ref
+        if not ref.startswith(".") and "." in ref:
+            base_prefix = ref.rsplit(".", 1)[0]
+        out.append(ref)
+    return sorted({ref for ref in out if ref})
 
 
 def _top_name(ssot: dict[str, Any], ip: str) -> str:
@@ -211,14 +324,187 @@ def _active_rtl_modules(ssot: dict[str, Any], ip: str) -> list[dict[str, Any]]:
 
 
 def _ref_is_covered(ref: str, owner_ref: str) -> bool:
-    return ref == owner_ref or ref.startswith(owner_ref + ".") or owner_ref.startswith(ref + ".")
+    return _ref_prefix_covered(ref, owner_ref) or _ref_leaf_strong_match(ref, owner_ref)
 
 
-def _covered_by_module(ref: str, module: dict[str, Any], *, single_owner: bool) -> bool:
+def _ref_prefix_covered(ref: str, owner_ref: str) -> bool:
+    return (
+        ref == owner_ref
+        or ref.startswith(owner_ref + ".")
+        or owner_ref.startswith(ref + ".")
+    )
+
+
+def _ref_leaf_strong_match(ref: str, owner_ref: str) -> bool:
+    ref_parent, _, ref_leaf = ref.rpartition(".")
+    owner_parent, _, owner_leaf = owner_ref.rpartition(".")
+    if not ref_parent or ref_parent != owner_parent:
+        return False
+    ref_parts = {part for part in re.split(r"[_\W]+", ref_leaf.lower()) if len(part) > 1}
+    owner_parts = {part for part in re.split(r"[_\W]+", owner_leaf.lower()) if len(part) > 1}
+    if not ref_parts or not owner_parts:
+        return False
+    return owner_parts.issubset(ref_parts) or ref_parts.issubset(owner_parts)
+
+
+def _covered_by_module(ref: str, module: dict[str, Any], *, single_owner: bool) -> str:
     if single_owner:
-        return True
+        return "single_owner"
     refs = module.get("refs") if isinstance(module.get("refs"), list) else []
-    return any(_ref_is_covered(ref, str(owner_ref)) for owner_ref in refs)
+    for owner_ref in refs:
+        owner_ref = str(owner_ref)
+        if _ref_prefix_covered(ref, owner_ref):
+            return owner_ref
+    for owner_ref in refs:
+        owner_ref = str(owner_ref)
+        if _ref_leaf_strong_match(ref, owner_ref):
+            return owner_ref
+    return ""
+
+
+def _owner_token_set(value: Any) -> set[str]:
+    tokens: set[str] = set()
+
+    def add_text(text: Any) -> None:
+        for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", str(text or "")):
+            for part in re.split(r"[_\W]+", token):
+                lower = part.lower().strip("_")
+                if len(lower) <= 1 or lower in EVIDENCE_STOPWORDS or lower in REFERENCE_STOPWORDS:
+                    continue
+                tokens.add(lower)
+            lower_token = token.lower().strip("_")
+            if len(lower_token) > 1 and lower_token not in EVIDENCE_STOPWORDS and lower_token not in REFERENCE_STOPWORDS:
+                tokens.add(lower_token)
+
+    def visit(item: Any) -> None:
+        if item is None:
+            return
+        if isinstance(item, dict):
+            for key, val in item.items():
+                if str(key).lower() not in {"metadata", "notes"}:
+                    visit(val)
+            return
+        if isinstance(item, list):
+            for val in item:
+                visit(val)
+            return
+        add_text(item)
+
+    visit(value)
+    return tokens
+
+
+def _module_owner_terms(module: dict[str, Any], top: str) -> tuple[set[str], set[str]]:
+    top_terms = _owner_token_set(top)
+    name_text = " ".join(str(module.get(key) or "") for key in ("name", "file"))
+    name_terms = _owner_token_set(name_text) - top_terms - {"rtl", "sv", "v", "module"}
+    ref_terms: set[str] = set()
+    for owner_ref in module.get("refs") or []:
+        ref_terms.update(_owner_token_set(owner_ref))
+    return name_terms, ref_terms - top_terms
+
+
+def _semantic_leaf_terms(ref: str, value: Any) -> set[str]:
+    terms = _owner_token_set(ref)
+    if re.fullmatch(r"function_model\.transactions\.[^.]+", ref) and isinstance(value, dict):
+        primary = {
+            key: value.get(key)
+            for key in ("id", "name", "opcode", "op", "category", "class", "type", "kind")
+            if _present(value.get(key))
+        }
+        terms.update(_owner_token_set(primary))
+        return terms
+    terms.update(_owner_token_set(value))
+    return terms
+
+
+def _semantic_owner_match(item: dict[str, Any], modules: list[dict[str, Any]], top: str) -> dict[str, str] | None:
+    ref = str(item.get("ref") or "")
+    task_terms = _semantic_leaf_terms(ref, item.get("value"))
+    task_terms -= {"function", "model", "cycle", "transactions", "transaction", "state", "variables"}
+    if not task_terms:
+        return None
+    scored: list[tuple[int, int, dict[str, Any], str]] = []
+    for index, module in enumerate(modules):
+        name_terms, ref_terms = _module_owner_terms(module, top)
+        name_hits = task_terms & name_terms
+        ref_hits = task_terms & ref_terms
+        score = len(ref_hits) * 2 + len(name_hits) * 3
+        if score <= 0:
+            continue
+        hit_terms = sorted(ref_hits | name_hits)
+        scored.append((score, -index, module, "semantic_terms:" + ",".join(hit_terms[:6])))
+    if not scored:
+        return None
+    scored.sort(key=lambda value: (value[0], value[1]), reverse=True)
+    if len(scored) > 1 and scored[0][0] == scored[1][0]:
+        return None
+    score, _neg_index, module, matched_ref = scored[0]
+    if score < 2:
+        return None
+    return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
+
+
+def _control_owner_fallback(ref: str, modules: list[dict[str, Any]], top: str) -> dict[str, str] | None:
+    if not ref.startswith(("function_model.", "cycle_model.")):
+        return None
+    candidates: list[tuple[int, int, dict[str, Any], str]] = []
+    for index, module in enumerate(modules):
+        name_terms, ref_terms = _module_owner_terms(module, top)
+        combined = name_terms | ref_terms
+        score = 0
+        if combined & {"engine", "core", "controller", "control", "fsm"}:
+            score += 4
+        if combined & {"pipeline", "execute", "decode", "fetch"}:
+            score += 2
+        if "top" in combined:
+            score += 1
+        if score:
+            candidates.append((score, -index, module, "control_owner_fallback"))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda value: (value[0], value[1]), reverse=True)
+    if len(candidates) > 1 and candidates[0][0] == candidates[1][0]:
+        return None
+    _score, _neg_index, module, matched_ref = candidates[0]
+    return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
+
+
+def _owner_for_leaf(
+    item: dict[str, Any],
+    modules: list[dict[str, Any]],
+    top: str,
+    *,
+    single_owner: bool,
+) -> dict[str, str]:
+    ref = str(item.get("ref") or "")
+    for module in modules:
+        matched_ref = _covered_by_module(ref, module, single_owner=single_owner)
+        if matched_ref:
+            return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
+    semantic_owner = _semantic_owner_match(item, modules, top)
+    if semantic_owner is not None:
+        return semantic_owner
+    if (
+        ref.startswith(("function_model.state_variables.", "function_model.invariants."))
+        or ref in {"cycle_model.clock", "cycle_model.reset", "cycle_model.latency"}
+    ):
+        control_owner = _control_owner_fallback(ref, modules, top)
+        if control_owner is not None:
+            return control_owner
+    section = ref.split(".", 1)[0]
+    section_matches = [
+        module
+        for module in modules
+        if any(str(owner_ref) == section or str(owner_ref).startswith(section + ".") for owner_ref in (module.get("refs") or []))
+    ]
+    if len(section_matches) == 1:
+        module = section_matches[0]
+        return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": f"unique_{section}_owner"}
+    control_owner = _control_owner_fallback(ref, modules, top)
+    if control_owner is not None:
+        return control_owner
+    return {"module": "", "file": "", "matched_ref": ""}
 
 
 def _item_name(item: Any, idx: int, fallback: str) -> str:
@@ -229,18 +515,22 @@ def _item_name(item: Any, idx: int, fallback: str) -> str:
     return f"{fallback}_{idx}"
 
 
-def _function_model_leaf_refs(ssot: dict[str, Any]) -> list[dict[str, str]]:
+def _function_model_leaf_refs(ssot: dict[str, Any]) -> list[dict[str, Any]]:
     fm = ssot.get("function_model") if isinstance(ssot.get("function_model"), dict) else {}
-    refs: list[dict[str, str]] = []
+    refs: list[dict[str, Any]] = []
     for idx, item in enumerate(_as_list(fm.get("state_variables"))):
         name = _item_name(item, idx, "state")
-        refs.append({"ref": f"function_model.state_variables.{_safe_name(name, 'state')}", "kind": "state_variable"})
+        refs.append({
+            "ref": f"function_model.state_variables.{_safe_name(name, 'state')}",
+            "kind": "state_variable",
+            "value": item,
+        })
     for idx, tx in enumerate(_as_list(fm.get("transactions"))):
         if not isinstance(tx, dict):
             tx = {"name": str(tx)}
         tx_name = _item_name(tx, idx, "transaction")
         tx_ref = f"function_model.transactions.{_safe_name(tx.get('id') or tx_name, 'transaction')}"
-        refs.append({"ref": tx_ref, "kind": "transaction"})
+        refs.append({"ref": tx_ref, "kind": "transaction", "value": tx})
         for key in (
             "preconditions",
             "inputs",
@@ -254,19 +544,19 @@ def _function_model_leaf_refs(ssot: dict[str, Any]) -> list[dict[str, str]]:
         ):
             for sub_idx, sub in enumerate(_as_list(tx.get(key))):
                 sub_name = _item_name(sub, sub_idx, key.rstrip("s") or "entry")
-                refs.append({"ref": f"{tx_ref}.{key}.{_safe_name(sub_name, 'entry')}", "kind": key})
+                refs.append({"ref": f"{tx_ref}.{key}.{_safe_name(sub_name, 'entry')}", "kind": key, "value": sub})
     for idx, item in enumerate(_as_list(fm.get("invariants"))):
         name = _item_name(item, idx, "invariant")
-        refs.append({"ref": f"function_model.invariants.{_safe_name(name, 'invariant')}", "kind": "invariant"})
+        refs.append({"ref": f"function_model.invariants.{_safe_name(name, 'invariant')}", "kind": "invariant", "value": item})
     return refs
 
 
-def _cycle_model_leaf_refs(ssot: dict[str, Any]) -> list[dict[str, str]]:
+def _cycle_model_leaf_refs(ssot: dict[str, Any]) -> list[dict[str, Any]]:
     cm = ssot.get("cycle_model") if isinstance(ssot.get("cycle_model"), dict) else {}
-    refs: list[dict[str, str]] = []
+    refs: list[dict[str, Any]] = []
     for key in ("clock", "reset", "latency"):
         if cm.get(key) not in (None, "", [], {}):
-            refs.append({"ref": f"cycle_model.{key}", "kind": key})
+            refs.append({"ref": f"cycle_model.{key}", "kind": key, "value": cm.get(key)})
     for key in (
         "handshake_rules",
         "pipeline",
@@ -280,40 +570,93 @@ def _cycle_model_leaf_refs(ssot: dict[str, Any]) -> list[dict[str, str]]:
     ):
         for idx, item in enumerate(_as_list(cm.get(key))):
             name = _item_name(item, idx, key.rstrip("s") or "rule")
-            refs.append({"ref": f"cycle_model.{key}.{_safe_name(name, 'rule')}", "kind": key})
+            refs.append({"ref": f"cycle_model.{key}.{_safe_name(name, 'rule')}", "kind": key, "value": item})
     return refs
 
 
-def _module_contracts(ssot: dict[str, Any], ip: str) -> tuple[list[dict[str, Any]], list[str], list[dict[str, str]]]:
+def _structural_leaf_refs(ssot: dict[str, Any]) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    for idx, item in enumerate(_as_list(ssot.get("parameters"))):
+        name = _item_name(item, idx, "parameter")
+        refs.append({"ref": f"parameters.{_safe_name(name, 'parameter')}", "kind": "parameter", "value": item})
+    dataflow = ssot.get("dataflow") if isinstance(ssot.get("dataflow"), dict) else {}
+    for key in ("paths", "streams", "channels", "flows"):
+        for idx, item in enumerate(_as_list(dataflow.get(key))):
+            name = _item_name(item, idx, key.rstrip("s") or "path")
+            refs.append({"ref": f"dataflow.{key}.{_safe_name(name, 'path')}", "kind": f"dataflow_{key}", "value": item})
+    memory = ssot.get("memory") if isinstance(ssot.get("memory"), dict) else {}
+    for key in ("instances", "memories", "buffers", "queues", "fifos"):
+        for idx, item in enumerate(_as_list(memory.get(key))):
+            name = _item_name(item, idx, key.rstrip("s") or "memory")
+            refs.append({"ref": f"memory.{key}.{_safe_name(name, 'memory')}", "kind": f"memory_{key}", "value": item})
+    registers = ssot.get("registers") if isinstance(ssot.get("registers"), dict) else {}
+    for key in ("register_map", "register_list", "config"):
+        for idx, item in enumerate(_as_list(registers.get(key))):
+            name = _item_name(item, idx, key.rstrip("s") or "register")
+            refs.append({"ref": f"registers.{key}.{_safe_name(name, 'register')}", "kind": f"registers_{key}", "value": item})
+    for idx, item in enumerate(_as_list(ssot.get("features"))):
+        name = _item_name(item, idx, "feature")
+        refs.append({"ref": f"features.{_safe_name(name, 'feature')}", "kind": "feature", "value": item})
+    return refs
+
+
+def _module_contracts(ssot: dict[str, Any], ip: str) -> tuple[list[dict[str, Any]], list[str], list[dict[str, Any]]]:
     modules = _active_rtl_modules(ssot, ip)
+    top = _top_name(ssot, ip)
     leaf_refs = _function_model_leaf_refs(ssot) + _cycle_model_leaf_refs(ssot)
+    structural_leaf_refs = _structural_leaf_refs(ssot)
     single_owner = len(modules) == 1
+    refs_by_module: dict[str, list[str]] = {str(module["name"]): [] for module in modules}
+    matches_by_module: dict[str, list[dict[str, str]]] = {str(module["name"]): [] for module in modules}
+    structural_refs_by_module: dict[str, list[str]] = {str(module["name"]): [] for module in modules}
+    structural_matches_by_module: dict[str, list[dict[str, str]]] = {str(module["name"]): [] for module in modules}
+    orphan_refs: list[str] = []
+    for item in leaf_refs:
+        owner = _owner_for_leaf(item, modules, top, single_owner=single_owner)
+        owner_name = owner.get("module") or ""
+        ref = str(item["ref"])
+        if owner_name and owner_name in refs_by_module:
+            refs_by_module[owner_name].append(ref)
+            matches_by_module[owner_name].append({
+                "ref": ref,
+                "matched_ref": str(owner.get("matched_ref") or ""),
+            })
+        else:
+            orphan_refs.append(ref)
+    for item in structural_leaf_refs:
+        owner = _owner_for_leaf(item, modules, top, single_owner=single_owner)
+        owner_name = owner.get("module") or ""
+        ref = str(item["ref"])
+        if owner_name and owner_name in structural_refs_by_module:
+            structural_refs_by_module[owner_name].append(ref)
+            structural_matches_by_module[owner_name].append({
+                "ref": ref,
+                "matched_ref": str(owner.get("matched_ref") or ""),
+            })
     contracts: list[dict[str, Any]] = []
-    covered: set[str] = set()
     for module in modules:
-        module_leaf_refs = [
-            item["ref"]
-            for item in leaf_refs
-            if _covered_by_module(item["ref"], module, single_owner=single_owner)
-        ]
-        covered.update(module_leaf_refs)
+        module_leaf_refs = sorted(set(refs_by_module[str(module["name"])]))
+        module_structural_refs = sorted(set(structural_refs_by_module[str(module["name"])]))
         refs = module.get("refs") if isinstance(module.get("refs"), list) else []
+        blocked = not bool(module_leaf_refs or module_structural_refs)
         contracts.append({
             "name": module["name"],
             "kind": "rtl_module",
             "rtl_module": module["name"],
             "rtl_file": module["file"],
-            "source_sections": sorted({ref.split(".", 1)[0] for ref in refs + module_leaf_refs if ref}),
-            "ssot_refs": sorted({*refs, *module_leaf_refs}),
+            "source_sections": sorted({ref.split(".", 1)[0] for ref in refs + module_leaf_refs + module_structural_refs if ref}),
+            "ssot_refs": sorted({*refs, *module_leaf_refs, *module_structural_refs}),
             "function_model_refs": sorted(ref for ref in module_leaf_refs if ref.startswith("function_model.")),
             "cycle_model_refs": sorted(ref for ref in module_leaf_refs if ref.startswith("cycle_model.")),
+            "structural_refs": module_structural_refs,
+            "owner_matches": matches_by_module[str(module["name"])],
+            "structural_owner_matches": structural_matches_by_module[str(module["name"])],
             "verification_scope": "module",
             "requires_module_equivalence": bool(module_leaf_refs),
-            "blocked": not bool(module_leaf_refs),
-            "blocker": "" if module_leaf_refs else "module has no function_model or cycle_model ownership refs",
+            "blocked": blocked,
+            "blocker": "" if not blocked else "module has no function_model, cycle_model, or structural SSOT ownership refs",
         })
-    orphan_refs = sorted(item["ref"] for item in leaf_refs if item["ref"] not in covered)
-    return contracts, orphan_refs, leaf_refs
+    return contracts, sorted(orphan_refs), leaf_refs
 
 
 def _fcov_bins(ssot: dict[str, Any]) -> list[dict[str, Any]]:
@@ -398,6 +741,7 @@ def _decomposition(ssot: dict[str, Any], ip: str) -> dict[str, Any]:
             "ssot_refs": contract["ssot_refs"],
             "function_model_refs": contract["function_model_refs"],
             "cycle_model_refs": contract["cycle_model_refs"],
+            "structural_refs": contract.get("structural_refs", []),
             "verification_impact": ["module-level FL-vs-RTL scoreboard", "module functional coverage"],
             "requires_module_equivalence": contract["requires_module_equivalence"],
             "blocked": contract["blocked"],
@@ -470,7 +814,6 @@ def _decomposition(ssot: dict[str, Any], ip: str) -> dict[str, Any]:
         "type": "fl_model_decomposition",
         "ip": ip,
         "source": f"{ip}/yaml/{ip}.ssot.yaml",
-        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "units": units,
         "module_contracts": module_contracts,
         "orphan_function_cycle_refs": orphan_refs,
@@ -615,6 +958,21 @@ def _eval_ast(node, env):
         return int(all(verdicts))
     if isinstance(node, ast.IfExp):
         return _eval_ast(node.body if _eval_ast(node.test, env) else node.orelse, env)
+    if isinstance(node, ast.Subscript):
+        base = _eval_ast(node.value, env)
+        sl = node.slice
+        if isinstance(sl, ast.Index):
+            sl = sl.value
+        if isinstance(sl, ast.Slice):
+            hi = _eval_ast(sl.lower, env) if sl.lower is not None else 0
+            lo = _eval_ast(sl.upper, env) if sl.upper is not None else 0
+            if hi < lo:
+                hi, lo = lo, hi
+            width = hi - lo + 1
+            mask = (1 << width) - 1
+            return (base >> lo) & mask
+        idx = _eval_ast(sl, env)
+        return (base >> idx) & 1
     raise ValueError(f"unsupported rule expression node {{type(node).__name__}}")
 
 
@@ -877,28 +1235,23 @@ class FunctionalModel:
         structured = self._apply_structured_rules(tx, txn)
         if structured is not None:
             return structured
-        malformed = bool(txn.get("malformed") or txn.get("error") or txn.get("invalid"))
-        self.state["busy"] = 1
-        if malformed:
-            self.state["error"] = 1
-        for name, value in list(self.state.items()):
-            lname = self._norm(name)
-            if "count" in lname and not malformed:
-                self.state[name] = _parse_int(value, 0) + 1
-            if ("bad" in lname or "error" in lname or "malformed" in lname) and malformed:
-                self.state[name] = _parse_int(value, 0) + 1
-            if ("good" in lname or "pass" in lname) and not malformed:
-                self.state[name] = _parse_int(value, 0) + 1
-        self.state["busy"] = 0
-        result = {{
+        # T1 #1 — Cardinal rule enforcement:
+        # When SSOT does not declare structured output_rules/state_updates for
+        # this transaction, do NOT fabricate state via name heuristics. Return
+        # an SSOT-question-annotated result so the gap surfaces in the trace
+        # and downstream validators can escalate to ssot-gen / human.
+        return {{
             "resp": RESP_OKAY,
             "transaction_id": tx.get("id"),
             "transaction_name": tx.get("name"),
             "outputs_spec": tx.get("outputs") or [],
             "side_effects_spec": tx.get("side_effects") or [],
-            "malformed": malformed,
+            "ssot_question": (
+                "[SSOT QUESTION] structured output_rules/state_updates undefined "
+                "for transaction " + str(tx.get("id") or tx.get("name") or "<unknown>")
+            ),
+            "fabricated_state": False,
         }}
-        return result
 
     def apply(self, txn):
         txn = dict(txn or {{}})
@@ -963,8 +1316,68 @@ def run_self_check():
     unsupported = model.apply({{"kind": "__unsupported_self_check__"}})
     checks = [item["passed"] for item in results]
     checks.append(unsupported.get("resp") == RESP_SLVERR)
+
+    # T1 #5 — invariants / reset / error_case coverage
+    fm_block = SSOT_MODEL.get("function_model", {{}}) or {{}}
+    invariants_raw = fm_block.get("invariants") or []
+    if isinstance(invariants_raw, dict):
+        invariants_raw = [{{"name": k, "expr": v}} for k, v in invariants_raw.items()]
+    invariants = []
+    for inv in invariants_raw:
+        if isinstance(inv, str):
+            invariants.append({{"name": inv[:40], "expr": inv}})
+        elif isinstance(inv, dict):
+            expr = inv.get("expr") or inv.get("expression") or inv.get("rule") or inv.get("invariant")
+            if expr is None and len(inv) == 1:
+                k, v = next(iter(inv.items())); expr = v if isinstance(v, str) else None
+                inv = {{"name": str(k), "expr": expr}}
+            if expr is not None:
+                invariants.append({{"name": inv.get("name") or str(expr)[:40], "expr": expr}})
+    invariants_eval_env = {{}}
+    invariants_eval_env.update(model.params)
+    invariants_eval_env.update(model.state)
+    invariants_eval_env.update(model.registers)
+    invariants_evaluated = 0
+    invariants_failed = []
+    invariants_skipped = []
+    for inv in invariants:
+        try:
+            ok = bool(_eval_rule_expr(inv["expr"], invariants_eval_env))
+            invariants_evaluated += 1
+            if not ok:
+                invariants_failed.append({{"name": inv["name"], "expr": inv["expr"]}})
+        except Exception as exc:
+            invariants_skipped.append({{"name": inv["name"], "expr": inv["expr"], "reason": str(exc)[:80]}})
+
+    reset_consistency = True
+    reset_diff = {{}}
+    try:
+        baseline_defaults = dict(model.state_defaults)
+        snapshot_model = FunctionalModel()
+        snapshot_model.reset()
+        for k, v in baseline_defaults.items():
+            actual = snapshot_model.state.get(k)
+            if actual != v:
+                reset_consistency = False
+                reset_diff[k] = {{"expected": v, "actual": actual}}
+    except Exception as exc:
+        reset_consistency = False
+        reset_diff["__error__"] = str(exc)[:80]
+
+    error_cases_total = 0
+    error_cases_planned = 0
+    for tx in txs:
+        if not isinstance(tx, dict):
+            continue
+        cases = tx.get("error_cases") or []
+        if isinstance(cases, list):
+            error_cases_total += len(cases)
+            error_cases_planned += sum(1 for c in cases if isinstance(c, dict) and c.get("condition"))
+
+    overall_pass = all(checks) and not invariants_failed and reset_consistency
+
     return {{
-        "passed": all(checks),
+        "passed": overall_pass,
         "checks": len(checks),
         "failed": checks.count(False),
         "transactions": len(txs),
@@ -972,6 +1385,14 @@ def run_self_check():
         "unsupported_transaction_check": unsupported.get("resp") == RESP_SLVERR,
         "trace_entries": len(model.trace),
         "coverage_bins": len(SSOT_MODEL.get("fcov_bins", [])),
+        "invariants_total": len(invariants),
+        "invariants_evaluated": invariants_evaluated,
+        "invariants_failed": invariants_failed,
+        "invariants_skipped": invariants_skipped,
+        "reset_consistency": reset_consistency,
+        "reset_diff": reset_diff,
+        "error_cases_total": error_cases_total,
+        "error_cases_planned": error_cases_planned,
     }}
 
 
@@ -1013,7 +1434,6 @@ def main() -> int:
         "type": "functional_coverage_plan",
         "ip": args.ip,
         "source": f"{args.ip}/yaml/{args.ip}.ssot.yaml",
-        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "planned_before_rtl": True,
         "authority_contract": _authority_contract(args.ip),
         "bins": bins,
@@ -1040,7 +1460,6 @@ def main() -> int:
         "type": "fl_model_check",
         "ip": args.ip,
         "source": str(model_path.relative_to(ip_dir)),
-        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "passed": bool(check.get("passed")),
         "self_check": check,
         "decomposition_units": len(decomposition["units"]),
@@ -1048,6 +1467,21 @@ def main() -> int:
         "authority_contract": _authority_contract(args.ip),
     }
     (model_dir / "fl_model_check.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+    # T1 #4 — wall-clock metadata lives in manifest.json, not in payloads.
+    manifest = {
+        "schema_version": 1,
+        "ip": args.ip,
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "emitter": "fl-model-gen",
+        "produced": [
+            "model/functional_model.py",
+            "model/decomposition.json",
+            "model/fl_model_check.json",
+            "cov/fcov_plan.json",
+        ],
+    }
+    (model_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(f"[emit_fl_model] wrote {model_path}")
     print(f"[emit_fl_model] decomposition_units={len(decomposition['units'])} fcov_bins={len(bins)} passed={report['passed']}")
     return 0 if report["passed"] and decomposition["units"] and bins else 1

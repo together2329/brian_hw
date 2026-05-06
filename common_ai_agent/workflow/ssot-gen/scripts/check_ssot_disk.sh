@@ -47,12 +47,103 @@ fi
 if command -v python3 >/dev/null 2>&1; then
     python3 - "$YAML" <<'PY' 2>/tmp/_ssot_yaml.err
 import sys
+from pathlib import Path
 import yaml
 
 path = sys.argv[1]
+ip = Path(path).parents[1].name
 doc = yaml.safe_load(open(path, encoding="utf-8"))
 if not isinstance(doc, dict):
     raise SystemExit("top-level YAML must be a mapping")
+
+def ci_get(item, *keys):
+    if not isinstance(item, dict):
+        return None
+    lowered = {str(key).lower().replace("-", "_"): key for key in item}
+    for key in keys:
+        actual = lowered.get(str(key).lower().replace("-", "_"))
+        if actual is not None:
+            return item[actual]
+    return None
+
+def as_list(value):
+    if isinstance(value, list):
+        return value
+    return []
+
+def norm_token(value):
+    return "".join(ch.lower() if ch.isalnum() else "_" for ch in str(value or "")).strip("_")
+
+def rtl_quality_profile():
+    qg = doc.get("quality_gates") if isinstance(doc.get("quality_gates"), dict) else {}
+    rtl_gen = ci_get(qg, "rtl_gen", "rtl-gen", "rtl_gate")
+    if not isinstance(rtl_gen, dict):
+        rtl_gen = {}
+    top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+    raw = (
+        ci_get(rtl_gen, "profile", "quality_profile", "level", "signoff_profile")
+        or ci_get(qg, "rtl_quality_profile", "quality_profile")
+        or ci_get(top, "quality_profile", "rtl_quality_profile")
+        or ""
+    )
+    norm = norm_token(raw)
+    if norm in {"prod", "production", "signoff", "pl330", "pl330_level", "dma330", "dma330_level"}:
+        return "production"
+    name_text = f"{ip} {ci_get(top, 'name') or ''}".lower()
+    if any(token in name_text for token in ("pl330", "dma330", "dma_330")):
+        return "production"
+    return "standard"
+
+def machine_connection_count(raw, default_module=""):
+    count = 0
+    if isinstance(raw, list):
+        for item in raw:
+            count += machine_connection_count(item, default_module)
+        return count
+    if not isinstance(raw, dict):
+        return 0
+
+    module = ci_get(raw, "module", "child", "target_module", "sink_module") or default_module
+    for map_key in ("ports", "port_map", "connections"):
+        nested = ci_get(raw, map_key)
+        if isinstance(nested, dict):
+            for port, signal in nested.items():
+                if str(module or "").strip() and str(port or "").strip() and str(signal or "").strip():
+                    count += 1
+            return count
+        if isinstance(nested, list):
+            for item in nested:
+                count += machine_connection_count(item, str(module or ""))
+            return count
+
+    port = ci_get(raw, "port", "child_port", "target_port", "sink_port", "to_port", "dst_port")
+    signal = ci_get(raw, "signal", "expr", "expression", "source_signal", "from_signal", "top_signal")
+    if str(module or "").strip() and str(port or "").strip() and str(signal or "").strip():
+        return 1
+
+    ignored = {"id", "name", "description", "note", "notes", "type", "rule", "module", "child", "target_module", "sink_module", "instance", "inst"}
+    for key, value in raw.items():
+        if str(key).lower() in ignored or isinstance(value, (dict, list)):
+            continue
+        if str(default_module or "").strip() and str(key or "").strip() and str(value or "").strip():
+            count += 1
+    return count
+
+def explicit_connection_contract_todo(items):
+    for item in as_list(items):
+        if not isinstance(item, dict):
+            continue
+        text = " ".join(
+            [
+                str(item.get("id") or ""),
+                str(item.get("content") or ""),
+                str(item.get("detail") or ""),
+                " ".join(str(ref) for ref in as_list(item.get("source_refs"))),
+            ]
+        ).lower()
+        if "connection" in text and ("integration" in text or "sub_modules" in text or "module" in text):
+            return True
+    return False
 
 required = "top_module sub_modules parameters io_list features dataflow function_model cycle_model clock_reset_domains cdc_requirements rdc_requirements registers memory interrupts fsm timing power security error_handling debug_observability integration dft synthesis coding_rules reuse_modules custom dir_structure filelist test_requirements quality_gates traceability workflow_todos generation_flow".split()
 missing = [key for key in required if key not in doc]
@@ -135,6 +226,43 @@ for gate in ("ssot", "rtl", "dv", "coverage", "eda", "signoff"):
     item = qg.get(gate)
     if not isinstance(item, dict) or not item.get("pass") or not item.get("evidence"):
         raise SystemExit(f"quality_gates.{gate}.pass and .evidence are required")
+
+profile = rtl_quality_profile()
+if profile == "production":
+    rtl_gen_gate = ci_get(qg, "rtl_gen", "rtl-gen")
+    if not isinstance(rtl_gen_gate, dict) or not rtl_gen_gate.get("pass") or not rtl_gen_gate.get("evidence"):
+        raise SystemExit("quality_gates.rtl_gen.pass and .evidence are required for production RTL-GEN")
+
+    top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+    top_names = {str(ip).lower(), str(ci_get(top, "name") or "").lower()}
+    active_manifest_children = []
+    for idx, item in enumerate(as_list(doc.get("sub_modules"))):
+        if not isinstance(item, dict):
+            continue
+        ownership = str(item.get("ownership") or "manifest").lower()
+        if ownership in {"child_ssot", "external", "blackbox"}:
+            continue
+        name = str(item.get("name") or "").lower()
+        if name in top_names:
+            continue
+        if bool(item.get("wiring_only")):
+            continue
+        active_manifest_children.append((idx, item))
+
+    if active_manifest_children:
+        machine_contracts = 0
+        integration = doc.get("integration") if isinstance(doc.get("integration"), dict) else {}
+        for key in ("connections", "internal_connections", "port_connections", "wiring"):
+            machine_contracts += machine_connection_count(integration.get(key), "")
+        for _, item in active_manifest_children:
+            machine_contracts += machine_connection_count(item.get("connections"), str(item.get("name") or ""))
+        workflow_todos = doc.get("workflow_todos") if isinstance(doc.get("workflow_todos"), dict) else {}
+        if machine_contracts <= 0 and not explicit_connection_contract_todo(workflow_todos.get("rtl-gen")):
+            raise SystemExit(
+                "production multi-module SSOT requires machine-readable integration.connections "
+                "or sub_modules[].connections with module/port/signal records, or an explicit "
+                "workflow_todos.rtl-gen blocker that defers only top integration/signoff"
+            )
 
 trace = require_mapping("traceability", ("yaml_to_output",))
 if not isinstance(trace.get("yaml_to_output"), list) or not trace["yaml_to_output"]:

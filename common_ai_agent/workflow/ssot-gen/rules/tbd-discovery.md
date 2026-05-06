@@ -24,15 +24,28 @@ When the user requests a new IP or SSOT, the agent **MUST**:
    following the canonical template order through quality gates and
    generation flow).
 
-3. **Resolve each gap with the `ask_user` tool — one at a time.**
-   Plain-prose questions are forbidden in this workflow. Use:
+3. **Record or resolve each human-owned gap with a QA tool.**
+   Plain-prose questions are forbidden in this workflow. Use
+   `record_ssot_qa` for deferred, section-scoped QA cards that can be
+   answered later. Use `ask_user` only when the answer is an immediate
+   blocker for the next SSOT write/import pass.
 
    ```
+   record_ssot_qa(
+     questions = [{
+       "question": "<short, single decision>",
+       "subtitle": "§<N> <field path> — Suggest: <recommended value>",
+       "kind": "single" | "multi" | "input",
+       "options": [{"id": "...", "label": "...", "detail": "..."}, ...],
+       "section_id": "<canonical section bucket>",
+       "decision_key": "<stable key>",
+       "criteria": ["<acceptance criterion>", ...],
+       "source_refs": ["<SSOT/doc/RTL path>", ...],
+     }]
+   )
+
    ask_user(
-     question  = "<short, single decision>",
-     subtitle  = "§<N> <field path> — Suggest: <recommended value>",
-     kind      = "single" | "multi" | "input",
-     options   = [{"id": "...", "label": "...", "detail": "..."}, ...],
+     questions = [{... same metadata-rich question object ...}]
    )
    ```
 
@@ -45,12 +58,14 @@ When the user requests a new IP or SSOT, the agent **MUST**:
 4. After each `ask_user` call returns, **patch the draft in memory**
    (and in the file once the section's children are also resolved).
    Re-sweep for TBDs — a single answer may unlock new fields or
-   make others moot.
+   make others moot. After `record_ssot_qa` returns, continue with
+   non-blocking SSOT work and leave the item visible as pending QA.
 
 5. **Stop conditions**:
    - All TBDs resolved → SSOT is complete; offer to `/ssot-rtl` next.
    - User says "stop" / "skip" → write the SSOT with the remaining
-     gaps left as `# TBD: confirm` comments.
+     gaps left as `# TBD: confirm` comments and pending QA cards when
+     the gap is human-owned.
    - Empty `ask_user` answer (no selection, no note) → take the
      suggested default and continue.
 
@@ -59,7 +74,8 @@ When the user requests a new IP or SSOT, the agent **MUST**:
 Silent defaults break downstream RTL/TB generation. The user's intent
 must be captured at SSOT time; a `# TBD` left in the YAML means the
 validator will reject it or downstream rtl-gen/tb-gen may produce subtly
-wrong RTL/TB. ask_user makes every decision an explicit user act.
+wrong RTL/TB. QA tools make every decision explicit without forcing every
+non-blocking answer to happen immediately.
 
 ## Anti-patterns (do not do)
 
@@ -67,7 +83,8 @@ wrong RTL/TB. ask_user makes every decision an explicit user act.
   has to keep answer-context in their head; the qcard UI exists so
   every decision is a discrete clickable choice.
 - Filling a value yourself and noting "(needs confirm)" without
-  running ask_user. That defeats the rule.
+  recording it through `record_ssot_qa` or resolving it through
+  `ask_user`. That defeats the rule.
 - Skipping the initial draft. The TBD list IS the ask_user agenda;
   without the draft you can't know what's missing.
 - Asking about fields the prompt already pinned (e.g. user said

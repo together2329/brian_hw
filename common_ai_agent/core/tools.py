@@ -4774,12 +4774,19 @@ def read_image(path=None, prompt="Describe this image in detail."):
 # card on the frontend, blocks the agent thread until the user submits,
 # and returns the submitted answer as the tool observation.
 _ask_user_callback = None
+_record_ssot_qa_callback = None
 
 
 def set_ask_user_callback(cb):
     """Install the GUI bridge for ask_user. Call once at server boot."""
     global _ask_user_callback
     _ask_user_callback = cb
+
+
+def set_record_ssot_qa_callback(cb):
+    """Install the GUI bridge for deferred SSOT QA recording."""
+    global _record_ssot_qa_callback
+    _record_ssot_qa_callback = cb
 
 
 def scaffold_ip(name=None, root="."):
@@ -5384,7 +5391,11 @@ def _normalize_options(options):
 
 
 def ask_user(question=None, options=None, kind="single", subtitle="",
-             questions=None):
+             questions=None, id=None, section_id=None, section_title=None,
+             section=None, section_name=None, decision_key=None,
+             decision_label=None, field_path=None, qa_type=None,
+             criteria=None, source_refs=None, sources=None, content=None,
+             detail=None, placeholder=None, multiline=None):
     """Ask the user one or more questions through the GUI and wait for
     their answer(s).
 
@@ -5430,12 +5441,21 @@ def ask_user(question=None, options=None, kind="single", subtitle="",
             qopts = _normalize_options(q.get("options"))
             if qkind in ("single", "multi") and not qopts:
                 return f"[ask_user: questions[{i}].kind={qkind!r} requires options]"
-            norm_qs.append({
+            norm_q = {
                 "question": qtext,
                 "kind": qkind,
                 "options": qopts,
                 "subtitle": q.get("subtitle", "") or "",
-            })
+            }
+            for meta_key in (
+                "id", "section_id", "section_title", "section", "section_name",
+                "decision_key", "decision_label", "field_path", "qa_type",
+                "criteria", "source_refs", "sources", "content", "detail",
+                "placeholder", "multiline",
+            ):
+                if meta_key in q:
+                    norm_q[meta_key] = q.get(meta_key)
+            norm_qs.append(norm_q)
         try:
             # Pass batch through the callback. Callbacks that don't
             # support batched mode receive only the first question to
@@ -5459,7 +5479,7 @@ def ask_user(question=None, options=None, kind="single", subtitle="",
         except Exception as e:
             return f"[ask_user error: {type(e).__name__}: {e}]"
 
-    # ── Single-question mode (legacy) ────────────────────────────────
+    # ── Single-question mode (legacy + optional metadata) ────────────
     if not isinstance(question, str) or not question.strip():
         return "[ask_user: 'question' must be a non-empty string]"
     kind = (kind or "single").lower()
@@ -5469,9 +5489,133 @@ def ask_user(question=None, options=None, kind="single", subtitle="",
     if kind in ("single", "multi") and not norm_opts:
         return f"[ask_user: kind={kind!r} requires non-empty options list]"
     try:
+        meta = {
+            "id": id,
+            "section_id": section_id,
+            "section_title": section_title,
+            "section": section,
+            "section_name": section_name,
+            "decision_key": decision_key,
+            "decision_label": decision_label,
+            "field_path": field_path,
+            "qa_type": qa_type,
+            "criteria": criteria,
+            "source_refs": source_refs,
+            "sources": sources,
+            "content": content,
+            "detail": detail,
+            "placeholder": placeholder,
+            "multiline": multiline,
+        }
+        if any(value is not None for value in meta.values()):
+            q = {
+                "question": question,
+                "kind": kind,
+                "options": norm_opts,
+                "subtitle": subtitle or "",
+                **{k: v for k, v in meta.items() if v is not None},
+            }
+            return _ask_user_callback(question, norm_opts, kind, subtitle, questions=[q])
         return _ask_user_callback(question, norm_opts, kind, subtitle)
     except Exception as e:
         return f"[ask_user error: {type(e).__name__}: {e}]"
+
+
+def record_ssot_qa(questions=None, ip=None, session=None, kind="",
+                   source="llm-ssot-qna", status="pending",
+                   question=None, options=None, subtitle="", id=None,
+                   section_id=None, section_title=None, section=None,
+                   section_name=None, decision_key=None, decision_label=None,
+                   field_path=None, qa_type=None, criteria=None,
+                   source_refs=None, sources=None, content=None, detail=None,
+                   placeholder=None, multiline=None):
+    """Record SSOT QA items in the GUI backlog without blocking for answers.
+
+    This is the non-interrupting counterpart to ask_user. Use it when an
+    SSOT agent has discovered questions, approvals, or change requests that
+    should appear in the ATLAS SSOT QA preview but do not need to stop the
+    current generation pass.
+    """
+    if _record_ssot_qa_callback is None:
+        return ("[record_ssot_qa unavailable — running outside GUI mode. "
+                "Summarize the deferred SSOT QA items in your reply instead.]")
+
+    if questions is None and isinstance(question, str) and question.strip():
+        meta = {
+            "id": id,
+            "section_id": section_id,
+            "section_title": section_title,
+            "section": section,
+            "section_name": section_name,
+            "decision_key": decision_key,
+            "decision_label": decision_label,
+            "field_path": field_path,
+            "qa_type": qa_type,
+            "criteria": criteria,
+            "source_refs": source_refs,
+            "sources": sources,
+            "content": content,
+            "detail": detail,
+            "placeholder": placeholder,
+            "multiline": multiline,
+        }
+        questions = [{
+            "question": question,
+            "kind": kind or "input",
+            "options": options or [],
+            "subtitle": subtitle or "",
+            **{k: v for k, v in meta.items() if v is not None},
+        }]
+
+    if not isinstance(questions, list) or not questions:
+        return "[record_ssot_qa: 'questions' must be a non-empty list]"
+
+    norm_qs = []
+    for i, q in enumerate(questions):
+        if not isinstance(q, dict):
+            return f"[record_ssot_qa: questions[{i}] must be a dict]"
+        qtext = (
+            q.get("question")
+            or q.get("decision_label")
+            or q.get("content")
+            or q.get("detail")
+            or ""
+        )
+        if not isinstance(qtext, str) or not qtext.strip():
+            return f"[record_ssot_qa: questions[{i}] needs question/content/detail text]"
+        qkind = str(q.get("kind") or "input").lower()
+        if qkind not in ("single", "multi", "input"):
+            qkind = "input"
+        qopts = _normalize_options(q.get("options"))
+        if qkind in ("single", "multi") and not qopts:
+            qkind = "input"
+        norm_q = {
+            "question": qtext.strip(),
+            "kind": qkind,
+            "options": qopts,
+            "subtitle": q.get("subtitle", "") or "",
+        }
+        for meta_key in (
+            "id", "section_id", "section_title", "section", "section_name",
+            "decision_key", "decision_label", "field_path", "qa_type",
+            "criteria", "source_refs", "sources", "content", "detail",
+            "placeholder", "multiline",
+        ):
+            if meta_key in q:
+                norm_q[meta_key] = q.get(meta_key)
+        norm_qs.append(norm_q)
+
+    try:
+        return _record_ssot_qa_callback(
+            questions=norm_qs,
+            ip=ip,
+            session=session,
+            kind=kind,
+            source=source,
+            status=status or "pending",
+        )
+    except Exception as e:
+        return f"[record_ssot_qa error: {type(e).__name__}: {e}]"
 
 
 # Registry of available tools
@@ -5526,6 +5670,7 @@ AVAILABLE_TOOLS = {
     "job_cancel": job_cancel,
     # GUI interaction
     "ask_user": ask_user,
+    "record_ssot_qa": record_ssot_qa,
     # Document ingestion (markitdown — pdf/docx/pptx/xlsx/html → md)
     "read_doc": read_doc,
     # IP layout scaffolder

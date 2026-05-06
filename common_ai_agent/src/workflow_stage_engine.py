@@ -30,6 +30,9 @@ STAGE_ALIASES = {
     "seg": "ssot-equiv-goals",
     "equiv-goals": "ssot-equiv-goals",
     "ssot-equiv-goals": "ssot-equiv-goals",
+    "spa": "ssot-protocol-assertions",
+    "protocol-assertions": "ssot-protocol-assertions",
+    "ssot-protocol-assertions": "ssot-protocol-assertions",
     "sr": "ssot-rtl",
     "rtl": "ssot-rtl",
     "rtl-gen": "ssot-rtl",
@@ -56,6 +59,7 @@ STAGE_ALIASES = {
 STAGE_WORKFLOW = {
     "ssot-fl-model": "fl-model-gen",
     "ssot-equiv-goals": "fl-model-gen",
+    "ssot-protocol-assertions": "fl-model-gen",
     "ssot-rtl": "rtl-gen",
     "lint": "lint",
     "ssot-tb-cocotb": "tb-gen",
@@ -249,6 +253,192 @@ def _module_claims_behavior(item: dict[str, Any]) -> bool:
     return any(token in text for token in behavior_tokens)
 
 
+def _top_aliases(top_name: str) -> set[str]:
+    return {name for name in {top_name, f"{top_name}_top", "top", "wrapper"} if name}
+
+
+def _manifest_submodule_items(doc: dict[str, Any]) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    raw = doc.get("sub_modules") if isinstance(doc, dict) else []
+    if not isinstance(raw, list):
+        return out
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        ownership = str(item.get("ownership") or "manifest").strip().lower()
+        if ownership in {"child_ssot", "conceptual", "verification", "coverage"} or item.get("ssot"):
+            continue
+        if item.get("rtl_emit") is False:
+            continue
+        out.append(item)
+    return out
+
+
+def _module_aliases(item: dict[str, Any]) -> set[str]:
+    aliases: set[str] = set()
+    for raw in (item.get("name"), Path(str(item.get("file") or "")).stem):
+        name = str(raw or "").strip()
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name):
+            aliases.add(name)
+    return aliases
+
+
+def _skip_hierarchy_item(item: dict[str, Any]) -> bool:
+    file_name = str(item.get("file") or "")
+    name = str(item.get("name") or Path(file_name).stem)
+    kind = str(item.get("type") or item.get("kind") or item.get("role") or "").strip().lower()
+    if kind in {"package", "header", "include", "typedef"}:
+        return True
+    if file_name.endswith((".svh", ".vh")):
+        return True
+    return name.endswith("_pkg") or name.endswith("_types")
+
+
+def _sv_module_bodies(text: str) -> dict[str, str]:
+    clean = _strip_sv_comments(text)
+    modules: dict[str, str] = {}
+    pattern = re.compile(
+        r"\bmodule\s+([A-Za-z_][A-Za-z0-9_]*)\b(?P<body>.*?)(?=\bendmodule\b)",
+        re.S,
+    )
+    for match in pattern.finditer(clean):
+        modules[match.group(1)] = match.group("body")
+    return modules
+
+
+def _sv_instantiated_module_names(text: str) -> set[str]:
+    clean = _strip_sv_comments(text)
+    keywords = {
+        "assign",
+        "always",
+        "always_comb",
+        "always_ff",
+        "always_latch",
+        "begin",
+        "case",
+        "casex",
+        "casez",
+        "class",
+        "end",
+        "endcase",
+        "endclass",
+        "endfunction",
+        "endgenerate",
+        "endmodule",
+        "endpackage",
+        "endtask",
+        "enum",
+        "for",
+        "function",
+        "generate",
+        "if",
+        "initial",
+        "input",
+        "inout",
+        "interface",
+        "localparam",
+        "logic",
+        "modport",
+        "module",
+        "output",
+        "package",
+        "parameter",
+        "reg",
+        "return",
+        "struct",
+        "task",
+        "typedef",
+        "union",
+        "while",
+        "wire",
+    }
+    out: set[str] = set()
+    pattern = re.compile(
+        r"\b([A-Za-z_][A-Za-z0-9_]*)\s*(?:#\s*\((?:[^()]|\([^()]*\))*\)\s*)?"
+        r"([A-Za-z_][A-Za-z0-9_]*)\s*\(",
+        re.S,
+    )
+    for match in pattern.finditer(clean):
+        module_name = match.group(1)
+        if module_name.lower() not in keywords:
+            out.add(module_name)
+    return out
+
+
+def _rtl_hierarchy_progress(ip_dir: Path, listed_sources: list[Path], doc: dict[str, Any], top_name: str) -> dict[str, Any]:
+    declarations: dict[str, str] = {}
+    graph: dict[str, set[str]] = {}
+    for path in listed_sources:
+        try:
+            rel = str(path.relative_to(ip_dir))
+        except ValueError:
+            try:
+                rel = str(path.relative_to(ip_dir.parent))
+            except ValueError:
+                rel = path.name
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")[:400000]
+        except OSError:
+            continue
+        for module_name, body in _sv_module_bodies(text).items():
+            declarations[module_name] = rel
+            graph[module_name] = _sv_instantiated_module_names(body)
+
+    roots = sorted(_top_aliases(top_name) & set(declarations))
+    reachable: set[str] = set()
+    stack = list(roots)
+    while stack:
+        current = stack.pop()
+        if current in reachable:
+            continue
+        reachable.add(current)
+        for child in graph.get(current, set()):
+            if child in declarations and child not in reachable:
+                stack.append(child)
+
+    issues: list[dict[str, str]] = []
+    manifest_items = _manifest_submodule_items(doc)
+    if manifest_items and not roots:
+        expected_top_file = f"rtl/{top_name}.sv"
+        issues.append({
+            "name": top_name,
+            "file": expected_top_file,
+            "issue": "SSOT top module is not declared in listed RTL sources",
+        })
+
+    top_names = _top_aliases(top_name)
+    for item in manifest_items:
+        if _skip_hierarchy_item(item):
+            continue
+        aliases = _module_aliases(item)
+        if aliases & top_names:
+            continue
+        rel = str(item.get("file") or "")
+        declared = sorted(aliases & set(declarations))
+        if not declared:
+            issues.append({
+                "name": str(item.get("name") or Path(rel).stem),
+                "file": rel,
+                "issue": "SSOT manifest child module is not declared in listed RTL sources",
+            })
+            continue
+        if not (set(declared) & reachable):
+            issues.append({
+                "name": declared[0],
+                "file": rel or declarations.get(declared[0], ""),
+                "issue": "SSOT manifest child module is declared but not reachable from the top RTL hierarchy",
+            })
+
+    return {
+        "status": "pass" if not issues else "fail",
+        "roots": roots,
+        "declared_modules": sorted(declarations),
+        "reachable_modules": sorted(reachable),
+        "graph": {key: sorted(value) for key, value in sorted(graph.items())},
+        "issues": issues,
+    }
+
+
 def _memory_mapped_registers_required(doc: dict[str, Any]) -> bool:
     registers = doc.get("registers") if isinstance(doc, dict) else {}
     if isinstance(registers, dict):
@@ -420,6 +610,15 @@ def _rtl_manifest_progress(ip_dir: Path, doc: dict[str, Any]) -> dict[str, Any]:
             for path in sorted(list(rtl_dir.glob("*.sv")) + list(rtl_dir.glob("*.v")))
         ] if rtl_dir.is_dir() else []
 
+    hierarchy = _rtl_hierarchy_progress(ip_dir, listed_sources, doc, top_name)
+    hierarchy_issues_by_file: dict[str, list[str]] = {}
+    for issue in hierarchy.get("issues") or []:
+        if not isinstance(issue, dict):
+            continue
+        rel = str(issue.get("file") or "")
+        if rel:
+            hierarchy_issues_by_file.setdefault(rel, []).append(str(issue.get("issue") or "RTL hierarchy issue"))
+
     modules: list[dict[str, Any]] = []
     for item in expected:
         rel = item["file"]
@@ -458,6 +657,8 @@ def _rtl_manifest_progress(ip_dir: Path, doc: dict[str, Any]) -> dict[str, Any]:
             ip_dir=ip_dir,
             is_top=is_top,
         ) if exists else []
+        for issue_rel in {rel, resolved_rel}:
+            quality_issues.extend(hierarchy_issues_by_file.get(issue_rel, []))
         listed = rel in entry_set or resolved_rel in entry_set
         try:
             listed = listed or (exists and str(path.relative_to(ip_dir.parent)) in entry_set)
@@ -505,6 +706,8 @@ def _rtl_manifest_progress(ip_dir: Path, doc: dict[str, Any]) -> dict[str, Any]:
         "modules": modules,
         "manifest_mismatches": sum(1 for item in modules if item.get("manifest_mismatch")),
         "manifest_mismatch_details": [item for item in modules if item.get("manifest_mismatch")],
+        "hierarchy": hierarchy,
+        "hierarchy_issue_count": len(hierarchy.get("issues") or []),
         "quality_issue_count": len(quality_issues),
         "quality_issues": quality_issues,
         "blocked": bool(blocked_doc),
@@ -622,6 +825,7 @@ class WorkflowStageEngine:
         dispatch = {
             "ssot-fl-model": self._run_fl_model,
             "ssot-equiv-goals": self._run_equiv_goals,
+            "ssot-protocol-assertions": self._run_protocol_assertions,
             "ssot-rtl": self._run_rtl,
             "lint": self._run_lint,
             "ssot-tb-cocotb": self._run_tb_cocotb,
@@ -716,6 +920,32 @@ class WorkflowStageEngine:
             lines += ["", "next: inspect blocked goals and answer/repair SSOT behavior before TB signoff"]
         return self._result("ssot-equiv-goals", ip, status, headline, lines, runs=runs, artifacts=artifacts)
 
+    def _run_protocol_assertions(self, ip: str) -> StageEngineResult:
+        script = self.workflow_root / "fl-model-gen" / "scripts" / "emit_protocol_assertions.py"
+        run = self._run_tool("emit_protocol_assertions", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=90)
+        summary_path = self.ip_dir(ip) / "verify" / "protocol_assertions.summary.json"
+        summary_doc = _read_json(summary_path) if summary_path.is_file() else {}
+        assertions_total = int(summary_doc.get("assertions_total") or 0)
+        status = "pass" if run.returncode == 0 and assertions_total > 0 else "blocked"
+        headline = "[ssot-protocol-assertions] PASS" if status == "pass" else "[ssot-protocol-assertions] BLOCKED"
+        lines = [
+            headline,
+            f"script: {script}",
+            f"module: {ip}",
+            f"source: {ip}/yaml/{ip}.ssot.yaml",
+            f"assertions: {assertions_total}",
+        ]
+        self._append_runs(lines, [run])
+        artifacts = [
+            f"{ip}/verify/protocol_assertions.sva",
+            f"{ip}/verify/protocol_assertions.summary.json",
+            f"{ip}/sim/assertion_failures.jsonl after /sim",
+        ]
+        self._append_expected(lines, artifacts)
+        if status != "pass":
+            lines += ["", "next: add machine-checkable cycle_model.handshake_rules/order rules in SSOT, then rerun /ssot-protocol-assertions"]
+        return self._result("ssot-protocol-assertions", ip, status, headline, lines, runs=[run], artifacts=artifacts)
+
     def _run_rtl(self, ip: str) -> StageEngineResult:
         script = self.workflow_root / "rtl-gen" / "scripts" / "ssot_to_rtl.py"
         todo_script = self.workflow_root / "rtl-gen" / "scripts" / "derive_rtl_todos.py"
@@ -734,10 +964,7 @@ class WorkflowStageEngine:
             )
         ]
         compile_rc = lint_rc = None
-        if runs[-1].returncode == 0:
-            runs.append(self._run_tool("rtl_preflight", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=180))
-        else:
-            runs.append(ToolRun("rtl_preflight", [sys.executable, str(script), ip, "--root", str(self.project_root)], 999, stderr="skipped because SSOT-derived RTL TODO gate is blocked"))
+        runs.append(self._run_tool("rtl_preflight", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=180))
         if runs[-1].returncode == 0:
             compile_script = self.workflow_root / "rtl-gen" / "scripts" / "rtl_compile_report.py"
             lint_script = self.workflow_root / "lint" / "scripts" / "dut_lint_report.py"
@@ -753,7 +980,13 @@ class WorkflowStageEngine:
                 )
             )
         else:
-            runs.append(ToolRun("audit_rtl_todos", [sys.executable, str(todo_script), ip, "--root", str(self.project_root), "--audit-rtl"], 999, stderr="skipped because LLM-authored RTL preflight did not pass"))
+            runs.append(
+                self._run_tool(
+                    "audit_rtl_todos",
+                    [sys.executable, str(todo_script), ip, "--root", str(self.project_root), "--audit-rtl"],
+                    timeout_s=90,
+                )
+            )
 
         blocked_path = self.ip_dir(ip) / "rtl" / "rtl_blocked.json"
         blocked_doc = _read_json(blocked_path) if blocked_path.is_file() else {}
@@ -793,7 +1026,7 @@ class WorkflowStageEngine:
             and int(rtl_progress.get("manifest_mismatches") or 0) == 0
         ):
             status = "pass"
-            headline = "[RTL RESULT] PASS - LLM-authored RTL, dynamic SSOT TODO gate, and DUT-only compile/lint evidence"
+            headline = "[RTL RESULT] PASS - generated RTL and DUT-only compile/lint evidence"
         elif runs[1].returncode == 0:
             status = "fail"
             headline = "[RTL RESULT] FAIL - LLM-authored RTL needs rtl-gen repair"
@@ -827,6 +1060,24 @@ class WorkflowStageEngine:
                     lines.append(f"- {q.get('id')}: {q.get('decision_needed')}")
                     if q.get("recommended_default"):
                         lines.append(f"  recommended: {q.get('recommended_default')}")
+                    orphan_groups = q.get("orphan_groups") if isinstance(q.get("orphan_groups"), list) else []
+                    if orphan_groups:
+                        lines.append("  orphan_groups:")
+                        for group in orphan_groups[:8]:
+                            if not isinstance(group, dict):
+                                continue
+                            samples = group.get("sample_refs") if isinstance(group.get("sample_refs"), list) else []
+                            sample_text = ", ".join(str(item) for item in samples[:2])
+                            section = str(group.get("section_id") or "").strip()
+                            category = str(group.get("category") or "").strip()
+                            label = category if category.startswith(section + ".") else f"{section}.{category}".strip(".")
+                            lines.append(
+                                "    - "
+                                f"{label}: "
+                                f"count={group.get('count')} "
+                                f"field={group.get('required_field')}"
+                                + (f" sample={sample_text}" if sample_text else "")
+                            )
         self._append_runs(lines, runs)
         lines += [
             "",
@@ -846,6 +1097,24 @@ class WorkflowStageEngine:
         static_doc = todo_plan.get("static_rtl_evidence") if isinstance(todo_plan.get("static_rtl_evidence"), dict) else {}
         if isinstance(static_doc.get("missing_tasks"), list):
             static_missing = static_doc.get("missing_tasks") or []
+        owner_logic_doc = todo_plan.get("owner_logic_evidence") if isinstance(todo_plan.get("owner_logic_evidence"), dict) else {}
+        top_io_doc = todo_plan.get("top_io_contract_evidence") if isinstance(todo_plan.get("top_io_contract_evidence"), dict) else {}
+        hierarchy_doc = todo_plan.get("manifest_hierarchy_evidence") if isinstance(todo_plan.get("manifest_hierarchy_evidence"), dict) else {}
+        if owner_logic_doc:
+            lines += [
+                f"- owner_logic_checked: {owner_logic_doc.get('checked', 0)}",
+                f"- owner_logic_issues: {len(owner_logic_doc.get('issues') or [])}",
+            ]
+        if top_io_doc:
+            lines += [
+                f"- top_io_contracts: {top_io_doc.get('contracts', 0)}",
+                f"- top_io_issues: {len(top_io_doc.get('issues') or [])}",
+            ]
+        if hierarchy_doc:
+            lines += [
+                f"- port_connection_issues: {len(hierarchy_doc.get('port_connection_issues') or [])}",
+                f"- connection_contract_issues: {len(hierarchy_doc.get('connection_contract_issues') or [])}",
+            ]
         if static_missing:
             lines.append("- static_missing_details:")
             for item in static_missing[:12]:
@@ -855,12 +1124,25 @@ class WorkflowStageEngine:
                     f"  - {item.get('task_id')}: {item.get('source_ref')} "
                     f"terms={item.get('required_terms')}"
                 )
+        open_tasks = todo_completion.get("open_tasks") if isinstance(todo_completion.get("open_tasks"), list) else []
+        if open_tasks and todo_completion.get("audit_rtl") is True:
+            lines.append("- open_required_details:")
+            gate_first = sorted(
+                [item for item in open_tasks if isinstance(item, dict)],
+                key=lambda item: (0 if str(item.get("category") or "") == "rtl_gate.rtl_gen" else 1, str(item.get("task_id") or "")),
+            )
+            for item in gate_first[:12]:
+                lines.append(
+                    f"  - {item.get('task_id')}: {item.get('source_ref')} "
+                    f"category={item.get('category')} reason={item.get('reason')}"
+                )
         lines += [
             "",
             "rtl_manifest:",
             f"- approved: {rtl_progress.get('approved', 0)}/{rtl_progress.get('total', 0)}",
             f"- filelist: {rtl_progress.get('filelist') or '(missing)'}",
             f"- manifest_mismatches: {rtl_progress.get('manifest_mismatches', 0)}",
+            f"- hierarchy_issues: {rtl_progress.get('hierarchy_issue_count', 0)}",
             f"- quality_issues: {rtl_progress.get('quality_issue_count', 0)}",
         ]
         quality_issues = rtl_progress.get("quality_issues") if isinstance(rtl_progress.get("quality_issues"), list) else []
@@ -1003,17 +1285,27 @@ class WorkflowStageEngine:
             return self._result("sim", ip, "blocked", headline, lines, blocker=f"{ip}/tb")
         script = self.workflow_root / "tb-gen" / "scripts" / "sim.sh"
         validator = self.workflow_root / "tb-gen" / "scripts" / "check_tb_sim_evidence.sh"
+        coverage_script = self.workflow_root / "coverage" / "scripts" / "ssot_coverage_summary.py"
         rel_runner = str(runner.relative_to(self.project_root))
         runs = [
             self._run_tool("sim", ["bash", str(script), rel_runner], timeout_s=240),
             self._run_tool("sim_evidence", ["bash", str(validator), ip], timeout_s=180),
         ]
+        if all(run.returncode == 0 for run in runs):
+            runs.append(
+                self._run_tool(
+                    "ssot_coverage_summary",
+                    [sys.executable, str(coverage_script), str(self.ip_dir(ip))],
+                    timeout_s=90,
+                )
+            )
         status = "pass" if all(run.returncode == 0 for run in runs) else "fail"
         headline = "[sim] PASS" if status == "pass" else "[sim] FAIL"
         lines = [
             headline,
             f"script: {script}",
             f"validator: {validator}",
+            f"coverage: {coverage_script}",
             f"module: {ip}",
             f"runner: {rel_runner}",
         ]

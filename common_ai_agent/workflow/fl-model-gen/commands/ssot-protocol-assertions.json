@@ -1,0 +1,8 @@
+{
+  "name": "ssot-protocol-assertions",
+  "description": "Emit SystemVerilog SVA from SSOT cycle_model.handshake_rules + ordering — auto-bound to DUT during sim",
+  "aliases": ["spa", "protocol-assertions"],
+  "handler": "stage:ssot-protocol-assertions",
+  "usage": "/ssot-protocol-assertions <module_name>",
+  "area": "verify"
+}

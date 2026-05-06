@@ -1351,7 +1351,17 @@ def create_app():
             raise HTTPException(status_code=400, detail="invalid 'session'")
         template_ip = str(request.get("ip", "")).strip()
         if not template_ip and session_name:
-            template_ip = session_name.split("/", 1)[0].strip()
+            parts = [p for p in session_name.split("/") if p]
+            known = {
+                "architect", "coverage", "fl-model-gen", "goal-audit", "lint",
+                "mas-gen", "rtl-gen", "signoff", "sim", "sim_debug", "ssot-gen", "tb-gen",
+            }
+            if len(parts) >= 3 and parts[-1] in known:
+                template_ip = parts[-2].strip()
+            elif len(parts) >= 2 and parts[-1] in known:
+                template_ip = parts[0].strip()
+            else:
+                template_ip = parts[0].strip() if parts else ""
         if template and not todos:
             todos = _load_todo_template(template, workflow, template_ip)
             if todos is None:

@@ -1,0 +1,8 @@
+{
+  "name": "ssot-fail-analysis",
+  "description": "L9 — Synthesize Markdown root-cause skeleton from a scoreboard diff JSONL; LLM fills [LLM TODO] slots with RTL patch proposals",
+  "aliases": ["sfa", "fail-analysis"],
+  "handler": "stage:ssot-fail-analysis",
+  "usage": "/ssot-fail-analysis <module_name> --diff <ip>/sim/scoreboard_diff.jsonl",
+  "area": "reports"
+}

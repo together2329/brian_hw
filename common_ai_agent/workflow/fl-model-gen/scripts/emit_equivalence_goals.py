@@ -876,7 +876,6 @@ def emit(ip: str, root: Path) -> dict[str, Any]:
         "ip": ip,
         "schema_version": 1,
         "type": "fl_rtl_equivalence_goals",
-        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "source_of_truth": {
             "ssot": f"{ip}/yaml/{ip}.ssot.yaml",
             "functional_model": f"{ip}/model/functional_model.py",

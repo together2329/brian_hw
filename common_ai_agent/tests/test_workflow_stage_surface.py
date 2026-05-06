@@ -60,8 +60,24 @@ def test_ssot_rtl_surface_loads_dynamic_todos_for_llm_owned_rtl_work(tmp_path: P
     assert surface.keep_running
     assert not surface.rtl_blocked
     assert f"/todo template ssot-rtl {ip}" in surface.queue_prompts
+    queued = "\n".join(surface.queue_prompts)
+    assert f"{ip}/rtl/rtl_authoring_plan.json" in queued
+    assert f"{ip}/rtl/authoring_packets/" in queued
+    assert f"{ip}/rtl/rtl_authoring_status.md" in queued
+    assert "Process module packets first" in queued
+    assert "target_scale_present=False" in queued
+    assert "deferred_human_qa_allowed=True" in queued
+    assert "pass_allowed=False" in queued
+    assert "recommended_packet_batch_limit=4" in queued
+    assert "llm_actionable_packets=" in queued
+    assert "human_locked_packets=" in queued
+    assert "next_llm_packets=" in queued
+    assert "start from next_llm_packets" in queued
+    assert "llm_actionable_open_count is zero" in queued
     assert (tmp_path / ip / "rtl" / "rtl_todo_plan.json").is_file()
     assert (tmp_path / ip / "rtl" / "rtl_todo_tracker.json").is_file()
+    assert (tmp_path / ip / "rtl" / "rtl_authoring_plan.json").is_file()
+    assert (tmp_path / ip / "rtl" / "rtl_authoring_status.md").is_file()
 
 
 def test_legacy_direct_command_entrypoints_are_removed():

@@ -740,13 +740,40 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
                     "'§<N> <field path> — Suggest: <recommended value>'."
                 ),
             },
+            "id": {"type": "string", "description": "Optional SSOT QA stable id for single-mode questions."},
+            "section_id": {"type": "string", "description": "Optional SSOT section bucket for QA preview."},
+            "section_title": {"type": "string", "description": "Optional human-readable SSOT section title."},
+            "decision_key": {"type": "string", "description": "Optional stable decision key for QA preview."},
+            "decision_label": {"type": "string", "description": "Optional short decision label."},
+            "field_path": {"type": "string", "description": "Optional SSOT field path this question resolves."},
+            "qa_type": {
+                "type": "string",
+                "description": "Optional: human_decision | clarification | change_request | execution_blocker.",
+            },
+            "criteria": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Optional criteria for accepting and using this answer downstream.",
+            },
+            "source_refs": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Optional SSOT/doc/RTL references that caused this question.",
+            },
+            "content": {"type": "string", "description": "Optional concise QA content summary."},
+            "detail": {"type": "string", "description": "Optional detailed context for QA preview."},
+            "placeholder": {"type": "string", "description": "Optional free-form input placeholder."},
+            "multiline": {"type": "boolean", "description": "Optional: render input as multiline."},
             "questions": {
                 "type": "array",
                 "description": (
                     "Batched mode: a list of question dicts, each with the "
                     "same {question, kind, options, subtitle} keys as a "
-                    "single call. When set, the other top-level fields are "
-                    "ignored. Use 2-5 questions per batch."
+                    "single call, plus optional SSOT QA metadata "
+                    "{id, section_id, section_title, decision_key, "
+                    "decision_label, field_path, qa_type, criteria, source_refs}. "
+                    "When set, the other top-level fields are ignored. Use 2-5 "
+                    "questions per batch unless the IP genuinely needs more."
                 ),
                 "items": {
                     "type": "object",
@@ -754,6 +781,28 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
                         "question": {"type": "string"},
                         "kind":     {"type": "string", "enum": ["single", "multi", "input"]},
                         "subtitle": {"type": "string"},
+                        "id": {"type": "string"},
+                        "section_id": {"type": "string"},
+                        "section_title": {"type": "string"},
+                        "decision_key": {"type": "string"},
+                        "decision_label": {"type": "string"},
+                        "field_path": {"type": "string"},
+                        "qa_type": {
+                            "type": "string",
+                            "description": "human_decision | clarification | change_request | execution_blocker",
+                        },
+                        "criteria": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
+                        "source_refs": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
+                        "content": {"type": "string"},
+                        "detail": {"type": "string"},
+                        "placeholder": {"type": "string"},
+                        "multiline": {"type": "boolean"},
                         "options": {
                             "type": "array",
                             "items": {
@@ -768,6 +817,101 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
                         },
                     },
                     "required": ["question", "kind"],
+                },
+            },
+        },
+        required=[],  # validation done at runtime: either question or questions
+    ),
+
+    "record_ssot_qa": _fn(
+        "record_ssot_qa",
+        (
+            "Record one or more generated SSOT QA items in the ATLAS QA "
+            "preview WITHOUT blocking for an answer. Use this for deferred "
+            "human gates, approvals, clarifications, or change requests that "
+            "the user can review later. Use ask_user only when the answer is "
+            "an immediate blocker."
+        ),
+        properties={
+            "ip": {
+                "type": "string",
+                "description": "Optional IP name. Defaults to the active ATLAS SSOT IP.",
+            },
+            "session": {
+                "type": "string",
+                "description": "Optional session id/path. Defaults to the active ssot-gen session.",
+            },
+            "kind": {
+                "type": "string",
+                "description": "Optional IP kind label for QA grouping.",
+            },
+            "source": {
+                "type": "string",
+                "description": "Optional QA source tag. Defaults to llm-ssot-qna.",
+            },
+            "status": {
+                "type": "string",
+                "enum": ["pending", "approved", "answered", "resolved"],
+                "description": "Stored QA status. Usually pending for deferred questions.",
+            },
+            "question": {
+                "type": "string",
+                "description": "Single-mode convenience question. Prefer questions=[...] for metadata-rich QA.",
+            },
+            "questions": {
+                "type": "array",
+                "description": (
+                    "Deferred QA backlog items. Each item should be IP-specific "
+                    "and section-specific, not from a fixed template."
+                ),
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "question": {"type": "string"},
+                        "kind": {"type": "string", "enum": ["single", "multi", "input"]},
+                        "subtitle": {"type": "string"},
+                        "id": {"type": "string"},
+                        "section_id": {"type": "string"},
+                        "section_title": {"type": "string"},
+                        "section": {"type": "string"},
+                        "section_name": {"type": "string"},
+                        "decision_key": {"type": "string"},
+                        "decision_label": {"type": "string"},
+                        "field_path": {"type": "string"},
+                        "qa_type": {
+                            "type": "string",
+                            "description": "human_decision | clarification | change_request | execution_blocker",
+                        },
+                        "criteria": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
+                        "source_refs": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
+                        "sources": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
+                        "content": {"type": "string"},
+                        "detail": {"type": "string"},
+                        "placeholder": {"type": "string"},
+                        "multiline": {"type": "boolean"},
+                        "options": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {"type": "string"},
+                                    "label": {"type": "string"},
+                                    "detail": {"type": "string"},
+                                },
+                                "required": ["id", "label"],
+                            },
+                        },
+                    },
+                    "required": [],
                 },
             },
         },
