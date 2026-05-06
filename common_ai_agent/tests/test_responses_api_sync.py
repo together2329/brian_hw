@@ -192,7 +192,7 @@ class TestResponsesRequestBodyNormalization:
             stream=True,
             base_url="https://openrouter.ai/api/v1/responses",
         )
-        assert data["reasoning"] == {"effort": "medium", "summary": "auto"}
+        assert data["reasoning"] == {"effort": "medium", "summary": "detailed"}
 
     def test_reasoning_mode_off_omits_responses_reasoning(self, monkeypatch):
         monkeypatch.setattr(lc.config, "REASONING_MODE", "off", raising=False)
@@ -283,6 +283,14 @@ class _FakeSSEResponse:
         pass
 
 
+class _FakeJSONResponse:
+    def __init__(self, payload: dict):
+        self.payload = payload
+
+    def read(self):
+        return json.dumps(self.payload).encode("utf-8")
+
+
 def _collect(gen):
     """Drain a generator, grouping yields by type."""
     plain, tuples = [], []
@@ -292,6 +300,78 @@ def _collect(gen):
         else:
             plain.append(item)
     return plain, tuples
+
+
+class TestCallLLMRawResponsesPath:
+    def test_gpt5_raw_call_uses_codex_responses_not_chat(self, monkeypatch):
+        captured = {}
+
+        def fake_post(url, headers, body, timeout):
+            captured["url"] = url
+            captured["headers"] = headers
+            captured["body"] = body
+            return _FakeSSEResponse([
+                {"type": "response.output_text.delta", "delta": "{\"ok\":true}"},
+                {"type": "response.completed",
+                 "response": {"status": "completed",
+                              "usage": {"input_tokens": 11, "output_tokens": 7}}},
+            ])
+
+        monkeypatch.setattr(lc.config, "BASE_URL", "https://chatgpt.com/backend-api/codex", raising=False)
+        monkeypatch.setattr(lc.config, "API_KEY", "test-token", raising=False)
+        monkeypatch.setattr(lc.config, "USE_RESPONSES_API", False, raising=False)
+        monkeypatch.setattr(lc.config, "FORCE_CHAT_COMPLETIONS_GPT5", False, raising=False)
+        monkeypatch.setattr(lc, "_persistent_post", fake_post)
+
+        out = lc.call_llm_raw(
+            messages=[{"role": "user", "content": "return json"}],
+            model="gpt-5.5",
+            extra_body={"response_format": {"type": "json_object"}},
+            caller_tag="test.raw_responses",
+        )
+
+        assert out == "{\"ok\":true}"
+        assert captured["url"] == "https://chatgpt.com/backend-api/codex/responses"
+        body = json.loads(captured["body"].decode("utf-8"))
+        assert body["model"] == "gpt-5.5"
+        assert body["stream"] is True
+        assert body["store"] is False
+        assert "temperature" not in body
+        assert "response_format" not in body
+        assert "chat/completions" not in captured["url"]
+
+    def test_raw_call_maps_json_mode_for_standard_responses(self, monkeypatch):
+        captured = {}
+
+        def fake_post(url, headers, body, timeout):
+            captured["url"] = url
+            captured["body"] = body
+            return _FakeJSONResponse({
+                "output": [
+                    {"type": "message",
+                     "content": [{"type": "output_text", "text": "{\"ok\":true}"}]},
+                ],
+                "usage": {"input_tokens": 3, "output_tokens": 2},
+            })
+
+        monkeypatch.setattr(lc.config, "BASE_URL", "https://api.openai.com/v1", raising=False)
+        monkeypatch.setattr(lc.config, "API_KEY", "test-token", raising=False)
+        monkeypatch.setattr(lc.config, "USE_RESPONSES_API", True, raising=False)
+        monkeypatch.setattr(lc.config, "FORCE_CHAT_COMPLETIONS_GPT5", False, raising=False)
+        monkeypatch.setattr(lc, "_persistent_post", fake_post)
+
+        out = lc.call_llm_raw(
+            messages=[{"role": "user", "content": "return json"}],
+            model="gpt-5.5",
+            extra_body={"response_format": {"type": "json_object"}},
+            caller_tag="test.raw_responses",
+        )
+
+        assert out == "{\"ok\":true}"
+        body = json.loads(captured["body"].decode("utf-8"))
+        assert captured["url"] == "https://api.openai.com/v1/responses"
+        assert body["text"]["format"] == {"type": "json_object"}
+        assert "response_format" not in body
 
 
 class TestExecuteResponsesStream:

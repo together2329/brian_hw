@@ -1,0 +1,7 @@
+{
+  "name": "sta-post-auto",
+  "description": "One-shot full sign-off STA (no agent walkthrough). For CI / scripted use",
+  "aliases": [],
+  "handler": "bash:auto_sta_post.sh",
+  "usage": "/sta-post-auto"
+}

@@ -1,6 +1,6 @@
 {
   "name": "new-ip",
-  "description": "New IP from scratch: Requirements → 8 YAML SSOT → Schema Validation → Template Generation → Simulation",
+  "description": "New leaf IP from scratch: Requirements → scaffold → <ip>/yaml/<ip>.ssot.yaml → validation → [SSOT HANDOFF]",
   "aliases": ["ni"],
   "handler": "todo:template:new-ip",
   "usage": "/new-ip"

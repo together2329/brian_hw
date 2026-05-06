@@ -1,0 +1,7 @@
+{
+  "name": "sim-debug",
+  "description": "Run FL-vs-RTL scoreboard comparison and mismatch classification for one IP",
+  "aliases": ["sd"],
+  "handler": "stage:sim-debug",
+  "usage": "/sim-debug <module_name>"
+}

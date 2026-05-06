@@ -52,3 +52,18 @@ current_todos.json
 # Reference download from claude.ai design — not part of project
 /ATLAS/
 /ATLAS.zip
+
+# HW workflow generated artifacts (regenerable from RTL + SSOT + PDK)
+*/syn/run.ys
+*/syn/out/
+*/sta/run.tcl
+*/sta/out/
+*/dft/run.tcl
+*/dft/out/
+*/pnr/tcl/
+*/pnr/out/
+*/sta-post/run.tcl
+*/sta-post/out/
+
+# Required workflow validators whose names match parent repo sim-output globs.
+!workflow/tb-gen/scripts/check_tb_sim_evidence.sh

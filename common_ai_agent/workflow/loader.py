@@ -532,6 +532,7 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
 
     handler types:
       bash:<script>          — run scripts/<script> via bash, return stdout
+      stage:<alias>          — run common WorkflowStageEngine stage for an IP
       todo:template:<name>   — return INJECT_TODO_TEMPLATE:<name> signal
       prompt:<text>          — return INJECT_PROMPT:<text> signal
       python:<fn>            — call register_hooks-style fn from workspace hooks.py
@@ -574,6 +575,31 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
             return f"INJECT_TODO_TEMPLATE:{_n}"
 
         return _tmpl_handler
+
+    if handler_str.startswith("stage:"):
+        stage_alias = handler_str[6:].strip()
+
+        def _stage_handler(args: str, _alias=stage_alias) -> str:
+            parts = (args or "").split(None, 1)
+            ip = parts[0].strip() if parts else ""
+            try:
+                from src.workflow_stage_engine import canonical_stage, is_valid_ip_name
+                from src.workflow_stage_surface import run_common_stage_surface
+            except ModuleNotFoundError:
+                try:
+                    from workflow_stage_engine import canonical_stage, is_valid_ip_name
+                    from workflow_stage_surface import run_common_stage_surface
+                except ModuleNotFoundError:
+                    return "[Error] WorkflowStageEngine not importable"
+            alias = canonical_stage(_alias)
+            if not is_valid_ip_name(ip):
+                return f"[{alias}] missing or invalid IP name\nusage: /{alias} <ip_name>"
+            surface = run_common_stage_surface(project_root=Path.cwd(), source_root=None, alias=alias, ip=ip)
+            if not surface.handled:
+                return f"[Error] Unknown stage: {alias}"
+            return surface.message
+
+        return _stage_handler
 
     if handler_str.startswith("prompt:"):
         text = handler_str[7:]

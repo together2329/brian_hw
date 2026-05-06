@@ -1,0 +1,18 @@
+{
+  "name": "syn",
+  "description": "RTL synthesis workspace — yosys + sky130 SS-corner mapping → gate netlist + area report",
+  "env": {
+    "MAX_ITERATIONS": "80",
+    "ENABLE_MARKDOWN_RENDER": "true",
+    "SYN_TOOL": "yosys",
+    "SYN_PDK": "sky130_fd_sc_hd",
+    "SYN_LIB_NAME": "sky130_fd_sc_hd__ss_n40C_1v40.lib"
+  },
+  "skills": {
+    "force_activate": ["verilog-expert"],
+    "disable": []
+  },
+  "system_prompt_mode": "prepend",
+  "plan_prompt_mode": "prepend",
+  "compression_prompt_mode": "replace"
+}

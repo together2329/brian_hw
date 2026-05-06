@@ -172,8 +172,19 @@ def _setup_workspace(name: str) -> None:
             workflow_root = c
             break
     if workflow_root is None:
-        print(f"[Workspace] Warning: workspace '{name}' not found in any workflow directory.")
-        return
+        _available = []
+        for c in candidates:
+            if os.path.isdir(c):
+                _available.extend(
+                    d for d in sorted(os.listdir(c))
+                    if os.path.isdir(os.path.join(c, d))
+                       and os.path.exists(os.path.join(c, d, "workspace.json"))
+                )
+        _avail_str = ", ".join(_available) if _available else "(none found)"
+        print(f"[Workspace] ERROR: workspace '{name}' not found.")
+        print(f"[Workspace] Available workspaces: {_avail_str}")
+        print(f"[Workspace] Aborting. Use a valid workspace name from the list above.")
+        sys.exit(1)
 
     # Import loader
     sys.path.insert(0, os.path.dirname(workflow_root))
@@ -1647,6 +1658,50 @@ def chat_loop():
                     print(f"[Keepalive] DEBUG: user_input was empty/whitespace, skipping: {repr(user_input[:80])}")
                 continue
 
+            _atlas_active_session = os.environ.get("ATLAS_ACTIVE_SESSION", "").strip().strip("/")
+            if _atlas_active_session and _atlas_active_session != os.environ.get("ATLAS_SESSION_APPLIED", ""):
+                try:
+                    _setup_session(_atlas_active_session)
+                    os.environ["ATLAS_SESSION_APPLIED"] = _atlas_active_session
+                    _new_sys = _build_system_prompt_str(agent_mode=agent_mode)
+                    _loaded = load_conversation_history()
+                    if _loaded:
+                        messages = _loaded
+                        if messages and messages[0].get("role") == "system":
+                            messages[0]["content"] = _new_sys
+                        else:
+                            messages.insert(0, {"role": "system", "content": _new_sys})
+                    else:
+                        messages = [{"role": "system", "content": _new_sys}]
+                    save_conversation_history(messages)
+                    if config.ENABLE_TODO_TRACKING:
+                        todo_tracker_main = (
+                            TodoTracker.load(Path(config.TODO_FILE))
+                            if Path(config.TODO_FILE).exists()
+                            else TodoTracker(Path(config.TODO_FILE))
+                        )
+                        todo_tracker = todo_tracker_main
+                        if _textual_emit_todo_fn is not None:
+                            try:
+                                _textual_emit_todo_fn(
+                                    todo_tracker_main.format_simple()
+                                    if todo_tracker_main and todo_tracker_main.todos
+                                    else ""
+                                )
+                            except Exception:
+                                pass
+                    if messages and messages[0].get("role") == "system":
+                        context_tracker.update_system_prompt(messages[0]["content"])
+                    context_tracker.update_messages(messages, exclude_system=True)
+                except Exception as _atlas_session_err:
+                    if _textual_emit_content_fn is not None:
+                        try:
+                            _textual_emit_content_fn(f"[Session] failed to switch to {_atlas_active_session}: {_atlas_session_err}")
+                            if _textual_emit_flush_fn is not None:
+                                _textual_emit_flush_fn()
+                        except Exception:
+                            pass
+
             # Handle slash commands
             if user_input.startswith('/'):
                 # Update context tracker with current state before executing /context
@@ -2139,8 +2194,14 @@ def chat_loop():
                                 print(line)
 
                         try:
-                            # Switch session context — flat project layout (single param)
-                            _setup_session(ws_name)
+                            # Switch session context. Atlas can select a
+                            # scoped session such as mcu_top/rtl-gen; keep
+                            # that namespace instead of collapsing every IP
+                            # into the flat workflow name.
+                            _active_session = os.environ.get("ATLAS_ACTIVE_SESSION", "").strip().strip("/")
+                            _setup_session(_active_session or ws_name)
+                            if _active_session:
+                                os.environ["ATLAS_SESSION_APPLIED"] = _active_session
                             # Load new workspace config (prompts, hooks, commands…)
                             _setup_workspace(ws_name)
                             # Mark active workspace in env
@@ -2223,6 +2284,20 @@ def chat_loop():
                                 print(Color.warning(
                                     f"\n⚠ Profile '{_pname}' not defined "
                                     f"(no PROFILE_{_pname}_MODEL in .env)\n"))
+                        elif target.startswith("opencode:"):
+                            # /model gpt | /model gpt-5.5 — route to ChatGPT OAuth.
+                            # activate_opencode_oauth swaps BASE_URL → Codex,
+                            # MODEL_NAME → bare, and sets USE_RESPONSES_API=True.
+                            _bare = target.split(":", 1)[1]
+                            if config.activate_opencode_oauth(_bare):
+                                print(Color.success(
+                                    f"\n✅ Opencode-OAuth active → "
+                                    f"{config.MODEL_NAME} @ {config.BASE_URL}\n"))
+                            else:
+                                print(Color.error(
+                                    f"\n❌ '{_bare}' needs ChatGPT OAuth but no "
+                                    f"opencode credential is available.\n"
+                                    f"   Run: python -m src.opencode_backend login\n"))
                         else:
                             # Bare model name override (no provider switch)
                             config.MODEL_NAME = target
@@ -2244,6 +2319,7 @@ def chat_loop():
                         try:
                             from workflow.loader import get_todo_template_registry
                             _reg = get_todo_template_registry()
+                            _tmpl = _reg.get(tmpl_name) or {}
                             _tasks = _reg.get_tasks(tmpl_name)
                             if _tasks:
                                 _todo_path = Path(config.TODO_FILE)
@@ -2253,6 +2329,13 @@ def chat_loop():
                                     todo_tracker_main.clear()
                                 todo_tracker_main.add_todos(_tasks)
                                 todo_tracker_main.save()
+                                _lock = bool(_tmpl.get("lock_additions", True))
+                                if _lock:
+                                    os.environ["TODO_TEMPLATE_LOCK_ADDITIONS"] = "1"
+                                    os.environ["TODO_TEMPLATE_LOCK_NAME"] = tmpl_name
+                                else:
+                                    os.environ.pop("TODO_TEMPLATE_LOCK_ADDITIONS", None)
+                                    os.environ.pop("TODO_TEMPLATE_LOCK_NAME", None)
                                 print(Color.success(f"✅ Todo template '{tmpl_name}' loaded — {len(_tasks)} tasks"))
                                 if _textual_emit_todo_fn:
                                     _textual_emit_todo_fn(todo_tracker_main.format_simple())
@@ -2335,6 +2418,11 @@ def chat_loop():
                                     if _textual_emit_slash_output_fn is not None:
                                         try:
                                             _textual_emit_slash_output_fn(_payload)
+                                        except Exception:
+                                            pass
+                                    if _textual_emit_tool_result_fn is not None:
+                                        try:
+                                            _textual_emit_tool_result_fn(_clean, "slash")
                                         except Exception:
                                             pass
                                     if _textual_emit_flush_fn is not None:
@@ -2474,7 +2562,7 @@ if __name__ == "__main__":
     import argparse as _argparse
     _parser = _argparse.ArgumentParser(add_help=False)
     _parser.add_argument('-s', '--session', default=None)
-    _parser.add_argument('-w', '--workspace', default=None,
+    _parser.add_argument('-w', '--workspace', '-wf', default=None,
                          help='Workspace name (e.g. default, verilog, spec-review)')
     _parser.add_argument('--serve', action='store_true',
                          help='Start as HTTP server (agent-to-agent mode)')
@@ -2502,8 +2590,21 @@ if __name__ == "__main__":
             print(Color.success(
                 f"[--model] profile '{_m}' active "
                 f"→ {config.MODEL_NAME} @ {config.BASE_URL}"))
+        elif config.is_opencode_model(_m):
+            # gpt-5* / *codex* → ChatGPT OAuth via opencode auth.json.
+            # Strip any provider prefix ("openai/gpt-5.5" → "gpt-5.5").
+            _bare = _m.split("/", 1)[-1]
+            if config.activate_opencode_oauth(_bare):
+                print(Color.success(
+                    f"[--model] opencode-OAuth active → "
+                    f"{config.MODEL_NAME} @ {config.BASE_URL}"))
+            else:
+                print(Color.error(
+                    f"[--model] '{_m}' looks like an OpenAI model but "
+                    f"no opencode credential is available. "
+                    f"Run: python -m src.opencode_backend login"))
         else:
-            # Not a known profile — treat as bare model name override.
+            # Not a known profile and not gpt-5* — bare name override.
             config.MODEL_NAME = _m
             os.environ['LLM_MODEL_NAME'] = _m
             os.environ['MODEL_NAME'] = _m
@@ -2541,6 +2642,7 @@ if __name__ == "__main__":
             verbose=getattr(_args, 'verbose', False),
             coordinator=coordinator,
             worker_name=getattr(_args, 'worker_name', ''),
+            session_name=_args.session or '',
         )
         sys.exit(0)
 

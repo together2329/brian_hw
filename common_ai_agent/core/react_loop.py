@@ -346,6 +346,7 @@ def run_react_agent_impl(
     # it's blocked on user input — break early instead of waiting for the
     # generic stagnation threshold to fire (~50 turns).
     _text_only_no_progress = 0
+    _execution_no_action_retries = 0
 
     # ======================================================================
     # Main loop
@@ -1208,6 +1209,7 @@ def run_react_agent_impl(
         if actions:
             # Real tool activity → clear the text-only watchdog
             _text_only_no_progress = 0
+            _execution_no_action_retries = 0
             # Track todo ops for plan mode flow control
             # Plan mode: allow research + todo ops together (don't restrict to single todo op)
             # Agent can read files AND update the plan in the same turn
@@ -1220,6 +1222,7 @@ def run_react_agent_impl(
 
             _SERIAL_ONLY = {"todo_update", "todo_write", "todo_add", "todo_remove"}
             _has_serial_only = any(a[0] in _SERIAL_ONLY for a in actions)
+            _credited_tool_activity_this_iteration = False
 
             if len(actions) > 1 and getattr(cfg, "ENABLE_REACT_PARALLEL", False) and not _has_serial_only:
                 print(f"  ⚡ {len(actions)} actions (parallel)")
@@ -1477,6 +1480,45 @@ def run_react_agent_impl(
                     if deps.emit_tool_result_fn:
                         try: deps.emit_tool_result_fn(observation, tool_name)
                         except Exception: pass
+
+                    # Credit non-todo tool activity immediately in sequential
+                    # batches. Agents often emit `write_file` followed by
+                    # `todo_update(..., completed)` in the same assistant
+                    # response; waiting until the end of the batch means the
+                    # completion gate sees zero tool credit and falsely
+                    # rejects real work.
+                    if todo_tracker and todo_tracker.todos and tool_name not in (
+                        "todo_update", "todo_write", "todo_add", "todo_remove"
+                    ):
+                        _credit_write_tools = {
+                            "write_file", "write_to_file",
+                            "replace_in_file", "replace_lines", "replace_file_content",
+                            "edit_file", "create_file",
+                        }
+                        _credit_is_write = tool_name in _credit_write_tools
+                        _credit_current = todo_tracker.get_current_todo()
+                        if _credit_current and _credit_current.status == "in_progress":
+                            _credit_current.tools_since_in_progress = getattr(
+                                _credit_current, "tools_since_in_progress", 0
+                            ) + 1
+                            try:
+                                todo_tracker.save()
+                            except Exception:
+                                pass
+                        elif _credit_current and _credit_current.status == "completed":
+                            if not _credit_is_write:
+                                _credit_current.tools_since_completed = getattr(
+                                    _credit_current, "tools_since_completed", 0
+                                ) + 1
+                                try:
+                                    todo_tracker.save()
+                                except Exception:
+                                    pass
+                        else:
+                            todo_tracker._pending_tool_credit = int(
+                                getattr(todo_tracker, "_pending_tool_credit", 0) or 0
+                            ) + 1
+                        _credited_tool_activity_this_iteration = True
 
                     # Display result (header already printed before execution above)
                     _INLINE_TOOLS = {"git_diff", "git_status", "write_file", "todo_write", "todo_update",
@@ -1738,7 +1780,8 @@ def run_react_agent_impl(
             # mark_in_progress can credit it. Without the buffer, the gate
             # check at todo_update(completed) auto-rejects with "no tools were
             # called since starting this task" even though the agent did work.
-            if todo_tracker and todo_tracker.todos and not _last_tool_was_todo:
+            if (todo_tracker and todo_tracker.todos and not _last_tool_was_todo
+                    and not _credited_tool_activity_this_iteration):
                 _current = todo_tracker.get_current_todo()
                 if _current and _current.status == "in_progress":
                     _current.tools_since_in_progress = getattr(_current, 'tools_since_in_progress', 0) + 1
@@ -1815,6 +1858,73 @@ def run_react_agent_impl(
                     pass
 
             if todo_tracker and not todo_tracker.is_all_processed() and todo_tracker.todos:
+                if getattr(cfg, "EXECUTION_NO_ACTION_GUARD", True):
+                    _execution_no_action_retries += 1
+                    _retry_limit = int(getattr(cfg, "EXECUTION_NO_ACTION_RETRY_LIMIT", 3))
+                    _cur = todo_tracker.get_current_todo()
+                    _idx1 = (todo_tracker.current_index + 1) if _cur else 0
+                    _total = len(todo_tracker.todos)
+                    _content = _cur.content if _cur else "(no active task)"
+                    _detail = getattr(_cur, "detail", "") if _cur else ""
+                    _criteria = getattr(_cur, "criteria", "") if _cur else ""
+                    _compact_chars = int(getattr(cfg, "EXECUTION_NO_ACTION_COMPACT_CHARS", 4000))
+                    if messages and messages[-1].get("role") == "assistant" and len(collected_content) > _compact_chars:
+                        _head = collected_content[:800].strip()
+                        _tail = collected_content[-800:].strip()
+                        messages[-1]["content"] = (
+                            "[Runtime compacted assistant text-only response]\n"
+                            f"The assistant produced {len(collected_content)} chars without any Action while "
+                            f"todo #{_idx1}/{_total} remained unfinished. This text is retained only as "
+                            "brief context because execution workflows must progress through tools.\n\n"
+                            f"First excerpt:\n{_head}\n\nLast excerpt:\n{_tail}"
+                        )
+                    if _execution_no_action_retries > _retry_limit:
+                        _msg = (
+                            f"⏸  Loop stopped — execution no-action guard: "
+                            f"{_execution_no_action_retries} consecutive replies had no tool Action "
+                            f"while task #{_idx1}/{_total} (\"{_content}\") remained unfinished."
+                        )
+                        if deps.emit_content_fn:
+                            try:
+                                deps.emit_content_fn(_msg)
+                            except Exception:
+                                pass
+                        else:
+                            print(_msg)
+                        break
+                    _nudge = (
+                        "[Runtime guard: execution response had no Action]\n"
+                        f"Current todo: #{_idx1}/{_total} {_content}\n"
+                        f"Detail: {_detail[:1200] if _detail else '(none)'}\n"
+                        f"Criteria: {_criteria[:1200] if _criteria else '(none)'}\n\n"
+                        "Your previous response was analysis/prose only. In execution mode with unfinished todos, "
+                        "the next assistant response must start with exactly one Action line and no prose before it.\n"
+                        "Use todo_update to start/finish the active todo, read_file/list_dir/grep_file only for missing file facts, "
+                        "write_file/replace_in_file for implementation artifacts, run_command for validation, or ask_user only when "
+                        "a real external requirement is missing. If blocked, output a short [BLOCKED] line with the exact missing input.\n"
+                        "Do not add fixed IP templates or hardcoded generator logic; derive the work from the SSOT, current todo detail, "
+                        "and existing workflow rules."
+                    )
+                    if deps.emit_content_fn:
+                        try:
+                            deps.emit_content_fn(
+                                f"↻ Runtime guard nudged execution: no Action in response "
+                                f"({_execution_no_action_retries}/{_retry_limit})."
+                            )
+                        except Exception:
+                            pass
+                    else:
+                        print(
+                            f"↻ Runtime guard nudged execution: no Action in response "
+                            f"({_execution_no_action_retries}/{_retry_limit})."
+                        )
+                    messages.append({"role": "user", "content": _nudge})
+                    if _perf:
+                        _iter_total = time.time() - _perf_iter_start
+                        print(f"  {Color.DIM}[PERF] === iteration total: {_iter_total:.3f}s ==={Color.RESET}")
+                    tracker.increment()
+                    continue
+
                 # Text-only watchdog: if the LLM has produced N consecutive
                 # text-only turns without a tool call while todos remain, it
                 # is asking the user a question and no answer is coming

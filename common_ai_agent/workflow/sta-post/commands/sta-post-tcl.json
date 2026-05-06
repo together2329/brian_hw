@@ -1,0 +1,7 @@
+{
+  "name": "sta-post-tcl",
+  "description": "Generate <ip>/sta-post/run.tcl with read_spef (no execution)",
+  "aliases": [],
+  "handler": "bash:write_sta_post_tcl.sh",
+  "usage": "/sta-post-tcl"
+}

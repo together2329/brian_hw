@@ -15,6 +15,7 @@ Public API:
   _extract_annotation_ranges(text)
   KNOWN_TOOLS  (frozenset)
 """
+import html
 import json
 import re
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -222,6 +223,183 @@ def _convert_all_glm_tool_calls(text: str, xml_params_to_action_fn: Callable) ->
     return result
 
 
+def _convert_glm_tool_call_block(text: str, xml_params_to_action_fn: Callable) -> str:
+    """Convert GLM/Z.AI pseudo-native <tool_call_block> text to Action.
+
+    Observed shape from glm-5.1 streaming:
+      <tool_call_block><tool_callMs><tool_callM>
+        <tool_name>run_command</tool_name>
+        <tool_call_id>...</tool_call_id>
+        <param>command<value>...</value></param>
+      </tool_callM>...</tool_call
+
+    The final closing tag is often truncated, so this parser is deliberately
+    tolerant and only requires a tool_name plus one key<value>...</value> pair.
+    """
+    result = text
+    block_re = re.compile(
+        r'<tool_callM\b[^>]*>(?P<block>.*?)(?:</tool_callM>|</tool_call\b|$)',
+        re.DOTALL | re.IGNORECASE,
+    )
+    while True:
+        m = block_re.search(result)
+        if not m:
+            break
+        block = m.group('block')
+        name_m = re.search(r'<tool_name>\s*(\w+)\s*</tool_name>', block, re.IGNORECASE)
+        if not name_m:
+            result = result[:m.start()] + block.strip() + result[m.end():]
+            continue
+        tool_name = _resolve_tool_name(name_m.group(1))
+        params = []
+        for pm in re.finditer(
+            r'(?:<param>\s*)?(\w+)\s*<value>(.*?)</value>\s*(?:</param>)?',
+            block,
+            re.DOTALL | re.IGNORECASE,
+        ):
+            key = pm.group(1)
+            if key in ("tool_name", "tool_call_id"):
+                continue
+            params.append((key, pm.group(2)))
+        if params:
+            params_block = "".join(f"<{k}>{v}</{k}>" for k, v in params)
+            replacement = xml_params_to_action_fn(tool_name, params_block)
+        else:
+            replacement = f"\nAction: {tool_name}()\n"
+        result = result[:m.start()] + replacement + result[m.end():]
+
+    result = re.sub(r'</?tool_call(?:_block|Ms)?[^>]*>', '', result, flags=re.IGNORECASE)
+    return result
+
+
+def _convert_tool_name_input_blocks(text: str) -> str:
+    """Convert OpenAI-compatible pseudo XML tool snippets to Action format.
+
+    Some providers stream a tool call as plain text instead of a native call:
+      <tool_name>run_command</tool_name>
+      <tool_input>{"command": "..."}</tool_input>
+      </tool_cal
+
+    The final closing tag is often truncated.  Parse the JSON input and emit
+    the normal ReAct syntax so the worker actually executes the tool instead
+    of completing with a raw tool-call string in the transcript.
+    """
+    pattern = re.compile(
+        r'<tool_name>\s*(?P<name>\w+)\s*</tool_name>\s*'
+        r'<tool_input>\s*(?P<input>\{.*?\})(?:\s*</tool_input>)?',
+        re.DOTALL | re.IGNORECASE,
+    )
+
+    def _replace(m: re.Match) -> str:
+        tool_name = _resolve_tool_name(m.group('name'))
+        raw_input = m.group('input')
+        try:
+            data = json.loads(raw_input)
+        except json.JSONDecodeError:
+            return f"\nAction: {tool_name}(command={json.dumps(raw_input, ensure_ascii=False)})\n"
+        if isinstance(data, dict):
+            args_str = ", ".join(
+                f'{k}={json.dumps(v, ensure_ascii=False)}' for k, v in data.items()
+            )
+            return f"\nAction: {tool_name}({args_str})\n"
+        return f"\nAction: {tool_name}(command={json.dumps(str(data), ensure_ascii=False)})\n"
+
+    return pattern.sub(_replace, text)
+
+
+def _convert_action_tag_blocks(text: str) -> str:
+    """Convert provider-emitted <Action>tool(args)</Action> text to Action:.
+
+    DeepSeek sometimes wraps a ReAct action in XML-like tags.  If we strip the
+    tags too early the callable line becomes a bare function call fragment and
+    is ignored by parse_all_actions.  Convert it explicitly first.
+    """
+    return re.sub(
+        r'<Action>\s*(?P<call>\w+\s*\(.*?\))\s*(?:</Action>)?',
+        lambda m: f"\nAction: {m.group('call')}\n",
+        text,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+
+
+def _convert_function_call_tags(text: str) -> str:
+    """Convert pseudo-native <FunctionCall ...> tags to Action lines.
+
+    Some Chat Completions providers emit display-oriented tags such as:
+      <FunctionCall name="write_file" path="x" content="...">
+    instead of OpenAI `tool_calls` or the local `Action:` syntax. Large
+    multiline arguments may contain `>` YAML scalars, so scan the tag end
+    while respecting quoted strings instead of using a naive `<...>` regex.
+    """
+    marker_re = re.compile(r'<\s*FunctionCall\b', re.IGNORECASE)
+    attr_re = re.compile(
+        r'(\w+)\s*=\s*('
+        r'"((?:\\.|[^"\\])*)"'
+        r"|"
+        r"'((?:\\.|[^'\\])*)'"
+        r')',
+        re.DOTALL,
+    )
+    out: List[str] = []
+    pos = 0
+
+    while True:
+        m = marker_re.search(text, pos)
+        if not m:
+            out.append(text[pos:])
+            break
+
+        i = m.end()
+        quote: str | None = None
+        esc = False
+        while i < len(text):
+            ch = text[i]
+            if quote:
+                if esc:
+                    esc = False
+                elif ch == "\\":
+                    esc = True
+                elif ch == quote:
+                    quote = None
+            else:
+                if ch in ("'", '"'):
+                    quote = ch
+                elif ch == ">":
+                    break
+            i += 1
+
+        if i >= len(text):
+            out.append(text[pos:])
+            break
+
+        attrs_text = text[m.end():i]
+        attrs: Dict[str, str] = {}
+        for am in attr_re.finditer(attrs_text):
+            key = am.group(1)
+            raw = am.group(3) if am.group(3) is not None else am.group(4)
+            try:
+                raw = bytes(raw, "utf-8").decode("unicode_escape")
+            except Exception:
+                pass
+            attrs[key] = html.unescape(raw)
+
+        name = attrs.pop("name", "") or attrs.pop("tool", "")
+        name = _resolve_tool_name(name) if name else ""
+        if name:
+            args = ", ".join(
+                f"{k}={json.dumps(v, ensure_ascii=False)}"
+                for k, v in attrs.items()
+            )
+            action = f"\nAction: {name}({args})\n" if args else f"\nAction: {name}()\n"
+            out.append(text[pos:m.start()])
+            out.append(action)
+        else:
+            out.append(text[pos:i + 1])
+        pos = i + 1
+
+    return "".join(out)
+
+
 # ---------------------------------------------------------------------------
 # _strip_native_tool_tokens
 # ---------------------------------------------------------------------------
@@ -289,9 +467,30 @@ def _convert_tool_use_xml(text: str, xml_params_to_action_fn: Callable) -> str:
         if args_block:
             replacement = xml_params_to_action_fn(tool_name, args_block)
         else:
-            replacement = f"\nAction: {tool_name}()\n"
+            # Some OpenAI-compatible hosts (notably GLM/Z.AI in streaming
+            # mode) emit Anthropic-shaped <tool_use> text without an
+            # <arguments> wrapper:
+            #   <tool_use><tool_name>run_command</tool_name>
+            #   <command>...</command></tool_use>
+            # Treat the whole block as the params source so the command
+            # is not lost.
+            replacement = xml_params_to_action_fn(tool_name, block)
 
         result = result[:tag_start] + replacement + result[tag_end:]
+
+    # Recovery for a stream cut mid-closing-tag, e.g. "</to".  In that
+    # case _extract_tag() above cannot see a complete </tool_use>, but
+    # the useful payload may already be present.
+    m = re.search(r'<tool_use\b[^>]*>(?P<block>.*?)(?:</tool_use>|</to\s*$|$)', result, re.DOTALL | re.IGNORECASE)
+    if m:
+        block = m.group('block')
+        name_m = re.search(r'<tool_name>\s*(\w+)\s*</tool_name>', block, re.IGNORECASE)
+        if name_m:
+            tool_name = _resolve_tool_name(name_m.group(1))
+            args_block = _extract_tag(block, 'arguments') or block
+            replacement = xml_params_to_action_fn(tool_name, args_block)
+            if replacement.strip():
+                result = result[:m.start()] + replacement + result[m.end():]
 
     return result
 
@@ -307,6 +506,10 @@ def _normalize_dsml_brackets(text: str) -> str:
     text = text.replace('\u300c', '<').replace('\u300d', '>')
     # ── Fullwidth brackets: U+FF1C ＜  U+FF1E ＞ ──
     text = text.replace('\uff1c', '<').replace('\uff1e', '>')
+    # ── DeepSeek DSML namespace prefix: <｜｜DSML｜｜invoke> -> <invoke> ──
+    # U+FF5C FULLWIDTH VERTICAL LINE often appears around the DSML marker.
+    text = re.sub(r'<\s*[|｜]+\s*DSML\s*[|｜]+\s*', '<', text, flags=re.IGNORECASE)
+    text = re.sub(r'<\s*/\s*[|｜]+\s*DSML\s*[|｜]+\s*', '</', text, flags=re.IGNORECASE)
     return text
 
 
@@ -460,7 +663,10 @@ def _strip_native_tool_tokens(text: str) -> str:
         return ""
 
     def _xml_params_to_action(tool_name: str, params_block: str) -> str:
-        params = re.findall(r'<(\w+)>(.*?)</\1>', params_block, re.DOTALL)
+        params = [
+            (k, v) for k, v in re.findall(r'<(\w+)>(.*?)</\1>', params_block, re.DOTALL)
+            if k not in ("server_name", "tool_name")
+        ]
         if tool_name and params:
             args_str = ", ".join(f'{k}={json.dumps(v, ensure_ascii=False)}' for k, v in params)
             return f"\nAction: {tool_name}({args_str})\n"
@@ -476,6 +682,9 @@ def _strip_native_tool_tokens(text: str) -> str:
 
     # Pattern 0a: <tool_use>...</tool_use> — Anthropic-style / GLM imitation XML
     text = _convert_tool_use_xml(text, _xml_params_to_action)
+
+    # Pattern 0a.25: <FunctionCall name="..." ...> — provider pseudo-native text
+    text = _convert_function_call_tags(text)
 
     # Pattern 0a.5: DSML <invoke> blocks — DeepSeek non-native parameter format
     # Must run BEFORE the <tool_calls> strip below (DSML also wraps in <tool_calls>)
@@ -526,6 +735,16 @@ def _strip_native_tool_tokens(text: str) -> str:
 
     # Pattern 2: GLM-style XML tool calls
     text = _convert_all_glm_tool_calls(text, _xml_params_to_action)
+
+    # Pattern 2b: GLM/Z.AI pseudo-native <tool_call_block>/<tool_callM>
+    text = _convert_glm_tool_call_block(text, _xml_params_to_action)
+
+    # Pattern 2c: pseudo-native split XML:
+    # <tool_name>run_command</tool_name><tool_input>{"command":"..."}</tool_input>
+    text = _convert_tool_name_input_blocks(text)
+
+    # Pattern 2d: DeepSeek-style <Action>run_command(...)</Action>
+    text = _convert_action_tag_blocks(text)
 
     # Pattern 3: Strip remaining special tokens
     native_tokens = [

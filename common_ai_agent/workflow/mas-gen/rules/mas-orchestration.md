@@ -1,5 +1,11 @@
 # MAS Orchestration Rules
 
+MAS is a legacy planning surface. New production IP flow must use
+`workflow/COMMON_ENGINE_FLOW.md`: requirements -> SSOT -> functional model ->
+equivalence goals -> RTL -> lint -> cocotb/pyuvm TB -> sim -> sim-debug ->
+goal-audit. Do not hand off to `/new-ip-rtl`, `/legacy-ip-rtl`, `/new-ip-tb`,
+or `/legacy-ip-tb`; those command entry points are removed.
+
 ## Workflow Model
 
 Each stage runs in its own workspace. mas-gen is responsible for:
@@ -20,15 +26,15 @@ MAS     : <ip_name>/mas/<ip_name>_mas.md
 Task    : Implement RTL from MAS §2-§8
 Input   : <ip_name>/mas/<ip_name>_mas.md
 Output  : <ip_name>/rtl/<ip_name>.sv, <ip_name>/list/<ip_name>.f
-Switch  : /workspace rtl-gen → /new-ip-rtl
+Switch  : /workspace rtl-gen -> /ssot-rtl <ip_name>
 ```
 
 ## Quality Gates
 
 | Gate | Condition | Next workspace |
 |------|-----------|----------------|
-| MAS → RTL | All 9 sections complete | `rtl-gen` → `/new-ip-rtl` |
-| RTL → TB | lint: 0 errors, 0 warnings | `tb-gen` → `/new-ip-tb` |
+| MAS -> RTL | SSOT approved | `rtl-gen` -> `/ssot-rtl <ip>` |
+| RTL -> TB | DUT compile/lint pass | `tb-gen` -> `/ssot-tb <ip>` |
 | TB → SIM | TB compiles clean | `sim` → `/compile` |
 | SIM → LINT | sim: 0 errors, 0 warnings | `lint` → `/lint-all` |
 

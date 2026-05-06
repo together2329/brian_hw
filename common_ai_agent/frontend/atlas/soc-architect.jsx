@@ -55,6 +55,30 @@
   font-family: var(--mono); font-size: 11px; color: var(--fg-mute);
 }
 .arch-screen .run-bar .rb-meta b { color: var(--fg); }
+.arch-splitter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  z-index: 20;
+  cursor: col-resize;
+  background: transparent;
+}
+.arch-splitter::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+  background: transparent;
+}
+.arch-splitter:hover::after {
+  background: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--accent) 20%, transparent);
+}
+.arch-splitter.left { right: -5px; }
+.arch-splitter.right { left: -5px; }
 
 /* ── Block-diagram canvas (V7) ───────────────────────────────── */
 .bd-canvas {
@@ -62,6 +86,32 @@
   background:
     radial-gradient(circle at 1px 1px, color-mix(in oklch, var(--line) 80%, transparent) 1px, transparent 0) 0 0/24px 24px,
     var(--bg);
+}
+[data-theme="light"] .bd-canvas.soc-carbon {
+  background:
+    linear-gradient(#e7ebf0 1px, transparent 1px) 0 0/18px 18px,
+    linear-gradient(90deg, #e7ebf0 1px, transparent 1px) 0 0/18px 18px,
+    linear-gradient(#d7dde5 1px, transparent 1px) 0 0/90px 90px,
+    linear-gradient(90deg, #d7dde5 1px, transparent 1px) 0 0/90px 90px,
+    #fbfcfe;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-layers,
+[data-theme="light"] .bd-canvas.soc-carbon .bd-legend {
+  background: rgba(255,255,255,0.86);
+  border-color: #d6dbe2;
+  color: #4a5568;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-zoom {
+  background: rgba(255,255,255,0.9);
+  border-color: #d6dbe2;
+  color: #2d3748;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-zoom button {
+  color: #2d3748;
+  border-color: #d6dbe2;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .soc-wire-label {
+  fill: #fbfcfe;
 }
 .bd-svg-layer { position: absolute; inset: 0; width: 100%; height: 100%;
   pointer-events: none; z-index: 1; }
@@ -161,6 +211,42 @@
 
 /* ── Carbon-style block (named ports + center icon) ──────────── */
 .bd-block.with-ports { padding: 0; box-sizing: border-box; }
+.bd-block.with-ports.soc-top { cursor: grab; }
+.bd-block.with-ports.soc-top:active { cursor: grabbing; }
+.bd-block.with-ports {
+  user-select: none;
+}
+.bd-block.with-ports.soc-top .bd-ports {
+  grid-template-columns: 1fr 18px 1fr;
+  padding: 9px 0 10px;
+}
+.bd-block.with-ports.soc-top .bd-ports-col {
+  font-size: 10px;
+  gap: 3px;
+}
+.bd-block.with-ports.soc-top .bd-port {
+  padding: 1px 6px;
+  font-weight: 500;
+}
+.bd-block.with-ports.soc-top .bd-port .proto-badge {
+  margin-left: 4px;
+  padding: 0 3px;
+  border: 1px solid currentColor;
+  font-size: 8px;
+  line-height: 1.15;
+  opacity: 0.92;
+}
+.bd-block.with-ports.soc-top .bd-port.right-side .proto-badge {
+  margin-left: 0;
+  margin-right: 4px;
+}
+.bd-block.with-ports.soc-top .bd-center-icon {
+  width: 18px; height: 24px;
+  font-size: 0;
+  opacity: 0;
+  border-color: transparent;
+  background: transparent;
+}
 .bd-block.with-ports .bd-block-head {
   padding: 4px 8px; font-size: 10.5px;
   background: var(--bg-2);
@@ -172,6 +258,18 @@
 }
 .bd-block.with-ports .bd-block-head .nm-type {
   color: var(--fg-mute); font-size: 9.5px; font-weight: 400;
+}
+.bd-block.with-ports.soc-top .bd-port.proto-axi,
+.bd-block.with-ports.soc-top .bd-port.proto-axil,
+.bd-block.with-ports.soc-top .bd-port.proto-ace {
+  color: var(--accent);
+}
+.bd-block.with-ports.soc-top .bd-port.proto-apb,
+.bd-block.with-ports.soc-top .bd-port.proto-ahb {
+  color: var(--magenta);
+}
+.bd-block.with-ports.soc-top .bd-port.proto-irq {
+  color: var(--warn);
 }
 .bd-block.with-ports .bd-ports {
   display: grid;
@@ -192,8 +290,14 @@
   color: var(--fg-dim); white-space: nowrap;
   line-height: 1.3;
   position: relative;
+  cursor: crosshair;
 }
 .bd-block.with-ports .bd-port:hover { color: var(--fg); }
+.bd-block.with-ports .bd-port.connecting {
+  outline: 1px solid var(--accent);
+  background: color-mix(in oklch, var(--accent) 22%, transparent);
+  color: var(--fg);
+}
 .bd-block.with-ports .bd-port .nm { letter-spacing: 0.02em; }
 .bd-block.with-ports .bd-port .arr {
   font-size: 10px; line-height: 1; width: 6px; text-align: center;
@@ -243,11 +347,96 @@
 }
 .bd-block.with-ports .bd-port.left-side::before {
   content: ''; position: absolute; left: -3px; top: 50%;
-  width: 6px; height: 1px; background: var(--line-2);
+  width: 6px; height: 2px; background: currentColor;
 }
 .bd-block.with-ports .bd-port.right-side::after {
   content: ''; position: absolute; right: -3px; top: 50%;
-  width: 6px; height: 1px; background: var(--line-2);
+  width: 6px; height: 2px; background: currentColor;
+}
+
+/* Top SoC diagram in a Carbon/EDA-document style: bright paper,
+   square white components, black orthogonal wires, minimal chrome. */
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top {
+  background: #fff;
+  border: 1px solid #8b96a3;
+  box-shadow: 0 1px 0 rgba(15,23,42,0.08);
+  color: #1f2933;
+  border-radius: 0;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top.cpu {
+  border-color: #2f6fd0;
+  box-shadow: inset 3px 0 0 #2f6fd0, 0 1px 0 rgba(15,23,42,0.08);
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top.bus,
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top.noc {
+  border-color: #8b4bb3;
+  box-shadow: inset 3px 0 0 #8b4bb3, 0 1px 0 rgba(15,23,42,0.08);
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top.mem {
+  border-color: #168395;
+  box-shadow: inset 3px 0 0 #168395, 0 1px 0 rgba(15,23,42,0.08);
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top.periph {
+  border-color: #2f8a5b;
+  box-shadow: inset 3px 0 0 #2f8a5b, 0 1px 0 rgba(15,23,42,0.08);
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top:hover,
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top.sel {
+  border-color: #1d4ed8;
+  box-shadow: inset 3px 0 0 #1d4ed8, 0 0 0 1px #1d4ed8, 0 4px 14px rgba(29,78,216,0.13);
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-block-head {
+  background: #f6f8fb;
+  border-bottom: 1px solid #9aa4b0;
+  color: #111827;
+  min-height: 22px;
+  font-size: 11px;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .nm-instance {
+  color: #111827;
+  font-weight: 700;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .nm-type {
+  color: #273244;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.proto-axi,
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.proto-axil,
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.proto-ace {
+  color: #1f5fcc;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.proto-apb,
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.proto-ahb {
+  color: #8a3ea0;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.proto-irq {
+  color: #a87212;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port:hover,
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.connecting {
+  color: #111827;
+  background: #e8f0ff;
+  outline-color: #1d4ed8;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.proto-axi .proto-badge,
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.proto-axil .proto-badge,
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.proto-ace .proto-badge {
+  color: #1f5fcc;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.proto-apb .proto-badge,
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.proto-ahb .proto-badge {
+  color: #8a3ea0;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.proto-irq .proto-badge {
+  color: #a87212;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-center-icon {
+  border-color: transparent;
+  background: transparent;
+  opacity: 0;
+}
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.left-side::before,
+[data-theme="light"] .bd-canvas.soc-carbon .bd-block.soc-top .bd-port.right-side::after {
+  background: currentColor;
 }
 
 /* ── Hierarchy tree (left rail) ──────────────────────────────── */
@@ -280,6 +469,19 @@
 .bd-crumb .seg.last { color: var(--accent); cursor: default;
                       background: color-mix(in oklch, var(--accent) 12%, transparent); }
 .bd-crumb .sep { color: var(--fg-mute); font-size: 10px; }
+.seg-tabs {
+  display: inline-flex; align-items: center; gap: 1px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  font-family: var(--mono); font-size: 10px;
+}
+.seg-tabs button {
+  border: 0; background: transparent; color: var(--fg-dim);
+  padding: 3px 8px; cursor: pointer;
+  font-family: inherit; font-size: inherit; text-transform: uppercase;
+}
+.seg-tabs button:hover { color: var(--fg); background: var(--bg-3); }
+.seg-tabs button.sel { color: var(--accent); background: var(--select); }
 
 /* ── Layers / zoom / legend overlays on canvas ───────────────── */
 .bd-layers {
@@ -338,6 +540,8 @@
 }
 .pl-dot.ok      { background: var(--ok); }
 .pl-dot.partial { background: var(--warn); }
+.pl-dot.planned { background: color-mix(in oklch, var(--accent) 45%, var(--line-2)); }
+.pl-dot.approved { background: color-mix(in oklch, var(--ok) 70%, var(--warn)); }
 .pl-dot.err     { background: var(--err); }
 .pl-dot.run     { background: var(--cyan); animation: plBlink 1s infinite; }
 .pl-dot.pending { background: var(--line-2); }
@@ -583,6 +787,8 @@
 .job-row.completed .icn { color: var(--ok); }
 .job-row.error .icn { color: var(--err); }
 .job-row.cancelled .icn { color: var(--fg-mute); }
+.job-row.queued .icn { color: var(--fg-mute); }
+.job-row.blocked .icn { color: var(--warn); }
 .job-row .ip { color: var(--fg); font-weight: 500; }
 .job-row .wf { color: var(--accent); font-size: 10px; padding: 0 4px;
                background: color-mix(in oklch, var(--accent) 10%, transparent);
@@ -601,24 +807,34 @@
 
 // Pipeline strip shared by V6 grid + V7 diagram. Same logic as the
 // upstream zip; lives here because soc-shared.jsx doesn't ship it.
-window.PIPELINE_STAGES = ['ssot', 'rtl', 'lint', 'sim', 'syn', 'sta', 'pnr'];
+window.PIPELINE_STAGES = ['ssot', 'equivalence', 'rtl', 'tb', 'sim-debug', 'goal-audit'];
 window.PIPELINE_LABEL = {
-  ssot: 'SSOT', rtl: 'RTL', lint: 'LINT', sim: 'SIM',
-  syn: 'SYN', sta: 'STA', pnr: 'PNR',
+  ssot: 'SSOT', equivalence: 'EQUIV', rtl: 'RTL', tb: 'TB', 'sim-debug': 'SIMDBG', 'goal-audit': 'AUDIT',
 };
 window.fullPipeline = function fullPipeline(status, modId) {
-  const seed = (modId || '').charCodeAt(0) || 7;
-  return {
-    ssot: status.ssot,
-    rtl:  status.rtl,
-    lint: status.rtl === 'pending' ? 'pending'
-        : status.rtl === 'partial' ? 'partial'
-        : (seed % 5 === 0 ? 'partial' : 'ok'),
-    sim:  status.sim,
-    syn:  status.rtl === 'ok' && status.sim === 'ok' ? (seed % 4 === 0 ? 'partial' : 'ok') : 'pending',
-    sta:  status.rtl === 'ok' && status.sim === 'ok' ? (seed % 6 === 0 ? 'partial' : 'pending') : 'pending',
-    pnr:  'pending',
+  const s = status || {};
+  const full = {
+    ssot: s.ssot || 'pending',
+    equivalence: s.equivalence_goals || 'pending',
+    rtl: s.rtl || 'pending',
+    tb: s.tb || 'pending',
+    'sim-debug': s['sim-debug'] || s.sim_debug || (s.sim === 'ok' ? 'ok' : 'pending'),
+    'goal-audit': s.goal_audit || 'pending',
   };
+  const jobs = Array.isArray(window.ATLAS_JOBS) ? window.ATLAS_JOBS : [];
+  const stageForWorkflow = {
+    'ssot-gen': 'ssot', 'fl-model-gen': 'equivalence', 'rtl-gen': 'rtl', 'tb-gen': 'tb', sim_debug: 'sim-debug',
+  };
+  for (const j of jobs) {
+    if (!j || j.ip !== modId) continue;
+    const stage = j.stage_id || stageForWorkflow[j.workflow];
+    if (!stage || !(stage in full)) continue;
+    if (j.status === 'running' || j.status === 'pending') full[stage] = 'run';
+    else if (j.status === 'queued') full[stage] = full[stage] === 'pending' ? 'partial' : full[stage];
+    else if (j.status === 'completed') full[stage] = 'ok';
+    else if (j.status === 'error' || j.status === 'blocked' || j.status === 'cancelled') full[stage] = 'err';
+  }
+  return full;
 };
 window.PipelineStrip = function PipelineStrip({ status, modId, big = false }) {
   const full = window.fullPipeline(status, modId || '');
@@ -629,6 +845,235 @@ window.PipelineStrip = function PipelineStrip({ status, modId, big = false }) {
               title={`${window.PIPELINE_LABEL[s]} · ${full[s]}`} />
       ))}
     </span>
+  );
+};
+
+window.ModuleProgressPanel = function ModuleProgressPanel({ module }) {
+  const p = module?.progress || {};
+  const ssot = p.ssot || {};
+  const rtl = p.rtl || {};
+  const equiv = p.equivalence_goals || {};
+  const goalAudit = p.goal_audit || {};
+  const lint = p.lint || {};
+  const sim = p.sim || {};
+  const chipColor = (state) => {
+    if (state === 'approved' || state === 'pass') return 'var(--ok)';
+    if (state === 'missing' || state === 'fail') return 'var(--err)';
+    if (state === 'partial' || state === 'incomplete' || state === 'unknown' || state === 'blocked' || state === 'escalated' || state === 'stale') return 'var(--warn)';
+    return 'var(--fg-mute)';
+  };
+  const Bar = ({ value }) => (
+    <span style={{
+      display: 'inline-block', width: 78, height: 5, border: '1px solid var(--line)',
+      background: 'var(--bg-2)', verticalAlign: 'middle', marginLeft: 6,
+    }}>
+      <span style={{
+        display: 'block', height: '100%', width: `${Math.max(0, Math.min(100, value || 0))}%`,
+        background: value >= 100 ? 'var(--ok)' : 'var(--warn)',
+      }} />
+    </span>
+  );
+  const Section = ({ title, right, children }) => (
+    <div style={{ borderBottom: '1px solid var(--line)', padding: '8px 10px' }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6,
+        fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+      }}>
+        <b>{title}</b>
+        <span style={{ flex: 1 }} />
+        <span className="mute">{right}</span>
+      </div>
+      {children}
+    </div>
+  );
+  const ssotSections = Array.isArray(ssot.sections) ? ssot.sections : [];
+  const ssotMetrics = ssot.metrics || {};
+  const rtlModules = Array.isArray(rtl.modules) ? rtl.modules : [];
+  const dv = sim.dv_plan || {};
+  const res = sim.results || {};
+  const cov = sim.coverage || {};
+  const covStatic = cov.static && typeof cov.static === 'object' ? cov.static : {};
+  const metricLabel = (m) => {
+    if (!m || typeof m !== 'object') return '—';
+    const pct = m.pct ?? m.percent;
+    const hit = m.hit ?? m.covered;
+    const total = m.total ?? m.found;
+    if (pct != null) return `${pct}%`;
+    if (hit != null && total != null) return `${hit}/${total}`;
+    return '—';
+  };
+  const scenarioRows = Array.isArray(dv.scenario_rows) ? dv.scenario_rows : [];
+  const escalations = Array.isArray(sim.escalations) ? sim.escalations : [];
+  const covCriteria = cov.criteria && typeof cov.criteria === 'object' ? Object.entries(cov.criteria) : [];
+  const covLimitations = cov.limitations && typeof cov.limitations === 'object' ? Object.entries(cov.limitations) : [];
+  const resultRight = res.check_total != null
+    ? `${res.check_pass ?? 0}/${res.check_total} checks · ${res.check_fail ?? 0} fail`
+    : `${res.pass || 0}/${res.total || 0} pass · ${res.fail || 0} fail`;
+  return (
+    <div style={{ background: 'var(--panel)', borderBottom: '1px solid var(--line)' }}>
+      <Section title="SSOT" right={`${ssot.approved || 0}/${ssot.total || 0} approved`}>
+        <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg-mute)', marginBottom: 5 }}>
+          {ssot.pct || 0}%<Bar value={ssot.pct || 0} />
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, fontFamily: 'var(--mono)', fontSize: 10, marginBottom: 6 }}>
+          <span className="pill">submods {ssotMetrics.submodules ?? 0}</span>
+          <span className="pill">params {ssotMetrics.parameters ?? 0}</span>
+          <span className="pill">if {ssotMetrics.interfaces ?? 0}</span>
+          <span className="pill">ports {ssotMetrics.ports ?? 0}</span>
+          <span className="pill">regs {ssotMetrics.registers ?? 0}</span>
+          <span className="pill">fsm {ssotMetrics.fsm_states ?? 0}/{ssotMetrics.fsm_transitions ?? 0}</span>
+          <span className="pill">dv {ssotMetrics.dv_scenarios ?? 0}</span>
+          <span className="pill">cov {ssotMetrics.coverage_goals ?? 0}</span>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+          {ssotSections.map(s => (
+            <span key={s.key} title={`${s.key} · ${s.status}`} style={{
+              border: `1px solid ${chipColor(s.status)}`, color: chipColor(s.status),
+              padding: '1px 5px', fontSize: 9, fontFamily: 'var(--mono)', borderRadius: 2,
+            }}>{s.label}</span>
+          ))}
+        </div>
+      </Section>
+      <Section title="FL-vs-RTL Goals" right={`${equiv.passed || 0}/${equiv.total || 0} pass`}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, fontFamily: 'var(--mono)', fontSize: 10 }}>
+          <span style={{ color: chipColor(equiv.status), border: `1px solid ${chipColor(equiv.status)}`, padding: '1px 6px' }}>{equiv.status || 'pending'}</span>
+          <span className="pill">generated {equiv.generated || 0}</span>
+          <span className="pill">checked {equiv.checked || 0}</span>
+          <span className="pill">failed {equiv.failed || 0}</span>
+          <span className="pill">blocked {equiv.blocked || 0}</span>
+          <span className="pill">untested {equiv.untested || 0}</span>
+        </div>
+        <div className="mute" style={{ marginTop: 5, fontFamily: 'var(--mono)', fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {equiv.compare_evidence || equiv.evidence || 'no equivalence goal evidence'}
+        </div>
+        {equiv.classification_counts && Object.keys(equiv.classification_counts).length > 0 && (
+          <div className="mute" style={{ marginTop: 5, fontFamily: 'var(--mono)', fontSize: 10 }}>
+            class: {Object.entries(equiv.classification_counts).map(([k, v]) => `${k}:${v}`).join(' · ')}
+          </div>
+        )}
+        {equiv.owner_counts && Object.keys(equiv.owner_counts).length > 0 && (
+          <div className="mute" style={{ marginTop: 5, fontFamily: 'var(--mono)', fontSize: 10 }}>
+            owner: {Object.entries(equiv.owner_counts).map(([k, v]) => `${k}:${v}`).join(' · ')}
+          </div>
+        )}
+        {Array.isArray(equiv.missing_evidence) && equiv.missing_evidence.length > 0 && (
+          <div className="mute" style={{ marginTop: 5, fontFamily: 'var(--mono)', fontSize: 10 }}>
+            missing: {equiv.missing_evidence.slice(0, 3).join(', ')}
+          </div>
+        )}
+        {Array.isArray(equiv.stale_evidence) && equiv.stale_evidence.length > 0 && (
+          <div className="mute" style={{ marginTop: 5, fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--warn)' }}>
+            stale: {equiv.stale_evidence.slice(0, 3).join(', ')}
+          </div>
+        )}
+        {Array.isArray(equiv.failed_goal_ids) && equiv.failed_goal_ids.length > 0 && (
+          <div className="mute" style={{ marginTop: 5, fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--warn)' }}>
+            failed: {equiv.failed_goal_ids.join(', ')}
+          </div>
+        )}
+        {Array.isArray(equiv.blocked_goal_ids) && equiv.blocked_goal_ids.length > 0 && (
+          <div className="mute" style={{ marginTop: 5, fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--warn)' }}>
+            blocked: {equiv.blocked_goal_ids.join(', ')}
+          </div>
+        )}
+        {Array.isArray(equiv.untested_goal_ids) && equiv.untested_goal_ids.length > 0 && (
+          <div className="mute" style={{ marginTop: 5, fontFamily: 'var(--mono)', fontSize: 10 }}>
+            untested: {equiv.untested_goal_ids.join(', ')}
+          </div>
+        )}
+        <div className="mute" style={{ marginTop: 7, fontFamily: 'var(--mono)', fontSize: 10 }}>
+          audit <span style={{ color: chipColor(goalAudit.status) }}>{goalAudit.status || 'pending'}</span>
+          {' '}· {goalAudit.passed_checks || 0}/{goalAudit.total_checks || 0} checks
+          {goalAudit.source ? ` · ${goalAudit.source}` : ' · run /goal-audit'}
+        </div>
+        {Array.isArray(goalAudit.blockers) && goalAudit.blockers.length > 0 && (
+          <div className="mute" style={{ marginTop: 5, fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--warn)' }}>
+            audit blockers: {goalAudit.blockers.slice(0, 8).join(', ')}
+          </div>
+        )}
+        {Array.isArray(goalAudit.stale_evidence) && goalAudit.stale_evidence.length > 0 && (
+          <div className="mute" style={{ marginTop: 5, fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--warn)' }}>
+            audit stale: {goalAudit.stale_evidence.slice(0, 3).join(', ')}
+          </div>
+        )}
+      </Section>
+      <Section title="RTL" right={`${rtl.approved || 0}/${rtl.total || 0} modules`}>
+        <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg-mute)', marginBottom: 5 }}>
+          {rtl.pct || 0}% · {rtl.filelist || 'no filelist'}<Bar value={rtl.pct || 0} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 4 }}>
+          {rtlModules.map(m => (
+            <span key={m.file} title={`${m.file}\nlisted=${m.listed} bytes=${m.bytes} placeholder=${m.placeholder}`} style={{
+              borderLeft: `2px solid ${chipColor(m.status)}`, background: 'var(--bg-2)',
+              padding: '3px 5px', fontSize: 10, fontFamily: 'var(--mono)',
+              color: m.status === 'approved' ? 'var(--fg)' : chipColor(m.status),
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>{m.status === 'approved' ? '✓' : m.status === 'missing' ? '✕' : '◐'} {m.name}</span>
+          ))}
+        </div>
+      </Section>
+      <Section title="Lint" right={`${lint.errors ?? 0} errors · ${lint.warnings ?? 0} warnings`}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', fontFamily: 'var(--mono)', fontSize: 11 }}>
+          <span style={{ color: chipColor(lint.status), border: `1px solid ${chipColor(lint.status)}`, padding: '1px 6px' }}>{lint.status || 'unknown'}</span>
+          <span className="err">E {lint.errors ?? 0}</span>
+          <span className="warn">W {lint.warnings ?? 0}</span>
+          <span className="mute">waive {lint.warning_budget ?? 0}</span>
+          <span className="mute" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lint.source || 'no lint log'}</span>
+        </div>
+      </Section>
+      <Section title="SIM · DV" right={resultRight}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, fontFamily: 'var(--mono)', fontSize: 10 }}>
+          <span className="pill">SSOT scenarios {dv.scenarios || 0}</span>
+          <span className="pill">scoreboard {dv.scoreboard_checks ?? '—'}</span>
+          <span className="pill">coverage goals {dv.coverage_goals || 0}</span>
+          <span className="pill">TB tests {sim.implemented_tests || 0}</span>
+          <span className="pill">xunit {res.pass || 0}/{res.total || 0}</span>
+          <span style={{ color: chipColor(cov.status), border: `1px solid ${chipColor(cov.status)}`, padding: '1px 6px' }}>coverage {cov.status || 'unknown'}</span>
+          <span className="pill">functional cov {cov.functional_pct ?? '—'}%</span>
+          <span className="pill">line {metricLabel(covStatic.lines)}</span>
+          <span className="pill">branch {metricLabel(covStatic.branches)}</span>
+          <span className="pill">fsm {metricLabel(covStatic.fsm_state)}</span>
+        </div>
+        {scenarioRows.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
+            {scenarioRows.map((r) => {
+              const esc = r.escalation && typeof r.escalation === 'object' ? r.escalation : null;
+              const title = [
+                `${r.id || ''} ${r.name || ''}`.trim(),
+                `status=${r.status || 'pending'}`,
+                r.expected ? `expected=${r.expected}` : '',
+                esc ? `escalation=${esc.file || esc.module || ''} ${esc.hypothesis || esc.fix || esc.expected || ''}` : '',
+              ].filter(Boolean).join('\n');
+              return (
+                <span key={r.id || r.name} title={title} style={{
+                  border: `1px solid ${chipColor(r.status)}`, color: chipColor(r.status),
+                  padding: '1px 5px', fontSize: 9, fontFamily: 'var(--mono)', borderRadius: 2,
+                }}>{r.id || r.name}: {r.status || 'pending'}</span>
+              );
+            })}
+          </div>
+        )}
+        {escalations.length > 0 && (
+          <div style={{ marginTop: 6, fontSize: 10, color: 'var(--warn)', lineHeight: 1.4 }}>
+            {escalations.slice(0, 3).map((e, idx) => (
+              <div key={`${e.test_id || e.scenario || idx}`}>[{e.test_id || e.scenario || `E${idx + 1}`}] {e.module || e.file || 'escalated'}: {e.expected || e.fix || e.hypothesis || 'see coverage.json'}</div>
+            ))}
+            {escalations.length > 3 && <div className="mute">+{escalations.length - 3} more escalations</div>}
+          </div>
+        )}
+        {covCriteria.length > 0 && (
+          <div style={{ marginTop: 5, fontSize: 10, color: 'var(--fg-mute)', lineHeight: 1.4 }}>
+            {covCriteria.map(([k, v]) => <div key={k}><b>{k}</b>: {String(v)}</div>)}
+          </div>
+        )}
+        {covLimitations.length > 0 && (
+          <div style={{ marginTop: 5, fontSize: 10, color: 'var(--warn)', lineHeight: 1.4 }}>
+            {covLimitations.map(([k, v]) => <div key={k}><b>{k}</b>: {String(v)}</div>)}
+          </div>
+        )}
+      </Section>
+    </div>
   );
 };
 
@@ -695,6 +1140,11 @@ function _buildLookup(soc) {
 window.SocArchitect = function SocArchitect() {
   const [tab, setTab] = React.useState('diagram');
   const [view, setView] = React.useState('soc');           // 'soc' | 'cluster:<id>' | 'module:<ref>'
+  const [socTopMode, setSocTopMode] = React.useState('if'); // 'if' = I/F only, 'detail' = show aux pins/addr
+  const [diagramFocus, setDiagramFocus] = React.useState(false);
+  const [leftPanelW, setLeftPanelW] = React.useState(() => Number(localStorage.getItem('atlas.arch.leftPanelW')) || 240);
+  const [rightPanelW, setRightPanelW] = React.useState(() => Number(localStorage.getItem('atlas.arch.rightPanelW')) || 480);
+  const panelResizeRef = React.useRef(null);
   const [running, setRunning] = React.useState(null);
   const [layers, setLayers] = React.useState({
     modules: true, busses: true, clk: false, rst: false, labels: true,
@@ -717,6 +1167,53 @@ window.SocArchitect = function SocArchitect() {
   // every 2s; used by the JobTracker panel + the per-block "running"
   // ring + the block ⚡ menu.
   const [jobs, setJobs] = React.useState([]);
+  const beginPanelResize = React.useCallback((side, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    panelResizeRef.current = {
+      side,
+      startX: e.clientX,
+      left0: leftPanelW,
+      right0: rightPanelW,
+      viewportW: window.innerWidth || 1440,
+    };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }, [leftPanelW, rightPanelW]);
+  React.useEffect(() => {
+    const onMove = (e) => {
+      const drag = panelResizeRef.current;
+      if (!drag) return;
+      const dx = e.clientX - drag.startX;
+      if (drag.side === 'left') {
+        const next = Math.max(170, Math.min(420, drag.left0 + dx));
+        setLeftPanelW(next);
+      } else {
+        const next = Math.max(320, Math.min(Math.max(360, drag.viewportW - 420), drag.right0 - dx));
+        setRightPanelW(next);
+      }
+    };
+    const onUp = () => {
+      if (!panelResizeRef.current) return;
+      panelResizeRef.current = null;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      setLeftPanelW(v => {
+        localStorage.setItem('atlas.arch.leftPanelW', String(Math.round(v)));
+        return v;
+      });
+      setRightPanelW(v => {
+        localStorage.setItem('atlas.arch.rightPanelW', String(Math.round(v)));
+        return v;
+      });
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, []);
   React.useEffect(() => {
     let cancelled = false;
     const tick = async () => {
@@ -731,6 +1228,9 @@ window.SocArchitect = function SocArchitect() {
     const id = setInterval(tick, 2000);
     return () => { cancelled = true; clearInterval(id); };
   }, []);
+  React.useEffect(() => {
+    window.ATLAS_JOBS = jobs || [];
+  }, [jobs]);
   // Map ip → most recent running job (used for diagram ring).
   const runningByIp = React.useMemo(() => {
     const m = {};
@@ -738,6 +1238,18 @@ window.SocArchitect = function SocArchitect() {
       if (j.status === 'running' && j.ip) {
         if (!m[j.ip] || (j.started_at || 0) > (m[j.ip].started_at || 0)) m[j.ip] = j;
       }
+    }
+    return m;
+  }, [jobs]);
+  const jobsByIp = React.useMemo(() => {
+    const m = {};
+    for (const j of jobs) {
+      if (!j.ip) continue;
+      if (!m[j.ip]) m[j.ip] = [];
+      m[j.ip].push(j);
+    }
+    for (const ip of Object.keys(m)) {
+      m[ip].sort((a, b) => (b.started_at || 0) - (a.started_at || 0));
     }
     return m;
   }, [jobs]);
@@ -750,7 +1262,11 @@ window.SocArchitect = function SocArchitect() {
       const r = await fetch('/api/job/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workflow, ip }),
+        body: JSON.stringify({
+          workflow,
+          ip,
+          session: ip ? `${ip}/${workflow}` : workflow,
+        }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
@@ -764,9 +1280,35 @@ window.SocArchitect = function SocArchitect() {
             `Or set WORKER_URL_${workflow.toUpperCase().replace(/-/g, '_')} env var.`);
     }
   }, []);
+  const dispatchPipeline = React.useCallback(async (ip) => {
+    setDispatchMenu(null);
+    if (!ip) {
+      alert('Select an IP/module first, then run the full pipeline.');
+      return;
+    }
+    try {
+      const r = await fetch('/api/pipeline/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
+      setTimeout(() => fetch('/api/jobs').then(r => r.json())
+        .then(dd => setJobs(dd.jobs || [])).catch(() => {}), 200);
+    } catch (e) {
+      alert(`pipeline dispatch failed: ${e.message || e}`);
+    }
+  }, []);
   // Sparkline hover popover state — which row is hovered, for the
   // status grid TREND column. {ref, x, y} or null.
   const [sparkPop, setSparkPop] = React.useState(null);
+  // Port-to-port connect state for the top SoC diagram. First click
+  // arms a source port; second click writes connections[] through
+  // /api/soc/connect and refreshes live data.
+  const [pendingPort, setPendingPort] = React.useState(null);
+  const [catalog, setCatalog] = React.useState([]);
+  const [workspaceTree, setWorkspaceTree] = React.useState(null);
   const fitZoom = React.useCallback(() => {
     const el = bdCanvasRef.current; if (!el) return;
     const w = el.clientWidth, h = el.clientHeight;
@@ -807,6 +1349,22 @@ window.SocArchitect = function SocArchitect() {
   const soc = (live && live.clusters && live.clusters.length) ? live : window.SOC;
   const lookup = (live && live.clusters && live.clusters.length) ? _buildLookup(live) : window.SOC_LOOKUP;
   const isLive = !!(live && live.clusters && live.clusters.length);
+  React.useEffect(() => {
+    let cancelled = false;
+    fetch('/api/catalog/models')
+      .then(r => r.json())
+      .then(d => { if (!cancelled) setCatalog(Array.isArray(d.models) ? d.models : []); })
+      .catch(() => { if (!cancelled) setCatalog([]); });
+    return () => { cancelled = true; };
+  }, [isLive]);
+  React.useEffect(() => {
+    let cancelled = false;
+    fetch('/api/workspace/tree?depth=2')
+      .then(r => r.json())
+      .then(d => { if (!cancelled) setWorkspaceTree(d.root || null); })
+      .catch(() => { if (!cancelled) setWorkspaceTree(null); });
+    return () => { cancelled = true; };
+  }, [isLive]);
 
   // Hierarchy tree search query — case-insensitive substring match
   // against module id + name. Empty string means "show everything".
@@ -832,6 +1390,48 @@ window.SocArchitect = function SocArchitect() {
   const persistLayout = React.useCallback((next) => {
     try { localStorage.setItem(_layoutKey, JSON.stringify(next)); } catch (_) {}
   }, [_layoutKey]);
+  const getStageScale = React.useCallback((e, stageW = 1180) => {
+    const stage = e?.currentTarget?.closest?.('.bd-stage') ||
+                  bdCanvasRef.current?.querySelector?.('.bd-stage');
+    const rect = stage?.getBoundingClientRect?.();
+    if (rect && rect.width > 0) return rect.width / stageW;
+    return zoom / 100;
+  }, [zoom]);
+  React.useEffect(() => {
+    const onMove = (e) => {
+      const d = blockDragRef.current;
+      if (!d || !d.globalDrag) return;
+      const dx = (e.clientX - d.startX) / d.scale;
+      const dy = (e.clientY - d.startY) / d.scale;
+      if (Math.abs(dx) + Math.abs(dy) < 2) return;
+      d.dragged = true;
+      const nextPos = {
+        x: Math.max(0, Math.min(d.maxX, d.baseX + dx)),
+        y: Math.max(0, Math.min(d.maxY, d.baseY + dy)),
+      };
+      setLayout(prev => {
+        const next = { ...prev, [d.layoutKey]: nextPos };
+        d.latestLayout = next;
+        return next;
+      });
+    };
+    const onUp = () => {
+      const d = blockDragRef.current;
+      if (!d || !d.globalDrag) return;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      if (d.dragged && d.latestLayout) persistLayout(d.latestLayout);
+      setTimeout(() => { blockDragRef.current = null; }, 0);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    return () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [persistLayout]);
 
   // Default selection: first module of first cluster (so we don't
   // hold a stale 'periph_ss/spi' ref on a live project that has
@@ -942,12 +1542,11 @@ window.SocArchitect = function SocArchitect() {
 
   React.useEffect(() => {
     // When live data lands, jump to its first module if our current
-    // selection doesn't exist there. Also drill straight into the
-    // first cluster — the SoC overview is hardcoded for the aurora
-    // 4-cluster mock layout, which doesn't match live IPs.
+    // selection doesn't exist there. Keep the top-level SoC overview
+    // visible: it now renders live IP instances and real interconnects
+    // instead of a mock-only cluster card layout.
     if (isLive) {
       if (!lookup[selMod]) setSelMod(firstRef);
-      if (view === 'soc' && soc.clusters[0]) setView(`cluster:${soc.clusters[0].id}`);
     }
   }, [isLive, firstRef]); // eslint-disable-line
 
@@ -995,9 +1594,9 @@ window.SocArchitect = function SocArchitect() {
     return allRows;
   })();
 
-  // Run metadata for the status grid. Prefer real sim_history from
-  // /api/soc; fall back to deterministic-pseudo-random demo values so
-  // the mock mode still shows non-empty cells.
+  // Run metadata for the status grid. Use only real sim_history from
+  // /api/soc; missing data stays blank so the UI does not imply a
+  // verification run that never happened.
   const runMeta = (mod) => {
     const hist = Array.isArray(mod.sim_history) ? mod.sim_history : [];
     const last = hist[hist.length - 1];
@@ -1009,12 +1608,7 @@ window.SocArchitect = function SocArchitect() {
         dur: last.dur || '—',
       };
     }
-    return {
-      t: mod.id === 'spi' ? '12:04:28' : mod.id === 'cpu1' ? '12:01:14' : mod.id === 'gic' ? '—' : '11:58:41',
-      cov:   mod.status.sim === 'ok' ? '91%' : mod.status.sim === 'partial' ? '84%' : mod.status.sim === 'err' ? '87%' : '—',
-      tests: mod.status.sim === 'ok' ? '24/24' : mod.status.sim === 'partial' ? '22/24' : mod.status.sim === 'err' ? '21/24' : '—',
-      dur:   mod.status.sim === 'ok' ? '4.2s' : mod.status.sim === 'partial' ? '3.8s' : mod.status.sim === 'err' ? '5.1s' : '—',
-    };
+    return { t: '—', cov: '—', tests: '—', dur: '—' };
   };
   const sparkBars = (mod) => {
     const hist = Array.isArray(mod.sim_history) ? mod.sim_history : [];
@@ -1035,107 +1629,293 @@ window.SocArchitect = function SocArchitect() {
         return r.status === 'ok' ? 9 : r.status === 'partial' ? 6 : r.status === 'err' ? 3 : 2;
       });
     }
-    // Fallback (mock mode): deterministic-pseudo-random.
-    const id = mod.id || '';
-    if (!id) return [];
-    const seed = id.charCodeAt(0) + id.charCodeAt(id.length - 1);
-    return Array.from({ length: 10 }, (_, i) => ((seed * (i + 7)) % 9) + 2);
+    return [];
   };
 
   // ── V7 diagram renderers ──────────────────────────────────────
   const renderSocView = () => {
     const W = 1180, H = 720;
-    const cx = W/2, cy = H/2;
-    const positions = {
-      cpu_ss:    { x: 80,    y: 90,  w: 280, h: 170 },
-      mem_ss:    { x: W-360, y: 90,  w: 280, h: 170 },
-      periph_ss: { x: 80,    y: H-260, w: 280, h: 170 },
-      analog_ss: { x: W-360, y: H-260, w: 280, h: 170 },
-      noc:       { x: cx-130,y: cy-85, w: 260, h: 170 },
+    const modules = [];
+    for (const c of soc.clusters || []) {
+      for (const m of c.modules || []) modules.push({ cluster: c, module: m, ref: `${c.id}/${m.id}` });
+    }
+    const findRow = (id) => modules.find(r => r.module.id === id);
+    const isAux = (it) => {
+      const p = (it.proto || '').toUpperCase();
+      return p === 'CLK' || p === 'RST';
     };
-    const lines = [];
+    const sizeOf = (m) => {
+      const visible = (m.interfaces || []).filter(it => socTopMode === 'detail' || !isAux(it));
+      const n = Math.max(2, Math.min(5, visible.length));
+      return { w: 236, h: Math.max(112, 50 + n * 20) };
+    };
+    const positions = {};
+    const put = (id, x, y) => {
+      const row = findRow(id); if (!row) return;
+      const s = sizeOf(row.module);
+      // Top SoC has its own layout namespace. Cluster-local saved
+      // positions can be useful inside a cluster view but make the
+      // full-chip diagram collapse when the same x/y are reused here.
+      const ov = layout && layout[`top:${row.ref}`];
+      const hasOv = ov && typeof ov.x === 'number' && typeof ov.y === 'number';
+      const hasSaved = typeof row.module.savedTopX === 'number' && typeof row.module.savedTopY === 'number';
+      positions[id] = {
+        x: hasOv ? ov.x : hasSaved ? row.module.savedTopX : x,
+        y: hasOv ? ov.y : hasSaved ? row.module.savedTopY : y,
+        w: s.w, h: s.h,
+      };
+    };
+    // Prefer the familiar Carbon-style SoC placement when these IPs
+    // exist; fall back to kind/role based columns for other projects.
+    put('cortexa15_0', 74, 92);
+    put('cci550',      468, 210);
+    put('ddr_phy',     846, 92);
+    put('spi_master',  170, 468);
+    put('gic_400',     846, 438);
+    put('uart_lite',   846, 592);
+    let yCpu = 80, yBus = 220, yMem = 88, yPer = 430, yMisc = 560;
+    for (const r of modules) {
+      if (positions[r.module.id]) continue;
+      const role = (r.cluster.role || '').toUpperCase();
+      const kind = r.module.kind || '';
+      if (role === 'CPU' || kind === 'cpu') { put(r.module.id, 72, yCpu); yCpu += 164; }
+      else if (role === 'BUS' || kind === 'bus') { put(r.module.id, 470, yBus); yBus += 168; }
+      else if (role === 'MEM' || kind === 'mem') { put(r.module.id, 850, yMem); yMem += 164; }
+      else if (role === 'PERIPH' || kind === 'periph') { put(r.module.id, 164, yPer); yPer += 150; }
+      else { put(r.module.id, 850, yMisc); yMisc += 140; }
+    }
+    const ifaceSide = (iface) => {
+      const side = (iface.side || '').toLowerCase();
+      const role = (iface.role || 'slave').toLowerCase();
+      const proto = (iface.proto || '').toUpperCase();
+      if (proto === 'CLK' || proto === 'RST') return 'left';
+      if (side === 'top' || side === 'bottom' || side === 'left' || side === 'right') return side;
+      return role === 'master' ? 'right' : 'left';
+    };
+    const sideList = (m, side) => (m.interfaces || [])
+      .filter(it => socTopMode === 'detail' || !isAux(it))
+      .filter(it => ifaceSide(it) === side)
+      .slice(0, 5);
+    const pinPoint = (m, ifaceName, preferSide) => {
+      const p = positions[m.id]; if (!p) return null;
+      const iface = (m.interfaces || []).find(it => it.name === ifaceName) || {};
+      const side = preferSide || ifaceSide(iface);
+      const list = sideList(m, side);
+      const idx = Math.max(0, list.findIndex(it => it.name === ifaceName));
+      const t = (idx + 1) / (Math.max(1, list.length) + 1);
+      const topPorts = sideList(m, 'top');
+      const bottomPorts = sideList(m, 'bottom');
+      const headerH = 24;
+      const topH = topPorts.length ? 18 : 0;
+      const bottomH = bottomPorts.length ? 18 : 0;
+      if (side === 'top') return { x: p.x + p.w * t, y: p.y + headerH + 1, side };
+      if (side === 'bottom') return { x: p.x + p.w * t, y: p.y + p.h - bottomH - 1, side };
+
+      // The visible left/right port rows are not distributed across the
+      // whole block: CSS centers the port column inside the body area.
+      // Mirror that geometry so wires terminate at the row, not above or
+      // below the label.
+      const bodyY = p.y + headerH + topH;
+      const bodyH = Math.max(1, p.h - headerH - topH - bottomH);
+      const rowH = 13;
+      const gap = 3;
+      const n = Math.max(1, list.length);
+      const stackH = n * rowH + (n - 1) * gap;
+      const firstY = bodyY + (bodyH - stackH) / 2 + rowH / 2;
+      const y = firstY + Math.max(0, idx) * (rowH + gap);
+      if (side === 'right') return { x: p.x + p.w + 3, y, side };
+      return { x: p.x - 3, y, side: 'left' };
+    };
+    const protoColor = (proto) => {
+      const p = (proto || '').toUpperCase();
+      if (p === 'ACE' || p === 'AXI' || p === 'AXI4' || p === 'AXI4L') return 'var(--accent)';
+      if (p === 'APB' || p === 'AHB') return 'var(--magenta)';
+      if (p === 'IRQ') return 'var(--warn)';
+      return 'var(--cyan)';
+    };
+    const connections = [];
     if (layers.busses) {
-      for (const cid of ['cpu_ss','mem_ss','periph_ss','analog_ss']) {
-        const c = positions[cid];
-        const cMidX = c.x + c.w/2, cMidY = c.y + c.h/2;
-        const nMidX = positions.noc.x + positions.noc.w/2, nMidY = positions.noc.y + positions.noc.h/2;
-        const dx = nMidX - cMidX, dy = nMidY - cMidY;
-        const t1 = 1 - 130 / Math.sqrt(dx*dx + dy*dy);
-        const x2 = cMidX + dx * t1, y2 = cMidY + dy * t1;
-        const color = cid === 'cpu_ss' ? 'var(--accent)'
-                    : cid === 'mem_ss' ? 'var(--cyan)'
-                    : cid === 'periph_ss' ? 'var(--magenta)'
-                    : 'var(--warn)';
-        lines.push({ id: `${cid}-noc`, x1: cMidX, y1: cMidY, x2, y2, color });
+      for (const bus of (soc.busses || soc.connections || [])) {
+        if (!bus.from || !bus.to) continue;
+        const [aId, aIf] = String(bus.from).split('/');
+        const [bId, bIf] = String(bus.to).split('/');
+        const a = findRow(aId)?.module, b = findRow(bId)?.module;
+        if (!a || !b) continue;
+        const p1 = pinPoint(a, aIf, 'right');
+        const p2 = pinPoint(b, bIf, 'left');
+        if (!p1 || !p2) continue;
+        connections.push({ id: `${bus.from}->${bus.to}`, from: bus.from, to: bus.to,
+                           proto: bus.proto || '', color: protoColor(bus.proto), p1, p2 });
       }
     }
+    const familyClass = (proto) => {
+      const x = (proto || '').toUpperCase();
+      if (x === 'AXI' || x === 'AXI4') return 'proto-axi';
+      if (x === 'AXI4L') return 'proto-axil';
+      if (x === 'ACE') return 'proto-ace';
+      if (x === 'APB') return 'proto-apb';
+      if (x === 'IRQ') return 'proto-irq';
+      if (x === 'CLK') return 'proto-clk';
+      if (x === 'RST') return 'proto-rst';
+      return '';
+    };
+    const arrowFor = (iface) => {
+      const role = (iface.role || 'slave').toLowerCase();
+      const proto = (iface.proto || '').toUpperCase();
+      if (proto === 'IRQ') return '↯';
+      if (proto === 'CLK' || proto === 'RST') return '►';
+      return role === 'master' ? '►' : '◄';
+    };
+    const connectPort = async (row, iface, e) => {
+      e.stopPropagation();
+      const port = {
+        ip: row.module.id,
+        iface: iface.name,
+        proto: (iface.proto || '').toUpperCase(),
+        role: (iface.role || '').toLowerCase(),
+      };
+      if (!pendingPort) {
+        setPendingPort(port);
+        return;
+      }
+      if (pendingPort.ip === port.ip && pendingPort.iface === port.iface) {
+        setPendingPort(null);
+        return;
+      }
+      const pendingIsMaster = pendingPort.role === 'master';
+      const thisIsMaster = port.role === 'master';
+      const src = pendingIsMaster || !thisIsMaster ? pendingPort : port;
+      const dst = src === pendingPort ? port : pendingPort;
+      try {
+        const r = await fetch('/api/soc/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: `${src.ip}/${src.iface}`,
+            to: `${dst.ip}/${dst.iface}`,
+            proto: src.proto || dst.proto,
+          }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
+        setPendingPort(null);
+        refreshSoc();
+      } catch (err) {
+        alert(`connect failed: ${err.message || err}`);
+      }
+    };
+    const beginBlockDrag = (ref, layoutKey, p, e, maxX, maxY) => {
+      if (e.button !== 0) return;
+      if (e.target.closest && e.target.closest('.bd-port')) return;
+      e.stopPropagation();
+      document.body.style.cursor = 'grabbing';
+      document.body.style.userSelect = 'none';
+      blockDragRef.current = {
+        ref,
+        layoutKey,
+        scale: getStageScale(e, W),
+        dragged: false,
+        startX: e.clientX,
+        startY: e.clientY,
+        baseX: p.x,
+        baseY: p.y,
+        maxX,
+        maxY,
+        latestLayout: null,
+        globalDrag: true,
+      };
+    };
+    const portClass = (m, it, side) => {
+      const active = pendingPort && pendingPort.ip === m.id && pendingPort.iface === it.name;
+      return `bd-port ${side}-side ${familyClass(it.proto)} ${active ? 'connecting' : ''}`;
+    };
+    const protoBadge = (it) => {
+      const p = (it.proto || '').toUpperCase();
+      if (!p || p === 'CLK' || p === 'RST') return null;
+      return <span className="proto-badge">{p}</span>;
+    };
     return (
       <React.Fragment>
         <svg className="bd-svg-layer" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
-          {lines.map(l => (
-            <g key={l.id}>
-              <line x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke={l.color} strokeWidth="2" opacity="0.7" />
-              <circle cx={l.x2} cy={l.y2} r="3" fill={l.color} opacity="0.9" />
-            </g>
-          ))}
+          <defs>
+            <marker id="soc-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,0 L8,4 L0,8 z" fill="currentColor" />
+            </marker>
+          </defs>
+          {connections.map(co => {
+            const midX = (co.p1.x + co.p2.x) / 2;
+            const points = `${co.p1.x},${co.p1.y} ${midX},${co.p1.y} ${midX},${co.p2.y} ${co.p2.x},${co.p2.y}`;
+            return (
+              <g key={co.id} style={{ color: co.color }}>
+                <polyline points={points} stroke={co.color} strokeWidth="3.2" fill="none"
+                          strokeLinejoin="round" strokeLinecap="square" markerEnd="url(#soc-arrow)" />
+                <circle cx={co.p1.x} cy={co.p1.y} r="3.2" fill={co.color} />
+                <circle cx={co.p2.x} cy={co.p2.y} r="3.2" fill={co.color} />
+                {layers.labels && (
+                  <g>
+                    <rect x={midX - 20} y={(co.p1.y + co.p2.y)/2 - 8} width="40" height="15"
+                          className="soc-wire-label" fill="var(--bg)" stroke={co.color} strokeWidth="0.8" />
+                    <text x={midX} y={(co.p1.y + co.p2.y)/2} textAnchor="middle"
+                          dominantBaseline="middle" fill={co.color} fontSize="10"
+                          fontFamily="var(--mono)">{co.proto}</text>
+                  </g>
+                )}
+              </g>
+            );
+          })}
         </svg>
-        {/* All clusters render through the same code path. Each card
-            gets a kind-tint class (cpu/mem/bus/periph/analog) so the
-            border + center icon match the per-block category palette
-            used in cluster view. The kind comes from cluster.role
-            when present, falls back to id-based heuristic. Member
-            names are pulled live from `c.modules` instead of any
-            hardcoded placeholder. */}
-        {soc.clusters.map(c => {
-          const p = positions[c.id]; if (!p) return null;
-          const sel = view === `cluster:${c.id}`;
-          const hasTouched = c.modules.some(m => isTouched(`${c.id}/${m.id}`));
-          const errCount = c.modules.filter(m => m.status.sim === 'err').length;
-          const _role = (c.role || '').toUpperCase();
-          const role = _role || (
-            c.id === 'cpu_ss' ? 'CPU'
-            : c.id === 'mem_ss' ? 'MEM'
-            : c.id === 'periph_ss' ? 'PERIPH'
-            : c.id === 'noc' ? 'INTERCONNECT'
-            : 'MISC'
-          );
-          const kind = _role === 'CPU'    ? 'cpu'
-                     : _role === 'MEM'    ? 'mem'
-                     : _role === 'BUS'    || _role === 'INTERCONNECT' || _role === 'NOC' ? 'bus'
-                     : _role === 'PERIPH' || _role === 'PERIPHERAL' ? 'periph'
-                     : _role === 'ANALOG' ? 'analog'
-                     : (c.id === 'cpu_ss' ? 'cpu'
-                        : c.id === 'mem_ss' ? 'mem'
-                        : c.id === 'noc'    ? 'bus'
-                        : c.id === 'periph_ss' ? 'periph'
-                        : c.id === 'analog_ss' ? 'analog'
-                        : 'periph');
-          const icon = kind === 'cpu'    ? '◆'
-                     : kind === 'mem'    ? '▦'
-                     : kind === 'bus'    ? '╫'
-                     : kind === 'periph' ? '⊟'
-                     : kind === 'analog' ? '∿'
-                     : '◇';
+        {modules.map(({ cluster: c, module: m, ref }) => {
+          const p = positions[m.id]; if (!p) return null;
+          const sel = selMod === ref;
+          const touched = isTouched(ref);
+          const left = sideList(m, 'left');
+          const right = sideList(m, 'right');
+          const top = sideList(m, 'top');
+          const bottom = sideList(m, 'bottom');
           return (
-            <div key={c.id} className={`bd-block cluster ${kind} ${sel ? 'sel' : ''} ${hasTouched ? 'touched' : ''}`}
+            <div key={ref} className={`bd-block with-ports soc-top ${m.kind || ''} ${sel ? 'sel' : ''} ${touched ? 'touched' : ''}`}
                  style={{ left: p.x, top: p.y, width: p.w, height: p.h }}
-                 onClick={() => setView(`cluster:${c.id}`)}>
-              <div className="bd-block-head">
-                <span className="ico">{icon}</span>
-                <span className="nm">{c.id}</span>
-                {hasTouched && <span className="add-badge">+1</span>}
-                {layers.labels && <span style={{ fontSize: 9, color: 'var(--fg-mute)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{role}</span>}
+                 onClick={(e) => {
+                   if (blockDragRef.current && blockDragRef.current.ref === ref && blockDragRef.current.dragged) return;
+                   e.stopPropagation(); setSelMod(ref);
+                 }}
+                 onDoubleClick={() => {
+                   if (blockDragRef.current && blockDragRef.current.ref === ref && blockDragRef.current.dragged) return;
+                   setView(`module:${ref}`);
+                 }}
+                 onMouseDown={(e) => beginBlockDrag(ref, `top:${ref}`, p, e, W - p.w, H - p.h)}>
+              <div className="bd-block-head"
+                   title="drag block · click ports to connect · double-click to inspect"
+                   style={{ cursor: 'grab' }}
+                   onMouseDown={(e) => beginBlockDrag(ref, `top:${ref}`, p, e, W - p.w, H - p.h)}>
+                <span className="nm-instance">{m.name || m.id}</span>
+                <span className="nm-type">({c.id})</span>
+                <span style={{ flex: 1 }} />
+                {socTopMode === 'detail' && m.addr && <span style={{ fontSize: 9, color: 'var(--cyan)', fontFamily: 'var(--mono)' }}>{m.addr}</span>}
               </div>
-              <div className="bd-block-body">
-                <div>
-                  <div className="lbl">{c.modules.slice(0, 3).map(m => m.name).join(' · ') || '—'}{c.modules.length > 3 && ' · …'}</div>
-                  <div className="lbl" style={{ marginTop: 2 }}>
-                    {c.modules.length} modules
-                    {errCount > 0 && <span style={{ color: 'var(--err)' }}> · {errCount} sim ✗</span>}
-                  </div>
+              {top.length > 0 && <div className="bd-ports-edge top">{top.map((it, i) => (
+                <span key={i} className={portClass(m, it, 'top')} onClick={(e) => connectPort({ cluster: c, module: m, ref }, it, e)}><span className="arr">{arrowFor(it)}</span><span className="nm">{it.name}</span>{protoBadge(it)}</span>
+              ))}</div>}
+              <div className="bd-ports">
+                <div className="bd-ports-col left">
+                  {left.map((it, i) => (
+                    <span key={i} className={portClass(m, it, 'left')} onClick={(e) => connectPort({ cluster: c, module: m, ref }, it, e)}>
+                      <span className="arr">{arrowFor(it)}</span><span className="nm">{it.name}</span>{protoBadge(it)}
+                    </span>
+                  ))}
                 </div>
-                <window.PipelineStrip status={c.status} modId={c.id} big />
+                <div className="bd-center-icon" aria-hidden="true" />
+                <div className="bd-ports-col right">
+                  {right.map((it, i) => (
+                    <span key={i} className={portClass(m, it, 'right')} onClick={(e) => connectPort({ cluster: c, module: m, ref }, it, e)}>
+                      {protoBadge(it)}<span className="nm">{it.name}</span><span className="arr">{arrowFor(it)}</span>
+                    </span>
+                  ))}
+                </div>
               </div>
+              {bottom.length > 0 && <div className="bd-ports-edge bottom">{bottom.map((it, i) => (
+                <span key={i} className={portClass(m, it, 'bottom')} onClick={(e) => connectPort({ cluster: c, module: m, ref }, it, e)}><span className="arr">{arrowFor(it)}</span><span className="nm">{it.name}</span>{protoBadge(it)}</span>
+              ))}</div>}
             </div>
           );
         })}
@@ -1373,7 +2153,7 @@ window.SocArchitect = function SocArchitect() {
           })}
         </svg>
 
-        {c.modules.map((m, i) => {
+        {c.modules.map((m) => {
           const p = positions[m.id];
           const ref = `${c.id}/${m.id}`;
           const sel = selMod === ref;
@@ -1426,7 +2206,7 @@ window.SocArchitect = function SocArchitect() {
                      // sibling translate that affects screen coords by
                      // the same amount on both endpoints.)
                      e.stopPropagation();
-                     const scale = zoom / 100;
+                     const scale = getStageScale(e, W);
                      blockDragRef.current = {
                        ref, scale, dragged: false,
                        startX: e.clientX, startY: e.clientY,
@@ -1622,8 +2402,175 @@ window.SocArchitect = function SocArchitect() {
     );
   };
 
+  const applyDiagramPlan = React.useCallback(async (promptText) => {
+    const r = await fetch('/api/diagram/plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: promptText, layout }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
+    const plan = d.plan || {};
+    const actions = Array.isArray(plan.actions) ? plan.actions : [];
+    const refById = {};
+    for (const c of soc.clusters || []) {
+      for (const m of c.modules || []) refById[m.id] = `${c.id}/${m.id}`;
+    }
+    let nextLayout = { ...layout };
+    let touchedLayout = false;
+    const notes = [];
+    for (const a of actions) {
+      if (!a || typeof a !== 'object') continue;
+      if (a.type === 'auto_layout') {
+        nextLayout = Object.fromEntries(Object.entries(nextLayout).filter(([k]) => !k.startsWith('top:')));
+        touchedLayout = true;
+        notes.push('auto layout');
+      } else if (a.type === 'move_block') {
+        const id = String(a.id || a.ref || '').split('/').pop();
+        const ref = refById[id];
+        const x = Number(a.x), y = Number(a.y);
+        if (ref && Number.isFinite(x) && Number.isFinite(y)) {
+          nextLayout[`top:${ref}`] = {
+            x: Math.max(0, Math.min(1080, x)),
+            y: Math.max(0, Math.min(650, y)),
+          };
+          touchedLayout = true;
+          notes.push(`move ${id}`);
+        }
+      } else if (a.type === 'connect_ports') {
+        const rr = await fetch('/api/soc/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ from: a.from, to: a.to, proto: a.proto || '' }),
+        });
+        const dd = await rr.json().catch(() => ({}));
+        if (!rr.ok || dd.error) throw new Error(dd.error || `connect HTTP ${rr.status}`);
+        notes.push(`connect ${a.from} -> ${a.to}`);
+      } else if (a.type === 'add_instance') {
+        const rr = await fetch('/api/soc/instance/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: a.model || a.name,
+            id: a.id,
+            cluster: a.cluster,
+            x: a.x,
+            y: a.y,
+            addr: a.addr,
+          }),
+        });
+        const dd = await rr.json().catch(() => ({}));
+        if (!rr.ok || dd.error) throw new Error(dd.error || `add instance HTTP ${rr.status}`);
+        notes.push(`add ${dd.instance?.id || a.id || a.model}`);
+      } else if (a.type === 'delete_instance') {
+        const id = String(a.id || a.instance || '').trim();
+        if (!id) continue;
+        if (!confirm(`Remove instance "${id}" from this SoC?\n\nModel files will stay in the available model catalog.`)) {
+          notes.push(`skip delete ${id}`);
+          continue;
+        }
+        const rr = await fetch('/api/soc/instance/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        const dd = await rr.json().catch(() => ({}));
+        if (!rr.ok || dd.error) throw new Error(dd.error || `delete instance HTTP ${rr.status}`);
+        nextLayout = Object.fromEntries(Object.entries(nextLayout).filter(([k]) => !k.endsWith(`/${id}`)));
+        touchedLayout = true;
+        notes.push(`delete ${id}`);
+      }
+    }
+    if (touchedLayout) {
+      setLayout(nextLayout);
+      persistLayout(nextLayout);
+    }
+    if (actions.some(a => a && (a.type === 'connect_ports' || a.type === 'add_instance' || a.type === 'delete_instance'))) await refreshSoc();
+    return {
+      summary: plan.summary || 'diagram plan applied',
+      count: actions.length,
+      notes,
+    };
+  }, [layout, persistLayout, refreshSoc, soc]);
+
+  const addCatalogInstance = React.useCallback(async (model) => {
+    const roleCluster = model.kind === 'cpu' ? 'cpu_ss'
+      : model.kind === 'bus' ? 'noc'
+      : model.kind === 'mem' ? 'mem_ss'
+      : 'periph_ss';
+    const r = await fetch('/api/soc/instance/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: model.name || model.id,
+        cluster: roleCluster,
+        x: model.kind === 'mem' ? 850 : model.kind === 'bus' ? 470 : 170,
+        y: 560,
+      }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || d.error) {
+      alert(`add instance failed: ${d.error || `HTTP ${r.status}`}`);
+      return;
+    }
+    await refreshSoc();
+    setView('soc');
+    if (d.instance && d.instance.id) {
+      setSelMod(`${d.cluster}/${d.instance.id}`);
+    }
+  }, [refreshSoc]);
+
+  const deleteInstance = React.useCallback(async (id) => {
+    if (!id) return;
+    if (!confirm(`Remove instance "${id}" from this SoC?\n\nModel files will be kept; only soc.ssot.yaml instance/members/connections are changed.`)) return;
+    const r = await fetch('/api/soc/instance/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || d.error) {
+      alert(`delete instance failed: ${d.error || `HTTP ${r.status}`}`);
+      return;
+    }
+    const nextLayout = Object.fromEntries(Object.entries(layout).filter(([k]) => !k.endsWith(`/${id}`)));
+    setLayout(nextLayout);
+    persistLayout(nextLayout);
+    await refreshSoc();
+    setView('soc');
+  }, [layout, persistLayout, refreshSoc]);
+
+  const renderWorkspaceNode = React.useCallback((node, depth = 0) => {
+    if (!node) return null;
+    const kids = Array.isArray(node.children) ? node.children : [];
+    const artifacts = Array.isArray(node.artifacts) ? node.artifacts : [];
+    const isIp = !!node.is_ip;
+    return (
+      <React.Fragment key={node.path || node.name}>
+        <div className="bd-tree-row"
+             title={node.path || node.name}
+             style={{ paddingLeft: 10 + depth * 14, alignItems: 'flex-start' }}>
+          <span className="tw">{kids.length ? '▾' : '·'}</span>
+          <span className="ico">{isIp ? '◇' : '▸'}</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: 'block', color: isIp ? 'var(--fg)' : 'var(--fg-dim)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {node.name}
+            </span>
+            {isIp && (
+              <span style={{ display: 'block', fontSize: 8.5, color: 'var(--fg-mute)', marginTop: 2 }}>
+                {node.ssot_count || 1} ssot · {artifacts.slice(0, 5).join(' · ')}
+              </span>
+            )}
+          </span>
+          {isIp && <span className="pill acc" style={{ fontSize: 8 }}>ip</span>}
+        </div>
+        {kids.slice(0, depth === 0 ? 80 : 24).map(k => renderWorkspaceNode(k, depth + 1))}
+      </React.Fragment>
+    );
+  }, []);
+
   return (
-    <div className="arch-screen" data-dir="A" data-theme="dark">
+    <div className="arch-screen">
       {/* Run bar (scope · stage triggers · totals).
           Each pipeline button switches the agent into the matching
           workflow via /workflow <name>. The user can then chat-prompt
@@ -1631,26 +2578,28 @@ window.SocArchitect = function SocArchitect() {
           its button is disabled. */}
       <div className="run-bar">
         <div className="grp">
+          <button className="rb-btn primary"
+                  disabled={!selModule}
+                  title={selModule ? `run architect → post-STA pipeline on ${selModule.id}` : 'select a module first'}
+                  onClick={() => dispatchPipeline(selModule && selModule.id)}>
+            <span className="icn">▶</span> full pipeline
+          </button>
           {window.PIPELINE_STAGES.map((s) => {
-            const wfMap = { ssot: 'ssot-gen', rtl: 'rtl-gen', lint: 'lint',
-                            sim: 'sim', syn: 'syn', sta: 'sta', pnr: '' };
+            const wfMap = { architect: 'architect', ssot: 'ssot-gen', rtl: 'rtl-gen',
+                            lint: 'lint', tb: 'tb-gen', sim: 'sim', syn: 'syn',
+                            dft: 'dft', sta: 'sta', pnr: 'pnr', 'post-sta': 'sta-post' };
             const wf = wfMap[s] || '';
             const onPipeClick = () => {
-              if (!wf) return; // pnr (no workflow yet)
+              if (!wf || !selModule) return;
               setRunning(s);
               setTimeout(() => setRunning(null), 1100);
-              if (window.backend) {
-                // Switch workflow first; the slash dispatcher returns
-                // immediately. The user follows up in chat to actually
-                // execute the stage on the current scope.
-                window.backend.send({ type: 'prompt', text: `/workflow ${wf}` });
-              }
+              dispatchJob(wf, selModule.id);
             };
             return (
               <button key={s}
                       className={`rb-btn ${s === 'sim' ? 'primary' : ''}`}
-                      disabled={!wf}
-                      title={wf ? `switch to /workflow ${wf}` : 'no workflow registered'}
+                      disabled={!wf || !selModule}
+                      title={wf && selModule ? `dispatch ${wf} on ${selModule.id}` : 'select a module first'}
                       onClick={onPipeClick}
                       style={!wf ? { opacity: 0.4, cursor: 'not-allowed' } : null}>
                 <span className="icn">{running === s ? '◌' : '▶'}</span>{s}
@@ -1668,9 +2617,22 @@ window.SocArchitect = function SocArchitect() {
         </span>
       </div>
 
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '240px 1fr 480px', overflow: 'hidden' }}>
+      <div style={{
+        flex: 1,
+        display: 'grid',
+        gridTemplateColumns: diagramFocus ? '0 minmax(0,1fr) 0' : `${leftPanelW}px minmax(360px,1fr) ${rightPanelW}px`,
+        overflow: 'hidden',
+      }}>
         {/* LEFT — hierarchy tree */}
-        <div style={{ background: 'var(--panel)', borderRight: '1px solid var(--line)', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <div style={{
+          background: 'var(--panel)', borderRight: '1px solid var(--line)',
+          overflow: 'auto', display: 'flex', flexDirection: 'column', position: 'relative',
+          visibility: diagramFocus ? 'hidden' : 'visible',
+          pointerEvents: diagramFocus ? 'none' : 'auto',
+        }}>
+          <div className="arch-splitter left"
+               title="resize hierarchy"
+               onMouseDown={(e) => beginPanelResize('left', e)} />
           <div className="box-h"><b>hierarchy</b><span style={{ flex: 1 }} /><span className="bd-sync">synced</span></div>
           {/* Search box: filters tree to clusters/modules whose id or
               name contains the query (case-insensitive). When a query
@@ -1697,7 +2659,7 @@ window.SocArchitect = function SocArchitect() {
               }}
             />
           </div>
-          <div className="bd-tree" style={{ padding: '6px 0', flex: 1 }}>
+          <div className="bd-tree" style={{ padding: '6px 0', flex: '1 1 52%', minHeight: 160, overflow: 'auto' }}>
             <div className={`bd-tree-row ${view === 'soc' ? 'sel' : ''}`} onClick={() => setView('soc')}>
               <span className="tw">▼</span><span className="ico">⊞</span>
               <span style={{ flex: 1 }}>{soc.name || 'aurora_soc'}</span>
@@ -1733,6 +2695,20 @@ window.SocArchitect = function SocArchitect() {
                             dangerouslySetInnerHTML={{ __html: _highlightMatch(m.name, treeQuery) }} />
                       {touched && <span style={{ background: 'var(--accent)', color: 'var(--bg)', fontSize: 8, padding: '1px 4px', fontWeight: 700 }}>+</span>}
                       <window.PipelineStrip status={m.status} modId={m.id} />
+                      <button title="remove this instance from the SoC"
+                              onClick={(e) => { e.stopPropagation(); deleteInstance(m.id); }}
+                              style={{
+                                border: '1px solid var(--line)',
+                                background: 'var(--bg-2)',
+                                color: 'var(--fg-mute)',
+                                width: 18,
+                                height: 18,
+                                lineHeight: '14px',
+                                padding: 0,
+                                fontSize: 13,
+                                cursor: 'pointer',
+                                marginLeft: 4,
+                              }}>×</button>
                     </div>
                   );
                 })}
@@ -1745,6 +2721,70 @@ window.SocArchitect = function SocArchitect() {
                 no IPs match "{treeQuery}"
               </div>
             )}
+          </div>
+          <div className="box-h" style={{ borderTop: '1px solid var(--line)' }}>
+            <b>available models</b>
+            <span style={{ flex: 1 }} />
+            <span style={{ fontSize: 9, color: 'var(--fg-mute)' }}>{catalog.length}</span>
+          </div>
+          <div className="bd-tree" style={{ padding: '5px 0', flex: '0 1 34%', minHeight: 110, overflow: 'auto' }}>
+            {catalog.length === 0 && (
+              <div style={{ padding: '10px 12px', fontSize: 10.5, color: 'var(--fg-mute)', fontStyle: 'italic' }}>
+                no catalog models found
+              </div>
+            )}
+            {catalog.map(model => {
+              const ports = Array.isArray(model.ports) ? model.ports : [];
+              const protoList = [...new Set(ports.map(p => p && p.proto).filter(Boolean))].slice(0, 4);
+              return (
+                <div key={`${model.source}:${model.name}`} className="bd-tree-row"
+                     title={`${model.ssot_path || ''}\n${ports.map(p => `${p.name}:${p.proto}/${p.role}`).join(' · ')}`}
+                     onDoubleClick={() => addCatalogInstance(model)}
+                     style={{ paddingLeft: 12, alignItems: 'flex-start' }}>
+                  <span className="ico">{window.MOD_ICON[model.kind] || '◇'}</span>
+                  <span style={{ flex: 1 }}>
+                    <span style={{ display: 'block', color: 'var(--fg)' }}>{model.name}</span>
+                    <span style={{ display: 'block', fontSize: 9, color: 'var(--fg-mute)', marginTop: 2 }}>
+                      {model.kind || 'ip'} · {ports.length} ports
+                    </span>
+                  </span>
+                  <span style={{ display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: 76 }}>
+                    {protoList.map(p => (
+                      <span key={p} style={{
+                        fontSize: 8, border: '1px solid var(--line)', padding: '0 3px',
+                        color: p === 'APB' ? 'var(--magenta)' : p === 'IRQ' ? 'var(--warn)' : 'var(--accent)',
+                      }}>{p}</span>
+                    ))}
+                    {['ssot-gen', 'rtl-gen', 'tb-gen', 'sim'].map(wf => (
+                      <button key={wf}
+                              title={`${wf} · .session/${model.id || model.name}/${wf}`}
+                              onClick={(e) => { e.stopPropagation(); dispatchJob(wf, model.id || model.name); }}
+                              style={{
+                                border: '1px solid var(--line)',
+                                background: 'var(--bg-2)',
+                                color: 'var(--fg-mute)',
+                                font: '8px var(--mono)',
+                                padding: '0 3px',
+                                cursor: 'pointer',
+                              }}>{wf.split('-')[0]}</button>
+                    ))}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="box-h" style={{ borderTop: '1px solid var(--line)' }}>
+            <b>workspace directory</b>
+            <span style={{ flex: 1 }} />
+            <span style={{ fontSize: 9, color: 'var(--fg-mute)' }}>{workspaceTree?.children?.length || 0}</span>
+          </div>
+          <div className="bd-tree" style={{ padding: '5px 0', flex: '0 1 28%', minHeight: 100, overflow: 'auto' }}>
+            {!workspaceTree && (
+              <div style={{ padding: '10px 12px', fontSize: 10.5, color: 'var(--fg-mute)', fontStyle: 'italic' }}>
+                workspace tree unavailable
+              </div>
+            )}
+            {workspaceTree && (workspaceTree.children || []).map(n => renderWorkspaceNode(n, 0))}
           </div>
           <div style={{ padding: 8, borderTop: '1px solid var(--line)', fontSize: 10, color: 'var(--fg-mute)', letterSpacing: '0.05em' }}>
             click → drill cluster · dbl-click → drill module
@@ -1776,6 +2816,25 @@ window.SocArchitect = function SocArchitect() {
                 ))}
               </div>
               <span style={{ flex: 1 }} />
+              {view === 'soc' && tab === 'diagram' && (
+                <div className="seg-tabs" title="top diagram density">
+                  <button className={socTopMode === 'if' ? 'sel' : ''}
+                          onClick={() => setSocTopMode('if')}>I/F</button>
+                  <button className={socTopMode === 'detail' ? 'sel' : ''}
+                          onClick={() => setSocTopMode('detail')}>detail</button>
+                </div>
+              )}
+              {tab === 'diagram' && (
+                <button className="btn"
+                        style={{ fontSize: 10.5, padding: '3px 9px' }}
+                        title="toggle block-diagram focus view"
+                        onClick={() => {
+                          setDiagramFocus(v => !v);
+                          setTimeout(fitZoom, 40);
+                        }}>
+                  {diagramFocus ? 'show panels' : 'focus diagram'}
+                </button>
+              )}
               {view !== 'soc' && (
                 <button className="btn" style={{ fontSize: 10.5, padding: '3px 9px' }}
                         title="step up one level (module → cluster → soc)"
@@ -1796,7 +2855,7 @@ window.SocArchitect = function SocArchitect() {
           </div>
 
           {tab === 'diagram' && (
-            <div className="bd-canvas" style={{ flex: 1 }} ref={bdCanvasRef}
+            <div className={`bd-canvas ${view === 'soc' ? 'soc-carbon' : ''}`} style={{ flex: 1 }} ref={bdCanvasRef}
                  onWheel={(e) => {
                    // Cmd/Ctrl + wheel → zoom. Plain wheel → bubble up
                    // (for outer scroll if any). preventDefault on the
@@ -2060,6 +3119,7 @@ window.SocArchitect = function SocArchitect() {
                       <th style={{ width: 80 }}>TYPE</th>
                       <th style={{ width: 140 }}>ADDR</th>
                       <th style={{ width: 200 }}>SSOT · RTL · SIM</th>
+                      <th style={{ width: 180 }}>LIVE JOBS</th>
                       <th style={{ width: 96 }}>LAST RUN</th>
                       <th style={{ width: 80 }}>TESTS</th>
                       <th style={{ width: 56 }}>COV</th>
@@ -2075,6 +3135,7 @@ window.SocArchitect = function SocArchitect() {
                       const touched = isTouched(r.ref);
                       const meta = runMeta(r.module);
                       const bars = sparkBars(r.module);
+                      const rowJobs = (jobsByIp[r.module.id] || []).slice(0, 4);
                       return (
                         <tr key={r.ref}
                             className={`orch-row ${sel ? 'sel' : ''} ${isErr ? 'errrow' : ''} ${touched ? 'touched' : ''}`}
@@ -2090,7 +3151,32 @@ window.SocArchitect = function SocArchitect() {
                           <td className="g-clu">{r.cluster.id}</td>
                           <td><span className="g-kind">{window.MOD_KIND_LABEL[r.module.kind]}</span></td>
                           <td className="g-addr">{r.module.addr || <span style={{ color: 'var(--fg-mute)' }}>—</span>}</td>
-                          <td><window.StatusTrio status={r.module.status} big /></td>
+                          <td><window.StatusTrio status={r.module.status}
+                                                 detail={r.module.status_detail}
+                                                 source={r.module.status_source}
+                                                 big /></td>
+                          <td>
+                            {rowJobs.length === 0 ? (
+                              <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>idle</span>
+                            ) : (
+                              <span style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                                {rowJobs.map(j => (
+                                  <button key={j.job_id || j.run_id}
+                                          className={`pill ${j.status === 'running' ? 'run' : j.status === 'completed' ? 'ok' : j.status === 'error' ? 'err' : ''}`}
+                                          title={`${j.workflow} · ${j.status}\n${j.session || ''}\nclick to show worker log in chat`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.dispatchEvent(new CustomEvent('atlas:load-job-log', {
+                                              detail: { jobId: j.job_id, live: j.status === 'running' },
+                                            }));
+                                          }}
+                                          style={{ border: 0, cursor: 'pointer', fontSize: 9 }}>
+                                    {j.status === 'running' ? '◌' : j.status === 'completed' ? '✓' : j.status === 'error' ? '✗' : j.status === 'queued' ? '…' : j.status === 'blocked' ? '⊘' : '○'} {j.workflow}
+                                  </button>
+                                ))}
+                              </span>
+                            )}
+                          </td>
                           <td className="g-tnum">{meta.t}</td>
                           <td className="g-tnum" style={{ color: isErr ? 'var(--err)' : meta.tests === '—' ? 'var(--fg-mute)' : 'var(--fg-dim)' }}>{meta.tests}</td>
                           <td className="g-tnum" style={{ color: meta.cov === '—' ? 'var(--fg-mute)' : isErr ? 'var(--warn)' : 'var(--ok)' }}>{meta.cov}</td>
@@ -2117,10 +3203,11 @@ window.SocArchitect = function SocArchitect() {
                             )}
                           </td>
                           <td className="g-note">
-                            {isErr ? <span className="err">✗ test_back_to_back · mosi=X at t=110ns</span>
-                              : r.module.status.sim === 'partial' ? <span className="warn">◐ 2 tests skipped</span>
-                              : r.module.status.sim === 'pending' ? <span style={{ color: 'var(--fg-mute)' }}>○ never run</span>
-                              : touched ? <span className="acc">+ added by agent · 12:04:21</span>
+                            {rowJobs.length ? <span className="acc">worker · {rowJobs[0].workflow} · {rowJobs[0].status} · {rowJobs[0].run_id || rowJobs[0].job_id}</span>
+                              : isErr ? <span className="err">✗ sim error · see sim log</span>
+                              : r.module.status.sim === 'partial' ? <span className="warn">◐ partial sim artifacts</span>
+                              : r.module.status.sim === 'pending' ? <span style={{ color: 'var(--fg-mute)' }}>○ no sim run data</span>
+                              : touched ? <span className="acc">layout changed locally</span>
                               : <span style={{ color: 'var(--fg-mute)' }}>—</span>}
                           </td>
                         </tr>
@@ -2136,10 +3223,14 @@ window.SocArchitect = function SocArchitect() {
                     <span style={{ color: 'var(--fg-mute)' }}>{(soc.name || 'aurora_soc') + '/'}</span>
                     <b>{selModule.name}.ssot.yaml</b>
                     <span style={{ flex: 1 }} />
-                    <window.StatusTrio status={selModule.status} />
+                    <window.StatusTrio status={selModule.status}
+                                       detail={selModule.status_detail}
+                                       source={selModule.status_source}
+                                       big />
                     <span className="pill ok" style={{ fontSize: 9, marginLeft: 8 }}>synced</span>
                   </div>
                   <div style={{ flex: 1, overflow: 'auto' }}>
+                    <window.ModuleProgressPanel module={selModule} />
                     <pre className="code-pane" style={{ margin: 0, height: '100%', fontSize: 11.5 }}>
 {selModule.id === 'spi' && soc.ssotYamlSpi ? soc.ssotYamlSpi : `# ${selModule.name}.ssot.yaml — generated
 component:
@@ -2166,8 +3257,25 @@ memoryMap:
 
         {/* RIGHT — vertical stack: JobTracker (collapsible) + chat. */}
         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden',
-                      borderLeft: '1px solid var(--line)', background: 'var(--panel)' }}>
+                      borderLeft: '1px solid var(--line)', background: 'var(--panel)',
+                      position: 'relative',
+                      visibility: diagramFocus ? 'hidden' : 'visible' }}>
+          <div className="arch-splitter right"
+               title="resize chat"
+               onMouseDown={(e) => beginPanelResize('right', e)} />
           <window.JobTracker jobs={jobs}
+                             onLoadSession={(session) => {
+                               if (!session) return;
+                               window.dispatchEvent(new CustomEvent('atlas:load-session-history', {
+                                 detail: { session },
+                               }));
+                             }}
+                             onLoadJobLog={(jobId, live) => {
+                               if (!jobId) return;
+                               window.dispatchEvent(new CustomEvent('atlas:load-job-log', {
+                                 detail: { jobId, live: !!live },
+                               }));
+                             }}
                              onSelectIp={(ip) => {
                                const lk = lookup[Object.keys(lookup).find(k => lookup[k].module.id === ip)];
                                if (lk) {
@@ -2176,7 +3284,8 @@ memoryMap:
                                }
                              }} />
           <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-            <window.ArchitectChat view={view} selModule={selModule} selCluster={selCluster} />
+            <window.ArchitectChat view={view} selModule={selModule} selCluster={selCluster}
+                                  onDiagramPlan={applyDiagramPlan} />
           </div>
         </div>
       </div>
@@ -2199,14 +3308,24 @@ memoryMap:
                           letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               dispatch on <b style={{ color: 'var(--accent)' }}>{dispatchMenu.ip}</b>
             </div>
+            <div className="bd-dispatch-item"
+                 onClick={() => dispatchPipeline(dispatchMenu.ip)}>
+              <span style={{ width: 14, textAlign: 'center', color: 'var(--accent)' }}>▶</span>
+              <span style={{ flex: 1 }}>full — architect → post-STA</span>
+            </div>
+            <div style={{ height: 1, background: 'var(--line)', margin: '2px 0' }} />
             {[
+              { wf: 'architect', icon: '◇', label: 'architect — SoC contract' },
               { wf: 'ssot-gen', icon: '◐', label: 'ssot-gen — refresh SSOT' },
               { wf: 'rtl-gen',  icon: '⚙', label: 'rtl-gen — generate RTL' },
-              { wf: 'tb-gen',   icon: '⌬', label: 'tb-gen — testbench' },
               { wf: 'lint',     icon: '✓', label: 'lint' },
+              { wf: 'tb-gen',   icon: '⌬', label: 'tb-gen — testbench' },
               { wf: 'sim',      icon: '▶', label: 'sim' },
               { wf: 'syn',      icon: '⊕', label: 'syn' },
+              { wf: 'dft',      icon: '⊗', label: 'dft' },
               { wf: 'sta',      icon: '⊞', label: 'sta' },
+              { wf: 'pnr',      icon: '▣', label: 'pnr' },
+              { wf: 'sta-post', icon: '◆', label: 'post-sta' },
             ].map(o => (
               <div key={o.wf}
                    className="bd-dispatch-item"
@@ -2294,12 +3413,35 @@ memoryMap:
 // Renders only token / reasoning / tool / tool_result events; the
 // full feed (with collapsible cards, qcards, slash menu, scope etc.)
 // stays on the Workspace screen.
-window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster }) {
+window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onDiagramPlan }) {
   const [feed, setFeed] = React.useState([]);
   const [streaming, setStreaming] = React.useState(false);
   const [input, setInput] = React.useState('');
   const bufRef = React.useRef('');
   const feedRef = React.useRef(null);
+  const jobLogPollRef = React.useRef(null);
+
+  const replayMessages = React.useCallback((messages, session, path) => {
+    const rows = [];
+    rows.push({
+      kind: 'agent',
+      text: `[session] loaded .session/${session}${path ? `\n${path}` : ''}`,
+    });
+    for (const m of messages || []) {
+      const role = m.role || '';
+      const content = typeof m.content === 'string'
+        ? m.content
+        : Array.isArray(m.content)
+          ? m.content.map(x => typeof x === 'string' ? x : (x && x.text) || '').join('\n')
+          : '';
+      const text = String(content || '').trim();
+      if (!text) continue;
+      if (role === 'user') rows.push({ kind: 'user', text });
+      else if (role === 'assistant') rows.push({ kind: 'agent', text: text.slice(0, 2400) });
+      else if (role === 'tool') rows.push({ kind: 'obs', text: text.slice(0, 1600), tool: m.name || m.tool_call_id || '' });
+    }
+    setFeed(rows);
+  }, []);
 
   // Subscribe to the live WS once on mount.
   React.useEffect(() => {
@@ -2348,6 +3490,93 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster }) {
     return () => subs.forEach(u => { try { u(); } catch (_) {} });
   }, []);
 
+  React.useEffect(() => {
+    const onLoadSession = async (ev) => {
+      const session = ev.detail && ev.detail.session;
+      if (!session) return;
+      setStreaming(true);
+      try {
+        const r = await fetch(`/api/session/history?session=${encodeURIComponent(session)}&limit=160`);
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
+        if (!d.exists) {
+          setFeed([{ kind: 'agent', text: `[session] .session/${session}/conversation.json not found yet` }]);
+        } else {
+          replayMessages(d.messages || [], session, d.path);
+        }
+      } catch (e) {
+        setFeed(l => [...l, { kind: 'agent', text: `[session error] ${e.message || e}` }]);
+      } finally {
+        setStreaming(false);
+      }
+    };
+    window.addEventListener('atlas:load-session-history', onLoadSession);
+    return () => window.removeEventListener('atlas:load-session-history', onLoadSession);
+  }, [replayMessages]);
+
+  const replayWorkerLog = React.useCallback((data) => {
+    const job = data.job || {};
+    const rows = [{
+      kind: 'agent',
+      text: `[worker] ${job.ip || '(soc)'} · ${job.workflow || '-'} · ${job.status || data.status || '-'}\n` +
+            `job_id: ${job.job_id || '-'}\nrun_id: ${data.run_id || job.run_id || '-'}\n` +
+            `session: .session/${job.session || '-'}`
+    }];
+    for (const e of data.entries || []) {
+      const typ = e.type || '';
+      const text = String(e.content || '').trim();
+      if (!text) continue;
+      if (typ === 'task') rows.push({ kind: 'user', text });
+      else if (typ === 'action' || typ === 'tool_call') rows.push({ kind: 'action', text });
+      else if (typ === 'observation' || typ === 'tool_result') rows.push({ kind: 'obs', text: text.slice(0, 2200), tool: typ });
+      else if (typ === 'error') rows.push({ kind: 'agent', text: `[error] ${text}` });
+      else if (typ === 'done' || typ === 'completion') rows.push({ kind: 'agent', text: `[done] ${text}` });
+      else if (typ === 'response') rows.push({ kind: 'agent', text: text.slice(0, 2400) });
+      else if (typ === 'iteration' || typ === 'system' || typ === 'context') rows.push({ kind: 'thought', text: `[${typ}] ${text}` });
+    }
+    setFeed(rows);
+  }, []);
+
+  React.useEffect(() => {
+    const clearPoll = () => {
+      if (jobLogPollRef.current) {
+        clearInterval(jobLogPollRef.current);
+        jobLogPollRef.current = null;
+      }
+    };
+    const onLoadJobLog = async (ev) => {
+      const jobId = ev.detail && ev.detail.jobId;
+      const live = !!(ev.detail && ev.detail.live);
+      if (!jobId) return;
+      clearPoll();
+      setStreaming(true);
+      const loadOnce = async () => {
+        try {
+          const r = await fetch(`/api/job/${encodeURIComponent(jobId)}/log`);
+          const d = await r.json().catch(() => ({}));
+          if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
+          replayWorkerLog(d);
+          if ((d.job || {}).status && (d.job || {}).status !== 'running') {
+            clearPoll();
+            setStreaming(false);
+          }
+        } catch (e) {
+          clearPoll();
+          setFeed(l => [...l, { kind: 'agent', text: `[worker log error] ${e.message || e}` }]);
+          setStreaming(false);
+        }
+      };
+      await loadOnce();
+      if (live) jobLogPollRef.current = setInterval(loadOnce, 2000);
+      else setStreaming(false);
+    };
+    window.addEventListener('atlas:load-job-log', onLoadJobLog);
+    return () => {
+      clearPoll();
+      window.removeEventListener('atlas:load-job-log', onLoadJobLog);
+    };
+  }, [replayWorkerLog]);
+
   // Auto-scroll to bottom on new entries.
   React.useEffect(() => {
     const el = feedRef.current;
@@ -2359,6 +3588,26 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster }) {
     if (!text) return;
     setFeed(l => [...l, { kind: 'user', text }]);
     setInput('');
+    const wantsDiagramPlan =
+      /^\/diagram\b/i.test(text) ||
+      /^\/(arch|move|mv|connect|cn|add|add-instance|instantiate|delete|del|remove|rm|layout|auto-?layout)\b/i.test(text) ||
+      /(diagram|block|connect|move|layout|align|delete|remove|add|배치|정렬|옮겨|움직|연결|추가|삭제|제거|블록|다이어그램)/i.test(text);
+    if (wantsDiagramPlan && typeof onDiagramPlan === 'function') {
+      setStreaming(true);
+      onDiagramPlan(text.replace(/^\/diagram\s*/i, ''))
+        .then(res => {
+          const notes = (res.notes || []).map(x => `- ${x}`).join('\n');
+          setFeed(l => [...l, {
+            kind: 'agent',
+            text: `[diagram] ${res.summary || 'applied'}\n${notes}`.trim(),
+          }]);
+        })
+        .catch(err => {
+          setFeed(l => [...l, { kind: 'agent', text: `[diagram error] ${err.message || err}` }]);
+        })
+        .finally(() => setStreaming(false));
+      return;
+    }
     setStreaming(true);
     // Mirror Workspace's scope-prefix behaviour: when an IP scope is
     // active (set automatically by drilling into a module on the
@@ -2400,8 +3649,8 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster }) {
       <div ref={feedRef} style={{ flex: 1, overflow: 'auto', padding: 14, fontSize: 12.5 }}>
         {feed.length === 0 && (
           <div style={{ color: 'var(--fg-mute)', fontSize: 11, fontStyle: 'italic', lineHeight: 1.6 }}>
-            ask the agent to inspect the SoC, validate addresses, or scaffold a new IP.
-            prompts go through the same react-loop as the Workspace screen.
+            architect commands: /move cortexa15_0 left, /connect cortexa15_0/M_ACE cci550/S0_ACE ACE, /add counter, /delete counter, /layout.
+            natural language also maps to the same diagram actions.
           </div>
         )}
         {feed.map((entry, i) => {
@@ -2455,7 +3704,7 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster }) {
           <input value={input}
                  onChange={e => setInput(e.target.value)}
                  onKeyDown={onKey}
-                 placeholder="ask the agent · scope follows the diagram drill" />
+                 placeholder="/move · /connect · /add · /delete · /layout" />
           <span className="kbd" onClick={send} style={{ cursor: 'pointer' }}>↵</span>
         </div>
         <div style={{ marginTop: 6, display: 'flex', gap: 6, fontSize: 10, color: 'var(--fg-mute)', alignItems: 'center' }}>
@@ -2542,7 +3791,7 @@ window.IpxactImportBtn = function IpxactImportBtn({ onImported }) {
 //   <icon> <ip> <workflow> <runtime/iter> <cancel-x>
 // Click a row → drill the architect view to that IP's cluster.
 // Click cancel × → POST /api/job/<id>/cancel.
-window.JobTracker = function JobTracker({ jobs, onSelectIp }) {
+window.JobTracker = function JobTracker({ jobs, onSelectIp, onLoadSession, onLoadJobLog }) {
   const [open, setOpen] = React.useState(true);
   const live = (jobs || []).filter(j => j.status === 'running');
   const recent = (jobs || []).filter(j => j.status !== 'running');
@@ -2599,11 +3848,15 @@ window.JobTracker = function JobTracker({ jobs, onSelectIp }) {
             const sym = j.status === 'running' ? '◌'
                       : j.status === 'completed' ? '✓'
                       : j.status === 'error' ? '✗'
-                      : j.status === 'cancelled' ? '○' : '·';
+                      : j.status === 'cancelled' ? '○'
+                      : j.status === 'queued' ? '…'
+                      : j.status === 'blocked' ? '⊘' : '·';
             const subtitle = j.status === 'running'
               ? `iter ${j.iterations || 0}`
               : j.status === 'error' ? (j.error || '').slice(0, 40)
               : j.status === 'completed' ? `+${(j.files_modified || []).length} files`
+              : j.status === 'queued' ? `after ${j.depends_on || 'previous'}`
+              : j.status === 'blocked' ? (j.error || 'blocked').slice(0, 40)
               : j.status;
             return (
               <div key={j.job_id || j.run_id}
@@ -2616,6 +3869,17 @@ window.JobTracker = function JobTracker({ jobs, onSelectIp }) {
                 </span>
                 <span className="wf">{j.workflow}</span>
                 <span className="meta">{fmtElapsed(j)}</span>
+                {j.session && (
+                  <span className="x"
+                        onClick={(e) => { e.stopPropagation(); onLoadSession && onLoadSession(j.session); }}
+                        title={`reload session history: .session/${j.session}`}>↻</span>
+                )}
+                <span className="x"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onLoadJobLog && onLoadJobLog(j.job_id, j.status === 'running');
+                      }}
+                      title="show worker log in chat">▤</span>
                 {j.status === 'running' ? (
                   <span className="x" onClick={(e) => cancel(e, j.job_id)}
                         title="cancel job">✕</span>

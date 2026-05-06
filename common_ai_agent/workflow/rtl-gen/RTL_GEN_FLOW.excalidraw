@@ -458,13 +458,13 @@
       "updated": 0,
       "link": null,
       "locked": false,
-      "text": "/new-ip-rtl\nskeleton -> fsm -> csr",
+      "text": "/ssot-rtl\nSSOT -> RTL -> compile/lint",
       "fontSize": 17,
       "fontFamily": 3,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": null,
-      "originalText": "/new-ip-rtl\nskeleton -> fsm -> csr",
+      "originalText": "/ssot-rtl\nSSOT -> RTL -> compile/lint",
       "lineHeight": 1.2
     },
     {
@@ -516,13 +516,13 @@
       "updated": 0,
       "link": null,
       "locked": false,
-      "text": "/legacy-ip-rtl\nread existing + MAS delta",
+      "text": "removed\nlegacy direct RTL command",
       "fontSize": 17,
       "fontFamily": 3,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": null,
-      "originalText": "/legacy-ip-rtl\nread existing + MAS delta",
+      "originalText": "removed\nlegacy direct RTL command",
       "lineHeight": 1.2
     },
     {

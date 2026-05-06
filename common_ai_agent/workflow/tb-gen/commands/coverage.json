@@ -1,9 +1,9 @@
 {
   "name": "coverage",
-  "description": "Show which DUT branches are covered by current test cases",
+  "description": "Run the SSOT-scoped pre-synthesis coverage summary after fresh simulation evidence",
   "aliases": [
     "cov"
   ],
-  "handler": "bash:coverage.sh",
-  "usage": "/coverage [module.sv]"
+  "handler": "stage:coverage",
+  "usage": "/coverage <ip_name>"
 }

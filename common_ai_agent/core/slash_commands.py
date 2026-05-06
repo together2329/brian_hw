@@ -1502,6 +1502,9 @@ class SlashCommandRegistry:
 
             # Handle /todo clear
             if args.strip().lower() == 'clear':
+                import os as _os
+                _os.environ.pop("TODO_TEMPLATE_LOCK_ADDITIONS", None)
+                _os.environ.pop("TODO_TEMPLATE_LOCK_NAME", None)
                 if todo_file.exists():
                     todo_file.unlink()
                     return "✅ Todo list cleared.\n"
@@ -1747,6 +1750,13 @@ class SlashCommandRegistry:
 
     def _todo_add(self, text: str, todo_file) -> str:
         """Add a new todo item. /todo add <text>"""
+        import os as _os
+        if _os.environ.get("TODO_TEMPLATE_LOCK_ADDITIONS", "").strip().lower() in ("1", "true", "yes", "on"):
+            tmpl = _os.environ.get("TODO_TEMPLATE_LOCK_NAME", "").strip() or "active"
+            return (
+                f"❌ Todo template '{tmpl}' is locked. Use the existing canonical tasks, "
+                "or run /todo clear before creating a new task list.\n"
+            )
         if not text.strip():
             return "Usage: /todo add <task description>\nExample: /todo add Write unit tests\n"
         try:
@@ -2110,6 +2120,13 @@ class SlashCommandRegistry:
                 tracker = TodoTracker(persist_path=Path(todo_file))
                 tracker.add_todos(tasks)
                 tracker.save()
+                import os as _os
+                if bool(tmpl.get("lock_additions", True)):
+                    _os.environ["TODO_TEMPLATE_LOCK_ADDITIONS"] = "1"
+                    _os.environ["TODO_TEMPLATE_LOCK_NAME"] = template_name
+                else:
+                    _os.environ.pop("TODO_TEMPLATE_LOCK_ADDITIONS", None)
+                    _os.environ.pop("TODO_TEMPLATE_LOCK_NAME", None)
                 desc = tmpl.get("description", "")
                 return (
                     f"Loaded template '{template_name}': {len(tasks)} tasks added.\n"
@@ -2580,50 +2597,76 @@ class SlashCommandRegistry:
                 ]
                 return "\n".join(lines)
 
-            marker1 = " ◀ active" if _config.MODEL_NAME == _config.PRIMARY_MODEL and _config.MODEL_NAME != _config.SECONDARY_MODEL else (
-                      " ◀ active" if _config.MODEL_NAME == _config.PRIMARY_MODEL and _config.PRIMARY_MODEL != _config.SECONDARY_MODEL else "")
-            marker2 = " ◀ active" if _config.MODEL_NAME == _config.SECONDARY_MODEL and _config.MODEL_NAME != _config.PRIMARY_MODEL else ""
-            # If primary == secondary == current, mark only primary as active
-            if _config.PRIMARY_MODEL == _config.SECONDARY_MODEL == _config.MODEL_NAME:
-                marker1 = " ◀ active"
-                marker2 = ""
+            # Unified four-row listing — deepseek / glm / gpt / kimi.
+            # PRIMARY/SECONDARY (1: / 2:) markers removed by request; profiles
+            # are the only switchable surface. `gpt` is synthesized when no
+            # PROFILE_gpt_* is defined so /model gpt always works (via OAuth).
+            try:
+                _profiles_defined = _config.list_profiles() or []
+            except Exception:
+                _profiles_defined = []
+            _active_profile = _os.environ.get("LLM_PROFILE", "").strip()
+            _oauth_active = bool(getattr(_config, "USE_OPENCODE_OAUTH", False))
+            _current_model_lc = (getattr(_config, "MODEL_NAME", "") or "").lower()
+
+            def _row(_pn: str) -> str:
+                # Profile defined in .env → atomic trio swap.
+                if _pn in _profiles_defined:
+                    _p = _config.get_profile(_pn) or {}
+                    _model = _p.get("model", "?")
+                    _mark = " ◀ active" if _pn == _active_profile else ""
+                    return f"  {_pn:<10s} → {_model}{_mark}"
+                # Fallback synthetic row for `gpt` — routes through OAuth.
+                if _pn == "gpt":
+                    _mark = " ◀ active" if (_oauth_active and _current_model_lc.startswith("gpt-5")) else ""
+                    return f"  {_pn:<10s} → gpt-5.5 (OAuth){_mark}"
+                return f"  {_pn:<10s} → (not defined)"
+
             lines = [
                 f"Current model: {_current_display}",
-                f"  1: {_config.PRIMARY_MODEL}{marker1}",
-                f"  2: {_config.SECONDARY_MODEL}{marker2}",
+                "",
+                "Profiles:",
+                _row("deepseek"),
+                _row("glm"),
+                _row("gpt"),
+                _row("kimi"),
+                "",
+                "  usage: /model deepseek | glm | gpt | kimi",
             ]
-            if _config.PRIMARY_MODEL == _config.SECONDARY_MODEL:
-                lines.append("  (tip: set PRIMARY_MODEL / SECONDARY_MODEL in .config to use different models)")
-            # List defined LLM profiles (multi-provider trios) so the user
-            # can /model <profile> instead of remembering raw model strings.
-            try:
-                _profiles = _config.list_profiles()
-            except Exception:
-                _profiles = []
-            if _profiles:
-                _active = _os.environ.get("LLM_PROFILE", "").strip()
-                lines.append("")
-                lines.append("Profiles (BASE_URL + API_KEY + MODEL):")
-                for _pn in _profiles:
-                    _p = _config.get_profile(_pn)
-                    _mark = " ◀ active" if _pn == _active else ""
-                    lines.append(f"  {_pn:<12s} → {_p.get('model','?')}{_mark}")
-                lines.append("  usage: /model <profile>  (switches the whole trio)")
-            lines.append("  usage: /model 1|2|<model-name>")
             return "\n".join(lines)
         if name == "1":
             return "MODEL_SWITCH:1"
         if name == "2":
             return "MODEL_SWITCH:2"
-        # If `name` matches a defined profile, signal a profile switch so
-        # the main loop can update BASE_URL/API_KEY/MODEL_NAME together.
-        # Otherwise fall through to bare-model switching.
+        # Profile match (deepseek / glm / kimi / gpt if PROFILE_gpt_* defined) →
+        # atomic BASE_URL+API_KEY+MODEL swap.
         try:
-            if name in _config.list_profiles():
-                return f"MODEL_SWITCH:profile:{name}"
+            _profiles = _config.list_profiles() or []
+        except Exception:
+            _profiles = []
+        if name in _profiles:
+            return f"MODEL_SWITCH:profile:{name}"
+        # Aliases for opencode-OAuth (gpt-5.x via ChatGPT credential, no API key).
+        # `/model gpt` → gpt-5.5; `/model gpt-5.5` / `/model gpt-5.4` → that model.
+        _alias_map = {"gpt": "gpt-5.5", "openai": "gpt-5.5", "codex": "gpt-5.5"}
+        if name.lower() in _alias_map:
+            return f"MODEL_SWITCH:opencode:{_alias_map[name.lower()]}"
+        try:
+            if _config.is_opencode_model(name):
+                return f"MODEL_SWITCH:opencode:{name}"
         except Exception:
             pass
-        return f"MODEL_SWITCH:{name}"
+        # Unknown — reject with a helpful list instead of silently overriding
+        # MODEL_NAME (which produces a 400 from whatever BASE_URL is current).
+        _hint_profiles = ", ".join(_profiles) if _profiles else "(none defined)"
+        return ("\n".join([
+            f"❌ Unknown model/profile: '{name}'",
+            f"  Profiles (atomic switch): {_hint_profiles}",
+            f"  Opencode-OAuth aliases:   gpt, openai, codex  → gpt-5.5",
+            f"  Opencode-OAuth direct:    gpt-5.5, gpt-5.4, gpt-5.4-mini, ...",
+            f"  Quick:                    /model 1  /model 2",
+            f"  Tip: define PROFILE_gpt_* in .env to make `/model gpt` use a key instead of OAuth.",
+        ]))
 
     def _cmd_window(self, args: str) -> str:
         """Rolling context window. /window N — only last N message pairs sent to LLM each turn."""

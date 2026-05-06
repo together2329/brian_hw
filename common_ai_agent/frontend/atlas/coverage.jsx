@@ -158,13 +158,31 @@ const CovStatsWidget = ({ summary, dut, onRefresh, lastRefresh }) => {
   );
 };
 
+// Reusable collapse-arrow span used in box headers. Positioned at the
+// far right of the header next to the count. Click → onCollapse().
+const _collapseArrow = (onCollapse, dir) => onCollapse ? (
+  <span
+    onClick={(e) => { e.stopPropagation(); onCollapse(); }}
+    title={`collapse ${dir === 'left' ? 'panel ←' : 'panel →'}`}
+    style={{
+      cursor: 'pointer', marginLeft: 6, padding: '0 6px',
+      color: 'var(--fg-mute)', fontSize: 14, userSelect: 'none',
+      lineHeight: 1,
+    }}
+  >{dir === 'left' ? '‹' : '›'}</span>
+) : null;
+
 // ── File list (per-file coverage breakdown) ───────────────────
-const CovFileList = ({ summary, activeFile, onSelect }) => {
+const CovFileList = ({ summary, activeFile, onSelect, onCollapse }) => {
   const files = summary && summary.files;
   if (!files || !Object.keys(files).length) {
     return (
       <div className="box" style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <div className="box-h"><span>▸ files</span></div>
+        <div className="box-h">
+          <span>▸ files</span>
+          <span style={{ flex: 1 }} />
+          {_collapseArrow(onCollapse, 'left')}
+        </div>
         <div style={{ padding: 16, color: 'var(--fg-mute)', fontSize: 12 }}>
           No coverage.info found. Run <code>/coverage-build</code>, simulate, then
           <code> /coverage-merge</code> + <code>/coverage-report</code>.
@@ -183,6 +201,7 @@ const CovFileList = ({ summary, activeFile, onSelect }) => {
         <span>▸ files</span>
         <span style={{ flex: 1 }} />
         <span className="mute" style={{ fontSize: 10 }}>{rows.length}</span>
+        {_collapseArrow(onCollapse, 'left')}
       </div>
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {rows.map((p) => {
@@ -284,11 +303,15 @@ const CovSourceViewer = ({ path, content, jumpToLine }) => {
 };
 
 // ── Gap navigator (top-N unhit lines, click to jump) ──────────
-const CovGapNav = ({ annotated, activePath, onJump }) => {
+const CovGapNav = ({ annotated, activePath, onJump, onCollapse }) => {
   if (!annotated || !activePath) {
     return (
       <div className="box" style={{ height: '100%' }}>
-        <div className="box-h"><span>▸ gaps</span></div>
+        <div className="box-h">
+          <span>▸ gaps</span>
+          <span style={{ flex: 1 }} />
+          {_collapseArrow(onCollapse, 'right')}
+        </div>
         <div style={{ padding: 16, color: 'var(--fg-mute)', fontSize: 11 }}>
           select a file to see its uncovered lines
         </div>
@@ -307,6 +330,7 @@ const CovGapNav = ({ annotated, activePath, onJump }) => {
         <span>▸ gaps</span>
         <span style={{ flex: 1 }} />
         <span className="mute" style={{ fontSize: 10 }}>{unhit.length} unhit</span>
+        {_collapseArrow(onCollapse, 'right')}
       </div>
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {unhit.length === 0 ? (
@@ -470,6 +494,37 @@ const CovDeltaWidget = ({ history }) => {
   );
 };
 
+// Vertical strip shown in place of a collapsed side panel. Click to expand.
+const CovCollapsedStrip = ({ side, label, onExpand }) => (
+  <div
+    onClick={onExpand}
+    title={`expand ${label}`}
+    style={{
+      height: '100%', cursor: 'pointer',
+      background: 'var(--bg-2)',
+      border: '1px solid var(--line)',
+      borderRadius: 4,
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'flex-start',
+      padding: '8px 0', gap: 8,
+      userSelect: 'none', overflow: 'hidden',
+    }}
+    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg)'}
+    onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-2)'}
+  >
+    <span style={{ color: 'var(--accent)', fontSize: 14, fontWeight: 700 }}>
+      {side === 'left' ? '›' : '‹'}
+    </span>
+    <span style={{
+      color: 'var(--fg-mute)', fontSize: 10,
+      letterSpacing: '0.12em', textTransform: 'uppercase',
+      writingMode: 'vertical-rl',
+    }}>
+      {label}
+    </span>
+  </div>
+);
+
 // ── Top-level Coverage panel ──────────────────────────────────
 window.Coverage = () => {
   const [dut, setDut] = React.useState(_COV_DEFAULT_DUT);
@@ -482,6 +537,27 @@ window.Coverage = () => {
   const [error, setError] = React.useState('');
   const [lastRefresh, setLastRefresh] = React.useState('');
   const [htmlAvailable, setHtmlAvailable] = React.useState(false);
+  // Collapse state for the side panels — persisted across reloads.
+  const [leftCollapsed, setLeftCollapsed] = React.useState(() => {
+    try { return localStorage.getItem('atlasCoverageLeftCollapsed') === '1'; }
+    catch (_) { return false; }
+  });
+  const [rightCollapsed, setRightCollapsed] = React.useState(() => {
+    try { return localStorage.getItem('atlasCoverageRightCollapsed') === '1'; }
+    catch (_) { return false; }
+  });
+  const toggleLeft = () => {
+    setLeftCollapsed(v => {
+      try { localStorage.setItem('atlasCoverageLeftCollapsed', v ? '0' : '1'); } catch (_) {}
+      return !v;
+    });
+  };
+  const toggleRight = () => {
+    setRightCollapsed(v => {
+      try { localStorage.setItem('atlasCoverageRightCollapsed', v ? '0' : '1'); } catch (_) {}
+      return !v;
+    });
+  };
 
   // Fetch coverage.info via /api/file (also pulls toggle.json and history.jsonl
   // in parallel — all three are written by the coverage_report / vcd_toggle
@@ -606,27 +682,39 @@ window.Coverage = () => {
         <CovDeltaWidget history={history} />
       </div>
 
-      {/* Bottom: 3-pane (files | source | gaps) */}
+      {/* Bottom: 3-pane (files | source | gaps).
+          Side panels collapse to a 28px strip on demand. */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '240px 1fr 240px',
+        gridTemplateColumns:
+          (leftCollapsed ? '28px' : '240px') +
+          ' 1fr ' +
+          (rightCollapsed ? '28px' : '240px'),
         gap: 12, minHeight: 0, overflow: 'hidden',
       }}>
-        <CovFileList
-          summary={summary}
-          activeFile={activeFile}
-          onSelect={(p) => { setActiveFile(p); setJumpLine(null); }}
-        />
+        {leftCollapsed
+          ? <CovCollapsedStrip side="left" label="files" onExpand={toggleLeft} />
+          : <CovFileList
+              summary={summary}
+              activeFile={activeFile}
+              onSelect={(p) => { setActiveFile(p); setJumpLine(null); }}
+              onCollapse={toggleLeft}
+            />
+        }
         <CovSourceViewer
           path={activeFile}
           content={annotatedContent}
           jumpToLine={jumpLine}
         />
-        <CovGapNav
-          annotated={annotatedContent}
-          activePath={activeFile}
-          onJump={(ln) => setJumpLine(ln)}
-        />
+        {rightCollapsed
+          ? <CovCollapsedStrip side="right" label="gaps" onExpand={toggleRight} />
+          : <CovGapNav
+              annotated={annotatedContent}
+              activePath={activeFile}
+              onJump={(ln) => setJumpLine(ln)}
+              onCollapse={toggleRight}
+            />
+        }
       </div>
 
       {error && (

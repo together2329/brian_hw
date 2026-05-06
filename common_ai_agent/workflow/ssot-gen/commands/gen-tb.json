@@ -1,6 +1,6 @@
 {
   "name": "gen-tb",
-  "description": "Generate Testbench from YAML SSOT via Jinja2 templates",
+  "description": "Legacy alias: hand off validated YAML SSOT to tb-gen; do not use fixed templates",
   "aliases": ["gt"],
   "handler": "bash:gen_tb.sh",
   "usage": "/gen-tb <module_name>"

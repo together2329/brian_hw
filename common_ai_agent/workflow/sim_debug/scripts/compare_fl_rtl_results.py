@@ -1,0 +1,523 @@
+#!/usr/bin/env python3
+"""Compare structured FL-vs-RTL scoreboard evidence against equivalence goals."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import time
+import xml.etree.ElementTree as ET
+from pathlib import Path
+from typing import Any
+
+
+def _load_json(path: Path) -> dict[str, Any]:
+    if not path.is_file():
+        return {}
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return doc if isinstance(doc, dict) else {}
+
+
+def _load_jsonl(path: Path) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    if not path.is_file():
+        return rows
+    for line_no, raw in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+        line = raw.strip()
+        if not line:
+            continue
+        try:
+            item = json.loads(line)
+        except Exception as exc:
+            rows.append({
+                "goal_id": "",
+                "passed": False,
+                "mismatch": f"scoreboard_events.jsonl parse error at line {line_no}: {exc}",
+            })
+            continue
+        if isinstance(item, dict):
+            rows.append(item)
+    return rows
+
+
+def _scoreboard_schema_errors(row: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    required = [
+        "goal_id",
+        "scenario_id",
+        "cycle",
+        "stimulus",
+        "fl_expected",
+        "rtl_observed",
+        "passed",
+        "mismatch",
+        "coverage_refs",
+    ]
+    for key in required:
+        if key not in row:
+            errors.append(f"missing {key}")
+    if not str(row.get("goal_id") or "").strip():
+        errors.append("empty goal_id")
+    if not str(row.get("scenario_id") or "").strip():
+        errors.append("empty scenario_id")
+    cycle = row.get("cycle")
+    if isinstance(cycle, bool) or not isinstance(cycle, (int, float)):
+        errors.append("cycle must be numeric")
+    if not isinstance(row.get("passed"), bool):
+        errors.append("passed must be boolean")
+    mismatch = row.get("mismatch")
+    if not isinstance(mismatch, str):
+        errors.append("mismatch must be a string")
+    elif row.get("passed") is True and mismatch.strip():
+        errors.append("passed row must not carry mismatch text")
+    elif row.get("passed") is False and not mismatch.strip():
+        errors.append("failing row must explain mismatch")
+    if not isinstance(row.get("coverage_refs"), list):
+        errors.append("coverage_refs must be a list")
+    return errors
+
+
+def _parse_results(path: Path) -> dict[str, Any]:
+    if not path.is_file():
+        return {"exists": False, "total": 0, "fail": 0, "errors": 0, "source": ""}
+    result = {"exists": True, "total": 0, "fail": 0, "errors": 0, "source": str(path)}
+    try:
+        root = ET.fromstring(path.read_text(encoding="utf-8", errors="replace"))
+    except Exception as exc:
+        result.update({"fail": 1, "errors": 1, "parse_error": str(exc)})
+        return result
+    tests = failures = errors = 0
+    for elem in root.iter():
+        if elem.tag.endswith("testsuite"):
+            tests += int(float(elem.attrib.get("tests", "0") or 0))
+            failures += int(float(elem.attrib.get("failures", "0") or 0))
+            errors += int(float(elem.attrib.get("errors", "0") or 0))
+    if tests == 0 and root.tag.endswith("testsuite"):
+        tests = int(float(root.attrib.get("tests", "0") or 0))
+        failures = int(float(root.attrib.get("failures", "0") or 0))
+        errors = int(float(root.attrib.get("errors", "0") or 0))
+    if tests == 0:
+        testcases = [e for e in root.iter() if e.tag.endswith("testcase")]
+        tests = len(testcases)
+        for case in testcases:
+            failures += len([c for c in list(case) if c.tag.endswith("failure")])
+            errors += len([c for c in list(case) if c.tag.endswith("error")])
+    result.update({"total": tests, "fail": failures + errors, "errors": errors, "failures": failures})
+    return result
+
+
+def _rel(path: Path, root: Path) -> str:
+    try:
+        return str(path.relative_to(root))
+    except ValueError:
+        return str(path)
+
+
+def _stale_evidence(root: Path, sources: list[Path], evidence: list[Path]) -> list[str]:
+    existing_sources = [path for path in sources if path.is_file()]
+    existing_evidence = [path for path in evidence if path.is_file()]
+    if not existing_sources or not existing_evidence:
+        return []
+    newest_source = max(existing_sources, key=lambda path: path.stat().st_mtime)
+    newest_source_mtime = newest_source.stat().st_mtime
+    stale: list[str] = []
+    for path in existing_evidence:
+        if path.stat().st_mtime + 0.5 < newest_source_mtime:
+            stale.append(f"{_rel(path, root)} older than {_rel(newest_source, root)}")
+    return stale
+
+
+def _goal_map(goals_doc: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    out: dict[str, dict[str, Any]] = {}
+    for goal in goals_doc.get("goals") if isinstance(goals_doc.get("goals"), list) else []:
+        if not isinstance(goal, dict):
+            continue
+        gid = str(goal.get("goal_id") or "").strip()
+        if gid:
+            out[gid] = goal
+    return out
+
+
+def _module_scope_error(goal: dict[str, Any], row: dict[str, Any]) -> str:
+    scope = goal.get("scope") if isinstance(goal.get("scope"), dict) else {}
+    if scope.get("level") != "module":
+        return ""
+    row_scope = row.get("scope") if isinstance(row.get("scope"), dict) else {}
+    if row_scope.get("level") != "module":
+        return "module equivalence row missing scope.level=module"
+    if row_scope.get("rtl_module") != scope.get("rtl_module"):
+        return f"module equivalence row rtl_module={row_scope.get('rtl_module')!r} expected {scope.get('rtl_module')!r}"
+    return ""
+
+
+def _coverage_hit_map(coverage: dict[str, Any]) -> dict[str, bool]:
+    functional = coverage.get("functional") if isinstance(coverage.get("functional"), dict) else {}
+    bins = functional.get("bins") if isinstance(functional.get("bins"), dict) else {}
+    top_bins = coverage.get("functional_bins") if isinstance(coverage.get("functional_bins"), dict) else {}
+    out: dict[str, bool] = {}
+    for key, value in {**top_bins, **bins}.items():
+        if isinstance(value, bool):
+            out[str(key)] = value
+        elif isinstance(value, dict):
+            out[str(key)] = bool(value.get("hit") or value.get("passed") or value.get("covered"))
+        elif isinstance(value, (int, float)):
+            out[str(key)] = value > 0
+    for key, value in coverage.items():
+        if isinstance(value, bool):
+            out.setdefault(str(key), value)
+    return out
+
+
+def _classify_failure(goal: dict[str, Any], rows: list[dict[str, Any]], reason: str) -> dict[str, Any]:
+    text = " ".join(
+        [reason]
+        + [str(r.get("mismatch") or r.get("error") or r.get("owner_hint") or "") for r in rows if isinstance(r, dict)]
+        + [str(goal.get("blocker") or "")]
+    ).lower()
+    locked_change = (
+        "change functionalmodel" in text
+        or "functionalmodel change" in text
+        or "change functional model" in text
+        or "functional model change" in text
+        or "golden model change" in text
+        or "coverage goal change" in text
+        or "change coverage goal" in text
+        or "coverage target change" in text
+        or "interface contract change" in text
+        or "change interface contract" in text
+        or "performance target change" in text
+        or "change performance target" in text
+        or "waiver" in text
+    )
+    if goal.get("blocked") or "ambiguous" in text or "undefined" in text or "ssot question" in text:
+        classification = "ssot_ambiguity"
+        owner = "ssot-gen"
+        loop = False
+    elif "contradiction" in text or "conflict" in text:
+        classification = "ssot_contradiction"
+        owner = "ssot-gen"
+        loop = False
+    elif locked_change:
+        classification = "locked_artifact_change_requires_human"
+        owner = "human"
+        loop = False
+    elif "module equivalence row" in text or "scope.level=module" in text or "must record scope" in text:
+        classification = "tb_bug"
+        owner = "tb-gen"
+        loop = True
+    elif "fl_model" in text or "functional model" in text or "model api" in text:
+        classification = "fl_model_bug"
+        owner = "human"
+        loop = False
+    elif "missing scoreboard" in text or "untested" in text:
+        classification = "coverage_bug"
+        owner = "tb-gen"
+        loop = True
+    elif "driver" in text or "monitor" in text or "scoreboard" in text or "tb" in text:
+        classification = "tb_bug"
+        owner = "tb-gen"
+        loop = True
+    elif "coverage" in text:
+        classification = "coverage_bug"
+        owner = "tb-gen"
+        loop = True
+    elif "tool" in text or "parse error" in text or "missing results" in text:
+        classification = "tool_issue"
+        owner = "sim_debug"
+        loop = True
+    elif "waiver" in text:
+        classification = "waiver_required"
+        owner = "human"
+        loop = False
+    else:
+        classification = "rtl_bug"
+        owner = "rtl-gen"
+        loop = True
+
+    first = rows[0] if rows else {}
+    return {
+        "goal_id": goal.get("goal_id"),
+        "classification": classification,
+        "owner": owner,
+        "llm_loop_allowed": loop,
+        "reason": reason,
+        "evidence": {
+            "ssot_refs": goal.get("ssot_refs") or [],
+            "scoreboard_rows": rows[:8],
+            "fl_expected": first.get("fl_expected") if isinstance(first, dict) else {},
+            "rtl_observed": first.get("rtl_observed") if isinstance(first, dict) else {},
+            "sim_result": "failed",
+        },
+        "authority_policy": {
+            "locked_artifacts": ["requirement", "ssot_spec", "functional_model", "coverage_plan", "interface_contract", "performance_target"],
+            "llm_editable_artifacts": ["rtl", "tb", "test_vector", "scoreboard_implementation", "lint_fix", "report"],
+            "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead.",
+        },
+        "repair_prompt": _repair_prompt(goal, classification, owner, reason) if loop else "",
+        "human_question": _human_question(goal, reason) if not loop else "",
+    }
+
+
+def _repair_prompt(goal: dict[str, Any], classification: str, owner: str, reason: str) -> str:
+    gid = str(goal.get("goal_id") or "")
+    if classification == "rtl_bug":
+        return (
+            f"Repair RTL for {gid}. Keep SSOT and FunctionalModel expected behavior unchanged. "
+            f"Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: {reason}"
+        )
+    if classification == "fl_model_bug":
+        return (
+            f"Repair FunctionalModel for {gid} to match SSOT refs {goal.get('ssot_refs')}. "
+            f"Do not copy RTL observed behavior unless SSOT proves it. Reason: {reason}"
+        )
+    if classification in {"tb_bug", "coverage_bug"}:
+        return (
+            f"Repair TB/scoreboard/coverage for {gid}. Keep expected values sourced from "
+            f"FunctionalModel.apply and SSOT. Reason: {reason}"
+        )
+    return f"Repair {owner} for {gid}. Reason: {reason}"
+
+
+def _human_question(goal: dict[str, Any], reason: str) -> str:
+    return (
+        "Decision needed:\n"
+        f"  Define or approve expected behavior for {goal.get('goal_id')}.\n\n"
+        "Locked artifact rule:\n"
+        "  Requirement, SSOT/spec, FunctionalModel golden semantics, coverage goals, "
+        "interface contracts, and performance targets require human approval before "
+        "they change. RTL/TB/tests may be repaired automatically after the oracle is locked.\n\n"
+        "Evidence:\n"
+        f"  SSOT refs: {', '.join(str(x) for x in goal.get('ssot_refs') or [])}\n"
+        f"  Reason: {reason}\n\n"
+        "Options:\n"
+        "  A. Update SSOT with the intended behavior and regenerate FL/equivalence goals.\n"
+        "  B. Mark this behavior as not required and provide an explicit waiver/rationale.\n\n"
+        "Recommended default:\n"
+        "  Update SSOT, because RTL/TB expected values must remain source-of-truth driven.\n\n"
+        "Downstream effect:\n"
+        "  SSOT, FunctionalModel, equivalence goals, TB scoreboard, and coverage may change."
+    )
+
+
+def compare(ip: str, root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
+    ip_dir = root / ip
+    goals_path = ip_dir / "verify" / "equivalence_goals.json"
+    score_path = ip_dir / "sim" / "scoreboard_events.jsonl"
+    result_candidates = [
+        ip_dir / "sim" / "results.xml",
+        ip_dir / "tb" / "cocotb" / "results.xml",
+    ]
+    results_path = next((p for p in result_candidates if p.is_file()), result_candidates[0])
+    coverage_path = ip_dir / "cov" / "coverage.json"
+    fl_check_path = ip_dir / "model" / "fl_model_check.json"
+    ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
+    model_path = ip_dir / "model" / "functional_model.py"
+    decomp_path = ip_dir / "model" / "decomposition.json"
+    fcov_plan_path = ip_dir / "cov" / "fcov_plan.json"
+
+    goals_doc = _load_json(goals_path)
+    goals = _goal_map(goals_doc)
+    rows = _load_jsonl(score_path)
+    rows_by_goal: dict[str, list[dict[str, Any]]] = {gid: [] for gid in goals}
+    orphan_rows: list[dict[str, Any]] = []
+    for row in rows:
+        schema_errors = _scoreboard_schema_errors(row)
+        if schema_errors:
+            row = dict(row)
+            row["_schema_errors"] = schema_errors
+            row["passed"] = False
+            if not str(row.get("mismatch") or "").strip():
+                row["mismatch"] = "scoreboard schema error: " + "; ".join(schema_errors)
+        gid = str(row.get("goal_id") or "").strip()
+        if gid in rows_by_goal:
+            rows_by_goal[gid].append(row)
+        else:
+            orphan_rows.append(row)
+
+    sim_result = _parse_results(results_path)
+    coverage = _load_json(coverage_path)
+    coverage_hits = _coverage_hit_map(coverage)
+    fl_check = _load_json(fl_check_path)
+
+    checked = passed = failed = blocked = untested = 0
+    goal_results: list[dict[str, Any]] = []
+    classifications: list[dict[str, Any]] = []
+
+    missing_evidence: list[str] = []
+    if not goals_path.is_file():
+        missing_evidence.append(str(goals_path.relative_to(root)))
+    if not score_path.is_file():
+        missing_evidence.append(str(score_path.relative_to(root)))
+    if not sim_result.get("exists"):
+        missing_evidence.append(str(results_path.relative_to(root)))
+    if fl_check and fl_check.get("passed") is not True:
+        missing_evidence.append(str(fl_check_path.relative_to(root)) + " passed=false")
+    stale_evidence = _stale_evidence(
+        root,
+        [ssot_path, model_path, fl_check_path, decomp_path, fcov_plan_path, goals_path],
+        [score_path, results_path, coverage_path],
+    )
+
+    for gid, goal in goals.items():
+        goal_rows = rows_by_goal.get(gid) or []
+        cov_refs = [str(x) for x in goal.get("coverage_refs") or []]
+        cov_hit = all(coverage_hits.get(ref, False) for ref in cov_refs) if cov_refs and coverage_hits else None
+        if goal.get("blocked"):
+            status = "blocked"
+            blocked += 1
+            reason = str(goal.get("blocker") or "equivalence goal is blocked by SSOT")
+            classifications.append(_classify_failure(goal, goal_rows, reason))
+        elif not goal_rows:
+            status = "untested"
+            untested += 1
+            reason = "missing scoreboard evidence for goal"
+            classifications.append(_classify_failure(goal, goal_rows, reason))
+        else:
+            checked += 1
+            row_failures = [r for r in goal_rows if r.get("passed") is not True]
+            for row in goal_rows:
+                scope_error = _module_scope_error(goal, row)
+                if scope_error:
+                    row = dict(row)
+                    row["passed"] = False
+                    row["mismatch"] = scope_error
+                    row_failures.append(row)
+            if row_failures:
+                status = "fail"
+                failed += 1
+                reason = str(row_failures[0].get("mismatch") or row_failures[0].get("error") or "scoreboard mismatch")
+                classifications.append(_classify_failure(goal, row_failures, reason))
+            else:
+                status = "pass"
+                passed += 1
+        goal_results.append({
+            "goal_id": gid,
+            "status": status,
+            "events": len(goal_rows),
+            "coverage_refs": cov_refs,
+            "coverage_hit": cov_hit,
+        })
+
+    if orphan_rows:
+        classifications.append({
+            "goal_id": "",
+            "classification": "tb_bug",
+            "owner": "tb-gen",
+            "llm_loop_allowed": True,
+            "reason": "scoreboard emitted rows without a known goal_id",
+            "evidence": {"scoreboard_rows": orphan_rows[:8], "sim_result": "failed"},
+            "repair_prompt": "Repair TB scoreboard to emit only goal_id values from equivalence_goals.json.",
+            "human_question": "",
+        })
+
+    if sim_result.get("fail"):
+        classification = "tool_issue" if sim_result.get("parse_error") or sim_result.get("errors") else "tb_bug"
+        owner = "sim_debug" if classification == "tool_issue" else "tb-gen"
+        reason = (
+            "simulation result XML reports failures/errors outside scoreboard evidence"
+            if not sim_result.get("parse_error") else
+            f"simulation result XML parse error: {sim_result.get('parse_error')}"
+        )
+        classifications.append({
+            "goal_id": "",
+            "classification": classification,
+            "owner": owner,
+            "llm_loop_allowed": True,
+            "reason": reason,
+            "evidence": {
+                "sim_result": sim_result,
+                "scoreboard_rows": rows[:8],
+            },
+            "repair_prompt": (
+                "Repair simulation/TB infrastructure so every failing testcase is tied "
+                "to a scoreboard goal_id with expected/got evidence, then rerun /sim "
+                "and /sim-debug."
+            ),
+            "human_question": "",
+        })
+        failed = max(failed, 1)
+
+    total = len(goals)
+    status = "pending"
+    if total == 0:
+        status = "pending"
+    elif blocked:
+        status = "blocked"
+    elif failed or orphan_rows:
+        status = "fail"
+    elif stale_evidence:
+        status = "stale"
+    elif untested or missing_evidence:
+        status = "pending"
+    elif checked == total and passed == total:
+        status = "pass"
+
+    compare_doc = {
+        "schema_version": 1,
+        "type": "fl_rtl_compare",
+        "ip": ip,
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "status": status,
+        "sources": {
+            "equivalence_goals": str(goals_path.relative_to(root)),
+            "scoreboard_events": str(score_path.relative_to(root)),
+            "results_xml": str(results_path.relative_to(root)),
+            "coverage": str(coverage_path.relative_to(root)),
+            "fl_model_check": str(fl_check_path.relative_to(root)),
+        },
+        "summary": {
+            "total": total,
+            "goals_checked": checked,
+            "goals_passed": passed,
+            "goals_failed": failed,
+            "goals_blocked": blocked,
+            "goals_untested": untested,
+            "scoreboard_events": len(rows),
+            "orphan_scoreboard_events": len(orphan_rows),
+            "missing_evidence": missing_evidence,
+            "stale_evidence": stale_evidence,
+            "sim_results": sim_result,
+        },
+        "goals": goal_results,
+    }
+    classify_doc = {
+        "schema_version": 1,
+        "type": "mismatch_classification",
+        "ip": ip,
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "status": "pass" if not classifications and status == "pass" else ("pending" if status == "pending" else "action_required"),
+        "classifications": classifications,
+    }
+
+    sim_dir = ip_dir / "sim"
+    sim_dir.mkdir(parents=True, exist_ok=True)
+    (sim_dir / "fl_rtl_compare.json").write_text(json.dumps(compare_doc, indent=2) + "\n", encoding="utf-8")
+    (sim_dir / "mismatch_classification.json").write_text(json.dumps(classify_doc, indent=2) + "\n", encoding="utf-8")
+    return compare_doc, classify_doc
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("ip")
+    parser.add_argument("--root", default=".")
+    args = parser.parse_args()
+    root = Path(args.root).resolve()
+    compare_doc, classify_doc = compare(args.ip, root)
+    summary = compare_doc["summary"]
+    print(f"[compare_fl_rtl_results] wrote {args.ip}/sim/fl_rtl_compare.json")
+    print(f"[compare_fl_rtl_results] wrote {args.ip}/sim/mismatch_classification.json")
+    print(
+        "[compare_fl_rtl_results] "
+        f"status={compare_doc['status']} total={summary['total']} "
+        f"checked={summary['goals_checked']} passed={summary['goals_passed']} "
+        f"failed={summary['goals_failed']} blocked={summary['goals_blocked']} "
+        f"untested={summary['goals_untested']} classifications={len(classify_doc['classifications'])}"
+    )
+    return 0 if compare_doc["status"] == "pass" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

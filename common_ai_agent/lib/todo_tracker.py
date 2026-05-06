@@ -234,9 +234,24 @@ class TodoItem:
             "TOOL_OUTPUT": tool_output,
             "EXIT_CONDITION": self.exit_condition,
         }
+        cmd = self.validator
+        try:
+            import re as _re
+            import shlex as _shlex
+            agent_root = Path(__file__).resolve().parents[1]
+            workflow_root = agent_root / "workflow"
+            if workflow_root.is_dir():
+                cmd = _re.sub(
+                    r"(?<=\bbash\s)workflow/",
+                    _shlex.quote(str(workflow_root)) + "/",
+                    cmd,
+                    count=1,
+                )
+        except Exception:
+            cmd = self.validator
         try:
             r = _sp.run(
-                self.validator, shell=True,
+                cmd, shell=True,
                 capture_output=True, text=True, timeout=5, env=env,
             )
             if r.returncode != 0:
@@ -360,12 +375,13 @@ class TodoTracker:
         """
         특정 todo를 completed로 변경하고 완료 시간 기록.
 
-        Loop 모드일 경우 exit_condition / max_loop_iterations를 검사:
-          - exit_condition이 tool_output에 포함되거나 max에 도달 → approved (자동)
-          - 그 외 → in_progress로 복귀 (루프 재시작), 반환값 False
+        Loop 모드일 경우 validator / exit_condition / max_loop_iterations를 검사:
+          - validator 통과 또는 exit_condition 매칭 → completed
+          - validator 실패 또는 exit_condition 불충족 → in_progress로 복귀
+          - max 도달 → rejected
 
         Returns:
-            True  = normal completion (status set to completed or auto-approved)
+            True  = normal completion (status set to completed)
             False = loop restarted (status reset to in_progress)
         """
         if not (0 <= index < len(self.todos)):
@@ -375,33 +391,55 @@ class TodoTracker:
 
         if todo.loop:
             todo.loop_count += 1
+            validator_fail = todo.run_validator(tool_output)
             exit_met = bool(todo.exit_condition and todo.exit_condition in tool_output)
             max_reached = (todo.max_loop_iterations > 0
                            and todo.loop_count >= todo.max_loop_iterations)
 
+            # In loop mode the validator is the strongest exit signal: it
+            # checks disk/tool truth instead of brittle prose in tool_output.
+            if validator_fail is None and todo.validator:
+                todo.status = "completed"
+                todo.loop_exit_reason = f"Validator passed after {todo.loop_count} iteration(s)"
+                todo.completed_at = time.time()
+                todo.rejection_reason = ""
+                todo.tools_since_in_progress = 0
+                todo.tools_since_completed = 0
+                self.current_index = index
+                self.save()
+                return True
             if exit_met:
-                todo.status = "approved"
+                todo.status = "completed"
                 todo.loop_exit_reason = f"Exit condition met after {todo.loop_count} iteration(s)"
-                todo.approved_reason = todo.loop_exit_reason
                 todo.completed_at = time.time()
+                todo.rejection_reason = ""
+                todo.tools_since_in_progress = 0
+                todo.tools_since_completed = 0
                 self.current_index = index
                 self.save()
                 return True
-            elif max_reached:
-                todo.status = "approved"
-                todo.loop_exit_reason = f"Max iterations ({todo.max_loop_iterations}) reached"
-                todo.approved_reason = todo.loop_exit_reason
-                todo.completed_at = time.time()
-                self.current_index = index
-                self.save()
-                return True
-            else:
-                # Loop restart: keep in_progress
-                todo.status = "in_progress"
+            if max_reached:
+                todo.status = "rejected"
+                todo.loop_exit_reason = f"Max iterations ({todo.max_loop_iterations}) reached without satisfying validator/exit condition"
+                todo.rejection_reason = todo.loop_exit_reason
                 todo.completed_at = None
                 self.current_index = index
                 self.save()
-                return False  # signal: loop restarted
+                return False
+            if validator_fail:
+                todo.status = "in_progress"
+                todo.rejection_reason = f"[Validator retry] {validator_fail}"
+                todo.completed_at = None
+                self.current_index = index
+                self.save()
+                return False
+
+            # Loop restart: keep in_progress
+            todo.status = "in_progress"
+            todo.completed_at = None
+            self.current_index = index
+            self.save()
+            return False  # signal: loop restarted
 
         # Normal (non-loop) completion — run validator first
         validator_fail = todo.run_validator(tool_output)

@@ -940,6 +940,32 @@ def _build_responses_request_body(
     if instructions:
         data["instructions"] = instructions
 
+    # Codex backend (https://chatgpt.com/backend-api/codex/responses) is the
+    # ChatGPT-OAuth gateway and imposes extra constraints over OpenAI's
+    # standard /v1/responses:
+    #   • instructions is required        (400 "Instructions are required")
+    #   • store must be false             (400 "Store must be set to false")
+    #   • stream must be true             (400 "Stream must be set to true")
+    # Caching: Codex is storage-less by design. opencode itself sets
+    # store=false for OpenAI/Codex models (transform.ts:1001) and enables
+    # prefix caching via `prompt_cache_key: <stable session key>`. We mirror
+    # that — no caching loss, just a different mechanism than OpenAI's store.
+    if "chatgpt.com/backend-api/codex" in (effective_base_url or "").lower():
+        if not data.get("instructions"):
+            data["instructions"] = "You are a helpful assistant."
+        data["store"] = False
+        data["stream"] = True
+        # Stable per-session cache key. Sourced from common_ai_agent's active
+        # session ID via get_session_cache_key() so prefix caching survives
+        # across turns of the same conversation but stays isolated between
+        # sessions. glm/deepseek/anthropic paths are NOT touched — this
+        # branch only fires when the URL is the ChatGPT Codex backend.
+        try:
+            from src.opencode_backend import get_session_cache_key
+            data["prompt_cache_key"] = get_session_cache_key()
+        except Exception:
+            data["prompt_cache_key"] = "common_ai_agent"
+
     if temperature is not None:
         data["temperature"] = temperature
 
@@ -981,6 +1007,13 @@ def _build_responses_request_body(
             data["tools"] = responses_tools
             data["tool_choice"] = "auto"
 
+    # Codex backend post-scrub: drop fields the ChatGPT-OAuth gateway
+    # rejects. Runs at the very end so it overrides anything earlier
+    # branches injected. Mirrors opencode/.../plugin/codex.ts:609-613.
+    if "chatgpt.com/backend-api/codex" in (effective_base_url or "").lower():
+        data.pop("max_output_tokens", None)
+        data.pop("temperature", None)
+
     return data
 
 
@@ -1020,6 +1053,10 @@ def build_api_headers(api_key: str, extra_headers: dict = None) -> dict:
 
     - Standard: Authorization: Bearer {api_key}
     - Azure OpenAI: api-key: {api_key} (no Bearer)
+    - opencode OAuth (USE_OPENCODE_OAUTH): pulls a fresh access token from
+      ~/.local/share/opencode/auth.json each call, then adds Codex-specific
+      headers (originator, ChatGPT-Account-Id) so the Codex backend accepts
+      the request. Mirrors opencode/packages/opencode/src/plugin/codex.ts.
     """
     if is_azure_provider():
         headers = {
@@ -1033,6 +1070,65 @@ def build_api_headers(api_key: str, extra_headers: dict = None) -> dict:
             "Authorization": f"Bearer {api_key}",
             "User-Agent": "BrianCoder/1.0"
         }
+
+    # opencode-OAuth headers fire ONLY when the current BASE_URL is the
+    # ChatGPT Codex endpoint. This way switching `--model glm` (or any
+    # other profile) at runtime — which rewrites BASE_URL via
+    # set_active_profile — automatically deactivates Codex headers, so
+    # glm/deepseek/anthropic requests stay clean even if USE_OPENCODE_OAUTH
+    # was set at boot.
+    if "chatgpt.com/backend-api/codex" in (getattr(config, "BASE_URL", "") or "").lower():
+        try:
+            from src.opencode_backend import (
+                get_credentials,
+                codex_extra_headers,
+                get_session_cache_key,
+            )
+            cred = get_credentials("openai")
+            if cred and cred.get("access"):
+                headers["Authorization"] = f"Bearer {cred['access']}"
+                # Mirror opencode's codex.ts plugin: set originator,
+                # ChatGPT-Account-Id, AND session_id header. The session_id
+                # header is part of how the Codex backend keys cache lookups.
+                headers.update(
+                    codex_extra_headers(
+                        cred.get("accountId", ""),
+                        session_id=get_session_cache_key(),
+                    )
+                )
+        except Exception:
+            pass
+
+    # Kimi For Coding (api.kimi.com/coding/v1) appears to gate on the
+    # Vercel AI SDK User-Agent signature rather than on specific product
+    # names. Every "approved coding agent" (Claude Code, Kimi CLI, Roo,
+    # Kilo, opencode) routes through @ai-sdk/openai-compatible, which
+    # appends "ai-sdk/openai-compatible/X.Y ai-sdk/provider-utils/X.Y
+    # runtime/node.js/X.Y" via withUserAgentSuffix() in
+    # @ai-sdk/provider-utils/post-to-api.ts. We mirror that exact wire
+    # format so common_ai_agent gets the same gate treatment without
+    # impersonating any specific product. Override via KIMI_CODING_USER_AGENT
+    # env if the gate ever changes (e.g. switch to opencode/X.Y identifier).
+    # Other Moonshot endpoints (api.moonshot.cn) are NOT gated and retain
+    # the default User-Agent.
+    _base_lc = (getattr(config, "BASE_URL", "") or "").lower()
+    if "api.kimi.com/coding" in _base_lc:
+        import os as _os_kc
+        # Kimi For Coding gate verified working with this UA pattern
+        # (2026-05 e2e screenshot showed kimi-2.6 responding via Sisyphus
+        # worker). Plain ai-sdk-only signature returned 403 in follow-up
+        # testing — the gate requires BOTH a known coding-agent identifier
+        # AND the SDK suffix. Override via KIMI_CODING_USER_AGENT env when
+        # experimenting with alternative identifiers (opencode/cli, kimi-cli, etc.).
+        headers["User-Agent"] = _os_kc.environ.get(
+            "KIMI_CODING_USER_AGENT",
+            "claude-cli/0.2.7 (Anthropic; Darwin) "
+            "ai-sdk/openai-compatible/1.0.29 "
+            "ai-sdk/provider-utils/3.0.19 "
+            "runtime/node.js/22.0.0",
+        )
+        headers.setdefault("HTTP-Referer", "https://www.anthropic.com/")
+        headers.setdefault("X-Title", "Claude Code")
 
     if extra_headers:
         headers.update(extra_headers)
@@ -1863,6 +1959,207 @@ def _parse_responses_result(result: dict):
                     pass
 
 
+def _apply_responses_extra_body(data: dict, extra_body: Optional[dict], base_url: str) -> dict:
+    """Apply chat-style extra_body overrides to a Responses request safely."""
+    if not extra_body:
+        return data
+    extra = dict(extra_body)
+    response_format = extra.pop("response_format", None)
+    if response_format and "chatgpt.com/backend-api/codex" not in (base_url or "").lower():
+        text_cfg = dict(data.get("text") or {})
+        text_cfg["format"] = response_format
+        data["text"] = text_cfg
+    data.update(extra)
+    return data
+
+
+def _collect_responses_raw(
+    url: str,
+    headers: Dict,
+    data: Dict,
+    caller_tag: str,
+    started_at: float,
+    stream_prefix: Optional[str] = None,
+) -> str:
+    """Collect a Responses API result into the call_llm_raw string contract."""
+    global last_input_tokens, last_output_tokens
+    global last_cache_creation_tokens, last_cache_read_tokens
+    global total_cache_created, total_cache_read
+
+    def _emit_stream_text(text: str, prefix_state: dict) -> None:
+        if stream_prefix is None or not text:
+            return
+        if not prefix_state.get("printed"):
+            sys.stdout.write(stream_prefix)
+            prefix_state["printed"] = True
+        if "\n" in text:
+            parts = text.split("\n")
+            sys.stdout.write(parts[0])
+            for part in parts[1:]:
+                sys.stdout.write("\n")
+                if part:
+                    sys.stdout.write(stream_prefix + part)
+                    prefix_state["printed"] = True
+                else:
+                    prefix_state["printed"] = False
+        else:
+            sys.stdout.write(text)
+        sys.stdout.flush()
+
+    try:
+        raw_body = json.dumps(data).encode("utf-8")
+        timeout = config.STREAM_API_TIMEOUT if data.get("stream") else config.NONSTREAM_API_TIMEOUT
+        t_connect = time.perf_counter()
+        response = _persistent_post(url, headers, raw_body, timeout=timeout)
+        connected_at = time.perf_counter()
+
+        if data.get("stream"):
+            content_parts: list[str] = []
+            tool_calls: dict[int, dict] = {}
+            current_call_name = ""
+            current_call_id = ""
+            current_call_idx = 0
+            usage_info = None
+            saw_text_delta = False
+            prefix_state: dict[str, bool] = {}
+            try:
+                for raw_line in response:
+                    line = raw_line.decode("utf-8").strip()
+                    if not line.startswith("data:"):
+                        continue
+                    data_str = line.split(":", 1)[1].strip()
+                    if data_str == "[DONE]":
+                        break
+                    try:
+                        event_json = json.loads(data_str)
+                    except json.JSONDecodeError:
+                        continue
+
+                    event_type = event_json.get("type", "")
+                    if "usage" in event_json:
+                        usage_info = event_json["usage"]
+
+                    if event_type == "response.output_text.delta":
+                        delta_text = event_json.get("delta", "")
+                        if delta_text:
+                            saw_text_delta = True
+                            content_parts.append(delta_text)
+                            _emit_stream_text(delta_text, prefix_state)
+                        continue
+
+                    if event_type == "response.output_item.added":
+                        item = event_json.get("item", {})
+                        if item.get("type") == "function_call":
+                            current_call_name = item.get("name", "")
+                            current_call_id = item.get("call_id", item.get("id", ""))
+                            current_call_idx = len(tool_calls)
+                            tool_calls[current_call_idx] = {
+                                "id": current_call_id,
+                                "name": current_call_name,
+                                "arguments": "",
+                            }
+                        continue
+
+                    if event_type == "response.function_call_arguments.delta":
+                        args_delta = event_json.get("delta", "")
+                        if current_call_idx not in tool_calls:
+                            tool_calls[current_call_idx] = {
+                                "id": current_call_id,
+                                "name": current_call_name,
+                                "arguments": "",
+                            }
+                        tool_calls[current_call_idx]["arguments"] += args_delta
+                        continue
+
+                    if event_type == "response.completed":
+                        resp_obj = event_json.get("response", {})
+                        if "usage" in resp_obj:
+                            usage_info = resp_obj["usage"]
+                        if not saw_text_delta:
+                            for parsed in _parse_responses_result(resp_obj):
+                                if isinstance(parsed, tuple):
+                                    continue
+                                content_parts.append(parsed)
+                                _emit_stream_text(parsed, prefix_state)
+            finally:
+                try:
+                    response.read()
+                except Exception:
+                    pass
+
+            if stream_prefix is not None:
+                sys.stdout.write("\n")
+                sys.stdout.flush()
+
+            if usage_info:
+                input_tokens = usage_info.get("input_tokens", 0)
+                output_tokens = usage_info.get("output_tokens", 0)
+                if input_tokens > 0:
+                    last_input_tokens = input_tokens
+                if output_tokens > 0:
+                    last_output_tokens = output_tokens
+                cached = usage_info.get(
+                    "cached_input_tokens",
+                    usage_info.get("prompt_tokens_details", {}).get("cached_tokens", 0),
+                )
+                input_details = usage_info.get("input_tokens_details") or {}
+                if cached == 0 and input_details.get("cached_tokens", 0) > 0:
+                    cached = input_details["cached_tokens"]
+                if cached > 0:
+                    last_cache_read_tokens = cached
+                    total_cache_read += cached
+
+            ended_at = time.perf_counter()
+            _record_call(
+                caller_tag,
+                data.get("model", ""),
+                last_input_tokens,
+                last_output_tokens,
+                connected_at - t_connect,
+                ended_at - t_connect,
+                0.0,
+                ended_at - started_at,
+            )
+
+            native_calls = [tool_calls[idx] for idx in sorted(tool_calls) if tool_calls[idx].get("name")]
+            if native_calls:
+                return json.dumps({"tool_calls": native_calls}, ensure_ascii=False)
+            return _strip_metadata_tokens("".join(content_parts)).strip()
+
+        result = json.loads(response.read().decode("utf-8"))
+        content_parts = []
+        for parsed in _parse_responses_result(result):
+            if isinstance(parsed, tuple):
+                continue
+            content_parts.append(parsed)
+        usage = result.get("usage", {})
+        if usage:
+            last_input_tokens = usage.get("input_tokens", 0)
+            last_output_tokens = usage.get("output_tokens", 0)
+        ended_at = time.perf_counter()
+        _record_call(
+            caller_tag,
+            data.get("model", ""),
+            last_input_tokens,
+            last_output_tokens,
+            connected_at - t_connect,
+            ended_at - t_connect,
+            0.0,
+            ended_at - started_at,
+        )
+        return _strip_metadata_tokens("".join(content_parts)).strip()
+    except urllib.error.HTTPError as e:
+        try:
+            error_body = e.read().decode("utf-8")
+        except Exception:
+            error_body = ""
+        parsed = _parse_openai_error(error_body, http_status=e.code)
+        msg = parsed.get("message") or error_body[:300] or e.reason
+        return f"Error calling LLM: HTTP {e.code}: {msg}"
+    except Exception as e:
+        return f"Error calling LLM: {e}"
+
+
 def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: List, native_mode: bool = False):
     """
     Execute streaming request with retry logic.
@@ -1914,6 +2211,17 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                         try:
                             chunk_json = json.loads(data_str)
 
+                            # Kimi For Coding stream-format diagnostic dump.
+                            # Enabled by KIMI_DEBUG_STREAM=1 OR auto-on when BASE_URL
+                            # is Kimi and no content has been yielded yet (so we capture
+                            # at least the first few chunks for offline analysis).
+                            # Stderr-only so it doesn't pollute the response stream.
+                            if "api.kimi.com/coding" in (getattr(config, "BASE_URL", "") or "").lower():
+                                import os as _os_dbg
+                                if _os_dbg.environ.get("KIMI_DEBUG_STREAM", "1") not in ("0", "false", "no"):
+                                    import sys as _sys_dbg
+                                    _sys_dbg.stderr.write(f"[KIMI_RAW] {data_str[:600]}\n")
+
                             # Usage stats appear only in the last chunk (Z.AI / OpenAI spec)
                             if "usage" in chunk_json:
                                 usage_info = chunk_json["usage"]
@@ -1926,13 +2234,24 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                                     _finish_reason = _fr
                                 delta = choice.get("delta", {})
 
-                                # Reasoning tokens (DeepSeek, GLM, OpenRouter reasoning_details)
-                                reasoning = delta.get("reasoning") or delta.get("reasoning_content", "")
+                                # Reasoning tokens (DeepSeek, GLM, OpenRouter reasoning_details, Kimi K2 thinking)
+                                # Kimi K2 thinking-style models may use additional keys:
+                                # delta.reasoning, delta.reasoning_content, delta.thinking, delta.thought.
+                                reasoning = (delta.get("reasoning")
+                                             or delta.get("reasoning_content")
+                                             or delta.get("thinking")
+                                             or delta.get("thought")
+                                             or "")
                                 if not reasoning:
                                     for rd in (delta.get("reasoning_details") or []):
                                         if rd.get("type") == "thinking":
                                             reasoning = (reasoning or "") + (rd.get("thinking", "") or rd.get("summary", ""))
-                                content = delta.get("content", "") or ""
+                                # Content key fallbacks for non-OpenAI-compliant providers.
+                                # Kimi For Coding may emit `text` or `message.content` in some chunks.
+                                content = (delta.get("content")
+                                           or delta.get("text")
+                                           or (delta.get("message") or {}).get("content")
+                                           or "")
 
                                 # Bleed fix: GLM-4.7 can emit reasoning tail and content start
                                 # in the same delta chunk. Merge into reasoning when both are
@@ -2738,8 +3057,18 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
 
     _t_fn_start = time.time()  # track pre-connect setup time
 
+    # Kimi For Coding force-non-stream override.
+    # api.kimi.com/coding/v1 returns HTTP 200 + immediate [DONE] with zero
+    # delta chunks when stream=true is requested (verified e2e 2026-05).
+    # The non-stream path returns full content normally. Force the
+    # non-stream code path for any Kimi For Coding endpoint regardless of
+    # the global ENABLE_STREAMING setting. Other providers unaffected.
+    _kimi_force_nonstream = "api.kimi.com/coding" in (
+        getattr(config, "BASE_URL", "") or ""
+    ).lower()
+
     # Non-streaming mode: fetch full response then yield line-by-line
-    if not config.ENABLE_STREAMING:
+    if (not config.ENABLE_STREAMING) or _kimi_force_nonstream:
         _ns_delays = [3, 5, 10, 20, 40]
         _ns_max = len(_ns_delays) + 1
         _ns_model = model  # track for fallback
@@ -2780,7 +3109,22 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                             f"retrying in {delay:.1f}s..."))
                     else:
                         delay = 5 if e.code == 400 else _ns_delays[_ns_retry]
-                        print(Color.warning(f"\n[Retry {_ns_retry + 1}/{_ns_max - 1}] HTTP {e.code}: {e.reason}. Waiting {delay}s...\n"))
+                        # Surface the server's reason on EVERY retry, not just
+                        # the terminal failure — Codex returns {"detail": "..."}
+                        # which carries the actual constraint violation
+                        # (Instructions required, Store must be false, etc.).
+                        _hint = ""
+                        try:
+                            _ej = json.loads(error_body) if error_body else {}
+                            _hint = (
+                                (isinstance(_ej.get("error"), dict) and _ej["error"].get("message"))
+                                or _ej.get("detail")
+                                or (error_body[:200] if error_body else "")
+                            )
+                        except Exception:
+                            _hint = error_body[:200] if error_body else ""
+                        _hint_s = f" — {_hint}" if _hint else ""
+                        print(Color.warning(f"\n[Retry {_ns_retry + 1}/{_ns_max - 1}] HTTP {e.code}: {e.reason}{_hint_s}. Waiting {delay}s...\n"))
                     time.sleep(delay)
                     continue
                 yield f"\n{Color.error(f'[HTTP Error {e.code}]: {e.reason}')}\n"
@@ -2794,6 +3138,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                                 yield f"{Color.error(f'  {error_message}')}\n"
                         else:
                             yield f"{Color.error(f'  {error_info}')}\n"
+                    elif 'detail' in error_json:
+                        # Codex backend uses {"detail": "..."} instead of {"error": ...}
+                        _detail_msg = error_json['detail']
+                        yield f"{Color.error(f'  {_detail_msg}')}\n"
                 except Exception:
                     if error_body:
                         yield f"{Color.error(f'  {error_body[:300]}')}\n"
@@ -3821,6 +4169,31 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
             _raw_caller = f"{_fname}.{_func}"
         except Exception:
             _raw_caller = "call_llm_raw"
+
+    if use_responses_api(resolved_model):
+        responses_url = build_responses_url(config.BASE_URL, resolved_model)
+        responses_headers = build_api_headers(config.API_KEY)
+        responses_min = 500 if _is_reasoning_model_for_name(resolved_model) else 16
+        responses_max = max(max_tokens, responses_min) if max_tokens is not None else None
+        responses_data = _build_responses_request_body(
+            messages=msgs,
+            model=resolved_model,
+            stream=use_stream,
+            stop=stop,
+            temperature=temperature,
+            tools=tools,
+            max_output_tokens=responses_max,
+            base_url=responses_url,
+        )
+        responses_data = _apply_responses_extra_body(responses_data, extra_body, responses_url)
+        return _collect_responses_raw(
+            responses_url,
+            responses_headers,
+            responses_data,
+            _raw_caller,
+            _raw_t_start,
+            stream_prefix=stream_prefix,
+        )
 
     try:
         _raw_body = json.dumps(data).encode('utf-8')

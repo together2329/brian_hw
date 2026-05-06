@@ -626,6 +626,16 @@ class TestMakeCommandHandler(unittest.TestCase):
         h = _make_command_handler({"handler": "todo:template:x"}, self._ws())
         self.assertEqual(h("some args"), "INJECT_TODO_TEMPLATE:x")
 
+    def test_stage_handler_rejects_missing_ip_before_engine_run(self):
+        h = _make_command_handler({"handler": "stage:ssot-fl-model"}, self._ws())
+        result = h("")
+        self.assertIn("[ssot-fl-model] missing or invalid IP name", result)
+
+    def test_stage_handler_rejects_invalid_ip_before_engine_run(self):
+        h = _make_command_handler({"handler": "stage:ssot-fl-model"}, self._ws())
+        result = h("../bad")
+        self.assertIn("[ssot-fl-model] missing or invalid IP name", result)
+
 
 # ─────────────────────────────────────────────────────────────
 # TestWorkspaceConfigDefaults

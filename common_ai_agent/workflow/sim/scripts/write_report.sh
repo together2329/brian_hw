@@ -25,7 +25,7 @@ Tests     : ${PASS} passed, ${FAIL} failed
 Iterations: ${ITERS}
 
 [FAIL details]
-$(grep "\[FAIL\]" "${LOG}" 2>/dev/null | tail -20 || echo "NONE")
+$(grep -E "\[FAIL\]|FAILED|failed|ERROR" "${LOG}" 2>/dev/null | tail -20 || echo "NONE")
 EOF
 
 echo "Written: ${OUT}"

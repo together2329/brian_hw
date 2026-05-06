@@ -24,6 +24,7 @@ import uuid
 import threading
 import re
 import traceback
+import urllib.request
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
@@ -49,8 +50,8 @@ class RunEntry:
     status: str = "pending"          # pending → running → completed / error
     task: str = ""
     model: str = ""
-    result: Optional[Dict] = None
-    log: List[Dict] = field(default_factory=list)     # ReAct transcript
+    result: Optional[Dict[str, Any]] = None
+    log: List[Dict[str, Any]] = field(default_factory=list)     # ReAct transcript
     created_at: float = 0.0
     started_at: Optional[float] = None
     finished_at: Optional[float] = None
@@ -60,7 +61,7 @@ class RunEntry:
     _cancel_event: threading.Event = field(default_factory=threading.Event)
     _log_event: threading.Event = field(default_factory=threading.Event)
 
-    def add_log(self, entry_type: str, content: str, role: str = ""):
+    def add_log(self, entry_type: str, content: str, role: str = "") -> None:
         """Thread-safe log append. Prints to terminal when _VERBOSE is on."""
         ts = time.time()
         with self._lock:
@@ -76,7 +77,7 @@ class RunEntry:
             _print_entry(self.run_id, entry_type, content)
         self._log_event.set()  # Wake SSE stream listeners
 
-    def get_log(self, since: int = 0, tail: int = 0) -> List[Dict]:
+    def get_log(self, since: int = 0, tail: int = 0) -> List[Dict[str, Any]]:
         """Thread-safe log read with optional filters."""
         with self._lock:
             entries = list(self.log)
@@ -96,7 +97,7 @@ _executor = ThreadPoolExecutor(max_workers=_MAX_CONCURRENT)
 _concurrency_semaphore = threading.BoundedSemaphore(_MAX_CONCURRENT)
 
 # Worker registry — name → {name, url, registered_at}
-_worker_registry: Dict[str, dict] = {}
+_worker_registry: Dict[str, Dict[str, Any]] = {}
 _REGISTRY_FILE = Path(_project_root) / ".session" / "worker_registry.json"
 
 # TTL for completed/error/cancelled runs (seconds)
@@ -206,7 +207,7 @@ def _cleanup_expired_runs():
         _save_runs()
 
 
-def _fire_callback(entry: RunEntry):
+def _fire_callback(entry: RunEntry) -> None:
     """Fire webhook callback on run completion (background, with retry)."""
     url = entry.on_complete_url
     if not url:
@@ -226,7 +227,7 @@ def _fire_callback(entry: RunEntry):
                 print(f"[webhook] Failed to deliver callback to {url}: {e}")
 
 
-def _write_run_log(entry: RunEntry):
+def _write_run_log(entry: RunEntry) -> None:
     """Write completed run log to disk if _LOG_DIR is set."""
     if not _LOG_DIR:
         return
@@ -492,8 +493,8 @@ def _cancel_run(run_id: str) -> bool:
 
 
 def _run_react_task(entry: RunEntry, task: str, model: str = "",
-                     todos: list = None, context: str = "",
-                     workflow: str = "") -> None:
+                    todos: Optional[List[Any]] = None, context: str = "",
+                    workflow: str = "", session_name: str = "") -> None:
     """
     Execute a full ReAct loop using run_react_agent_impl from core/react_loop.py.
 
@@ -634,29 +635,120 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         from core.action_parser import _strip_native_tool_tokens, _strip_thinking_tags
         from core.tools import AVAILABLE_TOOLS
         from core.tool_dispatcher import dispatch_tool as _dispatch_tool
-        from core.parallel_executor import execute_actions_parallel
+        from core.parallel_executor import execute_actions_parallel as _execute_actions_parallel_impl
         from lib.iteration_control import (
             IterationTracker, detect_completion_signal,
         )
-        from lib.todo_tracker import _parse_todo_markdown
+        from src.main import _parse_todo_markdown
         from src.llm_client import (
             chat_completion_stream, get_last_usage,
             last_input_tokens, last_output_tokens,
         )
 
+        try:
+            config.reload_env()
+        except Exception:
+            pass
+
         # ── Model override ──
         effective_model = model or config.MODEL_NAME
 
-        # ── Build config wrapper (override MODEL_NAME for this run) ──
+        # ── Per-run session override ──
+        # Server startup still initializes a default worker session, but ATLAS
+        # dispatches each workflow/job with its own session namespace so logs
+        # can be reopened after worker restart via .session/<ip>/<workflow>.
+        session_overrides: Dict[str, str] = {}
+        run_todo_tracker = _worker_todo_tracker
+        active_session = (session_name or "").strip()
+        if active_session:
+            session_dir = Path(_project_root) / ".session" / active_session
+            session_dir.mkdir(parents=True, exist_ok=True)
+            session_overrides = {
+                "HISTORY_FILE": str(session_dir / "conversation.json"),
+                "TODO_FILE": str(session_dir / "todo.json"),
+                "TODO_ERROR_FILE": str(session_dir / "todo_error.json"),
+                "COST_FILE": str(session_dir / "cost.json"),
+                "SESSION_DIR": str(session_dir),
+                "ACTIVE_PROJECT": active_session,
+            }
+            try:
+                from lib.todo_tracker import TodoTracker
+                run_todo_tracker = TodoTracker.load(session_dir / "todo.json") if config.ENABLE_TODO_TRACKING else None
+            except Exception:
+                run_todo_tracker = _worker_todo_tracker
+            entry.add_log("system", f"Session '.session/{active_session}' active", role="system")
+
+        # ── Build config mirror (all .config values + run overrides) ──
+        def _snapshot_config_module() -> Dict[str, Any]:
+            snap: Dict[str, Any] = {}
+            for key in dir(config):
+                if key.startswith("__"):
+                    continue
+                try:
+                    snap[key] = getattr(config, key)
+                except Exception:
+                    continue
+            return snap
+
         class _RunCfg:
-            """Delegate all config lookups to the real config module,
-            with MODEL_NAME overridden for per-run model selection."""
+            """Mirror src.config for worker runs, then layer run overrides.
+
+            Worker execution should behave like the textual/main ReAct path.
+            Keep a full snapshot of config.py/.config-derived attributes so
+            code using direct attribute access, getattr(), dir(), or get() sees
+            the same shape as the real module.  Only explicit per-run values
+            such as MODEL_NAME and session files are overridden.
+            """
+            def __init__(self, base: Dict[str, Any], overrides: Dict[str, Any]):
+                object.__setattr__(self, "_base", dict(base))
+                object.__setattr__(self, "_overrides", dict(overrides))
+
             def __getattr__(self, name):
-                if name == "MODEL_NAME":
-                    return effective_model
+                overrides = object.__getattribute__(self, "_overrides")
+                if name in overrides:
+                    return overrides[name]
+                base = object.__getattribute__(self, "_base")
+                if name in base:
+                    return base[name]
                 return getattr(config, name)
 
-        run_cfg = _RunCfg()
+            def __setattr__(self, name, value):
+                object.__getattribute__(self, "_overrides")[name] = value
+
+            def __dir__(self):
+                return sorted(
+                    set(object.__getattribute__(self, "_base"))
+                    | set(object.__getattribute__(self, "_overrides"))
+                )
+
+            def get(self, name, default=None):
+                try:
+                    return getattr(self, name)
+                except AttributeError:
+                    return default
+
+            def as_dict(self) -> Dict[str, Any]:
+                data = dict(object.__getattribute__(self, "_base"))
+                data.update(object.__getattribute__(self, "_overrides"))
+                return data
+
+        run_overrides: Dict[str, Any] = {
+            "MODEL_NAME": effective_model,
+            "LLM_MODEL_NAME": effective_model,
+        }
+        run_overrides.update(session_overrides)
+        run_cfg = _RunCfg(_snapshot_config_module(), run_overrides)
+
+        native_tools = None
+        if getattr(run_cfg, "ENABLE_NATIVE_TOOL_CALLS", False):
+            try:
+                from core.tool_schema import get_tool_schemas
+                native_tools = get_tool_schemas(
+                    list(AVAILABLE_TOOLS.keys()),
+                    compact=getattr(run_cfg, "TOOL_SCHEMA_COMPACT", False),
+                )
+            except Exception as e:
+                entry.add_log("system", f"native tool schema unavailable: {e}", role="system")
 
         # ── System prompt (worker-appropriate) ──
         def _worker_build_prompt(messages, allowed_tools=None, agent_mode="normal"):
@@ -698,9 +790,12 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             Forwards suppress_spinner, caller_tag, etc. to chat_completion_stream.
             """
             try:
+                call_kwargs = dict(kwargs)
+                if native_tools:
+                    call_kwargs["tools"] = native_tools
                 for chunk in chat_completion_stream(
                     messages, stop=stop, model=effective_model,
-                    caller_tag="worker", **kwargs,
+                    caller_tag="worker", **call_kwargs,
                 ):
                     yield chunk
             except Exception as e:
@@ -709,10 +804,11 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
 
         # ── Compress wrapper ──
         def _compress_fn(messages, **kwargs):
+            kwargs.pop("todo_tracker", None)
             return _compress_history(
                 messages, cfg=run_cfg,
                 llm_call_fn=_llm_call_fn,
-                todo_tracker=_worker_todo_tracker,
+                todo_tracker=run_todo_tracker,
                 **kwargs,
             )
 
@@ -781,6 +877,15 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                 global_timeout=int(os.getenv("AGENT_SERVER_TOOL_TIMEOUT", "300")),
             )
 
+        def _execute_parallel_fn(actions, tracker, agent_mode="normal"):
+            return _execute_actions_parallel_impl(
+                actions,
+                tracker=tracker,
+                agent_mode=agent_mode,
+                cfg=run_cfg,
+                execute_tool_fn=_execute_tool_fn,
+            )
+
         # ── Snapshot / recovery (wired to per-worker session) ──
         def _noop_load(*a, **kw): return None
         def _noop_recovery(): return (None, None, None)
@@ -797,7 +902,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             process_obs_fn=lambda obs, messages, todo_tracker=None, **kw: process_observation(
                 obs, messages, todo_tracker=todo_tracker),
             execute_tool_fn=_execute_tool_fn,
-            execute_parallel_fn=execute_actions_parallel,
+            execute_parallel_fn=_execute_parallel_fn,
             save_trajectory_fn=_save_history,
             show_context_usage_fn=lambda messages: None,
             show_iteration_warning_fn=_worker_iteration_warning,
@@ -848,18 +953,21 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             sys_prompt = _worker_build_prompt(messages, agent_mode="normal")
             messages.append({"role": "system", "content": sys_prompt})
 
+        # ── Build single user message (merge context + task to avoid
+        #    consecutive same-role messages that Z.AI rejects with code 1214) ──
+        user_parts = []
         if context:
-            messages.append({"role": "user", "content": f"[Context]\n{context}"})
+            user_parts.append(f"[Context]\n{context}")
             entry.add_log("context", context[:500], role="user")
 
         # If todos provided, load into tracker and format as task plan
         full_task = task
         if todos:
             entry._todos = todos
-            if _worker_todo_tracker is not None:
-                _worker_todo_tracker.clear()
-                _worker_todo_tracker.add_todos(todos)
-                _worker_todo_tracker.save()
+            if run_todo_tracker is not None:
+                run_todo_tracker.clear()
+                run_todo_tracker.add_todos(todos)
+                run_todo_tracker.save()
             todo_text = "\n".join(
                 f"  {i+1}. {t.get('content', t) if isinstance(t, dict) else t}"
                 for i, t in enumerate(todos)
@@ -867,7 +975,8 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             full_task += f"\n\nTask plan:\n{todo_text}"
             entry.add_log("plan", todo_text, role="user")
 
-        messages.append({"role": "user", "content": full_task})
+        user_parts.append(full_task)
+        messages.append({"role": "user", "content": "\n\n".join(user_parts)})
         entry.add_log("task", full_task, role="user")
 
         # ── Run the full ReAct loop ──
@@ -879,7 +988,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             mode="oneshot",
             preface_enabled=False,   # No orchestrator/deep-think in worker
             agent_mode="normal",
-            todo_tracker=_worker_todo_tracker,
+            todo_tracker=run_todo_tracker,
         )
 
         # ── Populate entry.log from messages (observations, tool calls) ──
@@ -1029,9 +1138,10 @@ def create_app():
         class RunRequest(BaseModel):
             task: str
             model: str = ""
-            todos: Optional[list] = None
+            todos: Optional[List[Any]] = None
             template: str = ""    # todo template name — loaded from workflow or CWD
             workflow: str = ""    # workflow name (e.g. "rtl-gen") — activates workspace
+            session: str = ""     # per-run .session/<name> namespace
             context: str = ""
             sync: bool = False
 
@@ -1174,7 +1284,7 @@ def create_app():
         return {"total": len(workers), "workers": workers}
 
     @app.post("/register")
-    async def register_worker(request: 'RegisterRequest' if BaseModel else dict):
+    async def register_worker(request: Dict[str, Any] = Body(...)):
         """
         Register a worker with the coordinator.
 
@@ -1185,12 +1295,8 @@ def create_app():
         Returns:
             {name, url, status: "registered"}
         """
-        if BaseModel and isinstance(request, BaseModel):
-            name = request.name
-            url = request.url
-        else:
-            name = request.get("name", "").strip()
-            url = request.get("url", "").strip()
+        name = str(request.get("name", "")).strip()
+        url = str(request.get("url", "")).strip()
         if not name:
             raise HTTPException(status_code=400, detail="'name' is required")
         if not url:
@@ -1203,107 +1309,56 @@ def create_app():
         _save_registry()
         return {"name": name, "url": url, "status": "registered"}
 
-    if BaseModel:
+    @app.post("/run")
+    async def run_task(request: Dict[str, Any] = Body(...)):
+        """
+        Start a task on this worker agent.
 
-        @app.post("/run")
-        async def run_task(request: RunRequest):
-            """
-            Start a task on this worker agent.
+        Request body:
+            task (str):     Task description (required)
+            model (str):    Model override (optional)
+            todos (list):   Todo list to execute (optional)
+            context (str):  Additional context (optional)
+            sync (bool):    If true, block until done (default: false)
 
-            Request body:
-                task (str):     Task description (required)
-                model (str):    Model override (optional)
-                todos (list):   Todo list to execute (optional)
-                context (str):  Additional context (optional)
-                sync (bool):    If true, block until done (default: false)
-
-            Returns:
-                {run_id, status} or full result if sync=true
-            """
-            task = request.task
-            model = request.model
-            todos = request.todos
-            template = request.template
-            workflow = request.workflow
-            context = request.context
-            sync = request.sync
-            if not task:
-                raise HTTPException(status_code=400, detail="'task' is required")
-            if template and not todos:
-                todos = _load_todo_template(template, workflow)
-                if todos is None:
-                    raise HTTPException(status_code=404, detail=f"Template '{template}' not found")
-            entry = _create_run(task, model)
-            entry.on_complete_url = getattr(request, "on_complete_url", "")
-            if sync:
-                _run_react_task(entry, task, model, todos, context, workflow)
-                return entry.result
-            else:
-                acquired = _concurrency_semaphore.acquire(blocking=False)
-                if not acquired:
-                    raise HTTPException(
-                        status_code=429,
-                        detail="Too many concurrent runs. Try again later.",
-                        headers={"Retry-After": "5"},
-                    )
-                def _wrapped_run():
-                    try:
-                        _run_react_task(entry, task, model, todos, context, workflow)
-                    finally:
-                        _concurrency_semaphore.release()
-                _executor.submit(_wrapped_run)
-                return {"run_id": entry.run_id, "status": "pending"}
-
-    else:
-
-        @app.post("/run")
-        async def run_task(request: dict = Body(...)):
-            """
-            Start a task on this worker agent.
-
-            Request body:
-                task (str):     Task description (required)
-                model (str):    Model override (optional)
-                todos (list):   Todo list to execute (optional)
-                context (str):  Additional context (optional)
-                sync (bool):    If true, block until done (default: false)
-
-            Returns:
-                {run_id, status} or full result if sync=true
-            """
-            task = request.get("task", "")
-            model = request.get("model", "")
-            todos = request.get("todos")
-            template = request.get("template", "")
-            workflow = request.get("workflow", "")
-            context = request.get("context", "")
-            sync = request.get("sync", False)
-            if not task:
-                raise HTTPException(status_code=400, detail="'task' is required")
-            if template and not todos:
-                todos = _load_todo_template(template, workflow)
-                if todos is None:
-                    raise HTTPException(status_code=404, detail=f"Template '{template}' not found")
-            entry = _create_run(task, model)
-            entry.on_complete_url = request.get("on_complete_url", "")
-            if sync:
-                _run_react_task(entry, task, model, todos, context, workflow)
-                return entry.result
-            else:
-                acquired = _concurrency_semaphore.acquire(blocking=False)
-                if not acquired:
-                    raise HTTPException(
-                        status_code=429,
-                        detail="Too many concurrent runs. Try again later.",
-                        headers={"Retry-After": "5"},
-                    )
-                def _wrapped_run():
-                    try:
-                        _run_react_task(entry, task, model, todos, context, workflow)
-                    finally:
-                        _concurrency_semaphore.release()
-                _executor.submit(_wrapped_run)
-                return {"run_id": entry.run_id, "status": "pending"}
+        Returns:
+            {run_id, status} or full result if sync=true
+        """
+        task = str(request.get("task", ""))
+        model = str(request.get("model", ""))
+        todos = request.get("todos")
+        template = str(request.get("template", ""))
+        workflow = str(request.get("workflow", ""))
+        session_name = str(request.get("session", ""))
+        context = str(request.get("context", ""))
+        sync = bool(request.get("sync", False))
+        if not task:
+            raise HTTPException(status_code=400, detail="'task' is required")
+        if session_name and (".." in session_name or not re.match(r"^[A-Za-z0-9_.\-/]+$", session_name)):
+            raise HTTPException(status_code=400, detail="invalid 'session'")
+        if template and not todos:
+            todos = _load_todo_template(template, workflow)
+            if todos is None:
+                raise HTTPException(status_code=404, detail=f"Template '{template}' not found")
+        entry = _create_run(task, model)
+        entry.on_complete_url = str(request.get("on_complete_url", ""))
+        if sync:
+            _run_react_task(entry, task, model, todos, context, workflow, session_name)
+            return entry.result
+        acquired = _concurrency_semaphore.acquire(blocking=False)
+        if not acquired:
+            raise HTTPException(
+                status_code=429,
+                detail="Too many concurrent runs. Try again later.",
+                headers={"Retry-After": "5"},
+            )
+        def _wrapped_run():
+            try:
+                _run_react_task(entry, task, model, todos, context, workflow, session_name)
+            finally:
+                _concurrency_semaphore.release()
+        _executor.submit(_wrapped_run)
+        return {"run_id": entry.run_id, "status": "pending"}
 
     @app.get("/status/{run_id}")
     async def get_status(run_id: str):
@@ -1422,7 +1477,8 @@ def create_app():
 # ─── Server Entrypoint ──────────────────────────────────────────────────
 
 def serve(port: int = 8000, host: str = "0.0.0.0", verbose: bool = False,
-          coordinator: str = "", worker_name: str = ""):
+          coordinator: str = "", worker_name: str = "",
+          session_name: str = ""):
     """
     Start the agent HTTP server.
 
@@ -1445,7 +1501,8 @@ def serve(port: int = 8000, host: str = "0.0.0.0", verbose: bool = False,
         from core.session_setup import setup_session
         import config as _cfg
         from lib.todo_tracker import TodoTracker
-        setup_session(f"worker_{port}")
+        active_session = session_name or f"worker_{port}"
+        setup_session(active_session)
         _worker_todo_tracker = TodoTracker.load(Path(_cfg.TODO_FILE)) if _cfg.ENABLE_TODO_TRACKING else None
         # Expose via main module so _get_todo_tracker() in tools.py finds it
         try:
@@ -1457,7 +1514,7 @@ def serve(port: int = 8000, host: str = "0.0.0.0", verbose: bool = False,
                 _main_mod = None
         if _main_mod is not None:
             _main_mod.todo_tracker = _worker_todo_tracker
-        print(f"[worker_{port}] Session: .session/worker_{port}/")
+        print(f"[worker_{port}] Session: .session/{active_session}/")
     except Exception as _e:
         print(f"[worker_{port}] WARNING: session init failed: {_e}")
 

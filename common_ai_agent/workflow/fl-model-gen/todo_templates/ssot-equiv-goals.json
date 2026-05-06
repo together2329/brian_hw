@@ -1,0 +1,25 @@
+{
+  "name": "ssot-equiv-goals",
+  "description": "Generate generic SSOT-traced FL-vs-RTL equivalence goals before TB generation",
+  "lock_additions": true,
+  "items": [
+    {
+      "content": "Read SSOT, FL model, decomposition, and FCOV plan as the equivalence source of truth",
+      "detail": "Use <ip>/yaml/<ip>.ssot.yaml, <ip>/model/functional_model.py, <ip>/model/decomposition.json, and <ip>/cov/fcov_plan.json. Do not infer behavior from RTL. If function_model or cycle_model is missing or under-specified, emit a precise SSOT question instead of inventing expected behavior.",
+      "criteria": "Current SSOT was read\nfunction_model transactions were enumerated\ncycle_model latency/handshake/ordering rules were enumerated\ndecomposition units were mapped\nfcov bins were mapped\nNo RTL observed behavior was used as expected behavior",
+      "status": "pending"
+    },
+    {
+      "content": "Write <ip>/verify/equivalence_goals.json",
+      "detail": "Generate stable goal IDs for SSOT scenarios, function_model transactions, cycle rules, register/memory behavior, FSM transitions, error policies, and debug observability when present. Each goal must state SSOT refs, stimulus contract, expected_contract using FunctionalModel.apply, RTL observables/check intent, pass criteria, coverage refs, and owner_on_fail routing.",
+      "criteria": "equivalence_goals.json exists\nschema_version is present\nsummary.total > 0\nEvery goal has goal_id, kind, ssot_refs, stimulus_contract, expected_contract, pass_criteria, owner_on_fail, blocked, and blocker\nBlocked goals have human/ssot ownership and a precise blocker reason",
+      "status": "pending"
+    },
+    {
+      "content": "Validate goal file for generic TB/sim_debug consumption",
+      "detail": "Run the deterministic generator and inspect the JSON summary. The artifact must be usable by tb-gen scoreboards and sim_debug comparators. If any required expected behavior is missing, leave the goal blocked rather than filling fake expected values.",
+      "criteria": "Generator exits 0 when no blocked goals remain\nGenerator exits nonzero when SSOT behavior is blocked\nGenerated output names <ip>/verify/equivalence_goals.json\nGoal count and blocked count are reported\nNo IP-name special case or fixed protocol branch was added",
+      "status": "pending"
+    }
+  ]
+}

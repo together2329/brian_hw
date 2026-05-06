@@ -1,0 +1,7 @@
+{
+  "name": "pnr",
+  "description": "Full PnR pipeline — agent walks fp → place → cts → route → SPEF → report",
+  "aliases": ["place-route"],
+  "handler": "todo:template:pnr-default",
+  "usage": "/pnr"
+}

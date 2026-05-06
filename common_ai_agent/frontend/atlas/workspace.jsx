@@ -185,10 +185,41 @@ const Workspace = ({ dir, onScreen }) => {
   ];
 
   const [feed, setFeed] = React.useState(NORMAL_FEED);
+  const [activeSession, setActiveSession] = React.useState(() => {
+    try { return window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || 'default'; }
+    catch (_) { return window.ACTIVE_SESSION || 'default'; }
+  });
 
   const refreshFeed = (newIntent /*, newWorkflow */) => {
-    setFeed(newIntent === 'plan' ? PLAN_FEED : NORMAL_FEED);
+    // Do not reset the conversation on mode/workflow switches. The
+    // authoritative history lives in .session/<workflow>/conversation.json
+    // and is hydrated asynchronously; wiping the browser feed here makes
+    // reloads and /wf transitions look like the session was lost.
+    setFeed(f => (f && f.length ? f : (newIntent === 'plan' ? PLAN_FEED : NORMAL_FEED)));
   };
+
+  const activateSession = React.useCallback((scopePath, wf) => {
+    const sid = (window.atlasData && window.atlasData.sessionFor)
+      ? window.atlasData.sessionFor(scopePath || window.SCOPE_PATH || '', wf || '')
+      : 'default';
+    window.ACTIVE_SESSION = sid;
+    setActiveSession(sid);
+    try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+    if (window.atlasData && window.atlasData.refreshSessionState) {
+      window.atlasData.refreshSessionState(sid);
+    }
+    return sid;
+  }, []);
+
+  const sendPrompt = React.useCallback((text, sessionOverride) => {
+    if (window.backend) {
+      window.backend.send({
+        type: 'prompt',
+        text,
+        session: sessionOverride || activeSession || window.ACTIVE_SESSION || 'default',
+      });
+    }
+  }, [activeSession]);
 
   const switchIntent = (i) => {
     setIntent(i);
@@ -198,7 +229,7 @@ const Workspace = ({ dir, onScreen }) => {
     // 'plan' (no mutating tools); /mode normal flips it back.
     if (window.backend) {
       const cmd = i === 'plan' ? '/plan' : '/mode normal';
-      window.backend.send({ type: 'prompt', text: cmd });
+      sendPrompt(cmd);
     }
   };
   const switchWorkflow = (w) => {
@@ -210,8 +241,9 @@ const Workspace = ({ dir, onScreen }) => {
     const next = workflow === w ? null : w;
     setWorkflow(next);
     refreshFeed(intent, next);
+    const sid = activateSession(window.SCOPE_PATH || '', next || '');
     if (next && window.backend) {
-      window.backend.send({ type: 'prompt', text: `/wf ${next}` });
+      sendPrompt(`/wf ${next}`, sid);
     }
   };
   const [input, setInput] = React.useState('');
@@ -220,7 +252,7 @@ const Workspace = ({ dir, onScreen }) => {
   const [streaming, setStreaming] = React.useState(false);
   const [streamText, setStreamText] = React.useState('');
   const [openFile, setOpenFile] = React.useState(null);
-  const [rightTab, setRightTab] = React.useState('todo'); // todo | git
+  const [rightTab, setRightTab] = React.useState('progress'); // progress | todo | git
   // Main column tab: 'chat' shows the conversation feed; 'preview' shows
   // the contents of the file at previewPath with syntax highlighting.
   // 'qa' is only available when centerLayout === 'tabbed' — it surfaces
@@ -235,6 +267,7 @@ const Workspace = ({ dir, onScreen }) => {
   // qaState is keyed by flow_id. Dynamic flows are added on-the-fly
   // when the agent emits an ask_user event over the WS.
   const [qaState, setQaState] = React.useState({});
+  const [ssotApproval, setSsotApproval] = React.useState(null);
 
   // Force a re-render when the live data layer (data.jsx) refreshes
   // FILE_TREE / TODOS / SSOT_FILES so dependent panels show fresh data.
@@ -245,13 +278,32 @@ const Workspace = ({ dir, onScreen }) => {
     return () => window.removeEventListener('atlas-data-changed', h);
   }, []);
 
-  // Hydrate the chat feed from .session/<ws>/conversation.json on
-  // workspace switch. data.jsx fires 'atlas-conversation-loaded' after
-  // /wf so the user sees prior context for that workflow instead of an
-  // empty browser-session-only feed.
+  React.useEffect(() => {
+    const onData = (ev) => {
+      if (ev.detail === 'CONTEXT' || ev.detail === 'FLOW_STAGES') {
+        const backendWorkflow = (window.CONTEXT && window.CONTEXT.workspace) || '';
+        const known = (window.FLOW_STAGES || []).some(s => s.id === backendWorkflow);
+        if (known) {
+          setWorkflow(backendWorkflow);
+        }
+      }
+      if (ev.detail === 'SCOPE_PATH') {
+        activateSession(window.SCOPE_PATH || '', workflow || '');
+      }
+    };
+    onData({ detail: 'CONTEXT' });
+    window.addEventListener('atlas-data-changed', onData);
+    return () => window.removeEventListener('atlas-data-changed', onData);
+  }, [activateSession, workflow]);
+
+  // Hydrate the chat feed from the active .session/<scope>/<workflow>
+  // conversation.json. data.jsx fires 'atlas-conversation-loaded' after
+  // active session changes so screen switches do not erase chat history.
   React.useEffect(() => {
     const onConvLoaded = (ev) => {
       const msgs = (ev.detail && ev.detail.messages) || [];
+      const session = ev.detail && ev.detail.session;
+      if (session) setActiveSession(session);
       const newFeed = [];
       for (const m of msgs) {
         const role = m.role;
@@ -290,10 +342,17 @@ const Workspace = ({ dir, onScreen }) => {
       // Drop a turn-end divider so the user can tell where the
       // hydrated history ends and live tokens begin.
       if (newFeed.length) {
-        newFeed.push({ kind: 'turn_end', text: `↓ live (workspace history above) ↓` });
+        newFeed.push({
+          kind: 'turn_end',
+          text: `↓ live (${session ? `.session/${session}` : 'session history'} above) ↓`,
+        });
       }
-      setFeed(newFeed.length ? newFeed : [{ kind: 'agent',
-        text: 'Connected. Type a message and press Enter to talk to the agent.' }]);
+      if (newFeed.length) {
+        setFeed(newFeed);
+      } else {
+        setFeed(f => (f && f.length ? f : [{ kind: 'agent',
+          text: 'Connected. Type a message and press Enter to talk to the agent.' }]));
+      }
     };
     window.addEventListener('atlas-conversation-loaded', onConvLoaded);
     return () => window.removeEventListener('atlas-conversation-loaded', onConvLoaded);
@@ -329,7 +388,10 @@ const Workspace = ({ dir, onScreen }) => {
   // Index space: 0..opts.length-1 = option rows, opts.length = custom-text row,
   // opts.length+1 = Submit, opts.length+2 = "Chat about this".
   const [askSel, setAskSel] = React.useState(0);
-  React.useEffect(() => { setAskSel(0); }, [pendingQcard?.flowId]);
+  const pendingQcardActiveTab = pendingQcard
+    ? (qaState[pendingQcard.flowId]?.active || 0)
+    : 0;
+  React.useEffect(() => { setAskSel(0); }, [pendingQcard?.flowId, pendingQcardActiveTab]);
 
   // Auto-focus the ask_user prompt area when one opens
   React.useEffect(() => {
@@ -529,7 +591,7 @@ const Workspace = ({ dir, onScreen }) => {
       const wire = target === 'plan' ? '/plan' : '/mode normal';
       setIntent(target);
       setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
-      if (window.backend) window.backend.send({ type: 'prompt', text: wire });
+      sendPrompt(wire);
       // Slash commands don't run the agent — clear any stale streaming
       // state inherited from a prior turn that didn't close out cleanly
       // (agent crash, dropped WS, etc.). Without this, the banner
@@ -563,7 +625,7 @@ const Workspace = ({ dir, onScreen }) => {
         raw
       );
     }
-    if (window.backend) window.backend.send({ type: 'prompt', text: outbound });
+    sendPrompt(outbound);
   };
 
   // Subscribe to backend events and translate them into feed entries.
@@ -741,6 +803,8 @@ const Workspace = ({ dir, onScreen }) => {
           kind: q.kind === 'multi' ? 'multi'
               : q.kind === 'input' ? 'input' : 'single',
           subtitle: q.subtitle || '',
+          placeholder: q.placeholder || '',
+          multiline: !!q.multiline || String(q.placeholder || '').includes('\n'),
           options: (q.options || []).map(o => ({
             id: o.id, label: o.label, detail: o.detail || '', selected: false,
           })),
@@ -784,7 +848,9 @@ const Workspace = ({ dir, onScreen }) => {
           breadcrumbs: [], activeBreadcrumb: 0,
           question: m.question || '',
           subtitle: m.subtitle || '',
-          kind: m.kind === 'multi' ? 'multi' : 'single',
+          placeholder: m.placeholder || '',
+          multiline: !!m.multiline || String(m.placeholder || '').includes('\n'),
+          kind: m.kind === 'multi' ? 'multi' : m.kind === 'input' ? 'input' : 'single',
           options: opts,
           history: [], upcoming: [],
           dynamic: true,
@@ -796,6 +862,32 @@ const Workspace = ({ dir, onScreen }) => {
       }
       setFeed(f => [...f, { kind: 'qcard', flowId, dynamic: true }]);
     }));
+    subs.push(window.backend.subscribe('ssot_approval_ready', (m) => {
+      if (!m || !m.ip) return;
+      const payload = { ...m, createdAt: Date.now() };
+      setSsotApproval(payload);
+      setFeed(f => {
+        const deduped = f.filter(e => !(e.kind === 'ssot_approval' && e.ip === m.ip));
+        return [...deduped, {
+          kind: 'ssot_approval',
+          ip: m.ip,
+          payload,
+          createdAt: Date.now(),
+        }];
+      });
+      setStreaming(false);
+    }));
+    const closeAskUser = (m) => {
+      const flowId = m && m.flow_id;
+      if (!flowId) return;
+      setQaState(s => {
+        const cur = s[flowId];
+        if (!cur || cur.submitted) return s;
+        return { ...s, [flowId]: { ...cur, submitted: true } };
+      });
+    };
+    subs.push(window.backend.subscribe('ask_user_answered', closeAskUser));
+    subs.push(window.backend.subscribe('ask_user_closed', closeAskUser));
     return () => subs.forEach(u => u && u());
   }, []);
 
@@ -888,6 +980,18 @@ const Workspace = ({ dir, onScreen }) => {
       const flow = window.QA_FLOWS[flowId];
       const max = (flow.questions || []).length; // .length = Submit tab
       const next = Math.max(0, Math.min(max, idx));
+      return { ...s, [flowId]: { ...cur, active: next } };
+    });
+  };
+
+  const advanceBatchedQuestion = (flowId) => {
+    setQaState(s => {
+      const cur = s[flowId];
+      if (!cur || !cur.batched) return s;
+      const flow = window.QA_FLOWS[flowId];
+      const tabCount = (flow.questions || []).length;
+      const active = cur.active || 0;
+      const next = Math.max(0, Math.min(tabCount, active + 1));
       return { ...s, [flowId]: { ...cur, active: next } };
     });
   };
@@ -1319,6 +1423,11 @@ const Workspace = ({ dir, onScreen }) => {
                     </span>
                   </>
                 )}
+                <span className="mute" style={{ margin: '0 6px' }}>›</span>
+                <span className="trunc" title={`.session/${activeSession || 'default'}`}
+                      style={{ color: 'var(--fg-mute)', fontSize: 11, maxWidth: 220 }}>
+                  session: {activeSession || 'default'}
+                </span>
               </>
             ) : (
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}
@@ -1413,6 +1522,7 @@ const Workspace = ({ dir, onScreen }) => {
                   onSubmit={submitCard}
                   onChat={() => { setMainTab('chat'); setAskSel(0); inputRef.current?.focus(); }}
                   onSetTab={setActiveTab}
+                  onAdvance={advanceBatchedQuestion}
                 />
               ) : (
                 <div style={{
@@ -1502,6 +1612,10 @@ const Workspace = ({ dir, onScreen }) => {
               ? { icon: '⏸', text: 'Waiting on you · answer the ask_user above', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
               : streaming
                 ? { icon: '⚙', text: 'Agent is working — Esc to stop, or type to interrupt', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)', spin: true }
+                : ssotApproval && ssotApproval.approved
+                  ? { icon: '◆', text: `SSOT approved · run ${ssotApproval.generate_cmd || `/to-ssot ${ssotApproval.ip}`}`, color: 'var(--ok)', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)' }
+                  : ssotApproval
+                    ? { icon: '◆', text: `SSOT plan ready · approve ${ssotApproval.ip} before YAML write`, color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
                 : { icon: '✓', text: 'End of loop · agent ready', color: 'var(--ok)', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)' };
             return (
               <div style={{
@@ -1536,6 +1650,7 @@ const Workspace = ({ dir, onScreen }) => {
               onSubmit={submitCard}
               onChat={() => { setAskSel(0); inputRef.current?.focus(); }}
               onSetTab={setActiveTab}
+              onAdvance={advanceBatchedQuestion}
             />
           ) : pendingQcard && centerLayout === 'tabbed' && mainTab !== 'qa' ? (
             <div
@@ -1593,9 +1708,11 @@ const Workspace = ({ dir, onScreen }) => {
                           onCollapse={toggleRight} />
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div className="box-h" style={{ padding: 0 }}>
+            <RightTab id="progress" cur={rightTab} onTab={setRightTab}>Progress</RightTab>
             <RightTab id="todo" cur={rightTab} onTab={setRightTab}>Todo</RightTab>
             <RightTab id="git"  cur={rightTab} onTab={setRightTab}>Git</RightTab>
           </div>
+          {rightTab === 'progress' && <ProgressPanel />}
           {rightTab === 'todo' && <TodoPanel />}
           {rightTab === 'git'  && <GitPanel />}
         </div>
@@ -1994,6 +2111,9 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
   if (entry.kind === 'qcard') {
     return <AskUserCall flowId={entry.flowId} state={qaState[entry.flowId]} dir={dir} />;
   }
+  if (entry.kind === 'ssot_approval') {
+    return <SsotApprovalCard payload={entry.payload || entry} />;
+  }
   if (entry.kind === 'turn_end') {
     // Visible boundary so users can scroll back and see exactly where
     // each turn ended. Distinct from "waiting on ask_user" — that state
@@ -2030,6 +2150,104 @@ const _escHtml = (s) => String(s)
 const renderInline = (s) => _escHtml(s)
   .replace(/`([^`]+)`/g, '<code class="acc" style="background:var(--bg-2);padding:1px 4px;border-radius:2px;">$1</code>')
   .replace(/\*\*([^*]+)\*\*/g, '<b style="color:var(--fg);">$1</b>');
+
+const SsotApprovalCard = ({ payload }) => {
+  const ip = payload?.ip || '';
+  const decisions = payload?.decisions || {};
+  const missing = Array.isArray(payload?.missing) ? payload.missing : [];
+  const approved = !!payload?.approved;
+  const send = (text) => {
+    if (!text || !window.backend?.send) return;
+    window.backend.send({
+      type: 'prompt',
+      text,
+      session: window.ACTIVE_SESSION || 'default',
+    });
+  };
+  const rows = [
+    ['purpose', 'Purpose'],
+    ['bus_interface', 'Bus'],
+    ['register_map', 'Registers'],
+    ['clock_reset', 'Clock/reset'],
+    ['interrupt', 'Interrupt'],
+    ['memory_map', 'Memory map'],
+    ['parameters', 'Parameters'],
+    ['submodule_structure', 'Submodules'],
+    ['test_expectation', 'Tests'],
+  ];
+  const statusText = missing.length
+    ? `Missing ${missing.length} decision${missing.length === 1 ? '' : 's'}`
+    : approved ? 'Approved · YAML write enabled' : 'Answered · waiting for approval';
+  return (
+    <div className="react-block obs" style={{
+      borderLeftColor: approved ? 'var(--ok)' : 'var(--warn)',
+      background: approved
+        ? 'color-mix(in oklch, var(--ok) 8%, var(--bg-2))'
+        : 'color-mix(in oklch, var(--warn) 8%, var(--bg-2))',
+      padding: '10px 12px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
+        <div>
+          <span className="rb-tag" style={{ color: approved ? 'var(--ok)' : 'var(--warn)' }}>ssot approval</span>
+          <b style={{ marginLeft: 8 }}>{ip}</b>
+        </div>
+        <span style={{
+          fontSize: 10,
+          color: approved ? 'var(--ok)' : 'var(--warn)',
+          border: `1px solid ${approved ? 'var(--ok)' : 'var(--warn)'}`,
+          padding: '2px 6px',
+          borderRadius: 2,
+          whiteSpace: 'nowrap',
+        }}>{statusText}</span>
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginBottom: 10 }}>
+        Q&A is complete. Review the plan, approve it, then generate the SSOT YAML from the same Web UI session.
+      </div>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(92px, 0.28fr) minmax(0, 1fr)',
+        gap: '4px 10px',
+        marginBottom: 10,
+        fontSize: 11,
+      }}>
+        {rows.map(([key, label]) => (
+          <React.Fragment key={key}>
+            <span style={{ color: missing.includes(key) ? 'var(--warn)' : 'var(--fg-mute)' }}>{label}</span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {decisions[key] || <span className="warn">missing</span>}
+            </span>
+          </React.Fragment>
+        ))}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <button
+          className="mini-btn"
+          disabled={approved || missing.length > 0}
+          onClick={() => send(payload?.approve_cmd || `approve ${ip}`)}
+          title={missing.length ? 'Answer missing Q&A fields first' : 'Approve this SSOT plan'}
+        >
+          approve
+        </button>
+        <button
+          className="mini-btn"
+          disabled={!approved}
+          onClick={() => send(payload?.generate_cmd || `/to-ssot ${ip}`)}
+          title={approved ? 'Generate SSOT YAML' : 'Approve before writing YAML'}
+        >
+          generate SSOT
+        </button>
+        <button
+          className="mini-btn"
+          onClick={() => send(`/new-ip ${ip} ${payload?.kind || ''}`.trim())}
+          title="Reopen the Q&A cards for this IP"
+        >
+          revise Q&A
+        </button>
+        <code className="acc">{approved ? (payload?.generate_cmd || `/to-ssot ${ip}`) : (payload?.approve_cmd || `approve ${ip}`)}</code>
+      </div>
+    </div>
+  );
+};
 
 // ── ask_user — compact in-feed tool-call line ─────────────────────
 // Renders as `action: ask_user(...)` matching the other tool calls,
@@ -2097,7 +2315,7 @@ const AskUserCall = ({ flowId, state, dir }) => {
 // ☐/☒ "answered" marker, plus a final ✔ Submit tab. Active tab
 // content is shown using the same option/custom widgets; state lives
 // in `state.states[active]` instead of the flat `state.opts/state.custom`.
-const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmit, onChat, onSel, onSetTab }) => {
+const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmit, onChat, onSel, onSetTab, onAdvance }) => {
   const flow = window.QA_FLOWS[flowId];
   if (!flow || !state) return null;
 
@@ -2114,6 +2332,8 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
   const tabFlowKind = isBatched && !isSubmitTab ? flow.questions[active].kind : flow.kind;
   const tabFlowQuestion = isBatched && !isSubmitTab ? flow.questions[active].question : flow.question;
   const tabFlowSubtitle = isBatched && !isSubmitTab ? flow.questions[active].subtitle : (flow.subtitle || '');
+  const tabFlowPlaceholder = isBatched && !isSubmitTab ? flow.questions[active].placeholder : (flow.placeholder || '');
+  const tabFlowMultiline = !!(isBatched && !isSubmitTab ? flow.questions[active].multiline : flow.multiline);
   const tabAnswered = (i) => {
     const ts = state.states && state.states[i];
     if (!ts) return false;
@@ -2122,6 +2342,24 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
   const allAnswered = isBatched
     ? (state.states || []).every((_, i) => tabAnswered(i))
     : true;
+
+  const goNextBatchedStep = () => {
+    if (!isBatched) return false;
+    if (isSubmitTab) {
+      if (allAnswered) onSubmit(flowId);
+      return true;
+    }
+    if (active < tabCount - 1) {
+      onAdvance ? onAdvance(flowId) : onSetTab && onSetTab(flowId, active + 1);
+      return true;
+    }
+    if (allAnswered) {
+      onSubmit(flowId);
+    } else {
+      onSetTab && onSetTab(flowId, tabCount);
+    }
+    return true;
+  };
 
   const opts = tabState.opts || [];
   const customIdx = opts.length;       // row index for custom-text line
@@ -2148,16 +2386,23 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
     if (e.key === ' ' && sel < opts.length) {
       e.preventDefault(); onToggle(flowId, opts[sel].id); return;
     }
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+      const activeEl = document.activeElement;
+      const isCustomInput = activeEl && activeEl.classList && activeEl.classList.contains('askcustom');
+      if (isCustomInput && tabFlowMultiline && !e.metaKey && !e.ctrlKey) return;
       e.preventDefault();
-      if (sel < opts.length) { onToggle(flowId, opts[sel].id); return; }
-      if (sel === customIdx) { /* focus the input */ const el = e.currentTarget.querySelector('input.askcustom'); el?.focus(); return; }
+      if (isBatched && isCustomInput) { goNextBatchedStep(); return; }
+      if (sel < opts.length) {
+        onToggle(flowId, opts[sel].id);
+        if (isBatched && tabFlowKind !== 'multi') goNextBatchedStep();
+        return;
+      }
+      if (sel === customIdx) {
+        if (isBatched && (tabState.custom || '').trim()) { goNextBatchedStep(); return; }
+        const el = e.currentTarget.querySelector('input.askcustom'); el?.focus(); return;
+      }
       if (sel === submitIdx) {
-        // Batched: only submit from the Submit tab AND only when all answered
-        if (isBatched && (!isSubmitTab || !allAnswered)) {
-          if (!isSubmitTab) onSetTab && onSetTab(flowId, tabCount);
-          return;
-        }
+        if (isBatched) { goNextBatchedStep(); return; }
         onSubmit(flowId);
         return;
       }
@@ -2211,9 +2456,8 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
         );
       })}
       <button
-        onClick={() => allAnswered ? onSubmit(flowId) : onSetTab && onSetTab(flowId, tabCount)}
-        disabled={!allAnswered}
-        title={allAnswered ? 'Submit all answers' : 'Answer every tab first'}
+        onClick={() => onSetTab && onSetTab(flowId, tabCount)}
+        title={allAnswered ? 'Review and submit all answers' : 'Review unanswered tabs'}
         style={{
           marginLeft: 'auto',
           padding: '2px 10px',
@@ -2223,12 +2467,12 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
           fontFamily: 'var(--mono)',
           fontSize: 11,
           fontWeight: 700,
-          cursor: allAnswered ? 'pointer' : 'not-allowed',
-          opacity: allAnswered ? 1 : 0.55,
+          cursor: 'pointer',
+          opacity: allAnswered ? 1 : 0.75,
           borderRadius: 2,
         }}
       >
-        ✔ Submit
+        ✔ Review
       </button>
       <span className="mute" style={{ marginLeft: 4 }}>→</span>
     </div>
@@ -2427,18 +2671,35 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
           <span style={{ color: tabState.custom ? 'var(--warn)' : 'var(--fg-mute)', fontWeight: 700 }}>
             {tabState.custom ? '[✓]' : '[ ]'}
           </span>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-            <input
-              className="askcustom"
-              value={tabState.custom}
-              onChange={(e) => onCustom(flowId, e.target.value)}
-              onFocus={() => onSel(customIdx)}
-              placeholder="custom answer / free-form note…"
-              style={{
-                background: 'transparent', border: 'none', outline: 'none',
-                fontFamily: 'var(--mono)', color: 'var(--fg)', fontSize: 13, flex: 1, padding: 0,
-              }}
-            />
+          <div style={{ display: 'flex', alignItems: 'stretch', gap: 6 }}>
+            {tabFlowMultiline ? (
+              <textarea
+                className="askcustom"
+                value={tabState.custom}
+                onChange={(e) => onCustom(flowId, e.target.value)}
+                onFocus={() => onSel(customIdx)}
+                placeholder={tabFlowPlaceholder || 'custom answer / free-form note…'}
+                spellCheck={false}
+                style={{
+                  background: 'transparent', border: '1px solid var(--line)', outline: 'none',
+                  fontFamily: 'var(--mono)', color: 'var(--fg)', fontSize: 12, flex: 1,
+                  padding: '6px 8px', minHeight: 160, lineHeight: 1.45, resize: 'vertical',
+                  whiteSpace: 'pre-wrap',
+                }}
+              />
+            ) : (
+              <input
+                className="askcustom"
+                value={tabState.custom}
+                onChange={(e) => onCustom(flowId, e.target.value)}
+                onFocus={() => onSel(customIdx)}
+                placeholder={tabFlowPlaceholder || 'custom answer / free-form note…'}
+                style={{
+                  background: 'transparent', border: 'none', outline: 'none',
+                  fontFamily: 'var(--mono)', color: 'var(--fg)', fontSize: 13, flex: 1, padding: 0,
+                }}
+              />
+            )}
             {sel === customIdx && <span className="cursor-thin" />}
           </div>
         </div>
@@ -2447,7 +2708,7 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
       {/* submit row */}
       <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 0 }}>
         <div
-          onClick={() => onSubmit(flowId)}
+          onClick={() => isBatched ? goNextBatchedStep() : onSubmit(flowId)}
           style={{
             padding: '4px 8px',
             background: sel === submitIdx ? 'color-mix(in oklch, var(--ok) 18%, transparent)' : 'transparent',
@@ -2458,7 +2719,7 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
             fontWeight: sel === submitIdx ? 600 : 400,
           }}
         >
-          <span className="mute" style={{ marginRight: 6 }}>›</span>Submit
+          <span className="mute" style={{ marginRight: 6 }}>›</span>{isBatched ? (active < tabCount - 1 ? 'Next question' : 'Submit') : 'Submit'}
           <span className="mute" style={{ marginLeft: 8, fontSize: 11 }}>
             ({(opts.filter(o => o.selected) || []).length}{tabState.custom ? '+1' : ''} reply)
           </span>
@@ -2484,7 +2745,7 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
         marginTop: 8, paddingTop: 6, borderTop: '1px dashed var(--line)',
         fontSize: 11, display: 'flex', gap: 14, flexWrap: 'wrap',
       }}>
-        <span><Kbd>↵</Kbd> select</span>
+        <span><Kbd>↵</Kbd> {isBatched ? 'next question / submit' : 'select'}</span>
         <span><Kbd>↑↓</Kbd>/<Kbd>j k</Kbd> navigate</span>
         <span><Kbd>Space</Kbd> toggle</span>
         <span><Kbd>Tab</Kbd> next field</span>
@@ -2570,6 +2831,445 @@ const SsotPanel = () => {
       }}>
         {loading ? '# loading…' : content}
       </pre>
+    </div>
+  );
+};
+
+const ProgressPanel = () => {
+  const [, bump] = React.useReducer(x => x + 1, 0);
+  const [moduleId, setModuleId] = React.useState('');
+
+  React.useEffect(() => {
+    const h = (ev) => {
+      if (!ev.detail || ['PROGRESS', 'SCOPE_PATH', 'SSOT_FILES', 'TODOS'].includes(ev.detail)) bump();
+    };
+    window.addEventListener('atlas-data-changed', h);
+    if (window.atlasData && window.atlasData.refreshProgress) window.atlasData.refreshProgress();
+    return () => window.removeEventListener('atlas-data-changed', h);
+  }, []);
+
+  const data = window.ATLAS_PROGRESS || {};
+  const modules = Array.isArray(data.modules) ? data.modules : [];
+  const selected = modules.find(m => m.id === moduleId)
+    || data.selected
+    || modules[0]
+    || null;
+
+  React.useEffect(() => {
+    if (selected && selected.id && selected.id !== moduleId) setModuleId(selected.id);
+  }, [selected && selected.id]);
+
+  const progress = (selected && selected.progress) || {};
+  const status = (selected && selected.status) || {};
+  const details = (selected && selected.status_detail) || {};
+  const signoff = (selected && selected.signoff) || {};
+  const blockers = Array.isArray(signoff.blockers) ? signoff.blockers : [];
+  const ownership = signoff.ownership || {};
+  const artifact = (selected && selected.artifact_status) || {};
+  const artifactDetails = (selected && selected.artifact_detail) || {};
+  const req = progress.req || {};
+  const ssot = progress.ssot || {};
+  const flModel = progress.fl_model || {};
+  const flDecomp = progress.fl_decomp || {};
+  const fcovPlan = progress.fcov_plan || {};
+  const equiv = progress.equivalence_goals || {};
+  const goalAudit = progress.goal_audit || {};
+  const rtl = progress.rtl || {};
+  const compile = progress.compile || {};
+  const lint = progress.lint || {};
+  const sim = progress.sim || {};
+  const dv = sim.dv_plan || {};
+  const results = sim.results || {};
+  const coverage = sim.coverage || {};
+
+  const pct = (obj) => Math.max(0, Math.min(100, Number(obj && obj.pct) || 0));
+  const stateColor = (s) => {
+    const v = String(s || '').toLowerCase();
+    if (['ok', 'pass', 'approved', 'done'].includes(v)) return 'var(--ok)';
+    if (['fail', 'err', 'error', 'rejected'].includes(v)) return 'var(--err)';
+    if (['partial', 'planned', 'active', 'blocked', 'stale'].includes(v)) return 'var(--warn)';
+    return 'var(--fg-mute)';
+  };
+  const pill = (label, value) => (
+    <span style={{
+      border: `1px solid ${stateColor(value)}`,
+      color: stateColor(value),
+      borderRadius: 2,
+      padding: '1px 6px',
+      fontSize: 10,
+      fontFamily: 'var(--mono)',
+      whiteSpace: 'nowrap',
+    }}>{label}: {value || 'pending'}</span>
+  );
+  const Bar = ({ label, done, total, value, color = 'var(--ok)' }) => {
+    const p = value != null ? Math.max(0, Math.min(100, Number(value) || 0))
+      : (total ? Math.round(100 * (done || 0) / total) : 0);
+    return (
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, fontFamily: 'var(--mono)', color: 'var(--fg-mute)', marginBottom: 3 }}>
+          <span>{label}</span>
+          <span>{done != null && total != null ? `${done}/${total}` : `${p}%`}</span>
+        </div>
+        <div style={{ height: 5, background: 'var(--bg-input, #1c2128)', border: '1px solid var(--line)', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${p}%`, background: color }} />
+        </div>
+      </div>
+    );
+  };
+  const Section = ({ title, right, children }) => (
+    <div style={{ borderBottom: '1px solid var(--line)', padding: '10px 12px' }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8,
+        fontSize: 10, fontFamily: 'var(--mono)', letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+      }}>
+        <span style={{ color: 'var(--fg)', fontWeight: 700 }}>{title}</span>
+        <span style={{ flex: 1 }} />
+        {right && <span className="mute" style={{ letterSpacing: 0, textTransform: 'none' }}>{right}</span>}
+      </div>
+      {children}
+    </div>
+  );
+  const repairRtl = () => {
+    const ip = selected && (selected.id || selected.name || selected.ip_dir || '');
+    if (!ip || !window.backend) return;
+    window.backend.send({ type: 'prompt', text: `/repair-rtl ${ip}` });
+  };
+
+  if (!selected) {
+    return (
+      <div className="code" style={{ flex: 1, padding: '14px 16px', overflow: 'auto', color: 'var(--fg-mute)', fontSize: 12 }}>
+        # No SSOT-backed IP progress found.<br />
+        # Create or select a leaf SSOT YAML, then run the ATLAS SSOT → RTL → TB → sim_debug flow.
+      </div>
+    );
+  }
+
+  const sections = Array.isArray(ssot.sections) ? ssot.sections : [];
+  const rtlModules = Array.isArray(rtl.modules) ? rtl.modules : [];
+  const scenarios = Array.isArray(dv.scenario_rows) ? dv.scenario_rows : [];
+  const criteria = coverage.criteria && typeof coverage.criteria === 'object' ? coverage.criteria : {};
+  const limitations = coverage.limitations && typeof coverage.limitations === 'object' ? coverage.limitations : {};
+  const staticCov = coverage.static && typeof coverage.static === 'object' ? coverage.static : {};
+  const ownershipRows = [
+    'req', 'ssot', 'fl_model', 'fl_decomp', 'fcov_plan', 'equivalence_goals',
+    'goal_audit', 'rtl', 'lint', 'tb', 'sim_debug', 'coverage', 'signoff',
+  ].map(k => ownership[k]).filter(Boolean);
+
+  return (
+    <div style={{ flex: 1, overflow: 'auto', fontSize: 11 }}>
+      <div style={{ padding: '9px 12px', borderBottom: '1px solid var(--line)', background: 'var(--bg-2)' }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 8 }}>
+          <select
+            value={selected.id || ''}
+            onChange={(e) => setModuleId(e.target.value)}
+            style={{
+              flex: 1, minWidth: 0, background: 'var(--bg-input, #111820)',
+              color: 'var(--fg)', border: '1px solid var(--line)',
+              borderRadius: 2, padding: '4px 6px', fontFamily: 'var(--mono)', fontSize: 11,
+            }}
+          >
+            {modules.map(m => <option key={m.id || m.name} value={m.id || m.name}>{m.label || m.name || m.id}</option>)}
+          </select>
+          <span className="mute" title={selected.ssot_path || ''}>{selected.kind || 'ip'}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {pill('signoff', status.signoff)}
+          {pill('req', status.req)}
+          {pill('ssot', status.ssot)}
+          {pill('fl', status.fl_model)}
+          {pill('decomp', status.fl_decomp)}
+          {pill('fcov plan', status.fcov_plan)}
+          {pill('equiv', status.equivalence_goals)}
+          {pill('audit', status.goal_audit)}
+          {pill('rtl', status.rtl)}
+          {pill('lint', status.lint)}
+          {pill('tb', status.tb)}
+          {pill('simdbg', status.sim_debug || status.sim)}
+          {pill('cov', status.coverage)}
+        </div>
+        <div className="mute" style={{ marginTop: 6, fontFamily: 'var(--mono)', fontSize: 10, lineHeight: 1.4 }}>
+          strict gate: REQ + SSOT + executable FL model + decomposition + FCOV plan + RTL + lint + FL-vs-RTL sim + coverage + goal audit
+        </div>
+        {blockers.length > 0 && (
+          <div style={{ marginTop: 6, color: 'var(--warn)', fontFamily: 'var(--mono)', fontSize: 10, lineHeight: 1.35 }}>
+            blocked by: {blockers.slice(0, 4).join(' · ')}
+          </div>
+        )}
+        <div style={{ marginTop: 8, display: 'flex', gap: 6, alignItems: 'center' }}>
+          <button
+            onClick={repairRtl}
+            disabled={!selected || !selected.id}
+            title="Queue rtl-gen repair from current compile/lint/SSOT evidence"
+            style={{
+              background: 'var(--bg-input, #111820)',
+              color: 'var(--accent)',
+              border: '1px solid var(--accent)',
+              borderRadius: 2,
+              padding: '3px 7px',
+              fontFamily: 'var(--mono)',
+              fontSize: 10,
+              cursor: 'pointer',
+            }}
+          >
+            repair rtl-gen
+          </button>
+          <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>
+            uses SSOT + rtl_compile.json + dut_lint.json
+          </span>
+        </div>
+      </div>
+
+      <Section title="Artifact Evidence" right="not signoff">
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
+          {pill('req', artifact.req)}
+          {pill('ssot', artifact.ssot)}
+          {pill('fl', artifact.fl_model)}
+          {pill('decomp', artifact.fl_decomp)}
+          {pill('fcov plan', artifact.fcov_plan)}
+          {pill('equiv', artifact.equivalence_goals)}
+          {pill('audit', artifact.goal_audit)}
+          {pill('rtl', artifact.rtl)}
+          {pill('tb', artifact.tb)}
+          {pill('simdbg', artifact.sim_debug)}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '62px 1fr', rowGap: 4, columnGap: 8, fontFamily: 'var(--mono)' }}>
+          <span className="mute">req</span><span className="trunc" title={artifactDetails.req || ''}>{artifactDetails.req || 'no requirement evidence'}</span>
+          <span className="mute">ssot</span><span className="trunc" title={artifactDetails.ssot || ''}>{artifactDetails.ssot || 'no artifact evidence'}</span>
+          <span className="mute">fl</span><span className="trunc" title={artifactDetails.fl_model || ''}>{artifactDetails.fl_model || 'no executable FL model'}</span>
+          <span className="mute">decomp</span><span className="trunc" title={artifactDetails.fl_decomp || ''}>{artifactDetails.fl_decomp || 'no FL decomposition'}</span>
+          <span className="mute">fcov</span><span className="trunc" title={artifactDetails.fcov_plan || ''}>{artifactDetails.fcov_plan || 'no FCOV plan'}</span>
+          <span className="mute">equiv</span><span className="trunc" title={artifactDetails.equivalence_goals || ''}>{artifactDetails.equivalence_goals || 'no equivalence goals'}</span>
+          <span className="mute">audit</span><span className="trunc" title={artifactDetails.goal_audit || ''}>{artifactDetails.goal_audit || 'no goal audit'}</span>
+          <span className="mute">rtl</span><span className="trunc" title={artifactDetails.rtl || ''}>{artifactDetails.rtl || 'no artifact evidence'}</span>
+          <span className="mute">tb</span><span className="trunc" title={artifactDetails.tb || ''}>{artifactDetails.tb || 'no artifact evidence'}</span>
+          <span className="mute">simdbg</span><span className="trunc" title={artifactDetails.sim_debug || ''}>{artifactDetails.sim_debug || 'no artifact evidence'}</span>
+        </div>
+      </Section>
+
+      <Section title="Loop Owner & Next Action" right="LLM loop / human gate">
+        {ownershipRows.length ? (
+          <div style={{ display: 'grid', gridTemplateColumns: '58px 68px 1fr', rowGap: 5, columnGap: 8, fontFamily: 'var(--mono)', fontSize: 10 }}>
+            {ownershipRows.map(row => (
+              <React.Fragment key={row.stage}>
+                <span className="mute">{String(row.stage || '').replace('_', ' ')}</span>
+                <span style={{ color: row.owner === 'human gate' ? 'var(--warn)' : stateColor(row.status) }}>
+                  {row.owner || 'LLM loop'}
+                </span>
+                <span
+                  className="trunc"
+                  title={[
+                    `status: ${row.status || 'pending'}`,
+                    `validator: ${row.validator || ''}`,
+                    `evidence: ${row.evidence || ''}`,
+                    `blocker: ${row.blocker || ''}`,
+                    `next: ${row.next_action || ''}`,
+                  ].join('\n')}
+                >
+                  {row.next_action || 'inspect stage evidence'}
+                </span>
+              </React.Fragment>
+            ))}
+          </div>
+        ) : (
+          <div className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>
+            ownership data missing from ATLAS progress response
+          </div>
+        )}
+      </Section>
+
+      <Section title="SSOT Sections" right={selected.ssot_path}>
+        <Bar label="approved sections" done={ssot.approved || 0} total={ssot.total || 0} value={pct(ssot)} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+          {sections.map(s => (
+            <div key={s.key} title={s.key} style={{
+              display: 'flex', alignItems: 'center', gap: 5, minWidth: 0,
+              color: s.status === 'approved' ? 'var(--fg)' : 'var(--fg-mute)',
+              fontFamily: 'var(--mono)', fontSize: 10,
+            }}>
+              <span style={{ color: stateColor(s.status), width: 10 }}>{s.status === 'approved' ? '✓' : '○'}</span>
+              <span className="trunc">{s.label || s.key}</span>
+            </div>
+          ))}
+        </div>
+        {ssot.metrics && (
+          <div className="mute" style={{ marginTop: 8, lineHeight: 1.5, fontFamily: 'var(--mono)' }}>
+            submods {ssot.metrics.submodules || 0} · ports {ssot.metrics.ports || 0} · regs {ssot.metrics.registers || 0} · scenarios {ssot.metrics.dv_scenarios || 0}
+          </div>
+        )}
+      </Section>
+
+      <Section title="FL Model & Coverage Plan" right={flModel.source || details.fl_model}>
+        <div style={{ display: 'grid', gridTemplateColumns: '86px 1fr', rowGap: 4, columnGap: 8, fontFamily: 'var(--mono)', marginBottom: 8 }}>
+          <span className="mute">req</span><span style={{ color: stateColor(req.status) }}>{req.status || 'pending'} · {(req.files || []).length || 0} file(s)</span>
+          <span className="mute">model</span><span style={{ color: stateColor(flModel.status) }}>{flModel.status || 'pending'} · {flModel.bytes || 0}B</span>
+          <span className="mute">self-check</span><span style={{ color: flModel.self_check && flModel.self_check.passed ? 'var(--ok)' : 'var(--fg-mute)' }}>{flModel.self_check && flModel.self_check.passed ? 'pass' : 'missing'}</span>
+          <span className="mute">decomp</span><span style={{ color: stateColor(flDecomp.status) }}>{flDecomp.status || 'pending'} · {flDecomp.units || 0} unit(s)</span>
+          <span className="mute">fcov plan</span><span style={{ color: stateColor(fcovPlan.status) }}>{fcovPlan.status || 'pending'} · {fcovPlan.bins || 0} bin(s)</span>
+          <span className="mute">equiv</span><span style={{ color: stateColor(equiv.status) }}>{equiv.status || 'pending'} · {equiv.passed || 0}/{equiv.total || 0} pass · {equiv.blocked || 0} blocked · {equiv.untested || 0} untested</span>
+        </div>
+        {Array.isArray(flDecomp.kinds) && flDecomp.kinds.length > 0 && (
+          <div className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>
+            model slices: {flDecomp.kinds.join(', ')}
+          </div>
+        )}
+        {fcovPlan.summary && (
+          <div className="mute" style={{ marginTop: 5, fontFamily: 'var(--mono)', fontSize: 10 }}>
+            bins: scenario {fcovPlan.summary.scenario_bins || 0} · transaction {fcovPlan.summary.transaction_bins || 0} · protocol {fcovPlan.summary.protocol_bins || 0} · state {fcovPlan.summary.state_transition_bins || 0} · error {fcovPlan.summary.error_bins || 0}
+          </div>
+        )}
+        <div style={{ marginTop: 8 }}>
+          <Bar
+            label="equivalence goals"
+            done={equiv.passed || 0}
+            total={equiv.total || 0}
+            color={stateColor(equiv.status)}
+          />
+          <div className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10, lineHeight: 1.45 }}>
+            checked {equiv.checked || 0} · failed {equiv.failed || 0} · classifications {equiv.classifications || 0}
+            {equiv.compare_evidence ? ` · ${equiv.compare_evidence}` : (equiv.evidence ? ` · ${equiv.evidence}` : '')}
+          </div>
+          {equiv.classification_counts && Object.keys(equiv.classification_counts).length > 0 && (
+            <div className="mute" style={{ marginTop: 4, fontFamily: 'var(--mono)', fontSize: 10 }}>
+              class: {Object.entries(equiv.classification_counts).map(([k, v]) => `${k}:${v}`).join(' · ')}
+            </div>
+          )}
+          {equiv.owner_counts && Object.keys(equiv.owner_counts).length > 0 && (
+            <div className="mute" style={{ marginTop: 4, fontFamily: 'var(--mono)', fontSize: 10 }}>
+              owner: {Object.entries(equiv.owner_counts).map(([k, v]) => `${k}:${v}`).join(' · ')}
+            </div>
+          )}
+          {Array.isArray(equiv.missing_evidence) && equiv.missing_evidence.length > 0 && (
+            <div className="mute" style={{ marginTop: 4, fontFamily: 'var(--mono)', fontSize: 10 }}>
+              missing: {equiv.missing_evidence.slice(0, 3).join(', ')}
+            </div>
+          )}
+          {Array.isArray(equiv.stale_evidence) && equiv.stale_evidence.length > 0 && (
+            <div style={{ marginTop: 4, color: 'var(--warn)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+              stale: {equiv.stale_evidence.slice(0, 3).join(', ')}
+            </div>
+          )}
+          {Array.isArray(equiv.failed_goal_ids) && equiv.failed_goal_ids.length > 0 && (
+            <div style={{ marginTop: 4, color: 'var(--warn)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+              failed: {equiv.failed_goal_ids.join(', ')}
+            </div>
+          )}
+          {Array.isArray(equiv.blocked_goal_ids) && equiv.blocked_goal_ids.length > 0 && (
+            <div style={{ marginTop: 4, color: 'var(--warn)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+              blocked: {equiv.blocked_goal_ids.join(', ')}
+            </div>
+          )}
+          {Array.isArray(equiv.untested_goal_ids) && equiv.untested_goal_ids.length > 0 && (
+            <div style={{ marginTop: 4, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+              untested: {equiv.untested_goal_ids.join(', ')}
+            </div>
+          )}
+          <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: '86px 1fr', rowGap: 4, columnGap: 8, fontFamily: 'var(--mono)', fontSize: 10 }}>
+            <span className="mute">goal audit</span>
+            <span style={{ color: stateColor(goalAudit.status) }}>
+              {goalAudit.status || 'pending'} · {goalAudit.passed_checks || 0}/{goalAudit.total_checks || 0} checks · {goalAudit.failed_checks || 0} failed
+            </span>
+            <span className="mute">evidence</span>
+            <span className="trunc" title={goalAudit.source || ''}>{goalAudit.source || 'run /goal-audit <ip>'}</span>
+          </div>
+          {Array.isArray(goalAudit.blockers) && goalAudit.blockers.length > 0 && (
+            <div style={{ marginTop: 4, color: 'var(--warn)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+              audit blockers: {goalAudit.blockers.slice(0, 8).join(', ')}
+            </div>
+          )}
+          {Array.isArray(goalAudit.stale_evidence) && goalAudit.stale_evidence.length > 0 && (
+            <div style={{ marginTop: 4, color: 'var(--warn)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+              audit stale: {goalAudit.stale_evidence.slice(0, 3).join(', ')}
+            </div>
+          )}
+        </div>
+      </Section>
+
+      <Section title="RTL Modules" right={rtl.filelist || details.rtl}>
+        <Bar label="approved RTL files" done={rtl.approved || 0} total={rtl.total || 0} value={pct(rtl)} color="var(--accent)" />
+        {rtlModules.length ? rtlModules.map(m => (
+          <div key={m.file || m.name} style={{
+            display: 'grid', gridTemplateColumns: '14px 1fr auto', gap: 6,
+            alignItems: 'baseline', padding: '3px 0', fontFamily: 'var(--mono)', fontSize: 10,
+          }}>
+            <span style={{ color: stateColor(m.status) }}>{m.status === 'approved' ? '✓' : m.status === 'partial' ? '◐' : '○'}</span>
+            <span className="trunc" title={m.resolved_file && m.resolved_file !== m.file ? `${m.file} -> ${m.resolved_file}` : m.file}>
+              {m.name || m.file}
+              {m.manifest_mismatch ? <span style={{ color: 'var(--warn)' }}> · manifest</span> : null}
+            </span>
+            <span className="mute">{m.listed ? 'listed' : 'unlisted'} · {m.bytes || 0}B</span>
+          </div>
+        )) : <div className="mute">No expected RTL modules found in SSOT/filelist yet.</div>}
+        {(rtl.manifest_mismatches || 0) > 0 && (
+          <div style={{ marginTop: 6, color: 'var(--warn)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+            SSOT/RTL manifest mismatch: {rtl.manifest_mismatches}
+          </div>
+        )}
+      </Section>
+
+      <Section title="Compile Gate" right={compile.source || ''}>
+        <div style={{ display: 'grid', gridTemplateColumns: '82px 1fr', rowGap: 4, columnGap: 8, fontFamily: 'var(--mono)' }}>
+          <span className="mute">status</span><span style={{ color: stateColor(compile.status) }}>{compile.status || 'unknown'}</span>
+          <span className="mute">errors</span><span style={{ color: (compile.errors || 0) ? 'var(--err)' : 'var(--ok)' }}>{compile.errors ?? 0}</span>
+          <span className="mute">diagnostics</span><span style={{ color: (compile.diagnostics || 0) ? 'var(--warn)' : 'var(--ok)' }}>{compile.diagnostics ?? 0}</span>
+          <span className="mute">style</span><span style={{ color: (compile.style_violations || 0) ? 'var(--warn)' : 'var(--ok)' }}>{compile.style_violations ?? 0}</span>
+        </div>
+        {Array.isArray(compile.style_violation_details) && compile.style_violation_details.slice(0, 4).map((v, idx) => (
+          <div key={idx} className="mute" style={{ marginTop: 5, fontFamily: 'var(--mono)', fontSize: 10, lineHeight: 1.35 }}>
+            <span style={{ color: 'var(--warn)' }}>{v.file}:{v.line}</span> {v.rule}
+          </div>
+        ))}
+      </Section>
+
+      <Section title="Lint Gate" right={lint.source || ''}>
+        <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', rowGap: 4, columnGap: 8, fontFamily: 'var(--mono)' }}>
+          <span className="mute">status</span><span style={{ color: stateColor(lint.status) }}>{lint.status || 'unknown'}</span>
+          <span className="mute">errors</span><span style={{ color: (lint.errors || 0) ? 'var(--err)' : 'var(--ok)' }}>{lint.errors ?? 0}</span>
+          <span className="mute">warnings</span><span style={{ color: (lint.warnings || 0) > (lint.warning_budget || 0) ? 'var(--warn)' : 'var(--ok)' }}>{lint.warnings ?? 0} / budget {lint.warning_budget || 0}</span>
+        </div>
+      </Section>
+
+      <Section title="Simulation & DV Plan" right={(results.sources || []).join(', ')}>
+        <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr', rowGap: 4, columnGap: 8, fontFamily: 'var(--mono)', marginBottom: 8 }}>
+          <span className="mute">scenarios</span><span>{dv.scenarios || 0}</span>
+          <span className="mute">scoreboard</span><span>{dv.scoreboard_checks ?? 'derive from SSOT'}</span>
+          <span className="mute">tests</span><span>{results.pass || 0} pass / {results.fail || 0} fail / {results.total || 0} total</span>
+          <span className="mute">checks</span><span>{results.check_pass ?? 0} pass / {results.check_fail ?? 0} fail / {results.check_total ?? 0} total</span>
+        </div>
+        {scenarios.slice(0, 12).map(sc => (
+          <div key={sc.id || sc.name} style={{
+            display: 'grid', gridTemplateColumns: '42px 1fr 70px', gap: 6,
+            fontFamily: 'var(--mono)', fontSize: 10, padding: '2px 0',
+          }}>
+            <span className="mute">{sc.id || '-'}</span>
+            <span className="trunc" title={sc.expected || sc.name}>{sc.name || sc.expected || 'scenario'}</span>
+            <span style={{ color: stateColor(sc.status), textAlign: 'right' }}>{sc.status || 'pending'}</span>
+          </div>
+        ))}
+      </Section>
+
+      <Section title="Coverage Criteria" right={coverage.status || 'unknown'}>
+        <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr', rowGap: 4, columnGap: 8, fontFamily: 'var(--mono)', marginBottom: 8 }}>
+          <span className="mute">functional</span><span style={{ color: coverage.functional_pct == null ? 'var(--fg-mute)' : 'var(--ok)' }}>{coverage.functional_pct == null ? 'unknown' : coverage.functional_pct + '%'}</span>
+          <span className="mute">goals</span><span>{Object.keys(criteria).length}</span>
+          <span className="mute">limits</span><span style={{ color: Object.keys(limitations).length ? 'var(--warn)' : 'var(--fg-mute)' }}>{Object.keys(limitations).length || 0}</span>
+        </div>
+        {Object.entries(criteria).slice(0, 6).map(([k, v]) => (
+          <div key={k} className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10, padding: '2px 0' }}>
+            <span style={{ color: 'var(--fg)' }}>{k}</span>: {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+          </div>
+        ))}
+        {Object.entries(staticCov).slice(0, 4).map(([k, v]) => (
+          <div key={k} className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10, padding: '2px 0' }}>
+            static {k}: {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+          </div>
+        ))}
+        {Object.keys(limitations).length > 0 && (
+          <div style={{ marginTop: 6, color: 'var(--warn)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+            coverage capability gap: {Object.keys(limitations).join(', ')}
+          </div>
+        )}
+      </Section>
     </div>
   );
 };
@@ -3356,6 +4056,30 @@ const FileViewer = ({ name, onClose }) => {
 const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
   // Live context — populated by /healthz + WS 'context' events.
   const _ctx = window.CONTEXT || {};
+  const [liveStageStatus, setLiveStageStatus] = React.useState(null);
+  React.useEffect(() => {
+    let alive = true;
+    const refresh = () => {
+      fetch('/api/soc')
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          if (!alive || !d) return;
+          const mods = (d.clusters || []).flatMap(c => Array.isArray(c.modules) ? c.modules : []);
+          const scoped = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
+          const preferred = mods.find(m => scoped && (m.id === scoped || m.ip_dir === scoped)) || mods[0];
+          setLiveStageStatus((preferred && preferred.status) || null);
+        })
+        .catch(() => {});
+    };
+    refresh();
+    const timer = setInterval(refresh, 5000);
+    window.addEventListener('atlas-data-changed', refresh);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+      window.removeEventListener('atlas-data-changed', refresh);
+    };
+  }, []);
   const ctxUsed = (_ctx.tokens || 0) / 1000;             // → K tokens
   const ctxMax  = Math.max(1, (_ctx.maxTokens || 1000000) / 1000);  // → K
   const pct = Math.min(100, Math.round((ctxUsed / ctxMax) * 100));
@@ -3484,14 +4208,23 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
           display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4,
           fontSize: 10, marginBottom: 12,
         }}>
-          {[
-            { id: 'ssot', label: 'SSOT', state: 'done' },
-            { id: 'rtl',  label: 'RTL',  state: 'done' },
-            { id: 'lint', label: 'LINT', state: 'active' },
-            { id: 'tb',   label: 'TB',   state: 'pending' },
-          ].map(s => {
+          {(() => {
+            const st = liveStageStatus || {};
+            const normalize = (v) => v === 'ok' || v === 'pass' ? 'done'
+              : v === 'partial' || v === 'approved' || v === 'planned' || v === 'blocked' ? 'active'
+              : v === 'err' || v === 'error' || v === 'fail' || v === 'rejected' ? 'err'
+              : 'pending';
+            const simDebugReady = st.sim_debug === 'ok' || (st.sim === 'ok' && (st.tb === 'ok' || st.tb === 'partial'));
+            return [
+              { id: 'ssot', label: 'SSOT', state: normalize(st.ssot) },
+              { id: 'rtl',  label: 'RTL',  state: normalize(st.rtl) },
+              { id: 'tb',   label: 'TB',   state: normalize(st.tb) },
+              { id: 'dbg',  label: 'SIMDBG',  state: simDebugReady ? 'done' : normalize(st.sim_debug) },
+            ];
+          })().map(s => {
             const cfg = s.state === 'done'    ? { color: 'var(--ok)',     glyph: '✓', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)',     border: 'var(--ok)' }
                       : s.state === 'active'  ? { color: 'var(--accent)', glyph: '●', bg: 'color-mix(in oklch, var(--accent) 14%, transparent)', border: 'var(--accent)' }
+                      : s.state === 'err'     ? { color: 'var(--err)',    glyph: '✗', bg: 'color-mix(in oklch, var(--err) 14%, transparent)',    border: 'var(--err)' }
                       :                         { color: 'var(--fg-mute)',glyph: '○', bg: 'transparent',                                          border: 'var(--line)' };
             return (
               <div key={s.id} style={{
@@ -3505,49 +4238,6 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
               </div>
             );
           })}
-        </div>
-
-        {/* ── pipeline · TALOS (backend, TBD) ──────────────────────── */}
-        <div className="mute" style={{
-          fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
-          marginBottom: 6,
-          display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
-        }}>
-          <span style={{ color: 'var(--mag, #b58aff)', fontWeight: 700 }}>▸ talos</span>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>· backend</span>
-          <span style={{ flex: 1 }} />
-          <span className="mute" style={{ fontSize: 9 }}>⊘ tbd</span>
-        </div>
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4,
-          fontSize: 10, marginBottom: 6, opacity: 0.55,
-        }}>
-          {[
-            { id: 'dft', label: 'DFT' },
-            { id: 'syn', label: 'SYN' },
-            { id: 'sta', label: 'STA' },
-            { id: 'pnr', label: 'P&R' },
-          ].map(s => (
-            <div key={s.id} style={{
-              border: '1px dashed var(--line)', borderRadius: 2,
-              padding: '4px 6px', textAlign: 'center',
-              fontFamily: 'var(--mono)',
-              color: 'var(--fg-mute)',
-            }}>
-              <div style={{ fontWeight: 600, fontSize: 10 }}>
-                ⋯ {s.label}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="mute" style={{
-          fontSize: 10, fontFamily: 'var(--mono)', lineHeight: 1.5,
-          padding: '4px 6px', borderLeft: '2px solid var(--line)',
-          background: 'color-mix(in oklch, var(--mag, #b58aff) 6%, transparent)',
-        }}>
-          <span style={{ color: 'var(--mag, #b58aff)' }}>talos.handshake</span> ›
-          heartbeat ok · queue empty<br />
-          <span className="mute">awaiting atlas → talos handoff (not yet wired)</span>
         </div>
       </div>
     </div>

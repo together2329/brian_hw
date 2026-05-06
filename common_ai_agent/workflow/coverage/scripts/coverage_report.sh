@@ -106,6 +106,18 @@ echo "{\"timestamp_iso\":\"${TIMESTAMP_ISO}\",\"timestamp_epoch\":${TIMESTAMP_EP
 HIST_COUNT=$(wc -l < "${OUT}/history.jsonl" | tr -d ' ')
 
 echo ""
+echo "=== SSOT coverage summary ==="
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+python3 "${SCRIPT_DIR}/ssot_coverage_summary.py" "${DUT}" || {
+    RC=$?
+    if [ "${RC}" -eq 3 ]; then
+        echo "SSOT coverage goals are not fully closed; see ${OUT}/coverage.json and ${DUT}/sim/coverage_report.md"
+    else
+        exit "${RC}"
+    fi
+}
+
+echo ""
 echo "Annotated dir : ${OUT}/annotated/"
 echo "LCOV info     : ${OUT}/coverage.info"
 echo "JSON summary  : ${OUT}/coverage.json"

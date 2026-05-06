@@ -2,6 +2,15 @@ import os
 import sys
 from pathlib import Path
 
+# Keep top-level `config` and package `src.config` as one live module. The
+# app is intentionally runnable both as `python src/textual_main.py` and via
+# package imports; without this alias, runtime provider switches can update
+# one config object while llm_client reads another.
+if __name__ == "config":
+    sys.modules.setdefault("src.config", sys.modules[__name__])
+elif __name__ == "src.config":
+    sys.modules.setdefault("config", sys.modules[__name__])
+
 
 def _apply_workspace_env_early():
     """
@@ -319,8 +328,19 @@ def set_active_profile(name: str) -> bool:
     so callers (slash commands, CLI flag) can fall back to single-model
     switching (MODEL_SWITCH:<literal-name>) when the user passes a bare
     model name rather than a profile.
+
+    Side effect: when switching to a non-OpenAI profile, automatically
+    deactivates opencode-OAuth so Codex headers / ChatGPT-OAuth Bearer do
+    not leak into the next provider's request (glm, deepseek, anthropic).
+    `deactivate_opencode_oauth` may be undefined when this is called at
+    early bootstrap; we guard with globals() to stay import-safe.
     """
-    return _apply_profile(name)
+    ok = _apply_profile(name)
+    if ok:
+        _deact = globals().get("deactivate_opencode_oauth")
+        if callable(_deact) and globals().get("USE_OPENCODE_OAUTH"):
+            _deact()
+    return ok
 
 
 # Apply LLM_PROFILE if set in env (boot-time selection: --model flag
@@ -346,6 +366,111 @@ CURSOR_AGENT_ACTIVE_MODE = os.getenv("CURSOR_AGENT_ACTIVE_MODE", "false").lower(
 # cursor-agent does not support receiving an OpenAI-style tools JSON schema.
 if CURSOR_AGENT_ENABLE:
     os.environ["ENABLE_NATIVE_TOOL_CALLS"] = "false"
+
+# ============================================================
+# opencode OAuth Backend (ChatGPT Plus/Pro via shared auth.json)
+# ============================================================
+# Reuses the existing gpt-5 Responses API code path; only swaps the
+# endpoint to Codex (https://chatgpt.com/backend-api/codex/responses)
+# and replaces the API key with a ChatGPT OAuth Bearer token loaded from
+# opencode's ~/.local/share/opencode/auth.json (refreshed in-process when
+# expired). This lets common_ai_agent use the user's ChatGPT subscription
+# quota instead of paying for separate OpenAI API credits.
+#
+# Env vars:
+#   USE_OPENCODE_OAUTH=true                  toggle
+#   OPENCODE_AUTH_PATH=...                   override auth.json location
+#   OPENCODE_MODEL=gpt-5.4                   default model when enabled
+# ============================================================
+USE_OPENCODE_OAUTH = os.getenv("USE_OPENCODE_OAUTH", "true").lower() == "true"
+OPENCODE_ACCOUNT_ID = ""
+
+# Snapshot the pre-OAuth provider trio so deactivate_opencode_oauth() can
+# restore it when the user `--model`-switches back to a non-OpenAI profile.
+_PRE_OAUTH_BASE_URL = BASE_URL
+_PRE_OAUTH_API_KEY = API_KEY
+_PRE_OAUTH_LLM_PROVIDER = LLM_PROVIDER
+
+
+def activate_opencode_oauth(model: str = "") -> bool:
+    """Switch the live config to ChatGPT-OAuth / Codex routing.
+
+    Idempotent — safe to call repeatedly (e.g. when `--model gpt-5.5` is
+    passed at runtime after a prior glm/deepseek profile was active).
+
+    Args:
+        model: optional gpt-5* model id to activate. Empty → keep current
+               MODEL_NAME if it's already a gpt-5*, else default to gpt-5.5.
+    Returns:
+        True on success, False when no opencode credential is available.
+    """
+    global API_KEY, BASE_URL, LLM_PROVIDER, MODEL_NAME, USE_OPENCODE_OAUTH
+    global OPENCODE_ACCOUNT_ID, USE_RESPONSES_API
+    try:
+        from src.opencode_backend import get_credentials, CODEX_BASE_URL
+    except Exception as e:
+        print(f"[opencode-oauth] activate failed: {e}")
+        return False
+    cred = get_credentials("openai")
+    if not (cred and cred.get("access")):
+        print("[opencode-oauth] no credential — run "
+              "`python -m src.opencode_backend login`")
+        return False
+    API_KEY = cred["access"]
+    BASE_URL = CODEX_BASE_URL
+    LLM_PROVIDER = "openai"
+    OPENCODE_ACCOUNT_ID = cred.get("accountId", "") or ""
+    USE_RESPONSES_API = True
+    USE_OPENCODE_OAUTH = True
+    if model:
+        MODEL_NAME = model
+    elif not MODEL_NAME.lower().startswith("gpt-5"):
+        MODEL_NAME = os.getenv("OPENCODE_MODEL", "gpt-5.5")
+    os.environ["LLM_API_KEY"] = API_KEY
+    os.environ["LLM_BASE_URL"] = BASE_URL
+    os.environ["LLM_PROVIDER"] = "openai"
+    os.environ["LLM_MODEL_NAME"] = MODEL_NAME
+    os.environ["MODEL_NAME"] = MODEL_NAME
+    os.environ["OPENCODE_ACCOUNT_ID"] = OPENCODE_ACCOUNT_ID
+    os.environ["USE_RESPONSES_API"] = "true"
+    os.environ["USE_OPENCODE_OAUTH"] = "true"
+    return True
+
+
+def deactivate_opencode_oauth() -> None:
+    """Restore the pre-OAuth BASE_URL/API_KEY/LLM_PROVIDER so a subsequent
+    glm/deepseek/anthropic call doesn't carry Codex auth into the wrong
+    backend. Called automatically when set_active_profile() switches to a
+    non-OpenAI profile.
+    """
+    global API_KEY, BASE_URL, LLM_PROVIDER, USE_OPENCODE_OAUTH, USE_RESPONSES_API
+    BASE_URL = _PRE_OAUTH_BASE_URL
+    API_KEY = _PRE_OAUTH_API_KEY
+    LLM_PROVIDER = _PRE_OAUTH_LLM_PROVIDER
+    USE_OPENCODE_OAUTH = False
+    # Mirror activate_opencode_oauth's USE_RESPONSES_API=True flip — without
+    # resetting it here, a deactivated session keeps routing to /responses
+    # even after BASE_URL is restored to a Chat-Completions-only backend
+    # (e.g. Z.AI), producing HTTP 404 on every call.
+    USE_RESPONSES_API = False
+    os.environ["LLM_BASE_URL"] = BASE_URL
+    os.environ["LLM_API_KEY"] = API_KEY
+    os.environ["LLM_PROVIDER"] = LLM_PROVIDER
+    os.environ["USE_OPENCODE_OAUTH"] = "false"
+    os.environ["USE_RESPONSES_API"] = "false"
+
+
+def is_opencode_model(name: str) -> bool:
+    """Heuristic: should `--model <name>` route through opencode-OAuth?"""
+    n = (name or "").lower().strip()
+    if n.startswith("openai/"):
+        n = n.split("/", 1)[1]
+    return n.startswith("gpt-5") or ("gpt" in n and "codex" in n)
+
+
+if USE_OPENCODE_OAUTH:
+    if not activate_opencode_oauth():
+        USE_OPENCODE_OAUTH = False
 
 # ============================================================
 # OpenRouter Configuration (주석 처리됨)
@@ -1096,6 +1221,9 @@ ACTION_REMINDER_TEXT = os.getenv(
 TODO_STAGNATION_LIMIT = int(os.getenv("TODO_STAGNATION_LIMIT", "50"))
 TODO_AUTO_ADVANCE_THRESHOLD = int(os.getenv("TODO_AUTO_ADVANCE_THRESHOLD", "5"))
 TODO_TEXT_ONLY_LIMIT = int(os.getenv("TODO_TEXT_ONLY_LIMIT", "50"))
+EXECUTION_NO_ACTION_GUARD = os.getenv("EXECUTION_NO_ACTION_GUARD", "true").lower() in ("true", "1", "yes")
+EXECUTION_NO_ACTION_RETRY_LIMIT = int(os.getenv("EXECUTION_NO_ACTION_RETRY_LIMIT", "3"))
+EXECUTION_NO_ACTION_COMPACT_CHARS = int(os.getenv("EXECUTION_NO_ACTION_COMPACT_CHARS", "4000"))
 PLAN_TODO_WRITE_MAX = int(os.getenv("PLAN_TODO_WRITE_MAX", "10"))
 MAX_REJECTION_LIMIT = int(os.getenv("MAX_REJECTION_LIMIT", "50"))
 

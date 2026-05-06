@@ -1,0 +1,15 @@
+{
+  "name": "fl-model-gen",
+  "description": "Functional-model generation agent — SSOT to executable FL model, decomposition, and FCOV plan",
+  "env": {
+    "MAX_ITERATIONS": "120",
+    "ENABLE_MARKDOWN_RENDER": "true"
+  },
+  "skills": {
+    "force_activate": [],
+    "disable": []
+  },
+  "system_prompt_mode": "prepend",
+  "plan_prompt_mode": "prepend",
+  "compression_prompt_mode": "replace"
+}

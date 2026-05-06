@@ -652,7 +652,13 @@ def format_tree_display(tree_text: str, max_lines: int = None, head_lines: int =
                 _cfg = None
         max_lines = getattr(_cfg, 'DISPLAY_MAX_TOOL_LINES', 80) if _cfg else 80
 
-    lines = tree_text.strip().split('\n')
+    raw_lines = tree_text.strip().split('\n')
+    # Strip the tool's own summary/footer lines so they aren't counted as
+    # "files" in the outer summary. Without this filter, list_dir's inner
+    # "Total: 1 directories, 2 files" line was counted as a file → outer
+    # summary said "Total: 1 directories, 3 files" (one too many).
+    _summary_prefixes = ("Total:", "...", "(empty")
+    lines = [l for l in raw_lines if not l.lstrip().startswith(_summary_prefixes)]
     total = len(lines)
 
     # Count dirs and files for summary
@@ -740,13 +746,32 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
         return f"{match_count} matches"
 
     if tool_name == 'find_files':
-        found_m = re.search(r'Found (\d+) file', observation) if observation else None
-        count = found_m.group(1) if found_m else str(line_count)
-        return f"{count} files"
+        if not observation:
+            return "0 files"
+        # No-match path: find_files returns "No files matching '...' found in <dir>".
+        # Without this branch the fallback line_count returned "1 files" for a 0-match result.
+        if observation.lstrip().startswith("No files matching"):
+            return "0 files"
+        found_m = re.search(r'Found (\d+) file', observation)
+        if found_m:
+            return f"{found_m.group(1)} files"
+        # Fallback: count list bullets only ("  - path"), not header / fallthrough lines.
+        bullet_count = sum(1 for l in observation.split('\n') if l.lstrip().startswith('- '))
+        return f"{bullet_count} files"
 
     if tool_name == 'list_dir':
-        entries = len([l for l in observation.split('\n') if l.strip()]) if observation else 0
-        return f"{entries} entries"
+        if not observation:
+            return "0 entries"
+        # list_dir output ends with "Total: N directories, M files" and may include
+        # "(empty directory: ...)" or "... (N more entries — ...)" summary lines.
+        # Without this filter those lines were counted as entries themselves —
+        # e.g. 3 actual entries showed "4 entries" because the Total line was counted.
+        if observation.lstrip().startswith("(empty directory"):
+            return "0 entries"
+        skip_prefixes = ("Total:", "...", "(empty")
+        entry_lines = [l for l in observation.split('\n')
+                       if l.strip() and not l.lstrip().startswith(skip_prefixes)]
+        return f"{len(entry_lines)} entries"
 
     if tool_name == 'write_file':
         # Count lines from content arg, not from the 1-line observation message

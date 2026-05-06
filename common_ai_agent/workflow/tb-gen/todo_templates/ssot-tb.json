@@ -1,56 +1,40 @@
 {
   "name": "ssot-tb",
-  "description": "SSOT→TB: Parse YAML SSOT → tb_top.sv → tc_<ip>.sv → filelist → sim (iverilog/VCS)",
+  "description": "SSOT->TB: parse canonical YAML and RTL, derive tests generically, run simulation, emit coverage/VCD, or escalate precise failures",
   "tasks": [
     {
-      "content": "[SSOT→TB] Parse all YAML SSOT files + read DUT RTL",
-      "detail": "STEP 1 — Find SSOT YAML. Read <ip>/yaml/<ip>_config.yaml (or all yaml/*.yaml). Confirm: top_module, io_list, registers, test_requirements, parameters, features, dataflow present.\nSTEP 2 — Read ALL DUT RTL files from <ip>/rtl/*.sv. Map io_list port names to actual DUT port names.\nSTEP 3 — Plan TB structure: tb_<ip>.sv (top) + tc_<ip>.sv (tasks). Each test_requirements.scenarios[] entry becomes a tc_ task.\nSTEP 4 — Determine simulator: test_requirements.simulator or default 'iverilog'.\nGate: All YAML sections + DUT RTL read, TB plan ready.",
+      "content": "[SSOT->TB] Parse SSOT, RTL, and build verification ledger",
+      "detail": "Read the canonical SSOT at <ip>/yaml/<ip>.ssot.yaml or exact path from [SSOT HANDOFF]. Read <ip>/verify/equivalence_goals.json when present; if it is missing, run or request /ssot-equiv-goals <ip> before TB signoff. Read <ip>/list/<ip>.f and all RTL it references. Build a verification ledger: top module, simulator, clock/reset, DUT ports, protocol drivers needed, scenario list, equivalence goal IDs, expected results, FunctionalModel/model-adapter source, scoreboard model, coverage bins, waveform requirements, and known assumptions. SSOT expected behavior is authoritative; never rewrite expected values to match observed RTL. Derive from actual SSOT content; do not assume DMA/APB/register-only scenario names.",
+      "criteria": "SSOT file was read\nequivalence_goals.json was read or a precise /ssot-equiv-goals blocker was emitted\nRTL filelist and all referenced RTL files were read\nEvery DUT top port is mapped to a TB/cocotb signal\nEvery test_requirements.scenarios[] entry has stimulus, SSOT-derived expected result, checker plan, and coverage bin\nEvery non-blocked equivalence goal has a planned scoreboard event row keyed by goal_id\nCoverage bins are planned for reset, each feature, each FSM path, error behavior, and protocol handshakes where present\nNo fixed IP-specific generator/template was added",
       "priority": "high"
     },
     {
-      "content": "[SSOT→TB] Write tc_<ip>.sv: register helper tasks + scoreboard",
-      "detail": "From SSOT registers.register_list[]: write APB read/write helper tasks (write_reg, read_reg, poll_csr). From registers.config: channel stride offsets. From test_requirements.scoreboard_checks: declare integer scoreboard_checks = N; verify_counter. From dataflow: write expected value computation logic.\nGate: All registers from SSOT have helper tasks.",
+      "content": "[SSOT->TB] Choose verification implementation and write TB artifacts",
+      "detail": "Choose cocotb/Python unless the SSOT/project explicitly requires SV-only or cocotb is unavailable. For cocotb: write <ip>/tb/cocotb/test_<ip>.py and test_runner.py with clock/reset helpers, protocol driver helpers, workflow/tb-gen/runtime/equivalence_scoreboard.py (`EquivalenceScoreboard`) or copied FunctionalModel adapter, scoreboard model, scenario tests, coverage writer, VCD dumping, and <ip>/sim/scoreboard_events.jsonl emission. Any helper that logs [FAIL] or increments failed-check counters must raise AssertionError so cocotb records a real failure. For SV-only: write <ip>/tb/tb_<ip>.sv and scenario task file(s) plus a reference_model/model_adapter path that preserves SSOT/FunctionalModel expected behavior and writes the same scoreboard_events.jsonl fields. All tests must be derived from SSOT scenarios and equivalence goals, not from fixed scenario names.",
+      "criteria": "TB files exist on disk in the chosen layout\npython3 workflow/tb-gen/runtime/equivalence_scoreboard.py <ip> --root . --self-check passes when FunctionalModel is present\nClock and reset behavior matches SSOT\nDUT instantiation/toplevel matches RTL top module\nEvery SSOT scenario is represented by a test/subtest\nEvery non-blocked equivalence goal is checked or has a precise human/SSOT blocker\nscoreboard_events.jsonl rows include goal_id, scenario_id, cycle, stimulus, fl_expected, rtl_observed, passed, mismatch, and coverage_refs\nEvery test has an assertion/checker with expected/got failure text\nAny [FAIL] path raises/asserts and cannot be hidden by a PASS summary\nCoverage JSON writer or SV report path is implemented\nVCD dump path for sim_debug is implemented",
       "priority": "high"
     },
     {
-      "content": "[SSOT→TB] Write tc_<ip>.sv: SC1 basic operation + SC2 loop/iteration",
-      "detail": "From test_requirements.scenarios[0] (SC1): implement task tc_SC1_basic_op(). Steps from YAML: configure SAR/DAR, trigger GO, poll CSR0 until COMPLETED, verify source==destination. From scenarios[1] (SC2): implement tc_SC2_loop(). Steps: configure LOOP_CFG=N, trigger GO, verify N+1 beats, check SAR/DAR auto-increment.\nGate: Both SC1 and SC2 tasks compile and run.",
-      "priority": "high"
-    },
-    {
-      "content": "[SSOT→TB] Write tc_<ip>.sv: SC3 WFP + SC4 fault + SC5 large + SC6",
-      "detail": "From test_requirements.scenarios[2-5]: implement remaining tasks. tc_SC3_wfp(): configure WFP_ENABLE, assert peripheral_events, verify transfer starts after event. tc_SC4_fault(): configure FAULT_INJECT, verify CSR0.status=FAULTED. tc_SC5_large(): LOOP_CFG=7, verify 8 beats, all data matches. Additional SC6+ as defined in SSOT.\nGate: All scenario tasks from SSOT implemented.",
-      "priority": "high"
-    },
-    {
-      "content": "[SSOT→TB] Write tc_<ip>.sv: interrupt tasks (from SSOT interrupts)",
-      "detail": "From SSOT interrupts.sources[]: implement interrupt test tasks. tc_int_check(): enable interrupt → trigger → check dmac_irq asserts → write INTCLR → verify deasserts. One subtask per interrupt source (CH_COMPLETE, CH_FAULT, etc.).\nGate: All interrupt sources from SSOT tested.",
-      "priority": "high"
-    },
-    {
-      "content": "[SSOT→TB] Write tb_<ip>.sv: top-level testbench",
-      "detail": "Write <ip>/tb/tb_<ip>.sv. Structure: (1) timescale 1ns/1ps, (2) include tc_<ip>.sv, (3) DUT signal declarations from SSOT io_list, (4) DUT instantiation with .* or named port connections, (5) clock generation from clock_domains[].frequency, (6) reset sequence from resets[], (7) $dumpfile + $dumpvars, (8) initial begin: call all tc_ tasks in SSOT scenario order, (9) print 'Result: N/M passed', (10) $finish.\nGate: tb_<ip>.sv instantiates DUT correctly, clock period matches SSOT.",
-      "priority": "high"
-    },
-    {
-      "content": "[SSOT→TB] Write/update filelist <ip>/list/<ip>.f",
-      "detail": "From SSOT filelist.rtl[] + filelist.sim[]: create <ip>/list/<ip>.f. One file path per line (relative to project root). Include ALL RTL files and ALL TB files. Verify with: iverilog -g2012 -c <ip>/list/<ip>.f 2>&1 (compile check only, no run). Fix any missing files.\nGate: Filelist compiles without missing file errors.",
-      "validator": "bash workflow/tb-gen/scripts/check_tb_disk.sh",
-      "priority": "high"
-    },
-    {
-      "content": "[SIM] Compile + Run simulation: 0 errors, 0 warnings, all [PASS]",
-      "activeForm": "Running simulation — attempt {loop_count}/{max_loop_iterations}",
-      "detail": "SIMULATOR from SSOT test_requirements.simulator (default: iverilog).\nIVERILOG: iverilog -g2012 -f <ip>/list/<ip>.f -o <ip>/sim/<ip>.out && vvp <ip>/sim/<ip>.out\nVCS: vcs -full64 -sverilog -f <ip>/list/<ip>.f -o <ip>/sim/<ip>_simv && ./<ip>/sim/<ip>_simv\nCheck output: count [PASS] vs [FAIL], verify scoreboard_checks match expected count, check for $error. Diagnose failures: TB bug → fix tc_<ip>.sv; DUT bug → [SIM ESCALATE] rtl-gen.\nLoop until ALL [PASS], 0 errors, 0 warnings. Write <ip>/sim/sim_report.txt.\nGate: sim_report.txt shows ALL TESTS PASSED — verified by check_sim_disk.sh (real binary + report on disk + 0 failure markers).",
-      "validator": "bash workflow/sim/scripts/check_sim_disk.sh",
+      "content": "[SSOT->TB] Run compile/simulation and repair TB-only issues",
+      "activeForm": "Running SSOT-derived simulation — attempt {loop_count}/{max_loop_iterations}",
+      "detail": "Run the real simulator command after writing TB. Cocotb path: python3 -m pytest -q <ip>/tb/cocotb/test_runner.py --tb=short. SV path: iverilog -g2012 -f <ip>/list/<ip>.f -o <ip>/sim/<ip>.out && vvp <ip>/sim/<ip>.out. If compile fails due to TB syntax, port mapping, runner path, or scoreboard bug, fix TB and rerun. If a scenario fails against the SSOT expected value, do not weaken the checker or change the expected value to observed RTL behavior; stop TB edits and emit [SIM ESCALATE] -> rtl-gen with exact test, expected, got, and suspected RTL file/signal.",
+      "criteria": "Simulation command was run after the last TB edit\nCompile/elaboration exits 0\nAll SSOT scenario tests pass OR failures are escalated precisely\nA cocotb PASS summary is rejected if any [FAIL] line or failed SSOT check remains\nAll non-blocked equivalence goals have scoreboard_events.jsonl evidence before DONE\nTB does not modify RTL files\nNo failure markers remain on DONE path\nResults are captured to results.xml or sim_report.txt",
+      "validator": "bash workflow/tb-gen/scripts/check_tb_sim_evidence.sh",
       "loop": true,
       "max_loop_iterations": 15,
-      "exit_condition": "0 errors, 0 warnings, all [PASS]",
+      "exit_condition": "PASS_OR_ESCALATE",
       "priority": "high"
     },
     {
-      "content": "[SSOT→TB] Output SSOT RESULT handoff",
-      "detail": "Output:\n```\n[SSOT RESULT] tb-gen DONE\nModule   : <ip_name>\nTB       : <ip>/tb/tb_<ip>.sv\nTC       : <ip>/tb/tc_<ip>.sv\nSimulator: <iverilog|VCS>\nTests    : <N> scenarios, <M> scoreboard checks\nResult   : 0 errors, 0 warnings; N/N PASS\nHandoff  : → sim (if separate) or back to ssot-gen\n```",
+      "content": "[SSOT->TB] Emit coverage and sim_debug artifacts",
+      "detail": "Ensure sim_debug can inspect results. Required outputs on PASS path: <ip>/sim/<ip>.vcd, <ip>/sim/scoreboard_events.jsonl, <ip>/cov/coverage_functional.json when functional bins are tracked, <ip>/cov/toggle.json when VCD parsing is available, <ip>/sim/coverage_report.md, and <ip>/tb/cocotb/results.xml or <ip>/sim/sim_report.txt. Final <ip>/cov/coverage.json is produced by the common coverage stage from SSOT/fcov_plan plus raw evidence. Do not claim instrumented code coverage unless the tool actually produced it.",
+      "criteria": "VCD exists and is non-empty\nscoreboard_events.jsonl exists and references equivalence goal IDs\ncoverage_functional.json exists when functional bins are tracked\ncoverage report distinguishes raw functional bins from final SSOT coverage signoff\nResults XML or sim_report exists\nArtifacts are under <ip>/sim, <ip>/cov, or <ip>/tb only",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT->TB] Emit tb-gen result or escalation handoff",
+      "detail": "If PASS, output [SSOT RESULT] tb-gen DONE with module, SSOT path, TB files, simulation command, pass count, coverage path, VCD path, and next workflow sim_debug. If failures remain, output one [SIM ESCALATE] -> rtl-gen block per failing behavior with exact expected/got evidence and do not claim DONE.",
+      "criteria": "DONE path includes fresh simulation evidence\nDONE path names exact VCD and coverage files\nFailure path includes precise SIM ESCALATE blocks\nNo RTL success beyond simulation evidence is overstated\nNext workflow is sim_debug",
       "priority": "normal"
     }
   ]

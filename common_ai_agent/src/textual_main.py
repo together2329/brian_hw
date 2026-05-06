@@ -228,7 +228,7 @@ if __name__ == "__main__":
         add_help=True,
     )
     _parser.add_argument('-s', '--session', default=None)
-    _parser.add_argument('-w', '--workspace', default=None,
+    _parser.add_argument('-w', '--workspace', '-wf', default=None,
                          help='Workspace name (e.g. ssot-gen, rtl-gen, sim, lint)')
     _parser.add_argument('-u', '--ui', default=None,
                          choices=['textual', 'atlas', 'web'],
@@ -238,7 +238,38 @@ if __name__ == "__main__":
     _parser.add_argument('--port', type=int, default=None,
                          help='Override port for atlas/web UI '
                               '(defaults to ATLAS_UI_PORT=8765 / WEB_UI_PORT=8080)')
+    _parser.add_argument('--model', type=str, default='',
+                         help='Active LLM profile or bare model name. Profiles '
+                              '(PROFILE_<name>_BASE_URL/API_KEY/MODEL in .env) switch '
+                              'all three at once; bare names only override LLM_MODEL_NAME. '
+                              'gpt-5* names trigger ChatGPT OAuth (opencode_backend).')
     _args, _ = _parser.parse_known_args()
+
+    # --model: mirror src/main.py:2510 handler so textual_main behaves the same.
+    # Without this, `--model gpt-5.5` was silently ignored — the boot-time
+    # USE_OPENCODE_OAUTH default still ran but the user's intended override
+    # never reached set_active_profile / activate_opencode_oauth.
+    if getattr(_args, 'model', ''):
+        _m = _args.model.strip()
+        if config.set_active_profile(_m):
+            print(f"[--model] profile '{_m}' active "
+                  f"→ {config.MODEL_NAME} @ {config.BASE_URL}")
+        elif config.is_opencode_model(_m):
+            _bare = _m.split("/", 1)[-1]
+            if config.activate_opencode_oauth(_bare):
+                print(f"[--model] opencode-OAuth active → "
+                      f"{config.MODEL_NAME} @ {config.BASE_URL}")
+            else:
+                print(f"[--model] '{_m}' looks like an OpenAI model but "
+                      f"no opencode credential is available. "
+                      f"Run: python -m src.opencode_backend login")
+        else:
+            config.MODEL_NAME = _m
+            os.environ['LLM_MODEL_NAME'] = _m
+            os.environ['MODEL_NAME'] = _m
+            print(f"[--model] '{_m}' is not a defined profile; "
+                  f"applied as bare LLM_MODEL_NAME override "
+                  f"(BASE_URL/API_KEY unchanged).")
 
     _session_name = _args.session or _args.workspace or 'default'
     _agent._setup_session(_session_name)
@@ -247,6 +278,8 @@ if __name__ == "__main__":
     if _args.workspace:
         try:
             _agent._setup_workspace(_args.workspace)
+        except SystemExit:
+            raise  # _setup_workspace calls sys.exit(1) on unknown workspace
         except Exception as _e:
             print(f"[warn] Workspace '{_args.workspace}' failed to load: {_e}")
 

@@ -93,8 +93,10 @@
 .s-dot.pending { background: var(--fg-mute); }
 .s-dot.err     { background: var(--err); box-shadow: 0 0 6px var(--err); }
 .s-dot.run     { background: var(--cyan); animation: blink 1s step-end infinite; }
-.s-trio { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; color: var(--fg-mute); letter-spacing: 0.04em; }
+.s-trio { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; color: var(--fg-mute); letter-spacing: 0.04em; flex-wrap: wrap; }
+.s-trio .chip { display: inline-flex; align-items: center; gap: 3px; padding: 1px 4px; border: 1px solid var(--line); background: color-mix(in oklch, var(--panel) 80%, transparent); }
 .s-trio .lab { color: var(--fg-mute); font-size: 9px; text-transform: uppercase; }
+.s-trio .val { color: var(--fg-dim); font-size: 9px; text-transform: uppercase; }
 .s-row { display: flex; align-items: center; gap: 5px; font-size: 10px; }
 .s-row .k { width: 28px; color: var(--fg-mute); text-transform: uppercase; letter-spacing: 0.08em; font-size: 9px; }
 
@@ -288,17 +290,23 @@ window.MOD_KIND_LABEL = {
 // ──────────────────────────────────────────────────────────────
 // Status helpers
 // ──────────────────────────────────────────────────────────────
-window.StatusTrio = function StatusTrio({ status, big = false }) {
+window.StatusTrio = function StatusTrio({ status, detail = {}, source = {}, big = false }) {
   const order = ['ssot', 'rtl', 'sim'];
   return (
     <span className="s-trio" style={big ? { fontSize: 11 } : null}>
-      {order.map(k => (
-        <span key={k} title={`${k}: ${status[k] || 'pending'}`}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+      {order.map(k => {
+        const v = status[k] || 'pending';
+        const d = detail[k] ? `\n${detail[k]}` : '';
+        const src = source[k] ? `\nsource: ${source[k]}` : '';
+        return (
+        <span key={k} className={big ? 'chip' : ''}
+              title={`${k}: ${v}${d}${src}`}
+              style={!big ? { display: 'inline-flex', alignItems: 'center', gap: 3 } : null}>
           <span className={`s-dot ${status[k] || 'pending'}`} />
           {big && <span className="lab">{k}</span>}
+          {big && <span className="val">{v}</span>}
         </span>
-      ))}
+      );})}
     </span>
   );
 };

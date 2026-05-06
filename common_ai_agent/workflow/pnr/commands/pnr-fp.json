@@ -1,0 +1,7 @@
+{
+  "name": "pnr-fp",
+  "description": "Floorplan stage — initialize_floorplan + place_pins → floorplan.def",
+  "aliases": ["fp"],
+  "handler": "bash:run_fp.sh",
+  "usage": "/pnr-fp"
+}

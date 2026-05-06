@@ -4,6 +4,6 @@
   "aliases": [
     "s"
   ],
-  "handler": "bash:sim.sh",
+  "handler": "stage:sim",
   "usage": "/sim [tb_module.sv]"
 }

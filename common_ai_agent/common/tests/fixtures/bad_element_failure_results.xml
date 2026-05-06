@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="element_failure_suite">
+    <testcase name="test_sc01_basic" classname="test_ip" time="0.01">
+      <failure>got wrong value</failure>
+    </testcase>
+    <testcase name="test_sc02_read" classname="test_ip" time="0.02">
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -29,12 +29,27 @@ _TABLE: Dict[str, Pricing] = {
     "claude-3-5-sonnet": Pricing(input=3.00,  cache=0.30, output=15.00),
     "claude-3-5-haiku":  Pricing(input=0.80,  cache=0.08, output=4.00),
     "claude-3-opus":     Pricing(input=15.00, cache=1.50, output=75.00),
-    # OpenAI
-    "gpt-5.4":       Pricing(input=2.50, cache=1.25, output=15.00),
-    "gpt-5.3-codex": Pricing(input=1.75, cache=0.875, output=14.00),
-    "gpt-5.1":       Pricing(input=1.25, cache=0.625, output=10.00),
-    "gpt-4o":        Pricing(input=2.50, cache=1.25, output=10.00),
-    "gpt-4.1":       Pricing(input=2.00, cache=0.50, output=8.00),
+    # OpenAI — short-context tier (≤200K input). Long-context tier (>200K)
+    # is roughly 2x for input/cache and 1.5x for output but is not modeled
+    # here yet (would need a Pricing schema extension); see comment block
+    # below for the published long-context numbers.
+    "gpt-5.5-pro":   Pricing(input=30.00, cache=0.00,  output=180.00),
+    "gpt-5.5":       Pricing(input=5.00,  cache=0.50,  output=30.00),
+    "gpt-5.4-pro":   Pricing(input=30.00, cache=0.00,  output=180.00),
+    "gpt-5.4-mini":  Pricing(input=0.75,  cache=0.075, output=4.50),
+    "gpt-5.4-nano":  Pricing(input=0.20,  cache=0.02,  output=1.25),
+    "gpt-5.4":       Pricing(input=2.50,  cache=0.25,  output=15.00),
+    "gpt-5.3-codex": Pricing(input=1.75,  cache=0.875, output=14.00),
+    "gpt-5.1":       Pricing(input=1.25,  cache=0.625, output=10.00),
+    "gpt-4o":        Pricing(input=2.50,  cache=1.25,  output=10.00),
+    "gpt-4.1":       Pricing(input=2.00,  cache=0.50,  output=8.00),
+    # OpenAI long-context (>200K input) reference — not yet wired into Pricing schema:
+    #   gpt-5.5      input=10.00  cache=1.00  output=45.00
+    #   gpt-5.5-pro  input=60.00  cache=0.00  output=270.00
+    #   gpt-5.4      input=5.00   cache=0.50  output=22.50
+    #   gpt-5.4-pro  input=60.00  cache=0.00  output=270.00
+    #   gpt-5.4-mini long-context not offered
+    #   gpt-5.4-nano long-context not offered
     # DeepSeek (75% limited-time discount pricing)
     "deepseek-v4-pro":  Pricing(input=0.435, cache=0.03625, output=0.87),
     "deepseek-v4-flash": Pricing(input=0.14, cache=0.028, output=0.28),

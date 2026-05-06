@@ -1,6 +1,6 @@
 {
   "name": "grill-me",
-  "description": "Interrogate the user about the SSOT plan one decision at a time, walking the 20-section design tree",
+  "description": "Interrogate the user about the SSOT plan one decision at a time, including function_model and cycle_model gaps",
   "aliases": ["grill", "g"],
   "handler": "skill:grill-me",
   "usage": "/grill-me [<ip_name>]"

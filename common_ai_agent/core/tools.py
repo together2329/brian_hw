@@ -111,6 +111,75 @@ def _as_int(v, default=None):
     return default
 
 
+def _reject_unsafe_hdl_sim_command(command: str, timeout: int):
+    """Reject HDL simulation commands that hide hangs or skip staged proof.
+
+    This is intentionally generic: it does not know an IP name, protocol, or
+    expected result. It only enforces that cocotb/vvp proof runs are observable
+    and staged so workflow prompts cannot paper over a stuck simulator with a
+    shell truncation pipeline.
+    """
+    if not command:
+        return None
+
+    lowered = command.lower()
+
+    python_runner = re.search(
+        r"(?:^|[;&|]\s*|\b(?:g?timeout|timeout)\s+\d+\s+)"
+        r"(?:[a-z_][a-z0-9_]*=\S+\s+)*"
+        r"(?:\S*/)?python(?:\d+(?:\.\d+)?)?\s+[^;&|]*"
+        r"(?:test_cocotb_runner\.py|run_sim\.py|test_runner\.py)\b",
+        lowered,
+    )
+    make_sim = re.search(
+        r"(?:^|[;&|]\s*|\b(?:g?timeout|timeout)\s+\d+\s+)"
+        r"(?:[a-z_][a-z0-9_]*=\S+\s+)*make\b[^;&|]*\bsim=",
+        lowered,
+    )
+    vvp_run = re.search(
+        r"(?:^|[;&|]\s*|\b(?:g?timeout|timeout)\s+\d+\s+)"
+        r"(?:\S*/)?vvp\b",
+        lowered,
+    )
+    if not (python_runner or make_sim or vvp_run):
+        return None
+
+    if re.search(r"\|\s*(head|tail|grep|egrep|fgrep)\b", command):
+        return (
+            "Error: HDL simulation command rejected. Do not pipe cocotb/vvp "
+            "runs through head/tail/grep because that can hide hangs and leave "
+            "child simulators alive. Run the simulator directly with the "
+            "run_command timeout parameter and capture stdout/stderr, or use "
+            "workflow/tb-gen/scripts/sim.sh."
+        )
+
+    is_cocotb_run = bool(python_runner or make_sim)
+    has_single_test = (
+        "cocotb_testcase=" in lowered
+        or "testcase=" in lowered
+        or "pytest" in lowered
+        or "-k " in lowered
+    )
+    full_regression_ok = "full_regression_ok=1" in lowered
+
+    if is_cocotb_run and not has_single_test and not full_regression_ok:
+        return (
+            "Error: HDL simulation command rejected. Cocotb runs must be staged: "
+            "set COCOTB_TESTCASE=<single_test> for reset/default and one "
+            "representative transfer/protocol scenario first. Use "
+            "FULL_REGRESSION_OK=1 only after those bounded scenario runs have "
+            "terminated cleanly."
+        )
+
+    if timeout > 300:
+        return (
+            "Error: HDL simulation command rejected. Use a bounded run_command "
+            "timeout of 300s or less for HDL simulations."
+        )
+
+    return None
+
+
 # ---------------------------------------------------------------------------
 # File access log — tracks which paths were touched during the session
 # ---------------------------------------------------------------------------
@@ -549,6 +618,10 @@ def run_command(command, timeout=60):
         _blocked = _is_dangerous_command(command)
         if _blocked:
             return f"Error: Command '{command.split()[0]}' is blocked. Enable it with /permission {command.split()[0]} on (or set ALLOW_{command.split()[0].upper()}=true in .config)."
+
+        _sim_block = _reject_unsafe_hdl_sim_command(command, timeout)
+        if _sim_block:
+            return _sim_block
 
         # Translate Unix commands to Windows equivalents
         command = _translate_command_for_windows(command)
@@ -2619,6 +2692,20 @@ def _save_todo_write_error(error_msg: str, attempted_todos=None):
         pass  # Best-effort; never block the main error return
 
 
+def _todo_template_lock_error(op_name: str) -> str:
+    """Return an error when a canonical template disallows todo reshaping."""
+    locked = os.environ.get("TODO_TEMPLATE_LOCK_ADDITIONS", "").strip().lower()
+    if locked not in ("1", "true", "yes", "on"):
+        return ""
+    tmpl = os.environ.get("TODO_TEMPLATE_LOCK_NAME", "").strip() or "active"
+    return (
+        f"Error: todo template '{tmpl}' is locked; do not call {op_name} "
+        "to add or replace tasks. Use the existing canonical tasks, repair "
+        "inside the relevant task, or emit the workflow escalation requested "
+        "by the template."
+    )
+
+
 def todo_write(todos=None, tasks=None):
     """
     Create or update task list to track multi-step task progress.
@@ -2688,6 +2775,11 @@ def todo_write(todos=None, tasks=None):
     """
     # Accept either parameter name
     todos = todos or tasks
+    _locked = _todo_template_lock_error("todo_write")
+    if _locked:
+        _save_todo_write_error(_locked, todos)
+        return _locked
+
     # Import here to avoid circular dependency
     from typing import List, Dict
 
@@ -3062,21 +3154,80 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                 # carry "<ip>/rtl/<ip>.sv" style examples that aren't real
                 # deliverables for THIS task.
                 _candidates = {p for p in _candidates if "<" not in p and ">" not in p}
-                _missing = []
-                _MIN_BYTES = 50  # filter out 1-2 line stubs; real deliverables are larger
+                _cwd = _os_fs.getcwd()
+                _known_artifact_dirs = {
+                    "rtl", "list", "tb", "tc", "sim", "cov", "lint", "doc",
+                    "req", "model", "verify", "yaml", "syn", "sta", "pnr",
+                    "scripts",
+                }
+                _base_dirs = [_cwd]
                 for _p in _candidates:
-                    # Try absolute, cwd-relative, and a few common project bases
-                    _resolved = None
-                    for _base in (None, _os_fs.getcwd()):
-                        _full = _p if _base is None else _os_fs.path.join(_base, _p)
-                        if _os_fs.path.exists(_full):
-                            try:
-                                if _os_fs.path.getsize(_full) >= _MIN_BYTES:
-                                    _resolved = _full
-                                    break
-                            except OSError:
-                                pass
-                    if _resolved is None:
+                    _parts = [part for part in _p.split("/") if part]
+                    for _idx, _part in enumerate(_parts):
+                        if _part in _known_artifact_dirs and _idx > 0:
+                            _base = _os_fs.path.join(_cwd, *_parts[:_idx])
+                            if _base not in _base_dirs:
+                                _base_dirs.append(_base)
+                            break
+
+                _MIN_BYTES = 50  # filter out 1-2 line stubs; most real deliverables are larger
+
+                def _resolve_existing(_p):
+                    _tries = []
+                    if _os_fs.path.isabs(_p):
+                        _tries.append(_p)
+                    else:
+                        _tries.append(_os_fs.path.join(_cwd, _p))
+                        for _base in _base_dirs:
+                            _tries.append(_os_fs.path.join(_base, _p))
+                    for _full in _tries:
+                        if _os_fs.path.isfile(_full):
+                            return _full
+                    return None
+
+                def _filelist_entries_exist(_full):
+                    _root = _os_fs.path.dirname(_os_fs.path.dirname(_full))
+                    try:
+                        _lines = open(_full, encoding="utf-8", errors="replace").read().splitlines()
+                    except OSError:
+                        return False
+                    _entries = []
+                    for _raw in _lines:
+                        _line = _raw.strip()
+                        if not _line or _line.startswith("#"):
+                            continue
+                        if _line.startswith(("+incdir+", "-I", "-y", "+define+")):
+                            continue
+                        _entries.append(_line)
+                    if not _entries:
+                        return False
+                    for _entry in _entries:
+                        if not _re.search(r"\.(?:sv|v|vh|svh)$", _entry):
+                            continue
+                        _entry_tries = [
+                            _entry if _os_fs.path.isabs(_entry) else _os_fs.path.join(_root, _entry),
+                            _entry if _os_fs.path.isabs(_entry) else _os_fs.path.join(_cwd, _entry),
+                        ]
+                        if not any(_os_fs.path.isfile(_candidate) for _candidate in _entry_tries):
+                            return False
+                    return True
+
+                def _artifact_is_real(_full):
+                    try:
+                        _size = _os_fs.path.getsize(_full)
+                    except OSError:
+                        return False
+                    _ext = _os_fs.path.splitext(_full)[1].lower()
+                    if _ext == ".f":
+                        return _filelist_entries_exist(_full)
+                    if _ext in {".sdc", ".upf", ".tcl"}:
+                        return _size > 0
+                    return _size >= _MIN_BYTES
+
+                _missing = []
+                for _p in _candidates:
+                    _resolved = _resolve_existing(_p)
+                    if _resolved is None or not _artifact_is_real(_resolved):
                         _missing.append(_p)
                 if _missing:
                     return (
@@ -3345,6 +3496,10 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
         todo_add(content="Quick check", command="make quick-lint", on_success=4)
         todo_add(content="Run sim", command="make sim", on_condition=[{"if": "TIMEOUT", "goto": 3}])
     """
+    _locked = _todo_template_lock_error("todo_add")
+    if _locked:
+        return _locked
+
     todo_tracker = _get_todo_tracker()
 
     if todo_tracker is None:

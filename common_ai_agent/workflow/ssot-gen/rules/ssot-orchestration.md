@@ -2,14 +2,15 @@
 
 ## Workflow Model
 
-ssot-gen is the **Single Source of Truth authoring agent**. It writes YAML files that drive automated Jinja2 + Python code generation.
+ssot-gen is the **Single Source of Truth authoring agent**. It writes production leaf IP YAML files that drive downstream RTL, testbench, simulation, coverage, and EDA workflows.
 
-1. Writing YAML SSOT files (7 domains + 1 schema)
-2. Validating YAML against Cerberus schema
-3. Authoring Jinja2 templates
-4. Writing Python generator scripts
-5. Running `make all` (validate -> generate -> lint -> sim)
-6. Outputting `[SSOT HANDOFF]` blocks for downstream agents
+1. Scaffold a new `<ip>/` directory when needed
+2. Write exactly one canonical leaf SSOT: `<ip>/yaml/<ip>.ssot.yaml`
+3. Fill all production canonical sections, including `sub_modules`, `function_model`, `cycle_model`, `timing`, `power`, `security`, `error_handling`, `debug_observability`, `integration`, `dft`, `synthesis`, `test_requirements`, and `quality_gates`
+4. Mark simple internal blocks as `ownership: manifest`
+5. Promote reusable or independently verified children as `ownership: child_ssot`
+6. Validate the YAML on disk
+7. Output `[SSOT HANDOFF]` blocks for downstream agents
 
 ## Handoff Protocol
 
@@ -24,36 +25,30 @@ When SSOT is complete and validated:
 | Gate | Condition | Next Agent |
 |------|-----------|------------|
 | REQ -> SSOT | Requirements gathered, IP name confirmed | ssot-gen starts YAML authoring |
-| SSOT -> VALIDATE | All 8 YAML files written | Cerberus schema validation |
-| VALIDATE -> GENERATE | All YAML pass schema | Jinja2 template rendering |
-| GENERATE -> LINT | RTL files generated | verilator --lint-only |
-| LINT -> SIM | 0 warnings | iverilog simulation |
-| SIM -> HANDOFF | 17/17 scoreboard checks | rtl-gen or tb-gen agent |
+| SSOT -> VALIDATE | `<ip>/yaml/<ip>.ssot.yaml` written | YAML parse + production SSOT disk checks |
+| VALIDATE -> HANDOFF | Leaf SSOT passes checks | rtl-gen or tb-gen agent |
+| HANDOFF -> RTL | `[SSOT HANDOFF]` names path and constraints | rtl-gen |
 
 ## File Ownership
 
 | Agent | Writes | Never modifies |
 |-------|--------|----------------|
 | `req-gen` | `<ip>/req/<ip>_requirements.md` | YAML, RTL, TB |
-| `ssot-gen` | `<ip>/yaml/*.yaml`, `<ip>/templates/**`, `<ip>/generators/**` | req file |
+| `ssot-gen` | `<ip>/yaml/<ip>.ssot.yaml` | RTL, TB, sim outputs |
 | `rtl-gen` | `<ip>/rtl/<ip>.sv`, `<ip>/list/<ip>.f` | YAML, TB |
-| `tb-gen`  | `<ip>/tb/tb_<ip>.sv`, `<ip>/tb/tc_<ip>.sv` | YAML, RTL |
+| `tb-gen`  | `<ip>/tb/cocotb/*` or selected TB backend files | YAML, RTL |
 | `sim`     | `<ip>/sim/sim_report.txt` | YAML, source |
 | `lint`    | `<ip>/lint/lint_report.txt` | YAML, source |
 
-## LLM + Jinja2 Division of Labor
+## Leaf IP Hierarchy Rules
 
-| Jinja2 (frame) | LLM (detail) |
-|----------------|--------------|
-| `always_ff` blocks with `{% for %}` loops | YAML authoring: register meanings, FSM edge cases |
-| APB decode `case` statements | Core FSM logic, AXI timing |
-| AXI signal width parameterization | Test scenario design |
-| Markdown table generation from YAML | Documentation explanations |
-| Scoreboard check loops | Architecture decisions |
+- `soc.ssot.yaml` owns top-level SoC instances and connections.
+- A leaf IP YAML owns its internal `sub_modules`.
+- Use `ownership: manifest` for normal internal files generated or written as part of the IP.
+- Use `ownership: child_ssot` only when that submodule needs its own ssot-gen/rtl-gen/tb-gen/sim session.
 
 ## Error Recovery
 
-- YAML validation fail -> edit YAML, re-run `make yaml-validate`
-- Template rendering error -> edit `.sv.j2`, re-run `make rtl`
-- Lint warning -> edit template or YAML, re-generate
-- Sim failure -> check YAML FSM, RTL logic; iterate
+- YAML validation fail -> edit `<ip>/yaml/<ip>.ssot.yaml`, rerun validation
+- Missing or weak `sub_modules` -> update manifest vs child_ssot ownership before handoff
+- RTL/lint/sim issues -> hand off to rtl-gen/tb-gen/sim; do not fix them inside ssot-gen unless the YAML contract is wrong

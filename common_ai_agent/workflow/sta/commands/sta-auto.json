@@ -1,0 +1,7 @@
+{
+  "name": "sta-auto",
+  "description": "One-shot STA (no agent walkthrough) — runs auto_sta.sh end-to-end. For CI / scripted use",
+  "aliases": [],
+  "handler": "bash:auto_sta.sh",
+  "usage": "/sta-auto"
+}

@@ -1,7 +1,7 @@
 {
   "name": "ssot-tb",
-  "description": "Generate Testbench from SSOT YAML files (tb_top + tc + sim)",
+  "description": "Run generic SSOT-driven TB workflow using the current default backend: cocotb",
   "aliases": ["stb"],
-  "handler": "todo:template:ssot-tb",
-  "usage": "/ssot-tb <module_name>"
+  "handler": "stage:ssot-tb-cocotb",
+  "usage": "/ssot-tb <module_name>  # default: cocotb"
 }

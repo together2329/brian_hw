@@ -1,0 +1,40 @@
+{
+  "name": "ssot-tb-uvm",
+  "description": "SSOT->TB UVM: derive a SystemVerilog UVM environment from YAML and RTL, run simulator, emit reports, or escalate precise failures",
+  "tasks": [
+    {
+      "content": "[SSOT->UVM] Parse SSOT, RTL, and build UVM verification ledger",
+      "detail": "Read SSOT YAML, <ip>/verify/equivalence_goals.json when present, RTL filelist, and all referenced RTL files. Derive UVM agents, sequences, monitors, scoreboard, register model needs, coverage groups, scoreboard_events.jsonl writer, and scenario mapping from SSOT io_list, function_model, cycle_model, registers, features, dataflow, interrupts, fsm, memory, test_requirements.scenarios, and equivalence goals. Do not assume fixed bus/protocol classes unless SSOT defines that protocol.",
+      "criteria": "SSOT, equivalence goals, and RTL were read\npython3 workflow/tb-gen/runtime/equivalence_scoreboard.py <ip> --root . --self-check passes when FunctionalModel is present\nEvery DUT port maps to an interface, monitor, driver, or tie-off rationale\nEvery SSOT scenario maps to a UVM sequence/test and scoreboard check\nEvery non-blocked equivalence goal maps to a scoreboard event row or precise blocker\nCoverage groups are derived from SSOT features/FSM/errors/protocols\nNo IP-specific fixed generator was added",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT->UVM] Write UVM environment artifacts",
+      "detail": "Write generic UVM files under <ip>/tb/uvm/: interface(s), package, env, agent(s), sequencer/driver/monitor, scoreboard, coverage collector, base test, scenario tests, model_adapter/reference_model, scoreboard_events.jsonl writer, and filelist additions. Keep the implementation derived from SSOT, FunctionalModel/cycle_model contracts, equivalence goals, and current RTL. The UVM expected-value path may use a generated DPI/Python bridge or an equivalent model adapter, but it must preserve FunctionalModel/SSOT expected behavior and must not copy observed RTL behavior. If UVM library/simulator support is unavailable, stop with [TB BLOCKED] naming the missing tool instead of downgrading silently.",
+      "criteria": "UVM files exist under <ip>/tb/uvm\nDUT wrapper/top mapping matches RTL\nEach SSOT scenario has a sequence/test\nScoreboard compares expected/got from SSOT FunctionalModel/model adapter\nscoreboard_events.jsonl rows include goal_id, scenario_id, cycle, stimulus, fl_expected, rtl_observed, passed, mismatch, and coverage_refs\nCoverage groups exist\nNo RTL files were modified",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT->UVM] Run UVM compile/simulation and repair TB-only issues",
+      "detail": "Run the project-supported UVM simulator command. If no simulator/UVM library is available, emit [TB BLOCKED] with exact missing dependency. If TB syntax, port mapping, sequence, or scoreboard issues fail, fix UVM artifacts and rerun. If DUT behavior violates SSOT, emit [SIM ESCALATE] -> rtl-gen with exact expected/got evidence.",
+      "criteria": "Simulation command or precise tool-blocker is recorded\nCompile/elaboration succeeds on PASS path\nAll SSOT tests pass or failures are escalated\nAll non-blocked equivalence goals have scoreboard_events.jsonl evidence before DONE\nNo failure markers remain on DONE path\nResults report exists",
+      "validator": "bash workflow/tb-gen/scripts/check_tb_sim_evidence.sh",
+      "loop": true,
+      "max_loop_iterations": 10,
+      "exit_condition": "PASS_OR_ESCALATE_OR_BLOCKED",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT->UVM] Emit coverage and waveform artifacts",
+      "detail": "Emit simulator waveform, scoreboard_events.jsonl, raw functional coverage, and coverage reports under <ip>/sim and <ip>/cov. TB-gen/UVM may write <ip>/cov/coverage_functional.json as raw functional-bin evidence; final <ip>/cov/coverage.json is produced by the common coverage stage. Label functional coverage, assertion coverage, and code coverage separately. Do not fake code coverage if the simulator did not produce it.",
+      "criteria": "Waveform exists or blocker explains unavailable dump support\nscoreboard_events.jsonl exists and references equivalence goal IDs\ncoverage_functional.json/report exists or blocker explains unavailable raw functional coverage support\nCoverage source is labeled accurately\nNo IP-specific coverage workaround script was added",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT->UVM] Emit tb-gen result or escalation",
+      "detail": "PASS branch: emit [SSOT RESULT] tb-gen DONE with UVM files, simulator command, pass count, coverage, VCD/wave path, and next workflow sim_debug. FAIL/BLOCKED branch: emit [SIM ESCALATE] or [TB BLOCKED] with precise evidence.",
+      "criteria": "DONE path has fresh simulator evidence\nFailure/blocker path is precise and actionable\nNo simulation or coverage result is fabricated",
+      "priority": "normal"
+    }
+  ]
+}

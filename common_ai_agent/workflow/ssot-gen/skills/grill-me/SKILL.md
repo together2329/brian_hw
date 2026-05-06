@@ -57,14 +57,16 @@ ANY of these are true:
   `"unknown"`, `"???"`
 - there is a `# TODO`, `# TBD`, or `# confirm` comment on the line
 - a required-by-schema field is absent (top_module.name, top_module.type,
-  sub_modules[*].name, register_map[*].address, etc.)
+  sub_modules[*].name, function_model.transactions[*].outputs,
+  cycle_model.handshake_rules[*].rule, timing.target_clocks[*],
+  quality_gates.signoff.evidence, register_map[*].address, etc.)
 
 For each gap, record: `{section, path, current_value, allowed_values?,
 why_required}`.
 
 ### 3. Walk the gaps in canonical SSOT order
 
-§0 → §1 → … → §19. Within a section, parents before children
+§0 → §1 → … through the canonical SSOT sections. Within a section, parents before children
 (e.g. `top_module.type` before `top_module.target.clock_freq_mhz`).
 For each gap, emit ONE `ask_user` call. Keep the question *narrow* —
 one decision per call.

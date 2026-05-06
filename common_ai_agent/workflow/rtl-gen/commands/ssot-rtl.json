@@ -1,7 +1,7 @@
 {
   "name": "ssot-rtl",
-  "description": "Generate RTL from SSOT YAML files (multi-file output)",
+  "description": "Run generic SSOT-driven RTL workflow: derive SSOT RTL TODOs, preflight LLM-authored RTL, compile/lint, audit TODO gates, and hand off",
   "aliases": ["sr"],
-  "handler": "todo:template:ssot-rtl",
+  "handler": "stage:ssot-rtl",
   "usage": "/ssot-rtl <module_name>"
 }

@@ -6,6 +6,7 @@
 //
 //   GET /api/files?path=…   → real project file tree
 //   GET /api/todos          → real TodoTracker state
+//   GET /api/session/state  → scoped conversation/todo/cost/job state
 //   GET /api/ssot           → list of *.ssot.yaml files (with ?file=… for content)
 //
 // Plus live updates pushed over the WS:
@@ -51,6 +52,7 @@
   window.FILE_TREE = [];
   window.TODOS = [];
   window.SSOT_FILES = [];
+  window.ATLAS_PROGRESS = null;
 
   // Scope path: agent is asked (via prompt prefix) to keep all reads,
   // writes, and tool calls confined to this directory. Empty string =
@@ -59,6 +61,11 @@
     window.SCOPE_PATH = localStorage.getItem('atlasScopePath') || '';
   } catch (_) {
     window.SCOPE_PATH = '';
+  }
+  try {
+    window.ACTIVE_SESSION = localStorage.getItem('atlasActiveSession') || 'default';
+  } catch (_) {
+    window.ACTIVE_SESSION = 'default';
   }
 
   // Status-bar metadata. Filled in by the /healthz response and the
@@ -88,6 +95,54 @@
     if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
     if (bytes >= 1024)        return (bytes / 1024).toFixed(1) + ' KB';
     return bytes + ' B';
+  }
+
+  function normalizeTodos(rawTodos) {
+    return (Array.isArray(rawTodos) ? rawTodos : []).map((t, i) => ({
+      id:      `t${i + 1}`,
+      state:   t.status || 'pending',
+      section: t.priority ? String(t.priority).toUpperCase() : '',
+      title:   t.content || '',
+      detail:  t.detail || '',
+      deps:    [],
+    }));
+  }
+
+  function sessionFor(scopePath, workflow) {
+    const scope = String(scopePath || '').replace(/^\/+|\/+$/g, '');
+    const wf = String(workflow || '').replace(/^\/+|\/+$/g, '');
+    if (scope && wf) return `${scope}/${wf}`;
+    if (scope) return `${scope}/user`;
+    if (wf) return `soc/${wf}`;
+    return 'default';
+  }
+
+  async function refreshSessionState(session, hydrateConversation = true) {
+    const sid = (session || window.ACTIVE_SESSION || 'default').replace(/^\/+|\/+$/g, '');
+    if (!sid) return null;
+    try {
+      const r = await fetch('/api/session/state?session=' + encodeURIComponent(sid) + '&limit=200');
+      if (!r.ok) return null;
+      const d = await r.json();
+      window.ACTIVE_SESSION = d.session || sid;
+      try { localStorage.setItem('atlasActiveSession', window.ACTIVE_SESSION); } catch (_) {}
+      const todos = d.todos && Array.isArray(d.todos.todos) ? d.todos.todos : [];
+      window.TODOS = normalizeTodos(todos);
+      if (hydrateConversation) {
+        window.dispatchEvent(new CustomEvent('atlas-session-loaded', { detail: d }));
+        window.dispatchEvent(new CustomEvent('atlas-conversation-loaded', {
+          detail: {
+            messages: (d.conversation && d.conversation.messages) || [],
+            session: window.ACTIVE_SESSION,
+          },
+        }));
+      }
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SESSION_STATE' }));
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'TODOS' }));
+      return d;
+    } catch (e) {
+      return null;
+    }
   }
   function asTreeNode(entry, depth) {
     return {
@@ -126,6 +181,10 @@
 
   async function refreshTodos() {
     try {
+      if (window.ACTIVE_SESSION) {
+        const d = await refreshSessionState(window.ACTIVE_SESSION, false);
+        if (d) return;
+      }
       const r = await fetch('/api/todos');
       if (!r.ok) return;
       const d = await r.json();
@@ -138,14 +197,7 @@
       // status2state map only covered completed→done and in_progress→
       // active, so 'approved' fell through `||` to 'pending' and the
       // sidebar showed ☐ for tasks the agent had already approved.
-      window.TODOS = (Array.isArray(d.todos) ? d.todos : []).map((t, i) => ({
-        id:      `t${i + 1}`,
-        state:   t.status || 'pending',
-        section: t.priority ? String(t.priority).toUpperCase() : '',
-        title:   t.content || '',
-        detail:  t.detail || '',
-        deps:    [],
-      }));
+      window.TODOS = normalizeTodos(d.todos);
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'TODOS' }));
     } catch (e) { /* ignore */ }
   }
@@ -199,6 +251,20 @@
     } catch (e) { /* ignore */ }
   }
 
+  async function refreshProgress() {
+    try {
+      const scope = window.SCOPE_PATH || '';
+      const r = await fetch('/api/progress?scope=' + encodeURIComponent(scope));
+      if (!r.ok) return;
+      const d = await r.json();
+      window.ATLAS_PROGRESS = d || null;
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'PROGRESS' }));
+      return d;
+    } catch (e) {
+      return null;
+    }
+  }
+
   async function refreshHealth() {
     try {
       const r = await fetch('/healthz');
@@ -236,14 +302,13 @@
       if (!r.ok) return;
       const d = await r.json();
       const items = Array.isArray(d.items) ? d.items : [];
-      // Show only the spec → RTL → TB pipeline workspaces — the others
-      // (cmux, default, eda, worker, lint, sim …) clutter the strip.
-      // Order matters so the chips read left-to-right as the flow.
+      // Show the end-to-end SoC/IP implementation flow in order.
       const PIPELINE = [
-        { id: 'ssot-gen', color: 'var(--mag)'    },
-        { id: 'rtl-gen',  color: 'var(--accent)' },
-        { id: 'tb-gen',   color: 'var(--ok)'     },
-        { id: 'coverage', color: 'var(--cyan)'   },
+        { id: 'ssot-gen',  color: 'var(--mag)'    },
+        { id: 'fl-model-gen', color: 'var(--cyan)' },
+        { id: 'rtl-gen',   color: 'var(--accent)' },
+        { id: 'tb-gen',    color: 'var(--ok)'     },
+        { id: 'sim_debug', color: 'var(--warn)'   },
       ];
       const byId = new Map(items.map(w => [w.id, w]));
       window.FLOW_STAGES = PIPELINE
@@ -265,7 +330,8 @@
   // Public API for workspace.jsx so it can pull a fresh slice on demand.
   window.atlasData = {
     refreshFileTree, refreshTodos, refreshSsotList, refreshHealth,
-    refreshSlashCommands, refreshWorkflows,
+    refreshSlashCommands, refreshWorkflows, refreshSessionState, sessionFor,
+    refreshProgress,
     clearTodos: () => fetch('/api/todos/clear', { method: 'POST' }).then(refreshTodos),
     fetchFile: (path) =>
       fetch('/api/file?path=' + encodeURIComponent(path)).then(r => r.json()),
@@ -278,6 +344,7 @@
       refreshFileTree(window.SCOPE_PATH);
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
     },
+    setActiveSession: (session) => refreshSessionState(session),
   };
 
   // ── Bootstrap ───────────────────────────────────────────────────
@@ -301,6 +368,7 @@
     refreshFileTree(window.SCOPE_PATH || '');
     refreshTodos();
     refreshSsotList();
+    refreshProgress();
     refreshSlashCommands();
     refreshWorkflows();
     // Hook the WS pubsub once it's available so todo_line events trigger
@@ -312,9 +380,10 @@
         return;
       }
       window.backend.subscribe('todo_line', () => refreshTodos());
-      window.backend.subscribe('tool_result', (m) => {
+      window.backend.subscribe('tool_result', () => {
         // Coalesce into one fetch per ~250 ms — see _refFiles etc.
         _refFiles(); _refSsot(); _refTodos();
+        refreshProgress();
       });
       window.backend.subscribe('context', (m) => {
         if (typeof m.used === 'number') {
@@ -365,16 +434,10 @@
       const _maybeHydrateConversation = () => {
         return refreshHealth().then(() => {
           const ws = (window.CONTEXT && window.CONTEXT.workspace) || '';
-          if (ws === _lastWs) return;
-          _lastWs = ws;
-          return fetch('/api/conversation?limit=200')
-            .then(r => r.json())
-            .then(d => {
-              const msgs = Array.isArray(d.messages) ? d.messages : [];
-              window.dispatchEvent(new CustomEvent('atlas-conversation-loaded',
-                { detail: { messages: msgs } }));
-            })
-            .catch(() => { /* ignore — feed stays as-is on fetch failure */ });
+          const sid = window.ACTIVE_SESSION || sessionFor(window.SCOPE_PATH || '', ws);
+          if (sid === _lastWs) return;
+          _lastWs = sid;
+          return refreshSessionState(sid, true);
         });
       };
       window.backend.subscribe('commands_changed', () => {
@@ -382,6 +445,7 @@
         refreshTodos();
         refreshSsotList();
         refreshWorkflows();
+        refreshProgress();
         _maybeHydrateConversation();
       });
       // Initial-load hydrate: kick off once now so a fresh page open
@@ -393,6 +457,7 @@
       // reflect immediately instead of waiting for the next 5 s poll.
       window.backend.subscribe('flush', () => {
         refreshTodos();
+        refreshProgress();
       });
     }
     attach();
@@ -403,6 +468,7 @@
     setInterval(() => {
       refreshFileTree(window.SCOPE_PATH || '');
       refreshSsotList();
+      refreshProgress();
     }, 5000);
   }
 

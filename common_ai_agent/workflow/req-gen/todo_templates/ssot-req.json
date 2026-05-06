@@ -1,0 +1,21 @@
+{
+  "name": "ssot-req",
+  "description": "Emit a requirements ledger from an existing SSOT and verify it is non-placeholder",
+  "tasks": [
+    {
+      "content": "Read current SSOT and existing req artifact",
+      "detail": "Inspect <ip>/yaml/<ip>.ssot.yaml and <ip>/req/<ip>_requirements.md. Identify whether the req file is missing, placeholder-only, or stale relative to SSOT sections.",
+      "criteria": "SSOT path exists and parses\nExisting req state is classified\nNo RTL or TB files are modified during this step"
+    },
+    {
+      "content": "Generate traceable requirements ledger",
+      "detail": "Run workflow/req-gen/scripts/emit_requirements_from_ssot.py <ip> --root . so the req document captures purpose, interfaces, function model, cycle model, registers/memory, timing, DV scenarios, quality gates, and traceability.",
+      "criteria": "<ip>/req/<ip>_requirements.md exists\nFile has substantive content and no TBD/TODO/FIXME placeholders\nEvery major SSOT contract section appears in the requirements ledger"
+    },
+    {
+      "content": "Verify ATLAS REQ progress evidence",
+      "detail": "Use ATLAS /api/progress?scope=<ip> or equivalent backend check to confirm req status is ok and the strict signoff gate no longer blocks on REQ capture.",
+      "criteria": "progress.req.status is ok\nprogress.signoff does not list REQ capture as a blocker\nEvidence is reported with file path and byte count"
+    }
+  ]
+}

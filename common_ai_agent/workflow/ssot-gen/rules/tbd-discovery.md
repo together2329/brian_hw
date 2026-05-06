@@ -9,7 +9,7 @@ EVERY new IP/SSOT request, regardless of whether the user typed
 When the user requests a new IP or SSOT, the agent **MUST**:
 
 1. **First write an initial draft** of `<ip>/yaml/<ip>.ssot.yaml` from the
-   canonical 20-section template at
+   canonical production template at
    `${ATLAS_SOURCE_ROOT}/workflow/ssot-gen/rules/ssot-template.yaml`
    — copy the entire structure, keep section headings verbatim, and
    leave every uncertain field as one of:
@@ -20,8 +20,9 @@ When the user requests a new IP or SSOT, the agent **MUST**:
    comment explaining what input is needed.
 
 2. **Sweep the draft** for every TBD / null / `<placeholder>` / `# TBD`
-   marker. Build an ordered list of gaps (parents before children, §0
-   → §19).
+   marker. Build an ordered list of gaps (parents before children,
+   following the canonical template order through quality gates and
+   generation flow).
 
 3. **Resolve each gap with the `ask_user` tool — one at a time.**
    Plain-prose questions are forbidden in this workflow. Use:
@@ -47,7 +48,7 @@ When the user requests a new IP or SSOT, the agent **MUST**:
    make others moot.
 
 5. **Stop conditions**:
-   - All TBDs resolved → SSOT is complete; offer to `/gen-rtl` next.
+   - All TBDs resolved → SSOT is complete; offer to `/ssot-rtl` next.
    - User says "stop" / "skip" → write the SSOT with the remaining
      gaps left as `# TBD: confirm` comments.
    - Empty `ask_user` answer (no selection, no note) → take the
@@ -57,8 +58,8 @@ When the user requests a new IP or SSOT, the agent **MUST**:
 
 Silent defaults break downstream RTL/TB generation. The user's intent
 must be captured at SSOT time; a `# TBD` left in the YAML means the
-generator will either reject it (Cerberus fails) or produce subtly
-wrong RTL. ask_user makes every decision an explicit user act.
+validator will reject it or downstream rtl-gen/tb-gen may produce subtly
+wrong RTL/TB. ask_user makes every decision an explicit user act.
 
 ## Anti-patterns (do not do)
 

@@ -6,26 +6,38 @@ On plan start, check for input in this order:
 
 | Priority | Pattern | Source Agent | Use Section |
 |----------|---------|-------------|-------------|
-| 1 | `<ip>/yaml/<ip>_ssot.yaml` or `<ip>/yaml/<ip>_config.yaml` | **ssot-gen** | §SSOT |
+| 1 | `<ip>/yaml/<ip>.ssot.yaml`, `<ip>/yaml/<ip>_ssot.yaml`, or `<ip>/yaml/<ip>_config.yaml` | **ssot-gen** | §SSOT |
 | 2 | `<ip>/mas/<ip>_mas.md` | **mas-gen** | §MAS |
 | 3 | Ask user | — | — |
 
 ## §SSOT: Planning from YAML SSOT
 
-When SSOT YAML is detected, plan from `<ip>/yaml/<ip>_ssot.yaml`.
+When SSOT YAML is detected, plan from the canonical `<ip>/yaml/<ip>.ssot.yaml` unless a handoff gives an exact SSOT path.
 
-Reference: `workflow/ssot-gen/rules/ssot-template.yaml` for the 20-section schema.
+Reference: `workflow/ssot-gen/rules/ssot-template.yaml` for the canonical production SSOT schema, including required `function_model`, `cycle_model`, timing, security/error, debug/observability, integration, DFT/synthesis, and `quality_gates`.
 
 ### SSOT-Aware Task Decomposition
 
-1. Parse `test_requirements.scenarios[]` → one tc_ task per scenario (SC1-SCN)
-2. Parse `registers.register_list[]` → helper tasks (write_reg, read_reg, poll_csr)
-3. Parse `interrupts.sources[]` → interrupt test tasks
-4. Parse `io_list` → DUT instantiation signals, clock period
-5. Parse `parameters` → TB parameter declarations, signal widths
-6. Parse `filelist` → compile filelist
-7. Sim loop with `test_requirements.simulator` (iverilog or VCS)
-8. Use `/ssot-tb <module>` to load SSOT-specific todo template
+1. Parse `test_requirements.scenarios[]` → one test/subtest per scenario using the scenario's actual id/name, stimulus, and expected result
+2. Parse `io_list` → DUT signals, protocol helpers, clock period, reset sequence, and legal ready/valid/backpressure behavior
+3. Parse `features` + `dataflow` → scoreboard model and expected output computation
+4. Parse `registers.register_list[]` only if registers exist; otherwise record explicit no-CSR policy
+5. Parse `memory.instances[]`, `interrupts.sources[]`, and `fsm` → memory model/checkers, interrupt tests, state/transition coverage
+6. Parse `parameters` → TB parameter declarations and signal widths
+7. Parse `timing`, `security`, `error_handling`, `debug_observability`, and `integration` → latency/timeouts, negative tests, waveform probes, and protocol model topology
+8. Parse `dft`, `synthesis`, and `quality_gates` → identify evidence that TB can produce versus EDA/signoff evidence that must be escalated to downstream workflows
+9. Parse `filelist` and actual `<ip>/list/<ip>.f` → compile sources
+10. Plan sim loop with cocotb pytest by default for complex IPs, or SV simulator when SSOT/project requires it
+11. Use `/ssot-tb <module>` or `/ssot-tb-goal <module>` to load SSOT-specific todo structure, then refine detail/criteria from the current SSOT
+
+### Generic IP Requirement
+
+Plan for any leaf IP whose SSOT and RTL are present. If the IP kind is unfamiliar, do not request a new fixed TB template. Instead:
+
+1. Generate protocol drivers from `io_list`.
+2. Generate checks from `test_requirements`, `features`, and `dataflow`.
+3. Generate functional bins from scenarios/features/FSM/error paths.
+4. Run simulation, repair TB-only failures, and escalate RTL/spec failures precisely.
 
 ### SSOT TB Directory Structure
 
@@ -59,3 +71,7 @@ Task 1 is ALWAYS **"Read `<ip>/mas/<ip>_mas.md` and `<ip>/rtl/<ip>.sv`"** — bo
 - Include file paths in every task detail
 - Final task MUST compile + sim with 0 errors, 0 warnings
 - Never plan to modify RTL files (escalate bugs to rtl-gen)
+- Every task must include concrete criteria: scenario coverage, checker evidence, command to run, artifact path, and failure owner
+- Always plan VCD and coverage JSON output for sim_debug
+- Plan Mode is read/search only. Do not run `which`, `python3 -c`, `make`, `iverilog`, pytest, or simulator commands in Plan Mode; write those exact commands into the todo criteria and execute them only after user confirmation.
+- The final verification command must be the exact user-facing command that will be documented in the report, with no external PATH overrides or hidden shell setup.

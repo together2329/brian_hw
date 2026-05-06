@@ -83,7 +83,7 @@ class TestTodoTrackerCore(unittest.TestCase):
         self.assertIsNotNone(tracker.todos[0].completed_at)
 
         # Step 3: Mark approved
-        tracker.mark_approved(0)
+        tracker.mark_approved(0, "Verified Task 1 output")
         self.assertEqual(tracker.todos[0].status, "approved")
 
     def test_only_one_in_progress(self):
@@ -146,7 +146,7 @@ class TestTodoTrackerCore(unittest.TestCase):
         self.assertFalse(tracker.is_all_completed())
         self.assertFalse(tracker.is_all_processed())
 
-        tracker.mark_approved(0)
+        tracker.mark_approved(0, "Verified Task 1 output")
         self.assertTrue(tracker.is_all_completed())
         self.assertTrue(tracker.is_all_processed())
 
@@ -552,12 +552,12 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         self.tracker.mark_in_progress(0)
         self.tracker.todos[0].tools_since_in_progress = 1
         self.tracker.mark_completed(0)
-        self.tracker.mark_approved(0)
+        self.tracker.mark_approved(0, "setup prerequisite approved")
         # Approve task 2
         self.tracker.mark_in_progress(1)
         self.tracker.todos[1].tools_since_in_progress = 1
         self.tracker.mark_completed(1)
-        self.tracker.mark_approved(1)
+        self.tracker.mark_approved(1, "setup prerequisite approved")
 
     def test_sequential_enforcement_blocks_skip(self):
         """Cannot work on task 2 before task 1 is approved."""
@@ -608,6 +608,8 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         self.tracker.todos[2].tools_since_in_progress = 1
         self.tracker.save()
         todo_update(index=3, status="completed")
+        self.tracker.todos[2].tools_since_completed = 1
+        self.tracker.save()
 
         result = todo_update(index=3, status="approved")
         self.assertIn("concrete 'reason'", result)
@@ -620,10 +622,85 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         self.tracker.todos[2].tools_since_in_progress = 1
         self.tracker.save()
         todo_update(index=3, status="completed")
+        self.tracker.todos[2].tools_since_completed = 1
+        self.tracker.save()
 
         result = todo_update(index=3, status="approved", reason="Verified output")
         self.assertIn("✅", result)
         self.assertIn("All tasks complete", result)
+
+    def test_approval_allows_short_filelist_with_ip_relative_rtl_entry(self):
+        """A valid one-entry .f filelist is a real deliverable even under 50 bytes."""
+        import shutil
+        from core.tools import todo_update
+        ip_root = Path(tempfile.mkdtemp(prefix="todo_gate_demo_", dir=os.getcwd()))
+        try:
+            (ip_root / "rtl").mkdir(parents=True)
+            (ip_root / "list").mkdir(parents=True)
+            (ip_root / "rtl" / "demo.sv").write_text(
+                "module demo(input wire clock, output wire done);\n"
+                "  assign done = clock;\n"
+                "endmodule\n",
+                encoding="utf-8",
+            )
+            (ip_root / "list" / "demo.f").write_text("rtl/demo.sv\n", encoding="utf-8")
+
+            self._setup_three_tasks()
+            task = self.tracker.todos[2]
+            task.content = f"Write {ip_root.name}/list/demo.f"
+            task.detail = "Filelist must include only rtl/demo.sv."
+            task.criteria = f"{ip_root.name}/list/demo.f exists and rtl/demo.sv resolves relative to the IP root"
+            self.tracker.save()
+
+            todo_update(index=3, status="in_progress")
+            self.tracker.todos[2].tools_since_in_progress = 1
+            self.tracker.save()
+            todo_update(index=3, status="completed")
+            self.tracker.todos[2].tools_since_completed = 1
+            self.tracker.save()
+            result = todo_update(
+                index=3,
+                status="approved",
+                reason="Verified demo/list/demo.f resolves rtl/demo.sv under demo root",
+            )
+
+            self.assertIn("✅", result)
+            self.assertEqual(self.tracker.todos[2].status, "approved")
+        finally:
+            shutil.rmtree(ip_root, ignore_errors=True)
+
+    def test_approval_blocks_filelist_with_missing_ip_relative_rtl_entry(self):
+        """A .f filelist is not approved when its RTL entry is missing."""
+        import shutil
+        from core.tools import todo_update
+        ip_root = Path(tempfile.mkdtemp(prefix="todo_gate_demo_", dir=os.getcwd()))
+        try:
+            (ip_root / "list").mkdir(parents=True)
+            (ip_root / "list" / "demo.f").write_text("rtl/missing.sv\n", encoding="utf-8")
+
+            self._setup_three_tasks()
+            task = self.tracker.todos[2]
+            task.content = f"Write {ip_root.name}/list/demo.f"
+            task.detail = "Filelist must include rtl/missing.sv."
+            task.criteria = f"{ip_root.name}/list/demo.f exists and every listed RTL source exists"
+            self.tracker.save()
+
+            todo_update(index=3, status="in_progress")
+            self.tracker.todos[2].tools_since_in_progress = 1
+            self.tracker.save()
+            todo_update(index=3, status="completed")
+            self.tracker.todos[2].tools_since_completed = 1
+            self.tracker.save()
+            result = todo_update(
+                index=3,
+                status="approved",
+                reason="Verified demo/list/demo.f and checked listed RTL source existence",
+            )
+
+            self.assertIn("missing or too small", result)
+            self.assertNotEqual(self.tracker.todos[2].status, "approved")
+        finally:
+            shutil.rmtree(ip_root, ignore_errors=True)
 
     def test_cannot_skip_completed_to_approved(self):
         """Must go through completed before approved."""
@@ -662,6 +739,8 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         self.tracker.todos[2].tools_since_in_progress = 1
         self.tracker.save()
         todo_update(index=3, status="completed")
+        self.tracker.todos[2].tools_since_completed = 1
+        self.tracker.save()
 
         result = todo_update(index=3, status="rejected", reason="Tests failed: 3/10 assertions")
         self.assertIn("❌", result)
@@ -676,16 +755,18 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         self.tracker.todos[2].tools_since_in_progress = 1
         self.tracker.save()
         todo_update(index=3, status="completed")
+        self.tracker.todos[2].tools_since_completed = 1
+        self.tracker.save()
 
         result = todo_update(index=3, status="rejected")
-        self.assertIn("concrete 'reason'", result)
+        self.assertIn("'reason' is REQUIRED", result)
 
-    def test_zero_index_error(self):
-        """Index 0 returns error (1-based indexing)."""
+    def test_zero_index_recovers_to_first_task(self):
+        """Index 0 recovers to the first task for compatibility."""
         from core.tools import todo_update
         self.tracker.add_todos([{"content": "T1", "status": "pending"}])
         result = todo_update(index=0, status="in_progress")
-        self.assertIn("1-based", result)
+        self.assertIn("in progress", result)
 
     def test_out_of_range_error(self):
         """Out of range index returns error."""
@@ -821,6 +902,7 @@ class TestTodoWrite(unittest.TestCase):
         """Plan mode caps todo_write calls at 2."""
         from core.tools import todo_write
         os.environ["PLAN_MODE"] = "true"
+        os.environ["PLAN_TODO_WRITE_MAX"] = "2"
 
         # First two writes succeed
         todo_write([{"content": "T1", "status": "pending"}])
@@ -872,10 +954,10 @@ class TestLoopMode(unittest.TestCase):
         self.assertEqual(tracker.todos[0].status, "in_progress")
         self.assertEqual(tracker.todos[0].loop_count, 1)
 
-        # Second iteration: condition met → auto-approved
+        # Second iteration: condition met → exits to review.
         result = tracker.mark_completed(0, tool_output="ALL TESTS PASS")
         self.assertTrue(result)
-        self.assertEqual(tracker.todos[0].status, "approved")
+        self.assertEqual(tracker.todos[0].status, "completed")
 
     def test_loop_exits_on_max_iterations(self):
         """Loop exits when max_iterations is reached."""
@@ -896,10 +978,10 @@ class TestLoopMode(unittest.TestCase):
         result = tracker.mark_completed(0, tool_output="no match")
         self.assertFalse(result)
 
-        # Iteration 3: max reached → auto-approved
+        # Iteration 3: max reached → rejected for human/LLM repair.
         result = tracker.mark_completed(0, tool_output="no match")
-        self.assertTrue(result)
-        self.assertEqual(tracker.todos[0].status, "approved")
+        self.assertFalse(result)
+        self.assertEqual(tracker.todos[0].status, "rejected")
         self.assertIn("Max iterations", tracker.todos[0].loop_exit_reason)
 
     def test_loop_unlimited_iterations(self):
@@ -1023,7 +1105,7 @@ class TestContinuationPrompt(unittest.TestCase):
         prompt = tracker.get_continuation_prompt()
         self.assertIsNotNone(prompt)
         self.assertIn("Task 2", prompt)
-        self.assertIn("MANDATORY", prompt)
+        self.assertIn("to start", prompt)
         self.assertIn("in_progress", prompt)
 
     def test_in_progress_task_prompt(self):
@@ -1045,7 +1127,7 @@ class TestContinuationPrompt(unittest.TestCase):
         ])
         tracker.current_index = 0
         prompt = tracker.get_continuation_prompt()
-        self.assertIn("REVIEW REQUIRED", prompt)
+        self.assertIn("REVIEW", prompt)
 
     def test_rejected_task_prompt(self):
         """Rejected task shows rejection reason and fix instruction."""
@@ -1330,7 +1412,7 @@ class TestEdgeCases(unittest.TestCase):
         tracker.mark_completed(0)
         self.assertEqual(tracker.todos[0].status, "completed")
 
-        tracker.mark_approved(0)
+        tracker.mark_approved(0, "Verified only task output")
         self.assertEqual(tracker.todos[0].status, "approved")
         self.assertTrue(tracker.is_all_completed())
 
@@ -1375,7 +1457,7 @@ class TestSimulatedReactLoop(unittest.TestCase):
         self.assertEqual(tracker2.todos[0].status, "completed")
 
         # Approve
-        tracker2.mark_approved(0)
+        tracker2.mark_approved(0, "Verified task 1 output")
         self.assertEqual(tracker2.todos[0].status, "approved")
 
         # --- Task 2 ---
@@ -1392,7 +1474,7 @@ class TestSimulatedReactLoop(unittest.TestCase):
             self.assertEqual(tracker3.todos[1].tools_since_in_progress, i + 1)
 
         tracker3.mark_completed(1)
-        tracker3.mark_approved(1)
+        tracker3.mark_approved(1, "Verified task 2 output")
         self.assertTrue(tracker3.is_all_completed())
 
     def test_stagnation_break_loop(self):
