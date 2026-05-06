@@ -1400,14 +1400,60 @@ def _add_workflow_todo_tasks(
             task["criteria"].append("Semantic source_refs covered: " + ", ".join(source_refs))
 
 
+def _convert_to_template_format(plan: dict[str, Any]) -> dict[str, Any]:
+    tasks = []
+    for task in plan.get("tasks", []):
+        if not isinstance(task, dict):
+            continue
+
+        content = task.get("content", "")
+        criteria = task.get("criteria", [])
+        criteria_lines = criteria if isinstance(criteria, list) else [str(criteria)]
+
+        detail = task.get("detail", "")
+        if criteria_lines:
+            detail = f"{detail}\n\nDone when:\n" + "\n".join(f"  • {c}" for c in criteria_lines)
+
+        active_form = content
+        verb_map = {
+            "read": "Reading", "write": "Writing", "implement": "Implementing",
+            "create": "Creating", "run": "Running", "check": "Checking",
+            "verify": "Verifying", "build": "Building", "design": "Designing",
+            "extract": "Extracting", "define": "Defining", "add": "Adding",
+            "instantiate": "Instantiating", "connect": "Connecting",
+        }
+        content_lower = content.lower()
+        for verb, verb_ing in verb_map.items():
+            if content_lower.startswith(verb):
+                active_form = verb_ing + content[len(verb):]
+                break
+
+        tasks.append({
+            "content": content,
+            "activeForm": active_form,
+            "detail": detail,
+            "priority": task.get("priority", "medium"),
+        })
+
+    return {
+        "name": f"{plan.get('ip', 'unknown')}-rtl",
+        "description": f"Auto-generated RTL tasks from SSOT for {plan.get('ip', '')}",
+        "tasks": tasks,
+    }
+
+
 def _write_outputs(ip_dir: Path, plan: dict[str, Any]) -> None:
     rtl_dir = ip_dir / "rtl"
     logs_dir = ip_dir / "logs" / "rtl-gen"
     rtl_dir.mkdir(parents=True, exist_ok=True)
     logs_dir.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(plan, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-    (rtl_dir / "rtl_todo_plan.json").write_text(text, encoding="utf-8")
-    (logs_dir / "rtl_todo_plan.json").write_text(text, encoding="utf-8")
+
+    internal_text = json.dumps(plan, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    (logs_dir / "rtl_todo_plan.json").write_text(internal_text, encoding="utf-8")
+
+    template_plan = _convert_to_template_format(plan)
+    template_text = json.dumps(template_plan, ensure_ascii=False, indent=2) + "\n"
+    (rtl_dir / "rtl_todo_plan.json").write_text(template_text, encoding="utf-8")
     trace = {
         "schema_version": plan["schema_version"],
         "type": "rtl_traceability_matrix",

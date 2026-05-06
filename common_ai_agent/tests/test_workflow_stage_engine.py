@@ -468,20 +468,29 @@ def test_dynamic_rtl_todos_scale_from_ssot_complexity(tmp_path: Path):
     )
 
     assert result.returncode == 0, result.stderr or result.stdout
-    plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
-    summary = plan["summary"]
+    internal_plan = json.loads((tmp_path / ip / "logs" / "rtl-gen" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    summary = internal_plan["summary"]
     assert summary["total_tasks"] >= 40
     assert summary["by_category"]["function_model.output_rule"] >= 3
     assert summary["by_category"]["cycle_model.handshake_rules"] == 2
     assert summary["by_category"]["registers.field"] == 4
-    assert plan["policy"]["fixed_template_role"] == "seed_only"
-    assert plan["gate"]["status"] == "planned"
+    assert internal_plan["policy"]["fixed_template_role"] == "seed_only"
+    assert internal_plan["gate"]["status"] == "planned"
     assert summary["ssot_workflow_todos"] == 1
     assert summary["rtl_gate_todos"] >= 6
-    gate_tasks = [task for task in plan["tasks"] if task["category"] == "rtl_gate.rtl_gen"]
+    gate_tasks = [task for task in internal_plan["tasks"] if task["category"] == "rtl_gate.rtl_gen"]
     gate_kinds = {task["gate_todo"]["kind"] for task in gate_tasks}
     assert {"dut_compile", "dut_lint", "static_rtl_evidence", "dynamic_todo_closure"}.issubset(gate_kinds)
     assert any(task["source_ref"] == "quality_gates.rtl_gen.dut_compile" for task in gate_tasks)
+    template_plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    assert template_plan["name"] == f"{ip}-rtl"
+    assert "tasks" in template_plan
+    assert len(template_plan["tasks"]) == summary["total_tasks"]
+    first_task = template_plan["tasks"][0]
+    assert "content" in first_task
+    assert "activeForm" in first_task
+    assert "detail" in first_task
+    assert "priority" in first_task
 
 
 def test_dynamic_rtl_todos_import_ssot_workflow_todo_content_detail_criteria(tmp_path: Path):
@@ -496,7 +505,7 @@ def test_dynamic_rtl_todos_import_ssot_workflow_todo_content_detail_criteria(tmp
     )
 
     assert result.returncode == 0, result.stderr or result.stdout
-    plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    plan = json.loads((tmp_path / ip / "logs" / "rtl-gen" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
     task = next(task for task in plan["tasks"] if task["category"] == "workflow_todo.rtl_gen")
     assert task["workflow_todo"]["id"] == "RTL_ACCEPT_PIPELINE"
     assert task["content"] == "Implement accepted command response pipeline from SSOT todo"
@@ -524,7 +533,7 @@ def test_dynamic_rtl_todos_embed_ip_specific_detail_and_criteria(tmp_path: Path)
     )
 
     assert result.returncode == 0, result.stderr or result.stdout
-    plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    plan = json.loads((tmp_path / ip / "logs" / "rtl-gen" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
     enable_task = next(
         task for task in plan["tasks"]
         if task["source_ref"] == "registers.register_list.CTRL.fields.enable"
@@ -557,7 +566,7 @@ def test_dynamic_rtl_todos_block_missing_mandatory_ssot_sections(tmp_path: Path)
     )
 
     assert result.returncode == 2
-    plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    plan = json.loads((tmp_path / ip / "logs" / "rtl-gen" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
     assert plan["gate"]["status"] == "blocked"
     assert plan["summary"]["blocking_questions"] == 2
     blocker = json.loads((tmp_path / ip / "rtl" / "rtl_blocked.json").read_text(encoding="utf-8"))
@@ -577,7 +586,7 @@ def test_dynamic_rtl_todo_audit_rejects_missing_rtl_evidence(tmp_path: Path):
     )
 
     assert result.returncode == 1
-    plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    plan = json.loads((tmp_path / ip / "logs" / "rtl-gen" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
     assert plan["gate"]["status"] == "fail"
     assert plan["gate"]["static_missing"] > 0
     assert plan["summary"]["rtl_gate_todos"] >= 6
