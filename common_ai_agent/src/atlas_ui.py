@@ -5220,6 +5220,12 @@ def create_app():
 
     app.state.atlas_bridge = bridge
     app.state.start_rtl_blocker_qna = _start_rtl_blocker_qna
+    app.state.active_ssot_qa_context = _active_ssot_qa_context
+    app.state.valid_ip_name = _valid_ip_name
+    app.state.ssot_q_pairs_from_questions = _ssot_q_pairs_from_questions
+    app.state.load_ssot_state = _load_ssot_state
+    app.state.upsert_ssot_qa_items = _upsert_ssot_qa_items
+    app.state.status_group = _status_group
 
     def _emit_workflow_result(text: str, tool: str = "workflow") -> None:
         body = (text or "").strip() or "(no output)"
@@ -8980,6 +8986,15 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         from core import tools as _tools
     except ImportError:
         _tools = None
+
+    # Helpers are defined as closures inside create_app(); pull them off
+    # app.state so this module-level function can reach them.
+    _active_ssot_qa_context = app.state.active_ssot_qa_context
+    _valid_ip_name = app.state.valid_ip_name
+    _ssot_q_pairs_from_questions = app.state.ssot_q_pairs_from_questions
+    _load_ssot_state = app.state.load_ssot_state
+    _upsert_ssot_qa_items = app.state.upsert_ssot_qa_items
+    _status_group = app.state.status_group
 
     def _record_ssot_qa_cb(questions=None, ip=None, session=None, kind="",
                            source="llm-ssot-qna", status="pending"):
