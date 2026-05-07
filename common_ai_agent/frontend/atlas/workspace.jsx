@@ -1767,9 +1767,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           )}
         </div>
 
-        {/* prompt — small breathing room below so the input row isn't
-            flush with the bottom edge of the viewport */}
-        <div style={{ position: 'relative', paddingBottom: 10 }}>
+        {/* prompt — breathing room below so the input row isn't flush
+            with the bottom edge of the viewport */}
+        <div style={{ position: 'relative', paddingBottom: 24 }}>
           {showAt && atQuery && (
             <div className="slash-menu fade-in" style={{ maxHeight: 280, overflowY: 'auto' }}>
               <div style={{ padding: '6px 12px', fontSize: 10, color: 'var(--fg-mute)', letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
