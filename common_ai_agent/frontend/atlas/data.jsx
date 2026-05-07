@@ -440,12 +440,25 @@
       const d = await r.json();
       // First-visit seed of the per-user session id. /healthz now
       // carries the IPv4-derived user_session, so we don't need a
-      // separate /api/whoami round-trip on boot.
+      // separate /api/whoami round-trip on boot. Also seed
+      // atlasActiveSession + window.ACTIVE_SESSION so the App
+      // shell updates from "default" → "u-<ipv4>/default" on the
+      // first render (the existing atlas-session-loaded listener
+      // re-derives activeSessionId from the namespace).
       try {
         const stored = (localStorage.getItem('atlasUserSessionId') || '').trim();
         if (!stored && d.user_session) {
           localStorage.setItem('atlasUserSessionId', d.user_session);
           window.ATLAS_USER_SESSION_ID = d.user_session;
+          const storedNs = (localStorage.getItem('atlasActiveSession') || '').trim();
+          if (!storedNs) {
+            const seedNs = `${d.user_session}/default`;
+            localStorage.setItem('atlasActiveSession', seedNs);
+            window.ACTIVE_SESSION = seedNs;
+            window.dispatchEvent(new CustomEvent('atlas-session-loaded', {
+              detail: { session: seedNs },
+            }));
+          }
           window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'USER_SESSION_ID' }));
         }
       } catch (_) {}
