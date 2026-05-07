@@ -9,16 +9,20 @@
   --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   /* Default UI font is sans-serif so prose-heavy panels (chat, ask_user,
      status pills, headers) read like a chat client instead of a terminal.
-     Mono is reserved for code/SSOT/diff via --code-font. */
+     Mono is still used for code/SSOT/diff via --code-font and the .mono
+     utility class.  Sizes intentionally pinned to the original 1920x1080
+     fixed canvas — the #scaler in index.html scales the whole layout
+     uniformly to fill the viewport, so font sizes here just need to
+     match the layout the inline pixel widths were designed for. */
   --mono: var(--sans);
   --code-font: var(--mono-base);
-  --ui-font-size: 15px;
-  --ui-control-font-size: 13px;
-  --ui-small-font-size: 12px;
-  --ui-agent-font-size: 16px;
-  --ui-code-font-size: 14px;
-  --ui-line-height: 1.6;
-  --ui-agent-line-height: 1.78;
+  --ui-font-size: 13px;
+  --ui-control-font-size: 11px;
+  --ui-small-font-size: 10px;
+  --ui-agent-font-size: 14px;
+  --ui-code-font-size: 12.5px;
+  --ui-line-height: 1.5;
+  --ui-agent-line-height: 1.7;
 }
 
 [data-font="mono"] {
@@ -32,40 +36,40 @@
   --mono: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 [data-font-scale="compact"] {
-  --ui-font-size: 13px;
-  --ui-control-font-size: 11.5px;
-  --ui-small-font-size: 10.5px;
-  --ui-agent-font-size: 14px;
-  --ui-code-font-size: 13px;
-  --ui-line-height: 1.5;
-  --ui-agent-line-height: 1.66;
+  --ui-font-size: 12px;
+  --ui-control-font-size: 10.5px;
+  --ui-small-font-size: 9.5px;
+  --ui-agent-font-size: 13px;
+  --ui-code-font-size: 12px;
+  --ui-line-height: 1.45;
+  --ui-agent-line-height: 1.62;
 }
 [data-font-scale="normal"] {
+  --ui-font-size: 13px;
+  --ui-control-font-size: 11px;
+  --ui-small-font-size: 10px;
+  --ui-agent-font-size: 14px;
+  --ui-code-font-size: 12.5px;
+  --ui-line-height: 1.5;
+  --ui-agent-line-height: 1.7;
+}
+[data-font-scale="large"] {
+  --ui-font-size: 14px;
+  --ui-control-font-size: 12px;
+  --ui-small-font-size: 11px;
+  --ui-agent-font-size: 15px;
+  --ui-code-font-size: 13px;
+  --ui-line-height: 1.56;
+  --ui-agent-line-height: 1.76;
+}
+[data-font-scale="xl"] {
   --ui-font-size: 15px;
   --ui-control-font-size: 13px;
   --ui-small-font-size: 12px;
   --ui-agent-font-size: 16px;
   --ui-code-font-size: 14px;
-  --ui-line-height: 1.6;
-  --ui-agent-line-height: 1.78;
-}
-[data-font-scale="large"] {
-  --ui-font-size: 16px;
-  --ui-control-font-size: 14px;
-  --ui-small-font-size: 13px;
-  --ui-agent-font-size: 17px;
-  --ui-code-font-size: 14.5px;
-  --ui-line-height: 1.64;
+  --ui-line-height: 1.62;
   --ui-agent-line-height: 1.82;
-}
-[data-font-scale="xl"] {
-  --ui-font-size: 17px;
-  --ui-control-font-size: 15px;
-  --ui-small-font-size: 13.5px;
-  --ui-agent-font-size: 18px;
-  --ui-code-font-size: 15.5px;
-  --ui-line-height: 1.7;
-  --ui-agent-line-height: 1.9;
 }
 
 /* ──────────────────────────────────────────────
