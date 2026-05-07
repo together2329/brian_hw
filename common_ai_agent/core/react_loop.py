@@ -141,6 +141,127 @@ class ReactLoopDeps:
 
 
 # ---------------------------------------------------------------------------
+# Tool-arg JSON repair
+# ---------------------------------------------------------------------------
+def _repair_truncated_tool_args(raw: str, exc: Exception) -> dict:
+    """Best-effort recovery for tool_call arguments that streaming-
+    truncated mid-JSON.
+
+    The common breakage is `todo_write([10× detailed tasks])` — the LLM
+    fills max_output_tokens before closing the array, leaving something
+    like::
+
+        {"todos":[{"content":"a"},{"content":"b","detail":"long
+                                                     ^ stream cut here
+
+    We try, in order:
+      1. Greedy bracket-balancing — drop everything after the last
+         well-formed top-level array element and close the structure.
+         Keeps the items that DID fit instead of dropping all 10.
+      2. Trim to the last top-level comma at depth==1 (inside the
+         outermost array) and retry.
+      3. Give up — caller logs and falls back to {}.
+    """
+    if not raw or not isinstance(raw, str):
+        return {}
+    s = raw.strip()
+    if not s.startswith('{'):
+        return {}
+    # Find a `"todos":[` or `"tasks":[` opener and try to keep complete
+    # element dicts up to a point where bracket depth returns to 1
+    # (i.e. between two top-level array items).
+    import json as _json
+    for key in ('todos', 'tasks'):
+        m = re.search(rf'"{key}"\s*:\s*\[', s)
+        if not m:
+            continue
+        arr_start = m.end()  # index right after `[`
+        # Walk forward, tracking depth. Whenever depth returns to 0 on
+        # the array level (matching '[' was at depth 0 originally), we
+        # could close. We instead walk to find the LAST `},{` boundary
+        # where depth == 1 (inside array, just after a complete dict).
+        depth = 1                 # inside `[`
+        in_str = False
+        esc = False
+        last_safe = -1
+        for i, ch in enumerate(s[arr_start:], arr_start):
+            if esc:
+                esc = False
+                continue
+            if ch == '\\' and in_str:
+                esc = True
+                continue
+            if ch == '"':
+                in_str = not in_str
+                continue
+            if in_str:
+                continue
+            if ch == '{' or ch == '[':
+                depth += 1
+            elif ch == '}' or ch == ']':
+                depth -= 1
+                if depth == 1 and ch == '}':
+                    # We just closed an array element. Safe cut point
+                    # is right AFTER this `}` (drop trailing comma if
+                    # any). depth==1 means we're back inside the array.
+                    last_safe = i + 1
+        if last_safe < 0:
+            continue
+        # Build a repaired JSON: prefix up to last_safe + close array + close object
+        # Drop a trailing `,` if the cut landed right before one.
+        repaired = s[:last_safe].rstrip()
+        # Close any nested arrays/objects we still owe — for a typical
+        # todo_write the only outstanding closes are `]` for the array
+        # and `}` for the outer object, but be defensive.
+        # Re-scan to compute remaining open depth from scratch.
+        depth = 0
+        in_str = False
+        esc = False
+        for ch in repaired:
+            if esc:
+                esc = False
+                continue
+            if ch == '\\' and in_str:
+                esc = True; continue
+            if ch == '"':
+                in_str = not in_str; continue
+            if in_str:
+                continue
+            if ch in '{[':
+                depth += 1
+            elif ch in '}]':
+                depth -= 1
+        # Track bracket types via simple stack so we close in the
+        # correct order.
+        stack = []
+        in_str = False
+        esc = False
+        for ch in repaired:
+            if esc:
+                esc = False; continue
+            if ch == '\\' and in_str:
+                esc = True; continue
+            if ch == '"':
+                in_str = not in_str; continue
+            if in_str:
+                continue
+            if ch == '{':
+                stack.append('}')
+            elif ch == '[':
+                stack.append(']')
+            elif ch in '}]' and stack and stack[-1] == ch:
+                stack.pop()
+        repaired = repaired + ''.join(reversed(stack))
+        try:
+            parsed = _json.loads(repaired)
+            if isinstance(parsed, dict) and isinstance(parsed.get(key), list):
+                return parsed
+        except Exception:
+            continue
+    return {}
+
+
+# ---------------------------------------------------------------------------
 # Main ReAct loop implementation
 # ---------------------------------------------------------------------------
 
@@ -1037,10 +1158,32 @@ def run_react_agent_impl(
             import json as _json
             actions = []
             for _tc in _native_calls:
+                _raw_args = _tc.get("arguments") or "{}"
                 try:
-                    _kwargs = _json.loads(_tc["arguments"] or "{}")
-                except Exception:
-                    _kwargs = {}
+                    _kwargs = _json.loads(_raw_args)
+                except Exception as _e:
+                    # JSON parse failure here is almost always streaming
+                    # truncation: the LLM filled its output budget mid-
+                    # arguments (very common with todo_write([10× detailed
+                    # tasks])). Silently dropping kwargs to {} previously
+                    # made todo_write return "no todos" with zero context
+                    # for the user, exactly matching the "10 tasks
+                    # disappear" symptom. Try a best-effort repair, then
+                    # surface a loud diagnostic so the LLM sees it next
+                    # turn and can split the call (5+5 vs 10) or the
+                    # operator can bump MAX_OUTPUT_TOKENS.
+                    _kwargs = _repair_truncated_tool_args(_raw_args, _e)
+                    if not _kwargs:
+                        _arg_len = len(_raw_args)
+                        _tail = _raw_args[-200:] if _arg_len > 200 else _raw_args
+                        try:
+                            print(Color.error(
+                                f"[react_loop] tool_call '{_tc.get('name')}' arguments JSON "
+                                f"parse failed ({_e}). raw_len={_arg_len}. "
+                                f"likely streaming-truncation. tail=…{_tail!r}"
+                            ))
+                        except Exception:
+                            pass
                 # Pass pre-parsed kwargs directly to dispatcher — avoids lossy
                 # json.dumps → parse_value round-trip that corrupts complex strings
                 # (especially write_file content with backslashes/quotes).
