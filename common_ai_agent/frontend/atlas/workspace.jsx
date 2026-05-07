@@ -1923,8 +1923,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           )}
         </div>
 
-        {/* hotkey footer — terminal-style */}
-        <HotkeyFooter intent={intent} streaming={streaming} />
+        {/* hotkey footer removed — chips were rendered in --fg-mute on
+            --bg-2 so most users couldn't read them, and the App-level
+            <StatusBar/> below already exposes the model + the same
+            shift+tab/⌘+/ hints. */}
       </div>
       )}
 
