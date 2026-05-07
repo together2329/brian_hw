@@ -4294,7 +4294,7 @@ const GitPanel = () => {
           placeholder="Commit message — first line = summary, blank line + body for details"
           rows={3}
           style={{
-            background: 'var(--bg-input)', border: '1px solid var(--line)',
+            background: 'var(--bg-3)', border: '1px solid var(--line)',
             borderRadius: 2, padding: '6px 8px', fontSize: 12,
             fontFamily: 'var(--mono)', color: 'var(--fg)', resize: 'vertical',
             outline: 'none', minHeight: 50,
