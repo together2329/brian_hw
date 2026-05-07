@@ -2690,4 +2690,84 @@ if __name__ == "__main__":
             print(Color.warning(f"[Warning] Failed to save knowledge: {e}"))
     else:
         print(Color.system(f"[Session] {_args.session}"))
+        # Register a stdin-based ask_user callback so plain CLI runs can
+        # answer the LLM's ask_user(...) tool calls. Skip if some upstream
+        # UI (textual / atlas) already registered one.
+        try:
+            from core import tools as _cli_tools_for_ask
+            if getattr(_cli_tools_for_ask, "_ask_user_callback", None) is None:
+                def _cli_ask_user(question, options, kind, subtitle, questions=None):
+                    """Render ask_user prompts in the CLI and read stdin.
+
+                    For batched questions: ask each in turn, prefix with [Q<i>].
+                    For single questions: number the options, accept a 1-based
+                    index OR free text. `kind=multi` accepts comma-separated
+                    indices (e.g. `1,3`); `kind=input` reads a free-form line.
+                    Returns a plain-text summary the LLM can quote back.
+                    """
+                    def _show(qtext, opts, qkind, sub):
+                        if sub:
+                            print(Color.system(f"\n  ({sub})"))
+                        print(Color.system(f"\n┃ {qtext}"))
+                        if qkind in ("single", "multi") and opts:
+                            for j, opt in enumerate(opts, 1):
+                                lbl = opt.get("label") or opt.get("id") or str(opt)
+                                detail = opt.get("detail") or ""
+                                print(f"  {j}. {lbl}" + (f"   — {detail}" if detail else ""))
+                        if qkind == "multi":
+                            print(Color.dim("    (comma-separated indices, e.g. 1,3)"))
+                        elif qkind == "input":
+                            print(Color.dim("    (free-form text)"))
+                    def _resolve(raw, opts, qkind):
+                        raw = (raw or "").strip()
+                        if not raw:
+                            return ""
+                        if qkind == "input":
+                            return raw
+                        # Try comma-separated indices for multi
+                        if qkind == "multi":
+                            picks = []
+                            for tok in raw.split(","):
+                                tok = tok.strip()
+                                try:
+                                    idx = int(tok) - 1
+                                    if 0 <= idx < len(opts):
+                                        picks.append(opts[idx].get("label") or opts[idx].get("id") or "")
+                                except ValueError:
+                                    if tok:
+                                        picks.append(tok)
+                            return ", ".join(p for p in picks if p)
+                        # single — try index, else echo text
+                        try:
+                            idx = int(raw) - 1
+                            if 0 <= idx < len(opts):
+                                return opts[idx].get("label") or opts[idx].get("id") or raw
+                        except ValueError:
+                            pass
+                        return raw
+                    if questions:
+                        parts = []
+                        for i, q in enumerate(questions, 1):
+                            qtext = q.get("question", "")
+                            qopts = q.get("options") or []
+                            qkind = (q.get("kind") or "single").lower()
+                            qsub = q.get("subtitle") or ""
+                            print(Color.system(f"\n── ask_user [Q{i}/{len(questions)}] ──"))
+                            _show(qtext, qopts, qkind, qsub)
+                            try:
+                                raw = input(f"answer Q{i}> ")
+                            except (EOFError, KeyboardInterrupt):
+                                return f"[ask_user CLI: aborted at Q{i}]"
+                            parts.append(f"Q{i}: {_resolve(raw, qopts, qkind)}")
+                        return "\n".join(parts)
+                    print(Color.system("\n── ask_user ──"))
+                    _show(question, options or [], (kind or "single").lower(), subtitle or "")
+                    try:
+                        raw = input("> ")
+                    except (EOFError, KeyboardInterrupt):
+                        return "[ask_user CLI: aborted]"
+                    return _resolve(raw, options or [], (kind or "single").lower())
+                _cli_tools_for_ask.set_ask_user_callback(_cli_ask_user)
+        except Exception as _ask_err:
+            print(Color.warning(f"[Warning] could not register CLI ask_user callback: {_ask_err}"))
         chat_loop()
