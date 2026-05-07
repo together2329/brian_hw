@@ -8496,6 +8496,33 @@ def create_app():
         todos = todo_state.get("todos")
         if not isinstance(todos, list):
             todo_state["todos"] = []
+        # Session-scoped <session>/todo.json doesn't always get written —
+        # session_setup re-pinning of config.TODO_FILE only happens for
+        # workspaces that go through that path; runs that started under
+        # the global default keep persisting to PROJECT_ROOT/current_todos.json.
+        # When the session file is missing or empty, fall back to the
+        # live main.todo_tracker (in-memory, freshest) and then the
+        # global file. Without this the panel would render empty even
+        # though the agent has 3+ active tasks on disk.
+        if not todo_state["todos"]:
+            try:
+                import main as _live_main  # noqa: WPS433
+                _live = getattr(_live_main, "todo_tracker", None)
+                if _live is not None and getattr(_live, "todos", None):
+                    todo_state = _live.to_dict()
+            except Exception:
+                pass
+        if not todo_state.get("todos"):
+            global_todo = PROJECT_ROOT / "current_todos.json"
+            if global_todo.is_file():
+                try:
+                    g = json.loads(global_todo.read_text(encoding="utf-8"))
+                    if isinstance(g, dict) and isinstance(g.get("todos"), list):
+                        todo_state = g
+                    elif isinstance(g, list):
+                        todo_state = {"todos": g}
+                except Exception:
+                    pass
 
         cost_state = _read_json(sdir / "cost.json", {})
         if not isinstance(cost_state, dict):
