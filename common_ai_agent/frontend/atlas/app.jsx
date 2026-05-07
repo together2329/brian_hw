@@ -458,7 +458,10 @@ const App = () => {
             ? <ErrorBoundary label="Architect"><window.SocArchitect /></ErrorBoundary>
             : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} /></ErrorBoundary>}
         </div>
-        <StatusBar ctx={window.CONTEXT} hints={hints} />
+        {/* App-level StatusBar removed — model / tokens / iter / rate /
+            SAFE chips were duplicated by the right-side AgentStatusPanel,
+            and the row clipped against the bottom of the 1080px canvas
+            so most users never saw it anyway. */}
       </div>
     </div>
   );

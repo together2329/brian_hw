@@ -1671,17 +1671,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               </span>
             )}
             <span style={{ flex: 1 }} />
-            {mainTab === 'chat' && (
-              <span className="mute" style={{ fontSize: 10, textTransform: 'none', letterSpacing: 0 }}>
-                {streaming
-                  ? (pendingQcard
-                      ? <span className="warn">⏸ waiting on you (ask_user)</span>
-                      : <span className="acc">streaming<span className="ascii-spin"></span></span>)
-                  : (pendingQcard
-                      ? <span className="warn">⏸ waiting on you (ask_user)</span>
-                      : <span className="ok">✓ end of loop · ready</span>)}
-              </span>
-            )}
+            {/* top-right streaming/ready indicator removed — the
+                "Running / End of loop / Waiting on you" pill above the
+                input row already conveys this state, and louder, so two
+                redundant indicators just add noise to the tab header. */}
             {mainTab === 'preview' && (
               <span style={{ fontSize: 10 }}>
                 <span className="mute" style={{ marginRight: 8 }}>back to chat</span>
@@ -1843,7 +1836,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 : pendingQcard
               ? { icon: '⏸', text: 'Waiting on you · answer the ask_user above', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
               : streaming
-                ? { icon: '•', text: 'Running', color: 'var(--fg-mute)', bg: 'color-mix(in oklch, var(--fg-mute) 8%, transparent)' }
+                ? { icon: '◉', text: 'Agent running', color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
                 : ssotApproval && ssotApproval.approved
                   ? { icon: '◆', text: `SSOT approved · run ${ssotApproval.generate_cmd || `/to-ssot ${ssotApproval.ip}`}`, color: 'var(--ok)', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)' }
                   : ssotApproval
