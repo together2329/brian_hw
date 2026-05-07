@@ -1711,21 +1711,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                   className={(isSelected ? 'frow active' : (n.active ? 'frow active' : 'frow'))}
                   style={{ paddingLeft: 8 + (n.depth || 0) * 14, cursor: 'pointer' }}
                   onClick={() => {
-                    // Single-click: dirs scope-navigate, files just
-                    // select (load preview without switching tab) so
-                    // the user can scrub through files while keeping
-                    // the chat feed visible.
-                    if (n.type === 'file') setPreviewPath(fullPath);
-                    else window.atlasData.setScopePath(fullPath);
-                  }}
-                  onDoubleClick={() => {
-                    // Double-click: open in preview tab.
                     if (n.type === 'file') {
                       setPreviewPath(fullPath);
                       setMainTab('preview');
+                    } else {
+                      window.atlasData.setScopePath(fullPath);
                     }
                   }}
-                  title={fullPath + (n.type === 'file' ? ' (double-click to preview)' : '')}
+                  title={fullPath + (n.type === 'file' ? ' (click to preview)' : '')}
                 >
                   <span className="fr-icon">{n.type === 'dir' ? '▸' : '◆'}</span>
                   <span className="trunc">{n.type === 'dir' ? <span className="dim">{n.name}/</span> : n.name}</span>
@@ -1826,9 +1819,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
         )}
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <div className="box-h">
-            {/* Tab strip: chat ↔ preview. Click to switch. Preview is
-                disabled (greyed) until a file is loaded by single- or
-                double-clicking in the file tree. */}
+            {/* Tab strip: chat ↔ preview. Preview stays reachable even
+                before a file is selected so the empty-state is visible. */}
             <span
               onClick={() => setMainTab('chat')}
               style={{
@@ -1840,12 +1832,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               }}
             >chat</span>
             <span
-              onClick={() => previewPath && setMainTab('preview')}
-              title={previewPath ? 'View ' + previewPath : 'Double-click a file in the tree to preview it here'}
+              onClick={() => setMainTab('preview')}
+              title={previewPath ? 'View ' + previewPath : 'Open preview pane'}
               style={{
-                cursor: previewPath ? 'pointer' : 'not-allowed',
+                cursor: 'pointer',
                 padding: '2px 8px', borderRadius: 2, marginLeft: 4,
-                color: mainTab === 'preview' ? 'var(--accent)' : (previewPath ? 'var(--fg-mute)' : 'var(--line)'),
+                color: mainTab === 'preview' ? 'var(--accent)' : 'var(--fg-mute)',
                 background: mainTab === 'preview' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
                 border: '1px solid ' + (mainTab === 'preview' ? 'var(--accent)' : 'transparent'),
                 fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
@@ -4687,7 +4679,7 @@ const PreviewPane = ({ path, onClose }) => {
       }}>
         <div style={{ fontSize: 32, opacity: 0.4 }}>◆</div>
         <div style={{ fontSize: 13 }}>No file selected.</div>
-        <div style={{ fontSize: 11 }}>Double-click any file in the tree on the left to preview it here.</div>
+        <div style={{ fontSize: 11 }}>Click any file in the tree on the left to preview it here.</div>
       </div>
     );
   }
@@ -4715,6 +4707,18 @@ const PreviewPane = ({ path, onClose }) => {
         <span onClick={copyAll}  style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy</span>
         <span onClick={copyPath} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy path</span>
       </div>
+      {err && (
+        <div style={{
+          padding: '6px 14px',
+          borderBottom: '1px solid var(--err)',
+          background: 'color-mix(in oklch, var(--err) 12%, transparent)',
+          color: 'var(--err)',
+          fontFamily: 'var(--mono)',
+          fontSize: 10,
+        }}>
+          preview error: {err}
+        </div>
+      )}
       {/* code body — theme-aware background so light mode stays light.
           Markdown files (.md) get full marked → DOMPurify → md-agent
           rendering instead of raw text + Prism, so the same headings/
