@@ -2263,14 +2263,27 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
         <div className="md-agent" style={{ fontSize: 14, lineHeight: 1.65,
           marginTop: 4 }} dangerouslySetInnerHTML={{ __html: html }}
           ref={node => {
-            // Markdown links should open in a new tab so the user
-            // doesn't lose Atlas state. Apply post-render so we don't
-            // need to fork marked's renderer just for this.
             if (!node) return;
+            // Markdown links open in a new tab so the user doesn't
+            // lose Atlas state. Applied post-render to avoid forking
+            // marked's renderer.
             node.querySelectorAll('a[href]').forEach(a => {
               a.setAttribute('target', '_blank');
               a.setAttribute('rel', 'noopener noreferrer');
             });
+            // Syntax-highlight every fenced code block in this reply.
+            // marked emits <pre><code class="language-xxx"> for
+            // ```xxx ... ``` and bare <pre><code> for unspecified
+            // fences — Prism's autoloader handles both as long as a
+            // language class is present, so default the bare ones to
+            // a safe pass-through `none` and call highlightAllUnder.
+            if (window.Prism) {
+              node.querySelectorAll('pre > code').forEach(c => {
+                const has = (c.className || '').match(/\blanguage-/);
+                if (!has) c.classList.add('language-none');
+              });
+              try { window.Prism.highlightAllUnder(node); } catch (_) {}
+            }
           }}
         />
       </div>
@@ -4552,15 +4565,45 @@ const PreviewPane = ({ path, onClose }) => {
         <span onClick={copyPath} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy path</span>
       </div>
       {/* code body — theme-aware background so light mode stays light.
-          Prism's prism-tomorrow.css (loaded in index.html) is a dark
-          palette; in light mode we still get a readable file preview
-          because the token highlight colors land on top of var(--bg-3),
-          which is light enough to keep contrast on most languages. */}
+          Markdown files (.md) get full marked → DOMPurify → md-agent
+          rendering instead of raw text + Prism, so the same headings/
+          code-fence/table styling used for the agent's chat replies
+          applies to README/guide files in the preview tab. */}
       <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg-3)' }}>
         {loading ? (
           <div style={{ padding: 16, color: 'var(--fg-mute)', fontFamily: 'var(--code-font, var(--mono))', fontSize: 12 }}>
             loading {path}…
           </div>
+        ) : ext === 'md' || ext === 'markdown' ? (
+          (() => {
+            const rawHtml = (typeof window.marked !== 'undefined' && window.marked.parse)
+              ? window.marked.parse(body || '', { breaks: true, gfm: true })
+              : (body || '');
+            const html = (typeof window.DOMPurify !== 'undefined' && window.DOMPurify.sanitize)
+              ? window.DOMPurify.sanitize(rawHtml, { ADD_ATTR: ['target', 'rel'] })
+              : rawHtml;
+            return (
+              <div className="md-agent" style={{
+                padding: '14px 20px', fontSize: 14, lineHeight: 1.7,
+                color: 'var(--fg)',
+              }}
+                dangerouslySetInnerHTML={{ __html: html }}
+                ref={node => {
+                  if (!node) return;
+                  node.querySelectorAll('a[href]').forEach(a => {
+                    a.setAttribute('target', '_blank');
+                    a.setAttribute('rel', 'noopener noreferrer');
+                  });
+                  if (window.Prism) {
+                    node.querySelectorAll('pre > code').forEach(c => {
+                      if (!(c.className || '').match(/\blanguage-/)) c.classList.add('language-none');
+                    });
+                    try { window.Prism.highlightAllUnder(node); } catch (_) {}
+                  }
+                }}
+              />
+            );
+          })()
         ) : (
           <pre style={{
             margin: 0, padding: '12px 16px',
