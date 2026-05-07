@@ -2764,7 +2764,7 @@ window.SocArchitect = function SocArchitect() {
                     ))}
                     {['ssot-gen', 'rtl-gen', 'tb-gen', 'sim'].map(wf => (
                       <button key={wf}
-                              title={`${wf} · .session/${model.id || model.name}/${wf}`}
+                              title={`${wf} · .session/${normalizeArchitectSession(`${model.id || model.name}/${wf}`) || wf}`}
                               onClick={(e) => { e.stopPropagation(); dispatchJob(wf, model.id || model.name); }}
                               style={{
                                 border: '1px solid var(--line)',
@@ -3170,7 +3170,7 @@ window.SocArchitect = function SocArchitect() {
                                 {rowJobs.map(j => (
                                   <button key={j.job_id || j.run_id}
                                           className={`pill ${j.status === 'running' ? 'run' : j.status === 'completed' ? 'ok' : j.status === 'error' ? 'err' : ''}`}
-                                          title={`${j.workflow} · ${j.status}\n${j.session || ''}\nclick to show worker log in chat`}
+                                          title={`${j.workflow} · ${j.status}\n${normalizeArchitectSession(j.session || '') || ''}\nclick to show worker log in chat`}
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             window.dispatchEvent(new CustomEvent('atlas:load-job-log', {
@@ -3272,9 +3272,10 @@ memoryMap:
                onMouseDown={(e) => beginPanelResize('right', e)} />
           <window.JobTracker jobs={jobs}
                              onLoadSession={(session) => {
-                               if (!session) return;
+                               const sid = normalizeArchitectSession(session);
+                               if (!sid) return;
                                window.dispatchEvent(new CustomEvent('atlas:load-session-history', {
-                                 detail: { session },
+                                 detail: { session: sid },
                                }));
                              }}
                              onLoadJobLog={(jobId, live) => {
@@ -3429,10 +3430,11 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
   const jobLogPollRef = React.useRef(null);
 
   const replayMessages = React.useCallback((messages, session, path) => {
+    const displaySession = normalizeArchitectSession(session) || 'default';
     const rows = [];
     rows.push({
       kind: 'agent',
-      text: `[session] loaded .session/${session}${path ? `\n${path}` : ''}`,
+      text: `[session] loaded .session/${displaySession}${path ? `\n${path}` : ''}`,
     });
     for (const m of messages || []) {
       const role = m.role || '';
@@ -3523,11 +3525,12 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
 
   const replayWorkerLog = React.useCallback((data) => {
     const job = data.job || {};
+    const session = normalizeArchitectSession(job.session || '');
     const rows = [{
       kind: 'agent',
       text: `[worker] ${job.ip || '(soc)'} · ${job.workflow || '-'} · ${job.status || data.status || '-'}\n` +
             `job_id: ${job.job_id || '-'}\nrun_id: ${data.run_id || job.run_id || '-'}\n` +
-            `session: .session/${job.session || '-'}`
+            `session: .session/${session || '-'}`
     }];
     for (const e of data.entries || []) {
       const typ = e.type || '';
@@ -3883,7 +3886,7 @@ window.JobTracker = function JobTracker({ jobs, onSelectIp, onLoadSession, onLoa
                           const session = normalizeArchitectSession(j.session);
                           if (session) onLoadSession && onLoadSession(session);
                         }}
-                        title={`reload session history: .session/${normalizeArchitectSession(j.session) || j.session}`}>↻</span>
+                        title={`reload session history: .session/${normalizeArchitectSession(j.session) || '-'}`}>↻</span>
                 )}
                 <span className="x"
                       onClick={(e) => {

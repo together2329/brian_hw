@@ -189,6 +189,18 @@
   }
   window.normalizeAtlasSessionName = normalizeSessionName;
 
+  function sessionPartsEndWithWorkflow(parts) {
+    const last = String(parts[parts.length - 1] || '').toLowerCase();
+    return KNOWN_WORKFLOWS.has(last);
+  }
+
+  function setActiveSessionName(session) {
+    const sid = normalizeSessionName(session) || 'default';
+    window.ACTIVE_SESSION = sid;
+    try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+    return sid;
+  }
+
   try {
     let sid = normalizeSessionName(localStorage.getItem('atlasUserSessionId'));
     if (!sid || sid.includes('/')) {
@@ -202,23 +214,22 @@
   try {
     const storedActive = normalizeSessionName(localStorage.getItem('atlasActiveSession'));
     if (!storedActive || storedActive === 'default') {
-      window.ACTIVE_SESSION = `${window.ATLAS_USER_SESSION_ID}/default`;
-      localStorage.setItem('atlasActiveSession', window.ACTIVE_SESSION);
+      setActiveSessionName(`${window.ATLAS_USER_SESSION_ID}/default`);
     } else {
       const parts = storedActive.split('/').filter(Boolean);
-      const legacyIpWorkflow = parts.length === 2 && KNOWN_WORKFLOWS.has(parts[1]);
-      const legacyWorkflow = parts.length === 1 && KNOWN_WORKFLOWS.has(parts[0]);
+      const legacyIpWorkflow = parts.length === 2 && KNOWN_WORKFLOWS.has(String(parts[1] || '').toLowerCase());
+      const legacyWorkflow = parts.length === 1 && KNOWN_WORKFLOWS.has(String(parts[0] || '').toLowerCase());
       if (legacyIpWorkflow) {
-        window.ACTIVE_SESSION = `${window.ATLAS_USER_SESSION_ID}/${storedActive}`;
-        localStorage.setItem('atlasActiveSession', window.ACTIVE_SESSION);
+        setActiveSessionName(`${window.ATLAS_USER_SESSION_ID}/${storedActive}`);
       } else if (legacyWorkflow) {
-        window.ACTIVE_SESSION = `${window.ATLAS_USER_SESSION_ID}/soc/${storedActive}`;
-        localStorage.setItem('atlasActiveSession', window.ACTIVE_SESSION);
+        setActiveSessionName(`${window.ATLAS_USER_SESSION_ID}/soc/${storedActive}`);
+      } else {
+        setActiveSessionName(storedActive);
       }
     }
   } catch (_) {
     if (!window.ACTIVE_SESSION || window.ACTIVE_SESSION === 'default') {
-      window.ACTIVE_SESSION = `${window.ATLAS_USER_SESSION_ID}/default`;
+      setActiveSessionName(`${window.ATLAS_USER_SESSION_ID}/default`);
     }
   }
 
@@ -226,12 +237,29 @@
     let scope = normalizeSessionName(scopePath || '');
     const wf = normalizeSessionName(String(workflow || '').replace(/^\/+|\/+$/g, ''));
     const userSession = normalizeSessionName(window.ATLAS_USER_SESSION_ID || '') || '';
-    if (wf && scope) {
-      const parts = scope.split('/').filter(Boolean);
-      if (parts[parts.length - 1] === wf) {
-        parts.pop();
-        scope = parts.join('/');
+    if (scope === 'default') scope = '';
+    const scopeParts = scope.split('/').filter(Boolean);
+    const joinSessionParts = (parts) => parts.filter(Boolean).join('/');
+    const scopeHasOwner = /^u-[A-Za-z0-9_-]+$/.test(scopeParts[0] || '');
+    const scopeEndsWithWorkflow = sessionPartsEndWithWorkflow(scopeParts);
+    if (scopeHasOwner) {
+      if (wf) {
+        if (scopeEndsWithWorkflow || scopeParts[scopeParts.length - 1] === 'user') {
+          return joinSessionParts([...scopeParts.slice(0, -1), wf]);
+        }
+        if (scopeParts.length === 1 || scopeParts[1] === 'default') {
+          return joinSessionParts([scopeParts[0], 'soc', wf]);
+        }
+        return joinSessionParts([...scopeParts, wf]);
       }
+      if (scopeEndsWithWorkflow || scopeParts[1] === 'default') return scope;
+      if (scopeParts.length === 1) return `${scopeParts[0]}/default`;
+      return joinSessionParts([...scopeParts, 'user']);
+    }
+    if (wf && scope && scopeEndsWithWorkflow) {
+      scope = scopeParts.slice(0, -1).join('/');
+    } else if (!wf && userSession && scope && scopeEndsWithWorkflow) {
+      return joinSessionParts([userSession, scope]);
     }
     if (userSession && scope && wf) return `${userSession}/${scope}/${wf}`;
     if (userSession && scope) return `${userSession}/${scope}/user`;
@@ -256,8 +284,7 @@
         return d;
       }
       const appliedSession = responseSession === sid ? responseSession : sid;
-      window.ACTIVE_SESSION = appliedSession;
-      try { localStorage.setItem('atlasActiveSession', appliedSession); } catch (_) {}
+      setActiveSessionName(appliedSession);
       const todos = d.todos && Array.isArray(d.todos.todos) ? d.todos.todos : [];
       window.TODOS = normalizeTodos(todos);
       if (hydrateConversation) {
@@ -492,9 +519,7 @@
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
     },
     setActiveSession: (session) => {
-      const sid = normalizeSessionName(session) || 'default';
-      window.ACTIVE_SESSION = sid;
-      try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+      const sid = setActiveSessionName(session);
       return refreshSessionState(sid);
     },
   };
@@ -586,7 +611,7 @@
       const _maybeHydrateConversation = () => {
         return refreshHealth().then(() => {
           const ws = (window.CONTEXT && window.CONTEXT.workspace) || '';
-          const sid = window.ACTIVE_SESSION || sessionFor(window.SCOPE_PATH || '', ws);
+          const sid = normalizeSessionName(window.ACTIVE_SESSION || '') || sessionFor(window.SCOPE_PATH || '', ws);
           if (sid === _lastWs) return;
           _lastWs = sid;
           return refreshSessionState(sid, true);

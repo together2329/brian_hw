@@ -214,6 +214,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     try {
       const sid = normalizeUiSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession')) || 'default';
       window.ACTIVE_SESSION = sid;
+      try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
       return sid;
     } catch (_) {
       window.ACTIVE_SESSION = 'default';
@@ -425,7 +426,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
         }
       }
       if (ev.detail === 'SCOPE_PATH') {
-        const activeParts = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+        const activeParts = normalizeUiSession(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
         const activeWorkflow = (window.FLOW_STAGES || []).some(s => s.id === activeParts[activeParts.length - 1])
           ? activeParts[activeParts.length - 1]
           : '';

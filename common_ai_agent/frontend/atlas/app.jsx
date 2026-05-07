@@ -362,7 +362,7 @@ const App = () => {
   return (
     <div className="app" data-dir={dir} data-theme={theme}>
       <div className="dir-switcher">
-        <label className="dir-select-wrap" title={`Select user/browser session_id. Active namespace: .session/${activeNamespace || 'default'}`}>
+        <label className="dir-select-wrap" title={`Select user/browser session_id. Active namespace: .session/${normalizeSession(activeNamespace) || 'default'}`}>
           <span>session_id</span>
           <select
             className="dir-select"
