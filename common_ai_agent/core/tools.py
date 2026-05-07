@@ -4824,8 +4824,8 @@ def scaffold_ip(name=None, root="."):
         yaml/<name>.ssot.yaml         # Single Source of Truth
         rtl/<name>.<ext>              # top-level RTL
         list/<name>.f                 # synthesis/sim filelist
-        tb/tb_<name>.<ext>            # testbench
-        tc/tc_<name>.<ext>            # test cases
+        tb/cocotb/README.md           # tb-gen writes Python cocotb/pyuvm TB here
+        tc/<name>_scenarios.py        # optional Python scenario notes
         sim/                          # simulation outputs (waves, logs)
         sdc/<name>.sdc                # synthesis constraints
         lint/                         # lint reports
@@ -4870,11 +4870,17 @@ def scaffold_ip(name=None, root="."):
                   f"  // TBD\nendmodule\n")],
         "list": [(f"{name}.f",
                   f"// {name}.f — filelist\nrtl/{name}{_ext}\n")],
-        "tb":   [(f"tb_{name}{_ext}",
-                  f"// tb_{name}{_ext}\n`timescale 1ns/1ps\n"
-                  f"module tb_{name};\n  // TBD\nendmodule\n")],
-        "tc":   [(f"tc_{name}{_ext}",
-                  f"// tc_{name}{_ext} — test cases\n// TBD\n")],
+        "tb/cocotb": [(f"README.md",
+                  f"# {name} cocotb/pyuvm TB\n\n"
+                  f"tb-gen owns this directory. Run `/tb {name}` or `/ssot-tb-cocotb {name}` "
+                  f"after SSOT, FL, RTL, and equivalence goals exist.\n\n"
+                  f"Expected generated files: `test_{name}.py`, `test_runner.py`, "
+                  f"`tb_manifest.json`, and pyuvm support modules.\n")],
+        "tc":   [(f"{name}_scenarios.py",
+                  f"\"\"\"Scenario notes for {name}.\n\n"
+                  f"tb-gen converts SSOT test_requirements into executable cocotb/pyuvm tests.\n"
+                  f"Do not add SystemVerilog tc_* tasks in the default flow.\n"
+                  f"\"\"\"\n\nSCENARIOS = []\n")],
         "sim":  [],
         "sdc":  [(f"{name}.sdc",
                   f"# {name}.sdc — timing constraints\n"

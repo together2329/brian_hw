@@ -255,6 +255,48 @@ def create_app():
     clients: set[Any] = set()
     broadcaster_task: asyncio.Task | None = None
 
+    def _input_history_path() -> Path:
+        try:
+            try:
+                from . import config as _config
+            except Exception:
+                import config as _config  # type: ignore
+            base = str(getattr(_config, "SESSION_DIR", "") or "").strip()
+        except Exception:
+            base = ""
+        return Path(base) / "input_history.txt" if base else PROJECT_ROOT / ".session" / "input_history.txt"
+
+    def _read_input_history(limit: int = 200) -> list[str]:
+        path = _input_history_path()
+        if not path.is_file():
+            return []
+        entries: list[str] = []
+        cur: list[str] = []
+        try:
+            for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+                if raw.startswith("+"):
+                    cur.append(raw[1:])
+                elif raw.startswith("#"):
+                    if cur:
+                        entries.append("\n".join(cur))
+                        cur = []
+            if cur:
+                entries.append("\n".join(cur))
+        except OSError:
+            return []
+        return [e for e in entries if e.strip()][-max(1, min(int(limit or 200), 1000)):]
+
+    def _append_input_history(text: str) -> None:
+        body = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+        if not body:
+            return
+        path = _input_history_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as fh:
+            fh.write(f"\n# {time.ctime()}\n")
+            for line in body.split("\n"):
+                fh.write("+" + line + "\n")
+
     async def _send_one(client, msg):
         # Scale the per-client send timeout with the message size so
         # large payloads (e.g. /context with a 50 kB full system prompt
@@ -1108,6 +1150,32 @@ def create_app():
                 break
         cmds.sort(key=lambda c: c["name"])
         return JSONResponse({"commands": cmds})
+
+    @app.get("/api/input-history")
+    async def api_input_history(limit: int = 200):
+        try:
+            history = _read_input_history(limit)
+            return JSONResponse({
+                "history": history,
+                "path": _relative_project_path(_input_history_path()),
+            })
+        except Exception as e:
+            return JSONResponse({"error": str(e), "history": []}, status_code=500)
+
+    @app.post("/api/input-history")
+    async def api_append_input_history(request: Request):
+        try:
+            payload = await request.json()
+        except Exception:
+            payload = {}
+        text = str(payload.get("text") or "").strip()
+        if not text:
+            return JSONResponse({"ok": True, "stored": False})
+        try:
+            _append_input_history(text)
+            return JSONResponse({"ok": True, "stored": True})
+        except Exception as e:
+            return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
 
     @app.get("/api/ssot")
     async def api_ssot(file: str = ""):
@@ -3707,12 +3775,49 @@ def create_app():
         ("memory_map", "memory map/base address requirement, or explicit none"),
         ("parameters", "parameters and defaults, or explicit none"),
         ("submodule_structure", "leaf submodule hierarchy and ownership"),
-        ("test_expectation", "minimum RTL/TB/SIM acceptance expectations"),
+        ("test_expectation", "minimum cocotb/pyuvm TB/SIM acceptance expectations"),
+    ]
+
+    _SSOT_IMPORT_SECTION_TODO_SPECS = [
+        ("top_module", "00 Top Module Identity", ("purpose", "submodule_structure")),
+        ("sub_modules", "01 Sub-Module List", ("submodule_structure", "purpose")),
+        ("parameters", "02 Parameters", ("parameters", "clock_reset", "memory_map")),
+        ("io_list", "03 IO List", ("bus_interface", "clock_reset", "interrupt")),
+        ("features", "04 Main Features", ("purpose", "register_map", "memory_map", "interrupt")),
+        ("dataflow", "05 Data Flow", ("purpose", "bus_interface", "memory_map", "submodule_structure")),
+        ("function_model", "06 Function Model", ("purpose", "register_map", "memory_map", "test_expectation")),
+        ("cycle_model", "07 Cycle Model", ("clock_reset", "bus_interface", "test_expectation")),
+        ("clock_reset_domains", "08 Clock & Reset Domain", ("clock_reset",)),
+        ("cdc_requirements", "09 CDC Requirements", ("clock_reset", "bus_interface")),
+        ("rdc_requirements", "10 RDC Requirements", ("clock_reset",)),
+        ("registers", "11 Registers", ("register_map", "bus_interface")),
+        ("memory", "12 Memory Requirements", ("memory_map", "parameters")),
+        ("interrupts", "13 Interrupt", ("interrupt", "register_map")),
+        ("fsm", "14 FSM", ("submodule_structure", "purpose", "test_expectation")),
+        ("timing", "15 Timing & Performance", ("clock_reset", "parameters", "test_expectation")),
+        ("power", "16 Power Intent", ("clock_reset", "parameters")),
+        ("security", "17 Security & Safety", ("purpose", "bus_interface", "register_map")),
+        ("error_handling", "18 Error Handling", ("interrupt", "register_map", "test_expectation")),
+        ("debug_observability", "19 Debug & Observability", ("test_expectation", "interrupt", "clock_reset")),
+        ("integration", "20 Integration Contract", ("bus_interface", "memory_map", "submodule_structure")),
+        ("dft", "21 DFT / DFD", ("test_expectation", "clock_reset")),
+        ("synthesis", "22 Synthesis / Implementation Constraints", ("parameters", "clock_reset", "submodule_structure")),
+        ("coding_rules", "23 Coding Rules", ("parameters", "submodule_structure")),
+        ("reuse_modules", "24 Reuse Modules", ("submodule_structure", "purpose")),
+        ("custom", "25 Custom Extensions", ("purpose", "parameters", "test_expectation")),
+        ("dir_structure", "26 Dir Structure", ("submodule_structure", "purpose")),
+        ("filelist", "27 Filelist", ("submodule_structure", "purpose")),
+        ("test_requirements", "28 Test Requirements / DV Plan", ("test_expectation", "bus_interface", "register_map", "interrupt")),
+        ("quality_gates", "29 Quality Gates / Pass Criteria", ("test_expectation", "clock_reset", "parameters")),
+        ("traceability", "30 Traceability", ("purpose", "test_expectation", "submodule_structure")),
+        ("workflow_todos", "31 Workflow TODOs / Downstream Task Contract", ("test_expectation", "submodule_structure", "purpose")),
+        ("generation_flow", "32 Generation Flow", ("purpose", "test_expectation")),
     ]
 
     _SSOT_IMPORT_EXTENSIONS = {
         ".md", ".txt", ".rst", ".yaml", ".yml", ".json", ".sv", ".svh",
-        ".v", ".vh", ".py", ".csv", ".tsv", ".xml",
+        ".v", ".vh", ".py", ".csv", ".tsv", ".xml", ".f", ".sdc",
+        ".tcl", ".rpt", ".log", ".h", ".c", ".cpp",
     }
     _SSOT_IMPORT_SKIP_DIRS = {
         ".git", ".session", ".omx", "__pycache__", "node_modules",
@@ -4306,25 +4411,59 @@ def create_app():
         lines = [
             f"[SSOT PLAN] {ip}",
             f"kind: {kind or 'simple APB peripheral'}",
-            "mode: active IP scaffold; import-first is allowed",
+            "mode: structure only; no document import is run by /new-ip",
             "",
-            "Required decisions before YAML write:",
+            "Created structure:",
+            f"- {ip}/doc, {ip}/req, {ip}/yaml",
+            f"- {ip}/rtl, {ip}/list, {ip}/tb/cocotb",
+            f"- {ip}/tc, {ip}/sim, {ip}/cov, {ip}/lint",
+            "",
+            "SSOT decisions still needed before production YAML write:",
         ]
         for key, label in _SSOT_REQUIRED_DECISIONS:
             mark = "✓" if key not in missing else "·"
-            lines.append(f"  {mark} {key}: {label}")
+            lines.append(f"- {mark} `{key}`: {label}")
         lines += [
             "",
-            "Next:",
-            f"  1. Optional: /import <doc_or_rtl_path>   # seeds {ip} from existing evidence",
-            "  2. /grill-me                         # asks only missing/conflicting decisions",
-            "  3. approve                           # uses the active IP",
-            f"  4. /to-ssot                         # writes {ip}/yaml/{ip}.ssot.yaml",
+            "Short flow:",
+            f"1. Put source docs, RTL, specs, logs, or notes anywhere under `{ip}/`",
+            f"2. Run `/import {ip}` or `/import @path` to scan the workspace into SSOT section TODOs",
+            f"3. Run `/to-ssot {ip}`; use `/grill-me` only for gaps or conflicts",
         ]
         if missing:
             lines.append("")
             lines.append("missing decisions: " + ", ".join(missing))
         return "\n".join(lines)
+
+    def _parse_new_ip_args(args: str) -> tuple[str, str, list[str], str]:
+        import shlex
+
+        try:
+            tokens = [t.strip().strip("\"'") for t in shlex.split(args or "", posix=False) if t.strip()]
+        except ValueError as exc:
+            return "", "", [], f"cannot parse /new-ip arguments: {exc}"
+        if not tokens:
+            return "", "", [], ""
+        ip = tokens[0]
+        import_paths: list[str] = []
+        kind_tokens: list[str] = []
+        idx = 1
+        while idx < len(tokens):
+            tok = tokens[idx]
+            if tok in ("--import", "--doc", "--docs"):
+                if idx + 1 >= len(tokens):
+                    return "", "", [], f"missing value after {tok}"
+                import_paths.append(tokens[idx + 1])
+                idx += 2
+                continue
+            if tok.startswith("@"):
+                import_paths.append(tok)
+                idx += 1
+                continue
+            kind_tokens.append(tok)
+            idx += 1
+        kind = " ".join(kind_tokens).strip() or "simple APB peripheral"
+        return ip, kind, import_paths, ""
 
     def _render_ssot_llm_qna_prompt(ip: str, kind: str, state: dict[str, Any]) -> str:
         session = normalize_session_name(str(os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen"))
@@ -4335,13 +4474,13 @@ def create_app():
             if isinstance(item, dict) and str(item.get("path") or "").strip()
         ]
         missing = _missing_ssot_decisions(ip, state)
-        lang = "Korean" if os.environ.get("ATLAS_UI_LANG") == "ko" else "English"
+        lang = os.environ.get("ATLAS_UI_LANG") or "English"
         path_lines = "\n".join(f"- {p}" for p in imported_paths[:24]) or "- (none recorded; inspect the IP directory and draft SSOT)"
         missing_line = ", ".join(missing) if missing else "(backend baseline decisions already filled; still inspect for SSOT TBD/conflicts)"
         return "\n".join([
             f"You are ssot-gen for IP `{ip}` in ATLAS UI.",
             f"Session: `{session}`",
-            f"Preferred visible language: {lang}.",
+            f"Preferred visible language: {lang}. Default to English when no explicit language is requested.",
             "",
             "Goal: create IP-specific SSOT Q&A from the current evidence, not from a fixed template.",
             "This is a general-IP flow. Do not assume APB/register-only/simple peripheral structure unless evidence says so.",
@@ -4433,14 +4572,38 @@ def create_app():
             "created_at": time.time(),
         }
 
+    def _ensure_new_ip_structure(ip: str) -> list[str]:
+        dirs = [
+            "doc",
+            "req",
+            "yaml",
+            "rtl",
+            "list",
+            "tb/cocotb",
+            "tc",
+            "sim",
+            "cov",
+            "lint",
+        ]
+        created: list[str] = []
+        for rel in dirs:
+            path = PROJECT_ROOT / ip / rel
+            path.mkdir(parents=True, exist_ok=True)
+            created.append(f"{ip}/{rel}")
+        return created
+
     def _relative_project_path(path: Path) -> str:
         try:
             return str(path.resolve().relative_to(PROJECT_ROOT.resolve()))
         except Exception:
             return str(path)
 
-    def _safe_import_path(raw: str) -> Path | None:
+    def _strip_import_marker(raw: str) -> str:
         token = str(raw or "").strip().strip("\"'")
+        return token[1:] if token.startswith("@") else token
+
+    def _safe_import_path(raw: str) -> Path | None:
+        token = _strip_import_marker(raw)
         if not token:
             return None
         if os.name != "nt":
@@ -4456,7 +4619,7 @@ def create_app():
             return None
 
     def _resolve_import_path(ip: str, raw: str) -> tuple[Path | None, str]:
-        token = str(raw or "").strip().strip("\"'")
+        token = _strip_import_marker(raw)
         if not token:
             return None, "empty import path"
         candidates = [token]
@@ -4482,9 +4645,14 @@ def create_app():
         import shlex
 
         try:
-            tokens = [t.strip().strip("\"'") for t in shlex.split(args or "", posix=False) if t.strip()]
+            raw_tokens = shlex.split(args or "", posix=False)
         except ValueError as exc:
             return "", [], f"cannot parse /import arguments: {exc}"
+        tokens = []
+        for raw in raw_tokens:
+            tok = _strip_import_marker(raw)
+            if tok:
+                tokens.append(tok)
         ip = ""
         paths: list[str] = []
         idx = 0
@@ -4515,14 +4683,7 @@ def create_app():
 
     def _default_import_roots(ip: str) -> list[Path]:
         ip_dir = PROJECT_ROOT / ip
-        roots: list[Path] = []
-        for name in ("req", "requirements", "docs", "doc", "spec", "specs", "rtl", "yaml"):
-            p = ip_dir / name
-            if p.exists():
-                roots.append(p)
-        if ip_dir.is_dir():
-            roots.extend([p for p in ip_dir.iterdir() if p.is_file()])
-        return roots
+        return [ip_dir] if ip_dir.exists() else []
 
     def _collect_import_files(ip: str, raw_paths: list[str]) -> tuple[list[Path], list[str]]:
         roots: list[Path] = []
@@ -4542,7 +4703,7 @@ def create_app():
         for root in roots:
             candidates = [root]
             if root.is_dir():
-                candidates = list(root.rglob("*"))
+                candidates = sorted(root.rglob("*"), key=lambda p: p.as_posix())
             for p in candidates:
                 try:
                     rp = p.resolve()
@@ -4557,8 +4718,8 @@ def create_app():
                     continue
                 seen.add(rp)
                 files.append(rp)
-                if len(files) >= 64:
-                    errors.append("import file limit reached at 64 files")
+                if len(files) >= 256:
+                    errors.append("import file limit reached at 256 files")
                     return files, errors
         return files, errors
 
@@ -4652,6 +4813,251 @@ def create_app():
                 candidates[key] = "; ".join(vals[:8])[:1200]
         return artifacts, candidates, sources
 
+    def _merge_unique_records(
+        existing: list[Any],
+        incoming: list[dict[str, Any]],
+        key_fields: tuple[str, ...],
+        *,
+        limit: int = 128,
+    ) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = [dict(x) for x in existing if isinstance(x, dict)]
+        index: dict[tuple[str, ...], int] = {}
+        for idx, item in enumerate(out):
+            key = tuple(str(item.get(field) or "") for field in key_fields)
+            if any(key):
+                index[key] = idx
+        for item in incoming:
+            key = tuple(str(item.get(field) or "") for field in key_fields)
+            if any(key) and key in index:
+                out[index[key]].update(item)
+            else:
+                if any(key):
+                    index[key] = len(out)
+                out.append(dict(item))
+        return out[-limit:]
+
+    def _merge_todos_by_id(existing: Any, incoming: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = [dict(x) for x in existing if isinstance(x, dict)] if isinstance(existing, list) else []
+        index = {str(item.get("id") or ""): idx for idx, item in enumerate(out) if str(item.get("id") or "")}
+        for item in incoming:
+            tid = str(item.get("id") or "").strip()
+            if not tid:
+                continue
+            if tid in index:
+                prior = out[index[tid]]
+                status = prior.get("status")
+                prior.update(item)
+                if status:
+                    prior["status"] = status
+            else:
+                index[tid] = len(out)
+                out.append(dict(item))
+        return out
+
+    def _import_evidence_rows(
+        artifacts: list[dict[str, Any]],
+        sources: dict[str, list[dict[str, str]]],
+    ) -> list[dict[str, Any]]:
+        paths = [
+            str(item.get("path") or "").strip()
+            for item in artifacts
+            if isinstance(item, dict) and str(item.get("path") or "").strip()
+        ]
+        by_path: dict[str, list[dict[str, str]]] = {path: [] for path in paths}
+        for key, entries in sources.items():
+            for entry in entries or []:
+                if not isinstance(entry, dict):
+                    continue
+                path = str(entry.get("path") or "").strip()
+                excerpt = str(entry.get("excerpt") or "").strip()
+                if not path or not excerpt:
+                    continue
+                by_path.setdefault(path, []).append({"decision_key": key, "excerpt": excerpt[:500]})
+        rows: list[dict[str, Any]] = []
+        for artifact in artifacts:
+            if not isinstance(artifact, dict):
+                continue
+            path = str(artifact.get("path") or "").strip()
+            if not path:
+                continue
+            rows.append({
+                "path": path,
+                "bytes": int(artifact.get("bytes") or 0),
+                "truncated": bool(artifact.get("truncated")),
+                "excerpts": by_path.get(path, [])[:24],
+            })
+        return rows
+
+    def _import_section_todos(
+        candidates: dict[str, str],
+        sources: dict[str, list[dict[str, str]]],
+    ) -> list[dict[str, Any]]:
+        todos: list[dict[str, Any]] = []
+        all_refs = sorted({
+            str(item.get("path") or "").strip()
+            for entries in sources.values()
+            for item in (entries or [])
+            if isinstance(item, dict) and str(item.get("path") or "").strip()
+        })
+        for section, title, keys in _SSOT_IMPORT_SECTION_TODO_SPECS:
+            evidence_keys = [key for key in keys if str(candidates.get(key) or "").strip()]
+            refs = sorted({
+                str(item.get("path") or "").strip()
+                for key in keys
+                for item in sources.get(key, [])
+                if isinstance(item, dict) and str(item.get("path") or "").strip()
+            })
+            evidence_note = ", ".join(evidence_keys) if evidence_keys else "no direct heuristic hit"
+            todos.append({
+                "id": f"IMPORT_SSOT_SECTION_{section.upper()}",
+                "content": f"Review imported workspace evidence for SSOT `{section}`",
+                "detail": (
+                    f"Section {title}: inspect the imported workspace inventory and promote only "
+                    f"source-backed facts into `{section}`. Current heuristic evidence keys: {evidence_note}. "
+                    "If the workspace lacks this information, leave a precise SSOT QA/TBD item instead of "
+                    "inventing fixed-template content."
+                ),
+                "criteria": [
+                    f"`{section}` contains only source-backed values or explicit TBD/none markers",
+                    "Every promoted field has a source_ref back to imported workspace evidence",
+                    "Contradictions are listed under custom.atlas_import_conflicts or SSOT QA",
+                    "No fixed-template behavior is added without evidence",
+                ],
+                "source_refs": refs or all_refs[:24] or ["custom.atlas_workspace_inventory"],
+                "section": section,
+                "decision_keys": list(keys),
+                "evidence_keys": evidence_keys,
+                "priority": "high" if evidence_keys else "normal",
+                "required": True,
+            })
+        return todos
+
+    def _import_downstream_todos(ip: str, source_refs: list[str], has_dv: bool) -> dict[str, list[dict[str, Any]]]:
+        refs = source_refs[:24] or ["custom.atlas_import_doc_evidence"]
+        todos: dict[str, list[dict[str, Any]]] = {
+            "rtl-gen": [
+                {
+                    "id": "IMPORT_RTL_FROM_DOC_EVIDENCE",
+                    "content": "Implement RTL only from imported doc-backed SSOT facts",
+                    "detail": (
+                        "Use custom.atlas_import_doc_evidence, custom.atlas_decisions, and the canonical "
+                        "SSOT sections derived from them. If a required RTL behavior is only implied or "
+                        "contradictory in the docs, emit an SSOT question instead of filling a template."
+                    ),
+                    "criteria": [
+                        "RTL TODO plan references imported source_refs for doc-derived behavior",
+                        "No RTL behavior is implemented from a fixed template when the import lacks evidence",
+                        "DUT compile/lint evidence is fresh after doc-derived RTL edits",
+                    ],
+                    "source_refs": refs,
+                    "owner_module": f"{ip}_core",
+                    "owner_file": f"rtl/{ip}.sv",
+                    "priority": "high",
+                    "required": True,
+                }
+            ],
+            "tb-gen": [
+                {
+                    "id": "IMPORT_TB_FROM_DOC_EVIDENCE",
+                    "content": "Generate cocotb/pyuvm tests from imported verification evidence",
+                    "detail": (
+                        "Convert imported scenarios, acceptance criteria, protocol timing, and coverage notes "
+                        "into SSOT test_requirements and executable cocotb/pyuvm tests. Use Python/pyuvm by default; "
+                        "do not create SV tc/tb files unless the SSOT explicitly requests that backend."
+                    ),
+                    "criteria": [
+                        "Every imported scenario has a cocotb/pyuvm test or a precise blocker",
+                        "Scoreboard expectations trace to function_model or imported source_refs",
+                        "Simulation emits results.xml, scoreboard_events.jsonl, VCD, and coverage evidence",
+                    ],
+                    "source_refs": refs,
+                    "priority": "high" if has_dv else "normal",
+                    "required": True,
+                }
+            ],
+            "sim_debug": [
+                {
+                    "id": "IMPORT_SIM_DEBUG_EVIDENCE_MAP",
+                    "content": "Use imported doc evidence to classify simulation failures",
+                    "detail": (
+                        "When cocotb/pyuvm results or waveforms disagree with expected behavior, classify the "
+                        "mismatch against imported source_refs, SSOT function/cycle model, RTL, or TB ownership."
+                    ),
+                    "criteria": [
+                        "Every failure report cites expected/got evidence and an imported or SSOT source_ref",
+                        "Waveform/VCD checks cover imported timing, reset, interrupt, and protocol expectations when present",
+                        "Escalations name the owning workflow: ssot-gen, rtl-gen, tb-gen, or coverage",
+                    ],
+                    "source_refs": refs,
+                    "priority": "normal",
+                    "required": True,
+                }
+            ],
+        }
+        return todos
+
+    def _apply_import_yaml_todos(
+        ip: str,
+        doc: dict[str, Any],
+        custom: dict[str, Any],
+        artifacts: list[dict[str, Any]],
+        candidates: dict[str, str],
+        sources: dict[str, list[dict[str, str]]],
+    ) -> dict[str, Any]:
+        evidence_rows = _import_evidence_rows(artifacts, sources)
+        source_refs = [
+            str(row.get("path") or "").strip()
+            for row in evidence_rows
+            if str(row.get("path") or "").strip()
+        ]
+        section_todos = _import_section_todos(candidates, sources)
+        downstream = _import_downstream_todos(ip, source_refs, bool(candidates.get("test_expectation")))
+
+        custom["atlas_import_doc_evidence"] = _merge_unique_records(
+            custom.get("atlas_import_doc_evidence") if isinstance(custom.get("atlas_import_doc_evidence"), list) else [],
+            evidence_rows,
+            ("path",),
+            limit=256,
+        )
+        custom["atlas_workspace_inventory"] = _merge_unique_records(
+            custom.get("atlas_workspace_inventory") if isinstance(custom.get("atlas_workspace_inventory"), list) else [],
+            evidence_rows,
+            ("path",),
+            limit=256,
+        )
+        prior_draft = custom.get("atlas_import_todo_draft") if isinstance(custom.get("atlas_import_todo_draft"), dict) else {}
+        merged_section_todos = _merge_todos_by_id(
+            prior_draft.get("section_todos") if isinstance(prior_draft, dict) else [],
+            section_todos,
+        )
+        custom["atlas_import_section_todos"] = merged_section_todos
+        custom["atlas_import_todo_draft"] = {
+            "updated_at": time.time(),
+            "source_refs": source_refs[:64],
+            "section_todos": merged_section_todos,
+            "downstream_todos": {
+                stage: _merge_todos_by_id(
+                    (prior_draft.get("downstream_todos") or {}).get(stage) if isinstance(prior_draft.get("downstream_todos"), dict) else [],
+                    items,
+                )
+                for stage, items in downstream.items()
+            },
+        }
+
+        workflow_todos = doc.get("workflow_todos")
+        if not isinstance(workflow_todos, dict):
+            workflow_todos = {}
+            doc["workflow_todos"] = workflow_todos
+        workflow_todos["ssot-gen"] = _merge_todos_by_id(workflow_todos.get("ssot-gen"), section_todos)
+        for stage, items in downstream.items():
+            workflow_todos[stage] = _merge_todos_by_id(workflow_todos.get(stage), items)
+
+        return {
+            "evidence_rows": len(evidence_rows),
+            "section_todos": len(section_todos),
+            "downstream_todos": {stage: len(items) for stage, items in downstream.items()},
+        }
+
     def _merge_import_candidates(
         ip: str,
         kind: str,
@@ -4662,6 +5068,7 @@ def create_app():
     ) -> tuple[list[str], list[dict[str, Any]]]:
         filled, conflicts = _record_ssot_decisions(ip, kind, candidates, sources)
         doc, custom = _ssot_custom(ip, kind)
+        todo_summary = _apply_import_yaml_todos(ip, doc, custom, artifacts, candidates, sources)
         imports = custom.get("atlas_imports")
         if not isinstance(imports, list):
             imports = []
@@ -4670,6 +5077,7 @@ def create_app():
             "artifacts": artifacts,
             "filled": filled,
             "conflicts": conflicts,
+            "yaml_todos": todo_summary,
         })
         custom["atlas_imports"] = imports
         _save_ssot_draft(ip, doc)
@@ -4681,6 +5089,7 @@ def create_app():
             "imported_at": time.time(),
         } for a in artifacts if a.get("path"))
         state["imported_artifacts"] = imported_artifacts[-64:]
+        state["last_import_yaml_todos"] = todo_summary
         state["last_step"] = "import"
         if conflicts:
             state["last_issue"] = "import_conflicts"
@@ -4689,6 +5098,36 @@ def create_app():
             state["approved_at"] = 0
         state["status"] = "answered" if not _missing_ssot_decisions(ip, state) else "planned"
         return filled, conflicts
+
+    def _import_defaults_if_available(ip: str, kind: str, state: dict[str, Any]) -> tuple[list[str], list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+        """Import the current IP workspace into the SSOT draft when requested."""
+        files, errors = _collect_import_files(ip, [])
+        if not files:
+            return [], [], [], errors
+        artifacts, candidates, sources = _extract_import_candidates(ip, files)
+        filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources)
+        state.setdefault("ip", ip)
+        state.setdefault("kind", kind)
+        state["active_session"] = os.environ.get("ATLAS_ACTIVE_SESSION") or f"{ip}/ssot-gen"
+        _save_ssot_state(ip, state)
+        return filled, conflicts, artifacts, errors
+
+    def _auto_approve_if_complete(ip: str, state: dict[str, Any], *, reason: str) -> bool:
+        if state.get("approved"):
+            return False
+        if _missing_ssot_decisions(ip, state):
+            return False
+        doc = _load_ssot_draft(ip)
+        custom = doc.get("custom") if isinstance(doc.get("custom"), dict) else {}
+        conflicts = custom.get("atlas_import_conflicts") if isinstance(custom, dict) else []
+        if conflicts:
+            return False
+        state["approved"] = True
+        state["approved_at"] = time.time()
+        state["status"] = "approved"
+        state["last_step"] = reason
+        _save_ssot_state(ip, state)
+        return True
 
     def _rtl_blocker_path(ip: str) -> Path:
         return PROJECT_ROOT / ip / "rtl" / "rtl_blocked.json"
@@ -5279,7 +5718,7 @@ def create_app():
         if not files:
             msg = (
                 f"[SSOT IMPORT] {ip}: no importable files found\n"
-                f"searched: {', '.join(raw_paths) if raw_paths else f'{ip}/req, {ip}/docs, {ip}/spec, {ip}/rtl, {ip}/yaml'}\n"
+                f"searched: {', '.join(raw_paths) if raw_paths else ip + '/'}\n"
                 "usage: /import [path ...]  or  /import --ip <ip_name> [path ...]"
             )
             if errors:
@@ -5302,9 +5741,15 @@ def create_app():
         _save_ssot_state(ip, state)
 
         missing = _missing_ssot_decisions(ip, state)
+        todo_summary = state.get("last_import_yaml_todos") if isinstance(state.get("last_import_yaml_todos"), dict) else {}
+        downstream_summary = todo_summary.get("downstream_todos") if isinstance(todo_summary.get("downstream_todos"), dict) else {}
+        todo_parts = [f"ssot-gen sections={todo_summary.get('section_todos', 0)}"]
+        todo_parts.extend(f"{stage}={count}" for stage, count in downstream_summary.items())
+        todo_parts.append(f"evidence rows={todo_summary.get('evidence_rows', 0)}")
         lines = [
             f"[SSOT IMPORT] {ip}",
             f"imported files: {len(files)}",
+            "yaml TODO draft: " + ", ".join(todo_parts),
         ]
         if filled:
             lines.append("filled decisions: " + ", ".join(filled))
@@ -5396,14 +5841,16 @@ def create_app():
         cmd, args = _split_slash(text)
         if cmd not in ("new-ip", "ni"):
             return False
-        parts = args.split(None, 1)
-        ip = parts[0] if parts else ""
-        kind = parts[1].strip() if len(parts) > 1 else "simple APB peripheral"
+        ip, kind, import_paths, parse_err = _parse_new_ip_args(args)
+        if parse_err:
+            _emit_workflow_result(parse_err, "new-ip")
+            return True
         if not _valid_ip_name(ip):
             _emit_workflow_result(
                 "[SSOT PLAN] missing or invalid IP name\n"
                 "usage: /new-ip <ip_name> [kind]\n"
-                "example: /new-ip demo_i2c APB4 I2C controller",
+                "example: /new-ip demo_i2c APB4 I2C controller\n"
+                "then: /import <ip_name> or /import @path",
                 "new-ip",
             )
             return True
@@ -5419,10 +5866,19 @@ def create_app():
 
         _set_active_ssot_ip(ip)
         state = _new_ssot_state(ip, kind)
+        _ensure_new_ip_structure(ip)
         _ensure_ssot_draft(ip, kind)
+        import_notes = []
+        if import_paths:
+            import_notes.append(
+                "/new-ip is structure-only; import markers were not scanned. "
+                "Run `/import " + ip + " " + " ".join(import_paths) + "` to populate SSOT TODOs."
+            )
         _save_ssot_state(ip, state)
         session = f"{ip}/ssot-gen"
         plan = _render_new_ip_plan(ip, kind, state)
+        if import_notes:
+            plan += "\n\nImport:\n" + "\n".join(f"- {line}" for line in import_notes)
         _append_session_message(session, "user", text)
         _append_session_message(session, "assistant", plan)
         _append_workflow_history("ssot-gen", "user", text)
@@ -5507,13 +5963,34 @@ def create_app():
             return True
         _set_active_ssot_ip(ip)
         state = _load_ssot_state(ip)
+        if state:
+            kind = str(state.get("kind") or "imported IP evidence")
+            filled, conflicts, artifacts, errors = _import_defaults_if_available(ip, kind, state)
+            state = _load_ssot_state(ip)
+            if artifacts:
+                note = (
+                    f"[SSOT IMPORT] auto-imported {len(artifacts)} file(s) before /to-ssot {ip}\n"
+                    f"filled decisions: {', '.join(filled) if filled else '(none)'}\n"
+                    f"conflicts: {', '.join(str(c.get('key') or '') for c in conflicts[:8]) if conflicts else '(none)'}"
+                )
+                if errors:
+                    note += "\nnotes:\n" + "\n".join(f"- {err}" for err in errors[:8])
+                _append_session_message(f"{ip}/ssot-gen", "assistant", note)
+                _append_workflow_history("ssot-gen", "assistant", note)
+                _append_active_history("assistant", "```\n" + note + "\n```")
+            if _auto_approve_if_complete(ip, state, reason="auto_approve_from_import_before_to_ssot"):
+                state = _load_ssot_state(ip)
+                note = f"[SSOT APPROVED] {ip}: auto-approved because imported evidence filled all required decisions."
+                _append_session_message(f"{ip}/ssot-gen", "assistant", note)
+                _append_workflow_history("ssot-gen", "assistant", note)
+                _append_active_history("assistant", "```\n" + note + "\n```")
         if not state.get("approved"):
             missing = _missing_ssot_decisions(ip, state) if state else [k for k, _ in _SSOT_REQUIRED_DECISIONS]
             msg = (
                 f"[SSOT GATE] blocked: {ip} is not approved yet\n"
-                "YAML writes require Plan Mode + Grill Me Q&A + explicit approval.\n"
+                "YAML writes need either complete imported evidence or explicit approval.\n"
                 f"missing decisions: {', '.join(missing) if missing else '(review not approved)'}\n\n"
-                f"Run /new-ip {ip} first, optionally /import evidence, then /grill-me and approve."
+                f"Put files under {ip}/doc/ or run /import @doc, then /to-ssot again. Use /grill-me only for the listed gaps."
             )
             _append_session_message(f"{ip}/ssot-gen", "user", text)
             _append_session_message(f"{ip}/ssot-gen", "assistant", msg)
@@ -6046,7 +6523,6 @@ def create_app():
                 PROJECT_ROOT / ip / "tb" / "cocotb" / "run_tests.py",
                 PROJECT_ROOT / ip / "tb" / "test_runner.py",
                 PROJECT_ROOT / ip / "tb" / "run_tests.py",
-                PROJECT_ROOT / ip / "tb" / f"tb_{ip}.sv",
                 PROJECT_ROOT / ip / "sim" / f"test_{ip}.py",
             ]
             runner = next((p for p in runner_candidates if p.is_file()), None)
@@ -6058,8 +6534,9 @@ def create_app():
                     f"[sim] blocked: no executable TB runner found for {ip}\n"
                     "expected one of:\n"
                     f"- {ip}/tb/cocotb/test_runner.py\n"
+                    f"- {ip}/tb/cocotb/run_tests.py\n"
                     f"- {ip}/tb/test_runner.py\n"
-                    f"- {ip}/tb/tb_{ip}.sv\n"
+                    f"- {ip}/tb/run_tests.py\n"
                     "Run /tb <ip> first."
                 )
                 _append_session_message(session, "assistant", msg)

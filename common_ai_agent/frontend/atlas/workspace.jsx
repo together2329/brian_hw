@@ -29,6 +29,43 @@ const TOOL_THEME = {
 };
 const _toolTheme = (name) => TOOL_THEME[name] || TOOL_THEME.__default;
 
+// Direct workflow/slash results also arrive as `slash_output`, which is the
+// user-facing Markdown surface. Keep their mirrored `tool_result` event for
+// data refresh subscribers, but do not render it again as a plain obs block.
+const WORKFLOW_RESULT_TOOLS = new Set([
+  'slash',
+  'workflow',
+  'import',
+  'new-ip',
+  'grill-me',
+  'approve',
+  'to-ssot',
+  'resolve-rtl-blockers',
+  'sim-debug',
+  'repair-ssot',
+  'repair-rtl',
+  'repair-equiv',
+  'validate-yaml',
+  'ssot-fl-model',
+  'ssot-equiv-goals',
+  'ssot-rtl',
+  'ssot-tb-cocotb',
+  'ssot-tb',
+  'ssot-tb-uvm',
+  'ssot-tb-verilog',
+  'ssot-tb-sv',
+  'tb',
+  'sim',
+  'lint',
+  'syn',
+  'sta',
+  'coverage',
+  'goal-audit',
+  'signoff',
+]);
+const _isWorkflowResultTool = (tool) => WORKFLOW_RESULT_TOOLS.has(String(tool || '').toLowerCase());
+const INPUT_HISTORY_LIMIT = 200;
+
 // Detect success/error in a tool result body. Used by ObsCard to
 // stamp a leading ✓/✗ badge + override border color on errors.
 const _obsStatus = (txt) => {
@@ -52,6 +89,43 @@ const _relTime = (ts) => {
   if (d < 3600) return `${Math.floor(d / 60)}m ago`;
   if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
   return `${Math.floor(d / 86400)}d ago`;
+};
+
+const _unwrapAtlasOutputFence = (text) => {
+  const raw = String(text || '');
+  const trimmed = raw.trim();
+  const m = trimmed.match(/^```(?:text|markdown|md)?\s*\n([\s\S]*?)\n```$/i);
+  if (!m) return raw;
+  const body = m[1].trim();
+  if (/^\[(SSOT|MAS|SIM|ATLAS|APPROVED|Plan Mode|to-ssot|ssot-|repair-|resolve-|workflow|import|new-ip|grill|lint|syn|sta|coverage)\b/i.test(body)) {
+    return body;
+  }
+  return raw;
+};
+
+const _markdownHtml = (text) => {
+  const body = _unwrapAtlasOutputFence(text);
+  const rawHtml = (typeof window.marked !== 'undefined' && window.marked.parse)
+    ? window.marked.parse(body || '', { breaks: true, gfm: true })
+    : renderInline(body || '');
+  return (typeof window.DOMPurify !== 'undefined' && window.DOMPurify.sanitize)
+    ? window.DOMPurify.sanitize(rawHtml, { ADD_ATTR: ['target', 'rel'] })
+    : rawHtml;
+};
+
+const _postProcessMarkdownNode = (node) => {
+  if (!node) return;
+  node.querySelectorAll('a[href]').forEach(a => {
+    a.setAttribute('target', '_blank');
+    a.setAttribute('rel', 'noopener noreferrer');
+  });
+  if (window.Prism) {
+    node.querySelectorAll('pre > code').forEach(c => {
+      const has = (c.className || '').match(/\blanguage-/);
+      if (!has) c.classList.add('language-none');
+    });
+    try { window.Prism.highlightAllUnder(node); } catch (_) {}
+  }
 };
 
 // Hover-revealed copy button (positioned absolute; parent must be
@@ -295,6 +369,19 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     }
   };
   const [input, setInput] = React.useState('');
+  const [inputHistory, setInputHistory] = React.useState(() => {
+    try {
+      const raw = localStorage.getItem('atlasInputHistory');
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed)
+        ? parsed.filter(x => typeof x === 'string' && x.trim()).slice(-INPUT_HISTORY_LIMIT)
+        : [];
+    } catch (_) {
+      return [];
+    }
+  });
+  const inputHistoryIndexRef = React.useRef(null);
+  const inputHistoryDraftRef = React.useRef('');
   const [showSlash, setShowSlash] = React.useState(false);
   const [slashSel, setSlashSel] = React.useState(0);
   const [streaming, setStreaming] = React.useState(false);
@@ -340,6 +427,43 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const [ssotApproval, setSsotApproval] = React.useState(null);
   const [ssotQa, setSsotQa] = React.useState(null);
   const [ssotQaSessions, setSsotQaSessions] = React.useState([]);
+
+  const replaceInputHistory = React.useCallback((items) => {
+    const cleaned = (Array.isArray(items) ? items : [])
+      .filter(x => typeof x === 'string' && x.trim())
+      .slice(-INPUT_HISTORY_LIMIT);
+    setInputHistory(cleaned);
+    try { localStorage.setItem('atlasInputHistory', JSON.stringify(cleaned)); } catch (_) {}
+  }, []);
+
+  React.useEffect(() => {
+    let alive = true;
+    fetch('/api/input-history?limit=' + INPUT_HISTORY_LIMIT, { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!alive || !d || !Array.isArray(d.history)) return;
+        replaceInputHistory(d.history);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [replaceInputHistory]);
+
+  const recordInputHistory = React.useCallback((raw) => {
+    const text = String(raw || '').trim();
+    if (!text) return;
+    inputHistoryIndexRef.current = null;
+    inputHistoryDraftRef.current = '';
+    setInputHistory(prev => {
+      const next = [...prev, text].slice(-INPUT_HISTORY_LIMIT);
+      try { localStorage.setItem('atlasInputHistory', JSON.stringify(next)); } catch (_) {}
+      return next;
+    });
+    fetch('/api/input-history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    }).catch(() => {});
+  }, []);
 
   const currentSession = React.useMemo(
     () => resolveSession(activeSession, window.ACTIVE_SESSION),
@@ -702,6 +826,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const submitMsg = (cmd) => {
     const raw = (cmd ?? input).trim();
     if (!raw) return;
+    recordInputHistory(raw);
     setInput('');
     setShowSlash(false);
 
@@ -933,6 +1058,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     subs.push(window.backend.subscribe('tool_result', (m) => {
       const t = (m.text || '').trim();
       if (!t) return;
+      if (_isWorkflowResultTool(m.tool || '')) return;
       setFeed(l => [...l, {
         kind: 'obs',
         text: t,
@@ -982,19 +1108,20 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     subs.push(window.backend.subscribe('slash_output', (m) => {
       const t = m.text || '';
       if (!t) return;
+      const shown = _unwrapAtlasOutputFence(t);
       // Fast path — token landed in the buffer before us (new emit order).
       const buf = streamBufferRef.current;
-      if (buf && buf.indexOf(t) >= 0) return;
+      if (buf && (buf.indexOf(t) >= 0 || buf.indexOf(shown) >= 0)) return;
       // Slow path — flush may have already parked the buffer. Check if the
       // last agent entry in the feed is a duplicate.
       let dup = false;
       setFeed(l => {
         const last = l[l.length - 1];
-        if (last && last.kind === 'agent' && last.text === t) {
+        if (last && last.kind === 'agent' && (last.text === t || last.text === shown)) {
           dup = true;
           return l;
         }
-        return [...l, { kind: 'agent', text: t, createdAt: Date.now() }];
+        return [...l, { kind: 'agent', text: shown, createdAt: Date.now(), fromSlash: true }];
       });
       if (dup) return;
       streamBufferRef.current = '';
@@ -1147,6 +1274,29 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     return () => subs.forEach(u => u && u());
   }, [flowMatchesCurrentSession, refreshSsotQa]);
 
+  const navigateInputHistory = (delta) => {
+    if (!inputHistory.length) return false;
+    let idx = inputHistoryIndexRef.current;
+    if (idx === null || idx === undefined) {
+      if (delta > 0) return false;
+      inputHistoryDraftRef.current = input;
+      idx = inputHistory.length - 1;
+    } else {
+      idx += delta;
+    }
+    if (idx < 0) idx = 0;
+    if (idx >= inputHistory.length) {
+      inputHistoryIndexRef.current = null;
+      setInput(inputHistoryDraftRef.current || '');
+      return true;
+    }
+    inputHistoryIndexRef.current = idx;
+    setInput(inputHistory[idx] || '');
+    setShowSlash(false);
+    setShowAt(false);
+    return true;
+  };
+
   const onKey = (e) => {
     if (showSlash) {
       if (e.key === 'ArrowDown') { e.preventDefault(); setSlashSel(s => Math.min(s + 1, filtered.length - 1)); return; }
@@ -1172,6 +1322,26 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
         }
       }
       if (e.key === 'Escape') { e.preventDefault(); setShowAt(false); return; }
+    }
+    if (e.key === 'ArrowUp') {
+      if (navigateInputHistory(-1)) {
+        e.preventDefault();
+        requestAnimationFrame(() => {
+          const el = inputRef.current;
+          if (el) el.setSelectionRange(el.value.length, el.value.length);
+        });
+      }
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      if (navigateInputHistory(1)) {
+        e.preventDefault();
+        requestAnimationFrame(() => {
+          const el = inputRef.current;
+          if (el) el.setSelectionRange(el.value.length, el.value.length);
+        });
+      }
+      return;
     }
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitMsg(); }
   };
@@ -1972,13 +2142,17 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             <div className="prompt-row">
               <span className="ps" style={{ color: 'var(--fg-mute)' }}>❯</span>
               <input ref={inputRef} value={input}
-                onChange={e => setInput(e.target.value)}
+                onChange={e => {
+                  inputHistoryIndexRef.current = null;
+                  inputHistoryDraftRef.current = '';
+                  setInput(e.target.value);
+                }}
                 onKeyDown={onKey}
                 placeholder='Type a message · "/" for commands · "@" for files'
                 autoFocus
               />
               <span className="mute" style={{ fontSize: 11 }}>
-                <Kbd>/</Kbd> cmd · <Kbd>@</Kbd> file · <Kbd>↵</Kbd> send
+                <Kbd>/</Kbd> cmd · <Kbd>@</Kbd> file · <Kbd>↑</Kbd><Kbd>↓</Kbd> history · <Kbd>↵</Kbd> send
               </span>
             </div>
           )}
@@ -2134,6 +2308,13 @@ const ObsCard = ({ entry, embedded }) => {
         );
       })
     : txt;
+  const renderMarkdownBody = () => (
+    <div
+      className="md-agent md-tool-result"
+      dangerouslySetInnerHTML={{ __html: _markdownHtml(txt) }}
+      ref={_postProcessMarkdownNode}
+    />
+  );
 
   // Status detection — leading ✓/✗ badge so errors stand out
   const status = _obsStatus(txt);
@@ -2181,15 +2362,22 @@ const ObsCard = ({ entry, embedded }) => {
         <span className="mute" style={{ fontSize: 11 }}>{open ? '▾' : '▸'}</span>
       </div>
       {open && (
-        <pre style={{
-          margin: '4px 0 0', maxHeight: 280, overflow: 'auto',
-          background: 'var(--bg-3)', padding: '6px 10px',
-          borderRadius: 4, fontSize: 11, lineHeight: 1.45,
-          whiteSpace: 'pre', wordBreak: 'normal',
-        }}>
-          {renderBody()}
-          {entry.truncated ? '\n…[truncated]' : ''}
-        </pre>
+        looksLikeDiff || !_isWorkflowResultTool(entry.tool) ? (
+          <pre style={{
+            margin: '4px 0 0', maxHeight: 280, overflow: 'auto',
+            background: 'var(--bg-3)', padding: '6px 10px',
+            borderRadius: 4, fontSize: 11, lineHeight: 1.45,
+            whiteSpace: 'pre', wordBreak: 'normal',
+          }}>
+            {renderBody()}
+            {entry.truncated ? '\n…[truncated]' : ''}
+          </pre>
+        ) : (
+          <>
+            {renderMarkdownBody()}
+            {entry.truncated ? <div className="mute" style={{ fontSize: 10 }}>…[truncated]</div> : null}
+          </>
+        )
       )}
     </Wrapper>
   );
@@ -2235,23 +2423,7 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
     );
   }
   if (entry.kind === 'agent') {
-    // Use marked.js for full markdown rendering (code fences, lists,
-    // headings, tables, links). Falls back to the inline renderer if
-    // marked isn't loaded yet. Always run the result through
-    // DOMPurify before injecting via dangerouslySetInnerHTML —
-    // the agent relays untrusted content (file reads, web fetches,
-    // command output) and marked@9 has no built-in sanitizer, so a
-    // <script> or <img onerror> in any of those payloads would
-    // execute without this guard.
-    const rawHtml = (typeof window.marked !== 'undefined' && window.marked.parse)
-      ? window.marked.parse(entry.text || '', { breaks: true, gfm: true })
-      : renderInline(entry.text || '');
-    const html = (typeof window.DOMPurify !== 'undefined' && window.DOMPurify.sanitize)
-      ? window.DOMPurify.sanitize(rawHtml, {
-          // Allow target/rel on <a> so our post-process can add them.
-          ADD_ATTR: ['target', 'rel'],
-        })
-      : rawHtml;
+    const html = _markdownHtml(entry.text || '');
     return (
       <div className="has-hover-affordance" style={{ padding: '8px 0 12px', marginBottom: 4, position: 'relative' }}>
         <span className="ok" style={{ fontWeight: 600, marginRight: 8,
@@ -2262,29 +2434,7 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
         <CopyBtn text={entry.text || ''} />
         <div className="md-agent" style={{ fontSize: 14, lineHeight: 1.65,
           marginTop: 4 }} dangerouslySetInnerHTML={{ __html: html }}
-          ref={node => {
-            if (!node) return;
-            // Markdown links open in a new tab so the user doesn't
-            // lose Atlas state. Applied post-render to avoid forking
-            // marked's renderer.
-            node.querySelectorAll('a[href]').forEach(a => {
-              a.setAttribute('target', '_blank');
-              a.setAttribute('rel', 'noopener noreferrer');
-            });
-            // Syntax-highlight every fenced code block in this reply.
-            // marked emits <pre><code class="language-xxx"> for
-            // ```xxx ... ``` and bare <pre><code> for unspecified
-            // fences — Prism's autoloader handles both as long as a
-            // language class is present, so default the bare ones to
-            // a safe pass-through `none` and call highlightAllUnder.
-            if (window.Prism) {
-              node.querySelectorAll('pre > code').forEach(c => {
-                const has = (c.className || '').match(/\blanguage-/);
-                if (!has) c.classList.add('language-none');
-              });
-              try { window.Prism.highlightAllUnder(node); } catch (_) {}
-            }
-          }}
+          ref={_postProcessMarkdownNode}
         />
       </div>
     );

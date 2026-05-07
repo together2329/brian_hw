@@ -762,6 +762,24 @@
   accent-color: var(--accent);
 }
 
+.md-tool-result {
+  margin: 6px 0 0;
+  padding: 6px 10px;
+  max-height: 320px;
+  overflow: auto;
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: var(--ui-small-font-size);
+  line-height: 1.55;
+}
+.md-tool-result > :first-child { margin-top: 0; }
+.md-tool-result > :last-child { margin-bottom: 0; }
+.tool-card .md-tool-result {
+  border: 0;
+  border-radius: 3px;
+}
+
 /* Hover-revealed affordances (copy button, timestamp pill).
    Markup: any element with class .has-hover-affordance must be
    position:relative; the inner .copy-btn / .ts-pill is opacity:0

@@ -1278,8 +1278,9 @@ class WorkflowStageEngine:
                 f"[sim] blocked: no executable TB runner found for {ip}",
                 "expected one of:",
                 f"- {ip}/tb/cocotb/test_runner.py",
+                f"- {ip}/tb/cocotb/run_tests.py",
                 f"- {ip}/tb/test_runner.py",
-                f"- {ip}/tb/tb_{ip}.sv",
+                f"- {ip}/tb/run_tests.py",
                 "Run /tb <ip> first.",
             ]
             return self._result("sim", ip, "blocked", headline, lines, blocker=f"{ip}/tb")
@@ -1486,7 +1487,6 @@ class WorkflowStageEngine:
             self.ip_dir(ip) / "tb" / "cocotb" / "run_tests.py",
             self.ip_dir(ip) / "tb" / "test_runner.py",
             self.ip_dir(ip) / "tb" / "run_tests.py",
-            self.ip_dir(ip) / "tb" / f"tb_{ip}.sv",
             self.ip_dir(ip) / "sim" / f"test_{ip}.py",
         ]
         return next((path for path in candidates if path.is_file()), None)
