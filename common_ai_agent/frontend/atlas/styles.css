@@ -19,10 +19,14 @@
   --ui-font-size: 13px;
   --ui-control-font-size: 11px;
   --ui-small-font-size: 10px;
-  --ui-agent-font-size: 14px;
-  --ui-code-font-size: 12.5px;
+  /* main reading surface (chat / agent reply markdown) gets a small
+     readability bump; the chrome (--ui-font-size / control / small)
+     stays pinned to the original 1920x1080 layout so chips, dropdowns
+     and headers don't overflow their fixed-pixel boxes. */
+  --ui-agent-font-size: 15px;
+  --ui-code-font-size: 13px;
   --ui-line-height: 1.5;
-  --ui-agent-line-height: 1.7;
+  --ui-agent-line-height: 1.72;
 }
 
 [data-font="mono"] {
@@ -48,10 +52,10 @@
   --ui-font-size: 13px;
   --ui-control-font-size: 11px;
   --ui-small-font-size: 10px;
-  --ui-agent-font-size: 14px;
-  --ui-code-font-size: 12.5px;
+  --ui-agent-font-size: 15px;
+  --ui-code-font-size: 13px;
   --ui-line-height: 1.5;
-  --ui-agent-line-height: 1.7;
+  --ui-agent-line-height: 1.72;
 }
 [data-font-scale="large"] {
   --ui-font-size: 14px;
