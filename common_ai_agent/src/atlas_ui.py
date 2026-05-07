@@ -186,6 +186,16 @@ class _AtlasBridge:
 
     def submit_prompt(self, text: str) -> None:
         self.ensure_agent_alive()
+        # Slash-prefixed input always lands in the _inbox so the slash
+        # dispatcher can pick it up on the next turn boundary —
+        # otherwise mid-run /wf, /mode, /plan etc. were treated as
+        # conversational interrupts (they ended up as a free-form
+        # user message dumped into the agent's context instead of
+        # being executed as commands). Only non-slash text goes to
+        # _interrupts when the agent is running.
+        if (text or "").lstrip().startswith("/"):
+            self._inbox.put(text)
+            return
         if self.agent_running:
             self._interrupts.put(text)
         else:
