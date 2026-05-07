@@ -96,12 +96,16 @@
   --select:    #1e3556;
 }
 [data-dir="A"][data-theme="light"] {
-  --bg:        #ecedef;
-  --bg-2:      #e3e5e8;
-  --bg-3:      #d8dadd;
-  --panel:     #f3f4f5;
-  --line:      #c2c6cc;
-  --line-2:    #a9aeb6;
+  --bg:        #f4f5f7;
+  --bg-2:      #ecedef;
+  --bg-3:      #e3e5e8;
+  --panel:     #f8f9fa;
+  /* lighter, less prominent dividers — was #c2c6cc / #a9aeb6 which
+     made every box edge look like a hard rule on the off-white bg.
+     The new values lift the contrast just enough to delimit panels
+     without screaming "GRID" at the user. */
+  --line:      #dee1e6;
+  --line-2:    #c8ccd2;
   --fg:        #1a1f26;
   --fg-dim:    #4a5260;
   --fg-mute:   #7a8290;
@@ -142,12 +146,13 @@
   --grid-2:    rgba(120, 150, 180, 0.10);
 }
 [data-dir="B"][data-theme="light"] {
-  --bg:        #e8ebef;
-  --bg-2:      #dee2e7;
-  --bg-3:      #d2d7dd;
-  --panel:     #eef1f4;
-  --line:      #b8bec6;
-  --line-2:    #98a0aa;
+  --bg:        #eff2f6;
+  --bg-2:      #e8ebef;
+  --bg-3:      #dee2e7;
+  --panel:     #f4f6f9;
+  /* softened from #b8bec6 / #98a0aa for the same reason as Direction A */
+  --line:      #d8dce2;
+  --line-2:    #bbc1c8;
   --fg:        #181d24;
   --fg-dim:    #4a5260;
   --fg-mute:   #6a7280;

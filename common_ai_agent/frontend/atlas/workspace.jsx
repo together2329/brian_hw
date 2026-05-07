@@ -4400,18 +4400,23 @@ const PreviewPane = ({ path, onClose }) => {
         <span onClick={copyAll}  style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy</span>
         <span onClick={copyPath} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy path</span>
       </div>
-      {/* code body */}
-      <div style={{ flex: 1, overflow: 'auto', background: '#1c2128' }}>
+      {/* code body — theme-aware background so light mode stays light.
+          Prism's prism-tomorrow.css (loaded in index.html) is a dark
+          palette; in light mode we still get a readable file preview
+          because the token highlight colors land on top of var(--bg-3),
+          which is light enough to keep contrast on most languages. */}
+      <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg-3)' }}>
         {loading ? (
-          <div style={{ padding: 16, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 12 }}>
+          <div style={{ padding: 16, color: 'var(--fg-mute)', fontFamily: 'var(--code-font, var(--mono))', fontSize: 12 }}>
             loading {path}…
           </div>
         ) : (
           <pre style={{
             margin: 0, padding: '12px 16px',
-            fontFamily: 'var(--mono)', fontSize: 12, lineHeight: 1.55,
+            fontFamily: 'var(--code-font, var(--mono))', fontSize: 12, lineHeight: 1.55,
             whiteSpace: 'pre', tabSize: 4,
             background: 'transparent',
+            color: 'var(--fg)',
           }}>
             <code ref={codeRef} className={lang === 'none' ? '' : ('language-' + lang)}>
               {body}
