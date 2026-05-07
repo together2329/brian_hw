@@ -663,17 +663,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       // only replaced on non-empty results, which left the OLD feed
       // visible when switching to a fresh ssot-gen / rtl-gen workflow
       // and made it look like "session, ip, workflow별 conversation
-      // 분리"가 무시된 것처럼 보였다.
-      if (newFeed.length) {
-        setFeed(newFeed);
-      } else {
-        setFeed([{
-          kind: 'agent',
-          text: session
-            ? `📂 .session/${session} — no saved conversation yet. Send a message to start.`
-            : 'Connected. Type a message and press Enter to talk to the agent.',
-        }]);
-      }
+      // 분리"가 무시된 것처럼 보였다. Empty new namespace → empty
+      // feed (no fake "Agent: .session/..." placeholder; the path
+      // leaked internal info and the message was misleadingly
+      // attributed to the agent).
+      setFeed(newFeed);
     };
     window.addEventListener('atlas-conversation-loaded', onConvLoaded);
     return () => window.removeEventListener('atlas-conversation-loaded', onConvLoaded);
