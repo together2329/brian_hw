@@ -4694,6 +4694,7 @@ const PreviewPane = ({ path, onClose }) => {
 
   const lineCount = body.split('\n').length;
   const sizeKb = size > 0 ? (size / 1024).toFixed(1) + ' KB' : '';
+  const isMarkdown = ['md', 'markdown', 'mdown', 'mkdn'].includes(ext);
   const copyPath = () => { try { navigator.clipboard.writeText(path); } catch (_) {} };
   const copyAll  = () => { try { navigator.clipboard.writeText(body);  } catch (_) {} };
 
@@ -4705,7 +4706,7 @@ const PreviewPane = ({ path, onClose }) => {
         display: 'flex', alignItems: 'center', gap: 10, fontSize: 10,
         color: 'var(--fg-mute)', fontFamily: 'var(--mono)',
       }}>
-        <span>lang <span style={{ color: 'var(--accent)' }}>{lang === 'none' ? 'plain' : lang}</span></span>
+        <span>lang <span style={{ color: 'var(--accent)' }}>{isMarkdown ? 'rendered markdown' : (lang === 'none' ? 'plain' : lang)}</span></span>
         <span className="mute">·</span>
         <span>{lineCount} lines</span>
         {sizeKb && <><span className="mute">·</span><span>{sizeKb}</span></>}
@@ -4719,41 +4720,21 @@ const PreviewPane = ({ path, onClose }) => {
           rendering instead of raw text + Prism, so the same headings/
           code-fence/table styling used for the agent's chat replies
           applies to README/guide files in the preview tab. */}
-      <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg-3)' }}>
+      <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: isMarkdown ? 'var(--bg)' : 'var(--bg-3)' }}>
         {loading ? (
           <div style={{ padding: 16, color: 'var(--fg-mute)', fontFamily: 'var(--code-font, var(--mono))', fontSize: 12 }}>
             loading {path}…
           </div>
-        ) : ext === 'md' || ext === 'markdown' ? (
-          (() => {
-            const rawHtml = (typeof window.marked !== 'undefined' && window.marked.parse)
-              ? window.marked.parse(body || '', { breaks: true, gfm: true })
-              : (body || '');
-            const html = (typeof window.DOMPurify !== 'undefined' && window.DOMPurify.sanitize)
-              ? window.DOMPurify.sanitize(rawHtml, { ADD_ATTR: ['target', 'rel'] })
-              : rawHtml;
-            return (
-              <div className="md-agent" style={{
-                padding: '14px 20px', fontSize: 14, lineHeight: 1.7,
-                color: 'var(--fg)',
-              }}
-                dangerouslySetInnerHTML={{ __html: html }}
-                ref={node => {
-                  if (!node) return;
-                  node.querySelectorAll('a[href]').forEach(a => {
-                    a.setAttribute('target', '_blank');
-                    a.setAttribute('rel', 'noopener noreferrer');
-                  });
-                  if (window.Prism) {
-                    node.querySelectorAll('pre > code').forEach(c => {
-                      if (!(c.className || '').match(/\blanguage-/)) c.classList.add('language-none');
-                    });
-                    try { window.Prism.highlightAllUnder(node); } catch (_) {}
-                  }
-                }}
-              />
-            );
-          })()
+        ) : isMarkdown ? (
+          body.trim() ? (
+            <div
+              className="md-agent md-preview"
+              dangerouslySetInnerHTML={{ __html: _markdownHtml(body) }}
+              ref={_postProcessMarkdownNode}
+            />
+          ) : (
+            <div className="md-preview-empty">empty markdown file</div>
+          )
         ) : (
           <pre style={{
             margin: 0, padding: '12px 16px',
