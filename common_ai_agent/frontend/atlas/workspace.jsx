@@ -2116,7 +2116,7 @@ const ObsCard = ({ entry, embedded }) => {
       {open && (
         <pre style={{
           margin: '4px 0 0', maxHeight: 280, overflow: 'auto',
-          background: 'var(--bg-input, #1c2128)', padding: '6px 10px',
+          background: 'var(--bg-3)', padding: '6px 10px',
           borderRadius: 4, fontSize: 11, lineHeight: 1.45,
           whiteSpace: 'pre', wordBreak: 'normal',
         }}>
@@ -2294,7 +2294,7 @@ const FeedEntry = ({ entry, qaState, onToggle, onCustom, onSubmit, dir }) => {
         {isMulti ? (
           <pre style={{
             margin: '4px 0 0', maxHeight: 280, overflow: 'auto',
-            background: 'var(--bg-input, #1c2128)', padding: '6px 10px',
+            background: 'var(--bg-3)', padding: '6px 10px',
             borderRadius: 4, fontSize: 11, lineHeight: 1.45,
             whiteSpace: 'pre', wordBreak: 'normal',
           }}>
@@ -3400,7 +3400,7 @@ const ProgressPanel = () => {
           <span>{label}</span>
           <span>{done != null && total != null ? `${done}/${total}` : `${p}%`}</span>
         </div>
-        <div style={{ height: 5, background: 'var(--bg-input, #1c2128)', border: '1px solid var(--line)', borderRadius: 2, overflow: 'hidden' }}>
+        <div style={{ height: 5, background: 'var(--bg-3)', border: '1px solid var(--line)', borderRadius: 2, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${p}%`, background: color }} />
         </div>
       </div>
@@ -3454,7 +3454,7 @@ const ProgressPanel = () => {
             value={selected.id || ''}
             onChange={(e) => setModuleId(e.target.value)}
             style={{
-              flex: 1, minWidth: 0, background: 'var(--bg-input, #111820)',
+              flex: 1, minWidth: 0, background: 'var(--bg-3)',
               color: 'var(--fg)', border: '1px solid var(--line)',
               borderRadius: 2, padding: '4px 6px', fontFamily: 'var(--mono)', fontSize: 11,
             }}
@@ -3492,7 +3492,7 @@ const ProgressPanel = () => {
             disabled={!selected || !selected.id}
             title="Queue rtl-gen repair from current compile/lint/SSOT evidence"
             style={{
-              background: 'var(--bg-input, #111820)',
+              background: 'var(--bg-3)',
               color: 'var(--accent)',
               border: '1px solid var(--accent)',
               borderRadius: 2,
@@ -3856,7 +3856,7 @@ const TodoPanel = () => {
             <span>progress</span>
             <span><b style={{ color: 'var(--ok)' }}>{done}</b> / {todos.length} approved</span>
           </div>
-          <div style={{ height: 4, background: 'var(--bg-input, #1c2128)',
+          <div style={{ height: 4, background: 'var(--bg-3)',
                          border: '1px solid var(--line)', borderRadius: 2,
                          overflow: 'hidden' }}>
             <div style={{

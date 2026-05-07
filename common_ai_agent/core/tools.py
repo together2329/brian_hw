@@ -593,6 +593,32 @@ def _translate_command_for_windows(command: str) -> str:
     return command
 
 
+def _decode_robust(b):
+    """Decode subprocess output with platform-aware fallback chain.
+
+    Windows: many native binaries (dir, ipconfig, msvc cl.exe, gcc on Korean
+    Windows, etc.) emit cp949 / cp1252, NOT utf-8. Forcing utf-8 produces
+    mojibake. Try utf-8 first, then platform-typical legacy codepage, then
+    cp1252, finally utf-8 with errors='replace' as last resort.
+    """
+    if isinstance(b, str):
+        return b
+    if not isinstance(b, (bytes, bytearray)):
+        return str(b or "")
+    candidates = ['utf-8']
+    if sys.platform == 'win32':
+        candidates += ['cp949', 'cp1252', 'mbcs']
+    elif sys.platform.startswith('linux') or sys.platform == 'darwin':
+        # macOS/Linux generally utf-8, but legacy tools may emit cp949 too
+        candidates += ['cp949']
+    for enc in candidates:
+        try:
+            return b.decode(enc)
+        except (UnicodeDecodeError, LookupError):
+            continue
+    return b.decode('utf-8', errors='replace')
+
+
 def run_command(command, timeout=60):
     """
     Runs a shell command and returns output.
@@ -626,21 +652,15 @@ def run_command(command, timeout=60):
         # Translate Unix commands to Windows equivalents
         command = _translate_command_for_windows(command)
 
-        # Use Popen for fine-grained process group control
+        # Receive raw bytes; decode with platform-aware fallback chain in
+        # _decode_robust(). text=True + encoding='utf-8' breaks on Windows
+        # cp949 / cp1252 native tool output (Korean Windows, msvc cl.exe).
         proc = subprocess.Popen(
             command,
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True,
-            # Force UTF-8 decoding of stdout/stderr — without this,
-            # text=True falls back to locale.getpreferredencoding(),
-            # which is cp949 on Korean macOS / Windows. Subprocesses
-            # that emit em-dash or other non-CP949 chars then crash
-            # decoding here. errors='replace' keeps the agent alive
-            # even on truly malformed bytes.
-            encoding='utf-8',
-            errors='replace',
+            text=False,
             # Create new process group so we can kill the entire tree
             preexec_fn=os.setsid if hasattr(os, 'setsid') else None,
             # Windows: create new process group via CREATE_NEW_PROCESS_GROUP
@@ -648,7 +668,9 @@ def run_command(command, timeout=60):
         )
 
         try:
-            stdout_str, stderr_str = proc.communicate(timeout=timeout)
+            stdout_b, stderr_b = proc.communicate(timeout=timeout)
+            stdout_str = _decode_robust(stdout_b)
+            stderr_str = _decode_robust(stderr_b)
         except subprocess.TimeoutExpired:
             # Timeout — kill the entire process group first
             _kill_process_group(proc)
@@ -656,7 +678,9 @@ def run_command(command, timeout=60):
             # After kill, call communicate() again to join internal threads
             # and collect whatever partial output was produced.
             try:
-                stdout_str, stderr_str = proc.communicate(timeout=5)
+                stdout_b, stderr_b = proc.communicate(timeout=5)
+                stdout_str = _decode_robust(stdout_b)
+                stderr_str = _decode_robust(stderr_b)
             except (subprocess.TimeoutExpired, Exception):
                 stdout_str, stderr_str = "", ""
 

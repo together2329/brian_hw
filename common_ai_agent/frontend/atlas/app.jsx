@@ -384,6 +384,18 @@ const App = () => {
             {ipOptions.map(ip => <option key={ip} value={ip}>{ip}</option>)}
           </select>
         </label>
+        <button className="dir-btn"
+                title={activeIp
+                  ? `Download ${activeIp}/ as .zip`
+                  : "Select an IP first to download just that workspace; "
+                    + "leave blank for the whole project (slow)"}
+                disabled={false}
+                onClick={() => {
+                  const sub = activeIp
+                    ? `?subpath=${encodeURIComponent(activeIp)}`
+                    : '';
+                  window.location.href = `/api/workspace/download.zip${sub}`;
+                }}>📦 .zip</button>
         <span style={{ width: 12 }} />
         <button className={`dir-btn ${screen === 'workspace' ? 'active' : ''}`}
                 title="Live agent · chat · sidebar (sim/lint/scope)"

@@ -270,7 +270,7 @@ def create_app():
     return app
 
 
-def run_web_ui(port: int = 8080):
+def run_web_ui(port: int = 8080, host: str = "0.0.0.0"):
     """Start the web UI server and run the agent.
 
     This wires the web bridge into main.py's _textual_* callbacks so the
@@ -324,5 +324,5 @@ def run_web_ui(port: int = 8080):
     agent_thread = threading.Thread(target=_run_agent, daemon=True)
     agent_thread.start()
 
-    print(f"\n  Web UI → http://localhost:{port}\n")
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="warning")
+    print(f"\n  Web UI → http://{host}:{port}\n")
+    uvicorn.run(app, host=host, port=port, log_level="warning")

@@ -238,6 +238,9 @@ if __name__ == "__main__":
     _parser.add_argument('--port', type=int, default=None,
                          help='Override port for atlas/web UI '
                               '(defaults to ATLAS_UI_PORT=8765 / WEB_UI_PORT=8080)')
+    _parser.add_argument('--host', default=None,
+                         help='Override bind host for atlas/web UI '
+                              '(defaults to 127.0.0.1; use 0.0.0.0 for LAN exposure)')
     _parser.add_argument('--model', type=str, default='',
                          help='Active LLM profile or bare model name. Profiles '
                               '(PROFILE_<name>_BASE_URL/API_KEY/MODEL in .env) switch '
@@ -288,13 +291,15 @@ if __name__ == "__main__":
     _ui_mode = (_args.ui or getattr(config, "UI_MODE", "textual")).lower()
     _web_port   = _args.port or getattr(config, "WEB_UI_PORT", 8080)
     _atlas_port = _args.port or getattr(config, "ATLAS_UI_PORT", 8765)
+    _atlas_host = _args.host or getattr(config, "ATLAS_UI_HOST", "127.0.0.1")
+    _web_host   = _args.host or getattr(config, "WEB_UI_HOST",   "127.0.0.1")
 
     if _ui_mode == "atlas":
         from src.atlas_ui import run_atlas_ui
-        run_atlas_ui(port=_atlas_port)
+        run_atlas_ui(port=_atlas_port, host=_atlas_host)
     elif _ui_mode == "web":
         from src.web_ui import run_web_ui
-        run_web_ui(port=_web_port)
+        run_web_ui(port=_web_port, host=_web_host)
     elif _TEXTUAL_OK:
         from lib.textual_ui import AgentTUI, ContextUpdate
         AgentTUI(_run_agent).run()

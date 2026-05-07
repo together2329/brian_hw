@@ -4144,6 +4144,13 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         "temperature": temperature,
         "stream": use_stream
     }
+    if use_stream:
+        # Ask the provider (OpenAI/Z.AI compatible Chat Completions) to include
+        # usage stats in the streaming tail. Without this, the final chunk has
+        # no `usage` field → last_input_tokens / last_output_tokens stay 0 →
+        # react_loop.py never invokes emit_token_fn → cost never reaches the
+        # ATLAS UI cost panel.
+        data["stream_options"] = {"include_usage": True}
     if stop:
         # Z.AI and CanopyWave allow max 4 stop sequences
         _stop = stop[:4] if ("z.ai" in url or "canopywave" in url) else stop

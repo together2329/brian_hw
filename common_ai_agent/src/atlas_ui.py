@@ -7486,6 +7486,84 @@ def create_app():
         return JSONResponse({"root": root, "count": len(root["children"]),
                              "project_root": str(PROJECT_ROOT)})
 
+    @app.get("/api/workspace/download.zip")
+    async def api_workspace_download(subpath: str = ""):
+        """Stream a zip of the workspace (or an optional sub-directory).
+
+        subpath: optional path relative to PROJECT_ROOT. Defaults to the
+        whole workspace. Refuses anything that escapes PROJECT_ROOT.
+        Skips heavy/cache/secret folders (same skip-set as /tree, plus .env).
+        """
+        import io
+        import zipfile
+        from fastapi.responses import StreamingResponse
+
+        skip_dirs = {
+            ".git", "__pycache__", ".pytest_cache", ".mypy_cache",
+            ".ruff_cache", "node_modules", ".venv", "venv", "vendor",
+            ".session", ".rag", ".claude", ".omc", ".benchmark",
+            ".benchmarks", ".common_ai_agent", ".session_debug", "logs",
+        }
+        skip_files = {".env", ".env.local", ".env.production",
+                      ".env.example", ".DS_Store"}
+
+        try:
+            base = PROJECT_ROOT
+            if subpath:
+                target = (PROJECT_ROOT / subpath).resolve()
+                try:
+                    target.relative_to(PROJECT_ROOT)
+                except ValueError:
+                    return JSONResponse(
+                        {"error": "subpath outside project root"},
+                        status_code=400,
+                    )
+                if target.is_dir():
+                    base = target
+
+            buf = io.BytesIO()
+            file_count = 0
+            with zipfile.ZipFile(buf, mode="w",
+                                 compression=zipfile.ZIP_DEFLATED) as z:
+                for root_dir, dirs, files in os.walk(base):
+                    dirs[:] = [
+                        d for d in dirs
+                        if d not in skip_dirs and not d.startswith(".")
+                    ]
+                    for f in files:
+                        if f in skip_files or f.startswith("."):
+                            continue
+                        full = Path(root_dir) / f
+                        try:
+                            rel = full.relative_to(base)
+                            z.write(full, arcname=str(rel))
+                            file_count += 1
+                        except (OSError, ValueError):
+                            continue
+            buf.seek(0)
+            name = f"{base.name or 'workspace'}.zip"
+
+            def _iter():
+                while True:
+                    chunk = buf.read(64 * 1024)
+                    if not chunk:
+                        break
+                    yield chunk
+
+            return StreamingResponse(
+                _iter(),
+                media_type="application/zip",
+                headers={
+                    "Content-Disposition": f'attachment; filename="{name}"',
+                    "X-Workspace-File-Count": str(file_count),
+                },
+            )
+        except Exception as exc:
+            return JSONResponse(
+                {"error": f"zip failed: {exc}"},
+                status_code=500,
+            )
+
     @app.post("/api/soc/layout")
     async def api_soc_layout(request: Request):
         """Persist user-dragged block positions back into soc.ssot.yaml.
