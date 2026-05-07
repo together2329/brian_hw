@@ -396,11 +396,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const [openFile, setOpenFile] = React.useState(null);
   const [rightTab, setRightTab] = React.useState('progress'); // progress | todo | git
   // Main column tab: 'chat' shows the conversation feed; 'preview' shows
-  // the contents of the file at previewPath with syntax highlighting.
+  // the contents of the file at previewPath with syntax highlighting;
+  // 'split' keeps chat and preview visible side-by-side.
   // 'qa' is only available when centerLayout === 'tabbed' — it surfaces
   // the dedicated ask_user pane with breadcrumb-tabbed batched questions.
   // Double-clicking a file in the left tree sets previewPath + flips tab.
-  const [mainTab, setMainTab] = React.useState('chat');     // chat | preview | qa
+  const [mainTab, setMainTab] = React.useState('chat');     // chat | preview | split | qa
   const [previewPath, setPreviewPath] = React.useState(null);
   // Center layout: 'classic' (chat with inline ask_user) or 'tabbed'
   // (Chat / Preview / Q&A tab strip with auto-switch). Comes from the
@@ -805,7 +806,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
 
   React.useEffect(() => {
     if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
-  }, [feed, streamText]);
+  }, [feed, streamText, mainTab]);
 
   // shift+tab swaps Normal ↔ Plan. Fire even when the chat input is
   // focused — the input is auto-focused, so the old "tagName !== INPUT"
@@ -1504,6 +1505,47 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const isSimDebug = workflow === 'sim_debug';
   const effLeftW  = isSimDebug ? 0 : leftW;
   const effRightW = isSimDebug ? 0 : rightW;
+  const renderFeedEntries = () => {
+    // Pairing pre-pass: when an action entry is immediately followed by
+    // an obs entry whose tool matches, fuse them into one ToolCard.
+    const out = [];
+    for (let i = 0; i < feed.length; i++) {
+      const cur = feed[i];
+      const nxt = feed[i + 1];
+      if (cur && cur.kind === 'action' && nxt && nxt.kind === 'obs'
+          && cur.tool && nxt.tool && cur.tool === nxt.tool) {
+        out.push(<ToolCard key={i} action={cur} obs={nxt} />);
+        i++;
+        continue;
+      }
+      if (cur && cur.kind === 'action' && cur.tool) {
+        out.push(<ToolCard key={i} action={cur} obs={null} />);
+        continue;
+      }
+      out.push(
+        <FeedEntry
+          key={i}
+          entry={cur}
+          qaState={qaState}
+          onToggle={toggleOpt}
+          onCustom={setCustom}
+          onSubmit={submitCard}
+          dir={dir}
+        />
+      );
+    }
+    return out;
+  };
+  const renderChatPane = (style = {}) => (
+    <div ref={feedRef} style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '14px 18px', ...style }}>
+      {renderFeedEntries()}
+      {/* Streaming preview removed — used to render the in-progress
+          buffer as plain text, then the same text reappeared as a
+          markdown-rendered 'agent' entry on flush, with very different
+          line spacing. The status strip already signals work-in-progress;
+          the final clean markdown lands once when the buffer parks. */}
+    </div>
+  );
 
   // Toggle a body-level class so the App-level TitleBar / StatusBar
   // can self-collapse when sim_debug owns the screen — gives the
@@ -1713,7 +1755,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                   onClick={() => {
                     if (n.type === 'file') {
                       setPreviewPath(fullPath);
-                      setMainTab('preview');
+                      setMainTab(tab => tab === 'split' ? 'split' : 'preview');
                     } else {
                       window.atlasData.setScopePath(fullPath);
                     }
@@ -1843,6 +1885,18 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
               }}
             >preview</span>
+            <span
+              onClick={() => setMainTab('split')}
+              title="Show chat and preview side by side"
+              style={{
+                cursor: 'pointer',
+                padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                color: mainTab === 'split' ? 'var(--accent)' : 'var(--fg-mute)',
+                background: mainTab === 'split' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                border: '1px solid ' + (mainTab === 'split' ? 'var(--accent)' : 'transparent'),
+                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+              }}
+            >split</span>
             {centerLayout === 'tabbed' && (
               <span
                 onClick={() => setMainTab('qa')}
@@ -1890,6 +1944,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                   session: {activeSession || 'default'}
                 </span>
               </>
+            ) : mainTab === 'split' ? (
+              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}
+                    title={previewPath || ''}>
+                chat + preview · {previewPath || '(no file selected)'}
+              </span>
             ) : (
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}
                     title={previewPath || ''}>
@@ -1901,9 +1960,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 "Running / End of loop / Waiting on you" pill above the
                 input row already conveys this state, and louder, so two
                 redundant indicators just add noise to the tab header. */}
-            {mainTab === 'preview' && (
+            {(mainTab === 'preview' || mainTab === 'split') && (
               <span style={{ fontSize: 10 }}>
-                <span className="mute" style={{ marginRight: 8 }}>back to chat</span>
+                <span className="mute" style={{ marginRight: 8 }}>{mainTab === 'split' ? 'chat only' : 'back to chat'}</span>
                 <span onClick={() => setMainTab('chat')} className="acc"
                       style={{ cursor: 'pointer', padding: '2px 6px',
                                border: '1px solid var(--accent)', borderRadius: 2 }}>↵</span>
@@ -1911,56 +1970,29 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             )}
           </div>
           {mainTab === 'chat' ? (
-            <div ref={feedRef} style={{ flex: 1, overflow: 'auto', padding: '14px 18px' }}>
-              {(() => {
-                // Pairing pre-pass: when an action entry is immediately
-                // followed by an obs entry whose tool matches, fuse them
-                // into one ToolCard. Without a match, render the action
-                // (and the next entry, whatever it is) on their own.
-                const out = [];
-                for (let i = 0; i < feed.length; i++) {
-                  const cur = feed[i];
-                  const nxt = feed[i + 1];
-                  if (cur && cur.kind === 'action' && nxt && nxt.kind === 'obs'
-                      && cur.tool && nxt.tool && cur.tool === nxt.tool) {
-                    out.push(
-                      <ToolCard key={i} action={cur} obs={nxt} />
-                    );
-                    i++; // skip the obs we just consumed
-                    continue;
-                  }
-                  // Standalone action with a known tool but no obs yet
-                  // (e.g. ask_user pause, plan-mode block): still render
-                  // through ToolCard so the visual style stays consistent.
-                  if (cur && cur.kind === 'action' && cur.tool) {
-                    out.push(
-                      <ToolCard key={i} action={cur} obs={null} />
-                    );
-                    continue;
-                  }
-                  out.push(
-                    <FeedEntry
-                      key={i}
-                      entry={cur}
-                      qaState={qaState}
-                      onToggle={toggleOpt}
-                      onCustom={setCustom}
-                      onSubmit={submitCard}
-                      dir={dir}
-                    />
-                  );
-                }
-                return out;
-              })()}
-              {/* Streaming preview removed — used to render the in-progress
-                  buffer as plain text, then the same text reappeared as a
-                  markdown-rendered 'agent' entry on flush, with very
-                  different line spacing. The header spinner ("streaming")
-                  already signals work-in-progress; the final clean
-                  markdown lands once when the buffer parks. */}
-            </div>
+            renderChatPane()
           ) : mainTab === 'preview' ? (
             <PreviewPane path={previewPath} onClose={() => setMainTab('chat')} />
+          ) : mainTab === 'split' ? (
+            <div style={{
+              flex: 1, minHeight: 0, display: 'grid',
+              gridTemplateColumns: 'minmax(0, 1fr) minmax(300px, 42%)',
+              overflow: 'hidden',
+            }}>
+              <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--line)' }}>
+                <div style={{
+                  padding: '4px 10px', borderBottom: '1px solid var(--line)',
+                  color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10,
+                  letterSpacing: '0.06em', textTransform: 'uppercase',
+                }}>
+                  chat stream
+                </div>
+                {renderChatPane({ padding: '10px 12px' })}
+              </div>
+              <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                <PreviewPane path={previewPath} onClose={() => setMainTab('chat')} />
+              </div>
+            </div>
           ) : (
             /* mainTab === 'qa' — only reachable when centerLayout==='tabbed' */
             <div style={{ flex: 1, overflow: 'auto', padding: '14px 18px' }}>
@@ -4642,13 +4674,41 @@ const PreviewPane = ({ path, onClose }) => {
 
   const ext = (path ? (path.split('.').pop() || '') : '').toLowerCase();
   const lang = (window.PRISM_LANG_MAP && window.PRISM_LANG_MAP[ext]) || 'none';
+  const isMarkdown = ['md', 'markdown', 'mdown', 'mkdn'].includes(ext);
+  const hasGlobPath = !!path && /[*?[\]{}]/.test(path);
+  const highlightTooLarge = !isMarkdown && body.length > 60000;
+  const canHighlight = !highlightTooLarge && lang !== 'none';
 
   React.useEffect(() => {
-    if (!path) { setBody(''); setErr(null); return; }
+    if (!path) {
+      setBody('');
+      setErr(null);
+      setSize(0);
+      setTruncated(false);
+      setLoading(false);
+      return;
+    }
+    if (/[*?[\]{}]/.test(path)) {
+      setLoading(false);
+      setSize(0);
+      setTruncated(false);
+      setErr('Preview needs one concrete file path; glob patterns are not previewable.');
+      setBody(`// ${path}\n// Preview needs one concrete file path, not a glob pattern.\n// Select an exact file from the tree, for example rtl/<module>.sv.`);
+      return;
+    }
     let cancelled = false;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
     setLoading(true); setErr(null);
-    window.atlasData.fetchFile(path).then(d => {
+    fetch('/api/file?path=' + encodeURIComponent(path), { signal: controller.signal }).then(async r => {
+      let d = {};
+      try { d = await r.json(); }
+      catch (_) { d = { error: r.statusText || `HTTP ${r.status}` }; }
+      if (!r.ok && !d.error) d.error = r.statusText || `HTTP ${r.status}`;
+      return d;
+    }).then(d => {
       if (cancelled) return;
+      clearTimeout(timeout);
       setLoading(false);
       if (d.error) {
         setErr(d.error); setBody(`// ${path}\n// (could not read: ${d.error})`); return;
@@ -4657,19 +4717,31 @@ const PreviewPane = ({ path, onClose }) => {
       setSize(d.size || 0);
       setTruncated(!!d.truncated);
     }).catch(e => {
-      if (!cancelled) { setLoading(false); setErr(String(e)); setBody(`// fetch failed: ${e}`); }
+      if (!cancelled) {
+        clearTimeout(timeout);
+        const msg = e && e.name === 'AbortError'
+          ? 'preview timed out after 8s'
+          : String(e);
+        setLoading(false);
+        setErr(msg);
+        setBody(`// ${path}\n// fetch failed: ${msg}`);
+      }
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, [path]);
 
   // Re-highlight whenever body/lang changes. Prism replaces the
   // <code> contents in place; we set the language class first.
   React.useEffect(() => {
     if (!codeRef.current || !window.Prism) return;
-    if (lang === 'none') return;       // skip for plain text
+    if (!canHighlight) return;       // skip for plain text or large files
     codeRef.current.className = 'language-' + lang;
     try { window.Prism.highlightElement(codeRef.current); } catch (_) { /* ignore */ }
-  }, [body, lang]);
+  }, [body, lang, canHighlight]);
 
   if (!path) {
     return (
@@ -4686,7 +4758,6 @@ const PreviewPane = ({ path, onClose }) => {
 
   const lineCount = body.split('\n').length;
   const sizeKb = size > 0 ? (size / 1024).toFixed(1) + ' KB' : '';
-  const isMarkdown = ['md', 'markdown', 'mdown', 'mkdn'].includes(ext);
   const copyPath = () => { try { navigator.clipboard.writeText(path); } catch (_) {} };
   const copyAll  = () => { try { navigator.clipboard.writeText(body);  } catch (_) {} };
 
@@ -4703,6 +4774,8 @@ const PreviewPane = ({ path, onClose }) => {
         <span>{lineCount} lines</span>
         {sizeKb && <><span className="mute">·</span><span>{sizeKb}</span></>}
         {truncated && <><span className="mute">·</span><span className="warn">truncated at {Math.round((body.length || 0) / 1024)}KB</span></>}
+        {highlightTooLarge && <><span className="mute">·</span><span className="warn">syntax highlight skipped for speed</span></>}
+        {hasGlobPath && <><span className="mute">·</span><span className="warn">glob path</span></>}
         <span style={{ flex: 1 }} />
         <span onClick={copyAll}  style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy</span>
         <span onClick={copyPath} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy path</span>
@@ -4747,7 +4820,7 @@ const PreviewPane = ({ path, onClose }) => {
             background: 'transparent',
             color: 'var(--fg)',
           }}>
-            <code ref={codeRef} className={lang === 'none' ? '' : ('language-' + lang)}>
+            <code ref={codeRef} className={canHighlight ? ('language-' + lang) : ''}>
               {body}
             </code>
           </pre>
