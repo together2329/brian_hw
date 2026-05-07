@@ -4967,28 +4967,40 @@ const ConvModeSelector = () => {
       title={title}
       style={{
         cursor: 'pointer',
-        padding: '2px 8px',
+        padding: '2px 6px',
         fontSize: 10,
         fontFamily: 'var(--mono)',
-        letterSpacing: '0.04em',
+        letterSpacing: '0.02em',
         textTransform: 'uppercase',
         color: mode === id ? 'var(--bg)' : 'var(--fg-mute)',
         background: mode === id ? 'var(--accent)' : 'transparent',
         border: '1px solid ' + (mode === id ? 'var(--accent)' : 'var(--line)'),
         borderRadius: 2,
+        whiteSpace: 'nowrap',
+        flex: '0 0 auto',
       }}
     >{label}</span>
   );
   return (
     <div style={{
-      borderTop: '1px solid var(--line)', padding: '6px 10px',
+      // Sit a little above the bottom edge of the left column so the
+      // pills don't visually merge with the splitter line.
+      marginBottom: 24,
+      border: '1px solid var(--line)',
+      borderRadius: 2,
+      padding: '6px 8px',
       fontSize: 10, color: 'var(--fg-mute)',
-      display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
-    }}>
-      <span style={{ marginRight: 4 }}>history</span>
-      <Pill id="conversation" label="recent" title="conversation.json — recent rolling window (default)" />
-      <Pill id="recent"       label="last 50" title="last 50 messages from full_conversation.json" />
-      <Pill id="full"         label="full"   title="every message from full_conversation.json" />
+      display: 'flex', alignItems: 'center', gap: 4,
+      // No flexWrap — keep all three pills on one row even in a narrow
+      // left column. Drop the "history" label text so the pills get
+      // every available pixel without wrapping `full` to a new line.
+      flexWrap: 'nowrap',
+      overflow: 'hidden',
+    }}
+    title="Conversation hydration source on session reload">
+      <Pill id="conversation" label="recent"  title="conversation.json — recent rolling window (default)" />
+      <Pill id="recent"       label="last50"  title="last 50 messages from full_conversation.json" />
+      <Pill id="full"         label="full"    title="every message from full_conversation.json" />
     </div>
   );
 };
