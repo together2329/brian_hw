@@ -54,8 +54,8 @@ const App = () => {
   const [dir, setDir] = React.useState('A');     // 'A' = Console, 'B' = Workbench
   const [theme, setTheme] = React.useState('dark');
   const [uiLang, setUiLang] = React.useState(() => {
-    try { return localStorage.getItem('atlasUiLang') === 'en' ? 'en' : 'ko'; }
-    catch (_) { return 'ko'; }
+    try { return localStorage.getItem('atlasUiLang') === 'ko' ? 'ko' : 'en'; }
+    catch (_) { return 'en'; }
   });
   const [fontMode, setFontMode] = React.useState(() => {
     try {
@@ -498,10 +498,10 @@ const App = () => {
         <span style={{ width: 12 }} />
         <button className="dir-btn"
                 title="Abort the agent's current iteration  (Esc)"
-                onClick={stopAgent}>■ Stop · Esc</button>
+                onClick={stopAgent}>■ Stop</button>
         <button className="dir-btn"
                 title="Shut down the Python server and close this tab  (Ctrl/⌘+Q)"
-                onClick={exitAll}>✕ Exit · ⌃Q</button>
+                onClick={exitAll}>✕ Exit</button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         <TitleBar ip="" screen={screen} onScreen={setScreen} />
