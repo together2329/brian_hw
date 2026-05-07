@@ -664,17 +664,41 @@ def is_azure_provider() -> bool:
     return getattr(config, "LLM_PROVIDER", "openai").lower() == "azure"
 
 
+def _provider_supports_responses_api(model: str) -> bool:
+    """Reverse filter — does the underlying provider expose /responses?
+
+    Z.AI (GLM family), DeepSeek, Anthropic, Moonshot etc. only ship
+    /chat/completions; routing them through /responses returns 404
+    (e.g. ``api.z.ai/api/coding/paas/v4/responses``).
+    """
+    if not model:
+        return True  # unknown — leave the rest of the routing untouched
+    name = model.lower().split('/')[-1]
+    # Provider families known to NOT support Responses API
+    if name.startswith('glm') or 'deepseek' in name or 'qwen' in name \
+            or 'kimi' in name or 'moonshot' in name or 'claude' in name \
+            or name.startswith('anthropic'):
+        return False
+    base = (getattr(config, 'BASE_URL', '') or '').lower()
+    if 'api.z.ai' in base or 'deepseek' in base or 'moonshotai' in base \
+            or 'anthropic.com' in base:
+        return False
+    return True
+
+
 def use_responses_api(resolved_model: str = None) -> bool:
     """Check if the Responses API should be used instead of Chat Completions.
 
     Returns True when ANY of:
-    1. USE_RESPONSES_API=true env flag is set (manual override)
+    1. USE_RESPONSES_API=true env flag is set (manual override) AND the
+       active provider actually supports /responses
     2. Azure provider + reasoning-capable deployment/model
     3. Azure provider + codex model (auto-detected)
     4. Model name matches *gpt*codex* / GPT-5 pattern (auto-detected)
 
     Returns False (forced chat completions) when:
     - FORCE_CHAT_COMPLETIONS_GPT5=true and model matches *gpt*5*
+    - The active provider doesn't expose /responses (GLM, DeepSeek, etc.)
 
     Args:
         resolved_model: The effective model for this specific call (overrides
@@ -690,6 +714,11 @@ def use_responses_api(resolved_model: str = None) -> bool:
     if getattr(config, "FORCE_CHAT_COMPLETIONS_GPT5", False):
         if 'gpt' in model and '5' in model and 'codex' not in model:
             return False
+
+    # Hard guard: never route a non-OpenAI/Azure provider to /responses,
+    # even when USE_RESPONSES_API=true is left on globally.
+    if not _provider_supports_responses_api(model):
+        return False
 
     # Manual override
     if getattr(config, "USE_RESPONSES_API", False):
