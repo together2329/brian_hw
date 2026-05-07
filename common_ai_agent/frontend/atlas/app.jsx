@@ -135,7 +135,12 @@ const App = () => {
     const ip = normalizeSession(ipId || '');
     const wf = normalizeSession(workflow || '');
     if (ip && wf) return `${owner}/${ip}/${wf}`;
-    if (ip) return `${owner}/${ip}/user`;
+    // Picking an IP without an explicit workflow used to fall through to
+    // `${owner}/${ip}/user`, which mismatched everything the agent
+    // wrote under `${owner}/${ip}/ssot-gen` (the canonical SSOT entry
+    // point). Default to ssot-gen so newly-picked IPs land on the same
+    // namespace the rest of the workflow uses.
+    if (ip) return `${owner}/${ip}/ssot-gen`;
     if (wf) return `${owner}/soc/${wf}`;
     return `${owner}/default`;
   }, [normalizeSession]);
