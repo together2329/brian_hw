@@ -8965,13 +8965,22 @@ def create_app():
                              "exists": True, "truncated_to": limit})
 
     @app.get("/api/session/state")
-    async def api_session_state(session: str, limit: int = 200):
+    async def api_session_state(session: str, limit: int = 200, mode: str = "conversation"):
         """Return all UI state owned by a specific session namespace.
 
         This is the session-scoped hydrate endpoint for IP/sub-top/SoC
         workflow panes.  The frontend can switch screens or selected
         modules without losing chat/todo state because the authoritative
         data lives under `.session/<session>/`.
+
+        `mode` controls which file the conversation messages come from:
+          • conversation (default) — recent rolling window from
+            conversation.json (already capped server-side at `limit`).
+          • full        — every message ever written to
+            full_conversation.json (no limit cap).
+          • recent      — last `limit` messages from
+            full_conversation.json (deeper history than conversation.json
+            but trimmed to a manageable size).
         """
         session_raw = session or ""
         session = normalize_session_name(session_raw)
@@ -8995,11 +9004,23 @@ def create_app():
             except Exception:
                 return fallback
 
-        messages = _read_json(sdir / "conversation.json", [])
+        mode_norm = (mode or "conversation").strip().lower()
+        if mode_norm not in ("conversation", "full", "recent"):
+            mode_norm = "conversation"
+        if mode_norm == "conversation":
+            conv_path = sdir / "conversation.json"
+        else:
+            conv_path = sdir / "full_conversation.json"
+            # Fall back to conversation.json when full_conversation.json is missing
+            if not conv_path.is_file():
+                conv_path = sdir / "conversation.json"
+
+        messages = _read_json(conv_path, [])
         if not isinstance(messages, list):
             messages = []
         messages = [m for m in messages if isinstance(m, dict) and m.get("role") != "system"]
-        if len(messages) > limit:
+        # `full` returns everything; `conversation` and `recent` cap at limit.
+        if mode_norm != "full" and len(messages) > limit:
             messages = messages[-limit:]
 
         todo_state = _read_json(sdir / "todo.json", {"todos": []})
@@ -9056,9 +9077,10 @@ def create_app():
             "exists": sdir.is_dir(),
             "conversation": {
                 "messages": messages,
-                "path": str((sdir / "conversation.json").relative_to(PROJECT_ROOT)),
-                "exists": (sdir / "conversation.json").is_file(),
-                "truncated_to": limit,
+                "path": conv_path.relative_to(PROJECT_ROOT).as_posix(),
+                "exists": conv_path.is_file(),
+                "mode": mode_norm,
+                "truncated_to": (None if mode_norm == "full" else limit),
             },
             "todos": todo_state,
             "cost": cost_state,

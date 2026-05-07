@@ -271,11 +271,21 @@
     return 'default';
   }
 
-  async function refreshSessionState(session, hydrateConversation = true) {
+  async function refreshSessionState(session, hydrateConversation = true, opts = {}) {
     const sid = normalizeSessionName(session || window.ACTIVE_SESSION || 'default');
     if (!sid) return null;
+    // mode: conversation (default) | full | recent
+    const mode = (opts && opts.mode) || (() => {
+      try { return localStorage.getItem('atlasConversationMode') || 'conversation'; }
+      catch (_) { return 'conversation'; }
+    })();
+    const limit = (opts && Number(opts.limit)) || (mode === 'recent' ? 50 : 200);
     try {
-      const r = await fetch('/api/session/state?session=' + encodeURIComponent(sid) + '&limit=200');
+      const url = '/api/session/state'
+        + '?session=' + encodeURIComponent(sid)
+        + '&limit=' + encodeURIComponent(String(limit))
+        + '&mode='  + encodeURIComponent(mode);
+      const r = await fetch(url);
       if (!r.ok) return null;
       const d = await r.json();
       const responseSession = normalizeSessionName(d.session || sid) || sid;

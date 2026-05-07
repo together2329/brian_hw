@@ -358,14 +358,15 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     // Click a workflow chip → fire `/wf <name>` to actually swap the
     // agent's workspace on the server. The slash command is processed
     // locally by the dispatcher (no LLM call) and re-registers the
-    // workspace's slash commands. We also update local state so the
-    // chip is highlighted.
+    // workspace's slash commands. Clicking the active chip exits back
+    // to default on both the UI and backend; otherwise CONTEXT refresh
+    // can re-enter the old workflow after local React state cleared.
     const next = workflow === w ? null : w;
     setWorkflow(next);
     refreshFeed(intent, next);
     const sid = activateSession(window.SCOPE_PATH || '', next || '');
-    if (next && window.backend) {
-      sendPrompt(`/wf ${next}`, sid);
+    if (window.backend) {
+      sendPrompt(next ? `/wf ${next}` : '/workflow default', sid);
     }
   };
   const [input, setInput] = React.useState('');
@@ -584,7 +585,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       if (ev.detail === 'CONTEXT' || ev.detail === 'FLOW_STAGES') {
         const backendWorkflow = (window.CONTEXT && window.CONTEXT.workspace) || '';
         const known = (window.FLOW_STAGES || []).some(s => s.id === backendWorkflow);
-        if (known) {
+        if (!backendWorkflow || backendWorkflow === 'default') {
+          setWorkflow(null);
+        } else if (known) {
           setWorkflow(backendWorkflow);
         }
       }
@@ -1812,6 +1815,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             </span>
           </div>
         </div>
+        {/* Conversation hydration mode selector — sits below the file
+            tree, left of the chat input. Picks which on-disk source
+            populates the chat feed on (re)load:
+              • conversation — recent rolling window from conversation.json
+              • full         — every message from full_conversation.json
+              • recent 50    — last 50 messages of full_conversation.json
+            Default 'conversation'. Saved in localStorage. */}
+        <ConvModeSelector />
       </div>
       ) : (
         <div /> /* collapsed — empty grid cell so the 5-track grid stays aligned */
@@ -4925,6 +4936,59 @@ const FileViewer = ({ name, onClose }) => {
           <button className="btn" onClick={copyPath}>Copy path</button>
         </div>
       </div>
+    </div>
+  );
+};
+
+// ── conversation hydration mode (left column footer) ───────────────
+// Picks which on-disk source the chat feed is rebuilt from on a
+// session refresh / page reload. The mode is persisted in
+// localStorage and read by data.jsx's refreshSessionState which
+// passes it through as a `mode` query param to /api/session/state.
+//   • conversation  — recent rolling window (conversation.json). Default.
+//   • full          — every message ever (full_conversation.json).
+//   • recent        — last 50 messages of full_conversation.json.
+const ConvModeSelector = () => {
+  const initial = (() => {
+    try { return localStorage.getItem('atlasConversationMode') || 'conversation'; }
+    catch (_) { return 'conversation'; }
+  })();
+  const [mode, setMode] = React.useState(initial);
+  const apply = (next) => {
+    setMode(next);
+    try { localStorage.setItem('atlasConversationMode', next); } catch (_) {}
+    if (window.atlasData && window.atlasData.refreshSessionState) {
+      window.atlasData.refreshSessionState(window.ACTIVE_SESSION || '', true, { mode: next });
+    }
+  };
+  const Pill = ({ id, label, title }) => (
+    <span
+      onClick={() => apply(id)}
+      title={title}
+      style={{
+        cursor: 'pointer',
+        padding: '2px 8px',
+        fontSize: 10,
+        fontFamily: 'var(--mono)',
+        letterSpacing: '0.04em',
+        textTransform: 'uppercase',
+        color: mode === id ? 'var(--bg)' : 'var(--fg-mute)',
+        background: mode === id ? 'var(--accent)' : 'transparent',
+        border: '1px solid ' + (mode === id ? 'var(--accent)' : 'var(--line)'),
+        borderRadius: 2,
+      }}
+    >{label}</span>
+  );
+  return (
+    <div style={{
+      borderTop: '1px solid var(--line)', padding: '6px 10px',
+      fontSize: 10, color: 'var(--fg-mute)',
+      display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
+    }}>
+      <span style={{ marginRight: 4 }}>history</span>
+      <Pill id="conversation" label="recent" title="conversation.json — recent rolling window (default)" />
+      <Pill id="recent"       label="last 50" title="last 50 messages from full_conversation.json" />
+      <Pill id="full"         label="full"   title="every message from full_conversation.json" />
     </div>
   );
 };
