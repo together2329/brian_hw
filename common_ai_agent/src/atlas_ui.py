@@ -6858,7 +6858,9 @@ def create_app():
         import uuid
         stage_id = stage_id or (_PIPELINE_BY_WORKFLOW.get(workflow, {}).get("id") or workflow)
         template = template or _default_todo_template_for_job(workflow, stage_id, ip)
-        session_name = session_name or (f"{ip}/{workflow}" if ip else workflow)
+        session_name = normalize_session_name(session_name or (f"{ip}/{workflow}" if ip else workflow))
+        if not session_name:
+            raise ValueError("invalid session namespace")
         scope_path = str((PROJECT_ROOT / ip).resolve()) if ip else str(PROJECT_ROOT)
         try:
             rel_scope = str(Path(scope_path).relative_to(PROJECT_ROOT))
@@ -7252,8 +7254,8 @@ def create_app():
         if not job:
             return JSONResponse({"error": "job not found"}, status_code=404)
         def _session_history_log():
-            session = (job.get("session") or "").strip()
-            if not session or ".." in session:
+            session = normalize_session_name(str(job.get("session") or ""))
+            if not session:
                 return None
             path = PROJECT_ROOT / ".session" / session / "conversation.json"
             if not path.is_file():

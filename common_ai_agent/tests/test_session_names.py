@@ -23,11 +23,20 @@ class TestSessionNameNormalization(unittest.TestCase):
             "u-mabc123/dma330/ssot-gen",
         )
 
+    def test_accepts_session_marker_with_leading_slashes_and_extra_file(self):
+        self.assertEqual(
+            normalize_session_name(r"//.session\u-mabc123\dma330\ssot-gen\qa.json//"),
+            "u-mabc123/dma330/ssot-gen",
+        )
+
     def test_windows_scope_path_without_session_marker_keeps_ip_workflow_tail(self):
         self.assertEqual(
             normalize_session_name(r"C:\Users\207\Desktop\SQA\ssot-gen"),
             "SQA/ssot-gen",
         )
+
+    def test_rejects_empty_session_marker_path(self):
+        self.assertEqual(normalize_session_name(r"\.session\conversation.json"), "")
 
     def test_rejects_unsafe_session_segment(self):
         self.assertEqual(normalize_session_name("u-1/dma330/../rtl-gen"), "")

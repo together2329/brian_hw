@@ -13,10 +13,13 @@ import re
 _SESSION_SEGMENT_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
 _KNOWN_SESSION_FILES = {
     "conversation.json",
+    "full_conversation.json",
     "todo.json",
     "todo_error.json",
     "cost.json",
     "state.json",
+    "qa.json",
+    "result.json",
 }
 _KNOWN_WORKFLOWS = {
     "architect",
@@ -51,7 +54,7 @@ def normalize_session_name(value: str) -> str:
     if not raw:
         return ""
 
-    pathish = "\\" in raw or ":" in raw or raw.startswith(("/", "~"))
+    pathish = "\\" in raw or ":" in raw or raw.startswith(("/", "~", ".session"))
     normalized = raw.replace("\\", "/").strip("/")
     parts = [part for part in normalized.split("/") if part and part != "."]
     if not parts:

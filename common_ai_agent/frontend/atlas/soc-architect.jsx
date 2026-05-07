@@ -805,6 +805,12 @@
   document.head.appendChild(s);
 })();
 
+const normalizeArchitectSession = (session) => {
+  const norm = (window.atlasData && window.atlasData.normalizeSessionName) || window.normalizeAtlasSessionName;
+  try { return norm ? norm(session || '') : ''; }
+  catch (_) { return ''; }
+};
+
 // Pipeline strip shared by V6 grid + V7 diagram. Same logic as the
 // upstream zip; lives here because soc-shared.jsx doesn't ship it.
 window.PIPELINE_STAGES = ['ssot', 'equivalence', 'rtl', 'tb', 'sim-debug', 'goal-audit'];
@@ -1258,6 +1264,7 @@ window.SocArchitect = function SocArchitect() {
   const [dispatchMenu, setDispatchMenu] = React.useState(null);
   const dispatchJob = React.useCallback(async (workflow, ip) => {
     setDispatchMenu(null);
+    const session = normalizeArchitectSession(ip ? `${ip}/${workflow}` : workflow);
     try {
       const r = await fetch('/api/job/dispatch', {
         method: 'POST',
@@ -1265,7 +1272,7 @@ window.SocArchitect = function SocArchitect() {
         body: JSON.stringify({
           workflow,
           ip,
-          session: ip ? `${ip}/${workflow}` : workflow,
+          session,
         }),
       });
       const d = await r.json().catch(() => ({}));
@@ -3492,7 +3499,7 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
 
   React.useEffect(() => {
     const onLoadSession = async (ev) => {
-      const session = ev.detail && ev.detail.session;
+      const session = normalizeArchitectSession(ev.detail && ev.detail.session);
       if (!session) return;
       setStreaming(true);
       try {
@@ -3871,8 +3878,12 @@ window.JobTracker = function JobTracker({ jobs, onSelectIp, onLoadSession, onLoa
                 <span className="meta">{fmtElapsed(j)}</span>
                 {j.session && (
                   <span className="x"
-                        onClick={(e) => { e.stopPropagation(); onLoadSession && onLoadSession(j.session); }}
-                        title={`reload session history: .session/${j.session}`}>↻</span>
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const session = normalizeArchitectSession(j.session);
+                          if (session) onLoadSession && onLoadSession(session);
+                        }}
+                        title={`reload session history: .session/${normalizeArchitectSession(j.session) || j.session}`}>↻</span>
                 )}
                 <span className="x"
                       onClick={(e) => {

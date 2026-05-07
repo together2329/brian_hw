@@ -158,8 +158,8 @@ const Splitter = ({ width, side, onResize, onToggle }) => {
 };
 
 const normalizeUiSession = (session) => {
-  const norm = window.atlasData && window.atlasData.normalizeSessionName;
-  try { return norm ? norm(session || '') : String(session || '').replace(/^\/+|\/+$/g, ''); }
+  const norm = (window.atlasData && window.atlasData.normalizeSessionName) || window.normalizeAtlasSessionName;
+  try { return norm ? norm(session || '') : ''; }
   catch (_) { return ''; }
 };
 
@@ -200,10 +200,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   ];
 
   const resolveSession = React.useCallback((...candidates) => {
-    const norm = window.atlasData && window.atlasData.normalizeSessionName;
     for (const candidate of candidates) {
       try {
-        const sid = norm ? norm(candidate || '') : '';
+        const sid = normalizeUiSession(candidate || '');
         if (sid) return sid;
       } catch (_) {}
     }
@@ -212,9 +211,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
 
   const [feed, setFeed] = React.useState(NORMAL_FEED);
   const [activeSession, setActiveSession] = React.useState(() => {
-    const norm = window.atlasData && window.atlasData.normalizeSessionName;
     try {
-      const sid = (norm && norm(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession'))) || 'default';
+      const sid = normalizeUiSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession')) || 'default';
       window.ACTIVE_SESSION = sid;
       return sid;
     } catch (_) {
@@ -2387,10 +2385,9 @@ const SsotApprovalCard = ({ payload }) => {
   const approved = !!payload?.approved;
   const send = (text) => {
     if (!text || !window.backend?.send) return;
-    const norm = window.atlasData && window.atlasData.normalizeSessionName;
     let session = 'default';
     try {
-      session = (norm && norm(window.ACTIVE_SESSION || '')) || 'default';
+      session = normalizeUiSession(window.ACTIVE_SESSION || '') || 'default';
     } catch (_) {
       session = 'default';
     }

@@ -57,18 +57,36 @@ const App = () => {
     try { return localStorage.getItem('atlasUiLang') === 'en' ? 'en' : 'ko'; }
     catch (_) { return 'ko'; }
   });
+  const [fontMode, setFontMode] = React.useState(() => {
+    try {
+      const saved = localStorage.getItem('atlasFontMode');
+      return ['mono', 'sans', 'system'].includes(saved) ? saved : 'mono';
+    } catch (_) { return 'mono'; }
+  });
+  const [fontScale, setFontScale] = React.useState(() => {
+    try {
+      const saved = localStorage.getItem('atlasFontScale');
+      return ['compact', 'normal', 'large', 'xl'].includes(saved) ? saved : 'large';
+    } catch (_) { return 'large'; }
+  });
   React.useEffect(() => {
     window.ATLAS_UI_LANG = uiLang;
     try { localStorage.setItem('atlasUiLang', uiLang); } catch (_) {}
     window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'UI_LANG' }));
   }, [uiLang]);
+  React.useEffect(() => {
+    try { localStorage.setItem('atlasFontMode', fontMode); } catch (_) {}
+  }, [fontMode]);
+  React.useEffect(() => {
+    try { localStorage.setItem('atlasFontScale', fontScale); } catch (_) {}
+  }, [fontScale]);
   const TOP_WORKFLOWS = React.useMemo(() => new Set([
     'architect', 'coverage', 'fl-model-gen', 'goal-audit', 'lint',
     'mas-gen', 'rtl-gen', 'signoff', 'sim', 'sim_debug', 'ssot-gen', 'tb-gen',
   ]), []);
 
   const normalizeSession = React.useCallback((value) => {
-    const norm = window.atlasData && window.atlasData.normalizeSessionName;
+    const norm = (window.atlasData && window.atlasData.normalizeSessionName) || window.normalizeAtlasSessionName;
     try { return (norm && norm(value || '')) || ''; }
     catch (_) { return ''; }
   }, []);
@@ -285,7 +303,9 @@ const App = () => {
   React.useEffect(() => {
     document.documentElement.setAttribute('data-dir', dir);
     document.documentElement.setAttribute('data-theme', theme);
-  }, [dir, theme]);
+    document.documentElement.setAttribute('data-font', fontMode);
+    document.documentElement.setAttribute('data-font-scale', fontScale);
+  }, [dir, theme, fontMode, fontScale]);
 
   // Bump on every atlas-data-changed so the TitleBar (which reads
   // window.CONTEXT.cwd / .workspace) re-renders when /healthz lands
@@ -378,6 +398,29 @@ const App = () => {
         <button className={`dir-btn ${uiLang === 'en' ? 'active' : ''}`}
                 title="Prefer English for visible agent output"
                 onClick={() => setUiLang('en')}>English</button>
+        <label className="dir-select-wrap" title="Change UI font family">
+          <span>font</span>
+          <select
+            className="dir-select mini"
+            value={fontMode}
+            onChange={e => setFontMode(e.currentTarget.value)}>
+            <option value="mono">Mono</option>
+            <option value="sans">Sans</option>
+            <option value="system">System</option>
+          </select>
+        </label>
+        <label className="dir-select-wrap" title="Change UI text size">
+          <span>size</span>
+          <select
+            className="dir-select mini"
+            value={fontScale}
+            onChange={e => setFontScale(e.currentTarget.value)}>
+            <option value="compact">S</option>
+            <option value="normal">M</option>
+            <option value="large">L</option>
+            <option value="xl">XL</option>
+          </select>
+        </label>
         <span style={{ width: 12 }} />
         <button className={`dir-btn ${dir === 'A' ? 'active' : ''}`}
                 onClick={() => setDir('A')}>A · Console</button>

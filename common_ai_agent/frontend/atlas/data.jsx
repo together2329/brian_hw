@@ -143,10 +143,22 @@
     'tb-gen',
   ]);
 
+  const KNOWN_SESSION_FILES = new Set([
+    'conversation.json',
+    'full_conversation.json',
+    'todo.json',
+    'todo_error.json',
+    'cost.json',
+    'state.json',
+    'qa.json',
+    'result.json',
+  ]);
+
   function normalizeSessionName(value) {
     const raw = String(value || '').trim().replace(/^["']|["']$/g, '');
     if (!raw) return '';
-    const pathish = raw.includes('\\') || raw.includes(':') || raw.startsWith('/') || raw.startsWith('~');
+    const pathish = raw.includes('\\') || raw.includes(':') || raw.startsWith('/') ||
+      raw.startsWith('~') || raw.startsWith('.session');
     let parts = raw.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')
       .split('/')
       .filter(p => p && p !== '.');
@@ -159,8 +171,7 @@
       parts = parts.slice(1);
       if (parts.length > 2) parts = parts.slice(-2);
     }
-    const knownFiles = new Set(['conversation.json', 'todo.json', 'todo_error.json', 'cost.json', 'state.json']);
-    if (parts.length && knownFiles.has(String(parts[parts.length - 1]).toLowerCase())) {
+    if (parts.length && KNOWN_SESSION_FILES.has(String(parts[parts.length - 1]).toLowerCase())) {
       parts = parts.slice(0, -1);
     }
     if (!parts.length) return '';
@@ -176,6 +187,7 @@
     }
     return parts.join('/');
   }
+  window.normalizeAtlasSessionName = normalizeSessionName;
 
   try {
     let sid = normalizeSessionName(localStorage.getItem('atlasUserSessionId'));
