@@ -390,6 +390,23 @@ def create_app():
             pass
         return JSONResponse({"mtime": latest})
 
+    @app.get("/api/whoami")
+    async def api_whoami(request: Request):
+        """Suggest a per-user session_id derived from the requesting
+        client's IPv4. LAN multi-user — no auth, no DB. The frontend
+        seeds localStorage.atlasUserSessionId from this on first visit
+        so each browser tab on the LAN gets its own namespace without
+        a login screen."""
+        client_host = (request.client.host if request.client else "") or "127.0.0.1"
+        # IPv4-mapped IPv6 prefix (::ffff:192.168.1.50 → 192.168.1.50)
+        if client_host.startswith("::ffff:"):
+            client_host = client_host[7:]
+        safe = client_host.replace(":", "-").replace(".", "-")
+        return JSONResponse({
+            "ip": client_host,
+            "user_session": f"u-{safe}",
+        })
+
     @app.get("/healthz")
     async def healthz():
         info = {

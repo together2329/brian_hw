@@ -276,6 +276,29 @@ const App = () => {
     activateNamespace(owner, activeIp, wf, !!wf);
   };
 
+  // Create a brand-new IP under the current user_session and switch
+  // to it. Mirrors the simplicity of `+ Session` but takes a name
+  // because IPs are named identifiers rather than disposable scratch
+  // owners. The actual on-disk .session/<sid>/<ip>/<wf>/ tree gets
+  // created by _setup_session on the next /wf or agent run.
+  const createIp = () => {
+    const raw = window.prompt(
+      'New IP name (letters/digits/_-, e.g. axi_dma):',
+      ''
+    );
+    if (!raw) return;
+    const ip = normalizeSession(raw);
+    if (!ip) {
+      window.alert('Invalid IP name. Use only [A-Za-z0-9_.-].');
+      return;
+    }
+    setIpOptions(prev => Array.from(new Set([ip].concat(prev || []))));
+    const me = activeSessionId
+      || normalizeSession(window.ATLAS_USER_SESSION_ID || '')
+      || 'default';
+    activateNamespace(me, ip, 'ssot-gen', true);
+  };
+
   // Top-level screen — 'workspace' (live agent + chat + sidebar) or
   // 'architect' (SoC block-diagram + status grid + chat, mock data).
   const [screen, setScreen] = React.useState(() => {
@@ -398,6 +421,9 @@ const App = () => {
             {ipOptions.map(ip => <option key={ip} value={ip}>{ip}</option>)}
           </select>
         </label>
+        <button className="dir-btn"
+                title="Create a new IP under the current session and switch to it (ssot-gen workflow)"
+                onClick={createIp}>+ IP</button>
         <label className="dir-select-wrap" title="Active workflow segment of the session namespace. Picking one fires /wf and re-pins config.TODO_FILE accordingly.">
           <span>workflow</span>
           <select
