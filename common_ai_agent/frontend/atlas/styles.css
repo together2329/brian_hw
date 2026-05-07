@@ -481,8 +481,13 @@
   cursor: pointer;
   align-items: center;
 }
-.frow:hover { background: var(--bg-2); }
-.frow.active { background: var(--select); color: var(--fg); }
+.frow:hover { background: color-mix(in oklch, var(--fg) 6%, transparent); }
+.frow.active {
+  background: color-mix(in oklch, var(--accent) 22%, transparent);
+  color: var(--fg);
+  border-left: 2px solid var(--accent);
+  padding-left: 6px; /* compensate for the 2px border */
+}
 .frow .fr-icon { color: var(--fg-mute); font-size: var(--ui-control-font-size); }
 
 /* code-ish */
@@ -501,6 +506,54 @@
 .react-block.thought .rb-tag { color: var(--magenta); }
 .react-block.action  .rb-tag { color: var(--cyan); }
 .react-block.obs     .rb-tag { color: var(--ok); }
+
+/* ── Prism syntax-highlight overrides ──────────────────────────────
+   prism-tomorrow.css ships fixed-color tokens tuned for #2d2d2d. Our
+   file preview pane uses var(--bg-3) which is theme-aware, so on
+   light mode the token palette washed out (esp. yellows on cream).
+   Re-pin each token category to a theme-aware HSL so contrast stays
+   readable in both dark and light. */
+.code-pane pre[class*="language-"],
+.code-pane code[class*="language-"] {
+  text-shadow: none;
+  background: transparent;
+}
+[data-theme="dark"] .token.comment,
+[data-theme="dark"] .token.prolog,
+[data-theme="dark"] .token.doctype,
+[data-theme="dark"] .token.cdata { color: #6a737d; font-style: italic; }
+[data-theme="light"] .token.comment,
+[data-theme="light"] .token.prolog,
+[data-theme="light"] .token.doctype,
+[data-theme="light"] .token.cdata { color: #6a737d; font-style: italic; }
+.token.punctuation       { color: var(--fg-dim); }
+.token.namespace         { opacity: 0.7; }
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol            { color: var(--magenta); }
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin           { color: var(--ok); }
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string     { color: var(--cyan); }
+.token.atrule,
+.token.attr-value,
+.token.keyword           { color: var(--accent); font-weight: 600; }
+.token.function,
+.token.class-name        { color: var(--warn); }
+.token.regex,
+.token.important,
+.token.variable          { color: var(--err); }
+.token.deleted           { color: var(--err); }
+.token.inserted          { color: var(--ok); }
 
 /* prompt input */
 .prompt-row {
@@ -551,8 +604,12 @@
   border-bottom: 1px solid var(--line);
 }
 .slash-item:last-child { border-bottom: none; }
-.slash-item:hover, .slash-item.sel { background: var(--bg-3); }
-.slash-item.sel { border-left: 2px solid var(--accent); padding-left: 10px; }
+.slash-item:hover { background: color-mix(in oklch, var(--fg) 6%, transparent); }
+.slash-item.sel {
+  background: color-mix(in oklch, var(--accent) 18%, transparent);
+  border-left: 2px solid var(--accent);
+  padding-left: 10px;
+}
 .slash-item .si-cmd { color: var(--accent); font-weight: 500; }
 .slash-item .si-alias { color: var(--fg-mute); font-size: var(--ui-small-font-size); }
 .slash-item .si-desc { color: var(--fg-dim); }
