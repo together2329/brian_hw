@@ -1,6 +1,6 @@
 {
   "name": "legacy-ip-rtl",
-  "description": "Legacy IP RTL update: read existing RTL + MAS delta → apply targeted changes → regression lint",
+  "description": "Legacy MAS checklist for targeted RTL updates. SSOT flows must use the dynamic rtl_todo_plan, not this fixed checklist.",
   "tasks": [
     {
       "content": "Read existing RTL and updated MAS delta",
@@ -14,12 +14,12 @@
     },
     {
       "content": "Apply FSM changes: add new states, keep existing transitions intact",
-      "detail": "Add new enum states to state type. Add new transitions in the always_comb next-state block — only in the default/new state case clauses. NEVER modify existing state transition logic unless the MAS delta explicitly requires it. Verify existing state sequences still reachable with same conditions.",
+      "detail": "Add new localparam state encodings and reg state declarations as needed. Add new transitions in the always @(*) next-state block — only in the default/new state case clauses. NEVER modify existing state transition logic unless the MAS delta explicitly requires it. Verify existing state sequences still reachable with same conditions.",
       "priority": "high"
     },
     {
-      "content": "Apply datapath changes: add new always_ff/comb blocks",
-      "detail": "For new features: add new always_ff blocks (do not modify existing ones). For modified features: make surgical edits inside the relevant always block only. Add // CHANGED: vX.Y comment next to each modified line. Run lint after each block change.",
+      "content": "Apply datapath changes: add new sequential/combinational blocks",
+      "detail": "For new features: add new always @(posedge clk ...) or always @(*) blocks as appropriate (do not modify existing ones). For modified features: make surgical edits inside the relevant always block only. Add // CHANGED: vX.Y comment next to each modified line. Run lint after each block change.",
       "priority": "high"
     },
     {

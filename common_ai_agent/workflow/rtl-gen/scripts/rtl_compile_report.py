@@ -37,18 +37,65 @@ def _count_diagnostics(text: str) -> tuple[int, int]:
     return errors, diagnostics
 
 
+def _strip_line_comment(line: str) -> str:
+    return line.split("//", 1)[0]
+
+
+def _policy_source_files(ip_dir: Path, rtl_files: list[str]) -> list[tuple[str, Path]]:
+    pairs: list[tuple[str, Path]] = []
+    seen: set[Path] = set()
+    for rel in rtl_files:
+        path = ip_dir / rel
+        if path.is_file():
+            resolved = path.resolve()
+            seen.add(resolved)
+            pairs.append((rel, path))
+    rtl_dir = ip_dir / "rtl"
+    if rtl_dir.is_dir():
+        for path in sorted(rtl_dir.glob("*_param.vh")):
+            resolved = path.resolve()
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            pairs.append((str(path.relative_to(ip_dir)), path))
+    return pairs
+
+
+def _banned_syntax_patterns() -> list[tuple[str, re.Pattern[str], str]]:
+    banned = [
+        ("no_package", r"\b(?:package|endpackage)\b", "Do not use package/endpackage; use rtl/<ip>_param.vh plus module-local parameters."),
+        ("no_import", r"\bimport\b|\b[A-Za-z_][A-Za-z0-9_]*::\*", "Do not use import or package scope references."),
+        ("no_interface", r"\b(?:interface|endinterface|modport)\b", "Do not use interface/modport; use plain module ports."),
+        ("no_function", r"\b(?:function|endfunction|task|endtask)\b", "Do not use function/task blocks in generated RTL."),
+        ("no_for_loop", r"\bfor\s*\(", "Do not use for loops in generated RTL."),
+        ("no_while_loop", r"\bwhile\s*\(", "Do not use while loops in generated RTL."),
+        ("no_logic", r"\blogic\b", "Generated RTL uses Verilog-2001 syntax: use wire/reg, not logic."),
+        ("no_typedef_enum", r"\b(?:typedef|enum)\b", "Generated RTL uses Verilog-2001 syntax: use localparam state encoding, not typedef/enum."),
+        ("no_always_ff_comb", r"\balways_(?:ff|comb|latch)\b", "Generated RTL uses Verilog-2001 syntax: use always @(...) or always @(*)."),
+        ("no_sv_integer_types", r"\b(?:bit|byte|int|longint|shortint)\b", "Generated RTL uses Verilog-2001 syntax: avoid SystemVerilog scalar integer types."),
+    ]
+    return [(rule, re.compile(pattern), message) for rule, pattern, message in banned]
+
+
 def _scan_style_violations(ip_dir: Path, rtl_files: list[str]) -> list[dict[str, object]]:
     violations: list[dict[str, object]] = []
     block_start_re = re.compile(r"\balways_(?:comb|ff|latch)\b|\balways\s*@")
     part_select_re = re.compile(r"\[[^\]]*(?:\$clog2|[A-Z][A-Z0-9_]*\s*[-+*/])[^\]]*:[^\]]*\]")
-    for rel in rtl_files:
-        path = ip_dir / rel
-        if not path.is_file():
-            continue
+    banned_patterns = _banned_syntax_patterns()
+    for rel, path in _policy_source_files(ip_dir, rtl_files):
         in_always = False
         depth = 0
         for lineno, raw in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
-            line = raw.split("//", 1)[0]
+            line = _strip_line_comment(raw)
+            for rule, pattern, message in banned_patterns:
+                if pattern.search(line):
+                    violations.append({
+                        "file": rel,
+                        "line": lineno,
+                        "rule": rule,
+                        "message": message,
+                        "text": raw.strip(),
+                    })
             if not in_always and block_start_re.search(line):
                 in_always = True
                 depth = line.count("begin") - line.count("end")
@@ -125,7 +172,11 @@ def main() -> int:
         "style_violations": len(style_violations),
         "style_violation_details": style_violations,
         "passed": passed,
-        "policy": "returncode==0, no error/fatal/warning/sorry diagnostics, and no procedural parameterized part-select style violations",
+        "policy": (
+            "returncode==0, no error/fatal/warning/sorry diagnostics, no procedural parameterized part-select style violations, "
+            "and no generated-RTL policy violations: .sv filenames with Verilog-2001 default syntax, rtl/<ip>_param.vh for shared parameters, "
+            "no package/import/interface/modport/function/task/for/while, and no logic/typedef/enum/always_ff/always_comb"
+        ),
     }
     out_log.write_text(text, encoding="utf-8")
     out_json.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

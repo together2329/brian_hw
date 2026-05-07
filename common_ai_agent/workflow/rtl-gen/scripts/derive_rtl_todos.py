@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Derive RTL implementation TODOs directly from the SSOT.
 
-The fixed ssot-rtl template is only a seed.  This script builds the real,
-IP-sized implementation plan from the YAML SSOT so a complex IP naturally
+The legacy ssot-rtl checklist is only a bootstrap seed.  This script builds
+the real, IP-sized implementation plan from the YAML SSOT so a complex IP naturally
 produces dozens or hundreds of concrete RTL tasks.  It also emits a lightweight
 static gate that rejects orphan function/cycle behavior and, after RTL exists,
 checks that required implementation terms appear in the generated DUT sources.
@@ -1595,14 +1595,18 @@ def _add_rtl_gate_todo_tasks(tasks: list[dict[str, Any]], owner: dict[str, str],
         {
             "kind": "rtl_placeholder_free_evidence",
             "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-            "content": "Gate: RTL sources contain no placeholder implementation markers",
+            "content": "Gate: RTL sources contain no placeholder markers or disallowed SV/default-policy constructs",
             "detail": (
                 "Production RTL cannot carry TODO/TBD/FIXME/stub/dummy/not-implemented markers in source code or comments. "
+                "Generated RTL also keeps .sv filenames but defaults to Verilog-2001 syntax: no package/import/interface/modport, "
+                "no function/task, no for/while, and no logic/typedef/enum/always_ff/always_comb. "
                 "If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract."
             ),
             "criteria": [
                 "Listed RTL source files contain no TODO/TBD/FIXME/HACK markers",
                 "Listed RTL source files contain no placeholder/stub/dummy/not-implemented implementation text",
+                "Listed RTL source files and rtl/<ip>_param.vh contain no banned package/function/task/loop constructs",
+                "Default generated RTL uses Verilog-2001 wire/reg and always @ syntax even though filenames end in .sv",
                 "Intentional reserved behavior is represented in SSOT contracts instead of RTL placeholder comments",
             ],
             "artifact": "rtl/rtl_todo_plan.json",
@@ -3160,7 +3164,7 @@ def _connection_contract_draft_fragment_text(suggestions: dict[str, Any]) -> str
         lines.extend(["// Suggested internal signals."])
         for signal, port_range in sorted(declarations.items()):
             range_text = f" {port_range}" if port_range else ""
-            lines.append(f"logic{range_text} {signal};")
+            lines.append(f"wire{range_text} {signal};")
         lines.append("")
 
     lines.extend(["// Suggested child instances."])
@@ -4305,6 +4309,12 @@ def _rtl_source_paths(ip_dir: Path) -> list[tuple[str, Path]]:
                 entries.append(line)
     if not entries and (ip_dir / "rtl").is_dir():
         entries = [str(path.relative_to(ip_dir)) for path in sorted((ip_dir / "rtl").glob("*.sv")) + sorted((ip_dir / "rtl").glob("*.v"))]
+    rtl_dir = ip_dir / "rtl"
+    if rtl_dir.is_dir():
+        for path in sorted(rtl_dir.glob("*_param.vh")):
+            rel = str(path.relative_to(ip_dir))
+            if rel not in entries:
+                entries.append(rel)
     paths: list[tuple[str, Path]] = []
     seen: set[Path] = set()
     for rel in entries:
@@ -5128,6 +5138,18 @@ def _audit_rtl_placeholder_free(ip_dir: Path) -> dict[str, Any]:
         r"\b(?:TODO|TBD|FIXME|HACK|PLACEHOLDER|STUB|DUMMY)\b|not\s+implemented|implement\s+later",
         flags=re.I,
     )
+    banned_reasons = [
+        (re.compile(r"\b(?:package|endpackage)\b"), "RTL source uses package/endpackage instead of rtl/<ip>_param.vh include parameters"),
+        (re.compile(r"\bimport\b|\b[A-Za-z_][A-Za-z0-9_]*::\*"), "RTL source uses import or package scope syntax"),
+        (re.compile(r"\b(?:interface|endinterface|modport)\b"), "RTL source uses interface/modport syntax"),
+        (re.compile(r"\b(?:function|endfunction|task|endtask)\b"), "RTL source uses function/task blocks"),
+        (re.compile(r"\bfor\s*\("), "RTL source uses a for loop"),
+        (re.compile(r"\bwhile\s*\("), "RTL source uses a while loop"),
+        (re.compile(r"\blogic\b"), "RTL source uses SystemVerilog logic instead of Verilog-2001 wire/reg"),
+        (re.compile(r"\b(?:typedef|enum)\b"), "RTL source uses SystemVerilog typedef/enum instead of localparam state encoding"),
+        (re.compile(r"\balways_(?:ff|comb|latch)\b"), "RTL source uses SystemVerilog always_ff/always_comb/always_latch"),
+        (re.compile(r"\b(?:bit|byte|int|longint|shortint)\b"), "RTL source uses SystemVerilog scalar integer types"),
+    ]
     issues: list[dict[str, Any]] = []
     checked = 0
     for rel, path in _rtl_source_paths(ip_dir):
@@ -5150,6 +5172,20 @@ def _audit_rtl_placeholder_free(ip_dir: Path) -> dict[str, Any]:
                 })
                 if len(issues) >= 128:
                     break
+            policy_line = line.split("//", 1)[0]
+            for pattern, reason in banned_reasons:
+                policy_match = pattern.search(policy_line)
+                if policy_match:
+                    issues.append({
+                        "file": rel,
+                        "line": line_no,
+                        "token": policy_match.group(0),
+                        "issue": reason,
+                    })
+                    if len(issues) >= 128:
+                        break
+            if len(issues) >= 128:
+                break
         if len(issues) >= 128:
             break
     if checked == 0:
@@ -6534,12 +6570,12 @@ def _gate_todo_completion(plan: dict[str, Any], ip_dir: Path, task: dict[str, An
         issues = placeholders.get("issues") if isinstance(placeholders.get("issues"), list) else []
         if issues:
             sample = "; ".join(
-                f"{item.get('file')}:{item.get('line')}: {item.get('token')}"
+                f"{item.get('file')}:{item.get('line')}: {item.get('token')} ({item.get('issue')})"
                 for item in issues[:3]
                 if isinstance(item, dict)
             )
-            return "open", f"{len(issues)} RTL placeholder marker(s) remain. {sample}".strip(), basis
-        return "pass", "RTL sources contain no placeholder implementation markers.", basis
+            return "open", f"{len(issues)} RTL placeholder/policy issue(s) remain. {sample}".strip(), basis
+        return "pass", "RTL sources contain no placeholder markers or disallowed default-policy constructs.", basis
     if kind == "top_io_contract_evidence":
         top_io = plan.get("top_io_contract_evidence") if isinstance(plan.get("top_io_contract_evidence"), dict) else {}
         issues = top_io.get("issues") if isinstance(top_io.get("issues"), list) else []

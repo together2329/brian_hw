@@ -4816,10 +4816,9 @@ def set_record_ssot_qa_callback(cb):
 def scaffold_ip(name=None, root="."):
     """Create the canonical IP directory layout in the project root.
 
-    Port placeholders follow `config.RTL_DIALECT`; file extension follows
+    Port placeholders use Verilog-2001 syntax while the file extension follows
     `config.RTL_FILE_EXT` and defaults to .sv by project convention:
-      • verilog_2001 (default) → .sv files, `input wire clk` / `reg`
-      • systemverilog_2012     → .sv files, `input logic clk` / `logic`
+      • .sv files, `input wire clk` / `reg`
 
     Layout (under `<root>/<name>/`, ext = .sv unless RTL_FILE_EXT overrides):
         yaml/<name>.ssot.yaml         # Single Source of Truth
@@ -4848,15 +4847,15 @@ def scaffold_ip(name=None, root="."):
     if not __re.match(r"^[A-Za-z][A-Za-z0-9_]*$", name):
         return f"[scaffold_ip: invalid name {name!r} — letters, digits, underscore only]"
 
-    # Resolve dialect-specific file extension and port style. config is
+    # Resolve project file extension. config is
     # imported lazily so this function works even when invoked outside the
     # main agent process (e.g. from a unit test).
     import sys as __sys
     _cfg = __sys.modules.get('config') or __sys.modules.get('src.config')
-    _dialect = getattr(_cfg, 'RTL_DIALECT', 'verilog_2001') if _cfg else 'verilog_2001'
     _ext = getattr(_cfg, 'RTL_FILE_EXT', '.sv') if _cfg else '.sv'
     _ext = _ext if _ext in ('.v', '.sv') else '.sv'
-    _port_kw = 'wire' if _dialect == 'verilog_2001' else 'logic'
+    _dialect = 'verilog_2001'
+    _port_kw = 'wire'
 
     base = os.path.abspath(os.path.join(root, name))
     layout = {

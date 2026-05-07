@@ -1,6 +1,6 @@
 {
   "name": "rtl-impl",
-  "description": "RTL implementation: read MAS → header → registers → FSM → datapath → interrupt → memory → lint",
+  "description": "Legacy MAS RTL checklist. SSOT flows must use the dynamic rtl_todo_plan, not this fixed checklist.",
   "tasks": [
     {
       "content": "[FROM MAS] Read MAS handoff + extract all RTL requirements",
@@ -14,17 +14,17 @@
     },
     {
       "content": "Implement register block (FAM from MAS §4)",
-      "detail": "Implement all registers from MAS §4 FAM table. RW registers: written on APB/AXI write. RO registers: driven by internal logic. RW1C registers (interrupt status): cleared when CPU writes 1. Nonblocking (<=) in always_ff with synchronous rst_n.",
+      "detail": "Implement all registers from MAS §4 FAM table. RW registers: written on APB/AXI write. RO registers: driven by internal logic. RW1C registers (interrupt status): cleared when CPU writes 1. Nonblocking (<=) in always @(posedge clk ...) with reset from §8.",
       "priority": "high"
     },
     {
       "content": "Implement control FSM (from MAS §3)",
-      "detail": "Implement FSM exactly as defined in MAS §3 state table. One always_ff for state register, one always_comb for next-state + output logic. All states must be reachable. Add default clause.",
+      "detail": "Implement FSM exactly as defined in MAS §3 state table. Use localparam state encodings, one always @(posedge clk ...) for the state register, and one always @(*) for next-state + output logic. All states must be reachable. Add default clause.",
       "priority": "high"
     },
     {
       "content": "Implement datapath (from MAS §3 Feature Operation)",
-      "detail": "Implement each feature's datapath as described in MAS §3. Blocking (=) in always_comb. Default assignment at top of each block to prevent latches. Case statements with default.",
+      "detail": "Implement each feature's datapath as described in MAS §3. Blocking (=) in always @(*). Default assignment at top of each block to prevent latches. Case statements with default.",
       "priority": "high"
     },
     {

@@ -661,18 +661,11 @@ UNLOCK_NORMAL_MODE_TOOLS = os.getenv("UNLOCK_NORMAL_MODE_TOOLS", "true").lower()
 # ============================================================
 # RTL dialect for the rtl-gen / ssot-gen workflows
 # ============================================================
-# Selects the Verilog dialect used by the RTL generator and scaffold_ip
-# placeholder syntax. File extension is intentionally independent: this
-# workspace keeps .sv filenames even when emitting Verilog-2001 syntax.
-#   verilog_2001       — IEEE 1364 syntax, .sv files, wire/reg, always @(...)
-#   systemverilog_2012 — IEEE 1800 syntax, .sv files, logic, always_ff/always_comb
-# Default: verilog_2001 — narrower language surface = fewer ways for the
-# LLM to hallucinate broken RTL, plus universal toolchain compatibility.
-# Project-wide convention (independent of this flag): `package` and
-# `interface` are forbidden in RTL even in SystemVerilog mode — use module
-# ports + localparam blocks for shared constants instead.
-_RTL_DIALECT_RAW = os.getenv("RTL_DIALECT", "verilog_2001").strip().lower()
-RTL_DIALECT = _RTL_DIALECT_RAW if _RTL_DIALECT_RAW in ("verilog_2001", "systemverilog_2012") else "verilog_2001"
+# RTL syntax policy for rtl-gen / ssot-gen workflows.
+# Filenames stay .sv for toolflow compatibility, but generated RTL uses the
+# Verilog-2001 subset: wire/reg, localparam state encoding, always @(...), and
+# no package/import/interface/modport/function/task/for/while constructs.
+RTL_DIALECT = "verilog_2001"
 _RTL_FILE_EXT_RAW = os.getenv("RTL_FILE_EXT", ".sv").strip().lower()
 RTL_FILE_EXT = _RTL_FILE_EXT_RAW if _RTL_FILE_EXT_RAW in (".v", ".sv") else ".sv"
 

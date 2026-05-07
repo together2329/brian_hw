@@ -34,7 +34,7 @@ implementation hierarchy belongs to leaf IP YAML files.
 ## SSOT Section Processing Order
 
 1. `top_module` → module name for all files
-2. `parameters` → `<ip>_pkg.sv` (localparam)
+2. `parameters` → optional `rtl/<ip>_param.vh` include; never `*_pkg.sv`
 3. `io_list.interfaces` → `<ip>_wrapper.sv` port declarations
 4. `io_list.clock_domains` → clock/reset ports
 5. `registers.register_list` → `<ip>_regs.sv` (APB decode + register FFs)
@@ -67,9 +67,15 @@ request instead of guessing the architecture.
 Do not add or rely on IP-kind fixed Python/Jinja generators to make a new design pass.
 RTL-gen writes the current IP's RTL directly from the current SSOT, compiles it,
 repairs real diagnostics, and escalates missing SSOT facts back to ssot-gen.
-Small repeated structures such as port declarations, parameters, or register fields
+Small repeated structures such as port declarations, parameter declarations, or register fields
 may be written mechanically during the RTL edit, but the source of truth remains the
 YAML content and the production quality gates.
+
+Generated RTL policy:
+- RTL filenames remain `.sv`.
+- Default syntax is Verilog-2001: `wire`/`reg`, `assign`, `always @(...)`, `always @(*)`, `case`.
+- Shared parameters, if needed, live in `rtl/<ip>_param.vh` and are included inside consuming module bodies.
+- Never create `*_pkg.sv`, `package`, `import`, `interface`, `modport`, `function`, `task`, `for`, or `while` constructs.
 
 ## Handoff Recognition
 

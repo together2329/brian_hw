@@ -1,17 +1,19 @@
 # RTL Coding Rules (rtl-gen)
 
-**Default dialect: Verilog-2001 (IEEE 1364)** — `.v` files, `wire`/`reg`, `always @(…)` blocks. SystemVerilog-2012 is reachable via `RTL_DIALECT=systemverilog_2012` (`.sv`, `logic`, `always_ff`/`always_comb`). Project convention applies to BOTH dialects.
+**RTL syntax policy: Verilog-2001 (IEEE 1364) in `.sv` files** — use `wire`/`reg`, `localparam` state encoding, and `always @(…)` blocks. SystemVerilog RTL constructs are not part of generated RTL.
 
-## Always-banned (both dialects, project convention)
+## Always Banned
 
 | Banned construct | Use instead |
 |---|---|
 | `package` / `endpackage` / `import …::*` | A `localparam` block at the top of the consuming module. Replicate per-module if shared. |
 | `interface` / `modport` | Plain module ports. |
+| `function` / `endfunction` / `task` / `endtask` | Inline wires, continuous assigns, always blocks, and case statements. |
+| `for` / `while` | Explicit unrolled logic or SSOT-derived static structure. |
 | `assert` / `assume` / `cover` properties | Move to formal-only files outside the synthesizable RTL. |
 | `initial` blocks (in synthesizable RTL) | Sim-only — keep out of `<ip>/rtl/`. |
 
-## Verilog-2001 mode (default)
+## Verilog-2001 Mode
 
 ### Mandatory Patterns
 
@@ -56,7 +58,7 @@ endmodule
 `default_nettype wire
 ```
 
-### Banned in Verilog-2001 mode (additional to always-banned)
+### Banned SystemVerilog Constructs
 
 ```verilog
 // NEVER: SystemVerilog-only types
@@ -95,30 +97,14 @@ end
 initial begin reg_val = 0; end   // not synthesizable
 ```
 
-## SystemVerilog-2012 mode (only when `RTL_DIALECT=systemverilog_2012`)
-
-When this mode is active, you MAY use:
-- `logic` instead of `wire`/`reg`
-- `always_ff` / `always_comb` blocks
-- `enum logic [N-1:0] { IDLE, RUN, … }` for state encoding
-- `typedef` for local type aliases
-- `'0` / `'1` literals
-- `.sv` file extension
-
-You MAY NOT use (always-banned list still applies):
-- `package` / `endpackage` / `import`
-- `interface` / `modport`
-- `assert` / `cover` properties (in synthesizable RTL)
-- `initial` (in synthesizable RTL)
-
-## Width Rules (both dialects)
+## Width Rules
 
 - Explicit width on all constants: `8'h00`, `1'b0`. In V2K use `{N{1'b0}}` for all-zeros (no `'0`).
 - Check width match in assignments — no implicit truncation.
 - Use `$clog2(N)` for address-width calculation.
 
-## Reset Convention (both dialects)
+## Reset Convention
 
-- Active-low async reset (default): `always @(posedge clk or negedge rst_n)` (V2K) / `always_ff @(posedge clk or negedge rst_n)` (SV)
-- Active-high sync reset: `always @(posedge clk)` (V2K) / `always_ff @(posedge clk)` (SV) with `if (rst)`
+- Active-low async reset (default): `always @(posedge clk or negedge rst_n)`
+- Active-high sync reset: `always @(posedge clk)` with `if (rst)`
 - Pick ONE per project — document in spec.

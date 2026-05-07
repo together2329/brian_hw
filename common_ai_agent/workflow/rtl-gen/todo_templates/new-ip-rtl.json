@@ -1,6 +1,6 @@
 {
   "name": "new-ip-rtl",
-  "description": "New IP RTL from scratch: MAS → ports → FSM → datapath → registers → interrupt → memory → lint",
+  "description": "Legacy MAS checklist for new IP RTL. SSOT flows must use the dynamic rtl_todo_plan, not this fixed checklist.",
   "tasks": [
     {
       "content": "[FROM MAS] Read MAS handoff + extract all RTL requirements",
@@ -9,22 +9,22 @@
     },
     {
       "content": "Write module header: `default_nettype none, parameters, port declarations",
-      "detail": "First lines: `default_nettype none. module <name> #(parameters) (ports); Match §2 port table exactly — every port with explicit direction+type+width. Use 'logic' for all signals. Add inline comments for clock domains on each port.",
+      "detail": "First lines: `default_nettype none. module <name> #(parameters) (ports); Match §2 port table exactly — every port with explicit direction+type+width. Use Verilog-2001 port types: input wire, output wire, or output reg when driven by an always block. Add inline comments for clock domains on each port.",
       "priority": "high"
     },
     {
       "content": "Implement control FSM (MAS §3 FSM table)",
-      "detail": "Declare state type enum. always_ff for state register with rst_n. always_comb for next-state logic (exhaustive case, default clause). always_comb for FSM output assignments (default at top). Every state/transition from MAS §3 FSM table must be present. No unreachable states.",
+      "detail": "Declare state encodings with localparam and state registers with reg. Use always @(posedge clk or negedge rst_n) for the state register. Use always @(*) for next-state logic and FSM output assignments with defaults at the top. Every state/transition from MAS §3 FSM table must be present. No unreachable states.",
       "priority": "high"
     },
     {
-      "content": "Implement datapath always_ff blocks (MAS §3 Feature Operation)",
-      "detail": "For each feature in MAS §3: implement the data registers as always_ff blocks. Nonblocking (<=). Active reset (rst_n or rst — per §8). Group by pipeline stage if §7 specifies pipeline depth.",
+      "content": "Implement datapath sequential blocks (MAS §3 Feature Operation)",
+      "detail": "For each feature in MAS §3: implement the data registers with always @(posedge clk ...) blocks. Nonblocking (<=). Active reset (rst_n or rst — per §8). Group by pipeline stage if §7 specifies pipeline depth.",
       "priority": "high"
     },
     {
       "content": "Implement register map / CSR decode (MAS §4 FAM)",
-      "detail": "APB/AXI address decode always_comb. Per-register always_ff: RW → written on write strobe; RO → driven by internal signal; RW1C → cleared by write-1. Read mux: always_comb with address select. Match MAS §4 offsets exactly.",
+      "detail": "APB/AXI address decode in always @(*). Per-register always @(posedge clk ...): RW → written on write strobe; RO → driven by internal signal; RW1C → cleared by write-1. Read mux: always @(*) with address select. Match MAS §4 offsets exactly.",
       "priority": "high"
     },
     {

@@ -1462,7 +1462,7 @@ def _doc(ip: str, state: dict[str, Any]) -> dict[str, Any]:
             "notes": "No explicit DFT requirement approved; maintain reset controllability and waveform observability.",
         },
         "synthesis": {
-            "dialect": "systemverilog_2012",
+            "dialect": "verilog_2001",
             "top_module": ip,
             "constraints": [
                 "No inferred latches",
@@ -1474,11 +1474,15 @@ def _doc(ip: str, state: dict[str, Any]) -> dict[str, Any]:
             "required_outputs": ["syn/out/area.rpt", "syn/out/timing_summary.rpt", "sta/out/wns.json"],
         },
         "coding_rules": {
-            "verilog_style": "systemverilog_2012",
+            "verilog_style": "verilog_2001",
+            "file_extension": ".sv",
+            "parameter_header": f"rtl/{ip}_param.vh",
             "conventions": [
                 "Flatten external protocol ports unless the SSOT explicitly approves interface constructs.",
                 "Separate protocol/control/datapath/status responsibilities according to sub_modules.",
                 "Avoid style-only lint violations by using default nettype discipline and explicit widths.",
+                "Generated RTL uses Verilog-2001 syntax in .sv files: wire/reg, localparam state encoding, always @ blocks.",
+                "Do not use logic, typedef, enum, always_ff, always_comb, package, import, function, task, for, or while in generated RTL.",
             ],
             "lint_waivers": [],
         },

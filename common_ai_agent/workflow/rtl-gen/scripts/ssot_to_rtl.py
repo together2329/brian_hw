@@ -16,7 +16,6 @@ import argparse
 import ast
 import hashlib
 import json
-import os
 from pathlib import Path
 import re
 import sys
@@ -2116,31 +2115,10 @@ def _sv_int_literal(width: int, value: object) -> str:
     return f"{width}'d{parsed & mask}"
 
 
-def _rtl_dialect(doc: dict | None = None) -> str:
-    values: list[object] = []
-    if isinstance(doc, dict):
-        synthesis = doc.get("synthesis")
-        coding_rules = doc.get("coding_rules")
-        if isinstance(synthesis, dict):
-            values.append(synthesis.get("dialect"))
-        if isinstance(coding_rules, dict):
-            values.append(coding_rules.get("verilog_style"))
-    values.append(os.getenv("RTL_DIALECT", "verilog_2001"))
-    for value in values:
-        dialect = str(value or "").strip().lower()
-        if dialect in {"systemverilog", "systemverilog_2012", "sv"}:
-            return "systemverilog_2012"
-        if dialect in {"verilog", "verilog_2001", "v2k"}:
-            return "verilog_2001"
-    return "verilog_2001"
-
-
-def _sv_port_decl(port: dict, procedural_outputs: set[str] | None = None, *, sv_syntax: bool = False) -> str:
+def _sv_port_decl(port: dict, procedural_outputs: set[str] | None = None) -> str:
     direction = str(port.get("direction") or "input").lower()
     if direction not in {"input", "output", "inout"}:
         direction = "input"
-    if sv_syntax:
-        return f"{direction} logic {_sv_range(_port_width(port))}{port['name']}"
     name = str(port["name"])
     if direction == "output" and name in (procedural_outputs or set()):
         net_type = "reg"
@@ -2183,10 +2161,9 @@ def _sv_marker_names(doc: dict, contract: dict) -> list[str]:
 def _generic_rule_rtl_source(ip: str, top: str, ports: list[dict], contract: dict, doc: dict) -> str:
     by_name = {p["name"]: p for p in ports}
     output_ports = {p["name"] for p in ports if str(p.get("direction") or "").lower() == "output"}
-    sv_syntax = _rtl_dialect(doc) == "systemverilog_2012"
-    net_keyword = "logic" if sv_syntax else "wire"
-    reg_keyword = "logic" if sv_syntax else "reg"
-    always_keyword = "always_ff" if sv_syntax else "always"
+    net_keyword = "wire"
+    reg_keyword = "reg"
+    always_keyword = "always"
     clock = _ident(contract.get("clock") or "clk")
     reset = _ident(contract.get("reset") or "rst_n")
     reset_active = str(contract.get("reset_active") or "low").lower()
@@ -2222,7 +2199,7 @@ def _generic_rule_rtl_source(ip: str, top: str, ports: list[dict], contract: dic
     ]
     for idx, port in enumerate(ports):
         suffix = "," if idx < len(ports) - 1 else ""
-        lines.append(f"    {_sv_port_decl(port, driven, sv_syntax=sv_syntax)}{suffix}")
+        lines.append(f"    {_sv_port_decl(port, driven)}{suffix}")
     lines += [
         ");",
         "",

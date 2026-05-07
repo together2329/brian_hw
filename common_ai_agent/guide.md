@@ -506,11 +506,12 @@ Project policy for this workspace:
 
 ```text
 Default RTL dialect: verilog_2001
-Default RTL extension: .v
-Scaffold output: .v
-RTL-gen fallback output: .v
-Filelist RTL entries: rtl/*.v
-SystemVerilog is opt-in only.
+Default RTL extension: .sv
+Scaffold output: .sv filenames with Verilog-2001 syntax
+RTL-gen output: SSOT-derived .sv filenames with Verilog-2001 syntax
+Filelist RTL entries: rtl/*.sv
+Parameter include, if needed: rtl/<ip>_param.vh
+SystemVerilog syntax is not used in generated RTL.
 ```
 
 Required SSOT entries:
@@ -521,7 +522,8 @@ synthesis:
 
 coding_rules:
   verilog_style: "verilog_2001"
-  file_extension: ".v"
+  file_extension: ".sv"
+  parameter_header: "rtl/<ip>_param.vh"
   allowed_constructs:
     - "module / endmodule"
     - "parameter / localparam"
@@ -530,6 +532,7 @@ coding_rules:
     - "always @(posedge clk or negedge rst_n)"
     - "always @(*)"
     - "case / if / else"
+    - "`include \"<ip>_param.vh\" inside module bodies when shared parameters are needed"
   banned_constructs:
     - "typedef"
     - "enum"
@@ -538,8 +541,12 @@ coding_rules:
     - "always_ff"
     - "always_comb"
     - "always_latch"
-    - "package / import"
+    - "package / endpackage / import"
     - "interface / modport"
+    - "function / endfunction"
+    - "task / endtask"
+    - "for / while"
+    - "*_pkg.sv"
     - "'0 / '1 SystemVerilog literals"
   fsm_style:
     state_encoding: "localparam"
@@ -613,54 +620,57 @@ interface
 modport
 package
 import ...::*
+function
+endfunction
+task
+endtask
+for (...)
+while (...)
 ```
 
 Implementation cleanup needed in the workflow source:
 
 ```text
-scaffold_ip already follows RTL_DIALECT and emits .v by default.
-The remaining problem is hardcoded .sv fallbacks in SSOT templates, rtl-gen
-preflight, derive_rtl_todos, workflow_stage_engine, and some legacy docs.
-Those must use the selected RTL file extension instead of literal .sv.
+scaffold_ip must emit .sv files by default while keeping Verilog-2001 syntax.
+SSOT templates must not create *_pkg.sv. Parameters that need sharing use
+rtl/<ip>_param.vh and are included inside consuming modules.
+rtl-gen prompts and gates must reject function/task/for/while/package/interface
+constructs in generated RTL.
 ```
 
 Concrete places to check:
 
 ```text
 src/config.py:
-  RTL_DIALECT defaults to verilog_2001.
-  RTL_FILE_EXT is .v for verilog_2001 and .sv for systemverilog_2012.
+  RTL_DIALECT is fixed to verilog_2001 for generated RTL.
+  RTL_FILE_EXT defaults to .sv independent of dialect.
 
 core/tools.py:
-  scaffold_ip already uses RTL_DIALECT to choose .v or .sv.
+  scaffold_ip uses Verilog-2001 syntax and RTL_FILE_EXT for filename.
 
 workflow/ssot-gen/rules/ssot-template.yaml:
-  filelist and sub_modules examples still show rtl/<ip>_*.sv.
+  must list only real RTL modules in filelist.rtl and optional rtl/<ip>_param.vh in filelist.headers.
 
 workflow/ssot-gen/system_prompt.md:
-  copied template examples still show rtl/<ip>_*.sv.
+  must describe <ip>_param.vh, not *_pkg.sv.
 
 workflow/rtl-gen/scripts/ssot_to_rtl.py:
-  fallback expected file and generic seed output still use rtl/<top>.sv.
+  generic seed output must be SSOT-derived .sv file + Verilog-2001 syntax.
 
 workflow/rtl-gen/scripts/derive_rtl_todos.py:
-  fallback owner files still use rtl/<module>.sv.
+  fallback owner files may be rtl/<module>.sv, but syntax gates must reject banned constructs.
 
 src/workflow_stage_engine.py:
-  top-file fallback and alias checks still prefer rtl/<top>.sv.
+  top-file fallback and alias checks prefer rtl/<top>.sv.
 ```
 
 Correct behavior:
 
 ```text
-ext = ".v" when RTL_DIALECT == "verilog_2001"
-ext = ".sv" only when RTL_DIALECT == "systemverilog_2012"
-
-Every fallback should use:
-  rtl/<module>{ext}
-
-No fallback should hardcode:
-  rtl/<module>.sv
+filename ext = ".sv" by default
+syntax = "verilog_2001" by default
+shared parameter header = rtl/<ip>_param.vh, only when needed
+no *_pkg.sv / package / function / task / for / while in generated RTL
 ```
 
 What rtl-gen may edit:

@@ -89,7 +89,9 @@ decomposition:
 
 # SECTION 2: Parameters
 parameters:
-  parameter_header: "rtl/<ip>_param.vh"
+  # Shared RTL parameter declarations, if needed, are projected to
+  # rtl/<ip>_param.vh and included inside each consuming module body.
+  # Do not model parameters as a *_pkg.sv module.
   - name: "DATA_WIDTH"
     default: 64
     type: int
@@ -443,18 +445,17 @@ fsm:
 # SECTION 15: Coding Rules
 coding_rules:
   # Default: .sv filenames with Verilog-2001 syntax (wire/reg, always @(...)).
-  # Override per-IP to "systemverilog_2012" only for SV-specific syntax.
   verilog_style: "verilog_2001"
   file_extension: ".sv"
   parameter_header: "rtl/<ip>_param.vh"
   conventions:
-    - "nonblocking (<=) in sequential always @(posedge clk …)  /  always_ff (SV mode)"
-    - "blocking (=) in combinational always @(*)  /  always_comb (SV mode)"
+    - "nonblocking (<=) in sequential always @(posedge clk …)"
+    - "blocking (=) in combinational always @(*)"
     - "No latches: every combinational branch assigns all outputs"
     - "Active-low async reset"
     - "Parameterize widths (no hardcoded numbers)"
-    - "Use rtl/<ip>_param.vh for shared parameter macros/constants when needed"
-    - "BANNED in both dialects: package / endpackage / import / interface / modport / *_pkg.sv"
+    - "Use rtl/<ip>_param.vh for shared parameter declarations when needed; include it inside consuming modules"
+    - "BANNED: logic / typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
   lint_waivers:
     - "UNUSEDSIGNAL: generated template tie-offs"
     - "WIDTHEXPAND: peripheral_events indexing"

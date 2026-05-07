@@ -59,6 +59,73 @@ def _suppression_violations(ip_dir: Path, entries: list[str]) -> list[dict[str, 
     return violations
 
 
+def _strip_line_comment(line: str) -> str:
+    return line.split("//", 1)[0]
+
+
+def _policy_source_files(ip_dir: Path, entries: list[str]) -> list[tuple[str, Path]]:
+    pairs: list[tuple[str, Path]] = []
+    seen: set[Path] = set()
+    for rel in entries:
+        if not rel.endswith((".v", ".sv", ".vh", ".svh")):
+            continue
+        path = ip_dir / rel
+        if not path.is_file():
+            continue
+        resolved = path.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        pairs.append((rel, path))
+    rtl_dir = ip_dir / "rtl"
+    if rtl_dir.is_dir():
+        for path in sorted(rtl_dir.glob("*_param.vh")):
+            resolved = path.resolve()
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            pairs.append((str(path.relative_to(ip_dir)), path))
+    return pairs
+
+
+def _banned_syntax_patterns() -> list[tuple[str, re.Pattern[str], str]]:
+    banned = [
+        ("no_package", r"\b(?:package|endpackage)\b", "Do not use package/endpackage; use rtl/<ip>_param.vh plus module-local parameters."),
+        ("no_import", r"\bimport\b|\b[A-Za-z_][A-Za-z0-9_]*::\*", "Do not use import or package scope references."),
+        ("no_interface", r"\b(?:interface|endinterface|modport)\b", "Do not use interface/modport; use plain module ports."),
+        ("no_function", r"\b(?:function|endfunction|task|endtask)\b", "Do not use function/task blocks in generated RTL."),
+        ("no_for_loop", r"\bfor\s*\(", "Do not use for loops in generated RTL."),
+        ("no_while_loop", r"\bwhile\s*\(", "Do not use while loops in generated RTL."),
+        ("no_logic", r"\blogic\b", "Generated RTL uses Verilog-2001 syntax: use wire/reg, not logic."),
+        ("no_typedef_enum", r"\b(?:typedef|enum)\b", "Generated RTL uses Verilog-2001 syntax: use localparam state encoding, not typedef/enum."),
+        ("no_always_ff_comb", r"\balways_(?:ff|comb|latch)\b", "Generated RTL uses Verilog-2001 syntax: use always @(...) or always @(*)."),
+        ("no_sv_integer_types", r"\b(?:bit|byte|int|longint|shortint)\b", "Generated RTL uses Verilog-2001 syntax: avoid SystemVerilog scalar integer types."),
+    ]
+    return [(rule, re.compile(pattern), message) for rule, pattern, message in banned]
+
+
+def _style_violations(ip_dir: Path, entries: list[str]) -> list[dict[str, str | int]]:
+    violations: list[dict[str, str | int]] = []
+    banned_patterns = _banned_syntax_patterns()
+    for rel, path in _policy_source_files(ip_dir, entries):
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        for idx, raw in enumerate(lines, start=1):
+            line = _strip_line_comment(raw)
+            for rule, pattern, message in banned_patterns:
+                if pattern.search(line):
+                    violations.append({
+                        "file": rel,
+                        "line": idx,
+                        "rule": rule,
+                        "message": message,
+                        "text": raw.strip()[:240],
+                    })
+    return violations
+
+
 def _count_diagnostics(text: str) -> dict[str, int]:
     summary = re.search(r"%Error:\s+Exiting due to\s+(\d+)\s+error\(s\),\s+(\d+)\s+warning\(s\)", text, re.I)
     if summary:
@@ -130,6 +197,7 @@ def main() -> int:
     diag = _count_diagnostics(output)
     rtl_files = _filelist_entries(ip_dir, ip_name)
     suppression_violations = _suppression_violations(ip_dir, rtl_files)
+    style_violations = _style_violations(ip_dir, rtl_files)
     report = {
         "schema_version": 1,
         "type": "dut_lint",
@@ -148,12 +216,19 @@ def main() -> int:
         "waived_warnings": 0,
         "suppression_violation_count": len(suppression_violations),
         "suppression_violations": suppression_violations,
-        "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions unless represented by exact SSOT waivers.",
+        "style_violation_count": len(style_violations),
+        "style_violations": style_violations,
+        "policy": (
+            "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, "
+            "and generated RTL must keep .sv filenames while defaulting to the Verilog-2001 subset: "
+            "no package/import/interface/modport/function/task/for/while and no logic/typedef/enum/always_ff/always_comb."
+        ),
         "passed": (
             proc.returncode == 0
             and diag["errors"] == 0
             and diag["warnings"] == 0
             and not suppression_violations
+            and not style_violations
         ),
     }
     (lint_dir / "dut_lint.log").write_text(output, encoding="utf-8")
@@ -161,7 +236,8 @@ def main() -> int:
     print(f"[dut_lint_report] wrote {lint_dir / 'dut_lint.json'}")
     print(
         f"[dut_lint_report] {tool}: errors={diag['errors']} warnings={diag['warnings']} "
-        f"suppression_violations={len(suppression_violations)} returncode={proc.returncode}"
+        f"suppression_violations={len(suppression_violations)} "
+        f"style_violations={len(style_violations)} returncode={proc.returncode}"
     )
     return 0 if report["passed"] else 1
 

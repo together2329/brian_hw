@@ -943,7 +943,7 @@ def _ensure_dft(doc: dict[str, Any]) -> dict[str, Any]:
 
 def _ensure_synthesis(doc: dict[str, Any], ip: str) -> dict[str, Any]:
     syn = doc.get("synthesis") if isinstance(doc.get("synthesis"), dict) else {}
-    syn.setdefault("dialect", (doc.get("coding_rules") or {}).get("verilog_style", "systemverilog_2012") if isinstance(doc.get("coding_rules"), dict) else "systemverilog_2012")
+    syn["dialect"] = "verilog_2001"
     syn.setdefault("top_module", doc.get("top_module", {}).get("name", ip) if isinstance(doc.get("top_module"), dict) else ip)
     syn.setdefault("constraints", ["No inferred latches", "No unresolved black boxes", "All sequential state reset or intentionally initialized"])
     syn.setdefault("required_outputs", ["syn/out/area.rpt", "syn/out/timing_summary.rpt", "sta/out/wns.json"])
@@ -1693,9 +1693,10 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
         "file_extension": ".sv",
         "parameter_header": f"rtl/{ip}_param.vh",
         "conventions": [
-            "Use .sv filenames with Verilog-2001 syntax by default",
-            "Use wire/reg and always @(...) in generated RTL unless RTL_DIALECT=systemverilog_2012 is explicitly selected",
-            "Put shared parameter macros/constants in rtl/<ip>_param.vh when needed; do not create *_pkg.sv or package constructs",
+            "Use .sv filenames with Verilog-2001 syntax",
+            "Use wire/reg and always @(...) in generated RTL",
+            "Put shared parameter declarations in rtl/<ip>_param.vh when needed; include it inside consuming modules",
+            "Do not create *_pkg.sv or use logic/typedef/enum/always_ff/always_comb/package/import/interface/modport/function/task/for/while constructs",
             "No inferred latches; every combinational branch assigns all outputs",
             "No parameterized part-selects inside procedural blocks; use helper wires/continuous assigns",
             "No ad-hoc lint suppressions without SSOT waiver and DUT-only lint evidence",

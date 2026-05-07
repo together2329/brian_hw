@@ -55,7 +55,6 @@ sub_modules:
   # register_refs, fsm_refs, test_refs, trace_refs, or ssot_refs.
   # Wiring-only modules must set wiring_only: true and list ports plus
   # connections or internal_interfaces.
-  - { name: "<ip>_pkg",     file: "rtl/<ip>_pkg.sv",     ownership: "manifest", ssot_gen: true,  implements: ["parameters"], source_sections: ["parameters"], ssot_refs: ["parameters"], description: "Parameter module" }
   - { name: "<ip>_regs",    file: "rtl/<ip>_regs.sv",    ownership: "manifest", ssot_gen: true,  implements: ["registers.register_list", "interrupts", "error_handling"], source_sections: ["registers", "interrupts", "error_handling"], register_refs: ["registers.register_list"], description: "Register/status block" }
   - { name: "<ip>_decoder", file: "rtl/<ip>_decoder.sv", ownership: "manifest", ssot_gen: true,  implements: ["function_model.transactions", "decomposition.units.decode", "features.decode"], source_sections: ["function_model", "decomposition", "features"], function_model_refs: ["function_model.transactions"], decomposition_refs: ["decomposition.units.decode"], feature_refs: ["features.decode"], description: "Decoder/datapath decode block" }
   - { name: "<ip>_fsm",     file: "rtl/<ip>_fsm.sv",     ownership: "manifest", ssot_gen: true,  implements: ["fsm.states", "fsm.transitions", "cycle_model.pipeline"], source_sections: ["fsm", "cycle_model"], fsm_refs: ["fsm.control"], cycle_model_refs: ["cycle_model.pipeline"], description: "Control FSM" }
@@ -78,6 +77,9 @@ decomposition:
 # SECTION 2: Parameters
 # =============================================================================
 parameters:
+  # Shared RTL parameter declarations, if needed, are projected to
+  # rtl/<ip>_param.vh and included inside each consuming module body.
+  # Do not model parameters as a *_pkg.sv module.
   - name: "DATA_WIDTH"
     default: 64
     type: int
@@ -600,7 +602,7 @@ synthesis:
   constraints:
     - "No inferred latches"
     - "All flops reset according to clock_reset_domains.reset_scheme"
-    - "No package/interface/modport constructs in generated RTL"
+    - "No package/interface/modport/function/task/for/while constructs in generated RTL"
   ppa_targets:
     area_um2_max: null
     power_mw_max: null
@@ -614,18 +616,19 @@ synthesis:
 # SECTION 23: Coding Rules
 # =============================================================================
 coding_rules:
-  # Default: pure Verilog-2001. Override per-IP to "systemverilog_2012" if a
-  # specific IP needs SV constructs. The system-wide default is also taken
-  # from src/config.py:RTL_DIALECT (env var RTL_DIALECT).
+  # Project policy: .sv filenames with Verilog-2001 syntax.
   verilog_style: "verilog_2001"
+  file_extension: ".sv"
+  parameter_header: "rtl/<ip>_param.vh"
   conventions:
-    - "nonblocking (<=) in sequential always @(posedge clk …)  /  always_ff (SV mode)"
-    - "blocking (=) in combinational always @(*)  /  always_comb (SV mode)"
+    - "nonblocking (<=) in sequential always @(posedge clk …)"
+    - "blocking (=) in combinational always @(*)"
     - "No latches: every combinational branch assigns all outputs (use a default)"
     - "Active-low async reset: always @(posedge clk or negedge rst_n)  with  if (!rst_n)"
     - "Parameterize widths (no hardcoded numbers)"
-    - "BANNED in both dialects: package / endpackage / import / interface / modport"
-    - "V2K: use wire/reg, NOT logic; use localparam state encoding, NOT enum"
+    - "Use rtl/<ip>_param.vh for shared parameter declarations when needed; include it inside consuming modules"
+    - "BANNED: logic / typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+    - "Use wire/reg and localparam state encoding"
   lint_waivers:
     - "UNUSEDSIGNAL: explicit approved tie-offs only"
     - "WIDTHEXPAND: peripheral_events indexing"
@@ -662,8 +665,9 @@ dir_structure:
 # SECTION 27: Filelist
 # =============================================================================
 filelist:
+  headers:
+    - "rtl/<ip>_param.vh"
   rtl:
-    - "rtl/<ip>_pkg.sv"
     - "rtl/<ip>_regs.sv"
     - "rtl/<ip>_decoder.sv"
     - "rtl/<ip>_fsm.sv"
@@ -769,7 +773,7 @@ quality_gates:
 traceability:
   yaml_to_output:
     - { yaml: "top_module.name", output: "ALL files (module name)" }
-    - { yaml: "parameters", output: "<ip>_pkg.sv (localparam)" }
+    - { yaml: "parameters", output: "<ip>_param.vh (shared parameter include, no package)" }
     - { yaml: "io_list.interfaces", output: "<ip>_wrapper.sv (port list)" }
     - { yaml: "registers.register_list", output: "<ip>_regs.sv + firmware + docs" }
     - { yaml: "function_model", output: "<ip>_core.sv + tb/cocotb scoreboard/reference model" }
@@ -784,7 +788,7 @@ traceability:
   change_impact_example:
     change: "parameters.DATA_WIDTH from 64 to 128"
     affected_files:
-      - "<ip>_pkg.sv (DATA_W=128)"
+      - "<ip>_param.vh (DATA_W=128)"
       - "<ip>_axi_rd.sv (rdata width)"
       - "<ip>_axi_wr.sv (wdata width)"
       - "<ip>_mfifo.sv (mfifo width)"
