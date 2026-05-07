@@ -8,7 +8,7 @@
 # Inputs (env):
 #   IP_NAME — IP slug (auto-detected from cwd if missing)
 #   MIN_YAML — minimum bytes for <ip>.ssot.yaml (default 4000)
-#   MIN_SECTIONS — minimum top-level section count (default 33)
+#   MIN_SECTIONS — minimum top-level section count (default 34)
 #
 # Exit 0 = real SSOT YAML exists, has section keys, parses as YAML.
 # Exit 1 = file missing / too small / sections missing / not valid YAML.
@@ -30,13 +30,13 @@ done
 [ -z "$YAML" ] && { echo "[check_ssot_disk] FAIL: no SSOT YAML at $IP/yaml/${IP}.ssot.yaml or _ssot.yaml"; exit 1; }
 
 MIN_YAML="${MIN_YAML:-4000}"
-MIN_SECTIONS="${MIN_SECTIONS:-33}"
+MIN_SECTIONS="${MIN_SECTIONS:-34}"
 
 SZ=$(wc -c < "$YAML" | tr -d ' ')
 [ "$SZ" -lt "$MIN_YAML" ] && { echo "[check_ssot_disk] FAIL: $YAML = ${SZ}B (need ≥${MIN_YAML})"; exit 1; }
 
 # Required canonical keys (spelling matches ssot-template.yaml).
-REQUIRED='top_module|sub_modules|parameters|io_list|features|dataflow|function_model|cycle_model|clock_reset_domains|cdc_requirements|rdc_requirements|registers|memory|interrupts|fsm|timing|power|security|error_handling|debug_observability|integration|dft|synthesis|coding_rules|reuse_modules|custom|dir_structure|filelist|test_requirements|quality_gates|traceability|workflow_todos|generation_flow'
+REQUIRED='top_module|sub_modules|decomposition|parameters|io_list|features|dataflow|function_model|cycle_model|clock_reset_domains|cdc_requirements|rdc_requirements|registers|memory|interrupts|fsm|timing|power|security|error_handling|debug_observability|integration|dft|synthesis|coding_rules|reuse_modules|custom|dir_structure|filelist|test_requirements|quality_gates|traceability|workflow_todos|generation_flow'
 HITS=$(grep -cE "^($REQUIRED):" "$YAML" || echo 0)
 if [ "$HITS" -lt "$MIN_SECTIONS" ]; then
     echo "[check_ssot_disk] FAIL: $YAML only has $HITS top-level section keys (need ≥$MIN_SECTIONS)"
@@ -145,7 +145,7 @@ def explicit_connection_contract_todo(items):
             return True
     return False
 
-required = "top_module sub_modules parameters io_list features dataflow function_model cycle_model clock_reset_domains cdc_requirements rdc_requirements registers memory interrupts fsm timing power security error_handling debug_observability integration dft synthesis coding_rules reuse_modules custom dir_structure filelist test_requirements quality_gates traceability workflow_todos generation_flow".split()
+required = "top_module sub_modules decomposition parameters io_list features dataflow function_model cycle_model clock_reset_domains cdc_requirements rdc_requirements registers memory interrupts fsm timing power security error_handling debug_observability integration dft synthesis coding_rules reuse_modules custom dir_structure filelist test_requirements quality_gates traceability workflow_todos generation_flow".split()
 missing = [key for key in required if key not in doc]
 if missing:
     raise SystemExit("missing required sections: " + ", ".join(missing))
