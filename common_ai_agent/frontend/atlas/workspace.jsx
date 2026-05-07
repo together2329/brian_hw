@@ -1230,37 +1230,38 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // {answers: [...]} payload so the backend resolves all of them in
   // one round-trip — matches the textual UI's batched ask_user.
   const submitCard = (flowId) => {
-    const st = qaState[flowId];
-    if (!st) return;
-    setQaState(s => ({ ...s, [flowId]: { ...s[flowId], submitted: true } }));
-    if (window.backend) {
-      if (st.batched) {
-        const answers = (st.states || []).map(tab => ({
-          selected: tab.opts.filter(o => o.selected).map(o => o.id),
-          custom: tab.custom || '',
-        }));
-        window.backend.send({
-          type: 'answer',
-          flow_id: flowId,
-          answers,
-        });
-      } else {
-        const selectedIds = st.opts.filter(o => o.selected).map(o => o.id);
-        window.backend.send({
-          type: 'answer',
-          flow_id: flowId,
-          selected: selectedIds,
-          custom: st.custom || '',
-        });
+    // Functional updater so we always read the latest qaState — this
+    // matters when a toggle was just queued (e.g. single-kind Enter
+    // = toggle+submit) and we'd otherwise see pre-toggle state.
+    setQaState(s => {
+      const st = s[flowId];
+      if (!st || st.submitted) return s;
+      if (window.backend) {
+        if (st.batched) {
+          const answers = (st.states || []).map(tab => ({
+            selected: tab.opts.filter(o => o.selected).map(o => o.id),
+            custom: tab.custom || '',
+          }));
+          window.backend.send({ type: 'answer', flow_id: flowId, answers });
+        } else {
+          const selectedIds = st.opts.filter(o => o.selected).map(o => o.id);
+          window.backend.send({
+            type: 'answer',
+            flow_id: flowId,
+            selected: selectedIds,
+            custom: st.custom || '',
+          });
+        }
       }
-    }
+      return { ...s, [flowId]: { ...st, submitted: true } };
+    });
     setStreaming(true);  // agent resumes after receiving answer
   };
 
   // ── layout ─────────────────────────────────────────────────────
   // sim_debug owns its own hierarchy / source / wave / chat panels —
   // hide the outer ATLAS sidebars (mode/workflow/files on the left,
-  // UPD Agent + SSOT/Todo/Diff on the right) so the inner 3-zone
+  // ATLAS + SSOT/Todo/Diff on the right) so the inner 3-zone
   // debug surface gets the full viewport. Width state is preserved so
   // switching back to another workflow restores the original layout.
   const isSimDebug = workflow === 'sim_debug';
@@ -1929,7 +1930,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
         <Splitter width={rightW} side="right" onResize={setRightW} onToggle={toggleRight} />
       )}
 
-      {/* RIGHT — UPD Agent status + SSOT/Todo/Diff (hidden when sim_debug or collapsed) */}
+      {/* RIGHT — ATLAS status + SSOT/Todo/Diff (hidden when sim_debug or collapsed) */}
       {effRightW > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
         <AgentStatusPanel intent={intent} workflow={workflow}
@@ -2820,9 +2821,6 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
     ? (state.states && state.states[active]) || { opts: [], custom: '' }
     : state;
   const tabFlowKind = isBatched && !isSubmitTab ? flow.questions[active].kind : flow.kind;
-  const tabFlowQuestion = isBatched && !isSubmitTab ? flow.questions[active].question : flow.question;
-  const tabFlowSubtitle = isBatched && !isSubmitTab ? flow.questions[active].subtitle : (flow.subtitle || '');
-  const tabFlowPlaceholder = isBatched && !isSubmitTab ? flow.questions[active].placeholder : (flow.placeholder || '');
   const tabFlowMultiline = !!(isBatched && !isSubmitTab ? flow.questions[active].multiline : flow.multiline);
   const tabAnswered = (i) => {
     const ts = state.states && state.states[i];
@@ -2858,13 +2856,15 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
   const lastIdx   = chatIdx;
 
   const onKey = (e) => {
-    // Batched flow: ←/→ switch tabs (textual UI parity).
+    // Batched flow: ⌘/⌃ + ←/→ moves the keyboard cursor between
+    // question blocks (each Q renders its own block; the active block
+    // is highlighted and owns the option/custom cursor).
     if (isBatched) {
       if (e.key === 'ArrowLeft' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault(); onSetTab && onSetTab(flowId, Math.max(0, active - 1)); return;
       }
       if (e.key === 'ArrowRight' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault(); onSetTab && onSetTab(flowId, Math.min(tabCount, active + 1)); return;
+        e.preventDefault(); onSetTab && onSetTab(flowId, Math.min(tabCount - 1, active + 1)); return;
       }
     }
     if (e.key === 'ArrowDown' || (e.key === 'j' && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== 'INPUT')) {
@@ -2881,18 +2881,32 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
       const isCustomInput = activeEl && activeEl.classList && activeEl.classList.contains('askcustom');
       if (isCustomInput && tabFlowMultiline && !e.metaKey && !e.ctrlKey) return;
       e.preventDefault();
-      if (isBatched && isCustomInput) { goNextBatchedStep(); return; }
+      // Custom-input Enter: in batched, advance to next question (or
+      // submit-all on the last); in single, submit immediately when the
+      // text isn't empty so a one-shot QA can be answered with Enter.
+      if (isCustomInput) {
+        if (isBatched) { goNextBatchedStep(); return; }
+        if ((tabState.custom || '').trim() || opts.some(o => o.selected)) {
+          onSubmit(flowId);
+        }
+        return;
+      }
       if (sel < opts.length) {
         onToggle(flowId, opts[sel].id);
-        if (isBatched && tabFlowKind !== 'multi') goNextBatchedStep();
+        // Batched + single-kind: advance to next question (or submit
+        // when on the last one and everything else is answered).
+        if (isBatched && tabFlowKind !== 'multi') { goNextBatchedStep(); return; }
+        // Non-batched + single-kind (one-question flow): Enter
+        // immediately submits — the user just picked their answer.
+        if (!isBatched && tabFlowKind === 'single') { onSubmit(flowId); return; }
         return;
       }
       if (sel === customIdx) {
         if (isBatched && (tabState.custom || '').trim()) { goNextBatchedStep(); return; }
-        const el = e.currentTarget.querySelector('input.askcustom'); el?.focus(); return;
+        const el = e.currentTarget.querySelector('input.askcustom, textarea.askcustom'); el?.focus(); return;
       }
       if (sel === submitIdx) {
-        if (isBatched) { goNextBatchedStep(); return; }
+        if (isBatched) { if (allAnswered) onSubmit(flowId); return; }
         onSubmit(flowId);
         return;
       }
@@ -2901,126 +2915,181 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
     if (e.key === 'Escape') { e.preventDefault(); onSel(0); }
   };
 
-  // Tab strip — only when batched. Mirrors textual `_render_breadcrumb`:
-  //   ←  ☐ Q1   ☒ Q2   ☐ Q3   ✔ Submit  →
-  const tabStrip = isBatched ? (
-    <div
-      className="ask-crumbs"
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: 6,
-        marginBottom: 8,
-        paddingBottom: 6,
-        borderBottom: '1px dashed var(--line)',
-        alignItems: 'center',
-        fontSize: 11,
-        fontFamily: 'var(--mono)',
-      }}
-    >
-      <span className="mute" style={{ marginRight: 4 }}>←</span>
-      {(flow.questions || []).map((q, i) => {
-        const isActive = i === active;
-        const ans = tabAnswered(i);
-        const label = ((q.subtitle || q.question) || `Q${i + 1}`).slice(0, 20);
-        return (
-          <button
-            key={i}
-            onClick={() => onSetTab && onSetTab(flowId, i)}
-            title={q.question}
-            style={{
-              padding: '2px 8px',
-              border: `1px solid ${isActive ? 'var(--accent)' : 'var(--line)'}`,
-              background: isActive ? 'color-mix(in oklch, var(--accent) 20%, transparent)' : 'transparent',
-              color: isActive ? 'var(--accent)' : 'var(--fg-mute)',
-              fontFamily: 'var(--mono)',
-              fontSize: 11,
-              fontWeight: isActive ? 700 : 400,
-              cursor: 'pointer',
-              borderRadius: 2,
-            }}
-          >
-            <span style={{ marginRight: 4 }}>{ans ? '☒' : '☐'}</span>
-            <span>Q{i + 1}: {label}</span>
-          </button>
-        );
-      })}
-      <button
-        onClick={() => onSetTab && onSetTab(flowId, tabCount)}
-        title={allAnswered ? 'Review and submit all answers' : 'Review unanswered tabs'}
+  // ── per-question block — used both for the single-question case
+  // (rendered once) and for each entry of a batched flow (rendered as
+  // a vertical stack so the user can see and answer all questions at
+  // once instead of paging through tabs). The active block owns the
+  // keyboard cursor (`sel`); inactive blocks are still fully clickable.
+  const renderQuestionBlock = (i, block, bs, kind) => {
+    const blockOpts = bs.opts || [];
+    const blockMultiline = !!(block.multiline || String(block.placeholder || '').includes('\n'));
+    const blockPlaceholder = block.placeholder || '';
+    const blockSubtitle = block.subtitle || '';
+    const blockQuestion = block.question || '';
+    const isThisActive = !isBatched || i === active;
+    const ensureActive = () => {
+      if (isBatched && i !== active && onSetTab) onSetTab(flowId, i);
+    };
+    return (
+      <div
+        key={i}
+        onClick={() => { if (isBatched && i !== active) ensureActive(); }}
         style={{
-          marginLeft: 'auto',
-          padding: '2px 10px',
-          border: `1px solid ${isSubmitTab ? 'var(--ok)' : 'var(--line)'}`,
-          background: isSubmitTab ? 'color-mix(in oklch, var(--ok) 22%, transparent)' : 'transparent',
-          color: allAnswered ? 'var(--ok)' : 'var(--fg-mute)',
-          fontFamily: 'var(--mono)',
-          fontSize: 11,
-          fontWeight: 700,
-          cursor: 'pointer',
-          opacity: allAnswered ? 1 : 0.75,
+          marginBottom: isBatched ? 12 : 0,
+          padding: isBatched ? '10px 12px' : 0,
+          border: isBatched
+            ? `1px solid ${isThisActive ? 'var(--accent)' : 'var(--line)'}`
+            : 'none',
+          background: isBatched && isThisActive
+            ? 'color-mix(in oklch, var(--accent) 5%, transparent)'
+            : 'transparent',
           borderRadius: 2,
+          cursor: isBatched && !isThisActive ? 'pointer' : 'default',
         }}
       >
-        ✔ Review
-      </button>
-      <span className="mute" style={{ marginLeft: 4 }}>→</span>
-    </div>
-  ) : null;
+        {/* question */}
+        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 10, color: 'var(--fg)' }}>
+          {isBatched && (
+            <span
+              className={tabAnswered(i) ? 'ok' : 'mute'}
+              style={{ marginRight: 8, fontSize: 12, fontWeight: 700, fontFamily: 'var(--mono)' }}
+            >
+              {tabAnswered(i) ? '☒' : '☐'} Q{i + 1}.
+            </span>
+          )}
+          {blockQuestion}
+          {blockSubtitle && (
+            <div className="mute" style={{ fontSize: 11, fontWeight: 400, marginTop: 2 }}>
+              {blockSubtitle}
+            </div>
+          )}
+        </div>
 
-  // Review tab content — shown when active === questions.length.
-  // Lists each question with its answer summary and a final Submit row.
-  const reviewBody = isBatched && isSubmitTab ? (
-    <div style={{ fontFamily: 'var(--mono)', fontSize: 13 }}>
-      <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 10, color: 'var(--fg)' }}>
-        Review all {tabCount} answer{tabCount === 1 ? '' : 's'}
-      </div>
-      {(flow.questions || []).map((q, i) => {
-        const ts = (state.states || [])[i] || { opts: [], custom: '' };
-        const sels = ts.opts.filter(o => o.selected).map(o => o.label);
-        const ans = sels.length
-          ? sels.join(', ') + (ts.custom ? ` · note: "${ts.custom}"` : '')
-          : (ts.custom ? `note: "${ts.custom}"` : '(no answer yet)');
-        return (
+        {/* multi-mode bulk select / clear */}
+        {kind === 'multi' && blockOpts.length > 1 && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: 11 }}>
+            <span
+              onClick={(ev) => {
+                ev.stopPropagation();
+                ensureActive();
+                blockOpts.forEach(o => { if (!o.selected && !o.locked) onToggle(flowId, o.id); });
+              }}
+              style={{ cursor: 'pointer', padding: '2px 8px', border: '1px solid var(--accent)', color: 'var(--accent)', borderRadius: 2 }}
+              title="Select every option">
+              ☑ Select all
+            </span>
+            <span
+              onClick={(ev) => {
+                ev.stopPropagation();
+                ensureActive();
+                blockOpts.forEach(o => { if (o.selected && !o.locked) onToggle(flowId, o.id); });
+              }}
+              style={{ cursor: 'pointer', padding: '2px 8px', border: '1px solid var(--line)', color: 'var(--fg-mute)', borderRadius: 2 }}
+              title="Deselect every option">
+              ☐ Clear
+            </span>
+            <span className="mute" style={{ alignSelf: 'center', fontSize: 10 }}>
+              · click rows to toggle individually
+            </span>
+          </div>
+        )}
+
+        {/* numbered options */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {blockOpts.map((o, oi) => {
+            const isSel = o.selected;
+            const focused = isThisActive && sel === oi;
+            return (
+              <div
+                key={o.id}
+                onClick={(ev) => { ev.stopPropagation(); ensureActive(); onSel(oi); onToggle(flowId, o.id); }}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '24px 28px 1fr',
+                  alignItems: 'baseline',
+                  gap: 6,
+                  padding: '4px 8px',
+                  background: focused ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                  borderLeft: `2px solid ${focused ? 'var(--accent)' : 'transparent'}`,
+                  cursor: 'pointer',
+                  fontFamily: 'var(--mono)',
+                  fontSize: 13,
+                  lineHeight: 1.4,
+                }}
+              >
+                <span className="mute" style={{ textAlign: 'right' }}>{oi + 1}.</span>
+                <span style={{ color: isSel ? 'var(--accent)' : 'var(--fg-mute)', fontWeight: 700 }}>
+                  {kind === 'multi' ? (isSel ? '[✓]' : '[ ]') : (isSel ? '(•)' : '( )')}
+                </span>
+                <div>
+                  <span style={{ color: focused ? 'var(--fg)' : (isSel ? 'var(--fg)' : 'var(--fg-dim, var(--fg))') }}>
+                    {o.label}
+                    {o.locked && <span className="mute" style={{ marginLeft: 8, fontSize: 11 }}>(required)</span>}
+                  </span>
+                  <div className="mute" style={{ fontSize: 11, fontFamily: 'var(--mono)', marginTop: 1 }}>
+                    {o.detail}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* custom text line — number continues, has [✓] when non-empty */}
           <div
-            key={i}
-            onClick={() => onSetTab && onSetTab(flowId, i)}
+            onClick={(ev) => { ev.stopPropagation(); ensureActive(); onSel(customIdx); }}
             style={{
-              padding: '6px 8px',
-              marginBottom: 4,
-              borderLeft: `2px solid ${tabAnswered(i) ? 'var(--ok)' : 'var(--warn)'}`,
-              background: 'color-mix(in oklch, var(--bg-2) 80%, transparent)',
-              cursor: 'pointer',
-              fontSize: 12,
+              display: 'grid',
+              gridTemplateColumns: '24px 28px 1fr',
+              alignItems: 'baseline',
+              gap: 6,
+              padding: '4px 8px',
+              background: isThisActive && sel === customIdx ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+              borderLeft: `2px solid ${isThisActive && sel === customIdx ? 'var(--accent)' : 'transparent'}`,
+              cursor: 'text',
+              fontFamily: 'var(--mono)',
+              fontSize: 13,
             }}
           >
-            <div style={{ color: 'var(--fg-mute)', fontSize: 11 }}>
-              {tabAnswered(i) ? '☒' : '☐'} Q{i + 1}: {(q.subtitle || q.question).slice(0, 60)}
-            </div>
-            <div style={{ color: tabAnswered(i) ? 'var(--fg)' : 'var(--warn)', marginTop: 2 }}>
-              → {ans}
+            <span className="mute" style={{ textAlign: 'right' }}>{blockOpts.length + 1}.</span>
+            <span style={{ color: bs.custom ? 'var(--warn)' : 'var(--fg-mute)', fontWeight: 700 }}>
+              {bs.custom ? '[✓]' : '[ ]'}
+            </span>
+            <div style={{ display: 'flex', alignItems: 'stretch', gap: 6 }}>
+              {blockMultiline ? (
+                <textarea
+                  className="askcustom"
+                  value={bs.custom || ''}
+                  onChange={(e) => { ensureActive(); onCustom(flowId, e.target.value); }}
+                  onFocus={() => { ensureActive(); onSel(customIdx); }}
+                  placeholder={blockPlaceholder || 'custom answer / free-form note…'}
+                  spellCheck={false}
+                  style={{
+                    background: 'transparent', border: '1px solid var(--line)', outline: 'none',
+                    fontFamily: 'var(--mono)', color: 'var(--fg)', fontSize: 12, flex: 1,
+                    padding: '6px 8px', minHeight: 160, lineHeight: 1.45, resize: 'vertical',
+                    whiteSpace: 'pre-wrap',
+                  }}
+                />
+              ) : (
+                <input
+                  className="askcustom"
+                  value={bs.custom || ''}
+                  onChange={(e) => { ensureActive(); onCustom(flowId, e.target.value); }}
+                  onFocus={() => { ensureActive(); onSel(customIdx); }}
+                  placeholder={blockPlaceholder || 'custom answer / free-form note…'}
+                  style={{
+                    background: 'transparent', border: 'none', outline: 'none',
+                    fontFamily: 'var(--mono)', color: 'var(--fg)', fontSize: 13, flex: 1, padding: 0,
+                  }}
+                />
+              )}
+              {isThisActive && sel === customIdx && <span className="cursor-thin" />}
             </div>
           </div>
-        );
-      })}
-      <div
-        onClick={() => allAnswered && onSubmit(flowId)}
-        style={{
-          marginTop: 10,
-          padding: '6px 8px',
-          textAlign: 'center',
-          border: `1px solid ${allAnswered ? 'var(--ok)' : 'var(--line)'}`,
-          background: allAnswered ? 'color-mix(in oklch, var(--ok) 18%, transparent)' : 'transparent',
-          color: allAnswered ? 'var(--ok)' : 'var(--fg-mute)',
-          fontWeight: 700,
-          cursor: allAnswered ? 'pointer' : 'not-allowed',
-          opacity: allAnswered ? 1 : 0.55,
-        }}
-      >
-        ✔ Submit all answers
+        </div>
       </div>
-    </div>
-  ) : null;
+    );
+  };
 
   return (
     <div
@@ -3054,165 +3123,49 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
           {tabFlowKind === 'multi' ? 'multi-select' : tabFlowKind === 'input' ? 'text' : 'single-select'}
         </span>
         {isBatched && (
-          <span className="mute" style={{ textTransform: 'none', letterSpacing: 0, fontSize: 10, marginLeft: 6 }}>
-            · tab {Math.min(active + 1, tabCount)}/{tabCount}
+          <span
+            className={allAnswered ? 'ok' : 'mute'}
+            style={{ textTransform: 'none', letterSpacing: 0, fontSize: 10, marginLeft: 6, fontWeight: 600 }}
+          >
+            · {(state.states || []).filter((_, i) => tabAnswered(i)).length}/{tabCount} answered
           </span>
         )}
       </div>
 
-      {/* breadcrumb tabs (batched mode only) */}
-      {tabStrip}
+      {/* questions — single block when not batched, stacked blocks when batched */}
+      {isBatched
+        ? (flow.questions || []).map((q, i) => {
+            const ts = (state.states || [])[i] || { opts: [], custom: '' };
+            const k = q.kind === 'multi' ? 'multi' : q.kind === 'input' ? 'input' : 'single';
+            return renderQuestionBlock(i, q, ts, k);
+          })
+        : renderQuestionBlock(0, flow, state, tabFlowKind)}
 
-      {/* review tab — replaces question/options when on Submit */}
-      {isSubmitTab ? reviewBody : (<>
-
-      {/* question */}
-      <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 10, color: 'var(--fg)' }}>
-        {tabFlowQuestion}
-        {tabFlowSubtitle && (
-          <div className="mute" style={{ fontSize: 11, fontWeight: 400, marginTop: 2 }}>
-            {tabFlowSubtitle}
-          </div>
-        )}
-      </div>
-
-      {/* multi-mode bulk select / clear */}
-      {tabFlowKind === 'multi' && opts.length > 1 && (
-        <div style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: 11 }}>
-          <span
-            onClick={() => {
-              opts.forEach(o => { if (!o.selected && !o.locked) onToggle(flowId, o.id); });
-            }}
-            style={{ cursor: 'pointer', padding: '2px 8px', border: '1px solid var(--accent)', color: 'var(--accent)', borderRadius: 2 }}
-            title="Select every option">
-            ☑ Select all
-          </span>
-          <span
-            onClick={() => {
-              opts.forEach(o => { if (o.selected && !o.locked) onToggle(flowId, o.id); });
-            }}
-            style={{ cursor: 'pointer', padding: '2px 8px', border: '1px solid var(--line)', color: 'var(--fg-mute)', borderRadius: 2 }}
-            title="Deselect every option">
-            ☐ Clear
-          </span>
-          <span className="mute" style={{ alignSelf: 'center', fontSize: 10 }}>
-            · click rows to toggle individually
-          </span>
-        </div>
-      )}
-
-      {/* numbered options */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {opts.map((o, i) => {
-          const isSel = o.selected;
-          const focused = sel === i;
-          return (
-            <div
-              key={o.id}
-              onClick={() => { onSel(i); onToggle(flowId, o.id); }}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '24px 28px 1fr',
-                alignItems: 'baseline',
-                gap: 6,
-                padding: '4px 8px',
-                background: focused ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-                borderLeft: `2px solid ${focused ? 'var(--accent)' : 'transparent'}`,
-                cursor: 'pointer',
-                fontFamily: 'var(--mono)',
-                fontSize: 13,
-                lineHeight: 1.4,
-              }}
-            >
-              <span className="mute" style={{ textAlign: 'right' }}>{i + 1}.</span>
-              <span style={{ color: isSel ? 'var(--accent)' : 'var(--fg-mute)', fontWeight: 700 }}>
-                {tabFlowKind === 'multi' ? (isSel ? '[✓]' : '[ ]') : (isSel ? '(•)' : '( )')}
-              </span>
-              <div>
-                <span style={{ color: focused ? 'var(--fg)' : (isSel ? 'var(--fg)' : 'var(--fg-dim, var(--fg))') }}>
-                  {o.label}
-                  {o.locked && <span className="mute" style={{ marginLeft: 8, fontSize: 11 }}>(required)</span>}
-                </span>
-                <div className="mute" style={{ fontSize: 11, fontFamily: 'var(--mono)', marginTop: 1 }}>
-                  {o.detail}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-
-        {/* custom text line — number continues, has [✓] when non-empty */}
-        <div
-          onClick={() => onSel(customIdx)}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '24px 28px 1fr',
-            alignItems: 'baseline',
-            gap: 6,
-            padding: '4px 8px',
-            background: sel === customIdx ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-            borderLeft: `2px solid ${sel === customIdx ? 'var(--accent)' : 'transparent'}`,
-            cursor: 'text',
-            fontFamily: 'var(--mono)',
-            fontSize: 13,
-          }}
-        >
-          <span className="mute" style={{ textAlign: 'right' }}>{opts.length + 1}.</span>
-          <span style={{ color: tabState.custom ? 'var(--warn)' : 'var(--fg-mute)', fontWeight: 700 }}>
-            {tabState.custom ? '[✓]' : '[ ]'}
-          </span>
-          <div style={{ display: 'flex', alignItems: 'stretch', gap: 6 }}>
-            {tabFlowMultiline ? (
-              <textarea
-                className="askcustom"
-                value={tabState.custom}
-                onChange={(e) => onCustom(flowId, e.target.value)}
-                onFocus={() => onSel(customIdx)}
-                placeholder={tabFlowPlaceholder || 'custom answer / free-form note…'}
-                spellCheck={false}
-                style={{
-                  background: 'transparent', border: '1px solid var(--line)', outline: 'none',
-                  fontFamily: 'var(--mono)', color: 'var(--fg)', fontSize: 12, flex: 1,
-                  padding: '6px 8px', minHeight: 160, lineHeight: 1.45, resize: 'vertical',
-                  whiteSpace: 'pre-wrap',
-                }}
-              />
-            ) : (
-              <input
-                className="askcustom"
-                value={tabState.custom}
-                onChange={(e) => onCustom(flowId, e.target.value)}
-                onFocus={() => onSel(customIdx)}
-                placeholder={tabFlowPlaceholder || 'custom answer / free-form note…'}
-                style={{
-                  background: 'transparent', border: 'none', outline: 'none',
-                  fontFamily: 'var(--mono)', color: 'var(--fg)', fontSize: 13, flex: 1, padding: 0,
-                }}
-              />
-            )}
-            {sel === customIdx && <span className="cursor-thin" />}
-          </div>
-        </div>
-      </div>
-
-      {/* submit row */}
+      {/* submit row — for batched, gates on allAnswered and submits all */}
       <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 0 }}>
         <div
-          onClick={() => isBatched ? goNextBatchedStep() : onSubmit(flowId)}
+          onClick={() => {
+            if (isBatched) { if (allAnswered) onSubmit(flowId); }
+            else onSubmit(flowId);
+          }}
           style={{
             padding: '4px 8px',
             background: sel === submitIdx ? 'color-mix(in oklch, var(--ok) 18%, transparent)' : 'transparent',
             borderLeft: `2px solid ${sel === submitIdx ? 'var(--ok)' : 'transparent'}`,
-            cursor: 'pointer',
+            cursor: (isBatched && !allAnswered) ? 'not-allowed' : 'pointer',
             fontFamily: 'var(--mono)', fontSize: 13,
             color: sel === submitIdx ? 'var(--ok)' : 'var(--fg)',
             fontWeight: sel === submitIdx ? 600 : 400,
+            opacity: (isBatched && !allAnswered) ? 0.6 : 1,
           }}
         >
-          <span className="mute" style={{ marginRight: 6 }}>›</span>{isBatched ? (active < tabCount - 1 ? 'Next question' : 'Submit') : 'Submit'}
-          <span className="mute" style={{ marginLeft: 8, fontSize: 11 }}>
-            ({(opts.filter(o => o.selected) || []).length}{tabState.custom ? '+1' : ''} reply)
-          </span>
+          <span className="mute" style={{ marginRight: 6 }}>›</span>
+          {isBatched ? `Submit all (${(state.states || []).filter((_, i) => tabAnswered(i)).length}/${tabCount})` : 'Submit'}
+          {!isBatched && (
+            <span className="mute" style={{ marginLeft: 8, fontSize: 11 }}>
+              ({(opts.filter(o => o.selected) || []).length}{tabState.custom ? '+1' : ''} reply)
+            </span>
+          )}
         </div>
         <div
           onClick={() => { onSel(chatIdx); onChat(flowId); }}
@@ -3228,18 +3181,17 @@ const AskUserPrompt = ({ flowId, state, sel, intent, onToggle, onCustom, onSubmi
           <span className="mute" style={{ marginLeft: 8, fontSize: 11 }}>(send a free-form message instead)</span>
         </div>
       </div>
-      </>)}
 
       {/* hint footer — terminal-style */}
       <div className="mute" style={{
         marginTop: 8, paddingTop: 6, borderTop: '1px dashed var(--line)',
         fontSize: 11, display: 'flex', gap: 14, flexWrap: 'wrap',
       }}>
-        <span><Kbd>↵</Kbd> {isBatched ? 'next question / submit' : 'select'}</span>
+        <span><Kbd>↵</Kbd> {isBatched ? 'select & next' : 'select & submit'}</span>
         <span><Kbd>↑↓</Kbd>/<Kbd>j k</Kbd> navigate</span>
         <span><Kbd>Space</Kbd> toggle</span>
         <span><Kbd>Tab</Kbd> next field</span>
-        {isBatched && <span><Kbd>⌘/⌃ ←→</Kbd> switch tab</span>}
+        {isBatched && <span><Kbd>⌘/⌃ ←→</Kbd> switch question</span>}
         <span><Kbd>Esc</Kbd> top</span>
       </div>
     </div>
@@ -4542,7 +4494,7 @@ const FileViewer = ({ name, onClose }) => {
   );
 };
 
-// ── UPD Agent status panel ─────────────────────────────────────────
+// ── ATLAS status panel ─────────────────────────────────────────────
 const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
   // Live context — populated by /healthz + WS 'context' events.
   const _ctx = window.CONTEXT || {};
@@ -4576,7 +4528,7 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
   return (
     <div className="box" style={{ flexShrink: 0 }}>
       <div className="box-h" style={{ padding: '6px 12px' }}>
-        <span style={{ color: 'var(--accent)', fontWeight: 700 }}>UPD Agent</span>
+        <span style={{ color: 'var(--accent)', fontWeight: 700 }}>ATLAS</span>
         <span style={{ flex: 1 }} />
         <span style={{
           fontSize: 9, padding: '1px 6px', borderRadius: 2,

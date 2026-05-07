@@ -532,8 +532,7 @@ def create_app():
                                 status_code=400)
         if not target.exists():
             return JSONResponse({"error": "not found"}, status_code=404)
-        rel = "" if target == PROJECT_ROOT else str(
-            target.relative_to(PROJECT_ROOT))
+        rel = "" if target == PROJECT_ROOT else target.relative_to(PROJECT_ROOT).as_posix()
         if target.is_file():
             stat = target.stat()
             return JSONResponse({
@@ -559,7 +558,7 @@ def create_app():
                 except OSError:
                     continue
                 entries.append({
-                    "name":  child.name if not recursive else str(child.relative_to(target)),
+                    "name":  child.name if not recursive else child.relative_to(target).as_posix(),
                     "type":  "dir" if child.is_dir() else "file",
                     "size":  stat.st_size if child.is_file() else None,
                     "mtime": stat.st_mtime,
@@ -621,7 +620,7 @@ def create_app():
                 for f in base.glob("*.vcd"):
                     if f.is_file():
                         st = f.stat()
-                        rel = str(f.relative_to(PROJECT_ROOT))
+                        rel = f.relative_to(PROJECT_ROOT).as_posix()
                         results.append({"path": rel, "size": st.st_size, "mtime": st.st_mtime})
             else:
                 # Recursive scan (capped depth).
@@ -883,7 +882,7 @@ def create_app():
         try:
             for sub in sorted(base.iterdir()):
                 if sub.is_file():
-                    rel = str(sub.relative_to(PROJECT_ROOT))
+                    rel = sub.relative_to(PROJECT_ROOT).as_posix()
                     entry = {"path": rel, "name": sub.name, "size": sub.stat().st_size}
                     if sub.suffix == ".py" and sub.name.startswith("test_"):
                         entry["parsed"] = _parse_py(sub)
@@ -896,11 +895,11 @@ def create_app():
                     if bucket:
                         for f in sorted(sub.rglob("*.py")):
                             if "__pycache__" in f.parts or f.name == "__init__.py":
-                                rel = str(f.relative_to(PROJECT_ROOT))
+                                rel = f.relative_to(PROJECT_ROOT).as_posix()
                                 if f.name == "__init__.py":
                                     out[bucket].append({"path": rel, "name": f.name, "size": f.stat().st_size, "parsed": None})
                                 continue
-                            rel = str(f.relative_to(PROJECT_ROOT))
+                            rel = f.relative_to(PROJECT_ROOT).as_posix()
                             out[bucket].append({
                                 "path": rel, "name": f.name,
                                 "size": f.stat().st_size,
@@ -909,7 +908,7 @@ def create_app():
                     elif sub.name == "sim_build":
                         for f in sorted(sub.iterdir()):
                             if not f.is_file(): continue
-                            rel = str(f.relative_to(PROJECT_ROOT))
+                            rel = f.relative_to(PROJECT_ROOT).as_posix()
                             out["build"].append({"path": rel, "name": f.name, "size": f.stat().st_size})
         except OSError as e:
             return JSONResponse({"error": str(e)}, status_code=500)
@@ -962,7 +961,7 @@ def create_app():
                                 rel_file = str(fp.resolve().relative_to(PROJECT_ROOT))
                             else:
                                 safe_fp = _safe(file_attr)
-                                rel_file = str(safe_fp.relative_to(PROJECT_ROOT)) if safe_fp else file_attr
+                                rel_file = safe_fp.relative_to(PROJECT_ROOT).as_posix() if safe_fp else file_attr
                         except Exception:
                             try:
                                 rel_file = str(Path(file_attr).resolve().relative_to(PROJECT_ROOT))
@@ -1107,7 +1106,7 @@ def create_app():
                    for part in p.parts):
                 continue
             try:
-                rel = str(p.relative_to(PROJECT_ROOT))
+                rel = p.relative_to(PROJECT_ROOT).as_posix()
                 stat = p.stat()
                 results.append({"path": rel, "size": stat.st_size,
                                  "mtime": stat.st_mtime})
@@ -1572,7 +1571,7 @@ def create_app():
                 if not expected:
                     rtl_dir = ip_dir / "rtl"
                     expected = [
-                        {"name": p.stem, "file": str(p.relative_to(ip_dir))}
+                        {"name": p.stem, "file": p.relative_to(ip_dir).as_posix()}
                         for p in sorted(list(rtl_dir.glob("*.sv")) + list(rtl_dir.glob("*.v")))
                     ] if rtl_dir.is_dir() else []
                 for item in expected:
@@ -1613,7 +1612,7 @@ def create_app():
                     listed = rel in entry_set or resolved_rel in entry_set
                     if exists:
                         try:
-                            listed = listed or str(path.relative_to(PROJECT_ROOT)) in entry_set
+                            listed = listed or path.relative_to(PROJECT_ROOT).as_posix() in entry_set
                         except Exception:
                             pass
                     include_header = False
@@ -1644,12 +1643,12 @@ def create_app():
                     "approved": approved,
                     "total": len(modules),
                     "pct": _pct(approved, len(modules)),
-                    "filelist": str(fpath.relative_to(PROJECT_ROOT)) if fpath else "",
+                    "filelist": fpath.relative_to(PROJECT_ROOT).as_posix() if fpath else "",
                     "manifest_mismatches": len(mismatches),
                     "manifest_mismatch_details": mismatches,
                     "blocked": bool(blocked_doc),
                     "blocker": str(blocked_doc.get("reason") or "") if blocked_doc else "",
-                    "blocker_source": str(blocked_path.relative_to(PROJECT_ROOT)) if blocked_doc else "",
+                    "blocker_source": blocked_path.relative_to(PROJECT_ROOT).as_posix() if blocked_doc else "",
                     "questions": blocked_doc.get("questions") if isinstance(blocked_doc.get("questions"), list) else [],
                     "next_action": str(blocked_doc.get("next_action") or "") if blocked_doc else "",
                     "modules": modules,
@@ -1676,7 +1675,7 @@ def create_app():
                         "errors": 1,
                         "diagnostics": 0,
                         "style_violations": 0,
-                        "source": str(report_path.relative_to(PROJECT_ROOT)),
+                        "source": report_path.relative_to(PROJECT_ROOT).as_posix(),
                         "tool": "",
                         "command": "",
                         "criteria": "fresh DUT RTL compile report from <ip>/rtl/rtl_compile.json",
@@ -1694,7 +1693,7 @@ def create_app():
                     "style_violations": int(report.get("style_violations") or 0),
                     "style_violation_details": report.get("style_violation_details") or [],
                     "returncode": int(report.get("returncode") or 0),
-                    "source": str(report_path.relative_to(PROJECT_ROOT)),
+                    "source": report_path.relative_to(PROJECT_ROOT).as_posix(),
                     "tool": str(report.get("tool") or ""),
                     "command": str(report.get("command") or ""),
                     "criteria": "fresh DUT RTL compile report from <ip>/rtl/rtl_compile.json; warnings, Icarus sorry diagnostics, and procedural parameterized part-selects are blockers",
@@ -1853,7 +1852,7 @@ def create_app():
                     "suppression_violations": diag.get("suppression_violations", 0),
                     "warning_budget": warning_budget,
                     "waivers": waivers,
-                    "source": str(latest.relative_to(PROJECT_ROOT)) if latest else "",
+                    "source": latest.relative_to(PROJECT_ROOT).as_posix() if latest else "",
                     "source_kind": source_kind,
                     "tool": tool,
                     "command": command,
@@ -1983,7 +1982,7 @@ def create_app():
                                 "tests": len(cases),
                                 "failures": source_fail,
                                 "errors": source_err,
-                                "source": str(pth.relative_to(PROJECT_ROOT)),
+                                "source": pth.relative_to(PROJECT_ROOT).as_posix(),
                             })
                     except Exception:
                         parsed_xml = False
@@ -2006,7 +2005,7 @@ def create_app():
                                 "tests": int(tests_attr.group(1)),
                                 "failures": int(fail_attr.group(1)) if fail_attr else 0,
                                 "errors": int(err_attr.group(1)) if err_attr else 0,
-                                "source": str(pth.relative_to(PROJECT_ROOT)),
+                                "source": pth.relative_to(PROJECT_ROOT).as_posix(),
                             })
                         elif names:
                             has_valid_result_xml = True
@@ -2014,7 +2013,7 @@ def create_app():
                                 "tests": len(names),
                                 "failures": len(source_failed),
                                 "errors": 0,
-                                "source": str(pth.relative_to(PROJECT_ROOT)),
+                                "source": pth.relative_to(PROJECT_ROOT).as_posix(),
                             })
                 def _sid_matches_name(sid: str, name: str) -> bool:
                     if not sid:
@@ -2189,7 +2188,7 @@ def create_app():
                 enough = total_bytes >= 1000 and not placeholder
                 return {
                     "status": "ok" if files and enough else ("partial" if files else "pending"),
-                    "files": [str(p.relative_to(PROJECT_ROOT)) for p in files[:12]],
+                    "files": [p.relative_to(PROJECT_ROOT).as_posix() for p in files[:12]],
                     "bytes": total_bytes,
                     "placeholder": placeholder,
                     "criteria": "REQ capture exists under <ip>/req, has substantive content, and contains no TBD/TODO/FIXME placeholders",
@@ -2238,8 +2237,8 @@ def create_app():
                 )
                 return {
                     "status": status,
-                    "source": str(model_path.relative_to(PROJECT_ROOT)) if exists else "",
-                    "check_source": str(check_path.relative_to(PROJECT_ROOT)) if check_path.is_file() else "",
+                    "source": model_path.relative_to(PROJECT_ROOT).as_posix() if exists else "",
+                    "check_source": check_path.relative_to(PROJECT_ROOT).as_posix() if check_path.is_file() else "",
                     "bytes": size,
                     "has_apply": has_api,
                     "self_check": check,
@@ -2266,7 +2265,7 @@ def create_app():
                 )
                 return {
                     "status": status,
-                    "source": str(path.relative_to(PROJECT_ROOT)) if path.is_file() else "",
+                    "source": path.relative_to(PROJECT_ROOT).as_posix() if path.is_file() else "",
                     "units": len(units) if isinstance(units, list) else 0,
                     "kinds": kinds,
                     "criteria": "FL model decomposition traces protocol/register/memory/datapath/FSM/error/security units to SSOT sections",
@@ -2289,7 +2288,7 @@ def create_app():
                 )
                 return {
                     "status": status,
-                    "source": str(path.relative_to(PROJECT_ROOT)) if path.is_file() else "",
+                    "source": path.relative_to(PROJECT_ROOT).as_posix() if path.is_file() else "",
                     "bins": len(bins) if isinstance(bins, list) else 0,
                     "classes": classes,
                     "summary": doc.get("summary") if isinstance(doc, dict) else {},
@@ -2408,9 +2407,9 @@ def create_app():
                     "loopable_oracles": authority_contract.get("loopable_oracles") if isinstance(authority_contract.get("loopable_oracles"), list) else [],
                     "missing_evidence": compare_summary.get("missing_evidence") if isinstance(compare_summary.get("missing_evidence"), list) else [],
                     "stale_evidence": stale_evidence,
-                    "evidence": str(goals_path.relative_to(PROJECT_ROOT)) if goals_path.is_file() else "",
-                    "compare_evidence": str(compare_path.relative_to(PROJECT_ROOT)) if compare_path.is_file() else "",
-                    "classification_evidence": str(classify_path.relative_to(PROJECT_ROOT)) if classify_path.is_file() else "",
+                    "evidence": goals_path.relative_to(PROJECT_ROOT).as_posix() if goals_path.is_file() else "",
+                    "compare_evidence": compare_path.relative_to(PROJECT_ROOT).as_posix() if compare_path.is_file() else "",
+                    "classification_evidence": classify_path.relative_to(PROJECT_ROOT).as_posix() if classify_path.is_file() else "",
                     "next_action": (
                         "none; all equivalence goals passed"
                         if status == "pass" else
@@ -2487,7 +2486,7 @@ def create_app():
                     status = "pending"
                 return {
                     "status": status,
-                    "source": str(audit_path.relative_to(PROJECT_ROOT)) if audit_path.is_file() else "",
+                    "source": audit_path.relative_to(PROJECT_ROOT).as_posix() if audit_path.is_file() else "",
                     "total_checks": int(summary.get("total_checks") or 0) if isinstance(summary, dict) else 0,
                     "passed_checks": int(summary.get("passed_checks") or 0) if isinstance(summary, dict) else 0,
                     "failed_checks": int(summary.get("failed_checks") or 0) if isinstance(summary, dict) else 0,
@@ -3175,9 +3174,9 @@ def create_app():
                     },
                     "interfaces": interfaces,
                     "addr": addr,
-                    "rtl_files": [str(f.relative_to(PROJECT_ROOT)) for f in rtl_files],
-                    "ssot_path": str(p.relative_to(PROJECT_ROOT)),
-                    "ip_dir": str(ip_dir.relative_to(PROJECT_ROOT)),
+                    "rtl_files": [f.relative_to(PROJECT_ROOT).as_posix() for f in rtl_files],
+                    "ssot_path": p.relative_to(PROJECT_ROOT).as_posix(),
+                    "ip_dir": ip_dir.relative_to(PROJECT_ROOT).as_posix(),
                     "clocks": clocks_n,
                     "resets": resets_n,
                     "sim_history": sim_history,
@@ -3396,7 +3395,7 @@ def create_app():
                     ],
                     "module_count": len(inst_to_mod),
                     "source": "soc.ssot.yaml",
-                    "soc_ssot_path": str(soc_path.relative_to(PROJECT_ROOT)),
+                    "soc_ssot_path": soc_path.relative_to(PROJECT_ROOT).as_posix(),
                     "soc_ssot_mtime": soc_path.stat().st_mtime,
                 })
 
@@ -6051,7 +6050,7 @@ def create_app():
                 import subprocess
 
                 sim_run = subprocess.run(
-                    ["bash", str(script), str(runner.relative_to(PROJECT_ROOT))],
+                    ["bash", str(script), runner.relative_to(PROJECT_ROOT).as_posix()],
                     cwd=str(PROJECT_ROOT),
                     text=True,
                     capture_output=True,
@@ -6901,7 +6900,7 @@ def create_app():
             "ip": ip,
             "model": model,
             "session": session_name,
-            "session_dir": str(session_dir.relative_to(PROJECT_ROOT)),
+            "session_dir": session_dir.relative_to(PROJECT_ROOT).as_posix(),
             "scope_path": rel_scope,
             "worker_command": f"python src/main.py --serve --port {worker_url.rsplit(':', 1)[-1]} --worker-name {workflow} --session {session_name}",
             "prompt": boundary + (prompt or _default_workflow_prompt(workflow, ip)),
@@ -7311,7 +7310,7 @@ def create_app():
                 "total_entries": len(entries),
                 "entries": entries,
                 "source": "session",
-                "session_path": str(path.relative_to(PROJECT_ROOT)),
+                "session_path": path.relative_to(PROJECT_ROOT).as_posix(),
                 "job": {k: v for k, v in job.items() if not k.startswith("_")},
             }
 
@@ -7411,7 +7410,7 @@ def create_app():
                 "id": ip_dir.name,
                 "kind": _catalog_kind(name),
                 "source": "project",
-                "ssot_path": str(p.relative_to(PROJECT_ROOT)),
+                "ssot_path": p.relative_to(PROJECT_ROOT).as_posix(),
                 "ports": ports,
             })
         return JSONResponse({"models": models, "count": len(models)})
@@ -7456,7 +7455,7 @@ def create_app():
                 return None
             node = {
                 "name": name,
-                "path": str(p.relative_to(PROJECT_ROOT)),
+                "path": p.relative_to(PROJECT_ROOT).as_posix(),
                 "kind": "dir",
                 **_meta(p),
                 "children": [],
@@ -7677,7 +7676,7 @@ def create_app():
         except OSError as e:
             return JSONResponse({"error": f"write: {e}"}, status_code=500)
         return JSONResponse({"ok": True, "touched": touched, "cleared": cleared,
-                              "path": str(soc_path.relative_to(PROJECT_ROOT))})
+                              "path": soc_path.relative_to(PROJECT_ROOT).as_posix()})
 
     @app.post("/api/soc/connect")
     async def api_soc_connect(request: Request):
@@ -7723,7 +7722,7 @@ def create_app():
             if isinstance(c, dict) and c.get("from") == src and c.get("to") == dst:
                 return JSONResponse({"ok": True, "duplicate": True,
                                      "connection": c,
-                                     "path": str(soc_path.relative_to(PROJECT_ROOT))})
+                                     "path": soc_path.relative_to(PROJECT_ROOT).as_posix()})
         entry = {"from": src, "to": dst}
         if proto:
             entry["proto"] = proto
@@ -7752,7 +7751,7 @@ def create_app():
         except OSError as e:
             return JSONResponse({"error": f"write: {e}"}, status_code=500)
         return JSONResponse({"ok": True, "connection": entry,
-                             "path": str(soc_path.relative_to(PROJECT_ROOT))})
+                             "path": soc_path.relative_to(PROJECT_ROOT).as_posix()})
 
     @app.post("/api/soc/instance/add")
     async def api_soc_instance_add(request: Request):
@@ -7794,7 +7793,7 @@ def create_app():
             top = d.get("top_module")
             name = top if isinstance(top, str) and top.strip() else ip_dir.name
             catalog.append({"name": name, "id": ip_dir.name,
-                            "ssot": str(p.relative_to(PROJECT_ROOT))})
+                            "ssot": p.relative_to(PROJECT_ROOT).as_posix()})
         found = next((m for m in catalog
                       if m["name"] == model or m["id"] == model), None)
         if not found:
@@ -7852,7 +7851,7 @@ def create_app():
         except OSError as e:
             return JSONResponse({"error": f"write: {e}"}, status_code=500)
         return JSONResponse({"ok": True, "instance": inst, "cluster": cluster_id,
-                             "model": found, "path": str(soc_path.relative_to(PROJECT_ROOT))})
+                             "model": found, "path": soc_path.relative_to(PROJECT_ROOT).as_posix()})
 
     @app.post("/api/soc/instance/delete")
     async def api_soc_instance_delete(request: Request):
@@ -7950,7 +7949,7 @@ def create_app():
         except OSError as e:
             return JSONResponse({"error": f"write: {e}"}, status_code=500)
         return JSONResponse({"ok": True, "id": inst_id, "removed": removed,
-                             "path": str(soc_path.relative_to(PROJECT_ROOT))})
+                             "path": soc_path.relative_to(PROJECT_ROOT).as_posix()})
 
     @app.post("/api/diagram/plan")
     async def api_diagram_plan(request: Request):
@@ -8274,7 +8273,7 @@ def create_app():
                         if existing is None:
                             new_inst = {
                                 "id": name,
-                                "ssot": str(yaml_path.relative_to(PROJECT_ROOT)),
+                                "ssot": yaml_path.relative_to(PROJECT_ROOT).as_posix(),
                             }
                             # Pull addr from the imported IP's memoryMap
                             # so addrmap_check can validate it.
@@ -8312,7 +8311,7 @@ def create_app():
             return JSONResponse({
                 "ok": True,
                 "name": name,
-                "path": str(yaml_path.relative_to(PROJECT_ROOT)),
+                "path": yaml_path.relative_to(PROJECT_ROOT).as_posix(),
                 "registered_in_soc": registered,
                 "ssot": ssot,
             })
@@ -8375,7 +8374,7 @@ def create_app():
                         msgs = alt
                         hpath = p
                         try:
-                            fallback_session = str(p.parent.relative_to(root))
+                            fallback_session = p.parent.relative_to(root).as_posix()
                         except Exception:
                             fallback_session = str(p.parent)
                         break
@@ -8413,7 +8412,7 @@ def create_app():
         hpath = sdir / "conversation.json"
         if not hpath.is_file():
             return JSONResponse({"messages": [], "session": session,
-                                 "path": str(hpath.relative_to(PROJECT_ROOT)),
+                                 "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
                                  "exists": False})
         try:
             msgs = json.loads(hpath.read_text(encoding="utf-8"))
@@ -8421,13 +8420,13 @@ def create_app():
                 msgs = []
         except Exception as e:
             return JSONResponse({"messages": [], "session": session,
-                                 "path": str(hpath.relative_to(PROJECT_ROOT)),
+                                 "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
                                  "error": f"parse: {e}"}, status_code=500)
         msgs = [m for m in msgs if isinstance(m, dict) and m.get("role") != "system"]
         if len(msgs) > limit:
             msgs = msgs[-limit:]
         return JSONResponse({"messages": msgs, "session": session,
-                             "path": str(hpath.relative_to(PROJECT_ROOT)),
+                             "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
                              "exists": True, "truncated_to": limit})
 
     @app.get("/api/session/state")
@@ -8491,7 +8490,7 @@ def create_app():
 
         return JSONResponse({
             "session": session,
-            "session_dir": str(sdir.relative_to(PROJECT_ROOT)),
+            "session_dir": sdir.relative_to(PROJECT_ROOT).as_posix(),
             "exists": sdir.is_dir(),
             "conversation": {
                 "messages": messages,
@@ -8520,7 +8519,7 @@ def create_app():
                     continue
                 out.append({
                     "session": session,
-                    "path": str(p.relative_to(PROJECT_ROOT)),
+                    "path": p.relative_to(PROJECT_ROOT).as_posix(),
                     "mtime": p.stat().st_mtime,
                     "size": p.stat().st_size,
                 })
@@ -8899,8 +8898,15 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     # leftover "[2m" / "[0m" markers, which leaked into the chat as visible
     # garbage. Doing the strip once here covers every emit path.
     import re as _re_ansi
+    # First branch: full CSI/OSC sequences w/ the leading ESC byte.
+    # Last branch: ORPHAN SGR codes whose ESC was stripped upstream
+    # (common on Windows when the console host or codec drops 0x1b),
+    # leaving visible garbage like `[2m 187 [0m` in the chat. Match
+    # them only when they look like real SGR — `[<digits[;digits]*>m`.
     _ANSI_RE = _re_ansi.compile(
-        r"\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)"
+        r"\x1b\[[0-9;?]*[a-zA-Z]"
+        r"|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)"
+        r"|\[(?:\d{1,3};)*\d{0,3}m"
     )
     def _clean(s):
         return _ANSI_RE.sub("", s) if isinstance(s, str) else s

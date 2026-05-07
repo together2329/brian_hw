@@ -17,7 +17,7 @@ HTML = r"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UPD Agent — Web UI</title>
+<title>ATLAS — Web UI</title>
 <script src="https://unpkg.com/marked@9/marked.min.js"></script>
 <style>
 :root {
@@ -77,12 +77,12 @@ body {
 </style>
 </head>
 <body>
-<div id="output"><span class="banner">◆ UPD Agent  ─  Web UI</span>
+<div id="output"><span class="banner">◆ ATLAS  ─  Web UI</span>
 <span class="dim">Type a message and press Enter. /help for commands.</span>
 </div>
 <div id="input-wrap">
   <span id="prompt">❯</span>
-  <input id="input" placeholder="Message UPD Agent..." autofocus autocomplete="off">
+  <input id="input" placeholder="Message ATLAS..." autofocus autocomplete="off">
 </div>
 <div id="status"><span id="status-left">⚪ Ready</span><span id="status-right"></span></div>
 <script>
@@ -222,7 +222,7 @@ def create_app():
         print("ERROR: fastapi not installed. Run: pip install fastapi uvicorn")
         sys.exit(1)
 
-    app = FastAPI(title="UPD Agent Web UI")
+    app = FastAPI(title="ATLAS Web UI")
     bridge = _WebBridge()
     sse_queue = _SSEQueue()
 

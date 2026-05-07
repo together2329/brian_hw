@@ -63,7 +63,7 @@ const TitleBar = ({ ip, screen, onScreen }) => {
   return (
     <div className="titlebar">
       <span className="tb-dot" />
-      <span><b>common_ai_agent</b></span>
+      <span><b>ATLAS</b></span>
       <span className="tb-pipe">│</span>
       <span className="tb-item">workspace: <b>{ws || '—'}</b></span>
       <span className="tb-pipe">│</span>

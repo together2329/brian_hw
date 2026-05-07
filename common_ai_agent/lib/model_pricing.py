@@ -75,8 +75,18 @@ def get_pricing(model_name: str) -> Optional[Pricing]:
             return Pricing(input=1.0, cache=0.0, output=10.0)
     best_key = ""
     best = None
+    # Pass 1: longest prefix match (covers `gpt-5.4`, `claude-opus-4`).
     for key, pricing in _TABLE.items():
         if name.startswith(key) and len(key) > len(best_key):
+            best_key = key
+            best = pricing
+    if best is not None:
+        return best
+    # Pass 2: longest substring match. Catches vendor/deployment aliases
+    # such as `sora-soc-gpt-5.4`, `proxy/openai/gpt-5.4`, `cust-glm-5.1-rev2`,
+    # where the recognizable base model is embedded in the runtime alias.
+    for key, pricing in _TABLE.items():
+        if key in name and len(key) > len(best_key):
             best_key = key
             best = pricing
     return best
