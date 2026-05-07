@@ -322,6 +322,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // qaState is keyed by flow_id. Dynamic flows are added on-the-fly
   // when the agent emits an ask_user event over the WS.
   const [qaState, setQaState] = React.useState({});
+  // qaHistory: every submitted ask_user round-trip, newest first.
+  // Each entry is {flowId, ts, ip, workflow, source, items: [{
+  //   question, kind, selected: [{id,label}], custom
+  // }, ...]}. Persisted in localStorage so refreshing the tab keeps
+  // the trail visible. The Q&A tab renders this above the SSOT board.
+  const [qaHistory, setQaHistory] = React.useState(() => {
+    try {
+      const raw = localStorage.getItem('atlasQaHistory');
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.slice(0, 50) : [];
+    } catch (_) { return []; }
+  });
+  React.useEffect(() => {
+    try { localStorage.setItem('atlasQaHistory', JSON.stringify(qaHistory.slice(0, 50))); } catch (_) {}
+  }, [qaHistory]);
   const [ssotApproval, setSsotApproval] = React.useState(null);
   const [ssotQa, setSsotQa] = React.useState(null);
   const [ssotQaSessions, setSsotQaSessions] = React.useState([]);
@@ -1236,6 +1251,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     // Functional updater so we always read the latest qaState — this
     // matters when a toggle was just queued (e.g. single-kind Enter
     // = toggle+submit) and we'd otherwise see pre-toggle state.
+    let snapshot = null;
     setQaState(s => {
       const st = s[flowId];
       if (!st || st.submitted) return s;
@@ -1256,8 +1272,47 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           });
         }
       }
+      // Build a serializable history snapshot of THIS submit so we
+      // can prepend it to qaHistory after the state update flushes.
+      try {
+        const flow = window.QA_FLOWS && window.QA_FLOWS[flowId];
+        if (flow) {
+          const items = flow.batched
+            ? (flow.questions || []).map((q, i) => {
+                const tab = (st.states || [])[i] || { opts: [], custom: '' };
+                return {
+                  question: q.question || '',
+                  kind: q.kind || 'single',
+                  selected: tab.opts.filter(o => o.selected)
+                    .map(o => ({ id: o.id, label: o.label })),
+                  custom: tab.custom || '',
+                };
+              })
+            : [{
+                question: flow.question || '',
+                kind: flow.kind || 'single',
+                selected: (st.opts || []).filter(o => o.selected)
+                  .map(o => ({ id: o.id, label: o.label })),
+                custom: st.custom || '',
+              }];
+          snapshot = {
+            flowId,
+            ts: Date.now(),
+            ip: flow.ip || '',
+            workflow: flow.workflow || '',
+            source: flow.source || '',
+            items,
+          };
+        }
+      } catch (_) {}
       return { ...s, [flowId]: { ...st, submitted: true } };
     });
+    if (snapshot) {
+      setQaHistory(h => {
+        if (h.length && h[0].flowId === snapshot.flowId) return h; // dedupe re-submits
+        return [snapshot, ...h].slice(0, 50);
+      });
+    }
     setStreaming(true);  // agent resumes after receiving answer
   };
 
@@ -1762,6 +1817,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                   onBack={() => setMainTab('chat')}
                   onRefresh={() => { refreshSsotQa(); refreshSsotQaSessions(); }}
                 />
+              )}
+              {qaHistory.length > 0 && (
+                <QaHistoryPanel history={qaHistory} onClear={() => setQaHistory([])} />
               )}
             </div>
           )}
@@ -2792,6 +2850,92 @@ const AskUserCall = ({ flowId, state, dir }) => {
         </div>
       )}
     </>
+  );
+};
+
+// ── ask_user — past Q&A round-trips, newest first ────────────────
+// Persisted to localStorage in workspace.jsx so the trail survives a
+// page reload. Renders below the active SSOT board on the Q&A tab.
+const QaHistoryPanel = ({ history, onClear }) => {
+  if (!history || history.length === 0) return null;
+  const fmtTs = (ts) => {
+    try {
+      const d = new Date(ts);
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${mo}-${dd} ${hh}:${mm}`;
+    } catch (_) { return ''; }
+  };
+  return (
+    <div style={{ marginTop: 18 }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8,
+        paddingBottom: 6, borderBottom: '1px dashed var(--line)',
+        fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase',
+        color: 'var(--fg-mute)', fontFamily: 'var(--mono)',
+      }}>
+        <span className="acc" style={{ fontWeight: 700 }}>▸ Q&amp;A history</span>
+        <span className="mute">·</span>
+        <span>{history.length} answered</span>
+        <span style={{ flex: 1 }} />
+        <span
+          onClick={onClear}
+          style={{ cursor: 'pointer', color: 'var(--fg-mute)', fontSize: 10 }}
+          title="Clear local Q&A history (does not affect the agent's session)"
+        >clear</span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {history.map((entry, i) => (
+          <details
+            key={entry.flowId + ':' + entry.ts + ':' + i}
+            open={i === 0}
+            style={{
+              border: '1px solid var(--line)',
+              borderLeft: '2px solid var(--ok)',
+              borderRadius: 2, padding: '6px 10px',
+              background: 'color-mix(in oklch, var(--ok) 4%, transparent)',
+            }}
+          >
+            <summary style={{
+              cursor: 'pointer', fontSize: 12, fontFamily: 'var(--mono)',
+              listStyle: 'none', display: 'flex', gap: 8, alignItems: 'center',
+            }}>
+              <span style={{ color: 'var(--ok)', fontWeight: 700 }}>☑</span>
+              <span style={{ color: 'var(--fg)' }}>
+                {entry.items.length} question{entry.items.length === 1 ? '' : 's'}
+                {entry.ip ? ` · ${entry.ip}` : ''}
+                {entry.workflow ? ` · ${entry.workflow}` : ''}
+              </span>
+              <span style={{ flex: 1 }} />
+              <span className="mute" style={{ fontSize: 10 }}>{fmtTs(entry.ts)}</span>
+            </summary>
+            <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {entry.items.map((q, qi) => {
+                const sels = (q.selected || []).map(s => s.label).join(', ');
+                const ans = sels
+                  ? sels + (q.custom ? ` · note: "${q.custom}"` : '')
+                  : (q.custom ? `note: "${q.custom}"` : '(no answer)');
+                return (
+                  <div key={qi} style={{
+                    fontSize: 12, fontFamily: 'var(--mono)',
+                    paddingLeft: 6, borderLeft: '1px solid var(--line-2)',
+                  }}>
+                    <div style={{ color: 'var(--fg-dim)' }}>
+                      Q{qi + 1}. {q.question}
+                    </div>
+                    <div style={{ color: 'var(--fg)', marginTop: 1 }}>
+                      <span className="mute">→ </span>{ans}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </details>
+        ))}
+      </div>
+    </div>
   );
 };
 
