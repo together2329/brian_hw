@@ -275,7 +275,7 @@ def _reasoning_env_override() -> bool:
                 or getattr(config, 'REASONING_EFFORT', '')
                 or _os.getenv('REASONING_MODE', '')
                 or _os.getenv('REASONING_EFFORT', ''))
-        if str(mode or '').lower() in ('low', 'medium', 'high'):
+        if str(mode or '').lower() in ('low', 'medium', 'high', 'xhigh', 'minimal'):
             return True
     return False
 
@@ -314,10 +314,25 @@ def _is_openai_gpt_model(model_name: str = None) -> bool:
 
 
 def _get_responses_reasoning_mode() -> str:
-    """Return normalized Responses reasoning mode: off | low | medium | high."""
+    """Return normalized Responses reasoning effort.
+
+    OpenAI accepts (as of GPT-5.2/5.4/5.5):
+      • off / none / minimal — skip / minimum reasoning
+      • low / medium / high   — original tiers
+      • xhigh                  — extra-high (3–5× cost vs low),
+                                 introduced for non-latency-sensitive
+                                 work on GPT-5.2-Pro / 5.2-Thinking /
+                                 5.4 / 5.5.
+    `off` is treated as "don't add reasoning to the request body".
+    """
     mode = getattr(config, 'REASONING_MODE', getattr(config, 'REASONING_EFFORT', 'medium'))
-    mode = str(mode or 'medium').lower()
-    return mode if mode in ('off', 'low', 'medium', 'high') else 'medium'
+    mode = str(mode or 'medium').lower().strip()
+    # Aliases that some users wire (extra_high / xhi / max → xhigh)
+    if mode in ('extra_high', 'extra-high', 'xhi', 'max'):
+        mode = 'xhigh'
+    if mode == 'none':
+        mode = 'minimal'
+    return mode if mode in ('off', 'minimal', 'low', 'medium', 'high', 'xhigh') else 'medium'
 
 
 def compute_safe_max_tokens(used_tokens: int = 0) -> int:
@@ -1031,13 +1046,13 @@ def _build_responses_request_body(
     _is_reasoning_model = _is_reasoning_model_for_name(model)
     if _is_reasoning_model:
         reasoning_mode = _get_responses_reasoning_mode()
-        if reasoning_mode in ('low', 'medium', 'high'):
+        if reasoning_mode in ('minimal', 'low', 'medium', 'high', 'xhigh'):
             reasoning = {"effort": reasoning_mode}
             if getattr(config, 'RESPONSES_REASONING_SUMMARY', True):
                 reasoning["summary"] = "detailed"
             data["reasoning"] = reasoning
         elif getattr(config, 'DEBUG_MODE', False):
-            print(Color.warning(f"[DEBUG] Reasoning mode '{reasoning_mode}' not in (low/medium/high) - skipping reasoning"))
+            print(Color.warning(f"[DEBUG] Reasoning mode '{reasoning_mode}' not in (minimal/low/medium/high/xhigh) - skipping reasoning"))
     elif getattr(config, 'DEBUG_MODE', False) and 'gpt-5' in (model or '').lower():
         print(Color.warning(f"[DEBUG] Model '{model}' not detected as reasoning model"))
 
