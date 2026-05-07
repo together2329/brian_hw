@@ -1034,14 +1034,20 @@ def test_dynamic_rtl_todos_scale_from_ssot_complexity(tmp_path: Path):
     template_plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_tracker.json").read_text(encoding="utf-8"))
     assert template_plan["name"] == f"{ip}-rtl"
     assert template_plan["source_plan"] == "rtl/rtl_todo_plan.json"
+    assert template_plan["source_task_count"] == summary["total_tasks"]
+    assert template_plan["ui_grouping"]["strategy"] == "ssot_section_plus_rtl_work_type"
+    assert template_plan["ui_grouping"]["actual_count"] == len(template_plan["tasks"])
     assert "tasks" in template_plan
-    assert len(template_plan["tasks"]) == summary["total_tasks"]
+    assert 1 < len(template_plan["tasks"]) < summary["total_tasks"]
+    assert len(template_plan["tasks"]) <= template_plan["ui_grouping"]["target_max"]
     first_task = template_plan["tasks"][0]
     assert "content" in first_task
     assert "activeForm" in first_task
     assert "detail" in first_task
     assert "priority" in first_task
     assert "criteria" in first_task
+    assert "Close every ledger item represented by this UI TODO" in first_task["criteria"]
+    assert any("function_model" in task["criteria"] for task in template_plan["tasks"])
     authoring_plan = json.loads((tmp_path / ip / "rtl" / "rtl_authoring_plan.json").read_text(encoding="utf-8"))
     assert authoring_plan["type"] == "rtl_authoring_plan"
     assert authoring_plan["source_plan"] == "rtl/rtl_todo_plan.json"

@@ -66,6 +66,8 @@ STATIC_EVIDENCE_CATEGORIES = (
 
 AUTHORING_PACKET_TASK_LIMIT = 48
 AUTHORING_RECOMMENDED_PACKET_BATCH_LIMIT = 4
+UI_TODO_TARGET_MIN = 20
+UI_TODO_TARGET_MAX = 30
 AUTHORING_PACKET_SECTION_ORDER = {
     "rtl_flow": 0,
     "io_list": 1,
@@ -2479,44 +2481,232 @@ def _add_workflow_todo_tasks(
             task["criteria"].append("Semantic source_refs covered: " + ", ".join(source_refs))
 
 
+def _todo_active_form(content: str) -> str:
+    active_form = content
+    verb_map = {
+        "read": "Reading",
+        "write": "Writing",
+        "implement": "Implementing",
+        "create": "Creating",
+        "run": "Running",
+        "check": "Checking",
+        "verify": "Verifying",
+        "build": "Building",
+        "design": "Designing",
+        "extract": "Extracting",
+        "define": "Defining",
+        "add": "Adding",
+        "instantiate": "Instantiating",
+        "connect": "Connecting",
+        "close": "Closing",
+    }
+    content_lower = content.lower()
+    for verb, verb_ing in verb_map.items():
+        if content_lower.startswith(verb):
+            active_form = verb_ing + content[len(verb):]
+            break
+    return active_form
+
+
+def _rtl_gate_ui_group(task: dict[str, Any]) -> tuple[int, str, str]:
+    gate = task.get("gate_todo") if isinstance(task.get("gate_todo"), dict) else {}
+    kind = str(gate.get("kind") or "")
+    if kind in {
+        "ssot_required_sections",
+        "ssot_workflow_todo_format",
+        "common_ai_agent_authoring",
+        "golden_authority_artifacts",
+        "target_scale_policy",
+    }:
+        return (80, "gate.authority", "Close RTL authority and provenance gates")
+    if kind in {
+        "owner_traceability",
+        "static_rtl_evidence",
+        "owner_logic_structure_evidence",
+        "rtl_placeholder_free_evidence",
+        "dynamic_todo_closure",
+        "rtl_implementation_depth_evidence",
+    }:
+        return (81, "gate.traceability", "Close RTL traceability and implementation-depth gates")
+    if kind in {
+        "top_io_contract_evidence",
+        "top_output_drive_evidence",
+        "top_input_consumption_evidence",
+        "manifest_hierarchy_integration",
+        "manifest_port_connection_evidence",
+        "manifest_signal_flow_evidence",
+        "manifest_connection_contract_evidence",
+    }:
+        return (82, "gate.hierarchy_io", "Close top IO, hierarchy, and connection gates")
+    if kind in {"dut_compile", "dut_lint"}:
+        return (90, "gate.compile_lint", "Run DUT-only compile and lint closure gates")
+    if kind in {
+        "cycle_model_artifacts",
+        "protocol_assertion_evidence",
+        "fl_rtl_goal_audit",
+        "coverage_closure",
+    }:
+        return (91, "gate.sim_coverage", "Close cycle, assertion, FL-vs-RTL, and coverage gates")
+    return (89, "gate.remaining", "Close remaining RTL quality gates")
+
+
+def _ui_group_for_task(task: dict[str, Any]) -> tuple[int, str, str]:
+    category = str(task.get("category") or "uncategorized")
+    section, _, subsection = category.partition(".")
+    content = str(task.get("content") or "").strip()
+
+    if category == "rtl_flow.seed":
+        return (0, "flow.prepare", "Prepare SSOT-derived RTL generation authority")
+    if category == "rtl_flow.top" or section == "io_list":
+        return (1, "interface.top_io", "Implement top module, ports, reset, and filelist")
+    if section == "parameters":
+        return (2, "interface.parameters", "Implement Verilog include parameters and constants")
+    if section == "registers":
+        return (3, "interface.registers", "Implement register decode, storage, and field behavior")
+    if section == "memory":
+        return (4, "datapath.memory", "Implement SSOT memory instances and access behavior")
+    if section == "interrupts":
+        return (5, "control.interrupts", "Implement interrupt sources, enables, and clears")
+    if category == "workflow_todo.rtl_gen":
+        workflow = task.get("workflow_todo") if isinstance(task.get("workflow_todo"), dict) else {}
+        todo_id = _slug(workflow.get("id") or content or task.get("id"), fallback="workflow_todo")
+        title = content or "Execute SSOT-authored rtl-gen workflow TODO"
+        return (10, f"workflow.{todo_id}", title)
+    if section == "function_model":
+        if subsection in {"input", "output", "output_rule", "transaction"}:
+            return (20, "function.io_transactions", "Implement function_model inputs, outputs, and transactions")
+        if subsection in {"precondition", "invariant"}:
+            return (21, "function.conditions", "Implement function_model preconditions and invariants")
+        if subsection in {"state_variable", "side_effect", "state_update"}:
+            return (22, "function.state_effects", "Implement function_model state and side effects")
+        if subsection in {"error_case"}:
+            return (23, "function.error_cases", "Implement function_model error cases")
+        return (24, "function.remaining", "Implement remaining function_model behavior")
+    if section == "cycle_model":
+        if subsection in {"handshake_rules", "backpressure", "arbitration"}:
+            return (30, "cycle.handshake", "Implement cycle_model handshake, backpressure, and arbitration")
+        return (31, "cycle.timing_order", "Implement cycle_model timing, ordering, pipeline, and reset")
+    if section == "fsm":
+        return (40, "control.fsm", "Implement FSM states and transitions")
+    if section == "dataflow":
+        return (41, "datapath.dataflow", "Implement SSOT dataflow and ordering behavior")
+    if section == "features":
+        return (42, "feature.contracts", "Implement feature-level RTL contracts")
+    if section == "error_handling":
+        return (43, "control.error_recovery", "Implement error handling and recovery behavior")
+    if section in {"security", "integration", "synthesis"}:
+        return (44, "integration.signoff_constraints", "Close security, integration, and synthesis constraints")
+    if section == "test_requirements":
+        return (60, "verification.test_scenarios", "Preserve RTL evidence for SSOT test scenarios")
+    if section == "coverage":
+        return (61, "verification.coverage_goals", "Preserve RTL evidence for SSOT coverage goals")
+    if section == "equivalence":
+        return (62, "verification.equivalence", "Preserve FL-vs-RTL module equivalence mapping")
+    if category == "rtl_gate.rtl_gen":
+        return _rtl_gate_ui_group(task)
+    title = f"Implement {section} RTL contracts" if section != "uncategorized" else "Close remaining SSOT RTL contracts"
+    return (70, f"section.{section}", title)
+
+
+def _priority_label(tasks: list[dict[str, Any]]) -> str:
+    labels = {"critical": 0, "high": 1, "normal": 2, "medium": 2, "low": 3}
+    best = "normal"
+    best_rank = labels[best]
+    for task in tasks:
+        priority = str(task.get("priority") or "normal").strip().lower()
+        rank = labels.get(priority, 2)
+        if rank < best_rank:
+            best = priority
+            best_rank = rank
+    return best
+
+
+def _ui_criteria_line(task: dict[str, Any]) -> str:
+    task_id = str(task.get("id") or "").strip()
+    source_ref = str(task.get("source_ref") or "").strip()
+    content = str(task.get("content") or "").strip()
+    prefix = task_id or source_ref or "ledger-item"
+    if source_ref and source_ref != prefix:
+        prefix = f"{prefix} {source_ref}"
+    return f"{prefix}: {content}" if content else prefix
+
+
+def _ui_todo_from_group(group: dict[str, Any]) -> dict[str, Any]:
+    group_tasks = [task for task in group["tasks"] if isinstance(task, dict)]
+    content = str(group["title"])
+    task_ids = [str(task.get("id") or "") for task in group_tasks if task.get("id")]
+    sections = sorted({
+        str(task.get("category") or "").split(".", 1)[0]
+        for task in group_tasks
+        if task.get("category")
+    })
+    critical = sum(1 for task in group_tasks if str(task.get("priority") or "").lower() == "critical")
+    high = sum(1 for task in group_tasks if str(task.get("priority") or "").lower() == "high")
+    id_span = f"{task_ids[0]}..{task_ids[-1]}" if len(task_ids) > 1 else (task_ids[0] if task_ids else "n/a")
+    detail_lines = [
+        f"Grouped from {len(group_tasks)} SSOT-derived RTL ledger item(s).",
+        f"Ledger ids: {id_span}.",
+        "Use rtl/rtl_todo_plan.json for the original per-item detail, criteria, traceability, and evidence audit.",
+    ]
+    if sections:
+        detail_lines.append("SSOT sections: " + ", ".join(sections))
+    if critical or high:
+        detail_lines.append(f"Priority mix: critical={critical}, high={high}.")
+
+    criteria_lines = [
+        f"Close every ledger item represented by this UI TODO ({len(group_tasks)} item(s))",
+        "Preserve the original source_ref and owner evidence in rtl_todo_plan.json",
+        *(_ui_criteria_line(task) for task in group_tasks),
+    ]
+    return {
+        "content": content,
+        "activeForm": _todo_active_form(content),
+        "detail": "\n".join(detail_lines),
+        "criteria": "\n".join(line for line in criteria_lines if line),
+        "priority": _priority_label(group_tasks),
+    }
+
+
 def _convert_to_template_format(plan: dict[str, Any]) -> dict[str, Any]:
-    tasks = []
-    for task in plan.get("tasks", []):
+    grouped: dict[str, dict[str, Any]] = {}
+    for idx, task in enumerate(plan.get("tasks", [])):
         if not isinstance(task, dict):
             continue
+        order, key, title = _ui_group_for_task(task)
+        group = grouped.setdefault(
+            key,
+            {
+                "key": key,
+                "order": order,
+                "first_index": idx,
+                "title": title,
+                "tasks": [],
+            },
+        )
+        group["tasks"].append(task)
 
-        content = task.get("content", "")
-        criteria = task.get("criteria", [])
-        criteria_lines = [str(item) for item in criteria] if isinstance(criteria, list) else [str(criteria)]
-
-        detail = task.get("detail", "")
-
-        active_form = content
-        verb_map = {
-            "read": "Reading", "write": "Writing", "implement": "Implementing",
-            "create": "Creating", "run": "Running", "check": "Checking",
-            "verify": "Verifying", "build": "Building", "design": "Designing",
-            "extract": "Extracting", "define": "Defining", "add": "Adding",
-            "instantiate": "Instantiating", "connect": "Connecting",
-        }
-        content_lower = content.lower()
-        for verb, verb_ing in verb_map.items():
-            if content_lower.startswith(verb):
-                active_form = verb_ing + content[len(verb):]
-                break
-
-        tasks.append({
-            "content": content,
-            "activeForm": active_form,
-            "detail": detail,
-            "criteria": "\n".join(line for line in criteria_lines if line),
-            "priority": task.get("priority", "medium"),
-        })
+    ordered_groups = sorted(
+        grouped.values(),
+        key=lambda item: (int(item["order"]), int(item["first_index"]), str(item["key"])),
+    )
+    tasks = [_ui_todo_from_group(group) for group in ordered_groups]
 
     return {
         "name": f"{plan.get('ip', 'unknown')}-rtl",
-        "description": f"Auto-generated TodoTracker tasks from SSOT RTL plan for {plan.get('ip', '')}",
+        "description": (
+            f"Auto-generated UI TodoTracker groups from SSOT RTL plan for {plan.get('ip', '')}. "
+            "The full SSOT-derived ledger remains in rtl_todo_plan.json; UI TODOs group section/work-type "
+            "items and keep the detailed ledger entries as criteria."
+        ),
         "source_plan": "rtl/rtl_todo_plan.json",
+        "source_task_count": len([task for task in plan.get("tasks", []) if isinstance(task, dict)]),
+        "ui_grouping": {
+            "strategy": "ssot_section_plus_rtl_work_type",
+            "target_min": UI_TODO_TARGET_MIN,
+            "target_max": UI_TODO_TARGET_MAX,
+            "actual_count": len(tasks),
+            "detail_policy": "Full ledger items are criteria in UI TODOs and authoritative records in rtl_todo_plan.json.",
+        },
         "lock_additions": False,
         "tasks": tasks,
     }
@@ -7059,7 +7249,12 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
             "rtl_quality_profile": quality_profile,
             "rtl_target_scale": target_scale,
             "rtl_target_scale_waiver": target_scale_waiver,
-            "dynamic_task_rule": "Use every required task in this file as the active RTL implementation checklist; add as many UI todos as this plan requires.",
+            "dynamic_task_rule": (
+                "Use every required task in this file as the authoritative RTL implementation/evidence ledger. "
+                "Expose Atlas/UI TodoTracker items as grouped section/work-type tasks, targeting roughly "
+                f"{UI_TODO_TARGET_MIN}-{UI_TODO_TARGET_MAX} active TODOs for complex IPs, with the detailed "
+                "ledger items preserved as criteria instead of one UI TODO per ledger row."
+            ),
             "ssot_workflow_todo_rule": "workflow_todos.rtl-gen[] entries are first-class downstream tasks; content/detail/criteria must be preserved and satisfied by RTL evidence.",
             "rtl_gate_todo_rule": "RTL-gen quality gates are first-class rtl_gate.rtl_gen TODOs; compile/lint/static/ownership/owner-logic/placeholder-free/implementation-depth/top-io/top-output-drive/top-input-consumption/hierarchy/port-connection/signal-flow/connection-contract gates must close as TODOs before PASS.",
             "reference_profile_rule": "Optional rtl_reference_profile artifacts are calibration-only scale reports; they must not be copied, transformed, or used as fixed RTL templates.",

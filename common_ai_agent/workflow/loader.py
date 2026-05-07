@@ -657,7 +657,7 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
                             source_text = str(path)
                         return (
                             surface.message
-                            + f"\n\ntodo_tracker: loaded {len(tasks)} dynamic SSOT RTL TODOs from "
+                            + f"\n\ntodo_tracker: loaded {len(tasks)} dynamic SSOT RTL UI TODO groups from "
                             + source_text
                             + "\n"
                         )

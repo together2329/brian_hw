@@ -2125,8 +2125,9 @@ class SlashCommandRegistry:
                             source_text = str(source.relative_to(Path.cwd()))
                         except ValueError:
                             source_text = str(source)
+                        task_label = "UI TODO groups" if tmpl.get("ui_grouping") else "tasks"
                         return (
-                            f"Loaded dynamic template '{template_name}' for {dynamic_ip}: {len(tasks)} tasks added.\n"
+                            f"Loaded dynamic template '{template_name}' for {dynamic_ip}: {len(tasks)} {task_label} added.\n"
                             f"Source: {source_text}\n"
                             + (f"Description: {desc}\n" if desc else "")
                             + "Run /todo to see the list.\n"
