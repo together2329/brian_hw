@@ -44,15 +44,11 @@ const StatusBar = ({ ctx, hints }) => (
 );
 
 const TitleBar = ({ ip, screen, onScreen }) => {
-  // Minimal title bar: just the live-status dot + product name.
-  // workspace/ip id, cwd, screen toggle all live in .dir-switcher.
-  return (
-    <div className="titlebar">
-      <span className="tb-dot" />
-      <span><b>ATLAS</b></span>
-      <span className="tb-spacer" />
-    </div>
-  );
+  // Empty bar — kept as a thin top spacer. session_id / ip_id /
+  // workflow / screen toggles all live in .dir-switcher above; the
+  // green dot + ATLAS label was redundant and crowded the chip row
+  // that floats over this bar.
+  return <div className="titlebar"><span className="tb-spacer" /></div>;
 };
 
 const NavTab = ({ id, cur, onScreen, children }) => (
