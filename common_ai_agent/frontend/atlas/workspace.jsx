@@ -658,11 +658,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
           text: `↓ live (${session ? `.session/${session}` : 'session history'} above) ↓`,
         });
       }
+      // Always replace the feed on namespace change — even when the
+      // new namespace has zero messages on disk yet. Previously we
+      // only replaced on non-empty results, which left the OLD feed
+      // visible when switching to a fresh ssot-gen / rtl-gen workflow
+      // and made it look like "session, ip, workflow별 conversation
+      // 분리"가 무시된 것처럼 보였다.
       if (newFeed.length) {
         setFeed(newFeed);
       } else {
-        setFeed(f => (f && f.length ? f : [{ kind: 'agent',
-          text: 'Connected. Type a message and press Enter to talk to the agent.' }]));
+        setFeed([{
+          kind: 'agent',
+          text: session
+            ? `📂 .session/${session} — no saved conversation yet. Send a message to start.`
+            : 'Connected. Type a message and press Enter to talk to the agent.',
+        }]);
       }
     };
     window.addEventListener('atlas-conversation-loaded', onConvLoaded);
