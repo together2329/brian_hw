@@ -69,7 +69,6 @@ sub_modules:
   # they make human review and rtl-gen ownership gates clearer.
   # Wiring-only wrappers/adapters must set wiring_only: true and list ports or
   # connections. Otherwise rtl-gen must block instead of emitting shell RTL.
-  - { name: "<ip>_pkg",     file: "rtl/<ip>_pkg.sv",     ownership: "manifest", ssot_gen: true,  implements: ["parameters"], source_sections: ["parameters"], ssot_refs: ["parameters"], description: "Parameter module" }
   - { name: "<ip>_regs",    file: "rtl/<ip>_regs.sv",    ownership: "manifest", ssot_gen: true,  implements: ["registers.register_list", "interrupts", "error_handling"], source_sections: ["registers", "interrupts", "error_handling"], register_refs: ["registers.register_list"], description: "Register/status block" }
   - { name: "<ip>_decoder", file: "rtl/<ip>_decoder.sv", ownership: "manifest", ssot_gen: true,  implements: ["function_model.transactions", "decomposition.units.decode", "features.decode"], source_sections: ["function_model", "decomposition", "features"], function_model_refs: ["function_model.transactions"], decomposition_refs: ["decomposition.units.decode"], feature_refs: ["features.decode"], description: "Decoder/datapath decode block" }
   - { name: "<ip>_fsm",     file: "rtl/<ip>_fsm.sv",     ownership: "manifest", ssot_gen: true,  implements: ["fsm.states", "fsm.transitions", "cycle_model.pipeline"], source_sections: ["fsm", "cycle_model"], fsm_refs: ["fsm.control"], cycle_model_refs: ["cycle_model.pipeline"], description: "Control FSM" }
@@ -90,6 +89,7 @@ decomposition:
 
 # SECTION 2: Parameters
 parameters:
+  parameter_header: "rtl/<ip>_param.vh"
   - name: "DATA_WIDTH"
     default: 64
     type: int
@@ -442,16 +442,19 @@ fsm:
 
 # SECTION 15: Coding Rules
 coding_rules:
-  # Default: pure Verilog-2001 (.v files, wire/reg, always @(...)).
-  # Override per-IP to "systemverilog_2012" for SV-specific designs.
+  # Default: .sv filenames with Verilog-2001 syntax (wire/reg, always @(...)).
+  # Override per-IP to "systemverilog_2012" only for SV-specific syntax.
   verilog_style: "verilog_2001"
+  file_extension: ".sv"
+  parameter_header: "rtl/<ip>_param.vh"
   conventions:
     - "nonblocking (<=) in sequential always @(posedge clk …)  /  always_ff (SV mode)"
     - "blocking (=) in combinational always @(*)  /  always_comb (SV mode)"
     - "No latches: every combinational branch assigns all outputs"
     - "Active-low async reset"
     - "Parameterize widths (no hardcoded numbers)"
-    - "BANNED in both dialects: package / interface / modport"
+    - "Use rtl/<ip>_param.vh for shared parameter macros/constants when needed"
+    - "BANNED in both dialects: package / endpackage / import / interface / modport / *_pkg.sv"
   lint_waivers:
     - "UNUSEDSIGNAL: generated template tie-offs"
     - "WIDTHEXPAND: peripheral_events indexing"
@@ -479,8 +482,9 @@ dir_structure:
 
 # SECTION 19: Filelist
 filelist:
+  headers:
+    - "rtl/<ip>_param.vh"
   rtl:
-    - "rtl/<ip>_pkg.sv"
     - "rtl/<ip>_regs.sv"
     - "rtl/<ip>_decoder.sv"
     - "rtl/<ip>_fsm.sv"
@@ -542,7 +546,7 @@ quality_gates:
 traceability:
   yaml_to_output:
     - { yaml: "top_module.name", output: "ALL files (module name)" }
-    - { yaml: "parameters", output: "<ip>_pkg.sv (localparam)" }
+    - { yaml: "parameters", output: "<ip>_param.vh (shared parameter include, no package)" }
     - { yaml: "io_list.interfaces", output: "<ip>_wrapper.sv (port list)" }
     - { yaml: "registers.register_list", output: "<ip>_regs.sv + firmware + docs" }
     - { yaml: "function_model", output: "<ip>_core.sv + tb/cocotb scoreboard/reference model" }

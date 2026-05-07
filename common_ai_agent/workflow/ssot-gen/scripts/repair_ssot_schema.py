@@ -213,6 +213,10 @@ def _ensure_sub_modules(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
             if not isinstance(item, dict):
                 continue
             row = dict(item)
+            row_name = str(row.get("name") or "")
+            row_file = str(row.get("file") or "")
+            if row_name.endswith("_pkg") or row_file.endswith("_pkg.sv"):
+                continue
             if row.get("name") in {f"{ip}_wrapper", "wrapper"}:
                 row["name"] = ip
                 row["file"] = f"rtl/{ip}.sv"
@@ -227,9 +231,8 @@ def _ensure_sub_modules(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
                 "description": "Top-level integration module matching SSOT top_module",
             })
         return fixed
-    names = ["pkg", "control", "datapath", "status", "core", "top"]
+    names = ["control", "datapath", "status", "core", "top"]
     desc = {
-        "pkg": "Parameter and shared type definitions",
         "control": "Control/protocol sequencing derived from function_model and cycle_model",
         "datapath": "Datapath or payload transformation derived from approved features",
         "status": "Status, error, interrupt, and debug observability derived from SSOT",
@@ -1289,6 +1292,8 @@ def _module_owner(doc: dict[str, Any], ip: str, refs: list[str] | None = None) -
         file_name = str(item.get("file") or "").strip()
         if not name:
             continue
+        if name.endswith("_pkg") or file_name.endswith("_pkg.sv"):
+            continue
         haystack = " ".join(
             _todo_text(item.get(key), 400)
             for key in (
@@ -1684,9 +1689,13 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     out["dft"] = _ensure_dft(out)
     out["synthesis"] = _ensure_synthesis(out, ip)
     out["coding_rules"] = out.get("coding_rules") if isinstance(out.get("coding_rules"), dict) else {
-        "verilog_style": "systemverilog_2012",
+        "verilog_style": "verilog_2001",
+        "file_extension": ".sv",
+        "parameter_header": f"rtl/{ip}_param.vh",
         "conventions": [
-            "Use always_ff/always_comb or equivalent synthesis-safe style consistently",
+            "Use .sv filenames with Verilog-2001 syntax by default",
+            "Use wire/reg and always @(...) in generated RTL unless RTL_DIALECT=systemverilog_2012 is explicitly selected",
+            "Put shared parameter macros/constants in rtl/<ip>_param.vh when needed; do not create *_pkg.sv or package constructs",
             "No inferred latches; every combinational branch assigns all outputs",
             "No parameterized part-selects inside procedural blocks; use helper wires/continuous assigns",
             "No ad-hoc lint suppressions without SSOT waiver and DUT-only lint evidence",
@@ -1710,6 +1719,7 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     rtl_filelist = [item["file"] for item in out["sub_modules"] if isinstance(item, dict) and item.get("file")]
     if not isinstance(filelist.get("rtl"), list) or _has_tbd(filelist.get("rtl")) or f"rtl/{ip}.sv" not in filelist.get("rtl", []):
         filelist["rtl"] = rtl_filelist
+    filelist.setdefault("headers", [f"rtl/{ip}_param.vh"] if out.get("parameters") else [])
     filelist.setdefault("tb", [f"tb/cocotb/test_{ip}.py", "tb/cocotb/test_runner.py", "tb/cocotb/scoreboard.py"])
     filelist.setdefault("sim", ["sim/results.xml", "sim/waves.fst"])
     filelist.setdefault("coverage", ["cov/coverage.json"])
