@@ -4998,9 +4998,8 @@ const ConvModeSelector = () => {
       overflow: 'hidden',
     }}
     title="Conversation hydration source on session reload">
-      <Pill id="conversation" label="recent"  title="conversation.json — recent rolling window (default)" />
-      <Pill id="recent"       label="last50"  title="last 50 messages from full_conversation.json" />
-      <Pill id="full"         label="full"    title="every message from full_conversation.json" />
+      <Pill id="conversation" label="recent" title="conversation.json — recent rolling window (default)" />
+      <Pill id="full"         label="full"   title="every message from full_conversation.json" />
     </div>
   );
 };
