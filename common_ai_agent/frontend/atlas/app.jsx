@@ -146,8 +146,13 @@ const App = () => {
   }, [normalizeSession]);
 
   const activateBackendWorkflow = React.useCallback((workflow, session) => {
-    const wf = normalizeSession(workflow);
-    if (!wf || wf === 'default' || wf === 'user') return;
+    // Empty input is the only true skip — `default` and `user` are
+    // legitimate workspace names (`workflow/default/` exists), so
+    // we DO fire /wf for them now. Without this, picking `default`
+    // from the workflow dropdown left the agent pinned to whatever
+    // workflow was active before — config.TODO_FILE / system prompt /
+    // todo template all kept the old workspace's wiring.
+    const wf = normalizeSession(workflow) || 'default';
     if (window.backend && typeof window.backend.send === 'function') {
       window.backend.send({ type: 'prompt', text: `/wf ${wf}`, session: session || window.ACTIVE_SESSION || 'default', ui_lang: window.ATLAS_UI_LANG || uiLang });
     }
@@ -175,7 +180,11 @@ const App = () => {
     if (window.atlasData && typeof window.atlasData.setActiveSession === 'function') {
       window.atlasData.setActiveSession(namespace);
     }
-    if (syncWorkflow && wf) activateBackendWorkflow(wf, namespace);
+    // No `&& wf` guard — picking 'default' from the workflow
+    // dropdown sends an empty wf string, but activateBackendWorkflow
+    // resolves it to /wf default so the agent's workspace actually
+    // flips. Skipping here would leave the backend pinned.
+    if (syncWorkflow) activateBackendWorkflow(wf, namespace);
     return namespace;
   }, [activateBackendWorkflow, namespaceFor, normalizeSession]);
 
@@ -266,7 +275,12 @@ const App = () => {
   // Workspace screen — keeps the dir-switcher source-of-truth.
   const selectWorkflow = (rawWf) => {
     const wf = normalizeSession(rawWf);
-    activateNamespace(activeSessionId, activeIp, wf, !!wf);
+    // Always sync to the backend — picking 'default' (empty input)
+    // must still dispatch /wf default so the agent's TODO_FILE,
+    // system prompt and todo template flip back to the plain
+    // workspace. Previously syncWorkflow=!!wf made the call a no-op
+    // for default and the backend stayed on the old workflow.
+    activateNamespace(activeSessionId, activeIp, wf, true);
   };
 
   const newSessionId = () => {
