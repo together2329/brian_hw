@@ -2843,14 +2843,21 @@ def todo_write(todos=None, tasks=None):
         else:
             return f"Error: 'todos' must be a list, got {type(todos).__name__}"
 
-    # Auto-convert string items to dict format
+    # Auto-convert string items to dict format. Backward-compat path:
+    # legacy callers pass plain strings instead of full task dicts.
+    # Seed detail/criteria with the content itself so the new
+    # detail/criteria empty-rejection check below doesn't reject the
+    # promoted item — the LLM is still encouraged to use the proper
+    # dict form for new code, but old call sites keep working.
     from lib.todo_tracker import _generate_active_form
     for i, todo in enumerate(todos):
         if isinstance(todo, str):
             todos[i] = {
-                "content": todo,
+                "content":    todo,
                 "activeForm": _generate_active_form(todo),
-                "status": "pending",
+                "status":     "pending",
+                "detail":     todo,
+                "criteria":   todo,
             }
 
     # Plan mode anti-loop: cap todo_write calls to prevent repeated planning
