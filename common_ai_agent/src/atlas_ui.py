@@ -9507,7 +9507,30 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         )
 
     _main._textual_emit_content_fn   = lambda text, cls="": bridge.emit("token",     text=_clean(text), cls=cls)
-    _main._textual_emit_reasoning_fn = lambda text, blank=False: bridge.emit("reasoning", text=_clean(text))
+
+    def _atlas_emit_reasoning(text, blank=False):
+        cleaned = _clean(text)
+        # Browser side via the live WS bridge (chat feed renders this
+        # as a CollapsibleThought block — see workspace.jsx).
+        bridge.emit("reasoning", text=cleaned)
+        # Server-console mirror: an operator running textual_main.py
+        # in a terminal needs to see what the model is thinking too,
+        # not just the tool calls. Mirror to stderr with a CYAN ┃
+        # prefix so reasoning lines are scannable amid debug output.
+        if cleaned:
+            try:
+                import sys as _sys_re
+                if blank:
+                    _sys_re.stderr.write("\n")
+                else:
+                    _sys_re.stderr.write(
+                        f"  \033[36m┃\033[0m \033[2m{cleaned}\033[0m\n"
+                    )
+                _sys_re.stderr.flush()
+            except Exception:
+                pass
+
+    _main._textual_emit_reasoning_fn = _atlas_emit_reasoning
     _main._textual_emit_todo_fn      = _emit_todo_line
     _main._textual_emit_flush_fn     = lambda: (
         bridge.emit("flush"),

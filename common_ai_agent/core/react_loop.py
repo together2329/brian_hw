@@ -821,7 +821,15 @@ def run_react_agent_impl(
             if deps.emit_reasoning_fn:
                 deps.emit_reasoning_fn(line, blank)
             else:
-                _buf_write("\n" if blank else f"  {Color.DIM}{line}{Color.RESET}\n")
+                # CLI fallback: was Color.DIM only — on most dark
+                # terminals that's nearly invisible against the regular
+                # output. Add a CYAN vertical bar so reasoning lines
+                # are findable, keep the body dim so they're still
+                # visually distinct from the main agent content stream.
+                if blank:
+                    _buf_write("\n")
+                else:
+                    _buf_write(f"  {Color.CYAN}┃{Color.RESET} {Color.DIM}{line}{Color.RESET}\n")
 
         def _emit_thought(line):
             if deps.emit_content_fn:
