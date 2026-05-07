@@ -392,25 +392,26 @@ def create_app():
 
     @app.get("/healthz")
     async def healthz(request: Request):
-        # Per-user session id derived from the requesting client's
-        # IPv4. LAN multi-user — no auth, no DB. The frontend seeds
-        # localStorage.atlasUserSessionId from `user_session` on first
-        # visit so each browser tab on the LAN gets its own namespace
-        # without a login screen. Folded into /healthz instead of a
-        # separate endpoint to save a round-trip on boot.
-        client_host = (request.client.host if request.client else "") or "127.0.0.1"
-        if client_host.startswith("::ffff:"):  # IPv4-mapped IPv6
-            client_host = client_host[7:]
-        _user_safe = client_host.replace(":", "-").replace(".", "-")
         info = {
             "ok": True,
             "frontend": str(FRONTEND),
             "source_root":  str(SOURCE_ROOT),     # where atlas_ui.py lives
             "project_root": str(PROJECT_ROOT),    # = user's cwd at launch
             "cwd": os.getcwd(),
-            "client_ip":    client_host,
-            "user_session": f"u-{_user_safe}",
         }
+        # Multi-user IPv4-seeded session — opt-in via ATLAS_MULTI_USER.
+        # Off by default so single-user installs keep the existing
+        # 'default' namespace. When enabled, /healthz exposes the
+        # requesting client's IPv4 + a derived `u-<ipv4-dashed>`
+        # session id; the frontend's first-visit seed in data.jsx
+        # only fires when these fields are present.
+        if os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on"):
+            client_host = (request.client.host if request.client else "") or "127.0.0.1"
+            if client_host.startswith("::ffff:"):  # IPv4-mapped IPv6
+                client_host = client_host[7:]
+            _user_safe = client_host.replace(":", "-").replace(".", "-")
+            info["client_ip"] = client_host
+            info["user_session"] = f"u-{_user_safe}"
         # Expose the real model + context window so the sidebar doesn't
         # have to invent values. Pull from src.config (the per-process
         # frozen settings); if config isn't importable yet, fall through
