@@ -237,7 +237,14 @@ const App = () => {
     const liveNamespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace) || namespaceFor(currentUserSession, activeIp, currentWorkflow());
     const parsedLive = splitSessionNamespace(liveNamespace);
     if (parsedLive.sessionId) nextSessionIds.add(parsedLive.sessionId);
-    if (parsedLive.ipId && parsedLive.ipId !== 'soc') nextIps.add(parsedLive.ipId);
+    // Don't auto-include parsedLive.ipId: when the user deletes a
+    // session on disk (rm -rf .session/<owner>/<ip>/<wf>) the
+    // localStorage cached ACTIVE_SESSION still parses to the dead
+    // ip, and this line used to keep adding it to the dropdown
+    // forever. Now the dropdown reflects only what /api/session/list
+    // and /api/soc actually have, plus whatever createIp() seeded
+    // locally (which sticks for one render cycle, then naturally
+    // drops if it never lands on disk).
     setSessionIdOptions(Array.from(nextSessionIds).sort((a, b) => {
       if (a === currentUserSession) return -1;
       if (b === currentUserSession) return 1;
