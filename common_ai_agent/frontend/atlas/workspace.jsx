@@ -870,10 +870,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
         return [...l, { kind: 'thought', text: t, createdAt: Date.now() }];
       });
     }));
-    subs.push(window.backend.subscribe('todo_line', (m) => {
-      const t = (m.text || '').trim();
-      if (t) setFeed(l => [...l, { kind: 'obs', text: t, createdAt: Date.now() }]);
-    }));
+    // todo_line: react_loop emits a full TodoTracker.format_simple() dump
+    // on every iteration and after every tool call (see react_loop.py),
+    // which previously flooded the chat feed with redundant "OBS TODO"
+    // status blocks. The right-sidebar <TodoPanel/> already renders the
+    // authoritative live state via /api/todos (data.jsx subscribes to
+    // todo_line for refresh), so swallow the event here and keep the
+    // chat for messages/tool_result only.
     // Tool call header: agent is about to invoke a tool.
     subs.push(window.backend.subscribe('tool', (m) => {
       const t = (m.text || '').trim();
