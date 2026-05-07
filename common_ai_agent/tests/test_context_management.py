@@ -120,6 +120,41 @@ class TestSlashCommandSignals:
         res = self.registry.execute("/model openrouter/qwen/qwen-2.5-72b")
         assert res == "MODEL_SWITCH:openrouter/qwen/qwen-2.5-72b"
 
+    def test_effort_sets_runtime_reasoning_mode(self):
+        import os
+        import config
+
+        old_mode = getattr(config, "REASONING_MODE", "medium")
+        old_effort = getattr(config, "REASONING_EFFORT", old_mode)
+        old_env_mode = os.environ.get("REASONING_MODE")
+        old_env_effort = os.environ.get("REASONING_EFFORT")
+        try:
+            res = self.registry.execute("/effort xhigh")
+            assert "xhigh" in res
+            assert config.REASONING_MODE == "xhigh"
+            assert config.REASONING_EFFORT == "xhigh"
+            assert os.environ["REASONING_MODE"] == "xhigh"
+
+            res = self.registry.execute("/effort med")
+            assert "medium" in res
+            assert config.REASONING_MODE == "medium"
+        finally:
+            config.REASONING_MODE = old_mode
+            config.REASONING_EFFORT = old_effort
+            if old_env_mode is None:
+                os.environ.pop("REASONING_MODE", None)
+            else:
+                os.environ["REASONING_MODE"] = old_env_mode
+            if old_env_effort is None:
+                os.environ.pop("REASONING_EFFORT", None)
+            else:
+                os.environ["REASONING_EFFORT"] = old_env_effort
+
+    def test_effort_rejects_unknown_alias(self):
+        res = self.registry.execute("/effort fast")
+        assert "Unknown effort" in res
+        assert "fast" in res
+
 
 # ──────────────────────────────────────────────
 # Core invariants (must hold for any history/window)

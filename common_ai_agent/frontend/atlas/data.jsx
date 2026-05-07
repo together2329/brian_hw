@@ -556,7 +556,16 @@
         setTimeout(attach, 200);
         return;
       }
-      window.backend.subscribe('todo_line', () => refreshTodos());
+      window.backend.subscribe('todo_line', (m) => {
+        const raw = Array.isArray(m && m.todos)
+          ? m.todos
+          : (m && m.todo_state && Array.isArray(m.todo_state.todos) ? m.todo_state.todos : null);
+        if (raw) {
+          window.TODOS = normalizeTodos(raw);
+          window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'TODOS' }));
+        }
+        setTimeout(refreshTodos, 300);
+      });
       window.backend.subscribe('tool_result', () => {
         // Coalesce into one fetch per ~250 ms — see _refFiles etc.
         _refFiles(); _refSsot(); _refTodos();
@@ -638,12 +647,13 @@
       });
     }
     attach();
-    // Belt-and-suspenders polling: every 5 s, refresh the file tree
-    // and SSOT list at the current scope. Catches any case where a
+    // Belt-and-suspenders polling: every 5 s, refresh the file tree,
+    // todo state, and SSOT list at the current scope. Catches any case where a
     // tool_result event was missed (UI was loading, WS dropped, etc.)
     // and keeps the timestamp footer ticking.
     setInterval(() => {
       refreshFileTree(window.SCOPE_PATH || '');
+      refreshTodos();
       refreshSsotList();
       refreshProgress();
     }, 5000);

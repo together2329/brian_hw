@@ -1336,7 +1336,7 @@ class TestReasoningParameter(unittest.TestCase):
         self.assertIn("reasoning", resp_data)
         self.assertIn("effort", resp_data["reasoning"])
         self.assertIn("summary", resp_data["reasoning"])
-        self.assertEqual(resp_data["reasoning"]["summary"], "auto")
+        self.assertEqual(resp_data["reasoning"]["summary"], "detailed")
 
     def test_gpt51_codex_has_reasoning(self):
         """GPT-5.1-codex has reasoning (all GPT-5.x models support it)."""
@@ -1414,7 +1414,7 @@ class TestReasoningParameter(unittest.TestCase):
                 }
                 resp_data = _build_responses_request(data, "gpt-5.1")
                 self.assertEqual(resp_data["reasoning"]["effort"], effort)
-                self.assertEqual(resp_data["reasoning"]["summary"], "auto")
+                self.assertEqual(resp_data["reasoning"]["summary"], "detailed")
 
     def test_reasoning_mode_off_omits_reasoning_param(self):
         """REASONING_MODE=off should omit the reasoning field entirely."""
@@ -1433,7 +1433,7 @@ class TestReasoningParameter(unittest.TestCase):
             self.assertNotIn("reasoning", resp_data)
 
     def test_reasoning_summary_can_be_disabled(self):
-        """RESPONSES_REASONING_SUMMARY=false should omit summary:auto."""
+        """RESPONSES_REASONING_SUMMARY=false should omit the reasoning summary request."""
         from src.llm_client import _build_responses_request
 
         with patch('src.llm_client.config') as mock_config:
@@ -1451,7 +1451,7 @@ class TestReasoningParameter(unittest.TestCase):
             self.assertNotIn("summary", resp_data["reasoning"])
 
     def test_openrouter_also_gets_summary_when_enabled(self):
-        """Summary:auto should be sent to compatible providers when enabled."""
+        """Summary:detailed should be sent to compatible providers when enabled."""
         from src.llm_client import _build_responses_request
 
         with patch('src.llm_client.config') as mock_config:
@@ -1465,7 +1465,7 @@ class TestReasoningParameter(unittest.TestCase):
                 "base_url": "https://openrouter.ai/api/v1/responses",
             }
             resp_data = _build_responses_request(data, "gpt-5.1")
-            self.assertEqual(resp_data["reasoning"]["summary"], "auto")
+            self.assertEqual(resp_data["reasoning"]["summary"], "detailed")
 
     def test_reasoning_param_serializable(self):
         """Reasoning parameter must be JSON serializable."""

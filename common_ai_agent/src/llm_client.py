@@ -260,7 +260,7 @@ def _reasoning_env_override() -> bool:
                                             real base model behind a
                                             deployment alias
       • LLM_PROVIDER=azure AND
-        REASONING_MODE / REASONING_EFFORT in (low, medium, high)
+        REASONING_MODE / REASONING_EFFORT is a Responses API reasoning.effort
         — Azure user wired the knob, treat that as a request to enable
     """
     import os as _os
@@ -275,7 +275,7 @@ def _reasoning_env_override() -> bool:
                 or getattr(config, 'REASONING_EFFORT', '')
                 or _os.getenv('REASONING_MODE', '')
                 or _os.getenv('REASONING_EFFORT', ''))
-        if str(mode or '').lower() in ('low', 'medium', 'high', 'xhigh', 'minimal'):
+        if _normalize_reasoning_effort(mode) in ('none', 'minimal', 'low', 'medium', 'high', 'xhigh'):
             return True
     return False
 
@@ -313,26 +313,32 @@ def _is_openai_gpt_model(model_name: str = None) -> bool:
     return 'gpt' in name or name.startswith('o1') or name.startswith('o3') or name.startswith('o4')
 
 
+def _normalize_reasoning_effort(mode) -> str:
+    """Normalize local config to official Responses API reasoning.effort values."""
+    mode = str(mode or 'medium').lower().strip()
+    if mode in ('off', 'false', 'disabled', 'disable'):
+        return 'off'
+    if mode in ('med', 'mid'):
+        return 'medium'
+    if mode in ('extra_high', 'extra-high', 'xhi', 'max'):
+        return 'xhigh'
+    return mode if mode in ('none', 'minimal', 'low', 'medium', 'high', 'xhigh') else 'medium'
+
+
 def _get_responses_reasoning_mode() -> str:
-    """Return normalized Responses reasoning effort.
+    """Return normalized Responses API ``reasoning.effort``.
 
     OpenAI accepts (as of GPT-5.2/5.4/5.5):
-      • off / none / minimal — skip / minimum reasoning
-      • low / medium / high   — original tiers
-      • xhigh                  — extra-high (3–5× cost vs low),
-                                 introduced for non-latency-sensitive
-                                 work on GPT-5.2-Pro / 5.2-Thinking /
-                                 5.4 / 5.5.
-    `off` is treated as "don't add reasoning to the request body".
+      • off                  — local legacy value; omit reasoning field
+      • none / minimal       — no / minimum reasoning
+      • low / medium / high  — original tiers
+      • xhigh                — extra-high for supported models
+
+    ``REASONING_MODE`` is only this app's local config name; the API field is
+    always ``reasoning.effort``.
     """
     mode = getattr(config, 'REASONING_MODE', getattr(config, 'REASONING_EFFORT', 'medium'))
-    mode = str(mode or 'medium').lower().strip()
-    # Aliases that some users wire (extra_high / xhi / max → xhigh)
-    if mode in ('extra_high', 'extra-high', 'xhi', 'max'):
-        mode = 'xhigh'
-    if mode == 'none':
-        mode = 'minimal'
-    return mode if mode in ('off', 'minimal', 'low', 'medium', 'high', 'xhigh') else 'medium'
+    return _normalize_reasoning_effort(mode)
 
 
 def compute_safe_max_tokens(used_tokens: int = 0) -> int:
@@ -663,8 +669,9 @@ def use_responses_api(resolved_model: str = None) -> bool:
 
     Returns True when ANY of:
     1. USE_RESPONSES_API=true env flag is set (manual override)
-    2. Azure provider + codex model (auto-detected)
-    3. Model name matches *gpt*codex* pattern (auto-detected)
+    2. Azure provider + reasoning-capable deployment/model
+    3. Azure provider + codex model (auto-detected)
+    4. Model name matches *gpt*codex* / GPT-5 pattern (auto-detected)
 
     Returns False (forced chat completions) when:
     - FORCE_CHAT_COMPLETIONS_GPT5=true and model matches *gpt*5*
@@ -686,6 +693,11 @@ def use_responses_api(resolved_model: str = None) -> bool:
 
     # Manual override
     if getattr(config, "USE_RESPONSES_API", False):
+        return True
+    # Azure reasoning requires the Responses API. This also covers opaque
+    # deployment aliases because _is_reasoning_model_for_name honors
+    # LLM_BASE_MODEL, REASONING_FORCE, and Azure + REASONING_MODE.
+    if is_azure_provider() and _is_reasoning_model_for_name(model):
         return True
     # Auto-detect: Azure + codex model
     if is_azure_provider() and 'codex' in model:
@@ -737,7 +749,7 @@ def is_responses_api_model(model_name: str = None) -> bool:
     """Check if a model requires the OpenAI Responses API (/v1/responses).
 
     - *gpt*codex*  → always Responses API
-    - gpt-5*       → Responses API (reasoning_effort + tools not supported in Chat Completions)
+    - *gpt-5*      → Responses API (reasoning_effort + tools not supported in Chat Completions)
     """
     name = (model_name or getattr(config, 'MODEL_NAME', '')).lower()
     if '/' in name:
@@ -747,7 +759,7 @@ def is_responses_api_model(model_name: str = None) -> bool:
     # GPT-5.x requires Responses API when using tools + reasoning
     if getattr(config, 'FORCE_CHAT_COMPLETIONS_GPT5', False):
         return False
-    return name.startswith('gpt-5')
+    return 'gpt-5' in name or 'gpt5' in name
 
 
 def _strip_strict_from_tools(tools: list) -> list:
@@ -1046,13 +1058,15 @@ def _build_responses_request_body(
     _is_reasoning_model = _is_reasoning_model_for_name(model)
     if _is_reasoning_model:
         reasoning_mode = _get_responses_reasoning_mode()
-        if reasoning_mode in ('minimal', 'low', 'medium', 'high', 'xhigh'):
+        if reasoning_mode == 'off':
+            return data
+        if reasoning_mode in ('none', 'minimal', 'low', 'medium', 'high', 'xhigh'):
             reasoning = {"effort": reasoning_mode}
             if getattr(config, 'RESPONSES_REASONING_SUMMARY', True):
                 reasoning["summary"] = "detailed"
             data["reasoning"] = reasoning
         elif getattr(config, 'DEBUG_MODE', False):
-            print(Color.warning(f"[DEBUG] Reasoning mode '{reasoning_mode}' not in (minimal/low/medium/high/xhigh) - skipping reasoning"))
+            print(Color.warning(f"[DEBUG] Reasoning effort '{reasoning_mode}' not in (none/minimal/low/medium/high/xhigh) - skipping reasoning"))
     elif getattr(config, 'DEBUG_MODE', False) and 'gpt-5' in (model or '').lower():
         print(Color.warning(f"[DEBUG] Model '{model}' not detected as reasoning model"))
 
@@ -1353,6 +1367,31 @@ def chat_completion_with_config(
     yield from _execute_streaming_request(url, headers, data, messages, native_mode=bool(tools))
 
 
+def _extract_responses_delta_text(event_json: dict) -> str:
+    """Extract text from Responses SSE delta payloads."""
+    delta = event_json.get("delta", "")
+    if isinstance(delta, str):
+        return delta
+    if isinstance(delta, dict):
+        parts = []
+        for key in ("text", "summary", "content"):
+            value = delta.get(key)
+            if isinstance(value, str) and value:
+                parts.append(value)
+        return "".join(parts)
+    if isinstance(delta, list):
+        parts = []
+        for block in delta:
+            if isinstance(block, dict):
+                text = block.get("text") or block.get("summary") or block.get("content")
+                if text:
+                    parts.append(str(text))
+            elif block:
+                parts.append(str(block))
+        return "".join(parts)
+    return str(delta) if delta else ""
+
+
 def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, messages: List, native_mode: bool = False):
     """
     Execute streaming request using the Responses API SSE format.
@@ -1449,9 +1488,8 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                     # ── Reasoning delta (encrypted or visible) ──
                     # OpenAI Responses API sends reasoning summary via
                     # response.reasoning_summary_text.delta (not response.reasoning.delta)
-                    if event_type in ("response.reasoning.delta",
-                                      "response.reasoning_summary_text.delta"):
-                        reasoning_text = event_json.get("delta", "")
+                    if "reasoning" in event_type and event_type.endswith(".delta"):
+                        reasoning_text = _extract_responses_delta_text(event_json)
                         if reasoning_text:
                             yield ("reasoning", reasoning_text)
                             _yielded_something = True
@@ -1475,14 +1513,12 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                     if event_type == "response.output_item.done":
                         item = event_json.get("item", {})
                         if item.get("type") == "reasoning":
-                            summaries = item.get("summary", [])
-                            if not summaries and getattr(config, 'DEBUG_MODE', False):
+                            text = _extract_responses_reasoning_text(item)
+                            if not text and getattr(config, 'DEBUG_MODE', False):
                                 print(Color.warning("  [Reasoning] codex reasoning is encrypted by OpenAI — tokens used internally, text not accessible"))
-                            for s in summaries:
-                                text = s.get("text", "") if isinstance(s, dict) else str(s)
-                                if text:
-                                    yield ("reasoning", text)
-                                    _yielded_something = True
+                            if text:
+                                yield ("reasoning", text)
+                                _yielded_something = True
 
                     # ── Function call item added (carries name + id) ──
                     if event_type == "response.output_item.added":

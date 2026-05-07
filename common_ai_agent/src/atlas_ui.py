@@ -1068,11 +1068,15 @@ def create_app():
         # Prefer the live tracker the agent is mutating in main.py — that's
         # the only way to see in-progress changes before they hit disk. Fall
         # back to the on-disk file if main hasn't initialized one yet.
+        candidates: list[Path] = []
         try:
             import main as _main  # noqa: WPS433
             live = getattr(_main, "todo_tracker", None)
             if live is not None and getattr(live, "todos", None):
                 return JSONResponse(live.to_dict())
+            live_path = getattr(live, "_persist_path", None) if live is not None else None
+            if live_path:
+                candidates.append(Path(live_path))
         except Exception:
             pass
         # On-disk fallback. Two persistence paths exist in this repo:
@@ -1089,11 +1093,31 @@ def create_app():
         try:
             import json as _json
             from lib.todo_tracker import TodoTracker
-            candidates = [
+            try:
+                import config as _cfg
+                cfg_todo = Path(str(getattr(_cfg, "TODO_FILE", "current_todos.json")))
+                candidates.append(cfg_todo if cfg_todo.is_absolute() else PROJECT_ROOT / cfg_todo)
+            except Exception:
+                pass
+            active_session = normalize_session_name(os.environ.get("ATLAS_ACTIVE_SESSION", ""))
+            if active_session:
+                candidates.append(PROJECT_ROOT / ".session" / active_session / "todo.json")
+            candidates.extend([
                 PROJECT_ROOT / "current_todos.json",
+                Path.cwd() / "current_todos.json",
                 Path.home() / ".common_ai_agent" / "current_todos.json",
-            ]
-            picked = next((p for p in candidates if p.exists()), None)
+            ])
+            deduped: list[Path] = []
+            seen_paths: set[str] = set()
+            for cand in candidates:
+                try:
+                    key = str(cand.expanduser().resolve())
+                except Exception:
+                    key = str(cand)
+                if key not in seen_paths:
+                    seen_paths.add(key)
+                    deduped.append(cand)
+            picked = next((p for p in deduped if p.exists()), None)
             if picked is None:
                 return JSONResponse({"todos": []})
             tt = TodoTracker.load(picked)
@@ -9436,9 +9460,42 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     def _clean(s):
         return _ANSI_RE.sub("", s) if isinstance(s, str) else s
 
+    def _current_todo_state() -> dict[str, Any]:
+        """Return the freshest structured todo state for browser rendering."""
+        try:
+            tt = getattr(_main, "todo_tracker", None)
+            if tt is not None and hasattr(tt, "to_dict"):
+                state = tt.to_dict()
+                if isinstance(state, dict) and isinstance(state.get("todos"), list) and state.get("todos"):
+                    return state
+        except Exception:
+            pass
+        try:
+            import config as _cfg
+            from lib.todo_tracker import TodoTracker
+            todo_path = Path(str(getattr(_cfg, "TODO_FILE", "current_todos.json")))
+            if not todo_path.is_absolute():
+                todo_path = PROJECT_ROOT / todo_path
+            if todo_path.exists():
+                state = TodoTracker.load(todo_path).to_dict()
+                if isinstance(state, dict) and isinstance(state.get("todos"), list):
+                    return state
+        except Exception:
+            pass
+        return {"todos": []}
+
+    def _emit_todo_line(text: str) -> None:
+        state = {"todos": []} if not str(text or "").strip() else _current_todo_state()
+        bridge.emit(
+            "todo_line",
+            text=_clean(text),
+            todo_state=state,
+            todos=state.get("todos", []),
+        )
+
     _main._textual_emit_content_fn   = lambda text, cls="": bridge.emit("token",     text=_clean(text), cls=cls)
     _main._textual_emit_reasoning_fn = lambda text, blank=False: bridge.emit("reasoning", text=_clean(text))
-    _main._textual_emit_todo_fn      = lambda text: bridge.emit("todo_line", text=_clean(text))
+    _main._textual_emit_todo_fn      = _emit_todo_line
     _main._textual_emit_flush_fn     = lambda: (
         bridge.emit("flush"),
         # Workspace switches happen behind a slash command and re-register
@@ -9631,7 +9688,13 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                     status="pending",
                     session=ssot_session,
                 )
-                bridge.emit("ssot_qa_updated", ip=ssot_ip, workflow="ssot-gen", flow_id=flow_id)
+                bridge.emit(
+                    "ssot_qa_updated",
+                    ip=ssot_ip,
+                    workflow="ssot-gen",
+                    flow_id=flow_id,
+                    session=ssot_session,
+                )
         ssot_emit = (
             {"session": ssot_session, "ip": ssot_ip, "workflow": "ssot-gen", "source": "llm-ssot-qna"}
             if ssot_ip else {}
@@ -9691,7 +9754,13 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                     answers=qa_answers,
                     session=ssot_session,
                 )
-                bridge.emit("ssot_qa_updated", ip=ssot_ip, workflow="ssot-gen", flow_id=flow_id)
+                bridge.emit(
+                    "ssot_qa_updated",
+                    ip=ssot_ip,
+                    workflow="ssot-gen",
+                    flow_id=flow_id,
+                    session=ssot_session,
+                )
             return "Batched answers:\n" + "\n".join(blocks) if blocks else "(no answers)"
         if ssot_ip and ssot_q_pairs and isinstance(ans, dict):
             key, _label, q = ssot_q_pairs[0]
@@ -9710,7 +9779,13 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                 },
                 session=ssot_session,
             )
-            bridge.emit("ssot_qa_updated", ip=ssot_ip, workflow="ssot-gen", flow_id=flow_id)
+            bridge.emit(
+                "ssot_qa_updated",
+                ip=ssot_ip,
+                workflow="ssot-gen",
+                flow_id=flow_id,
+                session=ssot_session,
+            )
         return _format_answer(ans, options or [])
 
     if _tools and hasattr(_tools, "set_ask_user_callback"):

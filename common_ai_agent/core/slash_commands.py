@@ -210,6 +210,9 @@ class SlashCommandRegistry:
         self.register('model', self._cmd_model,
                      '모델 전환: /model 1|2|<name>, /model (현재)')
 
+        self.register('effort', self._cmd_effort,
+                     'Reasoning effort: /effort low|med|medium|high|xhigh|none')
+
         self.register('help', self._cmd_help,
                      '커맨드 목록: /help, /help -v (전체)',
                      aliases=['h', '?'])
@@ -2708,6 +2711,55 @@ class SlashCommandRegistry:
             f"  Quick:                    /model 1  /model 2",
             f"  Tip: define PROFILE_gpt_* in .env to make `/model gpt` use a key instead of OAuth.",
         ]))
+
+    def _cmd_effort(self, args: str) -> str:
+        """Show or set Responses API reasoning.effort. /effort low|med|medium|high|xhigh|none."""
+        import os as _os
+        import sys
+        _config = sys.modules.get('config') or sys.modules.get('src.config')
+        if _config is None:
+            import src.config as _config
+
+        aliases = {
+            "off": "off",      # local legacy: omit reasoning field
+            "none": "none",    # API value
+            "minimal": "minimal",
+            "min": "minimal",
+            "low": "low",
+            "l": "low",
+            "med": "medium",
+            "mid": "medium",
+            "medium": "medium",
+            "m": "medium",
+            "high": "high",
+            "h": "high",
+            "xhigh": "xhigh",
+            "xh": "xhigh",
+        }
+        raw = args.strip().lower()
+        if not raw:
+            current = str(getattr(_config, "REASONING_MODE", "medium") or "medium")
+            responses = bool(getattr(_config, "USE_RESPONSES_API", False))
+            return "\n".join([
+                f"Current reasoning effort: {current}",
+                f"Responses API default: {'on' if responses else 'off'}",
+                "",
+                "Usage: /effort low | med | medium | high | xhigh | none",
+                "Aliases: /effort m, /effort h, /effort xh",
+                "Note: API field is reasoning.effort; /effort only changes local runtime config.",
+            ])
+        effort = aliases.get(raw)
+        if effort is None:
+            return (
+                f"❌ Unknown effort: {args.strip()!r}\n"
+                "Valid: none, minimal, low, med, medium, high, xhigh\n"
+                "Legacy: off (omit reasoning field)"
+            )
+        _config.REASONING_MODE = effort
+        _config.REASONING_EFFORT = effort
+        _os.environ["REASONING_MODE"] = effort
+        _os.environ["REASONING_EFFORT"] = effort
+        return f"✅ Reasoning effort set to {effort} (API: reasoning.effort={effort})"
 
     def _cmd_window(self, args: str) -> str:
         """Rolling context window. /window N — only last N message pairs sent to LLM each turn."""

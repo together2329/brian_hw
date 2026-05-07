@@ -537,14 +537,17 @@ MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "32000"))
 # Recommended: 8000-16000 to give the model room to think AND produce content.
 MAX_REASONING_TOKENS = int(os.getenv("MAX_REASONING_TOKENS", "0"))
 
-# Reasoning mode for Responses API models (GPT-5.1, o1, o3, o4).
+# Reasoning effort for Responses API models (GPT-5.x, o1, o3, o4).
+# Local env var name is REASONING_MODE, but the API field is reasoning.effort.
 # Controls how much compute the model spends "thinking" before responding.
-# Options: off | low | medium | high
+# Options: none | minimal | low | medium | high | xhigh
 # Default: medium (good balance of quality and speed/cost)
-# - off:    omit the Responses API reasoning parameter entirely
-# - low:    fastest, cheapest, good for simple tasks
+# - none:   request no reasoning effort when the model supports it
+# - minimal: minimum reasoning
+# - low:    fastest official reasoning tier
 # - medium: balanced (recommended for coding agents)
-# - high:   deepest reasoning, slowest, most expensive (for complex problems)
+# - high:   deeper reasoning, slower, more expensive
+# - xhigh:  extra-high reasoning on supported models
 REASONING_MODE = os.getenv("REASONING_MODE", os.getenv("REASONING_EFFORT", "medium")).lower()
 # Backward-compatible alias for older code/tests that still read REASONING_EFFORT.
 REASONING_EFFORT = REASONING_MODE

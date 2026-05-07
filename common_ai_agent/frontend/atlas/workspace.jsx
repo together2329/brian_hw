@@ -531,8 +531,31 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     const flow = window.QA_FLOWS && window.QA_FLOWS[flowId];
     const flowSession = normalizeUiSession(eventSession || (flow && flow.session) || '');
     const active = normalizeUiSession(currentSession || window.ACTIVE_SESSION || '');
-    return !flowSession || !active || flowSession === active;
+    if (!flowSession || !active || flowSession === active) return true;
+    const flowParts = flowSession.split('/').filter(Boolean);
+    const activeParts = active.split('/').filter(Boolean);
+    const minLen = Math.min(flowParts.length, activeParts.length);
+    if (minLen < 2) return false;
+    return flowParts.slice(-minLen).join('/') === activeParts.slice(-minLen).join('/');
   }, [currentSession]);
+
+  const activateAskUserSession = React.useCallback((session, ip, eventWorkflow) => {
+    const sid = normalizeUiSession(session || '');
+    if (!sid) return;
+    if (flowMatchesCurrentSession('', sid)) return;
+    window.ACTIVE_SESSION = sid;
+    setActiveSession(sid);
+    try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+    if (ip && window.atlasData?.setScopePath) {
+      window.atlasData.setScopePath(ip);
+    }
+    if (eventWorkflow) {
+      setWorkflow(eventWorkflow);
+    }
+    if (window.atlasData?.refreshSessionState) {
+      window.atlasData.refreshSessionState(sid, false);
+    }
+  }, [flowMatchesCurrentSession]);
 
   // Force a re-render when the live data layer (data.jsx) refreshes
   // FILE_TREE / TODOS / SSOT_FILES so dependent panels show fresh data.
@@ -1150,7 +1173,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     subs.push(window.backend.subscribe('ask_user', (m) => {
       const flowId = m.flow_id;
       if (!flowId) return;
-      if (!flowMatchesCurrentSession(flowId, m.session)) return;
+      activateAskUserSession(m.session, m.ip, m.workflow);
       streamBufferRef.current = '';
       setStreamText('');
       setStreaming(false);
@@ -1271,9 +1294,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     };
     subs.push(window.backend.subscribe('ask_user_answered', closeAskUser));
     subs.push(window.backend.subscribe('ask_user_closed', closeAskUser));
-    subs.push(window.backend.subscribe('ssot_qa_updated', refreshSsotQa));
+    subs.push(window.backend.subscribe('ssot_qa_updated', (m) => refreshSsotQa(m && m.session)));
     return () => subs.forEach(u => u && u());
-  }, [flowMatchesCurrentSession, refreshSsotQa]);
+  }, [activateAskUserSession, refreshSsotQa]);
 
   const navigateInputHistory = (delta) => {
     if (!inputHistory.length) return false;

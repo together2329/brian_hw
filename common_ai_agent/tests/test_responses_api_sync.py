@@ -182,7 +182,7 @@ class TestResponsesRequestBodyNormalization:
         )
         assert data["input"][0]["content"] == [{"type": "input_text", "text": "hello"}]
 
-    def test_openrouter_gets_summary_auto_when_enabled(self, monkeypatch):
+    def test_openrouter_gets_summary_detailed_when_enabled(self, monkeypatch):
         monkeypatch.setattr(lc.config, "REASONING_MODE", "medium", raising=False)
         monkeypatch.setattr(lc.config, "REASONING_EFFORT", "medium", raising=False)
         monkeypatch.setattr(lc.config, "RESPONSES_REASONING_SUMMARY", True, raising=False)
@@ -205,6 +205,70 @@ class TestResponsesRequestBodyNormalization:
             base_url="https://api.openai.com/v1/responses",
         )
         assert "reasoning" not in data
+
+    def test_reasoning_mode_none_sends_none_effort(self, monkeypatch):
+        monkeypatch.setattr(lc.config, "REASONING_MODE", "none", raising=False)
+        monkeypatch.setattr(lc.config, "REASONING_EFFORT", "none", raising=False)
+        monkeypatch.setattr(lc.config, "RESPONSES_REASONING_SUMMARY", True, raising=False)
+        data = lc._build_responses_request_body(
+            messages=[{"role": "user", "content": "hi"}],
+            model="gpt-5.3-codex",
+            stream=True,
+            base_url="https://api.openai.com/v1/responses",
+        )
+        assert data["reasoning"] == {"effort": "none", "summary": "detailed"}
+
+    def test_azure_reasoning_alias_uses_responses_api(self, monkeypatch):
+        monkeypatch.setattr(lc.config, "LLM_PROVIDER", "azure", raising=False)
+        monkeypatch.setattr(lc.config, "USE_RESPONSES_API", False, raising=False)
+        monkeypatch.setattr(lc.config, "FORCE_CHAT_COMPLETIONS_GPT5", False, raising=False)
+        monkeypatch.setattr(lc.config, "REASONING_MODE", "xhigh", raising=False)
+        monkeypatch.setattr(lc.config, "REASONING_EFFORT", "xhigh", raising=False)
+        assert lc.use_responses_api("prod-router") is True
+
+        data = lc._build_responses_request_body(
+            messages=[{"role": "user", "content": "hi"}],
+            model="prod-router",
+            stream=True,
+            base_url="https://my-endpoint.openai.azure.com/openai/v1/responses",
+        )
+        assert data["reasoning"]["effort"] == "xhigh"
+        assert data["model"] == "prod-router"
+
+    def test_responses_reasoning_summary_delta_is_emitted(self, monkeypatch):
+        events = [
+            {"type": "response.reasoning_summary_text.delta", "delta": "thinking\n"},
+            {"type": "response.output_text.delta", "delta": "answer"},
+            {"type": "response.completed",
+             "response": {"status": "completed", "usage": {}}},
+        ]
+        fake = _FakeSSEResponse(events)
+        monkeypatch.setattr(lc, "_persistent_post", lambda *a, **kw: fake)
+
+        plain, tuples = _collect(
+            lc._execute_streaming_request_responses("u", {}, {}, [], native_mode=True)
+        )
+        assert plain == ["answer"]
+        assert ("reasoning", "thinking\n") in tuples
+
+    def test_responses_reasoning_item_done_content_is_emitted(self, monkeypatch):
+        events = [
+            {"type": "response.output_item.done",
+             "item": {"type": "reasoning",
+                      "summary": [],
+                      "content": [{"type": "reasoning_text", "text": "visible summary"}]}},
+            {"type": "response.output_text.delta", "delta": "answer"},
+            {"type": "response.completed",
+             "response": {"status": "completed", "usage": {}}},
+        ]
+        fake = _FakeSSEResponse(events)
+        monkeypatch.setattr(lc, "_persistent_post", lambda *a, **kw: fake)
+
+        plain, tuples = _collect(
+            lc._execute_streaming_request_responses("u", {}, {}, [], native_mode=True)
+        )
+        assert plain == ["answer"]
+        assert ("reasoning", "visible summary") in tuples
 
 
 # ──────────────────────────────────────────────────────────────────────────────
