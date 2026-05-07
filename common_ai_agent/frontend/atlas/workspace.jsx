@@ -1027,6 +1027,15 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       setStreamText('');
       setStreaming(false);
       const isBatched = Array.isArray(m.questions) && m.questions.length > 0;
+      // Multi-question (batched) ask_user is awkward to answer in the
+      // classic-layout inline-bottom slot — N stacked questions with
+      // option lists overflow the input area. Promote to the tabbed
+      // Q&A pane so the user gets the full center column for the
+      // batch. Single-question flows stay inline (fits fine there).
+      if (isBatched) {
+        setCenterLayout('tabbed');
+        setMainTab('qa');
+      }
       if (isBatched) {
         const qs = m.questions.map(q => ({
           question: q.question || '',
@@ -3880,13 +3889,17 @@ const TodoPanel = () => {
   // explicit cases for the raw statuses so live updates render right.
   const stateCfg = (s) => {
     switch (s) {
+      // Auto-finished by the agent (no explicit human nod)
       case 'done':        return { glyph: '☑', color: '#3fb950', label: 'done' };
-      case 'approved':    return { glyph: '☑', color: '#3fb950', label: 'approved' };
       case 'completed':   return { glyph: '✓', color: '#3fb950', label: 'completed' };
+      // Explicitly approved by a human — distinct glyph + accent
+      // colour so the pending/approved distinction reads at a glance
+      case 'approved':    return { glyph: '★', color: 'var(--accent, #58a6ff)', label: 'approved' };
       case 'active':      return { glyph: '◉', color: '#58a6ff', label: 'in-progress' };
       case 'in_progress': return { glyph: '◉', color: '#58a6ff', label: 'in-progress' };
       case 'rejected':    return { glyph: '✕', color: '#f85149', label: 'rejected' };
-      case 'pending':     return { glyph: '☐', color: '#d29922', label: 'pending' };
+      // Hollow square + warm warn-yellow so it never reads as "done"
+      case 'pending':     return { glyph: '☐', color: '#e8a82a', label: 'pending' };
       default:            return { glyph: '☐', color: 'var(--fg-mute)', label: s || '?' };
     }
   };
