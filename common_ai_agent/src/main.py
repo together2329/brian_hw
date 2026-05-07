@@ -2242,6 +2242,26 @@ def chat_loop():
                                     if _new_todo_path.exists()
                                     else TodoTracker(_new_todo_path)
                                 )
+                                # Mirror to the module-level `todo_tracker`
+                                # global. core/tools.py's _get_todo_tracker
+                                # reads `main.todo_tracker` (not _main), so
+                                # without this rebind every todo_write after
+                                # a workspace switch would keep targeting the
+                                # OLD workspace's todo.json (.session/default/
+                                # vs .session/default/<ip>/<wf>/), and the
+                                # panel showed an empty list because UI was
+                                # reading the new path while writes went
+                                # somewhere else. chat_loop has no `global`
+                                # declaration so a plain `todo_tracker = ...`
+                                # would only rebind a local — go through
+                                # sys.modules to update the real attribute.
+                                try:
+                                    import sys as _sys_ws
+                                    _main_mod = _sys_ws.modules.get('main') or _sys_ws.modules.get('src.main')
+                                    if _main_mod is not None:
+                                        _main_mod.todo_tracker = todo_tracker_main
+                                except Exception:
+                                    pass
                                 # Push the new workspace's todos to the sidebar
                                 # (clears stale entries, shows new ones if any).
                                 if _textual_emit_todo_fn is not None:

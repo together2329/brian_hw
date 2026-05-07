@@ -135,12 +135,12 @@ const App = () => {
     const ip = normalizeSession(ipId || '');
     const wf = normalizeSession(workflow || '');
     if (ip && wf) return `${owner}/${ip}/${wf}`;
-    // Picking an IP without an explicit workflow used to fall through to
-    // `${owner}/${ip}/user`, which mismatched everything the agent
-    // wrote under `${owner}/${ip}/ssot-gen` (the canonical SSOT entry
-    // point). Default to ssot-gen so newly-picked IPs land on the same
-    // namespace the rest of the workflow uses.
-    if (ip) return `${owner}/${ip}/ssot-gen`;
+    // Picking an IP without an explicit workflow → use 'default' as
+    // the workflow segment so the namespace stays unambiguous and the
+    // splitSessionNamespace round-trip preserves the IP. Anything an
+    // explicit workflow click adds will replace this on the next
+    // activateNamespace call.
+    if (ip) return `${owner}/${ip}/default`;
     if (wf) return `${owner}/soc/${wf}`;
     return `${owner}/default`;
   }, [normalizeSession]);
