@@ -2809,11 +2809,22 @@ def todo_write(todos=None, tasks=None):
 
     todo_tracker = _get_todo_tracker()
     if todo_tracker is None:
-        return ""
+        # Return an explicit error instead of silently succeeding with "".
+        # The previous empty string made the LLM believe todo_write succeeded
+        # when in fact nothing was written — same UX bug class as the
+        # streaming-truncation silent drop.
+        err = ("Error: TodoTracker is not initialized (main.todo_tracker is None "
+               "and config.TODO_FILE could not be loaded). Check that "
+               "ENABLE_TODO_TRACKING=true and that config.TODO_FILE points to a "
+               "writable path.")
+        _save_todo_write_error(err, todos)
+        return err
 
     # Validate input
     if not todos:
-        return "Error: 'todos' parameter is required and must be a non-empty list"
+        err = "Error: 'todos' parameter is required and must be a non-empty list"
+        _save_todo_write_error(err, todos)
+        return err
 
     if not isinstance(todos, list):
         # Try to recover: JSON string passed instead of list
@@ -2881,6 +2892,20 @@ def todo_write(todos=None, tasks=None):
                 todo["status"] = normalized
             else:
                 err = f"Error: todos[{i}] has invalid status '{raw_status}'. Must be one of: {', '.join(valid_statuses)}"
+                _save_todo_write_error(err, todos)
+                return err
+
+        # Enforce the schema's "detail/criteria must be filled in" claim.
+        # Until now this was advertised in the tool description but never
+        # validated, so tasks landed with empty implementation guidance and
+        # the LLM had no concrete plan to follow when it picked them up.
+        for required_field in ("detail", "criteria"):
+            val = todo.get(required_field, "")
+            if not isinstance(val, str) or not val.strip():
+                err = (f"Error: todos[{i}] ('{todo.get('content', '')[:60]}') has empty "
+                       f"'{required_field}'. Every task MUST fill in detail (HOW to "
+                       f"implement) and criteria (acceptance checklist). "
+                       f"Skipping these defeats the point of the task list.")
                 _save_todo_write_error(err, todos)
                 return err
 

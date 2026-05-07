@@ -275,7 +275,7 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
                     "properties": {
                         "content":    {"type": "string", "description": "Imperative verb + deliverable (e.g. 'Write counter.sv — 8-bit up-counter')"},
                         "activeForm": {"type": "string", "description": "Present-continuous description (e.g. 'Writing counter.sv')"},
-                        "status":     {"type": "string", "enum": ["pending", "in_progress", "completed"], "description": "Task status"},
+                        "status":     {"type": "string", "enum": ["pending", "in_progress", "completed", "approved", "rejected"], "description": "Task status. New tasks should default to pending; the agent flips to in_progress / completed / approved as it works through them."},
                         "priority":   {"type": "string", "enum": ["high", "medium", "low"], "description": "Task priority"},
                         "detail":     {"type": "string", "description": "REQUIRED: HOW to implement — specific implementation notes, constraints, approach. Must not be empty."},
                         "criteria":   {"type": "string", "description": "REQUIRED: Newline-separated acceptance criteria checklist. Each line is one verifiable condition. Must not be empty."},
