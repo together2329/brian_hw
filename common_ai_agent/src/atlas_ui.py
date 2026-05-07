@@ -8845,6 +8845,19 @@ def create_app():
               name="atlas-static")
 
     app.state.bridge = bridge
+
+    # Expose SSOT-QA helpers so run_atlas_ui's nested callbacks
+    # (_ask_user_cb, _record_ssot_qa_cb) can reach them across function
+    # scopes — these helpers live in create_app's local closure and were
+    # otherwise invisible from run_atlas_ui, causing NameError at the
+    # first ask_user / record_ssot_qa invocation.
+    app.state.active_ssot_qa_context = _active_ssot_qa_context
+    app.state.ssot_q_pairs_from_questions = _ssot_q_pairs_from_questions
+    app.state.upsert_ssot_qa_items = _upsert_ssot_qa_items
+    app.state.load_ssot_state = _load_ssot_state
+    app.state.valid_ip_name = _valid_ip_name
+    app.state.status_group = _status_group
+    app.state.answer_text = _answer_text
     return app
 
 
@@ -8860,6 +8873,18 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
 
     app = create_app()
     bridge: _AtlasBridge = app.state.bridge
+
+    # Rebind SSOT-QA helpers from create_app's closure (exposed via
+    # app.state) so the nested _ask_user_cb / _record_ssot_qa_cb defined
+    # below can reference them by their original local names without
+    # raising NameError. See create_app return block for the export side.
+    _active_ssot_qa_context = app.state.active_ssot_qa_context
+    _ssot_q_pairs_from_questions = app.state.ssot_q_pairs_from_questions
+    _upsert_ssot_qa_items = app.state.upsert_ssot_qa_items
+    _load_ssot_state = app.state.load_ssot_state
+    _valid_ip_name = app.state.valid_ip_name
+    _status_group = app.state.status_group
+    _answer_text = app.state.answer_text
 
     # ── Wire main.py callbacks → bridge.emit ───────────────────────
     _main._textual_input_fn = bridge.get_input
