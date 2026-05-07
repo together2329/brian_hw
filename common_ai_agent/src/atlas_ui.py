@@ -443,15 +443,20 @@ def create_app():
                         info["tokens_in"]    = d.get("in_tok",    d.get("input",  0))
                         info["tokens_cache"] = d.get("cache_tok", d.get("cached", 0))
                         info["tokens_out"]   = d.get("out_tok",   d.get("output", 0))
-                        # Cost in USD
+                        # Cost in USD. tokens_in is total prompt_tokens
+                        # (includes cached subset); tokens_cache is that
+                        # cached subset, NOT additive. Subtract cached
+                        # before applying p.input or we'd bill the cache
+                        # twice (once at input, once at cache rate).
                         if info["pricing"]:
                             ti = info["tokens_in"]    or 0
                             tc = info["tokens_cache"] or 0
                             to = info["tokens_out"]   or 0
+                            ti_billable = max(0, ti - tc)
                             info["cost_usd"] = (
-                                ti * info["pricing"]["input"]  / 1_000_000
-                                + tc * info["pricing"]["cache"]  / 1_000_000
-                                + to * info["pricing"]["output"] / 1_000_000
+                                ti_billable * info["pricing"]["input"]  / 1_000_000
+                                + tc        * info["pricing"]["cache"]  / 1_000_000
+                                + to        * info["pricing"]["output"] / 1_000_000
                             )
                         break
             except Exception:
@@ -8979,8 +8984,15 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
             p = None
         cost_delta = 0.0
         if p is not None:
+            # in_tok from react_loop is the FULL prompt_tokens (includes
+            # the cached subset). cache_tok is that cached subset only.
+            # Charging both `in_tok * input` and `cache_tok * cache` would
+            # bill the cached portion twice — once at the input rate and
+            # once at the cache rate. Subtract the cache slice first so
+            # billable_input = prompt − cached.
+            _in = max(0, (in_tok or 0) - (cache_tok or 0))
             cost_delta = (
-                (in_tok or 0)    * p.input  +
+                _in              * p.input  +
                 (cache_tok or 0) * p.cache  +
                 (out_tok or 0)   * p.output
             ) / 1_000_000.0
