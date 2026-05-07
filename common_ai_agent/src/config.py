@@ -527,7 +527,12 @@ NONSTREAM_API_TIMEOUT = int(os.getenv("NONSTREAM_API_TIMEOUT", "1800"))
 STREAM_INACTIVITY_TIMEOUT = int(os.getenv("STREAM_INACTIVITY_TIMEOUT", "600"))
 
 # Maximum output tokens per LLM response (0 = no limit)
-MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "32000"))
+# MAX_OUTPUT_TOKENS: per-LLM-call output budget. Tool-call args (e.g.
+# todo_write([...10 detailed tasks])) eat from this budget too, so a
+# tight cap can streaming-truncate large args mid-JSON. Default lifted
+# to 65536 so the modern reasoning models (GPT-5.x, GLM-5.x) have room
+# for both reasoning + a generous tool-call payload.
+MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "65536"))
 
 # Maximum reasoning/thinking tokens (GLM, DeepSeek etc.).
 # For reasoning models, this EXPANDS the max_tokens budget so reasoning
@@ -566,8 +571,22 @@ GLM_CLEAR_THINKING = os.getenv("GLM_CLEAR_THINKING", "false").lower() not in ("f
 # Save conversation history to file
 SAVE_HISTORY = os.getenv("SAVE_HISTORY", "true").lower() in ("true", "1", "yes")
 HISTORY_FILE = os.getenv("HISTORY_FILE", "conversation_history.json")
-TODO_FILE = os.getenv("TODO_FILE", "current_todos.json")
-TODO_ERROR_FILE = os.getenv("TODO_ERROR_FILE", "current_todos_error.json")
+# TODO_FILE / TODO_ERROR_FILE: anchor relative paths to the project
+# root so the WRITE side (agent → main.todo_tracker → save() into
+# config.TODO_FILE) and the READ side (atlas_ui /api/todos pointing
+# at PROJECT_ROOT/current_todos.json) always agree, regardless of
+# where the agent server's cwd happened to be when it started.
+def _abs_under_project_root(rel_or_abs: str, default_name: str) -> str:
+    from pathlib import Path as _Pa
+    p = _Pa(rel_or_abs or default_name)
+    if p.is_absolute():
+        return str(p)
+    # src/config.py → common_ai_agent/src/ → common_ai_agent/ (project root)
+    project_root = _Pa(__file__).resolve().parent.parent
+    return str((project_root / p).resolve())
+
+TODO_FILE = _abs_under_project_root(os.getenv("TODO_FILE", ""), "current_todos.json")
+TODO_ERROR_FILE = _abs_under_project_root(os.getenv("TODO_ERROR_FILE", ""), "current_todos_error.json")
 COST_FILE      = os.getenv("COST_FILE", "")                   # .session/<project>/cost.json
 
 # Session directory layout (set by _setup_session at runtime)
