@@ -193,11 +193,23 @@ const App = () => {
     return namespace;
   }, [activateBackendWorkflow, namespaceFor, normalizeSession]);
 
+  // Synthetic / reserved namespace segments that should never show
+  // up in the ip_id dropdown. 'soc' is the SoC architect placeholder,
+  // 'default' is the no-IP fallback, 'user' is the legacy ip-less
+  // sentinel (still in the wild on disk from older runs), and any
+  // workflow name (ssot-gen, rtl-gen, …) that slipped into the IP
+  // slot from `${owner}/${wf}` namespaces gets filtered too.
+  const RESERVED_IP_NAMES = React.useMemo(
+    () => new Set(['soc', 'default', 'user', ...TOP_WORKFLOWS]),
+    [TOP_WORKFLOWS]
+  );
+
   const refreshTopTargets = React.useCallback(async () => {
     const nextSessionIds = new Set(['default']);
     const currentUserSession = normalizeSession(window.ATLAS_USER_SESSION_ID || activeSessionId);
     if (currentUserSession) nextSessionIds.add(currentUserSession);
     const nextIps = new Set();
+    const acceptIp = (id) => id && !RESERVED_IP_NAMES.has(id);
     try {
       const r = await fetch('/api/session/list', { cache: 'no-store' });
       if (r.ok) {
@@ -205,7 +217,7 @@ const App = () => {
         for (const row of (Array.isArray(d.sessions) ? d.sessions : [])) {
           const parsed = splitSessionNamespace(row && row.session);
           if (parsed.sessionId) nextSessionIds.add(parsed.sessionId);
-          if (parsed.ipId && parsed.ipId !== 'soc') nextIps.add(parsed.ipId);
+          if (acceptIp(parsed.ipId)) nextIps.add(parsed.ipId);
         }
       }
     } catch (_) {}

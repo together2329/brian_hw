@@ -2199,7 +2199,19 @@ def chat_loop():
                             # that namespace instead of collapsing every IP
                             # into the flat workflow name.
                             _active_session = os.environ.get("ATLAS_ACTIVE_SESSION", "").strip().strip("/")
-                            _setup_session(_active_session or ws_name)
+                            # Guard against single-segment session targets
+                            # (e.g. /wf ssot-gen with no ATLAS_ACTIVE_SESSION
+                            # set). Without this, the agent created
+                            # `.session/ssot-gen/` at the .session root —
+                            # not under any owner/IP — and the tree filled
+                            # up with bare workflow dirs the user couldn't
+                            # rationally navigate. Anchor under the
+                            # 'default' owner so every session-on-disk has
+                            # at least owner/<X>.
+                            _target_session = _active_session or f"default/{ws_name}"
+                            if "/" not in _target_session:
+                                _target_session = f"default/{_target_session}"
+                            _setup_session(_target_session)
                             if _active_session:
                                 os.environ["ATLAS_SESSION_APPLIED"] = _active_session
                             # Load new workspace config (prompts, hooks, commands…)

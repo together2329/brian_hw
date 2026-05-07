@@ -266,14 +266,16 @@
     // trees for ip-less / wf-less runs that aren't actually SoC or user-
     // owned. Use 'default' for ip-less and just the workflow segment
     // otherwise so the disk layout reads as the user expects.
-    if (userSession && scope && wf) return `${userSession}/${scope}/${wf}`;
-    if (userSession && scope) return `${userSession}/${scope}/default`;
-    if (userSession && wf) return `${userSession}/${wf}`;
-    if (userSession) return `${userSession}/default`;
-    if (scope && wf) return `${scope}/${wf}`;
-    if (scope) return `${scope}/default`;
-    if (wf) return `${wf}`;
-    return 'default';
+    // Always at least 2 segments (owner + something) so the .session
+    // tree never has a bare top-level workflow / IP dir like
+    // .session/ssot-gen/ or .session/to/ that the user can't ratoionally
+    // navigate. owner defaults to 'default' when no per-user session
+    // is set (multi-user mode is opt-in via ATLAS_MULTI_USER).
+    const owner = userSession || 'default';
+    if (scope && wf) return `${owner}/${scope}/${wf}`;
+    if (scope)      return `${owner}/${scope}/default`;
+    if (wf)         return `${owner}/${wf}`;
+    return `${owner}/default`;
   }
 
   async function refreshSessionState(session, hydrateConversation = true, opts = {}) {
