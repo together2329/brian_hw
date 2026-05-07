@@ -1020,7 +1020,7 @@ def create_app():
     async def api_todos():
         # Prefer the live tracker the agent is mutating in main.py — that's
         # the only way to see in-progress changes before they hit disk. Fall
-        # back to TodoTracker.load() if main hasn't initialized one yet.
+        # back to the on-disk file if main hasn't initialized one yet.
         try:
             import main as _main  # noqa: WPS433
             live = getattr(_main, "todo_tracker", None)
@@ -1028,28 +1028,44 @@ def create_app():
                 return JSONResponse(live.to_dict())
         except Exception:
             pass
+        # On-disk fallback. Two persistence paths exist in this repo:
+        #   1. <PROJECT_ROOT>/current_todos.json    (relative TODO_FILE,
+        #                                            agent's actual writes)
+        #   2. ~/.common_ai_agent/current_todos.json (HOME default for
+        #                                            stand-alone scripts)
+        # When `import config` succeeds at module load, TodoTracker module
+        # caches TODO_FILE as Path("current_todos.json") — relative — and
+        # whether `.exists()` resolves depends on the server's cwd at
+        # request time. Resolve them *both* explicitly so the panel never
+        # silently falls through to "no todos" when the file is right
+        # there in PROJECT_ROOT.
         try:
+            import json as _json
             from lib.todo_tracker import TodoTracker
-            tt = TodoTracker.load()
-            # If the on-disk file is in the legacy array shape (`[{...}]`),
-            # to_dict() returns {todos: []}; try parsing the array directly.
+            candidates = [
+                PROJECT_ROOT / "current_todos.json",
+                Path.home() / ".common_ai_agent" / "current_todos.json",
+            ]
+            picked = next((p for p in candidates if p.exists()), None)
+            if picked is None:
+                return JSONResponse({"todos": []})
+            tt = TodoTracker.load(picked)
             d = tt.to_dict()
-            if not d.get("todos"):
-                import json as _json
-                p = Path("current_todos.json")
-                if p.exists():
-                    try:
-                        raw = _json.loads(p.read_text())
-                        if isinstance(raw, list):
-                            d = {"todos": [
-                                {"content": t.get("content", ""),
-                                 "status": t.get("status", "pending"),
-                                 "priority": t.get("priority", ""),
-                                 "detail": t.get("detail", "")}
-                                for t in raw if isinstance(t, dict)
-                            ]}
-                    except Exception:
-                        pass
+            if d.get("todos"):
+                return JSONResponse(d)
+            # Legacy array shape: `[{...}]` instead of `{"todos": [...]}`.
+            try:
+                raw = _json.loads(picked.read_text())
+                if isinstance(raw, list):
+                    d = {"todos": [
+                        {"content": t.get("content", ""),
+                         "status": t.get("status", "pending"),
+                         "priority": t.get("priority", ""),
+                         "detail": t.get("detail", "")}
+                        for t in raw if isinstance(t, dict)
+                    ]}
+            except Exception:
+                pass
             return JSONResponse(d)
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)

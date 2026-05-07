@@ -44,28 +44,12 @@ const StatusBar = ({ ctx, hints }) => (
 );
 
 const TitleBar = ({ ip, screen, onScreen }) => {
-  // Show the actual python cwd (set by /healthz), abbreviated with ~
-  // when it sits under $HOME. Falls back to "—" until the first
-  // healthz response lands. workspace/ip id is already shown by the
-  // ip_id <select> in the .dir-switcher, so no need to repeat it here;
-  // and the screen toggle ("Chat" NavTab) duplicates the
-  // ⌂ Workspace button up there too — both removed for a cleaner bar.
-  const rawCwd = (window.CONTEXT && window.CONTEXT.cwd) || '';
-  let cwd = rawCwd;
-  if (rawCwd) {
-    const homeGuess = rawCwd.match(/^\/Users\/[^\/]+/);
-    if (homeGuess && rawCwd.startsWith(homeGuess[0])) {
-      cwd = '~' + rawCwd.slice(homeGuess[0].length);
-    }
-  }
+  // Minimal title bar: just the live-status dot + product name.
+  // workspace/ip id, cwd, screen toggle all live in .dir-switcher.
   return (
     <div className="titlebar">
       <span className="tb-dot" />
       <span><b>ATLAS</b></span>
-      <span className="tb-pipe">│</span>
-      <span className="tb-item" title={rawCwd}>
-        cwd: <b>{cwd || '—'}</b>
-      </span>
       <span className="tb-spacer" />
     </div>
   );
