@@ -449,8 +449,7 @@ const App = () => {
                 onClick={stopAgent}>■ Stop · Esc</button>
         <button className="dir-btn"
                 title="Shut down the Python server and close this tab  (Ctrl/⌘+Q)"
-                onClick={exitAll}
-                style={{ borderColor: '#f85149', color: '#f85149' }}>✕ Exit · ⌃Q</button>
+                onClick={exitAll}>✕ Exit · ⌃Q</button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         <TitleBar ip="" screen={screen} onScreen={setScreen} />
