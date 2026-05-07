@@ -54,7 +54,11 @@ const App = () => {
   const [dir, setDir] = React.useState('A');     // 'A' = Console, 'B' = Workbench
   const [theme, setTheme] = React.useState('dark');
   const [uiLang, setUiLang] = React.useState(() => {
-    try { return localStorage.getItem('atlasUiLang') === 'ko' ? 'ko' : 'en'; }
+    try {
+      const saved = localStorage.getItem('atlasUiLang');
+      const explicit = localStorage.getItem('atlasUiLangUserSet') === '1';
+      return explicit && saved === 'ko' ? 'ko' : 'en';
+    }
     catch (_) { return 'en'; }
   });
   const [fontMode, setFontMode] = React.useState(() => {
@@ -80,6 +84,10 @@ const App = () => {
   React.useEffect(() => {
     try { localStorage.setItem('atlasFontScale', fontScale); } catch (_) {}
   }, [fontScale]);
+  const chooseUiLang = React.useCallback((next) => {
+    setUiLang(next === 'ko' ? 'ko' : 'en');
+    try { localStorage.setItem('atlasUiLangUserSet', '1'); } catch (_) {}
+  }, []);
   const TOP_WORKFLOWS = React.useMemo(() => new Set([
     'architect', 'coverage', 'fl-model-gen', 'goal-audit', 'lint',
     'mas-gen', 'rtl-gen', 'signoff', 'sim', 'sim_debug', 'ssot-gen', 'tb-gen',
@@ -215,24 +223,33 @@ const App = () => {
       if (r.ok) {
         const d = await r.json();
         for (const row of (Array.isArray(d.sessions) ? d.sessions : [])) {
-          const parsed = splitSessionNamespace(row && row.session);
+          const raw = (row && row.session) || '';
+          const segments = String(raw).split('/').filter(Boolean);
+          const parsed = splitSessionNamespace(raw);
           if (parsed.sessionId) nextSessionIds.add(parsed.sessionId);
+          // Only surface an IP if the on-disk namespace explicitly
+          // names an owner (i.e. 3-segment <owner>/<ip>/<wf>). Legacy
+          // 2-segment <ip>/<wf> trees parse to {sessionId:'default'},
+          // and pre-owner backends used to drop bare-IP dirs that
+          // still linger on disk; we don't want them in *this* user's
+          // dropdown. Also require the parsed owner to match the
+          // current user_session — backend is per-user (operator runs
+          // one process per user), so cross-owner pollution is noise.
+          if (segments.length < 3) continue;
+          if (parsed.sessionId !== currentUserSession && parsed.sessionId !== 'default') continue;
           if (acceptIp(parsed.ipId)) nextIps.add(parsed.ipId);
         }
       }
     } catch (_) {}
-    try {
-      const r = await fetch('/api/soc', { cache: 'no-store' });
-      if (r.ok) {
-        const d = await r.json();
-        for (const c of (Array.isArray(d.clusters) ? d.clusters : [])) {
-          for (const m of (Array.isArray(c.modules) ? c.modules : [])) {
-            const ip = normalizeSession(m && (m.ip_dir || m.id || m.name));
-            if (ip && !ip.includes('/')) nextIps.add(ip);
-          }
-        }
-      }
-    } catch (_) {}
+    // Don't seed ipOptions from /api/soc anymore. /api/soc rglobs the
+    // whole project root for `*.ssot.yaml` (Tier 2 fallback) and walks
+    // `.session/**/ssot-gen/state.json`, so leftover scaffold dirs like
+    // `i2c/yaml/i2c.ssot.yaml` or legacy bare `.session/i2c/` show up
+    // forever — even after the user "starts from scratch". The
+    // dropdown is for "IPs the current backend's session tree knows
+    // about" — let /api/session/list (per-owner namespace walk) be the
+    // single source of truth, and let createIp() seed locally for
+    // brand-new IPs that don't have a .session/<owner>/<ip>/ tree yet.
 
     const liveNamespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace) || namespaceFor(currentUserSession, activeIp, currentWorkflow());
     const parsedLive = splitSessionNamespace(liveNamespace);
@@ -308,7 +325,16 @@ const App = () => {
   };
 
   const newSessionId = () => {
-    const owner = `u-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const raw = window.prompt(
+      'New session_id (letters/digits/_-, e.g. brian or u-team-a):',
+      ''
+    );
+    if (!raw) return;
+    const owner = normalizeSession(raw);
+    if (!owner) {
+      window.alert('Invalid session_id. Use only [A-Za-z0-9_.-].');
+      return;
+    }
     setSessionIdOptions(prev => Array.from(new Set([owner].concat(prev || []))));
     const wf = activeIp ? currentWorkflow() : '';
     activateNamespace(owner, activeIp, wf, !!wf);
@@ -496,10 +522,10 @@ const App = () => {
         <span style={{ width: 12 }} />
         <button className={`dir-btn ${uiLang === 'ko' ? 'active' : ''}`}
                 title="Prefer Korean for visible agent output"
-                onClick={() => setUiLang('ko')}>한국어</button>
+                onClick={() => chooseUiLang('ko')}>한국어</button>
         <button className={`dir-btn ${uiLang === 'en' ? 'active' : ''}`}
                 title="Prefer English for visible agent output"
-                onClick={() => setUiLang('en')}>English</button>
+                onClick={() => chooseUiLang('en')}>English</button>
         <label className="dir-select-wrap" title="Change UI font family">
           <span>font</span>
           <select
@@ -541,7 +567,7 @@ const App = () => {
                 title="Shut down the Python server and close this tab  (Ctrl/⌘+Q)"
                 onClick={exitAll}>✕ Exit</button>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="app-main">
         <TitleBar ip="" screen={screen} onScreen={setScreen} />
         <div style={{ flex: 1, overflow: 'hidden' }}>
           {screen === 'architect' && window.SocArchitect

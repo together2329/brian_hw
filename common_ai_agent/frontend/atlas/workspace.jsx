@@ -1685,6 +1685,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             <span className="mute">›</span>
             <input
               type="text"
+              // key forces a remount whenever SCOPE_PATH changes
+              // externally (e.g. selecting a different ip_id from the
+              // top dir-switcher), so the uncontrolled input picks up
+              // the new defaultValue. Without this, picking IP=spi
+              // would leave the input still showing the previous IP's
+              // dir, even though window.SCOPE_PATH already updated.
+              key={window.SCOPE_PATH || '__root__'}
               defaultValue={window.SCOPE_PATH || ''}
               placeholder={
                 window.CONTEXT && window.CONTEXT.projectRoot

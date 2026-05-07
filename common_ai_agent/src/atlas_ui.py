@@ -3547,7 +3547,21 @@ def create_app():
             session_root = PROJECT_ROOT / ".session"
             if session_root.is_dir():
                 for state_path in session_root.rglob("ssot-gen/state.json"):
-                    ip_name = state_path.parent.parent.name
+                    # Only accept owner-scoped trees:
+                    #     .session/<owner>/<ip>/ssot-gen/state.json   (4 parts)
+                    # Legacy bare-IP layouts written by pre-owner
+                    # backends:
+                    #     .session/<ip>/ssot-gen/state.json           (3 parts)
+                    # used to leak ip_name = '<ip>' into the SoC view
+                    # forever, even after the user wiped that owner
+                    # from disk. Skip anything shorter than 4 segments.
+                    try:
+                        rel_parts = state_path.relative_to(session_root).parts
+                    except Exception:
+                        continue
+                    if len(rel_parts) != 4 or rel_parts[2] != "ssot-gen":
+                        continue
+                    ip_name = rel_parts[1]
                     if ip_name in seen_ids or not _valid_ip_name(ip_name):
                         continue
                     try:
