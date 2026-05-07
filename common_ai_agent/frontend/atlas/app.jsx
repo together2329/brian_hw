@@ -260,6 +260,15 @@ const App = () => {
     activateNamespace(activeSessionId, ip, wf, !!wf);
   };
 
+  // Switch workflow segment of the active namespace. Empty string falls
+  // back to 'default' (no /wf dispatch). Anything in TOP_WORKFLOWS fires
+  // /wf to swap the agent's workspace just like clicking a chip in the
+  // Workspace screen — keeps the dir-switcher source-of-truth.
+  const selectWorkflow = (rawWf) => {
+    const wf = normalizeSession(rawWf);
+    activateNamespace(activeSessionId, activeIp, wf, !!wf);
+  };
+
   const newSessionId = () => {
     const owner = `u-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
     setSessionIdOptions(prev => Array.from(new Set([owner].concat(prev || []))));
@@ -387,6 +396,18 @@ const App = () => {
             onChange={e => selectIp(e.currentTarget.value)}>
             <option value="">default</option>
             {ipOptions.map(ip => <option key={ip} value={ip}>{ip}</option>)}
+          </select>
+        </label>
+        <label className="dir-select-wrap" title="Active workflow segment of the session namespace. Picking one fires /wf and re-pins config.TODO_FILE accordingly.">
+          <span>workflow</span>
+          <select
+            className="dir-select"
+            value={currentWorkflow() || ''}
+            onChange={e => selectWorkflow(e.currentTarget.value)}>
+            <option value="">default</option>
+            {Array.from(TOP_WORKFLOWS).sort().map(wf => (
+              <option key={wf} value={wf}>{wf}</option>
+            ))}
           </select>
         </label>
         <button className="dir-btn"
