@@ -226,29 +226,80 @@ def get_rate_limiter() -> _RateLimiter:
     return _rate_limiter
 
 
-def _is_reasoning_model() -> bool:
-    """Heuristic: does the current model produce reasoning/thinking tokens?"""
-    name = getattr(config, 'MODEL_NAME', '').lower()
-    # All GPT-5.x models (including codex) support reasoning
-    if name.startswith('gpt-5'):
+def _reasoning_keyword_match(name: str) -> bool:
+    """Pure substring heuristic — no env-aware fallbacks.
+
+    Substring (not prefix) match so vendor/deployment aliases like
+    ``sol-soc-gpt-5.4`` or ``proxy/openai/gpt-5.1`` still resolve to
+    the embedded base-model family.
+    """
+    if not name:
+        return False
+    n = name.lower()
+    if '/' in n:
+        n = n.split('/')[-1]
+    # GPT-5.x family — substring match catches `gpt-5.4`, `gpt5-codex`,
+    # `sol-soc-gpt-5.4`, `prod-gpt5-1`, etc.
+    if 'gpt-5' in n or 'gpt5' in n:
         return True
-    return any(k in name for k in ('glm', 'deepseek', 'qwq', 'r1', 'reasoning', 'o1', 'o3', 'o4'))
+    # Codex variants (gpt-4-turbo-codex, gpt-4.5-codex, etc.)
+    if 'gpt' in n and 'codex' in n:
+        return True
+    # Other known reasoning families
+    return any(k in n for k in ('glm', 'deepseek', 'qwq', 'r1', 'reasoning', 'o1', 'o3', 'o4'))
+
+
+def _reasoning_env_override() -> bool:
+    """Treat the model as reasoning-capable when the operator has
+    explicitly opted in via env. Covers Azure deployments where the
+    deployment name (e.g. ``prod-router``) doesn't match any keyword.
+
+    True when ANY of these is set:
+      • REASONING_FORCE=true              — explicit force flag
+      • LLM_BASE_MODEL=<reasoning-model>  — points the heuristic at the
+                                            real base model behind a
+                                            deployment alias
+      • LLM_PROVIDER=azure AND
+        REASONING_MODE / REASONING_EFFORT in (low, medium, high)
+        — Azure user wired the knob, treat that as a request to enable
+    """
+    import os as _os
+    if _os.getenv('REASONING_FORCE', '').strip().lower() in ('1', 'true', 'yes'):
+        return True
+    base = _os.getenv('LLM_BASE_MODEL', '').strip()
+    if base and _reasoning_keyword_match(base):
+        return True
+    provider = (getattr(config, 'LLM_PROVIDER', '') or '').lower()
+    if provider == 'azure':
+        mode = (getattr(config, 'REASONING_MODE', None)
+                or getattr(config, 'REASONING_EFFORT', '')
+                or _os.getenv('REASONING_MODE', '')
+                or _os.getenv('REASONING_EFFORT', ''))
+        if str(mode or '').lower() in ('low', 'medium', 'high'):
+            return True
+    return False
+
+
+def _is_reasoning_model() -> bool:
+    """Heuristic: does the current model produce reasoning/thinking tokens?
+
+    Honors LLM_BASE_MODEL / Azure-with-reasoning-mode / REASONING_FORCE
+    so deployment aliases (e.g. ``prod-router``) still light up reasoning
+    when the operator configured it.
+    """
+    if _reasoning_keyword_match(getattr(config, 'MODEL_NAME', '')):
+        return True
+    return _reasoning_env_override()
 
 
 def _is_reasoning_model_for_name(name: str) -> bool:
-    """Check if a specific model name produces reasoning tokens (for Responses API)."""
-    name = (name or '').lower()
-    # Strip provider prefix (e.g., "openai/gpt-5.4" → "gpt-5.4")
-    if '/' in name:
-        name = name.split('/')[-1]
-    # All GPT-5.x models support reasoning in Responses API
-    if name.startswith('gpt-5'):
+    """Same heuristic as ``_is_reasoning_model`` but pinned to a specific
+    name (used by the Responses API path which receives the resolved
+    deployment/model name per call).
+    """
+    if _reasoning_keyword_match(name):
         return True
-    # Codex models also support reasoning (gpt-4-turbo-codex, gpt-4.5-codex, etc.)
-    if 'gpt' in name and 'codex' in name:
-        return True
-    # Other reasoning models
-    return any(k in name for k in ('glm', 'deepseek', 'qwq', 'r1', 'reasoning', 'o1', 'o3', 'o4'))
+    return _reasoning_env_override()
 
 
 def _is_openai_gpt_model(model_name: str = None) -> bool:
