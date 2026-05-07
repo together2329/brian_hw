@@ -16,6 +16,7 @@ import argparse
 import ast
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import sys
@@ -131,11 +132,12 @@ def _sv_width_cast(width: int, expr: str) -> str:
     width = max(width, 1)
     if width == 1:
         return _rtl_bool(text)
-    if re.fullmatch(rf"{width}'\(.+\)", text):
-        return text
+    cast_match = re.fullmatch(r"[0-9]+'\((.+)\)", text)
+    if cast_match:
+        return f"({cast_match.group(1)})"
     if re.fullmatch(rf"{width}'[hHdDbB][0-9a-fA-F_xXzZ]+", text):
         return text
-    return f"{width}'({text})"
+    return f"({text})"
 
 
 def _int_value(value, default: int = 0) -> int:
@@ -2114,11 +2116,37 @@ def _sv_int_literal(width: int, value: object) -> str:
     return f"{width}'d{parsed & mask}"
 
 
-def _sv_port_decl(port: dict) -> str:
+def _rtl_dialect(doc: dict | None = None) -> str:
+    values: list[object] = []
+    if isinstance(doc, dict):
+        synthesis = doc.get("synthesis")
+        coding_rules = doc.get("coding_rules")
+        if isinstance(synthesis, dict):
+            values.append(synthesis.get("dialect"))
+        if isinstance(coding_rules, dict):
+            values.append(coding_rules.get("verilog_style"))
+    values.append(os.getenv("RTL_DIALECT", "verilog_2001"))
+    for value in values:
+        dialect = str(value or "").strip().lower()
+        if dialect in {"systemverilog", "systemverilog_2012", "sv"}:
+            return "systemverilog_2012"
+        if dialect in {"verilog", "verilog_2001", "v2k"}:
+            return "verilog_2001"
+    return "verilog_2001"
+
+
+def _sv_port_decl(port: dict, procedural_outputs: set[str] | None = None, *, sv_syntax: bool = False) -> str:
     direction = str(port.get("direction") or "input").lower()
     if direction not in {"input", "output", "inout"}:
         direction = "input"
-    return f"{direction} logic {_sv_range(_port_width(port))}{port['name']}"
+    if sv_syntax:
+        return f"{direction} logic {_sv_range(_port_width(port))}{port['name']}"
+    name = str(port["name"])
+    if direction == "output" and name in (procedural_outputs or set()):
+        net_type = "reg"
+    else:
+        net_type = "wire"
+    return f"{direction} {net_type} {_sv_range(_port_width(port))}{name}"
 
 
 def _sv_marker_names(doc: dict, contract: dict) -> list[str]:
@@ -2155,6 +2183,10 @@ def _sv_marker_names(doc: dict, contract: dict) -> list[str]:
 def _generic_rule_rtl_source(ip: str, top: str, ports: list[dict], contract: dict, doc: dict) -> str:
     by_name = {p["name"]: p for p in ports}
     output_ports = {p["name"] for p in ports if str(p.get("direction") or "").lower() == "output"}
+    sv_syntax = _rtl_dialect(doc) == "systemverilog_2012"
+    net_keyword = "logic" if sv_syntax else "wire"
+    reg_keyword = "logic" if sv_syntax else "reg"
+    always_keyword = "always_ff" if sv_syntax else "always"
     clock = _ident(contract.get("clock") or "clk")
     reset = _ident(contract.get("reset") or "rst_n")
     reset_active = str(contract.get("reset_active") or "low").lower()
@@ -2168,50 +2200,6 @@ def _generic_rule_rtl_source(ip: str, top: str, ports: list[dict], contract: dic
     state_updates = [item for item in contract.get("state_updates") or [] if isinstance(item, dict)]
     output_rules = [item for item in contract.get("outputs") or [] if isinstance(item, dict)]
     marker_names = _sv_marker_names(doc, contract)
-
-    declared_internal: set[str] = set()
-    lines: list[str] = [
-        "`default_nettype none",
-        f"module {top} (",
-    ]
-    for idx, port in enumerate(ports):
-        suffix = "," if idx < len(ports) - 1 else ""
-        lines.append(f"    {_sv_port_decl(port)}{suffix}")
-    lines += [
-        ");",
-        "",
-    ]
-
-    for name, spec in sorted(state_vars.items()):
-        state_name = _ident(name)
-        if state_name in output_ports:
-            continue
-        width = max(_int_value((spec or {}).get("width"), 32) if isinstance(spec, dict) else 32, 1)
-        lines.append(f"    logic {_sv_range(width)}{state_name};")
-        declared_internal.add(state_name)
-    if state_vars:
-        lines.append("")
-
-    marker_terms: list[str] = []
-    for marker in marker_names:
-        wire = f"ssot_{marker}_marker"
-        lines.append(f"    logic {wire};")
-        lines.append(f"    assign {wire} = 1'b1;")
-        marker_terms.append(wire)
-    if marker_terms:
-        lines.append("")
-
-    lines.append("    logic ssot_requirements_guard;")
-    guard_expr = " && ".join(["1'b1", *marker_terms])
-    lines.append(f"    assign ssot_requirements_guard = {guard_expr};")
-    lines.append("")
-    lines.append("    logic sample_fire;")
-    sample_condition = str(contract.get("sample_condition") or "1'b1")
-    lines.append(f"    assign sample_fire = {_rtl_bool(sample_condition)} && ssot_requirements_guard;")
-    if ready_port:
-        lines.append("    logic ready_live;")
-        lines.append("    assign ready_live = sample_fire || !sample_fire;")
-    lines.append("")
 
     driven: set[str] = set()
     for item in output_rules:
@@ -2227,7 +2215,51 @@ def _generic_rule_rtl_source(ip: str, top: str, ports: list[dict], contract: dic
     if valid_port:
         driven.add(valid_port)
 
-    lines.append(f"    always_ff @(posedge {clock} or {reset_edge} {reset}) begin")
+    declared_internal: set[str] = set()
+    lines: list[str] = [
+        "`default_nettype none",
+        f"module {top} (",
+    ]
+    for idx, port in enumerate(ports):
+        suffix = "," if idx < len(ports) - 1 else ""
+        lines.append(f"    {_sv_port_decl(port, driven, sv_syntax=sv_syntax)}{suffix}")
+    lines += [
+        ");",
+        "",
+    ]
+
+    for name, spec in sorted(state_vars.items()):
+        state_name = _ident(name)
+        if state_name in output_ports:
+            continue
+        width = max(_int_value((spec or {}).get("width"), 32) if isinstance(spec, dict) else 32, 1)
+        lines.append(f"    {reg_keyword} {_sv_range(width)}{state_name};")
+        declared_internal.add(state_name)
+    if state_vars:
+        lines.append("")
+
+    marker_terms: list[str] = []
+    for marker in marker_names:
+        wire = f"ssot_{marker}_marker"
+        lines.append(f"    {net_keyword} {wire};")
+        lines.append(f"    assign {wire} = 1'b1;")
+        marker_terms.append(wire)
+    if marker_terms:
+        lines.append("")
+
+    lines.append(f"    {net_keyword} ssot_requirements_guard;")
+    guard_expr = " && ".join(["1'b1", *marker_terms])
+    lines.append(f"    assign ssot_requirements_guard = {guard_expr};")
+    lines.append("")
+    lines.append(f"    {net_keyword} sample_fire;")
+    sample_condition = str(contract.get("sample_condition") or "1'b1")
+    lines.append(f"    assign sample_fire = {_rtl_bool(sample_condition)} && ssot_requirements_guard;")
+    if ready_port:
+        lines.append(f"    {net_keyword} ready_live;")
+        lines.append("    assign ready_live = sample_fire || !sample_fire;")
+    lines.append("")
+
+    lines.append(f"    {always_keyword} @(posedge {clock} or {reset_edge} {reset}) begin")
     lines.append(f"        if ({reset_test}) begin")
     for item in output_rules:
         port = _ident(item.get("port") or item.get("name") or "")

@@ -4816,11 +4816,12 @@ def set_record_ssot_qa_callback(cb):
 def scaffold_ip(name=None, root="."):
     """Create the canonical IP directory layout in the project root.
 
-    File extensions and port placeholders follow `config.RTL_DIALECT`:
-      • verilog_2001 (default) → .v files, `input wire clk` / `reg`
+    Port placeholders follow `config.RTL_DIALECT`; file extension follows
+    `config.RTL_FILE_EXT` and defaults to .sv by project convention:
+      • verilog_2001 (default) → .sv files, `input wire clk` / `reg`
       • systemverilog_2012     → .sv files, `input logic clk` / `logic`
 
-    Layout (under `<root>/<name>/`, ext = .v or .sv):
+    Layout (under `<root>/<name>/`, ext = .sv unless RTL_FILE_EXT overrides):
         yaml/<name>.ssot.yaml         # Single Source of Truth
         rtl/<name>.<ext>              # top-level RTL
         list/<name>.f                 # synthesis/sim filelist
@@ -4853,7 +4854,8 @@ def scaffold_ip(name=None, root="."):
     import sys as __sys
     _cfg = __sys.modules.get('config') or __sys.modules.get('src.config')
     _dialect = getattr(_cfg, 'RTL_DIALECT', 'verilog_2001') if _cfg else 'verilog_2001'
-    _ext = '.v' if _dialect == 'verilog_2001' else '.sv'
+    _ext = getattr(_cfg, 'RTL_FILE_EXT', '.sv') if _cfg else '.sv'
+    _ext = _ext if _ext in ('.v', '.sv') else '.sv'
     _port_kw = 'wire' if _dialect == 'verilog_2001' else 'logic'
 
     base = os.path.abspath(os.path.join(root, name))
